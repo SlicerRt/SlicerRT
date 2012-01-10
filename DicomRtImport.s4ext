@@ -1,0 +1,28 @@
+#
+# DICOM RT Import module - project by Csaba Pinter, Andras Lasso, Kevin Wang
+# of Queen's University, Kingston, ON and UHN Toronto, ON
+#
+scm       svn
+svnpath   https://subversion.assembla.com/svn/sparkit/trunk/SlicerRt/src/DicomRtImport
+svnusername anonymous
+svnpassword ""
+
+# list dependencies
+# - These should be names of other modules that have .s4ext files
+# - The dependencies will be built first
+depends     
+
+#cmakeproject DicomRtImport
+
+# homepage
+homepage    https://www.assembla.com/spaces/sparkit/wiki/SlicerRt
+
+# Match category in the xml description of the module (where it shows up in Modules menu)
+#category    Hidden
+
+# Give people an idea what to expect from this code 
+#  - Is it just a test or something you stand behind?
+status      Beta
+
+# One line stating what the module does
+description Plugin module for DICOM module that allows DICOM RT data import
