@@ -3,22 +3,20 @@
 # of Queen's University, Kingston, ON and UHN Toronto, ON
 #
 scm       svn
-svnpath   https://subversion.assembla.com/svn/sparkit/trunk/SlicerRt/src/DicomRtImport
+scmurl    https://subversion.assembla.com/svn/sparkit/trunk/SlicerRt/src/DicomRtImport
 svnusername anonymous
 svnpassword ""
 
 # list dependencies
 # - These should be names of other modules that have .s4ext files
 # - The dependencies will be built first
-depends     
-
-#cmakeproject DicomRtImport
+depends NA
 
 # homepage
 homepage    https://www.assembla.com/spaces/sparkit/wiki/SlicerRt
 
 # Match category in the xml description of the module (where it shows up in Modules menu)
-#category    Hidden
+category    Hidden
 
 # Give people an idea what to expect from this code 
 #  - Is it just a test or something you stand behind?
