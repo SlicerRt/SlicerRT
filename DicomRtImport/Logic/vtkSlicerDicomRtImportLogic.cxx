@@ -25,7 +25,7 @@
 // MRML includes
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLFiducial.h>
+#include <vtkMRMLFiducialListNode.h>
 #include <vtkMRMLVolumeNode.h>
 
 // VTK includes
@@ -119,14 +119,16 @@ bool vtkSlicerDicomRtImportLogic
 		//polyWriter->Delete();
 		if (poly->GetNumberOfPoints() == 1)
 		{
-			//vtkSmartPointer<vtkMRMLFiducial> fnode =
-			//	vtkSmartPointer<vtkMRMLFiducial>::New();
-			//fnode->SetVisibility(1);
-			//double point[3];
-			//point = poly->GetPoint(0);
-			//fnode->SetXYZ(point);
-			//fnode->SetID(rtReader->GetROIName(i+1));
-			//fnode->SetLabelText(rtReader->GetROIName(i+1));
+			double p[3];
+			double *point = p;
+			point = poly->GetPoint(0);
+			vtkSmartPointer<vtkMRMLFiducialListNode> fnode =
+				vtkSmartPointer<vtkMRMLFiducialListNode>::New();
+			fnode->AddFiducial();
+			fnode->SetNthFiducialXYZ(0,point[0],point[1],point[2]);
+			fnode->SetNthFiducialID(0,rtReader->GetROIName(i+1));
+			fnode->SetNthFiducialLabelText(0,rtReader->GetROIName(i+1));
+			fnode->SetVisibility(1);
 
 			/*
 			vtkMRMLColorTableNode* cnode = 0;
@@ -145,8 +147,8 @@ bool vtkSlicerDicomRtImportLogic
 			}
 			*/
 
-			//fnode = vtkMRMLFiducial::SafeDownCast(
-			//	this->GetMRMLScene()->AddNode(fnode));
+			fnode = vtkMRMLFiducialListNode::SafeDownCast(
+				this->GetMRMLScene()->AddNode(fnode));
 			////Q_ASSERT(dnode);
 
 			
@@ -169,6 +171,7 @@ bool vtkSlicerDicomRtImportLogic
 			hnode->SetAndObservePolyData(poly);
 			hnode->SetName(rtReader->GetROIName(i+1));
 
+			//vtkMRMLColorTableNode* cnode = 0;
 			/*
 			vtkMRMLColorTableNode* cnode = 0;
 			if (node.contains("color"))
@@ -185,6 +188,8 @@ bool vtkSlicerDicomRtImportLogic
 			}
 			}
 			*/
+			double *color = rtReader->GetROIDisplayColor(i+1);
+			dnode->SetColor(color[0], color[1], color[2]);
 
 			dnode = vtkMRMLModelDisplayNode::SafeDownCast(
 				this->GetMRMLScene()->AddNode(dnode));

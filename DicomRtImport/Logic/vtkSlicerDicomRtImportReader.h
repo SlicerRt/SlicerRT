@@ -63,6 +63,9 @@ public:
   char* GetROIName(int ROINumber);
 
   //
+  double* GetROIDisplayColor(int ROINumber);
+
+  //
   vtkPolyData* GetROI(int ROINumber);
 
   //
@@ -78,6 +81,7 @@ public:
   public:
 	  int ROINumber;
 	  char *ROIName;
+	  double ROIDisplayColor[3];
 	  vtkPolyData* ROIPolyData;
   };
   //ETX

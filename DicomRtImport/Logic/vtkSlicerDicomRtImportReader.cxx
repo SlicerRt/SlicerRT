@@ -26,6 +26,8 @@
 #include "vtkPolyData.h"
 #include "vtkPoints.h"
 #include "vtkCellArray.h"
+#include "vtkRibbonFilter.h"
+#include "vtkSmartPointer.h"
 
 // STD includes
 #include <cassert>
@@ -63,6 +65,7 @@ vtkSlicerDicomRtImportReader::~vtkSlicerDicomRtImportReader()
 	{
 		for(unsigned int i=0; i< ROIContourSequenceVector.size();i++)
 		{
+			delete this->ROIContourSequenceVector[i]->ROIName;
 			this->ROIContourSequenceVector[i]->ROIPolyData->Delete();
 			delete this->ROIContourSequenceVector[i];
 		}
@@ -205,6 +208,34 @@ void vtkSlicerDicomRtImportReader::LoadRTStructureSet(DcmDataset &dataset)
     }
     cout << OFendl;
 
+		DRTStructureSetROISequence &rtStructureSetROISequenceObject = rtStructureSetObject.getStructureSetROISequence();
+		if (rtStructureSetROISequenceObject.gotoFirstItem().good())
+		{
+			do
+			{
+				DRTStructureSetROISequence::Item &currentROISequenceObject = rtStructureSetROISequenceObject.getCurrentItem();
+				if (currentROISequenceObject.isValid())
+				{
+					OFString ROIName;
+					OFString ROIDescription;
+					currentROISequenceObject.getROIName(ROIName);
+					currentROISequenceObject.getROIDescription(ROIDescription);
+					
+					Sint32 ROINumber;
+					currentROISequenceObject.getROINumber(ROINumber);
+					cout << "roi number:" << ROINumber << " roi name:" << ROIName << " roi description:" << ROIDescription << OFendl;
+					// add into vector
+					ROIStructureSetEntry* tempEntry = new ROIStructureSetEntry();
+					tempEntry->ROIName = new char[ROIName.size()+1];
+					strcpy(tempEntry->ROIName, ROIName.c_str());
+					tempEntry->ROINumber = ROINumber;
+					ROIContourSequenceVector.push_back(tempEntry);
+				}
+			} while (rtStructureSetROISequenceObject.gotoNextItem().good());
+		}
+        cout << OFendl;
+
+
     Sint32 referenceROINumber;
     DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
     if (rtROIContourSequenceObject.gotoFirstItem().good())
@@ -271,6 +302,38 @@ void vtkSlicerDicomRtImportReader::LoadRTStructureSet(DcmDataset &dataset)
           tempCellArray->Delete();
           //tempPolyData->PrintSelf(cout, (vtkIndent)3);
 
+					// convert to ribbon using vtkRibbonFilter
+					vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
+					ribbonFilter->SetInput(tempPolyData);
+					ribbonFilter->SetDefaultNormal(0,0,1);
+					ribbonFilter->SetWidth(0.1);
+					ribbonFilter->SetAngle(90);
+					ribbonFilter->UseDefaultNormalOn();
+					ribbonFilter->Update();
+
+					tempPolyData->Delete();
+
+					for (unsigned int i=0; i<this->ROIContourSequenceVector.size();i++)
+					{
+						if (referenceROINumber == this->ROIContourSequenceVector[i]->ROINumber)
+						{
+							this->ROIContourSequenceVector[i]->ROIPolyData = ribbonFilter->GetOutput();
+							this->ROIContourSequenceVector[i]->ROIPolyData->Register(0);
+
+							Sint32 ROIDisplayColor;
+							for (int j=0; j<3; j++)
+							{
+								currentROIObject.getROIDisplayColor(ROIDisplayColor,j);
+								this->ROIContourSequenceVector[i]->ROIDisplayColor[j] = ROIDisplayColor/255.0;
+							}
+						}
+					}
+
+
+				} // if valid
+			} while (rtROIContourSequenceObject.gotoNextItem().good());
+		} // if gotofirstitem
+
           for (unsigned int i=0; i<this->ROIContourSequenceVector.size();i++)
           {
             if (referenceROINumber == this->ROIContourSequenceVector[i]->ROINumber)
@@ -331,4 +394,20 @@ vtkPolyData* vtkSlicerDicomRtImportReader::GetROI(int ROINumber)
 	return this->ROIContourSequenceVector[id]->ROIPolyData;
 }
 
-
+//----------------------------------------------------------------------------
+double* vtkSlicerDicomRtImportReader::GetROIDisplayColor(int ROINumber)
+{
+	int id=-1;
+	for (unsigned int i=0; i<this->ROIContourSequenceVector.size(); i++)
+	{
+		if (this->ROIContourSequenceVector[i]->ROINumber == ROINumber)
+		{
+			id = i;
+		}
+	}
+	if ( id == -1)
+	{
+		return NULL;
+	}
+	return this->ROIContourSequenceVector[id]->ROIDisplayColor;
+}
