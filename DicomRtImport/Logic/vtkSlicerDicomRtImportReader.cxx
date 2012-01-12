@@ -27,6 +27,7 @@ limitations under the License.
 #include "vtkPoints.h"
 #include "vtkCellArray.h"
 #include "vtkRibbonFilter.h"
+#include "vtkPolyDataNormals.h"
 #include "vtkSmartPointer.h"
 
 // STD includes
@@ -277,11 +278,16 @@ void vtkSlicerDicomRtImportReader::LoadRTStructureSet(DcmDataset &dataset)
 					// convert to ribbon using vtkRibbonFilter
 					vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
 					ribbonFilter->SetInput(tempPolyData);
-					ribbonFilter->SetDefaultNormal(0,0,1);
-					ribbonFilter->SetWidth(0.5);
-					ribbonFilter->SetAngle(90);
+					ribbonFilter->SetDefaultNormal(0,0,-1);
+					ribbonFilter->SetWidth(1.1);
+					ribbonFilter->SetAngle(90.0);
 					ribbonFilter->UseDefaultNormalOn();
 					ribbonFilter->Update();
+
+					vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
+          normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
+					normalFilter->ConsistencyOn();
+					normalFilter->Update();
 
 					tempPolyData->Delete();
 
@@ -289,7 +295,7 @@ void vtkSlicerDicomRtImportReader::LoadRTStructureSet(DcmDataset &dataset)
 					{
 						if (referenceROINumber == this->ROIContourSequenceVector[i]->ROINumber)
 						{
-							this->ROIContourSequenceVector[i]->ROIPolyData = ribbonFilter->GetOutput();
+							this->ROIContourSequenceVector[i]->ROIPolyData = normalFilter->GetOutput();
 							this->ROIContourSequenceVector[i]->ROIPolyData->Register(0);
 
 							Sint32 ROIDisplayColor;
