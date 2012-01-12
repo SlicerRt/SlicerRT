@@ -107,6 +107,21 @@ bool vtkSlicerDicomRtImportLogic
     return false;
   }
 
+  vtkSmartPointer<vtkMRMLFiducialListNode> roiPoints = vtkSmartPointer<vtkMRMLFiducialListNode>::New();  
+  roiPoints->SetLocked(true);
+  roiPoints->SetName("TestRtPointSet");
+  roiPoints->SetDescription("RT ROI points");
+  roiPoints->SetColor(1.0,1.0,0);
+  roiPoints->SetSelectedColor(1.0, 0.0, 0.0);
+  roiPoints->SetGlyphType(vtkMRMLFiducialListNode::Sphere3D);
+  roiPoints->SetOpacity(0.7);
+  roiPoints->SetAllFiducialsVisibility(true);
+  roiPoints->SetSymbolScale(5);
+  roiPoints->SetTextScale(5);    
+  this->GetMRMLScene()->AddNode(roiPoints); 
+
+  int roiPointsModifyOld=fidNode->StartModify();
+
 	for (int i=0;i<numberOfROI; i++)
 	{
 		vtkPolyData* poly = rtReader->GetROI(i+1);
@@ -120,15 +135,13 @@ bool vtkSlicerDicomRtImportLogic
 		if (poly->GetNumberOfPoints() == 1)
 		{
 			double p[3];
-			double *point = p;
+			double *point_LPS = p;
 			point = poly->GetPoint(0);
-			vtkSmartPointer<vtkMRMLFiducialListNode> fnode =
-				vtkSmartPointer<vtkMRMLFiducialListNode>::New();
-			fnode->AddFiducial();
-			fnode->SetNthFiducialXYZ(0,point[0],point[1],point[2]);
-			fnode->SetNthFiducialID(0,rtReader->GetROIName(i+1));
-			fnode->SetNthFiducialLabelText(0,rtReader->GetROIName(i+1));
-			fnode->SetVisibility(1);
+
+      int fiducialIndex = roiPoints->AddFiducialWithXYZ(-point_LPS[0], -point_LPS[1], point[2], false);
+      roiPoints->SetNthFiducialLabelText(fiducialIndex, rtReader->GetROIName(i+1));
+      roiPoints->SetNthFiducialID(fiducialIndex, rtReader->GetROIName(i+1));
+      roiPoints->SetNthFiducialVisibility(fiducialIndex, true);    			
 
 			/*
 			vtkMRMLColorTableNode* cnode = 0;
@@ -215,6 +228,12 @@ bool vtkSlicerDicomRtImportLogic
 
 	}
 	
+  roiPoints->SetVisibility(1);
+  fidNode->EndModify(modifyOld);
+  // StartModify/EndModify discarded vtkMRMLFiducialListNode::FiducialModifiedEvent-s, so we have to resubmit them now
+  fidNode->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL); 
+
+
   return true;
 }
 
