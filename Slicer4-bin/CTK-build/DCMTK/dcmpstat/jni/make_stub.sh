@@ -1,0 +1,9 @@
+#!/bin/sh
+
+JAVA_HOME=/usr/java1.2
+JAVA_JNI_LIB_DIR=.
+JAVA_MAINCLASS=DICOMscope
+OUTFILE=DICOMscope
+
+/usr/java1.2/bin/javald -H $JAVA_HOME -o $OUTFILE -R $JAVA_JNI_LIB_DIR $JAVA_MAINCLASS
+

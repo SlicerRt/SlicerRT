@@ -1,0 +1,51 @@
+#
+#	Makefile for ofstd/tests
+#
+
+@SET_MAKE@
+
+SHELL = /bin/sh
+VPATH = @srcdir@:@top_srcdir@/include:@top_srcdir@/@configdir@/include
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+configdir = @top_srcdir@/@configdir@
+
+include $(configdir)/@common_makefile@
+
+LOCALINCLUDES = -I$(top_srcdir)/include
+LIBDIRS = -L$(top_srcdir)/libsrc
+LOCALLIBS = -lofstd
+LOCALTRASH = *.out
+
+test_objs = tests.o tatof.o tmap.o tvec.o tftoa.o tthread.o tbase64.o \
+            tstring.o tlist.o tstack.o tofdatim.o tofstd.o
+objs = toffile.o $(test_objs)
+progs = toffile tests
+
+
+all: $(progs)
+
+tests: $(test_objs)
+	$(CXX) $(CXXFLAGS) $(LIBDIRS) $(LDFLAGS) -o $@ $(test_objs) $(LOCALLIBS) $(LIBS)
+
+toffile: toffile.o
+	$(CXX) $(CXXFLAGS) $(LIBDIRS) $(LDFLAGS) -o $@ $@.o $(LOCALLIBS) $(MATHLIBS) $(LIBS)
+
+
+check: tests
+	./tests
+
+install: all
+
+
+clean:
+	rm -f $(objs) $(progs) $(LOCALTRASH) $(TRASH)
+
+distclean:
+	rm -f $(objs) $(progs) $(LOCALTRASH) $(DISTTRASH)
+
+
+dependencies:
+	$(CXX) -MM $(defines) $(includes) $(CPPFLAGS) $(CXXFLAGS) *.cc  > $(DEP)
+
+include $(DEP)

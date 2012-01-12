@@ -1,0 +1,201 @@
+/*!
+
+\if MANPAGES
+\page dcmdspfn Export standard display curves to a text file
+\else
+\page dcmdspfn dcmdspfn: Export standard display curves to a text file
+\endif
+
+\section synopsis SYNOPSIS
+
+\verbatim
+dcmdspfn [options]
+\endverbatim
+
+\section description DESCRIPTION
+
+Command line program converts a DCMTK monitor / camera / printer / scanner
+characteristics file to tabbed text file describing the characteristic curve
+(CC), the display function and the post-standardized curve (PSC) for an 8 bit
+display.  The 256 values of each curve can be visualized by a common spread
+sheet program.  Above that the display curve (without CC and PSC) can also be
+computed for a specified luminance/OD range (min/max) and a certain number of
+Device Driving Levels (DDL).
+
+\section parameters PARAMETERS
+
+\verbatim
+dcmfile-in  DICOM input filename to be dumped
+\endverbatim
+
+\section options OPTIONS
+
+\subsection general_options general options
+\verbatim
+  -h   --help
+         print this help text and exit
+
+       --version
+         print version information and exit
+
+       --arguments
+         print expanded command line arguments
+
+  -q   --quiet
+         quiet mode, print no warnings and errors
+
+  -v   --verbose
+         verbose mode, print processing details
+
+  -d   --debug
+         debug mode, print debug information
+
+  -ll  --log-level  [l]evel: string constant
+         (fatal, error, warn, info, debug, trace)
+         use level l for the logger
+
+  -lc  --log-config  [f]ilename: string
+         use config file f for the logger
+\endverbatim
+
+\subsection input_options input options (mutually exclusive)
+\verbatim
+  +Im  --monitor-file  [f]ilename: string
+         text file describing the monitor characteristics
+
+  +Ic  --camera-file  [f]ilename: string
+         text file describing the camera characteristics
+
+  +Ip  --printer-file  [f]ilename: string
+         text file describing the printer characteristics
+
+  +Is  --scanner-file  [f]ilename: string
+         text file describing the scanner characteristics
+
+  +Il  --lum-range  [m]in max: float
+         minimum and maximum luminance (cd/m^2)
+
+  +Io  --od-range  [m]in max: float
+         minimum and maximum optical density (OD),
+         automatically converted to luminance
+\endverbatim
+
+\subsection creation_options creation options
+\verbatim
+  +Ca  --ambient-light  [a]mbient light: float
+         ambient light value (cd/m^2, default: file f)
+
+  +Ci  --illumination  [i]llumination: float
+         illumination value (cd/m^2, default: file f)
+
+  +Dn  --min-density  [m]inimum optical density: float
+         Dmin value (default: off, only with +Ip and +Io)
+
+  +Dx  --max-density  [m]aximum optical density: float
+         Dmax value (default: off, only with +Ip and +Io)
+
+  +Cd  --ddl-count  [n]umber of DDLs: integer
+         number of Device Driving Levels
+         (default: 256, only with --lum/od-range)
+
+  +Cf  --curve-fitting  [n]umber: integer
+         use polynomial curve fitting algorithm with order n
+         (0..99, default: file setting or cubic spline)
+\endverbatim
+
+\subsection output_options output options
+\verbatim
+  +Og  --gsdf  [f]ilename: string
+         write GSDF curve data to file f
+
+  +Oc  --cielab  [f]ilename: string
+         write CIELAB curve data to file f
+\endverbatim
+
+\section notes NOTES
+
+The output file describing the CC, GSDF or CIELAB and PSC for an 8 bit display
+system (monitor, camera, printer or scanner) is a simple text file.  Lines
+starting with a '#' are treated as comments and, therefore, skipped as well as
+blank lines.  An input file can for instance be created by the command line
+tool \b dconvlum.
+
+The ambient light value possibly defined in the characteristics file is also
+used for the calculation.  In this case the value is part of the file comment
+header as well as the number of DDL (device driving level) values, the
+absolute luminance range (measured in candela per square meter) and the range
+of the JND index (just noticable difference) in case of GSDF.  Alternatively,
+the ambient light value can be specified as a command line option.  When
+setting the two luminance values instead of reading a monitor characteristic
+file as input the luminance range is linearly divided by the number of DDLs.
+
+For printers and scanners the illumination can be specified in addition to the
+reflected ambient light (both in the characteristics file and on the command
+line).  The header of the output file includes the minimum and maximum Optical
+Density (OD) instead of the luminance range.  Please note that the OD values
+in the input file have to be ordered in descending order (in contrast to the
+luminance values used for monitors and cameras).  The DDL value 0 always means
+black (darkest value) and the maximum DDL value means white (brightest value,
+clear film).
+
+The \e data folder contains sample characteristics file for monitors,
+cameras, printers and scanners.  See DICOM standard part 14 for more details
+on display calibration and Barten's model (including GSDF).
+
+\section logging LOGGING
+
+The level of logging output of the various command line tools and underlying
+libraries can be specified by the user.  By default, only errors and warnings
+are written to the standard error stream.  Using option \e --verbose also
+informational messages like processing details are reported.  Option
+\e --debug can be used to get more details on the internal activity, e.g. for
+debugging purposes.  Other logging levels can be selected using option
+\e --log-level.  In \e --quiet mode only fatal errors are reported.  In such
+very severe error events, the application will usually terminate.  For more
+details on the different logging levels, see documentation of module "oflog".
+
+In case the logging output should be written to file (optionally with logfile
+rotation), to syslog (Unix) or the event log (Windows) option \e --log-config
+can be used.  This configuration file also allows for directing only certain
+messages to a particular output stream and for filtering certain messages
+based on the module or application where they are generated.  An example
+configuration file is provided in <em>\<etcdir\>/logger.cfg</em>).
+
+\section command_line COMMAND LINE
+
+All command line tools use the following notation for parameters: square
+brackets enclose optional values (0-1), three trailing dots indicate that
+multiple values are allowed (1-n), a combination of both means 0 to n values.
+
+Command line options are distinguished from parameters by a leading '+' or '-'
+sign, respectively.  Usually, order and position of command line options are
+arbitrary (i.e. they can appear anywhere).  However, if options are mutually
+exclusive the rightmost appearance is used.  This behaviour conforms to the
+standard evaluation rules of common Unix shells.
+
+In addition, one or more command files can be specified using an '@' sign as a
+prefix to the filename (e.g. <em>\@command.txt</em>).  Such a command argument
+is replaced by the content of the corresponding text file (multiple
+whitespaces are treated as a single separator unless they appear between two
+quotation marks) prior to any further evaluation.  Please note that a command
+file cannot contain another command file.  This simple but effective approach
+allows to summarize common combinations of options/parameters and avoids
+longish and confusing command lines (an example is provided in file
+<em>\<datadir\>/dumppat.txt</em>).
+
+\section files FILES
+
+<em>\<datadir\>/camera.lut</em> - sample characteristics file of a camera
+\n<em>\<datadir\>/monitor.lut</em> - sample characteristics file of a monitor
+\n<em>\<datadir\>/printer.lut</em> - sample characteristics file of a printer
+\n<em>\<datadir\>/scanner.lut</em> - sample characteristics file of a scanner
+
+\section see_also SEE ALSO
+
+<b>dconvlum</b>(1), <b>dcod2lum</b>(1)
+
+\section copyright COPYRIGHT
+
+Copyright (C) 1999-2010 by OFFIS e.V., Escherweg 2, 26121 Oldenburg, Germany.
+
+*/

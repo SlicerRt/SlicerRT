@@ -1,0 +1,122 @@
+// Module:  Log4CPLUS
+// File:    threads.h
+// Created: 6/2001
+// Author:  Tad E. Smith
+//
+//
+// Copyright 2001-2010 Tad E. Smith
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/** @file */
+
+#ifndef DCMTK__LOG4CPLUS_THREADS_HEADER_
+#define DCMTK__LOG4CPLUS_THREADS_HEADER_
+
+#include "dcmtk/oflog/config.h"
+#include "dcmtk/oflog/tstring.h"
+#include "dcmtk/oflog/helpers/pointer.h"
+
+
+namespace dcmtk { namespace log4cplus { namespace thread {
+
+/**
+ * This is used to lock a mutex.  The dtor unlocks the mutex.
+ */
+class Guard
+{
+public:
+    /** "locks" <code>mutex</code>. */
+    Guard(DCMTK_LOG4CPLUS_MUTEX_PTR_DECLARE mutex)
+        : _mutex (mutex)
+    {
+        DCMTK_LOG4CPLUS_MUTEX_LOCK( _mutex );
+    }
+
+    /** "unlocks" <code>mutex</code>. */
+    ~Guard()
+    {
+        DCMTK_LOG4CPLUS_MUTEX_UNLOCK( _mutex );
+    }
+
+private:
+    DCMTK_LOG4CPLUS_MUTEX_PTR_DECLARE _mutex;
+
+    // disable copy
+    Guard(const Guard&);
+    Guard& operator=(const Guard&);
+};
+
+
+#ifndef DCMTK_LOG4CPLUS_SINGLE_THREADED
+
+DCMTK_LOG4CPLUS_EXPORT void blockAllSignals();
+DCMTK_LOG4CPLUS_EXPORT tstring getCurrentThreadName();
+
+
+struct ThreadStart;
+
+
+/**
+ * There are many cross-platform C++ Threading libraries.  The goal of
+ * this class is not to replace (or match in functionality) those
+ * libraries.  The goal of this class is to provide a simple Threading
+ * class with basic functionality.
+ */
+class DCMTK_LOG4CPLUS_EXPORT AbstractThread
+    : public virtual dcmtk::log4cplus::helpers::SharedObject
+{
+public:
+    AbstractThread();
+    bool isRunning() const { return running; }
+    DCMTK_LOG4CPLUS_THREAD_KEY_TYPE getThreadId() const;
+    DCMTK_LOG4CPLUS_THREAD_HANDLE_TYPE getThreadHandle () const;
+    virtual void start();
+    void join () const;
+
+protected:
+    // Force objects to be constructed on the heap
+    virtual ~AbstractThread();
+    virtual void run() = 0;
+
+private:
+    bool running;
+
+    // Friends.
+    friend struct ThreadStart;
+
+#  ifdef DCMTK_LOG4CPLUS_USE_PTHREADS
+    pthread_t handle;
+
+#  elif defined(DCMTK_LOG4CPLUS_USE_WIN32_THREADS)
+    HANDLE handle;
+    unsigned thread_id;
+
+#  endif
+
+    // Disallow copying of instances of this class.
+    AbstractThread(const AbstractThread&);
+    AbstractThread& operator=(const AbstractThread&);
+};
+
+typedef helpers::SharedObjectPtr<AbstractThread> AbstractThreadPtr;
+
+
+#endif // DCMTK_LOG4CPLUS_SINGLE_THREADED
+
+
+} } } // namespace dcmtk { namespace log4cplus { namespace thread {
+
+
+#endif // DCMTK__LOG4CPLUS_THREADS_HEADER_
+

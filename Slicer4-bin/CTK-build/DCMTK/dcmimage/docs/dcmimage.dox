@@ -1,0 +1,44 @@
+/*!
+
+\page mod_dcmimage dcmimage: adds support for color images to dcmimgle
+
+This module contains classes to access and render DICOM color images.  Support
+for monochrome images is provided by the module \ref mod_dcmimgle "dcmimgle".
+Support for JPEG compressed images is provide by the module
+\ref mod_dcmjpeg "dcmjpeg".
+
+The main interface class is:
+\li \b DicomImage (from module \ref mod_dcmimgle "dcmimgle")
+
+\section Tools
+
+This module contains the following command line tools:
+\li \ref dcm2pnm
+\li \ref dcmquant
+\li \ref dcmscale
+
+\section Examples
+
+The following example shows how to load a DICOM single-frame image (monochrome
+or color) and render its pixel data:
+
+\code
+#include "dcmtk/dcmimage/diregist.h"   /* required to support color images */
+/* ... */
+DicomImage *image = new DicomImage("test.dcm");
+if (image != NULL)
+{
+  if (image->getStatus() == EIS_Normal)
+  {
+    Uint8 *pixelData = (Uint8 *)(image->getOutputData(8 /* bits per sample */));
+    if (pixelData != NULL)
+    {
+      /* do something useful with the pixel data */
+    }
+  } else
+    cerr << "Error: cannot load DICOM image (" << DicomImage::getString(image->getStatus()) << ")" << endl;
+}
+delete image;
+\endcode
+
+*/

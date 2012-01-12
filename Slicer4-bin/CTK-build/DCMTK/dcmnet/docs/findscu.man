@@ -1,0 +1,397 @@
+/*!
+
+\if MANPAGES
+\page findscu DICOM query (C-FIND) SCU
+\else
+\page findscu findscu: DICOM query (C-FIND) SCU
+\endif
+
+\section synopsis SYNOPSIS
+
+\verbatim
+findscu [options] peer port [dcmfile-in...]
+\endverbatim
+
+\section description DESCRIPTION
+
+The \b findscu application implements an SCU for the Query/Retrieve Service
+Class and the Basic Worklist Management Service Class.  \b findscu only
+supports query functionality using the C-FIND message.  It sends query keys
+to an SCP and awaits responses.  The application can be used to test SCPs of
+the Query/Retrieve and Basic Worklist Management Service Classes.
+
+\section parameters PARAMETERS
+
+\verbatim
+peer        hostname of DICOM peer
+
+port        tcp/ip port number of peer
+
+dcmfile-in  DICOM query file(s)
+\endverbatim
+
+\section options OPTIONS
+
+\subsection general_options general options
+\verbatim
+  -h    --help
+          print this help text and exit
+
+        --version
+          print version information and exit
+
+        --arguments
+          print expanded command line arguments
+
+  -q    --quiet
+          quiet mode, print no warnings and errors
+
+  -v    --verbose
+          verbose mode, print processing details
+
+  -d    --debug
+          debug mode, print debug information
+
+  -ll   --log-level  [l]evel: string constant
+          (fatal, error, warn, info, debug, trace)
+          use level l for the logger
+
+  -lc   --log-config  [f]ilename: string
+          use config file f for the logger
+\endverbatim
+
+\subsection network_options network options
+\verbatim
+override matching keys:
+
+  -k    --key  [k]ey: gggg,eeee="str", path or dictionary name="str"
+          override matching key
+
+query information model:
+
+  -W    --worklist
+          use modality worklist information model (default)
+
+  -P    --patient
+          use patient root information model
+
+  -S    --study
+          use study root information model
+
+  -O    --psonly
+          use patient/study only information model
+
+application entity titles:
+
+  -aet  --aetitle  [a]etitle: string
+          set my calling AE title (default: FINDSCU)
+
+  -aec  --call  [a]etitle: string
+          set called AE title of peer (default: ANY-SCP)
+
+post-1993 value representations:
+
+  +u    --enable-new-vr
+          enable support for new VRs (UN/UT) (default)
+
+  -u    --disable-new-vr
+          disable support for new VRs, convert to OB
+
+proposed transmission transfer syntaxes:
+
+  -x=   --propose-uncompr
+          propose all uncompressed TS, explicit VR
+          with local byte ordering first (default)
+
+  -xe   --propose-little
+          propose all uncompressed TS, explicit VR
+          little endian first
+
+  -xb   --propose-big
+          propose all uncompressed TS, explicit VR
+          big endian first
+
+  -xd   --propose-deflated
+          propose deflated explicit VR little endian TS
+          and all uncompressed transfer syntaxes
+
+  -xi   --propose-implicit
+          propose implicit VR little endian TS only
+
+deflate compression level (only with --propose-deflated):
+
+  +cl   --compression-level  [l]evel: integer (default: 6)
+          0=uncompressed, 1=fastest, 9=best compression
+
+other network options:
+
+  -to   --timeout  [s]econds: integer (default: unlimited)
+          timeout for connection requests
+
+  -ta   --acse-timeout  [s]econds: integer (default: 30)
+          timeout for ACSE messages
+
+  -td   --dimse-timeout  [s]econds: integer (default: unlimited)
+          timeout for DIMSE messages
+
+  -pdu  --max-pdu  [n]umber of bytes: integer (4096..131072)
+          set max receive pdu to n bytes (default: 16384)
+
+        --repeat  [n]umber: integer
+          repeat n times
+
+        --abort
+          abort association instead of releasing it
+
+        --cancel  [n]umber: integer
+          cancel after n responses (default: never)
+\endverbatim
+
+\subsection tls_options transport layer security (TLS) options
+\verbatim
+transport protocol stack:
+
+  -tls  --disable-tls
+          use normal TCP/IP connection (default)
+
+  +tls  --enable-tls  [p]rivate key file, [c]ertificate file: string
+          use authenticated secure TLS connection
+
+  +tla  --anonymous-tls
+          use secure TLS connection without certificate
+
+private key password (only with --enable-tls):
+
+  +ps   --std-passwd
+          prompt user to type password on stdin (default)
+
+  +pw   --use-passwd  [p]assword: string
+          use specified password
+
+  -pw   --null-passwd
+          use empty string as password
+
+key and certificate file format:
+
+  -pem  --pem-keys
+          read keys and certificates as PEM file (default)
+
+  -der  --der-keys
+          read keys and certificates as DER file
+
+certification authority:
+
+  +cf   --add-cert-file  [c]ertificate filename: string
+          add certificate file to list of certificates
+
+  +cd   --add-cert-dir  [c]ertificate directory: string
+          add certificates in d to list of certificates
+
+ciphersuite:
+
+  +cs   --cipher  [c]iphersuite name: string
+          add ciphersuite to list of negotiated suites
+
+  +dp   --dhparam  [f]ilename: string
+          read DH parameters for DH/DSS ciphersuites
+
+pseudo random generator:
+
+  +rs   --seed  [f]ilename: string
+          seed random generator with contents of f
+
+  +ws   --write-seed
+          write back modified seed (only with --seed)
+
+  +wf   --write-seed-file  [f]ilename: string (only with --seed)
+          write modified seed to file f
+
+peer authentication:
+
+  -rc   --require-peer-cert
+          verify peer certificate, fail if absent (default)
+
+  -vc   --verify-peer-cert
+          verify peer certificate if present
+
+  -ic   --ignore-peer-cert
+          don't verify peer certificate
+\endverbatim
+
+\subsection output_options output options
+\verbatim
+general:
+
+  -od   --output-directory  [d]irectory: string (default: ".")
+          write output files to existing directory d
+
+C-FIND responses:
+
+  +sr   --show-responses
+          always output responses to the logger
+
+  -sr   --hide-responses
+          do not output responses to the logger
+
+  -X    --extract
+          extract responses to file (rsp0001.dcm, ...)
+\endverbatim
+
+\section notes NOTES
+
+Each file supplied on the command line will be sent to the SCP as part of a
+C-FIND request.  The query file must be a valid DICOM data set containing
+the dataset part of a C-FIND-RQ message.  The query file could, for instance,
+be created with the \b dump2dcm utility from a script like the following
+example:
+
+\verbatim
+# query patient names and IDs
+(0008,0052) CS [PATIENT]     # QueryRetrieveLevel
+(0010,0010) PN []            # PatientName
+(0010,0020) LO []            # PatientID
+\endverbatim
+
+Individual attributes of each file sent can be modified or supplemented
+using the \e -k option.  For example the command:
+
+\verbatim
+findscu -P -k "(0010,0010)=HEWETT*" caesar 5678 patqry.dcm
+\endverbatim
+
+will, when sent to the SCP caesar at TCP/IP port 5678, cause any PatientName
+attribute in patqry.dcm to have the value "HEWETT*".  If such an attribute is
+present it will be replaced, if absent it will be inserted.  The \e -k option
+can be present more than once.  The value part (after the '=') may be absent
+causing the attribute to be sent with zero length.
+
+In earlier versions of \b findscu, the tag keys were specified without braces
+around group and element number, e. g. "0010,0010" instead of  "(0010,0010)".
+It is recommended switching to the new syntax; however, the old syntax is
+still working.
+
+Also \e -k accepts dictionary names instead of element tags for specifying
+DICOM elements.  For example, the \b findscu call above then reads like this:
+
+\verbatim
+findscu -P -k PatientName="HEWETT*" caesar 5678 patqry.dcm
+\endverbatim
+
+It is also possible to specify sequences, items and nested attributes using
+the \e -k option.  In these cases, a special "path" notation has to be used,
+e. g.
+
+\verbatim
+findscu -W -k "(0040,0100)[0].Modality=CT" caesar 5678
+\endverbatim
+
+This call queries a worklist server at host caesar for any planned procedures
+for CT modalities by specifing tag (0040,0100) "Scheduled Procedure Step
+Sequence" and an attribute "Modality" in the first item of this sequence with
+value "CT".  Details on this path notation can be found in the documentation
+of \b dcmodify.
+
+If no file is specified on the command line, the query must be specified
+completely with one or more \e -k options.
+
+Each set of response identifiers received will be output to the logger unless
+option \e --hide-responses, \e --extract, \e --quiet or an appropriate logger
+configuration is used.  Option \e --show-responses can be used to force the
+output to the logger.
+
+\subsection dicom_conformance DICOM Conformance
+
+The \b findscu application supports the following SOP Classes as an SCU:
+
+\verbatim
+FINDPatientRootQueryRetrieveInformationModel       1.2.840.10008.5.1.4.1.2.1.1
+FINDStudyRootQueryRetrieveInformationModel         1.2.840.10008.5.1.4.1.2.2.1
+FINDPatientStudyOnlyQueryRetrieveInformationModel  1.2.840.10008.5.1.4.1.2.3.1
+FINDModalityWorklistInformationModel               1.2.840.10008.5.1.4.31
+\endverbatim
+
+The \b findscu application will propose presentation contexts for one of the
+abovementioned supported SOP Classes depending on command line options (\e -P,
+\e -S, \e -O or \e -W).  Basically, the following transfer syntaxes are
+supported:
+
+\verbatim
+LittleEndianImplicitTransferSyntax                 1.2.840.10008.1.2
+LittleEndianExplicitTransferSyntax                 1.2.840.10008.1.2.1
+DeflatedExplicitVRLittleEndianTransferSyntax       1.2.840.10008.1.2.1.99 (*)
+BigEndianExplicitTransferSyntax                    1.2.840.10008.1.2.2
+\endverbatim
+
+(*) if compiled with zlib support enabled (see \e --version output)
+
+Which transfer syntaxes are actually proposed in what order, can be specified
+with the \e --propose options.
+
+The \b findscu application does not support extended negotiation.
+
+\section logging LOGGING
+
+The level of logging output of the various command line tools and underlying
+libraries can be specified by the user.  By default, only errors and warnings
+are written to the standard error stream.  Using option \e --verbose also
+informational messages like processing details are reported.  Option
+\e --debug can be used to get more details on the internal activity, e.g. for
+debugging purposes.  Other logging levels can be selected using option
+\e --log-level.  In \e --quiet mode only fatal errors are reported.  In such
+very severe error events, the application will usually terminate.  For more
+details on the different logging levels, see documentation of module "oflog".
+
+In case the logging output should be written to file (optionally with logfile
+rotation), to syslog (Unix) or the event log (Windows) option \e --log-config
+can be used.  This configuration file also allows for directing only certain
+messages to a particular output stream and for filtering certain messages
+based on the module or application where they are generated.  An example
+configuration file is provided in <em>\<etcdir\>/logger.cfg</em>).
+
+\section command_line COMMAND LINE
+
+All command line tools use the following notation for parameters: square
+brackets enclose optional values (0-1), three trailing dots indicate that
+multiple values are allowed (1-n), a combination of both means 0 to n values.
+
+Command line options are distinguished from parameters by a leading '+' or '-'
+sign, respectively.  Usually, order and position of command line options are
+arbitrary (i.e. they can appear anywhere).  However, if options are mutually
+exclusive the rightmost appearance is used.  This behaviour conforms to the
+standard evaluation rules of common Unix shells.
+
+In addition, one or more command files can be specified using an '@' sign as a
+prefix to the filename (e.g. <em>\@command.txt</em>).  Such a command argument
+is replaced by the content of the corresponding text file (multiple
+whitespaces are treated as a single separator unless they appear between two
+quotation marks) prior to any further evaluation.  Please note that a command
+file cannot contain another command file.  This simple but effective approach
+allows to summarize common combinations of options/parameters and avoids
+longish and confusing command lines (an example is provided in file
+<em>\<datadir\>/dumppat.txt</em>).
+
+\section environment ENVIRONMENT
+
+The \b findscu utility will attempt to load DICOM data dictionaries specified
+in the \e DCMDICTPATH environment variable.  By default, i.e. if the
+\e DCMDICTPATH environment variable is not set, the file
+<em>\<datadir\>/dicom.dic</em> will be loaded unless the dictionary is built
+into the application (default for Windows).
+
+The default behaviour should be preferred and the \e DCMDICTPATH environment
+variable only used when alternative data dictionaries are required.  The
+\e DCMDICTPATH environment variable has the same format as the Unix shell
+\e PATH variable in that a colon (":") separates entries.  On Windows systems,
+a semicolon (";") is used as a separator.  The data dictionary code will
+attempt to load each file specified in the \e DCMDICTPATH environment variable.
+It is an error if no data dictionary can be loaded.
+
+\section see_also SEE ALSO
+
+<b>movescu</b>(1), <b>dump2dcm</b>(1), <b>dcmodify</b>(1)
+
+\section copyright COPYRIGHT
+
+Copyright (C) 1994-2011 by OFFIS e.V., Escherweg 2, 26121 Oldenburg, Germany.
+
+*/

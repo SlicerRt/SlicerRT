@@ -1,0 +1,1302 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(dcmtk, 3.6.1, [dicom-bugs@offis.de], [dcmtk-3.6.1])
+AC_PREREQ(2.60)
+AC_CONFIG_SRCDIR(Makefile.in)
+AC_CONFIG_HEADER(include/dcmtk/config/osconfig.h)
+
+dnl -------------------------------------------------------
+dnl Additional Package Information
+dnl -------------------------------------------------------
+
+PACKAGE_VERSION_NUMBER=361
+PACKAGE_VERSION_SUFFIX=""
+PACKAGE_DATE="CVS"
+
+AC_DEFINE_UNQUOTED(PACKAGE_VERSION_NUMBER,${PACKAGE_VERSION_NUMBER},[Define to the version number of this package.])
+AC_DEFINE_UNQUOTED(PACKAGE_VERSION_SUFFIX,"${PACKAGE_VERSION_SUFFIX}",[Define to the version suffix of this package.])
+AC_DEFINE_UNQUOTED(PACKAGE_DATE,"${PACKAGE_DATE}",[Define to the release date of this package.])
+
+AC_SUBST(PACKAGE_VERSION_NUMBER)
+AC_SUBST(PACKAGE_VERSION_SUFFIX)
+AC_SUBST(PACKAGE_DATE)
+
+dnl -------------------------------------------------------
+dnl Identify the host platform we're compiling for,
+dnl using config.guess and config.sub.
+dnl -------------------------------------------------------
+
+AC_CANONICAL_HOST
+AC_DEFINE_UNQUOTED(CANONICAL_HOST_TYPE, "${host}", [Define the canonical host system type as a string constant.])
+
+case "${host}" in
+	*-*-cygwin)
+	  BINEXT=".exe"
+	  ;;
+	*-*-mingw32)
+	  BINEXT=".exe"
+	  ;;
+	*)
+	  BINEXT=""
+	  ;;
+esac
+
+dnl -------------------------------------------------------
+dnl Configuration Utilities
+dnl -------------------------------------------------------
+
+if test "x$prefix" = xNONE ; then
+AC_DEFINE_UNQUOTED(DCMTK_PREFIX, "${ac_default_prefix}", [Define the DCMTK default path.])
+else
+AC_DEFINE_UNQUOTED(DCMTK_PREFIX, "${prefix}", [Define the DCMTK default path.])
+fi
+
+DATA_DIR="${datadir}"
+DATA_DIR=`(
+	test "$prefix" = NONE && prefix=${ac_default_prefix}
+	test "$exec_prefix" = NONE && exec_prefix=${prefix}
+	eval eval echo "$DATA_DIR"
+)`
+AC_DEFINE_UNQUOTED(DCM_DICT_DEFAULT_PATH, "${DATA_DIR}/dicom.dic", [Define the default data dictionary path for the dcmdata library package.])
+AC_DEFINE_UNQUOTED(DEFAULT_SUPPORT_DATA_DIR, "${DATA_DIR}/", [Define the default directory where support data files reside.])
+
+CONF_DIR="${sysconfdir}"
+CONF_DIR=`(
+	test "$prefix" = NONE && prefix=${ac_default_prefix}
+	test "$exec_prefix" = NONE && exec_prefix=${prefix}
+	eval echo "$CONF_DIR"
+)`
+AC_DEFINE_UNQUOTED(DEFAULT_CONFIGURATION_DIR, "${CONF_DIR}/", [Define the default directory where configuration files reside.])
+
+AH_VERBATIM([PATH_SEPARATOR], [/* Define path separator. */
+#define PATH_SEPARATOR '/'])
+
+AH_VERBATIM([ENVIRONMENT_PATH_SEPARATOR], [/* Define the environment variable path separator. */
+#ifndef ENVIRONMENT_PATH_SEPARATOR
+#define ENVIRONMENT_PATH_SEPARATOR ':'
+#endif])
+
+AH_VERBATIM([HAVE_EMPTY_ARGC_ARGV], [/* Define if your system cannot pass command line arguments into main() (e.g. Macintosh). */
+/* #undef HAVE_EMPTY_ARGC_ARGV */])
+
+AH_TOP([#ifndef OSCONFIG_H
+#define OSCONFIG_H
+
+/*
+** Define enclosures for include files with C linkage (mostly system headers)
+*/
+#ifdef __cplusplus
+#define BEGIN_EXTERN_C extern "C" {
+#define END_EXTERN_C }
+#else
+#define BEGIN_EXTERN_C
+#define END_EXTERN_C
+#endif
+
+/* MinGW needs some special handling because it is a mixture of WIN32 and Posix.
+ * The following settings are not tested by configure but need to be set for MinGW.
+ */
+#ifdef __MINGW32__
+#define HAVE_WINDOWS_H
+#define HAVE_WINSOCK_H
+#define NO_IOS_BASE_ASSIGN
+#define ENVIRONMENT_PATH_SEPARATOR ';'
+#endif])
+
+AH_BOTTOM([#endif /* OSCONFIG_H */])
+
+
+dnl Include general file
+sinclude(general.m4)dnl
+
+AC_CONFIG_AUX_DIR([.])
+
+dnl Checks for programs.
+
+AC_PROG_INSTALL
+AC_PROG_CC
+AC_PROG_CPP
+AC_CHECK_PROGS(CXX, $CCC c++ cc++ g++ gcc CC cxx, gcc)
+
+pedantic=""
+if test -f /bin/uname ; then
+	os=`uname -s`
+	rev=`uname -r`
+	if test \( "$os" = SunOS \) ; then
+		case "$rev" in
+			# only use the -pedantic compiler option on
+			# Solaris 2 machines.
+			5.*) pedantic="-pedantic" ;;
+		esac
+	fi
+fi
+if test "${CXXFLAGS}set" = set ; then
+	case "$CXX" in
+		c++|g++|gcc)
+		  CXXFLAGS="-Wall $pedantic"
+		  CFLAGS="-Wall $pedantic"
+		  ;;
+		cc++)
+		  CXXFLAGS="-Wall"
+		  CFLAGS="-Wall"
+		  ;;
+		*)
+		  CXXFLAGS=""
+		  CFLAGS=""
+		  ;;
+	esac
+fi
+
+AC_PROG_CXXCPP
+dnl The next test is equivalent to AC_PROG_RANLIB
+dnl Do not use AC_PROG_RANLIB because this produces
+dnl an error on LINUX-systems in the configure script
+AC_CHECK_PROGS(RANLIB, ranlib, :)
+
+dnl Check for "ar" and "libtool". On certain systems, e.g. NeXTStep, we must
+dnl prefer "libtool" over "ar" if both are present. However, we don't use
+dnl GNU libtool at the moment which is something completely different
+dnl (not an "ar" replacement).
+AC_CHECK_PROGS(AR, ar, :)
+AC_CHECK_PROGS(LIBTOOL, libtool, :)
+if test "${LIBTOOL}set" = libtoolset ; then
+  AC_CHECK_GNU_LIBTOOL
+  if test $ac_cv_check_gnu_libtool = yes ; then
+    :
+  else
+    AR=$LIBTOOL
+  fi
+fi
+
+case "$AR" in
+libtool) ARFLAGS=-o ;;
+ar) ARFLAGS=cruv ;;
+esac
+
+if test "${LIBEXT}set" = set ; then
+	LIBEXT="a"
+fi
+
+AC_SUBST(ARFLAGS)
+AC_SUBST(LIBEXT)
+AC_SUBST(BINEXT)
+
+dnl -------------------------------------------------------
+dnl Check special systems
+dnl -------------------------------------------------------
+
+AC_AIX
+AC_ISC_POSIX
+AC_SYS_LONG_FILE_NAMES
+
+dnl -------------------------------------------------------
+dnl Perform some tests with the C compiler, needed for dcmjpeg
+dnl -------------------------------------------------------
+
+AC_MY_C_INLINE
+AC_MY_C_CONST
+AC_MY_C_CHAR_UNSIGNED
+AC_MY_C_RIGHTSHIFT_UNSIGNED
+
+dnl -------------------------------------------------------
+dnl Check some typedefs versus definitions in <sys/types.h>,
+dnl needed for JasPer support
+dnl -------------------------------------------------------
+
+AC_TYPEDEF(uchar, unsigned char)
+AC_TYPEDEF(ushort, unsigned short)
+AC_TYPEDEF(uint, unsigned int)
+AC_TYPEDEF(ulong, unsigned long)
+AC_CHECK_TYPES(longlong)
+AC_CHECK_TYPES(ulonglong)
+CHECK_VLA
+
+dnl stdbool.h and stdint.h are only defined in ANSI C, not in C++
+AC_CHECK_HEADERS(stdbool.h)
+AC_CHECK_HEADERS(stdint.h)
+
+AC_CHECK_TYPES(int64_t)
+AC_CHECK_TYPES(uint64_t)
+
+dnl -------------------------------------------------------
+dnl Checks for libc library functions.
+dnl -------------------------------------------------------
+
+AC_FUNC_MEMCMP
+AC_FUNC_VPRINTF
+AC_TYPE_SIGNAL
+AC_FUNC_WAIT3
+AC_CHECK_FUNCS(gethostname gethostid socket sysinfo)
+AC_CHECK_FUNCS(strchr strstr strtoul itoa)
+AC_CHECK_FUNCS(memcpy memset memmove memcmp bcopy bcmp)
+AC_CHECK_FUNCS(getpid mktemp tempnam tmpnam getenv mkstemp)
+AC_CHECK_FUNCS(stat)
+AC_CHECK_FUNCS(malloc_debug)
+AC_CHECK_FUNCS(strerror strdup bzero index rindex access)
+AC_CHECK_FUNCS(uname cuserid getlogin)
+AC_CHECK_FUNCS(usleep)
+AC_CHECK_FUNCS(flock lockf)
+AC_CHECK_FUNCS(listen connect setsockopt getsockopt select gethostbyname)
+AC_CHECK_FUNCS(bind accept getsockname getaddrinfo)
+AC_CHECK_FUNCS(waitpid)
+AC_CHECK_FUNCS(getuid geteuid setuid getpwnam getgrnam)
+AC_CHECK_FUNCS(sleep fork)
+AC_CHECK_FUNCS(_findfirst)
+AC_CHECK_FUNCS(strlcpy strlcat)
+AC_CHECK_FUNCS(vsnprintf)
+AC_FUNC_FSEEKO
+
+
+dnl -------------------------------------------------------
+dnl Checks for libcs library functions needed by oflog
+dnl -------------------------------------------------------
+
+AC_DEFUN([TYPE_SOCKLEN_T],
+[
+AH_TEMPLATE([socklen_t], [Define to int if undefined.])
+AC_CACHE_CHECK([for socklen_t], ac_cv_type_socklen_t,
+[
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
+   #include <sys/socket.h>]], [[socklen_t len = 42; return 0;]])],[ac_cv_type_socklen_t=yes],[ac_cv_type_socklen_t=no])
+])
+  if test $ac_cv_type_socklen_t != yes; then
+    AC_DEFINE(socklen_t, int)
+  fi
+])
+
+AC_CHECK_FUNCS(ftime gmtime_r localtime_r lstat)
+AC_CHECK_FUNCS(htons htonl ntohs ntohl)
+AC_CHECK_HEADERS(netinet/in.h)
+AC_CHECK_HEADERS(syslog.h)
+TYPE_SOCKLEN_T
+
+AH_TEMPLATE([HAVE_ENAMETOOLONG])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([#include <errno.h>], [int value = ENAMETOOLONG;])],
+  [AC_DEFINE([HAVE_ENAMETOOLONG], , [Define if your system provides ENAMETOOLONG errno value.])])
+
+dnl -------------------------------------------------------
+dnl Checks for libm library functions.
+dnl -------------------------------------------------------
+
+SAVELIBS="$LIBS"
+LIBS="$LIBS -lm"
+AC_CHECK_FUNCS(finite isinf isnan)
+LIBS="$SAVELIBS"
+
+dnl -------------------------------------------------------
+dnl Perform remaining tests with C++ compiler
+dnl -------------------------------------------------------
+AC_LANG(C++)
+
+AC_CXX_CONST_CAST
+AC_CXX_DYNAMIC_CAST
+AC_CXX_REINTERPRET_CAST
+AC_CXX_STATIC_CAST
+AC_CXX_STD_NOTHROW
+AC_CXX_NOTHROW_DELETE
+
+dnl -------------------------------------------------------
+dnl Check for Debug Mode
+dnl -------------------------------------------------------
+
+DEBUG="-DNDEBUG"
+DEBUGCXXFLAGS=
+DEBUGCFLAGS=
+AC_MSG_CHECKING(whether to compile in debug mode)
+AC_ARG_ENABLE(debug,
+[  --enable-debug          compile with debug code, don't optimize
+  --disable-debug         compile without debug code (default)],
+[ case "$enableval" in
+  yes)
+    AC_MSG_RESULT(yes)
+    DEBUGCXXFLAGS="-g"
+    DEBUGCFLAGS="-g"
+    DEBUG="-DDEBUG"
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    DEBUGCXXFLAGS="-O"
+    DEBUGCFLAGS="-O"
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
+  DEBUGCXXFLAGS="-O"
+  DEBUGCFLAGS="-O"
+)
+
+dnl -------------------------------------------------------
+dnl Check for thread support
+dnl -------------------------------------------------------
+
+THREADSUPPORT="auto"
+AC_MSG_CHECKING(whether to enable thread support)
+AC_ARG_ENABLE(threads,
+[  --enable-threads=TYPE   compile with MT support (posix/solaris/auto=default)
+  --disable-threads       compile without MT support],
+[ case "$enableval" in
+  yes|auto)
+    AC_MSG_RESULT(automatic detection)
+    ;;
+  posix)
+    AC_MSG_RESULT([yes, type=posix])
+    THREADSUPPORT="posix"
+    ;;
+  solaris)
+    AC_MSG_RESULT([yes, type=solaris])
+    THREADSUPPORT="solaris"
+    ;;
+  no)
+    AC_MSG_RESULT(no)
+    THREADSUPPORT="no"
+    ;;
+  *)
+    AC_MSG_RESULT([yes - type $enableval is unknown - using automatic detection])
+    ;;
+  esac ],
+  AC_MSG_RESULT(automatic detection)
+)
+
+dnl -------------------------------------------------------
+dnl Check for large file support
+dnl -------------------------------------------------------
+
+LFSSUPPORT="auto"
+AC_MSG_CHECKING(whether to enable large file support)
+AC_ARG_ENABLE(lfs,
+[  --enable-lfs=TYPE       compile with LFS support (lfs/lfs64/auto=default)
+  --disable-lfs           compile without LFS support],
+[ case "$enableval" in
+  yes|auto)
+    AC_MSG_RESULT(automatic detection)
+    ;;
+  lfs)
+    AC_MSG_RESULT([yes, type=LFS])
+    LFSSUPPORT="lfs"
+    ;;
+  lfs64)
+    AC_MSG_RESULT([yes, type=LFS64])
+    LFSSUPPORT="lfs64"
+    ;;
+  no)
+    AC_MSG_RESULT(no)
+    LFSSUPPORT="no"
+    ;;
+  *)
+    AC_MSG_RESULT([yes - type $enableval is unknown - using automatic detection])
+    ;;
+  esac ],
+  AC_MSG_RESULT(automatic detection)
+)
+
+dnl -------------------------------------------------------
+dnl Checks for libraries.
+dnl -------------------------------------------------------
+
+AC_CHECK_GXXLIB
+AC_CHECK_LIB(iostream, main)
+dnl Some C++ compilers have problems with recursive main calls
+dnl (e.g. Sun C++ 4.2). In this case we must test another function
+dnl to link.
+AC_CHECK_LIB(nsl, main)
+if test $ac_cv_lib_nsl_main = no ; then
+AC_CHECK_LIB(nsl, gethostbyname)
+fi
+AC_CHECK_LIB(socket, main)
+if test $ac_cv_lib_socket_main = no ; then
+AC_CHECK_LIB(socket, socket)
+fi
+
+dnl Some newer versions of OpenSSL must be linked against libdl.
+dnl We just check whether libdl exists and in this case always
+dnl add -ldl to OPENSSLLIBS.
+dnl
+OPENSSLLIBS=""
+AC_CHECK_LIB(dl, main,[
+OPENSSLLIBS="-ldl"
+])
+if test $ac_cv_lib_dl_main = no ; then
+AC_CHECK_LIB(dl, dlopen,[
+OPENSSLLIBS="-ldl"
+])
+fi
+
+MATHLIBS=""
+AC_CHECK_LIB(m, main,[
+MATHLIBS="-lm"
+])
+if test $ac_cv_lib_m_main = no ; then
+AC_CHECK_LIB(m, sin,[
+MATHLIBS="-lm"
+])
+fi
+
+dnl On MinGW we have to link against the winsock32 library
+dnl
+AC_CHECK_LIB(wsock32, main,[
+LIBS="$LIBS -lwsock32"
+])
+
+dnl On MinGW we have to link against the netapi32 library
+dnl
+AC_CHECK_LIB(netapi32, main,[
+LIBS="$LIBS -lnetapi32"
+])
+
+dnl -------------------------------------------------------
+dnl Checks for header files.
+dnl -------------------------------------------------------
+
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_HEADER_DIRENT
+AC_CHECK_TCP_H
+AC_CHECK_HEADERS(alloca.h)
+AC_CHECK_HEADERS(arpa/inet.h)
+AC_CHECK_HEADERS(assert.h)
+AC_CHECK_HEADERS(ctype.h)
+AC_CHECK_HEADERS(errno.h)
+AC_CHECK_HEADERS(fcntl.h)
+AC_CHECK_HEADERS(float.h)
+AC_CHECK_HEADERS(fnmatch.h)
+AC_CHECK_HEADERS(fstream)
+AC_CHECK_HEADERS(fstream.h)
+AC_CHECK_HEADERS(grp.h)
+AC_CHECK_HEADERS(ieeefp.h)
+AC_CHECK_HEADERS(io.h)
+AC_CHECK_HEADERS(iomanip)
+AC_CHECK_HEADERS(iomanip.h)
+AC_CHECK_HEADERS(iostream)
+AC_CHECK_HEADERS(iostream.h)
+AC_CHECK_HEADERS(iso646.h)
+AC_CHECK_HEADERS(libc.h)
+AC_CHECK_HEADERS(limits.h)
+AC_CHECK_HEADERS(locale.h)
+AC_CHECK_HEADERS(malloc.h)
+AC_CHECK_HEADERS(math.h)
+AC_CHECK_HEADERS(new)
+AC_CHECK_HEADERS(new.h)
+AC_CHECK_HEADERS(netdb.h)
+AC_CHECK_HEADERS(pthread.h)
+AC_CHECK_HEADERS(pwd.h)
+AC_CHECK_HEADERS(semaphore.h)
+AC_CHECK_HEADERS(setjmp.h)
+AC_CHECK_HEADERS(signal.h)
+AC_CHECK_HEADERS(sstream)
+AC_CHECK_HEADERS(sstream.h)
+AC_CHECK_HEADERS(stat.h)
+AC_CHECK_HEADERS(cstdarg)
+AC_CHECK_HEADERS(stdarg.h)
+AC_CHECK_HEADERS(stddef.h)
+AC_CHECK_HEADERS(cstdio)
+AC_CHECK_HEADERS(stdio.h)
+AC_CHECK_HEADERS(stdint.h)
+AC_CHECK_HEADERS(stdlib.h)
+AC_CHECK_HEADERS(string.h)
+AC_CHECK_HEADERS(strings.h)
+AC_CHECK_HEADERS(strstrea.h)
+AC_CHECK_HEADERS(strstream)
+AC_CHECK_HEADERS(strstream.h)
+AC_CHECK_HEADERS(synch.h)
+AC_CHECK_HEADERS(sys/errno.h)
+AC_CHECK_HEADERS(sys/file.h)
+AC_CHECK_HEADERS(sys/param.h)
+AC_CHECK_HEADERS(sys/resource.h)
+AC_CHECK_HEADERS(sys/select.h)
+AC_CHECK_HEADERS(sys/socket.h)
+AC_CHECK_HEADERS(sys/stat.h)
+AC_CHECK_HEADERS(sys/time.h)
+AC_CHECK_HEADERS(sys/types.h)
+AC_CHECK_HEADERS(sys/utime.h)
+AC_CHECK_HEADERS(sys/utsname.h)
+AC_CHECK_HEADERS(thread.h)
+AC_CHECK_HEADERS(time.h)
+AC_CHECK_HEADERS(unistd.h)
+AC_CHECK_HEADERS(unix.h)
+AC_CHECK_HEADERS(utime.h)
+AC_CHECK_HEADERS(wctype.h)
+
+if test $ac_cv_header_libc_h = yes ; then
+  if test $ac_cv_header_math_h = yes ; then
+    AC_CXX_LIBC_H_EXTERN_C
+  fi
+fi
+
+dnl -------------------------------------------------------
+dnl Tests for pointer vs. integer types
+dnl These tests REQUIRE as a prerequisite AC_CXX_STATIC_CAST
+dnl -------------------------------------------------------
+
+if test $ac_cv_header_pthread_h = yes ; then
+  AC_CHECK_POINTER_TYPE(pthread_t, pthread.h)
+fi
+
+dnl -------------------------------------------------------
+dnl Check for thread support
+dnl -------------------------------------------------------
+
+dnl
+dnl in auto mode, check whether we use solaris or posix threads
+dnl
+if test $THREADSUPPORT = auto ; then
+  if test $ac_cv_header_synch_h = yes ; then
+    THREADSUPPORT="solaris"
+  fi
+fi
+if test $THREADSUPPORT = auto ; then
+  if test $ac_cv_header_pthread_h = yes ; then
+    THREADSUPPORT="posix"
+  fi
+fi
+if test $THREADSUPPORT = auto ; then
+  THREADSUPPORT="no"
+fi
+
+dnl
+dnl in solaris mode, check for -lthread
+dnl
+
+if test $THREADSUPPORT = solaris ; then
+  AC_CHECK_LIB(thread, sema_init, [
+  ac_tr_lib=HAVE_LIBTHREAD
+  AC_DEFINE_UNQUOTED($ac_tr_lib)
+  LIBS="-lthread $LIBS"
+  ])
+fi
+
+if test $THREADSUPPORT = posix ; then
+  dnl
+  dnl check Posix MT libraries -lrt and -lpthread
+  dnl OSF/1 re-#defines most of the pthread function names.
+  dnl This is why we use pthread_key_create for the test.
+  dnl
+  AC_CHECK_LIB(pthread, pthread_key_create, [
+  ac_tr_lib=HAVE_LIBPTHREAD
+  AC_DEFINE_UNQUOTED($ac_tr_lib)
+  LIBS="-lpthread $LIBS"
+  ])
+
+  AC_CHECK_LIB(rt, sem_init, [
+  ac_tr_lib=HAVE_LIBRT
+  AC_DEFINE_UNQUOTED($ac_tr_lib)
+  LIBS="-lrt $LIBS"
+  ], , $LIBS )
+
+  dnl
+  dnl check whether the compiler required the -pthread option
+  dnl to correctly link code containing posix thread calls.
+  dnl This is true on FreeBSD.
+  dnl
+  AC_CHECK_PTHREAD_OPTION
+
+  dnl
+  dnl check whether Posix read/write locks are available
+  dnl
+  POSIXRWLOCKSAVAILABLE="no"
+  AC_CHECK_LIB(pthread, pthread_rwlock_init, [
+    AC_DEFINE(HAVE_PTHREAD_RWLOCK, , [Define if your system supports POSIX read/write locks.])
+    dnl
+    dnl we're going to use POSIX threads with read/write locks.
+    dnl Linux 2.2.x only declares all prototypes if _XOPEN_SOURCE=500 and _BSD_SOURCE
+    dnl OSF/1 requires _XOPEN_SOURCE=500, _XOPEN_SOURCE_EXTENDED, _OSF_SOURCE and _POSIX_C_SOURCE=199506L
+    dnl Irix 6.x does not like _XOPEN_SOURCE=500 and _POSIX_C_SOURCE=199506L
+    dnl
+    POSIXRWLOCKSAVAILABLE="yes"
+    case "${host}" in
+	mips-sgi-irix6*)
+	  CXXFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_BSD_SOURCE -D_BSD_COMPAT $CXXFLAGS"
+	  CFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_BSD_SOURCE -D_BSD_COMPAT $CFLAGS"
+	  ;;
+	*-*-openbsd3*)
+	  CXXFLAGS="-D_POSIX_C_SOURCE=199506L $CXXFLAGS"
+	  CFLAGS="-D_POSIX_C_SOURCE=199506L $CFLAGS"
+	  ;;
+	*-*-openbsd4*)
+	  ;;
+	*-*-freebsd*)
+	  ;;
+	*-*-netbsdelf2*)
+	  ;;
+	*-*-darwin[[8-9]].*|*-*-darwin1[[0-1]].*)
+	  dnl On Mac OS X we need to have _DARWIN_C_SOURCE defined to enable UNIX standard API for system headers
+	  CXXFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_BSD_SOURCE -D_BSD_COMPAT -D_OSF_SOURCE -D_DARWIN_C_SOURCE $CXXFLAGS"
+	  CFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_BSD_SOURCE -D_BSD_COMPAT -D_OSF_SOURCE -D_DARWIN_C_SOURCE $CXXFLAGS"
+	  ;;
+	*)
+	  CXXFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -D_BSD_COMPAT -D_OSF_SOURCE -D_POSIX_C_SOURCE=199506L $CXXFLAGS"
+	  CFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -D_BSD_COMPAT -D_OSF_SOURCE -D_POSIX_C_SOURCE=199506L $CFLAGS"
+	  ;;
+    esac
+  ],
+  [
+    dnl
+    dnl We did not find pthread_rwlock_init in libpthread. Maybe it is somewhere else, e.g. in libc_r on FreeBSD.
+    dnl We give it another try by just linking against the default libraries.
+    dnl
+    AC_MSG_CHECKING(for pthread_rwlock_init in default libraries)
+    AC_TRY_LINK([extern "C" int pthread_rwlock_init(void *rwlock, void *attr);
+      ] , [(void) pthread_rwlock_init(NULL, NULL);], [
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_PTHREAD_RWLOCK, , [Define if your system supports POSIX read/write locks.])
+    dnl
+    dnl we're going to use POSIX threads with read/write locks.
+    dnl Linux 2.2.x only declares all prototypes if _XOPEN_SOURCE=500 and _BSD_SOURCE
+    dnl OSF/1 requires _XOPEN_SOURCE=500, _XOPEN_SOURCE_EXTENDED, _OSF_SOURCE and _POSIX_C_SOURCE=199506L
+    dnl Irix 6.x does not like _XOPEN_SOURCE=500 and _POSIX_C_SOURCE=199506L
+    dnl
+    POSIXRWLOCKSAVAILABLE="yes"
+    case "${host}" in
+	mips-sgi-irix6*)
+	  CXXFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_BSD_SOURCE -D_BSD_COMPAT $CXXFLAGS"
+	  CFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_BSD_SOURCE -D_BSD_COMPAT $CFLAGS"
+	  ;;
+	*-*-openbsd3*)
+	  CXXFLAGS="-D_POSIX_C_SOURCE=199506L $CXXFLAGS"
+	  CFLAGS="-D_POSIX_C_SOURCE=199506L $CFLAGS"
+	  ;;
+	*-*-openbsd4*)
+	  ;;
+	*-*-freebsd*)
+	  ;;
+	*-*-netbsdelf2*)
+	  ;;
+	*-*-darwin[[8-9]].*|*-*-darwin1[[0-1]].*)
+	  dnl On Mac OS X we need to have _DARWIN_C_SOURCE source defined to enable UNIX standard API for system headers
+	  CXXFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_BSD_SOURCE -D_BSD_COMPAT -D_OSF_SOURCE -D_DARWIN_C_SOURCE $CXXFLAGS"
+	  CFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_BSD_SOURCE -D_BSD_COMPAT -D_OSF_SOURCE -D_DARWIN_C_SOURCE $CXXFLAGS"
+	  ;;
+	*)
+	  CXXFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -D_BSD_COMPAT -D_OSF_SOURCE -D_POSIX_C_SOURCE=199506L $CXXFLAGS"
+	  CFLAGS="-D_XOPEN_SOURCE_EXTENDED -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -D_BSD_COMPAT -D_OSF_SOURCE -D_POSIX_C_SOURCE=199506L $CFLAGS"
+	  ;;
+    esac
+    ], AC_MSG_RESULT(no))
+  ]
+  )
+fi
+
+AC_MSG_CHECKING(multi-thread support)
+case "$THREADSUPPORT" in
+  solaris)
+    AC_MSG_RESULT([yes, solaris threads])
+    CXXFLAGS="-D_REENTRANT $CXXFLAGS"
+    CFLAGS="-D_REENTRANT $CFLAGS"
+    AC_DEFINE(WITH_THREADS, , [Define if we are compiling with any type of multi-thread support.])
+    ;;
+  posix)
+    if test $POSIXRWLOCKSAVAILABLE = yes ; then
+      AC_MSG_RESULT([yes, posix threads with rwlock])
+    else
+      AC_MSG_RESULT([yes, posix threads without rwlock])
+    fi
+    CXXFLAGS="-D_REENTRANT $CXXFLAGS"
+    CFLAGS="-D_REENTRANT $CFLAGS"
+    AC_DEFINE(WITH_THREADS, , [Define if we are compiling with any type of multi-thread support.])
+    ;;
+  *)
+    AC_MSG_RESULT(none)
+    ;;
+esac
+
+dnl -------------------------------------------------------
+dnl Check for LFS support
+dnl -------------------------------------------------------
+
+if test $LFSSUPPORT = auto -o $LFSSUPPORT = lfs64; then
+  AC_LFS64
+  if test $ac_cv_lfs64_support = yes ; then
+    LFSSUPPORT="lfs64"
+  fi
+fi
+
+if test $LFSSUPPORT = auto -o $LFSSUPPORT = lfs; then
+  MY_AC_SYS_LARGEFILE
+fi
+
+dnl -------------------------------------------------------
+dnl Checks for typedefs, structures, and compiler characteristics.
+dnl -------------------------------------------------------
+
+AC_TYPEDEF(size_t, unsigned)
+AC_TYPEDEF(ssize_t, long)
+AC_TYPEDEF(pid_t, int)
+AC_C_CHAR_UNSIGNED
+AC_CHECK_SIZEOF(char)
+AC_CHECK_SIZEOF(short)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(float)
+AC_CHECK_SIZEOF(double)
+AC_CHECK_SIZEOF(void *)
+AC_STRUCT_TM
+
+dnl -------------------------------------------------------
+dnl Checks for prototypes
+dnl -------------------------------------------------------
+dnl
+dnl The following AC_CHECK_* macros _must_ have corresponding entries in
+dnl the acconfig.h file.  This is because the macros are specific to the
+dnl DCMTK project and are not supported by GNU autoheader.
+
+AC_CHECK_PROTOTYPE(_stricmp, string.h)
+AC_CHECK_PROTOTYPE(accept, sys/types.h sys/socket.h)
+if test $ac_cv_prototype_accept = yes ; then
+AC_CHECK_INTP_ACCEPT(sys/types.h sys/socket.h)
+fi
+AC_CHECK_PROTOTYPE(bind, sys/types.h sys/socket.h)
+AC_CHECK_PROTOTYPE(bzero, string.h strings.h libc.h unistd.h stdlib.h)
+AC_CHECK_PROTOTYPE(connect, sys/types.h sys/socket.h)
+AC_CHECK_PROTOTYPE(finite, math.h)
+AC_CHECK_PROTOTYPE(isinf, math.h)
+AC_CHECK_PROTOTYPE(isnan, math.h)
+AC_CHECK_PROTOTYPE(flock, sys/file.h)
+AC_CHECK_PROTOTYPE(gethostbyname, libc.h unistd.h stdlib.h netdb.h)
+AC_CHECK_PROTOTYPE(gethostid, libc.h unistd.h stdlib.h netdb.h)
+AC_CHECK_PROTOTYPE(gethostname, unistd.h libc.h stdlib.h netdb.h)
+AC_CHECK_PROTOTYPE(getsockname, sys/types.h sys/socket.h)
+AC_CHECK_PROTOTYPE(getsockopt, sys/types.h sys/socket.h)
+AC_CHECK_PROTOTYPE(strerror_r, string.h)
+if test $ac_cv_prototype_strerror_r = yes ; then
+AC_CHECK_CHARP_STRERROR_R(string.h)
+fi
+if test $ac_cv_prototype_getsockopt = yes ; then
+AC_CHECK_INTP_GETSOCKOPT(sys/types.h sys/socket.h)
+fi
+AC_CHECK_PROTOTYPE(gettimeofday, sys/time.h unistd.h)
+AC_CHECK_PROTOTYPE(listen, sys/types.h sys/socket.h)
+AC_CHECK_PROTOTYPE(mktemp, libc.h unistd.h stdlib.h)
+AC_CHECK_PROTOTYPE(mkstemp, libc.h unistd.h stdlib.h)
+AC_CHECK_PROTOTYPE(select, sys/select.h sys/types.h sys/socket.h sys/time.h)
+if test $ac_cv_prototype_select = yes ; then
+AC_CHECK_INTP_SELECT(sys/select.h sys/types.h sys/socket.h sys/time.h)
+fi
+AC_CHECK_PROTOTYPE(setsockopt, sys/types.h sys/socket.h)
+AC_CHECK_PROTOTYPE(socket, sys/types.h sys/socket.h)
+AC_CHECK_PROTOTYPE(strcasecmp, string.h)
+AC_CHECK_PROTOTYPE(strncasecmp, string.h)
+AC_CHECK_PROTOTYPE(usleep, libc.h unistd.h stdlib.h)
+AC_CHECK_PROTOTYPE(vsnprintf, stdio.h stdarg.h)
+AC_CHECK_PROTOTYPE(wait3, libc.h sys/wait.h sys/time.h sys/resource.h)
+AC_CHECK_PROTOTYPE(waitpid, sys/wait.h sys/time.h sys/resource.h)
+AC_CHECK_DECLARATION(struct utimbuf, sys/types.h utime.h sys/utime.h)
+AC_CHECK_DECLARATION(socklen_t, sys/types.h sys/socket.h)
+AC_CHECK_OLD_READDIR_R
+AC_CHECK_ELLIPSE_SIGNAL_HANDLER(signal.h)
+if test $ac_cv_header_math_h = yes ; then
+AC_INCLUDE_MATH_H_AS_CXX
+fi
+
+dnl -------------------------------------------------------
+dnl Checks for the usage of standard C++ headers.
+dnl -------------------------------------------------------
+
+AC_MSG_CHECKING(whether to use C++ standard includes)
+ac_use_std_includes="auto"
+AC_ARG_ENABLE(std-includes,
+[  --enable-std-includes   use C++ ANSI standard includes (default: auto)
+  --disable-std-includes  use old C++ includes ],
+[ case "$enableval" in
+  yes)
+   ac_use_std_includes="yes"
+   ;;
+
+  *)
+    ac_use_std_includes="no"
+    ;;
+  esac ]
+)
+
+if test "$ac_cv_header_fstream" = "yes" -a "$ac_cv_header_iostream" = "yes" -a "$ac_cv_header_iomanip" = "yes"; then
+   ac_have_std_includes="yes"
+else
+   ac_have_std_includes="no"
+fi
+
+if test "$ac_cv_header_fstream_h" = "yes" -a "$ac_cv_header_iostream_h" = "yes" -a "$ac_cv_header_iomanip_h" = "yes"; then
+   ac_have_old_includes="yes"
+else
+   ac_have_old_includes="no"
+fi
+
+if test "$ac_use_std_includes" = "yes"; then
+   AC_MSG_RESULT(yes)
+   AC_DEFINE(USE_STD_CXX_INCLUDES, , [Define if ANSI standard C++ includes are used.])
+elif test "$ac_use_std_includes" = "no"; then
+   AC_MSG_RESULT(no)
+elif test "$ac_have_std_includes" = "yes"; then
+   AC_MSG_RESULT(yes)
+   AC_DEFINE(USE_STD_CXX_INCLUDES, , [Define if ANSI standard C++ includes are used.])
+   ac_use_std_includes="yes"
+else
+   AC_MSG_RESULT(no)
+   ac_use_std_includes="no"
+fi
+
+if test "$ac_use_std_includes" = "yes"; then
+   AC_CHECK_STD_NAMESPACE
+   AC_CHECK_DECLARATION(std::ios_base::openmode, , iostream)
+   AC_CHECK_IOS_NOCREATE(std::ios, fstream)
+   AC_CHECK_COMPILES(std::vfprintf, cstdarg cstdio,
+     [FILE *stream; va_list ap; std::vfprintf(stream, "", ap);])
+   AC_CHECK_COMPILES(std::vsnprintf, cstdarg cstdio,
+     [char buf[256]; va_list ap; std::vsnprintf(buf, 0, "", ap);])
+else
+   AC_CHECK_DECLARATION(std::ios_base::openmode, , iostream.h)
+   AC_CHECK_IOS_NOCREATE(ios, fstream.h)
+   AC_CHECK_COMPILES(std::vfprintf, stdarg.h stdio.h,
+     [FILE *stream; va_list ap; std::vfprintf(stream, "", ap);])
+   AC_CHECK_COMPILES(std::vsnprintf, stdarg.h stdio.h,
+     [char buf[256]; va_list ap; std::vsnprintf(buf, 0, "", ap);])
+fi
+
+AC_CHECK_CLASS_TEMPLATE
+AC_CHECK_STATIC_TEMPLATE_METHOD
+AC_CHECK_FUNCTION_TEMPLATE
+AC_CHECK_EXPLICIT_TEMPLATE_SPECIALIZATION
+AC_CHECK_CXX_BOOL
+AC_CHECK_CXX_VOLATILE
+AC_CXX_TYPENAME
+AC_STDIO_NAMESPACE
+
+dnl -------------------------------------------------------
+dnl Check for Private Tag support
+dnl -------------------------------------------------------
+
+AC_MSG_CHECKING(whether to enable private tag dictionary)
+AC_ARG_WITH(private-tags,
+[  --with-private-tags     enable private tag dictionary
+  --without-private-tags  don't enable private tag dictionary (default)],
+[ case "$withval" in
+  yes)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(WITH_PRIVATE_TAGS, , [Define if we are compiling for built-in private tag dictionary.])
+    AC_DEFINE_UNQUOTED(DCM_DICT_DEFAULT_PATH, "${DATA_DIR}/dicom.dic:${DATA_DIR}/private.dic", [Define the default data dictionary path for the dcmdata library package.])
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
+)
+
+dnl -------------------------------------------------------
+dnl Check for OpenSSL support
+dnl -------------------------------------------------------
+
+if test "${with_opensslinc+set}" = set; then
+
+    case "$with_opensslinc" in
+    yes|no)
+      echo "configure: warning: --with-opensslinc called without argument - will use default" 1>&2
+    ;;
+    * )
+      if test ! -d ${with_opensslinc}; then
+        echo "configure: warning: called with --with-opensslinc, but openssl base directory ${withval} does not exist or is not a directory." 1>&2
+        exit 1
+      fi
+
+      CPPFLAGS="-I${with_opensslinc}/include $CPPFLAGS"
+      LDFLAGS="-L${with_opensslinc}/lib $LDFLAGS"
+    ;;
+    esac
+
+fi
+
+AC_MSG_CHECKING([whether to include OpenSSL support])
+AC_ARG_WITH(openssl,
+[  --with-openssl          include OpenSSL support (default: auto)
+  --without-openssl       don't include OpenSSL support
+  --with-opensslinc=DIR   location of OpenSSL includes and libraries],
+[ case "$withval" in
+  yes)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(WITH_OPENSSL, , [Define if we are compiling with OpenSSL support.])
+    OPENSSLLIBS="-lssl -lcrypto $OPENSSLLIBS"
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+[ SAVELIBS="$LIBS"
+  LIBS="$LIBS -lssl -lcrypto"
+  AC_TRY_LINK([#include <openssl/ssl.h>], [(void) TLSv1_method()],
+    [ AC_MSG_RESULT(yes)
+      AC_DEFINE(WITH_OPENSSL, , [Define if we are compiling with OpenSSL support.])
+      OPENSSLLIBS="-lssl -lcrypto $OPENSSLLIBS" ],
+    [AC_MSG_RESULT(no)])
+  LIBS="$SAVELIBS"] )
+
+dnl -------------------------------------------------------
+dnl Check for libjpeg, which is needed by libtiff on some platforms
+dnl -------------------------------------------------------
+
+JPEGLIBS=""
+AC_CHECK_LIB(jpeg, jpeg_set_defaults,[
+JPEGLIBS="-ljpeg"
+])
+if test $ac_cv_lib_jpeg_jpeg_set_defaults = no ; then
+AC_CHECK_LIB(jpeg, jSetDefaults,[
+JPEGLIBS="-ljpeg"
+])
+fi
+
+dnl -------------------------------------------------------
+dnl Check for zlib support
+dnl -------------------------------------------------------
+
+if test "${with_zlibinc+set}" = set; then
+
+    case "$with_zlibinc" in
+    yes|no)
+      echo "configure: warning: --with-zlibinc called without argument - will use default" 1>&2
+    ;;
+    * )
+      if test ! -d ${with_zlibinc}; then
+        echo "configure: warning: called with --with-zlibinc, but zlib base directory ${withval} does not exist or is not a directory." 1>&2
+        exit 1
+      fi
+      CPPFLAGS="-I${with_zlibinc}/include $CPPFLAGS"
+      LDFLAGS="-L${with_zlibinc}/lib $LDFLAGS"
+    ;;
+    esac
+
+fi
+
+ZLIBLIBS=""
+AC_MSG_CHECKING(whether to include zlib support)
+AC_ARG_WITH(zlib,
+[  --with-zlib             include zlib support (default: auto)
+  --without-zlib          don't include zlib support
+  --with-zlibinc=DIR      location of zlib includes and libraries],
+[ case "$withval" in
+  yes)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(WITH_ZLIB, , [Define if we are compiling with zlib support.])
+    ZLIBLIBS="-lz"
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+[ SAVELIBS="$LIBS"
+  LIBS="$LIBS -lz"
+  AC_TRY_LINK([#include <zlib.h>], [(void) zlibVersion()],
+    [ AC_MSG_RESULT(yes)
+      AC_DEFINE(WITH_ZLIB, , [Define if we are compiling with zlib support.])
+      ZLIBLIBS="-lz" ],
+    [AC_MSG_RESULT(no)])
+  LIBS="$SAVELIBS"] )
+
+dnl -------------------------------------------------------
+dnl Check for libtiff support
+dnl -------------------------------------------------------
+
+if test "${with_libtiffinc+set}" = set; then
+
+    case "$with_libtiffinc" in
+    yes|no)
+      echo "configure: warning: --with-libtiffinc called without argument - will use default" 1>&2
+    ;;
+    * )
+      if test ! -d ${with_libtiffinc}; then
+        echo "configure: warning: called with --with-libtiffinc, but libtiff base directory ${withval} does not exist or is not a directory." 1>&2
+        exit 1
+      fi
+      CPPFLAGS="-I${with_libtiffinc}/include $CPPFLAGS"
+      LDFLAGS="-L${with_libtiffinc}/lib $LDFLAGS"
+    ;;
+    esac
+
+fi
+
+TIFFLIBS=""
+AC_MSG_CHECKING(whether to include libtiff support)
+AC_ARG_WITH(libtiff,
+[  --with-libtiff          include libtiff support (default: auto)
+  --without-libtiff       don't include libtiff support
+  --with-libtiffinc=DIR   location of libtiff includes and libraries],
+[ case "$withval" in
+  yes)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(WITH_LIBTIFF, , [Define if we are compiling with libtiff support.])
+    TIFFLIBS="-ltiff $JPEGLIBS $ZLIBLIBS"
+    SAVELIBS="$LIBS"
+    LIBS="$LIBS -ltiff $JPEGLIBS $ZLIBLIBS"
+    AC_LIBTIFF_LZW_COMPRESSION
+    LIBS="$SAVELIBS"
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+[ SAVELIBS="$LIBS"
+  LIBS="$LIBS -ltiff $JPEGLIBS $ZLIBLIBS"
+  AC_TRY_LINK([#include <tiffio.h>], [(void) TIFFGetVersion()],
+    [ AC_MSG_RESULT(yes)
+      AC_DEFINE(WITH_LIBTIFF, , [Define if we are compiling with libtiff support.])
+      TIFFLIBS="-ltiff $JPEGLIBS $ZLIBLIBS"
+      AC_LIBTIFF_LZW_COMPRESSION
+    ],
+    [AC_MSG_RESULT(no)])
+  LIBS="$SAVELIBS"] )
+
+
+dnl -------------------------------------------------------
+dnl Check for libpng support
+dnl -------------------------------------------------------
+
+if test "${with_libpnginc+set}" = set; then
+
+    case "$with_libpnginc" in
+    yes|no)
+      echo "configure: warning: --with-libpnginc called without argument - will use default" 1>&2
+    ;;
+    * )
+      if test ! -d ${with_libpnginc}; then
+        echo "configure: warning: called with --with-libpnginc, but libpng base directory ${withval} does not exist or is not a directory." 1>&2
+        exit 1
+      fi
+      CPPFLAGS="-I${with_libpnginc}/include $CPPFLAGS"
+      LDFLAGS="-L${with_libpnginc}/lib $LDFLAGS"
+    ;;
+    esac
+fi
+
+dnl perform check for <libpng/png.h> only after we have evaluated --with-libpnginc
+AC_CHECK_HEADERS(libpng/png.h)
+
+PNGLIBS=""
+AC_MSG_CHECKING(whether to include libpng support)
+AC_ARG_WITH(libpng,
+[  --with-libpng           include libpng support (default: auto)
+  --without-libpng        don't include libpng support
+  --with-libpnginc=DIR    location of libpng includes and libraries],
+[ case "$withval" in
+  yes)
+    if test "x$ZLIBLIBS" != x; then
+        AC_MSG_RESULT(yes)
+        AC_DEFINE(WITH_LIBPNG, , [Define if we are compiling with libpng support.])
+        PNGLIBS="-lpng"
+    else
+        AC_MSG_RESULT(no because libpng requires zlib)
+    fi
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+[ if test "x$ZLIBLIBS" != x; then
+      SAVELIBS="$LIBS"
+      LIBS="$LIBS -lpng $ZLIBLIBS"
+
+      AC_TRY_LINK([#ifdef HAVE_LIBPNG_PNG_H
+#include <libpng/png.h>
+#else
+#include <png.h>
+#endif], [(void) png_access_version_number()],
+        [ AC_MSG_RESULT(yes)
+          AC_DEFINE(WITH_LIBPNG, , [Define if we are compiling with libpng support.])
+          PNGLIBS="-lpng" ],
+        [AC_MSG_RESULT(no)])
+
+      LIBS="$SAVELIBS"
+  else
+      AC_MSG_RESULT(no because libpng requires zlib)
+  fi
+] )
+
+dnl -------------------------------------------------------
+dnl Check for libxml support
+dnl -------------------------------------------------------
+
+if test "${with_libxmlinc+set}" = set; then
+
+    case "$with_libxmlinc" in
+    yes|no)
+      echo "configure: warning: --with-libxmlinc called without argument - will use default" 1>&2
+    ;;
+    * )
+      if test ! -d ${with_libxmlinc}; then
+        echo "configure: warning: called with --with-libxmlinc, but libxml base directory ${withval} does not exist or is not a directory." 1>&2
+        exit 1
+      fi
+      CPPFLAGS="-I${with_libxmlinc}/include/libxml2 $CPPFLAGS"
+      LDFLAGS="-L${with_libxmlinc}/lib $LDFLAGS"
+    ;;
+    esac
+
+fi
+
+LIBXMLCFLAGS=`xml2-config --cflags 2>/dev/null`
+if test "${LIBXMLCFLAGS+set}" = set; then
+  CXXFLAGS="$LIBXMLCFLAGS $CXXFLAGS"
+  CFLAGS="$LIBXMLCFLAGS $CFLAGS"
+fi
+
+XMLLIBS=""
+AC_MSG_CHECKING(whether to include libxml support)
+AC_ARG_WITH(libxml,
+[  --with-libxml           include libxml support (default: auto)
+  --without-libxml        don't include libxml support
+  --with-libxmlinc=DIR    location of libxml includes and libraries],
+[ case "$withval" in
+  yes)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(WITH_LIBXML, , [Define if we are compiling with libxml support.])
+    XMLLIBS="-lxml2"
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+[ SAVELIBS="$LIBS"
+  LIBS="$LIBS -lxml2 $ZLIBLIBS"
+  AC_TRY_LINK([#include <libxml/parser.h>], [(void) xmlInitParser()],
+    [ AC_MSG_RESULT(yes)
+      AC_DEFINE(WITH_LIBXML, , [Define if we are compiling with libxml support.])
+      XMLLIBS="-lxml2" ],
+    [AC_MSG_RESULT(no)])
+  LIBS="$SAVELIBS"] )
+
+dnl -------------------------------------------------------
+dnl Check for libwrap (TCP wrapper) support
+dnl -------------------------------------------------------
+
+if test "${with_libwrapinc+set}" = set; then
+
+    case "$with_libwrapinc" in
+    yes|no)
+      echo "configure: warning: --with-libwrapinc called without argument - will use default" 1>&2
+    ;;
+    * )
+      if test ! -d ${with_libwrapinc}; then
+        echo "configure: warning: called with --with-libwrapinc, but libwrap base directory ${withval} does not exist or is not a directory." 1>&2
+        exit 1
+      fi
+      CPPFLAGS="-I${with_libwrapinc}/include $CPPFLAGS"
+      LDFLAGS="-L${with_libwrapinc}/lib $LDFLAGS"
+    ;;
+    esac
+
+fi
+
+TCPWRAPPERLIBS=""
+AC_MSG_CHECKING(whether to include libwrap support)
+AC_ARG_WITH(libwrap,
+[  --with-libwrap          include libwrap (TCP wrapper) support (default: auto)
+  --without-libwrap       don't include libwrap support
+  --with-libwrapinc=DIR   location of libwrap includes and libraries],
+[ case "$withval" in
+  yes)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(WITH_TCPWRAPPER, , [Define if we are compiling with libwrap (TCP wrapper) support.])
+    TCPWRAPPERLIBS="-lwrap"
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+[ SAVELIBS="$LIBS"
+  LIBS="-lwrap $LIBS"
+  AC_TRY_LINK(
+    [#ifdef __cplusplus
+    extern "C" {
+    #endif
+    #ifdef HAVE_STDIO_H
+    /* on some platforms, tcpd.h needs stdio.h */
+    #include <stdio.h>
+    #endif
+    #ifdef HAVE_SYS_TYPES_H
+    /* on some platforms, tcpd.h needs sys/types.h */
+    #include <sys/types.h>
+    #endif
+    #include <tcpd.h>
+    #ifdef __cplusplus
+    }
+    #endif
+    int deny_severity = 0;
+    int allow_severity = 0;], [struct request_info r; (void) hosts_access(&r)],
+    [ AC_MSG_RESULT(yes)
+      AC_DEFINE(WITH_TCPWRAPPER, , [Define if we are compiling with libwrap (TCP wrapper) support.])
+    TCPWRAPPERLIBS="-lwrap" ],
+    [AC_MSG_RESULT(no)])
+  LIBS="$SAVELIBS"] )
+
+
+dnl -------------------------------------------------------
+dnl Check for libsndfile support
+dnl -------------------------------------------------------
+
+if test "${with_libsndfileinc+set}" = set; then
+
+    case "$with_libsndfileinc" in
+    yes|no)
+      echo "configure: warning: --with-libsndfileinc called without argument - will use default" 1>&2
+    ;;
+    * )
+      if test ! -d ${with_libsndfileinc}; then
+        echo "configure: warning: called with --with-libsndfileinc, but libsndfile base directory ${withval} does not exist or is not a directory." 1>&2
+        exit 1
+      fi
+      CPPFLAGS="-I${with_libsndfileinc}/include $CPPFLAGS"
+      LDFLAGS="-L${with_libsndfileinc}/lib $LDFLAGS"
+    ;;
+    esac
+fi
+
+dnl perform check for <sndfile.h> only after we have evaluated --with-libsndfileinc
+AC_CHECK_HEADERS(sndfile.h)
+
+SNDFILELIBS=""
+AC_MSG_CHECKING(whether to include sndfile support)
+
+AC_ARG_WITH(sndfile,
+
+  [  --with-libsndfile          include libsndfile support (default: auto)
+  --without-libsndfile       don't include libsndfile support
+  --with-libsndfileinc=DIR   location of libsndfile includes and libraries],
+
+  [ case "$withval" in
+    yes)
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(WITH_SNDFILE, , [Define if we are compiling with sndfile support.])
+      SNDFILELIBS="-lsndfile"
+      ;;
+    *)
+      AC_MSG_RESULT(no)
+      ;;
+    esac ],
+
+  [ SAVELIBS="$LIBS"
+    LIBS="$LIBS -lsndfile"
+    AC_TRY_LINK([#include <sndfile.h>], [char buffer [128];
+    sf_command (NULL, SFC_GET_LIB_VERSION, buffer, sizeof (buffer));],
+      [ AC_MSG_RESULT(yes)
+        AC_DEFINE(WITH_SNDFILE, , [Define if we are compiling with sndfile support.])
+        SNDFILELIBS="-lsndfile" ],
+      [AC_MSG_RESULT(no)])
+    LIBS="$SAVELIBS"]
+)
+
+dnl -------------------------------------------------------
+dnl Set optimizer and debug compiler flags
+dnl -------------------------------------------------------
+CFLAGS="$DEBUGCFLAGS $CFLAGS"
+CXXFLAGS="$DEBUGCXXFLAGS $CXXFLAGS"
+
+dnl -------------------------------------------------------
+dnl Special Definitions for output
+dnl -------------------------------------------------------
+AC_SUBST(CXXFLAGS)
+AC_SUBST(OPENSSLLIBS)
+AC_SUBST(TIFFLIBS)
+AC_SUBST(PNGLIBS)
+AC_SUBST(MATHLIBS)
+AC_SUBST(ZLIBLIBS)
+AC_SUBST(XMLLIBS)
+AC_SUBST(TCPWRAPPERLIBS)
+AC_SUBST(SNDFILELIBS)
+AC_SUBST(DEBUG)
+
+AC_OUTPUT(Makefile.def Makefile)
+
+dnl disabled: AC_ARG_PROGRAM

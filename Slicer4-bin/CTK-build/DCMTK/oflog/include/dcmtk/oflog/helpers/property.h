@@ -1,0 +1,127 @@
+// Module:  Log4CPLUS
+// File:    property.h
+// Created: 2/2002
+// Author:  Tad E. Smith
+//
+//
+// Copyright 2002-2009 Tad E. Smith
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/** @file */
+
+#ifndef DCMTK_LOG4CPLUS_HELPERS_PROPERTY_HEADER_
+#define DCMTK_LOG4CPLUS_HELPERS_PROPERTY_HEADER_
+
+#include "dcmtk/oflog/config.h"
+#include "dcmtk/oflog/streams.h"
+#include "dcmtk/oflog/tstring.h"
+//#include <map>
+#include "dcmtk/ofstd/ofmap.h"
+//#include <vector>
+#include "dcmtk/ofstd/oflist.h"
+
+#if (defined(__MWERKS__) && defined(__MACOS__))
+using STD_NAMESPACE size_t;
+#endif
+
+
+namespace dcmtk {
+namespace log4cplus {
+    namespace helpers {
+
+        class DCMTK_LOG4CPLUS_EXPORT Properties {
+        public:
+            Properties();
+            explicit Properties(tistream& input);
+            explicit Properties(const tstring& inputFile);
+            virtual ~Properties();
+
+          // constants
+            static const tchar PROPERTIES_COMMENT_CHAR;
+
+          // methods
+            /**
+             * Tests to see if <code>key</code> can be found in this map.
+             */
+            bool exists(const tstring& key) const {
+                return data.find(key) != data.end();
+            }
+
+
+            /**
+             * Returns the number of entries in this map.
+             */
+            size_t size() const {
+                return data.size();
+            }
+
+            /**
+             * Searches for the property with the specified key in this property
+             * list. If the key is not found in this property list, the default
+             * property list, and its defaults, recursively, are then checked.
+             * The method returns <code>null</code> if the property is not found.
+             */
+            tstring getProperty(const tstring& key) const;
+
+            /**
+             * Searches for the property with the specified key in this property
+             * list. If the key is not found in this property list, the default
+             * property list, and its defaults, recursively, are then checked.
+             * The method returns the default value argument if the property is
+             * not found.
+             */
+            tstring getProperty(const tstring& key,
+                                const tstring& defaultVal) const;
+
+            /**
+             * Returns all the keys in this property list.
+             */
+            OFList<tstring> propertyNames() const;
+
+            /**
+             * Inserts <code>value</code> into this map indexed by <code>key</code>.
+             */
+            void setProperty(const tstring& key, const tstring& value);
+
+            /**
+             * Removed the property index by <code>key</code> from this map.
+             */
+            bool removeProperty(const tstring& key);
+
+            /**
+             * Returns a subset of the "properties" whose keys start with
+             * "prefix".  The returned "properties" have "prefix" trimmed from
+             * their keys.
+             */
+            Properties getPropertySubset(const tstring& prefix) const;
+
+        protected:
+          // Types
+//            LOG4CPLUS_EXPIMP_TEMPLATE template class DCMTK_LOG4CPLUS_EXPORT STD_NAMESPACE map<tstring, tstring>;
+            typedef OFMap<tstring, tstring> StringMap;
+
+          // Methods
+            void init(tistream& input);
+
+          // Data
+            StringMap data;
+        };
+    } // end namespace helpers
+
+}
+} // end namespace dcmtk
+
+
+#endif // DCMTK_LOG4CPLUS_HELPERS_PROPERTY_HEADER_
+
