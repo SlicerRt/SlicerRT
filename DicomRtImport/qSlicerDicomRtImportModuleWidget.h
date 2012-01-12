@@ -39,7 +39,7 @@ public:
   virtual ~qSlicerDicomRtImportModuleWidget();
 
 public slots:
-
+  void LoadDicomRt();
 
 protected:
   QScopedPointer<qSlicerDicomRtImportModuleWidgetPrivate> d_ptr;

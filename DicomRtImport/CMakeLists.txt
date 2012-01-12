@@ -44,6 +44,7 @@ endif()
 
 # Add subdirectories
 add_subdirectory(Logic)
+#add_subdirectory(Algorithm)
 
 #-----------------------------------------------------------------------------
 # Sources
@@ -54,6 +55,8 @@ set(qt_module_export_directive "Q_SLICER_QTMODULES_DICOMRTIMPORT_EXPORT")
 set(qt_module_include_directories
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
+  #${CMAKE_CURRENT_SOURCE_DIR}/Algorithm
+  #${CMAKE_CURRENT_BINARY_DIR}/Algorithm
   )
 
 # Source files
@@ -78,6 +81,7 @@ set(qt_module_UI_SRCS
 # Additional Target libraries
 set(qt_module_target_libraries
   vtkSlicerDicomRtImportModuleLogic
+  #vtkSlicerDicomRtImportAlgorithm
   )
 
 # Resources

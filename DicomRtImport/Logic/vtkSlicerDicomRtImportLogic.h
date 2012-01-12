@@ -47,6 +47,7 @@ public:
 
   /// Initialize listening to MRML events
   void InitializeEventListeners();
+  void LoadDicomRT(char* name);
 
 protected:
   vtkSlicerDicomRtImportLogic();

@@ -21,6 +21,7 @@
 // SlicerQt includes
 #include "qSlicerDicomRtImportModuleWidget.h"
 #include "ui_qSlicerDicomRtImportModule.h"
+#include "vtkSlicerDicomRtImportLogic.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -59,5 +60,14 @@ void qSlicerDicomRtImportModuleWidget::setup()
   Q_D(qSlicerDicomRtImportModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
+
+  QObject::connect( this->d_ptr->pushButton_LoadDicomRT, SIGNAL(pressed()), this, SLOT(LoadDicomRt()) );
 }
 
+//-----------------------------------------------------------------------------
+void qSlicerDicomRtImportModuleWidget::LoadDicomRt()
+{
+	vtkSlicerDicomRtImportLogic *logic = vtkSlicerDicomRtImportLogic::SafeDownCast(this->logic());
+	logic->LoadDicomRT("\\wangk\\temp\\RTSTRUCT.2.16.840.1.113669.2.931128.198378313.20120104144541.513083.dcm");
+	return;
+}

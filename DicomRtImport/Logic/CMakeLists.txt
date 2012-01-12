@@ -17,11 +17,14 @@ set(module_logic_include_directories
 set(module_logic_SRCS
   vtkSlicerDicomRtImportLogic.cxx
   vtkSlicerDicomRtImportLogic.h
+  vtkSlicerDicomRtImportReader.cxx
   )
 
 # Additional Target libraries
 set(module_logic_target_libraries
   ${ITK_LIBRARIES}
+  ${VTK_LIBRARIES}
+  ${DCMTK_LIBRARIES}
   )
 
 SlicerMacroBuildModuleLogic(

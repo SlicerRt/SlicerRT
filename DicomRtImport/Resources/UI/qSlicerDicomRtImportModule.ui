@@ -15,14 +15,19 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" colspan="2">
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
-     <property name="text">
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton" native="true">
+     <property name="text" stdset="0">
       <string>Display</string>
      </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3"/>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QPushButton" name="pushButton_LoadDicomRT">
+        <property name="text">
+         <string>Load Dicom RT</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
