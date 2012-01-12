@@ -19,10 +19,14 @@
 #include "vtkSlicerDicomRtImportLogic.h"
 #include "vtkSlicerDicomRtImportReader.h"
 
+// Slicer includes
+#include "vtkSlicerVolumesLogic.h"
+
 // MRML includes
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLFiducial.h>
+#include <vtkMRMLVolumeNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -35,10 +39,12 @@
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtImportLogic);
+vtkCxxSetObjectMacro(vtkSlicerDicomRtImportLogic, VolumesLogic, vtkSlicerVolumesLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportLogic::vtkSlicerDicomRtImportLogic()
 {
+  this->VolumesLogic = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -86,15 +92,22 @@ void vtkSlicerDicomRtImportLogic
 {
 }
 
-void vtkSlicerDicomRtImportLogic
-::LoadDicomRT(char *name)
+//---------------------------------------------------------------------------
+bool vtkSlicerDicomRtImportLogic
+::LoadDicomRT(const char *name)
 {
-	vtkSlicerDicomRtImportReader* rtReader = vtkSlicerDicomRtImportReader::New();
+	vtkSmartPointer<vtkSlicerDicomRtImportReader> rtReader = vtkSmartPointer<vtkSlicerDicomRtImportReader>::New();
 	rtReader->SetFileName(name);
 	rtReader->Update();
 
 	int numberOfROI = rtReader->GetNumberOfROI();
-	for(int i=0;i<numberOfROI; i++)
+
+  if (!rtReader->GetReadSuccessful())
+  {
+    return false;
+  }
+
+	for (int i=0;i<numberOfROI; i++)
 	{
 		vtkPolyData* poly = rtReader->GetROI(i+1);
 
@@ -197,5 +210,23 @@ void vtkSlicerDicomRtImportLogic
 
 	}
 	
-	rtReader->Delete();
+  return true;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic
+::AddArchetypeDICOMObject(const char *filename, const char* name)
+{
+  std::cout << "Loading series '" << name << "' from file '" << filename << "'" << std::endl;
+
+  // Try to load RT
+  if ( LoadDicomRT(filename) )
+  {
+    return NULL;
+  }
+  else
+  {
+    // Try to load Volume
+    return this->VolumesLogic->AddArchetypeVolume( filename, name );
+  }
 }

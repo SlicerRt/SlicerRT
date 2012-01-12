@@ -16,7 +16,12 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QDebug> 
 #include <QtPlugin>
+
+// Slicer includes
+#include <qSlicerCoreApplication.h>
+#include <qSlicerModuleManager.h>
 
 // ExtensionTemplate Logic includes
 #include <vtkSlicerDicomRtImportLogic.h>
@@ -24,6 +29,9 @@
 // ExtensionTemplate includes
 #include "qSlicerDicomRtImportModule.h"
 #include "qSlicerDicomRtImportModuleWidget.h"
+
+// DicomRtImport includes
+#include <vtkSlicerVolumesLogic.h>
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerDicomRtImportModule, qSlicerDicomRtImportModule);
@@ -62,14 +70,13 @@ qSlicerDicomRtImportModule::~qSlicerDicomRtImportModule()
 //-----------------------------------------------------------------------------
 QString qSlicerDicomRtImportModule::helpText()const
 {
-  return "This DicomRtImport module illustrates how a loadable module should "
-      "be implemented.";
+  return "This DicomRtImport module enables importing and loading DICOM RT files into the Slicer DICOM database and the Slicer scene";
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerDicomRtImportModule::acknowledgementText()const
 {
-  return "This work was supported by ...";
+  return "This work was supported by the SparKit project funded by CCO ACRU";
 }
 
 //-----------------------------------------------------------------------------
@@ -82,6 +89,22 @@ QIcon qSlicerDicomRtImportModule::icon()const
 void qSlicerDicomRtImportModule::setup()
 {
   this->Superclass::setup();
+
+  vtkSlicerDicomRtImportLogic* dicomRtImportLogic =
+    vtkSlicerDicomRtImportLogic::SafeDownCast(this->logic());
+
+  qSlicerAbstractCoreModule* volumesModule =
+    qSlicerCoreApplication::application()->moduleManager()->module("Volumes");
+  if (volumesModule)
+    {
+    vtkSlicerVolumesLogic* volumesLogic = 
+      vtkSlicerVolumesLogic::SafeDownCast(volumesModule->logic());
+    dicomRtImportLogic->SetVolumesLogic(volumesLogic);
+    }
+  else
+    {
+    qWarning() << "Volumes module is not found";
+    } 
 }
 
 //-----------------------------------------------------------------------------

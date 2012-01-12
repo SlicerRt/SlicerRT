@@ -82,6 +82,7 @@ set(qt_module_UI_SRCS
 set(qt_module_target_libraries
   vtkSlicerDicomRtImportModuleLogic
   #vtkSlicerDicomRtImportAlgorithm
+  vtkSlicerVolumesModuleLogic
   )
 
 # Resources

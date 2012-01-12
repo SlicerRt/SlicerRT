@@ -68,6 +68,9 @@ public:
   //
   void Update();
 
+  //
+  vtkGetMacro(ReadSuccessful, bool);
+
   //BTX
   //
   class ROIStructureSetEntry
@@ -87,6 +90,7 @@ protected:
   vtkPolyData* ROIContourSequencePolyData;
   char *FileName;
   std::vector<ROIStructureSetEntry*> ROIContourSequenceVector;
+  bool ReadSuccessful;
 
 private:
 
