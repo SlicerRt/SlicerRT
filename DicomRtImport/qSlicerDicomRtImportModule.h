@@ -49,6 +49,8 @@ public:
   /// Return a custom icon for the module
   virtual QIcon icon()const;
 
+  virtual bool isHidden()const { return true; };
+
 protected:
 
   /// Initialize the module. Register the volumes reader/writer
