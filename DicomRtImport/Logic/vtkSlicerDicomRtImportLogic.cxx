@@ -126,6 +126,11 @@ bool vtkSlicerDicomRtImportLogic
 	{
 		vtkPolyData* poly = rtReader->GetROI(i+1);
 
+    if (poly == NULL)
+    {
+      continue;
+    }
+
 		//vtkPolyDataWriter *polyWriter = vtkPolyDataWriter::New();
 		//polyWriter->SetFileName("\\test1.vtk");
 		//polyWriter->SetInput(poly);
