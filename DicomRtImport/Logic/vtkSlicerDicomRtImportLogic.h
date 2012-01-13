@@ -37,6 +37,7 @@
 
 class vtkStringArray;
 class vtkSlicerVolumesLogic;
+class vtkMRMLDisplayableNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_DICOMRTIMPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomRtImportLogic :
@@ -53,7 +54,7 @@ public:
 
   /// Load DICOM RT series from file name
   /// /return True if loading successful (it contained RT)
-  bool LoadDicomRT(const char* name);
+  bool LoadDicomRT(const char* filename);
 
   /// Create new mrml node and associated storage node.
   vtkMRMLDisplayableNode* AddArchetypeDICOMObject(const char *filename, const char* name);
@@ -70,6 +71,13 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+
+  /// Add an ROI point to the scene
+  vtkMRMLDisplayableNode* AddRoiPoint(double *roiPosition, const char* roiLabel, double *roiColor);
+
+  /// Add an ROI contour to the scene
+  vtkMRMLDisplayableNode* AddRoiContour(vtkPolyData *roiPoly, const char* roiLabel, double *roiColor);
+
 private:
 
   vtkSlicerDicomRtImportLogic(const vtkSlicerDicomRtImportLogic&); // Not implemented

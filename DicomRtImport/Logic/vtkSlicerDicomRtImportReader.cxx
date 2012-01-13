@@ -251,8 +251,7 @@ void vtkSlicerDicomRtImportReader::LoadRTStructureSet(DcmDataset &dataset)
 								tempCellArray->InsertNextCell(number);
 								for (int k=0; k<number; k++)
 								{
-									//out << "\t\t contour data:" << contourData[3*k] << " " << contourData[3*k+1] << " " << contourData[3*k+2] << OFendl;
-									// convert from DICOM LPS -> SLicer RAS
+									// convert from DICOM LPS -> Slicer RAS
 									tempPoints->InsertPoint(pointId, -contourData_LPS[3*k], -contourData_LPS[3*k+1], contourData_LPS[3*k+2]);
 									tempCellArray->InsertCellPoint(pointId);
 									pointId++;
@@ -273,7 +272,6 @@ void vtkSlicerDicomRtImportReader::LoadRTStructureSet(DcmDataset &dataset)
 						tempPolyData->SetLines(tempCellArray);
 					}
 					tempCellArray->Delete();
-					//tempPolyData->PrintSelf(cout, (vtkIndent)3);
 
 					// convert to ribbon using vtkRibbonFilter
 					vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
