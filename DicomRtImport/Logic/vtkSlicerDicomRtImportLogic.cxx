@@ -25,7 +25,9 @@
 // MRML includes
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLFiducialListNode.h>
+#include <vtkMRMLAnnotationHierarchyNode.h>
+#include <vtkMRMLAnnotationPointDisplayNode.h>
+#include <vtkMRMLAnnotationFiducialNode.h>
 #include <vtkMRMLVolumeNode.h>
 
 // VTK includes
@@ -102,25 +104,25 @@ bool vtkSlicerDicomRtImportLogic
 
 	int numberOfROI = rtReader->GetNumberOfROI();
 
-  if (!rtReader->GetReadSuccessful())
-  {
-    return false;
-  }
+	if (!rtReader->GetReadSuccessful())
+	{
+		return false;
+	}
 
-  vtkSmartPointer<vtkMRMLFiducialListNode> roiPoints = vtkSmartPointer<vtkMRMLFiducialListNode>::New();  
-  roiPoints->SetLocked(true);
-  roiPoints->SetName("TestRtPointSet");
-  roiPoints->SetDescription("RT ROI points");
-  roiPoints->SetColor(1.0,1.0,0);
-  roiPoints->SetSelectedColor(1.0, 0.0, 0.0);
-  roiPoints->SetGlyphType(vtkMRMLFiducialListNode::Sphere3D);
-  roiPoints->SetOpacity(0.7);
-  roiPoints->SetAllFiducialsVisibility(true);
-  roiPoints->SetSymbolScale(5);
-  roiPoints->SetTextScale(5);    
-  this->GetMRMLScene()->AddNode(roiPoints); 
+	//vtkSmartPointer<vtkMRMLFiducialListNode> roiPoints = vtkSmartPointer<vtkMRMLFiducialListNode>::New();  
+	//roiPoints->SetLocked(true);
+	//roiPoints->SetName("TestRtPointSet");
+	//roiPoints->SetDescription("RT ROI points");
+	//roiPoints->SetColor(1.0,1.0,0);
+	//roiPoints->SetSelectedColor(1.0, 0.0, 0.0);
+	//roiPoints->SetGlyphType(vtkMRMLFiducialListNode::Sphere3D);
+	//roiPoints->SetOpacity(0.7);
+	//roiPoints->SetAllFiducialsVisibility(true);
+	//roiPoints->SetSymbolScale(5);
+	//roiPoints->SetTextScale(5);    
+	//this->GetMRMLScene()->AddNode(roiPoints); 
 
-  int roiPointsModifyOld=fidNode->StartModify();
+	//int roiPointsModifyOld = roiPoints->StartModify();
 
 	for (int i=0;i<numberOfROI; i++)
 	{
@@ -141,12 +143,33 @@ bool vtkSlicerDicomRtImportLogic
 		{
 			double p[3];
 			double *point_LPS = p;
-			point = poly->GetPoint(0);
+			point_LPS = poly->GetPoint(0);
 
-      int fiducialIndex = roiPoints->AddFiducialWithXYZ(-point_LPS[0], -point_LPS[1], point[2], false);
-      roiPoints->SetNthFiducialLabelText(fiducialIndex, rtReader->GetROIName(i+1));
-      roiPoints->SetNthFiducialID(fiducialIndex, rtReader->GetROIName(i+1));
-      roiPoints->SetNthFiducialVisibility(fiducialIndex, true);    			
+			vtkMRMLAnnotationFiducialNode* fnode = vtkMRMLAnnotationFiducialNode::New();
+			//vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> hnode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
+			//hnode->SetScene(this->GetMRMLScene());
+			fnode->SetName(rtReader->GetROIName(i+1)); 			
+			fnode->SetScene(this->GetMRMLScene());
+
+			double coord[3] = {-point_LPS[0], -point_LPS[1], point_LPS[2]};
+			fnode->AddControlPoint(coord, 0, 1);
+			//fnode->CreateAnnotationPointDisplayNode();
+			//this->GetMRMLScene()->AddNode(hnode);
+			this->GetMRMLScene()->AddNode(fnode);
+
+			vtkMRMLAnnotationPointDisplayNode* dnode = vtkMRMLAnnotationPointDisplayNode::New();
+			dnode->SetScene(this->GetMRMLScene());
+			dnode->SetGlyphScale(1);
+			dnode->SetGlyphType(1);
+			this->GetMRMLScene()->AddNode(dnode);
+			fnode->SetAndObserveDisplayNodeID(dnode->GetID());
+			fnode->SetHideFromEditors(0);
+			fnode->SetSelectable(1);
+
+			//int fiducialIndex = roiPoints->AddFiducialWithXYZ(-point_LPS[0], -point_LPS[1], point_LPS[2], false);
+			//roiPoints->SetNthFiducialLabelText(fiducialIndex, rtReader->GetROIName(i+1));
+			//roiPoints->SetNthFiducialID(fiducialIndex, rtReader->GetROIName(i+1));
+			//roiPoints->SetNthFiducialVisibility(fiducialIndex, true);    			
 
 			/*
 			vtkMRMLColorTableNode* cnode = 0;
@@ -165,8 +188,8 @@ bool vtkSlicerDicomRtImportLogic
 			}
 			*/
 
-			fnode = vtkMRMLFiducialListNode::SafeDownCast(
-				this->GetMRMLScene()->AddNode(fnode));
+			//roiPoints = vtkMRMLFiducialListNode::SafeDownCast(
+			//	this->GetMRMLScene()->AddNode(roiPoints));
 			////Q_ASSERT(dnode);
 
 			
@@ -208,6 +231,8 @@ bool vtkSlicerDicomRtImportLogic
 			*/
 			double *color = rtReader->GetROIDisplayColor(i+1);
 			dnode->SetColor(color[0], color[1], color[2]);
+			// disable backface culling so the contour can be seen correctly.
+			dnode->SetBackfaceCulling(0);
 
 			dnode = vtkMRMLModelDisplayNode::SafeDownCast(
 				this->GetMRMLScene()->AddNode(dnode));
@@ -233,13 +258,13 @@ bool vtkSlicerDicomRtImportLogic
 
 	}
 	
-  roiPoints->SetVisibility(1);
-  fidNode->EndModify(modifyOld);
-  // StartModify/EndModify discarded vtkMRMLFiducialListNode::FiducialModifiedEvent-s, so we have to resubmit them now
-  fidNode->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL); 
+	//roiPoints->SetVisibility(1);
+	//roiPoints->EndModify(roiPointsModifyOld);
+	//// StartModify/EndModify discarded vtkMRMLFiducialListNode::FiducialModifiedEvent-s, so we have to resubmit them now
+	//roiPoints->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL); 
 
 
-  return true;
+	return true;
 }
 
 //---------------------------------------------------------------------------

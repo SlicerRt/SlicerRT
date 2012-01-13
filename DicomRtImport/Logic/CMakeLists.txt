@@ -26,6 +26,7 @@ set(module_logic_target_libraries
   ${VTK_LIBRARIES}
   ${DCMTK_LIBRARIES}
   vtkSlicerVolumesModuleLogic
+  vtkSlicerAnnotationsModuleMRML
   )
 
 SlicerMacroBuildModuleLogic(

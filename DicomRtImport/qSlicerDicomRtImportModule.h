@@ -49,7 +49,7 @@ public:
   /// Return a custom icon for the module
   virtual QIcon icon()const;
 
-  virtual bool isHidden()const { return true; };
+  virtual bool isHidden()const { return false; };
 
 protected:
 
