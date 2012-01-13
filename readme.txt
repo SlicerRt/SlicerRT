@@ -5,3 +5,4 @@ Use DicomRtImport module:
 * Load a DICOM Study containing DICOM RT in the DICOM module's DICOM database
 * Select Study
 * Click 'Load Selected Study in Slicer' button 
+* 
