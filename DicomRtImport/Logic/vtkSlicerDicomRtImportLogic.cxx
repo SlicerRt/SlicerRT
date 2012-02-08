@@ -257,7 +257,8 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic
   //hnode->SetAndObservePolyData(cleaner->GetOutput());
 
   normals->Update();
-  hnode->SetAndObservePolyData(normals->GetOutput());
+  //hnode->SetAndObservePolyData(normals->GetOutput());
+  hnode->SetAndObservePolyData(roiPoly);
 
   hnode->SetModifiedSinceRead(1);
   dnode->SetModifiedSinceRead(1); 
