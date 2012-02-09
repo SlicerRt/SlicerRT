@@ -17,7 +17,8 @@ set(module_logic_include_directories
 set(module_logic_SRCS
   vtkSlicerDicomRtImportLogic.cxx
   vtkSlicerDicomRtImportLogic.h
-  vtkSlicerDicomRtImportReader.cxx
+  vtkSlicerDicomRtReader.cxx
+  vtkSlicerDicomRtReader.h
   )
 
 # Additional Target libraries

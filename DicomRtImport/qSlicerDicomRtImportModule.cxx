@@ -31,7 +31,7 @@
 #include "qSlicerDicomRtImportModuleWidget.h"
 
 // DicomRtImport includes
-#include <vtkSlicerVolumesLogic.h>
+//#include <vtkSlicerVolumesLogic.h>
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerDicomRtImportModule, qSlicerDicomRtImportModule);
@@ -90,9 +90,9 @@ void qSlicerDicomRtImportModule::setup()
 {
   this->Superclass::setup();
 
-  vtkSlicerDicomRtImportLogic* dicomRtImportLogic =
-    vtkSlicerDicomRtImportLogic::SafeDownCast(this->logic());
+  //vtkSlicerDicomRtImportLogic* dicomRtImportLogic = vtkSlicerDicomRtImportLogic::SafeDownCast(this->logic());
 
+  /*
   qSlicerAbstractCoreModule* volumesModule =
     qSlicerCoreApplication::application()->moduleManager()->module("Volumes");
   if (volumesModule)
@@ -105,6 +105,7 @@ void qSlicerDicomRtImportModule::setup()
     {
     qWarning() << "Volumes module is not found";
     } 
+  */
 }
 
 //-----------------------------------------------------------------------------

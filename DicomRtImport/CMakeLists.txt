@@ -90,6 +90,24 @@ set(qt_module_resources
   Resources/qSlicerDicomRtImportModule.qrc
 )
 
+# Plugin python script
+set(KIT_PYTHON_SCRIPTS
+  DicomRtImportPlugin.py
+  )
+
+set(KIT_PYTHON_RESOURCES
+  )
+
+ctkMacroCompilePythonScript(
+  TARGET_NAME SlicerDICOMPluginModules
+  SCRIPTS "${KIT_PYTHON_SCRIPTS}"
+  RESOURCES "${KIT_PYTHON_RESOURCES}"
+  DESTINATION_DIR ${Slicer_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}
+  INSTALL_DIR ${Slicer_INSTALL_QTSCRIPTEDMODULES_LIB_DIR}
+  NO_INSTALL_SUBDIR
+  )
+
+
 #-----------------------------------------------------------------------------
 # Build
 #-----------------------------------------------------------------------------
@@ -135,3 +153,11 @@ endif()
 if(NOT Slicer_SOURCE_DIR)
   include(${Slicer_EXTENSION_CPACK})
 endif()
+
+#-----------------------------------------------------------------------------
+# Testing
+#-----------------------------------------------------------------------------
+if(BUILD_TESTING AND PYTHON_EXECUTABLE)
+  # TODO: add testing
+  # add_subdirectory(Testing)
+endif() 

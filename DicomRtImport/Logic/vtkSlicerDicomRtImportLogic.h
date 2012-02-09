@@ -36,7 +36,7 @@
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 
 class vtkStringArray;
-class vtkSlicerVolumesLogic;
+//class vtkSlicerVolumesLogic;
 class vtkMRMLDisplayableNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -53,14 +53,14 @@ public:
   void InitializeEventListeners();
 
   /// Load DICOM RT series from file name
-  /// /return True if loading successful (it contained RT)
-  bool LoadDicomRT(const char* filename);
+  /// /return True if loading successful
+  bool LoadDicomRT(const char *filename, const char* seriesname);
 
   /// Create new mrml node and associated storage node.
-  vtkMRMLDisplayableNode* AddArchetypeDICOMObject(const char *filename, const char* name);
+  //vtkMRMLDisplayableNode* AddArchetypeDICOMObject(const char *filename, const char* name);
 
   /// Set Volumes module logic
-  void SetVolumesLogic(vtkSlicerVolumesLogic* volumesLogic);
+  //void SetVolumesLogic(vtkSlicerVolumesLogic* volumesLogic);
 
 protected:
   vtkSlicerDicomRtImportLogic();
@@ -84,7 +84,7 @@ private:
   void operator=(const vtkSlicerDicomRtImportLogic&);               // Not implemented
 
 private:
-  vtkSlicerVolumesLogic* VolumesLogic;
+  //vtkSlicerVolumesLogic* VolumesLogic;
 };
 
 #endif

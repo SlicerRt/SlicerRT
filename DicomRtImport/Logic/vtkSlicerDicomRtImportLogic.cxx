@@ -17,10 +17,10 @@ limitations under the License.
 
 // ModuleTemplate includes
 #include "vtkSlicerDicomRtImportLogic.h"
-#include "vtkSlicerDicomRtImportReader.h"
+#include "vtkSlicerDicomRtReader.h"
 
 // Slicer includes
-#include "vtkSlicerVolumesLogic.h"
+//#include "vtkSlicerVolumesLogic.h"
 
 // MRML includes
 #include <vtkMRMLModelDisplayNode.h>
@@ -42,12 +42,12 @@ limitations under the License.
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtImportLogic);
-vtkCxxSetObjectMacro(vtkSlicerDicomRtImportLogic, VolumesLogic, vtkSlicerVolumesLogic);
+//vtkCxxSetObjectMacro(vtkSlicerDicomRtImportLogic, VolumesLogic, vtkSlicerVolumesLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportLogic::vtkSlicerDicomRtImportLogic()
 {
-  this->VolumesLogic = NULL;
+  //this->VolumesLogic = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -84,22 +84,21 @@ void vtkSlicerDicomRtImportLogic::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerDicomRtImportLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerDicomRtImportLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomRtImportLogic
-::LoadDicomRT(const char *filename)
+bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* seriesname)
 {
-  vtkSmartPointer<vtkSlicerDicomRtImportReader> rtReader = vtkSmartPointer<vtkSlicerDicomRtImportReader>::New();
+  std::cout << "Loading series '" << seriesname << "' from file '" << filename << "'" << std::endl;
+
+  vtkSmartPointer<vtkSlicerDicomRtReader> rtReader = vtkSmartPointer<vtkSlicerDicomRtReader>::New();
   rtReader->SetFileName(filename);
   rtReader->Update();
 
@@ -141,6 +140,7 @@ bool vtkSlicerDicomRtImportLogic
 }
 
 //---------------------------------------------------------------------------
+/*
 vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddArchetypeDICOMObject(const char *filename, const char* name)
 {
   std::cout << "Loading series '" << name << "' from file '" << filename << "'" << std::endl;
@@ -156,10 +156,9 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddArchetypeDICOMObject(con
     return this->VolumesLogic->AddArchetypeVolume( filename, name );
   }
 }
-
+*/
 //---------------------------------------------------------------------------
-vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic
-::AddRoiPoint(double *roiPosition, const char* roiLabel, double *roiColor)
+vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiPoint(double *roiPosition, const char* roiLabel, double *roiColor)
 {
   vtkMRMLAnnotationFiducialNode* fnode = vtkMRMLAnnotationFiducialNode::New();
   //vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> hnode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
@@ -219,8 +218,7 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic
-::AddRoiContour(vtkPolyData *roiPoly, const char* roiLabel, double *roiColor)
+vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiContour(vtkPolyData *roiPoly, const char* roiLabel, double *roiColor)
 {
   vtkSmartPointer<vtkMRMLModelNode> hnode = vtkSmartPointer<vtkMRMLModelNode>::New();
   vtkSmartPointer<vtkMRMLModelDisplayNode> dnode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
