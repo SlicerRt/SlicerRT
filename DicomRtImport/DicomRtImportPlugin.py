@@ -77,10 +77,10 @@ class DicomRtImportPluginClass(DICOMPlugin):
     using the DicomRtImport module
     """
 
-  success = False
-  if slicer.modules.dicomrtimport.logic().LoadDicomRT(loadable.files[0],loadable.name):
-    success = True
-  return success
+    success = False
+    if slicer.modules.dicomrtimport.logic().LoadDicomRT(loadable.files[0],loadable.name):
+      success = True
+    return success
 
 
 
