@@ -278,7 +278,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset &dataset)
 					vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
 					ribbonFilter->SetInput(tempPolyData);
 					ribbonFilter->SetDefaultNormal(0,0,-1);
-					ribbonFilter->SetWidth(1.1);
+					ribbonFilter->SetWidth(1.1); // TODO: get this from the distance between the slices (https://www.assembla.com/spaces/sparkit/tickets/49)
 					ribbonFilter->SetAngle(90.0);
 					ribbonFilter->UseDefaultNormalOn();
 					ribbonFilter->Update();
