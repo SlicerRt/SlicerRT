@@ -221,9 +221,9 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset &dataset)
 				if (currentROIObject.isValid())
 				{
 					// create vtkPolyData
-					vtkPolyData *tempPolyData = vtkPolyData::New();
-					vtkPoints *tempPoints = vtkPoints::New();
-					vtkCellArray *tempCellArray = vtkCellArray::New();
+					vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
+					vtkSmartPointer<vtkPoints> tempPoints = vtkSmartPointer<vtkPoints>::New();
+					vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
 					vtkIdType pointId=0;
 
 					currentROIObject.getReferencedROINumber(referenceROINumber);
@@ -265,7 +265,6 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset &dataset)
 					} // if gotofirstitem
 
 					tempPolyData->SetPoints(tempPoints);
-					tempPoints->Delete();
 					if (tempPoints->GetNumberOfPoints() == 1)
 					{
 						tempPolyData->SetVerts(tempCellArray);
@@ -274,28 +273,26 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset &dataset)
 					{
 						tempPolyData->SetLines(tempCellArray);
 					}
-					tempCellArray->Delete();
-
+          
 					// convert to ribbon using vtkRibbonFilter
-					//vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
-					//ribbonFilter->SetInput(tempPolyData);
-					//ribbonFilter->SetDefaultNormal(0,0,-1);
-					//ribbonFilter->SetWidth(1.1);
-					//ribbonFilter->SetAngle(90.0);
-					//ribbonFilter->UseDefaultNormalOn();
-					//ribbonFilter->Update();
+					vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
+					ribbonFilter->SetInput(tempPolyData);
+					ribbonFilter->SetDefaultNormal(0,0,-1);
+					ribbonFilter->SetWidth(1.1);
+					ribbonFilter->SetAngle(90.0);
+					ribbonFilter->UseDefaultNormalOn();
+					ribbonFilter->Update();
 
-					//vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
-          //normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
-					//normalFilter->ConsistencyOn();
-					//normalFilter->Update();
+					vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
+          normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
+					normalFilter->ConsistencyOn();
+					normalFilter->Update();
 
 					for (unsigned int i=0; i<this->ROIContourSequenceVector.size();i++)
 					{
 						if (referenceROINumber == this->ROIContourSequenceVector[i]->ROINumber)
 						{
-              //this->ROIContourSequenceVector[i]->ROIPolyData = normalFilter->GetOutput();
-              this->ROIContourSequenceVector[i]->ROIPolyData = tempPolyData;
+              this->ROIContourSequenceVector[i]->ROIPolyData = normalFilter->GetOutput();
 							this->ROIContourSequenceVector[i]->ROIPolyData->Register(0);
 
 							Sint32 ROIDisplayColor;
@@ -307,7 +304,6 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset &dataset)
 						}
 					}
 
-          tempPolyData->Delete();
 				} // if valid
 			}
       while (rtROIContourSequenceObject.gotoNextItem().good());
