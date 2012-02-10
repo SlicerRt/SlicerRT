@@ -54,10 +54,13 @@ vtkStandardNewMacro(vtkSlicerDicomRtReader);
 vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 {
   this->FileName = NULL;
+
   this->ROIContourSequencePolyData = NULL;
+  this->SetPixelSpacing(0,0);
+
   this->LoadRTStructureSetSuccessful = false;
   this->LoadRTDoseSuccessful = false;
-  this->SetPixelSpacing(0,0);
+  this->LoadRTPlanSuccessful = false;
 }
 
 //----------------------------------------------------------------------------
@@ -108,6 +111,8 @@ void vtkSlicerDicomRtReader::Update()
         else if (sopClass == UID_RTPlanStorage)
         {
           //result = dumpRTPlan(out, *dataset);
+          cout << "RT Plan loading not implemented - not loaded" << OFendl;
+          this->LoadRTPlanSuccessful = true; // Do the real loading here
         }
         else if (sopClass == UID_RTStructureSetStorage)
         {

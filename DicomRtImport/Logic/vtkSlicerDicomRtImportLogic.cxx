@@ -152,6 +152,11 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     return true;
   }
 
+  if (rtReader->GetLoadRTPlanSuccessful())
+  {
+    return true;
+  }
+
   return false;
 }
 

@@ -78,6 +78,8 @@ public:
   vtkGetMacro(LoadRTStructureSetSuccessful, bool);
   /// Get load dose successful flag
   vtkGetMacro(LoadRTDoseSuccessful, bool);
+  /// Get load plan successful flag
+  vtkGetMacro(LoadRTPlanSuccessful, bool);
 
 protected:
   //BTX
@@ -121,6 +123,9 @@ protected:
 
   /// Flag indicating if RT Dose has been successfully read from the input dataset
   bool LoadRTDoseSuccessful;
+
+  /// Flag indicating if RT Plan has been successfully read from the input dataset
+  bool LoadRTPlanSuccessful;
 
 protected:
   vtkSlicerDicomRtReader();
