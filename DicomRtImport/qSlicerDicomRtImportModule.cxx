@@ -22,6 +22,7 @@
 // Slicer includes
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
+#include <vtkSlicerVolumesLogic.h>
 
 // ExtensionTemplate Logic includes
 #include <vtkSlicerDicomRtImportLogic.h>
@@ -29,9 +30,6 @@
 // ExtensionTemplate includes
 #include "qSlicerDicomRtImportModule.h"
 #include "qSlicerDicomRtImportModuleWidget.h"
-
-// DicomRtImport includes
-//#include <vtkSlicerVolumesLogic.h>
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerDicomRtImportModule, qSlicerDicomRtImportModule);
@@ -90,22 +88,18 @@ void qSlicerDicomRtImportModule::setup()
 {
   this->Superclass::setup();
 
-  //vtkSlicerDicomRtImportLogic* dicomRtImportLogic = vtkSlicerDicomRtImportLogic::SafeDownCast(this->logic());
+  vtkSlicerDicomRtImportLogic* dicomRtImportLogic = vtkSlicerDicomRtImportLogic::SafeDownCast(this->logic());
 
-  /*
-  qSlicerAbstractCoreModule* volumesModule =
-    qSlicerCoreApplication::application()->moduleManager()->module("Volumes");
+  qSlicerAbstractCoreModule* volumesModule = qSlicerCoreApplication::application()->moduleManager()->module("Volumes");
   if (volumesModule)
-    {
-    vtkSlicerVolumesLogic* volumesLogic = 
-      vtkSlicerVolumesLogic::SafeDownCast(volumesModule->logic());
+  {
+    vtkSlicerVolumesLogic* volumesLogic = vtkSlicerVolumesLogic::SafeDownCast(volumesModule->logic());
     dicomRtImportLogic->SetVolumesLogic(volumesLogic);
-    }
+  }
   else
-    {
+  {
     qWarning() << "Volumes module is not found";
-    } 
-  */
+  } 
 }
 
 //-----------------------------------------------------------------------------

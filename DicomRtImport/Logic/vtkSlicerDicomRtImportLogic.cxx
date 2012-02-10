@@ -19,9 +19,6 @@ limitations under the License.
 #include "vtkSlicerDicomRtImportLogic.h"
 #include "vtkSlicerDicomRtReader.h"
 
-// Slicer includes
-//#include "vtkSlicerVolumesLogic.h"
-
 // MRML includes
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
@@ -37,17 +34,18 @@ limitations under the License.
 #include <vtkSmartPointer.h>
 #include "vtkTriangleFilter.h"
 #include "vtkPolyDataNormals.h"
+
 // STD includes
 #include <cassert>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtImportLogic);
-//vtkCxxSetObjectMacro(vtkSlicerDicomRtImportLogic, VolumesLogic, vtkSlicerVolumesLogic);
+vtkCxxSetObjectMacro(vtkSlicerDicomRtImportLogic, VolumesLogic, vtkSlicerVolumesLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportLogic::vtkSlicerDicomRtImportLogic()
 {
-  //this->VolumesLogic = NULL;
+  this->VolumesLogic = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -102,141 +100,111 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
   rtReader->SetFileName(filename);
   rtReader->Update();
 
-  if (!rtReader->GetReadSuccessful())
+  if (rtReader->GetLoadRTStructureSetSuccessful())
   {
-    return false;
+    int numberOfROI = rtReader->GetNumberOfROIs();
+    for (int dicomRoiIndex=1;dicomRoiIndex<numberOfROI+1; dicomRoiIndex++) // DICOM starts indexing from 1
+    {
+      vtkPolyData* roiPoly = rtReader->GetROI(dicomRoiIndex);
+      if (roiPoly == NULL)
+      {
+        vtkWarningMacro("Cannot read polydata from file: "<<filename<<", ROI: "<<dicomRoiIndex);
+        continue;
+      }
+      if (roiPoly->GetNumberOfPoints() < 1)
+      {
+        vtkWarningMacro("The ROI polydata does not contain any points, file: "<<filename<<", ROI: "<<dicomRoiIndex);
+        continue;
+      }
+
+      const char* roiLabel=rtReader->GetROIName(dicomRoiIndex);
+      double *roiColor = rtReader->GetROIDisplayColor(dicomRoiIndex);
+      if (roiPoly->GetNumberOfPoints() == 1)
+      {	
+        // Point ROI
+        AddRoiPoint(roiPoly->GetPoint(0), roiLabel, roiColor);
+      }
+      else
+      {
+        // Contour ROI
+        AddRoiContour(roiPoly, roiLabel, roiColor);
+      }
+    }
+
+    return true;
   }
 
-  int numberOfROI = rtReader->GetNumberOfROI();
-  for (int dicomRoiIndex=1;dicomRoiIndex<numberOfROI+1; dicomRoiIndex++) // DICOM starts indexing from 1
+  if (rtReader->GetLoadRTDoseSuccessful())
   {
-    vtkPolyData* roiPoly = rtReader->GetROI(dicomRoiIndex);
-    if (roiPoly == NULL)
+    // Load Volume
+    vtkMRMLVolumeNode* volumeNode = this->VolumesLogic->AddArchetypeVolume(filename, seriesname);
+    if (volumeNode == NULL)
     {
-      vtkWarningMacro("Cannot read polydata from file: "<<filename<<", ROI: "<<dicomRoiIndex);
-      continue;
-    }
-    if (roiPoly->GetNumberOfPoints() < 1)
-    {
-      vtkWarningMacro("The ROI polydata does not contain any points, file: "<<filename<<", ROI: "<<dicomRoiIndex);
-      continue;
+      vtkErrorMacro("Failed to load dose volume file '" << filename << "' (series name '" << seriesname << "')");
+      return false;
     }
 
-    const char* roiLabel=rtReader->GetROIName(dicomRoiIndex);
-    double *roiColor = rtReader->GetROIDisplayColor(dicomRoiIndex);
-    if (roiPoly->GetNumberOfPoints() == 1)
-    {	
-      // Point ROI
-      AddRoiPoint(roiPoly->GetPoint(0), roiLabel, roiColor);
-    }
-    else
-    {
-      // Contour ROI
-      AddRoiContour(roiPoly, roiLabel, roiColor);
-    }
+    // Set new spacing
+    double* initialSpacing = volumeNode->GetSpacing();
+    double* correctSpacing = rtReader->GetPixelSpacing();
+    volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
+
+    return true;
   }
 
-  return true;
+  return false;
 }
 
-//---------------------------------------------------------------------------
-/*
-vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddArchetypeDICOMObject(const char *filename, const char* name)
-{
-  std::cout << "Loading series '" << name << "' from file '" << filename << "'" << std::endl;
-
-  // Try to load RT
-  if ( LoadDicomRT(filename) )
-  {
-    return NULL;
-  }
-  else
-  {
-    // Try to load Volume
-    return this->VolumesLogic->AddArchetypeVolume( filename, name );
-  }
-}
-*/
 //---------------------------------------------------------------------------
 vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiPoint(double *roiPosition, const char* roiLabel, double *roiColor)
 {
-  vtkMRMLAnnotationFiducialNode* fnode = vtkMRMLAnnotationFiducialNode::New();
-  //vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> hnode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
-  //hnode->SetScene(this->GetMRMLScene());
-  fnode->SetName(roiLabel);
-  fnode->SetScene(this->GetMRMLScene());
+  vtkMRMLAnnotationPointDisplayNode* displayNode = vtkMRMLAnnotationPointDisplayNode::New();
+  displayNode->SetScene(this->GetMRMLScene());
+  displayNode->SetGlyphScale(1);
+  displayNode->SetGlyphType(1);
+  this->GetMRMLScene()->AddNode(displayNode);
 
-  fnode->AddControlPoint(roiPosition, 0, 1);
-  //fnode->CreateAnnotationPointDisplayNode();
-  //this->GetMRMLScene()->AddNode(hnode);
-  this->GetMRMLScene()->AddNode(fnode);
+  vtkMRMLAnnotationFiducialNode* fiducialNode = vtkMRMLAnnotationFiducialNode::New();
+  fiducialNode->SetName(roiLabel);
+  fiducialNode->SetScene(this->GetMRMLScene());
+  fiducialNode->AddControlPoint(roiPosition, 0, 1);
+  fiducialNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  fiducialNode->SetHideFromEditors(0);
+  fiducialNode->SetSelectable(1);
+  this->GetMRMLScene()->AddNode(fiducialNode);
 
-  vtkMRMLAnnotationPointDisplayNode* dnode = vtkMRMLAnnotationPointDisplayNode::New();
-  dnode->SetScene(this->GetMRMLScene());
-  dnode->SetGlyphScale(1);
-  dnode->SetGlyphType(1);
-  this->GetMRMLScene()->AddNode(dnode);
-  fnode->SetAndObserveDisplayNodeID(dnode->GetID());
-  fnode->SetHideFromEditors(0);
-  fnode->SetSelectable(1);
-
-  //int fiducialIndex = roiPoints->AddFiducialWithXYZ(-point_LPS[0], -point_LPS[1], point_LPS[2], false);
-  //roiPoints->SetNthFiducialLabelText(fiducialIndex, rtReader->GetROIName(roiIndex+1));
-  //roiPoints->SetNthFiducialID(fiducialIndex, rtReader->GetROIName(roiIndex+1));
-  //roiPoints->SetNthFiducialVisibility(fiducialIndex, true);    			
-
-  /*
-  vtkMRMLColorTableNode* cnode = 0;
-  if (node.contains("color"))
-  {
-  cnode = vtkMRMLColorTableNode::SafeDownCast(
-  q->mrmlScene()->GetNodeByID("vtkMRMLColorTableNodeSPLBrainAtlas"));
-  Q_ASSERT(cnode);
-  for (int i = 0; i < cnode->GetNumberOfColors(); ++i)
-  {
-  if (cnode->GetColorName(i) == node["color"])
-  {
-  dnode->SetColor(cnode->GetLookupTable()->GetTableValue(i));
-  }
-  }
-  }
-  */
-
-  //roiPoints = vtkMRMLFiducialListNode::SafeDownCast(
-  //	this->GetMRMLScene()->AddNode(roiPoints));
-  ////Q_ASSERT(dnode);
-
-
-  //if (!this->ParentID.isEmpty())
-  //{
-  //	hnode->SetParentNodeID(this->ParentID.toLatin1().data());
-  //}
-
-  //this->ParentID = hnode->GetID(); 
-
-  return fnode;
+  return fiducialNode;
 }
 
 //---------------------------------------------------------------------------
 vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiContour(vtkPolyData *roiPoly, const char* roiLabel, double *roiColor)
 {
-  vtkSmartPointer<vtkMRMLModelNode> hnode = vtkSmartPointer<vtkMRMLModelNode>::New();
-  vtkSmartPointer<vtkMRMLModelDisplayNode> dnode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  hnode->SetScene(this->GetMRMLScene());
-  dnode->SetScene(this->GetMRMLScene()); 
+  vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  displayNode->SetScene(this->GetMRMLScene()); 
+  displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
+  displayNode->SetModifiedSinceRead(1); 
+  displayNode->SliceIntersectionVisibilityOn();  
+  displayNode->VisibilityOn(); 
+  displayNode->SetColor(roiColor[0], roiColor[1], roiColor[2]);
 
-  dnode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(dnode));
-  //Q_ASSERT(dnode);
-  hnode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(hnode));
-  //Q_ASSERT(hnode);
+  // Disable backface culling to make the back side of the contour visible as well
+  displayNode->SetBackfaceCulling(0);
 
-  //dnode->SetVisibility(1);
-  //hnode->SetAndObservePolyData(poly);
-  hnode->SetName(roiLabel);
+
+  vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  modelNode->SetScene(this->GetMRMLScene());
+  modelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(modelNode));
+  modelNode->SetName(roiLabel);
+  modelNode->SetAndObservePolyData(roiPoly);
+  modelNode->SetModifiedSinceRead(1);
+  modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  modelNode->SetHideFromEditors(0);
+  modelNode->SetSelectable(1);
 
   vtkSmartPointer<vtkTriangleFilter> cleaner=vtkSmartPointer<vtkTriangleFilter>::New();
   cleaner->SetInput(roiPoly);
 
+  /*
   vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
   normals->SetInputConnection ( cleaner->GetOutputPort());
   //--- NOTE: This assumes a completely closed surface
@@ -250,53 +218,12 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiContour(vtkPolyData *
   normals->SplittingOff();
   //--- enforce consistent polygon ordering.
   normals->ConsistencyOn();
-
-  //cleaner->Update();
-  //hnode->SetAndObservePolyData(cleaner->GetOutput());
-
   normals->Update();
-  //hnode->SetAndObservePolyData(normals->GetOutput());
-  hnode->SetAndObservePolyData(roiPoly);
 
-  hnode->SetModifiedSinceRead(1);
-  dnode->SetModifiedSinceRead(1); 
-  dnode->SliceIntersectionVisibilityOn();  
-  dnode->VisibilityOn(); 
-
-  //vtkMRMLColorTableNode* cnode = 0;
-  /*
-  vtkMRMLColorTableNode* cnode = 0;
-  if (node.contains("color"))
-  {
-  cnode = vtkMRMLColorTableNode::SafeDownCast(
-  q->mrmlScene()->GetNodeByID("vtkMRMLColorTableNodeSPLBrainAtlas"));
-  Q_ASSERT(cnode);
-  for (int i = 0; i < cnode->GetNumberOfColors(); ++i)
-  {
-  if (cnode->GetColorName(i) == node["color"])
-  {
-  dnode->SetColor(cnode->GetLookupTable()->GetTableValue(i));
-  }
-  }
-  }
+  //modelNode->SetAndObservePolyData(normals->GetOutput());
   */
-  dnode->SetColor(roiColor[0], roiColor[1], roiColor[2]);
 
-  // Disable backface culling to make the back side of the contour visible as well
-  dnode->SetBackfaceCulling(0);
+  this->InvokeEvent( vtkMRMLDisplayableNode::PolyDataModifiedEvent, displayNode);
 
-  //if (!this->ParentID.isEmpty())
-  //{
-  //	hnode->SetParentNodeID(this->ParentID.toLatin1().data());
-  //}
-
-  hnode->SetAndObserveDisplayNodeID(dnode->GetID());
-  hnode->SetHideFromEditors(0);
-  hnode->SetSelectable(1);
-
-  this->InvokeEvent( vtkMRMLDisplayableNode::PolyDataModifiedEvent , dnode);
-
-  //this->ParentID = hnode->GetID(); 
-
-  return hnode;
+  return modelNode;
 }

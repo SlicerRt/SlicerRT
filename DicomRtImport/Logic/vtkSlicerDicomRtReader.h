@@ -20,7 +20,6 @@
 // This class manages the Reader associated with reading, saving,
 // and changing propertied of the volumes
 
-
 #ifndef __vtkSlicerDicomRtReader_h
 #define __vtkSlicerDicomRtReader_h
 
@@ -29,77 +28,107 @@
 
 // MRML includes
 
+// VTK includes
+#include "vtkObject.h"
+
 // STD includes
 #include <cstdlib>
 #include <vector>
 
-
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
-
-#include "vtkObject.h"
 
 class vtkPolyData;
 class DcmDataset;
 
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_DICOMRTIMPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomRtReader :
-  public vtkObject
-
+class VTK_SLICER_DICOMRTIMPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomRtReader : public vtkObject
 {
 public:
-
   static vtkSlicerDicomRtReader *New();
   vtkTypeMacro(vtkSlicerDicomRtReader, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  //
-  void SetFileName(const char *);
-
-  // Description:
-  int GetNumberOfROI();
-
-  //
-  char* GetROIName(int ROINumber);
-
-  //
-  double* GetROIDisplayColor(int ROINumber);
-
-  //
-  vtkPolyData* GetROI(int ROINumber);
-
-  //
+  /// Do reading
   void Update();
 
-  //
-  vtkGetMacro(ReadSuccessful, bool);
+public:
+  /// Get number of created ROIs
+  int GetNumberOfROIs();
 
+  /// Get name of a certain ROI
+  /// \param ROINumber Number of ROI to get
+  char* GetROIName(int ROINumber);
+
+  /// Get display color of a certain ROI
+  /// \param ROINumber Number of ROI to get
+  double* GetROIDisplayColor(int ROINumber);
+
+  /// Get a certain structure set ROI
+  /// \param ROINumber Number of ROI to get
+  vtkPolyData* GetROI(int ROINumber);
+
+  /// Set input file name
+  vtkSetStringMacro(FileName);
+
+  /*! Get pixel spacing */
+  vtkGetVector2Macro(PixelSpacing, double); 
+
+  /// Get load structure set successful flag
+  vtkGetMacro(LoadRTStructureSetSuccessful, bool);
+  /// Get load dose successful flag
+  vtkGetMacro(LoadRTDoseSuccessful, bool);
+
+protected:
   //BTX
-  //
+  /// Structure storing an RT structure set
   class ROIStructureSetEntry
   {
   public:
 	  int ROINumber;
-	  char *ROIName;
+	  char* ROIName;
 	  double ROIDisplayColor[3];
 	  vtkPolyData* ROIPolyData;
   };
   //ETX
 
 protected:
+  /// Load RT Structure Set
+  void LoadRTStructureSet(DcmDataset*);
+
+  /// Load RT Dose
+  void LoadRTDose(DcmDataset*);
+
+protected:
+  /*! Set pixel spacing */
+  vtkSetVector2Macro(PixelSpacing, double); 
+
+protected:
+  /// Structure set contours
+  vtkPolyData* ROIContourSequencePolyData;
+
+  /// Input file name
+  char* FileName;
+
+  /// List of loaded contour ROIs from structure set
+  std::vector<ROIStructureSetEntry*> ROIContourSequenceVector;
+
+  /// Pixel spacing (for dose image)
+  double PixelSpacing[2];
+
+  /// Flag indicating if RT Structure Set has been successfully read from the input dataset
+  bool LoadRTStructureSetSuccessful;
+
+  /// Flag indicating if RT Dose has been successfully read from the input dataset
+  bool LoadRTDoseSuccessful;
+
+protected:
   vtkSlicerDicomRtReader();
   virtual ~vtkSlicerDicomRtReader();
-  void LoadRTStructureSet(DcmDataset &);
-
-  vtkPolyData* ROIContourSequencePolyData;
-  char *FileName;
-  std::vector<ROIStructureSetEntry*> ROIContourSequenceVector;
-  bool ReadSuccessful;
 
 private:
-
   vtkSlicerDicomRtReader(const vtkSlicerDicomRtReader&); // Not implemented
-  void operator=(const vtkSlicerDicomRtReader&);               // Not implemented
+  void operator=(const vtkSlicerDicomRtReader&);         // Not implemented
 };
 
 #endif
