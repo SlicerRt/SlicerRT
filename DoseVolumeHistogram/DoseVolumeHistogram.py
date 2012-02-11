@@ -211,6 +211,9 @@ class DoseVolumeHistogramLogic:
     stataccum.SetInput(labelNode.GetImageData())
     stataccum.Update()
     lo = int(stataccum.GetMin()[0])
+    # don't compute DVH the background (voxels)
+    if lo == 0:
+      lo = 1
     hi = int(stataccum.GetMax()[0])
 
     for i in xrange(lo,hi+1):
@@ -279,8 +282,14 @@ class DoseVolumeHistogramLogic:
     stataccum.SetInput(labelNode.GetImageData())
     stataccum.Update()
     lo = int(stataccum.GetMin()[0])
+    # don't compute DVH the background (voxels)
+    if lo == 0:
+      lo = 1
     hi = int(stataccum.GetMax()[0])
 
+    chartNode = slicer.mrmlScene.CreateNodeByClass('vtkMRMLChartNode')
+    chartNode = slicer.mrmlScene.AddNode(chartNode)
+    
     for i in xrange(lo,hi+1):
 
       # this->SetProgress((float)i/hi);
@@ -327,34 +336,36 @@ class DoseVolumeHistogramLogic:
       self.stat1=stat1
   
       # this.InvokeEvent(vtkDoseVolumeHistogramLogic::LabelStatsInnerLoop, (void*)"0.75")
-
+      
       if stat1.GetVoxelCount() > 0:
         arrayNode = slicer.mrmlScene.CreateNodeByClass('vtkMRMLDoubleArrayNode')
         arrayNode = slicer.mrmlScene.AddNode(arrayNode)
         array = arrayNode.GetArray()
-        #samples = stat1.GetOutput().len(self.labelStats["Labels"])
-        array.SetNumberOfTuples(numBins)
+        array.SetNumberOfTuples(numBins+1) # +1 because there is a fixed point at (0.0, 1.0)
 
         totalVoxels=stat1.GetVoxelCount()
         voxelBelowDose=0;
+        print "------------------"
+        arrayName = 'DVH ' + str(i)
+        print arrayName
+        array.SetComponent(0, 0, 0.0)
+        array.SetComponent(0, 1, 1.0)
+        array.SetComponent(0, 2, 0)          
         for sampleIndex in xrange(0,numBins):		  
           voxelsInBin=stat1.GetOutput().GetScalarComponentAsDouble(sampleIndex,0,0,0)
           print "X=",sampleIndex
           print "Y=",voxelsInBin
-          array.SetComponent(sampleIndex, 0, rangeMin+sampleIndex*spacing)
-          array.SetComponent(sampleIndex, 1, 1.0-voxelBelowDose/totalVoxels)
-          array.SetComponent(sampleIndex, 2, 0)          
+          array.SetComponent(sampleIndex+1, 0, rangeMin+sampleIndex*spacing)
+          array.SetComponent(sampleIndex+1, 1, 1.0-voxelBelowDose/totalVoxels)
+          array.SetComponent(sampleIndex+1, 2, 0)          
           voxelBelowDose+=voxelsInBin
-
-    chartNode = slicer.mrmlScene.CreateNodeByClass('vtkMRMLChartNode')
-    chartNode = slicer.mrmlScene.AddNode(chartNode)
-
-    chartNode.AddArray('DVH', arrayNode.GetID())
+                  
+        chartNode.AddArray(arrayName, arrayNode.GetID())
 
     chartViewNode.SetChartNodeID(chartNode.GetID())
 
     chartNode.SetProperty('default', 'title', 'DVH')
-    chartNode.SetProperty('default', 'xAxisLabel', 'Dose (Gy)')
+    chartNode.SetProperty('default', 'xAxisLabel', 'Dose') # TODO: compute in Gy
     chartNode.SetProperty('default', 'yAxisLabel', 'Fractional volume')
     chartNode.SetProperty('default', 'type', 'Line');
 
