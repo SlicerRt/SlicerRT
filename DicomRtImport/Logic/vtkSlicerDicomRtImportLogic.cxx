@@ -26,6 +26,8 @@ limitations under the License.
 #include <vtkMRMLAnnotationPointDisplayNode.h>
 #include <vtkMRMLAnnotationFiducialNode.h>
 #include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLVolumeDisplayNode.h>
+#include <vtkMRMLSelectionNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -148,7 +150,20 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     double* initialSpacing = volumeNode->GetSpacing();
     double* correctSpacing = rtReader->GetPixelSpacing();
     volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
-
+    // Set default colormap to rainbow
+    if (volumeNode->GetVolumeDisplayNode()!=NULL)
+    {
+      volumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    }
+    // Select as active volume
+    if (this->GetApplicationLogic()!=NULL)
+    {
+      if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
+      {
+        this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(volumeNode->GetID());
+        this->GetApplicationLogic()->PropagateVolumeSelection();
+      }
+    }
     return true;
   }
 
