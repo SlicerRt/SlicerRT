@@ -33,16 +33,8 @@ class DicomRtImportPluginClass(DICOMPlugin):
     files parameter.
     """
 
-    # get the series description to use as base for volume name
-    slicer.dicomDatabase.loadFileHeader(files[0])
-    seriesDescription = "0008,103E"
-    d = slicer.dicomDatabase.headerValue(seriesDescription)
-    try:
-      name = d[d.index('[')+1:d.index(']')]
-    except ValueError:
-      name = "Unknown"
-
-    # modality tag
+    # series description and modality tag
+    SERIESINSTANCEUID = "0020,000e"
     MODALITY = "0008,0060"
 
     # list of accepted modalities
@@ -63,10 +55,29 @@ class DicomRtImportPluginClass(DICOMPlugin):
         modality = v[v.index('[')+1:v.index(']')]
       except ValueError:
         modality = ""
+      # get series description
+      s = slicer.dicomDatabase.headerValue(SERIESINSTANCEUID)
+      try:
+        seriesUID = s[s.index('[')+1:s.index(']')]
+      except ValueError:
+        seriesUID = ""
+      try:
+        query = "SELECT SeriesDescription FROM Series WHERE SeriesInstanceUID=\'" + seriesUID + "\'"
+        results = slicer.dicomDatabase.runQuery(query)
+        if len(results) != 1:
+          name = "Unknown - " + modality
+          if len(results) > 1:
+            qt.QMessageBox.warning(slicer.util.mainWindow(), 
+                'Import', 'Multiple descriptions found for the SeriesInstanceUid: %s in file %s' % (seriesUID,file))
+        else:
+          name = results[0]
+      except:
+        name = "Unknown - " + modality
       if modality in RtModalityValues:
         loadable = DICOMLib.DICOMLoadable()
         loadable.files = files
-        loadable.name = name + ' - ' + modality
+        loadable.name = name
+        loadable.tooltip = name + ' - ' + modality
         loadable.selected = True
         loadables.append(loadable)
 
