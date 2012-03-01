@@ -17,6 +17,8 @@ set(module_logic_include_directories
 set(module_logic_SRCS
   vtkSlicerDoseVolumeHistogramLogic.cxx
   vtkSlicerDoseVolumeHistogramLogic.h
+  vtkPolyDataToLabelmapFilter.cxx
+  vtkPolyDataToLabelmapFilter.h
   )
 
 # Additional Target libraries
