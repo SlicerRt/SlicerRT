@@ -145,39 +145,32 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
-  std::vector<double> indices;
+  std::vector<std::string> names;
   std::vector<double> counts;
   std::vector<double> meanDoses;
   std::vector<double> totalVolumeCCs;
   std::vector<double> maxDoses;
   std::vector<double> minDoses;
 
-  d->logic()->ComputeStatistics(indices, counts, meanDoses, totalVolumeCCs, maxDoses, minDoses);
+  d->logic()->ComputeStatistics(names, counts, meanDoses, totalVolumeCCs, maxDoses, minDoses);
 
   // Set up the table
-  d->tableWidget_ChartStatistics->setColumnCount(6);
-  d->tableWidget_ChartStatistics->setColumnWidth(0, 32);
-  d->tableWidget_ChartStatistics->setColumnWidth(1, 72);
-  for (int i=2; i<6; ++i)
-  {
-    d->tableWidget_ChartStatistics->setColumnWidth(i, 108);
-  }
-
+  d->tableWidget_ChartStatistics->setColumnCount(5);
   int rowCount = d->tableWidget_ChartStatistics->rowCount();
+  QString doseUnit( d->logic()->GetDoseVolumeNode()->GetAttribute("DoseUnits") );
   QStringList headerLabels;
-  headerLabels << "" << "Count" << "Mean dose" << "Total volume (cc)" << "Max dose" << "Min dose";
+  headerLabels << "Structure" << "Total volume (cc)" << QString("Mean dose (%1)").arg(doseUnit) << QString("Max dose (%1)").arg(doseUnit) << QString("Min dose (%1)").arg(doseUnit);
   d->tableWidget_ChartStatistics->setHorizontalHeaderLabels(headerLabels);
-  d->tableWidget_ChartStatistics->setRowCount(rowCount + indices.size());
+  d->tableWidget_ChartStatistics->setRowCount(rowCount + names.size());
 
   // Fill the table
-  for (unsigned int i=0; i<indices.size(); ++i)
+  for (unsigned int i=0; i<names.size(); ++i)
   {
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 0, new QTableWidgetItem( QString::number(indices[i]) ) );
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 1, new QTableWidgetItem( QString::number(counts[i]) ) );
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 2, new QTableWidgetItem( QString::number(meanDoses[i],'f') ) );
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 3, new QTableWidgetItem( QString::number(totalVolumeCCs[i]) ) );
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 4, new QTableWidgetItem( QString::number(maxDoses[i],'f') ) );
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 5, new QTableWidgetItem( QString::number(minDoses[i],'f') ) );
+    d->tableWidget_ChartStatistics->setItem(rowCount+i, 0, new QTableWidgetItem( QString::fromStdString(names[i]) ) );
+    d->tableWidget_ChartStatistics->setItem(rowCount+i, 1, new QTableWidgetItem( QString::number(totalVolumeCCs[i]) ) );
+    d->tableWidget_ChartStatistics->setItem(rowCount+i, 2, new QTableWidgetItem( QString::number(meanDoses[i],'f',4) ) );
+    d->tableWidget_ChartStatistics->setItem(rowCount+i, 3, new QTableWidgetItem( QString::number(maxDoses[i],'f',4) ) );
+    d->tableWidget_ChartStatistics->setItem(rowCount+i, 4, new QTableWidgetItem( QString::number(minDoses[i],'f',4) ) );
   }
 
   d->pushButton_AddToChart->setEnabled(true);

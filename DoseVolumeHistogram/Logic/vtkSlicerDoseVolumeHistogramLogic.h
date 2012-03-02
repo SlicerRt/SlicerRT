@@ -53,7 +53,7 @@ public:
 
 public:
   /// Compute statistics for the selected structure set based on the selected dose volume
-  void ComputeStatistics(std::vector<double> &indices, std::vector<double> &counts, std::vector<double> &meanDoses, std::vector<double> &totalVolumeCCs, std::vector<double> &maxDoses, std::vector<double> &minDoses);
+  void ComputeStatistics(std::vector<std::string> &names, std::vector<double> &counts, std::vector<double> &meanDoses, std::vector<double> &totalVolumeCCs, std::vector<double> &maxDoses, std::vector<double> &minDoses);
 
   /// Add dose volume histograms for the selected structure set and dose volume to the selected chart
   void AddDvhToSelectedChart();

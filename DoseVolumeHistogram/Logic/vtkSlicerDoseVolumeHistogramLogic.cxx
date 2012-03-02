@@ -157,9 +157,9 @@ vtkMRMLVolumeNode* vtkSlicerDoseVolumeHistogramLogic
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramLogic
-::ComputeStatistics(std::vector<double> &indices, std::vector<double> &counts, std::vector<double> &meanDoses, std::vector<double> &totalVolumeCCs, std::vector<double> &maxDoses, std::vector<double> &minDoses)
+::ComputeStatistics(std::vector<std::string> &names, std::vector<double> &counts, std::vector<double> &meanDoses, std::vector<double> &totalVolumeCCs, std::vector<double> &maxDoses, std::vector<double> &minDoses)
 {
-  indices.clear();
+  names.clear();
   counts.clear();
   meanDoses.clear();
   totalVolumeCCs.clear();
@@ -183,6 +183,10 @@ void vtkSlicerDoseVolumeHistogramLogic
     lo = 1;
   }
   int hi = (int)(stataccum->GetMax()[0]);
+
+  // get dose grid scaling
+  const char* doseGridScalingString = this->DoseVolumeNode->GetAttribute("DoseGridScaling");
+  double doseGridScaling = atof(doseGridScalingString);
 
   // prevent long computations for non-labelmap images
   if (hi-lo > 128)
@@ -215,12 +219,12 @@ void vtkSlicerDoseVolumeHistogramLogic
     if (stat->GetVoxelCount() > 0)
     {
       // add an entry to each list
-      indices.push_back(i);
+      names.push_back( this->StructureSetModelNode->GetName() );
       counts.push_back( stat->GetVoxelCount() );
-      meanDoses.push_back( stat->GetMean()[0] );
+      meanDoses.push_back( stat->GetMean()[0] * doseGridScaling );
       totalVolumeCCs.push_back( stat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM );
-      maxDoses.push_back( stat->GetMax()[0] );
-      minDoses.push_back( stat->GetMin()[0] );
+      maxDoses.push_back( stat->GetMax()[0] * doseGridScaling );
+      minDoses.push_back( stat->GetMin()[0] * doseGridScaling );
     }
   }
 }
@@ -274,14 +278,9 @@ void vtkSlicerDoseVolumeHistogramLogic
   const char* doseGridScalingString = this->DoseVolumeNode->GetAttribute("DoseGridScaling");
   double doseGridScaling = atof(doseGridScalingString);
 
-  // get chart node from chart view node or create if it has none
-  vtkMRMLChartNode* chartNode = (vtkMRMLChartNode*)( this->GetMRMLScene()->GetNodeByID( chartViewNode->GetChartNodeID() ) );
-  if (chartNode == NULL)
-  {
-    chartNode = (vtkMRMLChartNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLChartNode") );
-    this->GetMRMLScene()->AddNode( chartNode );
-    chartViewNode->SetChartNodeID( chartNode->GetID() );
-  }
+  // Add selected chart node to view  
+  vtkMRMLChartNode* chartNode = this->ChartNode;
+  chartViewNode->SetChartNodeID( chartNode->GetID() );
 
   for (int i=lo; i<=hi; ++i)
   {
@@ -328,13 +327,8 @@ void vtkSlicerDoseVolumeHistogramLogic
       unsigned long totalVoxels = stat->GetVoxelCount();
       unsigned long voxelBelowDose = 0;
 
-      char numberBuffer[16];
-      itoa(i, numberBuffer, 10);
-      std::string arrayName("DVH ");
-      arrayName.append( numberBuffer );
-
       doubleArray->SetComponent(0, 0, 0.0);
-      doubleArray->SetComponent(0, 1, 1.0);
+      doubleArray->SetComponent(0, 1, 100.0);
       doubleArray->SetComponent(0, 2, 0);
 
       for (int sampleIndex=0; sampleIndex<numBins; ++sampleIndex)
@@ -342,12 +336,12 @@ void vtkSlicerDoseVolumeHistogramLogic
         unsigned long voxelsInBin = stat->GetOutput()->GetScalarComponentAsDouble(sampleIndex,0,0,0);
 
         doubleArray->SetComponent( sampleIndex+1, 0, (rangeMin+sampleIndex*spacing)*doseGridScaling );
-        doubleArray->SetComponent( sampleIndex+1, 1, 1.0-(double)voxelBelowDose/(double)totalVoxels );
+        doubleArray->SetComponent( sampleIndex+1, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0 );
         doubleArray->SetComponent( sampleIndex+1, 2, 0 );
         voxelBelowDose += voxelsInBin;
       }
 
-      chartNode->AddArray( arrayName.c_str(), arrayNode->GetID() );
+      chartNode->AddArray( this->StructureSetModelNode->GetName(), arrayNode->GetID() );
     }
   }
 
@@ -357,6 +351,6 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   chartNode->SetProperty("default", "title", "DVH");
   chartNode->SetProperty("default", "xAxisLabel", dose.c_str());
-  chartNode->SetProperty("default", "yAxisLabel", "Fractional volume");
+  chartNode->SetProperty("default", "yAxisLabel", "Fractional volume (%)");
   chartNode->SetProperty("default", "type", "Line");
 }
