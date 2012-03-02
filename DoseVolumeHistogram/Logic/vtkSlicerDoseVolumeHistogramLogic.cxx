@@ -185,7 +185,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   int hi = (int)(stataccum->GetMax()[0]);
 
   // prevent long computations for non-labelmap images
-  if (hi-lo > 50)
+  if (hi-lo > 128)
   {
     return;
   }
@@ -264,8 +264,24 @@ void vtkSlicerDoseVolumeHistogramLogic
   }
   int hi = (int)(stataccum->GetMax()[0]);
 
-  vtkMRMLChartNode* chartNode = (vtkMRMLChartNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLChartNode") );
-  chartNode = (vtkMRMLChartNode*)( this->GetMRMLScene()->AddNode( chartNode ) );
+  // prevent long computations for non-labelmap images
+  if (hi-lo > 128)
+  {
+    return;
+  }
+
+  // get dose grid scaling
+  const char* doseGridScalingString = this->DoseVolumeNode->GetAttribute("DoseGridScaling");
+  double doseGridScaling = atof(doseGridScalingString);
+
+  // get chart node from chart view node or create if it has none
+  vtkMRMLChartNode* chartNode = (vtkMRMLChartNode*)( this->GetMRMLScene()->GetNodeByID( chartViewNode->GetChartNodeID() ) );
+  if (chartNode == NULL)
+  {
+    chartNode = (vtkMRMLChartNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLChartNode") );
+    this->GetMRMLScene()->AddNode( chartNode );
+    chartViewNode->SetChartNodeID( chartNode->GetID() );
+  }
 
   for (int i=lo; i<=hi; ++i)
   {
@@ -283,6 +299,7 @@ void vtkSlicerDoseVolumeHistogramLogic
     vtkNew<vtkImageToImageStencil> stencil;
     stencil->SetInput(thresholder->GetOutput());
     stencil->ThresholdBetween(1,1);
+    stencil->Update();
 
     vtkNew<vtkImageAccumulate> stat;
     stat->SetInput(this->DoseVolumeNode->GetImageData());
@@ -324,9 +341,9 @@ void vtkSlicerDoseVolumeHistogramLogic
       {
         unsigned long voxelsInBin = stat->GetOutput()->GetScalarComponentAsDouble(sampleIndex,0,0,0);
 
-        doubleArray->SetComponent(sampleIndex+1, 0, rangeMin+sampleIndex*spacing);
-        doubleArray->SetComponent(sampleIndex+1, 1, 1.0-voxelBelowDose/totalVoxels);
-        doubleArray->SetComponent(sampleIndex+1, 2, 0);
+        doubleArray->SetComponent( sampleIndex+1, 0, (rangeMin+sampleIndex*spacing)*doseGridScaling );
+        doubleArray->SetComponent( sampleIndex+1, 1, 1.0-(double)voxelBelowDose/(double)totalVoxels );
+        doubleArray->SetComponent( sampleIndex+1, 2, 0 );
         voxelBelowDose += voxelsInBin;
       }
 
@@ -334,12 +351,12 @@ void vtkSlicerDoseVolumeHistogramLogic
     }
   }
 
-  chartViewNode->SetChartNodeID( chartNode->GetID() ); // TODO: Is it needed here?
+  std::string dose("Dose (");
+  dose.append( this->DoseVolumeNode->GetAttribute("DoseUnits") );
+  dose.append( ")" );
 
   chartNode->SetProperty("default", "title", "DVH");
-  chartNode->SetProperty("default", "xAxisLabel", "Dose"); // TODO: compute in Gy
+  chartNode->SetProperty("default", "xAxisLabel", dose.c_str());
   chartNode->SetProperty("default", "yAxisLabel", "Fractional volume");
   chartNode->SetProperty("default", "type", "Line");
-
-  chartViewNode->SetChartNodeID( chartNode->GetID() );
 }
