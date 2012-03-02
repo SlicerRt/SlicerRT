@@ -74,6 +74,14 @@ public:
   /*! Get pixel spacing */
   vtkGetVector2Macro(PixelSpacing, double); 
 
+  /*! Get dose units */
+  vtkGetStringMacro(DoseUnits); 
+  vtkSetStringMacro(DoseUnits); 
+
+  /*! Get dose units */
+  vtkGetStringMacro(DoseGridScaling); 
+  vtkSetStringMacro(DoseGridScaling); 
+
   /// Get load structure set successful flag
   vtkGetMacro(LoadRTStructureSetSuccessful, bool);
   /// Get load dose successful flag
@@ -115,8 +123,17 @@ protected:
   /// List of loaded contour ROIs from structure set
   std::vector<ROIStructureSetEntry*> ROIContourSequenceVector;
 
-  /// Pixel spacing (for dose image)
+  /// Pixel spacing - for RTDOSE
   double PixelSpacing[2];
+
+  /// Dose units (e.g., Gy) - for RTDOSE
+  char* DoseUnits;
+
+  /// Dose grid scaling (e.g., 4.4812099e-5) - for RTDOSE
+  /// Scaling factor that when multiplied by the dose grid data found in the voxel values,
+  /// yields grid doses in the dose units as specified by Dose Units.
+  /// Store it as a string, because it will be passed as a MRML node attribute.
+  char* DoseGridScaling;
 
   /// Flag indicating if RT Structure Set has been successfully read from the input dataset
   bool LoadRTStructureSetSuccessful;

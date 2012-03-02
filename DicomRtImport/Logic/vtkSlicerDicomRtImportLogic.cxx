@@ -150,6 +150,12 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     double* initialSpacing = volumeNode->GetSpacing();
     double* correctSpacing = rtReader->GetPixelSpacing();
     volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
+    volumeNode->SetAttribute("DoseUnits",rtReader->GetDoseUnits());
+    volumeNode->SetAttribute("DoseGridScaling",rtReader->GetDoseGridScaling());
+
+
+    volumeNode->SetModifiedSinceRead(1); 
+
     // Set default colormap to rainbow
     if (volumeNode->GetVolumeDisplayNode()!=NULL)
     {

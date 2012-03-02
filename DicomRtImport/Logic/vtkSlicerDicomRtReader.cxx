@@ -57,6 +57,8 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 
   this->ROIContourSequencePolyData = NULL;
   this->SetPixelSpacing(0,0);
+  this->DoseUnits = NULL;
+  this->DoseGridScaling = NULL;
 
   this->LoadRTStructureSetSuccessful = false;
   this->LoadRTDoseSuccessful = false;
@@ -370,14 +372,29 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   }
 
   cout << "RT Dose object" << OFendl << OFendl;
+  OFString doseGridScaling=0;
+  if (rtDoseObject.getDoseGridScaling(doseGridScaling).bad())
+  {
+    cerr << "Error: Failed to get Dose Grid Scaling for dose object" << OFendl;
+    return; // mandatory DICOM value
+  }
+  this->SetDoseGridScaling(doseGridScaling.c_str());
+  
+  OFString doseUnits=0;
+  if (rtDoseObject.getDoseUnits(doseUnits).bad())
+  {
+    cerr << "Error: Failed to get Dose Units for dose object" << OFendl;
+    return; // mandatory DICOM value
+  }
+  this->SetDoseUnits(doseUnits.c_str());
 
   OFVector<Float64> pixelSpacingOFVector;
   if (rtDoseObject.getPixelSpacing(pixelSpacingOFVector).bad() || pixelSpacingOFVector.size() < 2)
   {
     cerr << "Error: Failed to get Pixel Spacing for dose object" << OFendl;
-    return;
+    return; // mandatory DICOM value
   }
-  cerr << "Pixel Spacing: (" << pixelSpacingOFVector[0] << ", " << pixelSpacingOFVector[1] << ")" << OFendl;
+  cout << "Pixel Spacing: (" << pixelSpacingOFVector[0] << ", " << pixelSpacingOFVector[1] << ")" << OFendl;
 
   this->SetPixelSpacing(pixelSpacingOFVector[0], pixelSpacingOFVector[1]);
 
