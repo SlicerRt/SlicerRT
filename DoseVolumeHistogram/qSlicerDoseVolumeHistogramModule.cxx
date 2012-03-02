@@ -17,6 +17,11 @@
 
 // Qt includes
 #include <QtPlugin>
+//#include <QDebug>
+
+// Slicer includes
+#include <qSlicerCoreApplication.h>
+#include <qSlicerModuleManager.h>
 
 // ExtensionTemplate Logic includes
 #include <vtkSlicerDoseVolumeHistogramLogic.h>
@@ -82,6 +87,18 @@ QIcon qSlicerDoseVolumeHistogramModule::icon()const
 void qSlicerDoseVolumeHistogramModule::setup()
 {
   this->Superclass::setup();
+
+  //qSlicerAbstractCoreModule* modelToLabelmapModule =
+  //  qSlicerCoreApplication::application()->moduleManager()->module("ModelToLabelMap");
+  //if (modelToLabelmapModule)
+  //  {
+  //  vtkSlicerModuleLogic* modelToLabelmapModuleLogic = 
+  //    vtkSlicerModuleLogic::SafeDownCast(modelToLabelmapModule->logic());
+  //  }
+  //else
+  //  {
+  //  qWarning() << "ModelToLabelMap module is not found";
+  //  }
 }
 
 //-----------------------------------------------------------------------------

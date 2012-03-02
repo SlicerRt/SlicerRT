@@ -27,6 +27,9 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
+// VTK includes
+#include "vtkImageAccumulate.h"
+
 // MRML includes
 
 // STD includes
@@ -34,6 +37,9 @@
 
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
+class vtkMRMLVolumeNode;
+class vtkMRMLModelNode;
+class vtkMRMLChartNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_MODULE_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramLogic :
@@ -45,6 +51,24 @@ public:
   vtkTypeMacro(vtkSlicerDoseVolumeHistogramLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+public:
+  /// Compute statistics for the selected structure set based on the selected dose volume
+  void ComputeStatistics(std::vector<double> &indices, std::vector<double> &counts, std::vector<double> &meanDoses, std::vector<double> &totalVolumeCCs, std::vector<double> &maxDoses, std::vector<double> &minDoses);
+
+  /// Add dose volume histograms for the selected structure set and dose volume to the selected chart
+  void AddDvhToSelectedChart();
+
+public:
+  void SetDoseVolumeNode( vtkMRMLVolumeNode* );
+  void SetStructureSetModelNode( vtkMRMLModelNode* );
+  void SetChartNode( vtkMRMLChartNode* );
+
+  void ResetLabelValue() { this->CurrentLabelValue = 2; };
+
+  vtkGetObjectMacro( DoseVolumeNode, vtkMRMLVolumeNode );
+  vtkGetObjectMacro( StructureSetModelNode, vtkMRMLModelNode );
+  vtkGetObjectMacro( ChartNode, vtkMRMLChartNode );
+
 protected:
   vtkSlicerDoseVolumeHistogramLogic();
   virtual ~vtkSlicerDoseVolumeHistogramLogic();
@@ -55,10 +79,20 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-private:
 
+  /// Get node of labelmap corresponding to the selected structure set model. If it does not exist, create one
+  vtkMRMLVolumeNode* GetLabelmapVolumeNodeForSelectedStructureSet();
+
+private:
   vtkSlicerDoseVolumeHistogramLogic(const vtkSlicerDoseVolumeHistogramLogic&); // Not implemented
   void operator=(const vtkSlicerDoseVolumeHistogramLogic&);               // Not implemented
+
+protected:
+  vtkMRMLVolumeNode* DoseVolumeNode;
+  vtkMRMLModelNode* StructureSetModelNode;
+  vtkMRMLChartNode* ChartNode;
+
+  unsigned int CurrentLabelValue;
 };
 
 #endif

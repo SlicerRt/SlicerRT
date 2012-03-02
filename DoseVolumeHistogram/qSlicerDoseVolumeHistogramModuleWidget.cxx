@@ -17,26 +17,49 @@
 
 // Qt includes
 #include <QDebug>
+#include <QFileDialog>
 
 // SlicerQt includes
 #include "qSlicerDoseVolumeHistogramModuleWidget.h"
 #include "ui_qSlicerDoseVolumeHistogramModule.h"
 
+// ModuleTemplate includes
+#include "vtkSlicerDoseVolumeHistogramLogic.h"
+
+// MRML includes
+#include "vtkMRMLVolumeNode.h"
+#include "vtkMRMLModelNode.h"
+#include "vtkMRMLChartNode.h"
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class qSlicerDoseVolumeHistogramModuleWidgetPrivate: public Ui_qSlicerDoseVolumeHistogramModule
 {
+  Q_DECLARE_PUBLIC(qSlicerDoseVolumeHistogramModuleWidget);
+protected:
+  qSlicerDoseVolumeHistogramModuleWidget* const q_ptr;
 public:
-  qSlicerDoseVolumeHistogramModuleWidgetPrivate();
+  qSlicerDoseVolumeHistogramModuleWidgetPrivate(qSlicerDoseVolumeHistogramModuleWidget &object);
+  vtkSlicerDoseVolumeHistogramLogic* logic() const;
 };
 
 //-----------------------------------------------------------------------------
 // qSlicerDoseVolumeHistogramModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerDoseVolumeHistogramModuleWidgetPrivate::qSlicerDoseVolumeHistogramModuleWidgetPrivate()
+qSlicerDoseVolumeHistogramModuleWidgetPrivate::qSlicerDoseVolumeHistogramModuleWidgetPrivate(qSlicerDoseVolumeHistogramModuleWidget& object)
+ : q_ptr(&object)
 {
 }
+
+//-----------------------------------------------------------------------------
+vtkSlicerDoseVolumeHistogramLogic*
+qSlicerDoseVolumeHistogramModuleWidgetPrivate::logic() const
+{
+  Q_Q(const qSlicerDoseVolumeHistogramModuleWidget);
+  return vtkSlicerDoseVolumeHistogramLogic::SafeDownCast(q->logic());
+} 
+
 
 //-----------------------------------------------------------------------------
 // qSlicerDoseVolumeHistogramModuleWidget methods
@@ -44,7 +67,7 @@ qSlicerDoseVolumeHistogramModuleWidgetPrivate::qSlicerDoseVolumeHistogramModuleW
 //-----------------------------------------------------------------------------
 qSlicerDoseVolumeHistogramModuleWidget::qSlicerDoseVolumeHistogramModuleWidget(QWidget* _parent)
   : Superclass( _parent )
-  , d_ptr( new qSlicerDoseVolumeHistogramModuleWidgetPrivate )
+  , d_ptr( new qSlicerDoseVolumeHistogramModuleWidgetPrivate(*this) )
 {
 }
 
@@ -59,5 +82,138 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
+
+  // Hide widgets whose functions have not been implemented yet
+  d->checkBox_ShowLegend->setVisible(false);
+  d->pushButton_ExportStatisticsToCsv->setVisible(false);
+
+  d->tableWidget_ChartStatistics->setSortingEnabled(true);
+
+  // Make connections
+  connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
+  connect( d->MRMLNodeComboBox_StructureSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( structureSetNodeChanged(vtkMRMLNode*) ) );
+  connect( d->MRMLNodeComboBox_Chart, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( chartNodeChanged(vtkMRMLNode*) ) );
+
+  connect( d->pushButton_ComputeDVH, SIGNAL( clicked() ), this, SLOT( computeDvhClicked() ) );
+  connect( d->pushButton_AddToChart, SIGNAL( clicked() ), this, SLOT( addToChartClicked() ) );
+  connect( d->pushButton_ExportDvhToCsv, SIGNAL( clicked() ), this, SLOT( exportDvhToCsvClicked() ) );
+  connect( d->pushButton_ExportStatisticsToCsv, SIGNAL( clicked() ), this, SLOT( exportStatisticsToCsv() ) );
 }
 
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+  vtkMRMLVolumeNode* volumeNode = dynamic_cast<vtkMRMLVolumeNode*>(node);
+  if (volumeNode)
+  {
+    d->logic()->SetDoseVolumeNode(volumeNode);
+    d->pushButton_ComputeDVH->setEnabled( d->logic()->GetDoseVolumeNode() && d->logic()->GetStructureSetModelNode() && d->logic()->GetChartNode() );
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::structureSetNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+  vtkMRMLModelNode* modelNode = dynamic_cast<vtkMRMLModelNode*>(node);
+  if (modelNode)
+  {
+    d->logic()->SetStructureSetModelNode(modelNode);
+    d->pushButton_ComputeDVH->setEnabled( d->logic()->GetDoseVolumeNode() && d->logic()->GetStructureSetModelNode() && d->logic()->GetChartNode() );
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+  vtkMRMLChartNode* chartNode = dynamic_cast<vtkMRMLChartNode*>(node);
+  if (chartNode)
+  {
+    d->logic()->SetChartNode(chartNode);
+    d->pushButton_ComputeDVH->setEnabled( d->logic()->GetDoseVolumeNode() && d->logic()->GetStructureSetModelNode() && d->logic()->GetChartNode() );
+
+    d->tableWidget_ChartStatistics->clear();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  std::vector<double> indices;
+  std::vector<double> counts;
+  std::vector<double> meanDoses;
+  std::vector<double> totalVolumeCCs;
+  std::vector<double> maxDoses;
+  std::vector<double> minDoses;
+
+  d->logic()->ComputeStatistics(indices, counts, meanDoses, totalVolumeCCs, maxDoses, minDoses);
+
+  d->tableWidget_ChartStatistics->setColumnCount(6);
+  for (unsigned int i=0; i<indices.size(); ++i)
+  {
+    d->tableWidget_ChartStatistics->setColumnWidth(i, 84);
+
+    d->tableWidget_ChartStatistics->setItem(i, 0, new QTableWidgetItem( QString::number(indices[i]) ) );
+    d->tableWidget_ChartStatistics->setItem(i, 1, new QTableWidgetItem( QString::number(counts[i]) ) );
+    d->tableWidget_ChartStatistics->setItem(i, 2, new QTableWidgetItem( QString::number(meanDoses[i]) ) );
+    d->tableWidget_ChartStatistics->setItem(i, 3, new QTableWidgetItem( QString::number(totalVolumeCCs[i]) ) );
+    d->tableWidget_ChartStatistics->setItem(i, 4, new QTableWidgetItem( QString::number(maxDoses[i]) ) );
+    d->tableWidget_ChartStatistics->setItem(i, 5, new QTableWidgetItem( QString::number(minDoses[i]) ) );
+  }
+  d->tableWidget_ChartStatistics->setColumnWidth(0, 24);
+
+  d->pushButton_AddToChart->setEnabled(true);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::addToChartClicked()
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  d->logic()->AddDvhToSelectedChart();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
+{
+  QString filter = QString( tr( "Comma Separated Values (*.csv);;" ) );
+  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save DVH to CSV"), QString("."), filter);
+
+	if (! fileName.isNull() )
+  {
+    // TODO
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::exportStatisticsToCsv()
+{
+  QString filter = QString( tr( "Comma Separated Values (*.csv);;" ) );
+  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save statistics to CSV"), QString("."), filter);
+
+	if (! fileName.isNull() )
+  {
+    // print comma separated value file with header keys in quotes
+
+    //csv = ""
+    //header = ""
+    //for k in self.keys[:-1]:
+    //  header += "\"%s\"" % k + ","
+    //header += "\"%s\"" % self.keys[-1] + "\n"
+    //csv = header
+    //for i in self.labelStats["Labels"]:
+    //  line = ""
+    //  for k in self.keys[:-1]:
+    //    line += str(self.labelStats[i,k]) + ","
+    //  line += str(self.labelStats[i,self.keys[-1]]) + "\n"
+    //  csv += line
+
+    //fp = open(fileName, "w")
+    //fp.write(csv)
+    //fp.close()
+  }
+}

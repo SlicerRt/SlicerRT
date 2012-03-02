@@ -40,6 +40,15 @@ public:
 
 public slots:
 
+protected slots:
+  void doseVolumeNodeChanged(vtkMRMLNode*);
+  void structureSetNodeChanged(vtkMRMLNode*);
+  void chartNodeChanged(vtkMRMLNode*);
+
+  void computeDvhClicked();
+  void addToChartClicked();
+  void exportDvhToCsvClicked();
+  void exportStatisticsToCsv();
 
 protected:
   QScopedPointer<qSlicerDoseVolumeHistogramModuleWidgetPrivate> d_ptr;

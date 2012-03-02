@@ -7,13 +7,8 @@
 #define __vtkPolyDataToLabelmapFilter_h
 
 // VTK includes
-#include <vtkDataSetToImageFilter.h>
 #include <vtkPolyData.h>
 #include <vtkImageData.h>
-
-// ITK includes
-#include <itkImage.h>
-typedef itk::Image<unsigned char, 3> LabelImageType;
 
 // STD includes
 #include <cstdlib>
@@ -22,38 +17,31 @@ typedef itk::Image<unsigned char, 3> LabelImageType;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_MODULE_LOGIC_EXPORT vtkPolyDataToLabelmapFilter :
-  public vtkDataSetToImageFilter
+  public vtkObject
 {
 public:
 
   static vtkPolyDataToLabelmapFilter *New();
-  vtkTypeMacro(vtkPolyDataToLabelmapFilter, vtkDataSetToImageFilter );
+  vtkTypeMacro(vtkPolyDataToLabelmapFilter, vtkObject );
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void SetInput(vtkDataSet *input);
+  virtual void SetReferenceImage(vtkImageData* reference);
   virtual vtkImageData* GetOutput();
 
   virtual void Update();
 
-protected:
-  LabelImageType::Pointer BinaryDilateFilter3D( LabelImageType::Pointer & img, unsigned int ballsize );
-  LabelImageType::Pointer BinaryErodeFilter3D( LabelImageType::Pointer & img, unsigned int ballsize );
-  LabelImageType::Pointer BinaryClosingFilter3D( LabelImageType::Pointer & img, unsigned int ballsize );
-  int ConvertModelToLabelUsingFloodFill(vtkPolyData* inputPolyData, LabelImageType::Pointer outputLabel, double sampleDistance, unsigned char labelValue);
+  vtkSetObjectMacro(InputPolyData, vtkPolyData);
+  vtkSetMacro(LabelValue, unsigned short);
 
 protected:
-  vtkSetObjectMacro(InputPolyData, vtkPolyData);
   vtkSetObjectMacro(OutputLabelmap, vtkImageData);
-  vtkSetMacro(SampleDistance, double);
-  vtkSetMacro(LabelValue, unsigned char);
-  vtkSetVector3Macro(OutputLabelmapSize, unsigned long);
+  vtkSetObjectMacro(ReferenceImageData, vtkImageData);
 
 protected:
   vtkPolyData* InputPolyData;
   vtkImageData* OutputLabelmap;
-  double SampleDistance;
-  unsigned char LabelValue;
-  unsigned long OutputLabelmapSize[3];
+  vtkImageData* ReferenceImageData;
+  unsigned short LabelValue;
 
 protected:
   vtkPolyDataToLabelmapFilter();
