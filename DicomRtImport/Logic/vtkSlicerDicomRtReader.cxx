@@ -181,7 +181,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
           Sint32 ROINumber;
           currentROISequenceObject.getROINumber(ROINumber);
-          cout << "roi number:" << ROINumber << " roi name:" << ROIName << " roi description:" << ROIDescription << OFendl;
+          //cout << "roi number:" << ROINumber << " roi name:" << ROIName << " roi description:" << ROIDescription << OFendl;
           // add into vector
           ROIStructureSetEntry* tempEntry = new ROIStructureSetEntry();
           tempEntry->ROIName = new char[ROIName.size()+1];
@@ -192,7 +192,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       }
       while (rtStructureSetROISequenceObject.gotoNextItem().good());
     }
-    cout << OFendl;
+    //cout << OFendl;
 
     Sint32 referenceROINumber;
     DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
@@ -211,7 +211,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
           vtkIdType pointId=0;
 
           currentROIObject.getReferencedROINumber(referenceROINumber);
-          cout << "refence roi number:" << referenceROINumber << OFendl;
+          //cout << "refence roi number:" << referenceROINumber << OFendl;
           DRTContourSequence &rtContourSequenceObject = currentROIObject.getContourSequence();
           if (rtContourSequenceObject.gotoFirstItem().good())
           {
@@ -226,7 +226,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
                 OFString numberofpoints;
                 contourItem.getNumberOfContourPoints(numberofpoints);
-                cout << "\t contour number:" << contourNumber.c_str() << " numberOf points: "<< numberofpoints.c_str() << OFendl;
+                //cout << "\t contour number:" << contourNumber.c_str() << " numberOf points: "<< numberofpoints.c_str() << OFendl;
                 int number = atoi(numberofpoints.c_str());
 
                 OFVector<Float64>  contourData_LPS;
@@ -293,7 +293,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       while (rtROIContourSequenceObject.gotoNextItem().good());
     } // if gotofirstitem
 
-    cout << OFendl;
+    //cout << OFendl;
 
     this->LoadRTStructureSetSuccessful = true;
   }
