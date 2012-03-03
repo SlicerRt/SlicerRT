@@ -54,6 +54,7 @@ protected:
   QScopedPointer<qSlicerDoseVolumeHistogramModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
+  virtual void updateButtonsState();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseVolumeHistogramModuleWidget);

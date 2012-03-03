@@ -105,29 +105,9 @@ void vtkSlicerDoseVolumeHistogramLogic
 
 //---------------------------------------------------------------------------
 
-vtkMRMLVolumeNode* vtkSlicerDoseVolumeHistogramLogic
-::GetLabelmapVolumeNodeForSelectedStructureSet()
+void vtkSlicerDoseVolumeHistogramLogic
+::GetLabelmapVolumeNodeForSelectedStructureSet(vtkMRMLScalarVolumeNode* structureSetLabelmapVolumeNode)
 {
-  std::string labelmapNodeName( this->StructureSetModelNode->GetName() );
-  labelmapNodeName.append( "_Labelmap" );
-
-  vtkCollection* labelmapNodeCollection = this->GetMRMLScene()->GetNodesByName( labelmapNodeName.c_str() );
-
-  if (labelmapNodeCollection->GetNumberOfItems() > 1)
-  {
-    std::cerr << "Error: More nodes found with the name " << labelmapNodeName << std::endl;
-    return NULL;
-  }
-  
-  if (labelmapNodeCollection->GetNumberOfItems() == 1)
-  {
-    vtkMRMLVolumeNode* labelmapNode = dynamic_cast<vtkMRMLVolumeNode*>( labelmapNodeCollection->GetItemAsObject(0) );
-    if (labelmapNode)
-    {
-      return labelmapNode;
-    }
-  }
-
   // Create model to RAS transform
   vtkSmartPointer<vtkMatrix4x4> modelToRasTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   modelToRasTransformMatrix->Identity();
@@ -161,15 +141,12 @@ vtkMRMLVolumeNode* vtkSlicerDoseVolumeHistogramLogic
   polyDataToLabelmapFilter->SetLabelValue( this->CurrentLabelValue++ );
   polyDataToLabelmapFilter->Update();
 
-  vtkMRMLScalarVolumeNode* structureSetLabelmapVolumeNode = vtkMRMLScalarVolumeNode::New();
   structureSetLabelmapVolumeNode->CopyOrientation( this->DoseVolumeNode );
+  std::string labelmapNodeName( this->StructureSetModelNode->GetName() );
+  labelmapNodeName.append( "_Labelmap" );
   structureSetLabelmapVolumeNode->SetName( labelmapNodeName.c_str() );
   structureSetLabelmapVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
   structureSetLabelmapVolumeNode->LabelMapOn();
-
-  this->GetMRMLScene()->AddNode( structureSetLabelmapVolumeNode );
-
-  return structureSetLabelmapVolumeNode;
 }
 
 //---------------------------------------------------------------------------
@@ -183,7 +160,9 @@ void vtkSlicerDoseVolumeHistogramLogic
   maxDoses.clear();
   minDoses.clear();
 
-  vtkMRMLVolumeNode* structureSetLabelmapVolumeNode = GetLabelmapVolumeNodeForSelectedStructureSet();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> structureSetLabelmapVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  GetLabelmapVolumeNodeForSelectedStructureSet(structureSetLabelmapVolumeNode);
+
   double* structureSetLabelmapSpacing = structureSetLabelmapVolumeNode->GetSpacing();
 
   double cubicMMPerVoxel = structureSetLabelmapSpacing[0] * structureSetLabelmapSpacing[1] * structureSetLabelmapSpacing[2];
@@ -271,7 +250,8 @@ void vtkSlicerDoseVolumeHistogramLogic
     return;
   }
 
-  vtkMRMLVolumeNode* structureSetLabelmapVolumeNode = GetLabelmapVolumeNodeForSelectedStructureSet();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> structureSetLabelmapVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  GetLabelmapVolumeNodeForSelectedStructureSet(structureSetLabelmapVolumeNode);
 
   vtkNew<vtkImageAccumulate> stataccum;
   stataccum->SetInput( structureSetLabelmapVolumeNode->GetImageData() );
@@ -339,22 +319,27 @@ void vtkSlicerDoseVolumeHistogramLogic
       vtkMRMLDoubleArrayNode* arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLDoubleArrayNode") );
       arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->AddNode( arrayNode ) );
       vtkDoubleArray* doubleArray = arrayNode->GetArray();
-      doubleArray->SetNumberOfTuples( numBins+1 ); // +1 because there is a fixed point at (0.0, 1.0)
+      doubleArray->SetNumberOfTuples( numBins+1 ); // +1 because there is a fixed point at (0.0, 100%)
+
+      int sampleIndex=0;
+
+      // Add first fixed point at (0.0, 100%)
+      int outputArrayIndex=0;
+      doubleArray->SetComponent(outputArrayIndex, 0, 0.0);
+      doubleArray->SetComponent(outputArrayIndex, 1, 100.0);
+      doubleArray->SetComponent(outputArrayIndex, 2, 0);
+      ++outputArrayIndex;
 
       unsigned long totalVoxels = stat->GetVoxelCount();
       unsigned long voxelBelowDose = 0;
 
-      doubleArray->SetComponent(0, 0, 0.0);
-      doubleArray->SetComponent(0, 1, 100.0);
-      doubleArray->SetComponent(0, 2, 0);
-
       for (int sampleIndex=0; sampleIndex<numBins; ++sampleIndex)
       {
         unsigned long voxelsInBin = stat->GetOutput()->GetScalarComponentAsDouble(sampleIndex,0,0,0);
-
-        doubleArray->SetComponent( sampleIndex+1, 0, (rangeMin+sampleIndex*spacing)*doseGridScaling );
-        doubleArray->SetComponent( sampleIndex+1, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0 );
-        doubleArray->SetComponent( sampleIndex+1, 2, 0 );
+        doubleArray->SetComponent( outputArrayIndex, 0, (rangeMin+sampleIndex*spacing)*doseGridScaling );
+        doubleArray->SetComponent( outputArrayIndex, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0 );
+        doubleArray->SetComponent( outputArrayIndex, 2, 0 );
+        ++outputArrayIndex;
         voxelBelowDose += voxelsInBin;
       }
 

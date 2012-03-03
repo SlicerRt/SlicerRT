@@ -103,6 +103,15 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+  bool dvhCanBeComputed=d->logic()->GetDoseVolumeNode() && d->logic()->GetStructureSetModelNode();
+  d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
+  d->pushButton_AddToChart->setEnabled(dvhCanBeComputed && d->logic()->GetChartNode());
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
@@ -110,7 +119,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
   if (volumeNode)
   {
     d->logic()->SetDoseVolumeNode(volumeNode);
-    d->pushButton_ComputeDVH->setEnabled( d->logic()->GetDoseVolumeNode() && d->logic()->GetStructureSetModelNode() && d->logic()->GetChartNode() );
+    updateButtonsState();
   }
 }
 
@@ -122,7 +131,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::structureSetNodeChanged(vtkMRMLNode
   if (modelNode)
   {
     d->logic()->SetStructureSetModelNode(modelNode);
-    d->pushButton_ComputeDVH->setEnabled( d->logic()->GetDoseVolumeNode() && d->logic()->GetStructureSetModelNode() && d->logic()->GetChartNode() );
+    updateButtonsState();
   }
 }
 
@@ -134,9 +143,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
   if (chartNode)
   {
     d->logic()->SetChartNode(chartNode);
-    d->pushButton_ComputeDVH->setEnabled( d->logic()->GetDoseVolumeNode() && d->logic()->GetStructureSetModelNode() && d->logic()->GetChartNode() );
-
-    d->tableWidget_ChartStatistics->clear();
+    updateButtonsState();
   }
 }
 
@@ -173,7 +180,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
     d->tableWidget_ChartStatistics->setItem(rowCount+i, 4, new QTableWidgetItem( QString::number(minDoses[i],'f',4) ) );
   }
 
-  d->pushButton_AddToChart->setEnabled(true);
+  updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------

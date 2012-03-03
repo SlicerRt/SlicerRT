@@ -40,6 +40,7 @@
 class vtkMRMLVolumeNode;
 class vtkMRMLModelNode;
 class vtkMRMLChartNode;
+class vtkMRMLScalarVolumeNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_MODULE_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramLogic :
@@ -81,7 +82,7 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
   /// Get node of labelmap corresponding to the selected structure set model. If it does not exist, create one
-  vtkMRMLVolumeNode* GetLabelmapVolumeNodeForSelectedStructureSet();
+  virtual void GetLabelmapVolumeNodeForSelectedStructureSet(vtkMRMLScalarVolumeNode* structureSetLabelmapVolumeNode);
 
 private:
   vtkSlicerDoseVolumeHistogramLogic(const vtkSlicerDoseVolumeHistogramLogic&); // Not implemented
