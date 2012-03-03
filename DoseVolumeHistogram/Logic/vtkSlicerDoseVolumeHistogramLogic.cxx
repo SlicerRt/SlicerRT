@@ -27,6 +27,7 @@
 #include "vtkMRMLLayoutNode.h"
 #include "vtkMRMLChartViewNode.h"
 #include "vtkMRMLDoubleArrayNode.h"
+#include "vtkMRMLTransformNode.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -127,19 +128,35 @@ vtkMRMLVolumeNode* vtkSlicerDoseVolumeHistogramLogic
     }
   }
 
-  // Create a node by converting the structure set model poly data to labelmap
-  vtkNew<vtkMatrix4x4> doseRasToIjkTransformMatrix;
-  this->DoseVolumeNode->GetRASToIJKMatrix( doseRasToIjkTransformMatrix.GetPointer() );
+  // Create model to RAS transform
+  vtkSmartPointer<vtkMatrix4x4> modelToRasTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  modelToRasTransformMatrix->Identity();
+  vtkMRMLTransformNode* modelTransformNode=this->StructureSetModelNode->GetParentTransformNode();
+  if (modelTransformNode!=NULL)
+  {
+    modelTransformNode->GetMatrixTransformToWorld(modelToRasTransformMatrix);
+  }
+  vtkNew<vtkTransform> modelToRasTransform;
+  modelToRasTransform->SetMatrix(modelToRasTransformMatrix);  
+  // Transform the model polydata to RAS coordinate frame
+  vtkNew<vtkTransformPolyDataFilter> transformPolyDataModelToRasFilter;
+  transformPolyDataModelToRasFilter->SetInput( this->StructureSetModelNode->GetPolyData() );
+  transformPolyDataModelToRasFilter->SetTransform(modelToRasTransform.GetPointer());
 
-  vtkNew<vtkTransform> doseRasToIjkTransform;
-  doseRasToIjkTransform->SetMatrix( doseRasToIjkTransformMatrix.GetPointer() );
+  //Create RAS to dosemap IJK transform
+  vtkNew<vtkMatrix4x4> rasToDoseIjkTransformMatrix;
+  this->DoseVolumeNode->GetRASToIJKMatrix( rasToDoseIjkTransformMatrix.GetPointer() );  
+  vtkNew<vtkTransform> rasToDoseIjkTransform;
+  rasToDoseIjkTransform->SetMatrix( rasToDoseIjkTransformMatrix.GetPointer() );  
+  // Transform the model polydata to dosemap IJK coordinate frame
+  vtkNew<vtkTransformPolyDataFilter> transformPolyDataRasToDoseIjkFilter;
+  transformPolyDataRasToDoseIjkFilter->SetInputConnection( transformPolyDataModelToRasFilter->GetOutputPort() );  
+  transformPolyDataRasToDoseIjkFilter->SetTransform( rasToDoseIjkTransform.GetPointer() );
 
-  vtkNew<vtkTransformPolyDataFilter> transformPolyDataFilter;
-  transformPolyDataFilter->SetInput( this->StructureSetModelNode->GetPolyData() );
-  transformPolyDataFilter->SetTransform( doseRasToIjkTransform.GetPointer() );
-
+  // Convert model to labelmap
   vtkNew<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter;
-  polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataFilter->GetOutput() );
+  transformPolyDataRasToDoseIjkFilter->Update();
+  polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataRasToDoseIjkFilter->GetOutput() );
   polyDataToLabelmapFilter->SetReferenceImage( this->DoseVolumeNode->GetImageData() );
   polyDataToLabelmapFilter->SetLabelValue( this->CurrentLabelValue++ );
   polyDataToLabelmapFilter->Update();
