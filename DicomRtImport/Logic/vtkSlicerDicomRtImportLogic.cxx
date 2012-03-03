@@ -32,7 +32,6 @@ limitations under the License.
 // VTK includes
 #include <vtkNew.h>
 #include "vtkPolyData.h"
-#include "vtkPolyDataWriter.h"
 #include <vtkSmartPointer.h>
 #include "vtkTriangleFilter.h"
 #include "vtkPolyDataNormals.h"
@@ -215,7 +214,6 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiContour(vtkPolyData *
 
   // Disable backface culling to make the back side of the contour visible as well
   displayNode->SetBackfaceCulling(0);
-
 
   vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
   modelNode->SetScene(this->GetMRMLScene());

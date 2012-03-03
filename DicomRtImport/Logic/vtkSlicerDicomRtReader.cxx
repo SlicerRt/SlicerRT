@@ -29,6 +29,7 @@ limitations under the License.
 #include "vtkRibbonFilter.h"
 #include "vtkPolyDataNormals.h"
 #include "vtkSmartPointer.h"
+#include "vtkCleanPolyData.h"
 
 // STD includes
 #include <cassert>
@@ -205,9 +206,9 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
         if (currentROIObject.isValid())
         {
           // create vtkPolyData
-					vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
-					vtkSmartPointer<vtkPoints> tempPoints = vtkSmartPointer<vtkPoints>::New();
-					vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
+          vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
+          vtkSmartPointer<vtkPoints> tempPoints = vtkSmartPointer<vtkPoints>::New();
+          vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
           vtkIdType pointId=0;
 
           currentROIObject.getReferencedROINumber(referenceROINumber);
@@ -258,19 +259,25 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
             tempPolyData->SetLines(tempCellArray);
           }
 
-          // convert to ribbon using vtkRibbonFilter
-					vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
-					ribbonFilter->SetInput(tempPolyData);
-					ribbonFilter->SetDefaultNormal(0,0,-1);
-					ribbonFilter->SetWidth(1.1); // TODO: get this from the distance between the slices (https://www.assembla.com/spaces/sparkit/tickets/49)
-					ribbonFilter->SetAngle(90.0);
-					ribbonFilter->UseDefaultNormalOn();
-					ribbonFilter->Update();
+          // Remove coincident points (if there are multiple
+          // contour points at the same position then the
+          // ribbon filter fails)
+          vtkSmartPointer<vtkCleanPolyData> cleaner=vtkSmartPointer<vtkCleanPolyData>::New();
+          cleaner->SetInput(tempPolyData);
 
-					vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
+          // convert to ribbon using vtkRibbonFilter
+          vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
+          ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
+          ribbonFilter->SetDefaultNormal(0,0,-1);
+          ribbonFilter->SetWidth(1.1); // TODO: get this from the distance between the slices (https://www.assembla.com/spaces/sparkit/tickets/49)
+          ribbonFilter->SetAngle(90.0);
+          ribbonFilter->UseDefaultNormalOn();
+          ribbonFilter->Update();
+
+          vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
           normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
-					normalFilter->ConsistencyOn();
-					normalFilter->Update();
+          normalFilter->ConsistencyOn();
+          normalFilter->Update();
 
           for (unsigned int i=0; i<this->ROIContourSequenceVector.size();i++)
           {
@@ -379,7 +386,7 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
     return; // mandatory DICOM value
   }
   this->SetDoseGridScaling(doseGridScaling.c_str());
-  
+
   OFString doseUnits=0;
   if (rtDoseObject.getDoseUnits(doseUnits).bad())
   {
