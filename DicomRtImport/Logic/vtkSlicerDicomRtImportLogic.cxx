@@ -25,6 +25,7 @@ limitations under the License.
 #include <vtkMRMLAnnotationHierarchyNode.h>
 #include <vtkMRMLAnnotationPointDisplayNode.h>
 #include <vtkMRMLAnnotationFiducialNode.h>
+#include <vtkMRMLAnnotationTextDisplayNode.h>
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLVolumeDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
@@ -103,6 +104,8 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
 
   if (rtReader->GetLoadRTStructureSetSuccessful())
   {
+    this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+
     int numberOfROI = rtReader->GetNumberOfROIs();
     for (int dicomRoiIndex=1;dicomRoiIndex<numberOfROI+1; dicomRoiIndex++) // DICOM starts indexing from 1
     {
@@ -132,6 +135,7 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
       }
     }
 
+    this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
     return true;
   }
 
@@ -183,20 +187,17 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
 //---------------------------------------------------------------------------
 vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiPoint(double *roiPosition, const char* roiLabel, double *roiColor)
 {
-  vtkMRMLAnnotationPointDisplayNode* displayNode = vtkMRMLAnnotationPointDisplayNode::New();
-  displayNode->SetScene(this->GetMRMLScene());
-  displayNode->SetGlyphScale(1);
-  displayNode->SetGlyphType(1);
-  this->GetMRMLScene()->AddNode(displayNode);
-
   vtkMRMLAnnotationFiducialNode* fiducialNode = vtkMRMLAnnotationFiducialNode::New();
   fiducialNode->SetName(roiLabel);
-  fiducialNode->SetScene(this->GetMRMLScene());
   fiducialNode->AddControlPoint(roiPosition, 0, 1);
-  fiducialNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-  fiducialNode->SetHideFromEditors(0);
-  fiducialNode->SetSelectable(1);
+  fiducialNode->SetLocked(1);
   this->GetMRMLScene()->AddNode(fiducialNode);
+
+  fiducialNode->CreateAnnotationTextDisplayNode();
+  fiducialNode->CreateAnnotationPointDisplayNode();
+  fiducialNode->GetAnnotationPointDisplayNode()->SetGlyphType(vtkMRMLAnnotationPointDisplayNode::Sphere3D);
+  fiducialNode->GetAnnotationPointDisplayNode()->SetColor(roiColor);
+  fiducialNode->GetAnnotationTextDisplayNode()->SetColor(roiColor);
 
   return fiducialNode;
 }
