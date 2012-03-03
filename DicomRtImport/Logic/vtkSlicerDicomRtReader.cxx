@@ -206,7 +206,6 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
         if (currentROIObject.isValid())
         {
           // create vtkPolyData
-          vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
           vtkSmartPointer<vtkPoints> tempPoints = vtkSmartPointer<vtkPoints>::New();
           vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
           vtkIdType pointId=0;
@@ -214,6 +213,15 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
           currentROIObject.getReferencedROINumber(referenceROINumber);
           //cout << "refence roi number:" << referenceROINumber << OFendl;
           DRTContourSequence &rtContourSequenceObject = currentROIObject.getContourSequence();
+          
+          // Variables for estimating the distance between contour planes.
+          // This is just a temporary solution, as it assumes that the plane normals are (0,0,1) and
+          // the distance between all planes are equal.
+          // TODO: Determine contour thickness from the thickness of the slice where it was drawn at (https://www.assembla.com/spaces/sparkit/tickets/49)
+          double firstContourPlanePosition=0.0;
+          double secondContourPlanePosition=0.0;
+          int contourPlaneIndex=0;
+
           if (rtContourSequenceObject.gotoFirstItem().good())
           {
             do
@@ -233,6 +241,27 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
                 OFVector<Float64>  contourData_LPS;
                 contourItem.getContourData(contourData_LPS);
 
+                if (number>=3)
+                {
+                  double firstContourPointZcoordinate=contourData_LPS[2];
+                  switch (contourPlaneIndex)
+                  {
+                  case 0:
+                    // first contour
+                    firstContourPlanePosition=firstContourPointZcoordinate;
+                    break;
+                  case 1:
+                    // second contour
+                    secondContourPlanePosition=firstContourPointZcoordinate;
+                    break;
+                  default:
+                    // we ignore all the subsequent contour plane positions
+                    // distance is just estimated based on the first two
+                    break;
+                  }
+                  contourPlaneIndex++;
+                }                
+
                 tempCellArray->InsertNextCell(number+1);
                 for (int k=0; k<number; k++)
                 {
@@ -249,42 +278,61 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
             while (rtContourSequenceObject.gotoNextItem().good());
           } // if gotofirstitem
 
+          vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
           tempPolyData->SetPoints(tempPoints);
+          vtkPolyData* roiPolyData = NULL;
           if (tempPoints->GetNumberOfPoints() == 1)
           {
             tempPolyData->SetVerts(tempCellArray);
+            roiPolyData = tempPolyData;
+            roiPolyData->Register(this);
           }
           else if (tempPoints->GetNumberOfPoints() > 1)
           {
             tempPolyData->SetLines(tempCellArray);
+
+            // Remove coincident points (if there are multiple
+            // contour points at the same position then the
+            // ribbon filter fails)
+            vtkSmartPointer<vtkCleanPolyData> cleaner=vtkSmartPointer<vtkCleanPolyData>::New();
+            cleaner->SetInput(tempPolyData);
+
+            // convert to ribbon using vtkRibbonFilter
+            vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
+            ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
+            ribbonFilter->SetDefaultNormal(0,0,-1);
+            ribbonFilter->SetWidth(1.1); // a reasonable default value that often works well
+            if (contourPlaneIndex>=1)
+            {
+              // there were at least contour planes, therefore we have a valid distance estimation
+              double distanceBetweenContourPlanes=fabs(firstContourPlanePosition-secondContourPlanePosition);
+              // If the distance between the contour planes is too large then probably the contours should not be connected, so just keep using the default
+              // TODO: this is totally heuristic, the actual thickness should be read from the referred slice thickness (as noted above)
+              if (distanceBetweenContourPlanes<10.0/* mm*/)
+              {
+                ribbonFilter->SetWidth(distanceBetweenContourPlanes);
+              }
+            }
+            ribbonFilter->SetAngle(90.0);
+            ribbonFilter->UseDefaultNormalOn();
+            ribbonFilter->Update();
+
+            vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
+            normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
+            normalFilter->ConsistencyOn();
+            normalFilter->Update();
+
+            roiPolyData = normalFilter->GetOutput();
+            roiPolyData->Register(this);
           }
-
-          // Remove coincident points (if there are multiple
-          // contour points at the same position then the
-          // ribbon filter fails)
-          vtkSmartPointer<vtkCleanPolyData> cleaner=vtkSmartPointer<vtkCleanPolyData>::New();
-          cleaner->SetInput(tempPolyData);
-
-          // convert to ribbon using vtkRibbonFilter
-          vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
-          ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
-          ribbonFilter->SetDefaultNormal(0,0,-1);
-          ribbonFilter->SetWidth(1.1); // TODO: get this from the distance between the slices (https://www.assembla.com/spaces/sparkit/tickets/49)
-          ribbonFilter->SetAngle(90.0);
-          ribbonFilter->UseDefaultNormalOn();
-          ribbonFilter->Update();
-
-          vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
-          normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
-          normalFilter->ConsistencyOn();
-          normalFilter->Update();
 
           for (unsigned int i=0; i<this->ROIContourSequenceVector.size();i++)
           {
             if (referenceROINumber == this->ROIContourSequenceVector[i]->ROINumber)
             {
-              this->ROIContourSequenceVector[i]->ROIPolyData = normalFilter->GetOutput();
-              this->ROIContourSequenceVector[i]->ROIPolyData->Register(0);
+              // the ownership of the roiPolyData is now passed to the ROI contour sequence vector
+              this->ROIContourSequenceVector[i]->ROIPolyData = roiPolyData;
+              roiPolyData=NULL;
 
               Sint32 ROIDisplayColor;
               for (int j=0; j<3; j++)
