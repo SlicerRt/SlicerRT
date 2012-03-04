@@ -226,28 +226,6 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiContour(vtkPolyData *
   modelNode->SetHideFromEditors(0);
   modelNode->SetSelectable(1);
 
-  vtkSmartPointer<vtkTriangleFilter> cleaner=vtkSmartPointer<vtkTriangleFilter>::New();
-  cleaner->SetInput(roiPoly);
-
-  /*
-  vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-  normals->SetInputConnection ( cleaner->GetOutputPort());
-  //--- NOTE: This assumes a completely closed surface
-  //---(i.e. no boundary edges) and no non-manifold edges.
-  //--- If these constraints do not hold, the AutoOrientNormals
-  //--- is not guaranteed to work.
-  //normals->AutoOrientNormalsOn();
-  //--- Flipping modifies both the normal direction
-  //--- and the order of a cell's points.
-  normals->FlipNormalsOn();
-  normals->SplittingOff();
-  //--- enforce consistent polygon ordering.
-  normals->ConsistencyOn();
-  normals->Update();
-
-  //modelNode->SetAndObservePolyData(normals->GetOutput());
-  */
-
   this->InvokeEvent( vtkMRMLDisplayableNode::PolyDataModifiedEvent, displayNode);
 
   return modelNode;

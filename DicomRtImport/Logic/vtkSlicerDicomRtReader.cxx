@@ -74,8 +74,14 @@ vtkSlicerDicomRtReader::~vtkSlicerDicomRtReader()
     for(unsigned int i=0; i< ROIContourSequenceVector.size();i++)
     {
       delete this->ROIContourSequenceVector[i]->ROIName;
-      this->ROIContourSequenceVector[i]->ROIPolyData->Delete();
+      this->ROIContourSequenceVector[i]->ROIName=NULL;
+      if (this->ROIContourSequenceVector[i]->ROIPolyData!=NULL)
+      {
+        this->ROIContourSequenceVector[i]->ROIPolyData->Delete();
+        this->ROIContourSequenceVector[i]->ROIPolyData=NULL;
+      }
       delete this->ROIContourSequenceVector[i];
+      this->ROIContourSequenceVector[i]=NULL;
     }
   }
 }
@@ -310,7 +316,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
               // TODO: this is totally heuristic, the actual thickness should be read from the referred slice thickness (as noted above)
               if (distanceBetweenContourPlanes<10.0/* mm*/)
               {
-                ribbonFilter->SetWidth(distanceBetweenContourPlanes);
+                ribbonFilter->SetWidth(distanceBetweenContourPlanes/2.0);
               }
             }
             ribbonFilter->SetAngle(90.0);
