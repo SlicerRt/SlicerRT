@@ -221,7 +221,7 @@
              </size>
             </property>
             <property name="text">
-             <string>Export DVH to CSV...</string>
+             <string>Export DVH to file...</string>
             </property>
            </widget>
           </item>

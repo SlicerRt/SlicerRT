@@ -28,9 +28,11 @@
 #include "vtkMRMLChartViewNode.h"
 #include "vtkMRMLDoubleArrayNode.h"
 #include "vtkMRMLTransformNode.h"
+#include "vtkMRMLModelDisplayNode.h"
 
 // VTK includes
 #include <vtkNew.h>
+#include <vtkGeneralTransform.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkImageAccumulate.h>
@@ -108,45 +110,120 @@ void vtkSlicerDoseVolumeHistogramLogic
 void vtkSlicerDoseVolumeHistogramLogic
 ::GetLabelmapVolumeNodeForSelectedStructureSet(vtkMRMLScalarVolumeNode* structureSetLabelmapVolumeNode)
 {
-  // Create model to RAS transform
-  vtkSmartPointer<vtkMatrix4x4> modelToRasTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  modelToRasTransformMatrix->Identity();
-  vtkMRMLTransformNode* modelTransformNode=this->StructureSetModelNode->GetParentTransformNode();
-  if (modelTransformNode!=NULL)
-  {
-    modelTransformNode->GetMatrixTransformToWorld(modelToRasTransformMatrix);
-  }
-  vtkNew<vtkTransform> modelToRasTransform;
-  modelToRasTransform->SetMatrix(modelToRasTransformMatrix);  
-  // Transform the model polydata to RAS coordinate frame
-  vtkNew<vtkTransformPolyDataFilter> transformPolyDataModelToRasFilter;
-  transformPolyDataModelToRasFilter->SetInput( this->StructureSetModelNode->GetPolyData() );
-  transformPolyDataModelToRasFilter->SetTransform(modelToRasTransform.GetPointer());
 
-  //Create RAS to dosemap IJK transform
-  vtkNew<vtkMatrix4x4> rasToDoseIjkTransformMatrix;
-  this->DoseVolumeNode->GetRASToIJKMatrix( rasToDoseIjkTransformMatrix.GetPointer() );  
-  vtkNew<vtkTransform> rasToDoseIjkTransform;
-  rasToDoseIjkTransform->SetMatrix( rasToDoseIjkTransformMatrix.GetPointer() );  
-  // Transform the model polydata to dosemap IJK coordinate frame
-  vtkNew<vtkTransformPolyDataFilter> transformPolyDataRasToDoseIjkFilter;
-  transformPolyDataRasToDoseIjkFilter->SetInputConnection( transformPolyDataModelToRasFilter->GetOutputPort() );  
-  transformPolyDataRasToDoseIjkFilter->SetTransform( rasToDoseIjkTransform.GetPointer() );
+  // Create model to doseRas to model transform
+  vtkSmartPointer<vtkGeneralTransform> modelToDoseRasTransform=vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkSmartPointer<vtkGeneralTransform> doseRasToWorldTransform=vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkMRMLTransformNode* modelTransformNode=this->StructureSetModelNode->GetParentTransformNode();
+  vtkMRMLTransformNode* doseTransformNode=this->DoseVolumeNode->GetParentTransformNode();
+  if (doseTransformNode!=NULL)
+  {
+    doseTransformNode->GetTransformToWorld(doseRasToWorldTransform);    
+    if (modelTransformNode!=NULL)
+    {
+      
+      /* GOOD!
+      modelToDoseRasTransform->PostMultiply();
+      doseTransformNode->GetTransformToNode(modelTransformNode,modelToDoseRasTransform);
+      modelToDoseRasTransform->Inverse();
+      */
+      
+      modelToDoseRasTransform->PostMultiply(); // GetTransformToNode assumes PostMultiply
+      modelTransformNode->GetTransformToNode(doseTransformNode,modelToDoseRasTransform);
+      
+      /* GOOD!
+      vtkSmartPointer<vtkGeneralTransform> worldToDoseRasTransform=vtkSmartPointer<vtkGeneralTransform>::New();
+      doseTransformNode->GetTransformToWorld(worldToDoseRasTransform);
+      worldToDoseRasTransform->Inverse();
+
+      vtkSmartPointer<vtkGeneralTransform> modelToWorldTransform=vtkSmartPointer<vtkGeneralTransform>::New();
+      modelTransformNode->GetTransformToWorld(modelToWorldTransform);
+
+      modelToDoseRasTransform->Concatenate(worldToDoseRasTransform);
+      modelToDoseRasTransform->Concatenate(modelToWorldTransform);
+      */
+    }
+    else
+    {
+      // modelTransformNode is NULL => the transform will be computed for the world coordinate frame
+      doseTransformNode->GetTransformToWorld(modelToDoseRasTransform);
+      modelToDoseRasTransform->Inverse();
+    }
+  }
+  else
+  {
+    // dosemap is not transformed (in world coordinate system): DoseRas=World
+    // modelToDoseRasTransformMatrix = modelToWorldTransformMatrix
+    if (modelTransformNode!=NULL)
+    {
+      // only the model is transformed
+      modelTransformNode->GetTransformToWorld(modelToDoseRasTransform);
+    }
+    else
+    {
+      // neither the model nor the dosemap is transformed
+      modelToDoseRasTransform->Identity();
+    }
+  }  
+
+  // Create doseRas to doseIjk transform
+  vtkSmartPointer<vtkMatrix4x4> doseRasToDoseIjkTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  this->DoseVolumeNode->GetRASToIJKMatrix( doseRasToDoseIjkTransformMatrix );  
+  
+  vtkNew<vtkGeneralTransform> modelToDoseIjkTransform;
+  modelToDoseIjkTransform->Concatenate(doseRasToDoseIjkTransformMatrix);
+  modelToDoseIjkTransform->Concatenate(modelToDoseRasTransform);
+
+
+  // Transform the model polydata to RAS coordinate frame
+  vtkNew<vtkTransformPolyDataFilter> transformPolyDataModelToDoseIjkFilter;
+  transformPolyDataModelToDoseIjkFilter->SetInput( this->StructureSetModelNode->GetPolyData() );
+  transformPolyDataModelToDoseIjkFilter->SetTransform(modelToDoseIjkTransform.GetPointer());
 
   // Convert model to labelmap
   vtkNew<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter;
-  transformPolyDataRasToDoseIjkFilter->Update();
-  polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataRasToDoseIjkFilter->GetOutput() );
+  transformPolyDataModelToDoseIjkFilter->Update();
+  polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToDoseIjkFilter->GetOutput() );
   polyDataToLabelmapFilter->SetReferenceImage( this->DoseVolumeNode->GetImageData() );
   polyDataToLabelmapFilter->SetLabelValue( this->CurrentLabelValue++ );
   polyDataToLabelmapFilter->Update();
 
   structureSetLabelmapVolumeNode->CopyOrientation( this->DoseVolumeNode );
+  structureSetLabelmapVolumeNode->SetAndObserveTransformNodeID(this->DoseVolumeNode->GetTransformNodeID());
   std::string labelmapNodeName( this->StructureSetModelNode->GetName() );
   labelmapNodeName.append( "_Labelmap" );
   structureSetLabelmapVolumeNode->SetName( labelmapNodeName.c_str() );
   structureSetLabelmapVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
   structureSetLabelmapVolumeNode->LabelMapOn();
+  // this->GetMRMLScene()->AddNode( structureSetLabelmapVolumeNode ); // add the labelmap to the scene for testing
+
+  /*
+  // Create a model from the transformed structure set for testing
+  vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  displayNode->SetScene(this->GetMRMLScene()); 
+  displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
+  displayNode->SetModifiedSinceRead(1); 
+  displayNode->SliceIntersectionVisibilityOn();  
+  displayNode->VisibilityOn(); 
+  displayNode->SetColor(1,0,0);
+  // Disable backface culling to make the back side of the contour visible as well
+  displayNode->SetBackfaceCulling(0);
+  vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  modelNode->SetScene(this->GetMRMLScene());
+  modelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(modelNode));
+  std::string modelNodeName( this->StructureSetModelNode->GetName() );
+  modelNodeName.append( "_Model" );
+  modelNode->SetName(modelNodeName.c_str());
+  transformPolyDataModelToDoseIjkFilter->SetTransform(modelToDoseRasTransform.GetPointer());
+  transformPolyDataModelToDoseIjkFilter->Update();
+  modelNode->SetAndObservePolyData(transformPolyDataModelToDoseIjkFilter->GetOutput());
+  modelNode->SetModifiedSinceRead(1);
+  modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  modelNode->SetHideFromEditors(0);
+  modelNode->SetSelectable(1);
+  modelNode->SetAndObserveTransformNodeID(this->DoseVolumeNode->GetTransformNodeID());
+  this->InvokeEvent( vtkMRMLDisplayableNode::PolyDataModifiedEvent, displayNode);
+  */
 }
 
 //---------------------------------------------------------------------------
