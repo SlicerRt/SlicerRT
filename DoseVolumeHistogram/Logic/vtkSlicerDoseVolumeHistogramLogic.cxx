@@ -215,7 +215,15 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   // get dose grid scaling
   const char* doseGridScalingString = this->DoseVolumeNode->GetAttribute("DoseGridScaling");
-  double doseGridScaling = atof(doseGridScalingString);
+  double doseGridScaling = 1.0;
+  if (doseGridScalingString!=NULL)
+  {
+    doseGridScaling = atof(doseGridScalingString);
+  }
+  else
+  {
+    vtkWarningMacro("Dose grid scaling attribute is not set for the selected dose volume. Assuming scaling = 1.");
+  }
 
   // prevent long computations for non-labelmap images
   if (hi-lo > 128)
@@ -307,7 +315,15 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   // get dose grid scaling
   const char* doseGridScalingString = this->DoseVolumeNode->GetAttribute("DoseGridScaling");
-  double doseGridScaling = atof(doseGridScalingString);
+  double doseGridScaling = 1.0;
+  if (doseGridScalingString!=NULL)
+  {
+    doseGridScaling = atof(doseGridScalingString);
+  }
+  else
+  {
+    vtkWarningMacro("Dose grid scaling attribute is not set for the selected dose volume. Assuming scaling = 1.");
+  }
 
   // Add selected chart node to view  
   vtkMRMLChartNode* chartNode = this->ChartNode;
@@ -381,12 +397,20 @@ void vtkSlicerDoseVolumeHistogramLogic
     }
   }
 
-  std::string dose("Dose (");
-  dose.append( this->DoseVolumeNode->GetAttribute("DoseUnits") );
-  dose.append( ")" );
+  std::string dose("Dose [");
+  const char* doseUnits=this->DoseVolumeNode->GetAttribute("DoseUnits");
+  if (doseUnits!=NULL)
+  {
+    dose.append(doseUnits);
+  }
+  else
+  {
+    dose.append("unknown");
+  }
+  dose.append("]");
 
   chartNode->SetProperty("default", "title", "DVH");
   chartNode->SetProperty("default", "xAxisLabel", dose.c_str());
-  chartNode->SetProperty("default", "yAxisLabel", "Fractional volume (%)");
+  chartNode->SetProperty("default", "yAxisLabel", "Fractional volume [%]");
   chartNode->SetProperty("default", "type", "Line");
 }

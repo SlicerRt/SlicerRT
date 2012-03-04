@@ -41,6 +41,9 @@ if(NOT Slicer_SOURCE_DIR)
 
 endif()
 
+# Module name (usually identical to the directory name)
+set(qt_module_name "DoseVolumeHistogram")
+set(qt_module_title "Dose Volume Histogram") 
 
 # Add subdirectories
 add_subdirectory(Logic)

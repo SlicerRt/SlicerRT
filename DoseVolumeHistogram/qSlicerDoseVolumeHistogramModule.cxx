@@ -67,14 +67,13 @@ qSlicerDoseVolumeHistogramModule::~qSlicerDoseVolumeHistogramModule()
 //-----------------------------------------------------------------------------
 QString qSlicerDoseVolumeHistogramModule::helpText()const
 {
-  return "This DoseVolumeHistogram module illustrates how a loadable module should "
-      "be implemented.";
+  return "Compute dose volume histogram (DVH) from a dose map and structure set.";
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerDoseVolumeHistogramModule::acknowledgementText()const
 {
-  return "This work was supported by ...";
+  return "This work was supported through the Applied Cancer Research Unit program of Cancer Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care.";
 }
 
 //-----------------------------------------------------------------------------
@@ -99,6 +98,12 @@ void qSlicerDoseVolumeHistogramModule::setup()
   //  {
   //  qWarning() << "ModelToLabelMap module is not found";
   //  }
+}
+
+//-----------------------------------------------------------------------------
+QStringList qSlicerDoseVolumeHistogramModule::categories() const
+{
+  return QStringList() << "Radiotherapy";
 }
 
 //-----------------------------------------------------------------------------
