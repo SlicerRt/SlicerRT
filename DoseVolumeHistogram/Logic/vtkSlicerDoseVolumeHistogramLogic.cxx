@@ -118,30 +118,12 @@ void vtkSlicerDoseVolumeHistogramLogic
   vtkMRMLTransformNode* doseTransformNode=this->DoseVolumeNode->GetParentTransformNode();
   if (doseTransformNode!=NULL)
   {
+    // the dosemap is transformed
     doseTransformNode->GetTransformToWorld(doseRasToWorldTransform);    
     if (modelTransformNode!=NULL)
-    {
-      
-      /* GOOD!
-      modelToDoseRasTransform->PostMultiply();
-      doseTransformNode->GetTransformToNode(modelTransformNode,modelToDoseRasTransform);
-      modelToDoseRasTransform->Inverse();
-      */
-      
+    {      
       modelToDoseRasTransform->PostMultiply(); // GetTransformToNode assumes PostMultiply
       modelTransformNode->GetTransformToNode(doseTransformNode,modelToDoseRasTransform);
-      
-      /* GOOD!
-      vtkSmartPointer<vtkGeneralTransform> worldToDoseRasTransform=vtkSmartPointer<vtkGeneralTransform>::New();
-      doseTransformNode->GetTransformToWorld(worldToDoseRasTransform);
-      worldToDoseRasTransform->Inverse();
-
-      vtkSmartPointer<vtkGeneralTransform> modelToWorldTransform=vtkSmartPointer<vtkGeneralTransform>::New();
-      modelTransformNode->GetTransformToWorld(modelToWorldTransform);
-
-      modelToDoseRasTransform->Concatenate(worldToDoseRasTransform);
-      modelToDoseRasTransform->Concatenate(modelToWorldTransform);
-      */
     }
     else
     {
@@ -152,11 +134,10 @@ void vtkSlicerDoseVolumeHistogramLogic
   }
   else
   {
-    // dosemap is not transformed (in world coordinate system): DoseRas=World
-    // modelToDoseRasTransformMatrix = modelToWorldTransformMatrix
+    // the dosemap is not transformed => modelToDoseRasTransformMatrix = modelToWorldTransformMatrix
     if (modelTransformNode!=NULL)
     {
-      // only the model is transformed
+      // the model is transformed
       modelTransformNode->GetTransformToWorld(modelToDoseRasTransform);
     }
     else
@@ -170,12 +151,13 @@ void vtkSlicerDoseVolumeHistogramLogic
   vtkSmartPointer<vtkMatrix4x4> doseRasToDoseIjkTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   this->DoseVolumeNode->GetRASToIJKMatrix( doseRasToDoseIjkTransformMatrix );  
   
+  // Create model to doseIjk transform
   vtkNew<vtkGeneralTransform> modelToDoseIjkTransform;
   modelToDoseIjkTransform->Concatenate(doseRasToDoseIjkTransformMatrix);
   modelToDoseIjkTransform->Concatenate(modelToDoseRasTransform);
 
 
-  // Transform the model polydata to RAS coordinate frame
+  // Transform the model polydata to doseIjk coordinate frame (the labelmap image coordinate frame is doseIjk)
   vtkNew<vtkTransformPolyDataFilter> transformPolyDataModelToDoseIjkFilter;
   transformPolyDataModelToDoseIjkFilter->SetInput( this->StructureSetModelNode->GetPolyData() );
   transformPolyDataModelToDoseIjkFilter->SetTransform(modelToDoseIjkTransform.GetPointer());
@@ -188,6 +170,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   polyDataToLabelmapFilter->SetLabelValue( this->CurrentLabelValue++ );
   polyDataToLabelmapFilter->Update();
 
+  // Create labelmap node
   structureSetLabelmapVolumeNode->CopyOrientation( this->DoseVolumeNode );
   structureSetLabelmapVolumeNode->SetAndObserveTransformNodeID(this->DoseVolumeNode->GetTransformNodeID());
   std::string labelmapNodeName( this->StructureSetModelNode->GetName() );
@@ -195,35 +178,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   structureSetLabelmapVolumeNode->SetName( labelmapNodeName.c_str() );
   structureSetLabelmapVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
   structureSetLabelmapVolumeNode->LabelMapOn();
-  // this->GetMRMLScene()->AddNode( structureSetLabelmapVolumeNode ); // add the labelmap to the scene for testing
 
-  /*
-  // Create a model from the transformed structure set for testing
-  vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  displayNode->SetScene(this->GetMRMLScene()); 
-  displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
-  displayNode->SetModifiedSinceRead(1); 
-  displayNode->SliceIntersectionVisibilityOn();  
-  displayNode->VisibilityOn(); 
-  displayNode->SetColor(1,0,0);
-  // Disable backface culling to make the back side of the contour visible as well
-  displayNode->SetBackfaceCulling(0);
-  vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-  modelNode->SetScene(this->GetMRMLScene());
-  modelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(modelNode));
-  std::string modelNodeName( this->StructureSetModelNode->GetName() );
-  modelNodeName.append( "_Model" );
-  modelNode->SetName(modelNodeName.c_str());
-  transformPolyDataModelToDoseIjkFilter->SetTransform(modelToDoseRasTransform.GetPointer());
-  transformPolyDataModelToDoseIjkFilter->Update();
-  modelNode->SetAndObservePolyData(transformPolyDataModelToDoseIjkFilter->GetOutput());
-  modelNode->SetModifiedSinceRead(1);
-  modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-  modelNode->SetHideFromEditors(0);
-  modelNode->SetSelectable(1);
-  modelNode->SetAndObserveTransformNodeID(this->DoseVolumeNode->GetTransformNodeID());
-  this->InvokeEvent( vtkMRMLDisplayableNode::PolyDataModifiedEvent, displayNode);
-  */
 }
 
 //---------------------------------------------------------------------------
@@ -239,6 +194,7 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   vtkSmartPointer<vtkMRMLScalarVolumeNode> structureSetLabelmapVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   GetLabelmapVolumeNodeForSelectedStructureSet(structureSetLabelmapVolumeNode);
+  // this->GetMRMLScene()->AddNode( structureSetLabelmapVolumeNode ); // add the labelmap to the scene for testing/debugging
 
   double* structureSetLabelmapSpacing = structureSetLabelmapVolumeNode->GetSpacing();
 
@@ -329,6 +285,7 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   vtkSmartPointer<vtkMRMLScalarVolumeNode> structureSetLabelmapVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   GetLabelmapVolumeNodeForSelectedStructureSet(structureSetLabelmapVolumeNode);
+  // this->GetMRMLScene()->AddNode( structureSetLabelmapVolumeNode ); // add the labelmap to the scene for testing/debugging
 
   vtkNew<vtkImageAccumulate> stataccum;
   stataccum->SetInput( structureSetLabelmapVolumeNode->GetImageData() );
