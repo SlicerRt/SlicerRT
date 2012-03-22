@@ -362,27 +362,38 @@ void vtkSlicerDoseVolumeHistogramLogic
     stat->SetComponentSpacing(spacing,1,1);
     stat->Update();
 
-    // TODO set stat object as member?
+    // TODO: set stat object as member?
+
+    // We put a fixed point at (0.0, 100%), but only if there are only positive values in the histogram
+    // Negative values can occur when the user requests histogram for an image, such as s CT volume.
+    // In this case Intensity Volume Histogram is computed.
+    bool insertPointAtOrigin=true;
+    if (rangeMin<0)
+    {
+      vtkWarningMacro("There are negative values in the histogram. Probably the input is not a dose volume.");
+      insertPointAtOrigin=false;
+    }
 
     if (stat->GetVoxelCount() > 0)
     {
       vtkMRMLDoubleArrayNode* arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLDoubleArrayNode") );
       arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->AddNode( arrayNode ) );
       vtkDoubleArray* doubleArray = arrayNode->GetArray();
-      doubleArray->SetNumberOfTuples( numBins+1 ); // +1 because there is a fixed point at (0.0, 100%)
+      doubleArray->SetNumberOfTuples( numBins + (insertPointAtOrigin?1:0) ); 
 
-      int sampleIndex=0;
-
-      // Add first fixed point at (0.0, 100%)
       int outputArrayIndex=0;
-      doubleArray->SetComponent(outputArrayIndex, 0, 0.0);
-      doubleArray->SetComponent(outputArrayIndex, 1, 100.0);
-      doubleArray->SetComponent(outputArrayIndex, 2, 0);
-      ++outputArrayIndex;
+
+      if (insertPointAtOrigin)
+      {
+        // Add first fixed point at (0.0, 100%)
+        doubleArray->SetComponent(outputArrayIndex, 0, 0.0);
+        doubleArray->SetComponent(outputArrayIndex, 1, 100.0);
+        doubleArray->SetComponent(outputArrayIndex, 2, 0);
+        ++outputArrayIndex;
+      }
 
       unsigned long totalVoxels = stat->GetVoxelCount();
       unsigned long voxelBelowDose = 0;
-
       for (int sampleIndex=0; sampleIndex<numBins; ++sampleIndex)
       {
         unsigned long voxelsInBin = stat->GetOutput()->GetScalarComponentAsDouble(sampleIndex,0,0,0);
