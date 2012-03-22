@@ -407,21 +407,21 @@ void vtkSlicerDoseVolumeHistogramLogic
       chartNode->AddArray( this->StructureSetModelNode->GetName(), arrayNode->GetID() );
     }
   }
-
-  std::string dose("Dose [");
+  
+  std::string doseAxisName;
   const char* doseUnits=this->DoseVolumeNode->GetAttribute("DoseUnits");
   if (doseUnits!=NULL)
   {
-    dose.append(doseUnits);
+    doseAxisName=std::string("Dose [")+doseUnits+"]";
   }
   else
   {
-    dose.append("unknown");
+    doseAxisName="Intensity";
   }
-  dose.append("]");
+  
 
   chartNode->SetProperty("default", "title", "DVH");
-  chartNode->SetProperty("default", "xAxisLabel", dose.c_str());
+  chartNode->SetProperty("default", "xAxisLabel", doseAxisName.c_str());
   chartNode->SetProperty("default", "yAxisLabel", "Fractional volume [%]");
   chartNode->SetProperty("default", "type", "Line");
 }
