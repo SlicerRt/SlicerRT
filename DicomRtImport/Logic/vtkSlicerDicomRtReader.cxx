@@ -84,6 +84,17 @@ vtkSlicerDicomRtReader::~vtkSlicerDicomRtReader()
       this->ROIContourSequenceVector[i]=NULL;
     }
   }
+
+  if (BeamSequenceVector.size() > 0)
+  {
+    for(unsigned int i=0; i < BeamSequenceVector.size();i++)
+    {
+      delete this->BeamSequenceVector[i]->BeamName;
+      this->BeamSequenceVector[i]->BeamName=NULL;
+      delete this->BeamSequenceVector[i];
+      this->BeamSequenceVector[i]=NULL;
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -119,9 +130,7 @@ void vtkSlicerDicomRtReader::Update()
         }
         else if (sopClass == UID_RTPlanStorage)
         {
-          //result = dumpRTPlan(out, *dataset);
-          cout << "RT Plan loading not implemented - not loaded" << OFendl;
-          this->LoadRTPlanSuccessful = true; // Do the real loading here
+          this->LoadRTPlan(dataset);  
         }
         else if (sopClass == UID_RTStructureSetStorage)
         {
@@ -159,6 +168,68 @@ void vtkSlicerDicomRtReader::Update()
   {
     //OFLOG_FATAL(drtdumpLogger, OFFIS_CONSOLE_APPLICATION << ": invalid filename: <empty string>");
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
+{
+  this->LoadRTPlanSuccessful = false; 
+
+  DRTPlanIOD rtPlanObject;
+  OFCondition result = rtPlanObject.read(*dataset);
+  if (result.good())
+  {
+    OFString tmpString, dummyString;
+    cout << "RT Structure Set object" << OFendl << OFendl;
+
+    DRTBeamSequence &rtPlaneBeamSequenceObject = rtPlanObject.getBeamSequence();
+    if (rtPlaneBeamSequenceObject.gotoFirstItem().good())
+    {
+      do
+      {
+        DRTBeamSequence::Item &currentBeamSequenceObject = rtPlaneBeamSequenceObject.getCurrentItem();  
+        if (currentBeamSequenceObject.isValid())
+        {
+          OFString BeamName;
+          OFString BeamDescription;
+          currentBeamSequenceObject.getBeamName(BeamName);
+          currentBeamSequenceObject.getBeamDescription(BeamDescription);
+
+          Sint32 BeamNumber;
+          currentBeamSequenceObject.getBeamNumber(BeamNumber);
+
+          // add into vector
+          BeamSequenceEntry* tempEntry = new BeamSequenceEntry();
+          tempEntry->BeamName = new char[BeamName.size()+1];
+          strcpy(tempEntry->BeamName, BeamName.c_str());
+          tempEntry->BeamNumber = BeamNumber;
+          BeamSequenceVector.push_back(tempEntry);
+
+          DRTControlPointSequence &rtControlPointSequenceObject = currentBeamSequenceObject.getControlPointSequence();
+          if (rtControlPointSequenceObject.gotoFirstItem().good())
+          {
+            // do // comment out for now since only first control point has isocenter
+            {
+              DRTControlPointSequence::Item &controlPointItem = rtControlPointSequenceObject.getCurrentItem();
+
+              if ( controlPointItem.isValid())
+              {
+                OFVector<Float64>  IsocenterPositionData_LPS;
+                controlPointItem.getIsocenterPosition(IsocenterPositionData_LPS);
+                tempEntry->BeamIsocenterPosition[0] = IsocenterPositionData_LPS[0];
+                tempEntry->BeamIsocenterPosition[1] = IsocenterPositionData_LPS[1];
+                tempEntry->BeamIsocenterPosition[2] = IsocenterPositionData_LPS[2];
+              }
+            }
+            // while (rtControlPointSequenceObject.gotoNextItem().good());
+          }
+        }
+      }
+      while (rtPlaneBeamSequenceObject.gotoNextItem().good());
+    }
+  }
+
+  this->LoadRTStructureSetSuccessful = true;
 }
 
 //----------------------------------------------------------------------------
@@ -418,6 +489,48 @@ double* vtkSlicerDicomRtReader::GetROIDisplayColor(int ROINumber)
     return NULL;
   }
   return this->ROIContourSequenceVector[id]->ROIDisplayColor;
+}
+
+//----------------------------------------------------------------------------
+int vtkSlicerDicomRtReader::GetNumberOfBeams()
+{
+  return this->BeamSequenceVector.size();
+}
+
+//----------------------------------------------------------------------------
+char* vtkSlicerDicomRtReader::GetBeamName(int BeamNumber)
+{
+  int id=-1;
+  for (unsigned int i=0; i<this->BeamSequenceVector.size(); i++)
+  {
+    if (this->BeamSequenceVector[i]->BeamNumber == BeamNumber)
+    {
+      id = i;
+    }
+  }
+  if ( id == -1)
+  {
+    return NULL;
+  }
+  return this->BeamSequenceVector[id]->BeamName;
+}
+
+//----------------------------------------------------------------------------
+double* vtkSlicerDicomRtReader::GetBeamIsocenterPosition(int BeamNumber)
+{
+  int id=-1;
+  for (unsigned int i=0; i<this->BeamSequenceVector.size(); i++)
+  {
+    if (this->BeamSequenceVector[i]->BeamNumber == BeamNumber)
+    {
+      id = i;
+    }
+  }
+  if ( id == -1)
+  {
+    return NULL;
+  }
+  return this->BeamSequenceVector[id]->BeamIsocenterPosition;
 }
 
 //----------------------------------------------------------------------------

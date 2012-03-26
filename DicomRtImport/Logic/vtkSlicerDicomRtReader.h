@@ -68,6 +68,15 @@ public:
   /// \param ROINumber Number of ROI to get
   vtkPolyData* GetROI(int ROINumber);
 
+  /// Get number of beams
+  int GetNumberOfBeams();
+  
+  /// Get name of beam
+  char* GetBeamName(int BeamNumber);
+
+  /// Get beam isocenter
+  double* GetBeamIsocenterPosition(int BeamNumber);
+
   /// Set input file name
   vtkSetStringMacro(FileName);
 
@@ -102,9 +111,24 @@ protected:
   };
   //ETX
 
+  //BTX
+  /// Structure storing an RT structure set
+  class BeamSequenceEntry
+  {
+  public:
+	  int BeamNumber;
+	  char* BeamName;
+	  char* BeamType;
+	  double BeamIsocenterPosition[3];
+  };
+  //ETX
+
 protected:
   /// Load RT Structure Set
   void LoadRTStructureSet(DcmDataset*);
+
+  /// Load RT Plan 
+  void LoadRTPlan(DcmDataset*);  
 
   /// Load RT Dose
   void LoadRTDose(DcmDataset*);
@@ -122,6 +146,9 @@ protected:
 
   /// List of loaded contour ROIs from structure set
   std::vector<ROIStructureSetEntry*> ROIContourSequenceVector;
+
+  /// List of loaded contour ROIs from structure set
+  std::vector<BeamSequenceEntry*> BeamSequenceVector;
 
   /// Pixel spacing - for RTDOSE
   double PixelSpacing[2];
