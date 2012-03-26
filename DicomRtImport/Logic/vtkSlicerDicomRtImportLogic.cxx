@@ -22,6 +22,7 @@ limitations under the License.
 // MRML includes
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLAnnotationHierarchyNode.h>
 #include <vtkMRMLAnnotationPointDisplayNode.h>
 #include <vtkMRMLAnnotationFiducialNode.h>
@@ -106,8 +107,30 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
   {
     this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
+    // Create hierarchy node for the loaded structure sets
+    vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+    std::string hierarchyNodeName;
+    hierarchyNodeName = std::string(seriesname) + "_RTStructureSetHierarchy";
+    modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+    modelHierarchyRootNode->AllowMultipleChildrenOn();
+    modelHierarchyRootNode->HideFromEditorsOff();
+    this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
+
+    // A hierarchy node needs a display node
+    vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+    hierarchyNodeName.append("Display");
+    modelDisplayNode->SetName(hierarchyNodeName.c_str());
+    modelDisplayNode->SetVisibility(1);
+    this->GetMRMLScene()->AddNode(modelDisplayNode);
+    modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+    modelDisplayNode = NULL;
+
+    // Now get it again as a mrml node so can add things under it (copied from ModelMaker module)
+    //vtkMRMLNode* modelHierarchyNodeCasted = this->GetMRMLScene()->GetNodeByID( modelHierarchyNode->GetID() );
+
+    // Add ROIs
     int numberOfROI = rtReader->GetNumberOfROIs();
-    for (int dicomRoiIndex=1;dicomRoiIndex<numberOfROI+1; dicomRoiIndex++) // DICOM starts indexing from 1
+    for (int dicomRoiIndex=1; dicomRoiIndex<numberOfROI+1; dicomRoiIndex++) // DICOM starts indexing from 1
     {
       vtkPolyData* roiPoly = rtReader->GetROI(dicomRoiIndex);
       if (roiPoly == NULL)
@@ -123,15 +146,26 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
 
       const char* roiLabel=rtReader->GetROIName(dicomRoiIndex);
       double *roiColor = rtReader->GetROIDisplayColor(dicomRoiIndex);
+      vtkMRMLDisplayableNode* addedDisplayableNode = NULL;
       if (roiPoly->GetNumberOfPoints() == 1)
       {	
         // Point ROI
-        AddRoiPoint(roiPoly->GetPoint(0), roiLabel, roiColor);
+        addedDisplayableNode = AddRoiPoint(roiPoly->GetPoint(0), roiLabel, roiColor);
       }
       else
       {
         // Contour ROI
-        AddRoiContour(roiPoly, roiLabel, roiColor);
+        addedDisplayableNode = AddRoiContour(roiPoly, roiLabel, roiColor);
+      }
+
+      // Add new node to the hierarchy node
+      if (addedDisplayableNode)
+      {
+        // put it in the hierarchy
+        vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+        this->GetMRMLScene()->AddNode(modelHierarchyNode);
+        modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
+        modelHierarchyNode->SetModelNodeID( addedDisplayableNode->GetID() );
       }
     }
 
