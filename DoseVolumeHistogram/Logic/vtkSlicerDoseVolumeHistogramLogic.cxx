@@ -346,12 +346,19 @@ void vtkSlicerDoseVolumeHistogramLogic
 void vtkSlicerDoseVolumeHistogramLogic
 ::AddDvhToSelectedChart(const char* structureSetName, const char* dvhArrayId)
 {
+  if (this->ChartNode == NULL)
+  {
+    std::cerr << "Error: no chart node is selected!" << std::endl;
+    return;
+  }
+
   vtkMRMLChartViewNode* chartViewNode = GetChartViewNode();
   if (chartViewNode == NULL)
   {
     std::cerr << "Error: unable to get chart view node!" << std::endl;
     return;
   }
+
   vtkMRMLChartNode* chartNode = this->ChartNode;
   chartViewNode->SetChartNodeID( chartNode->GetID() );
   chartNode->AddArray( structureSetName, dvhArrayId );
@@ -380,12 +387,19 @@ void vtkSlicerDoseVolumeHistogramLogic
 void vtkSlicerDoseVolumeHistogramLogic
 ::RemoveDvhFromSelectedChart(const char* structureSetName)
 {
+  if (this->ChartNode == NULL)
+  {
+    std::cerr << "Error: no chart node is selected!" << std::endl;
+    return;
+  }
+
   vtkMRMLChartViewNode* chartViewNode = GetChartViewNode();
   if (chartViewNode == NULL)
   {
     std::cerr << "Error: unable to get chart view node!" << std::endl;
     return;
   }
+
   vtkMRMLChartNode* chartNode = this->ChartNode;
   chartViewNode->SetChartNodeID( chartNode->GetID() );
   chartNode->RemoveArray(structureSetName);

@@ -53,6 +53,7 @@ protected slots:
   void showInChartCheckStateChanged(int aState);
   void exportDvhToCsvClicked();
   void exportStatisticsToCsv();
+  void showHideAllCheckedStateChanged(int aState);
 
 protected:
   QScopedPointer<qSlicerDoseVolumeHistogramModuleWidgetPrivate> d_ptr;
@@ -62,8 +63,14 @@ protected:
   virtual void updateChartCheckboxesState();
 
 protected:
-  /// Map that associates a string pair containing the structure set name and the vtkMRMLDoubleArrayNode id to the show/hide in chart checkboxes
+  /// Map that associates a string pair containing the structure set plot name and the vtkMRMLDoubleArrayNode id (respectively) to the show/hide in chart checkboxes
   std::map<QCheckBox*, std::pair<std::string, std::string>> m_ChartCheckboxToStructureSetNameMap;
+
+  /// Vector of checkbox states for the case the user makes the show/hide all checkbox state partially checked. Then the last configuration is restored
+  std::vector<bool> m_ShowInChartCheckStates;
+
+  /// Flag whether show/hide all checkbox has been clicked - some operations are not necessary when it was clicked
+  bool m_ShowHideAllClicked;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseVolumeHistogramModuleWidget);

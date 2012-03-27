@@ -262,6 +262,9 @@
               <height>0</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string>Export DVH to CSV file</string>
+            </property>
             <property name="text">
              <string>Export DVH to file...</string>
             </property>
@@ -321,6 +324,19 @@
            <stringlist>
             <string>vtkMRMLChartNode</string>
            </stringlist>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBox_ShowHideAll">
+          <property name="toolTip">
+           <string>Show/hide all structures from the table in the selected chart</string>
+          </property>
+          <property name="text">
+           <string>Show/hide all</string>
+          </property>
+          <property name="tristate">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
