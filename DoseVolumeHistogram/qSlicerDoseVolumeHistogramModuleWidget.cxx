@@ -18,6 +18,7 @@
 // Qt includes
 #include <QDebug>
 #include <QFileDialog>
+#include <QCheckBox>
 
 // SlicerQt includes
 #include "qSlicerDoseVolumeHistogramModuleWidget.h"
@@ -28,7 +29,6 @@
 
 // MRML includes
 #include "vtkMRMLVolumeNode.h"
-#include "vtkMRMLModelNode.h"
 #include "vtkMRMLChartNode.h"
 
 //-----------------------------------------------------------------------------
@@ -69,11 +69,13 @@ qSlicerDoseVolumeHistogramModuleWidget::qSlicerDoseVolumeHistogramModuleWidget(Q
   : Superclass( _parent )
   , d_ptr( new qSlicerDoseVolumeHistogramModuleWidgetPrivate(*this) )
 {
+  m_ChartCheckboxToStructureSetNameMap.clear();
 }
 
 //-----------------------------------------------------------------------------
 qSlicerDoseVolumeHistogramModuleWidget::~qSlicerDoseVolumeHistogramModuleWidget()
 {
+  m_ChartCheckboxToStructureSetNameMap.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -84,12 +86,12 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   this->Superclass::setup();
 
   // Hide widgets whose functions have not been implemented yet
-  d->checkBox_ShowLegend->setVisible(false);
   d->pushButton_ExportStatisticsToCsv->setVisible(false);
   d->label_ImportCSV->setVisible(false);
   d->pushButton_ImportCSV->setVisible(false);
 
-  d->tableWidget_ChartStatistics->setSortingEnabled(true);
+  d->tableWidget_ChartStatistics->setSortingEnabled(false);
+  d->tableWidget_ChartStatistics->setSelectionMode(QAbstractItemView::NoSelection);
 
   // Make connections
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
@@ -97,7 +99,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->MRMLNodeComboBox_Chart, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( chartNodeChanged(vtkMRMLNode*) ) );
 
   connect( d->pushButton_ComputeDVH, SIGNAL( clicked() ), this, SLOT( computeDvhClicked() ) );
-  connect( d->pushButton_AddToChart, SIGNAL( clicked() ), this, SLOT( addToChartClicked() ) );
   connect( d->pushButton_ExportDvhToCsv, SIGNAL( clicked() ), this, SLOT( exportDvhToCsvClicked() ) );
   connect( d->pushButton_ExportStatisticsToCsv, SIGNAL( clicked() ), this, SLOT( exportStatisticsToCsv() ) );
 }
@@ -108,7 +109,16 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
   bool dvhCanBeComputed=d->logic()->GetDoseVolumeNode() && d->logic()->GetStructureSetModelNode();
   d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
-  d->pushButton_AddToChart->setEnabled(dvhCanBeComputed && d->logic()->GetChartNode());
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::updateChartCheckboxesState()
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  //d->logic()->GetChartNode();
+
+  std::cerr << "ERROR: NOT IMPLEMENTED" << std::endl; // TODO:
 }
 
 //-----------------------------------------------------------------------------
@@ -127,12 +137,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
 void qSlicerDoseVolumeHistogramModuleWidget::structureSetNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-  vtkMRMLModelNode* modelNode = dynamic_cast<vtkMRMLModelNode*>(node);
-  if (modelNode)
-  {
-    d->logic()->SetStructureSetModelNode(modelNode);
-    updateButtonsState();
-  }
+  d->logic()->SetStructureSetModelNode(node);
+  updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -144,6 +150,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
   {
     d->logic()->SetChartNode(chartNode);
     updateButtonsState();
+    updateChartCheckboxesState();
   }
 }
 
@@ -153,21 +160,31 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
   std::vector<std::string> names;
+  std::vector<std::string> dvhArrayIDs;
   std::vector<double> counts;
   std::vector<double> meanDoses;
   std::vector<double> totalVolumeCCs;
   std::vector<double> maxDoses;
   std::vector<double> minDoses;
 
-  d->logic()->ComputeStatistics(names, counts, meanDoses, totalVolumeCCs, maxDoses, minDoses);
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+  d->logic()->ComputeDvh(names, dvhArrayIDs, counts, meanDoses, totalVolumeCCs, maxDoses, minDoses);
 
   // Set up the table
-  d->tableWidget_ChartStatistics->setColumnCount(5);
+  d->tableWidget_ChartStatistics->setColumnCount(6);
   int rowCount = d->tableWidget_ChartStatistics->rowCount();
   QString doseUnit( d->logic()->GetDoseVolumeNode()->GetAttribute("DoseUnits") );
   QStringList headerLabels;
-  headerLabels << "Structure" << "Total volume (cc)" << QString("Mean dose (%1)").arg(doseUnit) << QString("Max dose (%1)").arg(doseUnit) << QString("Min dose (%1)").arg(doseUnit);
+  headerLabels << "Structure" << "Total volume (cc)" << QString("Mean dose (%1)").arg(doseUnit) << QString("Max dose (%1)").arg(doseUnit) << QString("Min dose (%1)").arg(doseUnit) << "Show in Chart";
   d->tableWidget_ChartStatistics->setHorizontalHeaderLabels(headerLabels);
+
+  QTableWidgetItem* toggleAllInChartHeaderItem = new QTableWidgetItem("Show/hide");
+  toggleAllInChartHeaderItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsTristate);
+  toggleAllInChartHeaderItem->setToolTip(tr("Click here to show/hide all structures in selected chart. Use the checkboxes below to toggle structures individually"));
+  toggleAllInChartHeaderItem->setCheckState(Qt::PartiallyChecked);
+  d->tableWidget_ChartStatistics->setHorizontalHeaderItem(5, toggleAllInChartHeaderItem);
+
   d->tableWidget_ChartStatistics->setRowCount(rowCount + names.size());
 
   // Fill the table
@@ -178,17 +195,42 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
     d->tableWidget_ChartStatistics->setItem(rowCount+i, 2, new QTableWidgetItem( QString::number(meanDoses[i],'f',4) ) );
     d->tableWidget_ChartStatistics->setItem(rowCount+i, 3, new QTableWidgetItem( QString::number(maxDoses[i],'f',4) ) );
     d->tableWidget_ChartStatistics->setItem(rowCount+i, 4, new QTableWidgetItem( QString::number(minDoses[i],'f',4) ) );
+
+    // Create checkbox
+    QCheckBox* checkbox = new QCheckBox(d->tableWidget_ChartStatistics);
+    checkbox->setToolTip(tr("Show/hide DVH plot of structure '%1' in selected chart").arg(QString(names[i].c_str())));
+    m_ChartCheckboxToStructureSetNameMap[checkbox] = std::pair<std::string, std::string>(names[i], dvhArrayIDs[i]);
+    connect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
+
+    d->tableWidget_ChartStatistics->setCellWidget(rowCount+i, 5, checkbox);
   }
 
   updateButtonsState();
+
+  QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::addToChartClicked()
+void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aState)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
-  d->logic()->AddDvhToSelectedChart();
+  QCheckBox* senderCheckbox = dynamic_cast<QCheckBox*>(sender());
+
+  if (!senderCheckbox)
+  {
+    std::cerr << "Error: Invalid sender checkbox for show/hide in chart checkbox state change" << std::endl;
+    return;
+  }
+
+  if (aState)
+  {
+    d->logic()->AddDvhToSelectedChart(m_ChartCheckboxToStructureSetNameMap[senderCheckbox].first.c_str(), m_ChartCheckboxToStructureSetNameMap[senderCheckbox].second.c_str());
+  }
+  else
+  {
+    d->logic()->RemoveDvhFromSelectedChart(m_ChartCheckboxToStructureSetNameMap[senderCheckbox].first.c_str());
+  }
 }
 
 //-----------------------------------------------------------------------------

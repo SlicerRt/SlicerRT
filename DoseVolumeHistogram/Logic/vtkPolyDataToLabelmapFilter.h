@@ -33,6 +33,10 @@ public:
   vtkSetObjectMacro(InputPolyData, vtkPolyData);
   vtkSetMacro(LabelValue, unsigned short);
 
+  vtkGetMacro(UseReferenceValues, bool);
+  vtkSetMacro(UseReferenceValues, bool);
+  vtkBooleanMacro(UseReferenceValues, bool);
+
 protected:
   vtkSetObjectMacro(OutputLabelmap, vtkImageData);
   vtkSetObjectMacro(ReferenceImageData, vtkImageData);
@@ -42,6 +46,7 @@ protected:
   vtkImageData* OutputLabelmap;
   vtkImageData* ReferenceImageData;
   unsigned short LabelValue;
+  bool UseReferenceValues;
 
 protected:
   vtkPolyDataToLabelmapFilter();

@@ -23,8 +23,12 @@
 
 #include "qSlicerDoseVolumeHistogramModuleExport.h"
 
+// STD includes
+#include <map>
+
 class qSlicerDoseVolumeHistogramModuleWidgetPrivate;
 class vtkMRMLNode;
+class QCheckBox;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramModuleWidget :
@@ -46,7 +50,7 @@ protected slots:
   void chartNodeChanged(vtkMRMLNode*);
 
   void computeDvhClicked();
-  void addToChartClicked();
+  void showInChartCheckStateChanged(int aState);
   void exportDvhToCsvClicked();
   void exportStatisticsToCsv();
 
@@ -55,6 +59,11 @@ protected:
   
   virtual void setup();
   virtual void updateButtonsState();
+  virtual void updateChartCheckboxesState();
+
+protected:
+  /// Map that associates a string pair containing the structure set name and the vtkMRMLDoubleArrayNode id to the show/hide in chart checkboxes
+  std::map<QCheckBox*, std::pair<std::string, std::string>> m_ChartCheckboxToStructureSetNameMap;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseVolumeHistogramModuleWidget);

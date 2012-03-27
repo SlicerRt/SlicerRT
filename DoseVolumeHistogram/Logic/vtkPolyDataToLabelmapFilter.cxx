@@ -31,6 +31,8 @@ vtkPolyDataToLabelmapFilter::vtkPolyDataToLabelmapFilter()
   this->SetReferenceImageData(referenceImageData);
 
   this->SetLabelValue(2);
+
+  this->UseReferenceValuesOn();
 }
 
 //----------------------------------------------------------------------------
@@ -74,24 +76,32 @@ void vtkPolyDataToLabelmapFilter::Update()
   vtkSmartPointer<vtkStripper> stripper=vtkSmartPointer<vtkStripper>::New();
   stripper->SetInputConnection(triangle->GetOutputPort());
 
-  // Blank reference image
   vtkSmartPointer<vtkImageData> refImg=vtkSmartPointer<vtkImageData>::New();
-  refImg->SetExtent(this->ReferenceImageData->GetExtent());
-  refImg->SetSpacing(this->ReferenceImageData->GetSpacing());
-  refImg->SetOrigin(this->ReferenceImageData->GetOrigin());
-  refImg->SetScalarType(VTK_UNSIGNED_CHAR);
-  refImg->SetNumberOfScalarComponents(1);
-  refImg->AllocateScalars();
-  void *refImgPixelsPtr = refImg->GetScalarPointerForExtent(this->ReferenceImageData->GetExtent());
-  if (refImgPixelsPtr==NULL)
+  if (this->UseReferenceValues)
   {
-    std::cerr << "ERROR: Cannot allocate memory for accumulation image";
-    return;
+    // Use reference image
+    refImg->ShallowCopy(this->ReferenceImageData);
   }
   else
   {
-    int* extent = this->ReferenceImageData->GetExtent();
-    memset(refImgPixelsPtr,0,((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*refImg->GetScalarSize()*refImg->GetNumberOfScalarComponents()));
+    // Blank reference image
+    refImg->SetExtent(this->ReferenceImageData->GetExtent());
+    refImg->SetSpacing(this->ReferenceImageData->GetSpacing());
+    refImg->SetOrigin(this->ReferenceImageData->GetOrigin());
+    refImg->SetScalarType(VTK_UNSIGNED_CHAR);
+    refImg->SetNumberOfScalarComponents(1);
+    refImg->AllocateScalars();
+    void *refImgPixelsPtr = refImg->GetScalarPointerForExtent(this->ReferenceImageData->GetExtent());
+    if (refImgPixelsPtr==NULL)
+    {
+      std::cerr << "ERROR: Cannot allocate memory for accumulation image";
+      return;
+    }
+    else
+    {
+      int* extent = this->ReferenceImageData->GetExtent();
+      memset(refImgPixelsPtr,0,((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1)*refImg->GetScalarSize()*refImg->GetNumberOfScalarComponents()));
+    }
   }
 
   // Convert polydata to stencil
@@ -107,14 +117,25 @@ void vtkPolyDataToLabelmapFilter::Update()
   //stencil->SetInput(this->ReferenceImageData);
   stencil->SetInput(refImg);
   stencil->SetStencil(polyToImage->GetOutput());
-  stencil->ReverseStencilOn();
-  stencil->SetBackgroundValue(this->LabelValue);
-  stencil->Update();
+  if (this->UseReferenceValues)
+  {
+    stencil->ReverseStencilOff();
+    stencil->SetBackgroundValue(0);
+    stencil->Update();
 
-  // Save result to output
-  vtkNew<vtkImageCast> imageCast;
-  imageCast->SetInputConnection(stencil->GetOutputPort());
-  imageCast->SetOutputScalarTypeToUnsignedChar();
-  imageCast->Update();
-  this->OutputLabelmap->ShallowCopy(imageCast->GetOutput());
+    this->OutputLabelmap->ShallowCopy(stencil->GetOutput());
+  }
+  else
+  {
+    stencil->ReverseStencilOn();
+    stencil->SetBackgroundValue(this->LabelValue);
+    stencil->Update();
+
+    // Save result to output
+    vtkNew<vtkImageCast> imageCast;
+    imageCast->SetInputConnection(stencil->GetOutputPort());
+    imageCast->SetOutputScalarTypeToUnsignedChar();
+    imageCast->Update();
+    this->OutputLabelmap->ShallowCopy(imageCast->GetOutput());
+  }
 }

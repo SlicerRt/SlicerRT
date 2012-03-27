@@ -32,71 +32,6 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="1" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <property name="spacing">
-         <number>4</number>
-        </property>
-        <property name="leftMargin">
-         <number>4</number>
-        </property>
-        <item>
-         <layout class="QGridLayout" name="gridLayout">
-          <property name="leftMargin">
-           <number>4</number>
-          </property>
-          <property name="spacing">
-           <number>4</number>
-          </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_DoseVolume">
-            <property name="text">
-             <string>Dose Volume:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="nodeTypes">
-             <stringlist>
-              <string>vtkMRMLVolumeNode</string>
-              <string>vtkMRMLScalarVolumeNode</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_StructureSet">
-            <property name="text">
-             <string>Structure Set:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_StructureSet">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="nodeTypes">
-             <stringlist>
-              <string>vtkMRMLModelNode</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
       <item row="5" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <property name="spacing">
@@ -161,6 +96,117 @@
         </property>
        </spacer>
       </item>
+      <item row="1" column="0">
+       <layout class="QGridLayout" name="gridLayout">
+        <property name="leftMargin">
+         <number>4</number>
+        </property>
+        <property name="spacing">
+         <number>4</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_DoseVolume">
+          <property name="text">
+           <string>Dose Volume:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>23</height>
+           </size>
+          </property>
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLVolumeNode</string>
+            <string>vtkMRMLScalarVolumeNode</string>
+           </stringlist>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_StructureSet">
+          <property name="text">
+           <string>Structure Set:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_StructureSet">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>23</height>
+           </size>
+          </property>
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLModelNode</string>
+            <string>vtkMRMLModelHierarchyNode</string>
+           </stringlist>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_ComputeDVH">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>152</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Compute DVH</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </item>
@@ -182,18 +228,11 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="6" column="0">
-       <widget class="QCheckBox" name="checkBox_ShowLegend">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Show Legend</string>
-        </property>
-       </widget>
-      </item>
       <item row="5" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <property name="spacing">
+         <number>4</number>
+        </property>
         <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
@@ -209,6 +248,9 @@
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="spacing">
+           <number>4</number>
+          </property>
           <item>
            <widget class="QPushButton" name="pushButton_ExportDvhToCsv">
             <property name="enabled">
@@ -216,7 +258,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>96</width>
+              <width>152</width>
               <height>0</height>
              </size>
             </property>
@@ -261,60 +303,11 @@
       <item row="3" column="0">
        <widget class="QTableWidget" name="tableWidget_ChartStatistics"/>
       </item>
-      <item row="2" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_ComputeDVH">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>96</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Add to DVH metrics table</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
       <item row="1" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <property name="spacing">
+         <number>4</number>
+        </property>
         <item>
          <widget class="QLabel" name="label_Chart">
           <property name="text">
@@ -328,22 +321,6 @@
            <stringlist>
             <string>vtkMRMLChartNode</string>
            </stringlist>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_AddToChart">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>96</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Add to Chart</string>
           </property>
          </widget>
         </item>
