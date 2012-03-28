@@ -35,6 +35,7 @@
 
 // VTK includes
 #include <vtkStringArray.h>
+#include <vtkDoubleArray.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -102,7 +103,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   this->Superclass::setup();
 
   // Hide widgets whose functions have not been implemented yet
-  d->pushButton_ExportStatisticsToCsv->setVisible(false);
+  d->pushButton_ExportMetricsToCsv->setVisible(false);
   d->label_ImportCSV->setVisible(false);
   d->pushButton_ImportCSV->setVisible(false);
 
@@ -116,7 +117,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
 
   connect( d->pushButton_ComputeDVH, SIGNAL( clicked() ), this, SLOT( computeDvhClicked() ) );
   connect( d->pushButton_ExportDvhToCsv, SIGNAL( clicked() ), this, SLOT( exportDvhToCsvClicked() ) );
-  connect( d->pushButton_ExportStatisticsToCsv, SIGNAL( clicked() ), this, SLOT( exportStatisticsToCsv() ) );
+  connect( d->pushButton_ExportMetricsToCsv, SIGNAL( clicked() ), this, SLOT( exportMetricsToCsv() ) );
   connect( d->checkBox_ShowHideAll, SIGNAL( stateChanged(int) ), this, SLOT( showHideAllCheckedStateChanged(int) ) );
 
   connect( m_CheckSceneChangeTimer, SIGNAL( timeout() ), this, SLOT( checkSceneChange() ) );
@@ -426,40 +427,108 @@ void qSlicerDoseVolumeHistogramModuleWidget::showHideAllCheckedStateChanged(int 
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
 {
-  QString filter = QString( tr( "Comma Separated Values (*.csv);;" ) );
-  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save DVH to CSV file"), QString("."), filter);
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
-	if (! fileName.isNull() )
-  {
-    // TODO
+  QString* selectedFilter = new QString();
+
+	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH values to CSV file" ) ), tr(""), QString( tr( "CSV with COMMA ( *.csv );;CSV with TAB ( *.csv )" ) ), selectedFilter );
+	if ( fileName.isNull() )
+	{
+		return;
+	}
+
+	bool comma = true;
+	if ( selectedFilter->compare( "CSV with TAB ( *.csv )" ) == 0 )
+	{
+		comma = false;
+	}
+
+	delete selectedFilter;
+
+  std::cout.precision(6);
+	std::ofstream outfile;
+  outfile.open( fileName.toAscii().data() );
+
+	if ( !outfile )
+	{
+    std::cerr << "Output file cannot be opened!" << std::endl;
+		return;
+	}
+
+  vtkMRMLChartNode* chartNode = d->logic()->GetChartNode();
+  vtkStringArray* structureNames = chartNode->GetArrayNames();
+  vtkStringArray* arrayIDs = chartNode->GetArrays();
+
+  // Check if the number of values is the same in each structure
+  int numberOfValues = -1;
+	for (int i=0; i<arrayIDs->GetNumberOfValues(); ++i)
+	{
+    vtkMRMLNode *node = d->logic()->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(i) );
+    vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
+    if (doubleArrayNode)
+    {
+      if (numberOfValues == -1)
+      {
+        numberOfValues = doubleArrayNode->GetArray()->GetNumberOfTuples();
+        int numberOfComponents = doubleArrayNode->GetArray()->GetNumberOfComponents();
+      }
+      else if (numberOfValues != doubleArrayNode->GetArray()->GetNumberOfTuples())
+      {
+        std::cerr << "Inconsistent number of values in the DVH arrays!" << std::endl;
+        return;
+      }
+    }
+    else
+    {
+      std::cerr << "Invalid double array node in selected chart!" << std::endl;
+      return;
+    }
   }
+
+  // Write header
+  for (int i=0; i<structureNames->GetNumberOfValues(); ++i)
+  {
+  	outfile << structureNames->GetValue(i).c_str() << " Dose (Gy)" << (comma ? "," : "\t");
+    outfile << structureNames->GetValue(i).c_str() << " Value (%)" << (comma ? "," : "\t");
+  }
+	outfile << endl;
+
+  // Write values
+	for (int row=0; row<numberOfValues; ++row)
+  {
+	  for (int column=0; column<arrayIDs->GetNumberOfValues(); ++column)
+	  {
+      vtkMRMLNode *node = d->logic()->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(column) );
+      vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
+
+      QString dose = QString::number( doubleArrayNode->GetArray()->GetComponent(row, 0) );
+      if (!comma)
+      {
+        dose.replace('.',',');
+      }
+      outfile << dose.toAscii().data() << (comma ? "," : "\t");
+
+      QString value = QString::number( doubleArrayNode->GetArray()->GetComponent(row, 1) );
+      if (!comma)
+      {
+        value.replace('.',',');
+      }
+      outfile << value.toAscii().data() << (comma ? "," : "\t");
+    }
+		outfile << endl;
+  }
+
+	outfile.close();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::exportStatisticsToCsv()
+void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
 {
   QString filter = QString( tr( "Comma Separated Values (*.csv);;" ) );
-  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save statistics to CSV file"), QString("."), filter);
+  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save DVH metrics to CSV file"), QString("."), filter);
 
 	if (! fileName.isNull() )
   {
-    // print comma separated value file with header keys in quotes
-
-    //csv = ""
-    //header = ""
-    //for k in self.keys[:-1]:
-    //  header += "\"%s\"" % k + ","
-    //header += "\"%s\"" % self.keys[-1] + "\n"
-    //csv = header
-    //for i in self.labelStats["Labels"]:
-    //  line = ""
-    //  for k in self.keys[:-1]:
-    //    line += str(self.labelStats[i,k]) + ","
-    //  line += str(self.labelStats[i,self.keys[-1]]) + "\n"
-    //  csv += line
-
-    //fp = open(fileName, "w")
-    //fp.write(csv)
-    //fp.close()
+    //TODO?
   }
 }

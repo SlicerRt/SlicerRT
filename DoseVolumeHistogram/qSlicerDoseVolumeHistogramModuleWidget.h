@@ -53,7 +53,7 @@ protected slots:
   void computeDvhClicked();
   void showInChartCheckStateChanged(int aState);
   void exportDvhToCsvClicked();
-  void exportStatisticsToCsv();
+  void exportMetricsToCsv();
   void showHideAllCheckedStateChanged(int aState);
   void checkSceneChange();
 

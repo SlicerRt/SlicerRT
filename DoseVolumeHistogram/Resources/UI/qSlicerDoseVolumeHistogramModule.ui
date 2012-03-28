@@ -254,6 +254,25 @@
           <item>
            <widget class="QPushButton" name="pushButton_ExportDvhToCsv">
             <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>152</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Export DVH values from the selected chart to CSV file</string>
+            </property>
+            <property name="text">
+             <string>Export DVH to file...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_ExportMetricsToCsv">
+            <property name="enabled">
              <bool>false</bool>
             </property>
             <property name="minimumSize">
@@ -263,23 +282,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Export DVH to CSV file</string>
-            </property>
-            <property name="text">
-             <string>Export DVH to file...</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_ExportStatisticsToCsv">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>152</width>
-              <height>0</height>
-             </size>
+             <string>Export DVH metrics from the selected chart to CSV file</string>
             </property>
             <property name="text">
              <string>Export DVH metrics to file...</string>

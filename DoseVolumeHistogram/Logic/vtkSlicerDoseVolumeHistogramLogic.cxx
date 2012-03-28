@@ -95,7 +95,7 @@ void vtkSlicerDoseVolumeHistogramLogic::SetMRMLSceneInternal(vtkMRMLScene * newS
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
-  events->InsertNextValue(vtkMRMLScene::SceneEventType::EndCloseEvent);
+  events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
 
@@ -296,7 +296,7 @@ void vtkSlicerDoseVolumeHistogramLogic::ComputeDvh()
     childModelNodes->InitTraversal();
     if (childModelNodes->GetNumberOfItems() < 1)
     {
-      std::cerr << "Error: Selected Structure Set hierarchy node has no children model nodes!" << std::endl;
+      vtkErrorMacro("Error: Selected Structure Set hierarchy node has no children model nodes!");
       return;
     }
     
@@ -312,7 +312,7 @@ void vtkSlicerDoseVolumeHistogramLogic::ComputeDvh()
   }
   else
   {
-    std::cerr << "Error: Invalid node type for StructureSetModelNode!" << std::endl;
+    vtkErrorMacro("Error: Invalid node type for StructureSetModelNode!");
     return;
   }
 }
@@ -431,14 +431,14 @@ void vtkSlicerDoseVolumeHistogramLogic
 {
   if (this->ChartNode == NULL)
   {
-    std::cerr << "Error: no chart node is selected!" << std::endl;
+    vtkErrorMacro("Error: no chart node is selected!");
     return;
   }
 
   vtkMRMLChartViewNode* chartViewNode = GetChartViewNode();
   if (chartViewNode == NULL)
   {
-    std::cerr << "Error: unable to get chart view node!" << std::endl;
+    vtkErrorMacro("Error: unable to get chart view node!");
     return;
   }
 
@@ -472,14 +472,14 @@ void vtkSlicerDoseVolumeHistogramLogic
 {
   if (this->ChartNode == NULL)
   {
-    std::cerr << "Error: no chart node is selected!" << std::endl;
+    vtkErrorMacro("Error: no chart node is selected!");
     return;
   }
 
   vtkMRMLChartViewNode* chartViewNode = GetChartViewNode();
   if (chartViewNode == NULL)
   {
-    std::cerr << "Error: unable to get chart view node!" << std::endl;
+    vtkErrorMacro("Error: unable to get chart view node!");
     return;
   }
 
@@ -498,7 +498,7 @@ vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramLogic
   vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(layoutNodeVtkObject);
   if (layoutNode == NULL)
   {
-    std::cerr << "Error: unable to get layout node!" << std::endl;
+    vtkErrorMacro("Error: unable to get layout node!");
     return NULL;
   }
   layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView );
@@ -509,7 +509,7 @@ vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramLogic
   vtkMRMLChartViewNode* chartViewNode = vtkMRMLChartViewNode::SafeDownCast( chartViewNodes->GetNextItemAsObject() );
   if (chartViewNode == NULL)
   {
-    std::cerr << "Error: unable to get chart view node!" << std::endl;
+    vtkErrorMacro("Error: unable to get chart view node!");
     return NULL;
   }
   chartViewNodes->Delete();
