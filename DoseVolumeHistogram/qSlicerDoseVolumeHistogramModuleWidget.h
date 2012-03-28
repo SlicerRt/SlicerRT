@@ -29,6 +29,7 @@
 class qSlicerDoseVolumeHistogramModuleWidgetPrivate;
 class vtkMRMLNode;
 class QCheckBox;
+class QTimer;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramModuleWidget :
@@ -54,13 +55,22 @@ protected slots:
   void exportDvhToCsvClicked();
   void exportStatisticsToCsv();
   void showHideAllCheckedStateChanged(int aState);
+  void checkSceneChange();
 
 protected:
   QScopedPointer<qSlicerDoseVolumeHistogramModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
-  virtual void updateButtonsState();
-  virtual void updateChartCheckboxesState();
+
+protected:
+  /// Updates button states
+  void updateButtonsState();
+
+  /// Updates state of show/hide chart checkboxes according to the currently selected chart
+  void updateChartCheckboxesState();
+
+  /// Refresh DVH statistics table
+  void refreshDvhTable();
 
 protected:
   /// Map that associates a string pair containing the structure set plot name and the vtkMRMLDoubleArrayNode id (respectively) to the show/hide in chart checkboxes
@@ -71,6 +81,9 @@ protected:
 
   /// Flag whether show/hide all checkbox has been clicked - some operations are not necessary when it was clicked
   bool m_ShowHideAllClicked;
+
+  /// Timer that invokes checking if the scene has recently changed (refresh DVH table needed)
+  QTimer* m_CheckSceneChangeTimer; 
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseVolumeHistogramModuleWidget);

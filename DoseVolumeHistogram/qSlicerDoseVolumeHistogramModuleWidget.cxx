@@ -19,6 +19,7 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QCheckBox>
+#include <QTimer>
 
 // SlicerQt includes
 #include "qSlicerDoseVolumeHistogramModuleWidget.h"
@@ -30,6 +31,7 @@
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLChartNode.h>
+#include <vtkMRMLDoubleArrayNode.h>
 
 // VTK includes
 #include <vtkStringArray.h>
@@ -75,12 +77,21 @@ qSlicerDoseVolumeHistogramModuleWidget::qSlicerDoseVolumeHistogramModuleWidget(Q
   m_ChartCheckboxToStructureSetNameMap.clear();
   m_ShowInChartCheckStates.clear();
   m_ShowHideAllClicked = false;
+
+  m_CheckSceneChangeTimer = new QTimer(this); 
 }
 
 //-----------------------------------------------------------------------------
 qSlicerDoseVolumeHistogramModuleWidget::~qSlicerDoseVolumeHistogramModuleWidget()
 {
   m_ChartCheckboxToStructureSetNameMap.clear();
+
+  if (m_CheckSceneChangeTimer != NULL)
+  {
+    m_CheckSceneChangeTimer->stop();
+		delete m_CheckSceneChangeTimer;
+		m_CheckSceneChangeTimer = NULL;
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -107,6 +118,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->pushButton_ExportDvhToCsv, SIGNAL( clicked() ), this, SLOT( exportDvhToCsvClicked() ) );
   connect( d->pushButton_ExportStatisticsToCsv, SIGNAL( clicked() ), this, SLOT( exportStatisticsToCsv() ) );
   connect( d->checkBox_ShowHideAll, SIGNAL( stateChanged(int) ), this, SLOT( showHideAllCheckedStateChanged(int) ) );
+
+  connect( m_CheckSceneChangeTimer, SIGNAL( timeout() ), this, SLOT( checkSceneChange() ) );
+
+  // Start timer
+	m_CheckSceneChangeTimer->start(100); 
 
   updateChartCheckboxesState();
 }
@@ -213,55 +229,100 @@ void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
+void qSlicerDoseVolumeHistogramModuleWidget::checkSceneChange()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
-  std::vector<std::string> names;
-  std::vector<std::string> dvhArrayIDs;
-  std::vector<double> counts;
-  std::vector<double> meanDoses;
-  std::vector<double> totalVolumeCCs;
-  std::vector<double> maxDoses;
-  std::vector<double> minDoses;
+  if (d->logic()->GetSceneChanged())
+  {
+    refreshDvhTable();
 
-  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    d->logic()->SceneChangedOff();
+  }
+}
 
-  d->logic()->ComputeDvh(names, dvhArrayIDs, counts, meanDoses, totalVolumeCCs, maxDoses, minDoses);
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  vtkCollection* dvhNodes = d->logic()->GetDvhDoubleArrayNodes();
+
+  // Clear the table
+  d->tableWidget_ChartStatistics->clear();
+
+  std::map<QCheckBox*, std::pair<std::string, std::string>>::iterator it;
+  for (it=m_ChartCheckboxToStructureSetNameMap.begin(); it!=m_ChartCheckboxToStructureSetNameMap.end(); ++it)
+  {
+    QCheckBox* checkbox = it->first;
+    disconnect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
+    delete checkbox;
+  }
+
+  m_ChartCheckboxToStructureSetNameMap.clear();
+
+  if (dvhNodes->GetNumberOfItems() < 1)
+  {
+    return;
+  }
 
   // Set up the table
   d->tableWidget_ChartStatistics->setColumnCount(6);
-  int rowCount = d->tableWidget_ChartStatistics->rowCount();
   QString doseUnit( d->logic()->GetDoseVolumeNode()->GetAttribute("DoseUnits") );
   QStringList headerLabels;
-  headerLabels << "Structure" << "Total volume (cc)" << QString("Mean dose (%1)").arg(doseUnit) << QString("Max dose (%1)").arg(doseUnit) << QString("Min dose (%1)").arg(doseUnit) << "Show/hide in Chart";
+  headerLabels << "Structure" << "Total volume (cc)" << QString("Mean dose (%1)").arg(doseUnit) << QString("Max dose (%1)").arg(doseUnit) << QString("Min dose (%1)").arg(doseUnit) << " ";
   d->tableWidget_ChartStatistics->setHorizontalHeaderLabels(headerLabels);
-  d->tableWidget_ChartStatistics->setRowCount(rowCount + names.size());
+  d->tableWidget_ChartStatistics->setRowCount(dvhNodes->GetNumberOfItems());
 
   // Fill the table
-  for (unsigned int i=0; i<names.size(); ++i)
+  for (int i=0; i<dvhNodes->GetNumberOfItems(); ++i)
   {
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 0, new QTableWidgetItem( QString::fromStdString(names[i]) ) );
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 1, new QTableWidgetItem( QString::number(totalVolumeCCs[i]) ) );
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 2, new QTableWidgetItem( QString::number(meanDoses[i],'f',4) ) );
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 3, new QTableWidgetItem( QString::number(maxDoses[i],'f',4) ) );
-    d->tableWidget_ChartStatistics->setItem(rowCount+i, 4, new QTableWidgetItem( QString::number(minDoses[i],'f',4) ) );
+    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( dvhNodes->GetItemAsObject(i) );
+    if (!dvhNode)
+    {
+      continue;
+    }
+
+    d->tableWidget_ChartStatistics->setItem(i, 0, new QTableWidgetItem( 
+      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ) );
+    d->tableWidget_ChartStatistics->setItem(i, 1, new QTableWidgetItem( 
+      QString::number( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str())).toDouble(),'f',4) ) );
+    d->tableWidget_ChartStatistics->setItem(i, 2, new QTableWidgetItem( 
+      QString::number( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME.c_str())).toDouble(),'f',4) ) );
+    d->tableWidget_ChartStatistics->setItem(i, 3, new QTableWidgetItem( 
+      QString::number( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MAX_DOSE_GY_ATTRIBUTE_NAME.c_str())).toDouble(),'f',4) ) );
+    d->tableWidget_ChartStatistics->setItem(i, 4, new QTableWidgetItem( 
+      QString::number( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MIN_DOSE_GY_ATTRIBUTE_NAME.c_str())).toDouble(),'f',4) ) );
 
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_ChartStatistics);
-    checkbox->setToolTip(tr("Show/hide DVH plot of structure '%1' in selected chart").arg(QString(names[i].c_str())));
+    checkbox->setToolTip(tr("Show/hide DVH plot of structure '%1' in selected chart").arg( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
     connect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
 
     // Store checkbox with the augmented structure set name and the double array ID
-    std::string plotName;
-    plotName = names[i] + QString("(%1)").arg(rowCount+i+1).toAscii().data();
-    m_ChartCheckboxToStructureSetNameMap[checkbox] = std::pair<std::string, std::string>(plotName, dvhArrayIDs[i]);
+    std::string plotName( dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) );
+    plotName.append( QString("(%1)").arg(i+1).toAscii().data() );
+    dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_PLOTS_NAME_ATTRIBUTE_NAME.c_str(), plotName.c_str());
+    m_ChartCheckboxToStructureSetNameMap[checkbox] = std::pair<std::string, std::string>(plotName, dvhNode->GetID());
 
-    d->tableWidget_ChartStatistics->setCellWidget(rowCount+i, 5, checkbox);
+    d->tableWidget_ChartStatistics->setCellWidget(i, 5, checkbox);
   }
 
   updateButtonsState();
   updateChartCheckboxesState();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+  // Compute the DVH for the selected structure set using the selected dose volume
+  d->logic()->ComputeDvh();
+
+  refreshDvhTable();
 
   QApplication::restoreOverrideCursor();
 }

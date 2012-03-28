@@ -48,20 +48,27 @@ class VTK_SLICER_DOSEVOLUMEHISTOGRAM_MODULE_LOGIC_EXPORT vtkSlicerDoseVolumeHist
   public vtkSlicerModuleLogic
 {
 public:
+  static const std::string DVH_TYPE_ATTRIBUTE_NAME;
+  static const std::string DVH_TYPE_ATTRIBUTE_VALUE;
+  static const std::string DVH_STRUCTURE_NAME_ATTRIBUTE_NAME;
+  static const std::string DVH_STRUCTURE_PLOTS_NAME_ATTRIBUTE_NAME;
+  static const std::string DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+  static const std::string DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME;
+  static const std::string DVH_MAX_DOSE_GY_ATTRIBUTE_NAME;
+  static const std::string DVH_MIN_DOSE_GY_ATTRIBUTE_NAME;
+  static const std::string DVH_VOXEL_COUNT_ATTRIBUTE_NAME;
 
+public:
   static vtkSlicerDoseVolumeHistogramLogic *New();
   vtkTypeMacro(vtkSlicerDoseVolumeHistogramLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
-  /// Compute DVH and return statistics for the selected structure set based on the selected dose volume
-  void ComputeDvh(std::vector<std::string> &names, std::vector<std::string> &dvhArrayIDs, std::vector<double> &counts, std::vector<double> &meanDoses, std::vector<double> &totalVolumeCCs, std::vector<double> &maxDoses, std::vector<double> &minDoses);
-
   /// Compute DVH for the selected structure set based on the selected dose volume
   void ComputeDvh();
 
-  /// Add dose volume histogram of a structure set to the selected chart given its name and the corresponding DVH double array node ID
-  void AddDvhToSelectedChart(const char* structureSetName, const char* dvhArrayId);
+  /// Add dose volume histogram of a structure (ROI) to the selected chart given its name and the corresponding DVH double array node ID
+  void AddDvhToSelectedChart(const char* structureName, const char* dvhArrayId);
 
   /// Remove dose volume histogram of a structure from the selected chart
   void RemoveDvhFromSelectedChart(const char* dvhArrayId);
@@ -71,44 +78,58 @@ public:
   void SetStructureSetModelNode( vtkMRMLNode* );
   void SetChartNode( vtkMRMLChartNode* );
 
-  void ResetLabelValue() { this->CurrentLabelValue = 2; };
-
   vtkGetObjectMacro( DoseVolumeNode, vtkMRMLVolumeNode );
   vtkGetObjectMacro( StructureSetModelNode, vtkMRMLNode );
   vtkGetObjectMacro( ChartNode, vtkMRMLChartNode );
+  vtkGetObjectMacro( DvhDoubleArrayNodes, vtkCollection );
+
+  vtkSetMacro( SceneChanged, bool );
+  vtkGetMacro( SceneChanged, bool );
+  vtkBooleanMacro( SceneChanged, bool );
 
 protected:
   vtkSlicerDoseVolumeHistogramLogic();
   virtual ~vtkSlicerDoseVolumeHistogramLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
-
-  /// Compute DVH and return statistics for the given volume (which is the selected dose volume stenciled with a structure set) with the given structure set name
-  void ComputeDvh(vtkMRMLScalarVolumeNode* structureSetStenciledDoseVolumeNode, char* structureSetName, std::vector<std::string> &names, std::vector<std::string> &dvhArrayIDs, std::vector<double> &counts, std::vector<double> &meanDoses, std::vector<double> &totalVolumeCCs, std::vector<double> &maxDoses, std::vector<double> &minDoses);
-
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
 
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
-  /// Get stenciled dose volume for a structure set
-  virtual void GetStenciledDoseVolumeForStructureSet(vtkMRMLScalarVolumeNode* structureSetStenciledDoseVolumeNode, vtkMRMLModelNode* structureSetModel);
+  /// Compute DVH and return statistics for the given volume (which is the selected dose volume stenciled with a structure) with the given structure name
+  void ComputeDvh(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, char* structureName);
+
+  /// Get stenciled dose volume for a structure (ROI)
+  virtual void GetStenciledDoseVolumeForStructure(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, vtkMRMLModelNode* structureModel);
 
   /// Return the chart view node object from the layout
   vtkMRMLChartViewNode* GetChartViewNode();
+
+protected:
+  vtkSetObjectMacro( DvhDoubleArrayNodes, vtkCollection );
 
 private:
   vtkSlicerDoseVolumeHistogramLogic(const vtkSlicerDoseVolumeHistogramLogic&); // Not implemented
   void operator=(const vtkSlicerDoseVolumeHistogramLogic&);               // Not implemented
 
 protected:
+  /// Selected dose volume MRML node object
   vtkMRMLVolumeNode* DoseVolumeNode;
+
+  /// Selected structure set MRML node object. Can be model node or model hierarchy node
   vtkMRMLNode* StructureSetModelNode;
+
+  /// Selected chart MRML node object
   vtkMRMLChartNode* ChartNode;
 
-  unsigned int CurrentLabelValue;
+  /// List of all the DVH double array MRML nodes that are present in the scene
+  vtkCollection* DvhDoubleArrayNodes;
+
+  /// Flag indicating if the scene has recently changed (update of the module GUI needed)
+  bool SceneChanged;
 };
 
 #endif

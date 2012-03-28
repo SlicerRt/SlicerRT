@@ -45,6 +45,17 @@
 #include <cassert>
 
 //----------------------------------------------------------------------------
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_TYPE_ATTRIBUTE_NAME = "Type";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_TYPE_ATTRIBUTE_VALUE = "DVH";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME = "DVH_StructureName";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_PLOTS_NAME_ATTRIBUTE_NAME = "DVH_StructurePlotName";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME = "DVH_TotalVolumeCC";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME = "DVH_MeanDoseGy";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_MAX_DOSE_GY_ATTRIBUTE_NAME = "DVH_MaxDoseGy";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_MIN_DOSE_GY_ATTRIBUTE_NAME = "DVH_MinDoseGy";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_VOXEL_COUNT_ATTRIBUTE_NAME = "DVH_VoxelCount";
+
+//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseVolumeHistogramLogic);
 
 vtkCxxSetObjectMacro(vtkSlicerDoseVolumeHistogramLogic, DoseVolumeNode, vtkMRMLVolumeNode);
@@ -58,12 +69,17 @@ vtkSlicerDoseVolumeHistogramLogic::vtkSlicerDoseVolumeHistogramLogic()
   this->StructureSetModelNode = NULL;
   this->ChartNode = NULL;
 
-  this->CurrentLabelValue = 2;
+  this->DvhDoubleArrayNodes = NULL;
+  vtkSmartPointer<vtkCollection> dvhDoubleArrayNodes = vtkSmartPointer<vtkCollection>::New();
+  this->SetDvhDoubleArrayNodes(dvhDoubleArrayNodes);
+
+  this->SceneChangedOff();
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerDoseVolumeHistogramLogic::~vtkSlicerDoseVolumeHistogramLogic()
 {
+  this->SetDvhDoubleArrayNodes(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -79,6 +95,7 @@ void vtkSlicerDoseVolumeHistogramLogic::SetMRMLSceneInternal(vtkMRMLScene * newS
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
+  events->InsertNextValue(vtkMRMLScene::SceneEventType::EndCloseEvent);
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
 
@@ -91,29 +108,110 @@ void vtkSlicerDoseVolumeHistogramLogic::RegisterNodes()
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  this->DvhDoubleArrayNodes->RemoveAllItems();
+  this->SceneChangedOn();
+
+  if (this->GetMRMLScene() == NULL || this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLDoubleArrayNode") < 1)
+  {
+    return;
+  }
+
+  this->GetMRMLScene()->InitTraversal();
+  vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLDoubleArrayNode");
+  while (node != NULL)
+  {
+    vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
+    if (doubleArrayNode)
+    {
+      const char* type = doubleArrayNode->GetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str());
+      if (type != NULL && stricmp(type, DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
+      {
+        this->DvhDoubleArrayNodes->AddItem(doubleArrayNode);
+      }
+    }
+
+    node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLDoubleArrayNode");
+  }
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
+::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
+  if (!node || !this->GetMRMLScene())
+  {
+    return;
+  }
+
+  // if the scene is still updating, jump out
+  if (this->GetMRMLScene()->IsBatchProcessing())
+  {
+    return;
+  }
+
+  if (node->IsA("vtkMRMLDoubleArrayNode"))
+  {
+    vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
+    if (doubleArrayNode)
+    {
+      const char* type = doubleArrayNode->GetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str());
+      if (type != NULL && stricmp(type, DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
+      {
+        this->DvhDoubleArrayNodes->AddItem(doubleArrayNode);
+      }
+    }
+  }
+
+  this->SceneChangedOn();
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
+::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
+  if (!node || !this->GetMRMLScene())
+  {
+    return;
+  }
+
+  // if the scene is still updating, jump out
+  if (this->GetMRMLScene()->IsBatchProcessing())
+  {
+    return;
+  }
+
+  if (node->IsA("vtkMRMLDoubleArrayNode"))
+  {
+    this->DvhDoubleArrayNodes->RemoveItem( vtkMRMLDoubleArrayNode::SafeDownCast(node) );
+
+    // Remove the structure corresponding the deleted node from all charts
+    const char* structurePlotName = node->GetAttribute(DVH_STRUCTURE_PLOTS_NAME_ATTRIBUTE_NAME.c_str());
+
+    this->GetMRMLScene()->InitTraversal();
+    vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLChartNode");
+    while (node != NULL)
+    {
+      vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(node);
+      if (chartNode)
+      {
+        chartNode->RemoveArray(structurePlotName);
+      }
+
+      node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLDoubleArrayNode");
+    }
+  }
+
+  this->SceneChangedOn();
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramLogic
-::GetStenciledDoseVolumeForStructureSet(vtkMRMLScalarVolumeNode* structureSetStenciledDoseVolumeNode, vtkMRMLModelNode* structureSetModel)
+::GetStenciledDoseVolumeForStructure(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, vtkMRMLModelNode* structureModel)
 {
   // Create model to doseRas transform
   vtkSmartPointer<vtkGeneralTransform> modelToDoseRasTransform=vtkSmartPointer<vtkGeneralTransform>::New();
   vtkSmartPointer<vtkGeneralTransform> doseRasToWorldTransform=vtkSmartPointer<vtkGeneralTransform>::New();
-  vtkMRMLTransformNode* modelTransformNode=structureSetModel->GetParentTransformNode();
+  vtkMRMLTransformNode* modelTransformNode=structureModel->GetParentTransformNode();
   vtkMRMLTransformNode* doseTransformNode=this->DoseVolumeNode->GetParentTransformNode();
 
   if (doseTransformNode!=NULL)
@@ -159,7 +257,7 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   // Transform the model polydata to doseIjk coordinate frame (the labelmap image coordinate frame is doseIjk)
   vtkNew<vtkTransformPolyDataFilter> transformPolyDataModelToDoseIjkFilter;
-  transformPolyDataModelToDoseIjkFilter->SetInput( structureSetModel->GetPolyData() );
+  transformPolyDataModelToDoseIjkFilter->SetInput( structureModel->GetPolyData() );
   transformPolyDataModelToDoseIjkFilter->SetTransform(modelToDoseIjkTransform.GetPointer());
 
   // Convert model to labelmap
@@ -167,54 +265,29 @@ void vtkSlicerDoseVolumeHistogramLogic
   transformPolyDataModelToDoseIjkFilter->Update();
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToDoseIjkFilter->GetOutput() );
   polyDataToLabelmapFilter->SetReferenceImage( this->DoseVolumeNode->GetImageData() );
-  polyDataToLabelmapFilter->SetLabelValue( this->CurrentLabelValue++ );
   polyDataToLabelmapFilter->Update();
 
   // Create labelmap node
-  structureSetStenciledDoseVolumeNode->CopyOrientation( this->DoseVolumeNode );
-  structureSetStenciledDoseVolumeNode->SetAndObserveTransformNodeID(this->DoseVolumeNode->GetTransformNodeID());
+  structureStenciledDoseVolumeNode->CopyOrientation( this->DoseVolumeNode );
+  structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID(this->DoseVolumeNode->GetTransformNodeID());
   std::string labelmapNodeName( this->StructureSetModelNode->GetName() );
   labelmapNodeName.append( "_Labelmap" );
-  structureSetStenciledDoseVolumeNode->SetName( labelmapNodeName.c_str() );
-  structureSetStenciledDoseVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
-  structureSetStenciledDoseVolumeNode->LabelMapOn();
+  structureStenciledDoseVolumeNode->SetName( labelmapNodeName.c_str() );
+  structureStenciledDoseVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
+  structureStenciledDoseVolumeNode->LabelMapOn();
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramLogic
-::ComputeDvh()
+void vtkSlicerDoseVolumeHistogramLogic::ComputeDvh()
 {
-  std::vector<std::string> names;
-  std::vector<std::string> dvhArrayIDs;
-  std::vector<double> counts;
-  std::vector<double> meanDoses;
-  std::vector<double> totalVolumeCCs;
-  std::vector<double> maxDoses;
-  std::vector<double> minDoses;
-
-  ComputeDvh(names, dvhArrayIDs, counts, meanDoses, totalVolumeCCs, maxDoses, minDoses);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramLogic
-::ComputeDvh(std::vector<std::string> &names, std::vector<std::string> &dvhArrayIDs, std::vector<double> &counts, std::vector<double> &meanDoses, std::vector<double> &totalVolumeCCs, std::vector<double> &maxDoses, std::vector<double> &minDoses)
-{
-  names.clear();
-  dvhArrayIDs.clear();
-  counts.clear();
-  meanDoses.clear();
-  totalVolumeCCs.clear();
-  maxDoses.clear();
-  minDoses.clear();
-
   if (this->StructureSetModelNode->IsA("vtkMRMLModelNode"))
   {
     vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(this->StructureSetModelNode);
-    vtkSmartPointer<vtkMRMLScalarVolumeNode> structureSetStenciledDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-    GetStenciledDoseVolumeForStructureSet(structureSetStenciledDoseVolumeNode, modelNode);
-    // this->GetMRMLScene()->AddNode( structureSetStenciledDoseVolumeNode ); // add the labelmap to the scene for testing/debugging\
+    vtkSmartPointer<vtkMRMLScalarVolumeNode> structureStenciledDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+    GetStenciledDoseVolumeForStructure(structureStenciledDoseVolumeNode, modelNode);
+    // this->GetMRMLScene()->AddNode( structureStenciledDoseVolumeNode ); // add the labelmap to the scene for testing/debugging
 
-    ComputeDvh(structureSetStenciledDoseVolumeNode.GetPointer(), modelNode->GetName(), names, dvhArrayIDs, counts, meanDoses, totalVolumeCCs, maxDoses, minDoses);
+    ComputeDvh(structureStenciledDoseVolumeNode.GetPointer(), modelNode->GetName());
   }
   else if (this->StructureSetModelNode->IsA("vtkMRMLModelHierarchyNode"))
   {
@@ -230,11 +303,11 @@ void vtkSlicerDoseVolumeHistogramLogic
     for (int i=0; i<childModelNodes->GetNumberOfItems(); ++i)
     {
       vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(childModelNodes->GetItemAsObject(i));
-      vtkSmartPointer<vtkMRMLScalarVolumeNode> structureSetStenciledDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-      GetStenciledDoseVolumeForStructureSet(structureSetStenciledDoseVolumeNode, modelNode);
-      // this->GetMRMLScene()->AddNode( structureSetStenciledDoseVolumeNode ); // add the labelmap to the scene for testing/debugging\
+      vtkSmartPointer<vtkMRMLScalarVolumeNode> structureStenciledDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+      GetStenciledDoseVolumeForStructure(structureStenciledDoseVolumeNode, modelNode);
+      // this->GetMRMLScene()->AddNode( structureStenciledDoseVolumeNode ); // add the labelmap to the scene for testing/debugging\
 
-      ComputeDvh(structureSetStenciledDoseVolumeNode.GetPointer(), modelNode->GetName(), names, dvhArrayIDs, counts, meanDoses, totalVolumeCCs, maxDoses, minDoses);
+      ComputeDvh(structureStenciledDoseVolumeNode.GetPointer(), modelNode->GetName());
     }
   }
   else
@@ -246,14 +319,14 @@ void vtkSlicerDoseVolumeHistogramLogic
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramLogic
-::ComputeDvh(vtkMRMLScalarVolumeNode* structureSetStenciledDoseVolumeNode, char* structureSetName, std::vector<std::string> &names, std::vector<std::string> &dvhArrayIDs, std::vector<double> &counts, std::vector<double> &meanDoses, std::vector<double> &totalVolumeCCs, std::vector<double> &maxDoses, std::vector<double> &minDoses)
+::ComputeDvh(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, char* structureName)
 {
-  double* structureSetStenciledDoseVolumeSpacing = structureSetStenciledDoseVolumeNode->GetSpacing();
+  double* structureStenciledDoseVolumeSpacing = structureStenciledDoseVolumeNode->GetSpacing();
 
-  double cubicMMPerVoxel = structureSetStenciledDoseVolumeSpacing[0] * structureSetStenciledDoseVolumeSpacing[1] * structureSetStenciledDoseVolumeSpacing[2];
+  double cubicMMPerVoxel = structureStenciledDoseVolumeSpacing[0] * structureStenciledDoseVolumeSpacing[1] * structureStenciledDoseVolumeSpacing[2];
   double ccPerCubicMM = 0.001;
 
-  // get dose grid scaling
+  // Get dose grid scaling
   const char* doseGridScalingString = this->DoseVolumeNode->GetAttribute("DoseGridScaling");
   double doseGridScaling = 1.0;
   if (doseGridScalingString!=NULL)
@@ -265,27 +338,46 @@ void vtkSlicerDoseVolumeHistogramLogic
     vtkWarningMacro("Dose grid scaling attribute is not set for the selected dose volume. Assuming scaling = 1.");
   }
 
-  // compute statistics
+  // Compute statistics
   vtkNew<vtkImageToImageStencil> stencil;
-  stencil->SetInput(structureSetStenciledDoseVolumeNode->GetImageData());
+  stencil->SetInput(structureStenciledDoseVolumeNode->GetImageData());
   stencil->ThresholdByUpper(1);
 
   vtkNew<vtkImageAccumulate> stat;
-  stat->SetInput(structureSetStenciledDoseVolumeNode->GetImageData());
+  stat->SetInput(structureStenciledDoseVolumeNode->GetImageData());
   stat->SetStencil(stencil->GetOutput());
   stat->Update();
 
-  if (stat->GetVoxelCount() > 0)
+  if (stat->GetVoxelCount() < 1)
   {
-    // add an entry to each list
-    names.push_back( structureSetName );
-    counts.push_back( stat->GetVoxelCount() );
-    meanDoses.push_back( stat->GetMean()[0] * doseGridScaling );
-    totalVolumeCCs.push_back( stat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM );
-    maxDoses.push_back( stat->GetMax()[0] * doseGridScaling );
-    minDoses.push_back( stat->GetMin()[0] * doseGridScaling );
+    vtkWarningMacro("No voxels in the structure. DVH computation aborted.");
+    return;
   }
 
+  // Create node and fill statistics
+  vtkMRMLDoubleArrayNode* arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLDoubleArrayNode") );
+  std::string dvhArrayNodeName = std::string(structureName) + "_DVH";
+  arrayNode->SetName(dvhArrayNodeName.c_str());
+  //arrayNode->HideFromEditorsOff();
+
+  arrayNode->SetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str(), DVH_TYPE_ATTRIBUTE_VALUE.c_str());
+  arrayNode->SetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureName);
+
+  char attributeValue[64];
+  sprintf(attributeValue, "%g", stat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM);
+  arrayNode->SetAttribute(DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str(), attributeValue);
+  sprintf(attributeValue, "%g", stat->GetMean()[0] * doseGridScaling);
+  arrayNode->SetAttribute(DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME.c_str(), attributeValue);
+  sprintf(attributeValue, "%g", stat->GetMax()[0] * doseGridScaling);
+  arrayNode->SetAttribute(DVH_MAX_DOSE_GY_ATTRIBUTE_NAME.c_str(), attributeValue);
+  sprintf(attributeValue, "%g", stat->GetMin()[0] * doseGridScaling);
+  arrayNode->SetAttribute(DVH_MIN_DOSE_GY_ATTRIBUTE_NAME.c_str(), attributeValue);
+  sprintf(attributeValue, "%g", stat->GetVoxelCount());
+  arrayNode->SetAttribute(DVH_VOXEL_COUNT_ATTRIBUTE_NAME.c_str(), attributeValue);
+
+  arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->AddNode( arrayNode ) );
+
+  // Create DVH plot values
   int numBins = 100;
   double rangeMin = stat->GetMin()[0];
   double rangeMax = stat->GetMax()[0];
@@ -306,45 +398,36 @@ void vtkSlicerDoseVolumeHistogramLogic
     insertPointAtOrigin=false;
   }
 
-  if (stat->GetVoxelCount() > 0)
+  vtkDoubleArray* doubleArray = arrayNode->GetArray();
+  doubleArray->SetNumberOfTuples( numBins + (insertPointAtOrigin?1:0) ); 
+
+  int outputArrayIndex=0;
+
+  if (insertPointAtOrigin)
   {
-    vtkMRMLDoubleArrayNode* arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLDoubleArrayNode") );
-    std::string dvhArrayNodeName = std::string(structureSetName) + "_DVH";
-    arrayNode->SetName(dvhArrayNodeName.c_str());
-    arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->AddNode( arrayNode ) );
-    dvhArrayIDs.push_back(arrayNode->GetID());
+    // Add first fixed point at (0.0, 100%)
+    doubleArray->SetComponent(outputArrayIndex, 0, 0.0);
+    doubleArray->SetComponent(outputArrayIndex, 1, 100.0);
+    doubleArray->SetComponent(outputArrayIndex, 2, 0);
+    ++outputArrayIndex;
+  }
 
-    vtkDoubleArray* doubleArray = arrayNode->GetArray();
-    doubleArray->SetNumberOfTuples( numBins + (insertPointAtOrigin?1:0) ); 
-
-    int outputArrayIndex=0;
-
-    if (insertPointAtOrigin)
-    {
-      // Add first fixed point at (0.0, 100%)
-      doubleArray->SetComponent(outputArrayIndex, 0, 0.0);
-      doubleArray->SetComponent(outputArrayIndex, 1, 100.0);
-      doubleArray->SetComponent(outputArrayIndex, 2, 0);
-      ++outputArrayIndex;
-    }
-
-    unsigned long totalVoxels = stat->GetVoxelCount();
-    unsigned long voxelBelowDose = 0;
-    for (int sampleIndex=0; sampleIndex<numBins; ++sampleIndex)
-    {
-      unsigned long voxelsInBin = stat->GetOutput()->GetScalarComponentAsDouble(sampleIndex,0,0,0);
-      doubleArray->SetComponent( outputArrayIndex, 0, (rangeMin+sampleIndex*spacing)*doseGridScaling );
-      doubleArray->SetComponent( outputArrayIndex, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0 );
-      doubleArray->SetComponent( outputArrayIndex, 2, 0 );
-      ++outputArrayIndex;
-      voxelBelowDose += voxelsInBin;
-    }
+  unsigned long totalVoxels = stat->GetVoxelCount();
+  unsigned long voxelBelowDose = 0;
+  for (int sampleIndex=0; sampleIndex<numBins; ++sampleIndex)
+  {
+    unsigned long voxelsInBin = stat->GetOutput()->GetScalarComponentAsDouble(sampleIndex,0,0,0);
+    doubleArray->SetComponent( outputArrayIndex, 0, (rangeMin+sampleIndex*spacing)*doseGridScaling );
+    doubleArray->SetComponent( outputArrayIndex, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0 );
+    doubleArray->SetComponent( outputArrayIndex, 2, 0 );
+    ++outputArrayIndex;
+    voxelBelowDose += voxelsInBin;
   }
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramLogic
-::AddDvhToSelectedChart(const char* structureSetName, const char* dvhArrayId)
+::AddDvhToSelectedChart(const char* structureName, const char* dvhArrayId)
 {
   if (this->ChartNode == NULL)
   {
@@ -361,7 +444,7 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   vtkMRMLChartNode* chartNode = this->ChartNode;
   chartViewNode->SetChartNodeID( chartNode->GetID() );
-  chartNode->AddArray( structureSetName, dvhArrayId );
+  chartNode->AddArray( structureName, dvhArrayId );
 
   std::string doseAxisName;
   std::string chartTitle;
@@ -385,7 +468,7 @@ void vtkSlicerDoseVolumeHistogramLogic
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramLogic
-::RemoveDvhFromSelectedChart(const char* structureSetName)
+::RemoveDvhFromSelectedChart(const char* structureName)
 {
   if (this->ChartNode == NULL)
   {
@@ -402,7 +485,7 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   vtkMRMLChartNode* chartNode = this->ChartNode;
   chartViewNode->SetChartNodeID( chartNode->GetID() );
-  chartNode->RemoveArray(structureSetName);
+  chartNode->RemoveArray(structureName);
 }
 
 //---------------------------------------------------------------------------
