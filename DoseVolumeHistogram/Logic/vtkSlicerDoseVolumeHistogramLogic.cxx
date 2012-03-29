@@ -341,7 +341,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   // Compute statistics
   vtkNew<vtkImageToImageStencil> stencil;
   stencil->SetInput(structureStenciledDoseVolumeNode->GetImageData());
-  stencil->ThresholdByUpper(1);
+  stencil->ThresholdByUpper(0.5 * doseGridScaling); // 0.5 to make sure that 1*doseGridScaling is larger or equal than the threshold
 
   vtkNew<vtkImageAccumulate> stat;
   stat->SetInput(structureStenciledDoseVolumeNode->GetImageData());
@@ -366,13 +366,13 @@ void vtkSlicerDoseVolumeHistogramLogic
   char attributeValue[64];
   sprintf(attributeValue, "%g", stat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM);
   arrayNode->SetAttribute(DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str(), attributeValue);
-  sprintf(attributeValue, "%g", stat->GetMean()[0] * doseGridScaling);
+  sprintf(attributeValue, "%g", stat->GetMean()[0]);
   arrayNode->SetAttribute(DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME.c_str(), attributeValue);
-  sprintf(attributeValue, "%g", stat->GetMax()[0] * doseGridScaling);
+  sprintf(attributeValue, "%g", stat->GetMax()[0]);
   arrayNode->SetAttribute(DVH_MAX_DOSE_GY_ATTRIBUTE_NAME.c_str(), attributeValue);
-  sprintf(attributeValue, "%g", stat->GetMin()[0] * doseGridScaling);
+  sprintf(attributeValue, "%g", stat->GetMin()[0]);
   arrayNode->SetAttribute(DVH_MIN_DOSE_GY_ATTRIBUTE_NAME.c_str(), attributeValue);
-  sprintf(attributeValue, "%g", stat->GetVoxelCount());
+  sprintf(attributeValue, "%i", stat->GetVoxelCount());
   arrayNode->SetAttribute(DVH_VOXEL_COUNT_ATTRIBUTE_NAME.c_str(), attributeValue);
 
   arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->AddNode( arrayNode ) );
@@ -417,7 +417,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   for (int sampleIndex=0; sampleIndex<numBins; ++sampleIndex)
   {
     unsigned long voxelsInBin = stat->GetOutput()->GetScalarComponentAsDouble(sampleIndex,0,0,0);
-    doubleArray->SetComponent( outputArrayIndex, 0, (rangeMin+sampleIndex*spacing)*doseGridScaling );
+    doubleArray->SetComponent( outputArrayIndex, 0, rangeMin+sampleIndex*spacing );
     doubleArray->SetComponent( outputArrayIndex, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0 );
     doubleArray->SetComponent( outputArrayIndex, 2, 0 );
     ++outputArrayIndex;

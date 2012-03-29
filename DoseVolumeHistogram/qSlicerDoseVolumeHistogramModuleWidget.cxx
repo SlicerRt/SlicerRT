@@ -287,13 +287,13 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     d->tableWidget_ChartStatistics->setItem(i, 0, new QTableWidgetItem( 
       QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ) );
     d->tableWidget_ChartStatistics->setItem(i, 1, new QTableWidgetItem( 
-      QString::number( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str())).toDouble(),'f',4) ) );
+      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str())) ) );
     d->tableWidget_ChartStatistics->setItem(i, 2, new QTableWidgetItem( 
-      QString::number( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME.c_str())).toDouble(),'f',4) ) );
+      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME.c_str())) ) );
     d->tableWidget_ChartStatistics->setItem(i, 3, new QTableWidgetItem( 
-      QString::number( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MAX_DOSE_GY_ATTRIBUTE_NAME.c_str())).toDouble(),'f',4) ) );
+      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MAX_DOSE_GY_ATTRIBUTE_NAME.c_str())) ) );
     d->tableWidget_ChartStatistics->setItem(i, 4, new QTableWidgetItem( 
-      QString::number( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MIN_DOSE_GY_ATTRIBUTE_NAME.c_str())).toDouble(),'f',4) ) );
+      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MIN_DOSE_GY_ATTRIBUTE_NAME.c_str())) ) );
 
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_ChartStatistics);
