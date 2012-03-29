@@ -108,7 +108,7 @@ void vtkSlicerDicomRtReader::Update()
 {
   if ((this->FileName != NULL) && (strlen(this->FileName) > 0))
   {
-    /* load DICOM file or dataset */
+    // load DICOM file or dataset
     DcmFileFormat fileformat;
 
     OFCondition result;
@@ -116,7 +116,7 @@ void vtkSlicerDicomRtReader::Update()
     if (result.good())
     {
       DcmDataset *dataset = fileformat.getDataset();
-      /* check SOP Class UID for one of the supported RT objects */
+      // check SOP Class UID for one of the supported RT objects
       OFString sopClass;
       if (dataset->findAndGetOFString(DCM_SOPClassUID, sopClass).good() && !sopClass.empty())
       {

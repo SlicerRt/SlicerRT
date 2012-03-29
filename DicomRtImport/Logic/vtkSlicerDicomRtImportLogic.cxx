@@ -33,10 +33,12 @@ limitations under the License.
 
 // VTK includes
 #include <vtkNew.h>
-#include "vtkPolyData.h"
+#include <vtkPolyData.h>
+#include <vtkImageData.h>
 #include <vtkSmartPointer.h>
-#include "vtkTriangleFilter.h"
-#include "vtkPolyDataNormals.h"
+#include <vtkTriangleFilter.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkImageCast.h>
 
 // STD includes
 #include <cassert>
@@ -103,6 +105,7 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
   rtReader->SetFileName(filename);
   rtReader->Update();
 
+  // RTSTRUCT
   if (rtReader->GetLoadRTStructureSetSuccessful())
   {
     this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
@@ -172,8 +175,8 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
     return true;
   }
-  
-  if (rtReader->GetLoadRTPlanSuccessful())
+
+  // RTDOSE  if (rtReader->GetLoadRTPlanSuccessful())
   {
     this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
@@ -206,6 +209,28 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     volumeNode->SetAttribute("DoseUnits",rtReader->GetDoseUnits());
     volumeNode->SetAttribute("DoseGridScaling",rtReader->GetDoseGridScaling());
 
+    // Apply dose grid scaling
+    vtkImageData* originalVolumeData = volumeNode->GetImageData();
+    vtkImageData* floatVolumeData = vtkImageData::New();
+
+    vtkNew<vtkImageCast> imageCast;
+    imageCast->SetInput(originalVolumeData);
+    imageCast->SetOutputScalarTypeToFloat();
+    imageCast->Update();
+    floatVolumeData->DeepCopy(imageCast->GetOutput());
+
+    double doseGridScaling = atof(rtReader->GetDoseGridScaling());
+    float value = 0.0;
+    float* floatPtr = (float*)floatVolumeData->GetScalarPointer();
+    for (long i=0; i<floatVolumeData->GetNumberOfPoints(); ++i)
+    {
+      value = (*floatPtr) * doseGridScaling;
+      (*floatPtr) = value;
+      ++floatPtr;
+    }
+
+    volumeNode->SetAndObserveImageData(floatVolumeData);
+    originalVolumeData->Delete();
 
     volumeNode->SetModifiedSinceRead(1); 
 
@@ -226,6 +251,7 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     return true;
   }
 
+  // RTPLAN
   if (rtReader->GetLoadRTPlanSuccessful())
   {
     return true;
