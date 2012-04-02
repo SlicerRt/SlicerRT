@@ -40,6 +40,7 @@
 #include <vtkImageThreshold.h>
 #include <vtkImageToImageStencil.h>
 #include <vtkDoubleArray.h>
+#include <vtkStringArray.h>
 
 // STD includes
 #include <cassert>
@@ -483,9 +484,9 @@ void vtkSlicerDoseVolumeHistogramLogic
     return;
   }
 
+  // Set chart properties
   vtkMRMLChartNode* chartNode = this->ChartNode;
   chartViewNode->SetChartNodeID( chartNode->GetID() );
-  chartNode->AddArray( structurePlotName, dvhArrayNodeId );
 
   std::string doseAxisName;
   std::string chartTitle;
@@ -505,6 +506,62 @@ void vtkSlicerDoseVolumeHistogramLogic
   chartNode->SetProperty("default", "xAxisLabel", doseAxisName.c_str());
   chartNode->SetProperty("default", "yAxisLabel", "Fractional volume [%]");
   chartNode->SetProperty("default", "type", "Line");
+
+  // Change plot line style if there is already a structure with the same name in the chart
+  vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID(dvhArrayNodeId) );
+  if (dvhArrayNode == NULL)
+  {
+    vtkErrorMacro("Error: unable to get double array node!");
+    return;
+  }
+
+  const char* structureNameToAdd = dvhArrayNode->GetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+
+  int numberOfStructuresWithSameName = 0;
+  vtkStringArray* plotNames = chartNode->GetArrayNames();
+  const char* color = NULL;
+  for (int i=0; i<plotNames->GetNumberOfValues(); ++i)
+  {
+    vtkStdString plotName = plotNames->GetValue(i);
+    vtkMRMLDoubleArrayNode* arrayNode = 
+      vtkMRMLDoubleArrayNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( chartNode->GetArray(plotName) ) );
+    if (arrayNode == NULL)
+    {
+      continue;
+    }
+
+    const char* structureNameInChart = arrayNode->GetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+    if (stricmp(structureNameInChart, structureNameToAdd) == 0)
+    {
+      numberOfStructuresWithSameName++;
+      if (numberOfStructuresWithSameName == 1)
+      {
+        color = chartNode->GetProperty(plotName, "color");
+      }
+    }
+  }
+
+  // Add array to chart
+  chartNode->AddArray( structurePlotName, dvhArrayNodeId );
+
+  // Set plot properties according to the number of structures with the same name
+  if (numberOfStructuresWithSameName % 3 == 1 && color)
+  {
+    chartNode->SetProperty(structurePlotName, "color", color);
+    chartNode->SetProperty(structurePlotName, "showLines", "off");
+    chartNode->SetProperty(structurePlotName, "showMarkers", "on");
+  }
+  else if (numberOfStructuresWithSameName % 3 == 2 && color)
+  {
+    chartNode->SetProperty(structurePlotName, "color", color);
+    chartNode->SetProperty(structurePlotName, "showLines", "on");
+    chartNode->SetProperty(structurePlotName, "showMarkers", "on");
+  }
+  else
+  {
+    chartNode->SetProperty(structurePlotName, "showLines", "on");
+    chartNode->SetProperty(structurePlotName, "showMarkers", "off");
+  }
 }
 
 //---------------------------------------------------------------------------
