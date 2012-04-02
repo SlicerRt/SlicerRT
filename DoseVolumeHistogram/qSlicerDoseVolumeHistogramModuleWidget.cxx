@@ -37,6 +37,9 @@
 #include <vtkStringArray.h>
 #include <vtkDoubleArray.h>
 
+// STD includes
+#include <set>
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class qSlicerDoseVolumeHistogramModuleWidgetPrivate: public Ui_qSlicerDoseVolumeHistogramModule
@@ -267,11 +270,48 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     return;
   }
 
+  // Collect metrics (header items)
+  char metricListAttributeName[64];
+  sprintf(metricListAttributeName, "%s%s", vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
+  QSet<QString> metrics;
+  for (int i=0; i<dvhNodes->GetNumberOfItems(); ++i)
+  {
+    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( dvhNodes->GetItemAsObject(i) );
+    if (!dvhNode)
+    {
+      continue;
+    }
+
+    QString metricList( dvhNode->GetAttribute(metricListAttributeName) );
+    if (metricList.isEmpty())
+    {
+      continue;
+    }
+
+    QStringList metricStringList = metricList.split(vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_SEPARATOR_CHARACTER);
+    QStringListIterator it(metricStringList);
+    while (it.hasNext())
+    {
+      QString nextMetric( it.next() );
+      if (! nextMetric.isEmpty())
+      {
+        metrics.insert(nextMetric);
+      }
+    }
+  }
+
+
   // Set up the table
   d->tableWidget_ChartStatistics->setColumnCount(6);
-  QString doseUnit( d->logic()->GetDoseVolumeNode()->GetAttribute("DoseUnits") );
   QStringList headerLabels;
-  headerLabels << "Structure" << "Total volume (cc)" << QString("Mean dose (%1)").arg(doseUnit) << QString("Max dose (%1)").arg(doseUnit) << QString("Min dose (%1)").arg(doseUnit) << " ";
+  headerLabels << "" << "Structure";
+  for (QSet<QString>::iterator it = metrics.begin(); it != metrics.end(); ++it)
+  {
+    QString metricName(*it);
+    metricName = metricName.right( metricName.length() - vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
+    headerLabels << metricName;
+  }
+  d->tableWidget_ChartStatistics->setColumnWidth(0, 36);
   d->tableWidget_ChartStatistics->setHorizontalHeaderLabels(headerLabels);
   d->tableWidget_ChartStatistics->setRowCount(dvhNodes->GetNumberOfItems());
 
@@ -284,17 +324,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
       continue;
     }
 
-    d->tableWidget_ChartStatistics->setItem(i, 0, new QTableWidgetItem( 
-      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ) );
-    d->tableWidget_ChartStatistics->setItem(i, 1, new QTableWidgetItem( 
-      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str())) ) );
-    d->tableWidget_ChartStatistics->setItem(i, 2, new QTableWidgetItem( 
-      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME.c_str())) ) );
-    d->tableWidget_ChartStatistics->setItem(i, 3, new QTableWidgetItem( 
-      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MAX_DOSE_GY_ATTRIBUTE_NAME.c_str())) ) );
-    d->tableWidget_ChartStatistics->setItem(i, 4, new QTableWidgetItem( 
-      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_MIN_DOSE_GY_ATTRIBUTE_NAME.c_str())) ) );
-
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_ChartStatistics);
     checkbox->setToolTip(tr("Show/hide DVH plot of structure '%1' in selected chart").arg( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
@@ -303,10 +332,28 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     // Store checkbox with the augmented structure set name and the double array ID
     std::string plotName( dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) );
     plotName.append( QString("(%1)").arg(i+1).toAscii().data() );
-    dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_PLOTS_NAME_ATTRIBUTE_NAME.c_str(), plotName.c_str());
+    dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), plotName.c_str());
     m_ChartCheckboxToStructureSetNameMap[checkbox] = std::pair<std::string, std::string>(plotName, dvhNode->GetID());
 
-    d->tableWidget_ChartStatistics->setCellWidget(i, 5, checkbox);
+    d->tableWidget_ChartStatistics->setCellWidget(i, 0, checkbox);
+
+    d->tableWidget_ChartStatistics->setItem(i, 1, new QTableWidgetItem( 
+      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ) );    
+
+    // Add metric values
+    int col = 2;
+    for (QSet<QString>::iterator it = metrics.begin(); it != metrics.end(); ++it)
+    {
+      QString metricValue( dvhNode->GetAttribute(it->toAscii().data()) );
+      if (metricValue.isEmpty())
+      {
+        ++col;
+        continue;
+      }
+
+      d->tableWidget_ChartStatistics->setItem(i, col, new QTableWidgetItem(metricValue));
+      ++col;
+    }
   }
 
   updateButtonsState();
@@ -322,8 +369,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
 
   // Compute the DVH for the selected structure set using the selected dose volume
   d->logic()->ComputeDvh();
-
-  refreshDvhTable();
 
   QApplication::restoreOverrideCursor();
 }

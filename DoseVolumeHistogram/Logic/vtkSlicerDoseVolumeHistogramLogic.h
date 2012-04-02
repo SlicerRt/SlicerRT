@@ -51,12 +51,16 @@ public:
   static const std::string DVH_TYPE_ATTRIBUTE_NAME;
   static const std::string DVH_TYPE_ATTRIBUTE_VALUE;
   static const std::string DVH_STRUCTURE_NAME_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_PLOTS_NAME_ATTRIBUTE_NAME;
-  static const std::string DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
-  static const std::string DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME;
-  static const std::string DVH_MAX_DOSE_GY_ATTRIBUTE_NAME;
-  static const std::string DVH_MIN_DOSE_GY_ATTRIBUTE_NAME;
-  static const std::string DVH_VOXEL_COUNT_ATTRIBUTE_NAME;
+  static const std::string DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME;
+  static const std::string DVH_METRIC_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_LIST_ATTRIBUTE_NAME;
+  static const char DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  static const std::string DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+  static const std::string DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_VOXEL_COUNT_ATTRIBUTE_NAME;
+  static const std::string DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX;
 
 public:
   static vtkSlicerDoseVolumeHistogramLogic *New();

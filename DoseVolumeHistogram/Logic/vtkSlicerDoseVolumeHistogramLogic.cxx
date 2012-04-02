@@ -47,13 +47,17 @@
 //----------------------------------------------------------------------------
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_TYPE_ATTRIBUTE_NAME = "Type";
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_TYPE_ATTRIBUTE_VALUE = "DVH";
-const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME = "DVH_StructureName";
-const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_PLOTS_NAME_ATTRIBUTE_NAME = "DVH_StructurePlotName";
-const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME = "DVH_TotalVolumeCC";
-const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME = "DVH_MeanDoseGy";
-const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_MAX_DOSE_GY_ATTRIBUTE_NAME = "DVH_MaxDoseGy";
-const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_MIN_DOSE_GY_ATTRIBUTE_NAME = "DVH_MinDoseGy";
-const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_VOXEL_COUNT_ATTRIBUTE_NAME = "DVH_VoxelCount";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME = "StructureName";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME = "DVH_StructurePlotName";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX = "DVH_Metric:";
+const char vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_SEPARATOR_CHARACTER = '|';
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_ATTRIBUTE_NAME = "List";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME = "Total volume (cc)";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX = "Mean dose";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX = "Max dose";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX = "Min dose";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_VOXEL_COUNT_ATTRIBUTE_NAME = "Voxel count";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX = "V";
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseVolumeHistogramLogic);
@@ -185,7 +189,7 @@ void vtkSlicerDoseVolumeHistogramLogic
     this->DvhDoubleArrayNodes->RemoveItem( vtkMRMLDoubleArrayNode::SafeDownCast(node) );
 
     // Remove the structure corresponding the deleted node from all charts
-    const char* structurePlotName = node->GetAttribute(DVH_STRUCTURE_PLOTS_NAME_ATTRIBUTE_NAME.c_str());
+    const char* structurePlotName = node->GetAttribute(DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str());
 
     this->GetMRMLScene()->InitTraversal();
     vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLChartNode");
@@ -326,7 +330,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   double cubicMMPerVoxel = structureStenciledDoseVolumeSpacing[0] * structureStenciledDoseVolumeSpacing[1] * structureStenciledDoseVolumeSpacing[2];
   double ccPerCubicMM = 0.001;
 
-  // Get dose grid scaling
+  // Get dose grid scaling and dose units
   const char* doseGridScalingString = this->DoseVolumeNode->GetAttribute("DoseGridScaling");
   double doseGridScaling = 1.0;
   if (doseGridScalingString!=NULL)
@@ -337,6 +341,8 @@ void vtkSlicerDoseVolumeHistogramLogic
   {
     vtkWarningMacro("Dose grid scaling attribute is not set for the selected dose volume. Assuming scaling = 1.");
   }
+
+  const char* doseUnits = this->DoseVolumeNode->GetAttribute("DoseUnits");
 
   // Compute statistics
   vtkNew<vtkImageToImageStencil> stencil;
@@ -363,17 +369,32 @@ void vtkSlicerDoseVolumeHistogramLogic
   arrayNode->SetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str(), DVH_TYPE_ATTRIBUTE_VALUE.c_str());
   arrayNode->SetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureName);
 
+  char attributeName[64];
   char attributeValue[64];
+  std::ostringstream metricList;
+
+  sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str());
   sprintf(attributeValue, "%g", stat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM);
-  arrayNode->SetAttribute(DVH_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str(), attributeValue);
+  metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  arrayNode->SetAttribute(attributeName, attributeValue);
+
+  sprintf(attributeName, "%s%s (%s)", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnits);
   sprintf(attributeValue, "%g", stat->GetMean()[0]);
-  arrayNode->SetAttribute(DVH_MEAN_DOSE_GY_ATTRIBUTE_NAME.c_str(), attributeValue);
+  metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  arrayNode->SetAttribute(attributeName, attributeValue);
+
+  sprintf(attributeName, "%s%s (%s)", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnits);
   sprintf(attributeValue, "%g", stat->GetMax()[0]);
-  arrayNode->SetAttribute(DVH_MAX_DOSE_GY_ATTRIBUTE_NAME.c_str(), attributeValue);
+  metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  arrayNode->SetAttribute(attributeName, attributeValue);
+
+  sprintf(attributeName, "%s%s (%s)", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnits);
   sprintf(attributeValue, "%g", stat->GetMin()[0]);
-  arrayNode->SetAttribute(DVH_MIN_DOSE_GY_ATTRIBUTE_NAME.c_str(), attributeValue);
-  sprintf(attributeValue, "%i", stat->GetVoxelCount());
-  arrayNode->SetAttribute(DVH_VOXEL_COUNT_ATTRIBUTE_NAME.c_str(), attributeValue);
+  metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  arrayNode->SetAttribute(attributeName, attributeValue);
+
+  sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
+  arrayNode->SetAttribute(attributeName, metricList.str().c_str());
 
   arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->AddNode( arrayNode ) );
 
