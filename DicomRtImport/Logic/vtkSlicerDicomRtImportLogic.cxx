@@ -176,22 +176,7 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     return true;
   }
 
-  // RTDOSE  if (rtReader->GetLoadRTPlanSuccessful())
-  {
-    this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
-
-    int numberOfBeams = rtReader->GetNumberOfBeams();
-    for (int dicomBeamIndex = 1; dicomBeamIndex < numberOfBeams+1; dicomBeamIndex++) // DICOM starts indexing from 1
-    {
-      // Isocenter fiducial
-      double isoColor[3] = { 1.0,1.0,1.0};
-      AddRoiPoint(rtReader->GetBeamIsocenterPosition(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
-    }
-
-    this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
-    return true;
-  }
-
+  // RTDOSE
   if (rtReader->GetLoadRTDoseSuccessful())
   {
     // Load Volume
@@ -254,6 +239,17 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
   // RTPLAN
   if (rtReader->GetLoadRTPlanSuccessful())
   {
+    this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+
+    int numberOfBeams = rtReader->GetNumberOfBeams();
+    for (int dicomBeamIndex = 1; dicomBeamIndex < numberOfBeams+1; dicomBeamIndex++) // DICOM starts indexing from 1
+    {
+      // Isocenter fiducial
+      double isoColor[3] = { 1.0,1.0,1.0};
+      AddRoiPoint(rtReader->GetBeamIsocenterPosition(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
+    }
+
+    this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
     return true;
   }
 
