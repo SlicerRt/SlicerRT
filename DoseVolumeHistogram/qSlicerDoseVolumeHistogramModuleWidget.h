@@ -55,6 +55,9 @@ protected slots:
   void exportDvhToCsvClicked();
   void exportMetricsToCsv();
   void showHideAllCheckedStateChanged(int aState);
+  void showVMetricsCheckedStateChanged(int aState);
+  void lineEditVDoseEdited(QString aText);
+
   void checkSceneChange();
 
 protected:
@@ -72,8 +75,11 @@ protected:
   /// Refresh DVH statistics table
   void refreshDvhTable();
 
+  /// Get dose value list from text in V dose value line edit (empty list if unsuccessful)
+  void getDoseValuesFromLineEditVDose(std::vector<double> &aDoseValues);
+
 protected:
-  /// Map that associates a string pair containing the structure set plot name and the vtkMRMLDoubleArrayNode id (respectively) to the show/hide in chart checkboxes
+  /// Map that associates a string pair containing the structure set plot name (including table row number) and the vtkMRMLDoubleArrayNode id (respectively) to the show/hide in chart checkboxes
   std::map<QCheckBox*, std::pair<std::string, std::string>> m_ChartCheckboxToStructureSetNameMap;
 
   /// Vector of checkbox states for the case the user makes the show/hide all checkbox state partially checked. Then the last configuration is restored
