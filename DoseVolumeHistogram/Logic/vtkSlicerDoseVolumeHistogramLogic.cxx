@@ -51,6 +51,7 @@ const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_TYPE_ATTRIBUTE_VALUE = 
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME = "DoseVolumeNodeId";
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME = "StructureName";
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME = "StructureModelNodeId";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME = "StructureColor";
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME = "DVH_StructurePlotName";
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX = "DVH_Metric:";
 const char vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_SEPARATOR_CHARACTER = '|';
@@ -390,8 +391,12 @@ void vtkSlicerDoseVolumeHistogramLogic
   arrayNode->SetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureModelNode->GetName());
   arrayNode->SetAttribute(DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME.c_str(), structureModelNode->GetID());
 
-  char attributeName[64];
   char attributeValue[64];
+  double* color = structureModelNode->GetDisplayNode()->GetColor();
+  sprintf(attributeValue, "#%X%X%X", (int)(color[0]*256.0), (int)(color[1]*256.0), (int)(color[2]*256.0));
+  arrayNode->SetAttribute(DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str(), attributeValue);
+
+  char attributeName[64];
   std::ostringstream metricList;
 
   sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str());
@@ -561,6 +566,8 @@ void vtkSlicerDoseVolumeHistogramLogic
   {
     chartNode->SetProperty(structurePlotName, "showLines", "on");
     chartNode->SetProperty(structurePlotName, "showMarkers", "off");
+    color = dvhArrayNode->GetAttribute(DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str());
+    chartNode->SetProperty(structurePlotName, "color", color);
   }
 }
 
