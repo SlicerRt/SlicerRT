@@ -124,6 +124,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->checkBox_ShowHideAll, SIGNAL( stateChanged(int) ), this, SLOT( showHideAllCheckedStateChanged(int) ) );
   connect( d->checkBox_ShowVMetrics, SIGNAL( stateChanged(int) ), this, SLOT( showVMetricsCheckedStateChanged(int) ) );
   connect( d->lineEdit_VDose, SIGNAL( textEdited(QString) ), this, SLOT( lineEditVDoseEdited(QString) ) );
+  connect( d->checkBox_ShowDMetrics, SIGNAL( stateChanged(int) ), this, SLOT( showDMetricsCheckedStateChanged(int) ) );
+  connect( d->lineEdit_DVolume, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumeEdited(QString) ) );
 
   connect( m_CheckSceneChangeTimer, SIGNAL( timeout() ), this, SLOT( checkSceneChange() ) );
 
@@ -141,8 +143,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   bool dvhCanBeComputed = d->logic()->GetDoseVolumeNode() && d->logic()->GetStructureSetModelNode();
   d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
 
-  bool vMetricCanBeShown = (d->tableWidget_ChartStatistics->rowCount() > 0);
-  d->checkBox_ShowVMetrics->setEnabled(vMetricCanBeShown);
+  bool vdMetricCanBeShown = (d->tableWidget_ChartStatistics->rowCount() > 0);
+  d->checkBox_ShowVMetrics->setEnabled(vdMetricCanBeShown);
+  d->checkBox_ShowDMetrics->setEnabled(vdMetricCanBeShown);
 }
 
 //-----------------------------------------------------------------------------
@@ -354,11 +357,18 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   std::vector<double> vDoseValues;
   if (d->checkBox_ShowVMetrics->isChecked())
   {
-    getDoseValuesFromLineEditVDose(vDoseValues);
+    getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValues);
+  }
+
+  // Get requested D metrics
+  std::vector<double> dVolumeValues;
+  if (d->checkBox_ShowDMetrics->isChecked())
+  {
+    getNumbersFromLineEdit(d->lineEdit_DVolume, dVolumeValues);
   }
 
   // Set up the table
-  d->tableWidget_ChartStatistics->setColumnCount(2 + metricList.count() + vDoseValues.size());
+  d->tableWidget_ChartStatistics->setColumnCount(2 + metricList.count() + vDoseValues.size() + dVolumeValues.size());
   QStringList headerLabels;
   headerLabels << "" << "Structure";
   for (QList<QString>::iterator it = metricList.begin(); it != metricList.end(); ++it)
@@ -369,7 +379,12 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   }
   for (std::vector<double>::iterator it = vDoseValues.begin(); it != vDoseValues.end(); ++it)
   {
-    QString metricName = QString("V(%1) cc").arg(*it);
+    QString metricName = QString("V%1 (cc)").arg(*it);
+    headerLabels << metricName;
+  }
+  for (std::vector<double>::iterator it = dVolumeValues.begin(); it != dVolumeValues.end(); ++it)
+  {
+    QString metricName = QString("D%1cc (Gy)").arg(*it);
     headerLabels << metricName;
   }
   d->tableWidget_ChartStatistics->setColumnWidth(0, 36);
@@ -416,15 +431,33 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     }
 
     // Add V metric values
-    std::vector<double> volumes;
-    d->logic()->ComputeVMetrics(dvhNode, vDoseValues, volumes);
-    col = 2 + metricList.count();
-    for (std::vector<double>::iterator it = volumes.begin(); it != volumes.end(); ++it)
+    if (vDoseValues.size() > 0)
     {
-      QString metricValue;
-      metricValue.setNum((*it), 'f', 2);
-      d->tableWidget_ChartStatistics->setItem(i, col, new QTableWidgetItem(metricValue));
-      ++col;
+      std::vector<double> volumes;
+      d->logic()->ComputeVMetrics(dvhNode, vDoseValues, volumes);
+      col = 2 + metricList.count();
+      for (std::vector<double>::iterator it = volumes.begin(); it != volumes.end(); ++it)
+      {
+        QString metricValue;
+        metricValue.setNum((*it), 'f', 2);
+        d->tableWidget_ChartStatistics->setItem(i, col, new QTableWidgetItem(metricValue));
+        ++col;
+      }
+    }
+
+    // Add D metric values
+    if (dVolumeValues.size() > 0)
+    {
+      std::vector<double> doses;
+      d->logic()->ComputeDMetrics(dvhNode, dVolumeValues, doses);
+      col = 2 + metricList.count() + vDoseValues.size();
+      for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
+      {
+        QString metricValue;
+        metricValue.setNum((*it), 'f', 2);
+        d->tableWidget_ChartStatistics->setItem(i, col, new QTableWidgetItem(metricValue));
+        ++col;
+      }
     }
   }
 
@@ -653,6 +686,33 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::getNumbersFromLineEdit(QLineEdit* aLineEdit, std::vector<double> &aValues)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  aValues.clear();
+
+  if (!aLineEdit)
+  {
+    return;
+  }
+
+  QStringList valuesStringList = aLineEdit->text().split(',');
+  QStringListIterator it(valuesStringList);
+  while (it.hasNext())
+  {
+    QString nextValue( it.next() );
+
+    bool toDoubleOk;
+    double value = nextValue.toDouble(&toDoubleOk);
+    if (toDoubleOk)
+    {
+      aValues.push_back(value);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
 {
   refreshDvhTable();
@@ -665,23 +725,13 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsCheckedStateChanged(int
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::getDoseValuesFromLineEditVDose(std::vector<double> &aDoseValues)
+void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int aState)
 {
-  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+  refreshDvhTable();
+}
 
-  aDoseValues.clear();
-
-  QStringList doseValuesStringList = d->lineEdit_VDose->text().split(',');
-  QStringListIterator it(doseValuesStringList);
-  while (it.hasNext())
-  {
-    QString nextDoseValue( it.next() );
-
-    bool toDoubleOk;
-    double doseValue = nextDoseValue.toDouble(&toDoubleOk);
-    if (toDoubleOk)
-    {
-      aDoseValues.push_back(doseValue);
-    }
-  }
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeEdited(QString aText)
+{
+  refreshDvhTable();
 }

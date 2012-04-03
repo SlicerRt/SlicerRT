@@ -53,7 +53,7 @@ const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUT
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME = "StructureModelNodeId";
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME = "StructureColor";
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME = "DVH_StructurePlotName";
-const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX = "DVH_Metric:";
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX = "DVH_Metric_";
 const char vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_SEPARATOR_CHARACTER = '|';
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_ATTRIBUTE_NAME = "List";
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME = "Total volume (cc)";
@@ -393,7 +393,7 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   char attributeValue[64];
   double* color = structureModelNode->GetDisplayNode()->GetColor();
-  sprintf(attributeValue, "#%X%X%X", (int)(color[0]*256.0), (int)(color[1]*256.0), (int)(color[2]*256.0));
+  sprintf(attributeValue, "#%02X%02X%02X", (int)(color[0]*255.0+0.5), (int)(color[1]*255.0+0.5), (int)(color[2]*255.0+0.5));
   arrayNode->SetAttribute(DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str(), attributeValue);
 
   char attributeName[64];
@@ -680,6 +680,88 @@ void vtkSlicerDoseVolumeHistogramLogic
 
         break;
       }
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseVolumeHistogramLogic
+::ComputeDMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> volumeSizes, std::vector<double> &dMetrics)
+{
+  dMetrics.clear();
+
+  // Get structure volume
+  char attributeName[64];
+  sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str());
+  const char* structureVolumeStr = dvhArrayNode->GetAttribute(attributeName);
+  if (!structureVolumeStr)
+  {
+    vtkErrorMacro("Error: Failed to get total volume attribute from DVH double array MRML node!");
+    return;
+  }
+
+  double structureVolume = atof(structureVolumeStr);
+  if (structureVolume == 0.0)
+  {
+    vtkErrorMacro("Error: Failed to parse structure total volume attribute value!");
+    return;
+  }
+
+  // Compute volume for all D's
+  vtkDoubleArray* doubleArray = dvhArrayNode->GetArray();
+  double maximumDose = 0.0;
+  for (int d=-1; d<(int)volumeSizes.size(); ++d)
+  {
+    double volumeSize = 0.0;
+    double doseForVolume = 0.0;
+
+    // First we get the maximum dose (D0.1cc)
+    if (d == -1)
+    {
+      volumeSize = 0.1;
+    }
+    else
+    {
+      volumeSize = volumeSizes[d];
+    }
+
+    // Check if the given volume is above the highest (first) in the array then assign no dose
+    if (volumeSize >= doubleArray->GetComponent(0, 1) / 100.0 * structureVolume)
+    {
+      doseForVolume = 0.0;
+    }
+    // If volume is below the lowest (last) in the array then assign maximum dose
+    else if (volumeSize < doubleArray->GetComponent(doubleArray->GetNumberOfTuples()-1, 1) / 100.0 * structureVolume)
+    {
+      doseForVolume = doubleArray->GetComponent(doubleArray->GetNumberOfTuples()-1, 0);
+    }
+    else
+    {
+      for (int i=0; i<doubleArray->GetNumberOfTuples()-1; ++i)
+      {
+        double volumePrevious = doubleArray->GetComponent(i, 1) / 100.0 * structureVolume;
+        double volumeNext = doubleArray->GetComponent(i+1, 1) / 100.0 * structureVolume;
+        if (volumePrevious > volumeSize && volumeSize >= volumeNext)
+        {
+          // Compute the dose using linear interpolation
+          double dosePrevious = doubleArray->GetComponent(i, 0);
+          double doseNext = doubleArray->GetComponent(i+1, 0);
+          double doseEstimated = dosePrevious + (doseNext-dosePrevious)*(volumeSize-volumePrevious)/(volumeNext-volumePrevious);
+          doseForVolume = doseEstimated;
+
+          break;
+        }
+      }
+    }
+
+    // Set found dose
+    if (d == -1)
+    {
+      maximumDose = doseForVolume;
+    }
+    else
+    {
+      dMetrics.push_back( maximumDose - doseForVolume );
     }
   }
 }

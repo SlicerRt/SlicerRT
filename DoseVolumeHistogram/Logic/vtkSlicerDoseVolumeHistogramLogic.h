@@ -84,6 +84,9 @@ public:
   /// Compute V metrics for the given DVH using the given dose values and put them in the vMetrics output list
   void ComputeVMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> doseValues, std::vector<double> &vMetrics);
 
+  /// Compute D metrics for the given DVH using the given volume sizes and put them in the dMetrics output list
+  void ComputeDMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> volumeSizes, std::vector<double> &dMetrics);
+
 public:
   void SetDoseVolumeNode( vtkMRMLVolumeNode* );
   void SetStructureSetModelNode( vtkMRMLNode* );

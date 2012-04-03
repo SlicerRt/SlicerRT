@@ -30,6 +30,7 @@ class qSlicerDoseVolumeHistogramModuleWidgetPrivate;
 class vtkMRMLNode;
 class QCheckBox;
 class QTimer;
+class QLineEdit;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramModuleWidget :
@@ -57,6 +58,8 @@ protected slots:
   void showHideAllCheckedStateChanged(int aState);
   void showVMetricsCheckedStateChanged(int aState);
   void lineEditVDoseEdited(QString aText);
+  void showDMetricsCheckedStateChanged(int aState);
+  void lineEditDVolumeEdited(QString aText);
 
   void checkSceneChange();
 
@@ -75,8 +78,8 @@ protected:
   /// Refresh DVH statistics table
   void refreshDvhTable();
 
-  /// Get dose value list from text in V dose value line edit (empty list if unsuccessful)
-  void getDoseValuesFromLineEditVDose(std::vector<double> &aDoseValues);
+  /// Get value list from text in given line edit (empty list if unsuccessful)
+  void getNumbersFromLineEdit(QLineEdit* aLineEdit, std::vector<double> &aValues);
 
 protected:
   /// Map that associates a string pair containing the structure set plot name (including table row number) and the vtkMRMLDoubleArrayNode id (respectively) to the show/hide in chart checkboxes
