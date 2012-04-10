@@ -107,7 +107,8 @@ class DicomRtImportPlugin:
   def __init__(self, parent):
     parent.title = "DICOM RT Import Plugin"
     parent.categories = ["Developer Tools.DICOM Plugins"]
-    parent.contributor = "SparKit/SlicerRt team"
+    parent.dependencies = []
+    parent.contributors = "SparKit/SlicerRt team"
     parent.helpText = """
     Plugin to the DICOM Module to parse and load RT entities from DICOM files.
     No module interface here, only in the DICOM module
