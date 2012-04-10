@@ -1,65 +1,36 @@
-#-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.4)
-#-----------------------------------------------------------------------------
+cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
-# See http://cmake.org/cmake/help/cmake-2-8-docs.html#section_Policies for details
-#-----------------------------------------------------------------------------
-if(POLICY CMP0017)
-  cmake_policy(SET CMP0017 OLD)
+set(EXTENSION_NAME DoseVolumeHistogram) # Do not use 'project()' - See SlicerConfig.cmake
+
+if(NOT Slicer_SOURCE_DIR)
+  set(EXTENSION_HOMEPAGE "https://www.assembla.com/spaces/slicerrt")
+  set(EXTENSION_CATEGORY "Radiotherapy")
+  set(EXTENSION_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/LoadableExtensionTemplate/Resources/Icons/LoadableExtensionTemplate.png?revision=19437&view=co")
+  set(EXTENSION_STATUS "Beta")
+  set(EXTENSION_CONTRIBUTORS "Csaba Pinter, Andras Lasso, Kevin Wang")
+  set(EXTENSION_DESCRIPTION "Compute and display dose volume histograms")
+  set(EXTENSION_SCREENSHOTURLS "https://www.assembla.com/spaces/slicerrt/documents/bhB--4vSSr4BSNacwqjQWU/download/bhB--4vSSr4BSNacwqjQWU?notinline=true")
+  set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 endif()
 
-#-----------------------------------------------------------------------------
-# Module name
-#   - Usually identique to the directory name)
-#   - You shouldn't call 'project(...)'. See SlicerConfig.cmake for more details.
-#-----------------------------------------------------------------------------
-set(EXTENSION_NAME DoseVolumeHistogram)
-
-#-----------------------------------------------------------------------------
-# Prerequisites
 #-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
-  set(EXTENSION_HOMEPAGE "http://www.slicer.org/slicerWiki/index.php/Slicer4:Developers:Projects:QtSlicer/Tutorials/ExtensionWriting")
-  set(EXTENSION_CATEGORY "Radiotherapy")
-  set(EXTENSION_STATUS "Beta")
-  set(EXTENSION_DESCRIPTION "This is an example of Qt loadable module built as an extension")
-  set(EXTENSION_DEPENDS CLIExtensionTemplate) # Specified as a space separated list or 'NA' if any
-
   find_package(Slicer REQUIRED)
-
-  # Additional C/CXX flags - Should be defined before including Slicer_USE_FILE
-  set(ADDITIONAL_C_FLAGS "" CACHE STRING "Additional ${EXTENSION_NAME} C Flags")
-  set(ADDITIONAL_CXX_FLAGS "" CACHE STRING "Additional ${EXTENSION_NAME} CXX Flags")
-
   include(${Slicer_USE_FILE})
-
-  set(EXTENSION_LICENSE_FILE ${Slicer_LICENSE_FILE})
-  set(EXTENSION_README_FILE ${Slicer_README_FILE})
-
   include(SlicerEnableExtensionTesting)
-
 endif()
-
-# Module name (usually identical to the directory name)
-set(qt_module_name "DoseVolumeHistogram")
-set(qt_module_title "Dose Volume Histogram") 
-
-# Add subdirectories
+#-----------------------------------------------------------------------------
 add_subdirectory(Logic)
 
 #-----------------------------------------------------------------------------
-# Sources
-#-----------------------------------------------------------------------------
 set(qt_module_export_directive "Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT")
-
-# Additional includes - Current_{source,binary} and Slicer_{Libs,Base} already included
+# Current_{source,binary} and Slicer_{Libs,Base} already included
 set(qt_module_include_directories
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
   )
 
-# Source files
 set(qt_module_SRCS
   qSlicerDoseVolumeHistogramModule.cxx
   qSlicerDoseVolumeHistogramModule.h
@@ -67,29 +38,23 @@ set(qt_module_SRCS
   qSlicerDoseVolumeHistogramModuleWidget.h
   )
 
-# Headers that should run through moc
 set(qt_module_MOC_SRCS
   qSlicerDoseVolumeHistogramModule.h
   qSlicerDoseVolumeHistogramModuleWidget.h
   )
 
-# UI files
 set(qt_module_UI_SRCS
   Resources/UI/qSlicerDoseVolumeHistogramModule.ui
 )
 
-# Additional Target libraries
 set(qt_module_target_libraries
   vtkSlicerDoseVolumeHistogramModuleLogic
   )
 
-# Resources
 set(qt_module_resources
   Resources/qSlicerDoseVolumeHistogramModule.qrc
 )
 
-#-----------------------------------------------------------------------------
-# Build
 #-----------------------------------------------------------------------------
 slicerMacroBuildQtModule(
   NAME ${EXTENSION_NAME}
@@ -103,32 +68,10 @@ slicerMacroBuildQtModule(
   )
 
 #-----------------------------------------------------------------------------
-# Testing
-#-----------------------------------------------------------------------------
 if(BUILD_TESTING)
   add_subdirectory(Testing)
 endif()
 
-#-----------------------------------------------------------------------------
-# Generate extension description file '<EXTENSION_NAME>.s4ext'
-#-----------------------------------------------------------------------------
-if(NOT Slicer_SOURCE_DIR)
-  include(SlicerFunctionGenerateExtensionDescription)
-  slicerFunctionGenerateExtensionDescription(
-    EXTENSION_NAME ${EXTENSION_NAME}
-    EXTENSION_CATEGORY ${EXTENSION_CATEGORY}
-    EXTENSION_STATUS ${EXTENSION_STATUS}
-    EXTENSION_HOMEPAGE ${EXTENSION_HOMEPAGE}
-    EXTENSION_DESCRIPTION ${EXTENSION_DESCRIPTION}
-    EXTENSION_DEPENDS ${EXTENSION_DEPENDS}
-    DESTINATION_DIR ${CMAKE_CURRENT_BINARY_DIR}
-    SLICER_WC_REVISION ${Slicer_WC_REVISION}
-    SLICER_WC_ROOT ${Slicer_WC_ROOT}
-    )
-endif()
-
-#-----------------------------------------------------------------------------
-# Packaging
 #-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
   include(${Slicer_EXTENSION_CPACK})
