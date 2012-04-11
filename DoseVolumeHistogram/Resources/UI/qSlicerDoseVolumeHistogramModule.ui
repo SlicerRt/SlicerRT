@@ -270,7 +270,7 @@
       <item row="3" column="0">
        <widget class="ctkCollapsibleButton" name="CollapsibleButton_AdvancedOptions">
         <property name="text">
-         <string>CollapsibleButton_AdvancedOptions</string>
+         <string>Advanced Options</string>
         </property>
         <property name="contentsFrameShape">
          <enum>QFrame::StyledPanel</enum>
