@@ -105,31 +105,19 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
   rtReader->SetFileName(filename);
   rtReader->Update();
 
+  // One series can contain composite information, e.g, an RTPLAN series can contain structure sets and plans as well
+
+  bool loadedSomething=false;
+  bool loadingErrorsOccurred=false;
+
   // RTSTRUCT
   if (rtReader->GetLoadRTStructureSetSuccessful())
   {
     this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
-    // Create hierarchy node for the loaded structure sets
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    std::string hierarchyNodeName;
-    hierarchyNodeName = std::string(seriesname) + "_RTStructureSetHierarchy";
-    modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
-    modelHierarchyRootNode->AllowMultipleChildrenOn();
-    modelHierarchyRootNode->HideFromEditorsOff();
-    this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
-
-    // A hierarchy node needs a display node
-    vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-    hierarchyNodeName.append("Display");
-    modelDisplayNode->SetName(hierarchyNodeName.c_str());
-    modelDisplayNode->SetVisibility(1);
-    this->GetMRMLScene()->AddNode(modelDisplayNode);
-    modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
-    modelDisplayNode = NULL;
-
-    // Now get it again as a mrml node so can add things under it (copied from ModelMaker module)
-    //vtkMRMLNode* modelHierarchyNodeCasted = this->GetMRMLScene()->GetNodeByID( modelHierarchyNode->GetID() );
+    // Hierarchy node for the loaded structure sets
+    // It is not created here yet because maybe there won't be anything to put in it.
+    vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode;
 
     // Add ROIs
     int numberOfROI = rtReader->GetNumberOfROIs();
@@ -164,7 +152,27 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
       // Add new node to the hierarchy node
       if (addedDisplayableNode)
       {
-        // put it in the hierarchy
+        // Create root node, if it has not been created yet
+        if (modelHierarchyRootNode.GetPointer()==NULL)
+        {
+          modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+          std::string hierarchyNodeName;
+          hierarchyNodeName = std::string(seriesname) + " - all structures";
+          modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+          modelHierarchyRootNode->AllowMultipleChildrenOn();
+          modelHierarchyRootNode->HideFromEditorsOff();
+          this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
+
+          // A hierarchy node needs a display node
+          vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+          hierarchyNodeName.append("Display");
+          modelDisplayNode->SetName(hierarchyNodeName.c_str());
+          modelDisplayNode->SetVisibility(1);
+          this->GetMRMLScene()->AddNode(modelDisplayNode);
+          modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+        }
+
+        // put the new node in the hierarchy
         vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
         this->GetMRMLScene()->AddNode(modelHierarchyNode);
         modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
@@ -173,7 +181,7 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     }
 
     this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
-    return true;
+    loadedSomething=true;
   }
 
   // RTDOSE
@@ -184,56 +192,59 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     if (volumeNode == NULL)
     {
       vtkErrorMacro("Failed to load dose volume file '" << filename << "' (series name '" << seriesname << "')");
-      return false;
+      loadingErrorsOccurred=true;
     }
-
-    // Set new spacing
-    double* initialSpacing = volumeNode->GetSpacing();
-    double* correctSpacing = rtReader->GetPixelSpacing();
-    volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
-    volumeNode->SetAttribute("DoseUnits",rtReader->GetDoseUnits());
-    volumeNode->SetAttribute("DoseGridScaling",rtReader->GetDoseGridScaling());
-
-    // Apply dose grid scaling
-    vtkImageData* originalVolumeData = volumeNode->GetImageData();
-    vtkImageData* floatVolumeData = vtkImageData::New();
-
-    vtkNew<vtkImageCast> imageCast;
-    imageCast->SetInput(originalVolumeData);
-    imageCast->SetOutputScalarTypeToFloat();
-    imageCast->Update();
-    floatVolumeData->DeepCopy(imageCast->GetOutput());
-
-    double doseGridScaling = atof(rtReader->GetDoseGridScaling());
-    float value = 0.0;
-    float* floatPtr = (float*)floatVolumeData->GetScalarPointer();
-    for (long i=0; i<floatVolumeData->GetNumberOfPoints(); ++i)
+    else
     {
-      value = (*floatPtr) * doseGridScaling;
-      (*floatPtr) = value;
-      ++floatPtr;
-    }
 
-    volumeNode->SetAndObserveImageData(floatVolumeData);
-    originalVolumeData->Delete();
+      // Set new spacing
+      double* initialSpacing = volumeNode->GetSpacing();
+      double* correctSpacing = rtReader->GetPixelSpacing();
+      volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
+      volumeNode->SetAttribute("DoseUnits",rtReader->GetDoseUnits());
+      volumeNode->SetAttribute("DoseGridScaling",rtReader->GetDoseGridScaling());
 
-    volumeNode->SetModifiedSinceRead(1); 
+      // Apply dose grid scaling
+      vtkImageData* originalVolumeData = volumeNode->GetImageData();
+      vtkImageData* floatVolumeData = vtkImageData::New();
 
-    // Set default colormap to rainbow
-    if (volumeNode->GetVolumeDisplayNode()!=NULL)
-    {
-      volumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-    }
-    // Select as active volume
-    if (this->GetApplicationLogic()!=NULL)
-    {
-      if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
+      vtkNew<vtkImageCast> imageCast;
+      imageCast->SetInput(originalVolumeData);
+      imageCast->SetOutputScalarTypeToFloat();
+      imageCast->Update();
+      floatVolumeData->DeepCopy(imageCast->GetOutput());
+
+      double doseGridScaling = atof(rtReader->GetDoseGridScaling());
+      float value = 0.0;
+      float* floatPtr = (float*)floatVolumeData->GetScalarPointer();
+      for (long i=0; i<floatVolumeData->GetNumberOfPoints(); ++i)
       {
-        this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(volumeNode->GetID());
-        this->GetApplicationLogic()->PropagateVolumeSelection();
+        value = (*floatPtr) * doseGridScaling;
+        (*floatPtr) = value;
+        ++floatPtr;
       }
+
+      volumeNode->SetAndObserveImageData(floatVolumeData);
+      originalVolumeData->Delete();
+
+      volumeNode->SetModifiedSinceRead(1); 
+
+      // Set default colormap to rainbow
+      if (volumeNode->GetVolumeDisplayNode()!=NULL)
+      {
+        volumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+      }
+      // Select as active volume
+      if (this->GetApplicationLogic()!=NULL)
+      {
+        if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
+        {
+          this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(volumeNode->GetID());
+          this->GetApplicationLogic()->PropagateVolumeSelection();
+        }
+      }
+      loadedSomething=true;
     }
-    return true;
   }
 
   // RTPLAN
@@ -250,10 +261,14 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     }
 
     this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
-    return true;
+    loadedSomething=true;
   }
 
-  return false;
+  if (loadingErrorsOccurred)
+  {
+    return false;
+  }
+  return loadedSomething;
 }
 
 //---------------------------------------------------------------------------
