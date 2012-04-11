@@ -278,7 +278,6 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiPoint(double *roiPosi
 vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiContour(vtkPolyData *roiPoly, const char* roiLabel, double *roiColor)
 {
   vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  displayNode->SetScene(this->GetMRMLScene()); 
   displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
   displayNode->SetModifiedSinceRead(1); 
   displayNode->SliceIntersectionVisibilityOn();  
@@ -289,16 +288,13 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiContour(vtkPolyData *
   displayNode->SetBackfaceCulling(0);
 
   vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-  modelNode->SetScene(this->GetMRMLScene());
   modelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(modelNode));
   modelNode->SetName(roiLabel);
+  modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   modelNode->SetAndObservePolyData(roiPoly);
   modelNode->SetModifiedSinceRead(1);
-  modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   modelNode->SetHideFromEditors(0);
   modelNode->SetSelectable(1);
-
-  this->InvokeEvent( vtkMRMLDisplayableNode::PolyDataModifiedEvent, displayNode);
 
   return modelNode;
 }
