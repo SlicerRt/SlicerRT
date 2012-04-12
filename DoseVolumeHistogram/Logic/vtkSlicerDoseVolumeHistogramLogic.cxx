@@ -351,7 +351,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   double ccPerCubicMM = 0.001;
 
   // Get dose grid scaling and dose units
-  const char* doseGridScalingString = this->DoseVolumeNode->GetAttribute("DoseGridScaling");
+  const char* doseGridScalingString = this->DoseVolumeNode->GetAttribute("AppliedDoseGridScaling");
   double doseGridScaling = 1.0;
   if (doseGridScalingString!=NULL)
   {
@@ -768,4 +768,18 @@ void vtkSlicerDoseVolumeHistogramLogic
       dMetrics.push_back( maximumDose - doseForVolume );
     }
   }
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerDoseVolumeHistogramLogic
+::DoseVolumeContainsDose()
+{
+  const char* doseUnits = this->DoseVolumeNode->GetAttribute("DoseUnits");
+
+  if (doseUnits != NULL)
+  {
+    return true;
+  }
+
+  return false;
 }

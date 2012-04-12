@@ -87,6 +87,9 @@ public:
   /// Compute D metrics for the given DVH using the given volume sizes and put them in the dMetrics output list
   void ComputeDMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> volumeSizes, std::vector<double> &dMetrics);
 
+  /// Return false if the dose volume contains a volume that is really a dose volume
+  bool DoseVolumeContainsDose();
+
 public:
   void SetDoseVolumeNode( vtkMRMLVolumeNode* );
   void SetStructureSetModelNode( vtkMRMLNode* );

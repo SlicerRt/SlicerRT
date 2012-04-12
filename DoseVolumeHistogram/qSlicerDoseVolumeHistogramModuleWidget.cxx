@@ -113,6 +113,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   d->tableWidget_ChartStatistics->setSortingEnabled(false);
   d->tableWidget_ChartStatistics->setSelectionMode(QAbstractItemView::NoSelection);
 
+  d->label_NotDoseVolumeWarning->setText("");
+
   // Make connections
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
   connect( d->MRMLNodeComboBox_StructureSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( structureSetNodeChanged(vtkMRMLNode*) ) );
@@ -219,6 +221,15 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
   {
     d->logic()->SetDoseVolumeNode(volumeNode);
     updateButtonsState();
+
+    if (d->logic()->DoseVolumeContainsDose())
+    {
+      d->label_NotDoseVolumeWarning->setText("");
+    }
+    else
+    {
+      d->label_NotDoseVolumeWarning->setText(tr(" Selected volume is not a dose"));
+    }
   }
 }
 
