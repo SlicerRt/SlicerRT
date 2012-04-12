@@ -56,10 +56,8 @@ protected slots:
   void exportDvhToCsvClicked();
   void exportMetricsToCsv();
   void showHideAllCheckedStateChanged(int aState);
-  void showVMetricsCheckedStateChanged(int aState);
-  void lineEditVDoseEdited(QString aText);
-  void showDMetricsCheckedStateChanged(int aState);
-  void lineEditDVolumeEdited(QString aText);
+  void showMetricsCheckedStateChanged(int aState);
+  void lineEditMetricEdited(QString aText);
 
   void checkSceneChange();
 

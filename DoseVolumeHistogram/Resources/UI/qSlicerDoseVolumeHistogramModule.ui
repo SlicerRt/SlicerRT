@@ -358,7 +358,7 @@
            <property name="spacing">
             <number>4</number>
            </property>
-           <item row="0" column="0" rowspan="2">
+           <item row="1" column="0" rowspan="3">
             <spacer name="horizontalSpacer_6">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -371,50 +371,147 @@
              </property>
             </spacer>
            </item>
-           <item row="0" column="1">
-            <widget class="QCheckBox" name="checkBox_ShowVMetrics">
+           <item row="2" column="2">
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <spacer name="horizontalSpacer_8">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Expanding</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_ShowVMetrics">
+               <property name="text">
+                <string>V Metric for Dose Values:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_VDose">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>96</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>96</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Enter dose values you want to compute V metrics for here, separated with commas</string>
+               </property>
+               <property name="text">
+                <string>5,20</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_DoseUnits">
+               <property name="text">
+                <string>Gy - </string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="3" column="2">
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <spacer name="horizontalSpacer_9">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Expanding</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_ShowDMetric">
+               <property name="text">
+                <string>D Metric for Volumes:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_DVolume">
+               <property name="minimumSize">
+                <size>
+                 <width>96</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>96</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Enter volume sizes you want to compute D metrics for here, separated with commas</string>
+               </property>
+               <property name="text">
+                <string>5,10</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_Cc">
+               <property name="text">
+                <string>cc  - </string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="3">
+            <widget class="QCheckBox" name="checkBox_ShowVMetricsCc">
              <property name="text">
-              <string>Show V Metric for Dose Values:</string>
+              <string>Show cc</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
-            <widget class="QLineEdit" name="lineEdit_VDose">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>96</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>96</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Enter dose values you want to compute V metrics for here, separated with commas</string>
-             </property>
+           <item row="2" column="5">
+            <widget class="QCheckBox" name="checkBox_ShowVMetricsPercent">
              <property name="text">
-              <string>5,20</string>
+              <string>Show %</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="3">
-            <widget class="QLabel" name="label_DoseUnits">
+           <item row="3" column="3">
+            <widget class="QCheckBox" name="checkBox_ShowDMetrics">
              <property name="text">
-              <string>Gy</string>
+              <string>Show Gy</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="4" rowspan="2">
-            <spacer name="horizontalSpacer_5">
+           <item row="2" column="6" rowspan="2">
+            <spacer name="horizontalSpacer_7">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -426,47 +523,11 @@
              </property>
             </spacer>
            </item>
-           <item row="1" column="2">
-            <widget class="QLineEdit" name="lineEdit_DVolume">
-             <property name="minimumSize">
-              <size>
-               <width>96</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>96</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Enter volume sizes you want to compute D metrics for here, separated with commas</string>
-             </property>
-             <property name="text">
-              <string>5,10</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="3">
-            <widget class="QLabel" name="label_Cc">
-             <property name="text">
-              <string>cc</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QCheckBox" name="checkBox_ShowDMetrics">
-             <property name="text">
-              <string>Show D Metric for Volumes:</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
         </layout>
         <zorder></zorder>
-        <zorder>gridLayoutWidget</zorder>
+        <zorder></zorder>
        </widget>
       </item>
      </layout>

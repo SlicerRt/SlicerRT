@@ -81,8 +81,8 @@ public:
   /// Remove dose volume histogram of a structure from the selected chart
   void RemoveDvhFromSelectedChart(const char* dvhArrayNodeId);
 
-  /// Compute V metrics for the given DVH using the given dose values and put them in the vMetrics output list
-  void ComputeVMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> doseValues, std::vector<double> &vMetrics);
+  /// Compute V metrics for the given DVH using the given dose values and put them in the vMetricsCc and vMetricsPercent output lists
+  void ComputeVMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> doseValues, std::vector<double> &vMetricsCc, std::vector<double> &vMetricsPercent);
 
   /// Compute D metrics for the given DVH using the given volume sizes and put them in the dMetrics output list
   void ComputeDMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> volumeSizes, std::vector<double> &dMetrics);

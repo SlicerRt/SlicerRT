@@ -277,7 +277,7 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   // Create labelmap node
   structureStenciledDoseVolumeNode->CopyOrientation( this->DoseVolumeNode );
-  structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID(this->DoseVolumeNode->GetTransformNodeID());
+  structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID( this->DoseVolumeNode->GetTransformNodeID() );
   std::string labelmapNodeName( this->StructureSetModelNode->GetName() );
   labelmapNodeName.append( "_Labelmap" );
   structureStenciledDoseVolumeNode->SetName( labelmapNodeName.c_str() );
@@ -624,9 +624,10 @@ vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramLogic
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramLogic
-::ComputeVMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> doseValues, std::vector<double> &vMetrics)
+::ComputeVMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> doseValues, std::vector<double> &vMetricsCc, std::vector<double> &vMetricsPercent)
 {
-  vMetrics.clear();
+  vMetricsCc.clear();
+  vMetricsPercent.clear();
 
   // Get structure volume
   char attributeName[64];
@@ -654,14 +655,16 @@ void vtkSlicerDoseVolumeHistogramLogic
     // Check if the given dose is below the lowest value in the array then assign the whole volume of the structure
     if (doseValue < doubleArray->GetComponent(0, 0))
     {
-      vMetrics.push_back(structureVolume);
+      vMetricsCc.push_back(structureVolume);
+      vMetricsPercent.push_back(100.0);
       continue;
     }
 
     // If dose is above the highest value in the array then assign 0 Cc volume
     if (doseValue >= doubleArray->GetComponent(doubleArray->GetNumberOfTuples()-1, 0))
     {
-      vMetrics.push_back(0.0);
+      vMetricsCc.push_back(0.0);
+      vMetricsPercent.push_back(0.0);
       continue;
     }
 
@@ -676,7 +679,8 @@ void vtkSlicerDoseVolumeHistogramLogic
         double volumePercentBelow = doubleArray->GetComponent(i, 1);
         double volumePercentAbove = doubleArray->GetComponent(i+1, 1);
         double volumePercentEstimated = volumePercentBelow + (volumePercentAbove-volumePercentBelow)*(doseValue-doseBelow)/(doseAbove-doseBelow);
-        vMetrics.push_back( volumePercentEstimated*structureVolume/100.0 );
+        vMetricsCc.push_back( volumePercentEstimated*structureVolume/100.0 );
+        vMetricsPercent.push_back( volumePercentEstimated );
 
         break;
       }
