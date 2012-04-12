@@ -202,7 +202,7 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
       double* correctSpacing = rtReader->GetPixelSpacing();
       volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
       volumeNode->SetAttribute("DoseUnits",rtReader->GetDoseUnits());
-      volumeNode->SetAttribute("DoseGridScaling",rtReader->GetDoseGridScaling());
+      volumeNode->SetAttribute("AppliedDoseGridScaling",rtReader->GetDoseGridScaling());
 
       // Apply dose grid scaling
       vtkImageData* originalVolumeData = volumeNode->GetImageData();
