@@ -114,10 +114,9 @@ void vtkSlicerDoseVolumeHistogramLogic::RegisterNodes()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramLogic::UpdateFromMRMLScene()
+void vtkSlicerDoseVolumeHistogramLogic::RefreshDvhDoubleArrayNodesFromScene()
 {
   this->DvhDoubleArrayNodes->RemoveAllItems();
-  this->SceneChangedOn();
 
   if (this->GetMRMLScene() == NULL || this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLDoubleArrayNode") < 1)
   {
@@ -140,6 +139,14 @@ void vtkSlicerDoseVolumeHistogramLogic::UpdateFromMRMLScene()
 
     node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLDoubleArrayNode");
   }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseVolumeHistogramLogic::UpdateFromMRMLScene()
+{
+  this->SceneChangedOn();
+
+  RefreshDvhDoubleArrayNodesFromScene();
 }
 
 //---------------------------------------------------------------------------
@@ -345,6 +352,12 @@ void vtkSlicerDoseVolumeHistogramLogic::ComputeDvh()
 void vtkSlicerDoseVolumeHistogramLogic
 ::ComputeDvh(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, vtkMRMLModelNode* structureModelNode)
 {
+  if (this->GetMRMLScene() == NULL)
+  {
+    vtkErrorMacro("No MRML scene found!");
+    return;
+  }
+
   double* structureStenciledDoseVolumeSpacing = structureStenciledDoseVolumeNode->GetSpacing();
 
   double cubicMMPerVoxel = structureStenciledDoseVolumeSpacing[0] * structureStenciledDoseVolumeSpacing[1] * structureStenciledDoseVolumeSpacing[2];

@@ -7,12 +7,13 @@ SlicerMacroConfigureGenericCxxModuleTests(${EXTENSION_NAME} KIT_TEST_SRCS KIT_TE
 create_test_sourcelist(Tests ${EXTENSION_NAME}CxxTests.cxx
   ${KIT_TEST_NAMES_CXX}
   # Add source of your tests after this line.
+  vtkSlicerDoseVolumeHistogramLogicTest1.cxx
   #EXTRA_INCLUDE TestingMacros.h
   )
 list(REMOVE_ITEM Tests ${KIT_TEST_NAMES_CXX})
 list(APPEND Tests ${KIT_TEST_SRCS})
 
-#set(TestsToRun ${Tests})
+set(TestsToRun ${Tests})
 #list(REMOVE_ITEM TestsToRun ${KIT}CxxTests.cxx)
 
 set(LIBRARY_NAME qSlicer${EXTENSION_NAME}Module)
@@ -20,9 +21,28 @@ set(LIBRARY_NAME qSlicer${EXTENSION_NAME}Module)
 add_executable(${EXTENSION_NAME}CxxTests ${Tests})
 target_link_libraries(${EXTENSION_NAME}CxxTests ${lib_name})
 
+# Install test data
+set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
+file(COPY
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Dose.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Bladder.vtk
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/FemoralHeadLt.vtk
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/FemoralHeadRT.vtk
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/PTV.vtk
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Rectum.vtk
+  DESTINATION ${TEMP}
+  )
+
+# Add test
 macro(SIMPLE_TEST TESTNAME)
-  add_test(NAME ${TESTNAME} COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${EXTENSION_NAME}CxxTests> ${TESTNAME} ${ARGN})
+  add_test(
+    NAME ${TESTNAME}
+    COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${EXTENSION_NAME}CxxTests> ${TESTNAME} ${ARGN}
+    -T ${TEMP}
+  )
 endmacro()
+
+SIMPLE_TEST( vtkSlicerDoseVolumeHistogramLogicTest1 )
 
 foreach(testname ${KIT_TEST_NAMES})
   SIMPLE_TEST( ${testname} )

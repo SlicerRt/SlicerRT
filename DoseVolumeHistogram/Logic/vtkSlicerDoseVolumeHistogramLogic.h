@@ -90,6 +90,9 @@ public:
   /// Return false if the dose volume contains a volume that is really a dose volume
   bool DoseVolumeContainsDose();
 
+  /// Refreshes DVH double array MRML node vector from the scene
+  void RefreshDvhDoubleArrayNodesFromScene();
+
 public:
   void SetDoseVolumeNode( vtkMRMLVolumeNode* );
   void SetStructureSetModelNode( vtkMRMLNode* );
