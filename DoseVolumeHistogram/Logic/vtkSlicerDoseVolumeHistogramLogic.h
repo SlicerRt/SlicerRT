@@ -93,6 +93,22 @@ public:
   /// Refreshes DVH double array MRML node vector from the scene
   void RefreshDvhDoubleArrayNodesFromScene();
 
+  /// Export DVH values 
+  /// \param comma Flag determining if the CSV file to be saved is deliminated using commas or tabs (regional considerations)
+  /// \return True if file written and saved successfully, false otherwise
+  bool ExportDvhToCsv(const char* fileName, bool comma=true);
+
+  /// Export DVH metrics
+  /// \param vDoseValuesCc List of doses for V(cc) metrics to be computed and exported
+  /// \param vDoseValuesPercent List of doses for V(%) metrics to be computed and exported
+  /// \param dVolumeValues List of volume sizes for D metrics to be computed and exported
+  /// \param comma Flag determining if the CSV file to be saved is deliminated using commas or tabs (regional considerations)
+  /// \return True if file written and saved successfully, false otherwise
+  bool ExportDvhMetricsToCsv(const char* fileName, std::vector<double> vDoseValuesCc, std::vector<double> vDoseValuesPercent, std::vector<double> dVolumeValues, bool comma=true);
+
+  /// Collect DVH metrics from a collection of DVH double array nodes and try to order some of them
+  static void CollectMetricsForDvhNodes(vtkCollection* dvhNodeCollection, std::vector<std::string> &metricList);
+
 public:
   void SetDoseVolumeNode( vtkMRMLVolumeNode* );
   void SetStructureSetModelNode( vtkMRMLNode* );

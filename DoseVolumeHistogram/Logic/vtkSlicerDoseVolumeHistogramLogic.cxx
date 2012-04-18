@@ -42,8 +42,12 @@
 #include <vtkDoubleArray.h>
 #include <vtkStringArray.h>
 
+// VTKSYS includes
+#include <vtksys/SystemTools.hxx>
+
 // STD includes
 #include <cassert>
+#include <set>
 
 //----------------------------------------------------------------------------
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_TYPE_ATTRIBUTE_NAME = "Type";
@@ -804,4 +808,295 @@ bool vtkSlicerDoseVolumeHistogramLogic
   }
 
   return false;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseVolumeHistogramLogic
+::CollectMetricsForDvhNodes(vtkCollection* dvhNodeCollection, std::vector<std::string> &metricList)
+{
+  metricList.clear();
+
+  dvhNodeCollection->InitTraversal();
+  if (dvhNodeCollection->GetNumberOfItems() < 1)
+  {
+    return;
+  }
+
+  // Convert separator character to string
+  std::ostringstream separatorCharStream;
+  separatorCharStream << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  std::string separatorCharacter = separatorCharStream.str();
+
+  // Collect metrics
+  char metricListAttributeName[64];
+  sprintf(metricListAttributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
+  std::set<std::string> metricSet;
+  for (int i=0; i<dvhNodeCollection->GetNumberOfItems(); ++i)
+  {
+    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( dvhNodeCollection->GetItemAsObject(i) );
+    if (!dvhNode)
+    {
+      continue;
+    }
+
+    std::string metricListString = dvhNode->GetAttribute(metricListAttributeName);
+    if (metricListString.empty())
+    {
+      continue;
+    }
+
+    // Split metric list string into set of metric strings
+    size_t separatorPosition = metricListString.find( separatorCharacter );
+    while (separatorPosition != std::string::npos)
+    {
+      metricSet.insert( metricListString.substr(0, separatorPosition) );
+      metricListString = metricListString.substr(separatorPosition+1);
+      separatorPosition = metricListString.find( separatorCharacter );
+    }
+    if (! metricListString.empty() )
+    {
+      metricSet.insert( metricListString );
+    }
+  }
+
+  // Create an ordered list from the set
+  const char* metricSearchList[4] = {"volume", "mean", "min", "max"};
+  for (int i=0; i<4; ++i)
+  {
+    for (std::set<std::string>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
+    {
+      if (vtksys::SystemTools::LowerCase(*it).find(metricSearchList[i]) != std::string::npos)
+      {
+        metricList.push_back(*it);
+        metricSet.erase(it);
+        break;
+      }
+    }
+  }
+
+  // Append all other metrics in undefined order
+  for (std::set<std::string>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
+  {
+    metricList.push_back(*it);
+  }
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerDoseVolumeHistogramLogic
+::ExportDvhToCsv(const char* fileName, bool comma/*=true*/)
+{
+  if (this->GetMRMLScene() == NULL)
+  {
+    vtkErrorMacro("Error: No MRML scene is present!");
+		return false;
+  }
+
+  if (this->ChartNode == NULL)
+  {
+    vtkErrorMacro("Error: Chart node is not set!");
+		return false;
+  }
+
+  // Open output file
+  std::ofstream outfile;
+  outfile.open(fileName);
+
+	if ( !outfile )
+	{
+    vtkErrorMacro("Error: Output file '" << fileName << "' cannot be opened!");
+		return false;
+	}
+
+  vtkStringArray* structureNames = this->ChartNode->GetArrayNames();
+  vtkStringArray* arrayIDs = this->ChartNode->GetArrays();
+
+  // Check if the number of values is the same in each structure
+  int numberOfValues = -1;
+	for (int i=0; i<arrayIDs->GetNumberOfValues(); ++i)
+	{
+    vtkMRMLNode *node = this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(i) );
+    vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
+    if (doubleArrayNode)
+    {
+      if (numberOfValues == -1)
+      {
+        numberOfValues = doubleArrayNode->GetArray()->GetNumberOfTuples();
+        int numberOfComponents = doubleArrayNode->GetArray()->GetNumberOfComponents();
+      }
+      else if (numberOfValues != doubleArrayNode->GetArray()->GetNumberOfTuples())
+      {
+        vtkErrorMacro("Inconsistent number of values in the DVH arrays!");
+        return false;
+      }
+    }
+    else
+    {
+      vtkErrorMacro("Invalid double array node in selected chart!");
+      return false;
+    }
+  }
+
+  // Write header
+  for (int i=0; i<structureNames->GetNumberOfValues(); ++i)
+  {
+  	outfile << structureNames->GetValue(i).c_str() << " Dose (Gy)" << (comma ? "," : "\t");
+    outfile << structureNames->GetValue(i).c_str() << " Value (%)" << (comma ? "," : "\t");
+  }
+	outfile << std::endl;
+
+  // Write values
+	for (int row=0; row<numberOfValues; ++row)
+  {
+	  for (int column=0; column<arrayIDs->GetNumberOfValues(); ++column)
+	  {
+      vtkMRMLNode *node = this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(column) );
+      vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
+
+    	std::ostringstream doseStringStream;
+			doseStringStream << std::fixed << std::setprecision(6) << doubleArrayNode->GetArray()->GetComponent(row, 0);
+      std::string dose = doseStringStream.str();
+      if (!comma)
+      {
+        size_t periodPosition = dose.find(".");
+        if (periodPosition != std::string::npos)
+        {
+          dose.replace(periodPosition, 1, ",");
+        }
+      }
+      outfile << dose << (comma ? "," : "\t");
+
+    	std::ostringstream valueStringStream;
+			valueStringStream << std::fixed << std::setprecision(6) << doubleArrayNode->GetArray()->GetComponent(row, 1);
+      std::string value = valueStringStream.str();
+      if (!comma)
+      {
+        size_t periodPosition = value.find(".");
+        if (periodPosition != std::string::npos)
+        {
+          value.replace(periodPosition, 1, ",");
+        }
+      }
+      outfile << value << (comma ? "," : "\t");
+    }
+		outfile << std::endl;
+  }
+
+	outfile.close();
+
+  return true;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerDoseVolumeHistogramLogic
+::ExportDvhMetricsToCsv(const char* fileName,
+                        std::vector<double> vDoseValuesCc,
+                        std::vector<double> vDoseValuesPercent,
+                        std::vector<double> dVolumeValues,
+                        bool comma/*=true*/)
+{
+  if (this->GetMRMLScene() == NULL)
+  {
+    vtkErrorMacro("Error: No MRML scene is present!");
+		return false;
+  }
+
+  // Open output file
+  std::ofstream outfile;
+  outfile.open(fileName);
+
+	if ( !outfile )
+	{
+    vtkErrorMacro("Error: Output file '" << fileName << "' cannot be opened!");
+		return false;
+	}
+
+  // Collect metrics for all included nodes
+  std::vector<std::string> metricList;
+  CollectMetricsForDvhNodes(this->DvhDoubleArrayNodes, metricList);
+
+  // Write header
+  outfile << "Structure" << (comma ? "," : "\t");
+  for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
+  {
+    outfile << it->substr(DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size()) << (comma ? "," : "\t");
+  }
+  for (std::vector<double>::iterator it = vDoseValuesCc.begin(); it != vDoseValuesCc.end(); ++it)
+  {
+    outfile << "V" << (*it) << " (cc)" << (comma ? "," : "\t");
+  }
+  for (std::vector<double>::iterator it = vDoseValuesPercent.begin(); it != vDoseValuesPercent.end(); ++it)
+  {
+    outfile << "V" << (*it) << " (%)" << (comma ? "," : "\t");
+  }
+  for (std::vector<double>::iterator it = dVolumeValues.begin(); it != dVolumeValues.end(); ++it)
+  {
+    outfile << "D" << (*it) << "cc (Gy)" << (comma ? "," : "\t");
+  }
+  outfile << std::endl;
+
+  outfile.setf(std::ostream::fixed);
+  outfile.precision(6);
+
+  // Fill the table
+  for (int i=0; i<this->DvhDoubleArrayNodes->GetNumberOfItems(); ++i)
+  {
+    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( this->DvhDoubleArrayNodes->GetItemAsObject(i) );
+    if (!dvhNode)
+    {
+      continue;
+    }
+
+    outfile << dvhNode->GetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) << (comma ? "," : "\t");
+
+    // Add default metric values
+    for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
+    {
+      std::string metricValue( dvhNode->GetAttribute( it->c_str() ) );
+      if (metricValue.empty())
+      {
+        outfile << (comma ? "," : "\t");
+        continue;
+      }
+
+      outfile << metricValue << (comma ? "," : "\t");
+    }
+
+    // Add V metric values
+    std::vector<double> dummy;
+    if (vDoseValuesCc.size() > 0)
+    {
+      std::vector<double> volumes;
+      ComputeVMetrics(dvhNode, vDoseValuesCc, volumes, dummy);
+      for (std::vector<double>::iterator it = volumes.begin(); it != volumes.end(); ++it)
+      {
+        outfile << (*it) << (comma ? "," : "\t");
+      }
+    }
+    if (vDoseValuesPercent.size() > 0)
+    {
+      std::vector<double> percents;
+      ComputeVMetrics(dvhNode, vDoseValuesPercent, dummy, percents);
+      for (std::vector<double>::iterator it = percents.begin(); it != percents.end(); ++it)
+      {
+        outfile << (*it) << (comma ? "," : "\t");
+      }
+    }
+
+    // Add D metric values
+    if (dVolumeValues.size() > 0)
+    {
+      std::vector<double> doses;
+      ComputeDMetrics(dvhNode, dVolumeValues, doses);
+      for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
+      {
+        outfile << (*it) << (comma ? "," : "\t");
+      }
+    }
+
+    outfile << std::endl;
+  }
+
+	outfile.close();
+
+  return true;
 }

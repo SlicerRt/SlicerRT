@@ -106,7 +106,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   this->Superclass::setup();
 
   // Hide widgets whose functions have not been implemented yet
-  d->pushButton_ExportMetricsToCsv->setVisible(false);
   d->label_ImportCSV->setVisible(false);
   d->pushButton_ImportCSV->setVisible(false);
 
@@ -292,79 +291,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     return;
   }
 
-  // Collect metrics (header items)
-  char metricListAttributeName[64];
-  sprintf(metricListAttributeName, "%s%s", vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
-  QSet<QString> metricSet;
-  for (int i=0; i<dvhNodes->GetNumberOfItems(); ++i)
-  {
-    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( dvhNodes->GetItemAsObject(i) );
-    if (!dvhNode)
-    {
-      continue;
-    }
-
-    QString metricListString( dvhNode->GetAttribute(metricListAttributeName) );
-    if (metricListString.isEmpty())
-    {
-      continue;
-    }
-
-    QStringList metricsStringList = metricListString.split(vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_SEPARATOR_CHARACTER);
-    QStringListIterator it(metricsStringList);
-    while (it.hasNext())
-    {
-      QString nextMetric( it.next() );
-      if (! nextMetric.isEmpty())
-      {
-        metricSet.insert(nextMetric);
-      }
-    }
-  }
-
-  // Create an ordered list from the set
-  QList<QString> metricList;
-  for (QSet<QString>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
-  {
-    if (it->indexOf(tr("volume"), 0, Qt::CaseInsensitive) >=0)
-    {
-      metricList.push_back(*it);
-      metricSet.erase(it);
-      break;
-    }
-  }
-  for (QSet<QString>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
-  {
-    if (it->indexOf(tr("mean"), 0, Qt::CaseInsensitive) >=0)
-    {
-      metricList.push_back(*it);
-      metricSet.erase(it);
-      break;
-    }
-  }
-  for (QSet<QString>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
-  {
-    if (it->indexOf(tr("min"), 0, Qt::CaseInsensitive) >=0)
-    {
-      metricList.push_back(*it);
-      metricSet.erase(it);
-      break;
-    }
-  }
-  for (QSet<QString>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
-  {
-    if (it->indexOf(tr("max"), 0, Qt::CaseInsensitive) >=0)
-    {
-      metricList.push_back(*it);
-      metricSet.erase(it);
-      break;
-    }
-  }
-  // Append all other metrics in undefined order
-  for (QSet<QString>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
-  {
-    metricList.push_back(*it);
-  }
+  std::vector<std::string> metricList;
+  d->logic()->CollectMetricsForDvhNodes(dvhNodes, metricList);
 
   // Get requested V metrics
   std::vector<double> vDoseValues;
@@ -382,12 +310,12 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   }
 
   // Set up the table
-  d->tableWidget_ChartStatistics->setColumnCount(2 + metricList.count() + vColumnCount + dVolumeValues.size());
+  d->tableWidget_ChartStatistics->setColumnCount(2 + metricList.size() + vColumnCount + dVolumeValues.size());
   QStringList headerLabels;
   headerLabels << "" << "Structure";
-  for (QList<QString>::iterator it = metricList.begin(); it != metricList.end(); ++it)
+  for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
   {
-    QString metricName(*it);
+    QString metricName(it->c_str());
     metricName = metricName.right( metricName.length() - vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
     headerLabels << metricName;
   }
@@ -442,9 +370,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
 
     // Add default metric values
     int col = 2;
-    for (QList<QString>::iterator it = metricList.begin(); it != metricList.end(); ++it)
+    for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
     {
-      QString metricValue( dvhNode->GetAttribute(it->toAscii().data()) );
+      QString metricValue( dvhNode->GetAttribute(it->c_str()) );
       if (metricValue.isEmpty())
       {
         ++col;
@@ -466,7 +394,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
         std::cerr << "Error: V metric result mismatch!" << std::endl;
         continue;
       }
-      col = 2 + metricList.count();
+      col = 2 + metricList.size();
 
       for (int j=0; j<volumes.size(); ++j)
       {
@@ -492,7 +420,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     {
       std::vector<double> doses;
       d->logic()->ComputeDMetrics(dvhNode, dVolumeValues, doses);
-      col = 2 + metricList.count() + vColumnCount;
+      col = 2 + metricList.size() + vColumnCount;
       for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
       {
         QString metricValue;
@@ -645,6 +573,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  // User selects file and format
   QString* selectedFilter = new QString();
 
 	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH values to CSV file" ) ), tr(""), QString( tr( "CSV with COMMA ( *.csv );;CSV with TAB ( *.csv )" ) ), selectedFilter );
@@ -661,91 +590,58 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
 
 	delete selectedFilter;
 
-  std::cout.precision(6);
-	std::ofstream outfile;
-  outfile.open( fileName.toAscii().data() );
-
-	if ( !outfile )
-	{
-    std::cerr << "Output file cannot be opened!" << std::endl;
-		return;
-	}
-
-  vtkMRMLChartNode* chartNode = d->logic()->GetChartNode();
-  vtkStringArray* structureNames = chartNode->GetArrayNames();
-  vtkStringArray* arrayIDs = chartNode->GetArrays();
-
-  // Check if the number of values is the same in each structure
-  int numberOfValues = -1;
-	for (int i=0; i<arrayIDs->GetNumberOfValues(); ++i)
-	{
-    vtkMRMLNode *node = d->logic()->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(i) );
-    vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
-    if (doubleArrayNode)
-    {
-      if (numberOfValues == -1)
-      {
-        numberOfValues = doubleArrayNode->GetArray()->GetNumberOfTuples();
-        int numberOfComponents = doubleArrayNode->GetArray()->GetNumberOfComponents();
-      }
-      else if (numberOfValues != doubleArrayNode->GetArray()->GetNumberOfTuples())
-      {
-        std::cerr << "Inconsistent number of values in the DVH arrays!" << std::endl;
-        return;
-      }
-    }
-    else
-    {
-      std::cerr << "Invalid double array node in selected chart!" << std::endl;
-      return;
-    }
-  }
-
-  // Write header
-  for (int i=0; i<structureNames->GetNumberOfValues(); ++i)
+  // Export
+  if (! d->logic()->ExportDvhToCsv(fileName.toAscii().data(), comma) )
   {
-  	outfile << structureNames->GetValue(i).c_str() << " Dose (Gy)" << (comma ? "," : "\t");
-    outfile << structureNames->GetValue(i).c_str() << " Value (%)" << (comma ? "," : "\t");
+    std::cerr << "Error occured while exporting DVH to CSV!" << std::endl;
   }
-	outfile << endl;
-
-  // Write values
-	for (int row=0; row<numberOfValues; ++row)
-  {
-	  for (int column=0; column<arrayIDs->GetNumberOfValues(); ++column)
-	  {
-      vtkMRMLNode *node = d->logic()->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(column) );
-      vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
-
-      QString dose = QString::number( doubleArrayNode->GetArray()->GetComponent(row, 0) );
-      if (!comma)
-      {
-        dose.replace('.',',');
-      }
-      outfile << dose.toAscii().data() << (comma ? "," : "\t");
-
-      QString value = QString::number( doubleArrayNode->GetArray()->GetComponent(row, 1) );
-      if (!comma)
-      {
-        value.replace('.',',');
-      }
-      outfile << value.toAscii().data() << (comma ? "," : "\t");
-    }
-		outfile << endl;
-  }
-
-	outfile.close();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
 {
-  QString filter = QString( tr( "Comma Separated Values (*.csv);;" ) );
-  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save DVH metrics to CSV file"), QString("."), filter);
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
-	if (! fileName.isNull() )
+  // User selects file and format
+  QString* selectedFilter = new QString();
+
+	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH metrics to CSV file" ) ), tr(""), QString( tr( "CSV with COMMA ( *.csv );;CSV with TAB ( *.csv )" ) ), selectedFilter );
+	if ( fileName.isNull() )
+	{
+		return;
+	}
+
+	bool comma = true;
+	if ( selectedFilter->compare( "CSV with TAB ( *.csv )" ) == 0 )
+	{
+		comma = false;
+	}
+
+	delete selectedFilter;
+
+  // Get requested V metrics
+  std::vector<double> vDoseValuesCc;
+  if (d->checkBox_ShowVMetricsCc->isChecked())
   {
-    //TODO?
+    getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValuesCc);
+  }
+  std::vector<double> vDoseValuesPercent;
+  if (d->checkBox_ShowVMetricsPercent->isChecked())
+  {
+    getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValuesPercent);
+  }
+
+  // Get requested D metrics
+  std::vector<double> dVolumeValues;
+  if (d->checkBox_ShowDMetrics->isChecked())
+  {
+    getNumbersFromLineEdit(d->lineEdit_DVolume, dVolumeValues);
+  }
+
+  // Export
+  if (! d->logic()->ExportDvhMetricsToCsv(fileName.toAscii().data(), vDoseValuesCc, vDoseValuesPercent, dVolumeValues, comma) )
+  {
+    std::cerr << "Error occured while exporting DVH metrics to CSV!" << std::endl;
   }
 }
 

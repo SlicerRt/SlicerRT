@@ -8,6 +8,7 @@
 #include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLChartNode.h>
 
 // VTK includes
 #include <vtkDoubleArray.h>
@@ -21,12 +22,25 @@
 int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 {
   // Get temporary directory
-  const char *temporaryDirectoryPath = NULL;
+  const char *sourceDirectoryPath = NULL;
   if (argc > 2)
   {
-    if (stricmp(argv[1], "-T") == 0)
+    if (stricmp(argv[1], "-D") == 0)
     {
-      temporaryDirectoryPath = argv[2];
+      sourceDirectoryPath = argv[2];
+      std::cout << "Source directory: " << sourceDirectoryPath << std::endl;
+    }
+    else
+    {
+      sourceDirectoryPath = "";
+    }
+  }
+  const char *temporaryDirectoryPath = NULL;
+  if (argc > 4)
+  {
+    if (stricmp(argv[3], "-T") == 0)
+    {
+      temporaryDirectoryPath = argv[4];
       std::cout << "Temporary directory: " << temporaryDirectoryPath << std::endl;
     }
     else
@@ -53,7 +67,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   mrmlScene->AddNode(doseScalarVolumeNode);
   //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(doseScalarVolumeNode);
 
-  std::string doseVolumeFileName = std::string(temporaryDirectoryPath) + "/Dose.nrrd";
+  std::string doseVolumeFileName = std::string(sourceDirectoryPath) + "/Data/Dose.nrrd";
   std::cout << "Loading dose volume from file '" << doseVolumeFileName << "' ("
     << (vtksys::SystemTools::FileExists(doseVolumeFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
 
@@ -97,7 +111,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   {
     // Read polydata
     vtkSmartPointer<vtkPolyDataReader> modelPolyDataReader = vtkSmartPointer<vtkPolyDataReader>::New();
-    std::string modelFileName = std::string(temporaryDirectoryPath) + "/" + std::string(testModelNames[i]) + ".vtk";
+    std::string modelFileName = std::string(sourceDirectoryPath) + "/Data/" + std::string(testModelNames[i]) + ".vtk";
     modelPolyDataReader->SetFileName(modelFileName.c_str());
 
     std::cout << "Loading structure model from file '" << modelFileName << "' ("
@@ -130,38 +144,65 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     modelHierarchyNode->SetModelNodeID( modelNode->GetID() );
   }
 
-  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
+  // Create chart node
+  vtkSmartPointer<vtkMRMLChartNode> chartNode = vtkSmartPointer<vtkMRMLChartNode>::New();
+  chartNode->SetProperty("default", "title", "Dose Volume Histogram");
+  chartNode->SetProperty("default", "xAxisLabel", "Dose [Gy]");
+  chartNode->SetProperty("default", "yAxisLabel", "Fractional volume [%]");
+  chartNode->SetProperty("default", "type", "Line");
+  mrmlScene->AddNode(chartNode);
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic> dvhLogic = vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic>::New();
   dvhLogic->SetMRMLScene(mrmlScene);
   dvhLogic->SetDoseVolumeNode(doseScalarVolumeNode);
   dvhLogic->SetStructureSetModelNode(modelHierarchyRootNode);
+  dvhLogic->SetChartNode(chartNode);
 
   // Compute DVH and get result nodes
   dvhLogic->ComputeDvh();
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
 
-  mrmlScene->Commit();
-
   vtkCollection* dvhNodes = dvhLogic->GetDvhDoubleArrayNodes();
   if (dvhNodes->GetNumberOfItems() < 1)
   {
+    mrmlScene->Commit();
     std::cerr << "No DVH nodes created!" << std::endl;
     return EXIT_FAILURE;
   }
 
-  // Check values
-  //char metricListAttributeName[64];
-  //sprintf(metricListAttributeName, "%s%s", vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
-  //QSet<QString> metricSet;
-  //for (int i=0; i<dvhNodes->GetNumberOfItems(); ++i)
-  //{
-  //  vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( dvhNodes->GetItemAsObject(i) );
-  //  if (!dvhNode)
-  //  {
-  //    continue;
-  //  }
+  // Add DVH arrays to chart node
+  for (int i=0; i<5; ++i)
+  {
+    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( dvhNodes->GetItemAsObject(i) );
+    if (!dvhNode)
+    {
+      std::cerr << "Error: Item " << i << " in DVH node list is not valid!" << std::endl;
+      continue;
+    }
+
+    chartNode->AddArray( testModelNames[i], dvhNode->GetID() );    
+  }
+
+  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
+  mrmlScene->Commit();
+
+  // Export DVH to CSV
+  std::string dvhCsvFileName = std::string(temporaryDirectoryPath) + "/DvhTestTable.csv";
+  vtksys::SystemTools::RemoveFile(dvhCsvFileName.c_str());
+  dvhLogic->ExportDvhToCsv(dvhCsvFileName.c_str());
+
+  // Export DVH metrics to CSV
+  static const double vDoseValuesCcArr[] = {5, 20};
+  std::vector<double> vDoseValuesCc( vDoseValuesCcArr, vDoseValuesCcArr + sizeof(vDoseValuesCcArr) / sizeof(vDoseValuesCcArr[0]) );
+  static const double vDoseValuesPercentArr[] = {5, 20};
+  std::vector<double> vDoseValuesPercent( vDoseValuesPercentArr, vDoseValuesPercentArr + sizeof(vDoseValuesPercentArr) / sizeof(vDoseValuesPercentArr[0]) );
+  static const double dVolumeValuesArr[] = {5, 10};
+  std::vector<double> dVolumeValues( dVolumeValuesArr, dVolumeValuesArr + sizeof(dVolumeValuesArr) / sizeof(dVolumeValuesArr[0]) );
+
+  std::string dvhMetricsCsvFileName = std::string(temporaryDirectoryPath) + "/DvhTestMetrics.csv";
+  vtksys::SystemTools::RemoveFile(dvhMetricsCsvFileName.c_str());
+  dvhLogic->ExportDvhMetricsToCsv(dvhMetricsCsvFileName.c_str(), vDoseValuesCc, vDoseValuesPercent, dVolumeValues);
 
   return EXIT_SUCCESS;  
 }
