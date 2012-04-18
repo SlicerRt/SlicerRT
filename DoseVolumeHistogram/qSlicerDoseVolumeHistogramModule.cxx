@@ -107,6 +107,16 @@ QStringList qSlicerDoseVolumeHistogramModule::categories() const
 }
 
 //-----------------------------------------------------------------------------
+QStringList qSlicerDoseVolumeHistogramModule::contributors() const
+{
+  QStringList moduleContributors;
+  moduleContributors << QString("Csaba Pinter (Queen's)");
+  moduleContributors << QString("Andras Lasso (Queen's)");
+  moduleContributors << QString("Kevin Wang (UHN, Toronto)");
+  return moduleContributors;
+}
+
+//-----------------------------------------------------------------------------
 qSlicerAbstractModuleRepresentation * qSlicerDoseVolumeHistogramModule::createWidgetRepresentation()
 {
   return new qSlicerDoseVolumeHistogramModuleWidget;

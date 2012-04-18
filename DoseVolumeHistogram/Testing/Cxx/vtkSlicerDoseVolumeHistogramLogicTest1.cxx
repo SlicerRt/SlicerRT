@@ -36,13 +36,13 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   }
 
   // Create scene
-  vtkSmartPointer<vtkMRMLScene> scene = vtkSmartPointer<vtkMRMLScene>::New();
+  vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
   std::string sceneFileName = std::string(temporaryDirectoryPath) + "/DvhTestScene.mrml";
   vtksys::SystemTools::RemoveFile(sceneFileName.c_str());
-  scene->SetRootDirectory(temporaryDirectoryPath);
-  scene->SetURL(sceneFileName.c_str());
-  scene->Commit();
+  mrmlScene->SetRootDirectory(temporaryDirectoryPath);
+  mrmlScene->SetURL(sceneFileName.c_str());
+  mrmlScene->Commit();
 
   // Load dose volume
   vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
@@ -50,7 +50,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   doseScalarVolumeNode->SetAttribute("DoseUnitName", "GY");
   doseScalarVolumeNode->SetAttribute("DoseUnitValue", "4.4812099e-5");
   doseScalarVolumeNode->SetAttribute("LabelMap", "0");
-  scene->AddNode(doseScalarVolumeNode);
+  mrmlScene->AddNode(doseScalarVolumeNode);
   //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(doseScalarVolumeNode);
 
   std::string doseVolumeFileName = std::string(temporaryDirectoryPath) + "/Dose.nrrd";
@@ -59,14 +59,14 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 
   vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> doseVolumeArchetypeStorageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
   doseVolumeArchetypeStorageNode->SetFileName(doseVolumeFileName.c_str());
-  scene->AddNode(doseVolumeArchetypeStorageNode);
+  mrmlScene->AddNode(doseVolumeArchetypeStorageNode);
   //EXERCISE_BASIC_STORAGE_MRML_METHODS(doseVolumeArchetypeStorageNode);
 
   doseScalarVolumeNode->SetAndObserveStorageNodeID(doseVolumeArchetypeStorageNode->GetID());
 
   if (! doseVolumeArchetypeStorageNode->ReadData(doseScalarVolumeNode))
   {
-    scene->Commit();
+    mrmlScene->Commit();
     std::cerr << "Reading dose volume from file '" << doseVolumeFileName << "' failed!" << std::endl;
     return EXIT_FAILURE;
   }
@@ -77,7 +77,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
   modelHierarchyRootNode->AllowMultipleChildrenOn();
   modelHierarchyRootNode->HideFromEditorsOff();
-  scene->AddNode(modelHierarchyRootNode);
+  mrmlScene->AddNode(modelHierarchyRootNode);
   //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
 
   // A hierarchy node needs a display node
@@ -85,13 +85,13 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   hierarchyNodeName.append("Display");
   modelDisplayNode->SetName(hierarchyNodeName.c_str());
   modelDisplayNode->SetVisibility(1);
-  scene->AddNode(modelDisplayNode);
+  mrmlScene->AddNode(modelDisplayNode);
   modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
   //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode) TODO: uncomment these and try if they work after the node in question is fully set
 
   // Load models and create nodes
   const char* testModelNames[5] = {"Bladder", "FemoralHeadLt", "FemoralHeadRT", "PTV", "Rectum"};
-  scene->StartState(vtkMRMLScene::BatchProcessState);
+  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
 
   for (int i=0; i<5; ++i)
   {
@@ -105,7 +105,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 
     // Create display node
     vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNode(displayNode));
+    displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
     //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode) TODO: uncomment these and try if they work after the node in question is fully set
     displayNode->SetModifiedSinceRead(1);
     displayNode->SliceIntersectionVisibilityOn();
@@ -113,7 +113,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 
     // Create model node
     vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-    modelNode = vtkMRMLModelNode::SafeDownCast(scene->AddNode(modelNode));
+    modelNode = vtkMRMLModelNode::SafeDownCast(mrmlScene->AddNode(modelNode));
     //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLModelNode, modelNode)
     modelNode->SetName(testModelNames[i]);
     modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
@@ -124,17 +124,17 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 
     // Create model hierarchy node
     vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    scene->AddNode(modelHierarchyNode);
+    mrmlScene->AddNode(modelHierarchyNode);
     //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
     modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
     modelHierarchyNode->SetModelNodeID( modelNode->GetID() );
   }
 
-  scene->EndState(vtkMRMLScene::BatchProcessState);
+  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic> dvhLogic = vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic>::New();
-  dvhLogic->SetMRMLScene(scene);
+  dvhLogic->SetMRMLScene(mrmlScene);
   dvhLogic->SetDoseVolumeNode(doseScalarVolumeNode);
   dvhLogic->SetStructureSetModelNode(modelHierarchyRootNode);
 
@@ -142,7 +142,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   dvhLogic->ComputeDvh();
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
 
-  scene->Commit();
+  mrmlScene->Commit();
 
   vtkCollection* dvhNodes = dvhLogic->GetDvhDoubleArrayNodes();
   if (dvhNodes->GetNumberOfItems() < 1)
@@ -152,17 +152,16 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   }
 
   // Check values
-  /*
-  char metricListAttributeName[64];
-  sprintf(metricListAttributeName, "%s%s", vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
-  QSet<QString> metricSet;
-  for (int i=0; i<dvhNodes->GetNumberOfItems(); ++i)
-  {
-    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( dvhNodes->GetItemAsObject(i) );
-    if (!dvhNode)
-    {
-      continue;
-    }
-  */
+  //char metricListAttributeName[64];
+  //sprintf(metricListAttributeName, "%s%s", vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
+  //QSet<QString> metricSet;
+  //for (int i=0; i<dvhNodes->GetNumberOfItems(); ++i)
+  //{
+  //  vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( dvhNodes->GetItemAsObject(i) );
+  //  if (!dvhNode)
+  //  {
+  //    continue;
+  //  }
+
   return EXIT_SUCCESS;  
 }

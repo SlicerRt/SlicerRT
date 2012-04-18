@@ -87,6 +87,15 @@ vtkSlicerDoseVolumeHistogramLogic::vtkSlicerDoseVolumeHistogramLogic()
 //----------------------------------------------------------------------------
 vtkSlicerDoseVolumeHistogramLogic::~vtkSlicerDoseVolumeHistogramLogic()
 {
+  this->SetDoseVolumeNode(NULL);
+  this->SetStructureSetModelNode(NULL);
+  this->SetChartNode(NULL);
+
+  for (int i=0; i<DvhDoubleArrayNodes->GetNumberOfItems(); ++i)
+  {
+    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( DvhDoubleArrayNodes->GetItemAsObject(i) );
+    dvhNode->Delete();
+  }
   this->SetDvhDoubleArrayNodes(NULL);
 }
 

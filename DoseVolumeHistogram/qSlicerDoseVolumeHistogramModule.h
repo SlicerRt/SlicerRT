@@ -52,6 +52,9 @@ public:
   /// Return the category name for the module
   virtual QStringList categories() const;
 
+  /// Return the list of contributors of the module
+  virtual QStringList contributors() const;
+
 protected:
 
   /// Initialize the module. Register the volumes reader/writer
