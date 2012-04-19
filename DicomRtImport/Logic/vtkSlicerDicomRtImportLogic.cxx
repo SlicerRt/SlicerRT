@@ -18,6 +18,16 @@ limitations under the License.
 // ModuleTemplate includes
 #include "vtkSlicerDicomRtImportLogic.h"
 #include "vtkSlicerDicomRtReader.h"
+#include "vtkDICOMImportInfo.h"
+
+// DCMTK includes
+#include <dcmtk/dcmdata/dcfilefo.h>
+#include <dcmtk/dcmdata/dcdeftag.h>
+#include <dcmtk/dcmdata/dcdatset.h>
+#include <dcmtk/dcmdata/dcuid.h>
+#include <dcmtk/ofstd/ofcond.h>
+#include <dcmtk/ofstd/ofstring.h>
+#include <dcmtk/ofstd/ofstd.h>        /* for class OFStandard */
 
 // MRML includes
 #include <vtkMRMLModelDisplayNode.h>
@@ -39,6 +49,7 @@ limitations under the License.
 #include <vtkTriangleFilter.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkImageCast.h>
+#include <vtkStringArray.h>
 
 // STD includes
 #include <cassert>
@@ -94,6 +105,122 @@ void vtkSlicerDicomRtImportLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(n
 //---------------------------------------------------------------------------
 void vtkSlicerDicomRtImportLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
 {
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDicomRtImportLogic::Examine(vtkDICOMImportInfo *importInfo)
+{
+  importInfo->RemoveAllLoadables();
+
+  for (int fileListIndex=0; fileListIndex<importInfo->GetNumberOfFileLists(); fileListIndex++)
+  {
+    vtkStringArray *fileList=importInfo->GetFileList(fileListIndex);
+    for (int fileIndex=0; fileIndex<fileList->GetNumberOfValues(); fileIndex++)
+    {
+      DcmFileFormat fileformat;
+
+      vtkStdString fileName=fileList->GetValue(fileIndex);
+      OFCondition result;
+      result = fileformat.loadFile(fileName, EXS_Unknown);
+      if (!result.good())
+      {
+        continue; // failed to parse this file, skip it
+      }
+      DcmDataset *dataset = fileformat.getDataset();
+      // check SOP Class UID for one of the supported RT objects
+      OFString sopClass;
+      if (!dataset->findAndGetOFString(DCM_SOPClassUID, sopClass).good() || sopClass.empty())
+      {
+        continue; // failed to parse this file, skip it
+      }    
+      
+      // DICOM parsing is successful, now check if the object is loadable 
+      std::string name;
+      std::string tooltip;
+      std::string warning;
+      bool selected=true;
+
+      OFString seriesNumber;
+      dataset->findAndGetOFString(DCM_SeriesNumber, seriesNumber);
+      if (!seriesNumber.empty())
+      {
+        name+=std::string(seriesNumber.c_str())+": ";
+      }
+
+      if (sopClass == UID_RTDoseStorage)
+      {
+        name+="RTDOSE";
+        OFString instanceNumber;
+        dataset->findAndGetOFString(DCM_InstanceNumber, instanceNumber);
+        OFString seriesDescription;
+        dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
+        if (!seriesDescription.empty())
+        {
+          name+=std::string(": ")+seriesDescription.c_str(); 
+        }
+        if (!instanceNumber.empty())
+        {
+          name+=std::string(" [")+instanceNumber.c_str()+"]"; 
+        }
+      }
+      else if (sopClass == UID_RTPlanStorage)
+      {
+        name+="RTPLAN";
+        OFString planLabel;
+        dataset->findAndGetOFString(DCM_RTPlanLabel, planLabel);
+        OFString planName;
+        dataset->findAndGetOFString(DCM_RTPlanName, planName);
+        if (!planLabel.empty() && !planName.empty())
+        {
+          if (planLabel.compare(planName)!=0)
+          {
+            // plan label and name is different, display both
+            name+=std::string(": ")+planLabel.c_str()+" ("+planName.c_str()+")";
+          }
+          else
+          {
+            name+=std::string(": ")+planLabel.c_str();
+          }
+        }
+        else if (!planLabel.empty() && planName.empty())
+        {
+          name+=std::string(": ")+planLabel.c_str();
+        }
+        else if (planLabel.empty() && !planName.empty())
+        {
+          name+=std::string(": ")+planName.c_str();
+        }
+      }
+      else if (sopClass == UID_RTStructureSetStorage)
+      {
+        name+="RTSTRUCT";
+        OFString structLabel;
+        dataset->findAndGetOFString(DCM_StructureSetLabel, structLabel);
+        if (!structLabel.empty())
+        {
+          name+=std::string(": ")+structLabel.c_str();
+        }
+      }
+      /* not yet supported
+      else if (sopClass == UID_RTImageStorage)
+      else if (sopClass == UID_RTTreatmentSummaryRecordStorage)
+      else if (sopClass == UID_RTIonPlanStorage)
+      else if (sopClass == UID_RTIonBeamsTreatmentRecordStorage)
+      */
+      else
+      {
+        continue; // not an RT file
+      }
+
+      // The object is stored in a single file
+      vtkSmartPointer<vtkStringArray> loadableFileList=vtkSmartPointer<vtkStringArray>::New();
+      loadableFileList->InsertNextValue(fileName);
+     
+      importInfo->InsertNextLoadable(loadableFileList, name.c_str(), tooltip.c_str(), warning.c_str(), selected);
+    }
+
+  }
+
 }
 
 //---------------------------------------------------------------------------

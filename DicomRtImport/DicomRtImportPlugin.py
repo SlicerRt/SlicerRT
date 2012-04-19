@@ -21,79 +21,42 @@ class DicomRtImportPluginClass(DICOMPlugin):
     """ Returns a list of DICOMLoadable instances
     corresponding to ways of interpreting the 
     fileLists parameter.
-    """
+    """    
+    import vtkSlicerDicomRtImportModuleLogic
+    # Export file lists to DicomExamineInfo
+    examineInfo = vtkSlicerDicomRtImportModuleLogic.vtkDICOMImportInfo()
+    for files in fileLists:	  	
+      fileListIndex = examineInfo.InsertNextFileList() 
+      fileList = examineInfo.GetFileList(fileListIndex) # vtk.vtkStringArray()  	  
+      for f in files:
+        fileList.InsertNextValue(f)	
+    # Examine files
+    slicer.modules.dicomrtimport.logic().Examine(examineInfo)	
+    # Import loadables from DicomExamineInfo
     loadables = []
-    for files in fileLists:
-      loadables += self.examineFiles(files)
+    for loadableIndex in xrange(examineInfo.GetNumberOfLoadables()):
+      loadable = DICOMLib.DICOMLoadable()
+      loadableFilesVtk = examineInfo.GetLoadableFiles(loadableIndex)
+      loadableFilesPy = []
+      for fileIndex in xrange(loadableFilesVtk.GetNumberOfValues()):
+        loadableFilesPy.append(loadableFilesVtk.GetValue(fileIndex))
+      loadable.files = loadableFilesPy
+      loadable.name = examineInfo.GetLoadableName(loadableIndex)
+      loadable.tooltip = examineInfo.GetLoadableTooltip(loadableIndex)
+      loadable.selected = examineInfo.GetLoadableSelected(loadableIndex)
+      loadables.append(loadable)
+         
     return loadables
 
-  def examineFiles(self,files):
-    """ Returns a list of DICOMLoadable instances
-    corresponding to ways of interpreting the 
-    files parameter.
-    """
-
-    # series description and modality tag
-    SERIESINSTANCEUID = "0020,000e"
-    MODALITY = "0008,0060"
-
-    # list of accepted modalities
-    RtModalityValues = [
-      "RTSTRUCT",
-      "RTPLAN",
-      "RTDOSE"
-    ]
-
-    loadables = []
-
-    # Look for series with RT modality in files
-    for file in files:
-      slicer.dicomDatabase.loadFileHeader(file)
-      # get modality
-      v = slicer.dicomDatabase.headerValue(MODALITY)
-      try:
-        modality = v[v.index('[')+1:v.index(']')]
-      except ValueError:
-        modality = ""
-      # get series description
-      s = slicer.dicomDatabase.headerValue(SERIESINSTANCEUID)
-      try:
-        seriesUID = s[s.index('[')+1:s.index(']')]
-      except ValueError:
-        seriesUID = ""
-      try:
-        query = "SELECT SeriesDescription FROM Series WHERE SeriesInstanceUID=\'" + seriesUID + "\'"
-        results = slicer.dicomDatabase.runQuery(query)
-        if len(results) != 1:
-          name = "Unknown - " + modality
-          if len(results) > 1:
-            qt.QMessageBox.warning(slicer.util.mainWindow(), 
-                'Import', 'Multiple descriptions found for the SeriesInstanceUid: %s in file %s' % (seriesUID,file))
-        else:
-          name = results[0]
-      except:
-        name = "Unknown - " + modality
-      if modality in RtModalityValues:
-        loadable = DICOMLib.DICOMLoadable()
-        loadable.files = files
-        loadable.name = name
-        loadable.tooltip = name + ' - ' + modality
-        loadable.selected = True
-        loadables.append(loadable)
-
-    return loadables
-
+  
   def load(self,loadable):
     """Load the selection as an RT object
     using the DicomRtImport module
     """
-
     success = False
     if slicer.modules.dicomrtimport.logic().LoadDicomRT(loadable.files[0],loadable.name):
       success = True
     return success
-
-
 
 #
 # DicomRtImportPlugin

@@ -33,8 +33,8 @@
 
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 
-class vtkStringArray;
 class vtkMRMLDisplayableNode;
+class vtkDICOMImportInfo;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_DICOMRTIMPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomRtImportLogic :
@@ -48,6 +48,9 @@ public:
 
   /// Initialize listening to MRML events
   void InitializeEventListeners();
+
+  /// Examine a list of file lists and determine what objects can be loaded from them
+  void Examine(vtkDICOMImportInfo *importInfo);
 
   /// Load DICOM RT series from file name
   /// /return True if loading successful

@@ -15,6 +15,8 @@ set(module_logic_include_directories
 
 # Source files
 set(module_logic_SRCS
+  vtkDICOMImportInfo.cxx
+  vtkDICOMImportInfo.h
   vtkSlicerDicomRtImportLogic.cxx
   vtkSlicerDicomRtImportLogic.h
   vtkSlicerDicomRtReader.cxx
