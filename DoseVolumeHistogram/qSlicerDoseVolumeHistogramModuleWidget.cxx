@@ -19,7 +19,6 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QCheckBox>
-#include <QTimer>
 
 // SlicerQt includes
 #include "qSlicerDoseVolumeHistogramModuleWidget.h"
@@ -81,21 +80,12 @@ qSlicerDoseVolumeHistogramModuleWidget::qSlicerDoseVolumeHistogramModuleWidget(Q
   m_ChartCheckboxToStructureSetNameMap.clear();
   m_ShowInChartCheckStates.clear();
   m_ShowHideAllClicked = false;
-
-  m_CheckSceneChangeTimer = new QTimer(this); 
 }
 
 //-----------------------------------------------------------------------------
 qSlicerDoseVolumeHistogramModuleWidget::~qSlicerDoseVolumeHistogramModuleWidget()
 {
   m_ChartCheckboxToStructureSetNameMap.clear();
-
-  if (m_CheckSceneChangeTimer != NULL)
-  {
-    m_CheckSceneChangeTimer->stop();
-		delete m_CheckSceneChangeTimer;
-		m_CheckSceneChangeTimer = NULL;
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -129,10 +119,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->checkBox_ShowDMetrics, SIGNAL( stateChanged(int) ), this, SLOT( showMetricsCheckedStateChanged(int) ) );
   connect( d->lineEdit_DVolume, SIGNAL( textEdited(QString) ), this, SLOT( lineEditMetricEdited(QString) ) );
 
-  connect( m_CheckSceneChangeTimer, SIGNAL( timeout() ), this, SLOT( checkSceneChange() ) );
-
-  // Start timer
-	m_CheckSceneChangeTimer->start(100); 
+  // Handle scene change event if occurs
+  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 
   updateChartCheckboxesState();
 }
@@ -254,7 +242,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::checkSceneChange()
+void qSlicerDoseVolumeHistogramModuleWidget::onLogicModified()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 

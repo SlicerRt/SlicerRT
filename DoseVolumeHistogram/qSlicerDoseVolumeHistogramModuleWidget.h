@@ -29,7 +29,6 @@
 class qSlicerDoseVolumeHistogramModuleWidgetPrivate;
 class vtkMRMLNode;
 class QCheckBox;
-class QTimer;
 class QLineEdit;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -37,6 +36,7 @@ class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramMo
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
+  QVTK_OBJECT
 
 public:
 
@@ -59,7 +59,7 @@ protected slots:
   void showMetricsCheckedStateChanged(int aState);
   void lineEditMetricEdited(QString aText);
 
-  void checkSceneChange();
+  void onLogicModified();
 
 protected:
   QScopedPointer<qSlicerDoseVolumeHistogramModuleWidgetPrivate> d_ptr;
@@ -88,9 +88,6 @@ protected:
 
   /// Flag whether show/hide all checkbox has been clicked - some operations are not necessary when it was clicked
   bool m_ShowHideAllClicked;
-
-  /// Timer that invokes checking if the scene has recently changed (refresh DVH table needed)
-  QTimer* m_CheckSceneChangeTimer; 
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseVolumeHistogramModuleWidget);
