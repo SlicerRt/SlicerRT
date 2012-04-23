@@ -237,14 +237,14 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
   bool loadedSomething=false;
   bool loadingErrorsOccurred=false;
 
+    // Hierarchy node for the loaded structure sets
+    // It is not created here yet because maybe there won't be anything to put in it.
+    vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode;
+
   // RTSTRUCT
   if (rtReader->GetLoadRTStructureSetSuccessful())
   {
     this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
-
-    // Hierarchy node for the loaded structure sets
-    // It is not created here yet because maybe there won't be anything to put in it.
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode;
 
     // Add ROIs
     int numberOfROI = rtReader->GetNumberOfROIs();
@@ -379,12 +379,42 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
   {
     this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
+    vtkMRMLDisplayableNode* addedDisplayableNode = NULL;
     int numberOfBeams = rtReader->GetNumberOfBeams();
     for (int dicomBeamIndex = 1; dicomBeamIndex < numberOfBeams+1; dicomBeamIndex++) // DICOM starts indexing from 1
     {
       // Isocenter fiducial
       double isoColor[3] = { 1.0,1.0,1.0};
-      AddRoiPoint(rtReader->GetBeamIsocenterPosition(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
+      addedDisplayableNode= this->AddRoiPoint(rtReader->GetBeamIsocenterPosition(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
+       // Add new node to the hierarchy node
+      if (addedDisplayableNode)
+      {
+        // Create root node, if it has not been created yet
+        if (modelHierarchyRootNode.GetPointer()==NULL)
+        {
+          modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+          std::string hierarchyNodeName;
+          hierarchyNodeName = std::string(seriesname) + " - all structures";
+          modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+          modelHierarchyRootNode->AllowMultipleChildrenOn();
+          modelHierarchyRootNode->HideFromEditorsOff();
+          this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
+
+          // A hierarchy node needs a display node
+          vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+          hierarchyNodeName.append("Display");
+          modelDisplayNode->SetName(hierarchyNodeName.c_str());
+          modelDisplayNode->SetVisibility(1);
+          this->GetMRMLScene()->AddNode(modelDisplayNode);
+          modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+        }
+
+        // put the new node in the hierarchy
+        vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+        this->GetMRMLScene()->AddNode(modelHierarchyNode);
+        modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
+        modelHierarchyNode->SetModelNodeID( addedDisplayableNode->GetID() );
+      }
     }
 
     this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 

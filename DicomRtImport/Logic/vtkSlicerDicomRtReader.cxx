@@ -22,31 +22,46 @@ limitations under the License.
 
 // VTK includes
 #include <vtkNew.h>
-#include "vtkObjectFactory.h"
-#include "vtkPolyData.h"
-#include "vtkPoints.h"
-#include "vtkCellArray.h"
-#include "vtkRibbonFilter.h"
-#include "vtkPolyDataNormals.h"
-#include "vtkSmartPointer.h"
-#include "vtkCleanPolyData.h"
+#include <vtkObjectFactory.h>
+#include <vtkPolyData.h>
+#include <vtkPoints.h>
+#include <vtkCellArray.h>
+#include <vtkRibbonFilter.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkSmartPointer.h>
+#include <vtkCleanPolyData.h>
 
 // STD includes
 #include <cassert>
 #include <vector>
 
 // DCMTK includes
-#include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
+#include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
 
-#include "dcmtk/ofstd/ofconapp.h"
+#include <dcmtk/ofstd/ofconapp.h>
 
-#include "dcmtk/dcmrt/drtdose.h"
-#include "dcmtk/dcmrt/drtimage.h"
-#include "dcmtk/dcmrt/drtplan.h"
-#include "dcmtk/dcmrt/drtstruct.h"
-#include "dcmtk/dcmrt/drttreat.h"
-#include "dcmtk/dcmrt/drtionpl.h"
-#include "dcmtk/dcmrt/drtiontr.h"
+#include <dcmtk/dcmrt/drtdose.h>
+#include <dcmtk/dcmrt/drtimage.h>
+#include <dcmtk/dcmrt/drtplan.h>
+#include <dcmtk/dcmrt/drtstruct.h>
+#include <dcmtk/dcmrt/drttreat.h>
+#include <dcmtk/dcmrt/drtionpl.h>
+#include <dcmtk/dcmrt/drtiontr.h>
+
+// Qt includes
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlDatabase>
+//#include <QSqlRecord>
+//#include <QSqlError>
+#include <QVariant>
+#include <QStringList>
+#include <QSettings>
+#include <QFile>
+#include <QFileInfo>
+#include <QDebug>
+
+// CTK includes
+#include <ctkDICOMDatabase.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtReader);
@@ -177,10 +192,11 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
 
   DRTPlanIOD rtPlanObject;
   OFCondition result = rtPlanObject.read(*dataset);
+  std::cerr << "here!" << std::endl;
   if (result.good())
   {
     OFString tmpString, dummyString;
-    cout << "RT Structure Set object" << OFendl << OFendl;
+    cout << "RT Plan object" << OFendl << OFendl;
 
     DRTBeamSequence &rtPlaneBeamSequenceObject = rtPlanObject.getBeamSequence();
     if (rtPlaneBeamSequenceObject.gotoFirstItem().good())
@@ -216,8 +232,9 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
               {
                 OFVector<Float64>  IsocenterPositionData_LPS;
                 controlPointItem.getIsocenterPosition(IsocenterPositionData_LPS);
-                tempEntry->BeamIsocenterPosition[0] = IsocenterPositionData_LPS[0];
-                tempEntry->BeamIsocenterPosition[1] = IsocenterPositionData_LPS[1];
+                // convert from DICOM LPS -> Slicer RAS
+                tempEntry->BeamIsocenterPosition[0] = -IsocenterPositionData_LPS[0];
+                tempEntry->BeamIsocenterPosition[1] = -IsocenterPositionData_LPS[1];
                 tempEntry->BeamIsocenterPosition[2] = IsocenterPositionData_LPS[2];
               }
             }
@@ -229,13 +246,14 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
     }
   }
 
-  this->LoadRTStructureSetSuccessful = true;
+  this->LoadRTPlanSuccessful = true;
 }
 
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 {
   this->LoadRTStructureSetSuccessful = false;
+  double SliceThickness = 1.1;
 
   DRTStructureSetIOD rtStructureSetObject;
   OFCondition result = rtStructureSetObject.read(*dataset);
@@ -259,7 +277,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
           Sint32 ROINumber;
           currentROISequenceObject.getROINumber(ROINumber);
-          //cout << "roi number:" << ROINumber << " roi name:" << ROIName << " roi description:" << ROIDescription << OFendl;
+          // cout << "roi number:" << ROINumber << " roi name:" << ROIName << " roi description:" << ROIDescription << OFendl;
           // add into vector
           ROIStructureSetEntry* tempEntry = new ROIStructureSetEntry();
           tempEntry->ROIName = new char[ROIName.size()+1];
@@ -270,8 +288,90 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       }
       while (rtStructureSetROISequenceObject.gotoNextItem().good());
     }
-    //cout << OFendl;
+    // cout << OFendl;
 
+    OFString ReferencedSOPInstanceUID;
+    DRTReferencedFrameOfReferenceSequence &rtReferencedFrameOfReferenceSequenceObject = rtStructureSetObject.getReferencedFrameOfReferenceSequence();
+    if (rtReferencedFrameOfReferenceSequenceObject.gotoFirstItem().good())
+    {
+      //do
+      //{
+        DRTReferencedFrameOfReferenceSequence::Item &currentReferencedFrameOfReferenceSequenceItem = rtReferencedFrameOfReferenceSequenceObject.getCurrentItem();
+        if (currentReferencedFrameOfReferenceSequenceItem.isValid())
+        {
+          // Sint32 ROINumber;
+          DRTRTReferencedStudySequence &rtReferencedStudySequenceObject = currentReferencedFrameOfReferenceSequenceItem.getRTReferencedStudySequence();
+          if (rtReferencedStudySequenceObject.gotoFirstItem().good())
+          {
+            //do
+            //{
+              DRTRTReferencedStudySequence::Item &rtReferencedStudySequenceItem = rtReferencedStudySequenceObject.getCurrentItem();
+              if (rtReferencedStudySequenceItem.isValid())
+              {
+                 //rtReferencedStudySequenceItem.getReferencedSOPInstanceUID(ReferencedSOPInstanceUID);
+                 DRTRTReferencedSeriesSequence &rtReferencedSeriesSequenceObject = rtReferencedStudySequenceItem.getRTReferencedSeriesSequence();
+                 if (rtReferencedSeriesSequenceObject.gotoFirstItem().good())
+                 {
+                   DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject.getCurrentItem();
+                   if (rtReferencedSeriesSequenceItem.isValid())
+                   {
+                     DRTContourImageSequence &rtContourImageSequenceObject = rtReferencedSeriesSequenceItem.getContourImageSequence();
+                     if (rtContourImageSequenceObject.gotoFirstItem().good())
+                     {
+                       DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject.getCurrentItem();
+                       if (rtContourImageSequenceItem.isValid())
+                       {
+                         rtContourImageSequenceItem.getReferencedSOPInstanceUID(ReferencedSOPInstanceUID);
+                       }
+                     }
+                   }
+                 }
+              }
+            //}
+            //while (rtReferencedStudySequenceObject.gotoNextItem().good());
+          }
+          
+        }
+      //}
+      //while (rtReferencedFrameOfReferenceSequenceObject.gotoNextItem().good());
+    }
+    
+    ctkDICOMDatabase dicomDatabase;
+    QSettings settings;
+    QString databaseDirectory = settings.value("DatabaseDirectory").toString();
+    dicomDatabase.openDatabase(databaseDirectory + "/ctkDICOM.sql", "SLICER");
+    QString query("SELECT Filename FROM Images WHERE SOPInstanceUID="); 
+    QString uid(ReferencedSOPInstanceUID.c_str());
+    QString quote("\"");
+    QStringList resultStringList = dicomDatabase.runQuery(query + quote + uid + quote);
+    dicomDatabase.closeDatabase();
+    
+    if ( !resultStringList.first().isNull() && !resultStringList.first().isEmpty() )
+    {
+      // load DICOM file or dataset
+      DcmFileFormat fileformat;
+
+      OFCondition result;
+      result = fileformat.loadFile( resultStringList.first().toStdString().c_str(), EXS_Unknown);
+      if (result.good())
+      {
+        DcmDataset *dataset = fileformat.getDataset();
+        // from here use dicom toolkit to read slice thickness; wangk 2012/04/10
+        OFString sliceThicknessString;
+        if (dataset->findAndGetOFString(DCM_SliceThickness, sliceThicknessString).good())
+        {
+          SliceThickness = atof(sliceThicknessString.c_str());
+          if (SliceThickness <= 0.0 || SliceThickness > 20.0)
+          {
+          SliceThickness = 1.1;
+          }
+        }
+        else
+        {
+        }
+      }
+    }
+    
     Sint32 referenceROINumber;
     DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
     if (rtROIContourSequenceObject.gotoFirstItem().good())
@@ -378,7 +478,9 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
             vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
             ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
             ribbonFilter->SetDefaultNormal(0,0,-1);
-            ribbonFilter->SetWidth(1.1); // a reasonable default value that often works well
+            ribbonFilter->SetWidth(SliceThickness); // take the slice thickness from dicom file 
+                                       // assumption is that the slice thickness is constant (not varying)
+            // ribbonFilter->SetWidth(1.1); // a reasonable default value that often works well
             if (contourPlaneIndex>=1)
             {
               // there were at least contour planes, therefore we have a valid distance estimation
