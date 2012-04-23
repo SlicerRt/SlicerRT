@@ -49,8 +49,8 @@ limitations under the License.
 #include <dcmtk/dcmrt/drtiontr.h>
 
 // Qt includes
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlDatabase>
 //#include <QSqlRecord>
 //#include <QSqlError>
 #include <QVariant>

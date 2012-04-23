@@ -11,6 +11,7 @@ set(module_logic_export_directive "VTK_SLICER_DICOMRTIMPORT_MODULE_LOGIC_EXPORT"
 
 # Additional directories to include
 set(module_logic_include_directories
+  ${QT_QTSQL_INCLUDE_DIR}
   )
 
 # Source files
