@@ -240,6 +240,8 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
     // Hierarchy node for the loaded structure sets
     // It is not created here yet because maybe there won't be anything to put in it.
     vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode;
+    vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterHierarchyRootNode;
+    
 
   // RTSTRUCT
   if (rtReader->GetLoadRTStructureSetSuccessful())
@@ -390,15 +392,15 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
       if (addedDisplayableNode)
       {
         // Create root node, if it has not been created yet
-        if (modelHierarchyRootNode.GetPointer()==NULL)
+        if (isocenterHierarchyRootNode.GetPointer()==NULL)
         {
-          modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+          isocenterHierarchyRootNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
           std::string hierarchyNodeName;
-          hierarchyNodeName = std::string(seriesname) + " - all structures";
-          modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
-          modelHierarchyRootNode->AllowMultipleChildrenOn();
-          modelHierarchyRootNode->HideFromEditorsOff();
-          this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
+          hierarchyNodeName = std::string(seriesname) + " - isocenters";
+          isocenterHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+          isocenterHierarchyRootNode->AllowMultipleChildrenOn();
+          isocenterHierarchyRootNode->HideFromEditorsOff();
+          this->GetMRMLScene()->AddNode(isocenterHierarchyRootNode);
 
           // A hierarchy node needs a display node
           vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
@@ -406,13 +408,13 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
           modelDisplayNode->SetName(hierarchyNodeName.c_str());
           modelDisplayNode->SetVisibility(1);
           this->GetMRMLScene()->AddNode(modelDisplayNode);
-          modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+          isocenterHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
         }
 
         // put the new node in the hierarchy
         vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
         this->GetMRMLScene()->AddNode(modelHierarchyNode);
-        modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
+        modelHierarchyNode->SetParentNodeID( isocenterHierarchyRootNode->GetID() );
         modelHierarchyNode->SetModelNodeID( addedDisplayableNode->GetID() );
       }
     }
