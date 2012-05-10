@@ -38,7 +38,8 @@ public:
   explicit qSlicerDoseAccumulationModule(QObject *parent=0);
   virtual ~qSlicerDoseAccumulationModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  //qSlicerGetTitleMacro(QTMODULE_TITLE); //TODO: Does not compile (no quotation marks in the QTMODULE_TITLE macro)
+  qSlicerGetTitleMacro("Dose Accumulation");
   
   /// Help to use the module
   virtual QString helpText()const;

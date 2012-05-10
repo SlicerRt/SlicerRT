@@ -6,33 +6,150 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>525</width>
-    <height>319</height>
+    <width>373</width>
+    <height>420</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Dose Accumulation</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="margin">
+    <number>4</number>
+   </property>
+   <property name="spacing">
+    <number>4</number>
+   </property>
    <item row="0" column="0" colspan="2">
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Input">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
-      <string>Display</string>
+      <string>Input</string>
      </property>
      <property name="contentsFrameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3"/>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <property name="margin">
+       <number>4</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="checkBox_ShowDoseVolumesOnly">
+        <property name="text">
+         <string>Show dose volumes only</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QTableWidget" name="tableWidget_Volumes">
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>false</bool>
+        </property>
+        <column>
+         <property name="text">
+          <string/>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Volume</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Weight</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
     </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Output">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Output</string>
+     </property>
+     <property name="contentsFrameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <property name="margin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_AccumulatedDoseVolume">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Accumulated Dose Volume</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>4</number>
+     </property>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_Apply">
+       <property name="text">
+        <string>Apply</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ctkCollapsibleButton</class>
+   <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
+   <header>qMRMLNodeComboBox.h</header>
   </customwidget>
   <customwidget>
    <class>qSlicerWidget</class>
@@ -40,7 +157,30 @@
    <header>qSlicerWidget.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>qSlicerDoseAccumulationModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_AccumulatedDoseVolume</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>271</x>
+     <y>2</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>263</x>
+     <y>382</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

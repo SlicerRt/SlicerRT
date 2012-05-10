@@ -1,7 +1,25 @@
 
 # Module name (usually identique to the directory name)
+set(EXTENSION_NAME DoseAccumulation) # Do not use 'project()' - See SlicerConfig.cmake
 set(qt_module_name "DoseAccumulation")
-set(qt_module_title "Module Template")
+set(qt_module_title "Dose Accumulation")
+
+if(NOT Slicer_SOURCE_DIR)
+  set(EXTENSION_HOMEPAGE "https://www.assembla.com/spaces/slicerrt")
+  set(EXTENSION_CATEGORY "Radiotherapy")
+  set(EXTENSION_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/LoadableExtensionTemplate/Resources/Icons/LoadableExtensionTemplate.png?revision=19437&view=co")
+  set(EXTENSION_STATUS "Beta")
+  set(EXTENSION_CONTRIBUTORS "Csaba Pinter, Andras Lasso, Kevin Wang")
+  set(EXTENSION_DESCRIPTION "Accumulate dose volumes")
+  set(EXTENSION_SCREENSHOTURLS "https://www.assembla.com/spaces/slicerrt/documents/bhB--4vSSr4BSNacwqjQWU/download/bhB--4vSSr4BSNacwqjQWU?notinline=true")
+  set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
+endif()
+
+if(NOT Slicer_SOURCE_DIR)
+  find_package(Slicer REQUIRED)
+  include(${Slicer_USE_FILE})
+  include(SlicerEnableExtensionTesting)
+endif()
 
 # Build module sub libraries
 add_subdirectory(Logic)
@@ -60,4 +78,8 @@ slicerMacroBuildQtModule(
 
 if(BUILD_TESTING)
   add_subdirectory(Testing)
+endif()
+
+if(NOT Slicer_SOURCE_DIR)
+  include(${Slicer_EXTENSION_CPACK})
 endif()

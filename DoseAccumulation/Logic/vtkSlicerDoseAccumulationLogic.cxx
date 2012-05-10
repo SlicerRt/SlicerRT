@@ -19,6 +19,7 @@
 #include "vtkSlicerDoseAccumulationLogic.h"
 
 // MRML includes
+#include <vtkMRMLVolumeNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -29,9 +30,14 @@
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseAccumulationLogic);
 
+vtkCxxSetObjectMacro(vtkSlicerDoseAccumulationLogic, AccumulatedDoseVolumeNode, vtkMRMLVolumeNode);
+
 //----------------------------------------------------------------------------
 vtkSlicerDoseAccumulationLogic::vtkSlicerDoseAccumulationLogic()
 {
+  this->AccumulatedDoseVolumeNode = NULL;
+
+  this->SceneChangedOff();
 }
 
 //----------------------------------------------------------------------------
@@ -65,17 +71,72 @@ void vtkSlicerDoseAccumulationLogic::RegisterNodes()
 void vtkSlicerDoseAccumulationLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
+
+  this->SceneChangedOn();
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseAccumulationLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
+::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
+  if (!node || !this->GetMRMLScene())
+  {
+    return;
+  }
+
+  this->SceneChangedOn();
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseAccumulationLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
+::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
+  if (!node || !this->GetMRMLScene())
+  {
+    return;
+  }
+
+  this->SceneChangedOn();
+  this->Modified();
 }
 
+//---------------------------------------------------------------------------
+vtkCollection* vtkSlicerDoseAccumulationLogic
+::GetVolumeNodes(bool doseVolumesOnly)
+{
+  if (this->GetMRMLScene() == NULL || this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLVolumeNode") < 1)
+  {
+    return NULL;
+  }
+
+  vtkCollection* volumeNodes = vtkCollection::New();
+  volumeNodes->InitTraversal();
+
+  this->GetMRMLScene()->InitTraversal();
+  vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLVolumeNode");
+  while (node != NULL)
+  {
+    vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
+    if (volumeNode)
+    {
+      const char* doseUnitName = volumeNode->GetAttribute("DoseUnitName");
+      if (doseUnitName != NULL || !doseVolumesOnly)
+      {
+        volumeNodes->AddItem(volumeNode);
+      }
+    }
+
+    node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLVolumeNode");
+  }
+
+  return volumeNodes;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseAccumulationLogic
+::AccumulateDoseVolumes(std::vector< std::pair<std::string,double> > volumeIdsAndWeights)
+{
+  //TODO: Kevin's code goes here
+}

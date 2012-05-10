@@ -31,19 +31,35 @@
 
 // STD includes
 #include <cstdlib>
+#include <set>
 
 #include "vtkSlicerDoseAccumulationModuleLogicExport.h"
 
+class vtkMRMLVolumeNode;
 
 /// \ingroup Slicer_QtModules_DoseAccumulation
 class VTK_SLICER_DOSEACCUMULATION_MODULE_LOGIC_EXPORT vtkSlicerDoseAccumulationLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  
   static vtkSlicerDoseAccumulationLogic *New();
   vtkTypeMacro(vtkSlicerDoseAccumulationLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  /// Collect and return dose volume nodes
+  /// \param doseVolumesOnly If true, then collect only dose volume nodes, all volume nodes otherwise
+  vtkCollection* GetVolumeNodes(bool doseVolumesOnly);
+
+  /// Accumulates dose volumes with the given IDs and corresponding weights
+  void AccumulateDoseVolumes(std::vector< std::pair<std::string,double> > volumeIdsAndWeights);
+
+public:
+  void SetAccumulatedDoseVolumeNode( vtkMRMLVolumeNode* );
+  vtkGetObjectMacro( AccumulatedDoseVolumeNode, vtkMRMLVolumeNode );
+
+  vtkSetMacro( SceneChanged, bool );
+  vtkGetMacro( SceneChanged, bool );
+  vtkBooleanMacro( SceneChanged, bool );
 
 protected:
   vtkSlicerDoseAccumulationLogic();
@@ -55,10 +71,17 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-private:
 
+private:
   vtkSlicerDoseAccumulationLogic(const vtkSlicerDoseAccumulationLogic&); // Not implemented
   void operator=(const vtkSlicerDoseAccumulationLogic&);               // Not implemented
+
+protected:
+  /// Selected accumulated dose volume MRML node object
+  vtkMRMLVolumeNode* AccumulatedDoseVolumeNode;
+
+  /// Flag indicating if the scene has recently changed (update of the module GUI needed)
+  bool SceneChanged;
 };
 
 #endif

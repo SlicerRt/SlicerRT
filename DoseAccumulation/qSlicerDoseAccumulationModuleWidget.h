@@ -25,26 +25,58 @@
 
 class qSlicerDoseAccumulationModuleWidgetPrivate;
 class vtkMRMLNode;
+class QTableWidgetItem;
+class QCheckBox;
+
+// STD includes
+#include <map>
+#include <set>
 
 /// \ingroup Slicer_QtModules_DoseAccumulation
 class Q_SLICER_QTMODULES_DOSEACCUMULATION_EXPORT qSlicerDoseAccumulationModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
+  QVTK_OBJECT
 
 public:
-
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerDoseAccumulationModuleWidget(QWidget *parent=0);
   virtual ~qSlicerDoseAccumulationModuleWidget();
 
 public slots:
 
+protected slots:
+  void accumulatedDoseVolumeNodeChanged(vtkMRMLNode*);
+
+  void onTableItemChanged(QTableWidgetItem* changedItem);
+  void storeSelectedTableItemText(QTableWidgetItem* selectedItem, QTableWidgetItem* previousItem);
+
+  void applyClicked();
+
+  void showDoseOnlyChanged(int aState);
+  void includeVolumeCheckStateChanged(int aState);
+
+  void onLogicModified();
 
 protected:
   QScopedPointer<qSlicerDoseAccumulationModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
+
+protected:
+  /// Updates button states
+  void updateButtonsState();
+
+  /// Refresh volumes table
+  void refreshVolumesTable();
+
+protected:
+  /// Map that associates dose volume checkboxes to the corresponding MRML node IDs and the row numbers in the table
+  std::map< QCheckBox*, std::pair<std::string,int> > m_CheckboxToVolumeIdMap;
+
+  /// Set of the selected volume IDs
+  std::set<std::string> m_SelectedVolumeIds;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseAccumulationModuleWidget);
