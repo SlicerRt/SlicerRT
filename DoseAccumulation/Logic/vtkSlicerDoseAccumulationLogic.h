@@ -2,7 +2,7 @@
 
   Program: 3D Slicer
 
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Kitware Inc.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -12,6 +12,10 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
+
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
@@ -36,6 +40,7 @@
 #include "vtkSlicerDoseAccumulationModuleLogicExport.h"
 
 class vtkMRMLVolumeNode;
+class vtkMRMLDoseAccumulationNode;
 
 /// \ingroup Slicer_QtModules_DoseAccumulation
 class VTK_SLICER_DOSEACCUMULATION_MODULE_LOGIC_EXPORT vtkSlicerDoseAccumulationLogic :
@@ -61,6 +66,9 @@ public:
   vtkGetMacro( SceneChanged, bool );
   vtkBooleanMacro( SceneChanged, bool );
 
+  void SetAndObserveDoseAccumulationNode(vtkMRMLDoseAccumulationNode* node);
+  vtkGetObjectMacro(DoseAccumulationNode, vtkMRMLDoseAccumulationNode);
+
 protected:
   vtkSlicerDoseAccumulationLogic();
   virtual ~vtkSlicerDoseAccumulationLogic();
@@ -72,6 +80,8 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
+  virtual void OnMRMLSceneEndImport();
+
 private:
   vtkSlicerDoseAccumulationLogic(const vtkSlicerDoseAccumulationLogic&); // Not implemented
   void operator=(const vtkSlicerDoseAccumulationLogic&);               // Not implemented
@@ -82,6 +92,9 @@ protected:
 
   /// Flag indicating if the scene has recently changed (update of the module GUI needed)
   bool SceneChanged;
+
+  /// Parameter set MRML node
+  vtkMRMLDoseAccumulationNode* DoseAccumulationNode;
 };
 
 #endif

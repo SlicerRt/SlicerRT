@@ -17,6 +17,8 @@ set(module_logic_include_directories
 set(module_logic_SRCS
   vtkSlicerDoseAccumulationLogic.cxx
   vtkSlicerDoseAccumulationLogic.h
+  vtkMRMLDoseAccumulationNode.h
+  vtkMRMLDoseAccumulationNode.cxx
   )
 
 # Additional Target libraries

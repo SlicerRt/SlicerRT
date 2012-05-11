@@ -2,7 +2,7 @@
 
   Program: 3D Slicer
 
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Kitware Inc.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -13,6 +13,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
 ==============================================================================*/
 
 // DoseAccumulation includes
@@ -20,6 +24,7 @@
 
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
+#include "vtkMRMLDoseAccumulationNode.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -51,6 +56,12 @@ void vtkSlicerDoseAccumulationLogic::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
+//----------------------------------------------------------------------------
+void vtkSlicerDoseAccumulationLogic::SetAndObserveDoseAccumulationNode(vtkMRMLDoseAccumulationNode *node)
+{
+  vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, node);
+}
+
 //---------------------------------------------------------------------------
 void vtkSlicerDoseAccumulationLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
@@ -64,7 +75,12 @@ void vtkSlicerDoseAccumulationLogic::SetMRMLSceneInternal(vtkMRMLScene * newScen
 //-----------------------------------------------------------------------------
 void vtkSlicerDoseAccumulationLogic::RegisterNodes()
 {
-  assert(this->GetMRMLScene() != 0);
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    return;
+  }
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New());
 }
 
 //---------------------------------------------------------------------------
@@ -73,7 +89,7 @@ void vtkSlicerDoseAccumulationLogic::UpdateFromMRMLScene()
   assert(this->GetMRMLScene() != 0);
 
   this->SceneChangedOn();
-  this->Modified();
+  this->Modified(); //TODO: Why does it have to be called explicitly?
 }
 
 //---------------------------------------------------------------------------
@@ -86,7 +102,7 @@ void vtkSlicerDoseAccumulationLogic
   }
 
   this->SceneChangedOn();
-  this->Modified();
+  this->Modified(); //TODO: Why does it have to be called explicitly?
 }
 
 //---------------------------------------------------------------------------
@@ -99,7 +115,8 @@ void vtkSlicerDoseAccumulationLogic
   }
 
   this->SceneChangedOn();
-  this->Modified();
+  this->Modified(); //TODO: Why does it have to be called explicitly?
+  this->OnMRMLNodeModified(node);
 }
 
 //---------------------------------------------------------------------------
@@ -132,6 +149,20 @@ vtkCollection* vtkSlicerDoseAccumulationLogic
   }
 
   return volumeNodes;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndImport()
+{
+  // If we have a parameter node select it
+  vtkMRMLDoseAccumulationNode *tnode = 0;
+  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLDoseAccumulationNode");
+  if (node)
+  {
+    tnode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
+    vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, tnode);
+  }
+  this->InvokeEvent(vtkMRMLScene::EndImportEvent);
 }
 
 //---------------------------------------------------------------------------

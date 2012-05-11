@@ -2,7 +2,7 @@
 
   Program: 3D Slicer
 
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Kitware Inc.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -13,8 +13,12 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-==============================================================================*/
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
+==============================================================================*/
+ 
 #ifndef __qSlicerDoseAccumulationModule_h
 #define __qSlicerDoseAccumulationModule_h
 
