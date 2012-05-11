@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
 set(EXTENSION_NAME DoseVolumeHistogram) # Do not use 'project()' - See SlicerConfig.cmake
+set(qt_module_name "DoseVolumeHistogram")
+set(qt_module_title "Dose Volume Histogram")
 
 if(NOT Slicer_SOURCE_DIR)
   set(EXTENSION_HOMEPAGE "https://www.assembla.com/spaces/slicerrt")
@@ -57,7 +59,8 @@ set(qt_module_resources
 
 #-----------------------------------------------------------------------------
 slicerMacroBuildQtModule(
-  NAME ${EXTENSION_NAME}
+  NAME ${qt_module_name}
+  TITLE ${qt_module_title}
   EXPORT_DIRECTIVE ${qt_module_export_directive}
   INCLUDE_DIRECTORIES ${qt_module_include_directories}
   SRCS ${qt_module_SRCS}
