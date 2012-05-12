@@ -40,24 +40,17 @@ vtkMRMLNodeNewMacro(vtkMRMLDoseAccumulationNode);
 vtkMRMLDoseAccumulationNode::vtkMRMLDoseAccumulationNode()
 {
   this->ShowDoseVolumesOnly = true;
-
-  this->SelectedInputVolumeIds = NULL;
-  vtkSmartPointer<vtkStringArray> selectedInputVolumeIds = vtkSmartPointer<vtkStringArray>::New();
-  this->SetSelectedInputVolumeIds(selectedInputVolumeIds);
-
-  this->SelectedInputVolumeWeights = NULL;
-  vtkSmartPointer<vtkDoubleArray> selectedInputVolumeWeights = vtkSmartPointer<vtkDoubleArray>::New();
-  this->SetSelectedInputVolumeWeights(selectedInputVolumeWeights);
-
-  this->AccumulatedDoseVolumeId = NULL;
+  this->SelectedInputVolumeIds.clear();
+  this->VolumeNodeIdsToWeightsMap.clear();
+  this->AccumulatedDoseVolumeNodeId = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLDoseAccumulationNode::~vtkMRMLDoseAccumulationNode()
 {
-  this->SetSelectedInputVolumeIds(NULL);
-  this->SetSelectedInputVolumeWeights(NULL);
-  this->SetAccumulatedDoseVolumeId(NULL);
+  this->SelectedInputVolumeIds.clear();
+  this->VolumeNodeIdsToWeightsMap.clear();
+  this->SetAccumulatedDoseVolumeNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -72,32 +65,28 @@ void vtkMRMLDoseAccumulationNode::WriteXML(ostream& of, int nIndent)
 
   {
     of << indent << " SelectedInputVolumeIds=\"";
-    for (int i=0; i<this->SelectedInputVolumeIds->GetNumberOfValues(); ++i)
+    for (std::set<std::string>::iterator it = this->SelectedInputVolumeIds.begin(); it != this->SelectedInputVolumeIds.end(); ++it)
       {
-      std::stringstream ss;
-      ss << this->SelectedInputVolumeIds->GetValue(i);
-      of << indent << ss.str() << "|";
+      of << indent << (*it) << "|";
       }
     of << "\"";
   }
 
   {
-    of << indent << " SelectedInputVolumeWeights=\"";
-    for (int i=0; i<this->SelectedInputVolumeWeights->GetNumberOfTuples(); ++i)
+    of << indent << " VolumeNodeIdsToWeightsMap=\"";
+    for (std::map<std::string,double>::iterator it = this->VolumeNodeIdsToWeightsMap.begin(); it != this->VolumeNodeIdsToWeightsMap.end(); ++it)
       {
-      std::stringstream ss;
-      ss << this->SelectedInputVolumeIds->GetValue(i);
-      of << indent << ss.str() << "|";
+      of << indent << it->first << ":" << it->second << "|";
       }
     of << "\"";
   }
 
   {
     std::stringstream ss;
-    if ( this->AccumulatedDoseVolumeId )
+    if ( this->AccumulatedDoseVolumeNodeId )
       {
-      ss << this->AccumulatedDoseVolumeId;
-      of << indent << " AccumulatedDoseVolumeId=\"" << ss.str() << "\"";
+      ss << this->AccumulatedDoseVolumeNodeId;
+      of << indent << " AccumulatedDoseVolumeNodeId=\"" << ss.str() << "\"";
      }
   }
 }
@@ -132,52 +121,69 @@ void vtkMRMLDoseAccumulationNode::ReadXMLAttributes(const char** atts)
       std::string valueStr = ss.str();
       std::string separatorCharacter("|");
 
-      this->SelectedInputVolumeIds->Initialize();
+      this->SelectedInputVolumeIds.clear();
       size_t separatorPosition = valueStr.find( separatorCharacter );
       while (separatorPosition != std::string::npos)
         {
-        this->SelectedInputVolumeIds->InsertNextValue( valueStr.substr(0, separatorPosition) );
+        this->SelectedInputVolumeIds.insert( valueStr.substr(0, separatorPosition) );
         valueStr = valueStr.substr( separatorPosition+1 );
         separatorPosition = valueStr.find( separatorCharacter );
         }
       if (! valueStr.empty() )
         {
-        this->SelectedInputVolumeIds->InsertNextValue( valueStr );
+        this->SelectedInputVolumeIds.insert( valueStr );
         }
       }
-    else if (!strcmp(attName, "SelectedInputVolumeWeights")) 
+    else if (!strcmp(attName, "VolumeNodeIdsToWeightsMap")) 
       {
       std::stringstream ss;
       ss << attValue;
       std::string valueStr = ss.str();
       std::string separatorCharacter("|");
 
-      this->SelectedInputVolumeWeights->Initialize();
+      this->VolumeNodeIdsToWeightsMap.clear();
       size_t separatorPosition = valueStr.find( separatorCharacter );
       while (separatorPosition != std::string::npos)
         {
+        std::string mapPairStr = valueStr.substr(0, separatorPosition);
+        size_t colonPosition = mapPairStr.find( ":" );
+        if (colonPosition == std::string::npos)
+          {
+          continue;
+          }
+        std::string volumeNodeId = mapPairStr.substr(0, colonPosition);
+
         double weight;
         std::stringstream vss;
-        vss << valueStr.substr(0, separatorPosition);
+        vss << mapPairStr.substr( colonPosition+1 );
         vss >> weight;
-        this->SelectedInputVolumeWeights->InsertNextValue( weight );
+
+        this->VolumeNodeIdsToWeightsMap[volumeNodeId] = weight;
         valueStr = valueStr.substr( separatorPosition+1 );
         separatorPosition = valueStr.find( separatorCharacter );
         }
       if (! valueStr.empty() )
         {
-        double weight;
-        std::stringstream vss;
-        vss << valueStr.substr(0, separatorPosition);
-        vss >> weight;
-        this->SelectedInputVolumeWeights->InsertNextValue( weight );
+        std::string mapPairStr = valueStr.substr(0, separatorPosition);
+        size_t colonPosition = mapPairStr.find( ":" );
+        if (colonPosition != std::string::npos)
+          {
+          std::string volumeNodeId = mapPairStr.substr(0, colonPosition);
+
+          double weight;
+          std::stringstream vss;
+          vss << mapPairStr.substr( colonPosition+1 );
+          vss >> weight;
+
+          this->VolumeNodeIdsToWeightsMap[volumeNodeId] = weight;
+          }
         }
       }
-    else if (!strcmp(attName, "AccumulatedDoseVolumeId")) 
+    else if (!strcmp(attName, "AccumulatedDoseVolumeNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      ss >> this->AccumulatedDoseVolumeId;
+      ss >> this->AccumulatedDoseVolumeNodeId;
       }
     }
 }
@@ -193,9 +199,10 @@ void vtkMRMLDoseAccumulationNode::Copy(vtkMRMLNode *anode)
   vtkMRMLDoseAccumulationNode *node = (vtkMRMLDoseAccumulationNode *) anode;
 
   this->SetShowDoseVolumesOnly(node->ShowDoseVolumesOnly);
-  this->SetSelectedInputVolumeIds(node->SelectedInputVolumeIds);
-  this->SetSelectedInputVolumeWeights(node->SelectedInputVolumeWeights);
-  this->SetAccumulatedDoseVolumeId(node->AccumulatedDoseVolumeId);
+  this->SetAccumulatedDoseVolumeNodeId(node->AccumulatedDoseVolumeNodeId);
+
+  this->SelectedInputVolumeIds = node->SelectedInputVolumeIds;
+  this->VolumeNodeIdsToWeightsMap = node->VolumeNodeIdsToWeightsMap;
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -207,23 +214,45 @@ void vtkMRMLDoseAccumulationNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLNode::PrintSelf(os,indent);
 
   os << indent << "ShowDoseVolumesOnly:   " << (this->ShowDoseVolumesOnly ? "true" : "false") << "\n";
-  os << indent << "SelectedInputVolumeIds:   " << this->SelectedInputVolumeIds << "\n";
-  os << indent << "SelectedInputVolumeWeights:   " << this->SelectedInputVolumeWeights << "\n";
-  os << indent << "AccumulatedDoseVolumeId:   " << this->AccumulatedDoseVolumeId << "\n";
+
+  {
+    os << indent << "SelectedInputVolumeIds:   ";
+    for (std::set<std::string>::iterator it = this->SelectedInputVolumeIds.begin(); it != this->SelectedInputVolumeIds.end(); ++it)
+      {
+      os << indent << (*it) << "|";
+      }
+    os << "\n";
+  }
+
+  {
+    os << indent << "VolumeNodeIdsToWeightsMap:   ";
+    for (std::map<std::string,double>::iterator it = this->VolumeNodeIdsToWeightsMap.begin(); it != this->VolumeNodeIdsToWeightsMap.end(); ++it)
+      {
+      os << indent << it->first << ":" << it->second << "|";
+      }
+    os << "\n";
+  }
+
+  os << indent << "AccumulatedDoseVolumeNodeId:   " << this->AccumulatedDoseVolumeNodeId << "\n";
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseAccumulationNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
-  for (int i=0; i<this->SelectedInputVolumeIds->GetNumberOfValues(); ++i)
+  if (this->SelectedInputVolumeIds.find(oldID) != this->SelectedInputVolumeIds.end())
     {
-    if (!strcmp(oldID, this->SelectedInputVolumeIds->GetValue(i)))
-      {
-      this->SelectedInputVolumeIds->SetValue(i,newID);
-      }
+    this->SelectedInputVolumeIds.erase(oldID);
+    this->SelectedInputVolumeIds.insert(newID);
     }
-  if (this->AccumulatedDoseVolumeId && !strcmp(oldID, this->AccumulatedDoseVolumeId))
+  std::map<std::string,double>::iterator it;
+  if ((it = this->VolumeNodeIdsToWeightsMap.find(oldID)) != this->VolumeNodeIdsToWeightsMap.end())
     {
-    this->SetAccumulatedDoseVolumeId(newID);
+      double weight = it->second;
+      this->VolumeNodeIdsToWeightsMap.erase(oldID);
+      this->VolumeNodeIdsToWeightsMap[newID] = weight;
+    }
+  if (this->AccumulatedDoseVolumeNodeId && !strcmp(oldID, this->AccumulatedDoseVolumeNodeId))
+    {
+    this->SetAccumulatedDoseVolumeNodeId(newID);
     }
 }

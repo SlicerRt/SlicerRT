@@ -35,7 +35,6 @@
 
 // STD includes
 #include <cstdlib>
-#include <set>
 
 #include "vtkSlicerDoseAccumulationModuleLogicExport.h"
 
@@ -51,17 +50,13 @@ public:
   vtkTypeMacro(vtkSlicerDoseAccumulationLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Collect and return dose volume nodes
-  /// \param doseVolumesOnly If true, then collect only dose volume nodes, all volume nodes otherwise
-  vtkCollection* GetVolumeNodes(bool doseVolumesOnly);
+  /// Collect and return volume nodes (if in DoseAccumulationNode ShowDoseVolumesOnly is set to true, then only return dose volumes)
+  vtkCollection* GetVolumeNodesFromScene();
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
-  void AccumulateDoseVolumes(std::vector< std::pair<std::string,double> > volumeIdsAndWeights);
+  void AccumulateDoseVolumes();
 
 public:
-  void SetAccumulatedDoseVolumeNode( vtkMRMLVolumeNode* );
-  vtkGetObjectMacro( AccumulatedDoseVolumeNode, vtkMRMLVolumeNode );
-
   vtkSetMacro( SceneChanged, bool );
   vtkGetMacro( SceneChanged, bool );
   vtkBooleanMacro( SceneChanged, bool );
@@ -73,13 +68,14 @@ protected:
   vtkSlicerDoseAccumulationLogic();
   virtual ~vtkSlicerDoseAccumulationLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
+
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
+
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-
   virtual void OnMRMLSceneEndImport();
 
 private:
@@ -87,9 +83,6 @@ private:
   void operator=(const vtkSlicerDoseAccumulationLogic&);               // Not implemented
 
 protected:
-  /// Selected accumulated dose volume MRML node object
-  vtkMRMLVolumeNode* AccumulatedDoseVolumeNode;
-
   /// Flag indicating if the scene has recently changed (update of the module GUI needed)
   bool SceneChanged;
 

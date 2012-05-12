@@ -35,19 +35,17 @@
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseAccumulationLogic);
 
-vtkCxxSetObjectMacro(vtkSlicerDoseAccumulationLogic, AccumulatedDoseVolumeNode, vtkMRMLVolumeNode);
-
 //----------------------------------------------------------------------------
 vtkSlicerDoseAccumulationLogic::vtkSlicerDoseAccumulationLogic()
 {
-  this->AccumulatedDoseVolumeNode = NULL;
-
+  this->DoseAccumulationNode = NULL;
   this->SceneChangedOff();
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerDoseAccumulationLogic::~vtkSlicerDoseAccumulationLogic()
 {
+  vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -120,10 +118,10 @@ void vtkSlicerDoseAccumulationLogic
 }
 
 //---------------------------------------------------------------------------
-vtkCollection* vtkSlicerDoseAccumulationLogic
-::GetVolumeNodes(bool doseVolumesOnly)
+vtkCollection* vtkSlicerDoseAccumulationLogic::GetVolumeNodesFromScene()
 {
-  if (this->GetMRMLScene() == NULL || this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLVolumeNode") < 1)
+  if (this->GetMRMLScene() == NULL || this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLVolumeNode") < 1
+    || this->DoseAccumulationNode == NULL)
   {
     return NULL;
   }
@@ -139,7 +137,7 @@ vtkCollection* vtkSlicerDoseAccumulationLogic
     if (volumeNode)
     {
       const char* doseUnitName = volumeNode->GetAttribute("DoseUnitName");
-      if (doseUnitName != NULL || !doseVolumesOnly)
+      if (doseUnitName != NULL || !this->DoseAccumulationNode->GetShowDoseVolumesOnly())
       {
         volumeNodes->AddItem(volumeNode);
       }
@@ -167,7 +165,11 @@ void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndImport()
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseAccumulationLogic
-::AccumulateDoseVolumes(std::vector< std::pair<std::string,double> > volumeIdsAndWeights)
+::AccumulateDoseVolumes()
 {
   //TODO: Kevin's code goes here
+  // The selected volume node IDs and their weights can be found in the two arrays
+  //  this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()
+  //  and this->GetDoseAccumulationNode()->GetSelectedInputVolumeWeights()
+  // Output volume node ID is this->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeId()
 }

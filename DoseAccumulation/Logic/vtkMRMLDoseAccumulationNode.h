@@ -30,6 +30,10 @@
 #include <vtkStringArray.h>
 #include <vtkDoubleArray.h>
 
+// STD includes
+#include <set>
+#include <map>
+
 #include "vtkSlicerDoseAccumulationModuleLogicExport.h"
 
 class VTK_SLICER_DOSEACCUMULATION_MODULE_LOGIC_EXPORT vtkMRMLDoseAccumulationNode : public vtkMRMLNode
@@ -59,17 +63,21 @@ public:
   vtkGetMacro(ShowDoseVolumesOnly, bool);
   vtkSetMacro(ShowDoseVolumesOnly, bool);
 
-  /// Get/Set selected input volumes MRML Ids
-  vtkGetObjectMacro(SelectedInputVolumeIds, vtkStringArray);
-  vtkSetObjectMacro(SelectedInputVolumeIds, vtkStringArray);
+  /// Get selected input volumes MRML Ids
+  std::set<std::string>* GetSelectedInputVolumeIds()
+  {
+    return &this->SelectedInputVolumeIds;
+  }
 
-  /// Get/Set selected input volumes weights
-  vtkGetObjectMacro(SelectedInputVolumeWeights, vtkDoubleArray);
-  vtkSetObjectMacro(SelectedInputVolumeWeights, vtkDoubleArray);
+  /// Get volumes node IDs to weights map
+  std::map<std::string,double>* GetVolumeNodeIdsToWeightsMap()
+  {
+    return &this->VolumeNodeIdsToWeightsMap;
+  }
 
   /// Get/Set output accumulated dose volume MRML Id 
-  vtkGetStringMacro(AccumulatedDoseVolumeId);
-  vtkSetStringMacro(AccumulatedDoseVolumeId);
+  vtkGetStringMacro(AccumulatedDoseVolumeNodeId);
+  vtkSetStringMacro(AccumulatedDoseVolumeNodeId);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
@@ -82,9 +90,9 @@ protected:
 
 protected:
   bool ShowDoseVolumesOnly;
-  vtkStringArray* SelectedInputVolumeIds;
-  vtkDoubleArray* SelectedInputVolumeWeights;
-  char* AccumulatedDoseVolumeId;
+  std::set<std::string> SelectedInputVolumeIds;
+  std::map<std::string,double> VolumeNodeIdsToWeightsMap;
+  char* AccumulatedDoseVolumeNodeId;
 };
 
 #endif
