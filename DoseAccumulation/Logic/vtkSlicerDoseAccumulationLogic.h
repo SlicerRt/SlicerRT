@@ -57,10 +57,6 @@ public:
   int AccumulateDoseVolumes();
 
 public:
-  vtkSetMacro( SceneChanged, bool );
-  vtkGetMacro( SceneChanged, bool );
-  vtkBooleanMacro( SceneChanged, bool );
-
   void SetAndObserveDoseAccumulationNode(vtkMRMLDoseAccumulationNode* node);
   vtkGetObjectMacro(DoseAccumulationNode, vtkMRMLDoseAccumulationNode);
 
@@ -77,15 +73,13 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
+  virtual void OnMRMLSceneEndClose();
 
 private:
   vtkSlicerDoseAccumulationLogic(const vtkSlicerDoseAccumulationLogic&); // Not implemented
   void operator=(const vtkSlicerDoseAccumulationLogic&);               // Not implemented
 
 protected:
-  /// Flag indicating if the scene has recently changed (update of the module GUI needed)
-  bool SceneChanged;
-
   /// Parameter set MRML node
   vtkMRMLDoseAccumulationNode* DoseAccumulationNode;
 };

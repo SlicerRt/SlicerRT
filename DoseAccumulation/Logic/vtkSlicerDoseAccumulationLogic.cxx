@@ -51,7 +51,6 @@ vtkStandardNewMacro(vtkSlicerDoseAccumulationLogic);
 vtkSlicerDoseAccumulationLogic::vtkSlicerDoseAccumulationLogic()
 {
   this->DoseAccumulationNode = NULL;
-  this->SceneChangedOff();
 }
 
 //----------------------------------------------------------------------------
@@ -78,6 +77,8 @@ void vtkSlicerDoseAccumulationLogic::SetMRMLSceneInternal(vtkMRMLScene * newScen
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
+  events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
@@ -98,40 +99,64 @@ void vtkSlicerDoseAccumulationLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 
-  this->SceneChangedOn();
-  this->Modified(); //TODO: Why does it have to be called explicitly?
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
+void vtkSlicerDoseAccumulationLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
     return;
   }
 
-  this->SceneChangedOn();
-  this->Modified(); //TODO: Why does it have to be called explicitly?
+  vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
+  if (volumeNode || paramNode)
+  {
+    this->Modified();
+  }
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
+void vtkSlicerDoseAccumulationLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
     return;
   }
 
-  if (this->DoseAccumulationNode)
+  vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
+  if (volumeNode || paramNode)
   {
-    this->DoseAccumulationNode->GetSelectedInputVolumeIds()->erase(node->GetID());
-    this->DoseAccumulationNode->GetVolumeNodeIdsToWeightsMap()->erase(node->GetID());
-  }
+    if (this->DoseAccumulationNode && volumeNode)
+    {
+      this->DoseAccumulationNode->GetSelectedInputVolumeIds()->erase(node->GetID());
+      this->DoseAccumulationNode->GetVolumeNodeIdsToWeightsMap()->erase(node->GetID());
+    }
 
-  this->SceneChangedOn();
-  this->Modified(); //TODO: Why does it have to be called explicitly?
+    this->Modified();
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndImport()
+{
+  // If we have a parameter node select it
+  vtkMRMLDoseAccumulationNode *paramNode = NULL;
+  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLDoseAccumulationNode");
+  if (node)
+  {
+    paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
+    vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, paramNode);
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndClose()
+{
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------
@@ -167,22 +192,7 @@ vtkCollection* vtkSlicerDoseAccumulationLogic::GetVolumeNodesFromScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndImport()
-{
-  // If we have a parameter node select it
-  vtkMRMLDoseAccumulationNode *paramNode = NULL;
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLDoseAccumulationNode");
-  if (node)
-  {
-    paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
-    vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, paramNode);
-  }
-  this->InvokeEvent(vtkMRMLScene::EndImportEvent);
-}
-
-//---------------------------------------------------------------------------
-int vtkSlicerDoseAccumulationLogic
-::AccumulateDoseVolumes()
+int vtkSlicerDoseAccumulationLogic::AccumulateDoseVolumes()
 {
   // Make sure inputs are initialized
   if(this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->empty())

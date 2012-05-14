@@ -178,13 +178,12 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseAccumulationNode());
-
     d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
     d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNode(
       this->mrmlScene()->GetNodeByID(paramNode->GetAccumulatedDoseVolumeNodeId()));
-
-    refreshVolumesTable();
   }
+
+  refreshVolumesTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -245,25 +244,13 @@ void qSlicerDoseAccumulationModuleWidget::onLogicModified()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  if (d->logic()->GetSceneChanged())
-  {
-    //TODO: call this function with parameters (what actually changed), so that it can be
-    //      decided without the SceneChanged flag whether we have to refresh the table
-    updateWidgetFromMRML();
-
-    d->logic()->SceneChangedOff();
-  }
+  updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
-
-  if (!d->logic()->GetDoseAccumulationNode())
-  {
-    return;
-  }
 
   vtkCollection* volumeNodes = d->logic()->GetVolumeNodesFromScene();
 
@@ -285,7 +272,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
   }
 
   d->tableWidget_Volumes->setRowCount(volumeNodes->GetNumberOfItems());
-  if (volumeNodes->GetNumberOfItems() < 1)
+  if (volumeNodes->GetNumberOfItems() < 1 || !d->logic()->GetDoseAccumulationNode())
   {
     volumeNodes->Delete();
     return;
