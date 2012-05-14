@@ -1,19 +1,13 @@
-project(vtkSlicer${qt_module_name}ModuleLogic)
+project(vtkSlicer${MODULE_NAME}ModuleLogic)
 
-#
-# See CMake/SlicerMacroBuildModuleLogic.cmake for details
-#
-
+#-----------------------------------------------------------------------------
 set(module_logic_name "${PROJECT_NAME}")
 
-# The header '${module_logic_name}Export.h' will be automatically configured.
 set(module_logic_export_directive "VTK_SLICER_DOSEACCUMULATION_MODULE_LOGIC_EXPORT")
 
-# Additional directories to include
 set(module_logic_include_directories
   )
 
-# Source files
 set(module_logic_SRCS
   vtkSlicerDoseAccumulationLogic.cxx
   vtkSlicerDoseAccumulationLogic.h
@@ -21,14 +15,13 @@ set(module_logic_SRCS
   vtkMRMLDoseAccumulationNode.cxx
   )
 
-# Additional Target libraries
 set(module_logic_target_libraries
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   vtkSlicerVolumesModuleLogic
   )
 
-
+#-----------------------------------------------------------------------------
 SlicerMacroBuildModuleLogic(
   NAME ${module_logic_name}
   EXPORT_DIRECTIVE ${module_logic_export_directive}
