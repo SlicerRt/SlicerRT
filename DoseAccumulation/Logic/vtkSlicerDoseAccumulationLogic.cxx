@@ -110,9 +110,7 @@ void vtkSlicerDoseAccumulationLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     return;
   }
 
-  vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
-  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
-  if (volumeNode || paramNode)
+  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
   {
     this->Modified();
   }
@@ -126,16 +124,14 @@ void vtkSlicerDoseAccumulationLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
     return;
   }
 
-  vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
-  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
-  if (volumeNode || paramNode)
+  if (this->DoseAccumulationNode && node->IsA("vtkMRMLVolumeNode"))
   {
-    if (this->DoseAccumulationNode && volumeNode)
-    {
-      this->DoseAccumulationNode->GetSelectedInputVolumeIds()->erase(node->GetID());
-      this->DoseAccumulationNode->GetVolumeNodeIdsToWeightsMap()->erase(node->GetID());
-    }
+    this->DoseAccumulationNode->GetSelectedInputVolumeIds()->erase(node->GetID());
+    this->DoseAccumulationNode->GetVolumeNodeIdsToWeightsMap()->erase(node->GetID());
+  }
 
+  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
+  {
     this->Modified();
   }
 }
