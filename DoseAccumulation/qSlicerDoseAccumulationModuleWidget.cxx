@@ -131,24 +131,23 @@ void qSlicerDoseAccumulationModuleWidget::onEnter()
   {
     return;
   }
-  vtkMRMLDoseAccumulationNode* dnode = d->logic()->GetDoseAccumulationNode();
-  
+  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+
   // If we have a parameter node select it
-  if (dnode == NULL)
+  if (paramNode == NULL)
   {
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLDoseAccumulationNode");
     if (node)
     {
-      dnode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
-      d->logic()->SetAndObserveDoseAccumulationNode(dnode);
+      paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
+      d->logic()->SetAndObserveDoseAccumulationNode(paramNode);
       return;
     }
     else 
     {
-      dnode = vtkMRMLDoseAccumulationNode::New();
-      this->mrmlScene()->AddNode(dnode);
-      dnode->Delete(); //TODO: ??? (Copied from qSlicerDoseAccumulationModuleWidget.cxx)
-      d->logic()->SetAndObserveDoseAccumulationNode(dnode);
+      vtkSmartPointer<vtkMRMLDoseAccumulationNode> newNode = vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New();
+      this->mrmlScene()->AddNode(newNode);
+      d->logic()->SetAndObserveDoseAccumulationNode(newNode);
     }
   }
 
@@ -178,6 +177,8 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
 
   if (paramNode && this->mrmlScene())
   {
+    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseAccumulationNode());
+
     d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
     d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNode(
       this->mrmlScene()->GetNodeByID(paramNode->GetAccumulatedDoseVolumeNodeId()));
@@ -196,6 +197,7 @@ void qSlicerDoseAccumulationModuleWidget::setup()
   d->label_Warning->setText("");
 
   d->tableWidget_Volumes->setColumnWidth(0, 24);
+  d->tableWidget_Volumes->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents); 
 
   // Make connections
   connect( d->checkBox_ShowDoseVolumesOnly, SIGNAL( stateChanged(int) ), this, SLOT( showDoseOnlyChanged(int) ) );
@@ -219,7 +221,7 @@ void qSlicerDoseAccumulationModuleWidget::accumulatedDoseVolumeNodeChanged(vtkMR
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
   vtkMRMLVolumeNode* volumeNode = dynamic_cast<vtkMRMLVolumeNode*>(node);
-  if (volumeNode)
+  if (volumeNode && d->logic()->GetDoseAccumulationNode())
   {
     d->logic()->GetDoseAccumulationNode()->SetAccumulatedDoseVolumeNodeId(volumeNode->GetID());
     updateButtonsState();
@@ -245,7 +247,9 @@ void qSlicerDoseAccumulationModuleWidget::onLogicModified()
 
   if (d->logic()->GetSceneChanged())
   {
-    refreshVolumesTable();
+    //TODO: call this function with parameters (what actually changed), so that it can be
+    //      decided without the SceneChanged flag whether we have to refresh the table
+    updateWidgetFromMRML();
 
     d->logic()->SceneChangedOff();
   }
@@ -255,6 +259,11 @@ void qSlicerDoseAccumulationModuleWidget::onLogicModified()
 void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
+
+  if (!d->logic()->GetDoseAccumulationNode())
+  {
+    return;
+  }
 
   vtkCollection* volumeNodes = d->logic()->GetVolumeNodesFromScene();
 
@@ -274,13 +283,14 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
   {
     return;
   }
-  else if (volumeNodes->GetNumberOfItems() < 1)
+
+  d->tableWidget_Volumes->setRowCount(volumeNodes->GetNumberOfItems());
+  if (volumeNodes->GetNumberOfItems() < 1)
   {
     volumeNodes->Delete();
     return;
   }
 
-  d->tableWidget_Volumes->setRowCount(volumeNodes->GetNumberOfItems());
   std::map<std::string,double>* oldVolumeNodeIdsToWeightsMap = d->logic()->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap();
   std::map<std::string,double> newVolumeNodeIdsToWeightsMap;
 
@@ -316,7 +326,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
 
     d->tableWidget_Volumes->setCellWidget(i, 0, checkbox);
     d->tableWidget_Volumes->setItem(i, 1, new QTableWidgetItem( QString(volumeNode->GetName()) ) );    
-    d->tableWidget_Volumes->setItem(i, 2, new QTableWidgetItem( QString::number(weight,'f') ) );
+    d->tableWidget_Volumes->setItem(i, 2, new QTableWidgetItem( QString::number(weight,'f',2) ) );
 
     newVolumeNodeIdsToWeightsMap[volumeNode->GetID()] = weight;
   }
@@ -357,7 +367,7 @@ void qSlicerDoseAccumulationModuleWidget::onTableItemChanged(QTableWidgetItem* c
   }
 
   // Set weight if the selected cell is "editable"
-  if (d->SelectedTableItemText.isNull())
+  if (d->SelectedTableItemText.isNull() && d->logic()->GetDoseAccumulationNode())
   {
     std::string volumeID = m_CheckboxToVolumeIdMap[(QCheckBox*)d->tableWidget_Volumes->cellWidget(changedItem->row(), 0)];
     (*d->logic()->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap())[volumeID] = changedItem->text().toDouble();
@@ -382,6 +392,11 @@ void qSlicerDoseAccumulationModuleWidget::applyClicked()
 void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aState)
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
+
+  if (!d->logic()->GetDoseAccumulationNode())
+  {
+    return;
+  }
 
   QCheckBox* senderCheckbox = dynamic_cast<QCheckBox*>(sender());
 
@@ -408,10 +423,12 @@ void qSlicerDoseAccumulationModuleWidget::showDoseOnlyChanged(int aState)
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  d->logic()->GetDoseAccumulationNode()->SetShowDoseVolumesOnly(aState);
+  if (!d->logic()->GetDoseAccumulationNode())
+  {
+    return;
+  }
 
-  // Clear ID and weight arrays
-  d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->clear();
+  d->logic()->GetDoseAccumulationNode()->SetShowDoseVolumesOnly(aState);
 
   refreshVolumesTable();
 }

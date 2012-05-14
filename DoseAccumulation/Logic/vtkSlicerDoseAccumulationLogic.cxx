@@ -124,22 +124,27 @@ void vtkSlicerDoseAccumulationLogic
     return;
   }
 
+  if (this->DoseAccumulationNode)
+  {
+    this->DoseAccumulationNode->GetSelectedInputVolumeIds()->erase(node->GetID());
+    this->DoseAccumulationNode->GetVolumeNodeIdsToWeightsMap()->erase(node->GetID());
+  }
+
   this->SceneChangedOn();
   this->Modified(); //TODO: Why does it have to be called explicitly?
-  this->OnMRMLNodeModified(node);
 }
 
 //---------------------------------------------------------------------------
 vtkCollection* vtkSlicerDoseAccumulationLogic::GetVolumeNodesFromScene()
 {
+  vtkCollection* volumeNodes = vtkCollection::New();
+  volumeNodes->InitTraversal();
+
   if (this->GetMRMLScene() == NULL || this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLVolumeNode") < 1
     || this->DoseAccumulationNode == NULL)
   {
-    return NULL;
+    return volumeNodes;
   }
-
-  vtkCollection* volumeNodes = vtkCollection::New();
-  volumeNodes->InitTraversal();
 
   this->GetMRMLScene()->InitTraversal();
   vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLVolumeNode");
@@ -165,12 +170,12 @@ vtkCollection* vtkSlicerDoseAccumulationLogic::GetVolumeNodesFromScene()
 void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndImport()
 {
   // If we have a parameter node select it
-  vtkMRMLDoseAccumulationNode *tnode = 0;
+  vtkMRMLDoseAccumulationNode *paramNode = NULL;
   vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLDoseAccumulationNode");
   if (node)
   {
-    tnode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
-    vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, tnode);
+    paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
+    vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, paramNode);
   }
   this->InvokeEvent(vtkMRMLScene::EndImportEvent);
 }
@@ -179,17 +184,12 @@ void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndImport()
 int vtkSlicerDoseAccumulationLogic
 ::AccumulateDoseVolumes()
 {
-  //TODO: Kevin's code goes here
-  // The selected volume node IDs and their weights can be found in the two arrays
-  //  this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()
-  //  and this->GetDoseAccumulationNode()->GetSelectedInputVolumeWeights()
-  // Output volume node ID is this->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeId()
-  // make sure inputs are initialized
+  // Make sure inputs are initialized
   if(this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->empty())
-    {
+  {
     std::cerr << "Dose accumulation: No dose volume selected" << std::endl;
     return -1;
-    }
+  }
 
   int size = this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->size();
   vtkSmartPointer<vtkImageData> baseImageData = NULL;

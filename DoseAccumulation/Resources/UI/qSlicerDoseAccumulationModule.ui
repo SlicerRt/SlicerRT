@@ -46,6 +46,9 @@
         <property name="wordWrap">
          <bool>false</bool>
         </property>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
         <column>
          <property name="text">
           <string/>
@@ -275,6 +278,22 @@
     <hint type="destinationlabel">
      <x>263</x>
      <y>382</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDoseAccumulationModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_ParameterSet</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>191</x>
+     <y>2</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>197</x>
+     <y>13</y>
     </hint>
    </hints>
   </connection>

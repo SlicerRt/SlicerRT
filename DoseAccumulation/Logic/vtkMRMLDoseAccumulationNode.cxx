@@ -43,6 +43,8 @@ vtkMRMLDoseAccumulationNode::vtkMRMLDoseAccumulationNode()
   this->SelectedInputVolumeIds.clear();
   this->VolumeNodeIdsToWeightsMap.clear();
   this->AccumulatedDoseVolumeNodeId = NULL;
+
+  this->HideFromEditors = false;
 }
 
 //----------------------------------------------------------------------------
@@ -67,7 +69,7 @@ void vtkMRMLDoseAccumulationNode::WriteXML(ostream& of, int nIndent)
     of << indent << " SelectedInputVolumeIds=\"";
     for (std::set<std::string>::iterator it = this->SelectedInputVolumeIds.begin(); it != this->SelectedInputVolumeIds.end(); ++it)
       {
-      of << indent << (*it) << "|";
+      of << (*it) << "|";
       }
     of << "\"";
   }
@@ -76,7 +78,7 @@ void vtkMRMLDoseAccumulationNode::WriteXML(ostream& of, int nIndent)
     of << indent << " VolumeNodeIdsToWeightsMap=\"";
     for (std::map<std::string,double>::iterator it = this->VolumeNodeIdsToWeightsMap.begin(); it != this->VolumeNodeIdsToWeightsMap.end(); ++it)
       {
-      of << indent << it->first << ":" << it->second << "|";
+      of << it->first << ":" << it->second << "|";
       }
     of << "\"";
   }
@@ -183,7 +185,7 @@ void vtkMRMLDoseAccumulationNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      ss >> this->AccumulatedDoseVolumeNodeId;
+      this->SetAccumulatedDoseVolumeNodeId(ss.str().c_str());
       }
     }
 }
