@@ -62,8 +62,8 @@ set(qt_module_resources
   Resources/qSlicerDicomRtImportModule.qrc
   )
 
+#-----------------------------------------------------------------------------
 # Plugin python script
-
 set(KIT_PYTHON_SCRIPTS
   DicomRtImportPlugin.py
   )
@@ -79,7 +79,6 @@ ctkMacroCompilePythonScript(
   INSTALL_DIR ${Slicer_INSTALL_QTSCRIPTEDMODULES_LIB_DIR}
   NO_INSTALL_SUBDIR
   )
-
 
 #-----------------------------------------------------------------------------
 slicerMacroBuildQtModule(
