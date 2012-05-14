@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.8.7)
+
 
 # Module name (usually identique to the directory name)
 set(EXTENSION_NAME DoseAccumulation) # Do not use 'project()' - See SlicerConfig.cmake

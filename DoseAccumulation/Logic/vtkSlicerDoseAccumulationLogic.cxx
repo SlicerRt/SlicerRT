@@ -21,19 +21,31 @@
 
 // DoseAccumulation includes
 #include "vtkSlicerDoseAccumulationLogic.h"
+#include "vtkMRMLDoseAccumulationNode.h"
 
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
-#include "vtkMRMLDoseAccumulationNode.h"
+#include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLModelDisplayNode.h>
+#include <vtkMRMLModelNode.h>
+#include <vtkMRMLModelHierarchyNode.h>
+#include <vtkMRMLVolumeDisplayNode.h>
+#include <vtkMRMLSelectionNode.h>
 
 // VTK includes
 #include <vtkNew.h>
+#include <vtkImageMathematics.h>
+#include <vtkImageData.h>
+#include <vtkSmartPointer.h>
+#include <vtkImageCast.h>
 
 // STD includes
 #include <cassert>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseAccumulationLogic);
+
+//vtkCxxSetObjectMacro(vtkSlicerDoseAccumulationLogic, VolumesLogic, vtkSlicerVolumesLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerDoseAccumulationLogic::vtkSlicerDoseAccumulationLogic()
@@ -164,7 +176,7 @@ void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndImport()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic
+int vtkSlicerDoseAccumulationLogic
 ::AccumulateDoseVolumes()
 {
   //TODO: Kevin's code goes here
@@ -172,4 +184,75 @@ void vtkSlicerDoseAccumulationLogic
   //  this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()
   //  and this->GetDoseAccumulationNode()->GetSelectedInputVolumeWeights()
   // Output volume node ID is this->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeId()
+  // make sure inputs are initialized
+  if(this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->empty())
+    {
+    std::cerr << "Dose accumulation: No dose volume selected" << std::endl;
+    return -1;
+    }
+
+  int size = this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->size();
+  vtkSmartPointer<vtkImageData> baseImageData = NULL;
+
+  std::set<std::string>::iterator iterIds = this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->begin();
+  std::string Id = *iterIds;
+  vtkSmartPointer<vtkMRMLVolumeNode> inputVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(Id));
+  std::map<std::string,double> *VolumeNodeIdsToWeightsMap = this->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap();
+  double weight = (*VolumeNodeIdsToWeightsMap)[Id];
+
+  vtkSmartPointer<vtkMRMLVolumeNode> outputVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(
+    this->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeNodeId()));
+
+  vtkSmartPointer<vtkImageMathematics> MultiplyFilter1 = vtkSmartPointer<vtkImageMathematics>::New();
+  MultiplyFilter1->SetInput(inputVolumeNode->GetImageData());
+  MultiplyFilter1->SetConstantK(weight);
+  MultiplyFilter1->SetOperationToMultiplyByK();
+  MultiplyFilter1->Update();
+  baseImageData = MultiplyFilter1->GetOutput();
+
+  if (size >=2)
+  {
+    vtkSmartPointer<vtkImageMathematics> MultiplyFilter2 = vtkSmartPointer<vtkImageMathematics>::New();
+    vtkSmartPointer<vtkImageMathematics> AddFilter = vtkSmartPointer<vtkImageMathematics>::New();
+    for (int i = 1; i < size; i++)
+    {
+      Id = *iterIds++;
+      inputVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(Id));
+      weight = (*VolumeNodeIdsToWeightsMap)[Id];
+
+      MultiplyFilter2->SetInput(inputVolumeNode->GetImageData());
+      MultiplyFilter2->SetConstantK(weight);
+      MultiplyFilter2->SetOperationToMultiplyByK();
+      MultiplyFilter2->Update();
+
+      AddFilter->SetInput1(baseImageData);
+      AddFilter->SetInput2(MultiplyFilter2->GetOutput());
+      AddFilter->SetOperationToAdd();
+      AddFilter->Update();
+       
+      baseImageData = AddFilter->GetOutput();
+    }
+  }
+  double originX, originY, originZ;
+  baseImageData->GetOrigin(originX, originY, originZ);
+  outputVolumeNode->SetOrigin(originX, originY, originZ);
+  outputVolumeNode->SetAndObserveImageData(baseImageData);
+  outputVolumeNode->SetModifiedSinceRead(1); 
+
+  // Set default colormap to rainbow
+  if (outputVolumeNode->GetVolumeDisplayNode()!=NULL)
+  {
+    outputVolumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+  }
+  // Select as active volume
+  if (this->GetApplicationLogic()!=NULL)
+  {
+    if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
+    {
+      this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(outputVolumeNode->GetID());
+      this->GetApplicationLogic()->PropagateVolumeSelection();
+    }
+  }
+
+  return 0;
 }

@@ -54,7 +54,7 @@ public:
   vtkCollection* GetVolumeNodesFromScene();
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
-  void AccumulateDoseVolumes();
+  int AccumulateDoseVolumes();
 
 public:
   vtkSetMacro( SceneChanged, bool );

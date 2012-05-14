@@ -2,7 +2,7 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -13,14 +13,14 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
-  and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
-
 ==============================================================================*/
 
 // Qt includes
 #include <QtPlugin>
+
+// Slicer includes
+#include <qSlicerCoreApplication.h>
+#include <qSlicerModuleManager.h>
 
 // DoseAccumulation Logic includes
 #include <vtkSlicerDoseAccumulationLogic.h>
@@ -73,27 +73,23 @@ qSlicerDoseAccumulationModule::~qSlicerDoseAccumulationModule()
 QString qSlicerDoseAccumulationModule::helpText()const
 {
   QString help = 
-    "This template module is meant to be used with the"
-    "with the ModuleWizard.py script distributed with the"
-    "Slicer source code (starting with version 4)."
-    "Developers can generate their own source code using the"
-    "wizard and then customize it to fit their needs.";
+    "This module accumulates the multiple dose distribution maps into one dose map.";
   return help;
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerDoseAccumulationModule::acknowledgementText()const
 {
-  return "This work was supported by NAMIC, NAC, and the Slicer Community...";
+  return "This work was supported by the SparKit project funded by CCO ACRU and OCAIRO.";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerDoseAccumulationModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("John Doe (Organization)");
-  // moduleContributors << QString("Richard Roe (Organization2)");
-  // ...
+  moduleContributors << QString("Csaba Pinter (Queen's)");
+  moduleContributors << QString("Andras Lasso (Queen's)");
+  moduleContributors << QString("Kevin Wang (UHN, Toronto)");
   return moduleContributors;
 }
 
