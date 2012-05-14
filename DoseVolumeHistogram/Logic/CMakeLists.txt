@@ -1,4 +1,4 @@
-project(vtkSlicer${EXTENSION_NAME}ModuleLogic)
+project(vtkSlicer${MODULE_NAME}ModuleLogic)
 
 #
 # See CMake/SlicerMacroBuildModuleLogic.cmake for details
@@ -19,6 +19,8 @@ set(module_logic_SRCS
   vtkSlicerDoseVolumeHistogramLogic.h
   vtkPolyDataToLabelmapFilter.cxx
   vtkPolyDataToLabelmapFilter.h
+  vtkMRMLDoseVolumeHistogramNode.cxx
+  vtkMRMLDoseVolumeHistogramNode.h
   )
 
 # Additional Target libraries

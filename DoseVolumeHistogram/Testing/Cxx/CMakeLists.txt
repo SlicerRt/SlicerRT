@@ -1,48 +1,51 @@
+set(KIT qSlicer${MODULE_NAME}Module)
+
+#-----------------------------------------------------------------------------
 set(KIT_TEST_SRCS)
 set(KIT_TEST_NAMES)
 set(KIT_TEST_NAMES_CXX)
-SlicerMacroConfigureGenericCxxModuleTests(${EXTENSION_NAME} KIT_TEST_SRCS KIT_TEST_NAMES KIT_TEST_NAMES_CXX)
+SlicerMacroConfigureGenericCxxModuleTests(${MODULE_NAME} KIT_TEST_SRCS KIT_TEST_NAMES KIT_TEST_NAMES_CXX)
 
+#-----------------------------------------------------------------------------
 #set(CMAKE_TESTDRIVER_BEFORE_TESTMAIN "DEBUG_LEAKS_ENABLE_EXIT_ERROR();" )
-create_test_sourcelist(Tests ${EXTENSION_NAME}CxxTests.cxx
+create_test_sourcelist(Tests ${MODULE_NAME}CxxTests.cxx
   ${KIT_TEST_NAMES_CXX}
   # Add source of your tests after this line.
+  #EXTRA_INCLUDE vtkMRMLDebugLeaksMacro.h
   vtkSlicerDoseVolumeHistogramLogicTest1.cxx
-  #EXTRA_INCLUDE TestingMacros.h
   )
+
+#-----------------------------------------------------------------------------
 list(REMOVE_ITEM Tests ${KIT_TEST_NAMES_CXX})
 list(APPEND Tests ${KIT_TEST_SRCS})
 
-set(TestsToRun ${Tests})
-#list(REMOVE_ITEM TestsToRun ${KIT}CxxTests.cxx)
+#-----------------------------------------------------------------------------
+add_executable(${KIT}CxxTests ${Tests})
+target_link_libraries(${KIT}CxxTests ${KIT})
 
-set(LIBRARY_NAME qSlicer${EXTENSION_NAME}Module)
+#-----------------------------------------------------------------------------
+foreach(testname ${KIT_TEST_NAMES})
+  SIMPLE_TEST( ${testname} )
+endforeach()
 
-add_executable(${EXTENSION_NAME}CxxTests ${Tests})
-target_link_libraries(${EXTENSION_NAME}CxxTests ${lib_name})
-
+#-----------------------------------------------------------------------------
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
-# Add test
-macro(SIMPLE_TEST TESTNAME)
+macro(SIMPLE_TEST_WITH_DATA TESTNAME)
   add_test(
     NAME ${TESTNAME}
-    COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${EXTENSION_NAME}CxxTests> ${TESTNAME} ${ARGN}
+    COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TESTNAME} ${ARGN}
     -D ${CMAKE_CURRENT_SOURCE_DIR}/../
     -T ${TEMP}
   )
 endmacro()
 
-foreach(testname ${KIT_TEST_NAMES})
-  SIMPLE_TEST( ${testname} )
-endforeach()
-
-# Using SIMPLE_TEST(), you coudl add your test after this line.
-SIMPLE_TEST(
+SIMPLE_TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramLogicTest1
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
+#-----------------------------------------------------------------------------
 # Compare exported DVH table with baseline
 add_test(
   NAME vtkSlicerDoseVolumeHistogramLogicTest2
@@ -50,6 +53,7 @@ add_test(
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest2 PROPERTIES DEPENDS vtkSlicerDoseVolumeHistogramLogicTest1)
 
+#-----------------------------------------------------------------------------
 # Compare exported DVH table with baseline
 add_test(
   NAME vtkSlicerDoseVolumeHistogramLogicTest3

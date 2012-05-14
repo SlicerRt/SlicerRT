@@ -215,22 +215,6 @@ void vtkSlicerDoseVolumeHistogramLogic
   if (node->IsA("vtkMRMLDoubleArrayNode"))
   {
     this->DvhDoubleArrayNodes->RemoveItem( vtkMRMLDoubleArrayNode::SafeDownCast(node) );
-
-    // Remove the structure corresponding the deleted node from all charts
-    const char* structurePlotName = node->GetAttribute(DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str());
-
-    this->GetMRMLScene()->InitTraversal();
-    vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLChartNode");
-    while (node != NULL)
-    {
-      vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(node);
-      if (chartNode)
-      {
-        chartNode->RemoveArray(structurePlotName);
-      }
-
-      node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLDoubleArrayNode");
-    }
   }
 
   this->SceneChangedOn();
