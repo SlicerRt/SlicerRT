@@ -191,7 +191,7 @@ vtkCollection* vtkSlicerDoseAccumulationLogic::GetVolumeNodesFromScene()
 int vtkSlicerDoseAccumulationLogic::AccumulateDoseVolumes()
 {
   // Make sure inputs are initialized
-  if(this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->empty())
+  if (this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->empty())
   {
     std::cerr << "Dose accumulation: No dose volume selected" << std::endl;
     return -1;
@@ -250,6 +250,7 @@ int vtkSlicerDoseAccumulationLogic::AccumulateDoseVolumes()
   {
     outputVolumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
   }
+
   // Select as active volume
   if (this->GetApplicationLogic()!=NULL)
   {

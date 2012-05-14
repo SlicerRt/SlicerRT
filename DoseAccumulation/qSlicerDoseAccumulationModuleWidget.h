@@ -77,7 +77,8 @@ protected slots:
 
 protected:
   QScopedPointer<qSlicerDoseAccumulationModuleWidgetPrivate> d_ptr;
-  
+
+protected:
   virtual void setup();
   void onEnter();
 
@@ -87,10 +88,6 @@ protected:
 
   /// Refresh volumes table
   void refreshVolumesTable();
-
-protected:
-  /// Map that associates dose volume checkboxes to the corresponding MRML node IDs
-  std::map<QCheckBox*, std::string> m_CheckboxToVolumeIdMap;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseAccumulationModuleWidget);

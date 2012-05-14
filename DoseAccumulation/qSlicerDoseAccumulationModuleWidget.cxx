@@ -42,8 +42,12 @@ protected:
   qSlicerDoseAccumulationModuleWidget* const q_ptr;
 public:
   qSlicerDoseAccumulationModuleWidgetPrivate(qSlicerDoseAccumulationModuleWidget& object);
+  ~qSlicerDoseAccumulationModuleWidgetPrivate();
   vtkSlicerDoseAccumulationLogic* logic() const;
 public:
+  /// Map that associates dose volume checkboxes to the corresponding MRML node IDs
+  std::map<QCheckBox*, std::string> CheckboxToVolumeIdMap;
+
   /// Text of the attribute table item that is being edited
   QString SelectedTableItemText;
 };
@@ -56,6 +60,13 @@ qSlicerDoseAccumulationModuleWidgetPrivate::qSlicerDoseAccumulationModuleWidgetP
   : q_ptr(&object)
   , SelectedTableItemText(QString())
 {
+  this->CheckboxToVolumeIdMap.clear();
+}
+
+//-----------------------------------------------------------------------------
+qSlicerDoseAccumulationModuleWidgetPrivate::~qSlicerDoseAccumulationModuleWidgetPrivate()
+{
+  this->CheckboxToVolumeIdMap.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -74,13 +85,11 @@ qSlicerDoseAccumulationModuleWidget::qSlicerDoseAccumulationModuleWidget(QWidget
   : Superclass( _parent )
   , d_ptr( new qSlicerDoseAccumulationModuleWidgetPrivate(*this) )
 {
-  m_CheckboxToVolumeIdMap.clear();
 }
 
 //-----------------------------------------------------------------------------
 qSlicerDoseAccumulationModuleWidget::~qSlicerDoseAccumulationModuleWidget()
 {
-  m_CheckboxToVolumeIdMap.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -258,13 +267,13 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
   d->tableWidget_Volumes->clearContents();
 
   // Clear checkboxes map and save previous weights
-  for (std::map<QCheckBox*, std::string>::iterator it = m_CheckboxToVolumeIdMap.begin(); it != m_CheckboxToVolumeIdMap.end(); ++it)
+  for (std::map<QCheckBox*, std::string>::iterator it = d->CheckboxToVolumeIdMap.begin(); it != d->CheckboxToVolumeIdMap.end(); ++it)
   {
     QCheckBox* checkbox = it->first;
     disconnect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( includeVolumeCheckStateChanged(int) ) );
     delete checkbox;
   }
-  m_CheckboxToVolumeIdMap.clear();
+  d->CheckboxToVolumeIdMap.clear();
 
   if (volumeNodes == NULL)
   {
@@ -293,7 +302,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_Volumes);
     checkbox->setToolTip(tr("Include this volume in accumulated dose volume"));
-    m_CheckboxToVolumeIdMap[checkbox] = volumeNode->GetID();
+    d->CheckboxToVolumeIdMap[checkbox] = volumeNode->GetID();
 
     // Set previous checked state of the checkbox
     std::set<std::string>* selectedVolumeIds = d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds();
@@ -356,7 +365,7 @@ void qSlicerDoseAccumulationModuleWidget::onTableItemChanged(QTableWidgetItem* c
   // Set weight if the selected cell is "editable"
   if (d->SelectedTableItemText.isNull() && d->logic()->GetDoseAccumulationNode())
   {
-    std::string volumeID = m_CheckboxToVolumeIdMap[(QCheckBox*)d->tableWidget_Volumes->cellWidget(changedItem->row(), 0)];
+    std::string volumeID = d->CheckboxToVolumeIdMap[(QCheckBox*)d->tableWidget_Volumes->cellWidget(changedItem->row(), 0)];
     (*d->logic()->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap())[volumeID] = changedItem->text().toDouble();
     return;
   }
@@ -395,11 +404,11 @@ void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aSt
 
   if (aState)
   {
-    d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->insert(m_CheckboxToVolumeIdMap[senderCheckbox]);
+    d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->insert(d->CheckboxToVolumeIdMap[senderCheckbox]);
   }
   else
   {
-    d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->erase(m_CheckboxToVolumeIdMap[senderCheckbox]);
+    d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->erase(d->CheckboxToVolumeIdMap[senderCheckbox]);
   }
 
   updateButtonsState();

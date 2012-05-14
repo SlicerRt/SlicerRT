@@ -26,10 +26,6 @@
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
 
-// VTK includes
-#include <vtkStringArray.h>
-#include <vtkDoubleArray.h>
-
 // STD includes
 #include <set>
 #include <map>
@@ -89,9 +85,17 @@ protected:
   void operator=(const vtkMRMLDoseAccumulationNode&);
 
 protected:
+  /// State of Show dose volumes only checkbox
   bool ShowDoseVolumesOnly;
+
+  /// List of IDs of the selected input volume nodes
   std::set<std::string> SelectedInputVolumeIds;
+
+  /// Map assigning a weight to the available input volume nodes
+  /// (as the user set it on the module GUI)
   std::map<std::string,double> VolumeNodeIdsToWeightsMap;
+
+  /// ID of the output accumulated dose volume node
   char* AccumulatedDoseVolumeNodeId;
 };
 
