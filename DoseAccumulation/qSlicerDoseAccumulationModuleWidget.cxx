@@ -188,8 +188,10 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseAccumulationNode());
     d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
-    d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNode(
-      this->mrmlScene()->GetNodeByID(paramNode->GetAccumulatedDoseVolumeNodeId()));
+    if (paramNode->GetAccumulatedDoseVolumeNodeId() && stricmp(paramNode->GetAccumulatedDoseVolumeNodeId(),""))
+    {
+      d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNode(paramNode->GetAccumulatedDoseVolumeNodeId());
+    }
   }
 
   refreshVolumesTable();
@@ -228,12 +230,15 @@ void qSlicerDoseAccumulationModuleWidget::setup()
 void qSlicerDoseAccumulationModuleWidget::accumulatedDoseVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
-  vtkMRMLVolumeNode* volumeNode = dynamic_cast<vtkMRMLVolumeNode*>(node);
-  if (volumeNode && d->logic()->GetDoseAccumulationNode())
+
+  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+  if (!paramNode || !this->mrmlScene() || !node)
   {
-    d->logic()->GetDoseAccumulationNode()->SetAccumulatedDoseVolumeNodeId(volumeNode->GetID());
-    updateButtonsState();
+    return;
   }
+
+  paramNode->SetAccumulatedDoseVolumeNodeId(node->GetID());
+  updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
