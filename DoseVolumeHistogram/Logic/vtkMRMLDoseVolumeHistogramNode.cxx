@@ -39,10 +39,17 @@ vtkMRMLNodeNewMacro(vtkMRMLDoseVolumeHistogramNode);
 //----------------------------------------------------------------------------
 vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 {
-  this->ShowDoseVolumesOnly = true;
-  this->SelectedInputVolumeIds.clear();
-  this->VolumeNodeIdsToWeightsMap.clear();
-  this->AccumulatedDoseVolumeNodeId = NULL;
+  this->DoseVolumeNodeId = NULL;
+  this->StructureSetModelNodeId = NULL;
+  this->ChartNodeId = NULL;
+  this->DvhDoubleArrayNodeIds.clear();
+  this->ShowHideAll = 0;
+  this->ShowInChartCheckStates.clear();
+  this->VDoseValues = NULL;
+  this->ShowVMetricsCc = false;
+  this->ShowVMetricsPercent = false;
+  this->DVolumeValues = NULL;
+  this->ShowDMetrics = false;
 
   this->HideFromEditors = false;
 }
@@ -50,9 +57,13 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 //----------------------------------------------------------------------------
 vtkMRMLDoseVolumeHistogramNode::~vtkMRMLDoseVolumeHistogramNode()
 {
-  this->SelectedInputVolumeIds.clear();
-  this->VolumeNodeIdsToWeightsMap.clear();
-  this->SetAccumulatedDoseVolumeNodeId(NULL);
+  this->SetDoseVolumeNodeId(NULL);
+  this->SetStructureSetModelNodeId(NULL);
+  this->SetChartNodeId(NULL);
+  this->DvhDoubleArrayNodeIds.clear();
+  this->ShowInChartCheckStates.clear();
+  this->SetVDoseValues(NULL);
+  this->SetDVolumeValues(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -63,11 +74,36 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  of << indent << " ShowDoseVolumesOnly=\"" << (this->ShowDoseVolumesOnly ? "true" : "false") << "\"";
+  {
+    std::stringstream ss;
+    if ( this->DoseVolumeNodeId )
+      {
+      ss << this->DoseVolumeNodeId;
+      of << indent << " DoseVolumeNodeId=\"" << ss.str() << "\"";
+     }
+  }
 
   {
-    of << indent << " SelectedInputVolumeIds=\"";
-    for (std::set<std::string>::iterator it = this->SelectedInputVolumeIds.begin(); it != this->SelectedInputVolumeIds.end(); ++it)
+    std::stringstream ss;
+    if ( this->StructureSetModelNodeId )
+      {
+      ss << this->StructureSetModelNodeId;
+      of << indent << " StructureSetModelNodeId=\"" << ss.str() << "\"";
+     }
+  }
+
+  {
+    std::stringstream ss;
+    if ( this->ChartNodeId )
+      {
+      ss << this->ChartNodeId;
+      of << indent << " ChartNodeId=\"" << ss.str() << "\"";
+     }
+  }
+
+  {
+    of << indent << " DvhDoubleArrayNodeIds=\"";
+    for (std::set<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
       {
       of << (*it) << "|";
       }
@@ -75,22 +111,43 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
   }
 
   {
-    of << indent << " VolumeNodeIdsToWeightsMap=\"";
-    for (std::map<std::string,double>::iterator it = this->VolumeNodeIdsToWeightsMap.begin(); it != this->VolumeNodeIdsToWeightsMap.end(); ++it)
+    std::stringstream ss;
+    ss << this->ShowHideAll;
+    of << indent << " ShowHideAll=\"" << ss.str() << "\"";
+  }
+
+  {
+    of << indent << " ShowInChartCheckStates=\"";
+    for (std::vector<bool>::iterator it = this->ShowInChartCheckStates.begin(); it != this->ShowInChartCheckStates.end(); ++it)
       {
-      of << it->first << ":" << it->second << "|";
+      of << ((*it) ? "true" : "false") << "|";
       }
     of << "\"";
   }
 
   {
     std::stringstream ss;
-    if ( this->AccumulatedDoseVolumeNodeId )
+    if ( this->VDoseValues )
       {
-      ss << this->AccumulatedDoseVolumeNodeId;
-      of << indent << " AccumulatedDoseVolumeNodeId=\"" << ss.str() << "\"";
+      ss << this->VDoseValues;
+      of << indent << " VDoseValues=\"" << ss.str() << "\"";
      }
   }
+
+  of << indent << " ShowVMetricsCc=\"" << (this->ShowVMetricsCc ? "true" : "false") << "\"";
+
+  of << indent << " ShowVMetricsPercent=\"" << (this->ShowVMetricsPercent ? "true" : "false") << "\"";
+
+  {
+    std::stringstream ss;
+    if ( this->DVolumeValues )
+      {
+      ss << this->DVolumeValues;
+      of << indent << " DVolumeValues=\"" << ss.str() << "\"";
+     }
+  }
+
+  of << indent << " ShowDMetrics=\"" << (this->ShowDMetrics ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -101,91 +158,104 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
   // Read all MRML node attributes from two arrays of names and values
   const char* attName;
   const char* attValue;
+
   while (*atts != NULL) 
     {
     attName = *(atts++);
     attValue = *(atts++);
-    if (!strcmp(attName, "ShowDoseVolumesOnly")) 
+
+    if (!strcmp(attName, "DoseVolumeNodeId")) 
       {
-      if (!strcmp(attValue,"true")) 
-        {
-        this->ShowDoseVolumesOnly = true;
-        }
-      else
-        {
-        this->ShowDoseVolumesOnly = false;
-        }
+      std::stringstream ss;
+      ss << attValue;
+      this->SetDoseVolumeNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "SelectedInputVolumeIds")) 
+    else if (!strcmp(attName, "StructureSetModelNodeId")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetStructureSetModelNodeId(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "ChartNodeId")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetChartNodeId(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "DvhDoubleArrayNodeIds")) 
       {
       std::stringstream ss;
       ss << attValue;
       std::string valueStr = ss.str();
       std::string separatorCharacter("|");
 
-      this->SelectedInputVolumeIds.clear();
+      this->DvhDoubleArrayNodeIds.clear();
       size_t separatorPosition = valueStr.find( separatorCharacter );
       while (separatorPosition != std::string::npos)
         {
-        this->SelectedInputVolumeIds.insert( valueStr.substr(0, separatorPosition) );
+        this->DvhDoubleArrayNodeIds.insert( valueStr.substr(0, separatorPosition) );
         valueStr = valueStr.substr( separatorPosition+1 );
         separatorPosition = valueStr.find( separatorCharacter );
         }
       if (! valueStr.empty() )
         {
-        this->SelectedInputVolumeIds.insert( valueStr );
+        this->DvhDoubleArrayNodeIds.insert( valueStr );
         }
       }
-    else if (!strcmp(attName, "VolumeNodeIdsToWeightsMap")) 
+    else if (!strcmp(attName, "ShowHideAll")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->ShowHideAll = atoi(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "ShowInChartCheckStates")) 
       {
       std::stringstream ss;
       ss << attValue;
       std::string valueStr = ss.str();
       std::string separatorCharacter("|");
 
-      this->VolumeNodeIdsToWeightsMap.clear();
+      this->ShowInChartCheckStates.clear();
       size_t separatorPosition = valueStr.find( separatorCharacter );
       while (separatorPosition != std::string::npos)
         {
-        std::string mapPairStr = valueStr.substr(0, separatorPosition);
-        size_t colonPosition = mapPairStr.find( ":" );
-        if (colonPosition == std::string::npos)
-          {
-          continue;
-          }
-        std::string volumeNodeId = mapPairStr.substr(0, colonPosition);
-
-        double weight;
-        std::stringstream vss;
-        vss << mapPairStr.substr( colonPosition+1 );
-        vss >> weight;
-
-        this->VolumeNodeIdsToWeightsMap[volumeNodeId] = weight;
+        this->ShowInChartCheckStates.push_back(
+          (valueStr.substr(0, separatorPosition).compare("true") ? false : true));
         valueStr = valueStr.substr( separatorPosition+1 );
         separatorPosition = valueStr.find( separatorCharacter );
         }
       if (! valueStr.empty() )
         {
-        std::string mapPairStr = valueStr.substr(0, separatorPosition);
-        size_t colonPosition = mapPairStr.find( ":" );
-        if (colonPosition != std::string::npos)
-          {
-          std::string volumeNodeId = mapPairStr.substr(0, colonPosition);
-
-          double weight;
-          std::stringstream vss;
-          vss << mapPairStr.substr( colonPosition+1 );
-          vss >> weight;
-
-          this->VolumeNodeIdsToWeightsMap[volumeNodeId] = weight;
-          }
+        this->ShowInChartCheckStates.push_back(
+          (valueStr.compare("true") ? false : true));
         }
       }
-    else if (!strcmp(attName, "AccumulatedDoseVolumeNodeId")) 
+    else if (!strcmp(attName, "VDoseValues")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAccumulatedDoseVolumeNodeId(ss.str().c_str());
+      this->SetVDoseValues(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "ShowVMetricsCc")) 
+      {
+      this->ShowVMetricsCc = 
+        (strcmp(attValue,"true") ? false : true);
+      }
+    else if (!strcmp(attName, "ShowVMetricsPercent")) 
+      {
+      this->ShowVMetricsPercent = 
+        (strcmp(attValue,"true") ? false : true);
+      }
+    else if (!strcmp(attName, "DVolumeValues")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetDVolumeValues(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "ShowDMetrics")) 
+      {
+      this->ShowDMetrics = 
+        (strcmp(attValue,"true") ? false : true);
       }
     }
 }
@@ -200,11 +270,20 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLDoseVolumeHistogramNode *node = (vtkMRMLDoseVolumeHistogramNode *) anode;
 
-  this->SetShowDoseVolumesOnly(node->ShowDoseVolumesOnly);
-  this->SetAccumulatedDoseVolumeNodeId(node->AccumulatedDoseVolumeNodeId);
+  this->SetDoseVolumeNodeId(node->DoseVolumeNodeId);
+  this->SetStructureSetModelNodeId(node->StructureSetModelNodeId);
+  this->SetChartNodeId(node->ChartNodeId);
 
-  this->SelectedInputVolumeIds = node->SelectedInputVolumeIds;
-  this->VolumeNodeIdsToWeightsMap = node->VolumeNodeIdsToWeightsMap;
+  this->DvhDoubleArrayNodeIds = node->DvhDoubleArrayNodeIds;
+  this->ShowHideAll = node->ShowHideAll;
+  this->ShowInChartCheckStates = node->ShowInChartCheckStates;
+
+  this->SetVDoseValues(node->VDoseValues);
+  this->ShowVMetricsCc = node->ShowVMetricsCc;
+  this->ShowVMetricsPercent = node->ShowVMetricsPercent;
+
+  this->SetDVolumeValues(node->DVolumeValues);
+  this->ShowDMetrics = node->ShowDMetrics;
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -215,46 +294,56 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "ShowDoseVolumesOnly:   " << (this->ShowDoseVolumesOnly ? "true" : "false") << "\n";
+  os << indent << "DoseVolumeNodeId:   " << this->DoseVolumeNodeId << "\n";
+  os << indent << "StructureSetModelNodeId:   " << this->StructureSetModelNodeId << "\n";
+  os << indent << "ChartNodeId:   " << this->ChartNodeId << "\n";
 
   {
-    os << indent << "SelectedInputVolumeIds:   ";
-    for (std::set<std::string>::iterator it = this->SelectedInputVolumeIds.begin(); it != this->SelectedInputVolumeIds.end(); ++it)
+    os << indent << "DvhDoubleArrayNodeIds:   ";
+    for (std::set<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
       {
-      os << indent << (*it) << "|";
+      os << (*it) << "|";
       }
     os << "\n";
   }
 
+  os << indent << "ShowHideAll:   " << this->ShowHideAll << "\n";
+
   {
-    os << indent << "VolumeNodeIdsToWeightsMap:   ";
-    for (std::map<std::string,double>::iterator it = this->VolumeNodeIdsToWeightsMap.begin(); it != this->VolumeNodeIdsToWeightsMap.end(); ++it)
+    os << indent << "ShowInChartCheckStates:   ";
+    for (std::vector<bool>::iterator it = this->ShowInChartCheckStates.begin(); it != this->ShowInChartCheckStates.end(); ++it)
       {
-      os << indent << it->first << ":" << it->second << "|";
+      os << indent << ((*it) ? "true" : "false") << "|";
       }
     os << "\n";
   }
 
-  os << indent << "AccumulatedDoseVolumeNodeId:   " << this->AccumulatedDoseVolumeNodeId << "\n";
+  os << indent << "VDoseValues:   " << this->VDoseValues << "\n";
+  os << indent << "ShowVMetricsCc:   " << (this->ShowVMetricsCc ? "true" : "false") << "\n";
+  os << indent << "ShowVMetricsPercent:   " << (this->ShowVMetricsPercent ? "true" : "false") << "\n";
+
+  os << indent << "DVolumeValues:   " << this->DVolumeValues << "\n";
+  os << indent << "ShowDMetrics:   " << (this->ShowDMetrics ? "true" : "false") << "\n";
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
-  if (this->SelectedInputVolumeIds.find(oldID) != this->SelectedInputVolumeIds.end())
+  if (this->DoseVolumeNodeId && !strcmp(oldID, this->DoseVolumeNodeId))
     {
-    this->SelectedInputVolumeIds.erase(oldID);
-    this->SelectedInputVolumeIds.insert(newID);
+    this->SetDoseVolumeNodeId(newID);
     }
-  std::map<std::string,double>::iterator it;
-  if ((it = this->VolumeNodeIdsToWeightsMap.find(oldID)) != this->VolumeNodeIdsToWeightsMap.end())
+  if (this->StructureSetModelNodeId && !strcmp(oldID, this->StructureSetModelNodeId))
     {
-      double weight = it->second;
-      this->VolumeNodeIdsToWeightsMap.erase(oldID);
-      this->VolumeNodeIdsToWeightsMap[newID] = weight;
+    this->SetStructureSetModelNodeId(newID);
     }
-  if (this->AccumulatedDoseVolumeNodeId && !strcmp(oldID, this->AccumulatedDoseVolumeNodeId))
+  if (this->ChartNodeId && !strcmp(oldID, this->ChartNodeId))
     {
-    this->SetAccumulatedDoseVolumeNodeId(newID);
+    this->SetChartNodeId(newID);
+    }
+  if (this->DvhDoubleArrayNodeIds.find(oldID) != this->DvhDoubleArrayNodeIds.end())
+    {
+    this->DvhDoubleArrayNodeIds.erase(oldID);
+    this->DvhDoubleArrayNodeIds.insert(newID);
     }
 }

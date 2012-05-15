@@ -10,7 +10,7 @@ if(NOT Slicer_SOURCE_DIR)
   set(MODULE_CATEGORY "Radiotherapy")
   set(MODULE_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/LoadableExtensionTemplate/Resources/Icons/LoadableExtensionTemplate.png?revision=19437&view=co")
   set(MODULE_STATUS "Beta")
-  set(MODULE_CONTRIBUTORS "Csaba Pinter, Andras Lasso, Kevin Wang")
+  set(MODULE_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto)")
   set(MODULE_DESCRIPTION "Compute and display dose volume histograms")
   set(MODULE_SCREENSHOTURLS "https://www.assembla.com/spaces/slicerrt/documents/bhB--4vSSr4BSNacwqjQWU/download/bhB--4vSSr4BSNacwqjQWU?notinline=true")
   set(MODULE_DEPENDS "NA") # Specified as a space separated list or 'NA' if any

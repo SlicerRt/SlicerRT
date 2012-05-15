@@ -27,12 +27,8 @@
 
 #include "qSlicerDoseVolumeHistogramModuleExport.h"
 
-// STD includes
-#include <map>
-
 class qSlicerDoseVolumeHistogramModuleWidgetPrivate;
 class vtkMRMLNode;
-class QCheckBox;
 class QLineEdit;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -43,12 +39,24 @@ class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramMo
   QVTK_OBJECT
 
 public:
-
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerDoseVolumeHistogramModuleWidget(QWidget *parent=0);
   virtual ~qSlicerDoseVolumeHistogramModuleWidget();
 
+  virtual void enter();
+
 public slots:
+  /// Set the current MRML scene to the widget
+  virtual void setMRMLScene(vtkMRMLScene*);
+
+  /// Process loaded scene
+  void onSceneImportedEvent();
+
+  /// Set current parameter node
+  void setDoseVolumeHistogramNode(vtkMRMLNode *node);
+
+  /// Update widget GUI from parameter node
+  void updateWidgetFromMRML();
 
 protected slots:
   void doseVolumeNodeChanged(vtkMRMLNode*);
@@ -60,8 +68,11 @@ protected slots:
   void exportDvhToCsvClicked();
   void exportMetricsToCsv();
   void showHideAllCheckedStateChanged(int aState);
-  void showMetricsCheckedStateChanged(int aState);
-  void lineEditMetricEdited(QString aText);
+  void lineEditVDoseEdited(QString aText);
+  void showVMetricsCcCheckedStateChanged(int aState);
+  void showVMetricsPercentCheckedStateChanged(int aState);
+  void lineEditDVolumeEdited(QString aText);
+  void showDMetricsCheckedStateChanged(int aState);
 
   void onLogicModified();
 
@@ -69,6 +80,7 @@ protected:
   QScopedPointer<qSlicerDoseVolumeHistogramModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
+  void onEnter();
 
 protected:
   /// Updates button states
@@ -82,16 +94,6 @@ protected:
 
   /// Get value list from text in given line edit (empty list if unsuccessful)
   void getNumbersFromLineEdit(QLineEdit* aLineEdit, std::vector<double> &aValues);
-
-protected:
-  /// Map that associates a string pair containing the structure set plot name (including table row number) and the vtkMRMLDoubleArrayNode id (respectively) to the show/hide in chart checkboxes
-  std::map<QCheckBox*, std::pair<std::string, std::string>> m_ChartCheckboxToStructureSetNameMap;
-
-  /// Vector of checkbox states for the case the user makes the show/hide all checkbox state partially checked. Then the last configuration is restored
-  std::vector<bool> m_ShowInChartCheckStates;
-
-  /// Flag whether show/hide all checkbox has been clicked - some operations are not necessary when it was clicked
-  bool m_ShowHideAllClicked;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseVolumeHistogramModuleWidget);

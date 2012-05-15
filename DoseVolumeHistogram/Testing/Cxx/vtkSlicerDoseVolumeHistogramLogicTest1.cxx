@@ -19,7 +19,9 @@
 
 ==============================================================================*/
 
+// DoseVolumeHistogram includes
 #include "vtkSlicerDoseVolumeHistogramLogic.h"
+#include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -176,16 +178,21 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic> dvhLogic = vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic>::New();
   dvhLogic->SetMRMLScene(mrmlScene);
-  dvhLogic->SetDoseVolumeNode(doseScalarVolumeNode);
-  dvhLogic->SetStructureSetModelNode(modelHierarchyRootNode);
-  dvhLogic->SetChartNode(chartNode);
+
+  // Create and set up parameter set MRML node
+  vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode = vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
+  paramNode->SetDoseVolumeNodeId(doseScalarVolumeNode->GetID());
+  paramNode->SetStructureSetModelNodeId(modelHierarchyRootNode->GetID());
+  paramNode->SetChartNodeId(chartNode->GetID());
+  mrmlScene->AddNode(paramNode);
+  dvhLogic->SetAndObserveDoseVolumeHistogramNode(paramNode);
 
   // Compute DVH and get result nodes
   dvhLogic->ComputeDvh();
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
 
-  vtkCollection* dvhNodes = dvhLogic->GetDvhDoubleArrayNodes();
-  if (dvhNodes->GetNumberOfItems() < 1)
+  std::set<std::string>* dvhNodes = paramNode->GetDvhDoubleArrayNodeIds();
+  if (dvhNodes->size() < 1)
   {
     mrmlScene->Commit();
     std::cerr << "No DVH nodes created!" << std::endl;
@@ -193,9 +200,11 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   }
 
   // Add DVH arrays to chart node
-  for (int i=0; i<5; ++i)
+  std::set<std::string>::iterator dvhIt;
+  int i;
+  for (i=0, dvhIt = dvhNodes->begin(); dvhIt != dvhNodes->end(); ++dvhIt, ++i)
   {
-    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast( dvhNodes->GetItemAsObject(i) );
+    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(mrmlScene->GetNodeByID(dvhIt->c_str()));
     if (!dvhNode)
     {
       std::cerr << "Error: Item " << i << " in DVH node list is not valid!" << std::endl;

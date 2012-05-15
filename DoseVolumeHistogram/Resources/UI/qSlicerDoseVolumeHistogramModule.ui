@@ -20,7 +20,7 @@
    <property name="spacing">
     <number>4</number>
    </property>
-   <item row="0" column="0">
+   <item row="1" column="0">
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_Input">
      <property name="text">
       <string>Input</string>
@@ -121,7 +121,6 @@
           </property>
           <property name="nodeTypes">
            <stringlist>
-            <string>vtkMRMLVolumeNode</string>
             <string>vtkMRMLScalarVolumeNode</string>
            </stringlist>
           </property>
@@ -253,7 +252,7 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_Output">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -576,6 +575,26 @@
      </layout>
     </widget>
    </item>
+   <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Parameter set:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLDoseVolumeHistogramNode</string>
+        </stringlist>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -610,8 +629,8 @@
      <y>60</y>
     </hint>
     <hint type="destinationlabel">
-     <x>410</x>
-     <y>412</y>
+     <x>388</x>
+     <y>238</y>
     </hint>
    </hints>
   </connection>
@@ -627,7 +646,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>424</x>
-     <y>67</y>
+     <y>93</y>
     </hint>
    </hints>
   </connection>
@@ -643,7 +662,23 @@
     </hint>
     <hint type="destinationlabel">
      <x>456</x>
-     <y>41</y>
+     <y>67</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDoseVolumeHistogramModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_ParameterSet</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>165</x>
+     <y>3</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>166</x>
+     <y>11</y>
     </hint>
    </hints>
   </connection>
