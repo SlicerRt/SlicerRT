@@ -107,14 +107,8 @@ void vtkMRMLDoseAccumulationNode::ReadXMLAttributes(const char** atts)
     attValue = *(atts++);
     if (!strcmp(attName, "ShowDoseVolumesOnly")) 
       {
-      if (!strcmp(attValue,"true")) 
-        {
-        this->ShowDoseVolumesOnly = true;
-        }
-      else
-        {
-        this->ShowDoseVolumesOnly = false;
-        }
+      this->ShowDoseVolumesOnly = 
+        (strcmp(attValue,"true") ? false : true);
       }
     else if (!strcmp(attName, "SelectedInputVolumeIds")) 
       {
@@ -221,7 +215,7 @@ void vtkMRMLDoseAccumulationNode::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "SelectedInputVolumeIds:   ";
     for (std::set<std::string>::iterator it = this->SelectedInputVolumeIds.begin(); it != this->SelectedInputVolumeIds.end(); ++it)
       {
-      os << indent << (*it) << "|";
+      os << (*it) << "|";
       }
     os << "\n";
   }
@@ -230,7 +224,7 @@ void vtkMRMLDoseAccumulationNode::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "VolumeNodeIdsToWeightsMap:   ";
     for (std::map<std::string,double>::iterator it = this->VolumeNodeIdsToWeightsMap.begin(); it != this->VolumeNodeIdsToWeightsMap.end(); ++it)
       {
-      os << indent << it->first << ":" << it->second << "|";
+      os << it->first << ":" << it->second << "|";
       }
     os << "\n";
   }

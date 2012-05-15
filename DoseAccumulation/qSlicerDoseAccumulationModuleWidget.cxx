@@ -26,12 +26,12 @@
 #include "qSlicerDoseAccumulationModuleWidget.h"
 #include "ui_qSlicerDoseAccumulationModule.h"
 
-// ModuleTemplate includes
+// DoseAccumulation includes
 #include "vtkSlicerDoseAccumulationLogic.h"
+#include "vtkMRMLDoseAccumulationNode.h"
 
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
-#include "vtkMRMLDoseAccumulationNode.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_DoseAccumulation

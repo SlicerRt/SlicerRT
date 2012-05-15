@@ -30,7 +30,6 @@
 class qSlicerDoseAccumulationModuleWidgetPrivate;
 class vtkMRMLNode;
 class QTableWidgetItem;
-class QCheckBox;
 
 // STD includes
 #include <map>
