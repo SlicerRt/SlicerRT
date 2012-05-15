@@ -183,7 +183,6 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
   vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
-
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseAccumulationNode());
@@ -237,7 +236,10 @@ void qSlicerDoseAccumulationModuleWidget::accumulatedDoseVolumeNodeChanged(vtkMR
     return;
   }
 
+  paramNode->DisableModifiedEventOn();
   paramNode->SetAccumulatedDoseVolumeNodeId(node->GetID());
+  paramNode->DisableModifiedEventOff();
+
   updateButtonsState();
 }
 
@@ -394,7 +396,8 @@ void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aSt
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  if (!d->logic()->GetDoseAccumulationNode())
+  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+  if (!paramNode || !this->mrmlScene())
   {
     return;
   }
@@ -409,11 +412,11 @@ void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aSt
 
   if (aState)
   {
-    d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->insert(d->CheckboxToVolumeIdMap[senderCheckbox]);
+    paramNode->GetSelectedInputVolumeIds()->insert(d->CheckboxToVolumeIdMap[senderCheckbox]);
   }
   else
   {
-    d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->erase(d->CheckboxToVolumeIdMap[senderCheckbox]);
+    paramNode->GetSelectedInputVolumeIds()->erase(d->CheckboxToVolumeIdMap[senderCheckbox]);
   }
 
   updateButtonsState();
@@ -424,12 +427,15 @@ void qSlicerDoseAccumulationModuleWidget::showDoseOnlyChanged(int aState)
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  if (!d->logic()->GetDoseAccumulationNode())
+  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+  if (!paramNode || !this->mrmlScene())
   {
     return;
   }
 
-  d->logic()->GetDoseAccumulationNode()->SetShowDoseVolumesOnly(aState);
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetShowDoseVolumesOnly(aState);
+  paramNode->DisableModifiedEventOff();
 
   refreshVolumesTable();
 }
