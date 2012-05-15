@@ -9,7 +9,7 @@ if(NOT Slicer_SOURCE_DIR)
   set(EXTENSION_CATEGORY "Developer Tools.DICOM Plugins")
   set(EXTENSION_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/LoadableExtensionTemplate/Resources/Icons/LoadableExtensionTemplate.png?revision=19437&view=co")
   set(EXTENSION_STATUS "Beta")
-  set(EXTENSION_CONTRIBUTORS "Csaba Pinter, Andras Lasso, Kevin Wang")
+  set(EXTENSION_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto)")
   set(EXTENSION_DESCRIPTION "Plugin module for DICOM module that allows DICOM RT data import")
   set(EXTENSION_SCREENSHOTURLS "https://www.assembla.com/spaces/slicerrt/documents/bhB--4vSSr4BSNacwqjQWU/download/bhB--4vSSr4BSNacwqjQWU?notinline=true")
   set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
