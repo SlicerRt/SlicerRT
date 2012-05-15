@@ -346,17 +346,23 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateChartCheckboxesState()
   if (arraysInSelectedChart->GetNumberOfValues() == 0)
   {
     d->checkBox_ShowHideAll->setCheckState(Qt::Unchecked);
+    paramNode->DisableModifiedEventOn();
     paramNode->SetShowHideAll(Qt::Unchecked);
+    paramNode->DisableModifiedEventOff();
   }
   else if (arraysInSelectedChart->GetNumberOfValues() == d->ChartCheckboxToStructureSetNameMap.size())
   {
     d->checkBox_ShowHideAll->setCheckState(Qt::Checked);
+    paramNode->DisableModifiedEventOn();
     paramNode->SetShowHideAll(Qt::Checked);
+    paramNode->DisableModifiedEventOff();
   }
   else
   {
     d->checkBox_ShowHideAll->setCheckState(Qt::PartiallyChecked);
+    paramNode->DisableModifiedEventOn();
     paramNode->SetShowHideAll(Qt::PartiallyChecked);
+    paramNode->DisableModifiedEventOff();
   }
   d->checkBox_ShowHideAll->blockSignals(false);
 }
@@ -372,7 +378,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
     return;
   }
 
+  paramNode->DisableModifiedEventOn();
   paramNode->SetDoseVolumeNodeId(node->GetID());
+  paramNode->DisableModifiedEventOff();
+
   updateButtonsState();
 
   if (d->logic()->DoseVolumeContainsDose())
@@ -396,7 +405,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::structureSetNodeChanged(vtkMRMLNode
     return;
   }
 
+  paramNode->DisableModifiedEventOn();
   paramNode->SetStructureSetModelNodeId(node->GetID());
+  paramNode->DisableModifiedEventOff();
+
   updateButtonsState();
 }
 
@@ -411,7 +423,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
     return;
   }
 
+  paramNode->DisableModifiedEventOn();
   paramNode->SetChartNodeId(node->GetID());
+  paramNode->DisableModifiedEventOff();
+
   updateButtonsState();
   updateChartCheckboxesState();
 }
@@ -705,7 +720,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::showHideAllCheckedStateChanged(int 
     return;
   }
 
+  paramNode->DisableModifiedEventOn();
   paramNode->SetShowHideAll(aState);
+  paramNode->DisableModifiedEventOff();
 
   std::map<QCheckBox*, std::pair<std::string, std::string>>::iterator checkboxIt;
 
@@ -875,7 +892,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
     return;
   }
 
+  paramNode->DisableModifiedEventOn();
   paramNode->SetVDoseValues(aText.toLatin1());
+  paramNode->DisableModifiedEventOff();
 
   refreshDvhTable();
 }
@@ -891,7 +910,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsCcCheckedStateChanged(i
     return;
   }
 
+  paramNode->DisableModifiedEventOn();
   paramNode->SetShowVMetricsCc(aState);
+  paramNode->DisableModifiedEventOff();
 
   refreshDvhTable();
 }
@@ -907,7 +928,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChan
     return;
   }
 
+  paramNode->DisableModifiedEventOn();
   paramNode->SetShowVMetricsPercent(aState);
+  paramNode->DisableModifiedEventOff();
 
   refreshDvhTable();
 }
@@ -923,7 +946,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeEdited(QString aText
     return;
   }
 
+  paramNode->DisableModifiedEventOn();
   paramNode->SetDVolumeValues(aText.toLatin1());
+  paramNode->DisableModifiedEventOff();
 
   refreshDvhTable();
 }
@@ -939,7 +964,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
     return;
   }
 
+  paramNode->DisableModifiedEventOn();
   paramNode->SetShowDMetrics(aState);
+  paramNode->DisableModifiedEventOff();
 
   refreshDvhTable();
 }
