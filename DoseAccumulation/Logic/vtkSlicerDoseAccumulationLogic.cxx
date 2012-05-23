@@ -24,6 +24,7 @@
 #include "vtkMRMLDoseAccumulationNode.h"
 
 // MRML includes
+#include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLModelDisplayNode.h>
@@ -41,6 +42,8 @@
 
 // STD includes
 #include <cassert>
+
+#define THRESHOLD 0.001
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseAccumulationLogic);
@@ -209,6 +212,18 @@ int vtkSlicerDoseAccumulationLogic::AccumulateDoseVolumes()
   vtkSmartPointer<vtkMRMLVolumeNode> outputVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(
     this->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeNodeId()));
 
+  double originX, originY, originZ;
+  double spacingX, spacingY, spacingZ;
+  int dimensions[3] = {0, 0, 0};
+  inputVolumeNode->GetOrigin(originX, originY, originZ);
+  inputVolumeNode->GetSpacing(spacingX, spacingY, spacingZ);
+  inputVolumeNode->GetImageData()->GetDimensions(dimensions);
+
+  outputVolumeNode->CopyOrientation(inputVolumeNode);
+  outputVolumeNode->SetOrigin(originX, originY, originZ);
+  outputVolumeNode->SetAttribute("DoseUnitName", inputVolumeNode->GetAttribute("DoseUnitName"));
+  outputVolumeNode->SetAttribute("DoseUnitValue", inputVolumeNode->GetAttribute("DoseUnitValue"));
+
   vtkSmartPointer<vtkImageMathematics> MultiplyFilter1 = vtkSmartPointer<vtkImageMathematics>::New();
   MultiplyFilter1->SetInput(inputVolumeNode->GetImageData());
   MultiplyFilter1->SetConstantK(weight);
@@ -216,15 +231,32 @@ int vtkSlicerDoseAccumulationLogic::AccumulateDoseVolumes()
   MultiplyFilter1->Update();
   baseImageData = MultiplyFilter1->GetOutput();
 
+  double originX2, originY2, originZ2;
+  double spacingX2, spacingY2, spacingZ2;
+  int dimensions2[3] = {0, 0, 0};
   if (size >=2)
   {
     vtkSmartPointer<vtkImageMathematics> MultiplyFilter2 = vtkSmartPointer<vtkImageMathematics>::New();
     vtkSmartPointer<vtkImageMathematics> AddFilter = vtkSmartPointer<vtkImageMathematics>::New();
     for (int i = 1; i < size; i++)
     {
-      Id = *iterIds++;
+      iterIds++;
+      Id = *iterIds;
       inputVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(Id));
       weight = (*VolumeNodeIdsToWeightsMap)[Id];
+
+      inputVolumeNode->GetOrigin(originX2, originY2, originZ2); 
+      inputVolumeNode->GetSpacing(spacingX2, spacingY2, spacingZ2);
+      inputVolumeNode->GetImageData()->GetDimensions(dimensions2);
+      
+      // Make sure inputs are initialized
+      if (abs(originX-originX2) > THRESHOLD || abs(originY-originY2) > THRESHOLD || abs(originZ-originZ2) > THRESHOLD || 
+          abs(spacingX-spacingX2) > THRESHOLD || abs(spacingY-spacingY2) > THRESHOLD || abs(spacingZ-spacingZ2) > THRESHOLD ||
+          abs(dimensions[0]-dimensions2[0]) > THRESHOLD || abs(dimensions[1]-dimensions2[1]) > THRESHOLD || abs(dimensions[2]-dimensions2[2]) >THRESHOLD)
+      {
+        std::cerr << "Dose accumulation: image information does not match!" << std::endl;
+        return -1;
+      }
 
       MultiplyFilter2->SetInput(inputVolumeNode->GetImageData());
       MultiplyFilter2->SetConstantK(weight);
@@ -239,9 +271,7 @@ int vtkSlicerDoseAccumulationLogic::AccumulateDoseVolumes()
       baseImageData = AddFilter->GetOutput();
     }
   }
-  double originX, originY, originZ;
-  baseImageData->GetOrigin(originX, originY, originZ);
-  outputVolumeNode->SetOrigin(originX, originY, originZ);
+
   outputVolumeNode->SetAndObserveImageData(baseImageData);
   outputVolumeNode->SetModifiedSinceRead(1); 
 
