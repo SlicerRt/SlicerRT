@@ -74,7 +74,7 @@ QString qSlicerDicomRtImportModule::helpText()const
 //-----------------------------------------------------------------------------
 QString qSlicerDicomRtImportModule::acknowledgementText()const
 {
-  return "This work was supported by the SparKit project funded by CCO ACRU";
+  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
 }
 
 //-----------------------------------------------------------------------------

@@ -77,7 +77,7 @@ QString qSlicerDoseVolumeHistogramModule::helpText()const
 //-----------------------------------------------------------------------------
 QString qSlicerDoseVolumeHistogramModule::acknowledgementText()const
 {
-  return "This work was supported through the Applied Cancer Research Unit program of Cancer Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care.";
+  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
 }
 
 //-----------------------------------------------------------------------------
