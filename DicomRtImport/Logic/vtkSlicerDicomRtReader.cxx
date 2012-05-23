@@ -346,28 +346,31 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     QStringList resultStringList = dicomDatabase.runQuery(query + quote + uid + quote);
     dicomDatabase.closeDatabase();
     
-    if ( !resultStringList.first().isNull() && !resultStringList.first().isEmpty() )
+    if ( !resultStringList.isEmpty() )
     {
-      // load DICOM file or dataset
-      DcmFileFormat fileformat;
-
-      OFCondition result;
-      result = fileformat.loadFile( resultStringList.first().toStdString().c_str(), EXS_Unknown);
-      if (result.good())
+      if ( !resultStringList.first().isNull() && !resultStringList.first().isEmpty() )
       {
-        DcmDataset *dataset = fileformat.getDataset();
-        // from here use dicom toolkit to read slice thickness; wangk 2012/04/10
-        OFString sliceThicknessString;
-        if (dataset->findAndGetOFString(DCM_SliceThickness, sliceThicknessString).good())
+        // load DICOM file or dataset
+        DcmFileFormat fileformat;
+    
+        OFCondition result;
+        result = fileformat.loadFile( resultStringList.first().toStdString().c_str(), EXS_Unknown);
+        if (result.good())
         {
-          SliceThickness = atof(sliceThicknessString.c_str());
-          if (SliceThickness <= 0.0 || SliceThickness > 20.0)
+          DcmDataset *dataset = fileformat.getDataset();
+          // from here use dicom toolkit to read slice thickness; wangk 2012/04/10
+          OFString sliceThicknessString;
+          if (dataset->findAndGetOFString(DCM_SliceThickness, sliceThicknessString).good())
           {
-          SliceThickness = 1.1;
+            SliceThickness = atof(sliceThicknessString.c_str());
+            if (SliceThickness <= 0.0 || SliceThickness > 20.0)
+            {
+              SliceThickness = 1.1;
+            }
           }
-        }
-        else
-        {
+          else
+          {
+          }
         }
       }
     }
