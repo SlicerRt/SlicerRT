@@ -41,34 +41,58 @@
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 
+std::string csvSeparatorCharacter(",");
+
+//-----------------------------------------------------------------------------
+int CompareCsvDvhTables(std::string dvhMetricsCsvFileName, std::string baselineCsvFileName,
+                        double toleranceMeanPercent, double toleranceMaxPercent);
+
 //-----------------------------------------------------------------------------
 int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 {
   // Get temporary directory
-  const char *sourceDirectoryPath = NULL;
+  const char *dataDirectoryPath = NULL;
   if (argc > 2)
   {
-    if (stricmp(argv[1], "-D") == 0)
+    if (stricmp(argv[1], "-DataDirectoryPath") == 0)
     {
-      sourceDirectoryPath = argv[2];
-      std::cout << "Source directory: " << sourceDirectoryPath << std::endl;
+      dataDirectoryPath = argv[2];
+      std::cout << "Data directory path: " << dataDirectoryPath << std::endl;
     }
     else
     {
-      sourceDirectoryPath = "";
+      dataDirectoryPath = "";
     }
   }
   const char *temporaryDirectoryPath = NULL;
   if (argc > 4)
   {
-    if (stricmp(argv[3], "-T") == 0)
+    if (stricmp(argv[3], "-TemporaryDirectoryPath") == 0)
     {
       temporaryDirectoryPath = argv[4];
-      std::cout << "Temporary directory: " << temporaryDirectoryPath << std::endl;
+      std::cout << "Temporary directory path: " << temporaryDirectoryPath << std::endl;
     }
     else
     {
       temporaryDirectoryPath = "";
+    }
+  }
+  int toleranceMeanPercent = 0.0;
+  if (argc > 6)
+  {
+    if (stricmp(argv[5], "-ToleranceMeanPercent") == 0)
+    {
+      toleranceMeanPercent = atof(argv[4]);
+      std::cout << "Tolerance mean percent: " << toleranceMeanPercent << std::endl;
+    }
+  }
+  int toleranceMaxPercent = 0.0;
+  if (argc > 8)
+  {
+    if (stricmp(argv[7], "-ToleranceMaxPercent") == 0)
+    {
+      toleranceMaxPercent = atof(argv[6]);
+      std::cout << "Tolerance max percent: " << toleranceMaxPercent << std::endl;
     }
   }
 
@@ -81,23 +105,40 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   mrmlScene->SetURL(sceneFileName.c_str());
   mrmlScene->Commit();
 
-  // Load dose volume
+  // Create dose volume node
   vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   doseScalarVolumeNode->SetName("Dose");
-  doseScalarVolumeNode->SetAttribute("DoseUnitName", "GY");
-  doseScalarVolumeNode->SetAttribute("DoseUnitValue", "4.4812099e-5");
-  doseScalarVolumeNode->SetAttribute("LabelMap", "0");
-  mrmlScene->AddNode(doseScalarVolumeNode);
-  //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(doseScalarVolumeNode);
 
-  std::string doseVolumeFileName = std::string(sourceDirectoryPath) + "/Data/Dose.nrrd";
+  // Load and set attributes from file
+  std::string doseAttributesFileName = std::string(dataDirectoryPath) + "/Dose.attributes";
+  std::cout << "Loading dose attributes from file '" << doseAttributesFileName << "' ("
+    << (vtksys::SystemTools::FileExists(doseAttributesFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
+
+  std::ifstream attributesStream;
+  attributesStream.open(doseAttributesFileName.c_str(), std::ifstream::in);
+  char attribute[512];
+  while (attributesStream.getline(attribute, 512, ';'))
+  {
+    std::string attributeStr(attribute);
+    int colonIndex = attributeStr.find(':');
+    std::string name = attributeStr.substr(0, colonIndex);
+    std::string value = attributeStr.substr(colonIndex + 1);
+    doseScalarVolumeNode->SetAttribute(name.c_str(), value.c_str());
+  }
+  attributesStream.close();
+
+  mrmlScene->AddNode(doseScalarVolumeNode);
+  //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
+
+  // Load dose volume
+  std::string doseVolumeFileName = std::string(dataDirectoryPath) + "/Dose.nrrd";
   std::cout << "Loading dose volume from file '" << doseVolumeFileName << "' ("
     << (vtksys::SystemTools::FileExists(doseVolumeFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
 
   vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> doseVolumeArchetypeStorageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
   doseVolumeArchetypeStorageNode->SetFileName(doseVolumeFileName.c_str());
   mrmlScene->AddNode(doseVolumeArchetypeStorageNode);
-  //EXERCISE_BASIC_STORAGE_MRML_METHODS(doseVolumeArchetypeStorageNode);
+  //EXERCISE_BASIC_STORAGE_MRML_METHODS(vtkMRMLVolumeArchetypeStorageNode, doseVolumeArchetypeStorageNode);
 
   doseScalarVolumeNode->SetAndObserveStorageNodeID(doseVolumeArchetypeStorageNode->GetID());
 
@@ -109,7 +150,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   }
 
   // Create model hierarchy root node
-  std::string hierarchyNodeName = "RTSTRUCT: PROS - all structures";
+  std::string hierarchyNodeName = "All structures";
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();  
   modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
   modelHierarchyRootNode->AllowMultipleChildrenOn();
@@ -127,14 +168,27 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode) TODO: uncomment these and try if they work after the node in question is fully set
 
   // Load models and create nodes
-  const char* testModelNames[5] = {"Bladder", "FemoralHeadLt", "FemoralHeadRT", "PTV", "Rectum"};
-  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
+  std::string structureNamesFileName = std::string(dataDirectoryPath) + "/Structure.names";
+  std::cout << "Loading structure names from file '" << structureNamesFileName << "' ("
+    << (vtksys::SystemTools::FileExists(structureNamesFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
 
-  for (int i=0; i<5; ++i)
+  std::vector<std::string> structureNames;
+  std::ifstream structureNamesStream;
+  structureNamesStream.open(structureNamesFileName.c_str(), std::ifstream::in);
+  char structureName[512];
+  while (structureNamesStream.getline(structureName, 512, ';'))
+  {
+    structureNames.push_back(structureName);
+  }
+  structureNamesStream.close();
+
+  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
+  std::vector<std::string>::iterator it;
+  for (it = structureNames.begin(); it != structureNames.end(); ++it)
   {
     // Read polydata
     vtkSmartPointer<vtkPolyDataReader> modelPolyDataReader = vtkSmartPointer<vtkPolyDataReader>::New();
-    std::string modelFileName = std::string(sourceDirectoryPath) + "/Data/" + std::string(testModelNames[i]) + ".vtk";
+    std::string modelFileName = std::string(dataDirectoryPath) + "/" + (*it) + ".vtk";
     modelPolyDataReader->SetFileName(modelFileName.c_str());
 
     std::cout << "Loading structure model from file '" << modelFileName << "' ("
@@ -143,7 +197,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     // Create display node
     vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
     displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
-    //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode) TODO: uncomment these and try if they work after the node in question is fully set
+    //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode)
     displayNode->SetModifiedSinceRead(1);
     displayNode->SliceIntersectionVisibilityOn();
     displayNode->VisibilityOn();
@@ -152,7 +206,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
     modelNode = vtkMRMLModelNode::SafeDownCast(mrmlScene->AddNode(modelNode));
     //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLModelNode, modelNode)
-    modelNode->SetName(testModelNames[i]);
+    modelNode->SetName(it->c_str());
     modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
     modelNode->SetAndObservePolyData( modelPolyDataReader->GetOutput() );
     modelNode->SetModifiedSinceRead(1);
@@ -192,26 +246,25 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
 
   std::set<std::string>* dvhNodes = paramNode->GetDvhDoubleArrayNodeIds();
-  if (dvhNodes->size() < 1)
+  if (dvhNodes->size() != structureNames.size())
   {
     mrmlScene->Commit();
-    std::cerr << "No DVH nodes created!" << std::endl;
+    std::cerr << "Invalid DVH node list!" << std::endl;
     return EXIT_FAILURE;
   }
 
   // Add DVH arrays to chart node
   std::set<std::string>::iterator dvhIt;
-  int i;
-  for (i=0, dvhIt = dvhNodes->begin(); dvhIt != dvhNodes->end(); ++dvhIt, ++i)
+  for (it = structureNames.begin(), dvhIt = dvhNodes->begin(); dvhIt != dvhNodes->end(); ++dvhIt, ++it)
   {
     vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(mrmlScene->GetNodeByID(dvhIt->c_str()));
     if (!dvhNode)
     {
-      std::cerr << "Error: Item " << i << " in DVH node list is not valid!" << std::endl;
-      continue;
+      std::cerr << "Error: Invalid DVH node!" << std::endl;
+      return EXIT_FAILURE;
     }
 
-    chartNode->AddArray( testModelNames[i], dvhNode->GetID() );    
+    chartNode->AddArray( it->c_str(), dvhNode->GetID() );    
   }
 
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
@@ -224,9 +277,11 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 
   // Export DVH metrics to CSV
   static const double vDoseValuesCcArr[] = {5, 20};
-  std::vector<double> vDoseValuesCc( vDoseValuesCcArr, vDoseValuesCcArr + sizeof(vDoseValuesCcArr) / sizeof(vDoseValuesCcArr[0]) );
+  std::vector<double> vDoseValuesCc( vDoseValuesCcArr, vDoseValuesCcArr
+    + sizeof(vDoseValuesCcArr) / sizeof(vDoseValuesCcArr[0]) );
   static const double vDoseValuesPercentArr[] = {5, 20};
-  std::vector<double> vDoseValuesPercent( vDoseValuesPercentArr, vDoseValuesPercentArr + sizeof(vDoseValuesPercentArr) / sizeof(vDoseValuesPercentArr[0]) );
+  std::vector<double> vDoseValuesPercent( vDoseValuesPercentArr, vDoseValuesPercentArr
+    + sizeof(vDoseValuesPercentArr) / sizeof(vDoseValuesPercentArr[0]) );
   static const double dVolumeValuesArr[] = {5, 10};
   std::vector<double> dVolumeValues( dVolumeValuesArr, dVolumeValuesArr + sizeof(dVolumeValuesArr) / sizeof(dVolumeValuesArr[0]) );
 
@@ -234,5 +289,97 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   vtksys::SystemTools::RemoveFile(dvhMetricsCsvFileName.c_str());
   dvhLogic->ExportDvhMetricsToCsv(dvhMetricsCsvFileName.c_str(), vDoseValuesCc, vDoseValuesPercent, dVolumeValues);
 
-  return EXIT_SUCCESS;  
+  std::string baselineCsvFileName = std::string(dataDirectoryPath) + "/BaselineDvhTable.csv";
+
+  // Compare CSV DVH tables
+  double differenceMeanPercent = 100.0;
+  double differenceMaxPercent = 100.0;
+  if (CompareCsvDvhTables(dvhCsvFileName, baselineCsvFileName,
+    differenceMeanPercent, differenceMaxPercent) > 0)
+  {
+    std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (differenceMeanPercent > toleranceMeanPercent)
+  {
+    std::cerr << "Mean difference is greater than the input tolerance! " << differenceMeanPercent
+      << " > " << toleranceMeanPercent << std::endl;
+    return EXIT_FAILURE;
+  }
+  
+  if (differenceMaxPercent > toleranceMaxPercent)
+  {
+    std::cerr << "Max difference is greater than the input tolerance! " << differenceMaxPercent
+      << " > " << toleranceMaxPercent << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileName,
+                        double differenceMeanPercent, double differenceMaxPercent)
+{
+  std::cout << "Loading baseline CSV DVH table from file '" << baselineCsvFileName << "' ("
+    << (vtksys::SystemTools::FileExists(baselineCsvFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
+
+  char line[1024];
+
+  // Load current DVH from CSV
+  std::ifstream currentDvhStream;
+  currentDvhStream.open(dvhCsvFileName.c_str(), std::ifstream::in);
+
+  // Vector of structures, each containing a vector of tuples
+  std::vector< std::vector<std::pair<double,double>> > currentDvh;
+  bool firstLine = true;
+  int fieldCount = 0;
+  while (currentDvhStream.getline(line, 1024, '\n'))
+  {
+    std::string lineStr(line);
+    size_t commaPosition = lineStr.find(csvSeparatorCharacter);
+
+    // Determine number of fields (twice the number of structures)
+    if (firstLine)
+    {
+      while (commaPosition != std::string::npos)
+      {
+        fieldCount++;
+        lineStr = lineStr.substr( commaPosition+1 );
+        commaPosition = lineStr.find(csvSeparatorCharacter);
+      }
+      if (! lineStr.empty() )
+      {
+        fieldCount++;
+      }
+      currentDvh.resize((int)fieldCount/2);
+      firstLine = false;
+      continue;
+    }
+
+    // Read all tuples from the current line
+    int structureNumber = 0;
+    while (commaPosition != std::string::npos)
+    {
+      double dose = atof(lineStr.substr(0, commaPosition).c_str());
+
+      lineStr = lineStr.substr( commaPosition+1 );
+      commaPosition = lineStr.find(csvSeparatorCharacter);
+      double percent = atof(lineStr.substr(0, commaPosition).c_str());
+
+      if ((dose != 0.0 || percent != 0.0) && (commaPosition > 0))
+      {
+        std::pair<double,double> tuple(dose, percent);
+        currentDvh[structureNumber].push_back(tuple);
+      }
+
+      lineStr = lineStr.substr( commaPosition+1 );
+      commaPosition = lineStr.find(csvSeparatorCharacter);
+      structureNumber++;
+    }
+  }
+  currentDvhStream.close();
+
+  return 0;
 }

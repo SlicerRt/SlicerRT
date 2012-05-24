@@ -31,32 +31,60 @@ endforeach()
 #-----------------------------------------------------------------------------
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
-macro(SIMPLE_TEST_WITH_DATA TESTNAME)
+macro(TEST_WITH_DATA TestName DataDirectoryPath TemporaryDirectoryPath ToleranceMeanPercent ToleranceMaxPercent)
   add_test(
-    NAME ${TESTNAME}
-    COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TESTNAME} ${ARGN}
-    -D ${CMAKE_CURRENT_SOURCE_DIR}/../
-    -T ${TEMP}
+    NAME ${TestName}
+    COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestName} ${ARGN}
+    -DataDirectoryPath ${DataDirectoryPath}
+    -TemporaryDirectoryPath ${TemporaryDirectoryPath}
+    -ToleranceMeanPercent ${ToleranceMeanPercent}
+    -ToleranceMaxPercent ${ToleranceMaxPercent}
   )
 endmacro()
 
-SIMPLE_TEST_WITH_DATA(
-  vtkSlicerDoseVolumeHistogramLogicTest1
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseProstate
+  ${TEMP}
+  0.0
+  0.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+# Compare exported DVH metrics with baseline
+add_test(
+  NAME vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CompareMetrics
+  COMMAND ${CMAKE_COMMAND} -E compare_files ${TEMP}/BaselineDvhTestMetrics.csv ${CMAKE_CURRENT_SOURCE_DIR}/../Data/DvhMetrics.csv
+)
+set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CompareMetrics PROPERTIES DEPENDS vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate)
 
 #-----------------------------------------------------------------------------
-# Compare exported DVH table with baseline
-add_test(
-  NAME vtkSlicerDoseVolumeHistogramLogicTest2
-  COMMAND ${CMAKE_COMMAND} -E compare_files ${TEMP}/DvhTestTable.csv ${CMAKE_CURRENT_SOURCE_DIR}/../Data/DvhTable.csv
+TEST_WITH_DATA(
+  vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CERR
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseProstate_CERR
+  ${TEMP}
+  1.0
+  5.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest2 PROPERTIES DEPENDS vtkSlicerDoseVolumeHistogramLogicTest1)
+set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
 #-----------------------------------------------------------------------------
-# Compare exported DVH table with baseline
-add_test(
-  NAME vtkSlicerDoseVolumeHistogramLogicTest3
-  COMMAND ${CMAKE_COMMAND} -E compare_files ${TEMP}/DvhTestMetrics.csv ${CMAKE_CURRENT_SOURCE_DIR}/../Data/DvhMetrics.csv
+TEST_WITH_DATA(
+  vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_CERR
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseEnt_CERR
+  ${TEMP}
+  1.0
+  5.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest3 PROPERTIES DEPENDS vtkSlicerDoseVolumeHistogramLogicTest1)
+set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerDoseVolumeHistogramLogicTest_EclipseBreast_CERR
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseBreast_CERR
+  ${TEMP}
+  1.0
+  5.0
+)
+set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseBreast_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
