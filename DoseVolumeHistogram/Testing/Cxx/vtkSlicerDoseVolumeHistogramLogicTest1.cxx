@@ -37,6 +37,8 @@
 #include <vtkDoubleArray.h>
 #include <vtkPolyDataReader.h>
 #include <vtkPolyData.h>
+#include <vtkNew.h>
+#include <vtkPiecewiseFunction.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -45,7 +47,7 @@ std::string csvSeparatorCharacter(",");
 
 //-----------------------------------------------------------------------------
 int CompareCsvDvhTables(std::string dvhMetricsCsvFileName, std::string baselineCsvFileName,
-                        double toleranceMeanPercent, double toleranceMaxPercent);
+                        double &differenceMeanPercent, double &differenceMaxPercent);
 
 //-----------------------------------------------------------------------------
 int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
@@ -315,71 +317,142 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
+  std::cout << "Mean difference: " << differenceMeanPercent
+    << " (tolerance: " << toleranceMeanPercent << ")" << std::endl;
+  std::cout << "Max difference: " << differenceMaxPercent
+    << " (tolerance: " << toleranceMaxPercent << ")" << std::endl;
+
   return EXIT_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileName,
-                        double differenceMeanPercent, double differenceMaxPercent)
+                        double &differenceMeanPercent, double &differenceMaxPercent)
 {
   std::cout << "Loading baseline CSV DVH table from file '" << baselineCsvFileName << "' ("
     << (vtksys::SystemTools::FileExists(baselineCsvFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
 
-  char line[1024];
-
-  // Load current DVH from CSV
-  std::ifstream currentDvhStream;
-  currentDvhStream.open(dvhCsvFileName.c_str(), std::ifstream::in);
-
   // Vector of structures, each containing a vector of tuples
   std::vector< std::vector<std::pair<double,double>> > currentDvh;
-  bool firstLine = true;
-  int fieldCount = 0;
-  while (currentDvhStream.getline(line, 1024, '\n'))
-  {
-    std::string lineStr(line);
-    size_t commaPosition = lineStr.find(csvSeparatorCharacter);
+  std::vector< std::vector<std::pair<double,double>> > baselineDvh;
+  std::vector< std::vector<std::pair<double,double>> >* dvh;
 
-    // Determine number of fields (twice the number of structures)
-    if (firstLine)
+  char line[1024];
+  for (int i=0; i<2; ++i)
+  {
+    std::ifstream dvhStream;
+    if (i==0)
     {
+      // Load current DVH from CSV
+      dvhStream.open(dvhCsvFileName.c_str(), std::ifstream::in);
+      dvh = &currentDvh;
+    }
+    else
+    {
+      // Load baseline DVH from CSV
+      dvhStream.open(baselineCsvFileName.c_str(), std::ifstream::in);
+      dvh = &baselineDvh;
+    }
+
+    bool firstLine = true;
+    int fieldCount = 0;
+    while (dvhStream.getline(line, 1024, '\n'))
+    {
+      std::string lineStr(line);
+      size_t commaPosition = lineStr.find(csvSeparatorCharacter);
+
+      // Determine number of fields (twice the number of structures)
+      if (firstLine)
+      {
+        while (commaPosition != std::string::npos)
+        {
+          fieldCount++;
+          lineStr = lineStr.substr(commaPosition+1);
+          commaPosition = lineStr.find(csvSeparatorCharacter);
+        }
+        if (! lineStr.empty() )
+        {
+          fieldCount++;
+        }
+        dvh->resize((int)fieldCount/2);
+        firstLine = false;
+        continue;
+      }
+
+      // Read all tuples from the current line
+      int structureNumber = 0;
       while (commaPosition != std::string::npos)
       {
-        fieldCount++;
-        lineStr = lineStr.substr( commaPosition+1 );
+        double dose = atof(lineStr.substr(0, commaPosition).c_str());
+
+        lineStr = lineStr.substr(commaPosition+1);
         commaPosition = lineStr.find(csvSeparatorCharacter);
+        double percent = atof(lineStr.substr(0, commaPosition).c_str());
+
+        if ((dose != 0.0 || percent != 0.0) && (commaPosition > 0))
+        {
+          std::pair<double,double> tuple(dose, percent);
+          dvh->at(structureNumber).push_back(tuple);
+        }
+
+        lineStr = lineStr.substr(commaPosition+1);
+        commaPosition = lineStr.find(csvSeparatorCharacter);
+        structureNumber++;
       }
-      if (! lineStr.empty() )
-      {
-        fieldCount++;
-      }
-      currentDvh.resize((int)fieldCount/2);
-      firstLine = false;
-      continue;
     }
-
-    // Read all tuples from the current line
-    int structureNumber = 0;
-    while (commaPosition != std::string::npos)
-    {
-      double dose = atof(lineStr.substr(0, commaPosition).c_str());
-
-      lineStr = lineStr.substr( commaPosition+1 );
-      commaPosition = lineStr.find(csvSeparatorCharacter);
-      double percent = atof(lineStr.substr(0, commaPosition).c_str());
-
-      if ((dose != 0.0 || percent != 0.0) && (commaPosition > 0))
-      {
-        std::pair<double,double> tuple(dose, percent);
-        currentDvh[structureNumber].push_back(tuple);
-      }
-
-      lineStr = lineStr.substr( commaPosition+1 );
-      commaPosition = lineStr.find(csvSeparatorCharacter);
-      structureNumber++;
-    }
+    dvhStream.close();
   }
-  currentDvhStream.close();
+
+  if (currentDvh.size() != baselineDvh.size())
+  {
+    std::cerr << "Number of structures in the current and the baseline DVH tables do not match!" << std::endl;
+    return 1;
+  }
+
+  // Compare the current DVH to the baseline and determine mean and maximum difference
+  differenceMaxPercent = 0.0;
+  double sumDifferencePercent = 0.0;
+  int numberOfDifferences = 0;
+  std::vector< std::vector<std::pair<double,double>> >::iterator currentIt;
+  std::vector< std::vector<std::pair<double,double>> >::iterator baselineIt;
+  for (currentIt = currentDvh.begin(), baselineIt = baselineDvh.begin();
+    currentIt != currentDvh.end(); ++currentIt, ++baselineIt)
+  {
+    vtkNew<vtkPiecewiseFunction> interpolator;
+    interpolator->ClampingOn();
+    for (std::vector<std::pair<double,double>>::iterator baselineTupleIt = baselineIt->begin();
+      baselineTupleIt != baselineIt->end(); ++baselineTupleIt)
+    {
+      interpolator->AddPoint(baselineTupleIt->first, baselineTupleIt->second);
+    }
+
+    double differenceMaxPercentPerStructure = 0.0;
+    double sumdifferencePercentPerStructure = 0.0;
+    int numberOfDifferencesPerStructure = 0;
+    for (std::vector<std::pair<double,double>>::iterator currentTupleIt = currentIt->begin();
+      currentTupleIt != currentIt->end(); ++currentTupleIt)
+    {
+      double differencePercent = fabs( currentTupleIt->second
+                                       - interpolator->GetValue(currentTupleIt->first) );
+      if (differencePercent > differenceMaxPercent)
+      {
+        differenceMaxPercent = differencePercent;
+      }
+      if (differencePercent > differenceMaxPercentPerStructure)
+      {
+        differenceMaxPercentPerStructure = differencePercent;
+      }
+      sumDifferencePercent += differencePercent;
+      sumdifferencePercentPerStructure += differencePercent;
+      numberOfDifferences++;
+      numberOfDifferencesPerStructure++;
+    }
+
+    std::cout << "Difference per structure: Mean=" << sumdifferencePercentPerStructure/numberOfDifferencesPerStructure
+      << ", Max=" << differenceMaxPercentPerStructure << std::endl;
+  }
+
+  differenceMeanPercent = sumDifferencePercent / numberOfDifferences;
 
   return 0;
 }

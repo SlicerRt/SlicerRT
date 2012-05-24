@@ -31,10 +31,10 @@ endforeach()
 #-----------------------------------------------------------------------------
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
-macro(TEST_WITH_DATA TestName DataDirectoryPath TemporaryDirectoryPath ToleranceMeanPercent ToleranceMaxPercent)
+macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath TemporaryDirectoryPath ToleranceMeanPercent ToleranceMaxPercent)
   add_test(
     NAME ${TestName}
-    COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestName} ${ARGN}
+    COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
     -TemporaryDirectoryPath ${TemporaryDirectoryPath}
     -ToleranceMeanPercent ${ToleranceMeanPercent}
@@ -45,6 +45,7 @@ endmacro()
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate
+  vtkSlicerDoseVolumeHistogramLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseProstate
   ${TEMP}
   0.0
@@ -55,13 +56,14 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate PROPE
 # Compare exported DVH metrics with baseline
 add_test(
   NAME vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CompareMetrics
-  COMMAND ${CMAKE_COMMAND} -E compare_files ${TEMP}/BaselineDvhTestMetrics.csv ${CMAKE_CURRENT_SOURCE_DIR}/../Data/DvhMetrics.csv
+  COMMAND ${CMAKE_COMMAND} -E compare_files ${TEMP}/DvhTestMetrics.csv ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseProstate/BaselineDvhMetrics.csv
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CompareMetrics PROPERTIES DEPENDS vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate)
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CERR
+  vtkSlicerDoseVolumeHistogramLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseProstate_CERR
   ${TEMP}
   1.0
@@ -72,6 +74,7 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CERR 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_CERR
+  vtkSlicerDoseVolumeHistogramLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseEnt_CERR
   ${TEMP}
   1.0
@@ -82,6 +85,7 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_CERR PROPE
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramLogicTest_EclipseBreast_CERR
+  vtkSlicerDoseVolumeHistogramLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseBreast_CERR
   ${TEMP}
   1.0
