@@ -78,6 +78,9 @@ vtkStandardNewMacro(vtkSlicerDoseVolumeHistogramLogic);
 vtkSlicerDoseVolumeHistogramLogic::vtkSlicerDoseVolumeHistogramLogic()
 {
   this->DoseVolumeHistogramNode = NULL;
+  this->StartValue = 0.1;
+  this->StepSize = 0.2;
+  this->NumberOfSamplesForNonDoseVolumes = 100;
 }
 
 //----------------------------------------------------------------------------
@@ -326,6 +329,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   // Convert model to labelmap
   vtkNew<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter;
   transformPolyDataModelToDoseIjkFilter->Update();
+  polyDataToLabelmapFilter->SetBackgroundValue(VTK_DOUBLE_MIN);
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToDoseIjkFilter->GetOutput() );
   polyDataToLabelmapFilter->SetReferenceImage( doseVolumeNode->GetImageData() );
   polyDataToLabelmapFilter->Update();
@@ -334,10 +338,10 @@ void vtkSlicerDoseVolumeHistogramLogic
   structureStenciledDoseVolumeNode->CopyOrientation( doseVolumeNode );
   structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID( doseVolumeNode->GetTransformNodeID() );
   std::string labelmapNodeName( structureSetModelNode->GetName() );
-  labelmapNodeName.append( "_Labelmap" );
+  labelmapNodeName.append( "_StenciledDose" );
   structureStenciledDoseVolumeNode->SetName( labelmapNodeName.c_str() );
   structureStenciledDoseVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
-  structureStenciledDoseVolumeNode->LabelMapOn();
+  //structureStenciledDoseVolumeNode->LabelMapOn();
 }
 
 //---------------------------------------------------------------------------
@@ -397,7 +401,8 @@ void vtkSlicerDoseVolumeHistogramLogic::ComputeDvh()
 
   for (std::vector<vtkMRMLModelNode*>::iterator it = structureModelNodes.begin(); it != structureModelNodes.end(); ++it)
   {
-    vtkSmartPointer<vtkMRMLScalarVolumeNode> structureStenciledDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+    vtkSmartPointer<vtkMRMLScalarVolumeNode> structureStenciledDoseVolumeNode
+      = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
     GetStenciledDoseVolumeForStructure(structureStenciledDoseVolumeNode, (*it));
     // this->GetMRMLScene()->AddNode( structureStenciledDoseVolumeNode ); // add the labelmap to the scene for testing/debugging
 
@@ -439,7 +444,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   // Compute statistics
   vtkNew<vtkImageToImageStencil> stencil;
   stencil->SetInput(structureStenciledDoseVolumeNode->GetImageData());
-  stencil->ThresholdByUpper(0.5 * doseGridScaling); // 0.5 to make sure that 1*doseGridScaling is larger or equal than the threshold
+  stencil->ThresholdByUpper(VTK_DOUBLE_MIN+1.0); // Do not include background values
 
   vtkNew<vtkImageAccumulate> stat;
   stat->SetInput(structureStenciledDoseVolumeNode->GetImageData());
@@ -496,16 +501,8 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   arrayNode = vtkMRMLDoubleArrayNode::SafeDownCast( this->GetMRMLScene()->AddNode( arrayNode ) );
 
-  // Create DVH plot values
-  int numBins = 100;
   double rangeMin = stat->GetMin()[0];
   double rangeMax = stat->GetMax()[0];
-  double spacing = (rangeMax - rangeMin) / (double)numBins;
-
-  stat->SetComponentExtent(0,numBins-1,0,0,0,0);
-  stat->SetComponentOrigin(rangeMin,0,0);
-  stat->SetComponentSpacing(spacing,1,1);
-  stat->Update();
 
   // We put a fixed point at (0.0, 100%), but only if there are only positive values in the histogram
   // Negative values can occur when the user requests histogram for an image, such as s CT volume.
@@ -517,8 +514,35 @@ void vtkSlicerDoseVolumeHistogramLogic
     insertPointAtOrigin=false;
   }
 
+  // Create DVH plot values
+  int numSamples = 0;
+  double startValue;
+  double stepSize;
+  if (this->DoseVolumeContainsDose())
+  {
+    startValue = this->StartValue;
+    stepSize = this->StepSize;
+    numSamples = (int)ceil( (rangeMax-startValue)/stepSize ) + 1;
+  }
+  else
+  {
+    startValue = rangeMin;
+    numSamples = this->NumberOfSamplesForNonDoseVolumes;
+    stepSize = (rangeMax - rangeMin) / (double)(numSamples-1);
+  }
+
+  if (rangeMin<startValue)
+  {
+    startValue -= stepSize * ceil((startValue-rangeMin)/stepSize);
+  }
+
+  stat->SetComponentExtent(0,numSamples-1,0,0,0,0);
+  stat->SetComponentOrigin(startValue,0,0);
+  stat->SetComponentSpacing(stepSize,1,1);
+  stat->Update();
+
   vtkDoubleArray* doubleArray = arrayNode->GetArray();
-  doubleArray->SetNumberOfTuples( numBins + (insertPointAtOrigin?1:0) ); 
+  doubleArray->SetNumberOfTuples(numSamples + (insertPointAtOrigin?1:0)); 
 
   int outputArrayIndex=0;
 
@@ -531,12 +555,13 @@ void vtkSlicerDoseVolumeHistogramLogic
     ++outputArrayIndex;
   }
 
+  vtkImageData* statArray = stat->GetOutput();
   unsigned long totalVoxels = stat->GetVoxelCount();
   unsigned long voxelBelowDose = 0;
-  for (int sampleIndex=0; sampleIndex<numBins; ++sampleIndex)
+  for (int sampleIndex=0; sampleIndex<numSamples; ++sampleIndex)
   {
-    unsigned long voxelsInBin = stat->GetOutput()->GetScalarComponentAsDouble(sampleIndex,0,0,0);
-    doubleArray->SetComponent( outputArrayIndex, 0, rangeMin+sampleIndex*spacing );
+    unsigned long voxelsInBin = statArray->GetScalarComponentAsDouble(sampleIndex,0,0,0);
+    doubleArray->SetComponent( outputArrayIndex, 0, startValue + sampleIndex * stepSize );
     doubleArray->SetComponent( outputArrayIndex, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0 );
     doubleArray->SetComponent( outputArrayIndex, 2, 0 );
     ++outputArrayIndex;
@@ -977,23 +1002,17 @@ bool vtkSlicerDoseVolumeHistogramLogic
   vtkStringArray* structureNames = chartNode->GetArrayNames();
   vtkStringArray* arrayIDs = chartNode->GetArrays();
 
-  // Check if the number of values is the same in each structure
-  int numberOfValues = -1;
+  // Determine the maximum number of values
+  int maxNumberOfValues = -1;
 	for (int i=0; i<arrayIDs->GetNumberOfValues(); ++i)
 	{
     vtkMRMLNode *node = this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(i) );
     vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
     if (doubleArrayNode)
     {
-      if (numberOfValues == -1)
+      if (doubleArrayNode->GetArray()->GetNumberOfTuples() > maxNumberOfValues)
       {
-        numberOfValues = doubleArrayNode->GetArray()->GetNumberOfTuples();
-        int numberOfComponents = doubleArrayNode->GetArray()->GetNumberOfComponents();
-      }
-      else if (numberOfValues != doubleArrayNode->GetArray()->GetNumberOfTuples())
-      {
-        vtkErrorMacro("Inconsistent number of values in the DVH arrays!");
-        return false;
+        maxNumberOfValues = doubleArrayNode->GetArray()->GetNumberOfTuples();
       }
     }
     else
@@ -1012,38 +1031,48 @@ bool vtkSlicerDoseVolumeHistogramLogic
 	outfile << std::endl;
 
   // Write values
-	for (int row=0; row<numberOfValues; ++row)
+	for (int row=0; row<maxNumberOfValues; ++row)
   {
 	  for (int column=0; column<arrayIDs->GetNumberOfValues(); ++column)
 	  {
       vtkMRMLNode *node = this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(column) );
       vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
 
-    	std::ostringstream doseStringStream;
-			doseStringStream << std::fixed << std::setprecision(6) << doubleArrayNode->GetArray()->GetComponent(row, 0);
-      std::string dose = doseStringStream.str();
-      if (!comma)
+      if (row < doubleArrayNode->GetArray()->GetNumberOfTuples())
       {
-        size_t periodPosition = dose.find(".");
-        if (periodPosition != std::string::npos)
+    	  std::ostringstream doseStringStream;
+			  doseStringStream << std::fixed << std::setprecision(6) <<
+          doubleArrayNode->GetArray()->GetComponent(row, 0);
+        std::string dose = doseStringStream.str();
+        if (!comma)
         {
-          dose.replace(periodPosition, 1, ",");
+          size_t periodPosition = dose.find(".");
+          if (periodPosition != std::string::npos)
+          {
+            dose.replace(periodPosition, 1, ",");
+          }
         }
+        outfile << dose;
       }
-      outfile << dose << (comma ? "," : "\t");
+      outfile << (comma ? "," : "\t");
 
-    	std::ostringstream valueStringStream;
-			valueStringStream << std::fixed << std::setprecision(6) << doubleArrayNode->GetArray()->GetComponent(row, 1);
-      std::string value = valueStringStream.str();
-      if (!comma)
+      if (row < doubleArrayNode->GetArray()->GetNumberOfTuples())
       {
-        size_t periodPosition = value.find(".");
-        if (periodPosition != std::string::npos)
+    	  std::ostringstream valueStringStream;
+			  valueStringStream << std::fixed << std::setprecision(6) <<
+          doubleArrayNode->GetArray()->GetComponent(row, 1);
+        std::string value = valueStringStream.str();
+        if (!comma)
         {
-          value.replace(periodPosition, 1, ",");
+          size_t periodPosition = value.find(".");
+          if (periodPosition != std::string::npos)
+          {
+            value.replace(periodPosition, 1, ",");
+          }
         }
+        outfile << value;
       }
-      outfile << value << (comma ? "," : "\t");
+      outfile << (comma ? "," : "\t");
     }
 		outfile << std::endl;
   }

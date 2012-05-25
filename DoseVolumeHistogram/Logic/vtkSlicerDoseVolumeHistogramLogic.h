@@ -117,6 +117,15 @@ public:
   void SetAndObserveDoseVolumeHistogramNode(vtkMRMLDoseVolumeHistogramNode* node);
   vtkGetObjectMacro(DoseVolumeHistogramNode, vtkMRMLDoseVolumeHistogramNode);
 
+  vtkGetMacro(StartValue, double);
+  vtkSetMacro(StartValue, double);
+
+  vtkGetMacro(StepSize, double);
+  vtkSetMacro(StepSize, double);
+
+  vtkGetMacro(NumberOfSamplesForNonDoseVolumes, int);
+  vtkSetMacro(NumberOfSamplesForNonDoseVolumes, int);
+
 protected:
   vtkSlicerDoseVolumeHistogramLogic();
   virtual ~vtkSlicerDoseVolumeHistogramLogic();
@@ -151,6 +160,15 @@ private:
 protected:
   /// Parameter set MRML node
   vtkMRMLDoseVolumeHistogramNode* DoseVolumeHistogramNode;
+
+  /// Start value for the dose axis of the DVH table
+  double StartValue;
+
+  /// Step size for the dose axis of the DVH table
+  double StepSize;
+
+  // Number of bins to sample when input is non-dose volumes
+  int NumberOfSamplesForNonDoseVolumes;
 };
 
 #endif

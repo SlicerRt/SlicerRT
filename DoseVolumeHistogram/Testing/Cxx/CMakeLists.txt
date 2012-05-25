@@ -67,7 +67,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseProstate_CERR
   ${TEMP}
   1.0
-  5.0
+  18.33
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -78,7 +78,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseEnt_CERR
   ${TEMP}
   1.0
-  5.0
+  22.14
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -89,6 +89,6 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseBreast_CERR
   ${TEMP}
   1.0
-  5.0
+  15.68
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseBreast_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )

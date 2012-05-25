@@ -52,6 +52,7 @@ vtkPolyDataToLabelmapFilter::vtkPolyDataToLabelmapFilter()
   this->SetReferenceImageData(referenceImageData);
 
   this->SetLabelValue(2);
+  this->SetBackgroundValue(0.0);
 
   this->UseReferenceValuesOn();
 }
@@ -135,13 +136,12 @@ void vtkPolyDataToLabelmapFilter::Update()
 
   // Convert stencil to image
   vtkNew<vtkImageStencil> stencil;
-  //stencil->SetInput(this->ReferenceImageData);
   stencil->SetInput(refImg);
   stencil->SetStencil(polyToImage->GetOutput());
   if (this->UseReferenceValues)
   {
     stencil->ReverseStencilOff();
-    stencil->SetBackgroundValue(0);
+    stencil->SetBackgroundValue(this->BackgroundValue);
     stencil->Update();
 
     this->OutputLabelmap->ShallowCopy(stencil->GetOutput());

@@ -79,21 +79,21 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
       temporaryDirectoryPath = "";
     }
   }
-  int toleranceMeanPercent = 0.0;
+  double toleranceMeanPercent = 0.0;
   if (argc > 6)
   {
     if (stricmp(argv[5], "-ToleranceMeanPercent") == 0)
     {
-      toleranceMeanPercent = atof(argv[4]);
+      toleranceMeanPercent = atof(argv[6]);
       std::cout << "Tolerance mean percent: " << toleranceMeanPercent << std::endl;
     }
   }
-  int toleranceMaxPercent = 0.0;
+  double toleranceMaxPercent = 0.0;
   if (argc > 8)
   {
     if (stricmp(argv[7], "-ToleranceMaxPercent") == 0)
     {
-      toleranceMaxPercent = atof(argv[6]);
+      toleranceMaxPercent = atof(argv[8]);
       std::cout << "Tolerance max percent: " << toleranceMaxPercent << std::endl;
     }
   }
@@ -108,7 +108,8 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   mrmlScene->Commit();
 
   // Create dose volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode =
+    vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   doseScalarVolumeNode->SetName("Dose");
 
   // Load and set attributes from file
@@ -137,7 +138,8 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   std::cout << "Loading dose volume from file '" << doseVolumeFileName << "' ("
     << (vtksys::SystemTools::FileExists(doseVolumeFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
 
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> doseVolumeArchetypeStorageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
+  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> doseVolumeArchetypeStorageNode =
+    vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
   doseVolumeArchetypeStorageNode->SetFileName(doseVolumeFileName.c_str());
   mrmlScene->AddNode(doseVolumeArchetypeStorageNode);
   //EXERCISE_BASIC_STORAGE_MRML_METHODS(vtkMRMLVolumeArchetypeStorageNode, doseVolumeArchetypeStorageNode);
@@ -153,7 +155,8 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 
   // Create model hierarchy root node
   std::string hierarchyNodeName = "All structures";
-  vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();  
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode =
+    vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();  
   modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
   modelHierarchyRootNode->AllowMultipleChildrenOn();
   modelHierarchyRootNode->HideFromEditorsOff();
@@ -161,7 +164,8 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
 
   // A hierarchy node needs a display node
-  vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode =
+    vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
   hierarchyNodeName.append("Display");
   modelDisplayNode->SetName(hierarchyNodeName.c_str());
   modelDisplayNode->SetVisibility(1);
@@ -197,7 +201,8 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
       << (vtksys::SystemTools::FileExists(modelFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
 
     // Create display node
-    vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+    vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode =
+      vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
     displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
     //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode)
     displayNode->SetModifiedSinceRead(1);
@@ -216,7 +221,8 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     modelNode->SetSelectable(1);
 
     // Create model hierarchy node
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+    vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode =
+      vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
     mrmlScene->AddNode(modelHierarchyNode);
     //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
     modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
@@ -232,11 +238,13 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   mrmlScene->AddNode(chartNode);
 
   // Create and set up logic
-  vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic> dvhLogic = vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic>::New();
+  vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic> dvhLogic =
+    vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic>::New();
   dvhLogic->SetMRMLScene(mrmlScene);
 
   // Create and set up parameter set MRML node
-  vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode = vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
+  vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode =
+    vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
   paramNode->SetDoseVolumeNodeId(doseScalarVolumeNode->GetID());
   paramNode->SetStructureSetModelNodeId(modelHierarchyRootNode->GetID());
   paramNode->SetChartNodeId(chartNode->GetID());
@@ -259,7 +267,8 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   std::set<std::string>::iterator dvhIt;
   for (it = structureNames.begin(), dvhIt = dvhNodes->begin(); dvhIt != dvhNodes->end(); ++dvhIt, ++it)
   {
-    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(mrmlScene->GetNodeByID(dvhIt->c_str()));
+    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
+      mrmlScene->GetNodeByID(dvhIt->c_str()));
     if (!dvhNode)
     {
       std::cerr << "Error: Invalid DVH node!" << std::endl;
@@ -285,11 +294,13 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   std::vector<double> vDoseValuesPercent( vDoseValuesPercentArr, vDoseValuesPercentArr
     + sizeof(vDoseValuesPercentArr) / sizeof(vDoseValuesPercentArr[0]) );
   static const double dVolumeValuesArr[] = {5, 10};
-  std::vector<double> dVolumeValues( dVolumeValuesArr, dVolumeValuesArr + sizeof(dVolumeValuesArr) / sizeof(dVolumeValuesArr[0]) );
+  std::vector<double> dVolumeValues( dVolumeValuesArr, dVolumeValuesArr +
+    sizeof(dVolumeValuesArr) / sizeof(dVolumeValuesArr[0]) );
 
   std::string dvhMetricsCsvFileName = std::string(temporaryDirectoryPath) + "/DvhTestMetrics.csv";
   vtksys::SystemTools::RemoveFile(dvhMetricsCsvFileName.c_str());
-  dvhLogic->ExportDvhMetricsToCsv(dvhMetricsCsvFileName.c_str(), vDoseValuesCc, vDoseValuesPercent, dVolumeValues);
+  dvhLogic->ExportDvhMetricsToCsv(dvhMetricsCsvFileName.c_str(),
+    vDoseValuesCc, vDoseValuesPercent, dVolumeValues);
 
   std::string baselineCsvFileName = std::string(dataDirectoryPath) + "/BaselineDvhTable.csv";
 

@@ -52,7 +52,12 @@ public:
   virtual void Update();
 
   vtkSetObjectMacro(InputPolyData, vtkPolyData);
+
+  vtkGetMacro(LabelValue, unsigned short);
   vtkSetMacro(LabelValue, unsigned short);
+
+  vtkGetMacro(BackgroundValue, double);
+  vtkSetMacro(BackgroundValue, double);
 
   vtkGetMacro(UseReferenceValues, bool);
   vtkSetMacro(UseReferenceValues, bool);
@@ -67,6 +72,7 @@ protected:
   vtkImageData* OutputLabelmap;
   vtkImageData* ReferenceImageData;
   unsigned short LabelValue;
+  double BackgroundValue;
   bool UseReferenceValues;
 
 protected:
