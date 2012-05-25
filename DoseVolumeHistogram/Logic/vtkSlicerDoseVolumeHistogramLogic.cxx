@@ -504,16 +504,6 @@ void vtkSlicerDoseVolumeHistogramLogic
   double rangeMin = stat->GetMin()[0];
   double rangeMax = stat->GetMax()[0];
 
-  // We put a fixed point at (0.0, 100%), but only if there are only positive values in the histogram
-  // Negative values can occur when the user requests histogram for an image, such as s CT volume.
-  // In this case Intensity Volume Histogram is computed.
-  bool insertPointAtOrigin=true;
-  if (rangeMin<0)
-  {
-    vtkWarningMacro("There are negative values in the histogram. Probably the input is not a dose volume.");
-    insertPointAtOrigin=false;
-  }
-
   // Create DVH plot values
   int numSamples = 0;
   double startValue;
@@ -534,6 +524,16 @@ void vtkSlicerDoseVolumeHistogramLogic
   if (rangeMin<startValue)
   {
     startValue -= stepSize * ceil((startValue-rangeMin)/stepSize);
+  }
+
+  // We put a fixed point at (0.0, 100%), but only if there are only positive values in the histogram
+  // Negative values can occur when the user requests histogram for an image, such as s CT volume.
+  // In this case Intensity Volume Histogram is computed.
+  bool insertPointAtOrigin=true;
+  if (startValue<0)
+  {
+    vtkWarningMacro("There are negative values in the histogram. Probably the input is not a dose volume.");
+    insertPointAtOrigin=false;
   }
 
   stat->SetComponentExtent(0,numSamples-1,0,0,0,0);
