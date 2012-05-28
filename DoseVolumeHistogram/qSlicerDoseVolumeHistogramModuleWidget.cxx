@@ -277,13 +277,41 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
   if (paramNode)
   {
+    // Enable/disable ComputeDVH button
     bool dvhCanBeComputed = paramNode->GetDoseVolumeNodeId()
                      && stricmp(paramNode->GetDoseVolumeNodeId(), "")
                      && paramNode->GetStructureSetModelNodeId()
                      && stricmp(paramNode->GetStructureSetModelNodeId(), "");
     d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
+
+    // Enable/disable Export DVH to file button
+    bool dvhCanBeExported = false;
+    if (paramNode->GetChartNodeId() && stricmp(paramNode->GetChartNodeId(),""))
+    {
+      for (std::vector<bool>::iterator stateIt=paramNode->GetShowInChartCheckStates()->begin();
+        stateIt!=paramNode->GetShowInChartCheckStates()->end(); ++stateIt)
+      {
+        if (*stateIt)
+        {
+          dvhCanBeExported = true;
+          break;
+        }
+      }
+      d->pushButton_ExportDvhToCsv->setToolTip( dvhCanBeExported ? tr("Export DVH values from the selected structures in the selected chart to CSV file") :
+        tr("Only the shown structures are saved in the file. No structures are selected, so none can be saved!"));
+    }
+    else
+    {
+      d->pushButton_ExportDvhToCsv->setToolTip(tr("Chart node needs to be selected first before saving DVH values to file!"));
+    }
+    d->pushButton_ExportDvhToCsv->setEnabled(dvhCanBeExported);
+
+    // Enable/disable Export metrics button
+    bool dvhMetricsCanBeExported = (paramNode->GetDvhDoubleArrayNodeIds()->size() > 0);
+    d->pushButton_ExportMetricsToCsv->setEnabled(dvhMetricsCanBeExported);
   }
 
+  // Enable/disable V and D metric control
   bool vdMetricCanBeShown = (d->tableWidget_ChartStatistics->rowCount() > 0);
   d->checkBox_ShowVMetricsCc->setEnabled(vdMetricCanBeShown);
   d->checkBox_ShowVMetricsPercent->setEnabled(vdMetricCanBeShown);
@@ -444,6 +472,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  // Clear the table
+  d->tableWidget_ChartStatistics->setRowCount(0);
+  d->tableWidget_ChartStatistics->setColumnCount(0);
+  d->tableWidget_ChartStatistics->clearContents();
+
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
   if (!paramNode || !this->mrmlScene())
   {
@@ -451,9 +484,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   }
 
   std::set<std::string>* dvhNodes = paramNode->GetDvhDoubleArrayNodeIds();
-
-  // Clear the table
-  d->tableWidget_ChartStatistics->clear();
 
   std::map<QCheckBox*, std::pair<std::string, std::string>>::iterator checkboxIt;
   for (checkboxIt=d->ChartCheckboxToStructureSetNameMap.begin(); checkboxIt!=d->ChartCheckboxToStructureSetNameMap.end(); ++checkboxIt)
@@ -467,8 +497,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
 
   if (dvhNodes->size() < 1)
   {
-    d->tableWidget_ChartStatistics->setRowCount(0);
-    d->tableWidget_ChartStatistics->setColumnCount(0);
     return;
   }
 
@@ -644,7 +672,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aS
   }
 
   QCheckBox* senderCheckbox = dynamic_cast<QCheckBox*>(sender());
-
   if (!senderCheckbox)
   {
     std::cerr << "Error: Invalid sender checkbox for show/hide in chart checkbox state change" << std::endl;
@@ -749,6 +776,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showHideAllCheckedStateChanged(int 
     if (noneIsOn || noneIsOff)
     {
       d->checkBox_ShowHideAll->setCheckState(Qt::Checked);
+      return;
     }
     else // Else set the states one by one and leave it PartiallyChecked
     {

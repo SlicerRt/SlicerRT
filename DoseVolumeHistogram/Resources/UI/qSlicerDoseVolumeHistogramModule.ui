@@ -354,7 +354,7 @@
               </size>
              </property>
              <property name="toolTip">
-              <string>Export DVH values from the selected chart to CSV file</string>
+              <string>Export DVH values from the selected structures in the selected chart to CSV file</string>
              </property>
              <property name="text">
               <string>Export DVH to file...</string>
