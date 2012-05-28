@@ -45,6 +45,7 @@
 #include <vtkImageToImageStencil.h>
 #include <vtkDoubleArray.h>
 #include <vtkStringArray.h>
+#include <vtkPiecewiseFunction.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -757,43 +758,18 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   // Compute volume for all V's
   vtkDoubleArray* doubleArray = dvhArrayNode->GetArray();
+  vtkNew<vtkPiecewiseFunction> interpolator;
+  interpolator->ClampingOn();
+  for (int i=0; i<doubleArray->GetNumberOfTuples(); ++i)
+  {
+    interpolator->AddPoint(doubleArray->GetComponent(i, 0), doubleArray->GetComponent(i, 1));
+  }
+
   for (std::vector<double>::iterator it = doseValues.begin(); it != doseValues.end(); ++it)
   {
-    double doseValue = (*it);
-
-    // Check if the given dose is below the lowest value in the array then assign the whole volume of the structure
-    if (doseValue < doubleArray->GetComponent(0, 0))
-    {
-      vMetricsCc.push_back(structureVolume);
-      vMetricsPercent.push_back(100.0);
-      continue;
-    }
-
-    // If dose is above the highest value in the array then assign 0 Cc volume
-    if (doseValue >= doubleArray->GetComponent(doubleArray->GetNumberOfTuples()-1, 0))
-    {
-      vMetricsCc.push_back(0.0);
-      vMetricsPercent.push_back(0.0);
-      continue;
-    }
-
-    // Look for the dose in the array
-    for (int i=0; i<doubleArray->GetNumberOfTuples()-1; ++i)
-    {
-      double doseBelow = doubleArray->GetComponent(i, 0);
-      double doseAbove = doubleArray->GetComponent(i+1, 0);
-      if (doseBelow <= doseValue && doseValue < doseAbove)
-      {
-        // Compute the volume percent using linear interpolation
-        double volumePercentBelow = doubleArray->GetComponent(i, 1);
-        double volumePercentAbove = doubleArray->GetComponent(i+1, 1);
-        double volumePercentEstimated = volumePercentBelow + (volumePercentAbove-volumePercentBelow)*(doseValue-doseBelow)/(doseAbove-doseBelow);
-        vMetricsCc.push_back( volumePercentEstimated*structureVolume/100.0 );
-        vMetricsPercent.push_back( volumePercentEstimated );
-
-        break;
-      }
-    }
+    double volumePercentEstimated = interpolator->GetValue(*it);
+    vMetricsCc.push_back( volumePercentEstimated*structureVolume/100.0 );
+    vMetricsPercent.push_back( volumePercentEstimated );
   }
 }
 
@@ -828,15 +804,17 @@ void vtkSlicerDoseVolumeHistogramLogic
     double volumeSize = 0.0;
     double doseForVolume = 0.0;
 
-    // First we get the maximum dose (D0.1cc)
+    // First we get the maximum dose
+    // (D0.1cc can be taken as an approximation of the maximum point dose as far
+    //  as clinically relevant toxicity (e.g. micro-ulceration) is concerned)
     if (d == -1)
     {
       volumeSize = 0.1;
     }
     else
-    {
+  {
       volumeSize = volumeSizes[d];
-    }
+  }
 
     // Check if the given volume is above the highest (first) in the array then assign no dose
     if (volumeSize >= doubleArray->GetComponent(0, 1) / 100.0 * structureVolume)
