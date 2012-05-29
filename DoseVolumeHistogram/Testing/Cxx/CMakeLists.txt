@@ -77,8 +77,8 @@ TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseEnt_CERR
   ${TEMP}
-  1.0
-  22.14
+  1.85
+  55.52
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 

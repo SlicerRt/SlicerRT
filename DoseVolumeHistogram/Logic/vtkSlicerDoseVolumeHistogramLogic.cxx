@@ -509,7 +509,8 @@ void vtkSlicerDoseVolumeHistogramLogic
   int numSamples = 0;
   double startValue;
   double stepSize;
-  if (this->DoseVolumeContainsDose())
+  bool isDoseVolume = this->DoseVolumeContainsDose();
+  if (isDoseVolume)
   {
     startValue = this->StartValue;
     stepSize = this->StepSize;
@@ -528,12 +529,12 @@ void vtkSlicerDoseVolumeHistogramLogic
   }
 
   // We put a fixed point at (0.0, 100%), but only if there are only positive values in the histogram
-  // Negative values can occur when the user requests histogram for an image, such as s CT volume.
-  // In this case Intensity Volume Histogram is computed.
+  // Negative values can occur when the user requests histogram for an image, such as s CT volume (in this case Intensity Volume Histogram is computed),
+  // or the startValue became negative for the dose volume because the range minimum was smaller than the original start value.
   bool insertPointAtOrigin=true;
   if (startValue<0)
   {
-    vtkWarningMacro("There are negative values in the histogram. Probably the input is not a dose volume.");
+    //vtkWarningMacro("There are negative values in the histogram. Probably the input is not a dose volume.");
     insertPointAtOrigin=false;
   }
 
@@ -567,6 +568,12 @@ void vtkSlicerDoseVolumeHistogramLogic
     doubleArray->SetComponent( outputArrayIndex, 2, 0 );
     ++outputArrayIndex;
     voxelBelowDose += voxelsInBin;
+  }
+
+  // Set the start of the first bin to 0 if the volume contains dose and the start value was negative
+  if (isDoseVolume && !insertPointAtOrigin)
+  {
+    doubleArray->SetComponent(0,0,0);
   }
 }
 

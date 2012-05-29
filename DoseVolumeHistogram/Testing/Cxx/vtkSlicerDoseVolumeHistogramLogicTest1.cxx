@@ -265,7 +265,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 
   // Add DVH arrays to chart node
   std::set<std::string>::iterator dvhIt;
-  for (it = structureNames.begin(), dvhIt = dvhNodes->begin(); dvhIt != dvhNodes->end(); ++dvhIt, ++it)
+  for (dvhIt = dvhNodes->begin(); dvhIt != dvhNodes->end(); ++dvhIt)
   {
     vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
       mrmlScene->GetNodeByID(dvhIt->c_str()));
@@ -275,7 +275,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
       return EXIT_FAILURE;
     }
 
-    chartNode->AddArray( it->c_str(), dvhNode->GetID() );    
+    chartNode->AddArray( dvhNode->GetName(), dvhNode->GetID() );    
   }
 
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
@@ -314,24 +314,28 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  if (differenceMeanPercent > toleranceMeanPercent)
-  {
-    std::cerr << "Mean difference is greater than the input tolerance! " << differenceMeanPercent
-      << " > " << toleranceMeanPercent << std::endl;
-    return EXIT_FAILURE;
-  }
-  
-  if (differenceMaxPercent > toleranceMaxPercent)
-  {
-    std::cerr << "Max difference is greater than the input tolerance! " << differenceMaxPercent
-      << " > " << toleranceMaxPercent << std::endl;
-    return EXIT_FAILURE;
-  }
-
   std::cout << "Mean difference: " << differenceMeanPercent
     << " (tolerance: " << toleranceMeanPercent << ")" << std::endl;
   std::cout << "Max difference: " << differenceMaxPercent
     << " (tolerance: " << toleranceMaxPercent << ")" << std::endl;
+
+  bool differenceBelowTolerance = true;
+  if (differenceMeanPercent > toleranceMeanPercent)
+  {
+    std::cerr << "Mean difference is greater than the input tolerance! " << differenceMeanPercent
+      << " > " << toleranceMeanPercent << std::endl;
+    differenceBelowTolerance = false;
+  }
+  if (differenceMaxPercent > toleranceMaxPercent)
+  {
+    std::cerr << "Max difference is greater than the input tolerance! " << differenceMaxPercent
+      << " > " << toleranceMaxPercent << std::endl;
+    differenceBelowTolerance = false;
+  }
+  if (!differenceBelowTolerance)
+  {
+    return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }
