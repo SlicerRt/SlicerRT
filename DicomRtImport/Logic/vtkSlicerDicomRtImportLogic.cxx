@@ -250,22 +250,22 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
 
     // Add ROIs
     int numberOfROI = rtReader->GetNumberOfROIs();
-    for (int dicomRoiIndex=1; dicomRoiIndex<numberOfROI+1; dicomRoiIndex++) // DICOM starts indexing from 1
+    for (int internalROIIndex=0; internalROIIndex<numberOfROI; internalROIIndex++) // DICOM starts indexing from 1
     {
-      vtkPolyData* roiPoly = rtReader->GetROI(dicomRoiIndex);
+      vtkPolyData* roiPoly = rtReader->GetROI(internalROIIndex);
       if (roiPoly == NULL)
       {
-        vtkWarningMacro("Cannot read polydata from file: "<<filename<<", ROI: "<<dicomRoiIndex);
+        vtkWarningMacro("Cannot read polydata from file: "<<filename<<", ROI: "<<internalROIIndex);
         continue;
       }
       if (roiPoly->GetNumberOfPoints() < 1)
       {
-        vtkWarningMacro("The ROI polydata does not contain any points, file: "<<filename<<", ROI: "<<dicomRoiIndex);
+        vtkWarningMacro("The ROI polydata does not contain any points, file: "<<filename<<", ROI: "<<internalROIIndex);
         continue;
       }
 
-      const char* roiLabel=rtReader->GetROIName(dicomRoiIndex);
-      double *roiColor = rtReader->GetROIDisplayColor(dicomRoiIndex);
+      const char* roiLabel=rtReader->GetROIName(internalROIIndex);
+      double *roiColor = rtReader->GetROIDisplayColor(internalROIIndex);
       vtkMRMLDisplayableNode* addedDisplayableNode = NULL;
       if (roiPoly->GetNumberOfPoints() == 1)
       {	

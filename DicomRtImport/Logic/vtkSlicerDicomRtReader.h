@@ -58,15 +58,27 @@ public:
 
   /// Get name of a certain ROI
   /// \param ROINumber Number of ROI to get
-  char* GetROIName(int ROINumber);
+  char* GetROINameByROINumber(int ROINumber);
 
   /// Get display color of a certain ROI
   /// \param ROINumber Number of ROI to get
-  double* GetROIDisplayColor(int ROINumber);
+  double* GetROIDisplayColorByROINumber(int ROINumber);
 
   /// Get a certain structure set ROI
   /// \param ROINumber Number of ROI to get
-  vtkPolyData* GetROI(int ROINumber);
+  vtkPolyData* GetROIByROINumber(int ROINumber);
+
+  /// Get name of a certain ROI
+  /// \param number internal id number of ROI to get
+  char* GetROIName(int number);
+
+  /// Get display color of a certain ROI
+  /// \param number internal id number of ROI to get
+  double* GetROIDisplayColor(int number);
+
+  /// Get a certain structure set ROI
+  /// \param number internal id number of ROI to get
+  vtkPolyData* GetROI(int number);
 
   /// Get number of beams
   int GetNumberOfBeams();
