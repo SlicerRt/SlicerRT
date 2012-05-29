@@ -490,8 +490,8 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
               double distanceBetweenContourPlanes=fabs(firstContourPlanePosition-secondContourPlanePosition);
               // If the distance between the contour planes is too large then probably the contours should not be connected, so just keep using the default
               // TODO: this is totally heuristic, the actual thickness should be read from the referred slice thickness (as noted above)
-              if (distanceBetweenContourPlanes<10.0/* mm*/)
-              {
+              if (SliceThickness == 1.1 && fabs(distanceBetweenContourPlanes - SliceThickness)>0.001 && distanceBetweenContourPlanes > 0.001/* mm*/)
+              { // this usually happens when slice thickness is not set in dcm tag so we get the distance from 2 adjacent contours
                 ribbonFilter->SetWidth(distanceBetweenContourPlanes/2.0);
               }
             }
