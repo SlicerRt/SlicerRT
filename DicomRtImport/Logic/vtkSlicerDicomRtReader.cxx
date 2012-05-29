@@ -253,7 +253,7 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
 void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 {
   this->LoadRTStructureSetSuccessful = false;
-  double SliceThickness = 1.1;
+  double SliceThickness = 2.0;
 
   DRTStructureSetIOD rtStructureSetObject;
   OFCondition result = rtStructureSetObject.read(*dataset);
@@ -365,7 +365,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
             SliceThickness = atof(sliceThicknessString.c_str());
             if (SliceThickness <= 0.0 || SliceThickness > 20.0)
             {
-              SliceThickness = 1.1;
+              SliceThickness = 2.0;
             }
           }
           else
@@ -481,20 +481,20 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
             vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
             ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
             ribbonFilter->SetDefaultNormal(0,0,-1);
-            ribbonFilter->SetWidth(SliceThickness); // take the slice thickness from dicom file 
+            ribbonFilter->SetWidth(SliceThickness/2.0); // take the slice thickness from dicom file 
                                        // assumption is that the slice thickness is constant (not varying)
             // ribbonFilter->SetWidth(1.1); // a reasonable default value that often works well
-            if (contourPlaneIndex>=1)
-            {
-              // there were at least contour planes, therefore we have a valid distance estimation
-              double distanceBetweenContourPlanes=fabs(firstContourPlanePosition-secondContourPlanePosition);
-              // If the distance between the contour planes is too large then probably the contours should not be connected, so just keep using the default
-              // TODO: this is totally heuristic, the actual thickness should be read from the referred slice thickness (as noted above)
-              if (SliceThickness == 1.1 && fabs(distanceBetweenContourPlanes - SliceThickness)>0.001 && distanceBetweenContourPlanes > 0.001/* mm*/)
-              { // this usually happens when slice thickness is not set in dcm tag so we get the distance from 2 adjacent contours
-                ribbonFilter->SetWidth(distanceBetweenContourPlanes/2.0);
-              }
-            }
+            //if (contourPlaneIndex>=1)
+            //{
+            //  // there were at least contour planes, therefore we have a valid distance estimation
+            //  double distanceBetweenContourPlanes=fabs(firstContourPlanePosition-secondContourPlanePosition);
+            //  // If the distance between the contour planes is too large then probably the contours should not be connected, so just keep using the default
+            //  // TODO: this is totally heuristic, the actual thickness should be read from the referred slice thickness (as noted above)
+            //  if (SliceThickness == 2.0 && fabs(distanceBetweenContourPlanes - SliceThickness)>0.001 && distanceBetweenContourPlanes > 0.001/* mm*/)
+            //  { // this usually happens when slice thickness is not set in dcm tag so we get the distance from 2 adjacent contours
+            //    ribbonFilter->SetWidth(distanceBetweenContourPlanes/2.0);
+            //  }
+            //}
             ribbonFilter->SetAngle(90.0);
             ribbonFilter->UseDefaultNormalOn();
             ribbonFilter->Update();
