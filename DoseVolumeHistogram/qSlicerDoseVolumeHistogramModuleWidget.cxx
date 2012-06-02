@@ -224,7 +224,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     d->lineEdit_VDose->setText(paramNode->GetVDoseValues());
     d->checkBox_ShowVMetricsCc->setChecked(paramNode->GetShowVMetricsCc());
     d->checkBox_ShowVMetricsPercent->setChecked(paramNode->GetShowVMetricsPercent());
-    d->lineEdit_DVolume->setText(paramNode->GetDVolumeValues());
+    d->lineEdit_DVolumeCc->setText(paramNode->GetDVolumeValuesCc());
+    d->lineEdit_DVolumePercent->setText(paramNode->GetDVolumeValuesPercent());
     d->checkBox_ShowDMetrics->setChecked(paramNode->GetShowDMetrics());
   }
 
@@ -260,7 +261,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->lineEdit_VDose, SIGNAL( textEdited(QString) ), this, SLOT( lineEditVDoseEdited(QString) ) );
   connect( d->checkBox_ShowVMetricsCc, SIGNAL( stateChanged(int) ), this, SLOT( showVMetricsCcCheckedStateChanged(int) ) );
   connect( d->checkBox_ShowVMetricsPercent, SIGNAL( stateChanged(int) ), this, SLOT( showVMetricsPercentCheckedStateChanged(int) ) );
-  connect( d->lineEdit_DVolume, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumeEdited(QString) ) );
+  connect( d->lineEdit_DVolumeCc, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumeCcEdited(QString) ) );
+  connect( d->lineEdit_DVolumePercent, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumePercentEdited(QString) ) );
   connect( d->checkBox_ShowDMetrics, SIGNAL( stateChanged(int) ), this, SLOT( showDMetricsCheckedStateChanged(int) ) );
 
   // Handle scene change event if occurs
@@ -512,14 +514,16 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   int vColumnCount = (d->checkBox_ShowVMetricsCc->isChecked() ? vDoseValues.size() : 0) + (d->checkBox_ShowVMetricsPercent->isChecked() ? vDoseValues.size() : 0);
 
   // Get requested D metrics
-  std::vector<double> dVolumeValues;
+  std::vector<double> dVolumeValuesCc;
+  std::vector<double> dVolumeValuesPercent;
   if (d->checkBox_ShowDMetrics->isChecked())
   {
-    getNumbersFromLineEdit(d->lineEdit_DVolume, dVolumeValues);
+    getNumbersFromLineEdit(d->lineEdit_DVolumeCc, dVolumeValuesCc);
+    getNumbersFromLineEdit(d->lineEdit_DVolumePercent, dVolumeValuesPercent);
   }
 
   // Set up the table
-  d->tableWidget_ChartStatistics->setColumnCount(2 + metricList.size() + vColumnCount + dVolumeValues.size());
+  d->tableWidget_ChartStatistics->setColumnCount(2 + metricList.size() + vColumnCount + dVolumeValuesCc.size() + dVolumeValuesPercent.size());
   QStringList headerLabels;
   headerLabels << "" << "Structure";
   for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
@@ -543,9 +547,15 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
       d->tableWidget_ChartStatistics->setColumnWidth(headerLabels.size()-1, 64);
     }
   }
-  for (std::vector<double>::iterator it = dVolumeValues.begin(); it != dVolumeValues.end(); ++it)
+  for (std::vector<double>::iterator it = dVolumeValuesCc.begin(); it != dVolumeValuesCc.end(); ++it)
   {
     QString metricName = QString("D%1cc (Gy)").arg(*it);
+    headerLabels << metricName;
+    d->tableWidget_ChartStatistics->setColumnWidth(headerLabels.size()-1, 64);
+  }
+  for (std::vector<double>::iterator it = dVolumeValuesPercent.begin(); it != dVolumeValuesPercent.end(); ++it)
+  {
+    QString metricName = QString("D%1% (Gy)").arg(*it);
     headerLabels << metricName;
     d->tableWidget_ChartStatistics->setColumnWidth(headerLabels.size()-1, 64);
   }
@@ -628,11 +638,24 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     }
 
     // Add D metric values
-    if (dVolumeValues.size() > 0)
+    if (dVolumeValuesCc.size() > 0)
     {
       std::vector<double> doses;
-      d->logic()->ComputeDMetrics(dvhNode, dVolumeValues, doses);
+      d->logic()->ComputeDMetrics(dvhNode, dVolumeValuesCc, doses, false);
       col = 2 + metricList.size() + vColumnCount;
+      for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
+      {
+        QString metricValue;
+        metricValue.setNum((*it), 'f', 2);
+        d->tableWidget_ChartStatistics->setItem(i, col, new QTableWidgetItem(metricValue));
+        ++col;
+      }
+    }
+    if (dVolumeValuesPercent.size() > 0)
+    {
+      std::vector<double> doses;
+      d->logic()->ComputeDMetrics(dvhNode, dVolumeValuesPercent, doses, true);
+      col = 2 + metricList.size() + vColumnCount + dVolumeValuesCc.size();
       for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
       {
         QString metricValue;
@@ -869,14 +892,16 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
   }
 
   // Get requested D metrics
-  std::vector<double> dVolumeValues;
+  std::vector<double> dVolumeValuesCc;
+  std::vector<double> dVolumeValuesPercent;
   if (d->checkBox_ShowDMetrics->isChecked())
   {
-    getNumbersFromLineEdit(d->lineEdit_DVolume, dVolumeValues);
+    getNumbersFromLineEdit(d->lineEdit_DVolumeCc, dVolumeValuesCc);
+    getNumbersFromLineEdit(d->lineEdit_DVolumePercent, dVolumeValuesPercent);
   }
 
   // Export
-  if (! d->logic()->ExportDvhMetricsToCsv(fileName.toAscii().data(), vDoseValuesCc, vDoseValuesPercent, dVolumeValues, comma) )
+  if (! d->logic()->ExportDvhMetricsToCsv(fileName.toAscii().data(), vDoseValuesCc, vDoseValuesPercent, dVolumeValuesCc, dVolumeValuesPercent, comma) )
   {
     std::cerr << "Error occured while exporting DVH metrics to CSV!" << std::endl;
   }
@@ -964,7 +989,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChan
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeEdited(QString aText)
+void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aText)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
@@ -975,7 +1000,25 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeEdited(QString aText
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetDVolumeValues(aText.toLatin1());
+  paramNode->SetDVolumeValuesCc(aText.toLatin1());
+  paramNode->DisableModifiedEventOff();
+
+  refreshDvhTable();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QString aText)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetDVolumeValuesPercent(aText.toLatin1());
   paramNode->DisableModifiedEventOff();
 
   refreshDvhTable();

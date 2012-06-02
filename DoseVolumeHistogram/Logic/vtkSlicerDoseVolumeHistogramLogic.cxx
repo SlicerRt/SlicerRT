@@ -782,7 +782,7 @@ void vtkSlicerDoseVolumeHistogramLogic
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramLogic
-::ComputeDMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> volumeSizes, std::vector<double> &dMetrics)
+::ComputeDMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> volumeSizes, std::vector<double> &dMetrics, bool isPercent)
 {
   dMetrics.clear();
 
@@ -818,10 +818,14 @@ void vtkSlicerDoseVolumeHistogramLogic
     {
       volumeSize = 0.1;
     }
+    else if (isPercent)
+    {
+      volumeSize = volumeSizes[d] * structureVolume / 100.0;
+    }
     else
-  {
+    {
       volumeSize = volumeSizes[d];
-  }
+    }
 
     // Check if the given volume is above the highest (first) in the array then assign no dose
     if (volumeSize >= doubleArray->GetComponent(0, 1) / 100.0 * structureVolume)
@@ -1072,7 +1076,8 @@ bool vtkSlicerDoseVolumeHistogramLogic
 ::ExportDvhMetricsToCsv(const char* fileName,
                         std::vector<double> vDoseValuesCc,
                         std::vector<double> vDoseValuesPercent,
-                        std::vector<double> dVolumeValues,
+                        std::vector<double> dVolumeValuesCc,
+                        std::vector<double> dVolumeValuesPercent,
                         bool comma/*=true*/)
 {
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
@@ -1110,9 +1115,13 @@ bool vtkSlicerDoseVolumeHistogramLogic
   {
     outfile << "V" << (*it) << " (%)" << (comma ? "," : "\t");
   }
-  for (std::vector<double>::iterator it = dVolumeValues.begin(); it != dVolumeValues.end(); ++it)
+  for (std::vector<double>::iterator it = dVolumeValuesCc.begin(); it != dVolumeValuesCc.end(); ++it)
   {
     outfile << "D" << (*it) << "cc (Gy)" << (comma ? "," : "\t");
+  }
+  for (std::vector<double>::iterator it = dVolumeValuesPercent.begin(); it != dVolumeValuesPercent.end(); ++it)
+  {
+    outfile << "D" << (*it) << "% (Gy)" << (comma ? "," : "\t");
   }
   outfile << std::endl;
 
@@ -1166,10 +1175,19 @@ bool vtkSlicerDoseVolumeHistogramLogic
     }
 
     // Add D metric values
-    if (dVolumeValues.size() > 0)
+    if (dVolumeValuesCc.size() > 0)
     {
       std::vector<double> doses;
-      ComputeDMetrics(dvhNode, dVolumeValues, doses);
+      ComputeDMetrics(dvhNode, dVolumeValuesCc, doses, false);
+      for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
+      {
+        outfile << (*it) << (comma ? "," : "\t");
+      }
+    }
+    if (dVolumeValuesPercent.size() > 0)
+    {
+      std::vector<double> doses;
+      ComputeDMetrics(dvhNode, dVolumeValuesPercent, doses, true);
       for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
       {
         outfile << (*it) << (comma ? "," : "\t");

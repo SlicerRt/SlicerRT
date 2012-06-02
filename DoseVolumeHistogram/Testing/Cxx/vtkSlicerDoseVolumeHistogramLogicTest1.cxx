@@ -293,14 +293,17 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   static const double vDoseValuesPercentArr[] = {5, 20};
   std::vector<double> vDoseValuesPercent( vDoseValuesPercentArr, vDoseValuesPercentArr
     + sizeof(vDoseValuesPercentArr) / sizeof(vDoseValuesPercentArr[0]) );
-  static const double dVolumeValuesArr[] = {5, 10};
-  std::vector<double> dVolumeValues( dVolumeValuesArr, dVolumeValuesArr +
-    sizeof(dVolumeValuesArr) / sizeof(dVolumeValuesArr[0]) );
+  static const double dVolumeValuesCcArr[] = {2, 5};
+  std::vector<double> dVolumeValuesCc( dVolumeValuesCcArr, dVolumeValuesCcArr +
+    sizeof(dVolumeValuesCcArr) / sizeof(dVolumeValuesCcArr[0]) );
+  static const double dVolumeValuesPercentArr[] = {5, 10};
+  std::vector<double> dVolumeValuesPercent( dVolumeValuesPercentArr, dVolumeValuesPercentArr +
+    sizeof(dVolumeValuesPercentArr) / sizeof(dVolumeValuesPercentArr[0]) );
 
   std::string dvhMetricsCsvFileName = std::string(temporaryDirectoryPath) + "/DvhTestMetrics.csv";
   vtksys::SystemTools::RemoveFile(dvhMetricsCsvFileName.c_str());
   dvhLogic->ExportDvhMetricsToCsv(dvhMetricsCsvFileName.c_str(),
-    vDoseValuesCc, vDoseValuesPercent, dVolumeValues);
+    vDoseValuesCc, vDoseValuesPercent, dVolumeValuesCc, dVolumeValuesPercent);
 
   std::string baselineCsvFileName = std::string(dataDirectoryPath) + "/BaselineDvhTable.csv";
 

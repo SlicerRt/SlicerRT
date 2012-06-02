@@ -89,7 +89,8 @@ public:
   void ComputeVMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> doseValues, std::vector<double> &vMetricsCc, std::vector<double> &vMetricsPercent);
 
   /// Compute D metrics for the given DVH using the given volume sizes and put them in the dMetrics output list
-  void ComputeDMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> volumeSizes, std::vector<double> &dMetrics);
+  /// \param isPercent If on, then dMetrics values are interpreted as percentage values, otherwise as Cc
+  void ComputeDMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> volumeSizes, std::vector<double> &dMetrics, bool isPercent);
 
   /// Return false if the dose volume contains a volume that is really a dose volume
   bool DoseVolumeContainsDose();
@@ -105,10 +106,11 @@ public:
   /// Export DVH metrics
   /// \param vDoseValuesCc List of doses for V(cc) metrics to be computed and exported
   /// \param vDoseValuesPercent List of doses for V(%) metrics to be computed and exported
-  /// \param dVolumeValues List of volume sizes for D metrics to be computed and exported
+  /// \param dVolumeValuesCc List of volume sizes in cc's for D metrics to be computed and exported
+  /// \param dVolumeValuesPercent List of volume sizes in percentage of the structure size for D metrics to be computed and exported
   /// \param comma Flag determining if the CSV file to be saved is deliminated using commas or tabs (regional considerations)
   /// \return True if file written and saved successfully, false otherwise
-  bool ExportDvhMetricsToCsv(const char* fileName, std::vector<double> vDoseValuesCc, std::vector<double> vDoseValuesPercent, std::vector<double> dVolumeValues, bool comma=true);
+  bool ExportDvhMetricsToCsv(const char* fileName, std::vector<double> vDoseValuesCc, std::vector<double> vDoseValuesPercent, std::vector<double> dVolumeValuesCc, std::vector<double> dVolumeValuesPercent, bool comma=true);
 
   /// Collect DVH metrics from a collection of DVH double array nodes and try to order some of them
   void CollectMetricsForDvhNodes(std::set<std::string>* dvhNodeIds, std::vector<std::string> &metricList);

@@ -97,9 +97,13 @@ public:
   vtkSetMacro(ShowVMetricsPercent, bool);
   vtkBooleanMacro(ShowVMetricsPercent, bool);
 
-  /// Get/Set input volume values for D metrics
-  vtkGetStringMacro(DVolumeValues);
-  vtkSetStringMacro(DVolumeValues);
+  /// Get/Set input volume cc values for D metrics
+  vtkGetStringMacro(DVolumeValuesCc);
+  vtkSetStringMacro(DVolumeValuesCc);
+
+  /// Get/Set input volume % values for D metrics
+  vtkGetStringMacro(DVolumeValuesPercent);
+  vtkSetStringMacro(DVolumeValuesPercent);
 
   /// Get/Set show Gy for D metrics checkbox state
   vtkGetMacro(ShowDMetrics, bool);
@@ -144,8 +148,11 @@ protected:
   /// State of Show % for V metrics checkbox
   bool ShowVMetricsPercent;
 
-  /// Input volume values for D metrics
-  char* DVolumeValues;
+  /// Input volume cc values for D metrics
+  char* DVolumeValuesCc;
+
+  /// Input volume % values for D metrics
+  char* DVolumeValuesPercent;
 
   /// State of Show Gy for D metrics checkbox
   bool ShowDMetrics;

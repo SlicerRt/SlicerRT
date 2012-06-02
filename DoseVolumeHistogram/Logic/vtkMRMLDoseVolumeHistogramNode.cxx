@@ -48,7 +48,8 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
   this->VDoseValues = NULL;
   this->ShowVMetricsCc = false;
   this->ShowVMetricsPercent = false;
-  this->DVolumeValues = NULL;
+  this->DVolumeValuesCc = NULL;
+  this->DVolumeValuesPercent = NULL;
   this->ShowDMetrics = false;
 
   this->HideFromEditors = false;
@@ -63,7 +64,8 @@ vtkMRMLDoseVolumeHistogramNode::~vtkMRMLDoseVolumeHistogramNode()
   this->DvhDoubleArrayNodeIds.clear();
   this->ShowInChartCheckStates.clear();
   this->SetVDoseValues(NULL);
-  this->SetDVolumeValues(NULL);
+  this->SetDVolumeValuesCc(NULL);
+  this->SetDVolumeValuesPercent(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -140,10 +142,19 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
 
   {
     std::stringstream ss;
-    if ( this->DVolumeValues )
+    if ( this->DVolumeValuesCc )
       {
-      ss << this->DVolumeValues;
-      of << indent << " DVolumeValues=\"" << ss.str() << "\"";
+      ss << this->DVolumeValuesCc;
+      of << indent << " DVolumeValuesCc=\"" << ss.str() << "\"";
+     }
+  }
+
+  {
+    std::stringstream ss;
+    if ( this->DVolumeValuesPercent )
+      {
+      ss << this->DVolumeValuesPercent;
+      of << indent << " DVolumeValuesPercent=\"" << ss.str() << "\"";
      }
   }
 
@@ -246,11 +257,17 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       this->ShowVMetricsPercent = 
         (strcmp(attValue,"true") ? false : true);
       }
-    else if (!strcmp(attName, "DVolumeValues")) 
+    else if (!strcmp(attName, "DVolumeValuesCc")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetDVolumeValues(ss.str().c_str());
+      this->SetDVolumeValuesCc(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "DVolumeValuesPercent")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetDVolumeValuesPercent(ss.str().c_str());
       }
     else if (!strcmp(attName, "ShowDMetrics")) 
       {
@@ -282,7 +299,8 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
   this->ShowVMetricsCc = node->ShowVMetricsCc;
   this->ShowVMetricsPercent = node->ShowVMetricsPercent;
 
-  this->SetDVolumeValues(node->DVolumeValues);
+  this->SetDVolumeValuesCc(node->DVolumeValuesCc);
+  this->SetDVolumeValuesPercent(node->DVolumeValuesPercent);
   this->ShowDMetrics = node->ShowDMetrics;
 
   this->DisableModifiedEventOff();
@@ -322,7 +340,8 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ShowVMetricsCc:   " << (this->ShowVMetricsCc ? "true" : "false") << "\n";
   os << indent << "ShowVMetricsPercent:   " << (this->ShowVMetricsPercent ? "true" : "false") << "\n";
 
-  os << indent << "DVolumeValues:   " << this->DVolumeValues << "\n";
+  os << indent << "DVolumeValuesCc:   " << this->DVolumeValuesCc << "\n";
+  os << indent << "DVolumeValuesPercent:   " << this->DVolumeValuesPercent << "\n";
   os << indent << "ShowDMetrics:   " << (this->ShowDMetrics ? "true" : "false") << "\n";
 }
 
