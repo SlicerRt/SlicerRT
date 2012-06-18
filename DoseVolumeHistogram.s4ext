@@ -6,7 +6,8 @@
 
 # This is source code manager (i.e. svn)
 scm         svn
-scmurl      https://subversion.assembla.com/svn/sparkit/trunk/SlicerRt/src/DoseVolumeHistogram
+scmurl      https://subversion.assembla.com/svn/slicerrt/trunk/SlicerRt/src/DoseVolumeHistogram
+#scmrevision
 #svnusername anonymous
 #svnpassword "" 
 
@@ -16,7 +17,7 @@ scmurl      https://subversion.assembla.com/svn/sparkit/trunk/SlicerRt/src/DoseV
 depends NA 
 
 # homepage
-homepage    https://www.assembla.com/spaces/sparkit/wiki/SlicerRt
+homepage    https://www.assembla.com/spaces/slicerrt
 
 # Match category in the xml description of the module (where it shows up in Modules menu)
 category    Radiotherapy
@@ -26,4 +27,4 @@ category    Radiotherapy
 status      Beta
 
 # One line stating what the module does
-description Compute and display dose volume histograms
+description Compute and display dose volume histograms and related metrics
