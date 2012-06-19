@@ -107,7 +107,7 @@
         <item row="0" column="0">
          <widget class="QLabel" name="label_DoseVolume">
           <property name="text">
-           <string>Dose Volume:</string>
+           <string>Dose volume:</string>
           </property>
          </widget>
         </item>
@@ -129,7 +129,7 @@
         <item row="1" column="0">
          <widget class="QLabel" name="label_StructureSet">
           <property name="text">
-           <string>Structure Set:</string>
+           <string>Structure set:</string>
           </property>
          </widget>
         </item>
@@ -434,7 +434,7 @@
              <item>
               <widget class="QLabel" name="label_ShowVMetrics">
                <property name="text">
-                <string>V Metric for Dose Values:</string>
+                <string>V metric for dose values:</string>
                </property>
               </widget>
              </item>
@@ -496,7 +496,7 @@
              <item>
               <widget class="QLabel" name="label_ShowDMetric">
                <property name="text">
-                <string>D Metric for Volumes:</string>
+                <string>D metric for volumes:</string>
                </property>
               </widget>
              </item>
