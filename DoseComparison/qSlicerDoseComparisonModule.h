@@ -2,7 +2,7 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -19,18 +19,18 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerGammaDoseComparisonModule_h
-#define __qSlicerGammaDoseComparisonModule_h
+#ifndef __qSlicerDoseComparisonModule_h
+#define __qSlicerDoseComparisonModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-#include "qSlicerGammaDoseComparisonModuleExport.h"
+#include "qSlicerDoseComparisonModuleExport.h"
 
-class qSlicerGammaDoseComparisonModulePrivate;
+class qSlicerDoseComparisonModulePrivate;
 
-/// \ingroup Slicer_QtModules_GammaDoseComparison
-class Q_SLICER_QTMODULES_GAMMADOSECOMPARISON_EXPORT qSlicerGammaDoseComparisonModule :
+/// \ingroup Slicer_QtModules_DoseComparison
+class Q_SLICER_QTMODULES_DOSECOMPARISON_EXPORT qSlicerDoseComparisonModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -39,8 +39,8 @@ class Q_SLICER_QTMODULES_GAMMADOSECOMPARISON_EXPORT qSlicerGammaDoseComparisonMo
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerGammaDoseComparisonModule(QObject *parent=0);
-  virtual ~qSlicerGammaDoseComparisonModule();
+  explicit qSlicerDoseComparisonModule(QObject *parent=0);
+  virtual ~qSlicerDoseComparisonModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
   
@@ -71,11 +71,11 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
 protected:
-  QScopedPointer<qSlicerGammaDoseComparisonModulePrivate> d_ptr;
+  QScopedPointer<qSlicerDoseComparisonModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerGammaDoseComparisonModule);
-  Q_DISABLE_COPY(qSlicerGammaDoseComparisonModule);
+  Q_DECLARE_PRIVATE(qSlicerDoseComparisonModule);
+  Q_DISABLE_COPY(qSlicerDoseComparisonModule);
 
 };
 

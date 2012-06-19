@@ -2,7 +2,7 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -22,55 +22,55 @@
 // Qt includes
 #include <QtPlugin>
 
-// GammaDoseComparison Logic includes
-#include <vtkSlicerGammaDoseComparisonLogic.h>
+// DoseComparison Logic includes
+#include <vtkSlicerDoseComparisonLogic.h>
 
-// GammaDoseComparison includes
-#include "qSlicerGammaDoseComparisonModule.h"
-#include "qSlicerGammaDoseComparisonModuleWidget.h"
-
-//-----------------------------------------------------------------------------
-Q_EXPORT_PLUGIN2(qSlicerGammaDoseComparisonModule, qSlicerGammaDoseComparisonModule);
+// DoseComparison includes
+#include "qSlicerDoseComparisonModule.h"
+#include "qSlicerDoseComparisonModuleWidget.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_GammaDoseComparison
-class qSlicerGammaDoseComparisonModulePrivate
+Q_EXPORT_PLUGIN2(qSlicerDoseComparisonModule, qSlicerDoseComparisonModule);
+
+//-----------------------------------------------------------------------------
+/// \ingroup Slicer_QtModules_DoseComparison
+class qSlicerDoseComparisonModulePrivate
 {
 public:
-  qSlicerGammaDoseComparisonModulePrivate();
+  qSlicerDoseComparisonModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerGammaDoseComparisonModulePrivate methods
+// qSlicerDoseComparisonModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerGammaDoseComparisonModulePrivate::qSlicerGammaDoseComparisonModulePrivate()
+qSlicerDoseComparisonModulePrivate::qSlicerDoseComparisonModulePrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerGammaDoseComparisonModule methods
+// qSlicerDoseComparisonModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerGammaDoseComparisonModule::qSlicerGammaDoseComparisonModule(QObject* _parent)
+qSlicerDoseComparisonModule::qSlicerDoseComparisonModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerGammaDoseComparisonModulePrivate)
+  , d_ptr(new qSlicerDoseComparisonModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerGammaDoseComparisonModule::categories()const
+QStringList qSlicerDoseComparisonModule::categories()const
 {
   return QStringList() << "Developer Tools";
 }
 
 //-----------------------------------------------------------------------------
-qSlicerGammaDoseComparisonModule::~qSlicerGammaDoseComparisonModule()
+qSlicerDoseComparisonModule::~qSlicerDoseComparisonModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerGammaDoseComparisonModule::helpText()const
+QString qSlicerDoseComparisonModule::helpText()const
 {
   QString help = 
     "This template module is meant to be used with the"
@@ -82,13 +82,13 @@ QString qSlicerGammaDoseComparisonModule::helpText()const
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerGammaDoseComparisonModule::acknowledgementText()const
+QString qSlicerDoseComparisonModule::acknowledgementText()const
 {
   return "This work was supported by NAMIC, NAC, and the Slicer Community...";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerGammaDoseComparisonModule::contributors()const
+QStringList qSlicerDoseComparisonModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("John Doe (Organization)");
@@ -98,25 +98,25 @@ QStringList qSlicerGammaDoseComparisonModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerGammaDoseComparisonModule::icon()const
+QIcon qSlicerDoseComparisonModule::icon()const
 {
-  return QIcon(":/Icons/GammaDoseComparison.png");
+  return QIcon(":/Icons/DoseComparison.png");
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerGammaDoseComparisonModule::setup()
+void qSlicerDoseComparisonModule::setup()
 {
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerGammaDoseComparisonModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation * qSlicerDoseComparisonModule::createWidgetRepresentation()
 {
-  return new qSlicerGammaDoseComparisonModuleWidget;
+  return new qSlicerDoseComparisonModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerGammaDoseComparisonModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerDoseComparisonModule::createLogic()
 {
-  return vtkSlicerGammaDoseComparisonLogic::New();
+  return vtkSlicerDoseComparisonLogic::New();
 }

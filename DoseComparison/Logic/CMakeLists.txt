@@ -15,8 +15,8 @@ set(module_logic_include_directories
 
 # Source files
 set(module_logic_SRCS
-  vtkSlicerGammaDoseComparisonLogic.cxx
-  vtkSlicerGammaDoseComparisonLogic.h
+  vtkSlicerDoseComparisonLogic.cxx
+  vtkSlicerDoseComparisonLogic.h
   )
 
 # Additional Target libraries
