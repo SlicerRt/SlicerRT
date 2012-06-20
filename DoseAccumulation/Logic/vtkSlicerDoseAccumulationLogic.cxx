@@ -24,12 +24,8 @@
 #include "vtkMRMLDoseAccumulationNode.h"
 
 // MRML includes
-#include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLVolumeDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
 
@@ -38,7 +34,6 @@
 #include <vtkImageMathematics.h>
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
-#include <vtkImageCast.h>
 
 // STD includes
 #include <cassert>
@@ -47,8 +42,6 @@
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseAccumulationLogic);
-
-//vtkCxxSetObjectMacro(vtkSlicerDoseAccumulationLogic, VolumesLogic, vtkSlicerVolumesLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerDoseAccumulationLogic::vtkSlicerDoseAccumulationLogic()
