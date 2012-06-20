@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
 set(MODULE_NAME "DoseComparison") # Do not use 'project()'
-set(MODULE_TITLE " Dose Comparison")
+set(MODULE_TITLE "Dose Comparison")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
@@ -15,7 +15,7 @@ if(NOT Slicer_SOURCE_DIR)
   set(MODULE_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto)")
   set(MODULE_DESCRIPTION "Compute and display dose comparison metrics")
   set(MODULE_SCREENSHOTURLS "https://www.assembla.com/spaces/slicerrt/documents/bhB--4vSSr4BSNacwqjQWU/download/bhB--4vSSr4BSNacwqjQWU?notinline=true")
-  set(MODULE_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
+  set(MODULE_DEPENDS "Plastimatch") # Specified as a space separated list or 'NA' if any
 endif()
 
 #-----------------------------------------------------------------------------
@@ -23,6 +23,9 @@ if(NOT Slicer_SOURCE_DIR)
   find_package(Slicer REQUIRED)
   include(${Slicer_USE_FILE})
 endif()
+
+#-----------------------------------------------------------------------------
+find_package(Plastimatch REQUIRED)
 
 #-----------------------------------------------------------------------------
 add_subdirectory(Logic)

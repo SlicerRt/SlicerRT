@@ -17,6 +17,8 @@ set(module_logic_include_directories
 set(module_logic_SRCS
   vtkSlicerDoseComparisonLogic.cxx
   vtkSlicerDoseComparisonLogic.h
+  vtkMRMLDoseComparisonNode.cxx
+  vtkMRMLDoseComparisonNode.h
   )
 
 # Additional Target libraries
@@ -27,7 +29,7 @@ set(module_logic_target_libraries
 SlicerMacroBuildModuleLogic(
   NAME ${module_logic_name}
   EXPORT_DIRECTIVE ${module_logic_export_directive}
-  INCLUDE_DIRECTORIES ${module_logic_include_directories}
+  INCLUDE_DIRECTORIES ${module_logic_include_directories} ${PLASTIMATCH_INCLUDE_DIRS}
   SRCS ${module_logic_SRCS}
-  TARGET_LIBRARIES ${module_logic_target_libraries}
+  TARGET_LIBRARIES ${module_logic_target_libraries} ${PLASTIMATCH_LIBRARIES}
   )

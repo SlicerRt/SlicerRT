@@ -37,18 +37,49 @@ class Q_SLICER_QTMODULES_DOSECOMPARISON_EXPORT qSlicerDoseComparisonModuleWidget
   Q_OBJECT
 
 public:
-
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerDoseComparisonModuleWidget(QWidget *parent=0);
   virtual ~qSlicerDoseComparisonModuleWidget();
 
-public slots:
+  virtual void enter();
 
+public slots:
+  /// Set the current MRML scene to the widget
+  virtual void setMRMLScene(vtkMRMLScene*);
+
+  /// Process loaded scene
+  void onSceneImportedEvent();
+
+  /// Set current parameter node
+  void setDoseComparisonNode(vtkMRMLNode *node);
+
+  /// Update widget GUI from parameter node
+  void updateWidgetFromMRML();
+
+protected slots:
+  void referenceDoseVolumeNodeChanged(vtkMRMLNode*);
+  void compareDoseVolumeNodeChanged(vtkMRMLNode*);
+  void gammaDoseVolumeNodeChanged(vtkMRMLNode*);
+
+  void dtaDistanceToleranceChanged(double);
+  void doseDifferenceToleranceChanged(double);
+  void referenceDoseChanged(double);
+  void analysisThresholdChanged(double);
+  void maximumGammaChanged(double);
+
+  void applyClicked();
+
+  void onLogicModified();
+
+protected:
+  /// Updates button states
+  void updateButtonsState();
 
 protected:
   QScopedPointer<qSlicerDoseComparisonModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
+  void onEnter();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseComparisonModuleWidget);

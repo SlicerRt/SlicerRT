@@ -21,8 +21,13 @@
 
 // DoseComparison includes
 #include "vtkSlicerDoseComparisonLogic.h"
+#include "vtkMRMLDoseComparisonNode.h"
+
+#include "gamma_dose_comparison.h"
 
 // MRML includes
+#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -49,12 +54,20 @@ void vtkSlicerDoseComparisonLogic::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
+//----------------------------------------------------------------------------
+void vtkSlicerDoseComparisonLogic::SetAndObserveDoseComparisonNode(vtkMRMLDoseComparisonNode *node)
+{
+  vtkSetAndObserveMRMLNodeMacro(this->DoseComparisonNode, node);
+}
+
 //---------------------------------------------------------------------------
 void vtkSlicerDoseComparisonLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
+  events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
@@ -62,24 +75,78 @@ void vtkSlicerDoseComparisonLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 //-----------------------------------------------------------------------------
 void vtkSlicerDoseComparisonLogic::RegisterNodes()
 {
-  assert(this->GetMRMLScene() != 0);
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    return;
+  }
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseComparisonNode>::New());
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseComparisonLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
+
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerDoseComparisonLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
+  if (!node || !this->GetMRMLScene())
+  {
+    return;
+  }
+
+  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
+  {
+    this->Modified();
+  }
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerDoseComparisonLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
+  if (!node || !this->GetMRMLScene())
+  {
+    return;
+  }
+
+  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
+  {
+    this->Modified();
+  }
 }
 
+//---------------------------------------------------------------------------
+void vtkSlicerDoseComparisonLogic::OnMRMLSceneEndImport()
+{
+  // If we have a parameter node select it
+  vtkMRMLDoseComparisonNode *paramNode = NULL;
+  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLDoseComparisonNode");
+  if (node)
+  {
+    paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(node);
+    vtkSetAndObserveMRMLNodeMacro(this->DoseComparisonNode, paramNode);
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseComparisonLogic::OnMRMLSceneEndClose()
+{
+  this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseComparisonLogic::ComputeGammaDoseDifference()
+{
+  Gamma_dose_comparison gamma;
+
+  // TODO:
+  vtkWarningMacro("Default spatial tolerance: " << gamma.get_spatial_tolerance());
+  //ofstream test;
+  //test.open("D:\\log.txt", ios::app);
+  //test << "Default spatial tolerance: " << gamma.get_spatial_tolerance();
+  //test.close();
+}

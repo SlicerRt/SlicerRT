@@ -97,7 +97,7 @@
          <string>Dose difference tolerance. If a reference dose (prescription dose) is specified, the dose difference tolerance is treated as a percent of the reference dose. Otherwise it is treated as a percent of the maximum dose in the reference volume. To use a 3% dose tolerance, you would set this value to 0.03</string>
         </property>
         <property name="text">
-         <string>Dose distance tolerance (%):</string>
+         <string>Dose difference tolerance (%):</string>
         </property>
        </widget>
       </item>
@@ -135,7 +135,7 @@
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseDistanceTolerance">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseDifferenceTolerance">
         <property name="toolTip">
          <string>Dose difference tolerance. If a reference dose (prescription dose) is specified, the dose difference tolerance is treated as a percent of the reference dose. Otherwise it is treated as a percent of the maximum dose in the reference volume. To use a 3% dose tolerance, you would set this value to 0.03</string>
         </property>
@@ -276,7 +276,7 @@
        <number>4</number>
       </property>
       <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_GammaVolume">
         <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLScalarVolumeNode</string>
@@ -405,7 +405,7 @@
   <connection>
    <sender>qSlicerDoseComparisonModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox</receiver>
+   <receiver>MRMLNodeComboBox_GammaVolume</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">

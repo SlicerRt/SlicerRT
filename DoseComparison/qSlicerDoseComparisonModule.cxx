@@ -59,12 +59,6 @@ qSlicerDoseComparisonModule::qSlicerDoseComparisonModule(QObject* _parent)
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerDoseComparisonModule::categories()const
-{
-  return QStringList() << "Developer Tools";
-}
-
-//-----------------------------------------------------------------------------
 qSlicerDoseComparisonModule::~qSlicerDoseComparisonModule()
 {
 }
@@ -73,27 +67,29 @@ qSlicerDoseComparisonModule::~qSlicerDoseComparisonModule()
 QString qSlicerDoseComparisonModule::helpText()const
 {
   QString help = 
-    "This template module is meant to be used with the"
-    "with the ModuleWizard.py script distributed with the"
-    "Slicer source code (starting with version 4)."
-    "Developers can generate their own source code using the"
-    "wizard and then customize it to fit their needs.";
+    "Compute and display dose comparison metrics.";
   return help;
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerDoseComparisonModule::acknowledgementText()const
 {
-  return "This work was supported by NAMIC, NAC, and the Slicer Community...";
+  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerDoseComparisonModule::contributors()const
+QStringList qSlicerDoseComparisonModule::categories() const
+{
+  return QStringList() << "Radiotherapy";
+}
+
+//-----------------------------------------------------------------------------
+QStringList qSlicerDoseComparisonModule::contributors() const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("John Doe (Organization)");
-  // moduleContributors << QString("Richard Roe (Organization2)");
-  // ...
+  moduleContributors << QString("Csaba Pinter (Queen's)");
+  moduleContributors << QString("Andras Lasso (Queen's)");
+  moduleContributors << QString("Kevin Wang (UHN, Toronto)");
   return moduleContributors;
 }
 

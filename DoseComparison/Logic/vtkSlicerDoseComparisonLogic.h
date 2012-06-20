@@ -38,31 +38,48 @@
 
 #include "vtkSlicerDoseComparisonModuleLogicExport.h"
 
+class vtkMRMLVolumeNode;
+class vtkMRMLDoseComparisonNode;
 
 /// \ingroup Slicer_QtModules_DoseComparison
 class VTK_SLICER_DOSECOMPARISON_MODULE_LOGIC_EXPORT vtkSlicerDoseComparisonLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  
   static vtkSlicerDoseComparisonLogic *New();
   vtkTypeMacro(vtkSlicerDoseComparisonLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+public:
+  /// Compute gamma metric according to the selected input volumes and parameters (DoseComparison parameter set node content)
+  void ComputeGammaDoseDifference();
+
+public:
+  void SetAndObserveDoseComparisonNode(vtkMRMLDoseComparisonNode* node);
+  vtkGetObjectMacro(DoseComparisonNode, vtkMRMLDoseComparisonNode);
 
 protected:
   vtkSlicerDoseComparisonLogic();
   virtual ~vtkSlicerDoseComparisonLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
+
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-private:
+  virtual void OnMRMLSceneEndImport();
+  virtual void OnMRMLSceneEndClose();
 
+private:
   vtkSlicerDoseComparisonLogic(const vtkSlicerDoseComparisonLogic&); // Not implemented
   void operator=(const vtkSlicerDoseComparisonLogic&);               // Not implemented
+
+protected:
+  /// Parameter set MRML node
+  vtkMRMLDoseComparisonNode* DoseComparisonNode;
 };
 
 #endif
