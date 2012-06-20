@@ -44,7 +44,7 @@
 #include <set>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup Slicer_QtModules_DoseVolumeHistogram
 class qSlicerDoseVolumeHistogramModuleWidgetPrivate: public Ui_qSlicerDoseVolumeHistogramModule
 {
   Q_DECLARE_PUBLIC(qSlicerDoseVolumeHistogramModuleWidget);
