@@ -186,14 +186,24 @@ void vtkSlicerDoseComparisonLogic
   size[0] = extent[1] - extent[0] + 1;
   size[1] = extent[3] - extent[2] + 1;
   size[2] = extent[5] - extent[4] + 1;
+
   itk::Image<float, 3>::IndexType start;
-  start[0]=0;
-  start[1]=0;
-  start[2]=0;
+  //double* inputOrigin = inVolume->GetOrigin();
+  //start[0]=inputOrigin[0];
+  //start[1]=inputOrigin[1];
+  //start[2]=inputOrigin[2];
+  start[0]=0.0;
+  start[1]=0.0;
+  start[2]=0.0;
+
   itk::Image<float, 3>::RegionType region;
   region.SetSize(size);
   region.SetIndex(start);
   outVolume->SetRegions(region);
+
+  //double* inputSpacing = inVolume->GetSpacing();
+  //outVolume->SetSpacing(inputSpacing);
+
   try 
   {
     outVolume->Allocate();
@@ -240,14 +250,19 @@ void vtkSlicerDoseComparisonLogic::ComputeGammaDoseDifference()
   vtkSmartPointer<vtkImageData> gammaVolume = vtkSmartPointer<vtkImageData>::New();
 
   itk::Image<float, 3>::SpacingType spacing = gammaVolumeItk->GetSpacing();
+  //gammaVolume->SetSpacing( spacing[0], spacing[1], spacing[2] );
+
   itk::Image<float, 3>::PointType origin = gammaVolumeItk->GetOrigin();
+  //gammaVolume->SetOrigin( origin[0], origin[1], origin[2] );
+
   itk::Image<float, 3>::RegionType region = gammaVolumeItk->GetBufferedRegion();
   itk::Image<float, 3>::SizeType imageSize = region.GetSize();
-
-  gammaVolume->SetSpacing( spacing[0], spacing[1], spacing[2] );
-  gammaVolume->SetOrigin( origin[0], origin[1], origin[2] );
   int extent[6]={0, imageSize[0]-1, 0, imageSize[1]-1, 0, imageSize[2]-1};
   gammaVolume->SetExtent(extent);
+
+  // TODO: Use these instead of the ones from the reference when transition of spacing and origin is solved in Plastimatch
+  double* referenceSpacing = referenceDoseVolumeNode->GetSpacing();
+  double* referenceOrigin = referenceDoseVolumeNode->GetOrigin();
 
   gammaVolume->SetScalarType(VTK_FLOAT);
   gammaVolume->SetNumberOfScalarComponents(1);
@@ -265,5 +280,8 @@ void vtkSlicerDoseComparisonLogic::ComputeGammaDoseDifference()
 
   vtkMRMLVolumeNode* gammaVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetGammaVolumeNodeId()));
+  gammaVolumeNode->CopyOrientation(referenceDoseVolumeNode);
   gammaVolumeNode->SetAndObserveImageData(gammaVolume);
+  gammaVolumeNode->SetSpacing(referenceSpacing);
+  gammaVolumeNode->SetOrigin(referenceOrigin);
 }

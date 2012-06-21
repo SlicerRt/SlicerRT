@@ -42,6 +42,10 @@ protected:
 public:
   qSlicerDoseComparisonModuleWidgetPrivate(qSlicerDoseComparisonModuleWidget& object);
   vtkSlicerDoseComparisonLogic* logic() const;
+
+  /// Using this flag prevents overriding the parameter set node contents when the
+  ///   QMRMLCombobox selects the first instance of the specified node type when initializing
+  bool ModuleWindowInitialized;
 };
 
 //-----------------------------------------------------------------------------
@@ -50,6 +54,7 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerDoseComparisonModuleWidgetPrivate::qSlicerDoseComparisonModuleWidgetPrivate(qSlicerDoseComparisonModuleWidget& object)
   : q_ptr(&object)
+  , ModuleWindowInitialized(false)
 {
 }
 
@@ -145,6 +150,8 @@ void qSlicerDoseComparisonModuleWidget::onEnter()
       d->logic()->SetAndObserveDoseComparisonNode(newNode);
     }
   }
+
+  d->ModuleWindowInitialized = true;
 
   updateWidgetFromMRML();
 }
@@ -251,7 +258,7 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
   Q_D(qSlicerDoseComparisonModuleWidget);
 
   vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !this->mrmlScene() || !node || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -278,7 +285,7 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
   Q_D(qSlicerDoseComparisonModuleWidget);
 
   vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !this->mrmlScene() || !node || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -305,7 +312,7 @@ void qSlicerDoseComparisonModuleWidget::GammaVolumeNodeChanged(vtkMRMLNode* node
   Q_D(qSlicerDoseComparisonModuleWidget);
 
   vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !this->mrmlScene() || !node || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -402,5 +409,9 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
   d->logic()->ComputeGammaDoseDifference();
+
+  QApplication::restoreOverrideCursor();
 }
