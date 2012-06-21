@@ -31,7 +31,8 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// MRML includes
+// ITK includes
+#include "itkImage.h"
 
 // STD includes
 #include <cstdlib>
@@ -54,6 +55,9 @@ public:
   /// Compute gamma metric according to the selected input volumes and parameters (DoseComparison parameter set node content)
   void ComputeGammaDoseDifference();
 
+  /// Return false if the argument volume contains a volume that is really a dose volume
+  bool DoseVolumeContainsDose(vtkMRMLNode* node);
+
 public:
   void SetAndObserveDoseComparisonNode(vtkMRMLDoseComparisonNode* node);
   vtkGetObjectMacro(DoseComparisonNode, vtkMRMLDoseComparisonNode);
@@ -72,6 +76,10 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
+
+protected:
+  /// Convert VTK image to ITK image
+  void ConvertVtkImageToItkImage(vtkImageData* inVolume, itk::Image<float, 3>::Pointer outVolume);
 
 private:
   vtkSlicerDoseComparisonLogic(const vtkSlicerDoseComparisonLogic&); // Not implemented

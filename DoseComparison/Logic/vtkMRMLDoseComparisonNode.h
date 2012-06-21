@@ -63,9 +63,9 @@ public:
   vtkGetStringMacro(CompareDoseVolumeNodeId);
   vtkSetStringMacro(CompareDoseVolumeNodeId);
 
-  /// Get/Set output gamma dose volume node ID
-  vtkGetStringMacro(GammaDoseVolumeNodeId);
-  vtkSetStringMacro(GammaDoseVolumeNodeId);
+  /// Get/Set output gamma volume node ID
+  vtkGetStringMacro(GammaVolumeNodeId);
+  vtkSetStringMacro(GammaVolumeNodeId);
 
   /// Get/Set distance to agreement (DTA) tolerance, in mm
   vtkGetMacro(DtaDistanceToleranceMm, double);
@@ -103,8 +103,8 @@ protected:
   /// Selected compare dose volume MRML node object ID
   char* CompareDoseVolumeNodeId;
 
-  /// Selected output gamma dose volume MRML node object ID
-  char* GammaDoseVolumeNodeId;
+  /// Selected output gamma volume MRML node object ID
+  char* GammaVolumeNodeId;
 
   /// Distance to agreement (DTA) tolerance, in mm
   double DtaDistanceToleranceMm;

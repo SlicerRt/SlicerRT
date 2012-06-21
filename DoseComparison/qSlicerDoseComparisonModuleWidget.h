@@ -59,7 +59,7 @@ public slots:
 protected slots:
   void referenceDoseVolumeNodeChanged(vtkMRMLNode*);
   void compareDoseVolumeNodeChanged(vtkMRMLNode*);
-  void gammaDoseVolumeNodeChanged(vtkMRMLNode*);
+  void GammaVolumeNodeChanged(vtkMRMLNode*);
 
   void dtaDistanceToleranceChanged(double);
   void doseDifferenceToleranceChanged(double);

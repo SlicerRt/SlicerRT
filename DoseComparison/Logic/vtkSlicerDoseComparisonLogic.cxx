@@ -31,6 +31,11 @@
 
 // VTK includes
 #include <vtkNew.h>
+#include <vtkImageData.h>
+#include <vtkImageExport.h>
+
+// ITK includes
+#include <itkImageRegionIteratorWithIndex.h>
 
 // STD includes
 #include <cassert>
@@ -41,6 +46,7 @@ vtkStandardNewMacro(vtkSlicerDoseComparisonLogic);
 //----------------------------------------------------------------------------
 vtkSlicerDoseComparisonLogic::vtkSlicerDoseComparisonLogic()
 {
+  this->DoseComparisonNode = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -139,14 +145,125 @@ void vtkSlicerDoseComparisonLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
+bool vtkSlicerDoseComparisonLogic::DoseVolumeContainsDose(vtkMRMLNode* node)
+{
+  vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
+  const char* doseUnitName = doseVolumeNode->GetAttribute("DoseUnitName");
+
+  if (doseUnitName != NULL)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerDoseComparisonLogic
+::ConvertVtkImageToItkImage(vtkImageData* inVolume, itk::Image<float, 3>::Pointer outVolume)
+{
+  if ( inVolume == NULL )
+  {
+    vtkErrorMacro("Failed to convert vtk image to itk image - input image is NULL!"); 
+    return; 
+  }
+
+  if ( outVolume.IsNull() )
+  {
+    vtkErrorMacro("Failed to convert vtk image to itk image - output image is NULL!"); 
+    return; 
+  }
+
+  // convert vtkImageData to itkImage 
+  vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
+  imageExport->SetInput(inVolume); 
+  imageExport->Update(); 
+
+  int extent[6]={0,0,0,0,0,0}; 
+  inVolume->GetExtent(extent); 
+
+  itk::Image<float, 3>::SizeType size;
+  size[0] = extent[1] - extent[0] + 1;
+  size[1] = extent[3] - extent[2] + 1;
+  size[2] = extent[5] - extent[4] + 1;
+  itk::Image<float, 3>::IndexType start;
+  start[0]=0;
+  start[1]=0;
+  start[2]=0;
+  itk::Image<float, 3>::RegionType region;
+  region.SetSize(size);
+  region.SetIndex(start);
+  outVolume->SetRegions(region);
+  try 
+  {
+    outVolume->Allocate();
+  }
+  catch(itk::ExceptionObject & err)
+  {
+    vtkErrorMacro("Failed to allocate memory for the image conversion: " << err.GetDescription() ); 
+    return; 
+  }
+
+  imageExport->Export( outVolume->GetBufferPointer() ); 
+}
+
+//---------------------------------------------------------------------------
 void vtkSlicerDoseComparisonLogic::ComputeGammaDoseDifference()
 {
-  Gamma_dose_comparison gamma;
+  // Convert input images to the format Plastimatch can use
+  vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetReferenceDoseVolumeNodeId()));
+  itk::Image<float, 3>::Pointer referenceDoseVolumeItk = itk::Image<float, 3>::New();
 
-  // TODO:
-  vtkWarningMacro("Default spatial tolerance: " << gamma.get_spatial_tolerance());
-  //ofstream test;
-  //test.open("D:\\log.txt", ios::app);
-  //test << "Default spatial tolerance: " << gamma.get_spatial_tolerance();
-  //test.close();
+  vtkMRMLVolumeNode* compareDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetCompareDoseVolumeNodeId()));
+  itk::Image<float, 3>::Pointer compareDoseVolumeItk = itk::Image<float, 3>::New();
+
+  ConvertVtkImageToItkImage(referenceDoseVolumeNode->GetImageData(), referenceDoseVolumeItk);
+  ConvertVtkImageToItkImage(compareDoseVolumeNode->GetImageData(), compareDoseVolumeItk);
+
+  // Compute gamma dose volume
+  Gamma_dose_comparison gamma;
+  gamma.set_reference_image(referenceDoseVolumeItk);
+  gamma.set_compare_image(compareDoseVolumeItk);
+  gamma.set_spatial_tolerance(this->DoseComparisonNode->GetDtaDistanceToleranceMm());
+  gamma.set_dose_difference_tolerance(this->DoseComparisonNode->GetDoseDifferenceTolerancePercent());
+  gamma.set_reference_dose(this->DoseComparisonNode->GetReferenceDoseGy());
+  //gamma.set_analysis_threshold(this->DoseComparisonNode->GetAnalysisThresholdPercent());
+  gamma.set_gamma_max(this->DoseComparisonNode->GetMaximumGamma());
+
+  gamma.run();
+
+  itk::Image<float, 3>::Pointer gammaVolumeItk = gamma.get_gamma_image_itk();
+
+  // Convert output to VTK
+  vtkSmartPointer<vtkImageData> gammaVolume = vtkSmartPointer<vtkImageData>::New();
+
+  itk::Image<float, 3>::SpacingType spacing = gammaVolumeItk->GetSpacing();
+  itk::Image<float, 3>::PointType origin = gammaVolumeItk->GetOrigin();
+  itk::Image<float, 3>::RegionType region = gammaVolumeItk->GetBufferedRegion();
+  itk::Image<float, 3>::SizeType imageSize = region.GetSize();
+
+  gammaVolume->SetSpacing( spacing[0], spacing[1], spacing[2] );
+  gammaVolume->SetOrigin( origin[0], origin[1], origin[2] );
+  int extent[6]={0, imageSize[0]-1, 0, imageSize[1]-1, 0, imageSize[2]-1};
+  gammaVolume->SetExtent(extent);
+
+  gammaVolume->SetScalarType(VTK_FLOAT);
+  gammaVolume->SetNumberOfScalarComponents(1);
+  gammaVolume->AllocateScalars();
+
+  float* gammaPtr = (float*)gammaVolume->GetScalarPointer();
+  itk::ImageRegionIteratorWithIndex< itk::Image<float, 3> > itGammaItk(
+    gammaVolumeItk, gammaVolumeItk->GetLargestPossibleRegion() );
+  for ( itGammaItk.GoToBegin(); !itGammaItk.IsAtEnd(); ++itGammaItk )
+  {
+    itk::Image<float, 3>::IndexType i = itGammaItk.GetIndex();
+    (*gammaPtr) = gammaVolumeItk->GetPixel(i);
+    gammaPtr++;
+  }
+
+  vtkMRMLVolumeNode* gammaVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetGammaVolumeNodeId()));
+  gammaVolumeNode->SetAndObserveImageData(gammaVolume);
 }

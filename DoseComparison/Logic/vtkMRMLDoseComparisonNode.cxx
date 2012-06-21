@@ -41,7 +41,7 @@ vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
 {
   this->ReferenceDoseVolumeNodeId = NULL;
   this->CompareDoseVolumeNodeId = NULL;
-  this->GammaDoseVolumeNodeId = NULL;
+  this->GammaVolumeNodeId = NULL;
 
   this->DtaDistanceToleranceMm = 3.0;
   this->DoseDifferenceTolerancePercent = 3.0;
@@ -57,7 +57,7 @@ vtkMRMLDoseComparisonNode::~vtkMRMLDoseComparisonNode()
 {
   this->SetReferenceDoseVolumeNodeId(NULL);
   this->SetCompareDoseVolumeNodeId(NULL);
-  this->SetGammaDoseVolumeNodeId(NULL);
+  this->SetGammaVolumeNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -88,10 +88,10 @@ void vtkMRMLDoseComparisonNode::WriteXML(ostream& of, int nIndent)
 
   {
     std::stringstream ss;
-    if ( this->GammaDoseVolumeNodeId )
+    if ( this->GammaVolumeNodeId )
       {
-      ss << this->GammaDoseVolumeNodeId;
-      of << indent << " GammaDoseVolumeNodeId=\"" << ss.str() << "\"";
+      ss << this->GammaVolumeNodeId;
+      of << indent << " GammaVolumeNodeId=\"" << ss.str() << "\"";
      }
   }
 
@@ -128,11 +128,11 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetCompareDoseVolumeNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "GammaDoseVolumeNodeId")) 
+    else if (!strcmp(attName, "GammaVolumeNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetGammaDoseVolumeNodeId(ss.str().c_str());
+      this->SetGammaVolumeNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "DtaDistanceToleranceMm")) 
       {
@@ -179,7 +179,7 @@ void vtkMRMLDoseComparisonNode::Copy(vtkMRMLNode *anode)
 
   this->SetReferenceDoseVolumeNodeId(node->ReferenceDoseVolumeNodeId);
   this->SetCompareDoseVolumeNodeId(node->CompareDoseVolumeNodeId);
-  this->SetGammaDoseVolumeNodeId(node->GammaDoseVolumeNodeId);
+  this->SetGammaVolumeNodeId(node->GammaVolumeNodeId);
 
   this->DtaDistanceToleranceMm = node->DtaDistanceToleranceMm;
   this->DoseDifferenceTolerancePercent = node->DoseDifferenceTolerancePercent;
@@ -198,7 +198,7 @@ void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "ReferenceDoseVolumeNodeId:   " << this->ReferenceDoseVolumeNodeId << "\n";
   os << indent << "CompareDoseVolumeNodeId:   " << this->CompareDoseVolumeNodeId << "\n";
-  os << indent << "GammaDoseVolumeNodeId:   " << this->GammaDoseVolumeNodeId << "\n";
+  os << indent << "GammaVolumeNodeId:   " << this->GammaVolumeNodeId << "\n";
 
   os << indent << "DtaDistanceToleranceMm:   " << this->DtaDistanceToleranceMm << "\n";
   os << indent << "DoseDifferenceTolerancePercent:   " << this->DoseDifferenceTolerancePercent << "\n";
@@ -218,8 +218,8 @@ void vtkMRMLDoseComparisonNode::UpdateReferenceID(const char *oldID, const char 
     {
     this->SetCompareDoseVolumeNodeId(newID);
     }
-  if (this->GammaDoseVolumeNodeId && !strcmp(oldID, this->GammaDoseVolumeNodeId))
+  if (this->GammaVolumeNodeId && !strcmp(oldID, this->GammaVolumeNodeId))
     {
-    this->SetGammaDoseVolumeNodeId(newID);
+    this->SetGammaVolumeNodeId(newID);
     }
 }

@@ -170,13 +170,25 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
 
   vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
   if (paramNode && this->mrmlScene())
-  {/*
+  {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseComparisonNode());
-    d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
-    if (paramNode->GetAccumulatedDoseVolumeNodeId() && stricmp(paramNode->GetAccumulatedDoseVolumeNodeId(),""))
+    if (paramNode->GetReferenceDoseVolumeNodeId() && stricmp(paramNode->GetReferenceDoseVolumeNodeId(),""))
     {
-      d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNode(paramNode->GetAccumulatedDoseVolumeNodeId());
-    }*/
+      d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNode(paramNode->GetReferenceDoseVolumeNodeId());
+    }
+    if (paramNode->GetCompareDoseVolumeNodeId() && stricmp(paramNode->GetCompareDoseVolumeNodeId(),""))
+    {
+      d->MRMLNodeComboBox_CompareDoseVolume->setCurrentNode(paramNode->GetCompareDoseVolumeNodeId());
+    }
+    if (paramNode->GetGammaVolumeNodeId() && stricmp(paramNode->GetGammaVolumeNodeId(),""))
+    {
+      d->MRMLNodeComboBox_GammaVolume->setCurrentNode(paramNode->GetGammaVolumeNodeId());
+    }
+    d->doubleSpinBox_DtaDistanceTolerance->setValue(paramNode->GetDtaDistanceToleranceMm());
+    d->doubleSpinBox_DoseDifferenceTolerance->setValue(paramNode->GetDoseDifferenceTolerancePercent());
+    d->doubleSpinBox_ReferenceDose->setValue(paramNode->GetReferenceDoseGy());
+    d->doubleSpinBox_AnalysisThreshold->setValue(paramNode->GetAnalysisThresholdPercent());
+    d->doubleSpinBox_MaximumGamma->setValue(paramNode->GetMaximumGamma());
   }
 }
 
@@ -192,7 +204,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
   // Make connections
   connect( d->MRMLNodeComboBox_ReferenceDoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceDoseVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_CompareDoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareDoseVolumeNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_GammaVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(gammaDoseVolumeNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_GammaVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(GammaVolumeNodeChanged(vtkMRMLNode*)) );
 
   connect( d->doubleSpinBox_DtaDistanceTolerance, SIGNAL(valueChanged(double)), this, SLOT(dtaDistanceToleranceChanged(double)) );
   connect( d->doubleSpinBox_DoseDifferenceTolerance, SIGNAL(valueChanged(double)), this, SLOT(doseDifferenceToleranceChanged(double)) );
@@ -220,8 +232,8 @@ void qSlicerDoseComparisonModuleWidget::updateButtonsState()
                    && stricmp(d->logic()->GetDoseComparisonNode()->GetReferenceDoseVolumeNodeId(), "")
                    && d->logic()->GetDoseComparisonNode()->GetCompareDoseVolumeNodeId()
                    && stricmp(d->logic()->GetDoseComparisonNode()->GetCompareDoseVolumeNodeId(), "")
-                   && d->logic()->GetDoseComparisonNode()->GetGammaDoseVolumeNodeId()
-                   && stricmp(d->logic()->GetDoseComparisonNode()->GetGammaDoseVolumeNodeId(), "");
+                   && d->logic()->GetDoseComparisonNode()->GetGammaVolumeNodeId()
+                   && stricmp(d->logic()->GetDoseComparisonNode()->GetGammaVolumeNodeId(), "");
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
 
@@ -249,6 +261,15 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
+
+  if (d->logic()->DoseVolumeContainsDose(node))
+  {
+    d->label_Warning->setText("");
+  }
+  else
+  {
+    d->label_Warning->setText(tr(" Selected reference volume is not a dose"));
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -267,10 +288,19 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
+
+  if (d->logic()->DoseVolumeContainsDose(node))
+  {
+    d->label_Warning->setText("");
+  }
+  else
+  {
+    d->label_Warning->setText(tr(" Selected compare volume is not a dose"));
+  }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseComparisonModuleWidget::gammaDoseVolumeNodeChanged(vtkMRMLNode* node)
+void qSlicerDoseComparisonModuleWidget::GammaVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
@@ -281,7 +311,7 @@ void qSlicerDoseComparisonModuleWidget::gammaDoseVolumeNodeChanged(vtkMRMLNode* 
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetGammaDoseVolumeNodeId(node->GetID());
+  paramNode->SetGammaVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
