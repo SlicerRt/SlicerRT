@@ -624,6 +624,8 @@ void vtkSlicerDoseVolumeHistogramLogic
   chartNode->SetProperty("default", "xAxisLabel", doseAxisName.c_str());
   chartNode->SetProperty("default", "yAxisLabel", "Fractional volume [%]");
   chartNode->SetProperty("default", "type", "Line");
+  chartNode->SetProperty("default", "xAxisPad", "0");
+  chartNode->SetProperty("default", "yAxisPad", "0");
 
   // Change plot line style if there is already a structure with the same name in the chart
   vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID(dvhArrayNodeId) );
