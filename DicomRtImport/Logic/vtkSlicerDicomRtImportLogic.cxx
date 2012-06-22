@@ -121,7 +121,7 @@ void vtkSlicerDicomRtImportLogic::Examine(vtkDICOMImportInfo *importInfo)
 
       vtkStdString fileName=fileList->GetValue(fileIndex);
       OFCondition result;
-      result = fileformat.loadFile(fileName, EXS_Unknown);
+      result = fileformat.loadFile(fileName.c_str(), EXS_Unknown);
       if (!result.good())
       {
         continue; // failed to parse this file, skip it
