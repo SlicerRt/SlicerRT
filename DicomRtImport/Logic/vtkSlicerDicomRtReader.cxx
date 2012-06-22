@@ -339,7 +339,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     ctkDICOMDatabase dicomDatabase;
     QSettings settings;
     QString databaseDirectory = settings.value("DatabaseDirectory").toString();
-    dicomDatabase.openDatabase(databaseDirectory + "/ctkDICOM.sql", "SLICER");
+    dicomDatabase.openDatabase(databaseDirectory + "/ctkDICOM.sql", "SlicerRt");
     QString query("SELECT Filename FROM Images WHERE SOPInstanceUID="); 
     QString uid(ReferencedSOPInstanceUID.c_str());
     QString quote("\"");
