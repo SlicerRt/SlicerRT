@@ -665,22 +665,24 @@ void vtkSlicerDoseVolumeHistogramLogic
   chartNode->AddArray( structurePlotName, dvhArrayNodeId );
 
   // Set plot properties according to the number of structures with the same name
-  if (numberOfStructuresWithSameName % 3 == 1 && color)
+  if (numberOfStructuresWithSameName % 4 == 1 && color)
   {
     chartNode->SetProperty(structurePlotName, "color", color);
-    chartNode->SetProperty(structurePlotName, "showLines", "off");
-    chartNode->SetProperty(structurePlotName, "showMarkers", "on");
+    chartNode->SetProperty(structurePlotName, "linePattern", "dashed");
   }
-  else if (numberOfStructuresWithSameName % 3 == 2 && color)
+  else if (numberOfStructuresWithSameName % 4 == 2 && color)
   {
     chartNode->SetProperty(structurePlotName, "color", color);
-    chartNode->SetProperty(structurePlotName, "showLines", "on");
-    chartNode->SetProperty(structurePlotName, "showMarkers", "on");
+    chartNode->SetProperty(structurePlotName, "linePattern", "dotted");
+  }
+  else if (numberOfStructuresWithSameName % 4 == 3 && color)
+  {
+    chartNode->SetProperty(structurePlotName, "color", color);
+    chartNode->SetProperty(structurePlotName, "linePattern", "dashed-dotted");
   }
   else
   {
-    chartNode->SetProperty(structurePlotName, "showLines", "on");
-    chartNode->SetProperty(structurePlotName, "showMarkers", "off");
+    chartNode->SetProperty(structurePlotName, "linePattern", "");
     color = dvhArrayNode->GetAttribute(DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str());
     chartNode->SetProperty(structurePlotName, "color", color);
   }
