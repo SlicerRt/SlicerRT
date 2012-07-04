@@ -639,7 +639,6 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   int numberOfStructuresWithSameName = 0;
   vtkStringArray* plotNames = chartNode->GetArrayNames();
-  const char* color = NULL;
   for (int i=0; i<plotNames->GetNumberOfValues(); ++i)
   {
     vtkStdString plotName = plotNames->GetValue(i);
@@ -654,37 +653,32 @@ void vtkSlicerDoseVolumeHistogramLogic
     if (stricmp(structureNameInChart, structureNameToAdd) == 0)
     {
       numberOfStructuresWithSameName++;
-      if (numberOfStructuresWithSameName == 1)
-      {
-        color = chartNode->GetProperty(plotName, "color");
-      }
     }
   }
 
   // Add array to chart
   chartNode->AddArray( structurePlotName, dvhArrayNodeId );
 
-  // Set plot properties according to the number of structures with the same name
-  if (numberOfStructuresWithSameName % 4 == 1 && color)
+  // Set plot color
+  const char* color = dvhArrayNode->GetAttribute(DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str());
+  chartNode->SetProperty(structurePlotName, "color", color);
+
+  // Set line style according to the number of structures with the same name
+  if (numberOfStructuresWithSameName % 4 == 1)
   {
-    chartNode->SetProperty(structurePlotName, "color", color);
     chartNode->SetProperty(structurePlotName, "linePattern", "dashed");
   }
-  else if (numberOfStructuresWithSameName % 4 == 2 && color)
+  else if (numberOfStructuresWithSameName % 4 == 2)
   {
-    chartNode->SetProperty(structurePlotName, "color", color);
     chartNode->SetProperty(structurePlotName, "linePattern", "dotted");
   }
-  else if (numberOfStructuresWithSameName % 4 == 3 && color)
+  else if (numberOfStructuresWithSameName % 4 == 3)
   {
-    chartNode->SetProperty(structurePlotName, "color", color);
     chartNode->SetProperty(structurePlotName, "linePattern", "dashed-dotted");
   }
   else
   {
     chartNode->SetProperty(structurePlotName, "linePattern", "");
-    color = dvhArrayNode->GetAttribute(DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str());
-    chartNode->SetProperty(structurePlotName, "color", color);
   }
 }
 
