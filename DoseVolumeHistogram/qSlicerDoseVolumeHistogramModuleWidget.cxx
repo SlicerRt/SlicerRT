@@ -511,7 +511,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   {
     getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValues);
   }
-  int vColumnCount = (d->checkBox_ShowVMetricsCc->isChecked() ? vDoseValues.size() : 0) + (d->checkBox_ShowVMetricsPercent->isChecked() ? vDoseValues.size() : 0);
+  int vColumnCount = (d->checkBox_ShowVMetricsCc->isChecked() ? vDoseValues.size() : 0)
+    + (d->checkBox_ShowVMetricsPercent->isChecked() ? vDoseValues.size() : 0);
 
   // Get requested D metrics
   std::vector<double> dVolumeValuesCc;
@@ -523,13 +524,15 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   }
 
   // Set up the table
-  d->tableWidget_ChartStatistics->setColumnCount(2 + metricList.size() + vColumnCount + dVolumeValuesCc.size() + dVolumeValuesPercent.size());
+  d->tableWidget_ChartStatistics->setColumnCount(3 + metricList.size()
+    + vColumnCount + dVolumeValuesCc.size() + dVolumeValuesPercent.size());
   QStringList headerLabels;
-  headerLabels << "" << "Structure";
+  headerLabels << "" << "Structure" << "Volume name";
   for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
   {
     QString metricName(it->c_str());
-    metricName = metricName.right( metricName.length() - vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
+    metricName = metricName.right( metricName.length()
+      - vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
     headerLabels << metricName;
   }
   for (std::vector<double>::iterator it = vDoseValues.begin(); it != vDoseValues.end(); ++it)
@@ -577,7 +580,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
 
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_ChartStatistics);
-    checkbox->setToolTip(tr("Show/hide DVH plot of structure '%1' in selected chart").arg( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
+    checkbox->setToolTip(tr("Show/hide DVH plot of structure '%1' in selected chart").arg(
+      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
     connect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
 
     // Store checkbox with the augmented structure set name and the double array ID
@@ -588,10 +592,18 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
 
     d->tableWidget_ChartStatistics->setCellWidget(i, 0, checkbox);
 
-    d->tableWidget_ChartStatistics->setItem(i, 1, new QTableWidgetItem( QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ) );    
+    d->tableWidget_ChartStatistics->setItem(i, 1, new QTableWidgetItem(
+      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));    
+
+    vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast( this->mrmlScene()->GetNodeByID(
+      dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str()) ) );
+    if (volumeNode)
+    {
+      d->tableWidget_ChartStatistics->setItem(i, 2, new QTableWidgetItem( QString(volumeNode->GetName()) ));    
+    }
 
     // Add default metric values
-    int col = 2;
+    int col = 3;
     for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
     {
       QString metricValue( dvhNode->GetAttribute(it->c_str()) );
