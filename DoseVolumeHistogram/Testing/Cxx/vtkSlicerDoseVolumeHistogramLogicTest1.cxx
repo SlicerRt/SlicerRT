@@ -205,7 +205,6 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
       vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
     displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
     //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode)
-    displayNode->SetModifiedSinceRead(1);
     displayNode->SliceIntersectionVisibilityOn();
     displayNode->VisibilityOn();
 
@@ -216,7 +215,6 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     modelNode->SetName(it->c_str());
     modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
     modelNode->SetAndObservePolyData( modelPolyDataReader->GetOutput() );
-    modelNode->SetModifiedSinceRead(1);
     modelNode->SetHideFromEditors(0);
     modelNode->SetSelectable(1);
 
