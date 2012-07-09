@@ -40,6 +40,9 @@
 // VTK includes
 #include <vtkStringArray.h>
 
+// VTKSYS includes
+#include <vtksys/SystemTools.hxx>
+
 // STD includes
 #include <set>
 
@@ -606,8 +609,17 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     int col = 3;
     for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
     {
-      QString metricValue( dvhNode->GetAttribute(it->c_str()) );
-      if (metricValue.isEmpty())
+      std::vector<std::string> attributeNames = dvhNode->GetAttributeNames();
+      std::string foundAttributeName;
+      for (std::vector<std::string>::iterator attributeIt = attributeNames.begin(); attributeIt != attributeNames.end(); ++attributeIt)
+      {
+        if (vtksys::SystemTools::LowerCase(*attributeIt).compare( vtksys::SystemTools::LowerCase(*it) ) == 0)
+        {
+          foundAttributeName = *attributeIt;
+        }
+      }
+      QString metricValue( dvhNode->GetAttribute(foundAttributeName.c_str()) );
+      if (foundAttributeName.empty() || metricValue.isEmpty())
       {
         ++col;
         continue;

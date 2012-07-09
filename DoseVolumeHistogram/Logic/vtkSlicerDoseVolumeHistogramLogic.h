@@ -48,6 +48,15 @@ class vtkMRMLModelNode;
 class vtkMRMLChartViewNode;
 class vtkMRMLDoseVolumeHistogramNode;
 
+/// Case-insensitive comparison operator for collecting metrics
+struct InsensitiveCompare
+{ 
+  bool operator() (const std::string& a, const std::string& b) const
+  {
+    return stricmp(a.c_str(), b.c_str()) < 0;
+  }
+};
+
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_MODULE_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramLogic :
   public vtkSlicerModuleLogic

@@ -907,7 +907,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   // Collect metrics
   char metricListAttributeName[64];
   sprintf(metricListAttributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
-  std::set<std::string> metricSet;
+  std::set<std::string, InsensitiveCompare> metricSet;
   for (std::set<std::string>::iterator it = dvhNodeIds->begin(); it != dvhNodeIds->end(); ++it)
   {
     vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
@@ -941,7 +941,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   const char* metricSearchList[4] = {"volume", "mean", "min", "max"};
   for (int i=0; i<4; ++i)
   {
-    for (std::set<std::string>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
+    for (std::set<std::string, InsensitiveCompare>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
     {
       if (vtksys::SystemTools::LowerCase(*it).find(metricSearchList[i]) != std::string::npos)
       {
@@ -953,7 +953,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   }
 
   // Append all other metrics in undefined order
-  for (std::set<std::string>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
+  for (std::set<std::string, InsensitiveCompare>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
   {
     metricList.push_back(*it);
   }
