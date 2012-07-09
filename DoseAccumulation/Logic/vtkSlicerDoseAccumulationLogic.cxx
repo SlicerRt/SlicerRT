@@ -266,7 +266,6 @@ int vtkSlicerDoseAccumulationLogic::AccumulateDoseVolumes()
   }
 
   outputVolumeNode->SetAndObserveImageData(baseImageData);
-  outputVolumeNode->SetModifiedSinceRead(1); 
 
   // Set default colormap to rainbow
   if (outputVolumeNode->GetVolumeDisplayNode()!=NULL)
