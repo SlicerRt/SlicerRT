@@ -356,8 +356,6 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
       volumeNode->SetAndObserveImageData(floatVolumeData);
       originalVolumeData->Delete();
 
-      volumeNode->SetModifiedSinceRead(1); 
-
       // Set default colormap to rainbow
       if (volumeNode->GetVolumeDisplayNode()!=NULL)
       {
@@ -453,7 +451,6 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiContour(vtkPolyData *
 {
   vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
   displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
-  displayNode->SetModifiedSinceRead(1); 
   displayNode->SliceIntersectionVisibilityOn();  
   displayNode->VisibilityOn(); 
   displayNode->SetColor(roiColor[0], roiColor[1], roiColor[2]);
@@ -466,7 +463,6 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiContour(vtkPolyData *
   modelNode->SetName(roiLabel);
   modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   modelNode->SetAndObservePolyData(roiPoly);
-  modelNode->SetModifiedSinceRead(1);
   modelNode->SetHideFromEditors(0);
   modelNode->SetSelectable(1);
 
