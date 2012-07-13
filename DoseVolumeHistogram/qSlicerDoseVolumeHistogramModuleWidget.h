@@ -74,6 +74,8 @@ protected slots:
   void lineEditDVolumeCcEdited(QString aText);
   void lineEditDVolumePercentEdited(QString aText);
   void showDMetricsCheckedStateChanged(int aState);
+  void addLabelmapsToSceneCheckedStateChanged(int aState);
+  void labelValueChanged(int aValue);
 
   void onLogicModified();
 

@@ -230,6 +230,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     d->lineEdit_DVolumeCc->setText(paramNode->GetDVolumeValuesCc());
     d->lineEdit_DVolumePercent->setText(paramNode->GetDVolumeValuesPercent());
     d->checkBox_ShowDMetrics->setChecked(paramNode->GetShowDMetrics());
+    d->checkBox_AddLabelmapsToScene->setChecked(paramNode->GetAddLabelmapsToScene());
+    d->spinBox_LabelValue->setValue(paramNode->GetLabelValue());
   }
 
   refreshDvhTable();
@@ -267,6 +269,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->lineEdit_DVolumeCc, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumeCcEdited(QString) ) );
   connect( d->lineEdit_DVolumePercent, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumePercentEdited(QString) ) );
   connect( d->checkBox_ShowDMetrics, SIGNAL( stateChanged(int) ), this, SLOT( showDMetricsCheckedStateChanged(int) ) );
+  connect( d->checkBox_AddLabelmapsToScene, SIGNAL( stateChanged(int) ), this, SLOT( addLabelmapsToSceneCheckedStateChanged(int) ) );
+  connect( d->spinBox_LabelValue, SIGNAL( valueChanged(int) ), this, SLOT( labelValueChanged(int) ) );
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -1064,4 +1068,36 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
   paramNode->DisableModifiedEventOff();
 
   refreshDvhTable();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::addLabelmapsToSceneCheckedStateChanged(int aState)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAddLabelmapsToScene(aState);
+  paramNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::labelValueChanged(int aValue)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetLabelValue(aValue);
+  paramNode->DisableModifiedEventOff();
 }

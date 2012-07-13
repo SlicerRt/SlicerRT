@@ -26,6 +26,7 @@
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLChartNode.h>
 #include <vtkMRMLLayoutNode.h>
@@ -46,6 +47,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkStringArray.h>
 #include <vtkPiecewiseFunction.h>
+#include <vtkImageThreshold.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -327,7 +329,7 @@ void vtkSlicerDoseVolumeHistogramLogic
   transformPolyDataModelToDoseIjkFilter->SetInput( structureModelNode->GetPolyData() );
   transformPolyDataModelToDoseIjkFilter->SetTransform(modelToDoseIjkTransform.GetPointer());
 
-  // Convert model to labelmap
+  // Convert model to stenciled dose volume
   vtkNew<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter;
   transformPolyDataModelToDoseIjkFilter->Update();
   polyDataToLabelmapFilter->SetBackgroundValue(VTK_DOUBLE_MIN);
@@ -335,14 +337,13 @@ void vtkSlicerDoseVolumeHistogramLogic
   polyDataToLabelmapFilter->SetReferenceImage( doseVolumeNode->GetImageData() );
   polyDataToLabelmapFilter->Update();
 
-  // Create labelmap node
+  // Create node
   structureStenciledDoseVolumeNode->CopyOrientation( doseVolumeNode );
   structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID( doseVolumeNode->GetTransformNodeID() );
-  std::string labelmapNodeName( structureSetModelNode->GetName() );
-  labelmapNodeName.append( "_StenciledDose" );
-  structureStenciledDoseVolumeNode->SetName( labelmapNodeName.c_str() );
+  std::string stenciledDoseNodeName( structureSetModelNode->GetName() );
+  stenciledDoseNodeName.append( "_Labelmap" );
+  structureStenciledDoseVolumeNode->SetName( stenciledDoseNodeName.c_str() );
   structureStenciledDoseVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
-  //structureStenciledDoseVolumeNode->LabelMapOn();
 }
 
 //---------------------------------------------------------------------------
@@ -398,16 +399,37 @@ void vtkSlicerDoseVolumeHistogramLogic
 void vtkSlicerDoseVolumeHistogramLogic::ComputeDvh()
 {
   std::vector<vtkMRMLModelNode*> structureModelNodes;
-  GetSelectedStructureModelNodes(structureModelNodes);
+  this->GetSelectedStructureModelNodes(structureModelNodes);
 
   for (std::vector<vtkMRMLModelNode*>::iterator it = structureModelNodes.begin(); it != structureModelNodes.end(); ++it)
   {
     vtkSmartPointer<vtkMRMLScalarVolumeNode> structureStenciledDoseVolumeNode
       = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-    GetStenciledDoseVolumeForStructure(structureStenciledDoseVolumeNode, (*it));
-    // this->GetMRMLScene()->AddNode( structureStenciledDoseVolumeNode ); // add the labelmap to the scene for testing/debugging
 
-    ComputeDvh(structureStenciledDoseVolumeNode.GetPointer(), (*it));
+    this->GetStenciledDoseVolumeForStructure(structureStenciledDoseVolumeNode, (*it));
+
+    this->ComputeDvh(structureStenciledDoseVolumeNode.GetPointer(), (*it));
+
+    if (this->GetDoseVolumeHistogramNode()->GetAddLabelmapsToScene())
+    {
+      // Convert stenciled dose volume to labelmap
+      vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
+      threshold->SetInput(structureStenciledDoseVolumeNode->GetImageData());
+      threshold->SetInValue(this->DoseVolumeHistogramNode->GetLabelValue());
+      threshold->SetOutValue(0);
+      threshold->ThresholdByUpper(VTK_DOUBLE_MIN+1.0);
+      threshold->SetOutputScalarTypeToUnsignedChar();
+      threshold->Update();
+      structureStenciledDoseVolumeNode->GetImageData()->DeepCopy(threshold->GetOutput());
+
+      vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
+      displayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
+      displayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
+
+      structureStenciledDoseVolumeNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+      structureStenciledDoseVolumeNode->LabelMapOn();
+      this->GetMRMLScene()->AddNode(structureStenciledDoseVolumeNode);
+    }
   }
 }
 
