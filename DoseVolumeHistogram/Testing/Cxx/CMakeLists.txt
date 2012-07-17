@@ -31,11 +31,12 @@ endforeach()
 #-----------------------------------------------------------------------------
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
-macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath TemporaryDirectoryPath ToleranceMeanPercent ToleranceMaxPercent)
+macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirectoryPath TemporaryDirectoryPath ToleranceMeanPercent ToleranceMaxPercent)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
+    -BaselineDirectoryPath ${BaselineDirectoryPath}
     -TemporaryDirectoryPath ${TemporaryDirectoryPath}
     -ToleranceMeanPercent ${ToleranceMeanPercent}
     -ToleranceMaxPercent ${ToleranceMaxPercent}
@@ -46,7 +47,8 @@ endmacro()
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate
   vtkSlicerDoseVolumeHistogramLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate
   ${TEMP}
   0.0
   0.0
@@ -64,7 +66,8 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_Compa
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CERR
   vtkSlicerDoseVolumeHistogramLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseProstate_CERR
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate_CERR
   ${TEMP}
   1.0
   18.33
@@ -75,7 +78,8 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CERR 
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_CERR
   vtkSlicerDoseVolumeHistogramLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseEnt_CERR
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseEnt
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseEnt_CERR
   ${TEMP}
   1.85
   55.52
@@ -86,9 +90,46 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_CERR PROPE
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramLogicTest_EclipseBreast_CERR
   vtkSlicerDoseVolumeHistogramLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseBreast_CERR
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseBreast
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseBreast_CERR
   ${TEMP}
   1.0
   15.68
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseBreast_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_Eclipse
+  vtkSlicerDoseVolumeHistogramLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate_Eclipse
+  ${TEMP}
+  1.0
+  5.0
+)
+set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_Eclipse
+  vtkSlicerDoseVolumeHistogramLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseEnt
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseEnt_Eclipse
+  ${TEMP}
+  1.0
+  5.0
+)
+set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerDoseVolumeHistogramLogicTest_EclipseBreast_Eclipse
+  vtkSlicerDoseVolumeHistogramLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseBreast
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseBreast_Eclipse
+  ${TEMP}
+  1.0
+  5.0
+)
+set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseBreast_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )

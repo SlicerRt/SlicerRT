@@ -66,12 +66,25 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
       dataDirectoryPath = "";
     }
   }
-  const char *temporaryDirectoryPath = NULL;
+  const char *baselineDirectoryPath = NULL;
   if (argc > 4)
+  {
+    if (stricmp(argv[3], "-BaselineDirectoryPath") == 0)
+    {
+      baselineDirectoryPath = argv[4];
+      std::cout << "Baseline directory path: " << baselineDirectoryPath << std::endl;
+    }
+    else
+    {
+      baselineDirectoryPath = "";
+    }
+  }
+  const char *temporaryDirectoryPath = NULL;
+  if (argc > 6)
   {
     if (stricmp(argv[3], "-TemporaryDirectoryPath") == 0)
     {
-      temporaryDirectoryPath = argv[4];
+      temporaryDirectoryPath = argv[6];
       std::cout << "Temporary directory path: " << temporaryDirectoryPath << std::endl;
     }
     else
@@ -80,20 +93,20 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     }
   }
   double toleranceMeanPercent = 0.0;
-  if (argc > 6)
+  if (argc > 8)
   {
     if (stricmp(argv[5], "-ToleranceMeanPercent") == 0)
     {
-      toleranceMeanPercent = atof(argv[6]);
+      toleranceMeanPercent = atof(argv[8]);
       std::cout << "Tolerance mean percent: " << toleranceMeanPercent << std::endl;
     }
   }
   double toleranceMaxPercent = 0.0;
-  if (argc > 8)
+  if (argc > 10)
   {
     if (stricmp(argv[7], "-ToleranceMaxPercent") == 0)
     {
-      toleranceMaxPercent = atof(argv[8]);
+      toleranceMaxPercent = atof(argv[10]);
       std::cout << "Tolerance max percent: " << toleranceMaxPercent << std::endl;
     }
   }
@@ -303,7 +316,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   dvhLogic->ExportDvhMetricsToCsv(dvhMetricsCsvFileName.c_str(),
     vDoseValuesCc, vDoseValuesPercent, dVolumeValuesCc, dVolumeValuesPercent);
 
-  std::string baselineCsvFileName = std::string(dataDirectoryPath) + "/BaselineDvhTable.csv";
+  std::string baselineCsvFileName = std::string(baselineDirectoryPath) + "/BaselineDvhTable.csv";
 
   // Compare CSV DVH tables
   double differenceMeanPercent = 100.0;
