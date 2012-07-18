@@ -66,6 +66,11 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
       dataDirectoryPath = "";
     }
   }
+  else
+  {
+    std::cerr << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
   const char *baselineDirectoryPath = NULL;
   if (argc > 4)
   {
@@ -82,7 +87,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   const char *temporaryDirectoryPath = NULL;
   if (argc > 6)
   {
-    if (stricmp(argv[3], "-TemporaryDirectoryPath") == 0)
+    if (stricmp(argv[5], "-TemporaryDirectoryPath") == 0)
     {
       temporaryDirectoryPath = argv[6];
       std::cout << "Temporary directory path: " << temporaryDirectoryPath << std::endl;
@@ -95,7 +100,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   double toleranceMeanPercent = 0.0;
   if (argc > 8)
   {
-    if (stricmp(argv[5], "-ToleranceMeanPercent") == 0)
+    if (stricmp(argv[7], "-ToleranceMeanPercent") == 0)
     {
       toleranceMeanPercent = atof(argv[8]);
       std::cout << "Tolerance mean percent: " << toleranceMeanPercent << std::endl;
@@ -104,10 +109,28 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   double toleranceMaxPercent = 0.0;
   if (argc > 10)
   {
-    if (stricmp(argv[7], "-ToleranceMaxPercent") == 0)
+    if (stricmp(argv[9], "-ToleranceMaxPercent") == 0)
     {
       toleranceMaxPercent = atof(argv[10]);
       std::cout << "Tolerance max percent: " << toleranceMaxPercent << std::endl;
+    }
+  }
+  double dvhStartValue = 0.0;
+  if (argc > 12)
+  {
+    if (stricmp(argv[11], "-DvhStartValue") == 0)
+    {
+      dvhStartValue = atof(argv[12]);
+      std::cout << "DVH start value: " << dvhStartValue << std::endl;
+    }
+  }
+  double dvhStepSize = 0.0;
+  if (argc > 14)
+  {
+    if (stricmp(argv[13], "-DvhStepSize") == 0)
+    {
+      dvhStepSize = atof(argv[14]);
+      std::cout << "DVH step size: " << dvhStepSize << std::endl;
     }
   }
 
@@ -261,6 +284,13 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   paramNode->SetChartNodeId(chartNode->GetID());
   mrmlScene->AddNode(paramNode);
   dvhLogic->SetAndObserveDoseVolumeHistogramNode(paramNode);
+
+  // Set start value and step size if specified
+  if (dvhStartValue != 0.0 && dvhStepSize != 0.0)
+  {
+    dvhLogic->SetStartValue(dvhStartValue);
+    dvhLogic->SetStepSize(dvhStepSize);
+  }
 
   // Compute DVH and get result nodes
   dvhLogic->ComputeDvh();
