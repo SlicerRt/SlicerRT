@@ -74,6 +74,8 @@ const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_MIN_DOSE_ATTRIBU
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_VOXEL_COUNT_ATTRIBUTE_NAME = "Voxel count";
 const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX = "V";
 
+const std::string vtkSlicerDoseVolumeHistogramLogic::DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME = "DoseUnitName";
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseVolumeHistogramLogic);
 
@@ -462,7 +464,7 @@ void vtkSlicerDoseVolumeHistogramLogic
     vtkWarningMacro("Dose grid scaling attribute is not set for the selected dose volume. Assuming scaling = 1.");
   }
 
-  const char* doseUnitName = doseVolumeNode->GetAttribute("DoseUnitName");
+  const char* doseUnitName = doseVolumeNode->GetAttribute(DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
   // Compute statistics
   vtkNew<vtkImageToImageStencil> stencil;
@@ -504,17 +506,17 @@ void vtkSlicerDoseVolumeHistogramLogic
   metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
-  sprintf(attributeName, "%s%s (%s)", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName);
+  AssembleDoseMetricAttributeName(DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
   sprintf(attributeValue, "%g", stat->GetMean()[0]);
   metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
-  sprintf(attributeName, "%s%s (%s)", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName);
+  AssembleDoseMetricAttributeName(DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
   sprintf(attributeValue, "%g", stat->GetMax()[0]);
   metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
-  sprintf(attributeName, "%s%s (%s)", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName);
+  AssembleDoseMetricAttributeName(DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
   sprintf(attributeValue, "%g", stat->GetMin()[0]);
   metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
@@ -630,7 +632,7 @@ void vtkSlicerDoseVolumeHistogramLogic
 
   std::string doseAxisName;
   std::string chartTitle;
-  const char* doseUnitName=doseVolumeNode->GetAttribute("DoseUnitName");
+  const char* doseUnitName=doseVolumeNode->GetAttribute(DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
   if (doseUnitName!=NULL)
   {
     doseAxisName=std::string("Dose [")+doseUnitName+"]";
@@ -900,7 +902,7 @@ bool vtkSlicerDoseVolumeHistogramLogic
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
 
-  const char* doseUnitName = doseVolumeNode->GetAttribute("DoseUnitName");
+  const char* doseUnitName = doseVolumeNode->GetAttribute(DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
   if (doseUnitName != NULL)
   {
@@ -1220,4 +1222,11 @@ bool vtkSlicerDoseVolumeHistogramLogic
 	outfile.close();
 
   return true;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseVolumeHistogramLogic
+::AssembleDoseMetricAttributeName(const char* doseMetricAttributeNamePrefix, const char* doseUnitName, char* attributeName)
+{
+  sprintf(attributeName, "%s%s (%s)", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), doseMetricAttributeNamePrefix, doseUnitName);
 }

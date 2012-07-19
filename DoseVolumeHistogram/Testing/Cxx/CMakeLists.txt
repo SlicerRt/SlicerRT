@@ -31,15 +31,16 @@ endforeach()
 #-----------------------------------------------------------------------------
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
-macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirectoryPath TemporaryDirectoryPath ToleranceMeanPercent ToleranceMaxPercent DvhStartValue DvhStepSize)
+macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirectoryPath TemporaryDirectoryPath VolumeDifferenceCriterion DoseToAgreementCriterion AgreementToleranceMax DvhStartValue DvhStepSize)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
     -BaselineDirectoryPath ${BaselineDirectoryPath}
     -TemporaryDirectoryPath ${TemporaryDirectoryPath}
-    -ToleranceMeanPercent ${ToleranceMeanPercent}
-    -ToleranceMaxPercent ${ToleranceMaxPercent}
+    -VolumeDifferenceCriterion ${VolumeDifferenceCriterion}
+	-DoseToAgreementCriterion ${DoseToAgreementCriterion}
+    -AgreementToleranceMax ${AgreementToleranceMax}
 	-DvhStartValue ${DvhStartValue}
 	-DvhStepSize ${DvhStepSize}
   )
@@ -56,13 +57,14 @@ TEST_WITH_DATA(
   0.0
   0.0
   0.0
+  0.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
 # Compare exported DVH metrics with baseline
 add_test(
   NAME vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CompareMetrics
-  COMMAND ${CMAKE_COMMAND} -E compare_files ${TEMP}/DvhTestMetrics.csv ${CMAKE_CURRENT_SOURCE_DIR}/../Data/EclipseProstate/BaselineDvhMetrics.csv
+  COMMAND ${CMAKE_COMMAND} -E compare_files ${TEMP}/DvhTestMetrics.csv ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate/BaselineDvhMetrics.csv
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CompareMetrics PROPERTIES DEPENDS vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate)
 
@@ -73,8 +75,9 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseProstate
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate_CERR
   ${TEMP}
-  1.0
-  18.33
+  2.0
+  2.0
+  17.78
   0.0
   0.0
 )
@@ -87,7 +90,8 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseEnt
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseEnt_CERR
   ${TEMP}
-  1.85
+  3.0
+  3.0
   55.52
   0.0
   0.0
@@ -102,7 +106,8 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseBreast_CERR
   ${TEMP}
   1.0
-  15.68
+  1.0
+  1.0
   0.0
   0.0
 )
@@ -115,7 +120,8 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseProstate
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate_Eclipse
   ${TEMP}
-  1.0
+  2.0
+  2.0
   5.0
   0.03
   0.03
@@ -129,7 +135,8 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseEnt
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseEnt_Eclipse
   ${TEMP}
-  1.0
+  3.0
+  3.0
   5.0
   0.03
   0.03
@@ -144,7 +151,8 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseBreast_Eclipse
   ${TEMP}
   1.0
-  5.0
+  1.0
+  1.0
   0.03
   0.03
 )

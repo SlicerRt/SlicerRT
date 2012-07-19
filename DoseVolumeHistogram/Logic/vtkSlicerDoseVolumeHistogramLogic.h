@@ -79,6 +79,8 @@ public:
   static const std::string DVH_METRIC_VOXEL_COUNT_ATTRIBUTE_NAME;
   static const std::string DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX;
 
+  static const std::string DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME;
+
 public:
   static vtkSlicerDoseVolumeHistogramLogic *New();
   vtkTypeMacro(vtkSlicerDoseVolumeHistogramLogic, vtkSlicerModuleLogic);
@@ -123,6 +125,12 @@ public:
 
   /// Collect DVH metrics from a collection of DVH double array nodes and try to order some of them
   void CollectMetricsForDvhNodes(std::set<std::string>* dvhNodeIds, std::vector<std::string> &metricList);
+
+  /// Assemble attribute name for dose metric, e.g. DVH_Metric_Mean dose (Gy), where
+  /// \param doseMetricAttributeNamePrefix Prefix of the desired dose metric attribute name, e.g. "Mean dose"
+  /// \param doseUnitName Dose unit name, e.g. "Gy"
+  /// \param Output string for the attribute name. has to be allocated first
+  static void AssembleDoseMetricAttributeName(const char* doseMetricAttributeNamePrefix, const char* doseUnitName, char* attributeName);
 
 public:
   void SetAndObserveDoseVolumeHistogramNode(vtkMRMLDoseVolumeHistogramNode* node);

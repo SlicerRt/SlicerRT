@@ -43,11 +43,20 @@
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 
+#define EPSILON 0.0001
+
 std::string csvSeparatorCharacter(",");
 
 //-----------------------------------------------------------------------------
-int CompareCsvDvhTables(std::string dvhMetricsCsvFileName, std::string baselineCsvFileName,
-                        double &differenceMeanPercent, double &differenceMaxPercent);
+int CompareCsvDvhTables(std::string dvhMetricsCsvFileName, std::string baselineCsvFileName, std::string doseUnitName,
+                        std::vector<vtkMRMLDoubleArrayNode*> dvhNodes,
+                        double volumeDifferenceCriterion, double doseToAgreementCriterion,
+                        double &meanAgreement, double &maxAgreement);
+
+double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& referenceDvhPlot,
+                                   std::vector<std::pair<double,double> >& compareDvhPlot,
+                                   int compareIndex, double totalVolume, double maxDose,
+                                   double volumeDifferenceCriterion, double doseToAgreementCriterion);
 
 //-----------------------------------------------------------------------------
 int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
@@ -97,41 +106,60 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
       temporaryDirectoryPath = "";
     }
   }
-  double toleranceMeanPercent = 0.0;
+  double volumeDifferenceCriterion = 0.0;
   if (argc > 8)
   {
-    if (stricmp(argv[7], "-ToleranceMeanPercent") == 0)
+    if (stricmp(argv[7], "-VolumeDifferenceCriterion") == 0)
     {
-      toleranceMeanPercent = atof(argv[8]);
-      std::cout << "Tolerance mean percent: " << toleranceMeanPercent << std::endl;
+      volumeDifferenceCriterion = atof(argv[8]);
+      std::cout << "Volume difference criterion: " << volumeDifferenceCriterion << std::endl;
     }
   }
-  double toleranceMaxPercent = 0.0;
+  double doseToAgreementCriterion = 0.0;
   if (argc > 10)
   {
-    if (stricmp(argv[9], "-ToleranceMaxPercent") == 0)
+    if (stricmp(argv[9], "-DoseToAgreementCriterion") == 0)
     {
-      toleranceMaxPercent = atof(argv[10]);
-      std::cout << "Tolerance max percent: " << toleranceMaxPercent << std::endl;
+      doseToAgreementCriterion = atof(argv[10]);
+      std::cout << "Dose-to-agreement criterion: " << doseToAgreementCriterion << std::endl;
+    }
+  }
+  double agreementToleranceMax = 0.0;
+  if (argc > 12)
+  {
+    if (stricmp(argv[11], "-AgreementToleranceMax") == 0)
+    {
+      agreementToleranceMax = atof(argv[12]);
+      std::cout << "Agreement tolerance max: " << agreementToleranceMax << std::endl;
     }
   }
   double dvhStartValue = 0.0;
-  if (argc > 12)
+  if (argc > 14)
   {
-    if (stricmp(argv[11], "-DvhStartValue") == 0)
+    if (stricmp(argv[13], "-DvhStartValue") == 0)
     {
-      dvhStartValue = atof(argv[12]);
+      dvhStartValue = atof(argv[14]);
       std::cout << "DVH start value: " << dvhStartValue << std::endl;
     }
   }
   double dvhStepSize = 0.0;
-  if (argc > 14)
+  if (argc > 16)
   {
-    if (stricmp(argv[13], "-DvhStepSize") == 0)
+    if (stricmp(argv[15], "-DvhStepSize") == 0)
     {
-      dvhStepSize = atof(argv[14]);
+      dvhStepSize = atof(argv[16]);
       std::cout << "DVH step size: " << dvhStepSize << std::endl;
     }
+  }
+
+  // Constraint the criteria to be greater than zero
+  if (volumeDifferenceCriterion == 0.0)
+  {
+    volumeDifferenceCriterion = EPSILON;
+  }
+  if (doseToAgreementCriterion == 0.0)
+  {
+    doseToAgreementCriterion = EPSILON;
   }
 
   // Create scene
@@ -153,6 +181,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   std::cout << "Loading dose attributes from file '" << doseAttributesFileName << "' ("
     << (vtksys::SystemTools::FileExists(doseAttributesFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
 
+  std::string doseUnitName = "";
   std::ifstream attributesStream;
   attributesStream.open(doseAttributesFileName.c_str(), std::ifstream::in);
   char attribute[512];
@@ -163,6 +192,11 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     std::string name = attributeStr.substr(0, colonIndex);
     std::string value = attributeStr.substr(colonIndex + 1);
     doseScalarVolumeNode->SetAttribute(name.c_str(), value.c_str());
+
+    if (vtkSlicerDoseVolumeHistogramLogic::DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.compare(name) == 0)
+    {
+      doseUnitName = value;
+    }
   }
   attributesStream.close();
 
@@ -296,8 +330,8 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   dvhLogic->ComputeDvh();
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
 
-  std::set<std::string>* dvhNodes = paramNode->GetDvhDoubleArrayNodeIds();
-  if (dvhNodes->size() != structureNames.size())
+  std::set<std::string>* dvhNodeIDs = paramNode->GetDvhDoubleArrayNodeIds();
+  if (dvhNodeIDs->size() != structureNames.size())
   {
     mrmlScene->Commit();
     std::cerr << "Invalid DVH node list!" << std::endl;
@@ -305,8 +339,9 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   }
 
   // Add DVH arrays to chart node
+  std::vector<vtkMRMLDoubleArrayNode*> dvhNodes;
   std::set<std::string>::iterator dvhIt;
-  for (dvhIt = dvhNodes->begin(); dvhIt != dvhNodes->end(); ++dvhIt)
+  for (dvhIt = dvhNodeIDs->begin(); dvhIt != dvhNodeIDs->end(); ++dvhIt)
   {
     vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
       mrmlScene->GetNodeByID(dvhIt->c_str()));
@@ -317,6 +352,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     }
 
     chartNode->AddArray( dvhNode->GetName(), dvhNode->GetID() );    
+    dvhNodes.push_back(dvhNode);
   }
 
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
@@ -349,34 +385,33 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   std::string baselineCsvFileName = std::string(baselineDirectoryPath) + "/BaselineDvhTable.csv";
 
   // Compare CSV DVH tables
-  double differenceMeanPercent = 100.0;
-  double differenceMaxPercent = 100.0;
-  if (CompareCsvDvhTables(dvhCsvFileName, baselineCsvFileName,
-    differenceMeanPercent, differenceMaxPercent) > 0)
+  double meanAgreement = -1.0;
+  double maxAgreement = -1.0;
+  if (CompareCsvDvhTables(dvhCsvFileName, baselineCsvFileName, doseUnitName, dvhNodes, 
+    volumeDifferenceCriterion, doseToAgreementCriterion,
+    meanAgreement, maxAgreement) > 0)
   {
     std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
     return EXIT_FAILURE;
   }
 
-  std::cout << "Mean difference: " << differenceMeanPercent
-    << " (tolerance: " << toleranceMeanPercent << ")" << std::endl;
-  std::cout << "Max difference: " << differenceMaxPercent
-    << " (tolerance: " << toleranceMaxPercent << ")" << std::endl;
+  std::cout << "Mean agreement: " << meanAgreement << std::endl;
+  std::cout << "Max agreement: " << maxAgreement
+    << " (tolerance: " << agreementToleranceMax << ")" << std::endl;
 
-  bool differenceBelowTolerance = true;
-  if (differenceMeanPercent > toleranceMeanPercent)
+  bool agreementBelowTolerance = true;
+  if (meanAgreement > 1.0)
   {
-    std::cerr << "Mean difference is greater than the input tolerance! " << differenceMeanPercent
-      << " > " << toleranceMeanPercent << std::endl;
-    differenceBelowTolerance = false;
+    std::cerr << "Mean agreement is greater than 1: " << meanAgreement << std::endl;
+    agreementBelowTolerance = false;
   }
-  if (differenceMaxPercent > toleranceMaxPercent)
+  if (maxAgreement > agreementToleranceMax)
   {
-    std::cerr << "Max difference is greater than the input tolerance! " << differenceMaxPercent
-      << " > " << toleranceMaxPercent << std::endl;
-    differenceBelowTolerance = false;
+    std::cerr << "Maximum agreement is greater than the input maximum tolerance: " << maxAgreement
+      << " > " << agreementToleranceMax << std::endl;
+    agreementBelowTolerance = false;
   }
-  if (!differenceBelowTolerance)
+  if (!agreementBelowTolerance)
   {
     return EXIT_FAILURE;
   }
@@ -385,8 +420,10 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 }
 
 //-----------------------------------------------------------------------------
-int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileName,
-                        double &differenceMeanPercent, double &differenceMaxPercent)
+int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileName, std::string doseUnitName,
+                        std::vector<vtkMRMLDoubleArrayNode*> dvhNodes,
+                        double volumeDifferenceCriterion, double doseToAgreementCriterion,
+                        double &meanAgreement, double &maxAgreement)
 {
   std::cout << "Loading baseline CSV DVH table from file '" << baselineCsvFileName << "' ("
     << (vtksys::SystemTools::FileExists(baselineCsvFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
@@ -469,49 +506,110 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   }
 
   // Compare the current DVH to the baseline and determine mean and maximum difference
-  differenceMaxPercent = 0.0;
-  double sumDifferencePercent = 0.0;
-  int numberOfDifferences = 0;
+  maxAgreement = 0.0;
+  double sumAgreement = 0.0;
+  int numberOfAgreements = 0;
   std::vector< std::vector<std::pair<double,double>> >::iterator currentIt;
   std::vector< std::vector<std::pair<double,double>> >::iterator baselineIt;
-  for (currentIt = currentDvh.begin(), baselineIt = baselineDvh.begin();
-    currentIt != currentDvh.end(); ++currentIt, ++baselineIt)
+  std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhNodeIt;
+
+  for (currentIt = currentDvh.begin(), baselineIt = baselineDvh.begin(), dvhNodeIt = dvhNodes.begin();
+    currentIt != currentDvh.end(); ++currentIt, ++baselineIt, ++dvhNodeIt)
   {
-    vtkNew<vtkPiecewiseFunction> interpolator;
-    interpolator->ClampingOn();
-    for (std::vector<std::pair<double,double>>::iterator baselineTupleIt = baselineIt->begin();
-      baselineTupleIt != baselineIt->end(); ++baselineTupleIt)
+    int numberOfAgreementsPerStructure = 0;
+    double maxAgreementPerStructure = 0.0;
+    double sumAgreementPerStructure = 0.0;
+
+    const char* structureName = (*dvhNodeIt)->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+
+    std::string totalVolumeAttributeName = vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX + vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+    const char* totalVolumeStr = (*dvhNodeIt)->GetAttribute(totalVolumeAttributeName.c_str());
+    double totalVolume = atof(totalVolumeStr);
+
+    double maxDose = 0.0;
+    const char* maxDoseStr = NULL;
+    char maxDoseAttributeName[64];
+    vtkSlicerDoseVolumeHistogramLogic::AssembleDoseMetricAttributeName(vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName.c_str(), maxDoseAttributeName);
+    maxDoseStr = (*dvhNodeIt)->GetAttribute(maxDoseAttributeName);
+    if (maxDoseStr)
     {
-      interpolator->AddPoint(baselineTupleIt->first, baselineTupleIt->second);
+      maxDose = atof(maxDoseStr);
     }
 
-    double differenceMaxPercentPerStructure = 0.0;
-    double sumdifferencePercentPerStructure = 0.0;
-    int numberOfDifferencesPerStructure = 0;
-    for (std::vector<std::pair<double,double>>::iterator currentTupleIt = currentIt->begin();
-      currentTupleIt != currentIt->end(); ++currentTupleIt)
+    if (totalVolume == 0.0 || maxDose == 0.0)
     {
-      double differencePercent = fabs( currentTupleIt->second
-                                       - interpolator->GetValue(currentTupleIt->first) );
-      if (differencePercent > differenceMaxPercent)
-      {
-        differenceMaxPercent = differencePercent;
-      }
-      if (differencePercent > differenceMaxPercentPerStructure)
-      {
-        differenceMaxPercentPerStructure = differencePercent;
-      }
-      sumDifferencePercent += differencePercent;
-      sumdifferencePercentPerStructure += differencePercent;
-      numberOfDifferences++;
-      numberOfDifferencesPerStructure++;
+      std::cerr << "Invalid attribute in DVH node " << (*dvhNodeIt)->GetName() << ": " << totalVolumeAttributeName << "=" << totalVolumeStr << ", " << maxDoseAttributeName << "=" << (maxDoseStr?maxDoseStr:"NULL") << std::endl;
+      continue;
     }
 
-    std::cout << "Difference per structure: Mean=" << sumdifferencePercentPerStructure/numberOfDifferencesPerStructure
-      << ", Max=" << differenceMaxPercentPerStructure << std::endl;
+    for (int i=0; i<currentIt->size(); ++i)
+    {
+      double agreement = GetAgreementForDvhPlotPoint(*baselineIt, *currentIt, i, totalVolume, maxDose, volumeDifferenceCriterion, doseToAgreementCriterion);
+
+      if (agreement == -1.0)
+      {
+        std::cerr << "Invalid agreement, skipped!" << std::endl;
+        continue;
+      }
+
+      if (agreement > maxAgreement)
+      {
+        maxAgreement = agreement;
+      }
+      if (agreement > maxAgreementPerStructure)
+      {
+        maxAgreementPerStructure = agreement;
+      }
+      sumAgreement += agreement;
+      sumAgreementPerStructure += agreement;
+      numberOfAgreements++;
+      numberOfAgreementsPerStructure++;
+    }
+
+    std::cout << "Gamma agreement per structure (" << (structureName?structureName:"NULL(error!)") << "): Mean=" << sumAgreementPerStructure/numberOfAgreementsPerStructure
+      << ", Max=" << maxAgreementPerStructure << std::endl;
   }
 
-  differenceMeanPercent = sumDifferencePercent / numberOfDifferences;
+  meanAgreement = sumAgreement / numberOfAgreements;
 
   return 0;
+}
+
+//-----------------------------------------------------------------------------
+double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& referenceDvhPlot, std::vector<std::pair<double,double> >& compareDvhPlot,
+                               int compareIndex, double totalVolume, double maxDose,
+                               double volumeDifferenceCriterion, double doseToAgreementCriterion)
+{
+  // Formula is (based on the article Elbert2010):
+  //   gamma(i) = min{ Gamma[(di, vi), (dr, vr)] } for all {r=1..P}, where
+  //   compareIndexth DVH point has dose di and volume vi
+  //   P is the number of bins in the reference DVH, each rth bin having absolute dose dr and volume vr
+  //   Gamma[(di, vi), (dr, vr)] = [ ( (100*(vr-vi)) / (volumeDifferenceCriterion * totalVolume) )^2 + ( (100*(dr-di)) / (doseToAgreementCriterion * maxDose) )^2 ] ^ 1/2
+  //   volumeDifferenceCriterion is the volume-difference criterion (% of the total structure volume, totalVolume)
+  //   doseToAgreementCriterion is the dose-to-agreement criterion (% of the maximum dose, maxDose)
+  // A value of gamma(i) < 1 indicates agreement for the DVH bin compareIndex
+
+  if (compareIndex >= compareDvhPlot.size())
+  {
+    std::cerr << "Invalid bin index for compare plot! (" << compareIndex << ">=" << compareDvhPlot.size() << ")" << std::endl;
+    return -1.0;
+  }
+
+  double gamma = DBL_MAX;
+  double di = compareDvhPlot[compareIndex].first;
+  double vi = compareDvhPlot[compareIndex].second;
+
+  std::vector<std::pair<double,double> >::iterator referenceDvhPlotIt;
+  for (referenceDvhPlotIt = referenceDvhPlot.begin(); referenceDvhPlotIt != referenceDvhPlot.end(); ++referenceDvhPlotIt)
+  {
+    double dr = referenceDvhPlotIt->first;
+    double vr = referenceDvhPlotIt->second;
+    double Gamma = sqrt( pow((100.0*(vr-vi))/(volumeDifferenceCriterion*totalVolume),2) + pow((100.0*(dr-di))/(doseToAgreementCriterion*maxDose),2) );
+    if (Gamma < gamma)
+    {
+      gamma = Gamma;
+    }
+  }
+
+  return gamma;
 }
