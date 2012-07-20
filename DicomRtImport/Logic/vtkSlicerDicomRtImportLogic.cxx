@@ -67,6 +67,7 @@ vtkSlicerDicomRtImportLogic::vtkSlicerDicomRtImportLogic()
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportLogic::~vtkSlicerDicomRtImportLogic()
 {
+  SetVolumesLogic(NULL); // release the volumes logic object
 }
 
 //----------------------------------------------------------------------------
