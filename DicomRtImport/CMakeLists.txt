@@ -1,16 +1,14 @@
 cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
-set(EXTENSION_NAME DicomRtImport) # Do not use 'project()' - See SlicerConfig.cmake
-
-#-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
+  set(EXTENSION_NAME "DicomRtImport")
   set(EXTENSION_HOMEPAGE "https://www.assembla.com/spaces/slicerrt")
   set(EXTENSION_CATEGORY "Radiotherapy")
   set(EXTENSION_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/LoadableExtensionTemplate/Resources/Icons/LoadableExtensionTemplate.png?revision=19437&view=co")
   set(EXTENSION_STATUS "Beta")
   set(EXTENSION_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto)")
-  set(EXTENSION_DESCRIPTION "Plugin module for DICOM module that allows DICOM RT data import")
+  set(EXTENSION_DESCRIPTION "DICOM-RT plugin for importing radiotherapy data from DICOM files")
   set(EXTENSION_SCREENSHOTURLS "https://www.assembla.com/spaces/slicerrt/documents/bhB--4vSSr4BSNacwqjQWU/download/bhB--4vSSr4BSNacwqjQWU?notinline=true")
   set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 endif()
@@ -22,7 +20,11 @@ if(NOT Slicer_SOURCE_DIR)
   include(SlicerEnableExtensionTesting)
 endif()
 
+#-----------------------------------------------------------------------------
+set(MODULE_NAME "DicomRtImport") # Do not use 'project()' - See SlicerConfig.cmake
+set(MODULE_TITLE "DICOM-RT Import")
 
+#-----------------------------------------------------------------------------
 add_subdirectory(Logic)
 #add_subdirectory(Algorithm)
 
@@ -82,7 +84,8 @@ ctkMacroCompilePythonScript(
 
 #-----------------------------------------------------------------------------
 slicerMacroBuildQtModule(
-  NAME ${EXTENSION_NAME}
+  NAME ${MODULE_NAME}
+  TITLE ${MODULE_TITLE}
   EXPORT_DIRECTIVE ${qt_module_export_directive}
   INCLUDE_DIRECTORIES ${qt_module_include_directories}
   SRCS ${qt_module_SRCS}

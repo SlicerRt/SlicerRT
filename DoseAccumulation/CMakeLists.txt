@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
-set(EXTENSION_NAME DoseAccumulation) # Do not use 'project()' - See SlicerConfig.cmake
-
-#-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
+  set(EXTENSION_NAME "DoseAccumulation")
   set(EXTENSION_HOMEPAGE "https://www.assembla.com/spaces/slicerrt")
   set(EXTENSION_CATEGORY "Radiotherapy")
   set(EXTENSION_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/LoadableExtensionTemplate/Resources/Icons/LoadableExtensionTemplate.png?revision=19437&view=co")
@@ -23,7 +21,7 @@ if(NOT Slicer_SOURCE_DIR)
 endif()
 
 #-----------------------------------------------------------------------------
-set(MODULE_NAME DoseAccumulation)
+set(MODULE_NAME "DoseAccumulation")  # Do not use 'project()' - See SlicerConfig.cmake
 set(MODULE_TITLE "Dose Accumulation")
 
 #-----------------------------------------------------------------------------

@@ -57,7 +57,7 @@ qSlicerIsodoseModule::qSlicerIsodoseModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 QStringList qSlicerIsodoseModule::categories()const
 {
-  return QStringList() << "Developer Tools";
+  return QStringList() << "Radiotherapy";
 }
 
 //-----------------------------------------------------------------------------
