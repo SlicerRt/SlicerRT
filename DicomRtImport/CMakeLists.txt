@@ -6,7 +6,7 @@ set(EXTENSION_NAME DicomRtImport) # Do not use 'project()' - See SlicerConfig.cm
 #-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
   set(EXTENSION_HOMEPAGE "https://www.assembla.com/spaces/slicerrt")
-  set(EXTENSION_CATEGORY "Developer Tools.DICOM Plugins")
+  set(EXTENSION_CATEGORY "Radiotherapy")
   set(EXTENSION_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/LoadableExtensionTemplate/Resources/Icons/LoadableExtensionTemplate.png?revision=19437&view=co")
   set(EXTENSION_STATUS "Beta")
   set(EXTENSION_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto)")
