@@ -24,11 +24,25 @@ set(module_logic_SRCS
   vtkSlicerDicomRtReader.h
   )
 
+# DCMTK's dcmrt module is not part of the default list of modules
+# so we need to add it manually
+find_library( DCMTK_dcmrt_LIBRARY dcmrt
+  PATHS
+    ${CTK_DCMTK_DIR}/dcmrt/libsrc
+    ${CTK_DCMTK_DIR}/dcmrt/libsrc/Release
+    ${CTK_DCMTK_DIR}/dcmrt/libsrc/Debug
+    ${CTK_DCMTK_DIR}/dcmrt/Release
+    ${CTK_DCMTK_DIR}/dcmrt/Debug
+    ${CTK_DCMTK_DIR}/lib
+  NO_DEFAULT_PATH
+)   
+ 
 # Additional Target libraries
 set(module_logic_target_libraries
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   ${DCMTK_LIBRARIES}
+  ${DCMTK_dcmrt_LIBRARY}
   vtkSlicerVolumesModuleLogic
   vtkSlicerAnnotationsModuleMRML
   )

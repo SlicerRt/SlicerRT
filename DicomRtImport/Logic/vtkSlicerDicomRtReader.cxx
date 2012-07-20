@@ -340,37 +340,31 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     QSettings settings;
     QString databaseDirectory = settings.value("DatabaseDirectory").toString();
     dicomDatabase.openDatabase(databaseDirectory + "/ctkDICOM.sql", "SlicerRt");
-    QString query("SELECT Filename FROM Images WHERE SOPInstanceUID="); 
-    QString uid(ReferencedSOPInstanceUID.c_str());
-    QString quote("\"");
-    QStringList resultStringList = dicomDatabase.runQuery(query + quote + uid + quote);
+    QString referencedFilename=dicomDatabase.fileForInstance(ReferencedSOPInstanceUID.c_str());
     dicomDatabase.closeDatabase();
     
-    if ( !resultStringList.isEmpty() )
+    if ( !referencedFilename.isEmpty() ) //isNull?
     {
-      if ( !resultStringList.first().isNull() && !resultStringList.first().isEmpty() )
+      // load DICOM file or dataset
+      DcmFileFormat fileformat;
+
+      OFCondition result;
+      result = fileformat.loadFile( referencedFilename.toStdString().c_str(), EXS_Unknown);
+      if (result.good())
       {
-        // load DICOM file or dataset
-        DcmFileFormat fileformat;
-    
-        OFCondition result;
-        result = fileformat.loadFile( resultStringList.first().toStdString().c_str(), EXS_Unknown);
-        if (result.good())
+        DcmDataset *dataset = fileformat.getDataset();
+        // from here use dicom toolkit to read slice thickness; wangk 2012/04/10
+        OFString sliceThicknessString;
+        if (dataset->findAndGetOFString(DCM_SliceThickness, sliceThicknessString).good())
         {
-          DcmDataset *dataset = fileformat.getDataset();
-          // from here use dicom toolkit to read slice thickness; wangk 2012/04/10
-          OFString sliceThicknessString;
-          if (dataset->findAndGetOFString(DCM_SliceThickness, sliceThicknessString).good())
+          SliceThickness = atof(sliceThicknessString.c_str());
+          if (SliceThickness <= 0.0 || SliceThickness > 20.0)
           {
-            SliceThickness = atof(sliceThicknessString.c_str());
-            if (SliceThickness <= 0.0 || SliceThickness > 20.0)
-            {
-              SliceThickness = 2.0;
-            }
+            SliceThickness = 2.0;
           }
-          else
-          {
-          }
+        }
+        else
+        {
         }
       }
     }
