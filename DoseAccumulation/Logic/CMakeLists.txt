@@ -3,7 +3,7 @@ project(vtkSlicer${MODULE_NAME}ModuleLogic)
 #-----------------------------------------------------------------------------
 set(module_logic_name "${PROJECT_NAME}")
 
-set(module_logic_export_directive "VTK_SLICER_DOSEACCUMULATION_MODULE_LOGIC_EXPORT")
+set(module_logic_export_directive "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT")
 
 set(module_logic_include_directories
   )

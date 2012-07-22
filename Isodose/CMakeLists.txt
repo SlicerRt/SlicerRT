@@ -1,34 +1,16 @@
 cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
-if(NOT Slicer_SOURCE_DIR)
-  set(EXTENSION_NAME "Isodose")
-  set(EXTENSION_HOMEPAGE "https://www.assembla.com/spaces/slicerrt")
-  set(EXTENSION_CATEGORY "Radiotherapy")
-  set(EXTENSION_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/LoadableExtensionTemplate/Resources/Icons/LoadableExtensionTemplate.png?revision=19437&view=co")
-  set(EXTENSION_STATUS "Beta")
-  set(EXTENSION_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto)")
-  set(EXTENSION_DESCRIPTION "Compute and display isodose lines and surfaces")
-  set(EXTENSION_SCREENSHOTURLS "https://www.assembla.com/spaces/slicerrt/documents/bhB--4vSSr4BSNacwqjQWU/download/bhB--4vSSr4BSNacwqjQWU?notinline=true")
-  set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
-endif()
-
-#-----------------------------------------------------------------------------
-if(NOT Slicer_SOURCE_DIR)
-  find_package(Slicer REQUIRED)
-  include(${Slicer_USE_FILE})
-  include(SlicerEnableExtensionTesting)
-endif()
-
-#-----------------------------------------------------------------------------
 set(MODULE_NAME "Isodose") # Do not use 'project()' - See SlicerConfig.cmake
 set(MODULE_TITLE "Isodose")
+
+string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
 add_subdirectory(Logic)
 
 #-----------------------------------------------------------------------------
-set(qt_module_export_directive "Q_SLICER_QTMODULES_ISODOSE_EXPORT")
+set(qt_module_export_directive "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 
 set(qt_module_include_directories
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
@@ -79,5 +61,5 @@ endif()
 
 #-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
-  include(${Slicer_EXTENSION_CPACK})
+#  include(${Slicer_EXTENSION_CPACK})
 endif()

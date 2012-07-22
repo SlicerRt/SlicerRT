@@ -7,7 +7,7 @@ project(vtkSlicer${MODULE_NAME}ModuleLogic)
 set(module_logic_name "${PROJECT_NAME}")
 
 # The header '${module_logic_name}Export.h' will be automatically configured.
-set(module_logic_export_directive "VTK_SLICER_DOSEVOLUMEHISTOGRAM_MODULE_LOGIC_EXPORT")
+set(module_logic_export_directive "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT")
 
 # Additional directories to include
 set(module_logic_include_directories
