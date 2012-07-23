@@ -48,12 +48,23 @@ class vtkMRMLModelNode;
 class vtkMRMLChartViewNode;
 class vtkMRMLDoseVolumeHistogramNode;
 
+/* Define case insensitive string compare for all supported platforms. */
+#if defined( _WIN32 ) && !defined(__CYGWIN__)
+#  if defined(__BORLANDC__)
+#    define STRCASECMP stricmp
+#  else
+#    define STRCASECMP _stricmp
+#  endif
+#else
+#  define STRCASECMP strcasecmp
+#endif
+
 /// Case-insensitive comparison operator for collecting metrics
 struct InsensitiveCompare
 { 
   bool operator() (const std::string& a, const std::string& b) const
   {
-    return stricmp(a.c_str(), b.c_str()) < 0;
+    return STRCASECMP(a.c_str(), b.c_str()) < 0;
   }
 };
 

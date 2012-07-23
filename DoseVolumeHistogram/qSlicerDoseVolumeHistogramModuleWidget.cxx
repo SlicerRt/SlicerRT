@@ -59,7 +59,7 @@ public:
   vtkSlicerDoseVolumeHistogramLogic* logic() const;
 public:
   /// Map that associates a string pair containing the structure set plot name (including table row number) and the vtkMRMLDoubleArrayNode id (respectively) to the show/hide in chart checkboxes
-  std::map<QCheckBox*, std::pair<std::string, std::string>> ChartCheckboxToStructureSetNameMap;
+  std::map<QCheckBox*, std::pair<std::string, std::string> > ChartCheckboxToStructureSetNameMap;
 
   /// Flag whether show/hide all checkbox has been clicked - some operations are not necessary when it was clicked
   bool ShowHideAllClicked;
@@ -200,7 +200,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
-    if (paramNode->GetDoseVolumeNodeId() && stricmp(paramNode->GetDoseVolumeNodeId(),""))
+    if (paramNode->GetDoseVolumeNodeId() && strcmp(paramNode->GetDoseVolumeNodeId(),""))
     {
       d->MRMLNodeComboBox_DoseVolume->setCurrentNode(paramNode->GetDoseVolumeNodeId());
     }
@@ -208,7 +208,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     {
       this->doseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
     }
-    if (paramNode->GetStructureSetModelNodeId() && stricmp(paramNode->GetStructureSetModelNodeId(),""))
+    if (paramNode->GetStructureSetModelNodeId() && strcmp(paramNode->GetStructureSetModelNodeId(),""))
     {
       d->MRMLNodeComboBox_StructureSet->setCurrentNode(paramNode->GetStructureSetModelNodeId());
     }
@@ -216,7 +216,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     {
       this->structureSetNodeChanged(d->MRMLNodeComboBox_StructureSet->currentNode());
     }
-    if (paramNode->GetChartNodeId() && stricmp(paramNode->GetChartNodeId(),""))
+    if (paramNode->GetChartNodeId() && strcmp(paramNode->GetChartNodeId(),""))
     {
       d->MRMLNodeComboBox_Chart->setCurrentNode(paramNode->GetChartNodeId());
     }
@@ -288,14 +288,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   {
     // Enable/disable ComputeDVH button
     bool dvhCanBeComputed = paramNode->GetDoseVolumeNodeId()
-                     && stricmp(paramNode->GetDoseVolumeNodeId(), "")
+                     && strcmp(paramNode->GetDoseVolumeNodeId(), "")
                      && paramNode->GetStructureSetModelNodeId()
-                     && stricmp(paramNode->GetStructureSetModelNodeId(), "");
+                     && strcmp(paramNode->GetStructureSetModelNodeId(), "");
     d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
 
     // Enable/disable Export DVH to file button
     bool dvhCanBeExported = false;
-    if (paramNode->GetChartNodeId() && stricmp(paramNode->GetChartNodeId(),""))
+    if (paramNode->GetChartNodeId() && strcmp(paramNode->GetChartNodeId(),""))
     {
       for (std::vector<bool>::iterator stateIt=paramNode->GetShowInChartCheckStates()->begin();
         stateIt!=paramNode->GetShowInChartCheckStates()->end(); ++stateIt)
@@ -338,7 +338,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateChartCheckboxesState()
     return;
   }
 
-  std::map<QCheckBox*, std::pair<std::string, std::string>>::iterator it;
+  std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator it;
   vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetChartNodeId()));
 
@@ -494,7 +494,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
 
   std::set<std::string>* dvhNodes = paramNode->GetDvhDoubleArrayNodeIds();
 
-  std::map<QCheckBox*, std::pair<std::string, std::string>>::iterator checkboxIt;
+  std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator checkboxIt;
   for (checkboxIt=d->ChartCheckboxToStructureSetNameMap.begin(); checkboxIt!=d->ChartCheckboxToStructureSetNameMap.end(); ++checkboxIt)
   {
     QCheckBox* checkbox = checkboxIt->first;
@@ -741,7 +741,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aS
   if (!d->ShowHideAllClicked)
   {
     // Update states vector
-    std::map<QCheckBox*, std::pair<std::string, std::string>>::iterator checkboxIt;
+    std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator checkboxIt;
     std::vector<bool>::iterator stateIt;
     for (checkboxIt=d->ChartCheckboxToStructureSetNameMap.begin(),
       stateIt=paramNode->GetShowInChartCheckStates()->begin();
@@ -757,7 +757,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aS
     d->checkBox_ShowHideAll->blockSignals(true);
     bool isThereChecked = false;
     bool isThereUnchecked = false;
-    std::map<QCheckBox*, std::pair<std::string, std::string>>::iterator it;
+    std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator it;
     for (it=d->ChartCheckboxToStructureSetNameMap.begin(); it!=d->ChartCheckboxToStructureSetNameMap.end(); ++it)
     {
       if (it->first->isChecked())
@@ -802,7 +802,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showHideAllCheckedStateChanged(int 
   paramNode->SetShowHideAll(aState);
   paramNode->DisableModifiedEventOff();
 
-  std::map<QCheckBox*, std::pair<std::string, std::string>>::iterator checkboxIt;
+  std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator checkboxIt;
 
   d->ShowHideAllClicked = true;
 

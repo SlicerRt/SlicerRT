@@ -179,15 +179,15 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseComparisonNode());
-    if (paramNode->GetReferenceDoseVolumeNodeId() && stricmp(paramNode->GetReferenceDoseVolumeNodeId(),""))
+    if (paramNode->GetReferenceDoseVolumeNodeId() && strcmp(paramNode->GetReferenceDoseVolumeNodeId(),""))
     {
       d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNode(paramNode->GetReferenceDoseVolumeNodeId());
     }
-    if (paramNode->GetCompareDoseVolumeNodeId() && stricmp(paramNode->GetCompareDoseVolumeNodeId(),""))
+    if (paramNode->GetCompareDoseVolumeNodeId() && strcmp(paramNode->GetCompareDoseVolumeNodeId(),""))
     {
       d->MRMLNodeComboBox_CompareDoseVolume->setCurrentNode(paramNode->GetCompareDoseVolumeNodeId());
     }
-    if (paramNode->GetGammaVolumeNodeId() && stricmp(paramNode->GetGammaVolumeNodeId(),""))
+    if (paramNode->GetGammaVolumeNodeId() && strcmp(paramNode->GetGammaVolumeNodeId(),""))
     {
       d->MRMLNodeComboBox_GammaVolume->setCurrentNode(paramNode->GetGammaVolumeNodeId());
     }
@@ -236,11 +236,11 @@ void qSlicerDoseComparisonModuleWidget::updateButtonsState()
 
   bool applyEnabled = d->logic()->GetDoseComparisonNode()
                    && d->logic()->GetDoseComparisonNode()->GetReferenceDoseVolumeNodeId()
-                   && stricmp(d->logic()->GetDoseComparisonNode()->GetReferenceDoseVolumeNodeId(), "")
+                   && strcmp(d->logic()->GetDoseComparisonNode()->GetReferenceDoseVolumeNodeId(), "")
                    && d->logic()->GetDoseComparisonNode()->GetCompareDoseVolumeNodeId()
-                   && stricmp(d->logic()->GetDoseComparisonNode()->GetCompareDoseVolumeNodeId(), "")
+                   && strcmp(d->logic()->GetDoseComparisonNode()->GetCompareDoseVolumeNodeId(), "")
                    && d->logic()->GetDoseComparisonNode()->GetGammaVolumeNodeId()
-                   && stricmp(d->logic()->GetDoseComparisonNode()->GetGammaVolumeNodeId(), "");
+                   && strcmp(d->logic()->GetDoseComparisonNode()->GetGammaVolumeNodeId(), "");
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
 

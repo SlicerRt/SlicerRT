@@ -162,7 +162,7 @@ void vtkSlicerDoseVolumeHistogramLogic::RefreshDvhDoubleArrayNodesFromScene()
     if (doubleArrayNode)
     {
       const char* type = doubleArrayNode->GetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str());
-      if (type != NULL && stricmp(type, DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
+      if (type != NULL && strcmp(type, DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
       {
         this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->insert(doubleArrayNode->GetID());
       }
@@ -202,7 +202,7 @@ void vtkSlicerDoseVolumeHistogramLogic
     if (doubleArrayNode)
     {
       const char* type = doubleArrayNode->GetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str());
-      if (type != NULL && stricmp(type, DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
+      if (type != NULL && strcmp(type, DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
       {
         this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->insert(doubleArrayNode->GetID());
       }
@@ -674,7 +674,7 @@ void vtkSlicerDoseVolumeHistogramLogic
     }
 
     const char* structureNameInChart = arrayNode->GetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
-    if (stricmp(structureNameInChart, structureNameToAdd) == 0)
+    if (strcmp(structureNameInChart, structureNameToAdd) == 0)
     {
       numberOfStructuresWithSameName++;
     }

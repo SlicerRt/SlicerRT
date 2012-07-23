@@ -187,7 +187,7 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseAccumulationNode());
     d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
-    if (paramNode->GetAccumulatedDoseVolumeNodeId() && stricmp(paramNode->GetAccumulatedDoseVolumeNodeId(),""))
+    if (paramNode->GetAccumulatedDoseVolumeNodeId() && strcmp(paramNode->GetAccumulatedDoseVolumeNodeId(),""))
     {
       d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNode(paramNode->GetAccumulatedDoseVolumeNodeId());
     }
@@ -250,7 +250,7 @@ void qSlicerDoseAccumulationModuleWidget::updateButtonsState()
 
   bool applyEnabled = d->logic()->GetDoseAccumulationNode()
                    && d->logic()->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeNodeId()
-                   && stricmp(d->logic()->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeNodeId(), "")
+                   && strcmp(d->logic()->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeNodeId(), "")
                    && d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->size() > 0;
   d->pushButton_Apply->setEnabled(applyEnabled);
 }

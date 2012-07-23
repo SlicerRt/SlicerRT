@@ -45,6 +45,17 @@
 
 #define EPSILON 0.0001
 
+/* Define case insensitive string compare for all supported platforms. */
+#if defined( _WIN32 ) && !defined(__CYGWIN__)
+#  if defined(__BORLANDC__)
+#    define STRCASECMP stricmp
+#  else
+#    define STRCASECMP _stricmp
+#  endif
+#else
+#  define STRCASECMP strcasecmp
+#endif
+
 std::string csvSeparatorCharacter(",");
 
 //-----------------------------------------------------------------------------
@@ -65,7 +76,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   const char *dataDirectoryPath = NULL;
   if (argc > 2)
   {
-    if (stricmp(argv[1], "-DataDirectoryPath") == 0)
+    if (STRCASECMP(argv[1], "-DataDirectoryPath") == 0)
     {
       dataDirectoryPath = argv[2];
       std::cout << "Data directory path: " << dataDirectoryPath << std::endl;
@@ -83,7 +94,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   const char *baselineDirectoryPath = NULL;
   if (argc > 4)
   {
-    if (stricmp(argv[3], "-BaselineDirectoryPath") == 0)
+    if (STRCASECMP(argv[3], "-BaselineDirectoryPath") == 0)
     {
       baselineDirectoryPath = argv[4];
       std::cout << "Baseline directory path: " << baselineDirectoryPath << std::endl;
@@ -96,7 +107,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   const char *temporaryDirectoryPath = NULL;
   if (argc > 6)
   {
-    if (stricmp(argv[5], "-TemporaryDirectoryPath") == 0)
+    if (STRCASECMP(argv[5], "-TemporaryDirectoryPath") == 0)
     {
       temporaryDirectoryPath = argv[6];
       std::cout << "Temporary directory path: " << temporaryDirectoryPath << std::endl;
@@ -109,7 +120,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   double volumeDifferenceCriterion = 0.0;
   if (argc > 8)
   {
-    if (stricmp(argv[7], "-VolumeDifferenceCriterion") == 0)
+    if (STRCASECMP(argv[7], "-VolumeDifferenceCriterion") == 0)
     {
       volumeDifferenceCriterion = atof(argv[8]);
       std::cout << "Volume difference criterion: " << volumeDifferenceCriterion << std::endl;
@@ -118,7 +129,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   double doseToAgreementCriterion = 0.0;
   if (argc > 10)
   {
-    if (stricmp(argv[9], "-DoseToAgreementCriterion") == 0)
+    if (STRCASECMP(argv[9], "-DoseToAgreementCriterion") == 0)
     {
       doseToAgreementCriterion = atof(argv[10]);
       std::cout << "Dose-to-agreement criterion: " << doseToAgreementCriterion << std::endl;
@@ -127,7 +138,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   double agreementAcceptancePercentageThreshold = 0.0;
   if (argc > 12)
   {
-    if (stricmp(argv[11], "-AgreementAcceptancePercentageThreshold") == 0)
+    if (STRCASECMP(argv[11], "-AgreementAcceptancePercentageThreshold") == 0)
     {
       agreementAcceptancePercentageThreshold = atof(argv[12]);
       std::cout << "Agreement acceptance percentage threshold: " << agreementAcceptancePercentageThreshold << std::endl;
@@ -136,7 +147,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   double dvhStartValue = 0.0;
   if (argc > 14)
   {
-    if (stricmp(argv[13], "-DvhStartValue") == 0)
+    if (STRCASECMP(argv[13], "-DvhStartValue") == 0)
     {
       dvhStartValue = atof(argv[14]);
       std::cout << "DVH start value: " << dvhStartValue << std::endl;
@@ -145,7 +156,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   double dvhStepSize = 0.0;
   if (argc > 16)
   {
-    if (stricmp(argv[15], "-DvhStepSize") == 0)
+    if (STRCASECMP(argv[15], "-DvhStepSize") == 0)
     {
       dvhStepSize = atof(argv[16]);
       std::cout << "DVH step size: " << dvhStepSize << std::endl;
@@ -416,9 +427,9 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
     << (vtksys::SystemTools::FileExists(baselineCsvFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
 
   // Vector of structures, each containing a vector of tuples
-  std::vector< std::vector<std::pair<double,double>> > currentDvh;
-  std::vector< std::vector<std::pair<double,double>> > baselineDvh;
-  std::vector< std::vector<std::pair<double,double>> >* dvh;
+  std::vector< std::vector<std::pair<double,double> > > currentDvh;
+  std::vector< std::vector<std::pair<double,double> > > baselineDvh;
+  std::vector< std::vector<std::pair<double,double> > >* dvh;
 
   char line[1024];
   for (int i=0; i<2; ++i)
@@ -496,8 +507,8 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   agreementAcceptancePercentage = 0.0;
   int totalNumberOfBins = 0;
   int totalNumberOfAcceptedAgreements = 0;
-  std::vector< std::vector<std::pair<double,double>> >::iterator currentIt;
-  std::vector< std::vector<std::pair<double,double>> >::iterator baselineIt;
+  std::vector< std::vector<std::pair<double,double> > >::iterator currentIt;
+  std::vector< std::vector<std::pair<double,double> > >::iterator baselineIt;
   std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhNodeIt;
 
   for (currentIt = currentDvh.begin(), baselineIt = baselineDvh.begin(), dvhNodeIt = dvhNodes.begin();
