@@ -140,6 +140,7 @@ void vtkSlicerDicomRtImportLogic::Examine(vtkDICOMImportInfo *importInfo)
       std::string tooltip;
       std::string warning;
       bool selected=true;
+      double confidence=0.9; // almost sure, it's not 1.0 to allow user modules to override this importer
 
       OFString seriesNumber;
       dataset->findAndGetOFString(DCM_SeriesNumber, seriesNumber);
@@ -217,7 +218,7 @@ void vtkSlicerDicomRtImportLogic::Examine(vtkDICOMImportInfo *importInfo)
       vtkSmartPointer<vtkStringArray> loadableFileList=vtkSmartPointer<vtkStringArray>::New();
       loadableFileList->InsertNextValue(fileName);
      
-      importInfo->InsertNextLoadable(loadableFileList, name.c_str(), tooltip.c_str(), warning.c_str(), selected);
+      importInfo->InsertNextLoadable(loadableFileList, name.c_str(), tooltip.c_str(), warning.c_str(), selected, confidence);
     }
 
   }

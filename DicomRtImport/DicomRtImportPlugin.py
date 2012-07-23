@@ -44,6 +44,7 @@ class DicomRtImportPluginClass(DICOMPlugin):
       loadable.name = examineInfo.GetLoadableName(loadableIndex)
       loadable.tooltip = examineInfo.GetLoadableTooltip(loadableIndex)
       loadable.selected = examineInfo.GetLoadableSelected(loadableIndex)
+      loadable.confidence = examineInfo.GetLoadableConfidence(loadableIndex)
       loadables.append(loadable)
          
     return loadables

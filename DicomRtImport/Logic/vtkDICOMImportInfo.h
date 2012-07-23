@@ -61,7 +61,7 @@ public:
 
   /// Insert a Loadable item into the list. A Loadable item describes the characteristics of a DICOM object that
   /// a plugin can load.
-  int InsertNextLoadable(vtkStringArray* files, const char* name, const char* tooltip, const char* warning, bool selected);
+  int InsertNextLoadable(vtkStringArray* files, const char* name, const char* tooltip, const char* warning, bool selected, double confidence);
 
   /// Get the total number of Loadable items
   int GetNumberOfLoadables();
@@ -81,6 +81,9 @@ public:
   /// Is the object checked for loading by default
   bool GetLoadableSelected(int loadableIndex);
 
+  /// Confidence of the importer (1.0 means full confidence, default is 0.5)
+  bool GetLoadableConfidence(int loadableIndex);
+  
   /// Remove all the Loadable items
   void RemoveAllLoadables();
 

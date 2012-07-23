@@ -35,6 +35,7 @@ struct Loadable
   std::string tooltip;    
   std::string warning;  
   bool selected;
+  double confidence;
 };
 
 //----------------------------------------------------------------------------
@@ -125,6 +126,17 @@ bool vtkDICOMImportInfo::GetLoadableSelected(int loadableIndex)
 }
 
 //----------------------------------------------------------------------------
+bool vtkDICOMImportInfo::GetLoadableConfidence(int loadableIndex)
+{
+  if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
+  {
+    vtkErrorMacro("Invalid loadable index" << loadableIndex);
+    return false;
+  }
+  return this->PrivateData->Loadables[loadableIndex].confidence;
+}
+
+//----------------------------------------------------------------------------
 int vtkDICOMImportInfo::InsertNextFileList()
 {
   vtkStringArray* fileList=vtkStringArray::New();
@@ -178,7 +190,7 @@ void vtkDICOMImportInfo::RemoveAllLoadables()
 }
 
 //----------------------------------------------------------------------------
-int vtkDICOMImportInfo::InsertNextLoadable(vtkStringArray* files, const char* name, const char* tooltip, const char* warning, bool selected)
+int vtkDICOMImportInfo::InsertNextLoadable(vtkStringArray* files, const char* name, const char* tooltip, const char* warning, bool selected, double confidence)
 {
   Loadable loadable;
   loadable.files=files;
@@ -187,6 +199,7 @@ int vtkDICOMImportInfo::InsertNextLoadable(vtkStringArray* files, const char* na
   loadable.tooltip=tooltip;
   loadable.warning=warning;
   loadable.selected=selected;
+  loadable.confidence=confidence;
   this->PrivateData->Loadables.push_back(loadable);
   return this->PrivateData->Loadables.size()-1;
 }
