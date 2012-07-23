@@ -31,7 +31,7 @@ endforeach()
 #-----------------------------------------------------------------------------
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
-macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirectoryPath TemporaryDirectoryPath VolumeDifferenceCriterion DoseToAgreementCriterion AgreementAcceptancePercentageThreshold DvhStartValue DvhStepSize)
+macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirectoryPath TemporaryDirectoryPath VolumeDifferenceCriterion DoseToAgreementCriterion AgreementAcceptancePercentageThreshold MetricDifferenceThreshold DvhStartValue DvhStepSize)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
@@ -41,6 +41,7 @@ macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirec
     -VolumeDifferenceCriterion ${VolumeDifferenceCriterion}
 	-DoseToAgreementCriterion ${DoseToAgreementCriterion}
     -AgreementAcceptancePercentageThreshold ${AgreementAcceptancePercentageThreshold}
+	-MetricDifferenceThreshold ${MetricDifferenceThreshold}
 	-DvhStartValue ${DvhStartValue}
 	-DvhStepSize ${DvhStepSize}
   )
@@ -58,15 +59,9 @@ TEST_WITH_DATA(
   100.0
   0.0
   0.0
+  0.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
-
-# Compare exported DVH metrics with baseline
-add_test(
-  NAME vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CompareMetrics
-  COMMAND ${CMAKE_COMMAND} -E compare_files ${TEMP}/DvhTestMetrics.csv ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate/BaselineDvhMetrics.csv
-)
-set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_CompareMetrics PROPERTIES DEPENDS vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate)
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -78,6 +73,7 @@ TEST_WITH_DATA(
   2.0
   1.0
   95.0
+  3.0
   0.0
   0.0
 )
@@ -93,6 +89,7 @@ TEST_WITH_DATA(
   2.0
   1.0
   66.9
+  3.0
   0.0
   0.0
 )
@@ -108,6 +105,7 @@ TEST_WITH_DATA(
   2.0
   1.0
   95.0
+  3.0
   0.0
   0.0
 )
@@ -123,6 +121,7 @@ TEST_WITH_DATA(
   2.0
   1.0
   95.0
+  3.0
   0.01
   0.02
 )
@@ -137,7 +136,8 @@ TEST_WITH_DATA(
   ${TEMP}
   2.0
   1.0
-  70.5
+  70.3
+  3.0
   0.01
   0.02
 )
@@ -153,6 +153,7 @@ TEST_WITH_DATA(
   2.0
   1.0
   95.0
+  3.0
   0.01
   0.02
 )

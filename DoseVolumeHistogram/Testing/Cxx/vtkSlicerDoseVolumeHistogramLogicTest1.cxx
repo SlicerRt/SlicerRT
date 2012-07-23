@@ -69,6 +69,8 @@ double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& refer
                                    int compareIndex, double totalVolume, double maxDose,
                                    double volumeDifferenceCriterion, double doseToAgreementCriterion);
 
+int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baselineDvhMetricCsvFileName, double metricDifferenceThreshold);
+
 //-----------------------------------------------------------------------------
 int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 {
@@ -144,21 +146,30 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
       std::cout << "Agreement acceptance percentage threshold: " << agreementAcceptancePercentageThreshold << std::endl;
     }
   }
-  double dvhStartValue = 0.0;
+  double metricDifferenceThreshold = 0.0;
   if (argc > 14)
   {
     if (STRCASECMP(argv[13], "-DvhStartValue") == 0)
     {
-      dvhStartValue = atof(argv[14]);
+      metricDifferenceThreshold = atof(argv[14]);
+      std::cout << "Metric difference threshold: " << metricDifferenceThreshold << std::endl;
+    }
+  }
+  double dvhStartValue = 0.0;
+  if (argc > 16)
+  {
+    if (stricmp(argv[15], "-DvhStartValue") == 0)
+    {
+      dvhStartValue = atof(argv[16]);
       std::cout << "DVH start value: " << dvhStartValue << std::endl;
     }
   }
   double dvhStepSize = 0.0;
-  if (argc > 16)
+  if (argc > 18)
   {
     if (STRCASECMP(argv[15], "-DvhStepSize") == 0)
     {
-      dvhStepSize = atof(argv[16]);
+      dvhStepSize = atof(argv[18]);
       std::cout << "DVH step size: " << dvhStepSize << std::endl;
     }
   }
@@ -171,6 +182,10 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   if (doseToAgreementCriterion == 0.0)
   {
     doseToAgreementCriterion = EPSILON;
+  }
+  if (metricDifferenceThreshold == 0.0)
+  {
+    metricDifferenceThreshold = EPSILON;
   }
 
   // Create scene
@@ -189,8 +204,10 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 
   // Load and set attributes from file
   std::string doseAttributesFileName = std::string(dataDirectoryPath) + "/Dose.attributes";
-  std::cout << "Loading dose attributes from file '" << doseAttributesFileName << "' ("
-    << (vtksys::SystemTools::FileExists(doseAttributesFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
+  if (!vtksys::SystemTools::FileExists(doseAttributesFileName.c_str()))
+  {
+    std::cerr << "Loading dose attributes from file '" << doseAttributesFileName << "' failed - the file does not exist!" << std::endl;
+  }
 
   std::string doseUnitName = "";
   std::ifstream attributesStream;
@@ -216,8 +233,10 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 
   // Load dose volume
   std::string doseVolumeFileName = std::string(dataDirectoryPath) + "/Dose.nrrd";
-  std::cout << "Loading dose volume from file '" << doseVolumeFileName << "' ("
-    << (vtksys::SystemTools::FileExists(doseVolumeFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
+  if (!vtksys::SystemTools::FileExists(doseVolumeFileName.c_str()))
+  {
+    std::cerr << "Loading dose volume from file '" << doseVolumeFileName << "' failed - the file does not exist!" << std::endl;
+  }
 
   vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> doseVolumeArchetypeStorageNode =
     vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
@@ -256,8 +275,10 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 
   // Load models and create nodes
   std::string structureNamesFileName = std::string(dataDirectoryPath) + "/Structure.names";
-  std::cout << "Loading structure names from file '" << structureNamesFileName << "' ("
-    << (vtksys::SystemTools::FileExists(structureNamesFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
+  if (!vtksys::SystemTools::FileExists(structureNamesFileName.c_str()))
+  {
+    std::cerr << "Loading structure names from file '" << structureNamesFileName << "' failed - the file does not exist!" << std::endl;
+  }
 
   std::vector<std::string> structureNames;
   std::ifstream structureNamesStream;
@@ -278,8 +299,10 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     std::string modelFileName = std::string(dataDirectoryPath) + "/" + (*it) + ".vtk";
     modelPolyDataReader->SetFileName(modelFileName.c_str());
 
-    std::cout << "Loading structure model from file '" << modelFileName << "' ("
-      << (vtksys::SystemTools::FileExists(modelFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
+    if (!vtksys::SystemTools::FileExists(modelFileName.c_str()))
+    {
+      std::cerr << "Loading structure model from file '" << modelFileName << "' failed - the file does not exist!" << std::endl;
+    }
 
     // Create display node
     vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode =
@@ -393,15 +416,16 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   dvhLogic->ExportDvhMetricsToCsv(dvhMetricsCsvFileName.c_str(),
     vDoseValuesCc, vDoseValuesPercent, dVolumeValuesCc, dVolumeValuesPercent);
 
-  std::string baselineCsvFileName = std::string(baselineDirectoryPath) + "/BaselineDvhTable.csv";
+  bool returnWithSuccess = true;
 
   // Compare CSV DVH tables
+  std::string baselineDvhTableCsvFileName = std::string(baselineDirectoryPath) + "/BaselineDvhTable.csv";
   double agreementAcceptancePercentage = -1.0;
-  if (CompareCsvDvhTables(dvhCsvFileName, baselineCsvFileName, doseUnitName, dvhNodes, 
+  if (CompareCsvDvhTables(dvhCsvFileName, baselineDvhTableCsvFileName, doseUnitName, dvhNodes, 
     volumeDifferenceCriterion, doseToAgreementCriterion, agreementAcceptancePercentage) > 0)
   {
     std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
-    return EXIT_FAILURE;
+    returnWithSuccess = false;
   }
 
   std::cout << "Agreement percentage: " << std::fixed << std::setprecision(2) << agreementAcceptancePercentage << "% (acceptance rate: " << agreementAcceptancePercentageThreshold << "%)" << std::endl;
@@ -410,7 +434,26 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   {
     std::cerr << "Agreement acceptance percentage is below threshold: " << std::fixed << std::setprecision(2) << agreementAcceptancePercentage
       << " < " << agreementAcceptancePercentageThreshold << std::endl;
+    returnWithSuccess = false;
+  }
 
+  // Compare CSV DVH metrics
+  std::string baselineDvhMetricCsvFileName = std::string(baselineDirectoryPath) + "/BaselineDvhMetrics.csv";
+  if (vtksys::SystemTools::FileExists(baselineDvhMetricCsvFileName.c_str())) // TODO: remove when all the metric tables can be compared
+  {
+    if (CompareCsvDvhMetrics(dvhMetricsCsvFileName, baselineDvhMetricCsvFileName, metricDifferenceThreshold) > 0)
+    {
+      std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
+      returnWithSuccess = false;
+    }
+    else
+    {
+      std::cout << "DVH metrics are within threshold compared to baseline." << std::endl;
+    }
+  }
+
+  if (!returnWithSuccess)
+  {
     return EXIT_FAILURE;
   }
 
@@ -423,8 +466,11 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
                         double volumeDifferenceCriterion, double doseToAgreementCriterion,
                         double &agreementAcceptancePercentage)
 {
-  std::cout << "Loading baseline CSV DVH table from file '" << baselineCsvFileName << "' ("
-    << (vtksys::SystemTools::FileExists(baselineCsvFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
+  if (!vtksys::SystemTools::FileExists(baselineCsvFileName.c_str()))
+  {
+    std::cerr << "Loading baseline CSV DVH table from file '" << baselineCsvFileName << "' failed - the file does not exist!" << std::endl;
+    return 1;
+  }
 
   // Vector of structures, each containing a vector of tuples
   std::vector< std::vector<std::pair<double,double> > > currentDvh;
@@ -604,4 +650,110 @@ double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& refer
   }
 
   return gamma;
+}
+
+//-----------------------------------------------------------------------------
+int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baselineDvhMetricCsvFileName, double metricDifferenceThreshold)
+{
+  if (!vtksys::SystemTools::FileExists(baselineDvhMetricCsvFileName.c_str()))
+  {
+    std::cerr << "Loading baseline CSV DVH table from file '" << baselineDvhMetricCsvFileName << "' failed - the file does not exist!" << std::endl;
+    return 1;
+  }
+
+  std::vector<std::string> fieldNames;
+  char currentLine[1024];
+  char baselineLine[1024];
+
+  std::ifstream currentStream;
+  std::ifstream baselineStream;
+  currentStream.open(dvhMetricsCsvFileName.c_str(), std::ifstream::in);
+  baselineStream.open(baselineDvhMetricCsvFileName.c_str(), std::ifstream::in);
+
+  bool firstLine = true;
+  bool returnWithSuccess = true;
+
+  while ( currentStream.getline(currentLine, 1024, '\n')
+       && baselineStream.getline(baselineLine, 1024, '\n') )
+  {
+    std::string currentLineStr(currentLine);
+    std::string baselineLineStr(baselineLine);
+
+    size_t currentCommaPosition = currentLineStr.find(csvSeparatorCharacter);
+    size_t baselineCommaPosition = baselineLineStr.find(csvSeparatorCharacter);
+
+    // Collect field names
+    if (firstLine)
+    {
+      while (currentCommaPosition != std::string::npos && baselineCommaPosition != std::string::npos)
+      {
+        fieldNames.push_back(currentLineStr.substr(0, currentCommaPosition));
+
+        currentLineStr = currentLineStr.substr(currentCommaPosition+1);
+        baselineLineStr = baselineLineStr.substr(baselineCommaPosition+1);
+
+        currentCommaPosition = currentLineStr.find(csvSeparatorCharacter);
+        baselineCommaPosition = baselineLineStr.find(csvSeparatorCharacter);
+      }
+      firstLine = false;
+    }
+    else
+    {
+      // Read all metrics from the current line
+      int i=0;
+      std::string structureName;
+      while (currentCommaPosition != std::string::npos && baselineCommaPosition != std::string::npos)
+      {
+        if (i==0)
+        {
+          structureName = currentLineStr.substr(0, currentCommaPosition);
+          i++;
+          continue;
+        }
+
+        double currentMetric = atof(currentLineStr.substr(0, currentCommaPosition).c_str());
+        double baselineMetric = atof(baselineLineStr.substr(0, baselineCommaPosition).c_str());
+
+        currentLineStr = currentLineStr.substr(currentCommaPosition+1);
+        baselineLineStr = baselineLineStr.substr(baselineCommaPosition+1);
+
+        currentCommaPosition = currentLineStr.find(csvSeparatorCharacter);
+        baselineCommaPosition = baselineLineStr.find(csvSeparatorCharacter);
+
+        double error = DBL_MAX;
+        if (baselineMetric < EPSILON && currentMetric < EPSILON)
+        {
+          error = 0.0;
+        }
+        else
+        {
+          error = currentMetric / baselineMetric - 1.0;
+        }
+
+        if (error > metricDifferenceThreshold)
+        {
+          std::cerr << "Difference of metric '" << fieldNames[i] << "' for structure '" << structureName << "' is too high! Current=" << currentMetric << "Baseline=" << baselineMetric;
+          returnWithSuccess = false;
+        }
+
+        i++;
+      }
+    }
+
+    if ( (currentCommaPosition != std::string::npos) != (baselineCommaPosition != std::string::npos) )
+    {
+      std::cerr << "Number of fields differ in the current and the baseline metric tables!" << std::endl;
+      return 1;
+    }
+  }
+
+  currentStream.close();
+  baselineStream.close();
+
+  if (!returnWithSuccess)
+  {
+    return 1;
+  }
+
+  return 0;
 }
