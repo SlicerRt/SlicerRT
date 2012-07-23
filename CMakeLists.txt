@@ -24,7 +24,7 @@ endif()
 add_subdirectory(DicomRtImport)
 add_subdirectory(DoseAccumulation)
 add_subdirectory(DoseVolumeHistogram)
-add_subdirectory(IsoDose)
+add_subdirectory(Isodose)
 #add_subdirectory(DoseComparison)
 
 #-----------------------------------------------------------------------------
