@@ -31,7 +31,7 @@ endforeach()
 #-----------------------------------------------------------------------------
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
-macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirectoryPath TemporaryDirectoryPath VolumeDifferenceCriterion DoseToAgreementCriterion AgreementToleranceMax DvhStartValue DvhStepSize)
+macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirectoryPath TemporaryDirectoryPath VolumeDifferenceCriterion DoseToAgreementCriterion AgreementAcceptancePercentageThreshold DvhStartValue DvhStepSize)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
@@ -40,7 +40,7 @@ macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirec
     -TemporaryDirectoryPath ${TemporaryDirectoryPath}
     -VolumeDifferenceCriterion ${VolumeDifferenceCriterion}
 	-DoseToAgreementCriterion ${DoseToAgreementCriterion}
-    -AgreementToleranceMax ${AgreementToleranceMax}
+    -AgreementAcceptancePercentageThreshold ${AgreementAcceptancePercentageThreshold}
 	-DvhStartValue ${DvhStartValue}
 	-DvhStepSize ${DvhStepSize}
   )
@@ -55,7 +55,7 @@ TEST_WITH_DATA(
   ${TEMP}
   0.0
   0.0
-  0.0
+  100.0
   0.0
   0.0
 )
@@ -76,8 +76,8 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate_CERR
   ${TEMP}
   2.0
-  2.0
-  17.78
+  1.0
+  95.0
   0.0
   0.0
 )
@@ -90,9 +90,9 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseEnt
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseEnt_CERR
   ${TEMP}
-  3.0
-  3.0
-  55.52
+  2.0
+  1.0
+  66.9
   0.0
   0.0
 )
@@ -105,9 +105,9 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseBreast
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseBreast_CERR
   ${TEMP}
+  2.0
   1.0
-  1.0
-  1.0
+  95.0
   0.0
   0.0
 )
@@ -121,10 +121,10 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate_Eclipse
   ${TEMP}
   2.0
-  2.0
-  5.0
-  0.03
-  0.03
+  1.0
+  95.0
+  0.01
+  0.02
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseProstate_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -135,11 +135,11 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseEnt
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseEnt_Eclipse
   ${TEMP}
-  3.0
-  3.0
-  5.0
-  0.03
-  0.03
+  2.0
+  1.0
+  70.5
+  0.01
+  0.02
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseEnt_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -150,10 +150,10 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseBreast
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseBreast_Eclipse
   ${TEMP}
+  2.0
   1.0
-  1.0
-  1.0
-  0.03
-  0.03
+  95.0
+  0.01
+  0.02
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramLogicTest_EclipseBreast_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )

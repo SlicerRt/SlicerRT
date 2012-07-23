@@ -51,7 +51,7 @@ std::string csvSeparatorCharacter(",");
 int CompareCsvDvhTables(std::string dvhMetricsCsvFileName, std::string baselineCsvFileName, std::string doseUnitName,
                         std::vector<vtkMRMLDoubleArrayNode*> dvhNodes,
                         double volumeDifferenceCriterion, double doseToAgreementCriterion,
-                        double &meanAgreement, double &maxAgreement);
+                        double &agreementAcceptancePercentage);
 
 double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& referenceDvhPlot,
                                    std::vector<std::pair<double,double> >& compareDvhPlot,
@@ -124,13 +124,13 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
       std::cout << "Dose-to-agreement criterion: " << doseToAgreementCriterion << std::endl;
     }
   }
-  double agreementToleranceMax = 0.0;
+  double agreementAcceptancePercentageThreshold = 0.0;
   if (argc > 12)
   {
-    if (stricmp(argv[11], "-AgreementToleranceMax") == 0)
+    if (stricmp(argv[11], "-AgreementAcceptancePercentageThreshold") == 0)
     {
-      agreementToleranceMax = atof(argv[12]);
-      std::cout << "Agreement tolerance max: " << agreementToleranceMax << std::endl;
+      agreementAcceptancePercentageThreshold = atof(argv[12]);
+      std::cout << "Agreement acceptance percentage threshold: " << agreementAcceptancePercentageThreshold << std::endl;
     }
   }
   double dvhStartValue = 0.0;
@@ -385,34 +385,21 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   std::string baselineCsvFileName = std::string(baselineDirectoryPath) + "/BaselineDvhTable.csv";
 
   // Compare CSV DVH tables
-  double meanAgreement = -1.0;
-  double maxAgreement = -1.0;
+  double agreementAcceptancePercentage = -1.0;
   if (CompareCsvDvhTables(dvhCsvFileName, baselineCsvFileName, doseUnitName, dvhNodes, 
-    volumeDifferenceCriterion, doseToAgreementCriterion,
-    meanAgreement, maxAgreement) > 0)
+    volumeDifferenceCriterion, doseToAgreementCriterion, agreementAcceptancePercentage) > 0)
   {
     std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
     return EXIT_FAILURE;
   }
 
-  std::cout << "Mean agreement: " << meanAgreement << std::endl;
-  std::cout << "Max agreement: " << maxAgreement
-    << " (tolerance: " << agreementToleranceMax << ")" << std::endl;
+  std::cout << "Agreement percentage: " << std::fixed << std::setprecision(2) << agreementAcceptancePercentage << "% (acceptance rate: " << agreementAcceptancePercentageThreshold << "%)" << std::endl;
 
-  bool agreementBelowTolerance = true;
-  if (meanAgreement > 1.0)
+  if (agreementAcceptancePercentage < agreementAcceptancePercentageThreshold)
   {
-    std::cerr << "Mean agreement is greater than 1: " << meanAgreement << std::endl;
-    agreementBelowTolerance = false;
-  }
-  if (maxAgreement > agreementToleranceMax)
-  {
-    std::cerr << "Maximum agreement is greater than the input maximum tolerance: " << maxAgreement
-      << " > " << agreementToleranceMax << std::endl;
-    agreementBelowTolerance = false;
-  }
-  if (!agreementBelowTolerance)
-  {
+    std::cerr << "Agreement acceptance percentage is below threshold: " << std::fixed << std::setprecision(2) << agreementAcceptancePercentage
+      << " < " << agreementAcceptancePercentageThreshold << std::endl;
+
     return EXIT_FAILURE;
   }
 
@@ -423,7 +410,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
 int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileName, std::string doseUnitName,
                         std::vector<vtkMRMLDoubleArrayNode*> dvhNodes,
                         double volumeDifferenceCriterion, double doseToAgreementCriterion,
-                        double &meanAgreement, double &maxAgreement)
+                        double &agreementAcceptancePercentage)
 {
   std::cout << "Loading baseline CSV DVH table from file '" << baselineCsvFileName << "' ("
     << (vtksys::SystemTools::FileExists(baselineCsvFileName.c_str()) ? "Exists" : "Does not exist!") << ")" << std::endl;
@@ -506,9 +493,9 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   }
 
   // Compare the current DVH to the baseline and determine mean and maximum difference
-  maxAgreement = 0.0;
-  double sumAgreement = 0.0;
-  int numberOfAgreements = 0;
+  agreementAcceptancePercentage = 0.0;
+  int totalNumberOfBins = 0;
+  int totalNumberOfAcceptedAgreements = 0;
   std::vector< std::vector<std::pair<double,double>> >::iterator currentIt;
   std::vector< std::vector<std::pair<double,double>> >::iterator baselineIt;
   std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhNodeIt;
@@ -516,9 +503,8 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   for (currentIt = currentDvh.begin(), baselineIt = baselineDvh.begin(), dvhNodeIt = dvhNodes.begin();
     currentIt != currentDvh.end(); ++currentIt, ++baselineIt, ++dvhNodeIt)
   {
-    int numberOfAgreementsPerStructure = 0;
-    double maxAgreementPerStructure = 0.0;
-    double sumAgreementPerStructure = 0.0;
+    int numberOfBinsPerStructure = 0;
+    int numberOfAcceptedAgreementsPerStructure = 0;
 
     const char* structureName = (*dvhNodeIt)->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
 
@@ -551,26 +537,21 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
         std::cerr << "Invalid agreement, skipped!" << std::endl;
         continue;
       }
+      if (agreement <= 1.0)
+      {
+        numberOfAcceptedAgreementsPerStructure++;
+        totalNumberOfAcceptedAgreements++;
+      }
 
-      if (agreement > maxAgreement)
-      {
-        maxAgreement = agreement;
-      }
-      if (agreement > maxAgreementPerStructure)
-      {
-        maxAgreementPerStructure = agreement;
-      }
-      sumAgreement += agreement;
-      sumAgreementPerStructure += agreement;
-      numberOfAgreements++;
-      numberOfAgreementsPerStructure++;
+      numberOfBinsPerStructure++;
+      totalNumberOfBins++;
     }
 
-    std::cout << "Gamma agreement per structure (" << (structureName?structureName:"NULL(error!)") << "): Mean=" << sumAgreementPerStructure/numberOfAgreementsPerStructure
-      << ", Max=" << maxAgreementPerStructure << std::endl;
+    std::cout << "Accepted agreements per structure (" << (structureName?structureName:"NULL(error!)") << "): " << numberOfAcceptedAgreementsPerStructure
+      << " out of " << numberOfBinsPerStructure << " (" << std::fixed << std::setprecision(2) << 100.0 * (double)numberOfAcceptedAgreementsPerStructure / (double)numberOfBinsPerStructure << "%)" << std::endl;
   }
 
-  meanAgreement = sumAgreement / numberOfAgreements;
+  agreementAcceptancePercentage = 100.0 * (double)totalNumberOfAcceptedAgreements / (double)totalNumberOfBins;
 
   return 0;
 }
