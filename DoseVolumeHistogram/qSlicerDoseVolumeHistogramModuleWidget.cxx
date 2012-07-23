@@ -862,21 +862,19 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
   // User selects file and format
-  QString* selectedFilter = new QString();
+  QString selectedFilter;
 
-	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH values to CSV file" ) ), tr(""), QString( tr( "CSV with COMMA ( *.csv );;CSV with TAB ( *.csv )" ) ), selectedFilter );
+	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH values to CSV file" ) ), tr(""), QString( tr( "CSV with COMMA ( *.csv );;CSV with TAB ( *.csv )" ) ), &selectedFilter );
 	if ( fileName.isNull() )
 	{
 		return;
 	}
 
 	bool comma = true;
-	if ( selectedFilter->compare( "CSV with TAB ( *.csv )" ) == 0 )
+	if ( selectedFilter.compare( "CSV with TAB ( *.csv )" ) == 0 )
 	{
 		comma = false;
 	}
-
-	delete selectedFilter;
 
   // Export
   if (! d->logic()->ExportDvhToCsv(fileName.toAscii().data(), comma) )
@@ -891,21 +889,19 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
   // User selects file and format
-  QString* selectedFilter = new QString();
+  QString selectedFilter;
 
-	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH metrics to CSV file" ) ), tr(""), QString( tr( "CSV with COMMA ( *.csv );;CSV with TAB ( *.csv )" ) ), selectedFilter );
+	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH metrics to CSV file" ) ), tr(""), QString( tr( "CSV with COMMA ( *.csv );;CSV with TAB ( *.csv )" ) ), &selectedFilter );
 	if ( fileName.isNull() )
 	{
 		return;
 	}
 
 	bool comma = true;
-	if ( selectedFilter->compare( "CSV with TAB ( *.csv )" ) == 0 )
+	if ( selectedFilter.compare( "CSV with TAB ( *.csv )" ) == 0 )
 	{
 		comma = false;
 	}
-
-	delete selectedFilter;
 
   // Get requested V metrics
   std::vector<double> vDoseValuesCc;
