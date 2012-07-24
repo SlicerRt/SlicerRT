@@ -64,6 +64,63 @@ limitations under the License.
 #include <ctkDICOMDatabase.h>
 
 //----------------------------------------------------------------------------
+vtkSlicerDicomRtReader::ROIStructureSetEntry::ROIStructureSetEntry()
+{
+  Number=0;
+  DisplayColor[0]=1.0;
+  DisplayColor[1]=0.0;
+  DisplayColor[2]=0.0;
+  PolyData=NULL;
+}
+
+vtkSlicerDicomRtReader::ROIStructureSetEntry::~ROIStructureSetEntry()
+{
+  SetPolyData(NULL);
+}
+
+vtkSlicerDicomRtReader::ROIStructureSetEntry::ROIStructureSetEntry(const ROIStructureSetEntry& src)
+{
+  Number=src.Number;
+  Name=src.Name;
+  Description=src.Description;
+  DisplayColor[0]=src.DisplayColor[0];
+  DisplayColor[1]=src.DisplayColor[1];
+  DisplayColor[2]=src.DisplayColor[2];
+  PolyData=NULL;
+  SetPolyData(src.PolyData);
+}
+
+vtkSlicerDicomRtReader::ROIStructureSetEntry& vtkSlicerDicomRtReader::ROIStructureSetEntry::operator=(const ROIStructureSetEntry &src)
+{
+  Number=src.Number;
+  Name=src.Name;
+  Description=src.Description;
+  DisplayColor[0]=src.DisplayColor[0];
+  DisplayColor[1]=src.DisplayColor[1];
+  DisplayColor[2]=src.DisplayColor[2];
+  SetPolyData(src.PolyData);
+  return (*this);
+}
+
+void vtkSlicerDicomRtReader::ROIStructureSetEntry::SetPolyData(vtkPolyData* roiPolyData)
+{
+  if (roiPolyData==PolyData)
+  {
+    // not changed
+    return;
+  }
+  if (PolyData!=NULL)
+  {
+    PolyData->UnRegister(NULL);
+  }
+  PolyData=roiPolyData;
+  if (PolyData!=NULL)
+  {
+    PolyData->Register(NULL);
+  }
+}
+
+//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtReader);
 
 //----------------------------------------------------------------------------
@@ -84,32 +141,6 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::~vtkSlicerDicomRtReader()
 {
-  if (ROIContourSequenceVector.size() > 0)
-  {
-    for(unsigned int i=0; i< ROIContourSequenceVector.size();i++)
-    {
-      delete this->ROIContourSequenceVector[i]->ROIName;
-      this->ROIContourSequenceVector[i]->ROIName=NULL;
-      if (this->ROIContourSequenceVector[i]->ROIPolyData!=NULL)
-      {
-        this->ROIContourSequenceVector[i]->ROIPolyData->Delete();
-        this->ROIContourSequenceVector[i]->ROIPolyData=NULL;
-      }
-      delete this->ROIContourSequenceVector[i];
-      this->ROIContourSequenceVector[i]=NULL;
-    }
-  }
-
-  if (BeamSequenceVector.size() > 0)
-  {
-    for(unsigned int i=0; i < BeamSequenceVector.size();i++)
-    {
-      delete this->BeamSequenceVector[i]->BeamName;
-      this->BeamSequenceVector[i]->BeamName=NULL;
-      delete this->BeamSequenceVector[i];
-      this->BeamSequenceVector[i]=NULL;
-    }
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -192,11 +223,10 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
 
   DRTPlanIOD rtPlanObject;
   OFCondition result = rtPlanObject.read(*dataset);
-  std::cerr << "here!" << std::endl;
   if (result.good())
   {
     OFString tmpString, dummyString;
-    cout << "RT Plan object" << OFendl << OFendl;
+    std::cout << "Load RT Plan object" << std::endl;
 
     DRTBeamSequence &rtPlaneBeamSequenceObject = rtPlanObject.getBeamSequence();
     if (rtPlaneBeamSequenceObject.gotoFirstItem().good())
@@ -204,43 +234,48 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
       do
       {
         DRTBeamSequence::Item &currentBeamSequenceObject = rtPlaneBeamSequenceObject.getCurrentItem();  
-        if (currentBeamSequenceObject.isValid())
+        if (!currentBeamSequenceObject.isValid())
         {
-          OFString BeamName;
-          OFString BeamDescription;
-          currentBeamSequenceObject.getBeamName(BeamName);
-          currentBeamSequenceObject.getBeamDescription(BeamDescription);
-
-          Sint32 BeamNumber;
-          currentBeamSequenceObject.getBeamNumber(BeamNumber);
-
-          // add into vector
-          BeamSequenceEntry* tempEntry = new BeamSequenceEntry();
-          tempEntry->BeamName = new char[BeamName.size()+1];
-          strcpy(tempEntry->BeamName, BeamName.c_str());
-          tempEntry->BeamNumber = BeamNumber;
-          BeamSequenceVector.push_back(tempEntry);
-
-          DRTControlPointSequence &rtControlPointSequenceObject = currentBeamSequenceObject.getControlPointSequence();
-          if (rtControlPointSequenceObject.gotoFirstItem().good())
-          {
-            // do // comment out for now since only first control point has isocenter
-            {
-              DRTControlPointSequence::Item &controlPointItem = rtControlPointSequenceObject.getCurrentItem();
-
-              if ( controlPointItem.isValid())
-              {
-                OFVector<Float64>  IsocenterPositionData_LPS;
-                controlPointItem.getIsocenterPosition(IsocenterPositionData_LPS);
-                // convert from DICOM LPS -> Slicer RAS
-                tempEntry->BeamIsocenterPosition[0] = -IsocenterPositionData_LPS[0];
-                tempEntry->BeamIsocenterPosition[1] = -IsocenterPositionData_LPS[1];
-                tempEntry->BeamIsocenterPosition[2] = IsocenterPositionData_LPS[2];
-              }
-            }
-            // while (rtControlPointSequenceObject.gotoNextItem().good());
-          }
+          std::cout << "Found an invalid beam sequence in dataset" << std::endl;
+          continue;
         }
+
+        // Read item into the BeamSequenceVector
+        BeamSequenceEntry beamEntry;
+
+        OFString beamName;
+        currentBeamSequenceObject.getBeamName(beamName);
+        beamEntry.Name=beamName.c_str();
+
+        OFString beamDescription;
+        currentBeamSequenceObject.getBeamDescription(beamDescription);
+        beamEntry.Description=beamDescription.c_str();
+
+        Sint32 beamNumber;
+        currentBeamSequenceObject.getBeamNumber(beamNumber);        
+        beamEntry.Number = beamNumber;
+
+        this->BeamSequenceVector.push_back(beamEntry);
+
+        DRTControlPointSequence &rtControlPointSequenceObject = currentBeamSequenceObject.getControlPointSequence();
+        if (rtControlPointSequenceObject.gotoFirstItem().good())
+        {
+          // do // comment out for now since only first control point (as isocenter)
+          {
+            DRTControlPointSequence::Item &controlPointItem = rtControlPointSequenceObject.getCurrentItem();
+            if ( controlPointItem.isValid())
+            {
+              OFVector<Float64>  IsocenterPositionData_LPS;
+              controlPointItem.getIsocenterPosition(IsocenterPositionData_LPS);
+              // convert from DICOM LPS -> Slicer RAS
+              beamEntry.IsocenterPosition[0] = -IsocenterPositionData_LPS[0];
+              beamEntry.IsocenterPosition[1] = -IsocenterPositionData_LPS[1];
+              beamEntry.IsocenterPosition[2] = IsocenterPositionData_LPS[2];
+            }
+          }
+          // while (rtControlPointSequenceObject.gotoNextItem().good());
+        }
+
       }
       while (rtPlaneBeamSequenceObject.gotoNextItem().good());
     }
@@ -250,284 +285,351 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
 }
 
 //----------------------------------------------------------------------------
+OFString GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStructureSetObject)
+{
+  OFString invalidUid;
+  DRTReferencedFrameOfReferenceSequence &rtReferencedFrameOfReferenceSequenceObject = rtStructureSetObject.getReferencedFrameOfReferenceSequence();
+  if (!rtReferencedFrameOfReferenceSequenceObject.gotoFirstItem().good())
+  {
+    std::cerr << "No referenced frame of reference sequence object item is available" << std::endl;
+    return invalidUid;
+  }
+  //do
+  //{
+  DRTReferencedFrameOfReferenceSequence::Item &currentReferencedFrameOfReferenceSequenceItem = rtReferencedFrameOfReferenceSequenceObject.getCurrentItem();
+  if (!currentReferencedFrameOfReferenceSequenceItem.isValid())
+  {
+    std::cerr << "Frame of reference sequence object item is invalid" << std::endl;
+    return invalidUid;
+  }
+  // Sint32 ROINumber;
+  DRTRTReferencedStudySequence &rtReferencedStudySequenceObject = currentReferencedFrameOfReferenceSequenceItem.getRTReferencedStudySequence();
+  if (!rtReferencedStudySequenceObject.gotoFirstItem().good())
+  {
+    std::cerr << "No referenced study sequence object item is available" << std::endl;
+    return invalidUid;
+  }
+  //do
+  //{
+  DRTRTReferencedStudySequence::Item &rtReferencedStudySequenceItem = rtReferencedStudySequenceObject.getCurrentItem();
+  if (!rtReferencedStudySequenceItem.isValid())
+  {
+    std::cerr << "Referenced study sequence object item is invalid" << std::endl;
+    return invalidUid;
+  }
+  //rtReferencedStudySequenceItem.getReferencedSOPInstanceUID(ReferencedSOPInstanceUID);
+  DRTRTReferencedSeriesSequence &rtReferencedSeriesSequenceObject = rtReferencedStudySequenceItem.getRTReferencedSeriesSequence();
+  if (!rtReferencedSeriesSequenceObject.gotoFirstItem().good())
+  {
+    std::cerr << "No referenced series sequence object item is available" << std::endl;
+    return invalidUid;
+  }
+  DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject.getCurrentItem();
+  if (!rtReferencedSeriesSequenceItem.isValid())
+  {
+    std::cerr << "Referenced series sequence object item is invalid" << std::endl;
+    return invalidUid;
+  }
+  DRTContourImageSequence &rtContourImageSequenceObject = rtReferencedSeriesSequenceItem.getContourImageSequence();
+  if (rtContourImageSequenceObject.gotoFirstItem().good())
+  {
+    std::cerr << "No contour image sequence object item is available" << std::endl;
+    return invalidUid;
+  }
+  DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject.getCurrentItem();
+  if (!rtContourImageSequenceItem.isValid())
+  {
+    std::cerr << "Contour image sequence object item is invalid" << std::endl;
+    return invalidUid;
+  }
+  OFString resultUid;
+  rtContourImageSequenceItem.getReferencedSOPInstanceUID(resultUid);
+  return resultUid;
+}
+
+//----------------------------------------------------------------------------
+double GetSliceThickness(OFString referencedSOPInstanceUID)
+{
+  double defaultSliceThickness = 2.0;
+
+  // Get DICOM image filename from SOP instance UID
+  ctkDICOMDatabase dicomDatabase;
+  QSettings settings;
+  QString databaseDirectory = settings.value("DatabaseDirectory").toString();
+  dicomDatabase.openDatabase(databaseDirectory + "/ctkDICOM.sql", "SlicerRt");
+  QString referencedFilename=dicomDatabase.fileForInstance(referencedSOPInstanceUID.c_str());
+  dicomDatabase.closeDatabase();
+  if ( referencedFilename.isEmpty() ) //isNull?
+  {
+    std::cerr << "No referenced image file is found, default slice thickness is used for contour import" << std::endl;
+    return defaultSliceThickness;
+  }
+
+  // Load DICOM file
+  DcmFileFormat fileformat;
+  OFCondition result;
+  result = fileformat.loadFile( referencedFilename.toStdString().c_str(), EXS_Unknown);
+  if (!result.good())
+  {
+    std::cerr << "Could not load image file" << std::endl;
+    return defaultSliceThickness;
+  }
+  DcmDataset *dataset = fileformat.getDataset();
+
+  // Use the slice thickness defined in the DICOM file
+  OFString sliceThicknessString;
+  if (!dataset->findAndGetOFString(DCM_SliceThickness, sliceThicknessString).good())
+  {
+    std::cerr << "Could not find slice thickness tag in image file" << std::endl;
+    return defaultSliceThickness;
+  }
+  double sliceThickness = atof(sliceThicknessString.c_str());
+  if (sliceThickness <= 0.0 || sliceThickness > 20.0)
+  {
+    std::cerr << "Slice thickness field value is invalid: " << sliceThicknessString << std::endl;
+    return defaultSliceThickness;
+  }
+
+  return sliceThickness;
+}
+
+//----------------------------------------------------------------------------
+// Variables for estimating the distance between contour planes.
+// This is not a reliable solution, as it assumes that the plane normals are (0,0,1) and
+// the distance between all planes are equal.
+double GetDistanceBetweenContourPlanes(DRTContourSequence &rtContourSequenceObject)
+{
+  double invalidResult=-1.0;
+  if (!rtContourSequenceObject.gotoFirstItem().good())
+  {
+    std::cerr << "Contour sequence object is invalid" << std::endl;
+    return invalidResult;
+  }
+
+  double firstContourPlanePosition=0.0;
+  double secondContourPlanePosition=0.0;
+  int contourPlaneIndex=0;
+  do
+  {
+    DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
+    if ( !contourItem.isValid())
+    {
+      continue;
+    }
+
+    OFString numberofpoints;
+    contourItem.getNumberOfContourPoints(numberofpoints);    
+    int number = atoi(numberofpoints.c_str());
+    if (number<3)
+    {
+      continue;
+    }
+
+    OFVector<Float64>  contourData_LPS;
+    contourItem.getContourData(contourData_LPS);
+
+    double firstContourPointZcoordinate=contourData_LPS[2];
+    switch (contourPlaneIndex)
+    {
+    case 0:
+      // first contour
+      firstContourPlanePosition=firstContourPointZcoordinate;
+      break;
+    case 1:
+      // second contour
+      secondContourPlanePosition=firstContourPointZcoordinate;
+      break;
+    default:
+      // we ignore all the subsequent contour plane positions
+      // distance is just estimated based on the first two
+      break;
+    }
+    contourPlaneIndex++;
+
+  } while (rtContourSequenceObject.gotoNextItem().good() && contourPlaneIndex<2);
+
+  if (contourPlaneIndex<2)
+  {
+    std::cerr << "Not found two contours" << std::endl;
+    return invalidResult;
+  }
+
+  // there were at least contour planes, therefore we have a valid distance estimation
+  double distanceBetweenContourPlanes=fabs(firstContourPlanePosition-secondContourPlanePosition);
+  return distanceBetweenContourPlanes;
+}
+
+//----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 {
   this->LoadRTStructureSetSuccessful = false;
-  double SliceThickness = 2.0;
 
   DRTStructureSetIOD rtStructureSetObject;
   OFCondition result = rtStructureSetObject.read(*dataset);
-  if (result.good())
+  if (!result.good())
   {
-    OFString tmpString, dummyString;
-    cout << "RT Structure Set object" << OFendl << OFendl;
+    std::cerr << "Could not load strucure set object from dataset" << std::endl;
+    return;
+  }
 
-    DRTStructureSetROISequence &rtStructureSetROISequenceObject = rtStructureSetObject.getStructureSetROISequence();
-    if (rtStructureSetROISequenceObject.gotoFirstItem().good())
+  std::cout << "RT Structure Set object" << std::endl;
+
+  // Read ROI name, description, and number into the ROI contour sequence vector
+  DRTStructureSetROISequence &rtStructureSetROISequenceObject = rtStructureSetObject.getStructureSetROISequence();
+  if (!rtStructureSetROISequenceObject.gotoFirstItem().good())
+  {
+    std::cerr << "No structure sets were found" << std::endl;
+    return;
+  }
+  do
+  {
+    DRTStructureSetROISequence::Item &currentROISequenceObject = rtStructureSetROISequenceObject.getCurrentItem();
+    if (!currentROISequenceObject.isValid())
+    {
+      continue;
+    }
+    ROIStructureSetEntry roiEntry;
+
+    OFString roiName;
+    currentROISequenceObject.getROIName(roiName);
+    roiEntry.Name=roiName.c_str();
+
+    OFString roiDescription;
+    currentROISequenceObject.getROIDescription(roiDescription);
+    roiEntry.Description=roiDescription.c_str();                   
+
+    Sint32 roiNumber;
+    currentROISequenceObject.getROINumber(roiNumber);
+    roiEntry.Number=roiNumber;
+    // cout << "roi number:" << ROINumber << " roi name:" << ROIName << " roi description:" << ROIDescription << OFendl;
+
+    // save to vector          
+    this->ROIContourSequenceVector.push_back(roiEntry);
+  }
+  while (rtStructureSetROISequenceObject.gotoNextItem().good());
+
+  // Get the slice thickness from the referenced image
+  OFString referencedSOPInstanceUID=GetReferencedFrameOfReferenceSOPInstanceUID(rtStructureSetObject);
+  double sliceThickness = GetSliceThickness(referencedSOPInstanceUID);
+
+  Sint32 referenceROINumber;
+  DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
+  if (!rtROIContourSequenceObject.gotoFirstItem().good())
+  {
+    return;
+  }
+
+  do 
+  {
+    DRTROIContourSequence::Item &currentRoiObject = rtROIContourSequenceObject.getCurrentItem();
+    if (!currentRoiObject.isValid())
+    {
+      continue;
+    }
+
+    // create vtkPolyData
+    vtkSmartPointer<vtkPoints> tempPoints = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
+    vtkIdType pointId=0;
+
+    currentRoiObject.getReferencedROINumber(referenceROINumber);
+    //cout << "refence roi number:" << referenceROINumber << OFendl;
+    DRTContourSequence &rtContourSequenceObject = currentRoiObject.getContourSequence();
+
+    if (rtContourSequenceObject.gotoFirstItem().good())
     {
       do
       {
-        DRTStructureSetROISequence::Item &currentROISequenceObject = rtStructureSetROISequenceObject.getCurrentItem();
-        if (currentROISequenceObject.isValid())
-        {
-          OFString ROIName;
-          OFString ROIDescription;
-          currentROISequenceObject.getROIName(ROIName);
-          currentROISequenceObject.getROIDescription(ROIDescription);
+        DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
 
-          Sint32 ROINumber;
-          currentROISequenceObject.getROINumber(ROINumber);
-          // cout << "roi number:" << ROINumber << " roi name:" << ROIName << " roi description:" << ROIDescription << OFendl;
-          // add into vector
-          ROIStructureSetEntry* tempEntry = new ROIStructureSetEntry();
-          tempEntry->ROIName = new char[ROIName.size()+1];
-          strcpy(tempEntry->ROIName, ROIName.c_str());
-          tempEntry->ROINumber = ROINumber;
-          ROIContourSequenceVector.push_back(tempEntry);
+        if ( !contourItem.isValid())
+        {
+          continue;
         }
-      }
-      while (rtStructureSetROISequenceObject.gotoNextItem().good());
-    }
-    // cout << OFendl;
+        OFString contourNumber;
+        contourItem.getContourNumber(contourNumber);
 
-    OFString ReferencedSOPInstanceUID;
-    DRTReferencedFrameOfReferenceSequence &rtReferencedFrameOfReferenceSequenceObject = rtStructureSetObject.getReferencedFrameOfReferenceSequence();
-    if (rtReferencedFrameOfReferenceSequenceObject.gotoFirstItem().good())
-    {
-      //do
-      //{
-        DRTReferencedFrameOfReferenceSequence::Item &currentReferencedFrameOfReferenceSequenceItem = rtReferencedFrameOfReferenceSequenceObject.getCurrentItem();
-        if (currentReferencedFrameOfReferenceSequenceItem.isValid())
+        OFString numberofpoints;
+        contourItem.getNumberOfContourPoints(numberofpoints);
+        //cout << "\t contour number:" << contourNumber.c_str() << " numberOf points: "<< numberofpoints.c_str() << OFendl;
+        int number = atoi(numberofpoints.c_str());
+
+        OFVector<Float64>  contourData_LPS;
+        contourItem.getContourData(contourData_LPS);
+
+        tempCellArray->InsertNextCell(number+1);
+        for (int k=0; k<number; k++)
         {
-          // Sint32 ROINumber;
-          DRTRTReferencedStudySequence &rtReferencedStudySequenceObject = currentReferencedFrameOfReferenceSequenceItem.getRTReferencedStudySequence();
-          if (rtReferencedStudySequenceObject.gotoFirstItem().good())
-          {
-            //do
-            //{
-              DRTRTReferencedStudySequence::Item &rtReferencedStudySequenceItem = rtReferencedStudySequenceObject.getCurrentItem();
-              if (rtReferencedStudySequenceItem.isValid())
-              {
-                 //rtReferencedStudySequenceItem.getReferencedSOPInstanceUID(ReferencedSOPInstanceUID);
-                 DRTRTReferencedSeriesSequence &rtReferencedSeriesSequenceObject = rtReferencedStudySequenceItem.getRTReferencedSeriesSequence();
-                 if (rtReferencedSeriesSequenceObject.gotoFirstItem().good())
-                 {
-                   DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject.getCurrentItem();
-                   if (rtReferencedSeriesSequenceItem.isValid())
-                   {
-                     DRTContourImageSequence &rtContourImageSequenceObject = rtReferencedSeriesSequenceItem.getContourImageSequence();
-                     if (rtContourImageSequenceObject.gotoFirstItem().good())
-                     {
-                       DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject.getCurrentItem();
-                       if (rtContourImageSequenceItem.isValid())
-                       {
-                         rtContourImageSequenceItem.getReferencedSOPInstanceUID(ReferencedSOPInstanceUID);
-                       }
-                     }
-                   }
-                 }
-              }
-            //}
-            //while (rtReferencedStudySequenceObject.gotoNextItem().good());
-          }
-          
+          // convert from DICOM LPS -> Slicer RAS
+          tempPoints->InsertPoint(pointId, -contourData_LPS[3*k], -contourData_LPS[3*k+1], contourData_LPS[3*k+2]);
+          tempCellArray->InsertCellPoint(pointId);
+          pointId++;
         }
-      //}
-      //while (rtReferencedFrameOfReferenceSequenceObject.gotoNextItem().good());
-    }
-    
-    ctkDICOMDatabase dicomDatabase;
-    QSettings settings;
-    QString databaseDirectory = settings.value("DatabaseDirectory").toString();
-    dicomDatabase.openDatabase(databaseDirectory + "/ctkDICOM.sql", "SlicerRt");
-    QString referencedFilename=dicomDatabase.fileForInstance(ReferencedSOPInstanceUID.c_str());
-    dicomDatabase.closeDatabase();
-    
-    if ( !referencedFilename.isEmpty() ) //isNull?
-    {
-      // load DICOM file or dataset
-      DcmFileFormat fileformat;
 
-      OFCondition result;
-      result = fileformat.loadFile( referencedFilename.toStdString().c_str(), EXS_Unknown);
-      if (result.good())
-      {
-        DcmDataset *dataset = fileformat.getDataset();
-        // from here use dicom toolkit to read slice thickness; wangk 2012/04/10
-        OFString sliceThicknessString;
-        if (dataset->findAndGetOFString(DCM_SliceThickness, sliceThicknessString).good())
-        {
-          SliceThickness = atof(sliceThicknessString.c_str());
-          if (SliceThickness <= 0.0 || SliceThickness > 20.0)
-          {
-            SliceThickness = 2.0;
-          }
-        }
-        else
-        {
-        }
-      }
-    }
-    
-    Sint32 referenceROINumber;
-    DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
-    if (rtROIContourSequenceObject.gotoFirstItem().good())
-    {
-      do 
-      {
-        DRTROIContourSequence::Item &currentROIObject = rtROIContourSequenceObject.getCurrentItem();
+        // to close the contour
+        tempCellArray->InsertCellPoint(pointId-number);
 
-        if (currentROIObject.isValid())
-        {
-          // create vtkPolyData
-          vtkSmartPointer<vtkPoints> tempPoints = vtkSmartPointer<vtkPoints>::New();
-          vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
-          vtkIdType pointId=0;
+      } while (rtContourSequenceObject.gotoNextItem().good());
 
-          currentROIObject.getReferencedROINumber(referenceROINumber);
-          //cout << "refence roi number:" << referenceROINumber << OFendl;
-          DRTContourSequence &rtContourSequenceObject = currentROIObject.getContourSequence();
-          
-          // Variables for estimating the distance between contour planes.
-          // This is just a temporary solution, as it assumes that the plane normals are (0,0,1) and
-          // the distance between all planes are equal.
-          // TODO: Determine contour thickness from the thickness of the slice where it was drawn at (https://www.assembla.com/spaces/sparkit/tickets/49)
-          double firstContourPlanePosition=0.0;
-          double secondContourPlanePosition=0.0;
-          int contourPlaneIndex=0;
-
-          if (rtContourSequenceObject.gotoFirstItem().good())
-          {
-            do
-            {
-              DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
-
-              if ( contourItem.isValid())
-              {
-                OFString contourNumber;
-                contourItem.getContourNumber(contourNumber);
-
-                OFString numberofpoints;
-                contourItem.getNumberOfContourPoints(numberofpoints);
-                //cout << "\t contour number:" << contourNumber.c_str() << " numberOf points: "<< numberofpoints.c_str() << OFendl;
-                int number = atoi(numberofpoints.c_str());
-
-                OFVector<Float64>  contourData_LPS;
-                contourItem.getContourData(contourData_LPS);
-
-                if (number>=3)
-                {
-                  double firstContourPointZcoordinate=contourData_LPS[2];
-                  switch (contourPlaneIndex)
-                  {
-                  case 0:
-                    // first contour
-                    firstContourPlanePosition=firstContourPointZcoordinate;
-                    break;
-                  case 1:
-                    // second contour
-                    secondContourPlanePosition=firstContourPointZcoordinate;
-                    break;
-                  default:
-                    // we ignore all the subsequent contour plane positions
-                    // distance is just estimated based on the first two
-                    break;
-                  }
-                  contourPlaneIndex++;
-                }                
-
-                tempCellArray->InsertNextCell(number+1);
-                for (int k=0; k<number; k++)
-                {
-                  // convert from DICOM LPS -> Slicer RAS
-                  tempPoints->InsertPoint(pointId, -contourData_LPS[3*k], -contourData_LPS[3*k+1], contourData_LPS[3*k+2]);
-                  tempCellArray->InsertCellPoint(pointId);
-                  pointId++;
-                }
-
-                // to close the contour
-                tempCellArray->InsertCellPoint(pointId-number);
-              }
-            }
-            while (rtContourSequenceObject.gotoNextItem().good());
-          } // if gotofirstitem
-
-          vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
-          tempPolyData->SetPoints(tempPoints);
-          vtkPolyData* roiPolyData = NULL;
-          if (tempPoints->GetNumberOfPoints() == 1)
-          {
-            tempPolyData->SetVerts(tempCellArray);
-            roiPolyData = tempPolyData;
-            roiPolyData->Register(this);
-          }
-          else if (tempPoints->GetNumberOfPoints() > 1)
-          {
-            tempPolyData->SetLines(tempCellArray);
-
-            // Remove coincident points (if there are multiple
-            // contour points at the same position then the
-            // ribbon filter fails)
-            vtkSmartPointer<vtkCleanPolyData> cleaner=vtkSmartPointer<vtkCleanPolyData>::New();
-            cleaner->SetInput(tempPolyData);
-
-            // convert to ribbon using vtkRibbonFilter
-            vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
-            ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
-            ribbonFilter->SetDefaultNormal(0,0,-1);
-            ribbonFilter->SetWidth(SliceThickness/2.0); // take the slice thickness from dicom file 
-                                       // assumption is that the slice thickness is constant (not varying)
-            // ribbonFilter->SetWidth(1.1); // a reasonable default value that often works well
-            //if (contourPlaneIndex>=1)
-            //{
-            //  // there were at least contour planes, therefore we have a valid distance estimation
-            //  double distanceBetweenContourPlanes=fabs(firstContourPlanePosition-secondContourPlanePosition);
-            //  // If the distance between the contour planes is too large then probably the contours should not be connected, so just keep using the default
-            //  // TODO: this is totally heuristic, the actual thickness should be read from the referred slice thickness (as noted above)
-            //  if (SliceThickness == 2.0 && fabs(distanceBetweenContourPlanes - SliceThickness)>0.001 && distanceBetweenContourPlanes > 0.001/* mm*/)
-            //  { // this usually happens when slice thickness is not set in dcm tag so we get the distance from 2 adjacent contours
-            //    ribbonFilter->SetWidth(distanceBetweenContourPlanes/2.0);
-            //  }
-            //}
-            ribbonFilter->SetAngle(90.0);
-            ribbonFilter->UseDefaultNormalOn();
-            ribbonFilter->Update();
-
-            vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
-            normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
-            normalFilter->ConsistencyOn();
-            normalFilter->Update();
-
-            roiPolyData = normalFilter->GetOutput();
-            roiPolyData->Register(this);
-          }
-
-          for (unsigned int i=0; i<this->ROIContourSequenceVector.size();i++)
-          {
-            if (referenceROINumber == this->ROIContourSequenceVector[i]->ROINumber)
-            {
-              // the ownership of the roiPolyData is now passed to the ROI contour sequence vector
-              this->ROIContourSequenceVector[i]->ROIPolyData = roiPolyData;
-              roiPolyData=NULL;
-
-              Sint32 ROIDisplayColor;
-              for (int j=0; j<3; j++)
-              {
-                currentROIObject.getROIDisplayColor(ROIDisplayColor,j);
-                this->ROIContourSequenceVector[i]->ROIDisplayColor[j] = ROIDisplayColor/255.0;
-              }
-            }
-          }
-
-        } // if valid
-      }
-      while (rtROIContourSequenceObject.gotoNextItem().good());
     } // if gotofirstitem
 
-    //cout << OFendl;
+    // Save it into ROI vector
+    ROIStructureSetEntry* referenceROI=FindROIByNumber(referenceROINumber);
+    if (referenceROI==NULL)
+    {
+      std::cerr << "Reference ROI is not found" << std::endl;      
+      continue;
+    } 
 
-    this->LoadRTStructureSetSuccessful = true;
+    if (tempPoints->GetNumberOfPoints() == 1)
+    {
+      // Point ROI
+      vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
+      tempPolyData->SetPoints(tempPoints);
+      tempPolyData->SetVerts(tempCellArray);
+      referenceROI->SetPolyData(tempPolyData);
+    }
+    else if (tempPoints->GetNumberOfPoints() > 1)
+    {
+      // Contour ROI
+      vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
+      tempPolyData->SetPoints(tempPoints);
+      tempPolyData->SetLines(tempCellArray);
+
+      // Remove coincident points (if there are multiple
+      // contour points at the same position then the
+      // ribbon filter fails)
+      vtkSmartPointer<vtkCleanPolyData> cleaner=vtkSmartPointer<vtkCleanPolyData>::New();
+      cleaner->SetInput(tempPolyData);
+
+      // convert to ribbon using vtkRibbonFilter
+      vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
+      ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
+      ribbonFilter->SetDefaultNormal(0,0,-1);
+      ribbonFilter->SetWidth(sliceThickness/2.0);
+      ribbonFilter->SetAngle(90.0);
+      ribbonFilter->UseDefaultNormalOn();
+      ribbonFilter->Update();
+
+      vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
+      normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
+      normalFilter->ConsistencyOn();
+      normalFilter->Update();
+
+      referenceROI->SetPolyData(normalFilter->GetOutput());
+    }
+
+    Sint32 roiDisplayColor;
+    for (int j=0; j<3; j++)
+    {
+      currentRoiObject.getROIDisplayColor(roiDisplayColor,j);
+      referenceROI->DisplayColor[j] = roiDisplayColor/255.0;
+    }
+
   }
+  while (rtROIContourSequenceObject.gotoNextItem().good());
+
+  this->LoadRTStructureSetSuccessful = true;
 }
 
 //----------------------------------------------------------------------------
@@ -537,68 +639,47 @@ int vtkSlicerDicomRtReader::GetNumberOfROIs()
 }
 
 //----------------------------------------------------------------------------
-char* vtkSlicerDicomRtReader::GetROINameByROINumber(int ROINumber)
+const char* vtkSlicerDicomRtReader::GetROINameByROINumber(int ROINumber)
 {
-  int id=-1;
-  for (unsigned int i=0; i<this->ROIContourSequenceVector.size(); i++)
-  {
-    if (this->ROIContourSequenceVector[i]->ROINumber == ROINumber)
-    {
-      id = i;
-    }
-  }
-  if ( id == -1)
+  ROIStructureSetEntry* roi=FindROIByNumber(ROINumber);
+  if (roi==NULL)
   {
     return NULL;
-  }
-  return this->ROIContourSequenceVector[id]->ROIName;
+  }  
+  return roi->Name.c_str();
 }
 
 //----------------------------------------------------------------------------
 vtkPolyData* vtkSlicerDicomRtReader::GetROIByROINumber(int ROINumber)
 {
-  int id=-1;
-  for (unsigned int i=0; i<this->ROIContourSequenceVector.size(); i++)
-  {
-    if (this->ROIContourSequenceVector[i]->ROINumber == ROINumber)
-    {
-      id = i;
-    }
-  }
-  if ( id == -1)
+  ROIStructureSetEntry* roi=FindROIByNumber(ROINumber);
+  if (roi==NULL)
   {
     return NULL;
   }
-  return this->ROIContourSequenceVector[id]->ROIPolyData;
+  return roi->PolyData;
 }
 
 //----------------------------------------------------------------------------
 double* vtkSlicerDicomRtReader::GetROIDisplayColorByROINumber(int ROINumber)
 {
-  int id=-1;
-  for (unsigned int i=0; i<this->ROIContourSequenceVector.size(); i++)
-  {
-    if (this->ROIContourSequenceVector[i]->ROINumber == ROINumber)
-    {
-      id = i;
-    }
-  }
-  if ( id == -1)
+  ROIStructureSetEntry* roi=FindROIByNumber(ROINumber);
+  if (roi==NULL)
   {
     return NULL;
   }
-  return this->ROIContourSequenceVector[id]->ROIDisplayColor;
+  return roi->DisplayColor;
 }
 
 //----------------------------------------------------------------------------
-char* vtkSlicerDicomRtReader::GetROIName(int number)
+const char* vtkSlicerDicomRtReader::GetROIName(int number)
 {
   if (number <0 || number >= this->ROIContourSequenceVector.size())
   {
     vtkWarningMacro("Cannot get roi with number: " << number);
     return NULL;
   }
-  return this->ROIContourSequenceVector[number]->ROIName;
+  return this->ROIContourSequenceVector[number].Name.c_str();
 }
 
 //----------------------------------------------------------------------------
@@ -609,7 +690,7 @@ vtkPolyData* vtkSlicerDicomRtReader::GetROI(int number)
     vtkWarningMacro("Cannot get roi with number: " << number);
     return NULL;
   }
-  return this->ROIContourSequenceVector[number]->ROIPolyData;
+  return this->ROIContourSequenceVector[number].PolyData;
 }
 
 //----------------------------------------------------------------------------
@@ -620,7 +701,7 @@ double* vtkSlicerDicomRtReader::GetROIDisplayColor(int number)
     vtkWarningMacro("Cannot get roi with number: " << number);
     return NULL;
   }
-  return this->ROIContourSequenceVector[number]->ROIDisplayColor;
+  return this->ROIContourSequenceVector[number].DisplayColor;
 }
 
 //----------------------------------------------------------------------------
@@ -630,39 +711,25 @@ int vtkSlicerDicomRtReader::GetNumberOfBeams()
 }
 
 //----------------------------------------------------------------------------
-char* vtkSlicerDicomRtReader::GetBeamName(int BeamNumber)
+const char* vtkSlicerDicomRtReader::GetBeamName(int BeamNumber)
 {
-  int id=-1;
-  for (unsigned int i=0; i<this->BeamSequenceVector.size(); i++)
-  {
-    if (this->BeamSequenceVector[i]->BeamNumber == BeamNumber)
-    {
-      id = i;
-    }
-  }
-  if ( id == -1)
+  BeamSequenceEntry* beam=FindBeamByNumber(BeamNumber);
+  if (beam==NULL)
   {
     return NULL;
-  }
-  return this->BeamSequenceVector[id]->BeamName;
+  }  
+  return beam->Name.c_str();
 }
 
 //----------------------------------------------------------------------------
 double* vtkSlicerDicomRtReader::GetBeamIsocenterPosition(int BeamNumber)
 {
-  int id=-1;
-  for (unsigned int i=0; i<this->BeamSequenceVector.size(); i++)
-  {
-    if (this->BeamSequenceVector[i]->BeamNumber == BeamNumber)
-    {
-      id = i;
-    }
-  }
-  if ( id == -1)
+  BeamSequenceEntry* beam=FindBeamByNumber(BeamNumber);
+  if (beam==NULL)
   {
     return NULL;
-  }
-  return this->BeamSequenceVector[id]->BeamIsocenterPosition;
+  }  
+  return beam->IsocenterPosition;
 }
 
 //----------------------------------------------------------------------------
@@ -705,4 +772,32 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   this->SetPixelSpacing(pixelSpacingOFVector[0], pixelSpacingOFVector[1]);
 
   this->LoadRTDoseSuccessful = true;
+}
+
+//----------------------------------------------------------------------------
+vtkSlicerDicomRtReader::BeamSequenceEntry* vtkSlicerDicomRtReader::FindBeamByNumber(int beamNumber)
+{
+  for (unsigned int i=0; i<this->BeamSequenceVector.size(); i++)
+  {
+    if (this->BeamSequenceVector[i].Number == beamNumber)
+    {
+      return &this->BeamSequenceVector[i];
+    }
+  }
+  // not found
+  return NULL;
+}
+
+//----------------------------------------------------------------------------
+vtkSlicerDicomRtReader::ROIStructureSetEntry* vtkSlicerDicomRtReader::FindROIByNumber(int roiNumber)
+{
+  for (unsigned int i=0; i<this->ROIContourSequenceVector.size(); i++)
+  {
+    if (this->ROIContourSequenceVector[i].Number == roiNumber)
+    {
+      return &this->ROIContourSequenceVector[i];
+    }
+  }
+  // not found
+  return NULL;
 }

@@ -239,11 +239,10 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
   bool loadedSomething=false;
   bool loadingErrorsOccurred=false;
 
-    // Hierarchy node for the loaded structure sets
-    // It is not created here yet because maybe there won't be anything to put in it.
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode;
-    vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterHierarchyRootNode;
-    
+  // Hierarchy node for the loaded structure sets
+  // It is not created here yet because maybe there won't be anything to put in it.
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode;
+  vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterHierarchyRootNode;    
 
   // RTSTRUCT
   if (rtReader->GetLoadRTStructureSetSuccessful())
@@ -336,11 +335,10 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
       volumeNode->SetAttribute("DoseUnitValue",rtReader->GetDoseGridScaling());
 
       // Apply dose grid scaling
-      vtkImageData* originalVolumeData = volumeNode->GetImageData();
-      vtkImageData* floatVolumeData = vtkImageData::New();
+      vtkSmartPointer<vtkImageData> floatVolumeData = vtkSmartPointer<vtkImageData>::New();
 
       vtkNew<vtkImageCast> imageCast;
-      imageCast->SetInput(originalVolumeData);
+      imageCast->SetInput(volumeNode->GetImageData());
       imageCast->SetOutputScalarTypeToFloat();
       imageCast->Update();
       floatVolumeData->DeepCopy(imageCast->GetOutput());
@@ -355,8 +353,7 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
         ++floatPtr;
       }
 
-      volumeNode->SetAndObserveImageData(floatVolumeData);
-      originalVolumeData->Delete();
+      volumeNode->SetAndObserveImageData(floatVolumeData);      
 
       // Set default colormap to rainbow
       if (volumeNode->GetVolumeDisplayNode()!=NULL)
@@ -433,7 +430,7 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
 //---------------------------------------------------------------------------
 vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiPoint(double *roiPosition, const char* roiLabel, double *roiColor)
 {
-  vtkMRMLAnnotationFiducialNode* fiducialNode = vtkMRMLAnnotationFiducialNode::New();
+  vtkSmartPointer<vtkMRMLAnnotationFiducialNode> fiducialNode = vtkSmartPointer<vtkMRMLAnnotationFiducialNode>::New();
   fiducialNode->SetName(roiLabel);
   fiducialNode->AddControlPoint(roiPosition, 0, 1);
   fiducialNode->SetLocked(1);

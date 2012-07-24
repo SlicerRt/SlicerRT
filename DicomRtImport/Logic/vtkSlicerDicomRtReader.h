@@ -58,7 +58,7 @@ public:
 
   /// Get name of a certain ROI
   /// \param ROINumber Number of ROI to get
-  char* GetROINameByROINumber(int ROINumber);
+  const char* GetROINameByROINumber(int ROINumber);
 
   /// Get display color of a certain ROI
   /// \param ROINumber Number of ROI to get
@@ -70,7 +70,7 @@ public:
 
   /// Get name of a certain ROI
   /// \param number internal id number of ROI to get
-  char* GetROIName(int number);
+  const char* GetROIName(int number);
 
   /// Get display color of a certain ROI
   /// \param number internal id number of ROI to get
@@ -81,10 +81,10 @@ public:
   vtkPolyData* GetROI(int number);
 
   /// Get number of beams
-  int GetNumberOfBeams();
-  
+  int GetNumberOfBeams();  
+
   /// Get name of beam
-  char* GetBeamName(int BeamNumber);
+  const char* GetBeamName(int BeamNumber);
 
   /// Get beam isocenter
   double* GetBeamIsocenterPosition(int BeamNumber);
@@ -116,10 +116,18 @@ protected:
   class ROIStructureSetEntry
   {
   public:
-	  int ROINumber;
-	  char* ROIName;
-	  double ROIDisplayColor[3];
-	  vtkPolyData* ROIPolyData;
+    ROIStructureSetEntry();
+    virtual ~ROIStructureSetEntry();
+    ROIStructureSetEntry(const ROIStructureSetEntry& src);
+    ROIStructureSetEntry &operator=(const ROIStructureSetEntry &src);
+
+    void SetPolyData(vtkPolyData* roiPolyData);
+
+    int Number;
+    std::string Name;
+    std::string Description;
+    double DisplayColor[3];
+    vtkPolyData* PolyData;
   };
   //ETX
 
@@ -128,10 +136,18 @@ protected:
   class BeamSequenceEntry
   {
   public:
-	  int BeamNumber;
-	  char* BeamName;
-	  char* BeamType;
-	  double BeamIsocenterPosition[3];
+    BeamSequenceEntry()
+    {
+      Number=-1;
+      IsocenterPosition[0]=0.0;
+      IsocenterPosition[1]=0.0;
+      IsocenterPosition[2]=0.0;
+    }
+    int Number;
+    std::string Name;
+    std::string Type;
+    std::string Description;
+    double IsocenterPosition[3]; // in RAS
   };
   //ETX
 
@@ -149,6 +165,9 @@ protected:
   /*! Set pixel spacing */
   vtkSetVector2Macro(PixelSpacing, double); 
 
+  BeamSequenceEntry* FindBeamByNumber(int beamNumber);
+  ROIStructureSetEntry* FindROIByNumber(int roiNumber);
+
 protected:
   /// Structure set contours
   vtkPolyData* ROIContourSequencePolyData;
@@ -157,10 +176,10 @@ protected:
   char* FileName;
 
   /// List of loaded contour ROIs from structure set
-  std::vector<ROIStructureSetEntry*> ROIContourSequenceVector;
+  std::vector<ROIStructureSetEntry> ROIContourSequenceVector;
 
   /// List of loaded contour ROIs from structure set
-  std::vector<BeamSequenceEntry*> BeamSequenceVector;
+  std::vector<BeamSequenceEntry> BeamSequenceVector;
 
   /// Pixel spacing - for RTDOSE
   double PixelSpacing[2];
