@@ -158,7 +158,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   double dvhStartValue = 0.0;
   if (argc > 16)
   {
-    if (stricmp(argv[15], "-DvhStartValue") == 0)
+    if (STRCASECMP(argv[15], "-DvhStartValue") == 0)
     {
       dvhStartValue = atof(argv[16]);
       std::cout << "DVH start value: " << dvhStartValue << std::endl;
