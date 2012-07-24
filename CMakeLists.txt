@@ -21,11 +21,17 @@ if(NOT Slicer_SOURCE_DIR)
 endif()
 
 #-----------------------------------------------------------------------------
+OPTION(SLICERRT_ENABLE_EXPERIMENTAL_MODULES "Enable the building of work-in-progress, experimental modules." OFF)
+
+#-----------------------------------------------------------------------------
 add_subdirectory(DicomRtImport)
 add_subdirectory(DoseAccumulation)
 add_subdirectory(DoseVolumeHistogram)
-add_subdirectory(Isodose)
-#add_subdirectory(DoseComparison)
+
+if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
+  add_subdirectory(Isodose)
+  add_subdirectory(DoseComparison)
+endif()
 
 #-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
