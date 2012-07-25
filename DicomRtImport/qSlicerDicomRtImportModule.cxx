@@ -25,7 +25,7 @@
 #include <vtkSlicerVolumesLogic.h>
 
 // ExtensionTemplate Logic includes
-#include <vtkSlicerDicomRtImportLogic.h>
+#include <vtkSlicerDicomRtImportModuleLogic.h>
 
 // ExtensionTemplate includes
 #include "qSlicerDicomRtImportModule.h"

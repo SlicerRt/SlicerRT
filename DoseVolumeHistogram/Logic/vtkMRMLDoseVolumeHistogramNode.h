@@ -32,7 +32,7 @@
 
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
-class VTK_SLICER_DOSEVOLUMEHISTOGRAM_MODULE_LOGIC_EXPORT vtkMRMLDoseVolumeHistogramNode : public vtkMRMLNode
+class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkMRMLDoseVolumeHistogramNode : public vtkMRMLNode
 {
 public:
   static vtkMRMLDoseVolumeHistogramNode *New();

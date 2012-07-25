@@ -20,7 +20,7 @@
 ==============================================================================*/
 
 // DoseVolumeHistogram includes
-#include "vtkSlicerDoseVolumeHistogramLogic.h"
+#include "vtkSlicerDoseVolumeHistogramModuleLogic.h"
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // MRML includes

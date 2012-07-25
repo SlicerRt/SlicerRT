@@ -21,7 +21,7 @@
 // SlicerQt includes
 #include "qSlicerDicomRtImportModuleWidget.h"
 #include "ui_qSlicerDicomRtImportModule.h"
-#include "vtkSlicerDicomRtImportLogic.h"
+#include "vtkSlicerDicomRtImportModuleLogic.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate

@@ -42,7 +42,7 @@ class DcmDataset;
 
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_DICOMRTIMPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomRtReader : public vtkObject
+class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtReader : public vtkObject
 {
 public:
   static vtkSlicerDicomRtReader *New();

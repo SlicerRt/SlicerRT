@@ -16,7 +16,7 @@ limitations under the License.
 ==============================================================================*/
 
 // ModuleTemplate includes
-#include "vtkSlicerDicomRtImportLogic.h"
+#include "vtkSlicerDicomRtImportModuleLogic.h"
 #include "vtkSlicerDicomRtReader.h"
 #include "vtkDICOMImportInfo.h"
 

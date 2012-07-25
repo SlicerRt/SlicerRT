@@ -28,7 +28,7 @@
 #include <qSlicerModuleManager.h>
 
 // ExtensionTemplate Logic includes
-#include <vtkSlicerDoseVolumeHistogramLogic.h>
+#include <vtkSlicerDoseVolumeHistogramModuleLogic.h>
 
 // ExtensionTemplate includes
 #include "qSlicerDoseVolumeHistogramModule.h"

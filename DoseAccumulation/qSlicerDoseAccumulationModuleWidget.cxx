@@ -27,7 +27,7 @@
 #include "ui_qSlicerDoseAccumulationModule.h"
 
 // DoseAccumulation includes
-#include "vtkSlicerDoseAccumulationLogic.h"
+#include "vtkSlicerDoseAccumulationModuleLogic.h"
 #include "vtkMRMLDoseAccumulationNode.h"
 
 // MRML includes

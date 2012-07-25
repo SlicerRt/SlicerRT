@@ -32,7 +32,7 @@
 
 #include "vtkSlicerDoseAccumulationModuleLogicExport.h"
 
-class VTK_SLICER_DOSEACCUMULATION_MODULE_LOGIC_EXPORT vtkMRMLDoseAccumulationNode : public vtkMRMLNode
+class VTK_SLICER_DOSEACCUMULATION_LOGIC_EXPORT vtkMRMLDoseAccumulationNode : public vtkMRMLNode
 {
 public:
   static vtkMRMLDoseAccumulationNode *New();

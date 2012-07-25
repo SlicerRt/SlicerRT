@@ -23,7 +23,7 @@
 #include <qSlicerModuleManager.h>
 
 // DoseAccumulation Logic includes
-#include <vtkSlicerDoseAccumulationLogic.h>
+#include <vtkSlicerDoseAccumulationModuleLogic.h>
 
 // DoseAccumulation includes
 #include "qSlicerDoseAccumulationModule.h"

@@ -37,7 +37,7 @@
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_DOSEVOLUMEHISTOGRAM_MODULE_LOGIC_EXPORT vtkPolyDataToLabelmapFilter :
+class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkPolyDataToLabelmapFilter :
   public vtkObject
 {
 public:

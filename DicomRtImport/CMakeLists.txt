@@ -1,7 +1,5 @@
-cmake_minimum_required(VERSION 2.8.7)
-
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "DicomRtImport") # Do not use 'project()' - See SlicerConfig.cmake
+set(MODULE_NAME "DicomRtImport")
 set(MODULE_TITLE "DICOM RT Import")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
@@ -10,37 +8,36 @@ string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 add_subdirectory(Logic)
 
 #-----------------------------------------------------------------------------
-set(qt_module_export_directive "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
+set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 
-set(qt_module_include_directories
+set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
   )
 
-set(qt_module_SRCS
-  qSlicerDicomRtImportModule.cxx
-  qSlicerDicomRtImportModule.h
-  qSlicerDicomRtImportModuleWidget.cxx
-  qSlicerDicomRtImportModuleWidget.h
+set(MODULE_SRCS
+  qSlicer${MODULE_NAME}Module.cxx
+  qSlicer${MODULE_NAME}Module.h
+  qSlicer${MODULE_NAME}ModuleWidget.cxx
+  qSlicer${MODULE_NAME}ModuleWidget.h
   )
 
-set(qt_module_MOC_SRCS
-  qSlicerDicomRtImportModule.h
-  qSlicerDicomRtImportModuleWidget.h
+set(MODULE_MOC_SRCS
+  qSlicer${MODULE_NAME}Module.h
+  qSlicer${MODULE_NAME}ModuleWidget.h
   )
 
-set(qt_module_UI_SRCS
-  Resources/UI/qSlicerDicomRtImportModule.ui
+set(MODULE_UI_SRCS
+  Resources/UI/qSlicer${MODULE_NAME}Module.ui
   )
 
-set(qt_module_target_libraries
-  vtkSlicerDicomRtImportModuleLogic
-  #vtkSlicerDicomRtImportAlgorithm
+set(MODULE_TARGET_LIBRARIES
+  vtkSlicer${MODULE_NAME}ModuleLogic
   vtkSlicerVolumesModuleLogic
   )
 
-set(qt_module_resources
-  Resources/qSlicerDicomRtImportModule.qrc
+set(MODULE_RESOURCES
+  Resources/qSlicer${MODULE_NAME}Module.qrc
   )
 
 #-----------------------------------------------------------------------------
@@ -65,22 +62,16 @@ ctkMacroCompilePythonScript(
 slicerMacroBuildQtModule(
   NAME ${MODULE_NAME}
   TITLE ${MODULE_TITLE}
-  EXPORT_DIRECTIVE ${qt_module_export_directive}
-  INCLUDE_DIRECTORIES ${qt_module_include_directories}
-  SRCS ${qt_module_SRCS}
-  MOC_SRCS ${qt_module_MOC_SRCS}
-  UI_SRCS ${qt_module_UI_SRCS}
-  TARGET_LIBRARIES ${qt_module_target_libraries}
-  RESOURCES ${qt_module_resources}
+  EXPORT_DIRECTIVE ${MODULE_EXPORT_DIRECTIVE}
+  INCLUDE_DIRECTORIES ${MODULE_INCLUDE_DIRECTORIES}
+  SRCS ${MODULE_SRCS}
+  MOC_SRCS ${MODULE_MOC_SRCS}
+  UI_SRCS ${MODULE_UI_SRCS}
+  TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
+  RESOURCES ${MODULE_RESOURCES}
   )
 
 #-----------------------------------------------------------------------------
 if(BUILD_TESTING)
-  # TODO: add testing
-  # add_subdirectory(Testing)
-endif()
-
-#-----------------------------------------------------------------------------
-if(NOT Slicer_SOURCE_DIR)
-#  include(${Slicer_EXTENSION_CPACK})
+  add_subdirectory(Testing)
 endif()
