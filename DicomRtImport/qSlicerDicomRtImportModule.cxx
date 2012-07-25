@@ -78,9 +78,25 @@ QString qSlicerDicomRtImportModule::acknowledgementText()const
 }
 
 //-----------------------------------------------------------------------------
+QStringList qSlicerDicomRtImportModule::contributors()const
+{
+  QStringList moduleContributors;
+  moduleContributors << QString("Csaba Pinter (Queen's)");
+  moduleContributors << QString("Andras Lasso (Queen's)");
+  moduleContributors << QString("Kevin Wang (UHN, Toronto)");
+  return moduleContributors;
+}
+
+//-----------------------------------------------------------------------------
 QIcon qSlicerDicomRtImportModule::icon()const
 {
   return QIcon(":/Icons/DicomRtImport.png");
+}
+
+//-----------------------------------------------------------------------------
+QStringList qSlicerDicomRtImportModule::categories()const
+{
+  return QStringList() << "Radiotherapy";
 }
 
 //-----------------------------------------------------------------------------
