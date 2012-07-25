@@ -650,7 +650,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
         std::cerr << "Error: V metric result mismatch!" << std::endl;
         continue;
       }
-      col = 2 + metricList.size();
+      col = 3 + metricList.size();
 
       for (int j=0; j<volumes.size(); ++j)
       {
@@ -676,7 +676,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     {
       std::vector<double> doses;
       d->logic()->ComputeDMetrics(dvhNode, dVolumeValuesCc, doses, false);
-      col = 2 + metricList.size() + vColumnCount;
+      col = 3 + metricList.size() + vColumnCount;
       for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
       {
         QString metricValue;
@@ -689,7 +689,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     {
       std::vector<double> doses;
       d->logic()->ComputeDMetrics(dvhNode, dVolumeValuesPercent, doses, true);
-      col = 2 + metricList.size() + vColumnCount + dVolumeValuesCc.size();
+      col = 3 + metricList.size() + vColumnCount + dVolumeValuesCc.size();
       for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
       {
         QString metricValue;

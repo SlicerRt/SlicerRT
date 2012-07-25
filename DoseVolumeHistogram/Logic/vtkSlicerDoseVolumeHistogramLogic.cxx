@@ -524,8 +524,6 @@ void vtkSlicerDoseVolumeHistogramLogic
   sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
   arrayNode->SetAttribute(attributeName, metricList.str().c_str());
 
-  arrayNode = vtkMRMLDoubleArrayNode::SafeDownCast( this->GetMRMLScene()->AddNode( arrayNode ) );
-
   double rangeMin = stat->GetMin()[0];
   double rangeMax = stat->GetMax()[0];
 
@@ -599,6 +597,8 @@ void vtkSlicerDoseVolumeHistogramLogic
   {
     doubleArray->SetComponent(0,0,0);
   }
+
+  this->GetMRMLScene()->AddNode(arrayNode);
 }
 
 //---------------------------------------------------------------------------
