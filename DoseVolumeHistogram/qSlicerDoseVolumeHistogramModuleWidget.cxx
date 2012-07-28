@@ -56,7 +56,7 @@ protected:
 public:
   qSlicerDoseVolumeHistogramModuleWidgetPrivate(qSlicerDoseVolumeHistogramModuleWidget &object);
   ~qSlicerDoseVolumeHistogramModuleWidgetPrivate();
-  vtkSlicerDoseVolumeHistogramLogic* logic() const;
+  vtkSlicerDoseVolumeHistogramModuleLogic* logic() const;
 public:
   /// Map that associates a string pair containing the structure set plot name (including table row number) and the vtkMRMLDoubleArrayNode id (respectively) to the show/hide in chart checkboxes
   QMap<QCheckBox*, QPair<QString, QString> > ChartCheckboxToStructureSetNameMap;
@@ -83,11 +83,11 @@ qSlicerDoseVolumeHistogramModuleWidgetPrivate::~qSlicerDoseVolumeHistogramModule
 }
 
 //-----------------------------------------------------------------------------
-vtkSlicerDoseVolumeHistogramLogic*
+vtkSlicerDoseVolumeHistogramModuleLogic*
 qSlicerDoseVolumeHistogramModuleWidgetPrivate::logic() const
 {
   Q_Q(const qSlicerDoseVolumeHistogramModuleWidget);
-  return vtkSlicerDoseVolumeHistogramLogic::SafeDownCast(q->logic());
+  return vtkSlicerDoseVolumeHistogramModuleLogic::SafeDownCast(q->logic());
 } 
 
 
@@ -545,7 +545,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   {
     QString metricName(it->c_str());
     metricName = metricName.right( metricName.length()
-      - vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
+      - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
     headerLabels << metricName;
   }
   for (std::vector<double>::iterator it = vDoseValues.begin(); it != vDoseValues.end(); ++it)
@@ -594,22 +594,22 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_ChartStatistics);
     checkbox->setToolTip(tr("Show/hide DVH plot of structure '%1' in selected chart").arg(
-      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
+      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
     connect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
 
     // Store checkbox with the augmented structure set name and the double array ID
-    QString plotName( dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) );
+    QString plotName( dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) );
     plotName.append( QString("(%1)").arg(i+1) );
-    dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), plotName.toLatin1());
+    dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), plotName.toLatin1());
     d->ChartCheckboxToStructureSetNameMap[checkbox] = QPair<QString, QString>(plotName, dvhNode->GetID());
 
     d->tableWidget_ChartStatistics->setCellWidget(i, 0, checkbox);
 
     d->tableWidget_ChartStatistics->setItem(i, 1, new QTableWidgetItem(
-      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));    
+      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));    
 
     vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast( this->mrmlScene()->GetNodeByID(
-      dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str()) ) );
+      dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str()) ) );
     if (volumeNode)
     {
       d->tableWidget_ChartStatistics->setItem(i, 2, new QTableWidgetItem( QString(volumeNode->GetName()) ));    

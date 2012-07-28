@@ -26,7 +26,7 @@
 #include "ui_qSlicerDoseComparisonModule.h"
 
 // DoseComparison includes
-#include "vtkSlicerDoseComparisonLogic.h"
+#include "vtkSlicerDoseComparisonModuleLogic.h"
 #include "vtkMRMLDoseComparisonNode.h"
 
 // MRML includes
@@ -41,7 +41,7 @@ protected:
   qSlicerDoseComparisonModuleWidget* const q_ptr;
 public:
   qSlicerDoseComparisonModuleWidgetPrivate(qSlicerDoseComparisonModuleWidget& object);
-  vtkSlicerDoseComparisonLogic* logic() const;
+  vtkSlicerDoseComparisonModuleLogic* logic() const;
 
   /// Using this flag prevents overriding the parameter set node contents when the
   ///   QMRMLCombobox selects the first instance of the specified node type when initializing
@@ -59,11 +59,11 @@ qSlicerDoseComparisonModuleWidgetPrivate::qSlicerDoseComparisonModuleWidgetPriva
 }
 
 //-----------------------------------------------------------------------------
-vtkSlicerDoseComparisonLogic*
+vtkSlicerDoseComparisonModuleLogic*
 qSlicerDoseComparisonModuleWidgetPrivate::logic() const
 {
   Q_Q(const qSlicerDoseComparisonModuleWidget);
-  return vtkSlicerDoseComparisonLogic::SafeDownCast(q->logic());
+  return vtkSlicerDoseComparisonModuleLogic::SafeDownCast(q->logic());
 } 
 
 

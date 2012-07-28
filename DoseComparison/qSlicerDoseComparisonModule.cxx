@@ -23,7 +23,7 @@
 #include <QtPlugin>
 
 // DoseComparison Logic includes
-#include <vtkSlicerDoseComparisonLogic.h>
+#include <vtkSlicerDoseComparisonModuleLogic.h>
 
 // DoseComparison includes
 #include "qSlicerDoseComparisonModule.h"
@@ -114,5 +114,5 @@ qSlicerAbstractModuleRepresentation * qSlicerDoseComparisonModule::createWidgetR
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerDoseComparisonModule::createLogic()
 {
-  return vtkSlicerDoseComparisonLogic::New();
+  return vtkSlicerDoseComparisonModuleLogic::New();
 }

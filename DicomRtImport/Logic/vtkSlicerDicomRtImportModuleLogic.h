@@ -15,7 +15,7 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerDicomRtImportLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerDicomRtImportModuleLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
@@ -37,13 +37,13 @@ class vtkMRMLDisplayableNode;
 class vtkDICOMImportInfo;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtImportLogic :
+class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtImportModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
 
-  static vtkSlicerDicomRtImportLogic *New();
-  vtkTypeMacro(vtkSlicerDicomRtImportLogic, vtkSlicerModuleLogic);
+  static vtkSlicerDicomRtImportModuleLogic *New();
+  vtkTypeMacro(vtkSlicerDicomRtImportModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Initialize listening to MRML events
@@ -60,8 +60,8 @@ public:
   void SetVolumesLogic(vtkSlicerVolumesLogic* volumesLogic);
 
 protected:
-  vtkSlicerDicomRtImportLogic();
-  virtual ~vtkSlicerDicomRtImportLogic();
+  vtkSlicerDicomRtImportModuleLogic();
+  virtual ~vtkSlicerDicomRtImportModuleLogic();
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
@@ -77,8 +77,8 @@ protected:
 
 private:
 
-  vtkSlicerDicomRtImportLogic(const vtkSlicerDicomRtImportLogic&); // Not implemented
-  void operator=(const vtkSlicerDicomRtImportLogic&);              // Not implemented
+  vtkSlicerDicomRtImportModuleLogic(const vtkSlicerDicomRtImportModuleLogic&); // Not implemented
+  void operator=(const vtkSlicerDicomRtImportModuleLogic&);              // Not implemented
 
 private:
   vtkSlicerVolumesLogic* VolumesLogic;

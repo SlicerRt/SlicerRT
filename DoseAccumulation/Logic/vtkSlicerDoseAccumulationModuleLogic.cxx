@@ -41,34 +41,34 @@
 #define THRESHOLD 0.001
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerDoseAccumulationLogic);
+vtkStandardNewMacro(vtkSlicerDoseAccumulationModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerDoseAccumulationLogic::vtkSlicerDoseAccumulationLogic()
+vtkSlicerDoseAccumulationModuleLogic::vtkSlicerDoseAccumulationModuleLogic()
 {
   this->DoseAccumulationNode = NULL;
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerDoseAccumulationLogic::~vtkSlicerDoseAccumulationLogic()
+vtkSlicerDoseAccumulationModuleLogic::~vtkSlicerDoseAccumulationModuleLogic()
 {
   vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, NULL);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerDoseAccumulationModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic::SetAndObserveDoseAccumulationNode(vtkMRMLDoseAccumulationNode *node)
+void vtkSlicerDoseAccumulationModuleLogic::SetAndObserveDoseAccumulationNode(vtkMRMLDoseAccumulationNode *node)
 {
   vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, node);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+void vtkSlicerDoseAccumulationModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -80,7 +80,7 @@ void vtkSlicerDoseAccumulationLogic::SetMRMLSceneInternal(vtkMRMLScene * newScen
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic::RegisterNodes()
+void vtkSlicerDoseAccumulationModuleLogic::RegisterNodes()
 {
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
@@ -91,7 +91,7 @@ void vtkSlicerDoseAccumulationLogic::RegisterNodes()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic::UpdateFromMRMLScene()
+void vtkSlicerDoseAccumulationModuleLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 
@@ -99,7 +99,7 @@ void vtkSlicerDoseAccumulationLogic::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
+void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
@@ -113,7 +113,7 @@ void vtkSlicerDoseAccumulationLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
+void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
@@ -133,7 +133,7 @@ void vtkSlicerDoseAccumulationLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndImport()
+void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneEndImport()
 {
   // If we have a parameter node select it
   vtkMRMLDoseAccumulationNode *paramNode = NULL;
@@ -146,13 +146,13 @@ void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndImport()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationLogic::OnMRMLSceneEndClose()
+void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneEndClose()
 {
   this->Modified();
 }
 
 //---------------------------------------------------------------------------
-vtkCollection* vtkSlicerDoseAccumulationLogic::GetVolumeNodesFromScene()
+vtkCollection* vtkSlicerDoseAccumulationModuleLogic::GetVolumeNodesFromScene()
 {
   vtkCollection* volumeNodes = vtkCollection::New();
   volumeNodes->InitTraversal();
@@ -184,7 +184,7 @@ vtkCollection* vtkSlicerDoseAccumulationLogic::GetVolumeNodesFromScene()
 }
 
 //---------------------------------------------------------------------------
-int vtkSlicerDoseAccumulationLogic::AccumulateDoseVolumes()
+int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
 {
   // Make sure inputs are initialized
   if (this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->empty())

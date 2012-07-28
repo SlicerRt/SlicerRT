@@ -55,29 +55,29 @@ limitations under the License.
 #include <cassert>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerDicomRtImportLogic);
-vtkCxxSetObjectMacro(vtkSlicerDicomRtImportLogic, VolumesLogic, vtkSlicerVolumesLogic);
+vtkStandardNewMacro(vtkSlicerDicomRtImportModuleLogic);
+vtkCxxSetObjectMacro(vtkSlicerDicomRtImportModuleLogic, VolumesLogic, vtkSlicerVolumesLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomRtImportLogic::vtkSlicerDicomRtImportLogic()
+vtkSlicerDicomRtImportModuleLogic::vtkSlicerDicomRtImportModuleLogic()
 {
   this->VolumesLogic = NULL;
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomRtImportLogic::~vtkSlicerDicomRtImportLogic()
+vtkSlicerDicomRtImportModuleLogic::~vtkSlicerDicomRtImportModuleLogic()
 {
   SetVolumesLogic(NULL); // release the volumes logic object
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDicomRtImportLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerDicomRtImportModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportLogic::InitializeEventListeners()
+void vtkSlicerDicomRtImportModuleLogic::InitializeEventListeners()
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -87,29 +87,29 @@ void vtkSlicerDicomRtImportLogic::InitializeEventListeners()
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerDicomRtImportLogic::RegisterNodes()
+void vtkSlicerDicomRtImportModuleLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportLogic::UpdateFromMRMLScene()
+void vtkSlicerDicomRtImportModuleLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerDicomRtImportModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerDicomRtImportModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportLogic::Examine(vtkDICOMImportInfo *importInfo)
+void vtkSlicerDicomRtImportModuleLogic::Examine(vtkDICOMImportInfo *importInfo)
 {
   importInfo->RemoveAllLoadables();
 
@@ -226,7 +226,7 @@ void vtkSlicerDicomRtImportLogic::Examine(vtkDICOMImportInfo *importInfo)
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* seriesname)
+bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const char* seriesname)
 {
   std::cout << "Loading series '" << seriesname << "' from file '" << filename << "'" << std::endl;
 
@@ -428,7 +428,7 @@ bool vtkSlicerDicomRtImportLogic::LoadDicomRT(const char *filename, const char* 
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiPoint(double *roiPosition, const char* roiLabel, double *roiColor)
+vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(double *roiPosition, const char* roiLabel, double *roiColor)
 {
   vtkSmartPointer<vtkMRMLAnnotationFiducialNode> fiducialNode = vtkSmartPointer<vtkMRMLAnnotationFiducialNode>::New();
   fiducialNode->SetName(roiLabel);
@@ -446,7 +446,7 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiPoint(double *roiPosi
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLDisplayableNode* vtkSlicerDicomRtImportLogic::AddRoiContour(vtkPolyData *roiPoly, const char* roiLabel, double *roiColor)
+vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiContour(vtkPolyData *roiPoly, const char* roiLabel, double *roiColor)
 {
   vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
   displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));

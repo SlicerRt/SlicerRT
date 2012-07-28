@@ -16,7 +16,7 @@
 ==============================================================================*/
 
 // Isodose includes
-#include "vtkSlicerIsodoseLogic.h"
+#include "vtkSlicerIsodoseModuleLogic.h"
 
 // MRML includes
 
@@ -27,26 +27,26 @@
 #include <cassert>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerIsodoseLogic);
+vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerIsodoseLogic::vtkSlicerIsodoseLogic()
+vtkSlicerIsodoseModuleLogic::vtkSlicerIsodoseModuleLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerIsodoseLogic::~vtkSlicerIsodoseLogic()
+vtkSlicerIsodoseModuleLogic::~vtkSlicerIsodoseModuleLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerIsodoseLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerIsodoseModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIsodoseLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -56,25 +56,25 @@ void vtkSlicerIsodoseLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerIsodoseLogic::RegisterNodes()
+void vtkSlicerIsodoseModuleLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIsodoseLogic::UpdateFromMRMLScene()
+void vtkSlicerIsodoseModuleLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIsodoseLogic
+void vtkSlicerIsodoseModuleLogic
 ::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIsodoseLogic
+void vtkSlicerIsodoseModuleLogic
 ::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
 {
 }

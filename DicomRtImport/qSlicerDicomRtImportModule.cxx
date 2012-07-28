@@ -104,7 +104,7 @@ void qSlicerDicomRtImportModule::setup()
 {
   this->Superclass::setup();
 
-  vtkSlicerDicomRtImportLogic* dicomRtImportLogic = vtkSlicerDicomRtImportLogic::SafeDownCast(this->logic());
+  vtkSlicerDicomRtImportModuleLogic* dicomRtImportLogic = vtkSlicerDicomRtImportModuleLogic::SafeDownCast(this->logic());
 
   qSlicerAbstractCoreModule* volumesModule = qSlicerCoreApplication::application()->moduleManager()->module("Volumes");
   if (volumesModule)
@@ -127,5 +127,5 @@ qSlicerAbstractModuleRepresentation * qSlicerDicomRtImportModule::createWidgetRe
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerDicomRtImportModule::createLogic()
 {
-  return vtkSlicerDicomRtImportLogic::New();
+  return vtkSlicerDicomRtImportModuleLogic::New();
 }

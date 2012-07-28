@@ -15,14 +15,14 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerIsodoseLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerIsodoseModuleLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
 
-#ifndef __vtkSlicerIsodoseLogic_h
-#define __vtkSlicerIsodoseLogic_h
+#ifndef __vtkSlicerIsodoseModuleLogic_h
+#define __vtkSlicerIsodoseModuleLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -36,18 +36,18 @@
 
 
 /// \ingroup Slicer_QtModules_Isodose
-class VTK_SLICER_ISODOSE_MODULE_LOGIC_EXPORT vtkSlicerIsodoseLogic :
+class VTK_SLICER_ISODOSE_MODULE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
   
-  static vtkSlicerIsodoseLogic *New();
-  vtkTypeMacro(vtkSlicerIsodoseLogic,vtkSlicerModuleLogic);
+  static vtkSlicerIsodoseModuleLogic *New();
+  vtkTypeMacro(vtkSlicerIsodoseModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 protected:
-  vtkSlicerIsodoseLogic();
-  virtual ~vtkSlicerIsodoseLogic();
+  vtkSlicerIsodoseModuleLogic();
+  virtual ~vtkSlicerIsodoseModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
@@ -57,8 +57,8 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
 
-  vtkSlicerIsodoseLogic(const vtkSlicerIsodoseLogic&); // Not implemented
-  void operator=(const vtkSlicerIsodoseLogic&);               // Not implemented
+  vtkSlicerIsodoseModuleLogic(const vtkSlicerIsodoseModuleLogic&); // Not implemented
+  void operator=(const vtkSlicerIsodoseModuleLogic&);               // Not implemented
 };
 
 #endif

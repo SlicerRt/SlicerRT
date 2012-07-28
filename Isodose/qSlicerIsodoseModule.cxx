@@ -19,7 +19,7 @@
 #include <QtPlugin>
 
 // Isodose Logic includes
-#include <vtkSlicerIsodoseLogic.h>
+#include <vtkSlicerIsodoseModuleLogic.h>
 
 // Isodose includes
 #include "qSlicerIsodoseModule.h"
@@ -114,5 +114,5 @@ qSlicerAbstractModuleRepresentation * qSlicerIsodoseModule::createWidgetRepresen
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerIsodoseModule::createLogic()
 {
-  return vtkSlicerIsodoseLogic::New();
+  return vtkSlicerIsodoseModuleLogic::New();
 }

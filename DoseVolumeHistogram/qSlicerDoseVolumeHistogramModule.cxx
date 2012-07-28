@@ -129,5 +129,5 @@ qSlicerAbstractModuleRepresentation * qSlicerDoseVolumeHistogramModule::createWi
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerDoseVolumeHistogramModule::createLogic()
 {
-  return vtkSlicerDoseVolumeHistogramLogic::New();
+  return vtkSlicerDoseVolumeHistogramModuleLogic::New();
 }

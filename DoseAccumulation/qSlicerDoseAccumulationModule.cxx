@@ -114,5 +114,5 @@ qSlicerAbstractModuleRepresentation * qSlicerDoseAccumulationModule::createWidge
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerDoseAccumulationModule::createLogic()
 {
-  return vtkSlicerDoseAccumulationLogic::New();
+  return vtkSlicerDoseAccumulationModuleLogic::New();
 }

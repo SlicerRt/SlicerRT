@@ -43,7 +43,7 @@ protected:
 public:
   qSlicerDoseAccumulationModuleWidgetPrivate(qSlicerDoseAccumulationModuleWidget& object);
   ~qSlicerDoseAccumulationModuleWidgetPrivate();
-  vtkSlicerDoseAccumulationLogic* logic() const;
+  vtkSlicerDoseAccumulationModuleLogic* logic() const;
 public:
   /// Map that associates dose volume checkboxes to the corresponding MRML node IDs
   std::map<QCheckBox*, std::string> CheckboxToVolumeIdMap;
@@ -70,11 +70,11 @@ qSlicerDoseAccumulationModuleWidgetPrivate::~qSlicerDoseAccumulationModuleWidget
 }
 
 //-----------------------------------------------------------------------------
-vtkSlicerDoseAccumulationLogic*
+vtkSlicerDoseAccumulationModuleLogic*
 qSlicerDoseAccumulationModuleWidgetPrivate::logic() const
 {
   Q_Q(const qSlicerDoseAccumulationModuleWidget);
-  return vtkSlicerDoseAccumulationLogic::SafeDownCast(q->logic());
+  return vtkSlicerDoseAccumulationModuleLogic::SafeDownCast(q->logic());
 } 
 
 //-----------------------------------------------------------------------------

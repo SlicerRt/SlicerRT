@@ -19,14 +19,14 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerDoseVolumeHistogramLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerDoseVolumeHistogramModuleLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
 
-#ifndef __vtkSlicerDoseVolumeHistogramLogic_h
-#define __vtkSlicerDoseVolumeHistogramLogic_h
+#ifndef __vtkSlicerDoseVolumeHistogramModuleLogic_h
+#define __vtkSlicerDoseVolumeHistogramModuleLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -69,7 +69,7 @@ struct InsensitiveCompare
 };
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramLogic :
+class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
@@ -93,8 +93,8 @@ public:
   static const std::string DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME;
 
 public:
-  static vtkSlicerDoseVolumeHistogramLogic *New();
-  vtkTypeMacro(vtkSlicerDoseVolumeHistogramLogic, vtkSlicerModuleLogic);
+  static vtkSlicerDoseVolumeHistogramModuleLogic *New();
+  vtkTypeMacro(vtkSlicerDoseVolumeHistogramModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
@@ -157,8 +157,8 @@ public:
   vtkSetMacro(NumberOfSamplesForNonDoseVolumes, int);
 
 protected:
-  vtkSlicerDoseVolumeHistogramLogic();
-  virtual ~vtkSlicerDoseVolumeHistogramLogic();
+  vtkSlicerDoseVolumeHistogramModuleLogic();
+  virtual ~vtkSlicerDoseVolumeHistogramModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
@@ -184,8 +184,8 @@ protected:
   void GetSelectedStructureModelNodes(std::vector<vtkMRMLModelNode*> &structureModelNodes);
 
 private:
-  vtkSlicerDoseVolumeHistogramLogic(const vtkSlicerDoseVolumeHistogramLogic&); // Not implemented
-  void operator=(const vtkSlicerDoseVolumeHistogramLogic&);               // Not implemented
+  vtkSlicerDoseVolumeHistogramModuleLogic(const vtkSlicerDoseVolumeHistogramModuleLogic&); // Not implemented
+  void operator=(const vtkSlicerDoseVolumeHistogramModuleLogic&);               // Not implemented
 
 protected:
   /// Parameter set MRML node

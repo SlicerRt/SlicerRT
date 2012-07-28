@@ -20,7 +20,7 @@
 ==============================================================================*/
 
 // DoseComparison includes
-#include "vtkSlicerDoseComparisonLogic.h"
+#include "vtkSlicerDoseComparisonModuleLogic.h"
 #include "vtkMRMLDoseComparisonNode.h"
 
 #include "gamma_dose_comparison.h"
@@ -41,33 +41,33 @@
 #include <cassert>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerDoseComparisonLogic);
+vtkStandardNewMacro(vtkSlicerDoseComparisonModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerDoseComparisonLogic::vtkSlicerDoseComparisonLogic()
+vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 {
   this->DoseComparisonNode = NULL;
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerDoseComparisonLogic::~vtkSlicerDoseComparisonLogic()
+vtkSlicerDoseComparisonModuleLogic::~vtkSlicerDoseComparisonModuleLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerDoseComparisonModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic::SetAndObserveDoseComparisonNode(vtkMRMLDoseComparisonNode *node)
+void vtkSlicerDoseComparisonModuleLogic::SetAndObserveDoseComparisonNode(vtkMRMLDoseComparisonNode *node)
 {
   vtkSetAndObserveMRMLNodeMacro(this->DoseComparisonNode, node);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+void vtkSlicerDoseComparisonModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -79,7 +79,7 @@ void vtkSlicerDoseComparisonLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic::RegisterNodes()
+void vtkSlicerDoseComparisonModuleLogic::RegisterNodes()
 {
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
@@ -90,7 +90,7 @@ void vtkSlicerDoseComparisonLogic::RegisterNodes()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic::UpdateFromMRMLScene()
+void vtkSlicerDoseComparisonModuleLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 
@@ -98,7 +98,7 @@ void vtkSlicerDoseComparisonLogic::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
+void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
@@ -112,7 +112,7 @@ void vtkSlicerDoseComparisonLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
+void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
@@ -126,7 +126,7 @@ void vtkSlicerDoseComparisonLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic::OnMRMLSceneEndImport()
+void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneEndImport()
 {
   // If we have a parameter node select it
   vtkMRMLDoseComparisonNode *paramNode = NULL;
@@ -139,13 +139,13 @@ void vtkSlicerDoseComparisonLogic::OnMRMLSceneEndImport()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic::OnMRMLSceneEndClose()
+void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneEndClose()
 {
   this->Modified();
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDoseComparisonLogic::DoseVolumeContainsDose(vtkMRMLNode* node)
+bool vtkSlicerDoseComparisonModuleLogic::DoseVolumeContainsDose(vtkMRMLNode* node)
 {
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
   const char* doseUnitName = doseVolumeNode->GetAttribute("DoseUnitName");
@@ -159,7 +159,7 @@ bool vtkSlicerDoseComparisonLogic::DoseVolumeContainsDose(vtkMRMLNode* node)
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic
+void vtkSlicerDoseComparisonModuleLogic
 ::ConvertVtkImageToItkImage(vtkImageData* inVolume, itk::Image<float, 3>::Pointer outVolume)
 {
   if ( inVolume == NULL )
@@ -218,7 +218,7 @@ void vtkSlicerDoseComparisonLogic
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonLogic::ComputeGammaDoseDifference()
+void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 {
   // Convert input images to the format Plastimatch can use
   vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(

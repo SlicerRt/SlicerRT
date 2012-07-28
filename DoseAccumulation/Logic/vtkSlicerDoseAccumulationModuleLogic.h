@@ -19,14 +19,14 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerDoseAccumulationLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerDoseAccumulationModuleLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
 
-#ifndef __vtkSlicerDoseAccumulationLogic_h
-#define __vtkSlicerDoseAccumulationLogic_h
+#ifndef __vtkSlicerDoseAccumulationModuleLogic_h
+#define __vtkSlicerDoseAccumulationModuleLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -42,12 +42,12 @@ class vtkMRMLVolumeNode;
 class vtkMRMLDoseAccumulationNode;
 
 /// \ingroup Slicer_QtModules_DoseAccumulation
-class VTK_SLICER_DOSEACCUMULATION_LOGIC_EXPORT vtkSlicerDoseAccumulationLogic :
+class VTK_SLICER_DOSEACCUMULATION_LOGIC_EXPORT vtkSlicerDoseAccumulationModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  static vtkSlicerDoseAccumulationLogic *New();
-  vtkTypeMacro(vtkSlicerDoseAccumulationLogic,vtkSlicerModuleLogic);
+  static vtkSlicerDoseAccumulationModuleLogic *New();
+  vtkTypeMacro(vtkSlicerDoseAccumulationModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Collect and return volume nodes (if in DoseAccumulationNode ShowDoseVolumesOnly is set to true, then only return dose volumes)
@@ -61,8 +61,8 @@ public:
   vtkGetObjectMacro(DoseAccumulationNode, vtkMRMLDoseAccumulationNode);
 
 protected:
-  vtkSlicerDoseAccumulationLogic();
-  virtual ~vtkSlicerDoseAccumulationLogic();
+  vtkSlicerDoseAccumulationModuleLogic();
+  virtual ~vtkSlicerDoseAccumulationModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
@@ -76,8 +76,8 @@ protected:
   virtual void OnMRMLSceneEndClose();
 
 private:
-  vtkSlicerDoseAccumulationLogic(const vtkSlicerDoseAccumulationLogic&); // Not implemented
-  void operator=(const vtkSlicerDoseAccumulationLogic&);               // Not implemented
+  vtkSlicerDoseAccumulationModuleLogic(const vtkSlicerDoseAccumulationModuleLogic&); // Not implemented
+  void operator=(const vtkSlicerDoseAccumulationModuleLogic&);               // Not implemented
 
 protected:
   /// Parameter set MRML node

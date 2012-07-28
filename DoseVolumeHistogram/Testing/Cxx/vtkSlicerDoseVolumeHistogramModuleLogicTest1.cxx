@@ -72,7 +72,7 @@ double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& refer
 int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baselineDvhMetricCsvFileName, double metricDifferenceThreshold);
 
 //-----------------------------------------------------------------------------
-int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
+int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 {
   // Get temporary directory
   const char *dataDirectoryPath = NULL;
@@ -221,7 +221,7 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
     std::string value = attributeStr.substr(colonIndex + 1);
     doseScalarVolumeNode->SetAttribute(name.c_str(), value.c_str());
 
-    if (vtkSlicerDoseVolumeHistogramLogic::DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.compare(name) == 0)
+    if (vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.compare(name) == 0)
     {
       doseUnitName = value;
     }
@@ -340,8 +340,8 @@ int vtkSlicerDoseVolumeHistogramLogicTest1( int argc, char * argv[] )
   mrmlScene->AddNode(chartNode);
 
   // Create and set up logic
-  vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic> dvhLogic =
-    vtkSmartPointer<vtkSlicerDoseVolumeHistogramLogic>::New();
+  vtkSmartPointer<vtkSlicerDoseVolumeHistogramModuleLogic> dvhLogic =
+    vtkSmartPointer<vtkSlicerDoseVolumeHistogramModuleLogic>::New();
   dvhLogic->SetMRMLScene(mrmlScene);
 
   // Create and set up parameter set MRML node
@@ -563,16 +563,16 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
     int numberOfBinsPerStructure = 0;
     int numberOfAcceptedAgreementsPerStructure = 0;
 
-    const char* structureName = (*dvhNodeIt)->GetAttribute(vtkSlicerDoseVolumeHistogramLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+    const char* structureName = (*dvhNodeIt)->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
 
-    std::string totalVolumeAttributeName = vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX + vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+    std::string totalVolumeAttributeName = vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX + vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
     const char* totalVolumeStr = (*dvhNodeIt)->GetAttribute(totalVolumeAttributeName.c_str());
     double totalVolume = atof(totalVolumeStr);
 
     double maxDose = 0.0;
     const char* maxDoseStr = NULL;
     char maxDoseAttributeName[64];
-    vtkSlicerDoseVolumeHistogramLogic::AssembleDoseMetricAttributeName(vtkSlicerDoseVolumeHistogramLogic::DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName.c_str(), maxDoseAttributeName);
+    vtkSlicerDoseVolumeHistogramModuleLogic::AssembleDoseMetricAttributeName(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName.c_str(), maxDoseAttributeName);
     maxDoseStr = (*dvhNodeIt)->GetAttribute(maxDoseAttributeName);
     if (maxDoseStr)
     {

@@ -19,14 +19,14 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerDoseComparisonLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerDoseComparisonModuleLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
 
-#ifndef __vtkSlicerDoseComparisonLogic_h
-#define __vtkSlicerDoseComparisonLogic_h
+#ifndef __vtkSlicerDoseComparisonModuleLogic_h
+#define __vtkSlicerDoseComparisonModuleLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -43,12 +43,12 @@ class vtkMRMLVolumeNode;
 class vtkMRMLDoseComparisonNode;
 
 /// \ingroup Slicer_QtModules_DoseComparison
-class VTK_SLICER_DOSECOMPARISON_MODULE_LOGIC_EXPORT vtkSlicerDoseComparisonLogic :
+class VTK_SLICER_DOSECOMPARISON_MODULE_LOGIC_EXPORT vtkSlicerDoseComparisonModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  static vtkSlicerDoseComparisonLogic *New();
-  vtkTypeMacro(vtkSlicerDoseComparisonLogic,vtkSlicerModuleLogic);
+  static vtkSlicerDoseComparisonModuleLogic *New();
+  vtkTypeMacro(vtkSlicerDoseComparisonModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
@@ -63,8 +63,8 @@ public:
   vtkGetObjectMacro(DoseComparisonNode, vtkMRMLDoseComparisonNode);
 
 protected:
-  vtkSlicerDoseComparisonLogic();
-  virtual ~vtkSlicerDoseComparisonLogic();
+  vtkSlicerDoseComparisonModuleLogic();
+  virtual ~vtkSlicerDoseComparisonModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
 
@@ -82,8 +82,8 @@ protected:
   void ConvertVtkImageToItkImage(vtkImageData* inVolume, itk::Image<float, 3>::Pointer outVolume);
 
 private:
-  vtkSlicerDoseComparisonLogic(const vtkSlicerDoseComparisonLogic&); // Not implemented
-  void operator=(const vtkSlicerDoseComparisonLogic&);               // Not implemented
+  vtkSlicerDoseComparisonModuleLogic(const vtkSlicerDoseComparisonModuleLogic&); // Not implemented
+  void operator=(const vtkSlicerDoseComparisonModuleLogic&);               // Not implemented
 
 protected:
   /// Parameter set MRML node
