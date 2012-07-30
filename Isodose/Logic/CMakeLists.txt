@@ -1,6 +1,6 @@
 project(vtkSlicer${MODULE_NAME}ModuleLogic)
 
-#
+set(KIT ${PROJECT_NAME})
 
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_LOGIC_EXPORT")
 
@@ -28,3 +28,6 @@ SlicerMacroBuildModuleLogic(
   SRCS ${${KIT}_SRCS}
   TARGET_LIBRARIES ${${KIT}_TARGET_LIBRARIES}
   )
+  
+
+

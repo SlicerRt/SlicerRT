@@ -37,7 +37,7 @@ typedef struct
   double DoseLevelValue;
 } DoseLevelStruct ;
 
-class VTK_SLICER_ISODOSE_MODULE_LOGIC_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
+class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
 {
 public:
   static vtkMRMLIsodoseNode *New();

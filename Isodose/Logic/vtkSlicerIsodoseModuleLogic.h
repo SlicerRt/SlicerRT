@@ -38,7 +38,7 @@ class vtkMRMLVolumeNode;
 class vtkMRMLIsodoseNode;
 
 /// \ingroup Slicer_QtModules_Isodose
-class VTK_SLICER_ISODOSE_MODULE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :
+class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
