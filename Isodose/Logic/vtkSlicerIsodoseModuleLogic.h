@@ -34,6 +34,8 @@
 
 #include "vtkSlicerIsodoseModuleLogicExport.h"
 
+class vtkMRMLVolumeNode;
+class vtkMRMLIsodoseNode;
 
 /// \ingroup Slicer_QtModules_Isodose
 class VTK_SLICER_ISODOSE_MODULE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :
@@ -45,20 +47,37 @@ public:
   vtkTypeMacro(vtkSlicerIsodoseModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  /// Collect and return volume nodes (if in DoseAccumulationNode ShowDoseVolumesOnly is set to true, then only return dose volumes)
+  vtkCollection* GetVolumeNodesFromScene();
+
+  /// Accumulates dose volumes with the given IDs and corresponding weights
+  int ComputeIsodose();
+
+  void SetAndObserveIsodoseNode(vtkMRMLIsodoseNode* node);
+  vtkGetObjectMacro(IsodoseNode, vtkMRMLIsodoseNode);
+
 protected:
   vtkSlicerIsodoseModuleLogic();
   virtual ~vtkSlicerIsodoseModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+  virtual void OnMRMLSceneEndImport();
+  virtual void OnMRMLSceneEndClose();
+
 private:
 
   vtkSlicerIsodoseModuleLogic(const vtkSlicerIsodoseModuleLogic&); // Not implemented
   void operator=(const vtkSlicerIsodoseModuleLogic&);               // Not implemented
+
+protected:
+  /// Parameter set MRML node
+  vtkMRMLIsodoseNode* IsodoseNode;
 };
 
 #endif

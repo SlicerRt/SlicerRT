@@ -69,27 +69,23 @@ qSlicerIsodoseModule::~qSlicerIsodoseModule()
 QString qSlicerIsodoseModule::helpText()const
 {
   QString help = 
-    "This template module is meant to be used with the"
-    "with the ModuleWizard.py script distributed with the"
-    "Slicer source code (starting with version 4)."
-    "Developers can generate their own source code using the"
-    "wizard and then customize it to fit their needs.";
+    "This module generates iso dose surface models using user defined dose levels.";
   return help;
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerIsodoseModule::acknowledgementText()const
 {
-  return "This work was supported by NAMIC, NAC, and the Slicer Community...";
+  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerIsodoseModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("John Doe (Organization)");
-  // moduleContributors << QString("Richard Roe (Organization2)");
-  // ...
+  moduleContributors << QString("Kevin Wang (PMH, Toronto)");
+  moduleContributors << QString("Csaba Pinter (Queen's)");
+  moduleContributors << QString("Andras Lasso (Queen's)");
   return moduleContributors;
 }
 

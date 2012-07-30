@@ -10,10 +10,14 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}ModuleLogic.cxx
   vtkSlicer${MODULE_NAME}ModuleLogic.h
+  vtkMRMLIsodoseNode.cxx
+  vtkMRMLIsodoseNode.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
+  ${VTK_LIBRARIES}
+  vtkSlicerVolumesModuleLogic
   )
 
 #-----------------------------------------------------------------------------
