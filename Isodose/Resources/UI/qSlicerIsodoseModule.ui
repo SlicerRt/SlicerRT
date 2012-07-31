@@ -172,6 +172,12 @@
           <string>vtkMRMLModelHierarchyNode</string>
          </stringlist>
         </property>
+        <property name="selectNodeUponCreation">
+         <bool>true</bool>
+        </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
      </layout>

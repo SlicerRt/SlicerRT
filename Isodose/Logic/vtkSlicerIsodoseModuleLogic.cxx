@@ -32,6 +32,7 @@
 #include <vtkNew.h>
 #include <vtkImageData.h>
 #include <vtkImageMarchingCubes.h>
+#include <vtkImageChangeInformation.h>
 #include <vtkSmartPointer.h>
 
 // STD includes
@@ -70,6 +71,8 @@ void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
+  events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
@@ -93,8 +96,7 @@ void vtkSlicerIsodoseModuleLogic::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
+void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
@@ -108,8 +110,7 @@ void vtkSlicerIsodoseModuleLogic
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
+void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
@@ -209,11 +210,21 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
+  vtkSmartPointer<vtkImageChangeInformation> changeInfo = vtkSmartPointer<vtkImageChangeInformation>::New();
+  changeInfo->SetInput(doseVolumeNode->GetImageData());
+  double origin[3];
+  double spacing[3];
+  doseVolumeNode->GetOrigin(origin);
+  doseVolumeNode->GetSpacing(spacing);
+  changeInfo->SetOutputOrigin((origin));
+  changeInfo->SetOutputSpacing(-spacing[0], -spacing[1], spacing[2]);
+  changeInfo->Update();
+
   for (int i = 0; i < Number; i++)
   {
     double doseLevel = (*it).DoseLevelValue;
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
-    marchingCubes->SetInput(doseVolumeNode->GetImageData());
+    marchingCubes->SetInput(changeInfo->GetOutput());
     marchingCubes->SetNumberOfContours(1); 
     marchingCubes->SetValue(0, doseLevel);
     marchingCubes->Update();
