@@ -38,6 +38,8 @@
 // STD includes
 #include <cassert>
 
+const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_DOSE_UNIT_NAME_ATTRIBUTE_NAME = "DoseUnitName";
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 
@@ -172,6 +174,27 @@ vtkCollection* vtkSlicerIsodoseModuleLogic::GetVolumeNodesFromScene()
   }
 
   return volumeNodes;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
+{
+  if (!this->GetMRMLScene() || !this->IsodoseNode)
+  {
+    return false;
+  }
+
+  vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
+
+  const char* doseUnitName = doseVolumeNode->GetAttribute(ISODOSE_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+
+  if (doseUnitName != NULL)
+  {
+    return true;
+  }
+
+  return false;
 }
 
 //---------------------------------------------------------------------------

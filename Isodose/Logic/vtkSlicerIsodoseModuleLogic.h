@@ -42,6 +42,7 @@ class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
+  static const std::string ISODOSE_DOSE_UNIT_NAME_ATTRIBUTE_NAME;
   
   static vtkSlicerIsodoseModuleLogic *New();
   vtkTypeMacro(vtkSlicerIsodoseModuleLogic,vtkSlicerModuleLogic);
@@ -52,6 +53,9 @@ public:
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
   int ComputeIsodose();
+
+  /// Return false if the dose volume contains a volume that is really a dose volume
+  bool DoseVolumeContainsDose();
 
   void SetAndObserveIsodoseNode(vtkMRMLIsodoseNode* node);
   vtkGetObjectMacro(IsodoseNode, vtkMRMLIsodoseNode);

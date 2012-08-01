@@ -72,6 +72,9 @@ protected:
   virtual void setup();
   void onEnter();
   QString generateNewIsodoseLevel() const;
+  
+  /// Updates button states
+  void updateButtonsState();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerIsodoseModuleWidget);
