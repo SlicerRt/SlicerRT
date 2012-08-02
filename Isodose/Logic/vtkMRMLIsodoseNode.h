@@ -35,7 +35,7 @@ typedef struct
 {
   std::string DoseLevelName;
   double DoseLevelValue;
-} DoseLevelStruct ;
+} DoseLevelStruct;
 
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
 {

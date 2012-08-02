@@ -71,6 +71,8 @@ protected:
   
   virtual void setup();
   void onEnter();
+
+  // Generates a new isodose level name
   QString generateNewIsodoseLevel() const;
   
   /// Updates button states

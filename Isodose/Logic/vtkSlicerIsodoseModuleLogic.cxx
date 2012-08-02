@@ -223,10 +223,6 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 
   const char* doseUnitName = doseVolumeNode->GetAttribute("DoseUnitName");
 
-  std::vector<DoseLevelStruct> *IsodoseLevelVector = this->GetIsodoseNode()->GetIsodoseLevelVector();
-  std::vector<DoseLevelStruct>::iterator it = IsodoseLevelVector->begin();
-  int Number = IsodoseLevelVector->size();
-
   // Hierarchy node for the loaded structure sets
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkMRMLModelHierarchyNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(
     this->GetIsodoseNode()->GetOutputHierarchyNodeId()));
@@ -243,9 +239,10 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   changeInfo->SetOutputSpacing(-spacing[0], -spacing[1], spacing[2]);
   changeInfo->Update();
 
-  for (int i = 0; i < Number; i++)
+  std::vector<DoseLevelStruct> *isodoseLevelVector = this->GetIsodoseNode()->GetIsodoseLevelVector();
+  for (std::vector<DoseLevelStruct>::iterator it = isodoseLevelVector->begin(); it != isodoseLevelVector->end(); ++it)
   {
-    double doseLevel = (*it).DoseLevelValue;
+    double doseLevel = it->DoseLevelValue;
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
     marchingCubes->SetInput(changeInfo->GetOutput());
     marchingCubes->SetNumberOfContours(1); 
@@ -298,8 +295,6 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
       modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
       modelHierarchyNode->SetModelNodeID( modelNode->GetID() );
     }
-
-    ++it;
   }
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 
