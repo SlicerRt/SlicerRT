@@ -90,6 +90,10 @@ public:
   static const std::string DVH_METRIC_VOXEL_COUNT_ATTRIBUTE_NAME;
   static const std::string DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX;
 
+  static const std::string DVH_ARRAY_NODE_NAME_POSTFIX;
+  static const std::string DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE;
+  static const std::string DVH_CSV_HEADER_VOLUME_FIELD_END;
+
   static const std::string DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME;
 
 public:
@@ -135,7 +139,7 @@ public:
   bool ExportDvhMetricsToCsv(const char* fileName, std::vector<double> vDoseValuesCc, std::vector<double> vDoseValuesPercent, std::vector<double> dVolumeValuesCc, std::vector<double> dVolumeValuesPercent, bool comma=true);
 
   /// Collect DVH metrics from a collection of DVH double array nodes and try to order some of them
-  void CollectMetricsForDvhNodes(std::set<std::string>* dvhNodeIds, std::vector<std::string> &metricList);
+  void CollectMetricsForDvhNodes(std::vector<std::string>* dvhNodeIds, std::vector<std::string> &metricList);
 
   /// Assemble attribute name for dose metric, e.g. DVH_Metric_Mean dose (Gy), where
   /// \param doseMetricAttributeNamePrefix Prefix of the desired dose metric attribute name, e.g. "Mean dose"

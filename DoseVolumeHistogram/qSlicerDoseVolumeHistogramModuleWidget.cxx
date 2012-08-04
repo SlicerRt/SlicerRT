@@ -496,7 +496,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     return;
   }
 
-  std::set<std::string>* dvhNodes = paramNode->GetDvhDoubleArrayNodeIds();
+  std::vector<std::string>* dvhNodes = paramNode->GetDvhDoubleArrayNodeIds();
 
   QMapIterator<QCheckBox*, QPair<QString, QString> > it(d->ChartCheckboxToStructureSetNameMap);
   while (it.hasNext())
@@ -580,7 +580,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   d->tableWidget_ChartStatistics->setRowCount(dvhNodes->size());
 
   // Fill the table
-  std::set<std::string>::iterator dvhIt;
+  std::vector<std::string>::iterator dvhIt;
   int i;
   for (i=0, dvhIt = dvhNodes->begin(); dvhIt != dvhNodes->end(); ++dvhIt, ++i)
   {

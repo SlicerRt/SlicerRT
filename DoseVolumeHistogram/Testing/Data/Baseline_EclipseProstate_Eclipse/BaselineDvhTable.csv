@@ -1,4 +1,4 @@
-BODY(1) Dose (Gy),BODY(1) Value (%),Bladder(2) Dose (Gy),Bladder(2) Value (%),Femoral Head Lt(5) Dose (Gy),Femoral Head Lt(5) Value (%),Femoral Head RT(4) Dose (Gy),Femoral Head RT(4) Value (%),PTV(6) Dose (Gy),PTV(6) Value (%),Rectum(3) Dose (Gy),Rectum(3) Value (%)
+BODY_DVH Dose (Gy),BODY_DVH Value (%),Bladder_DVH Dose (Gy),Bladder_DVH Value (%),FemoralHeadLt_DVH Dose (Gy),FemoralHeadLt_DVH Value (%),FemoralHeadRT_DVH Dose (Gy),FemoralHeadRT_DVH Value (%),PTV_DVH Dose (Gy),PTV_DVH Value (%),Rectum_DVH Dose (Gy),Rectum_DVH Value (%),
 0,100,0,100,0,100,0,100,0,100,0,100
 0.046,100,0.046,100,0.046,100,0.046,100,0.046,100,0.046,100
 0.092,100,0.092,100,0.092,100,0.092,100,0.092,100,0.092,100

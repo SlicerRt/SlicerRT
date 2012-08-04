@@ -68,7 +68,7 @@ public:
   vtkSetStringMacro(ChartNodeId);
 
   /// Get list of all the DVH double array node IDs in the scene
-  std::set<std::string>* GetDvhDoubleArrayNodeIds()
+  std::vector<std::string>* GetDvhDoubleArrayNodeIds()
   {
     return &this->DvhDoubleArrayNodeIds;
   }
@@ -138,8 +138,8 @@ protected:
   /// Selected chart MRML node object ID
   char* ChartNodeId;
 
-  /// Set of all the DVH double array MRML node IDs that are present in the scene
-  std::set<std::string> DvhDoubleArrayNodeIds;
+  /// List of all the DVH double array MRML node IDs that are present in the scene
+  std::vector<std::string> DvhDoubleArrayNodeIds;
 
   /// State of Show/Hide all checkbox
   int ShowHideAll;

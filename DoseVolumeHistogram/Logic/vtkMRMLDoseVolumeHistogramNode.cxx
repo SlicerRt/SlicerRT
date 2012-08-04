@@ -107,7 +107,7 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
 
   {
     of << indent << " DvhDoubleArrayNodeIds=\"";
-    for (std::set<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
+    for (std::vector<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
       {
       of << (*it) << "|";
       }
@@ -213,13 +213,13 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       size_t separatorPosition = valueStr.find( separatorCharacter );
       while (separatorPosition != std::string::npos)
         {
-        this->DvhDoubleArrayNodeIds.insert( valueStr.substr(0, separatorPosition) );
+        this->DvhDoubleArrayNodeIds.push_back( valueStr.substr(0, separatorPosition) );
         valueStr = valueStr.substr( separatorPosition+1 );
         separatorPosition = valueStr.find( separatorCharacter );
         }
       if (! valueStr.empty() )
         {
-        this->DvhDoubleArrayNodeIds.insert( valueStr );
+        this->DvhDoubleArrayNodeIds.push_back( valueStr );
         }
       }
     else if (!strcmp(attName, "ShowHideAll")) 
@@ -341,7 +341,7 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
 
   {
     os << indent << "DvhDoubleArrayNodeIds:   ";
-    for (std::set<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
+    for (std::vector<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
       {
       os << (*it) << "|";
       }
@@ -386,9 +386,11 @@ void vtkMRMLDoseVolumeHistogramNode::UpdateReferenceID(const char *oldID, const 
     {
     this->SetChartNodeId(newID);
     }
-  if (this->DvhDoubleArrayNodeIds.find(oldID) != this->DvhDoubleArrayNodeIds.end())
+  for (std::vector<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
     {
-    this->DvhDoubleArrayNodeIds.erase(oldID);
-    this->DvhDoubleArrayNodeIds.insert(newID);
+    if (!it->compare(oldID))
+      {
+      (*it) = newID;
+      }
     }
 }

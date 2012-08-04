@@ -1,4 +1,4 @@
-BODY(1) Dose (Gy),BODY(1) Value (%)
+BODY_DVH Dose (Gy),BODY_DVH Value (%)
 0,98.481
 0.04,74.3587
 0.08,62.3238

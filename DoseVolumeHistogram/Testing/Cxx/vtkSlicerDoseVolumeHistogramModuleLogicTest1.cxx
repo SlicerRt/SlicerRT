@@ -38,7 +38,8 @@
 #include <vtkPolyDataReader.h>
 #include <vtkPolyData.h>
 #include <vtkNew.h>
-#include <vtkPiecewiseFunction.h>
+#include <vtkImageData.h>
+#include <vtkImageAccumulate.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -60,8 +61,7 @@ std::string csvSeparatorCharacter(",");
 
 //-----------------------------------------------------------------------------
 int CompareCsvDvhTables(std::string dvhMetricsCsvFileName, std::string baselineCsvFileName, std::string doseUnitName,
-                        std::vector<vtkMRMLDoubleArrayNode*> dvhNodes,
-                        double volumeDifferenceCriterion, double doseToAgreementCriterion,
+                        double maxDose, double volumeDifferenceCriterion, double doseToAgreementCriterion,
                         double &agreementAcceptancePercentage);
 
 double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& referenceDvhPlot,
@@ -149,7 +149,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   double metricDifferenceThreshold = 0.0;
   if (argc > 14)
   {
-    if (STRCASECMP(argv[13], "-DvhStartValue") == 0)
+    if (STRCASECMP(argv[13], "-MetricDifferenceThreshold") == 0)
     {
       metricDifferenceThreshold = atof(argv[14]);
       std::cout << "Metric difference threshold: " << metricDifferenceThreshold << std::endl;
@@ -167,7 +167,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   double dvhStepSize = 0.0;
   if (argc > 18)
   {
-    if (STRCASECMP(argv[15], "-DvhStepSize") == 0)
+    if (STRCASECMP(argv[17], "-DvhStepSize") == 0)
     {
       dvhStepSize = atof(argv[18]);
       std::cout << "DVH step size: " << dvhStepSize << std::endl;
@@ -252,6 +252,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "Reading dose volume from file '" << doseVolumeFileName << "' failed!" << std::endl;
     return EXIT_FAILURE;
   }
+
+  // Determine maximum dose
+  vtkNew<vtkImageAccumulate> doseStat;
+  doseStat->SetInput(doseScalarVolumeNode->GetImageData());
+  doseStat->Update();
+  double maxDose = doseStat->GetMax()[0];
 
   // Create model hierarchy root node
   std::string hierarchyNodeName = "All structures";
@@ -364,7 +370,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   dvhLogic->ComputeDvh();
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
 
-  std::set<std::string>* dvhNodeIDs = paramNode->GetDvhDoubleArrayNodeIds();
+  std::vector<std::string>* dvhNodeIDs = paramNode->GetDvhDoubleArrayNodeIds();
   if (dvhNodeIDs->size() != structureNames.size())
   {
     mrmlScene->Commit();
@@ -373,8 +379,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
 
   // Add DVH arrays to chart node
-  std::vector<vtkMRMLDoubleArrayNode*> dvhNodes;
-  std::set<std::string>::iterator dvhIt;
+  std::vector<std::string>::iterator dvhIt;
   for (dvhIt = dvhNodeIDs->begin(); dvhIt != dvhNodeIDs->end(); ++dvhIt)
   {
     vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
@@ -386,7 +391,6 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     }
 
     chartNode->AddArray( dvhNode->GetName(), dvhNode->GetID() );    
-    dvhNodes.push_back(dvhNode);
   }
 
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
@@ -421,7 +425,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Compare CSV DVH tables
   std::string baselineDvhTableCsvFileName = std::string(baselineDirectoryPath) + "/BaselineDvhTable.csv";
   double agreementAcceptancePercentage = -1.0;
-  if (CompareCsvDvhTables(dvhCsvFileName, baselineDvhTableCsvFileName, doseUnitName, dvhNodes, 
+  if (CompareCsvDvhTables(dvhCsvFileName, baselineDvhTableCsvFileName, doseUnitName, maxDose,
     volumeDifferenceCriterion, doseToAgreementCriterion, agreementAcceptancePercentage) > 0)
   {
     std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
@@ -462,8 +466,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
 //-----------------------------------------------------------------------------
 int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileName, std::string doseUnitName,
-                        std::vector<vtkMRMLDoubleArrayNode*> dvhNodes,
-                        double volumeDifferenceCriterion, double doseToAgreementCriterion,
+                        double maxDose, double volumeDifferenceCriterion, double doseToAgreementCriterion,
                         double &agreementAcceptancePercentage)
 {
   if (!vtksys::SystemTools::FileExists(baselineCsvFileName.c_str()))
@@ -476,6 +479,8 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   std::vector< std::vector<std::pair<double,double> > > currentDvh;
   std::vector< std::vector<std::pair<double,double> > > baselineDvh;
   std::vector< std::vector<std::pair<double,double> > >* dvh;
+  std::vector<std::string> structureNames;
+  std::vector<double> structureVolumeCCs;
 
   char line[1024];
   for (int i=0; i<2; ++i)
@@ -506,6 +511,24 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
       {
         while (commaPosition != std::string::npos)
         {
+          // Parse structure name and total volume
+          if (i==0 && fieldCount%2==1)
+          {
+            std::string field = lineStr.substr(0, commaPosition);
+            size_t middlePosition = field.find(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE);
+            structureNames.push_back(field.substr(0, middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_ARRAY_NODE_NAME_POSTFIX.size()));
+
+            std::string structureVolumeString = field.substr( middlePosition + vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(), 
+              field.size() - middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
+            double structureVolume = atof(structureVolumeString.c_str());
+            if (structureVolume == 0)
+            {
+              std::cerr << "Invalid structure volume in CSV header field " << field << std::endl;
+            }
+
+            structureVolumeCCs.push_back(structureVolume);
+          }
+
           fieldCount++;
           lineStr = lineStr.substr(commaPosition+1);
           commaPosition = lineStr.find(csvSeparatorCharacter);
@@ -553,41 +576,23 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   agreementAcceptancePercentage = 0.0;
   int totalNumberOfBins = 0;
   int totalNumberOfAcceptedAgreements = 0;
+  int numberOfAcceptedStructuresWith90 = 0;
+  int numberOfAcceptedStructuresWith95 = 0;
   std::vector< std::vector<std::pair<double,double> > >::iterator currentIt;
   std::vector< std::vector<std::pair<double,double> > >::iterator baselineIt;
-  std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhNodeIt;
 
-  for (currentIt = currentDvh.begin(), baselineIt = baselineDvh.begin(), dvhNodeIt = dvhNodes.begin();
-    currentIt != currentDvh.end(); ++currentIt, ++baselineIt, ++dvhNodeIt)
+  int structureIndex = 0;
+  for (currentIt = currentDvh.begin(), baselineIt = baselineDvh.begin();
+    currentIt != currentDvh.end(); ++currentIt, ++baselineIt, ++structureIndex)
   {
     int numberOfBinsPerStructure = 0;
     int numberOfAcceptedAgreementsPerStructure = 0;
 
-    const char* structureName = (*dvhNodeIt)->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
-
-    std::string totalVolumeAttributeName = vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX + vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
-    const char* totalVolumeStr = (*dvhNodeIt)->GetAttribute(totalVolumeAttributeName.c_str());
-    double totalVolume = atof(totalVolumeStr);
-
-    double maxDose = 0.0;
-    const char* maxDoseStr = NULL;
-    char maxDoseAttributeName[64];
-    vtkSlicerDoseVolumeHistogramModuleLogic::AssembleDoseMetricAttributeName(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName.c_str(), maxDoseAttributeName);
-    maxDoseStr = (*dvhNodeIt)->GetAttribute(maxDoseAttributeName);
-    if (maxDoseStr)
-    {
-      maxDose = atof(maxDoseStr);
-    }
-
-    if (totalVolume == 0.0 || maxDose == 0.0)
-    {
-      std::cerr << "Invalid attribute in DVH node " << (*dvhNodeIt)->GetName() << ": " << totalVolumeAttributeName << "=" << totalVolumeStr << ", " << maxDoseAttributeName << "=" << (maxDoseStr?maxDoseStr:"NULL") << std::endl;
-      continue;
-    }
-
+    // Compute gamma for each bin in the current structure
     for (int i=0; i<currentIt->size(); ++i)
     {
-      double agreement = GetAgreementForDvhPlotPoint(*baselineIt, *currentIt, i, totalVolume, maxDose, volumeDifferenceCriterion, doseToAgreementCriterion);
+      double agreement = GetAgreementForDvhPlotPoint(*baselineIt, *currentIt, i, structureVolumeCCs[structureIndex],
+        maxDose, volumeDifferenceCriterion, doseToAgreementCriterion);
 
       if (agreement == -1.0)
       {
@@ -604,9 +609,24 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
       totalNumberOfBins++;
     }
 
-    std::cout << "Accepted agreements per structure (" << (structureName?structureName:"NULL(error!)") << "): " << numberOfAcceptedAgreementsPerStructure
-      << " out of " << numberOfBinsPerStructure << " (" << std::fixed << std::setprecision(2) << 100.0 * (double)numberOfAcceptedAgreementsPerStructure / (double)numberOfBinsPerStructure << "%)" << std::endl;
-  }
+    double acceptedBinsRatio = 100.0 * (double)numberOfAcceptedAgreementsPerStructure / (double)numberOfBinsPerStructure;
+
+    if (acceptedBinsRatio > 90)
+    {
+      numberOfAcceptedStructuresWith90++;
+
+      if (acceptedBinsRatio > 95)
+      {
+        numberOfAcceptedStructuresWith95++;
+      }
+    }
+      
+    std::cout << "Accepted agreements per structure (" << structureNames[structureIndex] << ", " << structureVolumeCCs[structureIndex] << " cc): " << numberOfAcceptedAgreementsPerStructure
+      << " out of " << numberOfBinsPerStructure << " (" << std::fixed << std::setprecision(2) << acceptedBinsRatio << "%)" << std::endl;
+  } // For all structures
+
+  std::cout << "Accepted structures with threshold of 90%: " << std::fixed << std::setprecision(2) << (double)numberOfAcceptedStructuresWith90 / (double)currentDvh.size() * 100.0 << std::endl;
+  std::cout << "Accepted structures with threshold of 95%: " << std::fixed << std::setprecision(2) << (double)numberOfAcceptedStructuresWith95 / (double)currentDvh.size() * 100.0 << std::endl;
 
   agreementAcceptancePercentage = 100.0 * (double)totalNumberOfAcceptedAgreements / (double)totalNumberOfBins;
 
@@ -618,7 +638,7 @@ double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& refer
                                int compareIndex, double totalVolume, double maxDose,
                                double volumeDifferenceCriterion, double doseToAgreementCriterion)
 {
-  // Formula is (based on the article Elbert2010):
+  // Formula is (based on the article Ebert2010):
   //   gamma(i) = min{ Gamma[(di, vi), (dr, vr)] } for all {r=1..P}, where
   //   compareIndexth DVH point has dose di and volume vi
   //   P is the number of bins in the reference DVH, each rth bin having absolute dose dr and volume vr
@@ -642,10 +662,10 @@ double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& refer
   {
     double dr = referenceDvhPlotIt->first;
     double vr = referenceDvhPlotIt->second;
-    double Gamma = sqrt( pow((100.0*(vr-vi))/(volumeDifferenceCriterion*totalVolume),2) + pow((100.0*(dr-di))/(doseToAgreementCriterion*maxDose),2) );
-    if (Gamma < gamma)
+    double currentGamma = sqrt( pow((100.0*(vr-vi))/(volumeDifferenceCriterion*totalVolume),2) + pow((100.0*(dr-di))/(doseToAgreementCriterion*maxDose),2) );
+    if (currentGamma < gamma)
     {
-      gamma = Gamma;
+      gamma = currentGamma;
     }
   }
 

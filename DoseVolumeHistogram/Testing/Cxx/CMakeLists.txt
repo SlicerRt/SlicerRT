@@ -33,11 +33,11 @@ macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirec
     -BaselineDirectoryPath ${BaselineDirectoryPath}
     -TemporaryDirectoryPath ${TemporaryDirectoryPath}
     -VolumeDifferenceCriterion ${VolumeDifferenceCriterion}
-	-DoseToAgreementCriterion ${DoseToAgreementCriterion}
+    -DoseToAgreementCriterion ${DoseToAgreementCriterion}
     -AgreementAcceptancePercentageThreshold ${AgreementAcceptancePercentageThreshold}
-	-MetricDifferenceThreshold ${MetricDifferenceThreshold}
-	-DvhStartValue ${DvhStartValue}
-	-DvhStepSize ${DvhStepSize}
+    -MetricDifferenceThreshold ${MetricDifferenceThreshold}
+    -DvhStartValue ${DvhStartValue}
+    -DvhStepSize ${DvhStepSize}
   )
 endmacro()
 
@@ -50,7 +50,7 @@ TEST_WITH_DATA(
   ${TEMP}
   0.0
   0.0
-  100.0
+  92.0
   0.0
   0.0
   0.0
@@ -64,12 +64,12 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseProstate
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate_CERR
   ${TEMP}
-  2.0
+  1.0
   1.0
   95.0
   3.0
-  0.0
-  0.0
+  0.01
+  0.02
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -81,11 +81,11 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseEnt_CERR
   ${TEMP}
   2.0
-  1.0
-  66.9
+  2.0
+  95.0
   3.0
-  0.0
-  0.0
+  0.01
+  0.02
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -96,12 +96,12 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseBreast
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseBreast_CERR
   ${TEMP}
-  2.0
+  1.0
   1.0
   95.0
   3.0
-  0.0
-  0.0
+  0.01
+  0.02
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -112,8 +112,8 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseProstate
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate_Eclipse
   ${TEMP}
-  2.0
   1.0
+  2.0
   95.0
   3.0
   0.01
@@ -128,9 +128,9 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseEnt
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseEnt_Eclipse
   ${TEMP}
-  2.0
   1.0
-  70.3
+  2.0
+  95.0
   3.0
   0.01
   0.02
@@ -144,7 +144,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseBreast
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseBreast_Eclipse
   ${TEMP}
-  2.0
+  1.0
   1.0
   95.0
   3.0

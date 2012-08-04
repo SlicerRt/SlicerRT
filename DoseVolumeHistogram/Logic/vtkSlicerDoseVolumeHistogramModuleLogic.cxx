@@ -74,6 +74,10 @@ const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_MIN_DOSE_A
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_VOXEL_COUNT_ATTRIBUTE_NAME = "Voxel count";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX = "V";
 
+const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_ARRAY_NODE_NAME_POSTFIX = "_DVH";
+const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE = " Value (% of ";
+const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_END = " cc)";
+
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME = "DoseUnitName";
 
 //----------------------------------------------------------------------------
@@ -93,7 +97,7 @@ vtkSlicerDoseVolumeHistogramModuleLogic::~vtkSlicerDoseVolumeHistogramModuleLogi
 {
   if (this->GetMRMLScene() && this->DoseVolumeHistogramNode)
   {
-    for (std::set<std::string>::iterator it = this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->begin();
+    for (std::vector<std::string>::iterator it = this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->begin();
       it != this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->end(); ++it)
     {
       vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
@@ -164,7 +168,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RefreshDvhDoubleArrayNodesFromScen
       const char* type = doubleArrayNode->GetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str());
       if (type != NULL && strcmp(type, DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
       {
-        this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->insert(doubleArrayNode->GetID());
+        this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->push_back(doubleArrayNode->GetID());
       }
     }
 
@@ -204,7 +208,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
       const char* type = doubleArrayNode->GetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str());
       if (type != NULL && strcmp(type, DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
       {
-        this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->insert(doubleArrayNode->GetID());
+        this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->push_back(doubleArrayNode->GetID());
       }
     }
   }
@@ -234,8 +238,16 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   if (node->IsA("vtkMRMLDoubleArrayNode"))
   {
-    this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->erase(
-      vtkMRMLDoubleArrayNode::SafeDownCast(node)->GetID());
+    const char* removedNodeId = vtkMRMLDoubleArrayNode::SafeDownCast(node)->GetID();
+    for (std::vector<std::string>::iterator it = this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->begin();
+      it != this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->end(); ++it)
+    {
+      if (!it->compare(removedNodeId))
+      {
+        this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->erase(it);
+        break;
+      }
+    }
   }
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
@@ -466,17 +478,23 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   const char* doseUnitName = doseVolumeNode->GetAttribute(DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
+  // Get maximum dose from dose volume
+  vtkNew<vtkImageAccumulate> doseStat;
+  doseStat->SetInput(doseVolumeNode->GetImageData());
+  doseStat->Update();
+  double maxDose = doseStat->GetMax()[0];
+
   // Compute statistics
   vtkNew<vtkImageToImageStencil> stencil;
   stencil->SetInput(structureStenciledDoseVolumeNode->GetImageData());
   stencil->ThresholdByUpper(VTK_DOUBLE_MIN+1.0); // Do not include background values
 
-  vtkNew<vtkImageAccumulate> stat;
-  stat->SetInput(structureStenciledDoseVolumeNode->GetImageData());
-  stat->SetStencil(stencil->GetOutput());
-  stat->Update();
+  vtkNew<vtkImageAccumulate> structureStat;
+  structureStat->SetInput(structureStenciledDoseVolumeNode->GetImageData());
+  structureStat->SetStencil(stencil->GetOutput());
+  structureStat->Update();
 
-  if (stat->GetVoxelCount() < 1)
+  if (structureStat->GetVoxelCount() < 1)
   {
     vtkWarningMacro("No voxels in the structure. DVH computation aborted.");
     return;
@@ -484,7 +502,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   // Create node and fill statistics
   vtkMRMLDoubleArrayNode* arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLDoubleArrayNode") );
-  std::string dvhArrayNodeName = std::string(structureModelNode->GetName()) + "_DVH";
+  std::string dvhArrayNodeName = std::string(structureModelNode->GetName()) + DVH_ARRAY_NODE_NAME_POSTFIX;
   arrayNode->SetName(dvhArrayNodeName.c_str());
   //arrayNode->HideFromEditorsOff();
 
@@ -502,41 +520,48 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   std::ostringstream metricList;
 
   sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str());
-  sprintf(attributeValue, "%g", stat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM);
+  sprintf(attributeValue, "%g", structureStat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM);
   metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
   AssembleDoseMetricAttributeName(DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
-  sprintf(attributeValue, "%g", stat->GetMean()[0]);
+  sprintf(attributeValue, "%g", structureStat->GetMean()[0]);
   metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
   AssembleDoseMetricAttributeName(DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
-  sprintf(attributeValue, "%g", stat->GetMax()[0]);
+  sprintf(attributeValue, "%g", structureStat->GetMax()[0]);
   metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
   AssembleDoseMetricAttributeName(DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
-  sprintf(attributeValue, "%g", stat->GetMin()[0]);
+  sprintf(attributeValue, "%g", structureStat->GetMin()[0]);
   metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
   sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
   arrayNode->SetAttribute(attributeName, metricList.str().c_str());
 
-  double rangeMin = stat->GetMin()[0];
-  double rangeMax = stat->GetMax()[0];
+  double rangeMin = structureStat->GetMin()[0];
+  double rangeMax = structureStat->GetMax()[0];
 
   // Create DVH plot values
   int numSamples = 0;
+  int numTuples = 0;
   double startValue;
   double stepSize;
   bool isDoseVolume = this->DoseVolumeContainsDose();
   if (isDoseVolume)
   {
+    if (rangeMin<0)
+    {
+      vtkWarningMacro("The dose volume contains negative dose values.");
+      return;
+    }
+
     startValue = this->StartValue;
     stepSize = this->StepSize;
-    numSamples = (int)ceil( (rangeMax-startValue)/stepSize ) + 1;
+    numSamples = (int)ceil( (maxDose-startValue)/stepSize ) + 1;
   }
   else
   {
@@ -545,28 +570,22 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     stepSize = (rangeMax - rangeMin) / (double)(numSamples-1);
   }
 
-  if (rangeMin<startValue)
-  {
-    startValue -= stepSize * ceil((startValue-rangeMin)/stepSize);
-  }
-
   // We put a fixed point at (0.0, 100%), but only if there are only positive values in the histogram
   // Negative values can occur when the user requests histogram for an image, such as s CT volume (in this case Intensity Volume Histogram is computed),
   // or the startValue became negative for the dose volume because the range minimum was smaller than the original start value.
   bool insertPointAtOrigin=true;
   if (startValue<0)
   {
-    //vtkWarningMacro("There are negative values in the histogram. Probably the input is not a dose volume.");
     insertPointAtOrigin=false;
   }
 
-  stat->SetComponentExtent(0,numSamples-1,0,0,0,0);
-  stat->SetComponentOrigin(startValue,0,0);
-  stat->SetComponentSpacing(stepSize,1,1);
-  stat->Update();
+  structureStat->SetComponentExtent(0,numSamples-1,0,0,0,0);
+  structureStat->SetComponentOrigin(startValue,0,0);
+  structureStat->SetComponentSpacing(stepSize,1,1);
+  structureStat->Update();
 
   vtkDoubleArray* doubleArray = arrayNode->GetArray();
-  doubleArray->SetNumberOfTuples(numSamples + (insertPointAtOrigin?1:0)); 
+  doubleArray->SetNumberOfTuples(numSamples + (insertPointAtOrigin?1:0));
 
   int outputArrayIndex=0;
 
@@ -579,8 +598,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     ++outputArrayIndex;
   }
 
-  vtkImageData* statArray = stat->GetOutput();
-  unsigned long totalVoxels = stat->GetVoxelCount();
+  vtkImageData* statArray = structureStat->GetOutput();
+  unsigned long totalVoxels = structureStat->GetVoxelCount();
   unsigned long voxelBelowDose = 0;
   for (int sampleIndex=0; sampleIndex<numSamples; ++sampleIndex)
   {
@@ -914,7 +933,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic
-::CollectMetricsForDvhNodes(std::set<std::string>* dvhNodeIds, std::vector<std::string> &metricList)
+::CollectMetricsForDvhNodes(std::vector<std::string>* dvhNodeIds, std::vector<std::string> &metricList)
 {
   metricList.clear();
 
@@ -932,7 +951,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   char metricListAttributeName[64];
   sprintf(metricListAttributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
   std::set<std::string, InsensitiveCompare> metricSet;
-  for (std::set<std::string>::iterator it = dvhNodeIds->begin(); it != dvhNodeIds->end(); ++it)
+  for (std::vector<std::string>::iterator it = dvhNodeIds->begin(); it != dvhNodeIds->end(); ++it)
   {
     vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
       this->GetMRMLScene()->GetNodeByID(it->c_str()));
@@ -1034,10 +1053,17 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
   }
 
   // Write header
+  std::string totalVolumeAttributeName = DVH_METRIC_ATTRIBUTE_NAME_PREFIX + DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
   for (int i=0; i<structureNames->GetNumberOfValues(); ++i)
   {
-  	outfile << structureNames->GetValue(i).c_str() << " Dose (Gy)" << (comma ? "," : "\t");
-    outfile << structureNames->GetValue(i).c_str() << " Value (%)" << (comma ? "," : "\t");
+    vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(i)) );
+    const char* totalVolumeStr = doubleArrayNode->GetAttribute(totalVolumeAttributeName.c_str());
+    double totalVolume = atof(totalVolumeStr);
+
+    outfile << structureNames->GetValue(i).c_str() << " Dose (Gy)" << (comma ? "," : "\t");
+    outfile << structureNames->GetValue(i).c_str() << DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE
+      << std::fixed << std::setprecision(3) << totalVolume << DVH_CSV_HEADER_VOLUME_FIELD_END << (comma ? "," : "\t");
   }
 	outfile << std::endl;
 
@@ -1046,8 +1072,8 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
   {
 	  for (int column=0; column<arrayIDs->GetNumberOfValues(); ++column)
 	  {
-      vtkMRMLNode *node = this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(column) );
-      vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
+      vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
+        this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(column)) );
 
       if (row < doubleArrayNode->GetArray()->GetNumberOfTuples())
       {
@@ -1117,7 +1143,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
 		return false;
 	}
 
-  std::set<std::string>* dvhDoubleArrayNodeIds = this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds();
+  std::vector<std::string>* dvhDoubleArrayNodeIds = this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds();
 
   // Collect metrics for all included nodes
   std::vector<std::string> metricList;
@@ -1151,7 +1177,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
   outfile.precision(6);
 
   // Fill the table
-  for (std::set<std::string>::iterator it = dvhDoubleArrayNodeIds->begin(); it != dvhDoubleArrayNodeIds->end(); ++it)
+  for (std::vector<std::string>::iterator it = dvhDoubleArrayNodeIds->begin(); it != dvhDoubleArrayNodeIds->end(); ++it)
   {
     vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
       this->GetMRMLScene()->GetNodeByID(it->c_str()));
