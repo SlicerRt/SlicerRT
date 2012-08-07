@@ -32,7 +32,7 @@
 
 #include "vtkSlicerDoseComparisonModuleLogicExport.h"
 
-class VTK_SLICER_DOSECOMPARISON_MODULE_LOGIC_EXPORT vtkMRMLDoseComparisonNode : public vtkMRMLNode
+class VTK_SLICER_DOSECOMPARISON_LOGIC_EXPORT vtkMRMLDoseComparisonNode : public vtkMRMLNode
 {
 public:
   static vtkMRMLDoseComparisonNode *New();

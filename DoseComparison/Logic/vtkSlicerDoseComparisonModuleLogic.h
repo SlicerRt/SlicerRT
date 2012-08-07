@@ -43,7 +43,7 @@ class vtkMRMLVolumeNode;
 class vtkMRMLDoseComparisonNode;
 
 /// \ingroup Slicer_QtModules_DoseComparison
-class VTK_SLICER_DOSECOMPARISON_MODULE_LOGIC_EXPORT vtkSlicerDoseComparisonModuleLogic :
+class VTK_SLICER_DOSECOMPARISON_LOGIC_EXPORT vtkSlicerDoseComparisonModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
