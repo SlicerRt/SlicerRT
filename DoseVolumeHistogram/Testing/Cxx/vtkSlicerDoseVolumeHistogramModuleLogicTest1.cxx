@@ -727,34 +727,33 @@ int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baseline
         if (i==0)
         {
           structureName = currentLineStr.substr(0, currentCommaPosition);
-          i++;
-          continue;
-        }
-
-        double currentMetric = atof(currentLineStr.substr(0, currentCommaPosition).c_str());
-        double baselineMetric = atof(baselineLineStr.substr(0, baselineCommaPosition).c_str());
-
-        currentLineStr = currentLineStr.substr(currentCommaPosition+1);
-        baselineLineStr = baselineLineStr.substr(baselineCommaPosition+1);
-
-        currentCommaPosition = currentLineStr.find(csvSeparatorCharacter);
-        baselineCommaPosition = baselineLineStr.find(csvSeparatorCharacter);
-
-        double error = DBL_MAX;
-        if (baselineMetric < EPSILON && currentMetric < EPSILON)
-        {
-          error = 0.0;
         }
         else
         {
-          error = currentMetric / baselineMetric - 1.0;
+          double currentMetric = atof(currentLineStr.substr(0, currentCommaPosition).c_str());
+          double baselineMetric = atof(baselineLineStr.substr(0, baselineCommaPosition).c_str());
+
+          double error = DBL_MAX;
+          if (baselineMetric < EPSILON && currentMetric < EPSILON)
+          {
+            error = 0.0;
+          }
+          else
+          {
+            error = currentMetric / baselineMetric - 1.0;
+          }
+
+          if (error > metricDifferenceThreshold)
+          {
+            std::cerr << "Difference of metric '" << fieldNames[i] << "' for structure '" << structureName << "' is too high! Current=" << currentMetric << ", Baseline=" << baselineMetric << std::endl;
+            returnWithSuccess = false;
+          }
         }
 
-        if (error > metricDifferenceThreshold)
-        {
-          std::cerr << "Difference of metric '" << fieldNames[i] << "' for structure '" << structureName << "' is too high! Current=" << currentMetric << "Baseline=" << baselineMetric;
-          returnWithSuccess = false;
-        }
+        currentLineStr = currentLineStr.substr(currentCommaPosition+1);
+        baselineLineStr = baselineLineStr.substr(baselineCommaPosition+1);
+        currentCommaPosition = currentLineStr.find(csvSeparatorCharacter);
+        baselineCommaPosition = baselineLineStr.find(csvSeparatorCharacter);
 
         i++;
       }

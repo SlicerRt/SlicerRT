@@ -48,6 +48,8 @@
 #include <vtkStringArray.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkImageThreshold.h>
+#include <vtkImageResample.h>
+#include <vtkTimerLog.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -90,6 +92,9 @@ vtkSlicerDoseVolumeHistogramModuleLogic::vtkSlicerDoseVolumeHistogramModuleLogic
   this->StartValue = 0.1;
   this->StepSize = 0.2;
   this->NumberOfSamplesForNonDoseVolumes = 100;
+  this->RasterizationMagnificationFactor = 2.0;
+
+  this->LogSpeedMeasurementsOff();
 }
 
 //----------------------------------------------------------------------------
@@ -348,11 +353,37 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   transformPolyDataModelToDoseIjkFilter->Update();
   polyDataToLabelmapFilter->SetBackgroundValue(VTK_DOUBLE_MIN);
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToDoseIjkFilter->GetOutput() );
-  polyDataToLabelmapFilter->SetReferenceImage( doseVolumeNode->GetImageData() );
+
+  if (this->RasterizationMagnificationFactor != 1.0)
+  {
+    vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
+    resampler->SetInput(doseVolumeNode->GetImageData());
+    resampler->SetAxisMagnificationFactor(0, this->RasterizationMagnificationFactor);
+    resampler->SetAxisMagnificationFactor(1, this->RasterizationMagnificationFactor);
+    resampler->SetAxisMagnificationFactor(2, this->RasterizationMagnificationFactor);
+    resampler->Update();
+
+    polyDataToLabelmapFilter->SetReferenceImage( resampler->GetOutput() );
+  }
+  else
+  {
+    polyDataToLabelmapFilter->SetReferenceImage( doseVolumeNode->GetImageData() );
+  }
   polyDataToLabelmapFilter->Update();
 
   // Create node
   structureStenciledDoseVolumeNode->CopyOrientation( doseVolumeNode );
+  if (this->RasterizationMagnificationFactor != 1.0)
+  {
+    double* doseSpacing = doseVolumeNode->GetSpacing();
+    structureStenciledDoseVolumeNode->SetSpacing(
+      doseSpacing[0]/this->RasterizationMagnificationFactor,
+      doseSpacing[1]/this->RasterizationMagnificationFactor,
+      doseSpacing[2]/this->RasterizationMagnificationFactor );
+
+    vtkImageData* structureStenciledDoseVolumeImageData = polyDataToLabelmapFilter->GetOutput();
+    structureStenciledDoseVolumeImageData->SetSpacing(1.0, 1.0, 1.0); // The spacing is set to the MRML node
+  }
   structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID( doseVolumeNode->GetTransformNodeID() );
   std::string stenciledDoseNodeName( structureSetModelNode->GetName() );
   stenciledDoseNodeName.append( "_Labelmap" );
@@ -412,18 +443,28 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 {
+  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
+  double sumRasterization = 0.0;
+  double sumDvhComputation = 0.0;
+  double checkpointStart = timer->GetUniversalTime();
+
   std::vector<vtkMRMLModelNode*> structureModelNodes;
   this->GetSelectedStructureModelNodes(structureModelNodes);
 
   for (std::vector<vtkMRMLModelNode*>::iterator it = structureModelNodes.begin(); it != structureModelNodes.end(); ++it)
   {
+    double checkpointStructureStart = timer->GetUniversalTime();
+
     vtkSmartPointer<vtkMRMLScalarVolumeNode> structureStenciledDoseVolumeNode
       = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
+    double checkpointRasterizationStart = timer->GetUniversalTime();
     this->GetStenciledDoseVolumeForStructure(structureStenciledDoseVolumeNode, (*it));
 
+    double checkpointDvhStart = timer->GetUniversalTime();
     this->ComputeDvh(structureStenciledDoseVolumeNode.GetPointer(), (*it));
 
+    double checkpointLabelmapCreationStart = timer->GetUniversalTime();
     if (this->GetDoseVolumeHistogramNode()->GetAddLabelmapsToScene())
     {
       // Convert stenciled dose volume to labelmap
@@ -444,6 +485,27 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
       structureStenciledDoseVolumeNode->LabelMapOn();
       this->GetMRMLScene()->AddNode(structureStenciledDoseVolumeNode);
     }
+
+    double checkpointStructureEnd = timer->GetUniversalTime();
+    sumRasterization += checkpointDvhStart-checkpointRasterizationStart;
+    sumDvhComputation += checkpointLabelmapCreationStart-checkpointDvhStart;
+
+    if (this->LogSpeedMeasurements)
+    {
+      std::cout << "\tStructure '" << (*it)->GetName() << "':\n\t\tTotal: " << checkpointStructureEnd-checkpointStructureStart
+        << " s\n\t\tRasterization: " << checkpointDvhStart-checkpointRasterizationStart
+        << " s\n\t\tDVH computation: " << checkpointLabelmapCreationStart-checkpointDvhStart
+        << " s\n\t\tLabelmap creation (" << (this->GetDoseVolumeHistogramNode()->GetAddLabelmapsToScene()?"On":"Off") << "): "
+        << checkpointStructureEnd-checkpointLabelmapCreationStart << std::endl;
+    }
+  }
+
+  double checkpointEnd = timer->GetUniversalTime();
+  if (this->LogSpeedMeasurements)
+  {
+    std::cout << "Sum rasterization time: " << sumRasterization << " s" << std::endl
+      << "Sum DVH computation time: " << sumDvhComputation << " s" << std::endl
+      << "Total: " << checkpointEnd-checkpointStart << " s" << std::endl;
   }
 }
 

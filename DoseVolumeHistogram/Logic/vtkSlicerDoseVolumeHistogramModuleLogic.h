@@ -160,6 +160,13 @@ public:
   vtkGetMacro(NumberOfSamplesForNonDoseVolumes, int);
   vtkSetMacro(NumberOfSamplesForNonDoseVolumes, int);
 
+  vtkGetMacro(LogSpeedMeasurements, bool);
+  vtkSetMacro(LogSpeedMeasurements, bool);
+  vtkBooleanMacro(LogSpeedMeasurements, bool);
+
+  vtkGetMacro(RasterizationMagnificationFactor, double);
+  vtkSetMacro(RasterizationMagnificationFactor, double);
+
 protected:
   vtkSlicerDoseVolumeHistogramModuleLogic();
   virtual ~vtkSlicerDoseVolumeHistogramModuleLogic();
@@ -201,8 +208,14 @@ protected:
   /// Step size for the dose axis of the DVH table
   double StepSize;
 
-  // Number of bins to sample when input is non-dose volumes
+  /// Number of bins to sample when input is non-dose volumes
   int NumberOfSamplesForNonDoseVolumes;
+
+  /// Flag telling whether the speed measurements are logged on standard output
+  bool LogSpeedMeasurements;
+
+  /// Magnification factor for contour polydata to labelmap conversion (rasterization)
+  double RasterizationMagnificationFactor;
 };
 
 #endif

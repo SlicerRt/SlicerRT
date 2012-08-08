@@ -50,7 +50,7 @@ TEST_WITH_DATA(
   ${TEMP}
   0.0
   0.0
-  92.0
+  100.0
   0.0
   0.0
   0.0
@@ -64,8 +64,8 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Data_EclipseProstate
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate_CERR
   ${TEMP}
-  1.0
-  1.0
+  2.0
+  2.0
   95.0
   3.0
   0.01
@@ -81,7 +81,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseEnt_CERR
   ${TEMP}
   2.0
-  2.0
+  4.0
   95.0
   3.0
   0.01
@@ -113,7 +113,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseProstate_Eclipse
   ${TEMP}
   1.0
-  2.0
+  1.0
   95.0
   3.0
   0.01
@@ -129,7 +129,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline_EclipseEnt_Eclipse
   ${TEMP}
   1.0
-  2.0
+  1.0
   95.0
   3.0
   0.01
