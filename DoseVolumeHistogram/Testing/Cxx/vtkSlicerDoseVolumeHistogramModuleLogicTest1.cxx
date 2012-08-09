@@ -173,6 +173,15 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       std::cout << "DVH step size: " << dvhStepSize << std::endl;
     }
   }
+  double rasterizationMagnificationFactor = 2.0;
+  if (argc > 20)
+  {
+    if (STRCASECMP(argv[19], "-RasterizationMagnificationFactor") == 0)
+    {
+      rasterizationMagnificationFactor = atof(argv[20]);
+      std::cout << "Rasterization magnification factor: " << rasterizationMagnificationFactor << std::endl;
+    }
+  }
 
   // Constraint the criteria to be greater than zero
   if (volumeDifferenceCriterion == 0.0)
@@ -348,6 +357,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseVolumeHistogramModuleLogic> dvhLogic =
     vtkSmartPointer<vtkSlicerDoseVolumeHistogramModuleLogic>::New();
+  dvhLogic->SetRasterizationMagnificationFactor(rasterizationMagnificationFactor);
   dvhLogic->SetMRMLScene(mrmlScene);
 
   // Create and set up parameter set MRML node

@@ -569,7 +569,8 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
         // to close the contour
         tempCellArray->InsertCellPoint(pointId-number);
 
-      } while (rtContourSequenceObject.gotoNextItem().good());
+      }
+      while (rtContourSequenceObject.gotoNextItem().good());
 
     } // if gotofirstitem
 
@@ -607,7 +608,6 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
       ribbonFilter->SetDefaultNormal(0,0,-1);
       ribbonFilter->SetWidth(sliceThickness/2.0);
-vtkWarningMacro("sliceThickness: " << sliceThickness);
       ribbonFilter->SetAngle(90.0);
       ribbonFilter->UseDefaultNormalOn();
       ribbonFilter->Update();

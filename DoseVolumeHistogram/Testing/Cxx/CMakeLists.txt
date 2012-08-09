@@ -25,7 +25,7 @@ endforeach()
 #-----------------------------------------------------------------------------
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
-macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirectoryPath TemporaryDirectoryPath VolumeDifferenceCriterion DoseToAgreementCriterion AgreementAcceptancePercentageThreshold MetricDifferenceThreshold DvhStartValue DvhStepSize)
+macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirectoryPath TemporaryDirectoryPath VolumeDifferenceCriterion DoseToAgreementCriterion AgreementAcceptancePercentageThreshold MetricDifferenceThreshold DvhStartValue DvhStepSize RasterizationMagnificationFactor)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
@@ -38,6 +38,7 @@ macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirec
     -MetricDifferenceThreshold ${MetricDifferenceThreshold}
     -DvhStartValue ${DvhStartValue}
     -DvhStepSize ${DvhStepSize}
+    -RasterizationMagnificationFactor ${RasterizationMagnificationFactor}
   )
 endmacro()
 
@@ -54,6 +55,7 @@ TEST_WITH_DATA(
   0.0
   0.0
   0.0
+  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -70,6 +72,7 @@ TEST_WITH_DATA(
   3.0
   0.01
   0.02
+  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -86,6 +89,7 @@ TEST_WITH_DATA(
   3.0
   0.01
   0.02
+  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -102,6 +106,7 @@ TEST_WITH_DATA(
   3.0
   0.01
   0.02
+  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -118,6 +123,7 @@ TEST_WITH_DATA(
   3.0
   0.01
   0.02
+  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -134,6 +140,7 @@ TEST_WITH_DATA(
   3.0
   0.01
   0.02
+  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
@@ -150,5 +157,6 @@ TEST_WITH_DATA(
   3.0
   0.01
   0.02
+  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
