@@ -26,10 +26,10 @@ OPTION(SLICERRT_ENABLE_EXPERIMENTAL_MODULES "Enable the building of work-in-prog
 add_subdirectory(DicomRtImport)
 add_subdirectory(DoseAccumulation)
 add_subdirectory(DoseVolumeHistogram)
-add_subdirectory(Isodose)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(DoseComparison)
+  add_subdirectory(Isodose)
 endif()
 
 #-----------------------------------------------------------------------------
