@@ -60,7 +60,7 @@
 std::string csvSeparatorCharacter(",");
 
 //-----------------------------------------------------------------------------
-int CompareCsvDvhTables(std::string dvhMetricsCsvFileName, std::string baselineCsvFileName, std::string doseUnitName,
+int CompareCsvDvhTables(std::string dvhMetricsCsvFileName, std::string baselineCsvFileName,
                         double maxDose, double volumeDifferenceCriterion, double doseToAgreementCriterion,
                         double &agreementAcceptancePercentage);
 
@@ -425,7 +425,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Compare CSV DVH tables
   std::string baselineDvhTableCsvFileName = std::string(baselineDirectoryPath) + "/BaselineDvhTable.csv";
   double agreementAcceptancePercentage = -1.0;
-  if (CompareCsvDvhTables(dvhCsvFileName, baselineDvhTableCsvFileName, doseUnitName, maxDose,
+  if (CompareCsvDvhTables(dvhCsvFileName, baselineDvhTableCsvFileName, maxDose,
     volumeDifferenceCriterion, doseToAgreementCriterion, agreementAcceptancePercentage) > 0)
   {
     std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
@@ -465,7 +465,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 }
 
 //-----------------------------------------------------------------------------
-int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileName, std::string doseUnitName,
+int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileName,
                         double maxDose, double volumeDifferenceCriterion, double doseToAgreementCriterion,
                         double &agreementAcceptancePercentage)
 {
