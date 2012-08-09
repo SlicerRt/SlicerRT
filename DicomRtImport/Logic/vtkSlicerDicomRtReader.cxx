@@ -331,7 +331,7 @@ OFString GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStruc
     return invalidUid;
   }
   DRTContourImageSequence &rtContourImageSequenceObject = rtReferencedSeriesSequenceItem.getContourImageSequence();
-  if (rtContourImageSequenceObject.gotoFirstItem().good())
+  if (!rtContourImageSequenceObject.gotoFirstItem().good())
   {
     std::cerr << "No contour image sequence object item is available" << std::endl;
     return invalidUid;
@@ -607,6 +607,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
       ribbonFilter->SetDefaultNormal(0,0,-1);
       ribbonFilter->SetWidth(sliceThickness/2.0);
+vtkWarningMacro("sliceThickness: " << sliceThickness);
       ribbonFilter->SetAngle(90.0);
       ribbonFilter->UseDefaultNormalOn();
       ribbonFilter->Update();
