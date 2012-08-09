@@ -14,9 +14,9 @@ class DicomRtImportPluginClass(DICOMPlugin):
   """
 
   def __init__(self,epsilon=0.01):
-    super(DICOMPlugin,self).__init__()
+    super(DicomRtImportPluginClass,self).__init__()
     self.loadType = "RT"
-
+    
   def examine(self,fileLists):
     """ Returns a list of DICOMLoadable instances
     corresponding to ways of interpreting the 
