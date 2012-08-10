@@ -229,10 +229,10 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
   int dimensions2[3] = {0, 0, 0};
   if (size >=2)
   {
-    vtkSmartPointer<vtkImageMathematics> MultiplyFilter2 = vtkSmartPointer<vtkImageMathematics>::New();
-    vtkSmartPointer<vtkImageMathematics> AddFilter = vtkSmartPointer<vtkImageMathematics>::New();
     for (int i = 1; i < size; i++)
     {
+      vtkSmartPointer<vtkImageMathematics> MultiplyFilter2 = vtkSmartPointer<vtkImageMathematics>::New();
+      vtkSmartPointer<vtkImageMathematics> AddFilter = vtkSmartPointer<vtkImageMathematics>::New();
       iterIds++;
       Id = *iterIds;
       inputVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(Id));
