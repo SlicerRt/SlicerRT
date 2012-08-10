@@ -293,8 +293,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
-  vtkMRMLNode* structureSetModelNode = this->GetMRMLScene()->GetNodeByID(
-    this->DoseVolumeHistogramNode->GetStructureSetModelNodeId());
 
   // Create model to doseRas transform
   vtkSmartPointer<vtkGeneralTransform> modelToDoseRasTransform=vtkSmartPointer<vtkGeneralTransform>::New();
@@ -385,7 +383,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     structureStenciledDoseVolumeImageData->SetSpacing(1.0, 1.0, 1.0); // The spacing is set to the MRML node
   }
   structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID( doseVolumeNode->GetTransformNodeID() );
-  std::string stenciledDoseNodeName( structureSetModelNode->GetName() );
+  std::string stenciledDoseNodeName( structureModelNode->GetName() );
   stenciledDoseNodeName.append( "_Labelmap" );
   structureStenciledDoseVolumeNode->SetName( stenciledDoseNodeName.c_str() );
   structureStenciledDoseVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
@@ -632,6 +630,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     stepSize = (rangeMax - rangeMin) / (double)(numSamples-1);
   }
 
+  // Get the number of voxels with smaller dose than at the start value
+  structureStat->SetComponentExtent(0,1,0,0,0,0);
+  structureStat->SetComponentOrigin(0,0,0);
+  structureStat->SetComponentSpacing(startValue,1,1);
+  structureStat->Update();
+  unsigned long voxelBelowDose = structureStat->GetOutput()->GetScalarComponentAsDouble(0,0,0,0);
+
   // We put a fixed point at (0.0, 100%), but only if there are only positive values in the histogram
   // Negative values can occur when the user requests histogram for an image, such as s CT volume (in this case Intensity Volume Histogram is computed),
   // or the startValue became negative for the dose volume because the range minimum was smaller than the original start value.
@@ -662,7 +667,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   vtkImageData* statArray = structureStat->GetOutput();
   unsigned long totalVoxels = structureStat->GetVoxelCount();
-  unsigned long voxelBelowDose = 0;
   for (int sampleIndex=0; sampleIndex<numSamples; ++sampleIndex)
   {
     unsigned long voxelsInBin = statArray->GetScalarComponentAsDouble(sampleIndex,0,0,0);
