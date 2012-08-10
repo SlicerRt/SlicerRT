@@ -475,6 +475,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 }
 
 //-----------------------------------------------------------------------------
+// IMPORTANT: The baseline table has to be the one with smaller resolution!
 int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileName,
                         double maxDose, double volumeDifferenceCriterion, double doseToAgreementCriterion,
                         double &agreementAcceptancePercentage)
@@ -599,10 +600,16 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
     int numberOfAcceptedAgreementsPerStructure = 0;
 
     // Compute gamma for each bin in the current structure
-    for (int i=0; i<currentIt->size(); ++i)
+    for (int i=0; i<baselineIt->size(); ++i)
     {
-      double agreement = GetAgreementForDvhPlotPoint(*baselineIt, *currentIt, i, structureVolumeCCs[structureIndex],
+      double agreement = GetAgreementForDvhPlotPoint(*currentIt, *baselineIt, i, structureVolumeCCs[structureIndex],
         maxDose, volumeDifferenceCriterion, doseToAgreementCriterion);
+
+      //ofstream test;
+      //std::string testFilename = "d:\\gamma_" + structureNames[structureIndex] + ".log";
+      //test.open(testFilename.c_str(), ios::app);
+      //test << baselineIt->at(i).first << "," << baselineIt->at(i).second << "," << agreement << std::endl;
+      //test.close();
 
       if (agreement == -1.0)
       {
