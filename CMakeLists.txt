@@ -1,6 +1,22 @@
 cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
+option(SLICERRT_SUPERBUILD "Build Slicer and the projects it depends on via SuperBuild.cmake." OFF)
+mark_as_advanced(SLICERRT_SUPERBUILD) 
+
+#-----------------------------------------------------------------------------
+if(SLICERRT_SUPERBUILD)
+  # Build SlicerRt and all its dependencies (other than Slicer)
+  if(NOT Slicer_SOURCE_DIR)
+    find_package(Slicer REQUIRED)
+    SET(Slicer_SKIP_EXTENSION_NAME_CHECK TRUE)
+    include(${Slicer_USE_FILE})
+  endif()
+  include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
+  return()
+endif() 
+
+#-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
   set(EXTENSION_NAME "SlicerRT")
   set(EXTENSION_HOMEPAGE "https://www.assembla.com/spaces/slicerrt")
