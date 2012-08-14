@@ -28,6 +28,9 @@
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLVolumeDisplayNode.h>
+#include <vtkMRMLScalarVolumeDisplayNode.h>
+#include <vtkMRMLSelectionNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -52,6 +55,7 @@ vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerDoseComparisonModuleLogic::~vtkSlicerDoseComparisonModuleLogic()
 {
+  SetAndObserveDoseComparisonNode(NULL); // release the node object to avoid memory leaks
 }
 
 //----------------------------------------------------------------------------
@@ -280,8 +284,43 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   vtkMRMLVolumeNode* gammaVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetGammaVolumeNodeId()));
+
+  if (gammaVolumeNode==NULL)
+  {
+    vtkErrorMacro("gammaVolumeNode is invalid");
+    return;
+  }
+
   gammaVolumeNode->CopyOrientation(referenceDoseVolumeNode);
   gammaVolumeNode->SetAndObserveImageData(gammaVolume);
   gammaVolumeNode->SetSpacing(referenceSpacing);
   gammaVolumeNode->SetOrigin(referenceOrigin);
+
+  // Set default colormap to rainbow
+  if (gammaVolumeNode->GetVolumeDisplayNode()==NULL)
+  {
+    // gammaVolumeNode->CreateDefaultDisplayNodes(); unfortunately this is not implemented for Scalar nodes
+    vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> sdisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+    sdisplayNode->SetScene(this->GetMRMLScene());
+    this->GetMRMLScene()->AddNode(sdisplayNode);
+    gammaVolumeNode->SetAndObserveDisplayNodeID(sdisplayNode->GetID());
+  }
+  if (gammaVolumeNode->GetVolumeDisplayNode()!=NULL)
+  {
+    gammaVolumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRed");
+  }
+  else
+  {
+    vtkWarningMacro("Display node is not available for gamma volume node. The default color table will be used.");
+  }
+  // Select as active volume
+  if (this->GetApplicationLogic()!=NULL)
+  {
+    if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
+    {
+      this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(gammaVolumeNode->GetID());
+      this->GetApplicationLogic()->PropagateVolumeSelection();
+    }
+  } 
+
 }

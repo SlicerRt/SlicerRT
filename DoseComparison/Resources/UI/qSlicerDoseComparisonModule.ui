@@ -282,6 +282,9 @@
           <string>vtkMRMLScalarVolumeNode</string>
          </stringlist>
         </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="0" column="0">
