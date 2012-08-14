@@ -51,7 +51,7 @@ public:
   int InsertNextFileList();
 
   /// Get an input file list. 
-  vtkStringArray* GetFileList(int fileListIndex);
+  vtkStringArray* GetFileList(unsigned int fileListIndex);
   
   /// Get the total number of input file lists
   int GetNumberOfFileLists();
@@ -67,22 +67,22 @@ public:
   int GetNumberOfLoadables();
 
   /// The file list of the data to be loaded
-  vtkStringArray* GetLoadableFiles(int loadableIndex);
+  vtkStringArray* GetLoadableFiles(unsigned int loadableIndex);
 
   /// Name exposed to the user for the node
-  const char* GetLoadableName(int loadableIndex);
+  const char* GetLoadableName(unsigned int loadableIndex);
 
   /// Extra information the user sees on mouse over of the thing
-  const char* GetLoadableTooltip(int loadableIndex);
+  const char* GetLoadableTooltip(unsigned int loadableIndex);
 
   /// Things the user should know before loading this data
-  const char* GetLoadableWarning(int loadableIndex);
+  const char* GetLoadableWarning(unsigned int loadableIndex);
   
   /// Is the object checked for loading by default
-  bool GetLoadableSelected(int loadableIndex);
+  bool GetLoadableSelected(unsigned int loadableIndex);
 
   /// Confidence of the importer (1.0 means full confidence, default is 0.5)
-  bool GetLoadableConfidence(int loadableIndex);
+  bool GetLoadableConfidence(unsigned int loadableIndex);
   
   /// Remove all the Loadable items
   void RemoveAllLoadables();

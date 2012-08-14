@@ -640,7 +640,7 @@ int vtkSlicerDicomRtReader::GetNumberOfROIs()
 }
 
 //----------------------------------------------------------------------------
-const char* vtkSlicerDicomRtReader::GetROINameByROINumber(int ROINumber)
+const char* vtkSlicerDicomRtReader::GetROINameByROINumber(unsigned int ROINumber)
 {
   ROIStructureSetEntry* roi=FindROIByNumber(ROINumber);
   if (roi==NULL)
@@ -651,7 +651,7 @@ const char* vtkSlicerDicomRtReader::GetROINameByROINumber(int ROINumber)
 }
 
 //----------------------------------------------------------------------------
-vtkPolyData* vtkSlicerDicomRtReader::GetROIByROINumber(int ROINumber)
+vtkPolyData* vtkSlicerDicomRtReader::GetROIByROINumber(unsigned int ROINumber)
 {
   ROIStructureSetEntry* roi=FindROIByNumber(ROINumber);
   if (roi==NULL)
@@ -662,7 +662,7 @@ vtkPolyData* vtkSlicerDicomRtReader::GetROIByROINumber(int ROINumber)
 }
 
 //----------------------------------------------------------------------------
-double* vtkSlicerDicomRtReader::GetROIDisplayColorByROINumber(int ROINumber)
+double* vtkSlicerDicomRtReader::GetROIDisplayColorByROINumber(unsigned int ROINumber)
 {
   ROIStructureSetEntry* roi=FindROIByNumber(ROINumber);
   if (roi==NULL)
@@ -673,7 +673,7 @@ double* vtkSlicerDicomRtReader::GetROIDisplayColorByROINumber(int ROINumber)
 }
 
 //----------------------------------------------------------------------------
-const char* vtkSlicerDicomRtReader::GetROIName(int number)
+const char* vtkSlicerDicomRtReader::GetROIName(unsigned int number)
 {
   if (number <0 || number >= this->ROIContourSequenceVector.size())
   {
@@ -684,7 +684,7 @@ const char* vtkSlicerDicomRtReader::GetROIName(int number)
 }
 
 //----------------------------------------------------------------------------
-vtkPolyData* vtkSlicerDicomRtReader::GetROI(int number)
+vtkPolyData* vtkSlicerDicomRtReader::GetROI(unsigned int number)
 {
   if (number <0 || number >= this->ROIContourSequenceVector.size())
   {
@@ -695,7 +695,7 @@ vtkPolyData* vtkSlicerDicomRtReader::GetROI(int number)
 }
 
 //----------------------------------------------------------------------------
-double* vtkSlicerDicomRtReader::GetROIDisplayColor(int number)
+double* vtkSlicerDicomRtReader::GetROIDisplayColor(unsigned int number)
 {
   if (number <0 || number >= this->ROIContourSequenceVector.size())
   {
@@ -712,7 +712,7 @@ int vtkSlicerDicomRtReader::GetNumberOfBeams()
 }
 
 //----------------------------------------------------------------------------
-const char* vtkSlicerDicomRtReader::GetBeamName(int BeamNumber)
+const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int BeamNumber)
 {
   BeamSequenceEntry* beam=FindBeamByNumber(BeamNumber);
   if (beam==NULL)
@@ -723,7 +723,7 @@ const char* vtkSlicerDicomRtReader::GetBeamName(int BeamNumber)
 }
 
 //----------------------------------------------------------------------------
-double* vtkSlicerDicomRtReader::GetBeamIsocenterPosition(int BeamNumber)
+double* vtkSlicerDicomRtReader::GetBeamIsocenterPosition(unsigned int BeamNumber)
 {
   BeamSequenceEntry* beam=FindBeamByNumber(BeamNumber);
   if (beam==NULL)
@@ -776,7 +776,7 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomRtReader::BeamSequenceEntry* vtkSlicerDicomRtReader::FindBeamByNumber(int beamNumber)
+vtkSlicerDicomRtReader::BeamSequenceEntry* vtkSlicerDicomRtReader::FindBeamByNumber(unsigned int beamNumber)
 {
   for (unsigned int i=0; i<this->BeamSequenceVector.size(); i++)
   {
@@ -790,7 +790,7 @@ vtkSlicerDicomRtReader::BeamSequenceEntry* vtkSlicerDicomRtReader::FindBeamByNum
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomRtReader::ROIStructureSetEntry* vtkSlicerDicomRtReader::FindROIByNumber(int roiNumber)
+vtkSlicerDicomRtReader::ROIStructureSetEntry* vtkSlicerDicomRtReader::FindROIByNumber(unsigned int roiNumber)
 {
   for (unsigned int i=0; i<this->ROIContourSequenceVector.size(); i++)
   {

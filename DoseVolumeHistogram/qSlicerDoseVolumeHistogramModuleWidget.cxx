@@ -475,8 +475,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::onLogicModified()
 {
-  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-
   refreshDvhTable();
 }
 

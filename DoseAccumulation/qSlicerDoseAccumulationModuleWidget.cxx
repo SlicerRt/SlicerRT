@@ -258,8 +258,6 @@ void qSlicerDoseAccumulationModuleWidget::updateButtonsState()
 //-----------------------------------------------------------------------------
 void qSlicerDoseAccumulationModuleWidget::onLogicModified()
 {
-  Q_D(qSlicerDoseAccumulationModuleWidget);
-
   updateWidgetFromMRML();
 }
 
@@ -346,6 +344,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
 void qSlicerDoseAccumulationModuleWidget::storeSelectedTableItemText(QTableWidgetItem* selectedItem, QTableWidgetItem* previousItem)
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
+  Q_UNUSED(previousItem);
 
   // Store only if the selected item is in a "non-editable" column
   if (selectedItem && selectedItem->column() != 2)

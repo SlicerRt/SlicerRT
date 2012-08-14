@@ -58,36 +58,36 @@ public:
 
   /// Get name of a certain ROI
   /// \param ROINumber Number of ROI to get
-  const char* GetROINameByROINumber(int ROINumber);
+  const char* GetROINameByROINumber(unsigned int ROINumber);
 
   /// Get display color of a certain ROI
   /// \param ROINumber Number of ROI to get
-  double* GetROIDisplayColorByROINumber(int ROINumber);
+  double* GetROIDisplayColorByROINumber(unsigned int ROINumber);
 
   /// Get a certain structure set ROI
   /// \param ROINumber Number of ROI to get
-  vtkPolyData* GetROIByROINumber(int ROINumber);
+  vtkPolyData* GetROIByROINumber(unsigned int ROINumber);
 
   /// Get name of a certain ROI
   /// \param number internal id number of ROI to get
-  const char* GetROIName(int number);
+  const char* GetROIName(unsigned int number);
 
   /// Get display color of a certain ROI
   /// \param number internal id number of ROI to get
-  double* GetROIDisplayColor(int number);
+  double* GetROIDisplayColor(unsigned int number);
 
   /// Get a certain structure set ROI
   /// \param number internal id number of ROI to get
-  vtkPolyData* GetROI(int number);
+  vtkPolyData* GetROI(unsigned int number);
 
   /// Get number of beams
   int GetNumberOfBeams();  
 
   /// Get name of beam
-  const char* GetBeamName(int BeamNumber);
+  const char* GetBeamName(unsigned int BeamNumber);
 
   /// Get beam isocenter
-  double* GetBeamIsocenterPosition(int BeamNumber);
+  double* GetBeamIsocenterPosition(unsigned int BeamNumber);
 
   /// Set input file name
   vtkSetStringMacro(FileName);
@@ -165,8 +165,8 @@ protected:
   /*! Set pixel spacing */
   vtkSetVector2Macro(PixelSpacing, double); 
 
-  BeamSequenceEntry* FindBeamByNumber(int beamNumber);
-  ROIStructureSetEntry* FindROIByNumber(int roiNumber);
+  BeamSequenceEntry* FindBeamByNumber(unsigned int beamNumber);
+  ROIStructureSetEntry* FindROIByNumber(unsigned int roiNumber);
 
 protected:
   /// Structure set contours

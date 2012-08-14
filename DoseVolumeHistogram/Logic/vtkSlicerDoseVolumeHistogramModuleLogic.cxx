@@ -607,7 +607,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   // Create DVH plot values
   int numSamples = 0;
-  int numTuples = 0;
   double startValue;
   double stepSize;
   bool isDoseVolume = this->DoseVolumeContainsDose();

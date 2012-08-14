@@ -71,7 +71,7 @@ void vtkDICOMImportInfo::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-vtkStringArray* vtkDICOMImportInfo::GetLoadableFiles(int loadableIndex)
+vtkStringArray* vtkDICOMImportInfo::GetLoadableFiles(unsigned int loadableIndex)
 {
   if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
   {
@@ -82,7 +82,7 @@ vtkStringArray* vtkDICOMImportInfo::GetLoadableFiles(int loadableIndex)
 }
 
 //----------------------------------------------------------------------------
-const char* vtkDICOMImportInfo::GetLoadableName(int loadableIndex)
+const char* vtkDICOMImportInfo::GetLoadableName(unsigned int loadableIndex)
 {
   if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
   {
@@ -93,7 +93,7 @@ const char* vtkDICOMImportInfo::GetLoadableName(int loadableIndex)
 }
 
 //----------------------------------------------------------------------------
-const char* vtkDICOMImportInfo::GetLoadableTooltip(int loadableIndex)
+const char* vtkDICOMImportInfo::GetLoadableTooltip(unsigned int loadableIndex)
 {
   if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
   {
@@ -104,7 +104,7 @@ const char* vtkDICOMImportInfo::GetLoadableTooltip(int loadableIndex)
 }
 
 //----------------------------------------------------------------------------
-const char* vtkDICOMImportInfo::GetLoadableWarning(int loadableIndex)
+const char* vtkDICOMImportInfo::GetLoadableWarning(unsigned int loadableIndex)
 {
   if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
   {
@@ -115,7 +115,7 @@ const char* vtkDICOMImportInfo::GetLoadableWarning(int loadableIndex)
 }
 
 //----------------------------------------------------------------------------
-bool vtkDICOMImportInfo::GetLoadableSelected(int loadableIndex)
+bool vtkDICOMImportInfo::GetLoadableSelected(unsigned int loadableIndex)
 {
   if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
   {
@@ -126,7 +126,7 @@ bool vtkDICOMImportInfo::GetLoadableSelected(int loadableIndex)
 }
 
 //----------------------------------------------------------------------------
-bool vtkDICOMImportInfo::GetLoadableConfidence(int loadableIndex)
+bool vtkDICOMImportInfo::GetLoadableConfidence(unsigned int loadableIndex)
 {
   if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
   {
@@ -145,7 +145,7 @@ int vtkDICOMImportInfo::InsertNextFileList()
 }
 
 //----------------------------------------------------------------------------
-vtkStringArray* vtkDICOMImportInfo::GetFileList(int fileListIndex)
+vtkStringArray* vtkDICOMImportInfo::GetFileList(unsigned int fileListIndex)
 {
   if (fileListIndex<0 || fileListIndex>=this->PrivateData->FileLists.size())
   {
