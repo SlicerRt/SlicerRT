@@ -25,13 +25,17 @@ endforeach()
 #-----------------------------------------------------------------------------
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
-macro(TEST_WITH_DATA TestName TestExecutableName DataDirectoryPath BaselineDirectoryPath TemporaryDirectoryPath VolumeDifferenceCriterion DoseToAgreementCriterion AgreementAcceptancePercentageThreshold MetricDifferenceThreshold DvhStartValue DvhStepSize RasterizationMagnificationFactor)
+macro(TEST_WITH_DATA TestName TestExecutableName
+      DataDirectoryPath TemporaryDirectoryPath BaselineDvhTableCsvFileName BaselineDvhMetricCsvFileName
+      VolumeDifferenceCriterion DoseToAgreementCriterion AgreementAcceptancePercentageThreshold MetricDifferenceThreshold
+      DvhStartValue DvhStepSize RasterizationMagnificationFactor)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
-    -BaselineDirectoryPath ${BaselineDirectoryPath}
     -TemporaryDirectoryPath ${TemporaryDirectoryPath}
+    -BaselineDvhTableCsvFileName ${BaselineDvhTableCsvFileName}
+    -BaselineDvhMetricCsvFileName ${BaselineDvhMetricCsvFileName}
     -VolumeDifferenceCriterion ${VolumeDifferenceCriterion}
     -DoseToAgreementCriterion ${DoseToAgreementCriterion}
     -AgreementAcceptancePercentageThreshold ${AgreementAcceptancePercentageThreshold}
@@ -46,9 +50,10 @@ endmacro()
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Data_EclipseProstate
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Baseline_EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
   ${TEMP}
+  DvhTable_SlicerRT.csv
+  DvhMetrics_SlicerRT.csv
   0.0
   0.0
   100.0
@@ -63,9 +68,10 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_CERR
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Data_EclipseProstate
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Baseline_EclipseProstate_CERR
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
   ${TEMP}
+  DvhTable_CERR.csv
+  NoMetricComparison
   1.0
   1.0
   95.0
@@ -80,9 +86,10 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_CERR
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Data_EclipseEnt
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Baseline_EclipseEnt_CERR
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt
   ${TEMP}
+  DvhTable_CERR.csv
+  NoMetricComparison
   1.0
   1.0
   95.0
@@ -97,9 +104,10 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_CERR
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_CERR
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Data_EclipseBreast
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Baseline_EclipseBreast_CERR
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast
   ${TEMP}
+  DvhTable_CERR.csv
+  NoMetricComparison
   1.0
   1.0
   95.0
@@ -114,9 +122,10 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_C
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Eclipse
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Data_EclipseProstate
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Baseline_EclipseProstate_Eclipse
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
   ${TEMP}
+  DvhTable_Eclipse.csv
+  NoMetricComparison
   1.0
   1.0
   95.0
@@ -131,9 +140,10 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Eclipse
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Data_EclipseEnt
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Baseline_EclipseEnt_Eclipse
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt
   ${TEMP}
+  DvhTable_Eclipse.csv
+  NoMetricComparison
   1.0
   1.0
   95.0
@@ -148,9 +158,10 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Ecli
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_Eclipse
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Data_EclipseBreast
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/Baseline_EclipseBreast_Eclipse
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast
   ${TEMP}
+  DvhTable_Eclipse.csv
+  NoMetricComparison
   1.0
   1.0
   95.0

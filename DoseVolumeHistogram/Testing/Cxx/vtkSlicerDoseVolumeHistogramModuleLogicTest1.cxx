@@ -74,14 +74,16 @@ int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baseline
 //-----------------------------------------------------------------------------
 int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 {
+  int argIndex = 1;
   // Get temporary directory
   const char *dataDirectoryPath = NULL;
-  if (argc > 2)
+  if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[1], "-DataDirectoryPath") == 0)
+    if (STRCASECMP(argv[argIndex], "-DataDirectoryPath") == 0)
     {
-      dataDirectoryPath = argv[2];
+      dataDirectoryPath = argv[argIndex+1];
       std::cout << "Data directory path: " << dataDirectoryPath << std::endl;
+      argIndex += 2;
     }
     else
     {
@@ -93,93 +95,116 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "No arguments!" << std::endl;
     return EXIT_FAILURE;
   }
-  const char *baselineDirectoryPath = NULL;
-  if (argc > 4)
-  {
-    if (STRCASECMP(argv[3], "-BaselineDirectoryPath") == 0)
-    {
-      baselineDirectoryPath = argv[4];
-      std::cout << "Baseline directory path: " << baselineDirectoryPath << std::endl;
-    }
-    else
-    {
-      baselineDirectoryPath = "";
-    }
-  }
   const char *temporaryDirectoryPath = NULL;
-  if (argc > 6)
+  if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[5], "-TemporaryDirectoryPath") == 0)
+    if (STRCASECMP(argv[argIndex], "-TemporaryDirectoryPath") == 0)
     {
-      temporaryDirectoryPath = argv[6];
+      temporaryDirectoryPath = argv[argIndex+1];
       std::cout << "Temporary directory path: " << temporaryDirectoryPath << std::endl;
+      argIndex += 2;
     }
     else
     {
       temporaryDirectoryPath = "";
     }
   }
-  double volumeDifferenceCriterion = 0.0;
-  if (argc > 8)
+  const char *baselineDvhTableCsvFileName = NULL;
+  if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[7], "-VolumeDifferenceCriterion") == 0)
+    if (STRCASECMP(argv[argIndex], "-BaselineDvhTableCsvFileName") == 0)
     {
-      volumeDifferenceCriterion = atof(argv[8]);
+      baselineDvhTableCsvFileName = argv[argIndex+1];
+      std::cout << "Baseline DVH table CSV file name: " << baselineDvhTableCsvFileName << std::endl;
+      argIndex += 2;
+    }
+    else
+    {
+      baselineDvhTableCsvFileName = "";
+    }
+  }
+  const char *baselineDvhMetricCsvFileName = NULL;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-BaselineDvhMetricCsvFileName") == 0)
+    {
+      baselineDvhMetricCsvFileName = argv[argIndex+1];
+      std::cout << "Baseline DVH metric CSV file name: " << baselineDvhMetricCsvFileName << std::endl;
+      argIndex += 2;
+    }
+    else
+    {
+      baselineDvhMetricCsvFileName = "";
+    }
+  }
+  double volumeDifferenceCriterion = 0.0;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-VolumeDifferenceCriterion") == 0)
+    {
+      volumeDifferenceCriterion = atof(argv[argIndex+1]);
       std::cout << "Volume difference criterion: " << volumeDifferenceCriterion << std::endl;
+      argIndex += 2;
     }
   }
   double doseToAgreementCriterion = 0.0;
-  if (argc > 10)
+  if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[9], "-DoseToAgreementCriterion") == 0)
+    if (STRCASECMP(argv[argIndex], "-DoseToAgreementCriterion") == 0)
     {
-      doseToAgreementCriterion = atof(argv[10]);
+      doseToAgreementCriterion = atof(argv[argIndex+1]);
       std::cout << "Dose-to-agreement criterion: " << doseToAgreementCriterion << std::endl;
+      argIndex += 2;
     }
   }
   double agreementAcceptancePercentageThreshold = 0.0;
-  if (argc > 12)
+  if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[11], "-AgreementAcceptancePercentageThreshold") == 0)
+    if (STRCASECMP(argv[argIndex], "-AgreementAcceptancePercentageThreshold") == 0)
     {
-      agreementAcceptancePercentageThreshold = atof(argv[12]);
+      agreementAcceptancePercentageThreshold = atof(argv[argIndex+1]);
       std::cout << "Agreement acceptance percentage threshold: " << agreementAcceptancePercentageThreshold << std::endl;
+      argIndex += 2;
     }
   }
   double metricDifferenceThreshold = 0.0;
-  if (argc > 14)
+  if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[13], "-MetricDifferenceThreshold") == 0)
+    if (STRCASECMP(argv[argIndex], "-MetricDifferenceThreshold") == 0)
     {
-      metricDifferenceThreshold = atof(argv[14]);
+      metricDifferenceThreshold = atof(argv[argIndex+1]);
       std::cout << "Metric difference threshold: " << metricDifferenceThreshold << std::endl;
+      argIndex += 2;
     }
   }
   double dvhStartValue = 0.0;
-  if (argc > 16)
+  if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[15], "-DvhStartValue") == 0)
+    if (STRCASECMP(argv[argIndex], "-DvhStartValue") == 0)
     {
-      dvhStartValue = atof(argv[16]);
+      dvhStartValue = atof(argv[argIndex+1]);
       std::cout << "DVH start value: " << dvhStartValue << std::endl;
+      argIndex += 2;
     }
   }
   double dvhStepSize = 0.0;
-  if (argc > 18)
+  if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[17], "-DvhStepSize") == 0)
+    if (STRCASECMP(argv[argIndex], "-DvhStepSize") == 0)
     {
-      dvhStepSize = atof(argv[18]);
+      dvhStepSize = atof(argv[argIndex+1]);
       std::cout << "DVH step size: " << dvhStepSize << std::endl;
+      argIndex += 2;
     }
   }
   double rasterizationMagnificationFactor = 2.0;
-  if (argc > 20)
+  if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[19], "-RasterizationMagnificationFactor") == 0)
+    if (STRCASECMP(argv[argIndex+1], "-RasterizationMagnificationFactor") == 0)
     {
-      rasterizationMagnificationFactor = atof(argv[20]);
+      rasterizationMagnificationFactor = atof(argv[argIndex+1]);
       std::cout << "Rasterization magnification factor: " << rasterizationMagnificationFactor << std::endl;
+      argIndex += 2;
     }
   }
 
@@ -433,12 +458,20 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   bool returnWithSuccess = true;
 
   // Compare CSV DVH tables
-  std::string baselineDvhTableCsvFileName = std::string(baselineDirectoryPath) + "/BaselineDvhTable.csv";
+  std::string baselineDvhTableCsvPath = std::string(dataDirectoryPath) + "/" + baselineDvhTableCsvFileName;
   double agreementAcceptancePercentage = -1.0;
-  if (CompareCsvDvhTables(dvhCsvFileName, baselineDvhTableCsvFileName, maxDose,
-    volumeDifferenceCriterion, doseToAgreementCriterion, agreementAcceptancePercentage) > 0)
+  if (vtksys::SystemTools::FileExists(baselineDvhTableCsvPath.c_str()))
   {
-    std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
+    if (CompareCsvDvhTables(dvhCsvFileName, baselineDvhTableCsvPath, maxDose,
+      volumeDifferenceCriterion, doseToAgreementCriterion, agreementAcceptancePercentage) > 0)
+    {
+      std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
+      returnWithSuccess = false;
+    }
+  }
+  else
+  {
+    std::cerr << "Failed to open baseline DVH table: " << baselineDvhTableCsvPath << std::endl;
     returnWithSuccess = false;
   }
 
@@ -452,10 +485,10 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
 
   // Compare CSV DVH metrics
-  std::string baselineDvhMetricCsvFileName = std::string(baselineDirectoryPath) + "/BaselineDvhMetrics.csv";
-  if (vtksys::SystemTools::FileExists(baselineDvhMetricCsvFileName.c_str())) // TODO: remove when all the metric tables can be compared
+  std::string baselineDvhMetricCsvPath = std::string(dataDirectoryPath) + "/" + baselineDvhMetricCsvFileName;
+  if (vtksys::SystemTools::FileExists(baselineDvhMetricCsvPath.c_str())) // TODO: add warning when all the metric tables can be compared
   {
-    if (CompareCsvDvhMetrics(dvhMetricsCsvFileName, baselineDvhMetricCsvFileName, metricDifferenceThreshold) > 0)
+    if (CompareCsvDvhMetrics(dvhMetricsCsvFileName, baselineDvhMetricCsvPath, metricDifferenceThreshold) > 0)
     {
       std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
       returnWithSuccess = false;
