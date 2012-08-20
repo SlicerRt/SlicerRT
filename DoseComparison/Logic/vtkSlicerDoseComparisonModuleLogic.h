@@ -79,7 +79,9 @@ protected:
 
 protected:
   /// Convert VTK image to ITK image
+//BTX  
   void ConvertVtkImageToItkImage(vtkImageData* inVolume, itk::Image<float, 3>::Pointer outVolume);
+//ETX
 
 private:
   vtkSlicerDoseComparisonModuleLogic(const vtkSlicerDoseComparisonModuleLogic&); // Not implemented
@@ -88,7 +90,9 @@ private:
 protected:
   /// Parameter set MRML node
   vtkMRMLDoseComparisonNode* DoseComparisonNode;
+
 };
+
 
 #endif
 

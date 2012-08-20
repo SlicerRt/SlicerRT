@@ -20,11 +20,11 @@
 // This class manages the Reader associated with reading, saving,
 // and changing propertied of the volumes
 
+
 #ifndef __vtkSlicerDicomRtReader_h
 #define __vtkSlicerDicomRtReader_h
 
 // Slicer includes
-//#include "vtkSlicerModuleReader.h"
 
 // MRML includes
 
@@ -40,10 +40,16 @@
 class vtkPolyData;
 class DcmDataset;
 
+// Due to some reason the Python wrapping of this class fails, therefore
+// put everything between BTX/ETX to exclude from wrapping.
+// TODO: investigate why the wrapping fails
+
+//BTX
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtReader : public vtkObject
 {
+
 public:
   static vtkSlicerDicomRtReader *New();
   vtkTypeMacro(vtkSlicerDicomRtReader, vtkObject);
@@ -111,7 +117,6 @@ public:
   vtkGetMacro(LoadRTPlanSuccessful, bool);
 
 protected:
-  //BTX
   /// Structure storing an RT structure set
   class ROIStructureSetEntry
   {
@@ -129,9 +134,7 @@ protected:
     double DisplayColor[3];
     vtkPolyData* PolyData;
   };
-  //ETX
 
-  //BTX
   /// Structure storing an RT structure set
   class BeamSequenceEntry
   {
@@ -149,10 +152,10 @@ protected:
     std::string Description;
     double IsocenterPosition[3]; // in RAS
   };
-  //ETX
 
 protected:
   /// Load RT Structure Set
+
   void LoadRTStructureSet(DcmDataset*);
 
   /// Load RT Plan 
@@ -210,5 +213,7 @@ private:
   vtkSlicerDicomRtReader(const vtkSlicerDicomRtReader&); // Not implemented
   void operator=(const vtkSlicerDicomRtReader&);         // Not implemented
 };
+
+//ETX
 
 #endif
