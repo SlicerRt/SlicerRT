@@ -612,7 +612,7 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
 
   if (currentDvh.size() != baselineDvh.size())
   {
-    std::cerr << "Number of structures in the current and the baseline DVH tables do not match!" << std::endl;
+    std::cerr << "Number of structures in the current and the baseline DVH tables do not match (" << currentDvh.size() << "<>" << baselineDvh.size() << ")!" << std::endl;
     return 1;
   }
 

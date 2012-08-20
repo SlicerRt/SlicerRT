@@ -1086,7 +1086,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
 
   // Open output file
   std::ofstream outfile;
-  outfile.open(fileName);
+  outfile.open(fileName, std::ios_base::out | std::ios_base::trunc);
 
 	if ( !outfile )
 	{
@@ -1200,7 +1200,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
 
   // Open output file
   std::ofstream outfile;
-  outfile.open(fileName);
+  outfile.open(fileName, std::ios_base::out | std::ios_base::trunc);
 
 	if ( !outfile )
 	{
