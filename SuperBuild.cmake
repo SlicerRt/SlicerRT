@@ -28,7 +28,7 @@ SlicerMacroCheckExternalProjectDependency(inner)
 set(ep_cmake_args)
 foreach(dep ${EXTENSION_DEPENDS})
   list(APPEND ep_cmake_args -D${dep}_DIR:PATH=${${dep}_DIR})
-  message("--------------dep:${dep}")
+#  message("--------------dep:${dep}")
 endforeach()
 
 set(proj inner)
