@@ -488,14 +488,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   d->tableWidget_ChartStatistics->setColumnCount(0);
   d->tableWidget_ChartStatistics->clearContents();
 
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  std::vector<std::string>* dvhNodes = paramNode->GetDvhDoubleArrayNodeIds();
-
   QMapIterator<QCheckBox*, QPair<QString, QString> > it(d->ChartCheckboxToStructureSetNameMap);
   while (it.hasNext())
   {
@@ -507,6 +499,15 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   }
 
   d->ChartCheckboxToStructureSetNameMap.clear();
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  std::vector<std::string>* dvhNodes = paramNode->GetDvhDoubleArrayNodeIds();
+
 
   if (dvhNodes->size() < 1)
   {
