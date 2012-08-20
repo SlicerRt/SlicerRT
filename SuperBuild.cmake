@@ -51,6 +51,8 @@ ExternalProject_Add(${proj}
     -DPlastimatch_DIR:PATH=${SLICERRT_PLASTIMATCH_DIR}
     # Slicer
     -DSlicer_DIR:PATH=${Slicer_DIR}
+    -DMIDAS_PACKAGE_EMAIL:STRING=${MIDAS_PACKAGE_EMAIL}
+    -DMIDAS_PACKAGE_API_KEY:STRING=${MIDAS_PACKAGE_API_KEY}    
     ${ep_cmake_args}
   DEPENDS
     ${${proj}_DEPENDENCIES}
