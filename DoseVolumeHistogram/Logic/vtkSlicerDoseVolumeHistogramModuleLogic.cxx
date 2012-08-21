@@ -873,11 +873,20 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   vtkDoubleArray* doubleArray = dvhArrayNode->GetArray();
   vtkNew<vtkPiecewiseFunction> interpolator;
   interpolator->ClampingOn();
-  for (int i=0; i<doubleArray->GetNumberOfTuples(); ++i)
-  {
-    interpolator->AddPoint(doubleArray->GetComponent(i, 0), doubleArray->GetComponent(i, 1));
-  }
 
+  // Starting from second point, because BuildFunctionFromTable needs uniform distance between X coordinates
+  //  and the first point may be 0 (with different distance to neighbors than the second)
+  double* dvhArrayDouble = new double[doubleArray->GetNumberOfTuples()-1];
+  for (int i=1; i<doubleArray->GetNumberOfTuples(); ++i)
+  {
+    dvhArrayDouble[i-1] = doubleArray->GetComponent(i, 1);
+  }
+  interpolator->BuildFunctionFromTable(doubleArray->GetComponent(1, 0), doubleArray->GetComponent(doubleArray->GetNumberOfTuples()-1, 0), doubleArray->GetNumberOfTuples()-1, dvhArrayDouble);
+
+  // Add first point
+  interpolator->AddPoint(doubleArray->GetComponent(0, 0), doubleArray->GetComponent(0, 1));
+
+  // Fill results
   for (std::vector<double>::iterator it = doseValues.begin(); it != doseValues.end(); ++it)
   {
     double volumePercentEstimated = interpolator->GetValue(*it);
