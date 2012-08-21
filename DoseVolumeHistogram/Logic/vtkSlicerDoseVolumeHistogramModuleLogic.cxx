@@ -66,6 +66,7 @@ const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_AT
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME = "StructureModelNodeId";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME = "StructureColor";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME = "DVH_StructurePlotName";
+const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME = "DVH_StructurePlotLineStyle";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX = "DVH_Metric_";
 const char vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_LIST_SEPARATOR_CHARACTER = '|';
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_LIST_ATTRIBUTE_NAME = "List";
@@ -382,11 +383,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     vtkImageData* structureStenciledDoseVolumeImageData = polyDataToLabelmapFilter->GetOutput();
     structureStenciledDoseVolumeImageData->SetSpacing(1.0, 1.0, 1.0); // The spacing is set to the MRML node
   }
-  structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID( doseVolumeNode->GetTransformNodeID() );
+
   std::string stenciledDoseNodeName( structureModelNode->GetName() );
   stenciledDoseNodeName.append( "_Labelmap" );
+  structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID( doseVolumeNode->GetTransformNodeID() );
   structureStenciledDoseVolumeNode->SetName( stenciledDoseNodeName.c_str() );
   structureStenciledDoseVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
+  structureStenciledDoseVolumeNode->SetAttribute( DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), doseVolumeNode->GetID() );
 }
 
 //---------------------------------------------------------------------------
@@ -735,7 +738,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   chartNode->SetProperty("default", "xAxisPad", "0");
   chartNode->SetProperty("default", "yAxisPad", "0");
 
-  // Change plot line style if there is already a structure with the same name in the chart
   vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID(dvhArrayNodeId) );
   if (dvhArrayNode == NULL)
   {
@@ -743,51 +745,14 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     return;
   }
 
-  const char* structureNameToAdd = dvhArrayNode->GetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
-
-  int numberOfStructuresWithSameName = 0;
-  vtkStringArray* plotNames = chartNode->GetArrayNames();
-  for (int i=0; i<plotNames->GetNumberOfValues(); ++i)
-  {
-    vtkStdString plotName = plotNames->GetValue(i);
-    vtkMRMLDoubleArrayNode* arrayNode = 
-      vtkMRMLDoubleArrayNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( chartNode->GetArray(plotName) ) );
-    if (arrayNode == NULL)
-    {
-      continue;
-    }
-
-    const char* structureNameInChart = arrayNode->GetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
-    if (strcmp(structureNameInChart, structureNameToAdd) == 0)
-    {
-      numberOfStructuresWithSameName++;
-    }
-  }
-
   // Add array to chart
   chartNode->AddArray( structurePlotName, dvhArrayNodeId );
 
-  // Set plot color
+  // Set plot color and line style
   const char* color = dvhArrayNode->GetAttribute(DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str());
   chartNode->SetProperty(structurePlotName, "color", color);
-
-  // Set line style according to the number of structures with the same name
-  if (numberOfStructuresWithSameName % 4 == 1)
-  {
-    chartNode->SetProperty(structurePlotName, "linePattern", "dashed");
-  }
-  else if (numberOfStructuresWithSameName % 4 == 2)
-  {
-    chartNode->SetProperty(structurePlotName, "linePattern", "dotted");
-  }
-  else if (numberOfStructuresWithSameName % 4 == 3)
-  {
-    chartNode->SetProperty(structurePlotName, "linePattern", "dashed-dotted");
-  }
-  else
-  {
-    chartNode->SetProperty(structurePlotName, "linePattern", "");
-  }
+  const char* lineStyle = dvhArrayNode->GetAttribute(DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str());
+  chartNode->SetProperty(structurePlotName, "linePattern", lineStyle);
 }
 
 //---------------------------------------------------------------------------

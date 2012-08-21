@@ -79,6 +79,7 @@ public:
   static const std::string DVH_STRUCTURE_NAME_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME;
+  static const std::string DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME;
   static const std::string DVH_METRIC_ATTRIBUTE_NAME_PREFIX;
   static const std::string DVH_METRIC_LIST_ATTRIBUTE_NAME;

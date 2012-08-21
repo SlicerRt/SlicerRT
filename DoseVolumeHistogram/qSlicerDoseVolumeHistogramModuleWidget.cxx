@@ -581,6 +581,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   // Fill the table
   std::vector<std::string>::iterator dvhIt;
   int i;
+  QList<QString> structureNames;
   for (i=0, dvhIt = dvhNodes->begin(); dvhIt != dvhNodes->end(); ++dvhIt, ++i)
   {
     vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
@@ -596,9 +597,34 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
       QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
     connect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
 
-    // Store checkbox with the augmented structure set name and the double array ID
+    // Assign line style and plot name
     QString plotName( dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) );
-    plotName.append( QString("(%1)").arg(i+1) );
+    int numberOfStructuresWithSameName = structureNames.count(plotName);
+    structureNames << plotName;
+
+    plotName.append( QString(" (%1)").arg(i+1) );
+
+    if (numberOfStructuresWithSameName % 4 == 1)
+    {
+      dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dashed");
+      plotName.append( " [- -]" );
+    }
+    else if (numberOfStructuresWithSameName % 4 == 2)
+    {
+      dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dotted");
+      plotName.append( " [...]" );
+    }
+    else if (numberOfStructuresWithSameName % 4 == 3)
+    {
+      dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dashed-dotted");
+      plotName.append( " [-.-]" );
+    }
+    else
+    {
+      dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "solid");
+    }
+
+    // Store checkbox with the augmented structure set name and the double array ID
     dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), plotName.toLatin1());
     d->ChartCheckboxToStructureSetNameMap[checkbox] = QPair<QString, QString>(plotName, dvhNode->GetID());
 
