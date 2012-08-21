@@ -27,6 +27,7 @@
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
+#include <vtkMRMLColorNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -34,6 +35,10 @@
 #include <vtkImageMarchingCubes.h>
 #include <vtkImageChangeInformation.h>
 #include <vtkSmartPointer.h>
+#include <vtkLookupTable.h>
+#include <vtkTriangleFilter.h>
+#include <vtkDecimatePro.h>
+#include <vtkPolyDataNormals.h>
 
 // STD includes
 #include <cassert>
@@ -229,6 +234,9 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
+  vtkSmartPointer<vtkMRMLColorNode> colorNode = doseVolumeNode->GetDisplayNode()->GetColorNode();
+  vtkSmartPointer<vtkLookupTable> lookupTable = colorNode->GetLookupTable();
+
   vtkSmartPointer<vtkImageChangeInformation> changeInfo = vtkSmartPointer<vtkImageChangeInformation>::New();
   changeInfo->SetInput(doseVolumeNode->GetImageData());
   double origin[3];
@@ -242,18 +250,40 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   std::vector<DoseLevelStruct> *isodoseLevelVector = this->GetIsodoseNode()->GetIsodoseLevelVector();
   for (std::vector<DoseLevelStruct>::iterator it = isodoseLevelVector->begin(); it != isodoseLevelVector->end(); ++it)
   {
-    double doseLevel = it->DoseLevelValue;
+    double rgb[3] = {1,1,1};
+    double doseLevel = (*it).DoseLevelValue;
+
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
     marchingCubes->SetInput(changeInfo->GetOutput());
     marchingCubes->SetNumberOfContours(1); 
     marchingCubes->SetValue(0, doseLevel);
     marchingCubes->Update();
+
+    vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
+    triangleFilter->SetInput(marchingCubes->GetOutput());
+    triangleFilter->Update();
+
+    vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
+    decimate->SetInput(triangleFilter->GetOutput());
+    decimate->SetTargetReduction(0.9);
+    decimate->PreserveTopologyOn();
+    decimate->Update();
+
+    vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normals->SetInput(decimate->GetOutput());
+    normals->SetFeatureAngle(45);
+    normals->Update();
   
     vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
     displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
     displayNode->SliceIntersectionVisibilityOn();  
     displayNode->VisibilityOn(); 
-    //displayNode->SetColor(roiColor[0], roiColor[1], roiColor[2]);
+    lookupTable->GetColor(doseLevel, rgb);
+    double opacity = lookupTable->GetOpacity(doseLevel);
+    displayNode->SetColor(rgb[0], rgb[1], rgb[2]);
+    // displayNode->SetOpacity(opacity);
+    displayNode->SetOpacity(0.2); // 20120821 set opacity to constant 0.2 per Csaba's request.
+    
 
     // Disable backface culling to make the back side of the contour visible as well
     displayNode->SetBackfaceCulling(0);
@@ -262,7 +292,7 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     modelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(modelNode));
     modelNode->SetName(((*it).DoseLevelName).c_str());
     modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-    modelNode->SetAndObservePolyData(marchingCubes->GetOutput());
+    modelNode->SetAndObservePolyData(normals->GetOutput());
     modelNode->SetHideFromEditors(0);
     modelNode->SetSelectable(1);
 
