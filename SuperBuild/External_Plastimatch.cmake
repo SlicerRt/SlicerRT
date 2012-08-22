@@ -20,6 +20,7 @@ ExternalProject_Add( Plastimatch
     -DPLM_CONFIG_LIBRARY_BUILD:BOOL=ON     
     -DPLM_CONFIG_INSTALL_LIBRARIES:BOOL=ON    
     -DDCMTK_DIR:STRING=${DCMTK_DIR}
+    -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
   #--Build step-----------------
   #--Install step-----------------
   # Don't perform installation at the end of the build
