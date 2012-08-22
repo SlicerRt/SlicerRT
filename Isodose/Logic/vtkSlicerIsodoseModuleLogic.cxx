@@ -247,11 +247,11 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   changeInfo->SetOutputSpacing(-spacing[0], -spacing[1], spacing[2]);
   changeInfo->Update();
 
-  std::vector<DoseLevelStruct> *isodoseLevelVector = this->GetIsodoseNode()->GetIsodoseLevelVector();
-  for (std::vector<DoseLevelStruct>::iterator it = isodoseLevelVector->begin(); it != isodoseLevelVector->end(); ++it)
+  std::vector<double> *isodoseLevelVector = this->GetIsodoseNode()->GetIsodoseLevelVector();
+  for (std::vector<double>::iterator it = isodoseLevelVector->begin(); it != isodoseLevelVector->end(); ++it)
   {
     double rgb[3] = {1,1,1};
-    double doseLevel = (*it).DoseLevelValue;
+    double doseLevel = (*it);
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
     marchingCubes->SetInput(changeInfo->GetOutput());
@@ -259,71 +259,76 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     marchingCubes->SetValue(0, doseLevel);
     marchingCubes->Update();
 
-    vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
-    triangleFilter->SetInput(marchingCubes->GetOutput());
-    triangleFilter->Update();
-
-    vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
-    decimate->SetInput(triangleFilter->GetOutput());
-    decimate->SetTargetReduction(0.9);
-    decimate->PreserveTopologyOn();
-    decimate->Update();
-
-    vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-    normals->SetInput(decimate->GetOutput());
-    normals->SetFeatureAngle(45);
-    normals->Update();
-  
-    vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
-    displayNode->SliceIntersectionVisibilityOn();  
-    displayNode->VisibilityOn(); 
-    lookupTable->GetColor(doseLevel, rgb);
-    double opacity = lookupTable->GetOpacity(doseLevel);
-    displayNode->SetColor(rgb[0], rgb[1], rgb[2]);
-    // displayNode->SetOpacity(opacity);
-    displayNode->SetOpacity(0.2); // 20120821 set opacity to constant 0.2 per Csaba's request.
-    
-
-    // Disable backface culling to make the back side of the contour visible as well
-    displayNode->SetBackfaceCulling(0);
-
-    vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-    modelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(modelNode));
-    modelNode->SetName(((*it).DoseLevelName).c_str());
-    modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-    modelNode->SetAndObservePolyData(normals->GetOutput());
-    modelNode->SetHideFromEditors(0);
-    modelNode->SetSelectable(1);
-
-    // Add new node to the hierarchy node
-    if (modelNode)
+    vtkSmartPointer<vtkPolyData> isoPolyData= marchingCubes->GetOutput();
+    if(isoPolyData->GetNumberOfPoints() >= 1)
     {
-      // Create root node, if it has not been created yet
-      if (modelHierarchyRootNode.GetPointer()==NULL)
+      vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
+      triangleFilter->SetInput(marchingCubes->GetOutput());
+      triangleFilter->Update();
+
+      vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
+      decimate->SetInput(triangleFilter->GetOutput());
+      decimate->SetTargetReduction(0.9);
+      decimate->PreserveTopologyOn();
+      decimate->Update();
+
+      vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+      normals->SetInput(decimate->GetOutput());
+      normals->SetFeatureAngle(45);
+      normals->Update();
+  
+      vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+      displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
+      displayNode->SliceIntersectionVisibilityOn();  
+      displayNode->VisibilityOn(); 
+      lookupTable->GetColor(doseLevel, rgb);
+      double opacity = lookupTable->GetOpacity(doseLevel);
+      displayNode->SetColor(rgb[0], rgb[1], rgb[2]);
+      // displayNode->SetOpacity(opacity);
+      displayNode->SetOpacity(0.2); // 20120821 set opacity to constant 0.2 per Csaba's request.
+    
+      // Disable backface culling to make the back side of the contour visible as well
+      displayNode->SetBackfaceCulling(0);
+
+      vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+      modelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(modelNode));
+      std::ostringstream sstream;
+      sstream << (*it);
+      modelNode->SetName(sstream.str().c_str());
+      modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+      modelNode->SetAndObservePolyData(normals->GetOutput());
+      modelNode->SetHideFromEditors(0);
+      modelNode->SetSelectable(1);
+
+      // Add new node to the hierarchy node
+      if (modelNode)
       {
-        modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+        // Create root node, if it has not been created yet
+        if (modelHierarchyRootNode.GetPointer()==NULL)
+        {
+          modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+        }
+        std::string hierarchyNodeName;
+        //hierarchyNodeName = std::string(seriesname) + " - all structures";
+        modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+        modelHierarchyRootNode->AllowMultipleChildrenOn();
+        modelHierarchyRootNode->HideFromEditorsOff();
+        this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
+
+        // A hierarchy node needs a display node
+        vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+        hierarchyNodeName.append("Display");
+        modelDisplayNode->SetName(hierarchyNodeName.c_str());
+        modelDisplayNode->SetVisibility(1);
+        this->GetMRMLScene()->AddNode(modelDisplayNode);
+        modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+
+        // put the new node in the hierarchy
+        vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+        this->GetMRMLScene()->AddNode(modelHierarchyNode);
+        modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
+        modelHierarchyNode->SetModelNodeID( modelNode->GetID() );
       }
-      std::string hierarchyNodeName;
-      //hierarchyNodeName = std::string(seriesname) + " - all structures";
-      modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
-      modelHierarchyRootNode->AllowMultipleChildrenOn();
-      modelHierarchyRootNode->HideFromEditorsOff();
-      this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
-
-      // A hierarchy node needs a display node
-      vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-      hierarchyNodeName.append("Display");
-      modelDisplayNode->SetName(hierarchyNodeName.c_str());
-      modelDisplayNode->SetVisibility(1);
-      this->GetMRMLScene()->AddNode(modelDisplayNode);
-      modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
-
-      // put the new node in the hierarchy
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-      this->GetMRMLScene()->AddNode(modelHierarchyNode);
-      modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
-      modelHierarchyNode->SetModelNodeID( modelNode->GetID() );
     }
   }
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 

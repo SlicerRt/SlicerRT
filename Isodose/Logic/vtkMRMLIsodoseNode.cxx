@@ -72,9 +72,9 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
 
   {
     of << indent << " IsodoseLevelVector=\"";
-    for (std::vector<DoseLevelStruct>::iterator it = this->IsodoseLevelVector.begin(); it != this->IsodoseLevelVector.end(); ++it)
+    for (std::vector<double>::iterator it = this->IsodoseLevelVector.begin(); it != this->IsodoseLevelVector.end(); ++it)
       {
-      of << it->DoseLevelName << ":" << it->DoseLevelValue << "|";
+      of << (*it) << "|";
       }
     of << "\"";
   }
@@ -134,9 +134,8 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
         vss << mapPairStr.substr( colonPosition+1 );
         vss >> doseLevelValue;
         
-        DoseLevelStruct tempLevel;
-        tempLevel.DoseLevelName = doseLevelName;
-        tempLevel.DoseLevelValue = doseLevelValue;
+        double tempLevel;
+        tempLevel = doseLevelValue;
         this->IsodoseLevelVector.push_back(tempLevel);
         valueStr = valueStr.substr( separatorPosition+1 );
         separatorPosition = valueStr.find( separatorCharacter );
@@ -154,9 +153,8 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
           vss << mapPairStr.substr( colonPosition+1 );
           vss >> doseLevelValue;
 
-          DoseLevelStruct tempLevel;
-          tempLevel.DoseLevelName = doseLevelName;
-          tempLevel.DoseLevelValue = doseLevelValue;
+          double tempLevel;
+          tempLevel = doseLevelValue;
           this->IsodoseLevelVector.push_back(tempLevel);
           }
         }

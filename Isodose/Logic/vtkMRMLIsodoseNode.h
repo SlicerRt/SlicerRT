@@ -31,12 +31,6 @@
 
 #include "vtkSlicerIsodoseModuleLogicExport.h"
 
-typedef struct 
-{
-  std::string DoseLevelName;
-  double DoseLevelValue;
-} DoseLevelStruct;
-
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
 {
 public:
@@ -60,7 +54,7 @@ public:
   virtual const char* GetNodeTagName() {return "Isodose";};
 
   /// Get volumes node IDs to weights map
-  std::vector<DoseLevelStruct>* GetIsodoseLevelVector()
+  std::vector<double>* GetIsodoseLevelVector()
   {
     return &this->IsodoseLevelVector;
   }
@@ -85,7 +79,7 @@ protected:
 protected:
   /// Map assigning dose levels to the available input volume nodes
   /// (as the user set it on the module GUI)
-  std::vector<DoseLevelStruct> IsodoseLevelVector;
+  std::vector<double> IsodoseLevelVector;
 
   /// Selected dose volume MRML node object ID
   char* DoseVolumeNodeId;

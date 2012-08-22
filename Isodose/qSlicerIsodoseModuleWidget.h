@@ -56,13 +56,11 @@ public slots:
 
 protected slots:
   void doseVolumeNodeChanged(vtkMRMLNode*);
-  void onTableItemChanged(QTableWidgetItem* changedItem);
+  void onTextEdited(QString changedString);
   void storeSelectedTableItemText(QTableWidgetItem* selectedItem, QTableWidgetItem* previousItem);
   void outputHierarchyNodeChanged(vtkMRMLNode*);
 
   void applyClicked();
-  void addClicked();
-  void removeClicked();
 
   void onLogicModified();
 
