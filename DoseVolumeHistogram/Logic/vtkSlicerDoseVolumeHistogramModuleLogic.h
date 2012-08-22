@@ -73,6 +73,8 @@ class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramMo
   public vtkSlicerModuleLogic
 {
 public:
+  static const std::string ATTRIBUTE_PREFIX;
+
   static const std::string DVH_TYPE_ATTRIBUTE_NAME;
   static const std::string DVH_TYPE_ATTRIBUTE_VALUE;
   static const std::string DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME;

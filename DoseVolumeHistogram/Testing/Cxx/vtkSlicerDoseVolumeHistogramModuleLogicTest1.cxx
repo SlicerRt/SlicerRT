@@ -75,7 +75,7 @@ int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baseline
 int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 {
   int argIndex = 1;
-  // Get temporary directory
+
   const char *dataDirectoryPath = NULL;
   if (argc > argIndex+1)
   {
@@ -95,24 +95,10 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "No arguments!" << std::endl;
     return EXIT_FAILURE;
   }
-  const char *temporaryDirectoryPath = NULL;
-  if (argc > argIndex+1)
-  {
-    if (STRCASECMP(argv[argIndex], "-TemporaryDirectoryPath") == 0)
-    {
-      temporaryDirectoryPath = argv[argIndex+1];
-      std::cout << "Temporary directory path: " << temporaryDirectoryPath << std::endl;
-      argIndex += 2;
-    }
-    else
-    {
-      temporaryDirectoryPath = "";
-    }
-  }
   const char *baselineDvhTableCsvFileName = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-BaselineDvhTableCsvFileName") == 0)
+    if (STRCASECMP(argv[argIndex], "-BaselineDvhTableCsvFile") == 0)
     {
       baselineDvhTableCsvFileName = argv[argIndex+1];
       std::cout << "Baseline DVH table CSV file name: " << baselineDvhTableCsvFileName << std::endl;
@@ -126,7 +112,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   const char *baselineDvhMetricCsvFileName = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-BaselineDvhMetricCsvFileName") == 0)
+    if (STRCASECMP(argv[argIndex], "-BaselineDvhMetricCsvFile") == 0)
     {
       baselineDvhMetricCsvFileName = argv[argIndex+1];
       std::cout << "Baseline DVH metric CSV file name: " << baselineDvhMetricCsvFileName << std::endl;
@@ -135,6 +121,58 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     else
     {
       baselineDvhMetricCsvFileName = "";
+    }
+  }
+  const char *temporarySceneFileName = NULL;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-TemporarySceneFile") == 0)
+    {
+      temporarySceneFileName = argv[argIndex+1];
+      std::cout << "Temporary scene file name: " << temporarySceneFileName << std::endl;
+      argIndex += 2;
+    }
+    else
+    {
+      temporarySceneFileName = "";
+    }
+  }
+  else
+  {
+    std::cerr << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  const char *temporaryDvhTableCsvFileName = NULL;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-TemporaryDvhTableCsvFile") == 0)
+    {
+      temporaryDvhTableCsvFileName = argv[argIndex+1];
+      std::cout << "Temporary DVH table CSV file name: " << temporaryDvhTableCsvFileName << std::endl;
+      argIndex += 2;
+    }
+    else
+    {
+      temporaryDvhTableCsvFileName = "";
+    }
+  }
+  else
+  {
+    std::cerr << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  const char *temporaryDvhMetricCsvFileName = NULL;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-TemporaryDvhMetricCsvFile") == 0)
+    {
+      temporaryDvhMetricCsvFileName = argv[argIndex+1];
+      std::cout << "Temporary DVH metric CSV file name: " << temporaryDvhMetricCsvFileName << std::endl;
+      argIndex += 2;
+    }
+    else
+    {
+      temporaryDvhMetricCsvFileName = "";
     }
   }
   double volumeDifferenceCriterion = 0.0;
@@ -225,10 +263,9 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
-  std::string sceneFileName = std::string(temporaryDirectoryPath) + "/DvhTestScene.mrml";
-  vtksys::SystemTools::RemoveFile(sceneFileName.c_str());
-  mrmlScene->SetRootDirectory(temporaryDirectoryPath);
-  mrmlScene->SetURL(sceneFileName.c_str());
+  vtksys::SystemTools::RemoveFile(temporarySceneFileName);
+  mrmlScene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
+  mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
   // Create dose volume node
@@ -432,9 +469,8 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->Commit();
 
   // Export DVH to CSV
-  std::string dvhCsvFileName = std::string(temporaryDirectoryPath) + "/DvhTestTable.csv";
-  vtksys::SystemTools::RemoveFile(dvhCsvFileName.c_str());
-  dvhLogic->ExportDvhToCsv(dvhCsvFileName.c_str());
+  vtksys::SystemTools::RemoveFile(temporaryDvhTableCsvFileName);
+  dvhLogic->ExportDvhToCsv(temporaryDvhTableCsvFileName);
 
   // Export DVH metrics to CSV
   static const double vDoseValuesCcArr[] = {5, 20};
@@ -450,19 +486,17 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   std::vector<double> dVolumeValuesPercent( dVolumeValuesPercentArr, dVolumeValuesPercentArr +
     sizeof(dVolumeValuesPercentArr) / sizeof(dVolumeValuesPercentArr[0]) );
 
-  std::string dvhMetricsCsvFileName = std::string(temporaryDirectoryPath) + "/DvhTestMetrics.csv";
-  vtksys::SystemTools::RemoveFile(dvhMetricsCsvFileName.c_str());
-  dvhLogic->ExportDvhMetricsToCsv(dvhMetricsCsvFileName.c_str(),
+  vtksys::SystemTools::RemoveFile(temporaryDvhMetricCsvFileName);
+  dvhLogic->ExportDvhMetricsToCsv(temporaryDvhMetricCsvFileName,
     vDoseValuesCc, vDoseValuesPercent, dVolumeValuesCc, dVolumeValuesPercent);
 
   bool returnWithSuccess = true;
 
   // Compare CSV DVH tables
-  std::string baselineDvhTableCsvPath = std::string(dataDirectoryPath) + "/" + baselineDvhTableCsvFileName;
   double agreementAcceptancePercentage = -1.0;
-  if (vtksys::SystemTools::FileExists(baselineDvhTableCsvPath.c_str()))
+  if (vtksys::SystemTools::FileExists(baselineDvhTableCsvFileName))
   {
-    if (CompareCsvDvhTables(dvhCsvFileName, baselineDvhTableCsvPath, maxDose,
+    if (CompareCsvDvhTables(temporaryDvhTableCsvFileName, baselineDvhTableCsvFileName, maxDose,
       volumeDifferenceCriterion, doseToAgreementCriterion, agreementAcceptancePercentage) > 0)
     {
       std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
@@ -471,7 +505,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Failed to open baseline DVH table: " << baselineDvhTableCsvPath << std::endl;
+    std::cerr << "Failed to open baseline DVH table: " << baselineDvhTableCsvFileName << std::endl;
     returnWithSuccess = false;
   }
 
@@ -485,10 +519,9 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
 
   // Compare CSV DVH metrics
-  std::string baselineDvhMetricCsvPath = std::string(dataDirectoryPath) + "/" + baselineDvhMetricCsvFileName;
-  if (vtksys::SystemTools::FileExists(baselineDvhMetricCsvPath.c_str())) // TODO: add warning when all the metric tables can be compared
+  if (vtksys::SystemTools::FileExists(baselineDvhMetricCsvFileName)) // TODO: add warning when all the metric tables can be compared
   {
-    if (CompareCsvDvhMetrics(dvhMetricsCsvFileName, baselineDvhMetricCsvPath, metricDifferenceThreshold) > 0)
+    if (CompareCsvDvhMetrics(temporaryDvhMetricCsvFileName, baselineDvhMetricCsvFileName, metricDifferenceThreshold) > 0)
     {
       std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
       returnWithSuccess = false;

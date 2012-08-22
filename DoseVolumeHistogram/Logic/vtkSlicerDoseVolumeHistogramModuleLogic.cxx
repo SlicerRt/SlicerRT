@@ -59,6 +59,8 @@
 #include <set>
 
 //----------------------------------------------------------------------------
+const std::string vtkSlicerDoseVolumeHistogramModuleLogic::ATTRIBUTE_PREFIX = "DoseVolumeHistogram.";
+
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_TYPE_ATTRIBUTE_NAME = "Type";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_TYPE_ATTRIBUTE_VALUE = "DVH";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME = "DoseVolumeNodeId";
