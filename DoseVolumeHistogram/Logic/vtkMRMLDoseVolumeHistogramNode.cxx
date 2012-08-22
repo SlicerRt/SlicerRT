@@ -51,8 +51,7 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
   this->DVolumeValuesCc = NULL;
   this->DVolumeValuesPercent = NULL;
   this->ShowDMetrics = false;
-  this->AddLabelmapsToScene = false;
-  this->LabelValue = 2;
+  this->SaveLabelmaps = false;
 
   this->HideFromEditors = false;
 }
@@ -161,13 +160,7 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
   }
 
   of << indent << " ShowDMetrics=\"" << (this->ShowDMetrics ? "true" : "false") << "\"";
-  of << indent << " AddLabelmapsToScene=\"" << (this->AddLabelmapsToScene ? "true" : "false") << "\"";
-
-  {
-    std::stringstream ss;
-    ss << this->LabelValue;
-    of << indent << " LabelValue=\"" << ss.str() << "\"";
-  }
+  of << indent << " SaveLabelmaps=\"" << (this->SaveLabelmaps ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -283,16 +276,10 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       this->ShowDMetrics = 
         (strcmp(attValue,"true") ? false : true);
       }
-    else if (!strcmp(attName, "AddLabelmapsToScene")) 
+    else if (!strcmp(attName, "SaveLabelmaps")) 
       {
-      this->AddLabelmapsToScene = 
+      this->SaveLabelmaps = 
         (strcmp(attValue,"true") ? false : true);
-      }
-    else if (!strcmp(attName, "LabelValue")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->LabelValue = atoi(ss.str().c_str());
       }
     }
 }
@@ -323,8 +310,7 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
   this->SetDVolumeValuesPercent(node->DVolumeValuesPercent);
   this->ShowDMetrics = node->ShowDMetrics;
 
-  this->AddLabelmapsToScene = node->GetAddLabelmapsToScene();
-  this->LabelValue = node->GetLabelValue();
+  this->SaveLabelmaps = node->SaveLabelmaps;
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -367,8 +353,7 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "DVolumeValuesPercent:   " << this->DVolumeValuesPercent << "\n";
   os << indent << "ShowDMetrics:   " << (this->ShowDMetrics ? "true" : "false") << "\n";
 
-  os << indent << "AddLabelmapsToScene:   " << (this->AddLabelmapsToScene ? "true" : "false") << "\n";
-  os << indent << "LabelValue:   " << this->LabelValue << "\n";
+  os << indent << "SaveLabelmaps:   " << (this->SaveLabelmaps ? "true" : "false") << "\n";
 }
 
 //----------------------------------------------------------------------------

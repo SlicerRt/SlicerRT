@@ -66,7 +66,7 @@ int CompareCsvDvhTables(std::string dvhMetricsCsvFileName, std::string baselineC
 
 double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& referenceDvhPlot,
                                    std::vector<std::pair<double,double> >& compareDvhPlot,
-                                   int compareIndex, double totalVolume, double maxDose,
+                                   unsigned int compareIndex, double totalVolume, double maxDose,
                                    double volumeDifferenceCriterion, double doseToAgreementCriterion);
 
 int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baselineDvhMetricCsvFileName, double metricDifferenceThreshold);
@@ -633,7 +633,7 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
     int numberOfAcceptedAgreementsPerStructure = 0;
 
     // Compute gamma for each bin in the current structure
-    for (int i=0; i<baselineIt->size(); ++i)
+    for (unsigned int i=0; i<baselineIt->size(); ++i)
     {
       double agreement = GetAgreementForDvhPlotPoint(*currentIt, *baselineIt, i, structureVolumeCCs[structureIndex],
         maxDose, volumeDifferenceCriterion, doseToAgreementCriterion);
@@ -685,7 +685,7 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
 
 //-----------------------------------------------------------------------------
 double GetAgreementForDvhPlotPoint(std::vector<std::pair<double,double> >& referenceDvhPlot, std::vector<std::pair<double,double> >& compareDvhPlot,
-                               int compareIndex, double totalVolume, double maxDose,
+                               unsigned int compareIndex, double totalVolume, double maxDose,
                                double volumeDifferenceCriterion, double doseToAgreementCriterion)
 {
   // Formula is (based on the article Ebert2010):

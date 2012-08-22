@@ -466,12 +466,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     this->ComputeDvh(structureStenciledDoseVolumeNode.GetPointer(), (*it));
 
     double checkpointLabelmapCreationStart = timer->GetUniversalTime();
-    if (this->GetDoseVolumeHistogramNode()->GetAddLabelmapsToScene())
+    if (this->GetDoseVolumeHistogramNode()->GetSaveLabelmaps())
     {
       // Convert stenciled dose volume to labelmap
       vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
       threshold->SetInput(structureStenciledDoseVolumeNode->GetImageData());
-      threshold->SetInValue(this->DoseVolumeHistogramNode->GetLabelValue());
+      threshold->SetInValue(/*this->DoseVolumeHistogramNode->GetLabelValue()*/2);//TODO:
       threshold->SetOutValue(0);
       threshold->ThresholdByUpper(VTK_DOUBLE_MIN+1.0);
       threshold->SetOutputScalarTypeToUnsignedChar();
@@ -496,7 +496,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
       std::cout << "\tStructure '" << (*it)->GetName() << "':\n\t\tTotal: " << checkpointStructureEnd-checkpointStructureStart
         << " s\n\t\tRasterization: " << checkpointDvhStart-checkpointRasterizationStart
         << " s\n\t\tDVH computation: " << checkpointLabelmapCreationStart-checkpointDvhStart
-        << " s\n\t\tLabelmap creation (" << (this->GetDoseVolumeHistogramNode()->GetAddLabelmapsToScene()?"On":"Off") << "): "
+        << " s\n\t\tLabelmap creation (" << (this->GetDoseVolumeHistogramNode()->GetSaveLabelmaps()?"On":"Off") << "): "
         << checkpointStructureEnd-checkpointLabelmapCreationStart << std::endl;
     }
   }
@@ -528,17 +528,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   double ccPerCubicMM = 0.001;
 
   // Get dose grid scaling and dose units
-  const char* doseGridScalingString = doseVolumeNode->GetAttribute("DoseUnitValue");
-  double doseGridScaling = 1.0;
-  if (doseGridScalingString!=NULL)
-  {
-    doseGridScaling = atof(doseGridScalingString);
-  }
-  else
-  {
-    vtkWarningMacro("Dose grid scaling attribute is not set for the selected dose volume. Assuming scaling = 1.");
-  }
-
   const char* doseUnitName = doseVolumeNode->GetAttribute(DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
   // Get maximum dose from dose volume

@@ -338,10 +338,10 @@
       <string>Advanced Options</string>
      </property>
      <property name="checked">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="collapsed">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
       <property name="margin">
@@ -668,22 +668,9 @@
            </spacer>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_AddLabelmapsToScene">
+           <widget class="QCheckBox" name="checkBox_SaveLabelmaps">
             <property name="text">
-             <string>Add labelmaps created from structure models to the scene with label value</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="spinBox_LabelValue">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>255</number>
-            </property>
-            <property name="value">
-             <number>2</number>
+             <string>Save labelmaps that are used for DVH computation</string>
             </property>
            </widget>
           </item>

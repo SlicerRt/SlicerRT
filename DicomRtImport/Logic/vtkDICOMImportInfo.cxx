@@ -73,7 +73,7 @@ void vtkDICOMImportInfo::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkStringArray* vtkDICOMImportInfo::GetLoadableFiles(unsigned int loadableIndex)
 {
-  if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex>=this->PrivateData->Loadables.size())
   {
     vtkErrorMacro("Invalid loadable index" << loadableIndex);
     return NULL;
@@ -84,7 +84,7 @@ vtkStringArray* vtkDICOMImportInfo::GetLoadableFiles(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 const char* vtkDICOMImportInfo::GetLoadableName(unsigned int loadableIndex)
 {
-  if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex>=this->PrivateData->Loadables.size())
   {
     vtkErrorMacro("Invalid loadable index" << loadableIndex);
     return NULL;
@@ -95,7 +95,7 @@ const char* vtkDICOMImportInfo::GetLoadableName(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 const char* vtkDICOMImportInfo::GetLoadableTooltip(unsigned int loadableIndex)
 {
-  if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex>=this->PrivateData->Loadables.size())
   {
     vtkErrorMacro("Invalid loadable index" << loadableIndex);
     return NULL;
@@ -106,7 +106,7 @@ const char* vtkDICOMImportInfo::GetLoadableTooltip(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 const char* vtkDICOMImportInfo::GetLoadableWarning(unsigned int loadableIndex)
 {
-  if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex>=this->PrivateData->Loadables.size())
   {
     vtkErrorMacro("Invalid loadable index" << loadableIndex);
     return NULL;
@@ -117,7 +117,7 @@ const char* vtkDICOMImportInfo::GetLoadableWarning(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 bool vtkDICOMImportInfo::GetLoadableSelected(unsigned int loadableIndex)
 {
-  if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex>=this->PrivateData->Loadables.size())
   {
     vtkErrorMacro("Invalid loadable index" << loadableIndex);
     return false;
@@ -128,7 +128,7 @@ bool vtkDICOMImportInfo::GetLoadableSelected(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 bool vtkDICOMImportInfo::GetLoadableConfidence(unsigned int loadableIndex)
 {
-  if (loadableIndex<0 || loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex>=this->PrivateData->Loadables.size())
   {
     vtkErrorMacro("Invalid loadable index" << loadableIndex);
     return false;
@@ -147,7 +147,7 @@ int vtkDICOMImportInfo::InsertNextFileList()
 //----------------------------------------------------------------------------
 vtkStringArray* vtkDICOMImportInfo::GetFileList(unsigned int fileListIndex)
 {
-  if (fileListIndex<0 || fileListIndex>=this->PrivateData->FileLists.size())
+  if (fileListIndex>=this->PrivateData->FileLists.size())
   {
     vtkErrorMacro("Invalid file lists index" << fileListIndex);
     return NULL;
@@ -164,7 +164,7 @@ int vtkDICOMImportInfo::GetNumberOfFileLists()
 //----------------------------------------------------------------------------
 void vtkDICOMImportInfo::RemoveAllFileLists()
 {
-  for (int i=0; i<this->PrivateData->FileLists.size(); i++)
+  for (unsigned int i=0; i<this->PrivateData->FileLists.size(); i++)
   {
     if (this->PrivateData->FileLists[i]!=NULL)
     {
@@ -178,7 +178,7 @@ void vtkDICOMImportInfo::RemoveAllFileLists()
 //----------------------------------------------------------------------------
 void vtkDICOMImportInfo::RemoveAllLoadables()
 {
-  for (int i=0; i<this->PrivateData->Loadables.size(); i++)
+  for (unsigned int i=0; i<this->PrivateData->Loadables.size(); i++)
   {
     if (this->PrivateData->Loadables[i].files!=NULL)
     {

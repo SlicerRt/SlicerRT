@@ -146,7 +146,7 @@ protected:
       IsocenterPosition[1]=0.0;
       IsocenterPosition[2]=0.0;
     }
-    int Number;
+    unsigned int Number;
     std::string Name;
     std::string Type;
     std::string Description;

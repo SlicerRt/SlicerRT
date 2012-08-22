@@ -40,6 +40,7 @@ limitations under the License.
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLVolumeDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLColorTableNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -50,6 +51,7 @@ limitations under the License.
 #include <vtkPolyDataNormals.h>
 #include <vtkImageCast.h>
 #include <vtkStringArray.h>
+#include <vtkLookupTable.h>
 
 // STD includes
 #include <cassert>
@@ -249,8 +251,17 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
   {
     this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
+    // Add color table node
+    vtkSmartPointer<vtkMRMLColorTableNode> structuresColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+    std::string structuresColorTableNodeName;
+    structuresColorTableNodeName = std::string(seriesname) + " Colors";
+    structuresColorTableNode->SetName(structuresColorTableNodeName.c_str());
+    modelHierarchyRootNode->HideFromEditorsOff();
+    this->GetMRMLScene()->AddNode(structuresColorTableNode);
+
     // Add ROIs
     int numberOfROI = rtReader->GetNumberOfROIs();
+    structuresColorTableNode->GetLookupTable()->SetNumberOfTableValues(numberOfROI);
     for (int internalROIIndex=0; internalROIIndex<numberOfROI; internalROIIndex++) // DICOM starts indexing from 1
     {
       vtkPolyData* roiPoly = rtReader->GetROI(internalROIIndex);
@@ -278,6 +289,17 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
         // Contour ROI
         addedDisplayableNode = AddRoiContour(roiPoly, roiLabel, roiColor);
       }
+
+      // Save color into the color table
+      structuresColorTableNode->GetLookupTable()->SetTableValue(internalROIIndex, roiColor[0], roiColor[1], roiColor[2]);
+      if (structuresColorTableNode->GetAttribute(roiLabel))
+      {
+        vtkWarningMacro("Duplicate ROI names found (in ROIs number " << structuresColorTableNode->GetAttribute(roiLabel)
+          << " and " << internalROIIndex << ")! The color table will store the color of the last occurrence");
+      }
+      char roiIndexString[4];
+      sprintf(roiIndexString, "%d", internalROIIndex);
+      structuresColorTableNode->SetAttribute(roiLabel, roiIndexString);
 
       // Add new node to the hierarchy node
       if (addedDisplayableNode)

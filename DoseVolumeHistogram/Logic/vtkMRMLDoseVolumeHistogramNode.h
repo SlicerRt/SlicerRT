@@ -110,14 +110,10 @@ public:
   vtkSetMacro(ShowDMetrics, bool);
   vtkBooleanMacro(ShowDMetrics, bool);
 
-  /// Get/Set Add labelmaps to the scene checkbox state
-  vtkGetMacro(AddLabelmapsToScene, bool);
-  vtkSetMacro(AddLabelmapsToScene, bool);
-  vtkBooleanMacro(AddLabelmapsToScene, bool);
-
-  /// Get/Set label value
-  vtkGetMacro(LabelValue, int);
-  vtkSetMacro(LabelValue, int);
+  /// Get/Set Save labelmaps checkbox state
+  vtkGetMacro(SaveLabelmaps, bool);
+  vtkSetMacro(SaveLabelmaps, bool);
+  vtkBooleanMacro(SaveLabelmaps, bool);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
@@ -167,10 +163,7 @@ protected:
   bool ShowDMetrics;
 
   /// State of Add labelmaps created from structure models to the scene checkbox
-  bool AddLabelmapsToScene;
-
-  /// Label value for the labelmaps to be created from the structures
-  int LabelValue;
+  bool SaveLabelmaps;
 };
 
 #endif

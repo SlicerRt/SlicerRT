@@ -230,8 +230,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     d->lineEdit_DVolumeCc->setText(paramNode->GetDVolumeValuesCc());
     d->lineEdit_DVolumePercent->setText(paramNode->GetDVolumeValuesPercent());
     d->checkBox_ShowDMetrics->setChecked(paramNode->GetShowDMetrics());
-    d->checkBox_AddLabelmapsToScene->setChecked(paramNode->GetAddLabelmapsToScene());
-    d->spinBox_LabelValue->setValue(paramNode->GetLabelValue());
+    d->checkBox_SaveLabelmaps->setChecked(paramNode->GetSaveLabelmaps());
   }
 
   refreshDvhTable();
@@ -269,8 +268,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->lineEdit_DVolumeCc, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumeCcEdited(QString) ) );
   connect( d->lineEdit_DVolumePercent, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumePercentEdited(QString) ) );
   connect( d->checkBox_ShowDMetrics, SIGNAL( stateChanged(int) ), this, SLOT( showDMetricsCheckedStateChanged(int) ) );
-  connect( d->checkBox_AddLabelmapsToScene, SIGNAL( stateChanged(int) ), this, SLOT( addLabelmapsToSceneCheckedStateChanged(int) ) );
-  connect( d->spinBox_LabelValue, SIGNAL( valueChanged(int) ), this, SLOT( labelValueChanged(int) ) );
+  connect( d->checkBox_SaveLabelmaps, SIGNAL( stateChanged(int) ), this, SLOT( saveLabelmapsCheckedStateChanged(int) ) );
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -677,7 +675,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
       }
       col = 3 + metricList.size();
 
-      for (int j=0; j<volumes.size(); ++j)
+      for (unsigned int j=0; j<volumes.size(); ++j)
       {
         if (d->checkBox_ShowVMetricsCc->isChecked())
         {
@@ -967,8 +965,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::getNumbersFromLineEdit(QLineEdit* aLineEdit, std::vector<double> &aValues)
 {
-  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-
   aValues.clear();
 
   if (!aLineEdit)
@@ -1100,7 +1096,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::addLabelmapsToSceneCheckedStateChanged(int aState)
+void qSlicerDoseVolumeHistogramModuleWidget::saveLabelmapsCheckedStateChanged(int aState)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
@@ -1111,22 +1107,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::addLabelmapsToSceneCheckedStateChan
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAddLabelmapsToScene(aState);
-  paramNode->DisableModifiedEventOff();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::labelValueChanged(int aValue)
-{
-  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetLabelValue(aValue);
+  paramNode->SetSaveLabelmaps(aState);
   paramNode->DisableModifiedEventOff();
 }

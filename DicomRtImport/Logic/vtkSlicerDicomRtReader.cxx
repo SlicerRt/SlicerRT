@@ -625,8 +625,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     {
       currentRoiObject.getROIDisplayColor(roiDisplayColor,j);
       referenceROI->DisplayColor[j] = roiDisplayColor/255.0;
-    }
-
+    }    
   }
   while (rtROIContourSequenceObject.gotoNextItem().good());
 
@@ -675,7 +674,7 @@ double* vtkSlicerDicomRtReader::GetROIDisplayColorByROINumber(unsigned int ROINu
 //----------------------------------------------------------------------------
 const char* vtkSlicerDicomRtReader::GetROIName(unsigned int number)
 {
-  if (number <0 || number >= this->ROIContourSequenceVector.size())
+  if (number >= this->ROIContourSequenceVector.size())
   {
     vtkWarningMacro("Cannot get roi with number: " << number);
     return NULL;
@@ -686,7 +685,7 @@ const char* vtkSlicerDicomRtReader::GetROIName(unsigned int number)
 //----------------------------------------------------------------------------
 vtkPolyData* vtkSlicerDicomRtReader::GetROI(unsigned int number)
 {
-  if (number <0 || number >= this->ROIContourSequenceVector.size())
+  if (number >= this->ROIContourSequenceVector.size())
   {
     vtkWarningMacro("Cannot get roi with number: " << number);
     return NULL;
@@ -697,7 +696,7 @@ vtkPolyData* vtkSlicerDicomRtReader::GetROI(unsigned int number)
 //----------------------------------------------------------------------------
 double* vtkSlicerDicomRtReader::GetROIDisplayColor(unsigned int number)
 {
-  if (number <0 || number >= this->ROIContourSequenceVector.size())
+  if (number >= this->ROIContourSequenceVector.size())
   {
     vtkWarningMacro("Cannot get roi with number: " << number);
     return NULL;
