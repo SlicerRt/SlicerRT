@@ -19,12 +19,16 @@
 
 ==============================================================================*/
 
-// MRMLDoseAccumulation includes
+// vtkMRMLDoseVolumeHistogram includes
 #include "vtkMRMLDoseVolumeHistogramNode.h"
+
+// SlicerRT includes
+#include "vtkSlicerDicomRtImportModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLModelNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -378,4 +382,28 @@ void vtkMRMLDoseVolumeHistogramNode::UpdateReferenceID(const char *oldID, const 
       (*it) = newID;
       }
     }
+
+  // TODO: Remove this when patient hierarchy is implemented or other solution is found
+  // Update color table node IDs referenced from the model nodes' custom attributes
+  if (this->Scene != NULL && this->Scene->GetNumberOfNodesByClass("vtkMRMLModelNode") > 0)
+  {
+    std::string colorTableNodeIdAttributeName =
+      vtkSlicerDicomRtImportModuleLogic::ATTRIBUTE_PREFIX + vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_ID_ATTRIBUTE_NAME;
+    this->Scene->InitTraversal();
+    vtkMRMLNode *node = this->Scene->GetNextNodeByClass("vtkMRMLModelNode");
+    while (node != NULL)
+    {
+      vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(node);
+      if (modelNode)
+      {
+        const char* colorTableNodeId = modelNode->GetAttribute(colorTableNodeIdAttributeName.c_str());
+        if (colorTableNodeId != NULL && strcmp(colorTableNodeId, oldID) == 0)
+        {
+          modelNode->SetAttribute(colorTableNodeIdAttributeName.c_str(), newID);
+        }
+      }
+
+      node = this->Scene->GetNextNodeByClass("vtkMRMLModelNode");
+    }
+  }
 }

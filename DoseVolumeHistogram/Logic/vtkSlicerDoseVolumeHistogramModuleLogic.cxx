@@ -24,6 +24,9 @@
 #include "vtkPolyDataToLabelmapFilter.h"
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
+// SlicerRT includes
+#include "vtkSlicerDicomRtImportModuleLogic.h"
+
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
@@ -35,6 +38,7 @@
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelHierarchyNode.h>
+#include <vtkMRMLColorTableNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -454,6 +458,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
   std::vector<vtkMRMLModelNode*> structureModelNodes;
   this->GetSelectedStructureModelNodes(structureModelNodes);
 
+  std::string colorTableNodeIdAttributeName = vtkSlicerDicomRtImportModuleLogic::ATTRIBUTE_PREFIX + vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_ID_ATTRIBUTE_NAME;
+
   for (std::vector<vtkMRMLModelNode*>::iterator it = structureModelNodes.begin(); it != structureModelNodes.end(); ++it)
   {
     double checkpointStructureStart = timer->GetUniversalTime();
@@ -470,10 +476,17 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     double checkpointLabelmapCreationStart = timer->GetUniversalTime();
     if (this->GetDoseVolumeHistogramNode()->GetSaveLabelmaps())
     {
+      // Get color table node and structure color index
+      vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
+        this->GetMRMLScene()->GetNodeByID( (*it)->GetAttribute(colorTableNodeIdAttributeName.c_str()) ) );
+      std::string structureColorIndexAttributeName =
+        vtkSlicerDicomRtImportModuleLogic::ATTRIBUTE_PREFIX + vtkSlicerDicomRtImportModuleLogic::STRUCTURE_COLOR_INDEX_ATTRIBUTE_NAME_PREFIX + (*it)->GetName();
+      unsigned int structureColorIndex = atoi( colorTableNode->GetAttribute(structureColorIndexAttributeName.c_str()) );
+
       // Convert stenciled dose volume to labelmap
       vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
       threshold->SetInput(structureStenciledDoseVolumeNode->GetImageData());
-      threshold->SetInValue(/*this->DoseVolumeHistogramNode->GetLabelValue()*/2);//TODO:
+      threshold->SetInValue(structureColorIndex);
       threshold->SetOutValue(0);
       threshold->ThresholdByUpper(VTK_DOUBLE_MIN+1.0);
       threshold->SetOutputScalarTypeToUnsignedChar();
@@ -482,7 +495,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
       vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
       displayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
-      displayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
+      displayNode->SetAndObserveColorNodeID( colorTableNode->GetID() );
 
       structureStenciledDoseVolumeNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
       structureStenciledDoseVolumeNode->LabelMapOn();
