@@ -108,7 +108,7 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetDoseVolumeNodeId(ss.str().c_str());
+      this->SetAndObserveDoseVolumeNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "IsodoseLevelVector")) 
       {
@@ -163,7 +163,7 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetOutputHierarchyNodeId(ss.str().c_str());
+      this->SetAndObserveOutputHierarchyNodeId(ss.str().c_str());
       }
     }
 }
@@ -178,8 +178,8 @@ void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLIsodoseNode *node = (vtkMRMLIsodoseNode *) anode;
 
-  this->SetDoseVolumeNodeId(node->DoseVolumeNodeId);
-  this->SetOutputHierarchyNodeId(node->OutputHierarchyNodeId);
+  this->SetAndObserveDoseVolumeNodeId(node->DoseVolumeNodeId);
+  this->SetAndObserveOutputHierarchyNodeId(node->OutputHierarchyNodeId);
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -199,10 +199,42 @@ void vtkMRMLIsodoseNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   if (this->DoseVolumeNodeId && !strcmp(oldID, this->DoseVolumeNodeId))
     {
-    this->SetDoseVolumeNodeId(newID);
+    this->SetAndObserveDoseVolumeNodeId(newID);
     }
   if (this->OutputHierarchyNodeId && !strcmp(oldID, this->OutputHierarchyNodeId))
     {
-    this->SetOutputHierarchyNodeId(newID);
+    this->SetAndObserveOutputHierarchyNodeId(newID);
     }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNodeId(const char* id)
+{
+  if (this->DoseVolumeNodeId)
+  {
+    this->Scene->RemoveReferencedNodeID(this->DoseVolumeNodeId, this);
+  }
+
+  this->SetDoseVolumeNodeId(id);
+
+  if (id)
+  {
+    this->Scene->AddReferencedNodeID(this->DoseVolumeNodeId, this);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLIsodoseNode::SetAndObserveOutputHierarchyNodeId(const char* id)
+{
+  if (this->DoseVolumeNodeId)
+  {
+    this->Scene->RemoveReferencedNodeID(this->OutputHierarchyNodeId, this);
+  }
+
+  this->SetOutputHierarchyNodeId(id);
+
+  if (id)
+  {
+    this->Scene->AddReferencedNodeID(this->OutputHierarchyNodeId, this);
+  }
 }

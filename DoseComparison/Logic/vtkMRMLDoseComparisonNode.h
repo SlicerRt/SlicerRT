@@ -55,17 +55,23 @@ public:
   virtual const char* GetNodeTagName() {return "DoseComparison";};
 
 public:
-  /// Get/Set reference dose volume node ID
+  /// Get reference dose volume node ID
   vtkGetStringMacro(ReferenceDoseVolumeNodeId);
-  vtkSetStringMacro(ReferenceDoseVolumeNodeId);
 
-  /// Get/Set compare dose volume node ID
+  /// Set and observe reference dose volume node ID
+  void SetAndObserveReferenceDoseVolumeNodeId(const char* id);
+
+  /// Get compare dose volume node ID
   vtkGetStringMacro(CompareDoseVolumeNodeId);
-  vtkSetStringMacro(CompareDoseVolumeNodeId);
 
-  /// Get/Set output gamma volume node ID
+  /// Set and observe reference dose volume node ID
+  void SetAndObserveCompareDoseVolumeNodeId(const char* id);
+
+  /// Get output gamma volume node ID
   vtkGetStringMacro(GammaVolumeNodeId);
-  vtkSetStringMacro(GammaVolumeNodeId);
+
+  /// Set and observe reference dose volume node ID
+  void SetAndObserveGammaVolumeNodeId(const char* id);
 
   /// Get/Set distance to agreement (DTA) tolerance, in mm
   vtkGetMacro(DtaDistanceToleranceMm, double);
@@ -89,7 +95,17 @@ public:
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
- 
+
+protected:
+  /// Set reference dose volume node ID
+  vtkSetStringMacro(ReferenceDoseVolumeNodeId);
+
+  /// Set compare dose volume node ID
+  vtkSetStringMacro(CompareDoseVolumeNodeId);
+
+  /// Set output gamma volume node ID
+  vtkSetStringMacro(GammaVolumeNodeId);
+
 protected:
   vtkMRMLDoseComparisonNode();
   ~vtkMRMLDoseComparisonNode();

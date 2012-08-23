@@ -237,7 +237,7 @@ void qSlicerDoseAccumulationModuleWidget::accumulatedDoseVolumeNodeChanged(vtkMR
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAccumulatedDoseVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveAccumulatedDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();

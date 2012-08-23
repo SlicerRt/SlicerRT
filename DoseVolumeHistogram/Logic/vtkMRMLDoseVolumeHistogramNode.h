@@ -55,17 +55,23 @@ public:
   virtual const char* GetNodeTagName() {return "DoseVolumeHistogram";};
 
 public:
-  /// Get/Set dose volume node ID
+  /// Get dose volume node ID
   vtkGetStringMacro(DoseVolumeNodeId);
-  vtkSetStringMacro(DoseVolumeNodeId);
 
-  /// Get/Set structure set node ID
+  /// Set and observe dose volume node ID
+  void SetAndObserveDoseVolumeNodeId(const char* id);
+
+  /// Get structure set node ID
   vtkGetStringMacro(StructureSetModelNodeId);
-  vtkSetStringMacro(StructureSetModelNodeId);
 
-  /// Get/Set chart node ID
+  /// Set and observe structure set node ID
+  void SetAndObserveStructureSetModelNodeId(const char* id);
+
+  /// Get chart node ID
   vtkGetStringMacro(ChartNodeId);
-  vtkSetStringMacro(ChartNodeId);
+
+  /// Set and observe chart node ID
+  void SetAndObserveChartNodeId(const char* id);
 
   /// Get list of all the DVH double array node IDs in the scene
   std::vector<std::string>* GetDvhDoubleArrayNodeIds()
@@ -117,7 +123,17 @@ public:
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
- 
+
+protected:
+  /// Set dose volume node ID
+  vtkSetStringMacro(DoseVolumeNodeId);
+
+  /// Set structure set node ID
+  vtkSetStringMacro(StructureSetModelNodeId);
+
+  /// Set chart node ID
+  vtkSetStringMacro(ChartNodeId);
+
 protected:
   vtkMRMLDoseVolumeHistogramNode();
   ~vtkMRMLDoseVolumeHistogramNode();

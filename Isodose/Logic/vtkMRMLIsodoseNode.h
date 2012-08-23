@@ -59,17 +59,28 @@ public:
     return &this->IsodoseLevelVector;
   }
 
-  /// Get/Set dose volume node ID
+  /// Get dose volume node ID
   vtkGetStringMacro(DoseVolumeNodeId);
-  vtkSetStringMacro(DoseVolumeNodeId);
 
-  /// Get/Set output hierarchy node ID
+  /// Set and observe dose volume node ID
+  void SetAndObserveDoseVolumeNodeId(const char* id);
+
+  /// Get output hierarchy node ID
   vtkGetStringMacro(OutputHierarchyNodeId);
-  vtkSetStringMacro(OutputHierarchyNodeId);
+
+  /// Set and observe output hierarchy node ID
+  void SetAndObserveOutputHierarchyNodeId(const char* id);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
  
+protected:
+  /// Set dose volume node ID
+  vtkSetStringMacro(DoseVolumeNodeId);
+
+  /// Set output hierarchy node ID
+  vtkSetStringMacro(OutputHierarchyNodeId);
+
 protected:
   vtkMRMLIsodoseNode();
   ~vtkMRMLIsodoseNode();

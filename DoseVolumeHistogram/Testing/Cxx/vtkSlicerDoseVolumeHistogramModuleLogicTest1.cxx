@@ -425,9 +425,9 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode =
     vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
-  paramNode->SetDoseVolumeNodeId(doseScalarVolumeNode->GetID());
-  paramNode->SetStructureSetModelNodeId(modelHierarchyRootNode->GetID());
-  paramNode->SetChartNodeId(chartNode->GetID());
+  paramNode->SetAndObserveDoseVolumeNodeId(doseScalarVolumeNode->GetID());
+  paramNode->SetAndObserveStructureSetModelNodeId(modelHierarchyRootNode->GetID());
+  paramNode->SetAndObserveChartNodeId(chartNode->GetID());
   mrmlScene->AddNode(paramNode);
   dvhLogic->SetAndObserveDoseVolumeHistogramNode(paramNode);
 

@@ -71,13 +71,19 @@ public:
     return &this->VolumeNodeIdsToWeightsMap;
   }
 
-  /// Get/Set output accumulated dose volume MRML Id 
+  /// Get output accumulated dose volume MRML Id 
   vtkGetStringMacro(AccumulatedDoseVolumeNodeId);
-  vtkSetStringMacro(AccumulatedDoseVolumeNodeId);
+
+  /// Set and observe output accumulated dose volume MRML Id 
+  void SetAndObserveAccumulatedDoseVolumeNodeId(const char* id);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
- 
+
+protected:
+  /// Set output accumulated dose volume MRML Id 
+  vtkSetStringMacro(AccumulatedDoseVolumeNodeId);
+
 protected:
   vtkMRMLDoseAccumulationNode();
   ~vtkMRMLDoseAccumulationNode();

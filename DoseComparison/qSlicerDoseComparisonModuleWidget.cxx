@@ -264,7 +264,7 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetReferenceDoseVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveReferenceDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
@@ -291,7 +291,7 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetCompareDoseVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveCompareDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
@@ -318,7 +318,7 @@ void qSlicerDoseComparisonModuleWidget::GammaVolumeNodeChanged(vtkMRMLNode* node
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetGammaVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveGammaVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();

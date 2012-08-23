@@ -418,7 +418,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetDoseVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
@@ -445,7 +445,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::structureSetNodeChanged(vtkMRMLNode
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetStructureSetModelNodeId(node->GetID());
+  paramNode->SetAndObserveStructureSetModelNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
@@ -463,7 +463,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetChartNodeId(node->GetID());
+  paramNode->SetAndObserveChartNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();

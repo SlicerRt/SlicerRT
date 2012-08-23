@@ -179,7 +179,7 @@ void vtkMRMLDoseAccumulationNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAccumulatedDoseVolumeNodeId(ss.str().c_str());
+      this->SetAndObserveAccumulatedDoseVolumeNodeId(ss.str().c_str());
       }
     }
 }
@@ -195,7 +195,7 @@ void vtkMRMLDoseAccumulationNode::Copy(vtkMRMLNode *anode)
   vtkMRMLDoseAccumulationNode *node = (vtkMRMLDoseAccumulationNode *) anode;
 
   this->SetShowDoseVolumesOnly(node->ShowDoseVolumesOnly);
-  this->SetAccumulatedDoseVolumeNodeId(node->AccumulatedDoseVolumeNodeId);
+  this->SetAndObserveAccumulatedDoseVolumeNodeId(node->AccumulatedDoseVolumeNodeId);
 
   this->SelectedInputVolumeIds = node->SelectedInputVolumeIds;
   this->VolumeNodeIdsToWeightsMap = node->VolumeNodeIdsToWeightsMap;
@@ -233,6 +233,23 @@ void vtkMRMLDoseAccumulationNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLDoseAccumulationNode::SetAndObserveAccumulatedDoseVolumeNodeId(const char* id)
+{
+  if (this->AccumulatedDoseVolumeNodeId)
+  {
+    this->Scene->RemoveReferencedNodeID(this->AccumulatedDoseVolumeNodeId, this);
+  }
+
+  this->SetAccumulatedDoseVolumeNodeId(id);
+
+  if (id)
+  {
+    this->Scene->AddReferencedNodeID(this->AccumulatedDoseVolumeNodeId, this);
+  }
+}
+
+
+//----------------------------------------------------------------------------
 void vtkMRMLDoseAccumulationNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   if (this->SelectedInputVolumeIds.find(oldID) != this->SelectedInputVolumeIds.end())
@@ -249,6 +266,6 @@ void vtkMRMLDoseAccumulationNode::UpdateReferenceID(const char *oldID, const cha
     }
   if (this->AccumulatedDoseVolumeNodeId && !strcmp(oldID, this->AccumulatedDoseVolumeNodeId))
     {
-    this->SetAccumulatedDoseVolumeNodeId(newID);
+    this->SetAndObserveAccumulatedDoseVolumeNodeId(newID);
     }
 }

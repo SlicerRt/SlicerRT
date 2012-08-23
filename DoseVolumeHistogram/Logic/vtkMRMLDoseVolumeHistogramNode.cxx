@@ -185,19 +185,19 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetDoseVolumeNodeId(ss.str().c_str());
+      this->SetAndObserveDoseVolumeNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "StructureSetModelNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetStructureSetModelNodeId(ss.str().c_str());
+      this->SetAndObserveStructureSetModelNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "ChartNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetChartNodeId(ss.str().c_str());
+      this->SetAndObserveChartNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "DvhDoubleArrayNodeIds")) 
       {
@@ -298,9 +298,9 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLDoseVolumeHistogramNode *node = (vtkMRMLDoseVolumeHistogramNode *) anode;
 
-  this->SetDoseVolumeNodeId(node->DoseVolumeNodeId);
-  this->SetStructureSetModelNodeId(node->StructureSetModelNodeId);
-  this->SetChartNodeId(node->ChartNodeId);
+  this->SetAndObserveDoseVolumeNodeId(node->DoseVolumeNodeId);
+  this->SetAndObserveStructureSetModelNodeId(node->StructureSetModelNodeId);
+  this->SetAndObserveChartNodeId(node->ChartNodeId);
 
   this->DvhDoubleArrayNodeIds = node->DvhDoubleArrayNodeIds;
   this->ShowHideAll = node->ShowHideAll;
@@ -361,19 +361,67 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNodeId(const char* id)
+{
+  if (this->DoseVolumeNodeId)
+  {
+    this->Scene->RemoveReferencedNodeID(this->DoseVolumeNodeId, this);
+  }
+
+  this->SetDoseVolumeNodeId(id);
+
+  if (id)
+  {
+    this->Scene->AddReferencedNodeID(this->DoseVolumeNodeId, this);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveStructureSetModelNodeId(const char* id)
+{
+  if (this->StructureSetModelNodeId)
+  {
+    this->Scene->RemoveReferencedNodeID(this->StructureSetModelNodeId, this);
+  }
+
+  this->SetStructureSetModelNodeId(id);
+
+  if (id)
+  {
+    this->Scene->AddReferencedNodeID(this->StructureSetModelNodeId, this);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNodeId(const char* id)
+{
+  if (this->ChartNodeId)
+  {
+    this->Scene->RemoveReferencedNodeID(this->ChartNodeId, this);
+  }
+
+  this->SetChartNodeId(id);
+
+  if (id)
+  {
+    this->Scene->AddReferencedNodeID(this->ChartNodeId, this);
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   if (this->DoseVolumeNodeId && !strcmp(oldID, this->DoseVolumeNodeId))
     {
-    this->SetDoseVolumeNodeId(newID);
+    this->SetAndObserveDoseVolumeNodeId(newID);
     }
   if (this->StructureSetModelNodeId && !strcmp(oldID, this->StructureSetModelNodeId))
     {
-    this->SetStructureSetModelNodeId(newID);
+    this->SetAndObserveStructureSetModelNodeId(newID);
     }
   if (this->ChartNodeId && !strcmp(oldID, this->ChartNodeId))
     {
-    this->SetChartNodeId(newID);
+    this->SetAndObserveChartNodeId(newID);
     }
   for (std::vector<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
     {
@@ -382,28 +430,4 @@ void vtkMRMLDoseVolumeHistogramNode::UpdateReferenceID(const char *oldID, const 
       (*it) = newID;
       }
     }
-
-  // TODO: Remove this when patient hierarchy is implemented or other solution is found
-  // Update color table node IDs referenced from the model nodes' custom attributes
-  if (this->Scene != NULL && this->Scene->GetNumberOfNodesByClass("vtkMRMLModelNode") > 0)
-  {
-    std::string colorTableNodeIdAttributeName =
-      vtkSlicerDicomRtImportModuleLogic::ATTRIBUTE_PREFIX + vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_ID_ATTRIBUTE_NAME;
-    this->Scene->InitTraversal();
-    vtkMRMLNode *node = this->Scene->GetNextNodeByClass("vtkMRMLModelNode");
-    while (node != NULL)
-    {
-      vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(node);
-      if (modelNode)
-      {
-        const char* colorTableNodeId = modelNode->GetAttribute(colorTableNodeIdAttributeName.c_str());
-        if (colorTableNodeId != NULL && strcmp(colorTableNodeId, oldID) == 0)
-        {
-          modelNode->SetAttribute(colorTableNodeIdAttributeName.c_str(), newID);
-        }
-      }
-
-      node = this->Scene->GetNextNodeByClass("vtkMRMLModelNode");
-    }
-  }
 }
