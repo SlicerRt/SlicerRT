@@ -58,8 +58,8 @@ limitations under the License.
 
 //----------------------------------------------------------------------------
 const std::string vtkSlicerDicomRtImportModuleLogic::ATTRIBUTE_PREFIX = "DicomRtImport.";
-const std::string vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_ID_ATTRIBUTE_NAME = "ColorTableNodeID";
-const std::string vtkSlicerDicomRtImportModuleLogic::STRUCTURE_COLOR_INDEX_ATTRIBUTE_NAME_PREFIX = "StructureColorIndex.";
+const std::string vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_NAME_POSTFIX = " - Color table";
+const std::string vtkSlicerDicomRtImportModuleLogic::ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX = " - All structures";
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtImportModuleLogic);
@@ -227,9 +227,7 @@ void vtkSlicerDicomRtImportModuleLogic::Examine(vtkDICOMImportInfo *importInfo)
      
       importInfo->InsertNextLoadable(loadableFileList, name.c_str(), tooltip.c_str(), warning.c_str(), selected, confidence);
     }
-
   }
-
 }
 
 //---------------------------------------------------------------------------
@@ -259,7 +257,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
     // Add color table node
     vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
     std::string structureSetColorTableNodeName;
-    structureSetColorTableNodeName = std::string(seriesname) + "_ColorTable";
+    structureSetColorTableNodeName = std::string(seriesname) + COLOR_TABLE_NODE_NAME_POSTFIX;
     structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
     structureSetColorTableNode->HideFromEditorsOff();
     structureSetColorTableNode->SetTypeToUser();
@@ -271,24 +269,16 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
     structureSetColorTableNode->SetNumberOfColors(numberOfROI+1);
     structureSetColorTableNode->GetLookupTable()->SetTableRange(0,numberOfROI);
     structureSetColorTableNode->AddColor("Background", 0.0, 0.0, 0.0, 0.0); // Black background
+    structureSetColorTableNode->AddColor("Invalid", 0.5, 0.5, 0.5, 1.0); // Color indicating invalid index
 
     for (int internalROIIndex=0; internalROIIndex<numberOfROI; internalROIIndex++) // DICOM starts indexing from 1
     {
-      const char* roiLabel=rtReader->GetROIName(internalROIIndex);
+      const char* roiLabel = rtReader->GetROIName(internalROIIndex);
       double *roiColor = rtReader->GetROIDisplayColor(internalROIIndex);
       vtkMRMLDisplayableNode* addedDisplayableNode = NULL;
 
       // Save color into the color table
-      std::string structureColorIndexAttributeName = ATTRIBUTE_PREFIX + STRUCTURE_COLOR_INDEX_ATTRIBUTE_NAME_PREFIX + roiLabel;
       structureSetColorTableNode->AddColor(roiLabel, roiColor[0], roiColor[1], roiColor[2]);
-      if (structureSetColorTableNode->GetAttribute(structureColorIndexAttributeName.c_str()))
-      {
-        vtkWarningMacro("Duplicate ROI names found (in ROIs number " << structureSetColorTableNode->GetAttribute(structureColorIndexAttributeName.c_str())
-          << " and " << internalROIIndex+1 << ")! The color table will store the color of the last occurrence");
-      }
-      char roiIndexString[4];
-      sprintf(roiIndexString, "%d", internalROIIndex+1);
-      structureSetColorTableNode->SetAttribute(structureColorIndexAttributeName.c_str(), roiIndexString);
 
       // Get structure
       vtkPolyData* roiPoly = rtReader->GetROI(internalROIIndex);
@@ -322,7 +312,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
         {
           modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
           std::string hierarchyNodeName;
-          hierarchyNodeName = std::string(seriesname) + " - all structures";
+          hierarchyNodeName = std::string(seriesname) + ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
           modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
           modelHierarchyRootNode->AllowMultipleChildrenOn();
           modelHierarchyRootNode->HideFromEditorsOff();
@@ -342,10 +332,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
         this->GetMRMLScene()->AddNode(modelHierarchyNode);
         modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
         modelHierarchyNode->SetModelNodeID( addedDisplayableNode->GetID() );
-
-        // Set link to the color table node
-        std::string colorTableNodeIdAttributeName = ATTRIBUTE_PREFIX + COLOR_TABLE_NODE_ID_ATTRIBUTE_NAME;
-        addedDisplayableNode->SetAttribute( colorTableNodeIdAttributeName.c_str(), structureSetColorTableNode->GetID() );
       }
     }
 

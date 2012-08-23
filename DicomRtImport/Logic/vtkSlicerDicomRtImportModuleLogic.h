@@ -42,8 +42,8 @@ class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtImportModuleLogic :
 {
 public:
   static const std::string ATTRIBUTE_PREFIX;
-  static const std::string COLOR_TABLE_NODE_ID_ATTRIBUTE_NAME;
-  static const std::string STRUCTURE_COLOR_INDEX_ATTRIBUTE_NAME_PREFIX;
+  static const std::string COLOR_TABLE_NODE_NAME_POSTFIX;
+  static const std::string ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
 
 public:
   static vtkSlicerDicomRtImportModuleLogic *New();

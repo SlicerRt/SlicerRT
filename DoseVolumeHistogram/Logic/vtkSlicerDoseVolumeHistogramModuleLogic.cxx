@@ -458,8 +458,33 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
   std::vector<vtkMRMLModelNode*> structureModelNodes;
   this->GetSelectedStructureModelNodes(structureModelNodes);
 
-  std::string colorTableNodeIdAttributeName = vtkSlicerDicomRtImportModuleLogic::ATTRIBUTE_PREFIX + vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_ID_ATTRIBUTE_NAME;
+  if (structureModelNodes.size() == 0)
+  {
+    vtkErrorMacro("Error: Empty structure list!");
+    return;
+  }
 
+  // Get structure set hierarchy node
+  vtkMRMLModelHierarchyNode* structureHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
+    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->GetMRMLScene(), structureModelNodes[0]->GetID()));
+  if (!structureHierarchyNode)
+  {
+    vtkErrorMacro("Error: No hierarchy node found for structure '" << structureModelNodes[0]->GetName() << "'");
+    return;
+  }
+  vtkMRMLModelHierarchyNode* structureSetHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(structureHierarchyNode->GetParentNode());
+
+  // Get color node created for the structure set
+  std::string seriesName = structureSetHierarchyNode->GetName();
+  seriesName = seriesName.substr(0, seriesName.length() - vtkSlicerDicomRtImportModuleLogic::ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX.length());
+  std::string colorNodeName = seriesName + vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_NAME_POSTFIX;
+  vtkCollection* colorNodes = this->GetMRMLScene()->GetNodesByName(colorNodeName.c_str());
+  if (colorNodes->GetNumberOfItems() == 0)
+  {
+    vtkErrorMacro("Error: No color table found for structure set '" << structureSetHierarchyNode->GetName() << "'");
+  }
+
+  // Compute DVH for each structure
   for (std::vector<vtkMRMLModelNode*>::iterator it = structureModelNodes.begin(); it != structureModelNodes.end(); ++it)
   {
     double checkpointStructureStart = timer->GetUniversalTime();
@@ -477,11 +502,31 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     if (this->GetDoseVolumeHistogramNode()->GetSaveLabelmaps())
     {
       // Get color table node and structure color index
-      vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
-        this->GetMRMLScene()->GetNodeByID( (*it)->GetAttribute(colorTableNodeIdAttributeName.c_str()) ) );
-      std::string structureColorIndexAttributeName =
-        vtkSlicerDicomRtImportModuleLogic::ATTRIBUTE_PREFIX + vtkSlicerDicomRtImportModuleLogic::STRUCTURE_COLOR_INDEX_ATTRIBUTE_NAME_PREFIX + (*it)->GetName();
-      unsigned int structureColorIndex = atoi( colorTableNode->GetAttribute(structureColorIndexAttributeName.c_str()) );
+      colorNodes->InitTraversal();
+      vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+      int structureColorIndex = -1;
+      while (colorNode)
+      {
+        int colorIndex = -1;
+        if ((colorIndex = colorNode->GetColorIndexByName((*it)->GetName())) != -1)
+        {
+          double modelColor[3];
+          double foundColor[4];
+          (*it)->GetDisplayNode()->GetColor(modelColor);
+          colorNode->GetColor(colorIndex, foundColor);
+          if ((modelColor[0] == foundColor[0]) && (modelColor[1] == foundColor[1]) && (modelColor[2] == foundColor[2]))
+          {
+            structureColorIndex = colorIndex;
+            break;
+          }
+        }
+        colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+      }
+      if (structureColorIndex == -1)
+      {
+        vtkWarningMacro("No matching entry found in the color tables for structure '" << (*it)->GetName() << "'");
+        structureColorIndex = 1; // Gray 'invalid' color
+      }
 
       // Convert stenciled dose volume to labelmap
       vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
@@ -495,7 +540,14 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
       vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
       displayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
-      displayNode->SetAndObserveColorNodeID( colorTableNode->GetID() );
+      if (colorNode)
+      {
+        displayNode->SetAndObserveColorNodeID(colorNode->GetID());
+      }
+      else
+      {
+        displayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
+      }
 
       structureStenciledDoseVolumeNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
       structureStenciledDoseVolumeNode->LabelMapOn();
