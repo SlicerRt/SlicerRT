@@ -12,6 +12,8 @@ ExternalProject_Add( Plastimatch
   SVN_USERNAME "anonymous"
   SVN_PASSWORD "anonymous"
   SVN_REPOSITORY https://forge.abcd.harvard.edu/svn/plastimatch/plastimatch/trunk
+  # Avoid "Server certificate verification failed: issuer is not trusted" error
+  SVN_TRUST_CERT 1
   #--Configure step-------------
   CMAKE_ARGS 
     -DSlicer_DIR:STRING=${Slicer_DIR}
