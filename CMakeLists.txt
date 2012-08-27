@@ -46,6 +46,7 @@ message(STATUS "SLICERRT_ENABLE_EXPERIMENTAL_MODULES: " ${SLICERRT_ENABLE_EXPERI
 add_subdirectory(DicomRtImport)
 add_subdirectory(DoseAccumulation)
 add_subdirectory(DoseVolumeHistogram)
+add_subdirectory(SlicerRtCommon)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(DoseComparison)

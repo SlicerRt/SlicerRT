@@ -59,46 +59,10 @@ class vtkMRMLDoseVolumeHistogramNode;
 #  define STRCASECMP strcasecmp
 #endif
 
-/// Case-insensitive comparison operator for collecting metrics
-struct InsensitiveCompare
-{ 
-  bool operator() (const std::string& a, const std::string& b) const
-  {
-    return STRCASECMP(a.c_str(), b.c_str()) < 0;
-  }
-};
-
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramModuleLogic :
   public vtkSlicerModuleLogic
 {
-public:
-  static const std::string ATTRIBUTE_PREFIX;
-
-  static const std::string DVH_TYPE_ATTRIBUTE_NAME;
-  static const std::string DVH_TYPE_ATTRIBUTE_VALUE;
-  static const std::string DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_NAME_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME;
-  static const std::string DVH_METRIC_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_METRIC_LIST_ATTRIBUTE_NAME;
-  static const char DVH_METRIC_LIST_SEPARATOR_CHARACTER;
-  static const std::string DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
-  static const std::string DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_METRIC_VOXEL_COUNT_ATTRIBUTE_NAME;
-  static const std::string DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX;
-
-  static const std::string DVH_ARRAY_NODE_NAME_POSTFIX;
-  static const std::string DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE;
-  static const std::string DVH_CSV_HEADER_VOLUME_FIELD_END;
-
-  static const std::string DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME;
-
 public:
   static vtkSlicerDoseVolumeHistogramModuleLogic *New();
   vtkTypeMacro(vtkSlicerDoseVolumeHistogramModuleLogic, vtkSlicerModuleLogic);

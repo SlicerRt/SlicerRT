@@ -41,11 +41,6 @@ class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtImportModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  static const std::string ATTRIBUTE_PREFIX;
-  static const std::string COLOR_TABLE_NODE_NAME_POSTFIX;
-  static const std::string ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
-
-public:
   static vtkSlicerDicomRtImportModuleLogic *New();
   vtkTypeMacro(vtkSlicerDicomRtImportModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);

@@ -23,6 +23,9 @@
 #include "vtkSlicerDoseAccumulationModuleLogic.h"
 #include "vtkMRMLDoseAccumulationNode.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
@@ -170,7 +173,7 @@ vtkCollection* vtkSlicerDoseAccumulationModuleLogic::GetVolumeNodesFromScene()
     vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
     if (volumeNode)
     {
-      const char* doseUnitName = volumeNode->GetAttribute("DoseUnitName");
+      const char* doseUnitName = volumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
       if (doseUnitName != NULL || !this->DoseAccumulationNode->GetShowDoseVolumesOnly())
       {
         volumeNodes->AddItem(volumeNode);
@@ -214,8 +217,8 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
 
   outputVolumeNode->CopyOrientation(inputVolumeNode);
   outputVolumeNode->SetOrigin(originX, originY, originZ);
-  outputVolumeNode->SetAttribute("DoseUnitName", inputVolumeNode->GetAttribute("DoseUnitName"));
-  outputVolumeNode->SetAttribute("DoseUnitValue", inputVolumeNode->GetAttribute("DoseUnitValue"));
+  outputVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), inputVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str()));
+  outputVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), inputVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str()));
 
   vtkSmartPointer<vtkImageMathematics> MultiplyFilter1 = vtkSmartPointer<vtkImageMathematics>::New();
   MultiplyFilter1->SetInput(inputVolumeNode->GetImageData());

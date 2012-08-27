@@ -23,8 +23,8 @@
 #include "vtkSlicerDoseVolumeHistogramModuleLogic.h"
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
-// SlicerRT includes
-#include "vtkSlicerDicomRtImportModuleLogic.h"
+// SlicerRt includes
+#include "SlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -297,7 +297,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     std::string value = attributeStr.substr(colonIndex + 1);
     doseScalarVolumeNode->SetAttribute(name.c_str(), value.c_str());
 
-    if (vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.compare(name) == 0)
+    if (SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.compare(name) == 0)
     {
       doseUnitName = value;
     }
@@ -375,7 +375,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Add color table node
   vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
   std::string structureSetColorTableNodeName;
-  structureSetColorTableNodeName = hierarchyNodeName + vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_NAME_POSTFIX;
+  structureSetColorTableNodeName = hierarchyNodeName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
   structureSetColorTableNode->HideFromEditorsOff();
   structureSetColorTableNode->SetTypeToUser();
@@ -614,11 +614,11 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
           if (i==0 && fieldCount%2==1)
           {
             std::string field = lineStr.substr(0, commaPosition);
-            size_t middlePosition = field.find(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE);
-            structureNames.push_back(field.substr(0, middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_ARRAY_NODE_NAME_POSTFIX.size()));
+            size_t middlePosition = field.find(SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE);
+            structureNames.push_back(field.substr(0, middlePosition - SlicerRtCommon::DVH_ARRAY_NODE_NAME_POSTFIX.size()));
 
-            std::string structureVolumeString = field.substr( middlePosition + vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(), 
-              field.size() - middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
+            std::string structureVolumeString = field.substr( middlePosition + SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(), 
+              field.size() - middlePosition - SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
             double structureVolume = atof(structureVolumeString.c_str());
             if (structureVolume == 0)
             {

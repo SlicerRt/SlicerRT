@@ -25,7 +25,7 @@
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // SlicerRT includes
-#include "vtkSlicerDicomRtImportModuleLogic.h"
+#include "SlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -61,33 +61,6 @@
 // STD includes
 #include <cassert>
 #include <set>
-
-//----------------------------------------------------------------------------
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::ATTRIBUTE_PREFIX = "DoseVolumeHistogram.";
-
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_TYPE_ATTRIBUTE_NAME = "Type";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_TYPE_ATTRIBUTE_VALUE = "DVH";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME = "DoseVolumeNodeId";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME = "StructureName";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME = "StructureModelNodeId";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME = "StructureColor";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME = "DVH_StructurePlotName";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME = "DVH_StructurePlotLineStyle";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX = "DVH_Metric_";
-const char vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_LIST_SEPARATOR_CHARACTER = '|';
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_LIST_ATTRIBUTE_NAME = "List";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME = "Total volume (cc)";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX = "Mean dose";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX = "Max dose";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX = "Min dose";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_VOXEL_COUNT_ATTRIBUTE_NAME = "Voxel count";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX = "V";
-
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_ARRAY_NODE_NAME_POSTFIX = "_DVH";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE = " Value (% of ";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_END = " cc)";
-
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME = "DoseUnitName";
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseVolumeHistogramModuleLogic);
@@ -177,8 +150,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RefreshDvhDoubleArrayNodesFromScen
     vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
     if (doubleArrayNode)
     {
-      const char* type = doubleArrayNode->GetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str());
-      if (type != NULL && strcmp(type, DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
+      const char* type = doubleArrayNode->GetAttribute(SlicerRtCommon::DVH_TYPE_ATTRIBUTE_NAME.c_str());
+      if (type != NULL && strcmp(type, SlicerRtCommon::DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
       {
         this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->push_back(doubleArrayNode->GetID());
       }
@@ -217,8 +190,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
     if (doubleArrayNode)
     {
-      const char* type = doubleArrayNode->GetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str());
-      if (type != NULL && strcmp(type, DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
+      const char* type = doubleArrayNode->GetAttribute(SlicerRtCommon::DVH_TYPE_ATTRIBUTE_NAME.c_str());
+      if (type != NULL && strcmp(type, SlicerRtCommon::DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
       {
         this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->push_back(doubleArrayNode->GetID());
       }
@@ -395,7 +368,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID( doseVolumeNode->GetTransformNodeID() );
   structureStenciledDoseVolumeNode->SetName( stenciledDoseNodeName.c_str() );
   structureStenciledDoseVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
-  structureStenciledDoseVolumeNode->SetAttribute( DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), doseVolumeNode->GetID() );
+  structureStenciledDoseVolumeNode->SetAttribute( SlicerRtCommon::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), doseVolumeNode->GetID() );
 }
 
 //---------------------------------------------------------------------------
@@ -476,8 +449,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
   // Get color node created for the structure set
   std::string seriesName = structureSetHierarchyNode->GetName();
-  seriesName = seriesName.substr(0, seriesName.length() - vtkSlicerDicomRtImportModuleLogic::ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX.length());
-  std::string colorNodeName = seriesName + vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_NAME_POSTFIX;
+  seriesName = seriesName.substr(0, seriesName.length() - SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX.length());
+  std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   vtkCollection* colorNodes = this->GetMRMLScene()->GetNodesByName(colorNodeName.c_str());
   if (colorNodes->GetNumberOfItems() == 0)
   {
@@ -597,7 +570,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   double ccPerCubicMM = 0.001;
 
   // Get dose grid scaling and dose units
-  const char* doseUnitName = doseVolumeNode->GetAttribute(DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+  const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
   // Get maximum dose from dose volume
   vtkNew<vtkImageAccumulate> doseStat;
@@ -623,44 +596,44 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   // Create node and fill statistics
   vtkMRMLDoubleArrayNode* arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLDoubleArrayNode") );
-  std::string dvhArrayNodeName = std::string(structureModelNode->GetName()) + DVH_ARRAY_NODE_NAME_POSTFIX;
+  std::string dvhArrayNodeName = std::string(structureModelNode->GetName()) + SlicerRtCommon::DVH_ARRAY_NODE_NAME_POSTFIX;
   arrayNode->SetName(dvhArrayNodeName.c_str());
   //arrayNode->HideFromEditorsOff();
 
-  arrayNode->SetAttribute(DVH_TYPE_ATTRIBUTE_NAME.c_str(), DVH_TYPE_ATTRIBUTE_VALUE.c_str());
-  arrayNode->SetAttribute(DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), doseVolumeNode->GetID());
-  arrayNode->SetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureModelNode->GetName());
-  arrayNode->SetAttribute(DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME.c_str(), structureModelNode->GetID());
+  arrayNode->SetAttribute(SlicerRtCommon::DVH_TYPE_ATTRIBUTE_NAME.c_str(), SlicerRtCommon::DVH_TYPE_ATTRIBUTE_VALUE.c_str());
+  arrayNode->SetAttribute(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), doseVolumeNode->GetID());
+  arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureModelNode->GetName());
+  arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME.c_str(), structureModelNode->GetID());
 
   char attributeValue[64];
   double* color = structureModelNode->GetDisplayNode()->GetColor();
   sprintf(attributeValue, "#%02X%02X%02X", (int)(color[0]*255.0+0.5), (int)(color[1]*255.0+0.5), (int)(color[2]*255.0+0.5));
-  arrayNode->SetAttribute(DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str(), attributeValue);
+  arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str(), attributeValue);
 
   char attributeName[64];
   std::ostringstream metricList;
 
-  sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str());
+  sprintf(attributeName, "%s%s", SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), SlicerRtCommon::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str());
   sprintf(attributeValue, "%g", structureStat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM);
-  metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  metricList << attributeName << SlicerRtCommon::DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
-  AssembleDoseMetricAttributeName(DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
+  AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
   sprintf(attributeValue, "%g", structureStat->GetMean()[0]);
-  metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  metricList << attributeName << SlicerRtCommon::DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
-  AssembleDoseMetricAttributeName(DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
+  AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
   sprintf(attributeValue, "%g", structureStat->GetMax()[0]);
-  metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  metricList << attributeName << SlicerRtCommon::DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
-  AssembleDoseMetricAttributeName(DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
+  AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), doseUnitName, attributeName);
   sprintf(attributeValue, "%g", structureStat->GetMin()[0]);
-  metricList << attributeName << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  metricList << attributeName << SlicerRtCommon::DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   arrayNode->SetAttribute(attributeName, attributeValue);
 
-  sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
+  sprintf(attributeName, "%s%s", SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), SlicerRtCommon::DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
   arrayNode->SetAttribute(attributeName, metricList.str().c_str());
 
   double rangeMin = structureStat->GetMin()[0];
@@ -777,7 +750,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   std::string doseAxisName;
   std::string chartTitle;
-  const char* doseUnitName=doseVolumeNode->GetAttribute(DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+  const char* doseUnitName=doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
   if (doseUnitName!=NULL)
   {
     doseAxisName=std::string("Dose [")+doseUnitName+"]";
@@ -807,9 +780,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   chartNode->AddArray( structurePlotName, dvhArrayNodeId );
 
   // Set plot color and line style
-  const char* color = dvhArrayNode->GetAttribute(DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str());
+  const char* color = dvhArrayNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str());
   chartNode->SetProperty(structurePlotName, "color", color);
-  const char* lineStyle = dvhArrayNode->GetAttribute(DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str());
+  const char* lineStyle = dvhArrayNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str());
   chartNode->SetProperty(structurePlotName, "linePattern", lineStyle);
 }
 
@@ -877,7 +850,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   // Get structure volume
   char attributeName[64];
-  sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str());
+  sprintf(attributeName, "%s%s", SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), SlicerRtCommon::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str());
   const char* structureVolumeStr = dvhArrayNode->GetAttribute(attributeName);
   if (!structureVolumeStr)
   {
@@ -926,7 +899,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   // Get structure volume
   char attributeName[64];
-  sprintf(attributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str());
+  sprintf(attributeName, "%s%s", SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), SlicerRtCommon::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str());
   const char* structureVolumeStr = dvhArrayNode->GetAttribute(attributeName);
   if (!structureVolumeStr)
   {
@@ -1018,7 +991,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
 
-  const char* doseUnitName = doseVolumeNode->GetAttribute(DVH_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+  const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
   if (doseUnitName != NULL)
   {
@@ -1041,13 +1014,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   // Convert separator character to string
   std::ostringstream separatorCharStream;
-  separatorCharStream << DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  separatorCharStream << SlicerRtCommon::DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   std::string separatorCharacter = separatorCharStream.str();
 
   // Collect metrics
   char metricListAttributeName[64];
-  sprintf(metricListAttributeName, "%s%s", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
-  std::set<std::string, InsensitiveCompare> metricSet;
+  sprintf(metricListAttributeName, "%s%s", SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), SlicerRtCommon::DVH_METRIC_LIST_ATTRIBUTE_NAME.c_str());
+  std::set<std::string> metricSet;
   for (std::vector<std::string>::iterator it = dvhNodeIds->begin(); it != dvhNodeIds->end(); ++it)
   {
     vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
@@ -1078,12 +1051,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   }
 
   // Create an ordered list from the set
-  const char* metricSearchList[4] = {"volume", "mean", "min", "max"};
+  const char* metricSearchList[4] = { SlicerRtCommon::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME.c_str(), SlicerRtCommon::DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(),
+                                      SlicerRtCommon::DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX.c_str(), SlicerRtCommon::DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX.c_str() };
   for (int i=0; i<4; ++i)
   {
-    for (std::set<std::string, InsensitiveCompare>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
+    for (std::set<std::string>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
     {
-      if (vtksys::SystemTools::LowerCase(*it).find(metricSearchList[i]) != std::string::npos)
+      if (it->find(metricSearchList[i]) != std::string::npos)
       {
         metricList.push_back(*it);
         metricSet.erase(it);
@@ -1093,7 +1067,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   }
 
   // Append all other metrics in undefined order
-  for (std::set<std::string, InsensitiveCompare>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
+  for (std::set<std::string>::iterator it = metricSet.begin(); it != metricSet.end(); ++it)
   {
     metricList.push_back(*it);
   }
@@ -1150,7 +1124,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
   }
 
   // Write header
-  std::string totalVolumeAttributeName = DVH_METRIC_ATTRIBUTE_NAME_PREFIX + DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+  std::string totalVolumeAttributeName = SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX + SlicerRtCommon::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
   for (int i=0; i<structureNames->GetNumberOfValues(); ++i)
   {
     vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
@@ -1159,8 +1133,8 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
     double totalVolume = atof(totalVolumeStr);
 
     outfile << structureNames->GetValue(i).c_str() << " Dose (Gy)" << (comma ? "," : "\t");
-    outfile << structureNames->GetValue(i).c_str() << DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE
-      << std::fixed << std::setprecision(3) << totalVolume << DVH_CSV_HEADER_VOLUME_FIELD_END << (comma ? "," : "\t");
+    outfile << structureNames->GetValue(i).c_str() << SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE
+      << std::fixed << std::setprecision(3) << totalVolume << SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_END << (comma ? "," : "\t");
   }
 	outfile << std::endl;
 
@@ -1250,7 +1224,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
   outfile << "Structure" << (comma ? "," : "\t");
   for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
   {
-    outfile << it->substr(DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size()) << (comma ? "," : "\t");
+    outfile << it->substr(SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size()) << (comma ? "," : "\t");
   }
   for (std::vector<double>::iterator it = vDoseValuesCc.begin(); it != vDoseValuesCc.end(); ++it)
   {
@@ -1283,7 +1257,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
       continue;
     }
 
-    outfile << dvhNode->GetAttribute(DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) << (comma ? "," : "\t");
+    outfile << dvhNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) << (comma ? "," : "\t");
 
     // Add default metric values
     for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
@@ -1351,5 +1325,5 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
 void vtkSlicerDoseVolumeHistogramModuleLogic
 ::AssembleDoseMetricAttributeName(const char* doseMetricAttributeNamePrefix, const char* doseUnitName, char* attributeName)
 {
-  sprintf(attributeName, "%s%s (%s)", DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), doseMetricAttributeNamePrefix, doseUnitName);
+  sprintf(attributeName, "%s%s (%s)", SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.c_str(), doseMetricAttributeNamePrefix, doseUnitName);
 }

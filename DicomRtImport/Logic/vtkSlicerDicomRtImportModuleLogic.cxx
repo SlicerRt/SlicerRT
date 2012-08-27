@@ -15,10 +15,13 @@ limitations under the License.
 
 ==============================================================================*/
 
-// ModuleTemplate includes
+// DicomRtImport includes
 #include "vtkSlicerDicomRtImportModuleLogic.h"
 #include "vtkSlicerDicomRtReader.h"
 #include "vtkDICOMImportInfo.h"
+
+// SlicerRT includes
+#include "SlicerRtCommon.h"
 
 // DCMTK includes
 #include <dcmtk/dcmdata/dcfilefo.h>
@@ -55,11 +58,6 @@ limitations under the License.
 
 // STD includes
 #include <cassert>
-
-//----------------------------------------------------------------------------
-const std::string vtkSlicerDicomRtImportModuleLogic::ATTRIBUTE_PREFIX = "DicomRtImport.";
-const std::string vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_NAME_POSTFIX = " - Color table";
-const std::string vtkSlicerDicomRtImportModuleLogic::ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX = " - All structures";
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtImportModuleLogic);
@@ -257,7 +255,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
     // Add color table node
     vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
     std::string structureSetColorTableNodeName;
-    structureSetColorTableNodeName = std::string(seriesname) + COLOR_TABLE_NODE_NAME_POSTFIX;
+    structureSetColorTableNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
     structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
     structureSetColorTableNode->HideFromEditorsOff();
     structureSetColorTableNode->SetTypeToUser();
@@ -312,7 +310,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
         {
           modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
           std::string hierarchyNodeName;
-          hierarchyNodeName = std::string(seriesname) + ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
+          hierarchyNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
           modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
           modelHierarchyRootNode->AllowMultipleChildrenOn();
           modelHierarchyRootNode->HideFromEditorsOff();
@@ -356,8 +354,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
       double* initialSpacing = volumeNode->GetSpacing();
       double* correctSpacing = rtReader->GetPixelSpacing();
       volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
-      volumeNode->SetAttribute("DoseUnitName",rtReader->GetDoseUnits());
-      volumeNode->SetAttribute("DoseUnitValue",rtReader->GetDoseGridScaling());
+      volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseUnits());
+      volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseGridScaling());
 
       // Apply dose grid scaling
       vtkSmartPointer<vtkImageData> floatVolumeData = vtkSmartPointer<vtkImageData>::New();

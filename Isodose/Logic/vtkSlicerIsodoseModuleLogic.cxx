@@ -19,6 +19,9 @@
 #include "vtkSlicerIsodoseModuleLogic.h"
 #include "vtkMRMLIsodoseNode.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
@@ -41,8 +44,6 @@
 
 // STD includes
 #include <cassert>
-
-const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_DOSE_UNIT_NAME_ATTRIBUTE_NAME = "DoseUnitName";
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
@@ -159,7 +160,7 @@ bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
 
-  const char* doseUnitName = doseVolumeNode->GetAttribute(ISODOSE_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+  const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
   if (doseUnitName != NULL)
   {
@@ -182,7 +183,7 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
 
   // Get dose grid scaling and dose units
-  const char* doseGridScalingString = doseVolumeNode->GetAttribute("DoseUnitValue");
+  const char* doseGridScalingString = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
   double doseGridScaling = 1.0;
   if (doseGridScalingString!=NULL)
   {
@@ -193,7 +194,7 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     vtkWarningMacro("Dose grid scaling attribute is not set for the selected dose volume. Assuming scaling = 1.");
   }
 
-  const char* doseUnitName = doseVolumeNode->GetAttribute("DoseUnitName");
+  const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
   // Hierarchy node for the loaded structure sets
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkMRMLModelHierarchyNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(

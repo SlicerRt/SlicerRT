@@ -24,6 +24,9 @@
 #include <QFileDialog>
 #include <QCheckBox>
 
+// SlicerRt includes
+#include "SlicerRtCommon.h"
+
 // SlicerQt includes
 #include "qSlicerDoseVolumeHistogramModuleWidget.h"
 #include "ui_qSlicerDoseVolumeHistogramModule.h"
@@ -542,7 +545,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   {
     QString metricName(it->c_str());
     metricName = metricName.right( metricName.length()
-      - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
+      - SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
     headerLabels << metricName;
   }
   for (std::vector<double>::iterator it = vDoseValues.begin(); it != vDoseValues.end(); ++it)
@@ -592,11 +595,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_ChartStatistics);
     checkbox->setToolTip(tr("Show/hide DVH plot of structure '%1' in selected chart").arg(
-      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
+      QString(dvhNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
     connect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
 
     // Assign line style and plot name
-    QString plotName( dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) );
+    QString plotName( dvhNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) );
     int numberOfStructuresWithSameName = structureNames.count(plotName);
     structureNames << plotName;
 
@@ -604,35 +607,35 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
 
     if (numberOfStructuresWithSameName % 4 == 1)
     {
-      dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dashed");
+      dvhNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dashed");
       plotName.append( " [- -]" );
     }
     else if (numberOfStructuresWithSameName % 4 == 2)
     {
-      dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dotted");
+      dvhNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dotted");
       plotName.append( " [...]" );
     }
     else if (numberOfStructuresWithSameName % 4 == 3)
     {
-      dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dashed-dotted");
+      dvhNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dashed-dotted");
       plotName.append( " [-.-]" );
     }
     else
     {
-      dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "solid");
+      dvhNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "solid");
     }
 
     // Store checkbox with the augmented structure set name and the double array ID
-    dvhNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), plotName.toLatin1());
+    dvhNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), plotName.toLatin1());
     d->ChartCheckboxToStructureSetNameMap[checkbox] = QPair<QString, QString>(plotName, dvhNode->GetID());
 
     d->tableWidget_ChartStatistics->setCellWidget(i, 0, checkbox);
 
     d->tableWidget_ChartStatistics->setItem(i, 1, new QTableWidgetItem(
-      QString(dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));    
+      QString(dvhNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));    
 
     vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast( this->mrmlScene()->GetNodeByID(
-      dvhNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str()) ) );
+      dvhNode->GetAttribute(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str()) ) );
     if (volumeNode)
     {
       d->tableWidget_ChartStatistics->setItem(i, 2, new QTableWidgetItem( QString(volumeNode->GetName()) ));    

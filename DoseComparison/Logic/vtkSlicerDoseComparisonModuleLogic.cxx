@@ -23,6 +23,10 @@
 #include "vtkSlicerDoseComparisonModuleLogic.h"
 #include "vtkMRMLDoseComparisonNode.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
+// Plastimatch includes
 #include "gamma_dose_comparison.h"
 
 // MRML includes
@@ -152,7 +156,7 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneEndClose()
 bool vtkSlicerDoseComparisonModuleLogic::DoseVolumeContainsDose(vtkMRMLNode* node)
 {
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
-  const char* doseUnitName = doseVolumeNode->GetAttribute("DoseUnitName");
+  const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
   if (doseUnitName != NULL)
   {

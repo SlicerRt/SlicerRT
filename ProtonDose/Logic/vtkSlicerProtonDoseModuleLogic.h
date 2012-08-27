@@ -42,8 +42,6 @@ class VTK_SLICER_PROTONDOSE_LOGIC_EXPORT vtkSlicerProtonDoseModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  static const std::string ProtonDose_DOSE_UNIT_NAME_ATTRIBUTE_NAME;
-  
   static vtkSlicerProtonDoseModuleLogic *New();
   vtkTypeMacro(vtkSlicerProtonDoseModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
