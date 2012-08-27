@@ -36,6 +36,13 @@ string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 OPTION(SLICERRT_ENABLE_EXPERIMENTAL_MODULES "Enable the building of work-in-progress, experimental modules." OFF)
 
 #-----------------------------------------------------------------------------
+# Plastimatch_DIR is only used now by experimental modules. Print the
+# Plastimatch_DIR, to avoid the warning "Manually-specified variables were not
+# used by the project: Plastimatch_DIR" warning
+message(STATUS "Plastimatch_DIR: " ${Plastimatch_DIR} )
+message(STATUS "SLICERRT_ENABLE_EXPERIMENTAL_MODULES: " ${SLICERRT_ENABLE_EXPERIMENTAL_MODULES} )
+
+#-----------------------------------------------------------------------------
 add_subdirectory(DicomRtImport)
 add_subdirectory(DoseAccumulation)
 add_subdirectory(DoseVolumeHistogram)

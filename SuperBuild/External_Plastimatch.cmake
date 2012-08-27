@@ -16,7 +16,8 @@ ExternalProject_Add( Plastimatch
   SVN_TRUST_CERT 1
   #--Configure step-------------
   CMAKE_ARGS 
-    -DSlicer_DIR:STRING=${Slicer_DIR}
+    #If Plastimatch is build in library mode (PLM_CONFIG_LIBRARY_BUILD) then does not use Slicer libraries
+    #-DSlicer_DIR:STRING=${Slicer_DIR}
     -DBUILD_SHARED_LIBS:BOOL=OFF
     -DBUILD_TESTING:BOOL=OFF 
     -DPLM_CONFIG_LIBRARY_BUILD:BOOL=ON     
