@@ -575,6 +575,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
       << "Sum DVH computation time: " << sumDvhComputation << " s" << std::endl
       << "Total: " << checkpointEnd-checkpointStart << " s" << std::endl;
   }
+
+  colorNodes->Delete();
 }
 
 //---------------------------------------------------------------------------

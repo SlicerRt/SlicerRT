@@ -150,38 +150,6 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-vtkCollection* vtkSlicerIsodoseModuleLogic::GetVolumeNodesFromScene()
-{
-  vtkCollection* volumeNodes = vtkCollection::New();
-  volumeNodes->InitTraversal();
-
-  if (this->GetMRMLScene() == NULL || this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLVolumeNode") < 1
-    || this->IsodoseNode == NULL)
-  {
-    return volumeNodes;
-  }
-
-  this->GetMRMLScene()->InitTraversal();
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLVolumeNode");
-  while (node != NULL)
-  {
-    vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
-    if (volumeNode)
-    {
-      const char* doseUnitName = volumeNode->GetAttribute("DoseUnitName");
-      //if (doseUnitName != NULL || !this->DoseAccumulationNode->GetShowDoseVolumesOnly())
-      {
-        volumeNodes->AddItem(volumeNode);
-      }
-    }
-
-    node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLVolumeNode");
-  }
-
-  return volumeNodes;
-}
-
-//---------------------------------------------------------------------------
 bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
 {
   if (!this->GetMRMLScene() || !this->IsodoseNode)

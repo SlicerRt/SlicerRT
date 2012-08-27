@@ -48,9 +48,6 @@ public:
   vtkTypeMacro(vtkSlicerIsodoseModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Collect and return volume nodes (if in DoseAccumulationNode ShowDoseVolumesOnly is set to true, then only return dose volumes)
-  vtkCollection* GetVolumeNodesFromScene();
-
   /// Accumulates dose volumes with the given IDs and corresponding weights
   int ComputeIsodose();
 

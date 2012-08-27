@@ -266,8 +266,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
 
     // Add ROIs
     int numberOfROI = rtReader->GetNumberOfROIs();
-    structureSetColorTableNode->SetNumberOfColors(numberOfROI+1);
-    structureSetColorTableNode->GetLookupTable()->SetTableRange(0,numberOfROI);
+    structureSetColorTableNode->SetNumberOfColors(numberOfROI+2);
+    structureSetColorTableNode->GetLookupTable()->SetTableRange(0,numberOfROI+1);
     structureSetColorTableNode->AddColor("Background", 0.0, 0.0, 0.0, 0.0); // Black background
     structureSetColorTableNode->AddColor("Invalid", 0.5, 0.5, 0.5, 1.0); // Color indicating invalid index
 

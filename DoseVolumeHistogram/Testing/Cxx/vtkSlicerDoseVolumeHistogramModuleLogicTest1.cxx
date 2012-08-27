@@ -23,6 +23,9 @@
 #include "vtkSlicerDoseVolumeHistogramModuleLogic.h"
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
+// SlicerRT includes
+#include "vtkSlicerDicomRtImportModuleLogic.h"
+
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
 #include <vtkMRMLModelHierarchyNode.h>
@@ -32,6 +35,7 @@
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLChartNode.h>
+#include <vtkMRMLColorTableNode.h>
 
 // VTK includes
 #include <vtkDoubleArray.h>
@@ -40,6 +44,7 @@
 #include <vtkNew.h>
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
+#include <vtkLookupTable.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -343,8 +348,8 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // A hierarchy node needs a display node
   vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode =
     vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  hierarchyNodeName.append("Display");
-  modelDisplayNode->SetName(hierarchyNodeName.c_str());
+  std::string displayhierarchyNodeName = hierarchyNodeName + " - Display";
+  modelDisplayNode->SetName(displayhierarchyNodeName.c_str());
   modelDisplayNode->SetVisibility(1);
   mrmlScene->AddNode(modelDisplayNode);
   modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
@@ -366,6 +371,20 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     structureNames.push_back(structureName);
   }
   structureNamesStream.close();
+
+  // Add color table node
+  vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+  std::string structureSetColorTableNodeName;
+  structureSetColorTableNodeName = hierarchyNodeName + vtkSlicerDicomRtImportModuleLogic::COLOR_TABLE_NODE_NAME_POSTFIX;
+  structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
+  structureSetColorTableNode->HideFromEditorsOff();
+  structureSetColorTableNode->SetTypeToUser();
+  structureSetColorTableNode->SetNumberOfColors(structureNames.size()+2);
+  structureSetColorTableNode->GetLookupTable()->SetTableRange(0,structureNames.size()+1);
+  structureSetColorTableNode->AddColor("Background", 0.0, 0.0, 0.0, 0.0); // Black background
+  structureSetColorTableNode->AddColor("Invalid", 0.5, 0.5, 0.5, 1.0); // Color indicating invalid index
+  mrmlScene->AddNode(structureSetColorTableNode);
+  //EXERCISE_BASIC_MRML_METHODS(vtkMRMLColorTableNode, structureSetColorTableNode)
 
   mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
   std::vector<std::string>::iterator it;
@@ -406,6 +425,9 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
     modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
     modelHierarchyNode->SetModelNodeID( modelNode->GetID() );
+
+    // Add color into the color table
+    structureSetColorTableNode->AddColor(it->c_str(), 1.0, 0.0, 0.0);
   }
 
   // Create chart node
