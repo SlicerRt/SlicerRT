@@ -11,7 +11,7 @@ set(EXTENSION_DESCRIPTION "Extensions for radiotherapy research (DICOM-RT import
 set(EXTENSION_ICONURL "http://wiki.slicer.org/slicerWiki/images/f/f2/SlicerRtExtensionLogo.png")
 set(EXTENSION_SCREENSHOTURLS "http://wiki.slicer.org/slicerWiki/images/thumb/f/f1/SlicerRT-0.2_screenshot.png/800px-SlicerRT-0.2_screenshot.png")
 set(EXTENSION_STATUS "Beta")
-set(EXTENSION_DEPENDS "LoadableExtensionTemplate") # Specified as a space separated list or 'NA' if any
+set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
 
 #-----------------------------------------------------------------------------
