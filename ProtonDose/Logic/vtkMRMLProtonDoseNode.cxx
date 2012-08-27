@@ -20,7 +20,7 @@
 ==============================================================================*/
 
 // MRMLDoseAccumulation includes
-#include "vtkMRMLIsodoseNode.h"
+#include "vtkMRMLProtonDoseNode.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -34,27 +34,25 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
-vtkMRMLNodeNewMacro(vtkMRMLIsodoseNode);
+vtkMRMLNodeNewMacro(vtkMRMLProtonDoseNode);
 
 //----------------------------------------------------------------------------
-vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
+vtkMRMLProtonDoseNode::vtkMRMLProtonDoseNode()
 {
-  this->IsodoseLevelVector.clear();
   this->DoseVolumeNodeId = NULL;
   this->OutputHierarchyNodeId = NULL;
   this->HideFromEditors = false;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLIsodoseNode::~vtkMRMLIsodoseNode()
+vtkMRMLProtonDoseNode::~vtkMRMLProtonDoseNode()
 {
-  this->IsodoseLevelVector.clear();
   this->SetDoseVolumeNodeId(NULL);
   this->SetOutputHierarchyNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLProtonDoseNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of, nIndent);
 
@@ -71,15 +69,6 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
   }
 
   {
-    of << indent << " IsodoseLevelVector=\"";
-    for (std::vector<double>::iterator it = this->IsodoseLevelVector.begin(); it != this->IsodoseLevelVector.end(); ++it)
-      {
-      of << (*it) << "|";
-      }
-    of << "\"";
-  }
-
-  {
     std::stringstream ss;
     if ( this->OutputHierarchyNodeId )
       {
@@ -91,7 +80,7 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLProtonDoseNode::ReadXMLAttributes(const char** atts)
 {
   vtkMRMLNode::ReadXMLAttributes(atts);
 
@@ -110,55 +99,6 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetAndObserveDoseVolumeNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "IsodoseLevelVector")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      std::string valueStr = ss.str();
-      std::string separatorCharacter("|");
-
-      this->IsodoseLevelVector.clear();
-      size_t separatorPosition = valueStr.find( separatorCharacter );
-      while (separatorPosition != std::string::npos)
-        {
-        std::string mapPairStr = valueStr.substr(0, separatorPosition);
-        size_t colonPosition = mapPairStr.find( ":" );
-        if (colonPosition == std::string::npos)
-          {
-          continue;
-          }
-        std::string doseLevelName = mapPairStr.substr(0, colonPosition);
-
-        double doseLevelValue;
-        std::stringstream vss;
-        vss << mapPairStr.substr( colonPosition+1 );
-        vss >> doseLevelValue;
-        
-        double tempLevel;
-        tempLevel = doseLevelValue;
-        this->IsodoseLevelVector.push_back(tempLevel);
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-        }
-      if (! valueStr.empty() )
-        {
-        std::string mapPairStr = valueStr.substr(0, separatorPosition);
-        size_t colonPosition = mapPairStr.find( ":" );
-        if (colonPosition != std::string::npos)
-          {
-          std::string doseLevelName = mapPairStr.substr(0, colonPosition);
-
-          double doseLevelValue;
-          std::stringstream vss;
-          vss << mapPairStr.substr( colonPosition+1 );
-          vss >> doseLevelValue;
-
-          double tempLevel;
-          tempLevel = doseLevelValue;
-          this->IsodoseLevelVector.push_back(tempLevel);
-          }
-        }
-      }
     else if (!strcmp(attName, "OutputHierarchyNodeId")) 
       {
       std::stringstream ss;
@@ -171,33 +111,31 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
-void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLProtonDoseNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
   this->DisableModifiedEventOn();
 
-  vtkMRMLIsodoseNode *node = (vtkMRMLIsodoseNode *) anode;
+  vtkMRMLProtonDoseNode *node = (vtkMRMLProtonDoseNode *) anode;
 
   this->SetAndObserveDoseVolumeNodeId(node->DoseVolumeNodeId);
   this->SetAndObserveOutputHierarchyNodeId(node->OutputHierarchyNodeId);
-  this->IsodoseLevelVector = node->IsodoseLevelVector;
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLProtonDoseNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
   os << indent << "DoseVolumeNodeId:   " << this->DoseVolumeNodeId << "\n";
   os << indent << "OutputHierarchyNodeId:   " << this->OutputHierarchyNodeId << "\n";
-  //TODO: Add isodose level vector contents
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::UpdateReferenceID(const char *oldID, const char *newID)
+void vtkMRMLProtonDoseNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   if (this->DoseVolumeNodeId && !strcmp(oldID, this->DoseVolumeNodeId))
     {
@@ -210,7 +148,7 @@ void vtkMRMLIsodoseNode::UpdateReferenceID(const char *oldID, const char *newID)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNodeId(const char* id)
+void vtkMRMLProtonDoseNode::SetAndObserveDoseVolumeNodeId(const char* id)
 {
   if (this->DoseVolumeNodeId)
   {
@@ -226,7 +164,7 @@ void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNodeId(const char* id)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::SetAndObserveOutputHierarchyNodeId(const char* id)
+void vtkMRMLProtonDoseNode::SetAndObserveOutputHierarchyNodeId(const char* id)
 {
   if (this->DoseVolumeNodeId)
   {
