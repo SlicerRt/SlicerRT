@@ -82,6 +82,10 @@ protected:
   void operator=(const vtkMRMLProtonDoseNode&);
 
 protected:
+  /// Greg is playing around
+  float gantryAngle;
+  float collimatorAngle;
+
   /// Selected dose volume MRML node object ID
   char* DoseVolumeNodeId;
 

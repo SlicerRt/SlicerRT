@@ -165,6 +165,7 @@ void qSlicerProtonDoseModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
+#if defined (commentout)
     if (paramNode->GetDoseVolumeNodeId() && strcmp(paramNode->GetDoseVolumeNodeId(),""))
     {
       d->MRMLNodeComboBox_DoseVolume->setCurrentNode(paramNode->GetDoseVolumeNodeId());
@@ -173,8 +174,8 @@ void qSlicerProtonDoseModuleWidget::updateWidgetFromMRML()
     {
       this->doseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
     }
+#endif
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -194,7 +195,9 @@ void qSlicerProtonDoseModuleWidget::setup()
 
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setProtonDoseNode(vtkMRMLNode*) ) );
+#if defined (commentout)
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
+#endif
 
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 

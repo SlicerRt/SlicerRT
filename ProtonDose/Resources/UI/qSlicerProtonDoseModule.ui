@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>471</width>
-    <height>171</height>
+    <height>383</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -137,23 +137,44 @@
       <item row="0" column="0" rowspan="4" colspan="2">
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
-         <widget class="QLabel" name="label_2">
+         <widget class="QLabel" name="label_4">
           <property name="text">
-           <string>Dose volume:</string>
+           <string>Gantry</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="nodeTypes">
-           <stringlist>
-            <string>vtkMRMLScalarVolumeNode</string>
-           </stringlist>
+         <widget class="QLineEdit" name="lineEdit"/>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Collimator</string>
           </property>
          </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QLineEdit" name="lineEdit_2"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Couch</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_3"/>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Air gap</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLineEdit" name="lineEdit_4"/>
         </item>
        </layout>
       </item>
@@ -196,22 +217,6 @@
     <hint type="destinationlabel">
      <x>284</x>
      <y>13</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerProtonDoseModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_DoseVolume</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>342</x>
-     <y>1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>399</x>
-     <y>62</y>
     </hint>
    </hints>
   </connection>
