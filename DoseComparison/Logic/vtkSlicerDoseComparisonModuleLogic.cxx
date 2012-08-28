@@ -246,7 +246,10 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   gamma.set_compare_image(compareDoseVolumeItk);
   gamma.set_spatial_tolerance(this->DoseComparisonNode->GetDtaDistanceToleranceMm());
   gamma.set_dose_difference_tolerance(this->DoseComparisonNode->GetDoseDifferenceTolerancePercent());
-  gamma.set_reference_dose(this->DoseComparisonNode->GetReferenceDoseGy());
+  if (!this->DoseComparisonNode->GetUseMaximumDose())
+  {
+    gamma.set_reference_dose(this->DoseComparisonNode->GetReferenceDoseGy());
+  }
   //gamma.set_analysis_threshold(this->DoseComparisonNode->GetAnalysisThresholdPercent());
   gamma.set_gamma_max(this->DoseComparisonNode->GetMaximumGamma());
 
@@ -300,7 +303,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   gammaVolumeNode->SetSpacing(referenceSpacing);
   gammaVolumeNode->SetOrigin(referenceOrigin);
 
-  // Set default colormap to rainbow
+  // Set default colormap to red
   if (gammaVolumeNode->GetVolumeDisplayNode()==NULL)
   {
     // gammaVolumeNode->CreateDefaultDisplayNodes(); unfortunately this is not implemented for Scalar nodes
@@ -311,7 +314,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   }
   if (gammaVolumeNode->GetVolumeDisplayNode()!=NULL)
   {
-    gammaVolumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRed");
+    gammaVolumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
   }
   else
   {

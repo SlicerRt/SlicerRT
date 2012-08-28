@@ -196,6 +196,14 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
     d->doubleSpinBox_ReferenceDose->setValue(paramNode->GetReferenceDoseGy());
     d->doubleSpinBox_AnalysisThreshold->setValue(paramNode->GetAnalysisThresholdPercent());
     d->doubleSpinBox_MaximumGamma->setValue(paramNode->GetMaximumGamma());
+    if (paramNode->GetUseMaximumDose())
+    {
+      d->radioButton_ReferenceDose_MaximumDose->setChecked(true);
+    }
+    else
+    {
+      d->radioButton_ReferenceDose_CustomValue->setChecked(true);
+    }
   }
 }
 
@@ -218,6 +226,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
   connect( d->doubleSpinBox_ReferenceDose, SIGNAL(valueChanged(double)), this, SLOT(referenceDoseChanged(double)) );
   connect( d->doubleSpinBox_AnalysisThreshold, SIGNAL(valueChanged(double)), this, SLOT(analysisThresholdChanged(double)) );
   connect( d->doubleSpinBox_MaximumGamma, SIGNAL(valueChanged(double)), this, SLOT(maximumGammaChanged(double)) );
+  connect( d->radioButton_ReferenceDose_MaximumDose, SIGNAL(toggled(bool)), this, SLOT(referenceDoseUseMaximumDoseChanged(bool)) );
 
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
@@ -353,6 +362,24 @@ void qSlicerDoseComparisonModuleWidget::doseDifferenceToleranceChanged(double va
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetDoseDifferenceTolerancePercent(value);
+  paramNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseComparisonModuleWidget::referenceDoseUseMaximumDoseChanged(bool state)
+{
+  Q_D(qSlicerDoseComparisonModuleWidget);
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  d->doubleSpinBox_ReferenceDose->setEnabled(!state);
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetUseMaximumDose(state);
   paramNode->DisableModifiedEventOff();
 }
 

@@ -93,6 +93,11 @@ public:
   vtkGetMacro(MaximumGamma, double);
   vtkSetMacro(MaximumGamma, double);
 
+  /// Get/Set use maximum dose
+  vtkGetMacro(UseMaximumDose, bool);
+  vtkSetMacro(UseMaximumDose, bool);
+  vtkBooleanMacro(UseMaximumDose, bool);
+
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
@@ -142,6 +147,9 @@ protected:
 
   /// Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3.
   double MaximumGamma;
+
+  /// Flag indicating whether the Use maximum dose option is selected (else the Use custom value is selected)
+  bool UseMaximumDose;
 };
 
 #endif

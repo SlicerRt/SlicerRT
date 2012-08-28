@@ -63,6 +63,7 @@ protected slots:
 
   void dtaDistanceToleranceChanged(double);
   void doseDifferenceToleranceChanged(double);
+  void referenceDoseUseMaximumDoseChanged(bool);
   void referenceDoseChanged(double);
   void analysisThresholdChanged(double);
   void maximumGammaChanged(double);
