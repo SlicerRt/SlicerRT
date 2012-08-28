@@ -232,6 +232,10 @@ void qSlicerDoseComparisonModuleWidget::setup()
 
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDoseComparisonNode(vtkMRMLNode*)) );
 
+  // TODO: re-enable when it is implemented in Plastimatch (#135)
+  d->label_7->setVisible(false);
+  d->doubleSpinBox_AnalysisThreshold->setVisible(false);
+
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 
