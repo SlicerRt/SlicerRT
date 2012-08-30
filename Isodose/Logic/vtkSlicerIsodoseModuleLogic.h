@@ -13,6 +13,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
+  This file was originally developed by Kevin Wang, RMP, PMH
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
 ==============================================================================*/
 
 // .NAME vtkSlicerIsodoseModuleLogic - slicer logic class for volumes manipulation
@@ -34,8 +38,12 @@
 
 #include "vtkSlicerIsodoseModuleLogicExport.h"
 
+// MRML includes
 class vtkMRMLVolumeNode;
 class vtkMRMLIsodoseNode;
+class vtkMRMLColorNode;
+class vtkMRMLColorTableNode;
+class vtkMRMLProceduralColorNode;
 
 /// \ingroup Slicer_QtModules_Isodose
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :
@@ -46,13 +54,21 @@ public:
   vtkTypeMacro(vtkSlicerIsodoseModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  /// Return a default color node id for a label map
+  const char * GetDefaultLabelMapColorNodeID();
+
+  void AddDefaultIsodoseColorNode();
+
   /// Accumulates dose volumes with the given IDs and corresponding weights
   int ComputeIsodose();
 
   /// Return false if the dose volume contains a volume that is really a dose volume
   bool DoseVolumeContainsDose();
 
+  ///
   void SetAndObserveIsodoseNode(vtkMRMLIsodoseNode* node);
+
+  ///
   vtkGetObjectMacro(IsodoseNode, vtkMRMLIsodoseNode);
 
 protected:
@@ -60,6 +76,8 @@ protected:
   virtual ~vtkSlicerIsodoseModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+
+  vtkMRMLColorTableNode* CreateIsodoseColorNode();
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
@@ -77,6 +95,8 @@ private:
 protected:
   /// Parameter set MRML node
   vtkMRMLIsodoseNode* IsodoseNode;
+
+  char* colorTableID;
 };
 
 #endif

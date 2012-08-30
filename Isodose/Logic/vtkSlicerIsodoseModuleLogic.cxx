@@ -13,6 +13,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
+  This file was originally developed by Kevin Wang, RMP, PMH
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
 ==============================================================================*/
 
 // Isodose includes
@@ -30,6 +34,9 @@
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLColorNode.h>
+#include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLProceduralColorNode.h>
+#include "vtkMRMLColorLogic.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -41,6 +48,8 @@
 #include <vtkTriangleFilter.h>
 #include <vtkDecimatePro.h>
 #include <vtkPolyDataNormals.h>
+#include <vtkLookupTable.h>
+#include <vtkColorTransferFunction.h>
 
 // STD includes
 #include <cassert>
@@ -52,6 +61,7 @@ vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 vtkSlicerIsodoseModuleLogic::vtkSlicerIsodoseModuleLogic()
 {
   this->IsodoseNode = NULL;
+  this->colorTableID = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -168,6 +178,78 @@ bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
   }
 
   return false;
+}
+
+//----------------------------------------------------------------------------
+const char *vtkSlicerIsodoseModuleLogic::GetDefaultLabelMapColorNodeID()
+{
+
+  if (this->colorTableID == NULL)
+    {
+    this->AddDefaultIsodoseColorNode();
+    }
+
+  char* temp = "vtkMRMLColorTableNodeUserDefined";
+  this->colorTableID = temp;
+  return "vtkMRMLColorTableNodeUserDefined";
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerIsodoseModuleLogic::AddDefaultIsodoseColorNode()
+{
+  // create the default color nodes, they don't get saved with the scenes as
+  // they'll be created on start up, and when a new
+  // scene is opened
+  if (this->GetMRMLScene() == NULL)
+    {
+    vtkWarningMacro("vtkMRMLColorLogic::AddDefaultColorNodes: no scene to which to add nodes\n");
+    return;
+    }
+  
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
+
+  // add a random procedural node that covers full integer range
+  vtkMRMLColorTableNode* isodoseColorNode = this->CreateIsodoseColorNode();
+  this->colorTableID = isodoseColorNode->GetID();
+  //if (this->GetMRMLScene()->GetNodeByID(randomNode->GetSingletonTag()))
+    {
+    // Add the node after it has been initialized
+    //this->GetMRMLScene()->RequestNodeID(randomNode, randomNode->GetSingletonTag());
+    this->GetMRMLScene()->AddNode(isodoseColorNode);
+    }
+  isodoseColorNode->Delete();
+
+  vtkDebugMacro("Done adding default color nodes");
+  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
+}
+
+
+//------------------------------------------------------------------------------
+vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode()
+{
+  vtkDebugMacro("vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode: making a default mrml colortable node");
+  vtkMRMLColorTableNode *colorTableNode = vtkMRMLColorTableNode::New();
+  this->colorTableID = colorTableNode->GetID();
+  colorTableNode->SetName("IsodoseColor");
+  colorTableNode->SetTypeToUser();
+  //colorTableNode->SetAttribute("Category", "Discrete");
+  colorTableNode->SetAttribute("Category", "User Generated");
+  colorTableNode->SaveWithSceneOff();
+  colorTableNode->SetSingletonTag(colorTableNode->GetTypeAsString());
+
+  colorTableNode->SetNumberOfColors(6);
+  colorTableNode->SetColor(0, "1 Gy", 1, 1, 0, 0.2);
+  colorTableNode->SetColor(1, "2 Gy", 1, 0, 1, 0.2);
+  colorTableNode->SetColor(2, "3 Gy", 0, 1, 1, 0.2);
+  colorTableNode->SetColor(3, "4 Gy", 0, 1, 0, 0.2);
+  colorTableNode->SetColor(4, "5 Gy", 0, 0, 1, 0.2);
+  colorTableNode->SetColor(5, "6 Gy", 1, 0, 0, 0.2);
+
+  vtkLookupTable * table = colorTableNode->GetLookupTable();
+
+  //colorTableNode->SetNamesFromColors();
+
+  return colorTableNode;
 }
 
 //---------------------------------------------------------------------------

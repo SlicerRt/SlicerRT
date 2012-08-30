@@ -13,6 +13,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
+  This file was originally developed by Kevin Wang, RMP, PMH
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
 ==============================================================================*/
 
 #ifndef __qSlicerIsodoseModuleWidget_h
@@ -53,6 +57,9 @@ public slots:
 
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
+
+  ///
+  void setNumberOfLevels(int newNumber);
 
 protected slots:
   void doseVolumeNodeChanged(vtkMRMLNode*);
