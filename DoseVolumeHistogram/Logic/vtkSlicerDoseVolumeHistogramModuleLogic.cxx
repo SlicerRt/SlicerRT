@@ -363,8 +363,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     structureStenciledDoseVolumeImageData->SetSpacing(1.0, 1.0, 1.0); // The spacing is set to the MRML node
   }
 
-  std::string stenciledDoseNodeName( structureModelNode->GetName() );
-  stenciledDoseNodeName.append( "_Labelmap" );
+  std::string stenciledDoseNodeName = std::string(structureModelNode->GetName()) + SlicerRtCommon::DVH_STRUCTURE_LABELMAP_NODE_NAME_POSTFIX;
+  stenciledDoseNodeName = this->GetMRMLScene()->GenerateUniqueName(stenciledDoseNodeName);
+
   structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID( doseVolumeNode->GetTransformNodeID() );
   structureStenciledDoseVolumeNode->SetName( stenciledDoseNodeName.c_str() );
   structureStenciledDoseVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
@@ -597,6 +598,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   // Create node and fill statistics
   vtkMRMLDoubleArrayNode* arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLDoubleArrayNode") );
   std::string dvhArrayNodeName = std::string(structureModelNode->GetName()) + SlicerRtCommon::DVH_ARRAY_NODE_NAME_POSTFIX;
+  dvhArrayNodeName = this->GetMRMLScene()->GenerateUniqueName(dvhArrayNodeName);
   arrayNode->SetName(dvhArrayNodeName.c_str());
   //arrayNode->HideFromEditorsOff();
 

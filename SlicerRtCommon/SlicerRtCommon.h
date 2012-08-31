@@ -35,6 +35,7 @@ namespace SlicerRtCommon
   const std::string DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX = "Max dose";
   const std::string DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX = "V";
   const std::string DVH_ARRAY_NODE_NAME_POSTFIX = "_DVH";
+  const std::string DVH_STRUCTURE_LABELMAP_NODE_NAME_POSTFIX = "_Labelmap";
   const std::string DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE = " Value (% of ";
   const std::string DVH_CSV_HEADER_VOLUME_FIELD_END = " cc)";
 };
