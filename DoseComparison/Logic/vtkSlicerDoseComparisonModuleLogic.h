@@ -62,6 +62,10 @@ public:
   void SetAndObserveDoseComparisonNode(vtkMRMLDoseComparisonNode* node);
   vtkGetObjectMacro(DoseComparisonNode, vtkMRMLDoseComparisonNode);
 
+  vtkGetMacro(LogSpeedMeasurements, bool);
+  vtkSetMacro(LogSpeedMeasurements, bool);
+  vtkBooleanMacro(LogSpeedMeasurements, bool);
+
 protected:
   vtkSlicerDoseComparisonModuleLogic();
   virtual ~vtkSlicerDoseComparisonModuleLogic();
@@ -78,9 +82,9 @@ protected:
   virtual void OnMRMLSceneEndClose();
 
 protected:
-  /// Convert VTK image to ITK image
 //BTX  
-  void ConvertVtkImageToItkImage(vtkImageData* inVolume, itk::Image<float, 3>::Pointer outVolume);
+  /// Convert VTK image to ITK image
+  void ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, itk::Image<float, 3>::Pointer outItkVolume);
 //ETX
 
 private:
@@ -91,6 +95,8 @@ protected:
   /// Parameter set MRML node
   vtkMRMLDoseComparisonNode* DoseComparisonNode;
 
+  /// Flag telling whether the speed measurements are logged on standard output
+  bool LogSpeedMeasurements;
 };
 
 

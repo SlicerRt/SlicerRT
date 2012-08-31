@@ -167,6 +167,29 @@ void qSlicerDoseComparisonModuleWidget::setDoseComparisonNode(vtkMRMLNode *node)
   qvtkReconnect( d->logic()->GetDoseComparisonNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
   d->logic()->SetAndObserveDoseComparisonNode(paramNode);
+
+  // Set selected MRML nodes in comboboxes in the parameter set if it was NULL there
+  // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
+  if (paramNode)
+  {
+    if ((!paramNode->GetReferenceDoseVolumeNodeId() || strcmp(paramNode->GetReferenceDoseVolumeNodeId(), ""))
+      && d->MRMLNodeComboBox_ReferenceDoseVolume->currentNode())
+    {
+      paramNode->SetAndObserveReferenceDoseVolumeNodeId(d->MRMLNodeComboBox_ReferenceDoseVolume->currentNodeId().toLatin1());
+    }
+    if ((!paramNode->GetCompareDoseVolumeNodeId() || strcmp(paramNode->GetCompareDoseVolumeNodeId(), ""))
+      && d->MRMLNodeComboBox_CompareDoseVolume->currentNode())
+    {
+      paramNode->SetAndObserveCompareDoseVolumeNodeId(d->MRMLNodeComboBox_CompareDoseVolume->currentNodeId().toLatin1());
+    }
+    if ((!paramNode->GetGammaVolumeNodeId() || strcmp(paramNode->GetGammaVolumeNodeId(), ""))
+      && d->MRMLNodeComboBox_GammaVolume->currentNode())
+    {
+      paramNode->SetAndObserveGammaVolumeNodeId(d->MRMLNodeComboBox_GammaVolume->currentNodeId().toLatin1());
+    }
+    updateButtonsState();
+  }
+
   updateWidgetFromMRML();
 }
 
@@ -282,14 +305,7 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
 
   updateButtonsState();
 
-  if (d->logic()->DoseVolumeContainsDose(node))
-  {
-    d->label_Warning->setText("");
-  }
-  else
-  {
-    d->label_Warning->setText(tr(" Selected reference volume is not a dose"));
-  }
+  checkDoseVolumeAttributes();
 }
 
 //-----------------------------------------------------------------------------
@@ -309,14 +325,7 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
 
   updateButtonsState();
 
-  if (d->logic()->DoseVolumeContainsDose(node))
-  {
-    d->label_Warning->setText("");
-  }
-  else
-  {
-    d->label_Warning->setText(tr(" Selected compare volume is not a dose"));
-  }
+  checkDoseVolumeAttributes();
 }
 
 //-----------------------------------------------------------------------------
@@ -445,4 +454,34 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
   d->logic()->ComputeGammaDoseDifference();
 
   QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseComparisonModuleWidget::checkDoseVolumeAttributes()
+{
+  Q_D(qSlicerDoseComparisonModuleWidget);
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !this->mrmlScene() || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->mrmlScene()->GetNodeByID(paramNode->GetReferenceDoseVolumeNodeId()));
+  vtkMRMLVolumeNode* compareDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->mrmlScene()->GetNodeByID(paramNode->GetCompareDoseVolumeNodeId()));
+
+  if (referenceDoseVolumeNode && !d->logic()->DoseVolumeContainsDose(referenceDoseVolumeNode))
+  {
+    d->label_Warning->setText(tr(" Selected reference volume is not a dose"));
+  }
+  else if (compareDoseVolumeNode && !d->logic()->DoseVolumeContainsDose(compareDoseVolumeNode))
+  {
+    d->label_Warning->setText(tr(" Selected compare volume is not a dose"));
+  }
+  else
+  {
+    d->label_Warning->setText("");
+  }
 }

@@ -76,6 +76,9 @@ protected:
   /// Updates button states
   void updateButtonsState();
 
+  /// Checks dose volume attributes and display a warning if they are not present
+  void checkDoseVolumeAttributes();
+
 protected:
   QScopedPointer<qSlicerDoseComparisonModuleWidgetPrivate> d_ptr;
   

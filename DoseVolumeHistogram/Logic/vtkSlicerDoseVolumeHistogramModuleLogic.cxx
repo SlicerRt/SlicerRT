@@ -285,7 +285,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     // the dosemap is transformed
     doseTransformNode->GetTransformToWorld(doseRasToWorldTransform);    
     if (modelTransformNode!=NULL)
-    {      
+    {
       modelToDoseRasTransform->PostMultiply(); // GetTransformToNode assumes PostMultiply
       modelTransformNode->GetTransformToNode(doseTransformNode,modelToDoseRasTransform);
     }
@@ -309,7 +309,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
       // neither the model nor the dosemap is transformed
       modelToDoseRasTransform->Identity();
     }
-  }  
+  }
 
   // Create doseRas to doseIjk transform
   vtkSmartPointer<vtkMatrix4x4> doseRasToDoseIjkTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
