@@ -11,8 +11,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}ModuleLogic.cxx
   vtkSlicer${MODULE_NAME}ModuleLogic.h
-  vtkMRMLDoseAccumulationNode.h
-  vtkMRMLDoseAccumulationNode.cxx
+  vtkMRML${MODULE_NAME}Node.h
+  vtkMRML${MODULE_NAME}Node.cxx
   )
 
 set(${KIT}_TARGET_LIBRARIES

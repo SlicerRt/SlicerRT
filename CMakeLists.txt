@@ -48,11 +48,12 @@ add_subdirectory(SlicerRtCommon)
 add_subdirectory(DicomRtImport)
 add_subdirectory(DoseAccumulation)
 add_subdirectory(DoseVolumeHistogram)
+add_subdirectory(DoseComparison)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-  add_subdirectory(DoseComparison)
   add_subdirectory(Isodose)
   add_subdirectory(ProtonDose)
+  add_subdirectory(ContourComparison)
 endif()
 
 #-----------------------------------------------------------------------------

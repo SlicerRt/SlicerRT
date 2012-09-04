@@ -13,8 +13,8 @@ set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}ModuleLogic.h
   vtkPolyDataToLabelmapFilter.cxx
   vtkPolyDataToLabelmapFilter.h
-  vtkMRMLDoseVolumeHistogramNode.cxx
-  vtkMRMLDoseVolumeHistogramNode.h
+  vtkMRML${MODULE_NAME}Node.cxx
+  vtkMRML${MODULE_NAME}Node.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
