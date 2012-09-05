@@ -21,7 +21,7 @@
 
 // .NAME vtkPolyDataToLabelmapFilter - Converts PolyData model to Labelmap image data
 // .SECTION Description
-// !!! Copied from ModelToLabelMap CLI module !!! TODO: Make the DVH plugin use that module and depend on it instead of having this class (or both use this class)
+// !!! Copied from ModelToLabelMap CLI module !!! TODO: Make the SlicerRT extension use that module and depend on it instead of having this class (or both use this class)
 
 
 #ifndef __vtkPolyDataToLabelmapFilter_h
@@ -34,11 +34,8 @@
 // STD includes
 #include <cstdlib>
 
-#include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
-
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkPolyDataToLabelmapFilter :
-  public vtkObject
+class vtkPolyDataToLabelmapFilter : public vtkObject
 {
 public:
 
@@ -80,7 +77,6 @@ protected:
   virtual ~vtkPolyDataToLabelmapFilter();
 
 private:
-
   vtkPolyDataToLabelmapFilter(const vtkPolyDataToLabelmapFilter&); // Not implemented
   void operator=(const vtkPolyDataToLabelmapFilter&);               // Not implemented
 };
