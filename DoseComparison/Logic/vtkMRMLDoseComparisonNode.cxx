@@ -45,7 +45,7 @@ vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
 
   this->DtaDistanceToleranceMm = 3.0;
   this->DoseDifferenceTolerancePercent = 3.0;
-  this->ReferenceDoseGy = 0.0;
+  this->ReferenceDoseGy = 50.0;
   this->AnalysisThresholdPercent = 0.0;
   this->MaximumGamma = 2.0;
   this->UseMaximumDose = true;

@@ -94,7 +94,7 @@
       <item row="5" column="0">
        <widget class="QLabel" name="label_5">
         <property name="toolTip">
-         <string>Dose difference tolerance. If a reference dose (prescription dose) is specified, the dose difference tolerance is treated as a percent of the reference dose. Otherwise it is treated as a percent of the maximum dose in the reference volume. To use a 3% dose tolerance, you would set this value to 0.03</string>
+         <string>Dose difference tolerance, defined as percentage of the reference dose (prescription dose) value</string>
         </property>
         <property name="text">
          <string>Dose difference tolerance (%):</string>
@@ -243,7 +243,7 @@
       <item row="6" column="0">
        <widget class="QLabel" name="label_6">
         <property name="toolTip">
-         <string>Reference dose (prescription dose). This is used in dose comparison</string>
+         <string>Specify the 100% value for the dose difference tolerance</string>
         </property>
         <property name="text">
          <string>Reference dose:</string>
@@ -260,6 +260,9 @@
         </property>
         <item row="0" column="0">
          <widget class="QRadioButton" name="radioButton_ReferenceDose_MaximumDose">
+          <property name="toolTip">
+           <string>Use the maximum value in the reference dose volume as reference dose</string>
+          </property>
           <property name="text">
            <string>Use maximum dose</string>
           </property>
@@ -270,6 +273,9 @@
         </item>
         <item row="1" column="0">
          <widget class="QRadioButton" name="radioButton_ReferenceDose_CustomValue">
+          <property name="toolTip">
+           <string>Use a user-defined value as reference dose</string>
+          </property>
           <property name="text">
            <string>Use custom value (Gy):</string>
           </property>
@@ -281,7 +287,7 @@
            <bool>false</bool>
           </property>
           <property name="toolTip">
-           <string>Reference dose (prescription dose). This is used in dose comparison</string>
+           <string>Use a user-defined value as reference dose</string>
           </property>
           <property name="minimum">
            <double>0.010000000000000</double>
@@ -320,6 +326,9 @@
         </property>
         <property name="renameEnabled">
          <bool>true</bool>
+        </property>
+        <property name="baseName">
+         <string>GammaVolume</string>
         </property>
        </widget>
       </item>
