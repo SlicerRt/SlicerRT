@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Plastimatch.Registration</category>
+  <title>B-spline deformable registration</title>
+  <description>The plastimatch deformable registration extension will register two images using a high performance multi-stage B-spline deformable registration algorithm.  The algorithm runs in three stages: an optional initial alignment using a translation, rigid, or affine registration, and then one or two stages of B-spline registration.  The optimizer can use mean-squared error (MSE) for unimodal registration, or mutual information (MI) for multi-modal registration, and can run on multicore (CPU) or GPU hardware (if so compiled).</description>
+  <version>0.0</version>
+  <documentation-url>http://plastimatch.org</documentation-url>
+  <license>BSD-style</license>
+  <contributor>Please direct questions or suggestions to http://groups.google.com/group/plastimatch</contributor>
+  <acknowledgements>Funding for this project has been provided by NIH 2-U54-EB005149 (NA-MIC), NIH/NCI 6-PO1 CA 21239, the Federal share of program income earned by MGH on C06CA059267, and the Progetto Rocca Foundation, a collaboration between MIT and Politecnico di Milano.</acknowledgements>
+  <parameters>
+    <label>Input/Output</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>plmslc_fixed_volume</name>
+      <label>Fixed volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <default>None</default>
+      <description>Reference volume</description>
+    </image>
+    <image>
+      <name>plmslc_moving_volume</name>
+      <label>Moving volume</label>
+      <channel>input</channel>
+      <index>1</index>
+      <default>None</default>
+      <description>Volume to warp</description>
+    </image>
+    <point coordinateSystem="ras" multiple="true">
+      <name>plmslc_fixed_fiducials</name>
+      <longflag>--plmslc_fixed_fiducials</longflag>
+      <label>Fixed Fiducials</label>
+      <channel>input</channel>
+      <description>Fiducials in fixed volume</description>
+      <default>0,0,0</default>
+    </point>
+    <point coordinateSystem="ras" multiple="true">
+      <name>plmslc_moving_fiducials</name>
+      <longflag>--plmslc_moving_fiducials</longflag>
+      <label>Moving Fiducials</label>
+      <channel>input</channel>
+      <description>Fiducials in moving volume</description>
+      <default>0,0,0</default>
+    </point>
+    
+    <!-- Outputs -->
+    <image>
+      <name>plmslc_output_warped</name>
+      <longflag>--plmslc_output_warped</longflag>
+      <description>Warped output image</description>
+      <label>Output volume</label>
+      <default>None</default>
+      <channel>output</channel>
+    </image>
+    <transform fileExtensions=".txt" type="bspline">
+      <name>plmslc_output_bsp</name>
+      <longflag>--plmslc_output_bsp</longflag>
+      <description>B-spline coefficients created by registration</description>
+      <label>Output B-spline transform (MRML)</label>
+      <default>None</default>
+      <channel>output</channel>
+    </transform>
+    <transform fileExtensions=".nrrd" type="nonlinear">
+      <name>plmslc_output_vf</name>
+      <longflag>--plmslc_output_vf</longflag>
+      <description>Deformation field created by registration</description>
+      <label>Output vector field (MRML)</label>
+      <default>None</default>
+      <channel>output</channel>
+    </transform>
+    <string>
+      <name>plmslc_output_bsp_f</name>
+      <longflag>plmslc_output_bsp_f</longflag>
+      <description>Output B-spline coefficients as file (absolute path)</description>
+      <label>Output B-spline transform (file)</label>
+      <default>None</default>
+      <channel>input</channel>
+    </string>
+    <string>
+      <name>plmslc_output_vf_f</name>
+      <longflag>plmslc_output_vf_f</longflag>
+      <description>Output vector field as file (absolute path)</description>
+      <label>Output vector field (file)</label>
+      <default>None</default>
+      <channel>input</channel>
+    </string>
+
+    <!-- Settings -->
+    <string-enumeration>
+      <name>metric</name>
+      <longflag>--metric</longflag>
+      <description>Cost function: MSE = mean squared error, MI = mutual information</description>
+      <label>Cost function</label>
+      <default>MSE</default>
+      <element>MSE</element>
+      <element>MI</element>
+    </string-enumeration>
+    <string-enumeration>
+      <name>hardware</name>
+      <longflag>--hardware</longflag>
+      <description>Choose hardware: GPU (CUDA), or CPU (OpenMP)</description>
+      <label>Hardware</label>
+      <default>CPU</default>
+      <element>GPU</element>
+      <element>CPU</element>
+    </string-enumeration>
+    <string-enumeration>
+      <name>output_type</name>
+      <longflag>--output_type</longflag>
+      <description>Data type of output image.  Choose "auto" to retain the same type as the input image.  Other choices are 8, 16, and 32 bit signed and unsigned integers, float, and double.</description>
+      <label>Output type</label>
+      <default>auto</default>
+      <element>auto</element>
+      <element>char</element>
+      <element>uchar</element>
+      <element>short</element>
+      <element>ushort</element>
+      <element>long</element>
+      <element>ulong</element>
+      <element>float</element>
+      <element>double</element>
+    </string-enumeration>
+  </parameters>
+
+  <!-- STAGE 0 -->
+  <parameters>
+    <label>Stage 0 Options</label>
+    <description></description>
+    <boolean>
+      <name>enable_stage_0</name>
+      <label>Enable Stage 0?</label>
+      <default>false</default>
+      <longflag>--enablestage0</longflag>
+      <description>Check this box if you want to run initial translation, rigid, or affine registration</description>
+    </boolean>
+    <integer-vector>
+      <name>stage_0_resolution</name>
+      <label>Image subsampling rate (vox)</label>
+      <default>5,5,3</default>
+      <longflag>--stage0res</longflag>
+      <description>This defines the image subsampling rate.  For example, (4,4,2) would subsample a 4x4x2 voxel block down to a single voxel.</description>
+    </integer-vector>
+    <integer>
+      <name>stage_0_its</name>
+      <label>Max iterations</label>
+      <default>50</default>
+      <longflag>--stage0its</longflag>
+      <description>Maximum number of iterations</description>
+    </integer>
+    <string-enumeration>
+      <name>stage_0_xform</name>
+      <longflag>--stage0xform</longflag>
+      <description>Transformation: T = translation, R = rigid, A = affine</description>
+      <label>Transformation</label>
+      <default>T</default>
+      <element>T</element>
+      <element>R</element>
+      <element>A</element>
+    </string-enumeration>
+  </parameters>
+
+
+  <!-- STAGE 1 -->
+  <parameters>
+    <label>Stage 1 Options</label>
+    <description></description>
+    <integer-vector>
+      <name>stage_1_resolution</name>
+      <label>Image subsampling rate (vox)</label>
+      <default>4,4,2</default>
+      <longflag>--stage1res</longflag>
+      <description>This defines the image subsampling rate.  For example, (4,4,2) would subsample a 4x4x2 voxel block down to a single voxel.</description>
+    </integer-vector>
+    <double>
+      <name>stage_1_grid_size</name>
+      <label>Grid size (mm)</label>
+      <default>100</default>
+      <longflag>--stage1gridsize</longflag>
+      <description>Approximate B-Spline Grid Spacing (isotropic)</description>
+    </double>
+    <double>
+      <name>stage_1_regularization</name>
+      <label>Regularization</label>
+      <default>0.005</default>
+      <longflag>--stage_1_regularization</longflag>
+      <description>Second derivative smoothness penalty</description>
+    </double>
+    <integer>
+      <name>stage_1_its</name>
+      <label>Max iterations</label>
+      <default>50</default>
+      <longflag>--stage1its</longflag>
+      <description>Maximum number of iterations</description>
+    </integer>
+  </parameters>
+
+  <!-- STAGE 2 -->
+  <parameters>
+    <label>Stage 2 Options</label>
+    <description></description>
+    <boolean>
+      <name>enable_stage_2</name>
+      <label>Enable Stage 2?</label>
+      <default>false</default>
+      <longflag>--enablestage2</longflag>
+      <description>Check this box if you want to run two registration stages</description>
+    </boolean>
+    <integer-vector>
+      <name>stage_2_resolution</name>
+      <label>Image subsampling rate (vox)</label>
+      <default>2,2,1</default>
+      <longflag>--stage2res</longflag>
+      <description>This defines the image subsampling rate.  For example, (4,4,2) would subsample a 4x4x2 voxel block down to a single voxel.</description>
+    </integer-vector>
+    <double>
+      <name>stage_2_grid_size</name>
+      <label>Grid size (mm)</label>
+      <default>50</default>
+      <longflag>--stage2gridsize</longflag>
+      <description>Approximate B-Spline Grid Spacing (isotropic)</description>
+    </double>
+    <double>
+      <name>stage_2_regularization</name>
+      <label>Regularization</label>
+      <default>0.005</default>
+      <longflag>--stage2_regularization</longflag>
+      <description>Second derivative smoothness penalty</description>
+    </double>
+    <integer>
+      <name>stage_2_its</name>
+      <label>Max iterations</label>
+      <default>50</default>
+      <longflag>--stage2its</longflag>
+      <description>Maximum number of iterations</description>
+    </integer>
+  </parameters>
+</executable>

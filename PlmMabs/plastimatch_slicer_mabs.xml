@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Plastimatch.Utilities</category>
+  <title>Multi-atlas segmentation</title>
+  <description>Multi-atlas segmentation</description>
+  <version>0.0</version>
+  <documentation-url>http://plastimatch.org</documentation-url>
+  <license>BSD-style</license>
+  <contributor>Please direct questions or suggestions to http://groups.google.com/group/plastimatch</contributor>
+  <acknowledgements>Funding for this project has been provided by NIH 2-U54-EB005149 (NA-MIC), NIH/NCI 6-PO1 CA 21239, the Federal share of program income earned by MGH on C06CA059267, and the Progetto Rocca Foundation, a collaboration between MIT and Politecnico di Milano.</acknowledgements>
+  <parameters>
+    <label>Input/Output</label>
+    <description>Input/output parameters</description>
+    <directory>
+      <longflag>--atlas_directory</longflag>
+      <name>atlas_directory</name>
+      <label>Input atlas directory</label>
+      <channel>input</channel>
+      <default>None</default>
+      <description>Directory containing atlas images and structure sets</description>
+    </directory>
+    <image>
+      <longflag>--input_image</longflag>
+      <name>input_image</name>
+      <label>Input image</label>
+      <channel>input</channel>
+      <default>None</default>
+      <description>Input image to be segmented</description>
+    </image>
+    <image type="label">
+      <longflag>--output_image</longflag>
+      <name>output_image</name>
+      <label>Output labelmap</label>
+      <channel>output</channel>
+      <default>None</default>
+      <description>Output labelmap</description>
+    </image>
+  </parameters>
+</executable>

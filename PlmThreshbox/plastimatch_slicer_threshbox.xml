@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Plastimatch.Utilities</category>
+  <title>Thresholding in a box</title>
+  <description>This module is used to make a labelmap by thresholding input image in a user-defined box</description>
+  <version>0.0</version>
+  <documentation-url>http://plastimatch.org</documentation-url>
+  <license>BSD-style</license>
+  <contributor>Please direct questions or suggestions to http://groups.google.com/group/plastimatch</contributor>
+  <acknowledgements>Funding for this project has been provided by NIH 2-U54-EB005149 (NA-MIC), NIH/NCI 6-PO1 CA 21239, the Federal share of program income earned by MGH on C06CA059267, and the Progetto Rocca Foundation, a collaboration between MIT and Politecnico di Milano.</acknowledgements>
+  <parameters>
+    <label>Input</label>
+    <description>Input image</description>
+    <boolean>
+      <name>plmslc_need_thresh_box</name>
+      <label>Perform thresholding in a box?</label>
+      <default>false</default>
+      <longflag>--calcthreshbox</longflag>
+      <description>Check this box if you want to do thresholding in a box</description>
+    </boolean>
+    <image>
+      <name>plmslc_threshbox_img_in</name>
+      <label>Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <default>None</default>
+      <description>Input image</description>
+    </image>
+    <image type="label">
+      <name>plmslc_threshbox_img_out</name>
+      <label>Output Labelmap</label>
+      <channel>output</channel>
+      <index>1</index>
+      <default>None</default>
+      <description>Output labelmap, thresholded image</description>
+    </image>
+    <image>
+      <name>plmslc_threshbox_img_box</name>
+      <label>Box image</label>
+      <channel>output</channel>
+      <index>2</index>
+      <default>None</default>
+      <description>Image of the box</description>
+    </image>
+    <integer-vector>
+      <name>plmslc_threshbox_center</name>
+      <longflag>--cxyz</longflag>
+      <description>Vox coordinates of box center. Use three numbers (such as "20,-5,10") for x, y, and z coordinates.</description>
+      <label>Center voxel, XYZ</label>
+      <default>100, 100, 100</default>
+    </integer-vector>
+    <integer-vector>
+      <name>plmslc_threshbox_boxsize</name>
+      <longflag>--boxsize</longflag>
+      <description>Box size, vox</description>
+      <label>Box size, vox</label>
+      <default>10, 10, 10</default>
+    </integer-vector>
+    <integer>
+      <name>plmslc_threshbox_threshold</name>
+      <longflag>--threshold</longflag>
+      <description>Threshold, percent</description>
+      <label>Threshold, percent</label>
+      <default>80</default>
+    </integer>
+    <string>
+      <name>plmslc_max_coord_out</name>
+      <label>Output file for coordinate of suv max [full path]</label>
+      <longflag>--outputfn1</longflag>
+      <default></default>
+      <description>Output file for overlap fraction</description>
+    </string>
+    </parameters>
+    <parameters>
+    <label>Calculate overlap fraction</label>
+    <description>Option for calculating overlap fraction</description>
+    <boolean>
+      <name>plmslc_need_overlap_fraction</name>
+      <label>Calculate overlap fraction?</label>
+      <default>false</default>
+      <longflag>--calcoverlapfraction</longflag>
+      <description>Check this box if you want to calculate overlap fraction</description>
+    </boolean>
+    <image>
+      <name>plmslc_threshbox_labelmap_1</name>
+      <label>Input labelmap 1</label>
+      <channel>input</channel>
+      <longflag>--labelmap_one</longflag>
+      <default>None</default>
+    </image>
+    <image>
+      <name>plmslc_threshbox_labelmap_2</name>
+      <label>Input labelmap 2</label>
+      <channel>input</channel>
+      <longflag>--labelmap_two</longflag>
+      <default>None</default>
+    </image>
+      <string>
+        <name>plmslc_max_coord1</name>
+        <label>Input file for coordinates of suv max in labelmap 1 [full path]</label>
+        <longflag>--inputfn1</longflag>
+        <default></default>
+        <description>Input file for coordinates of suv max</description>
+      </string>
+      <string>
+        <name>plmslc_max_coord2</name>
+        <label>Input file for coordinates of suv max in labelmap 2 [full path]</label>
+        <longflag>--inputfn2</longflag>
+        <default></default>
+        <description>Input file for coordinates of suv max</description>
+      </string>
+      <string>
+        <name>plmslc_overlap_fraction</name>
+        <label>Output file for overlap fraction [full path]</label>
+        <longflag>--outputfn</longflag>
+        <default></default>
+        <description>Output file for overlap fraction</description>
+      </string>
+    </parameters>
+  </executable>

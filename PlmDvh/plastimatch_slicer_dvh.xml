@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Plastimatch.Developer Tools</category>
+  <title>Dose Volume Histogram (DVH) Export</title>
+  <description>Dose Volume Histogram (DVH) Export</description>
+  <version>0.0</version>
+  <documentation-url>http://plastimatch.org</documentation-url>
+  <license>BSD-style</license>
+  <contributor>Please direct questions or suggestions to http://groups.google.com/group/plastimatch</contributor>
+  <acknowledgements>Funding for this project has been provided by NIH 2-U54-EB005149 (NA-MIC), NIH/NCI 6-PO1 CA 21239, the Federal share of program income earned by MGH on C06CA059267, and the Progetto Rocca Foundation, a collaboration between MIT and Politecnico di Milano.</acknowledgements>
+  <parameters>
+    <label>Input/Output</label>
+    <description>Input/output parameters</description>
+    <image>
+      <longflag>input_ss_image</longflag>
+      <name>input_ss_image</name>
+      <label>Structure set image (input)</label>
+      <channel>input</channel>
+      <default>None</default>
+      <description>Structure set image used to create the DVH</description>
+    </image>
+    <string>
+      <name>input_ss_list</name>
+      <longflag>input_ss_list</longflag>
+      <label>Input structure names (file)</label>
+      <description>Read a file containing the names of all the structures in the structure set (absolute path)</description>
+      <channel>input</channel>
+    </string>
+    <image>
+      <longflag>input_dose_image</longflag>
+      <name>input_dose_image</name>
+      <label>Dose image (input)</label>
+      <channel>input</channel>
+      <default>None</default>
+      <description>Dose image used to create the DVH</description>
+    </image>
+    <string-enumeration>
+      <name>histogram_type</name>
+      <longflag>--histogram_type</longflag>
+      <description>Histogram type, either cumulative or differential</description>
+      <label>Histogram type</label>
+      <default>Cumulative</default>
+      <element>Cumulative</element>
+      <element>Differential</element>
+    </string-enumeration>
+    <integer>
+      <name>num_bins</name>
+      <label>Num bins</label>
+      <default>200</default>
+      <longflag>--num_bins</longflag>
+      <description>Number of histogram bins</description>
+    </integer>
+    <double>
+      <name>bin_width</name>
+      <label>Bin width</label>
+      <default>50.0</default>
+      <longflag>--bin_width</longflag>
+      <description>Width of each histogram bin (cGy)</description>
+    </double>
+    <file>
+      <longflag>output_dvh_filename</longflag>
+      <name>output_dvh_filename</name>
+      <label>DVH file (output, csv)</label>
+      <channel>output</channel>
+      <default>None</default>
+      <description>CSV file that DVH is saved to</description>
+    </file>
+  </parameters>
+</executable>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Plastimatch.Registration</category>
+  <title>LANDWARP Landmark deformable registration</title>
+  <description>Plastimatch deformable registration software (landmark deformation)</description>
+  <version>0.0</version>
+  <documentation-url>http://plastimatch.org</documentation-url>
+  <license>BSD-style</license>
+  <contributor>Please direct questions or suggestions to http://groups.google.com/group/plastimatch</contributor>
+  <acknowledgements>Funding for this project has been provided by NIH 2-U54-EB005149 (NA-MIC), NIH/NCI 6-PO1 CA 21239, the Federal share of program income earned by MGH on C06CA059267, and the Progetto Rocca Foundation, a collaboration between MIT and Politecnico di Milano.</acknowledgements>
+  <parameters>
+    <label>Input/Output</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>plmslc_landwarp_fixed_volume</name>
+      <label>Fixed Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <default>None</default>
+      <description>Reference volume</description>
+    </image>
+    <image>
+      <name>plmslc_landwarp_moving_volume</name>
+      <label>Moving Volume</label>
+      <channel>input</channel>
+      <index>1</index>
+      <default>None</default>
+      <description>Volume to warp</description>
+    </image>
+    <point coordinateSystem="ras" multiple="true">
+      <name>plmslc_landwarp_fixed_fiducials</name>
+      <label>Fixed Fiducials</label>
+      <channel>input</channel>
+      <description>Fiducials in fixed volume</description>
+      <default>0,0,0</default>
+      <longflag>fixedfiducials</longflag>
+    </point>
+    <point coordinateSystem="ras" multiple="true">
+      <name>plmslc_landwarp_moving_fiducials</name>
+      <label>Moving Fiducials</label>
+      <channel>input</channel>
+      <description>Fiducials in moving volume</description>
+      <default>0,0,0</default>
+      <longflag>movingfiducials</longflag>
+    </point>
+    <image>
+      <name>plmslc_landwarp_warped_volume</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>2</index>
+      <default>None</default>
+      <description>Warped output image</description>
+    </image>
+    <string>
+      <name>plmslc_landwarp_vector_field</name>
+      <label>Output file for vector field [full path]</label>
+      <longflag>outputvf</longflag>
+      <default></default>
+      <description>Output file for vector field</description>
+    </string>
+    <string-enumeration>
+      <name>plmslc_landwarp_rbf_type</name>
+      <label>Basis function</label>
+      <longflag>rbftype</longflag>
+        <element>tps</element>
+        <element>gauss</element>
+      	<element>wendland</element>
+      <default>gauss</default>
+      <description>Radial basis function to use</description>
+    </string-enumeration>
+    <float>
+     <name>plmslc_landwarp_rbf_radius</name>
+     <label>RBF radius</label>
+     <longflag>rbfradius</longflag>
+     <default>50.0</default>
+     <description>Radius of the radial basis function</description>
+    </float>
+    <integer>
+      <name>plmslc_landwarp_num_clusters</name>
+      <label>Number of clusters</label>
+      <longflag>numclusters</longflag>
+      <default>0</default>
+      <description>Number of clusters of landmarks</description>
+    </integer>
+    <float>
+     <name>plmslc_landwarp_stiffness</name>
+     <label>Stiffness</label>
+     <longflag>stiff</longflag>
+     <default>0.0</default>
+     <description>Regularization factor</description>
+    </float>
+    <float>
+      <name>plmslc_landwarp_default_value</name>
+      <label>Default Pixel Value</label>
+      <longflag>defaultvalue</longflag>
+      <default>-1000.0</default>
+      <description>Default Pixel Intensity</description>
+    </float>
+    </parameters>
+</executable>

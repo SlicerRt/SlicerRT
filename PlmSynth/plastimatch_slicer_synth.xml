@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Plastimatch.Developer Tools</category>
+  <title>Synthetic image generation</title>
+  <description>This module is used to make synthetic test images for experimentation and debugging.</description>
+  <version>0.0</version>
+  <documentation-url>http://plastimatch.org</documentation-url>
+  <license>BSD-style</license>
+  <contributor>Please direct questions or suggestions to http://groups.google.com/group/plastimatch</contributor>
+  <acknowledgements>Funding for this project has been provided by NIH 2-U54-EB005149 (NA-MIC), NIH/NCI 6-PO1 CA 21239, the Federal share of program income earned by MGH on C06CA059267, and the Progetto Rocca Foundation, a collaboration between MIT and Politecnico di Milano.</acknowledgements>
+  <parameters>
+    <label>Output</label>
+    <description>Output images</description>
+    <image>
+      <name>plmslc_output_one</name>
+      <longflag>--output_one</longflag>
+      <label>Output volume (1)</label>
+      <channel>output</channel>
+      <default>None</default>
+      <description>First output image</description>
+    </image>
+    <image>
+      <name>plmslc_output_two</name>
+      <longflag>--output_two</longflag>
+      <label>Output volume (2)</label>
+      <channel>output</channel>
+      <default>None</default>
+      <description>Second output image</description>
+    </image>
+    <image type="label">
+      <name>plmslc_output_ssmha</name>
+      <longflag>--output_ssmha</longflag>
+      <label>Output Labelmap </label>
+      <channel>output</channel>
+      <default>None</default>
+      <description>Labelmap image for Obj/Str/Dose</description>
+    </image>
+    <image>
+      <name>plmslc_output_dosemha</name>
+      <longflag>--output_dosemha</longflag>
+      <label>Output Dose Image</label>
+      <channel>output</channel>
+      <default>None</default>
+      <description>Dose image for Obj/Str/Dose</description>
+    </image>
+    
+  </parameters>
+  <parameters advanced="true">
+    <label>Image geometry options</label>
+    <description>Options that control the size and resolution of the synthetic images</description>
+    <integer-vector>
+      <name>plmslc_dim</name>
+      <label>Dimensions</label>
+      <default>200</default>
+      <longflag>--dim</longflag>
+      <description>This is the resolution of the image in voxels.  Use a single number (such as "30") when the x, y, and z dimensions are teh same, or three numbers (such as "512,512,120") when they are different.</description>
+    </integer-vector>
+    <float-vector>
+      <name>plmslc_origin</name>
+      <label>Origin</label>
+      <default>-100</default>
+      <longflag>--origin</longflag>
+      <description>This is the location of the center of the first voxel in the image.  Use a single number (such as "-145") when the x, y, and z origin values are the same, or three numbers (such as "-250,-250,-100") when they are different.</description>
+    </float-vector>
+    <float-vector>
+      <name>plmslc_spacing</name>
+      <label>Voxel spacing</label>
+      <default>1</default>
+      <longflag>--spacing</longflag>
+      <description>This is the distance between voxels in mm.  Use a single number (such as "10") when the x, y, and z voxel spacings are the same, or three numbers (such as "1,1,2.5") when they are different.</description>
+    </float-vector>
+  </parameters>
+
+  <parameters>
+    <label>Simple pattern options</label>
+    <description>Options that control what kind of simple geometric paterns are generated</description>
+    <string-enumeration>
+      <name>plmslc_pattern</name>
+      <longflag>--pattern</longflag>
+      <description>Choose the pattern for the synthetic image</description>
+      <label>Pattern</label>
+      <default>Rectangle</default>
+      <element>Rectangle</element>
+      <element>Sphere</element>
+      <element>Gauss</element>
+    </string-enumeration>  
+    <float>
+      <name>plmslc_background</name>
+      <longflag>--background</longflag>
+      <description>Choose the background intensity</description>
+      <label>Background</label>
+      <default>-1000</default>
+    </float>
+    <float>
+      <name>plmslc_foreground</name>
+      <longflag>--foreground</longflag>
+      <description>Choose the foreground intensity</description>
+      <label>Foreground</label>
+      <default>0</default>
+    </float>
+    <float-vector>
+      <name>plmslc_rectsize</name>
+      <longflag>--rectsize</longflag>
+      <description>Choose the size of the rectangle in mm.  Use a single number (such as "20") for a square of size 20.  Use three numbers (such as "20,30,10") for a rectangle which has different x, y, and z sizes.  Use six numbers (such as "-10,10,-20,20,-30,10") to control the position (not the size) of the six planes of the rectangle: -x,+x,-y,+y,-z,+z.</description>
+      <label>Rectangle size</label>
+      <default>100</default>
+    </float-vector>
+    <float-vector>
+      <name>plmslc_gausscenter</name>
+      <longflag>--gausscenter</longflag>
+      <description>Choose the position for the center of the Gaussian image in mm.  Use a single number (such as "0") when x, y, and z values are the same.  Use three numbers (such as "20,30,10") to specify x, y, and z coordinates.</description>
+      <label>Gauss center</label>
+      <default>0</default>
+    </float-vector>
+    <float-vector>
+      <name>plmslc_gausswidth</name>
+      <longflag>--gausswidth</longflag>
+      <description>Choose the standard deviation of the Gaussian image in mm.  Use a single number (such as "20") for isotropic Gaussian of size 20.  Use three numbers (such as "20,30,10") for a different x, y, and z widths.</description>
+      <label>Gauss width</label>
+      <default>120</default>
+    </float-vector>
+    <float-vector>
+      <name>plmslc_spherecenter</name>
+      <longflag>--spherecenter</longflag>
+      <description>Choose the position for the center of the sphere in mm.  Use a single number (such as "0") when x, y, and z values are the same.  Use three numbers (such as "20,30,10") to specify x, y, and z coordinates.</description>
+      <label>Sphere center</label>
+      <default>0</default>
+    </float-vector>
+    <float-vector>
+      <name>plmslc_spheresize</name>
+      <longflag>--spheresize</longflag>
+      <description>Choose the sphere radius in mm.  Use a single number (such as "20") for a sphere.  Use three numbers (such as "20,30,10") for an ellipsoid with different x, y, and z sizes.</description>
+      <label>Sphere size</label>
+      <default>100</default>
+    </float-vector>
+    <float-vector>
+      <name>plmslc_vol2xlat</name>
+      <longflag>--vol2xlat</longflag>
+      <description>Translation of volume 2 relative to volume 1.  Use a single number (such as "20") for 1D translation in the x axis.  Use three numbers (such as "20,-5,10") for translation in x, y, and z axes.</description>
+      <label>Translate volume 2</label>
+      <default>10</default>
+    </float-vector>
+  </parameters>
+  
+  <parameters>
+    <label>Enclosed pattern options</label>
+    <description>Options that control enclosed geometry</description>
+    <boolean>
+      <name>create_enclosed</name>
+      <label>Create Enclosed Geometry?</label>
+      <default>false</default>
+      <longflag>--createenclosed</longflag>
+      <description>Check this box if you want to create enclosed geometry</description>
+    </boolean>
+    <float>
+      <name>plmslc_intensity1</name>
+      <longflag>--intensity1</longflag>
+      <description>Choose the intensity for structure 1 (a number from 0 to 1)</description>
+      <label>Intensity Structure 1</label>
+      <default>0.4</default>
+    </float>
+    <float>
+      <name>plmslc_intensity2</name>
+      <longflag>--intensity2</longflag>
+      <description>Choose the intensity for structure 2 (a number from 0 to 1)</description>
+      <label>Intensity Structure 2</label>
+      <default>0.4</default>
+    </float>
+    <float-vector>
+      <name>plmslc_xlat_struct1</name>
+      <longflag>--xlat_struct1</longflag>
+      <description>Translation of structure 1. Use three numbers (such as "20,-5,10") for translation in x, y, and z axes.</description>
+      <label>Translate Structure 1</label>
+      <default>10, 0, 0</default>
+    </float-vector>
+    <float-vector>
+      <name>plmslc_xlat_struct2</name>
+      <longflag>--xlat_struct2</longflag>
+      <description>Translation of structure 2. Use three numbers (such as "20,-5,10") for translation in x, y, and z axes.</description>
+      <label>Translate Structure 2</label>
+      <default>10, 0, 0 </default>
+    </float-vector>  
+    </parameters>
+
+  <parameters>
+    <label>Object/structure/dose options</label>
+    <description>Options that control obj/struct/dose geometry</description>
+    <boolean>
+      <name>create_objstructdose</name>
+      <label>Cteate Object/Structure/Dose set?</label>
+      <default>false</default>
+      <longflag>--createobjstructdose</longflag>
+      <description>Check this box if you want to create Dose mha</description>
+    </boolean>
+    <boolean>
+      <name>create_objstrucmha</name>
+      <label>Cteate StructureSet?</label>
+      <default>false</default>
+      <longflag>--createstrsetemha</longflag>
+      <description>Check this box if you want to create Structure Set</description>
+    </boolean>
+    <boolean>
+      <name>create_objdosemha</name>
+      <label>Cteate Dose?</label>
+      <default>false</default>
+      <longflag>--createobjdosemha</longflag>
+      <description>Check this box if you want to create Dose</description>
+    </boolean>
+    <integer>
+      <name>plmslc_pattern_ss</name>
+      <longflag>--pattern_ss</longflag>
+      <description>Type of structure pattern</description>
+      <label>Type of structure pattern (1-4)</label>
+      <default>1</default>
+    </integer>
+  </parameters>
+
+  </executable>

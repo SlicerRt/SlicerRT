@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Plastimatch.Utilities</category>
+  <title>DICOM / DICOM-RT Import</title>
+  <description>DICOM / DICOM-RT Import</description>
+  <version>0.0</version>
+  <documentation-url>http://plastimatch.org</documentation-url>
+  <license>BSD-style</license>
+  <contributor>Please direct questions or suggestions to http://groups.google.com/group/plastimatch</contributor>
+  <acknowledgements>Funding for this project has been provided by NIH 2-U54-EB005149 (NA-MIC), NIH/NCI 6-PO1 CA 21239, the Federal share of program income earned by MGH on C06CA059267, and the Progetto Rocca Foundation, a collaboration between MIT and Politecnico di Milano.</acknowledgements>
+  <parameters>
+    <label>Input/Output</label>
+    <description>Input/output parameters</description>
+    <file>
+      <name>input_dicomrt_ss</name>
+      <label>Input DICOM directory</label>
+      <channel>input</channel>
+      <index>0</index>
+      <default>None</default>
+      <description>Directory containing DICOM images, RT structure set, and/or RT dose</description>
+    </file>
+    <image>
+      <longflag>reference_vol</longflag>
+      <name>reference_vol</name>
+      <label>Reference Volume (optional, to set size)</label>
+      <channel>input</channel>
+      <default>None</default>
+      <description>Reference Volume (optional, to set size)</description>
+    </image>
+    <image>
+      <longflag>output_image</longflag>
+      <name>output_image</name>
+      <label>Output Image</label>
+      <channel>output</channel>
+      <default>None</default>
+      <description>Output Image</description>
+    </image>
+    <image type="label">
+      <longflag>output_ss_img</longflag>
+      <name>output_ss_img</name>
+      <label>Output SS Image</label>
+      <channel>output</channel>
+      <default>None</default>
+      <description>Output Structure Set Image</description>
+    </image>
+    <image type="label">
+      <longflag>output_labelmap</longflag>
+      <name>output_labelmap</name>
+      <label>Output Labelmap</label>
+      <channel>output</channel>
+      <default>None</default>
+      <description>Output Labelmap</description>
+    </image>
+    <image>
+      <longflag>output_dose</longflag>
+      <name>output_dose</name>
+      <label>Output Dose Image</label>
+      <channel>output</channel>
+      <default>None</default>
+      <description>Output Dose Image</description>
+    </image>
+    <string>
+      <name>output_ss_list</name>
+      <longflag>output_ss_list</longflag>
+      <label>Output structure names (file)</label>
+      <description>Write a file containing the names of all the structures in the structure set (absolute path)</description>
+      <channel>input</channel>
+    </string>
+    <string-enumeration>
+      <name>overlapping_contours</name>
+      <longflag>overlapping_contours</longflag>
+      <description>How should overlapping contours be rasterized? Choose OR if voxel is always included when contained in any contour; choose XOR if voxel should be included when contained in odd number of contours.</description>
+      <label>Overlapping contours</label>
+      <default>OR</default>
+      <element>OR</element>
+      <element>XOR</element>
+    </string-enumeration>
+  </parameters>
+</executable>
