@@ -67,7 +67,7 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
       {
       ss << this->DoseVolumeNodeId;
       of << indent << " DoseVolumeNodeId=\"" << ss.str() << "\"";
-     }
+      }
   }
 
   {
@@ -85,7 +85,7 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
       {
       ss << this->OutputHierarchyNodeId;
       of << indent << " OutputHierarchyNodeId=\"" << ss.str() << "\"";
-     }
+      }
   }
 
 }
@@ -213,30 +213,30 @@ void vtkMRMLIsodoseNode::UpdateReferenceID(const char *oldID, const char *newID)
 void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNodeId(const char* id)
 {
   if (this->DoseVolumeNodeId)
-  {
+    {
     this->Scene->RemoveReferencedNodeID(this->DoseVolumeNodeId, this);
-  }
+    }
 
   this->SetDoseVolumeNodeId(id);
 
   if (id)
-  {
+    {
     this->Scene->AddReferencedNodeID(this->DoseVolumeNodeId, this);
-  }
+    }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::SetAndObserveOutputHierarchyNodeId(const char* id)
 {
   if (this->DoseVolumeNodeId)
-  {
+    {
     this->Scene->RemoveReferencedNodeID(this->OutputHierarchyNodeId, this);
-  }
+    }
 
   this->SetOutputHierarchyNodeId(id);
 
   if (id)
-  {
+    {
     this->Scene->AddReferencedNodeID(this->OutputHierarchyNodeId, this);
-  }
+    }
 }

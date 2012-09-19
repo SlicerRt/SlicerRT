@@ -116,28 +116,28 @@ void vtkSlicerIsodoseModuleLogic::UpdateFromMRMLScene()
 void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
-  {
+    {
     return;
-  }
+    }
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLIsodoseNode"))
-  {
+    {
     this->Modified();
-  }
+    }
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
-  {
+    {
     return;
-  }
+    }
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLIsodoseNode"))
-  {
+    {
     this->Modified();
-  }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -147,10 +147,10 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneEndImport()
   vtkMRMLIsodoseNode *paramNode = NULL;
   vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLIsodoseNode");
   if (node)
-  {
+    {
     paramNode = vtkMRMLIsodoseNode::SafeDownCast(node);
     vtkSetAndObserveMRMLNodeMacro(this->IsodoseNode, paramNode);
-  }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -163,9 +163,9 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneEndClose()
 bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
 {
   if (!this->GetMRMLScene() || !this->IsodoseNode)
-  {
+    {
     return false;
-  }
+    }
 
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
@@ -173,9 +173,9 @@ bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
   const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
   if (doseUnitName != NULL)
-  {
+    {
     return true;
-  }
+    }
 
   return false;
 }
@@ -234,19 +234,18 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode()
   colorTableNode->SetTypeToUser();
   //colorTableNode->SetAttribute("Category", "Discrete");
   colorTableNode->SetAttribute("Category", "User Generated");
+  colorTableNode->HideFromEditorsOff();
   colorTableNode->SaveWithSceneOff();
   colorTableNode->SetSingletonTag(colorTableNode->GetTypeAsString());
-
   colorTableNode->SetNumberOfColors(6);
-  colorTableNode->SetColor(0, "1 Gy", 1, 1, 0, 0.2);
-  colorTableNode->SetColor(1, "2 Gy", 1, 0, 1, 0.2);
-  colorTableNode->SetColor(2, "3 Gy", 0, 1, 1, 0.2);
-  colorTableNode->SetColor(3, "4 Gy", 0, 1, 0, 0.2);
-  colorTableNode->SetColor(4, "5 Gy", 0, 0, 1, 0.2);
-  colorTableNode->SetColor(5, "6 Gy", 1, 0, 0, 0.2);
+  colorTableNode->AddColor("1", 1, 1, 0, 0.2);
+  colorTableNode->AddColor("2", 1, 0, 1, 0.2);
+  colorTableNode->AddColor("3", 0, 1, 1, 0.2);
+  colorTableNode->AddColor("4", 0, 1, 0, 0.2);
+  colorTableNode->AddColor("5", 0, 0, 1, 0.2);
+  colorTableNode->AddColor("6", 1, 0, 0, 0.2);
 
-  vtkLookupTable * table = colorTableNode->GetLookupTable();
-
+  //vtkLookupTable * table = colorTableNode->GetLookupTable();
   //colorTableNode->SetNamesFromColors();
 
   return colorTableNode;
@@ -257,9 +256,9 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 {
   // Make sure inputs are initialized
   if (!this->GetMRMLScene() || !this->IsodoseNode)
-  {
+    {
     return 0;
-  }
+    }
 
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
@@ -268,24 +267,44 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   const char* doseGridScalingString = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
   double doseGridScaling = 1.0;
   if (doseGridScalingString!=NULL)
-  {
+    {
     doseGridScaling = atof(doseGridScalingString);
-  }
+    }
   else
-  {
+    {
     vtkWarningMacro("Dose grid scaling attribute is not set for the selected dose volume. Assuming scaling = 1.");
-  }
+    }
 
   const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
   // Hierarchy node for the loaded structure sets
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkMRMLModelHierarchyNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(
     this->GetIsodoseNode()->GetOutputHierarchyNodeId()));
+  // Create root node, if it has not been created yet
+  if (modelHierarchyRootNode.GetPointer()==NULL)
+    {
+    modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+    this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
+    }
+  std::string hierarchyNodeName;
+  hierarchyNodeName = std::string(doseVolumeNode->GetName()) + " - isosurface";
+  modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+  modelHierarchyRootNode->AllowMultipleChildrenOn();
+  modelHierarchyRootNode->HideFromEditorsOff();
 
-  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+  if (modelHierarchyRootNode->GetChildrenNodes().size() > 0)
+    {
+    modelHierarchyRootNode->RemoveAllChildrenNodes();
+    }
 
-  vtkSmartPointer<vtkMRMLColorNode> colorNode = doseVolumeNode->GetDisplayNode()->GetColorNode();
+  vtkSmartPointer<vtkMRMLColorTableNode> colorNode = vtkMRMLColorTableNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->colorTableID));  
   vtkSmartPointer<vtkLookupTable> lookupTable = colorNode->GetLookupTable();
+  
+  // vtkSmartPointer<vtkMRMLColorNode> colorNode = doseVolumeNode->GetDisplayNode()->GetColorNode();
+  // vtkSmartPointer<vtkLookupTable> lookupTable = colorNode->GetLookupTable();
 
   vtkSmartPointer<vtkImageChangeInformation> changeInfo = vtkSmartPointer<vtkImageChangeInformation>::New();
   changeInfo->SetInput(doseVolumeNode->GetImageData());
@@ -297,21 +316,26 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   changeInfo->SetOutputSpacing(-spacing[0], -spacing[1], spacing[2]);
   changeInfo->Update();
 
-  std::vector<double> *isodoseLevelVector = this->GetIsodoseNode()->GetIsodoseLevelVector();
-  for (std::vector<double>::iterator it = isodoseLevelVector->begin(); it != isodoseLevelVector->end(); ++it)
-  {
-    double rgb[3] = {1,1,1};
-    double doseLevel = (*it);
+  //std::vector<double> *isodoseLevelVector = this->GetIsodoseNode()->GetIsodoseLevelVector();
+  //for (std::vector<double>::iterator it = isodoseLevelVector->begin(); it != isodoseLevelVector->end(); ++it)
+  double rgb[3] = {1,1,1};
+  double doseLevel = 0.0;
+  for (int i = 0; i < colorNode->GetNumberOfColors(); i++)
+    {
+    double val[6];
+    const char* strIsoLevel = colorNode->GetColorName(i);
+    double isoLevel = atof(strIsoLevel);
+    colorNode->GetColor(i, val);
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
     marchingCubes->SetInput(changeInfo->GetOutput());
     marchingCubes->SetNumberOfContours(1); 
-    marchingCubes->SetValue(0, doseLevel);
+    marchingCubes->SetValue(0, isoLevel);
     marchingCubes->Update();
 
     vtkSmartPointer<vtkPolyData> isoPolyData= marchingCubes->GetOutput();
     if(isoPolyData->GetNumberOfPoints() >= 1)
-    {
+      {
       vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
       triangleFilter->SetInput(marchingCubes->GetOutput());
       triangleFilter->Update();
@@ -331,20 +355,22 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
       displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
       displayNode->SliceIntersectionVisibilityOn();  
       displayNode->VisibilityOn(); 
-      lookupTable->GetColor(doseLevel, rgb);
-      double opacity = lookupTable->GetOpacity(doseLevel);
-      displayNode->SetColor(rgb[0], rgb[1], rgb[2]);
+      //lookupTable->GetColor(doseLevel, rgb);
+      //double opacity = lookupTable->GetOpacity(doseLevel);
+      displayNode->SetColor(val[0], val[1], val[2]);
+      //displayNode->SetColor(rgb[0], rgb[1], rgb[2]);
       // displayNode->SetOpacity(opacity);
-      displayNode->SetOpacity(0.2); // 20120821 set opacity to constant 0.2 per Csaba's request.
+      displayNode->SetOpacity(val[3]); // 20120821 set opacity to constant 0.2 per Csaba's request.
     
       // Disable backface culling to make the back side of the contour visible as well
       displayNode->SetBackfaceCulling(0);
 
       vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
       modelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(modelNode));
-      std::ostringstream sstream;
-      sstream << (*it);
-      modelNode->SetName(sstream.str().c_str());
+      //std::ostringstream sstream;
+      //sstream << strIsoLevel;
+      //modelNode->SetName(sstream.str().c_str());
+      modelNode->SetName(strIsoLevel);
       modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
       modelNode->SetAndObservePolyData(normals->GetOutput());
       modelNode->SetHideFromEditors(0);
@@ -352,19 +378,7 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 
       // Add new node to the hierarchy node
       if (modelNode)
-      {
-        // Create root node, if it has not been created yet
-        if (modelHierarchyRootNode.GetPointer()==NULL)
         {
-          modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-        }
-        std::string hierarchyNodeName;
-        //hierarchyNodeName = std::string(seriesname) + " - all structures";
-        modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
-        modelHierarchyRootNode->AllowMultipleChildrenOn();
-        modelHierarchyRootNode->HideFromEditorsOff();
-        this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
-
         // A hierarchy node needs a display node
         vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
         hierarchyNodeName.append("Display");
@@ -378,9 +392,11 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
         this->GetMRMLScene()->AddNode(modelHierarchyNode);
         modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
         modelHierarchyNode->SetModelNodeID( modelNode->GetID() );
+        }
       }
     }
-  }
+
+  this->IsodoseNode->SetAndObserveOutputHierarchyNodeId(modelHierarchyRootNode->GetID());
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 
   return 0;

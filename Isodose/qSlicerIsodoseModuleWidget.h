@@ -66,7 +66,9 @@ protected slots:
   void onTextEdited(QString changedString);
   void storeSelectedTableItemText(QTableWidgetItem* selectedItem, QTableWidgetItem* previousItem);
   void outputHierarchyNodeChanged(vtkMRMLNode*);
-
+  void setIsolineVisibility(bool);
+  void setIsosurfaceVisibility(bool);
+  void setScalarbarVisibility(bool);
   void applyClicked();
 
   void onLogicModified();
