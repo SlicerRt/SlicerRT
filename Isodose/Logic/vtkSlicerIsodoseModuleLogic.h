@@ -72,12 +72,7 @@ public:
   vtkGetObjectMacro(IsodoseNode, vtkMRMLIsodoseNode);
 
 protected:
-  vtkSlicerIsodoseModuleLogic();
-  virtual ~vtkSlicerIsodoseModuleLogic();
-
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
-
-  vtkMRMLColorTableNode* CreateIsodoseColorNode();
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
@@ -86,6 +81,13 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
+
+  /// Set reference dose volume node ID
+  vtkSetStringMacro(ColorTableNodeId);
+
+protected:
+  vtkSlicerIsodoseModuleLogic();
+  virtual ~vtkSlicerIsodoseModuleLogic();
 
 private:
 
@@ -96,7 +98,8 @@ protected:
   /// Parameter set MRML node
   vtkMRMLIsodoseNode* IsodoseNode;
 
-  char* colorTableID;
+  /// Isodose color table node ID
+  char* ColorTableNodeId;
 };
 
 #endif

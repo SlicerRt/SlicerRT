@@ -3,13 +3,19 @@ cmake_minimum_required(VERSION 2.8.7)
 #-----------------------------------------------------------------------------
 set(EXTENSION_NAME SlicerRT)
 
+# ------------------------------------------------------------------------
+set(SLICERRT_VERSION_MAJOR "0")
+set(SLICERRT_VERSION_MINOR "4")
+set(SLICERRT_VERSION_PATCH "0")
+set(SLICERRT_VERSION ${SLICERRT_VERSION_MAJOR}.${SLICERRT_VERSION_MINOR}.${SLICERRT_VERSION_PATCH})
+
 #-----------------------------------------------------------------------------
 set(EXTENSION_HOMEPAGE "https://www.assembla.com/spaces/slicerrt")
 set(EXTENSION_CATEGORY "Radiotherapy")
 set(EXTENSION_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto)")
-set(EXTENSION_DESCRIPTION "Extensions for radiotherapy research (DICOM-RT import, dose volume histogram, dose accumulation, etc.")
+set(EXTENSION_DESCRIPTION "Extensions for radiotherapy research (DICOM-RT import, dose volume histogram, dose accumulation, etc.) Version ${SLICERRT_VERSION}")
 set(EXTENSION_ICONURL "http://wiki.slicer.org/slicerWiki/images/f/f2/SlicerRtExtensionLogo.png")
-set(EXTENSION_SCREENSHOTURLS "http://wiki.slicer.org/slicerWiki/images/thumb/f/f1/SlicerRT-0.2_screenshot.png/800px-SlicerRT-0.2_screenshot.png")
+set(EXTENSION_SCREENSHOTURLS "https://www.assembla.com/spaces/slicerrt/documents/bEOgkoaZmr4Op-acwqjQWU/download/bEOgkoaZmr4Op-acwqjQWU")
 set(EXTENSION_STATUS "Beta")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
@@ -49,9 +55,9 @@ add_subdirectory(DicomRtImport)
 add_subdirectory(DoseAccumulation)
 add_subdirectory(DoseVolumeHistogram)
 add_subdirectory(DoseComparison)
+add_subdirectory(Isodose)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-  add_subdirectory(Isodose)
   add_subdirectory(ProtonDose)
   add_subdirectory(ContourComparison)
   
