@@ -3,7 +3,7 @@ set(MODULE_NAME plastimatch_slicer_synth)
 
 find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} )
 if(NOT Plastimatch_FOUND)
-  message("Plastimatch library is not found. The plastimatch_slicer_mabs module will not be built.")
+  message("Plastimatch library is not found. The ${MODULE_NAME} module will not be built.")
   return()
 endif() 
 
@@ -31,6 +31,12 @@ SEMMacroBuildCLI(
   ADDITIONAL_SRCS ${MODULE_SRCS}
   #EXECUTABLE_ONLY
   )
+
+# Set linker flags, needed for OpenMP
+if (NOT ${PLASTIMATCH_LDFLAGS} STREQUAL "")
+  set_target_properties (${MODULE_NAME}Lib
+    PROPERTIES LINK_FLAGS ${PLASTIMATCH_LDFLAGS})
+endif ()
 
 #-----------------------------------------------------------------------------
 if(BUILD_TESTING)

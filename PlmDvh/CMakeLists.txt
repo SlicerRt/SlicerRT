@@ -31,6 +31,12 @@ SEMMacroBuildCLI(
   #EXECUTABLE_ONLY
   )
 
+# Set linker flags, needed for OpenMP
+if (NOT ${PLASTIMATCH_LDFLAGS} STREQUAL "")
+  set_target_properties (${MODULE_NAME}Lib
+    PROPERTIES LINK_FLAGS ${PLASTIMATCH_LDFLAGS})
+endif ()
+
 #-----------------------------------------------------------------------------
 if(BUILD_TESTING)
   #add_subdirectory(Testing)
