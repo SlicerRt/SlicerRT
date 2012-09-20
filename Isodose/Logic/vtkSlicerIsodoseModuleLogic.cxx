@@ -280,14 +280,21 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   if (modelHierarchyRootNode.GetPointer()==NULL)
   {
     modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+    modelHierarchyRootNode->AllowMultipleChildrenOn();
+    modelHierarchyRootNode->HideFromEditorsOff();
+    std::string hierarchyNodeName;
+    hierarchyNodeName = std::string(doseVolumeNode->GetName()) + " - isosurface";
+    modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
     this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
-  }
 
-  std::string hierarchyNodeName;
-  hierarchyNodeName = std::string(doseVolumeNode->GetName()) + " - isosurface";
-  modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
-  modelHierarchyRootNode->AllowMultipleChildrenOn();
-  modelHierarchyRootNode->HideFromEditorsOff();
+    // A hierarchy node needs a display node
+    vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+    hierarchyNodeName.append("Display");
+    modelDisplayNode->SetName(hierarchyNodeName.c_str());
+    modelDisplayNode->SetVisibility(1);
+    this->GetMRMLScene()->AddNode(modelDisplayNode);
+    modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+  }
 
   if (modelHierarchyRootNode->GetChildrenNodes().size() > 0)
   {
@@ -362,14 +369,6 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
       // Add new node to the hierarchy node
       if (modelNode)
       {
-        // A hierarchy node needs a display node
-        vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-        hierarchyNodeName.append("Display");
-        modelDisplayNode->SetName(hierarchyNodeName.c_str());
-        modelDisplayNode->SetVisibility(1);
-        this->GetMRMLScene()->AddNode(modelDisplayNode);
-        modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
-
         // put the new node in the hierarchy
         vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
         this->GetMRMLScene()->AddNode(modelHierarchyNode);

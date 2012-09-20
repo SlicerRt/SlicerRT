@@ -23,14 +23,8 @@
 #include <QCheckBox>
 
 // SlicerQt includes
-#include "qSlicerApplication.h"
-#include "qSlicerLayoutManager.h"
 #include "qSlicerIsodoseModuleWidget.h"
 #include "ui_qSlicerIsodoseModule.h"
-
-// qMRMLWidget includes
-#include "qMRMLThreeDView.h"
-#include "qMRMLThreeDWidget.h"
 
 // Isodose includes
 #include "vtkSlicerIsodoseModuleLogic.h"
@@ -50,8 +44,6 @@
 #include <vtkLookupTable.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
-#include <vtkScalarBarActor.h>
-#include <vtkScalarBarWidget.h>
 
 // STD includes
 #include <sstream>
@@ -70,8 +62,6 @@ public:
   ~qSlicerIsodoseModuleWidgetPrivate();
   vtkSlicerIsodoseModuleLogic* logic() const;
   void setDefaultColorNode();
-
-  vtkScalarBarWidget* ScalarBarWidget;
 };
 
 //-----------------------------------------------------------------------------
@@ -81,26 +71,11 @@ public:
 qSlicerIsodoseModuleWidgetPrivate::qSlicerIsodoseModuleWidgetPrivate(qSlicerIsodoseModuleWidget& object)
   : q_ptr(&object)
 {
-  this->ScalarBarWidget = vtkScalarBarWidget::New();
-  this->ScalarBarWidget->GetScalarBarActor()->SetOrientationToVertical();
-  this->ScalarBarWidget->GetScalarBarActor()->SetNumberOfLabels(11);
-  this->ScalarBarWidget->GetScalarBarActor()->SetTitle("(mm)");
-  this->ScalarBarWidget->GetScalarBarActor()->SetLabelFormat(" %#8.3f");
-  
-  // it's a 2d actor, position it in screen space by percentages
-  this->ScalarBarWidget->GetScalarBarActor()->SetPosition(0.1, 0.1);
-  this->ScalarBarWidget->GetScalarBarActor()->SetWidth(0.1);
-  this->ScalarBarWidget->GetScalarBarActor()->SetHeight(0.8);
 }
 
 //-----------------------------------------------------------------------------
 qSlicerIsodoseModuleWidgetPrivate::~qSlicerIsodoseModuleWidgetPrivate()
 {
-  if (this->ScalarBarWidget)
-    {
-    this->ScalarBarWidget->Delete();
-    this->ScalarBarWidget = 0;
-    }
 }
 
 //-----------------------------------------------------------------------------
@@ -255,27 +230,11 @@ void qSlicerIsodoseModuleWidget::setup()
 
   connect( d->checkBox_Isoline, SIGNAL(toggled(bool)), this, SLOT( setIsolineVisibility(bool) ) );
   connect( d->checkBox_Isosurface, SIGNAL(toggled(bool)), this, SLOT( setIsosurfaceVisibility(bool) ) );
-  connect( d->checkBox_ScalarBar, SIGNAL(toggled(bool)), this, SLOT( setScalarbarVisibility(bool) ) );
 
   //connect( d->lineEdit_DoseLevels, SIGNAL(textEdited(QString)), this, SLOT(onTextEdited(QString)) );
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
   //connect( d->MRMLNodeComboBox_OutputHierarchy, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( outputHierarchyNodeChanged(vtkMRMLNode*) ) );
-
-  qSlicerApplication * app = qSlicerApplication::application();
-  if (app && app->layoutManager())
-    {
-    qMRMLThreeDView* threeDView = app->layoutManager()->threeDWidget(0)->threeDView();
-    vtkRenderer* activeRenderer = app->layoutManager()->activeThreeDRenderer();
-    if (activeRenderer)
-      {
-      d->ScalarBarWidget->SetInteractor(activeRenderer->GetRenderWindow()->GetInteractor());
-      }
-    //connect(d->VTKScalarBar, SIGNAL(modified()), threeDView, SLOT(scheduleRender()));
-    }
-
-  // Handle scene change event if occurs
-  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 
   // Select the default color node
   d->setDefaultColorNode();
@@ -476,17 +435,6 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
   {
     modelNode->GetDisplayNode()->SetVisibility(visible);
   }
-}
-
-//------------------------------------------------------------------------------
-void qSlicerIsodoseModuleWidget::setScalarbarVisibility(bool visible)
-{
-  Q_D(qSlicerIsodoseModuleWidget);
-  //if (!d->MRMLDisplayNode.GetPointer())
-  //  {
-  //  return;
-  //  }
-  //d->MRMLDisplayNode->SetVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------

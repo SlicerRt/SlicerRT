@@ -68,7 +68,6 @@ protected slots:
   void outputHierarchyNodeChanged(vtkMRMLNode*);
   void setIsolineVisibility(bool);
   void setIsosurfaceVisibility(bool);
-  void setScalarbarVisibility(bool);
   void applyClicked();
 
   void onLogicModified();
