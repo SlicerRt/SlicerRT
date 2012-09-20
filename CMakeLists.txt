@@ -71,7 +71,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   #add_subdirectory(PlmSlicerBspline) # disable for now, loadable
   add_subdirectory(PlmSynth)
   add_subdirectory(PlmThreshbox)
-  add_subdirectory(PlmXfromwarp)
+  add_subdirectory(PlmXformwarp)
 endif()
 
 #-----------------------------------------------------------------------------
