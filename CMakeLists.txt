@@ -62,16 +62,16 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(ContourComparison)
   
   #add_subdirectory(PlmBspline) # requires Plastimatch registration
-  add_subdirectory(PlmDicomRtExport)
-  add_subdirectory(PlmDicomRtImport)
+#  add_subdirectory(PlmDicomRtExport) # requires OpenMP
+#  add_subdirectory(PlmDicomRtImport) # requires OpenMP
   add_subdirectory(PlmDoseComparison)
-  add_subdirectory(PlmDvh)
+#  add_subdirectory(PlmDvh)
   #add_subdirectory(PlmLandwarp) # requires Plastimatch registration
   #add_subdirectory(PlmMabs) # requires Plastimatch segmentation  
   #add_subdirectory(PlmSlicerBspline) # disable for now, loadable
-  add_subdirectory(PlmSynth)
+#  add_subdirectory(PlmSynth) # requires OpenMP
   add_subdirectory(PlmThreshbox)
-  add_subdirectory(PlmXfromwarp)  
+#  add_subdirectory(PlmXfromwarp) # requires OpenMP
 endif()
 
 #-----------------------------------------------------------------------------
