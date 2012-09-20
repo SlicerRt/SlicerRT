@@ -238,7 +238,7 @@ void qSlicerIsodoseModuleWidgetPrivate::setDefaultColorNode()
   const char *defaultID = this->logic()->GetDefaultLabelMapColorNodeID();
   vtkMRMLColorTableNode *defaultNode = vtkMRMLColorTableNode::SafeDownCast(
     q->mrmlScene()->GetNodeByID(defaultID));
-  this->MRMLColorTableView->setMRMLColorNode(defaultNode);
+  this->tableView_IsodoseLevels->setMRMLColorNode(defaultNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -332,9 +332,11 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
   {
     return;
   }
+
   const char *defaultID = d->logic()->GetDefaultLabelMapColorNodeID();
   vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(defaultID));
+
   colorTableNode->SetNumberOfColors(newNumber);
 }
 
@@ -357,8 +359,7 @@ void qSlicerIsodoseModuleWidget::outputHierarchyNodeChanged(vtkMRMLNode* node)
 //-----------------------------------------------------------------------------
 void qSlicerIsodoseModuleWidget::storeSelectedTableItemText(QTableWidgetItem* selectedItem, QTableWidgetItem* previousItem)
 {
-  Q_D(qSlicerIsodoseModuleWidget);
-
+  // Q_D(qSlicerIsodoseModuleWidget);
 }
 
 //-----------------------------------------------------------------------------
@@ -377,80 +378,6 @@ QString qSlicerIsodoseModuleWidget::generateNewIsodoseLevel() const
 }
 
 //-----------------------------------------------------------------------------
-//void qSlicerIsodoseModuleWidget::addClicked()
-//{
-//  Q_D(qSlicerIsodoseModuleWidget);
-//
-//  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
-//  if (!paramNode || !this->mrmlScene())
-//  {
-//    return;
-//  }
-//
-//  int wasModifying = paramNode->StartModify();
-//
-//  int rowCountBefore = d->tableWidget_DoseLevels->rowCount();
-//
-//  QString rowCountBeforeString = QString::number(rowCountBefore);
-//  d->tableWidget_DoseLevels->insertRow( rowCountBefore );
-//
-//  // Block signals so that onAttributeChanged function is not called when populating
-//  d->tableWidget_DoseLevels->blockSignals(true);
-//
-//  d->tableWidget_DoseLevels->setItem( rowCountBefore, 0, new QTableWidgetItem( rowCountBeforeString ) );
-//  d->tableWidget_DoseLevels->setItem( rowCountBefore, 1, new QTableWidgetItem( rowCountBeforeString ) );
-//
-//  // Unblock signals
-//  d->tableWidget_DoseLevels->blockSignals(false);
-//
-//  std::vector<DoseLevelStruct>* isodoseLevelVector = paramNode->GetIsodoseLevelVector();
-//  DoseLevelStruct tempLevel;
-//  tempLevel.DoseLevelName = std::string( rowCountBeforeString.toLatin1() );
-//  tempLevel.DoseLevelValue = rowCountBefore;
-//  (*isodoseLevelVector).push_back(tempLevel);
-//
-//  paramNode->Modified();
-//  paramNode->EndModify(wasModifying);
-//
-//  updateButtonsState();
-//}
-
-//-----------------------------------------------------------------------------
-//void qSlicerIsodoseModuleWidget::removeClicked()
-//{
-//  Q_D(qSlicerIsodoseModuleWidget);
-//
-//  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
-//  if (!paramNode || !this->mrmlScene())
-//  {
-//    return;
-//  }
-//
-//  // Extract selected row indices out of the selected table widget items list
-//  // (there may be more items selected in a row)
-//  QList<QTableWidgetItem*> selectedItems = d->tableWidget_DoseLevels->selectedItems();
-//  QSet<int> affectedRowNumbers;
-//  foreach (QTableWidgetItem* item, selectedItems)
-//  {
-//    affectedRowNumbers.insert(item->row());
-//  }
-//
-//  int wasModifying = paramNode->StartModify();
-//
-//  for (QSet<int>::iterator it = affectedRowNumbers.begin(); it != affectedRowNumbers.end(); ++it)
-//  {
-//    QString attributeNameToDelete( d->tableWidget_DoseLevels->item((*it), 0)->text() );
-//    d->tableWidget_DoseLevels->removeRow((*it));
-//    paramNode->GetIsodoseLevelVector()->erase( (*(paramNode->GetIsodoseLevelVector())).begin() + (*it) );
-//  }
-//
-//  paramNode->Modified();
-//  paramNode->EndModify(wasModifying);
-//
-//  updateButtonsState();
-//}
-
-////-----------------------------------------------------------------------------
 void qSlicerIsodoseModuleWidget::onTextEdited(QString changedString)
 {
   Q_D(qSlicerIsodoseModuleWidget);

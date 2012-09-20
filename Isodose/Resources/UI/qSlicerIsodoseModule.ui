@@ -533,7 +533,7 @@
        </widget>
       </item>
       <item row="3" column="0" colspan="3">
-       <widget class="qMRMLColorTableView" name="MRMLColorTableView">
+       <widget class="qMRMLColorTableView" name="tableView_IsodoseLevels">
         <attribute name="horizontalHeaderVisible">
          <bool>true</bool>
         </attribute>
