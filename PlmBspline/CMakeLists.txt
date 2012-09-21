@@ -18,6 +18,9 @@ set(MODULE_SRCS
 
 set(MODULE_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
+  plmbase
+  plmutil
+  plmregister
   )
 
 #-----------------------------------------------------------------------------
@@ -28,6 +31,12 @@ SEMMacroBuildCLI(
   ADDITIONAL_SRCS ${MODULE_SRCS}
   #EXECUTABLE_ONLY
   )
+
+# Set linker flags, needed for OpenMP
+if (NOT ${PLASTIMATCH_LDFLAGS} STREQUAL "")
+  set_target_properties (${MODULE_NAME}Lib
+    PROPERTIES LINK_FLAGS ${PLASTIMATCH_LDFLAGS})
+endif ()
 
 #-----------------------------------------------------------------------------
 if(BUILD_TESTING)
