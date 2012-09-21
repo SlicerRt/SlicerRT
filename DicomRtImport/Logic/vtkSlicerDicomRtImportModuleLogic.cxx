@@ -22,6 +22,7 @@ limitations under the License.
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
 
 // DCMTK includes
 #include <dcmtk/dcmdata/dcfilefo.h>
@@ -457,6 +458,7 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(double *r
   fiducialNode->SetName(roiLabel);
   fiducialNode->AddControlPoint(roiPosition, 0, 1);
   fiducialNode->SetLocked(1);
+  fiducialNode->SetVisible(0);
   this->GetMRMLScene()->AddNode(fiducialNode);
 
   fiducialNode->CreateAnnotationTextDisplayNode();
