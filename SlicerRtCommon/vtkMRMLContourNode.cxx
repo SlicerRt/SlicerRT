@@ -70,21 +70,21 @@ void vtkMRMLContourNode::WriteXML(ostream& of, int nIndent)
   vtkIndent indent(nIndent);
 
   if (this->RibbonModelNodeId != NULL) 
-  {
+    {
     of << indent << " RibbonModelNodeId=\"" << this->RibbonModelNodeId << "\"";
-  }
+    }
   if (this->IndexedLabelmapVolumeNodeId != NULL) 
-  {
+    {
     of << indent << " IndexedLabelmapVolumeNodeId=\"" << this->IndexedLabelmapVolumeNodeId << "\"";
-  }
+    }
   if (this->ClosedSurfaceModelNodeId != NULL) 
-  {
+    {
     of << indent << " ClosedSurfaceModelNodeId=\"" << this->ClosedSurfaceModelNodeId << "\"";
-  }
+    }
   if (this->BitfieldLabelmapVolumeNodeId != NULL) 
-  {
+    {
     of << indent << " BitfieldLabelmapVolumeNodeId=\"" << this->BitfieldLabelmapVolumeNodeId << "\"";
-  }
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -159,21 +159,21 @@ void vtkMRMLContourNode::UpdateReferences()
   Superclass::UpdateReferences();
 
   if (this->RibbonModelNodeId != NULL && this->Scene->GetNodeByID(this->RibbonModelNodeId) == NULL)
-  {
+    {
     this->SetRibbonModelNodeId(NULL);
-  }
+    }
   if (this->IndexedLabelmapVolumeNodeId != NULL && this->Scene->GetNodeByID(this->IndexedLabelmapVolumeNodeId) == NULL)
-  {
+    {
     this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
-  }
+    }
   if (this->ClosedSurfaceModelNodeId != NULL && this->Scene->GetNodeByID(this->ClosedSurfaceModelNodeId) == NULL)
-  {
+    {
     this->SetAndObserveClosedSurfaceModelNodeId(NULL);
-  }
+    }
   if (this->BitfieldLabelmapVolumeNodeId != NULL && this->Scene->GetNodeByID(this->BitfieldLabelmapVolumeNodeId) == NULL)
-  {
+    {
     this->SetAndObserveBitfieldLabelmapVolumeNodeId(NULL);
-  }
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -182,21 +182,21 @@ void vtkMRMLContourNode::UpdateReferenceID(const char *oldID, const char *newID)
   Superclass::UpdateReferenceID(oldID, newID);
 
   if (this->RibbonModelNodeId && !strcmp(oldID, this->RibbonModelNodeId))
-  {
+    {
     this->SetAndObserveRibbonModelNodeId(newID);
-  }
+    }
   if (this->IndexedLabelmapVolumeNodeId && !strcmp(oldID, this->IndexedLabelmapVolumeNodeId))
-  {
+    {
     this->SetAndObserveIndexedLabelmapVolumeNodeId(newID);
-  }
+    }
   if (this->ClosedSurfaceModelNodeId && !strcmp(oldID, this->ClosedSurfaceModelNodeId))
-  {
+    {
     this->SetAndObserveClosedSurfaceModelNodeId(newID);
-  }
+    }
   if (this->BitfieldLabelmapVolumeNodeId && !strcmp(oldID, this->BitfieldLabelmapVolumeNodeId))
-  {
+    {
     this->SetAndObserveBitfieldLabelmapVolumeNodeId(newID);
-  }
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -228,10 +228,18 @@ void vtkMRMLContourNode::SetAndObserveRibbonModelNodeId(const char *nodeID)
   this->SetRibbonModelNodeId(nodeID);
   vtkMRMLModelNode *tnode = this->GetRibbonModelNode();
 
-  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  vtkSetAndObserveMRMLObjectEventsMacro(this->RibbonModelNode, tnode, events);
+  if (tnode)
+    {
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    vtkSetAndObserveMRMLObjectEventsMacro(this->RibbonModelNode, tnode, events);
+    }
+  else
+    {
+    vtkErrorMacro("Failed to set RibbonModel node ID!");
+    this->SetRibbonModelNodeId(NULL);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -239,10 +247,11 @@ vtkMRMLModelNode* vtkMRMLContourNode::GetRibbonModelNode()
 {
   vtkMRMLModelNode* node = NULL;
   if (this->GetScene() && this->RibbonModelNodeId != NULL )
-  {
+    {
     vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->RibbonModelNodeId);
     node = vtkMRMLModelNode::SafeDownCast(snode);
-  }
+    }
+
   return node;
 }
 
@@ -253,10 +262,18 @@ void vtkMRMLContourNode::SetAndObserveIndexedLabelmapVolumeNodeId(const char *no
   this->SetIndexedLabelmapVolumeNodeId(nodeID);
   vtkMRMLScalarVolumeNode *tnode = this->GetIndexedLabelmapVolumeNode();
 
-  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  vtkSetAndObserveMRMLObjectEventsMacro(this->IndexedLabelmapVolumeNode, tnode, events);
+  if (tnode)
+    {
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    vtkSetAndObserveMRMLObjectEventsMacro(this->IndexedLabelmapVolumeNode, tnode, events);
+    }
+  else
+    {
+    vtkErrorMacro("Failed to set IndexedLabelmap node ID!");
+    this->SetIndexedLabelmapVolumeNodeId(NULL);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -264,10 +281,10 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetIndexedLabelmapVolumeNode()
 {
   vtkMRMLScalarVolumeNode* node = NULL;
   if (this->GetScene() && this->IndexedLabelmapVolumeNodeId != NULL )
-  {
+    {
     vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->IndexedLabelmapVolumeNodeId);
     node = vtkMRMLScalarVolumeNode::SafeDownCast(snode);
-  }
+    }
   return node;
 }
 
@@ -278,10 +295,18 @@ void vtkMRMLContourNode::SetAndObserveClosedSurfaceModelNodeId(const char *nodeI
   this->SetClosedSurfaceModelNodeId(nodeID);
   vtkMRMLModelNode *tnode = this->GetClosedSurfaceModelNode();
 
-  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  vtkSetAndObserveMRMLObjectEventsMacro(this->ClosedSurfaceModelNode, tnode, events);
+  if (tnode)
+    {
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    vtkSetAndObserveMRMLObjectEventsMacro(this->ClosedSurfaceModelNode, tnode, events);
+    }
+  else
+    {
+    vtkErrorMacro("Failed to set ClosedSurface node ID!");
+    this->SetClosedSurfaceModelNodeId(NULL);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -289,10 +314,10 @@ vtkMRMLModelNode* vtkMRMLContourNode::GetClosedSurfaceModelNode()
 {
   vtkMRMLModelNode* node = NULL;
   if (this->GetScene() && this->ClosedSurfaceModelNodeId != NULL )
-  {
+    {
     vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->ClosedSurfaceModelNodeId);
     node = vtkMRMLModelNode::SafeDownCast(snode);
-  }
+    }
   return node;
 }
 
@@ -303,10 +328,18 @@ void vtkMRMLContourNode::SetAndObserveBitfieldLabelmapVolumeNodeId(const char *n
   this->SetBitfieldLabelmapVolumeNodeId(nodeID);
   vtkMRMLScalarVolumeNode *tnode = this->GetBitfieldLabelmapVolumeNode();
 
-  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  vtkSetAndObserveMRMLObjectEventsMacro(this->BitfieldLabelmapVolumeNode, tnode, events);
+  if (tnode)
+    {
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    vtkSetAndObserveMRMLObjectEventsMacro(this->BitfieldLabelmapVolumeNode, tnode, events);
+    }
+  else
+    {
+    vtkErrorMacro("Failed to set BitfieldLabelmap node ID!");
+    this->SetBitfieldLabelmapVolumeNodeId(NULL);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -314,9 +347,69 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetBitfieldLabelmapVolumeNode()
 {
   vtkMRMLScalarVolumeNode* node = NULL;
   if (this->GetScene() && this->BitfieldLabelmapVolumeNodeId != NULL )
-  {
+    {
     vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->BitfieldLabelmapVolumeNodeId);
     node = vtkMRMLScalarVolumeNode::SafeDownCast(snode);
-  }
+    }
   return node;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetDefaultRepresentationByObject(vtkMRMLDisplayableNode *node)
+{
+  vtkMRMLScene* mrmlScene = this->GetScene();
+  if (!node || !mrmlScene)
+    {
+    return;
+    }
+
+  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
+
+  vtkMRMLModelNode* ribbonModelNode = this->GetRibbonModelNode();
+  if (ribbonModelNode)
+    {
+    ribbonModelNode->HideFromEditorsOn();
+    }
+  vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode = this->GetIndexedLabelmapVolumeNode();
+  if (indexedLabelmapVolumeNode)
+    {
+    indexedLabelmapVolumeNode->HideFromEditorsOn();
+    }
+  vtkMRMLModelNode* closedSurfaceModelNode = this->GetClosedSurfaceModelNode();
+  if (closedSurfaceModelNode)
+    {
+    closedSurfaceModelNode->HideFromEditorsOn();
+    }
+  vtkMRMLScalarVolumeNode* bitfieldLabelmapVolumeNode = this->GetBitfieldLabelmapVolumeNode();
+  if (bitfieldLabelmapVolumeNode)
+    {
+    bitfieldLabelmapVolumeNode->HideFromEditorsOn();
+    }
+
+  if (this->RibbonModelNodeId
+      && !strcmp(this->RibbonModelNodeId, node->GetID()))
+    {
+    ribbonModelNode->HideFromEditorsOff();
+    }
+  else if (this->IndexedLabelmapVolumeNodeId
+      && !strcmp(this->IndexedLabelmapVolumeNodeId, node->GetID()))
+    {
+    indexedLabelmapVolumeNode->HideFromEditorsOff();
+    }
+  else if (this->ClosedSurfaceModelNodeId
+      && !strcmp(this->ClosedSurfaceModelNodeId, node->GetID()))
+    {
+    closedSurfaceModelNode->HideFromEditorsOff();
+    }
+  else if (this->BitfieldLabelmapVolumeNodeId
+      && !strcmp(this->BitfieldLabelmapVolumeNodeId, node->GetID()))
+    {
+    bitfieldLabelmapVolumeNode->HideFromEditorsOff();
+    }
+  else
+    {
+      vtkWarningMacro("Failed to set default representation: given node is not one of the referenced representations!");
+    }
+
+  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
 }

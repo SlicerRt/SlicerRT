@@ -32,6 +32,7 @@ find_library( DCMTK_dcmrt_LIBRARY dcmrt
 )   
  
 set(${KIT}_TARGET_LIBRARIES
+  vtkSlicerRtCommon
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   ${DCMTK_LIBRARIES}

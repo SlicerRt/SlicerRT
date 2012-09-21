@@ -14,6 +14,9 @@ namespace SlicerRtCommon
 
   const std::string DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX = " - Color table";
   const std::string DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX = " - All structures";
+  const std::string DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX = " - Contour";
+  const std::string DICOMRTIMPORT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX = " - All contours";
+  const std::string DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX = " - Isocenters";
 
   // DoseVolumeHistogram constants
   const std::string DVH_ATTRIBUTE_PREFIX = "DoseVolumeHistogram.";

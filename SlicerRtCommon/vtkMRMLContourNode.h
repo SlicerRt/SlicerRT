@@ -27,6 +27,9 @@
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
 
+// SlicerRtCommon includes
+//#include "vtkSlicerRtCommonWin32Header.h"
+
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 
@@ -61,6 +64,10 @@ public:
   /// Updates this node if it depends on other nodes 
   /// when the node is deleted in the scene
   void UpdateReferences();
+
+public:
+  /// Set default representation by the object instance
+  void SetDefaultRepresentationByObject(vtkMRMLDisplayableNode *node);
 
 public:
   /// Get ribbon model node ID
@@ -109,7 +116,6 @@ protected:
   ~vtkMRMLContourNode();
   vtkMRMLContourNode(const vtkMRMLContourNode&);
   void operator=(const vtkMRMLContourNode&);
-
 protected:
   /// Ribbon representation
   vtkMRMLModelNode* RibbonModelNode;
