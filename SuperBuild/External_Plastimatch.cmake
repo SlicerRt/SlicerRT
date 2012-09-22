@@ -2,6 +2,26 @@
 # External projects
 #-----------------------------------------------------------------------------
 
+if (PLASTIMATCH_DIR)
+  # Plastimatch is built already, so just use that
+  set(SLICERRT_PLASTIMATCH_DIR ${PLASTIMATCH_DIR} CACHE INTERNAL "Path to store Plastimatch binaries.")
+  message(STATUS "Use Plastimatch library at ${SLICERRT_PLASTIMATCH_DIR}")  
+  # Define a "empty" project in case an external one is provided
+  # Doing so allows to keep the external project dependency system happy.
+  ExternalProject_Add(Plastimatch
+    SOURCE_DIR ${CMAKE_BINARY_DIR}/PlastimatchSurrogate
+    BINARY_DIR PlastimatchSurrogate-build
+    DOWNLOAD_COMMAND ""
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+    DEPENDS ""
+    )
+  return()
+endif ()
+
+# Download and build Plastimatch
+
 SET (DCMTK_DIR "${Slicer_DIR}/../DCMTK-install")
 SET (SLICERRT_PLASTIMATCH_SOURCE_DIR "${CMAKE_BINARY_DIR}/Plastimatch" CACHE INTERNAL "Path to store Plastimatch sources.")
 SET (SLICERRT_PLASTIMATCH_DIR "${CMAKE_BINARY_DIR}/Plastimatch-build" CACHE INTERNAL "Path to store Plastimatch binaries.")
