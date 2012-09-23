@@ -62,10 +62,10 @@ public:
   void SetAndObserveDoseVolumeNodeId(const char* id);
 
   /// Get structure set node ID
-  vtkGetStringMacro(StructureSetModelNodeId);
+  vtkGetStringMacro(StructureSetContourNodeId);
 
   /// Set and observe structure set node ID
-  void SetAndObserveStructureSetModelNodeId(const char* id);
+  void SetAndObserveStructureSetContourNodeId(const char* id);
 
   /// Get chart node ID
   vtkGetStringMacro(ChartNodeId);
@@ -117,9 +117,9 @@ public:
   vtkBooleanMacro(ShowDMetrics, bool);
 
   /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(SaveLabelmaps, bool);
-  vtkSetMacro(SaveLabelmaps, bool);
-  vtkBooleanMacro(SaveLabelmaps, bool);
+  //vtkGetMacro(SaveLabelmaps, bool);
+  //vtkSetMacro(SaveLabelmaps, bool);
+  //vtkBooleanMacro(SaveLabelmaps, bool);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
@@ -129,7 +129,7 @@ protected:
   vtkSetStringMacro(DoseVolumeNodeId);
 
   /// Set structure set node ID
-  vtkSetStringMacro(StructureSetModelNodeId);
+  vtkSetStringMacro(StructureSetContourNodeId);
 
   /// Set chart node ID
   vtkSetStringMacro(ChartNodeId);
@@ -145,7 +145,7 @@ protected:
   char* DoseVolumeNodeId;
 
   /// Selected structure set MRML node object ID. Can be model node or model hierarchy node
-  char* StructureSetModelNodeId;
+  char* StructureSetContourNodeId;
 
   /// Selected chart MRML node object ID
   char* ChartNodeId;
@@ -179,7 +179,7 @@ protected:
   bool ShowDMetrics;
 
   /// State of Add labelmaps created from structure models to the scene checkbox
-  bool SaveLabelmaps;
+  //bool SaveLabelmaps;
 };
 
 #endif

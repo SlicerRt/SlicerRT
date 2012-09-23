@@ -49,6 +49,10 @@ vtkMRMLContourNode::vtkMRMLContourNode()
   this->BitfieldLabelmapVolumeNode = NULL;
   this->BitfieldLabelmapVolumeNodeId = NULL;
 
+  this->RasterizationReferenceVolumeNodeId = NULL;
+
+  this->RasterizationDownsamplingFactor = 2.0;
+
   this->HideFromEditorsOff();
 }
 
@@ -59,6 +63,7 @@ vtkMRMLContourNode::~vtkMRMLContourNode()
   this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
   this->SetAndObserveClosedSurfaceModelNodeId(NULL);
   this->SetAndObserveBitfieldLabelmapVolumeNodeId(NULL);
+  this->SetRasterizationReferenceVolumeNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -84,6 +89,10 @@ void vtkMRMLContourNode::WriteXML(ostream& of, int nIndent)
   if (this->BitfieldLabelmapVolumeNodeId != NULL) 
     {
     of << indent << " BitfieldLabelmapVolumeNodeId=\"" << this->BitfieldLabelmapVolumeNodeId << "\"";
+    }
+  if (this->RasterizationReferenceVolumeNodeId != NULL) 
+    {
+    of << indent << " RasterizationReferenceVolumeNodeId=\"" << this->RasterizationReferenceVolumeNodeId << "\"";
     }
 }
 
@@ -123,6 +132,10 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
       this->SetAndObserveBitfieldLabelmapVolumeNodeId(NULL);
       this->SetBitfieldLabelmapVolumeNodeId(attValue);
       }
+    else if (!strcmp(attName, "RasterizationReferenceVolumeNodeId")) 
+      {
+      this->SetAndObserveRasterizationReferenceVolumeNodeId(attValue);
+      }
     }
 }
 
@@ -149,6 +162,8 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
   this->SetAndObserveBitfieldLabelmapVolumeNodeId( NULL );
   this->SetBitfieldLabelmapVolumeNodeId( node->BitfieldLabelmapVolumeNodeId );
 
+  this->SetAndObserveRasterizationReferenceVolumeNodeId( node->RasterizationReferenceVolumeNodeId );
+
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
 }
@@ -174,6 +189,10 @@ void vtkMRMLContourNode::UpdateReferences()
     {
     this->SetAndObserveBitfieldLabelmapVolumeNodeId(NULL);
     }
+  if (this->RasterizationReferenceVolumeNodeId != NULL && this->Scene->GetNodeByID(this->RasterizationReferenceVolumeNodeId) == NULL)
+    {
+    this->SetAndObserveRasterizationReferenceVolumeNodeId(NULL);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -197,6 +216,10 @@ void vtkMRMLContourNode::UpdateReferenceID(const char *oldID, const char *newID)
     {
     this->SetAndObserveBitfieldLabelmapVolumeNodeId(newID);
     }
+  if (this->RasterizationReferenceVolumeNodeId && !strcmp(oldID, this->RasterizationReferenceVolumeNodeId))
+    {
+    this->SetAndObserveRasterizationReferenceVolumeNodeId(newID);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -208,6 +231,7 @@ void vtkMRMLContourNode::UpdateScene(vtkMRMLScene *scene)
   this->SetAndObserveIndexedLabelmapVolumeNodeId(this->IndexedLabelmapVolumeNodeId);
   this->SetAndObserveClosedSurfaceModelNodeId(this->ClosedSurfaceModelNodeId);
   this->SetAndObserveBitfieldLabelmapVolumeNodeId(this->BitfieldLabelmapVolumeNodeId);
+  this->SetAndObserveRasterizationReferenceVolumeNodeId(this->RasterizationReferenceVolumeNodeId);
 }
 
 //----------------------------------------------------------------------------
@@ -219,6 +243,7 @@ void vtkMRMLContourNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "IndexedLabelmapVolumeNodeId:   " << this->IndexedLabelmapVolumeNodeId << "\n";
   os << indent << "ClosedSurfaceModelNodeId:   " << this->ClosedSurfaceModelNodeId << "\n";
   os << indent << "BitfieldLabelmapVolumeNodeId:   " << this->BitfieldLabelmapVolumeNodeId << "\n";
+  os << indent << "RasterizationReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -226,12 +251,16 @@ void vtkMRMLContourNode::SetAndObserveRibbonModelNodeId(const char *nodeID)
 {
   vtkSetAndObserveMRMLObjectMacro(this->RibbonModelNode, NULL);
   this->SetRibbonModelNodeId(nodeID);
-  vtkMRMLModelNode *tnode = this->GetRibbonModelNode();
+  if (!nodeID)
+    {
+    return;
+    }
 
+  vtkMRMLModelNode *tnode = this->GetRibbonModelNode();
   if (tnode)
     {
+    tnode->HideFromEditorsOn();
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     vtkSetAndObserveMRMLObjectEventsMacro(this->RibbonModelNode, tnode, events);
     }
@@ -246,9 +275,9 @@ void vtkMRMLContourNode::SetAndObserveRibbonModelNodeId(const char *nodeID)
 vtkMRMLModelNode* vtkMRMLContourNode::GetRibbonModelNode()
 {
   vtkMRMLModelNode* node = NULL;
-  if (this->GetScene() && this->RibbonModelNodeId != NULL )
+  if (this->Scene && this->RibbonModelNodeId != NULL )
     {
-    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->RibbonModelNodeId);
+    vtkMRMLNode* snode = this->Scene->GetNodeByID(this->RibbonModelNodeId);
     node = vtkMRMLModelNode::SafeDownCast(snode);
     }
 
@@ -260,12 +289,16 @@ void vtkMRMLContourNode::SetAndObserveIndexedLabelmapVolumeNodeId(const char *no
 {
   vtkSetAndObserveMRMLObjectMacro(this->IndexedLabelmapVolumeNode, NULL);
   this->SetIndexedLabelmapVolumeNodeId(nodeID);
-  vtkMRMLScalarVolumeNode *tnode = this->GetIndexedLabelmapVolumeNode();
+  if (!nodeID)
+    {
+    return;
+    }
 
+  vtkMRMLScalarVolumeNode *tnode = this->GetIndexedLabelmapVolumeNode();
   if (tnode)
     {
+    tnode->HideFromEditorsOn();
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     vtkSetAndObserveMRMLObjectEventsMacro(this->IndexedLabelmapVolumeNode, tnode, events);
     }
@@ -280,10 +313,18 @@ void vtkMRMLContourNode::SetAndObserveIndexedLabelmapVolumeNodeId(const char *no
 vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetIndexedLabelmapVolumeNode()
 {
   vtkMRMLScalarVolumeNode* node = NULL;
-  if (this->GetScene() && this->IndexedLabelmapVolumeNodeId != NULL )
+  if (!this->Scene)
     {
-    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->IndexedLabelmapVolumeNodeId);
+    return node;
+    }
+  else if (this->IndexedLabelmapVolumeNodeId != NULL )
+    {
+    vtkMRMLNode* snode = this->Scene->GetNodeByID(this->IndexedLabelmapVolumeNodeId);
     node = vtkMRMLScalarVolumeNode::SafeDownCast(snode);
+    }
+  else if (this->RasterizationReferenceVolumeNodeId != NULL)
+    {
+    node = CreateIndexedLabelmap();
     }
   return node;
 }
@@ -293,12 +334,16 @@ void vtkMRMLContourNode::SetAndObserveClosedSurfaceModelNodeId(const char *nodeI
 {
   vtkSetAndObserveMRMLObjectMacro(this->ClosedSurfaceModelNode, NULL);
   this->SetClosedSurfaceModelNodeId(nodeID);
-  vtkMRMLModelNode *tnode = this->GetClosedSurfaceModelNode();
+  if (!nodeID)
+    {
+    return;
+    }
 
+  vtkMRMLModelNode *tnode = this->GetClosedSurfaceModelNode();
   if (tnode)
     {
+    tnode->HideFromEditorsOn();
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     vtkSetAndObserveMRMLObjectEventsMacro(this->ClosedSurfaceModelNode, tnode, events);
     }
@@ -313,9 +358,9 @@ void vtkMRMLContourNode::SetAndObserveClosedSurfaceModelNodeId(const char *nodeI
 vtkMRMLModelNode* vtkMRMLContourNode::GetClosedSurfaceModelNode()
 {
   vtkMRMLModelNode* node = NULL;
-  if (this->GetScene() && this->ClosedSurfaceModelNodeId != NULL )
+  if (this->Scene && this->ClosedSurfaceModelNodeId != NULL )
     {
-    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->ClosedSurfaceModelNodeId);
+    vtkMRMLNode* snode = this->Scene->GetNodeByID(this->ClosedSurfaceModelNodeId);
     node = vtkMRMLModelNode::SafeDownCast(snode);
     }
   return node;
@@ -326,12 +371,16 @@ void vtkMRMLContourNode::SetAndObserveBitfieldLabelmapVolumeNodeId(const char *n
 {
   vtkSetAndObserveMRMLObjectMacro(this->BitfieldLabelmapVolumeNode, NULL);
   this->SetBitfieldLabelmapVolumeNodeId(nodeID);
-  vtkMRMLScalarVolumeNode *tnode = this->GetBitfieldLabelmapVolumeNode();
+  if (!nodeID)
+    {
+    return;
+    }
 
+  vtkMRMLScalarVolumeNode *tnode = this->GetBitfieldLabelmapVolumeNode();
   if (tnode)
     {
+    tnode->HideFromEditorsOn();
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     vtkSetAndObserveMRMLObjectEventsMacro(this->BitfieldLabelmapVolumeNode, tnode, events);
     }
@@ -346,18 +395,34 @@ void vtkMRMLContourNode::SetAndObserveBitfieldLabelmapVolumeNodeId(const char *n
 vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetBitfieldLabelmapVolumeNode()
 {
   vtkMRMLScalarVolumeNode* node = NULL;
-  if (this->GetScene() && this->BitfieldLabelmapVolumeNodeId != NULL )
+  if (this->Scene && this->BitfieldLabelmapVolumeNodeId != NULL )
     {
-    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->BitfieldLabelmapVolumeNodeId);
+    vtkMRMLNode* snode = this->Scene->GetNodeByID(this->BitfieldLabelmapVolumeNodeId);
     node = vtkMRMLScalarVolumeNode::SafeDownCast(snode);
     }
   return node;
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourNode::SetDefaultRepresentationByObject(vtkMRMLDisplayableNode *node)
+void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const char* id)
 {
-  vtkMRMLScene* mrmlScene = this->GetScene();
+  if (this->RasterizationReferenceVolumeNodeId && this->Scene)
+  {
+    this->Scene->RemoveReferencedNodeID(this->RasterizationReferenceVolumeNodeId, this);
+  }
+
+  this->SetRasterizationReferenceVolumeNodeId(id);
+
+  if (id && this->Scene)
+  {
+    this->Scene->AddReferencedNodeID(this->RasterizationReferenceVolumeNodeId, this);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetActiveRepresentationByObject(vtkMRMLDisplayableNode *node)
+{
+  vtkMRMLScene* mrmlScene = this->Scene;
   if (!node || !mrmlScene)
     {
     return;
@@ -412,4 +477,11 @@ void vtkMRMLContourNode::SetDefaultRepresentationByObject(vtkMRMLDisplayableNode
     }
 
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkMRMLContourNode::CreateIndexedLabelmap()
+{
+  //TODO: Implement (call poly data to labelmap filter)
+  return NULL;
 }

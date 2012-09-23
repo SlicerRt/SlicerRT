@@ -23,6 +23,7 @@ limitations under the License.
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
+#include "vtkMRMLContourHierarchyNode.h"
 
 // DCMTK includes
 #include <dcmtk/dcmdata/dcfilefo.h>
@@ -248,7 +249,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
   // Hierarchy node for the loaded structure sets
   // It is not created here yet because maybe there won't be anything to put in it.
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode;
-  vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyRootNode;    
+  vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyRootNode;    
   vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterHierarchyRootNode;    
 
   // RTSTRUCT
@@ -311,9 +312,9 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
           // Create root contour hierarchy node, if it has not been created yet
           if (contourHierarchyRootNode.GetPointer()==NULL)
           {
-            contourHierarchyRootNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
+            contourHierarchyRootNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
             std::string hierarchyNodeName;
-            hierarchyNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX;
+            hierarchyNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX;
             contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
             contourHierarchyRootNode->AllowMultipleChildrenOn();
             contourHierarchyRootNode->HideFromEditorsOff();
@@ -326,14 +327,14 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
           contourNodeName = std::string(roiLabel) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
           contourNode->SetName(contourNodeName.c_str());
           contourNode->SetAndObserveRibbonModelNodeId(addedDisplayableNode->GetID());
-          contourNode->SetDefaultRepresentationByObject(addedDisplayableNode);
+          contourNode->SetActiveRepresentationByObject(addedDisplayableNode);
           contourNode->HideFromEditorsOff();
 
           // Put the contour node in the hierarchy
-          vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
+          vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
           this->GetMRMLScene()->AddNode(contourHierarchyNode);
           contourHierarchyNode->SetParentNodeID( contourHierarchyRootNode->GetID() );
-          contourHierarchyNode->SetDisplayableNodeID( addedDisplayableNode->GetID() );
+          contourHierarchyNode->SetDisplayableNodeID( contourNode->GetID() );
         }
       }
 
@@ -440,7 +441,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
     for (int dicomBeamIndex = 1; dicomBeamIndex < numberOfBeams+1; dicomBeamIndex++) // DICOM starts indexing from 1
     {
       // Isocenter fiducial
-      double isoColor[3] = { 1.0,1.0,1.0};
+      double isoColor[3] = { 1.0, 1.0, 1.0 };
       addedDisplayableNode= this->AddRoiPoint(rtReader->GetBeamIsocenterPosition(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
        // Add new node to the hierarchy node
       if (addedDisplayableNode)

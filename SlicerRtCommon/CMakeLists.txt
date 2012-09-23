@@ -8,6 +8,8 @@ SET (SlicerRtCommon_SRCS
   SlicerRtCommon.h
   vtkMRMLContourNode.cxx
   vtkMRMLContourNode.h
+  vtkMRMLContourHierarchyNode.cxx
+  vtkMRMLContourHierarchyNode.h
   vtkPolyDataToLabelmapFilter.cxx
   vtkPolyDataToLabelmapFilter.h
   )

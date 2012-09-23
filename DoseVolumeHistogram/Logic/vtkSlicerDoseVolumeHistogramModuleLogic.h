@@ -34,8 +34,6 @@
 // VTK includes
 #include "vtkImageAccumulate.h"
 
-// MRML includes
-
 // STD includes
 #include <cstdlib>
 #include <set>
@@ -44,6 +42,7 @@
 
 class vtkMRMLDoubleArrayNode;
 class vtkMRMLScalarVolumeNode;
+class vtkMRMLContourNode;
 class vtkMRMLModelNode;
 class vtkMRMLChartViewNode;
 class vtkMRMLDoseVolumeHistogramNode;
@@ -131,9 +130,6 @@ public:
   vtkSetMacro(LogSpeedMeasurements, bool);
   vtkBooleanMacro(LogSpeedMeasurements, bool);
 
-  vtkGetMacro(RasterizationMagnificationFactor, double);
-  vtkSetMacro(RasterizationMagnificationFactor, double);
-
 protected:
   vtkSlicerDoseVolumeHistogramModuleLogic();
   virtual ~vtkSlicerDoseVolumeHistogramModuleLogic();
@@ -153,13 +149,13 @@ protected:
   void ComputeDvh(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, vtkMRMLModelNode* structureModelNode);
 
   /// Get stenciled dose volume for a structure (ROI)
-  virtual void GetStenciledDoseVolumeForStructure(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, vtkMRMLModelNode* structureModel);
+  virtual void GetStenciledDoseVolumeForContour(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, vtkMRMLContourNode* structureContourNode);
 
   /// Return the chart view node object from the layout
   vtkMRMLChartViewNode* GetChartViewNode();
 
-  /// Get selected structure model nodes (expands a hierarchy node if found)
-  void GetSelectedStructureModelNodes(std::vector<vtkMRMLModelNode*> &structureModelNodes);
+  /// Get selected contour nodes (expands a hierarchy node if found)
+  void GetSelectedContourNodes(std::vector<vtkMRMLContourNode*> &contourNodes);
 
 private:
   vtkSlicerDoseVolumeHistogramModuleLogic(const vtkSlicerDoseVolumeHistogramModuleLogic&); // Not implemented
@@ -180,9 +176,6 @@ protected:
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
-
-  /// Magnification factor for contour polydata to labelmap conversion (rasterization)
-  double RasterizationMagnificationFactor;
 };
 
 #endif

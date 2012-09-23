@@ -27,9 +27,6 @@
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
 
-// SlicerRtCommon includes
-//#include "vtkSlicerRtCommonWin32Header.h"
-
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 
@@ -67,7 +64,7 @@ public:
 
 public:
   /// Set default representation by the object instance
-  void SetDefaultRepresentationByObject(vtkMRMLDisplayableNode *node);
+  void SetActiveRepresentationByObject(vtkMRMLDisplayableNode *node);
 
 public:
   /// Get ribbon model node ID
@@ -98,6 +95,20 @@ public:
   /// Set and observe bitfield labelmap volume node
   void SetAndObserveBitfieldLabelmapVolumeNodeId(const char *nodeID);
 
+  /// Get rasterization reference volume node ID
+  vtkGetStringMacro(RasterizationReferenceVolumeNodeId);
+  /// Set and observe rasterization reference volume node ID
+  void SetAndObserveRasterizationReferenceVolumeNodeId(const char* id);
+
+  /// Get rasterization downsampling factor
+  vtkGetMacro(RasterizationDownsamplingFactor, double);
+  /// Set rasterization downsampling factor
+  vtkSetMacro(RasterizationDownsamplingFactor, double);
+
+protected:
+  /// Convert available model representation to indexed labelmap
+  vtkMRMLScalarVolumeNode* CreateIndexedLabelmap();
+
 protected:
   /// Set ribbon model node ID
   vtkSetReferenceStringMacro(RibbonModelNodeId);
@@ -111,27 +122,41 @@ protected:
   /// Set bitfield labelmap volume node ID
   vtkSetReferenceStringMacro(BitfieldLabelmapVolumeNodeId);
 
+  /// Set rasterization reference volume node ID
+  vtkSetStringMacro(RasterizationReferenceVolumeNodeId);
+
 protected:
   vtkMRMLContourNode();
   ~vtkMRMLContourNode();
   vtkMRMLContourNode(const vtkMRMLContourNode&);
   void operator=(const vtkMRMLContourNode&);
+
 protected:
   /// Ribbon representation
   vtkMRMLModelNode* RibbonModelNode;
+  /// Ribbon representation model node ID
   char *RibbonModelNodeId;
 
   /// Indexed labelmap representation
   vtkMRMLScalarVolumeNode* IndexedLabelmapVolumeNode;
+  /// Indexed labelmap representation volume node ID
   char *IndexedLabelmapVolumeNodeId;
 
   /// Closed surface model representation
   vtkMRMLModelNode* ClosedSurfaceModelNode;
+  /// Closed surface model representation model node ID
   char *ClosedSurfaceModelNodeId;
 
   /// Bitfield labelmap volume representation
   vtkMRMLScalarVolumeNode* BitfieldLabelmapVolumeNode;
+  /// Bitfield labelmap volume representation volume node ID
   char *BitfieldLabelmapVolumeNodeId;
+
+  /// Rasterization reference volume node ID. This node is used when converting from model to labelmap
+  char* RasterizationReferenceVolumeNodeId;
+
+  /// Downsampling factor for contour polydata to labelmap conversion (rasterization)
+  double RasterizationDownsamplingFactor;
 };
 
 #endif // __vtkMRMLContourNode_h

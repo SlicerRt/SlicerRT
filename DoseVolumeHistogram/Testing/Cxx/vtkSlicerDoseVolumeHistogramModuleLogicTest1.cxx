@@ -25,6 +25,8 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
+#include "vtkMRMLContourHierarchyNode.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -240,13 +242,13 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
     }
   }
-  double rasterizationMagnificationFactor = 2.0;
+  double rasterizationDownsamplingFactor = 2.0;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex+1], "-RasterizationMagnificationFactor") == 0)
+    if (STRCASECMP(argv[argIndex+1], "-rasterizationDownsamplingFactor") == 0)
     {
-      rasterizationMagnificationFactor = atof(argv[argIndex+1]);
-      std::cout << "Rasterization magnification factor: " << rasterizationMagnificationFactor << std::endl;
+      rasterizationDownsamplingFactor = atof(argv[argIndex+1]);
+      std::cout << "Rasterization magnification factor: " << rasterizationDownsamplingFactor << std::endl;
       argIndex += 2;
     }
   }
@@ -335,25 +337,14 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   doseStat->Update();
   double maxDose = doseStat->GetMax()[0];
 
-  // Create model hierarchy root node
-  std::string hierarchyNodeName = "All structures";
-  vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode =
-    vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();  
-  modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
-  modelHierarchyRootNode->AllowMultipleChildrenOn();
-  modelHierarchyRootNode->HideFromEditorsOff();
-  mrmlScene->AddNode(modelHierarchyRootNode);
+  // Create contour hierarchy root node
+  vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyRootNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
+  std::string hierarchyNodeName = "All contours";
+  contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+  contourHierarchyRootNode->AllowMultipleChildrenOn();
+  contourHierarchyRootNode->HideFromEditorsOff();
+  mrmlScene->AddNode(contourHierarchyRootNode);
   //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
-
-  // A hierarchy node needs a display node
-  vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode =
-    vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  std::string displayhierarchyNodeName = hierarchyNodeName + " - Display";
-  modelDisplayNode->SetName(displayhierarchyNodeName.c_str());
-  modelDisplayNode->SetVisibility(1);
-  mrmlScene->AddNode(modelDisplayNode);
-  modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
-  //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode) TODO: uncomment these and try if they work after the node in question is fully set
 
   // Load models and create nodes
   std::string structureNamesFileName = std::string(dataDirectoryPath) + "/Structure.names";
@@ -407,6 +398,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode)
     displayNode->SliceIntersectionVisibilityOn();
     displayNode->VisibilityOn();
+    displayNode->SetColor(1.0, 0.0, 0.0);
 
     // Create model node
     vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
@@ -418,13 +410,23 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     modelNode->SetHideFromEditors(0);
     modelNode->SetSelectable(1);
 
-    // Create model hierarchy node
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode =
-      vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    mrmlScene->AddNode(modelHierarchyNode);
-    //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
-    modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
-    modelHierarchyNode->SetModelNodeID( modelNode->GetID() );
+    // Create contour node
+    vtkSmartPointer<vtkMRMLContourNode> contourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+    contourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->AddNode(contourNode));
+    //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLContourNode, contourNode)
+    std::string contourNodeName = (*it) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
+    contourNode->SetName(contourNodeName.c_str());
+    contourNode->SetAndObserveRibbonModelNodeId(modelNode->GetID());
+    contourNode->SetActiveRepresentationByObject(modelNode);
+    contourNode->SetRasterizationDownsamplingFactor(rasterizationDownsamplingFactor);
+    contourNode->HideFromEditorsOff();
+
+    // Put the contour node in the hierarchy
+    vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyNode
+      = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
+    contourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(mrmlScene->AddNode(contourHierarchyNode));
+    contourHierarchyNode->SetParentNodeID( contourHierarchyRootNode->GetID() );
+    contourHierarchyNode->SetDisplayableNodeID( contourNode->GetID() );
 
     // Add color into the color table
     structureSetColorTableNode->AddColor(it->c_str(), 1.0, 0.0, 0.0);
@@ -441,14 +443,13 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseVolumeHistogramModuleLogic> dvhLogic =
     vtkSmartPointer<vtkSlicerDoseVolumeHistogramModuleLogic>::New();
-  dvhLogic->SetRasterizationMagnificationFactor(rasterizationMagnificationFactor);
   dvhLogic->SetMRMLScene(mrmlScene);
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode =
     vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
   paramNode->SetAndObserveDoseVolumeNodeId(doseScalarVolumeNode->GetID());
-  paramNode->SetAndObserveStructureSetModelNodeId(modelHierarchyRootNode->GetID());
+  paramNode->SetAndObserveStructureSetContourNodeId(contourHierarchyRootNode->GetID());
   paramNode->SetAndObserveChartNodeId(chartNode->GetID());
   mrmlScene->AddNode(paramNode);
   dvhLogic->SetAndObserveDoseVolumeHistogramNode(paramNode);

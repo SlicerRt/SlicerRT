@@ -136,8 +136,8 @@
           </property>
           <property name="nodeTypes">
            <stringlist>
-            <string>vtkMRMLModelNode</string>
-            <string>vtkMRMLModelHierarchyNode</string>
+            <string>vtkMRMLContourNode</string>
+            <string>vtkMRMLContourHierarchyNode</string>
            </stringlist>
           </property>
          </widget>
@@ -383,7 +383,7 @@
           <property name="sizeHint" stdset="0">
            <size>
             <width>0</width>
-            <height>20</height>
+            <height>1</height>
            </size>
           </property>
          </spacer>
@@ -434,7 +434,7 @@
           <property name="sizeHint" stdset="0">
            <size>
             <width>0</width>
-            <height>20</height>
+            <height>1</height>
            </size>
           </property>
          </spacer>
@@ -478,7 +478,7 @@
             <property name="sizeHint" stdset="0">
              <size>
               <width>40</width>
-              <height>20</height>
+              <height>1</height>
              </size>
             </property>
            </spacer>
@@ -543,7 +543,7 @@
             <property name="sizeHint" stdset="0">
              <size>
               <width>40</width>
-              <height>20</height>
+              <height>1</height>
              </size>
             </property>
            </spacer>
@@ -690,7 +690,7 @@
             <property name="sizeHint" stdset="0">
              <size>
               <width>40</width>
-              <height>20</height>
+              <height>1</height>
              </size>
             </property>
            </spacer>
@@ -699,6 +699,9 @@
            <widget class="QCheckBox" name="checkBox_SaveLabelmaps">
             <property name="text">
              <string>Save labelmaps that are used for DVH computation</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -710,7 +713,7 @@
             <property name="sizeHint" stdset="0">
              <size>
               <width>40</width>
-              <height>20</height>
+              <height>1</height>
              </size>
             </property>
            </spacer>

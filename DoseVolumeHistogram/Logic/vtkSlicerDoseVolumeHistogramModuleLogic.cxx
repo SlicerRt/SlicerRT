@@ -31,13 +31,14 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLContourNode.h>
 #include <vtkMRMLChartNode.h>
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLChartViewNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLModelHierarchyNode.h>
+#include <vtkMRMLContourHierarchyNode.h>
 #include <vtkMRMLColorTableNode.h>
 
 // VTK includes
@@ -72,7 +73,6 @@ vtkSlicerDoseVolumeHistogramModuleLogic::vtkSlicerDoseVolumeHistogramModuleLogic
   this->StartValue = 0.1;
   this->StepSize = 0.2;
   this->NumberOfSamplesForNonDoseVolumes = 100;
-  this->RasterizationMagnificationFactor = 2.0;
 
   this->LogSpeedMeasurementsOff();
 }
@@ -127,6 +127,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RegisterNodes()
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New());
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
 }
 
 //---------------------------------------------------------------------------
@@ -199,7 +200,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   }
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
-    || node->IsA("vtkMRMLModelNode") || node->IsA("vtkMRMLModelHierarchyNode")
+    || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLContourHierarchyNode")
     || node->IsA("vtkMRMLChartNode") || node->IsA("vtkMRMLDoseVolumeHistogramNode"))
   {
     this->Modified();
@@ -236,7 +237,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   }
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
-    || node->IsA("vtkMRMLModelNode") || node->IsA("vtkMRMLModelHierarchyNode")
+    || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLContourHierarchyNode")
     || node->IsA("vtkMRMLChartNode") || node->IsA("vtkMRMLDoseVolumeHistogramNode"))
   {
     this->Modified();
@@ -264,10 +265,17 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneEndClose()
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic
-::GetStenciledDoseVolumeForStructure(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, vtkMRMLModelNode* structureModelNode)
+::GetStenciledDoseVolumeForContour(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, vtkMRMLContourNode* structureContourNode)
 {
-  if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
+  if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode || !structureContourNode)
   {
+    return;
+  }
+
+  vtkMRMLModelNode* structureModelNode = structureContourNode->GetRibbonModelNode();
+  if (!structureModelNode)
+  {
+    vtkErrorMacro("Failed to get ribbon model node for contour!");
     return;
   }
 
@@ -332,13 +340,14 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   polyDataToLabelmapFilter->SetBackgroundValue(VTK_DOUBLE_MIN);
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToDoseIjkFilter->GetOutput() );
 
-  if (this->RasterizationMagnificationFactor != 1.0)
+  double rasterizationDownsamplingFactor = structureContourNode->GetRasterizationDownsamplingFactor();
+  if (rasterizationDownsamplingFactor != 1.0)
   {
     vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
     resampler->SetInput(doseVolumeNode->GetImageData());
-    resampler->SetAxisMagnificationFactor(0, this->RasterizationMagnificationFactor);
-    resampler->SetAxisMagnificationFactor(1, this->RasterizationMagnificationFactor);
-    resampler->SetAxisMagnificationFactor(2, this->RasterizationMagnificationFactor);
+    resampler->SetAxisMagnificationFactor(0, rasterizationDownsamplingFactor);
+    resampler->SetAxisMagnificationFactor(1, rasterizationDownsamplingFactor);
+    resampler->SetAxisMagnificationFactor(2, rasterizationDownsamplingFactor);
     resampler->Update();
 
     polyDataToLabelmapFilter->SetReferenceImage( resampler->GetOutput() );
@@ -351,13 +360,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   // Create node
   structureStenciledDoseVolumeNode->CopyOrientation( doseVolumeNode );
-  if (this->RasterizationMagnificationFactor != 1.0)
+  if (rasterizationDownsamplingFactor != 1.0)
   {
     double* doseSpacing = doseVolumeNode->GetSpacing();
     structureStenciledDoseVolumeNode->SetSpacing(
-      doseSpacing[0]/this->RasterizationMagnificationFactor,
-      doseSpacing[1]/this->RasterizationMagnificationFactor,
-      doseSpacing[2]/this->RasterizationMagnificationFactor );
+      doseSpacing[0]/rasterizationDownsamplingFactor,
+      doseSpacing[1]/rasterizationDownsamplingFactor,
+      doseSpacing[2]/rasterizationDownsamplingFactor );
 
     vtkImageData* structureStenciledDoseVolumeImageData = polyDataToLabelmapFilter->GetOutput();
     structureStenciledDoseVolumeImageData->SetSpacing(1.0, 1.0, 1.0); // The spacing is set to the MRML node
@@ -374,49 +383,49 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic
-::GetSelectedStructureModelNodes(std::vector<vtkMRMLModelNode*> &structureModelNodes)
+::GetSelectedContourNodes(std::vector<vtkMRMLContourNode*> &contourNodes)
 {
-  structureModelNodes.clear();
+  contourNodes.clear();
 
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
     return;
   }
 
-  vtkMRMLNode* structureSetModelNode = this->GetMRMLScene()->GetNodeByID(
-    this->DoseVolumeHistogramNode->GetStructureSetModelNodeId());
+  vtkMRMLNode* structureSetContourNode = this->GetMRMLScene()->GetNodeByID(
+    this->DoseVolumeHistogramNode->GetStructureSetContourNodeId());
 
-  if (structureSetModelNode->IsA("vtkMRMLModelNode"))
+  if (structureSetContourNode->IsA("vtkMRMLContourNode"))
   {
-    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(structureSetModelNode);
-    if (modelNode)
+    vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(structureSetContourNode);
+    if (contourNode)
     {
-      structureModelNodes.push_back(modelNode);
+      contourNodes.push_back(contourNode);
     }
   }
-  else if (structureSetModelNode->IsA("vtkMRMLModelHierarchyNode"))
+  else if (structureSetContourNode->IsA("vtkMRMLContourHierarchyNode"))
   {
-    vtkSmartPointer<vtkCollection> childModelNodes = vtkSmartPointer<vtkCollection>::New();
-    vtkMRMLModelHierarchyNode::SafeDownCast(structureSetModelNode)->GetChildrenModelNodes(childModelNodes);
-    childModelNodes->InitTraversal();
-    if (childModelNodes->GetNumberOfItems() < 1)
+    vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
+    vtkMRMLContourHierarchyNode::SafeDownCast(structureSetContourNode)->GetChildrenContourNodes(childContourNodes);
+    childContourNodes->InitTraversal();
+    if (childContourNodes->GetNumberOfItems() < 1)
     {
-      vtkErrorMacro("Error: Selected Structure Set hierarchy node has no children model nodes!");
+      vtkErrorMacro("Error: Selected Structure Set hierarchy node has no children contour nodes!");
       return;
     }
     
-    for (int i=0; i<childModelNodes->GetNumberOfItems(); ++i)
+    for (int i=0; i<childContourNodes->GetNumberOfItems(); ++i)
     {
-      vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(childModelNodes->GetItemAsObject(i));
-      if (modelNode)
+      vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(childContourNodes->GetItemAsObject(i));
+      if (contourNode)
       {
-        structureModelNodes.push_back(modelNode);
+        contourNodes.push_back(contourNode);
       }
     }
   }
   else
   {
-    vtkErrorMacro("Error: Invalid node type for StructureSetModelNode!");
+    vtkErrorMacro("Error: Invalid node type for ContourNode!");
     return;
   }
 }
@@ -429,28 +438,29 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
   double sumDvhComputation = 0.0;
   double checkpointStart = timer->GetUniversalTime();
 
-  std::vector<vtkMRMLModelNode*> structureModelNodes;
-  this->GetSelectedStructureModelNodes(structureModelNodes);
+  std::vector<vtkMRMLContourNode*> structureContourNodes;
+  this->GetSelectedContourNodes(structureContourNodes);
 
-  if (structureModelNodes.size() == 0)
+  if (structureContourNodes.size() == 0)
   {
     vtkErrorMacro("Error: Empty structure list!");
     return;
   }
 
   // Get structure set hierarchy node
-  vtkMRMLModelHierarchyNode* structureHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
-    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->GetMRMLScene(), structureModelNodes[0]->GetID()));
-  if (!structureHierarchyNode)
+  vtkMRMLContourHierarchyNode* structureContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(
+    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->GetMRMLScene(), structureContourNodes[0]->GetID()));
+  if (!structureContourHierarchyNode)
   {
-    vtkErrorMacro("Error: No hierarchy node found for structure '" << structureModelNodes[0]->GetName() << "'");
+    vtkErrorMacro("Error: No hierarchy node found for structure '" << structureContourNodes[0]->GetName() << "'");
     return;
   }
-  vtkMRMLModelHierarchyNode* structureSetHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(structureHierarchyNode->GetParentNode());
+  vtkMRMLContourHierarchyNode* structureSetHierarchyNode
+    = vtkMRMLContourHierarchyNode::SafeDownCast(structureContourHierarchyNode->GetParentNode());
 
   // Get color node created for the structure set
   std::string seriesName = structureSetHierarchyNode->GetName();
-  seriesName = seriesName.substr(0, seriesName.length() - SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX.length());
+  seriesName = seriesName.substr(0, seriesName.length() - SlicerRtCommon::DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX.length());
   std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   vtkCollection* colorNodes = this->GetMRMLScene()->GetNodesByName(colorNodeName.c_str());
   if (colorNodes->GetNumberOfItems() == 0)
@@ -459,74 +469,80 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
   }
 
   // Compute DVH for each structure
-  for (std::vector<vtkMRMLModelNode*>::iterator it = structureModelNodes.begin(); it != structureModelNodes.end(); ++it)
+  for (std::vector<vtkMRMLContourNode*>::iterator it = structureContourNodes.begin(); it != structureContourNodes.end(); ++it)
   {
     double checkpointStructureStart = timer->GetUniversalTime();
+
+    vtkMRMLModelNode* modelNode = (*it)->GetRibbonModelNode();
+    if (!modelNode)
+    {
+      vtkErrorMacro("Failed to get ribbon model node for contour!");
+      continue;
+    }
 
     vtkSmartPointer<vtkMRMLScalarVolumeNode> structureStenciledDoseVolumeNode
       = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
     double checkpointRasterizationStart = timer->GetUniversalTime();
-    this->GetStenciledDoseVolumeForStructure(structureStenciledDoseVolumeNode, (*it));
+    this->GetStenciledDoseVolumeForContour(structureStenciledDoseVolumeNode, (*it));
 
     double checkpointDvhStart = timer->GetUniversalTime();
-    this->ComputeDvh(structureStenciledDoseVolumeNode.GetPointer(), (*it));
+    this->ComputeDvh(structureStenciledDoseVolumeNode.GetPointer(), modelNode);
 
     double checkpointLabelmapCreationStart = timer->GetUniversalTime();
-    if (this->GetDoseVolumeHistogramNode()->GetSaveLabelmaps())
+
+    // Get color table node and structure color index
+    colorNodes->InitTraversal();
+    vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+    int structureColorIndex = -1;
+    while (colorNode)
     {
-      // Get color table node and structure color index
-      colorNodes->InitTraversal();
-      vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
-      int structureColorIndex = -1;
-      while (colorNode)
+      int colorIndex = -1;
+      if ((colorIndex = colorNode->GetColorIndexByName(modelNode->GetName())) != -1)
       {
-        int colorIndex = -1;
-        if ((colorIndex = colorNode->GetColorIndexByName((*it)->GetName())) != -1)
+        double modelColor[3];
+        double foundColor[4];
+        modelNode->GetDisplayNode()->GetColor(modelColor);
+        colorNode->GetColor(colorIndex, foundColor);
+        if ((modelColor[0] == foundColor[0]) && (modelColor[1] == foundColor[1]) && (modelColor[2] == foundColor[2]))
         {
-          double modelColor[3];
-          double foundColor[4];
-          (*it)->GetDisplayNode()->GetColor(modelColor);
-          colorNode->GetColor(colorIndex, foundColor);
-          if ((modelColor[0] == foundColor[0]) && (modelColor[1] == foundColor[1]) && (modelColor[2] == foundColor[2]))
-          {
-            structureColorIndex = colorIndex;
-            break;
-          }
+          structureColorIndex = colorIndex;
+          break;
         }
-        colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
       }
-      if (structureColorIndex == -1)
-      {
-        vtkWarningMacro("No matching entry found in the color tables for structure '" << (*it)->GetName() << "'");
-        structureColorIndex = 1; // Gray 'invalid' color
-      }
-
-      // Convert stenciled dose volume to labelmap
-      vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
-      threshold->SetInput(structureStenciledDoseVolumeNode->GetImageData());
-      threshold->SetInValue(structureColorIndex);
-      threshold->SetOutValue(0);
-      threshold->ThresholdByUpper(VTK_DOUBLE_MIN+1.0);
-      threshold->SetOutputScalarTypeToUnsignedChar();
-      threshold->Update();
-      structureStenciledDoseVolumeNode->GetImageData()->DeepCopy(threshold->GetOutput());
-
-      vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
-      displayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
-      if (colorNode)
-      {
-        displayNode->SetAndObserveColorNodeID(colorNode->GetID());
-      }
-      else
-      {
-        displayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
-      }
-
-      structureStenciledDoseVolumeNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-      structureStenciledDoseVolumeNode->LabelMapOn();
-      this->GetMRMLScene()->AddNode(structureStenciledDoseVolumeNode);
+      colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
     }
+    if (structureColorIndex == -1)
+    {
+      vtkWarningMacro("No matching entry found in the color tables for structure '" << modelNode->GetName() << "'");
+      structureColorIndex = 1; // Gray 'invalid' color
+    }
+
+    // Convert stenciled dose volume to labelmap
+    vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
+    threshold->SetInput(structureStenciledDoseVolumeNode->GetImageData());
+    threshold->SetInValue(structureColorIndex);
+    threshold->SetOutValue(0);
+    threshold->ThresholdByUpper(VTK_DOUBLE_MIN+1.0);
+    threshold->SetOutputScalarTypeToUnsignedChar();
+    threshold->Update();
+    structureStenciledDoseVolumeNode->GetImageData()->DeepCopy(threshold->GetOutput());
+
+    vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
+    displayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
+    if (colorNode)
+    {
+      displayNode->SetAndObserveColorNodeID(colorNode->GetID());
+    }
+    else
+    {
+      displayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
+    }
+
+    structureStenciledDoseVolumeNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+    structureStenciledDoseVolumeNode->LabelMapOn();
+    this->GetMRMLScene()->AddNode(structureStenciledDoseVolumeNode);
+    (*it)->SetAndObserveIndexedLabelmapVolumeNodeId(structureStenciledDoseVolumeNode->GetID());
 
     double checkpointStructureEnd = timer->GetUniversalTime();
     sumRasterization += checkpointDvhStart-checkpointRasterizationStart;
@@ -534,10 +550,10 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
     if (this->LogSpeedMeasurements)
     {
-      std::cout << "\tStructure '" << (*it)->GetName() << "':\n\t\tTotal: " << checkpointStructureEnd-checkpointStructureStart
+      std::cout << "\tStructure '" << modelNode->GetName() << "':\n\t\tTotal: " << checkpointStructureEnd-checkpointStructureStart
         << " s\n\t\tRasterization: " << checkpointDvhStart-checkpointRasterizationStart
         << " s\n\t\tDVH computation: " << checkpointLabelmapCreationStart-checkpointDvhStart
-        << " s\n\t\tLabelmap creation (" << (this->GetDoseVolumeHistogramNode()->GetSaveLabelmaps()?"On":"Off") << "): "
+        << " s\n\t\tLabelmap creation: " /*<< (this->GetDoseVolumeHistogramNode()->GetSaveLabelmaps()?"On":"Off") << "): "*/
         << checkpointStructureEnd-checkpointLabelmapCreationStart << std::endl;
     }
   }

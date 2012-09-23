@@ -211,9 +211,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     {
       this->doseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
     }
-    if (paramNode->GetStructureSetModelNodeId() && strcmp(paramNode->GetStructureSetModelNodeId(),""))
+    if (paramNode->GetStructureSetContourNodeId() && strcmp(paramNode->GetStructureSetContourNodeId(),""))
     {
-      d->MRMLNodeComboBox_StructureSet->setCurrentNode(paramNode->GetStructureSetModelNodeId());
+      d->MRMLNodeComboBox_StructureSet->setCurrentNode(paramNode->GetStructureSetContourNodeId());
     }
     else
     {
@@ -233,7 +233,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     d->lineEdit_DVolumeCc->setText(paramNode->GetDVolumeValuesCc());
     d->lineEdit_DVolumePercent->setText(paramNode->GetDVolumeValuesPercent());
     d->checkBox_ShowDMetrics->setChecked(paramNode->GetShowDMetrics());
-    d->checkBox_SaveLabelmaps->setChecked(paramNode->GetSaveLabelmaps());
+    //d->checkBox_SaveLabelmaps->setChecked(paramNode->GetSaveLabelmaps());
   }
 
   refreshDvhTable();
@@ -249,6 +249,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   // Hide widgets whose functions have not been implemented yet
   d->label_ImportCSV->setVisible(false);
   d->pushButton_ImportCSV->setVisible(false);
+
+  // Hide save labelmaps checkbox because we always save them to the contour node now
+  d->checkBox_SaveLabelmaps->setVisible(false);
 
   d->tableWidget_ChartStatistics->setSortingEnabled(false);
   d->tableWidget_ChartStatistics->setSelectionMode(QAbstractItemView::NoSelection);
@@ -271,7 +274,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->lineEdit_DVolumeCc, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumeCcEdited(QString) ) );
   connect( d->lineEdit_DVolumePercent, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumePercentEdited(QString) ) );
   connect( d->checkBox_ShowDMetrics, SIGNAL( stateChanged(int) ), this, SLOT( showDMetricsCheckedStateChanged(int) ) );
-  connect( d->checkBox_SaveLabelmaps, SIGNAL( stateChanged(int) ), this, SLOT( saveLabelmapsCheckedStateChanged(int) ) );
+  //connect( d->checkBox_SaveLabelmaps, SIGNAL( stateChanged(int) ), this, SLOT( saveLabelmapsCheckedStateChanged(int) ) );
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -290,8 +293,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
     // Enable/disable ComputeDVH button
     bool dvhCanBeComputed = paramNode->GetDoseVolumeNodeId()
                      && strcmp(paramNode->GetDoseVolumeNodeId(), "")
-                     && paramNode->GetStructureSetModelNodeId()
-                     && strcmp(paramNode->GetStructureSetModelNodeId(), "");
+                     && paramNode->GetStructureSetContourNodeId()
+                     && strcmp(paramNode->GetStructureSetContourNodeId(), "");
     d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
 
     // Enable/disable Export DVH to file button
@@ -448,7 +451,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::structureSetNodeChanged(vtkMRMLNode
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveStructureSetModelNodeId(node->GetID());
+  paramNode->SetAndObserveStructureSetContourNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
@@ -1099,17 +1102,17 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::saveLabelmapsCheckedStateChanged(int aState)
-{
-  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetSaveLabelmaps(aState);
-  paramNode->DisableModifiedEventOff();
-}
+//void qSlicerDoseVolumeHistogramModuleWidget::saveLabelmapsCheckedStateChanged(int aState)
+//{
+//  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+//
+//  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+//  if (!paramNode || !this->mrmlScene())
+//  {
+//    return;
+//  }
+//
+//  paramNode->DisableModifiedEventOn();
+//  paramNode->SetSaveLabelmaps(aState);
+//  paramNode->DisableModifiedEventOff();
+//}

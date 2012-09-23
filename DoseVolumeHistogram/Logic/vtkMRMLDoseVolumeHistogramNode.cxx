@@ -28,7 +28,7 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLVolumeNode.h>
-#include <vtkMRMLModelNode.h>
+#include <vtkMRMLContourNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -44,7 +44,7 @@ vtkMRMLNodeNewMacro(vtkMRMLDoseVolumeHistogramNode);
 vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 {
   this->DoseVolumeNodeId = NULL;
-  this->StructureSetModelNodeId = NULL;
+  this->StructureSetContourNodeId = NULL;
   this->ChartNodeId = NULL;
   this->DvhDoubleArrayNodeIds.clear();
   this->ShowHideAll = 0;
@@ -55,7 +55,7 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
   this->DVolumeValuesCc = NULL;
   this->DVolumeValuesPercent = NULL;
   this->ShowDMetrics = false;
-  this->SaveLabelmaps = false;
+  //this->SaveLabelmaps = false;
 
   this->HideFromEditors = false;
 }
@@ -64,7 +64,7 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 vtkMRMLDoseVolumeHistogramNode::~vtkMRMLDoseVolumeHistogramNode()
 {
   this->SetDoseVolumeNodeId(NULL);
-  this->SetStructureSetModelNodeId(NULL);
+  this->SetStructureSetContourNodeId(NULL);
   this->SetChartNodeId(NULL);
   this->DvhDoubleArrayNodeIds.clear();
   this->ShowInChartCheckStates.clear();
@@ -87,16 +87,16 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
       {
       ss << this->DoseVolumeNodeId;
       of << indent << " DoseVolumeNodeId=\"" << ss.str() << "\"";
-     }
+      }
   }
 
   {
     std::stringstream ss;
-    if ( this->StructureSetModelNodeId )
+    if ( this->StructureSetContourNodeId )
       {
-      ss << this->StructureSetModelNodeId;
-      of << indent << " StructureSetModelNodeId=\"" << ss.str() << "\"";
-     }
+      ss << this->StructureSetContourNodeId;
+      of << indent << " StructureSetContourNodeId=\"" << ss.str() << "\"";
+      }
   }
 
   {
@@ -105,7 +105,7 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
       {
       ss << this->ChartNodeId;
       of << indent << " ChartNodeId=\"" << ss.str() << "\"";
-     }
+      }
   }
 
   {
@@ -138,7 +138,7 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
       {
       ss << this->VDoseValues;
       of << indent << " VDoseValues=\"" << ss.str() << "\"";
-     }
+      }
   }
 
   of << indent << " ShowVMetricsCc=\"" << (this->ShowVMetricsCc ? "true" : "false") << "\"";
@@ -151,7 +151,7 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
       {
       ss << this->DVolumeValuesCc;
       of << indent << " DVolumeValuesCc=\"" << ss.str() << "\"";
-     }
+      }
   }
 
   {
@@ -160,11 +160,11 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
       {
       ss << this->DVolumeValuesPercent;
       of << indent << " DVolumeValuesPercent=\"" << ss.str() << "\"";
-     }
+      }
   }
 
   of << indent << " ShowDMetrics=\"" << (this->ShowDMetrics ? "true" : "false") << "\"";
-  of << indent << " SaveLabelmaps=\"" << (this->SaveLabelmaps ? "true" : "false") << "\"";
+  //of << indent << " SaveLabelmaps=\"" << (this->SaveLabelmaps ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -187,11 +187,11 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetAndObserveDoseVolumeNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "StructureSetModelNodeId")) 
+    else if (!strcmp(attName, "StructureSetContourNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveStructureSetModelNodeId(ss.str().c_str());
+      this->SetAndObserveStructureSetContourNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "ChartNodeId")) 
       {
@@ -280,11 +280,11 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       this->ShowDMetrics = 
         (strcmp(attValue,"true") ? false : true);
       }
-    else if (!strcmp(attName, "SaveLabelmaps")) 
-      {
-      this->SaveLabelmaps = 
-        (strcmp(attValue,"true") ? false : true);
-      }
+    //else if (!strcmp(attName, "SaveLabelmaps")) 
+    //  {
+    //  this->SaveLabelmaps = 
+    //    (strcmp(attValue,"true") ? false : true);
+    //  }
     }
 }
 
@@ -299,7 +299,7 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
   vtkMRMLDoseVolumeHistogramNode *node = (vtkMRMLDoseVolumeHistogramNode *) anode;
 
   this->SetAndObserveDoseVolumeNodeId(node->DoseVolumeNodeId);
-  this->SetAndObserveStructureSetModelNodeId(node->StructureSetModelNodeId);
+  this->SetAndObserveStructureSetContourNodeId(node->StructureSetContourNodeId);
   this->SetAndObserveChartNodeId(node->ChartNodeId);
 
   this->DvhDoubleArrayNodeIds = node->DvhDoubleArrayNodeIds;
@@ -314,7 +314,7 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
   this->SetDVolumeValuesPercent(node->DVolumeValuesPercent);
   this->ShowDMetrics = node->ShowDMetrics;
 
-  this->SaveLabelmaps = node->SaveLabelmaps;
+  //this->SaveLabelmaps = node->SaveLabelmaps;
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -326,7 +326,7 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLNode::PrintSelf(os,indent);
 
   os << indent << "DoseVolumeNodeId:   " << this->DoseVolumeNodeId << "\n";
-  os << indent << "StructureSetModelNodeId:   " << this->StructureSetModelNodeId << "\n";
+  os << indent << "StructureSetContourNodeId:   " << this->StructureSetContourNodeId << "\n";
   os << indent << "ChartNodeId:   " << this->ChartNodeId << "\n";
 
   {
@@ -357,52 +357,52 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "DVolumeValuesPercent:   " << this->DVolumeValuesPercent << "\n";
   os << indent << "ShowDMetrics:   " << (this->ShowDMetrics ? "true" : "false") << "\n";
 
-  os << indent << "SaveLabelmaps:   " << (this->SaveLabelmaps ? "true" : "false") << "\n";
+  //os << indent << "SaveLabelmaps:   " << (this->SaveLabelmaps ? "true" : "false") << "\n";
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNodeId(const char* id)
 {
-  if (this->DoseVolumeNodeId)
+  if (this->DoseVolumeNodeId && this->Scene)
   {
     this->Scene->RemoveReferencedNodeID(this->DoseVolumeNodeId, this);
   }
 
   this->SetDoseVolumeNodeId(id);
 
-  if (id)
+  if (id && this->Scene)
   {
     this->Scene->AddReferencedNodeID(this->DoseVolumeNodeId, this);
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::SetAndObserveStructureSetModelNodeId(const char* id)
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveStructureSetContourNodeId(const char* id)
 {
-  if (this->StructureSetModelNodeId)
+  if (this->StructureSetContourNodeId && this->Scene)
   {
-    this->Scene->RemoveReferencedNodeID(this->StructureSetModelNodeId, this);
+    this->Scene->RemoveReferencedNodeID(this->StructureSetContourNodeId, this);
   }
 
-  this->SetStructureSetModelNodeId(id);
+  this->SetStructureSetContourNodeId(id);
 
-  if (id)
+  if (id && this->Scene)
   {
-    this->Scene->AddReferencedNodeID(this->StructureSetModelNodeId, this);
+    this->Scene->AddReferencedNodeID(this->StructureSetContourNodeId, this);
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNodeId(const char* id)
 {
-  if (this->ChartNodeId)
+  if (this->ChartNodeId && this->Scene)
   {
     this->Scene->RemoveReferencedNodeID(this->ChartNodeId, this);
   }
 
   this->SetChartNodeId(id);
 
-  if (id)
+  if (id && this->Scene)
   {
     this->Scene->AddReferencedNodeID(this->ChartNodeId, this);
   }
@@ -415,9 +415,9 @@ void vtkMRMLDoseVolumeHistogramNode::UpdateReferenceID(const char *oldID, const 
     {
     this->SetAndObserveDoseVolumeNodeId(newID);
     }
-  if (this->StructureSetModelNodeId && !strcmp(oldID, this->StructureSetModelNodeId))
+  if (this->StructureSetContourNodeId && !strcmp(oldID, this->StructureSetContourNodeId))
     {
-    this->SetAndObserveStructureSetModelNodeId(newID);
+    this->SetAndObserveStructureSetContourNodeId(newID);
     }
   if (this->ChartNodeId && !strcmp(oldID, this->ChartNodeId))
     {
