@@ -58,6 +58,7 @@ add_subdirectory(DoseComparison)
 add_subdirectory(Isodose)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
+  add_subdirectory(Contours)
   add_subdirectory(ProtonDose)
   add_subdirectory(ContourComparison)
  

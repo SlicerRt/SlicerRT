@@ -33,6 +33,16 @@ class vtkMRMLModelNode;
 class vtkMRMLContourNode : public vtkMRMLDisplayableNode
 {
 public:
+  enum ContourRepresentationType
+  {
+    None = -1,
+    RibbonModel,
+    IndexedLabelmap,
+    ClosedSurfaceModel,
+    BitfieldLabelmap
+  };
+
+public:
   static vtkMRMLContourNode *New();
   vtkTypeMacro(vtkMRMLContourNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -65,6 +75,9 @@ public:
 public:
   /// Set default representation by the object instance
   void SetActiveRepresentationByObject(vtkMRMLDisplayableNode *node);
+
+  /// Set default representation by the object instance
+  void SetActiveRepresentationByType(ContourRepresentationType type);
 
 public:
   /// Get ribbon model node ID
@@ -132,9 +145,9 @@ protected:
   void operator=(const vtkMRMLContourNode&);
 
 protected:
-  /// Ribbon representation
+  /// Ribbon model representation
   vtkMRMLModelNode* RibbonModelNode;
-  /// Ribbon representation model node ID
+  /// Ribbon model representation model node ID
   char *RibbonModelNodeId;
 
   /// Indexed labelmap representation
@@ -151,6 +164,9 @@ protected:
   vtkMRMLScalarVolumeNode* BitfieldLabelmapVolumeNode;
   /// Bitfield labelmap volume representation volume node ID
   char *BitfieldLabelmapVolumeNodeId;
+
+  /// Active representation type
+  ContourRepresentationType ActiveRepresentationType;
 
   /// Rasterization reference volume node ID. This node is used when converting from model to labelmap
   char* RasterizationReferenceVolumeNodeId;

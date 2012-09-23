@@ -49,6 +49,8 @@ vtkMRMLContourNode::vtkMRMLContourNode()
   this->BitfieldLabelmapVolumeNode = NULL;
   this->BitfieldLabelmapVolumeNodeId = NULL;
 
+  this->ActiveRepresentationType = None;
+
   this->RasterizationReferenceVolumeNodeId = NULL;
 
   this->RasterizationDownsamplingFactor = 2.0;
@@ -430,6 +432,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByObject(vtkMRMLDisplayableNode 
 
   mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
 
+  // Hide all representations before showing the active one
   vtkMRMLModelNode* ribbonModelNode = this->GetRibbonModelNode();
   if (ribbonModelNode)
     {
@@ -451,29 +454,101 @@ void vtkMRMLContourNode::SetActiveRepresentationByObject(vtkMRMLDisplayableNode 
     bitfieldLabelmapVolumeNode->HideFromEditorsOn();
     }
 
+  // Show the active representation and set active representation type
   if (this->RibbonModelNodeId
       && !strcmp(this->RibbonModelNodeId, node->GetID()))
     {
     ribbonModelNode->HideFromEditorsOff();
+    this->ActiveRepresentationType = RibbonModel;
     }
   else if (this->IndexedLabelmapVolumeNodeId
       && !strcmp(this->IndexedLabelmapVolumeNodeId, node->GetID()))
     {
     indexedLabelmapVolumeNode->HideFromEditorsOff();
+    this->ActiveRepresentationType = IndexedLabelmap;
     }
   else if (this->ClosedSurfaceModelNodeId
       && !strcmp(this->ClosedSurfaceModelNodeId, node->GetID()))
     {
     closedSurfaceModelNode->HideFromEditorsOff();
+    this->ActiveRepresentationType = ClosedSurfaceModel;
     }
   else if (this->BitfieldLabelmapVolumeNodeId
       && !strcmp(this->BitfieldLabelmapVolumeNodeId, node->GetID()))
     {
     bitfieldLabelmapVolumeNode->HideFromEditorsOff();
+    this->ActiveRepresentationType = BitfieldLabelmap;
     }
   else
     {
-      vtkWarningMacro("Failed to set default representation: given node is not one of the referenced representations!");
+    vtkErrorMacro("Failed to set active representation: given node is not one of the referenced representations!");
+    }
+
+  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType type)
+{
+  vtkMRMLScene* mrmlScene = this->Scene;
+  if (!mrmlScene)
+    {
+    return;
+    }
+  if (type == None)
+    {
+    vtkWarningMacro("Cannot set 'None' as representation type!");
+    return;
+    }
+
+  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
+
+  // Hide all representations before showing the active one
+  vtkMRMLModelNode* ribbonModelNode = this->GetRibbonModelNode();
+  if (ribbonModelNode)
+    {
+    ribbonModelNode->HideFromEditorsOn();
+    }
+  vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode = this->GetIndexedLabelmapVolumeNode();
+  if (indexedLabelmapVolumeNode)
+    {
+    indexedLabelmapVolumeNode->HideFromEditorsOn();
+    }
+  vtkMRMLModelNode* closedSurfaceModelNode = this->GetClosedSurfaceModelNode();
+  if (closedSurfaceModelNode)
+    {
+    closedSurfaceModelNode->HideFromEditorsOn();
+    }
+  vtkMRMLScalarVolumeNode* bitfieldLabelmapVolumeNode = this->GetBitfieldLabelmapVolumeNode();
+  if (bitfieldLabelmapVolumeNode)
+    {
+    bitfieldLabelmapVolumeNode->HideFromEditorsOn();
+    }
+
+  // Show the active representation and set active representation type
+  if (type == RibbonModel && this->RibbonModelNode)
+    {
+    this->RibbonModelNode->HideFromEditorsOff();
+    this->ActiveRepresentationType = type;
+    }
+  else if (type == RibbonModel && this->IndexedLabelmapVolumeNode)
+    {
+    this->IndexedLabelmapVolumeNode->HideFromEditorsOff();
+    this->ActiveRepresentationType = type;
+    }
+  else if (type == RibbonModel && this->ClosedSurfaceModelNode)
+    {
+    this->ClosedSurfaceModelNode->HideFromEditorsOff();
+    this->ActiveRepresentationType = type;
+    }
+  else if (type == RibbonModel && this->BitfieldLabelmapVolumeNode)
+  {
+    this->BitfieldLabelmapVolumeNode->HideFromEditorsOff();
+    this->ActiveRepresentationType = type;
+    }
+  else
+    {
+    vtkErrorMacro("Failed to set active representation: given representation type has no referenced node!");
     }
 
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
