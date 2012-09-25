@@ -39,7 +39,8 @@ public:
     RibbonModel,
     IndexedLabelmap,
     ClosedSurfaceModel,
-    BitfieldLabelmap
+    BitfieldLabelmap,
+    NumberOfRepresentationTypes
   };
 
 public:
@@ -119,6 +120,9 @@ public:
   vtkSetMacro(RasterizationDownsamplingFactor, double);
 
 protected:
+  /// Create a temporary vector for easier batch handling of representations
+  std::vector<vtkMRMLDisplayableNode*> CreateTemporaryRepresentationsVector();
+
   /// Convert available model representation to indexed labelmap
   vtkMRMLScalarVolumeNode* CreateIndexedLabelmap();
 
