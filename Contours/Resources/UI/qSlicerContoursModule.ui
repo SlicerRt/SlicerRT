@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>411</width>
+    <width>395</width>
     <height>406</height>
    </rect>
   </property>
@@ -42,9 +42,9 @@
     </layout>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_Modify">
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ChangeActiveRepresentation">
      <property name="text">
-      <string>Modify</string>
+      <string>Change active representation</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <property name="margin">
@@ -56,7 +56,7 @@
       <item row="0" column="1">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Change active representation:</string>
+         <string>Active representation:</string>
         </property>
        </widget>
       </item>
@@ -90,19 +90,99 @@
         </item>
        </widget>
       </item>
-      <item row="0" column="3">
-       <widget class="QPushButton" name="pushButton_ApplyChangeRepresentation">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      <item row="1" column="2">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
+        <property name="enabled">
+         <bool>false</bool>
         </property>
         <property name="toolTip">
-         <string>Set active representation and convert if necessary. Only the active representation can be edited</string>
+         <string>A reference volume is needed if the active representation is a model and volume is needed</string>
+        </property>
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_ApplyChangeRepresentation">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Set active representation and convert if necessary. Only the active representation can be edited</string>
+          </property>
+          <property name="text">
+           <string>Apply</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_ReferenceVolume">
+        <property name="enabled">
+         <bool>false</bool>
         </property>
         <property name="text">
-         <string>Apply</string>
+         <string>Reference volume:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_DownsamplingFactor">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="decimals">
+         <number>4</number>
+        </property>
+        <property name="minimum">
+         <double>0.125000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>8.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.500000000000000</double>
+        </property>
+        <property name="value">
+         <double>2.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="label_DownsamplingFactor">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Downsampling factor:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -158,6 +238,22 @@
     <hint type="destinationlabel">
      <x>369</x>
      <y>9</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerContoursModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_ReferenceVolume</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>156</x>
+     <y>4</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>155</x>
+     <y>85</y>
     </hint>
    </hints>
   </connection>

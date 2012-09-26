@@ -80,6 +80,9 @@ public:
   /// Set default representation by the object instance
   void SetActiveRepresentationByType(ContourRepresentationType type);
 
+  /// Get active representation type
+  ContourRepresentationType GetActiveRepresentationType() { return this->ActiveRepresentationType; };
+
 public:
   /// Get ribbon model node ID
   vtkGetStringMacro(RibbonModelNodeId);

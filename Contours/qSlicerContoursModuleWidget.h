@@ -27,9 +27,11 @@
 
 #include "qSlicerContoursModuleExport.h"
 
+// SlicerRtCommon includes
+#include "vtkMRMLContourNode.h"
+
 class qSlicerContoursModuleWidgetPrivate;
 class vtkMRMLNode;
-class vtkMRMLContourNode;
 
 /// \ingroup Slicer_QtModules_Contours
 class Q_SLICER_QTMODULES_CONTOURS_EXPORT qSlicerContoursModuleWidget :
@@ -42,9 +44,13 @@ public:
   qSlicerContoursModuleWidget(QWidget *parent=0);
   virtual ~qSlicerContoursModuleWidget();
 
+protected:
+  vtkMRMLContourNode::ContourRepresentationType GetRepresentationTypeOfSelectedContours();
+
 protected slots:
   void contourNodeChanged(vtkMRMLNode*);
   void activeRepresentationComboboxSelectionChanged(int index);
+  void downsamplingFactorChanged(double value);
 
   void applyChangeRepresentationClicked();
 
