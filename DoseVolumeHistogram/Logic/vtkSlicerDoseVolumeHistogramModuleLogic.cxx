@@ -459,8 +459,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     = vtkMRMLContourHierarchyNode::SafeDownCast(structureContourHierarchyNode->GetParentNode());
 
   // Get color node created for the structure set
-  std::string seriesName = structureSetHierarchyNode->GetName();
-  seriesName = seriesName.substr(0, seriesName.length() - SlicerRtCommon::DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX.length());
+  std::string seriesName = structureSetHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
   std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   vtkCollection* colorNodes = this->GetMRMLScene()->GetNodesByName(colorNodeName.c_str());
   if (colorNodes->GetNumberOfItems() == 0)

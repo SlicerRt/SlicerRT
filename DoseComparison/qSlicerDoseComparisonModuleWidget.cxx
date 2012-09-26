@@ -92,7 +92,7 @@ void qSlicerDoseComparisonModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
-  // Find parameters node or create it if there is no one in the scene
+  // Find parameters node or create it if there is none in the scene
   if (scene &&  d->logic()->GetDoseComparisonNode() == 0)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLDoseComparisonNode");

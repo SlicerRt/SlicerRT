@@ -99,6 +99,68 @@ void qSlicerContoursModuleWidget::setup()
   d->label_Warning->setVisible(false);
 }
 
+
+//-----------------------------------------------------------------------------
+vtkMRMLContourNode::ContourRepresentationType qSlicerContoursModuleWidget::getRepresentationTypeOfSelectedContours()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  bool sameRepresentationTypes = true;
+  vtkMRMLContourNode::ContourRepresentationType representationType = vtkMRMLContourNode::None;
+
+  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
+  {
+    if (representationType == vtkMRMLContourNode::None)
+    {
+      representationType = (*it)->GetActiveRepresentationType();
+    }
+    else if ((*it)->GetActiveRepresentationType() == vtkMRMLContourNode::None) // Sanity check
+    {
+      std::cerr << "Warning: Invalid representation type (None) found for the contour node '" << (*it)->GetName() << "'!" << std::endl;
+    }
+    else if (representationType != (*it)->GetActiveRepresentationType())
+    {
+      sameRepresentationTypes = false;
+    }
+  }
+
+  if (sameRepresentationTypes)
+  {
+    return representationType;
+  }
+  else
+  {
+    return vtkMRMLContourNode::None;
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+bool qSlicerContoursModuleWidget::isReferenceVolumeNeeded()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  vtkMRMLContourNode::ContourRepresentationType representationTypeInSelectedNodes = this->getRepresentationTypeOfSelectedContours();
+  if (!d->SelectedContourNodes.size() || (int)representationTypeInSelectedNodes == d->comboBox_ActiveRepresentation->currentIndex())
+  {
+    // If the user did not change the representation
+    return false;
+  }
+  else if (representationTypeInSelectedNodes != vtkMRMLContourNode::IndexedLabelmap
+    && d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::IndexedLabelmap)
+  {
+    for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
+    {
+      if ((*it)->GetIndexedLabelmapVolumeNodeId() == NULL)
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 //-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 {
@@ -218,16 +280,18 @@ void qSlicerContoursModuleWidget::activeRepresentationComboboxSelectionChanged(i
     && index == (int)vtkMRMLContourNode::IndexedLabelmap)
   {
     // If the active representation of the selected nodes is not labelmap, but the user changed it to labelmap
-    d->MRMLNodeComboBox_ReferenceVolume->setEnabled(true);
     d->doubleSpinBox_DownsamplingFactor->setEnabled(true);
     d->label_DownsamplingFactor->setEnabled(true);
-    d->label_ReferenceVolume->setEnabled(true);
-    d->label_Warning->setVisible(true);
+
+    bool referenceVolumeNeeded = this->isReferenceVolumeNeeded();
+    d->label_Warning->setVisible(referenceVolumeNeeded);
+    d->MRMLNodeComboBox_ReferenceVolume->setEnabled(referenceVolumeNeeded);
+    d->label_ReferenceVolume->setEnabled(referenceVolumeNeeded);
   }
   else if (index == (int)vtkMRMLContourNode::BitfieldLabelmap)
   {
     // Bitfield labelmap is not supported yet
-    d->label_ReferenceVolume->setEnabled(false);
+    d->pushButton_ApplyChangeRepresentation->setEnabled(false);
   }
   else
   {
@@ -259,40 +323,6 @@ void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLContourNode::ContourRepresentationType qSlicerContoursModuleWidget::getRepresentationTypeOfSelectedContours()
-{
-  Q_D(qSlicerContoursModuleWidget);
-
-  bool sameRepresentationTypes = true;
-  vtkMRMLContourNode::ContourRepresentationType representationType = vtkMRMLContourNode::None;
-
-  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
-  {
-    if (representationType == vtkMRMLContourNode::None)
-    {
-      representationType = (*it)->GetActiveRepresentationType();
-    }
-    else if ((*it)->GetActiveRepresentationType() == vtkMRMLContourNode::None) // Sanity check
-    {
-      std::cerr << "Warning: Invalid representation type (None) found for the contour node '" << (*it)->GetName() << "'!" << std::endl;
-    }
-    else if (representationType != (*it)->GetActiveRepresentationType())
-    {
-      sameRepresentationTypes = false;
-    }
-  }
-
-  if (sameRepresentationTypes)
-  {
-    return representationType;
-  }
-  else
-  {
-    return vtkMRMLContourNode::None;
-  }
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::downsamplingFactorChanged(double value)
 {
   Q_D(qSlicerContoursModuleWidget);
@@ -317,10 +347,15 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
 
   for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
   {
-    if ((*it)->ConvertToRepresentation(
-      (vtkMRMLContourNode::ContourRepresentationType)d->comboBox_ActiveRepresentation->currentIndex()) != true)
+    vtkMRMLScalarVolumeNode* indexedLabelmapNode = (*it)->GetIndexedLabelmapVolumeNode();
+    if (!indexedLabelmapNode)
     {
-      std::cerr << "Failed to convert Contour node '" << (*it)->GetName() << "' to " << (std::string)d->comboBox_ActiveRepresentation->currentText().toLatin1() << "!" << std::endl;
+      std::cerr << "Failed to get '" << (std::string)d->comboBox_ActiveRepresentation->currentText().toLatin1()
+        << "' representation from contour node '" << (*it)->GetName() << "' to " << "!" << std::endl;
+    }
+    else
+    {
+      (*it)->SetActiveRepresentationByNode(indexedLabelmapNode);
     }
   }
 

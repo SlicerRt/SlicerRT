@@ -75,16 +75,13 @@ public:
 
 public:
   /// Set default representation by the object instance
-  void SetActiveRepresentationByObject(vtkMRMLDisplayableNode *node);
+  void SetActiveRepresentationByNode(vtkMRMLDisplayableNode *node);
 
   /// Set default representation by the object instance
   void SetActiveRepresentationByType(ContourRepresentationType type);
 
   /// Get active representation type
   ContourRepresentationType GetActiveRepresentationType() { return this->ActiveRepresentationType; };
-
-  /// Convert from a representation to another. Returns true after successful conversion, false otherwise
-  bool ConvertToRepresentation(ContourRepresentationType type);
 
 public:
   /// Get ribbon model node ID
@@ -128,6 +125,12 @@ public:
 protected:
   /// Create a temporary vector for easier batch handling of representations
   std::vector<vtkMRMLDisplayableNode*> CreateTemporaryRepresentationsVector();
+
+  /// Convert from a representation to another. Returns true after successful conversion, false otherwise
+  bool ConvertToRepresentation(ContourRepresentationType type);
+
+  /// Convert model representation to indexed labelmap
+  vtkMRMLScalarVolumeNode* ConvertFromModelToIndexedLabelmap(vtkMRMLModelNode* modelNode);
 
 protected:
   /// Set ribbon model node ID

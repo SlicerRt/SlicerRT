@@ -45,7 +45,14 @@ public:
   virtual ~qSlicerContoursModuleWidget();
 
 protected:
+  /// Determine whether the active representation is the 
+  /// same in the selected contours and returns it if it is
   vtkMRMLContourNode::ContourRepresentationType getRepresentationTypeOfSelectedContours();
+
+  /// Determines if a reference volume node is needed
+  /// (if the desired representation is labelmap and there is
+  /// at least one contour not having that representation)
+  bool isReferenceVolumeNeeded();
 
 protected slots:
   void contourNodeChanged(vtkMRMLNode*);

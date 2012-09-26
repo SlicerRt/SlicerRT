@@ -328,7 +328,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
           contourNodeName = std::string(roiLabel) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
           contourNode->SetName(contourNodeName.c_str());
           contourNode->SetAndObserveRibbonModelNodeId(addedDisplayableNode->GetID());
-          contourNode->SetActiveRepresentationByObject(addedDisplayableNode);
+          contourNode->SetActiveRepresentationByNode(addedDisplayableNode);
           contourNode->HideFromEditorsOff();
 
           // Put the contour node in the hierarchy
