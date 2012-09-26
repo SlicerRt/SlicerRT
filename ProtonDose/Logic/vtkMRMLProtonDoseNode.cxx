@@ -39,8 +39,8 @@ vtkMRMLNodeNewMacro(vtkMRMLProtonDoseNode);
 //----------------------------------------------------------------------------
 vtkMRMLProtonDoseNode::vtkMRMLProtonDoseNode()
 {
-  this->gantryAngle = 0.f;
-  this->collimatorAngle = 0.f;
+  this->GantryAngle = 0.f;
+  this->CollimatorAngle = 0.f;
   this->DoseVolumeNodeId = NULL;
   this->OutputHierarchyNodeId = NULL;
   this->HideFromEditors = false;

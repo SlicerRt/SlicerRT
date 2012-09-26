@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>373</width>
-    <height>430</height>
+    <height>465</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,6 +44,40 @@
     </layout>
    </item>
    <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_CTInput">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>CT Input</string>
+     </property>
+     <property name="contentsFrameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QLabel" name="label_18">
+        <property name="text">
+         <string>Input image</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_inputImage">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_BeamParameters">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -64,7 +98,7 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="0" column="0" rowspan="4" colspan="2">
+      <item row="1" column="0" rowspan="4" colspan="2">
        <layout class="QGridLayout" name="gridLayout_4">
         <property name="spacing">
          <number>4</number>
@@ -95,9 +129,6 @@
            <string>Gantry</string>
           </property>
          </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit_Gantry"/>
         </item>
         <item row="1" column="2">
          <widget class="QLabel" name="label_6">
@@ -168,6 +199,13 @@
         </item>
         <item row="1" column="5">
          <widget class="QLineEdit" name="lineEdit_Collimator"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_Gantry">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -259,32 +297,26 @@
      <property name="contentsFrameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <property name="margin">
-       <number>4</number>
-      </property>
-      <property name="spacing">
-       <number>4</number>
-      </property>
-      <item row="1" column="1">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Output image</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_OutputHierarchy">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLModelHierarchyNode</string>
+          <string>vtkMRMLScalarVolumeNode</string>
          </stringlist>
         </property>
         <property name="renameEnabled">
          <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Parent hierarchy:</string>
         </property>
        </widget>
       </item>
@@ -356,7 +388,6 @@
   <tabstop>lineEdit_IsoX</tabstop>
   <tabstop>lineEdit_IsoY</tabstop>
   <tabstop>lineEdit_IsoZ</tabstop>
-  <tabstop>lineEdit_Gantry</tabstop>
   <tabstop>lineEdit_Couch</tabstop>
   <tabstop>lineEdit_Collimator</tabstop>
   <tabstop>lineEdit_Range</tabstop>

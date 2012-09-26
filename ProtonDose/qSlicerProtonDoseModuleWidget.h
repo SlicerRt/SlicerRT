@@ -59,6 +59,7 @@ protected slots:
   void storeSelectedTableItemText(QTableWidgetItem* selectedItem, QTableWidgetItem* previousItem);
   void outputHierarchyNodeChanged(vtkMRMLNode*);
 
+  void gantryChanged(double);
   void applyClicked();
 
   void onLogicModified();

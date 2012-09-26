@@ -90,6 +90,8 @@ void qSlicerProtonDoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 {
   Q_D(qSlicerProtonDoseModuleWidget);
 
+  printf ("setMRMLScene()\n");
+
   this->Superclass::setMRMLScene(scene);
 
   //qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
@@ -114,6 +116,7 @@ void qSlicerProtonDoseModuleWidget::onSceneImportedEvent()
 //-----------------------------------------------------------------------------
 void qSlicerProtonDoseModuleWidget::enter()
 {
+  printf ("enter()\n");
   this->onEnter();
   this->Superclass::enter();
 }
@@ -121,6 +124,7 @@ void qSlicerProtonDoseModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerProtonDoseModuleWidget::onEnter()
 {
+  printf ("onEnter()\n");
   if (!this->mrmlScene())
   {
     return;
@@ -154,17 +158,20 @@ void qSlicerProtonDoseModuleWidget::onEnter()
   }
 
   updateWidgetFromMRML();
+  updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerProtonDoseModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerProtonDoseModuleWidget);
+  printf ("UpdateWidgetFrom MRML()\n"); fflush (stdout);
 
   vtkMRMLProtonDoseNode* paramNode = d->logic()->GetProtonDoseNode();
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
+    printf ("Found a parameter node\n"); fflush (stdout);
 #if defined (commentout)
     if (paramNode->GetDoseVolumeNodeId() && strcmp(paramNode->GetDoseVolumeNodeId(),""))
     {
@@ -189,18 +196,22 @@ void qSlicerProtonDoseModuleWidget::onLogicModified()
 //-----------------------------------------------------------------------------
 void qSlicerProtonDoseModuleWidget::setup()
 {
+  printf ("setup()\n");
   Q_D(qSlicerProtonDoseModuleWidget);
+
   d->setupUi(this);
   this->Superclass::setup();
 
   // Make connections
-  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setProtonDoseNode(vtkMRMLNode*) ) );
+  connect (d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setProtonDoseNode(vtkMRMLNode*)));
 #if defined (commentout)
-  connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
+  connect (d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseVolumeNodeChanged(vtkMRMLNode*)));
 #endif
 
-  connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
+  connect (d->doubleSpinBox_Gantry, SIGNAL(valueChanged(double)), this, SLOT(gantryChanged(double)));
+  connect (d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()));
 
+  // GCS: what is this?
   connect( d->MRMLNodeComboBox_OutputHierarchy, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( outputHierarchyNodeChanged(vtkMRMLNode*) ) );
 
   // Handle scene change event if occurs
@@ -265,6 +276,25 @@ void qSlicerProtonDoseModuleWidget::storeSelectedTableItemText(QTableWidgetItem*
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerProtonDoseModuleWidget::gantryChanged(double value)
+{
+  Q_D(qSlicerProtonDoseModuleWidget);
+
+  printf ("Apparently the gantry angle changed (1)\n");
+
+  vtkMRMLProtonDoseNode* paramNode = d->logic()->GetProtonDoseNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  printf ("Apparently we have a mrmlScene and a paramNode\n");
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetGantryAngle(value);
+  paramNode->DisableModifiedEventOff();
+}
+
 void qSlicerProtonDoseModuleWidget::applyClicked()
 {
   Q_D(qSlicerProtonDoseModuleWidget);
@@ -282,9 +312,9 @@ void qSlicerProtonDoseModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerProtonDoseModuleWidget);
 
-  bool applyEnabled = d->logic()->GetProtonDoseNode()
-                   && d->logic()->GetProtonDoseNode()->GetDoseVolumeNodeId()
-                   && strcmp(d->logic()->GetProtonDoseNode()->GetDoseVolumeNodeId(), "");
+  vtkMRMLProtonDoseNode* paramNode = d->logic()->GetProtonDoseNode();
+  bool applyEnabled = paramNode 
+    && paramNode->GetDoseVolumeNodeId();
+  printf ("Setting apply button state to %d\n", applyEnabled); fflush(stdout);
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
-

@@ -68,12 +68,16 @@ public:
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
  
-protected:
+public:
   /// Set dose volume node ID
   vtkSetStringMacro(DoseVolumeNodeId);
 
   /// Set output hierarchy node ID
   vtkSetStringMacro(OutputHierarchyNodeId);
+
+  /// Get/Set macros for beam parameters
+  vtkGetMacro(GantryAngle, double);
+  vtkSetMacro(GantryAngle, double);
 
 protected:
   vtkMRMLProtonDoseNode();
@@ -83,8 +87,8 @@ protected:
 
 protected:
   /// Greg is playing around
-  float gantryAngle;
-  float collimatorAngle;
+  float GantryAngle;
+  float CollimatorAngle;
 
   /// Selected dose volume MRML node object ID
   char* DoseVolumeNodeId;
