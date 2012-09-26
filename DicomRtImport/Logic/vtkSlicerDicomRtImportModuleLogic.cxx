@@ -318,6 +318,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
             contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
             contourHierarchyRootNode->AllowMultipleChildrenOn();
             contourHierarchyRootNode->HideFromEditorsOff();
+            contourHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), seriesname);
             this->GetMRMLScene()->AddNode(contourHierarchyRootNode);
           }
 

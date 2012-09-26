@@ -83,6 +83,9 @@ public:
   /// Get active representation type
   ContourRepresentationType GetActiveRepresentationType() { return this->ActiveRepresentationType; };
 
+  /// Convert from a representation to another. Returns true after successful conversion, false otherwise
+  bool ConvertToRepresentation(ContourRepresentationType type);
+
 public:
   /// Get ribbon model node ID
   vtkGetStringMacro(RibbonModelNodeId);
@@ -126,9 +129,6 @@ protected:
   /// Create a temporary vector for easier batch handling of representations
   std::vector<vtkMRMLDisplayableNode*> CreateTemporaryRepresentationsVector();
 
-  /// Convert available model representation to indexed labelmap
-  vtkMRMLScalarVolumeNode* CreateIndexedLabelmap();
-
 protected:
   /// Set ribbon model node ID
   vtkSetReferenceStringMacro(RibbonModelNodeId);
@@ -168,6 +168,7 @@ protected:
   char *ClosedSurfaceModelNodeId;
 
   /// Bitfield labelmap volume representation
+  ///  Note: It won't work as is, because bitfield labelmaps store contour data for more than one contour!
   vtkMRMLScalarVolumeNode* BitfieldLabelmapVolumeNode;
   /// Bitfield labelmap volume representation volume node ID
   char *BitfieldLabelmapVolumeNodeId;

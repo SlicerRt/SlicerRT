@@ -45,10 +45,11 @@ public:
   virtual ~qSlicerContoursModuleWidget();
 
 protected:
-  vtkMRMLContourNode::ContourRepresentationType GetRepresentationTypeOfSelectedContours();
+  vtkMRMLContourNode::ContourRepresentationType getRepresentationTypeOfSelectedContours();
 
 protected slots:
   void contourNodeChanged(vtkMRMLNode*);
+  void referenceVolumeNodeChanged(vtkMRMLNode* node);
   void activeRepresentationComboboxSelectionChanged(int index);
   void downsamplingFactorChanged(double value);
 

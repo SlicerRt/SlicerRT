@@ -326,7 +326,14 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetIndexedLabelmapVolumeNode()
     }
   else if (this->RasterizationReferenceVolumeNodeId != NULL)
     {
-    node = CreateIndexedLabelmap();
+    if (this->ConvertToRepresentation(IndexedLabelmap))
+      {
+      node = this->IndexedLabelmapVolumeNode;
+      }
+    }
+  else
+    {
+    vtkErrorMacro("Unable to convert to indexed labelmap representation without a reference volume!");
     }
   return node;
 }
@@ -536,8 +543,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkMRMLContourNode::CreateIndexedLabelmap()
+bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
 {
-  //TODO: Implement (call poly data to labelmap filter)
-  return NULL;
+  return false;
 }
