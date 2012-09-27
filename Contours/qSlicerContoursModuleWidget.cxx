@@ -166,6 +166,7 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContoursModuleWidget);
 
+  d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
   d->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
   d->label_ReferenceVolume->setEnabled(false);
   d->doubleSpinBox_DownsamplingFactor->setEnabled(false);
@@ -260,8 +261,9 @@ void qSlicerContoursModuleWidget::activeRepresentationComboboxSelectionChanged(i
 {
   Q_D(qSlicerContoursModuleWidget);
 
-  d->pushButton_ApplyChangeRepresentation->setEnabled(false);
+  d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
   d->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
+  d->pushButton_ApplyChangeRepresentation->setEnabled(false);
   d->doubleSpinBox_DownsamplingFactor->setEnabled(false);
   d->label_DownsamplingFactor->setEnabled(false);
 
@@ -310,6 +312,8 @@ void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
   {
     return;
   }
+
+  d->label_Warning->setVisible(false);
 
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
   if (volumeNode)

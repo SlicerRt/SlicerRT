@@ -99,6 +99,7 @@ void vtkSlicerDicomRtImportModuleLogic::RegisterNodes()
   assert(this->GetMRMLScene() != 0);
 
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
+  this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourHierarchyNode>::New());
 }
 
 //---------------------------------------------------------------------------

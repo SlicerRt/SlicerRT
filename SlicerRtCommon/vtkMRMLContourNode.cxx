@@ -106,6 +106,7 @@ void vtkMRMLContourNode::WriteXML(ostream& of, int nIndent)
     {
     of << indent << " RasterizationReferenceVolumeNodeId=\"" << this->RasterizationReferenceVolumeNodeId << "\"";
     }
+  of << indent << " ActiveRepresentationType=\"" << (int)this->ActiveRepresentationType << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -147,6 +148,12 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "RasterizationReferenceVolumeNodeId")) 
       {
       this->SetAndObserveRasterizationReferenceVolumeNodeId(attValue);
+      }
+    else if (!strcmp(attName, "ActiveRepresentationType")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->ActiveRepresentationType = (ContourRepresentationType)atoi(ss.str().c_str());
       }
     }
 }
@@ -244,6 +251,7 @@ void vtkMRMLContourNode::UpdateScene(vtkMRMLScene *scene)
   this->SetAndObserveClosedSurfaceModelNodeId(this->ClosedSurfaceModelNodeId);
   this->SetAndObserveBitfieldLabelmapVolumeNodeId(this->BitfieldLabelmapVolumeNodeId);
   this->SetAndObserveRasterizationReferenceVolumeNodeId(this->RasterizationReferenceVolumeNodeId);
+  this->SetActiveRepresentationByType(this->ActiveRepresentationType);
 }
 
 //----------------------------------------------------------------------------
@@ -256,6 +264,7 @@ void vtkMRMLContourNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ClosedSurfaceModelNodeId:   " << this->ClosedSurfaceModelNodeId << "\n";
   os << indent << "BitfieldLabelmapVolumeNodeId:   " << this->BitfieldLabelmapVolumeNodeId << "\n";
   os << indent << "RasterizationReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
+  os << indent << "ActiveRepresentationType:   " << this->ActiveRepresentationType << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -490,7 +499,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByNode(vtkMRMLDisplayableNode *n
     return;
     }
 
-  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
+  //mrmlScene->StartState(vtkMRMLScene::BatchProcessState); //TODO:
 
   // Show only the active representation and set active representation type
   for (unsigned int i=0; i<NumberOfRepresentationTypes; ++i)
@@ -506,7 +515,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByNode(vtkMRMLDisplayableNode *n
       }
     }
 
-  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
+  //mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
 }
 
 //----------------------------------------------------------------------------
@@ -526,7 +535,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
   std::vector<vtkMRMLDisplayableNode*> representations
     = this->CreateTemporaryRepresentationsVector();
 
-  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
+  //mrmlScene->StartState(vtkMRMLScene::BatchProcessState); //TODO:
 
   // Show only the active representation and set active representation type
   for (unsigned int i=0; i<NumberOfRepresentationTypes; ++i)
@@ -549,13 +558,17 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
       }
     }
 
-  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
+  //mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
 }
 
 //----------------------------------------------------------------------------
 bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
 {
-  if ((this->ActiveRepresentationType == RibbonModel
+  if (type == this->ActiveRepresentationType)
+    {
+    return true;
+    }
+  else if ((this->ActiveRepresentationType == RibbonModel
     || this->ActiveRepresentationType == ClosedSurfaceModel)
     && type == IndexedLabelmap)
     {
@@ -567,6 +580,12 @@ bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
 
     vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode = this->ConvertFromModelToIndexedLabelmap(
       (this->ActiveRepresentationType == RibbonModel ? this->RibbonModelNode : this->ClosedSurfaceModelNode) );
+
+    return (indexedLabelmapVolumeNode != NULL);
+    }
+  else
+    {
+    vtkWarningMacro("Requested conversion not implemented yet!");
     }
 
   return false;
@@ -746,7 +765,9 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   indexedLabelmapVolumeNode->SetAndObserveTransformNodeID( indexedLabelmapVolumeNode->GetTransformNodeID() );
   indexedLabelmapVolumeNode->SetName( indexedLabelmapVolumeNodeName.c_str() );
   indexedLabelmapVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
+  indexedLabelmapVolumeNode->LabelMapOn();
   //indexedLabelmapVolumeNode->SetAttribute( SlicerRtCommon::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), indexedLabelmapVolumeNode->GetID() );
+  mrmlScene->AddNode(indexedLabelmapVolumeNode);
 
   // Create display node
   vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
@@ -761,8 +782,6 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   }
 
   indexedLabelmapVolumeNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-  indexedLabelmapVolumeNode->LabelMapOn();
-  mrmlScene->AddNode(indexedLabelmapVolumeNode);
 
   this->SetAndObserveIndexedLabelmapVolumeNodeId(indexedLabelmapVolumeNode->GetID());
 

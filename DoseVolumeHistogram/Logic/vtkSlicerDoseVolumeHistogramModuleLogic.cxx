@@ -128,6 +128,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RegisterNodes()
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New());
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourHierarchyNode>::New());
 }
 
 //---------------------------------------------------------------------------
