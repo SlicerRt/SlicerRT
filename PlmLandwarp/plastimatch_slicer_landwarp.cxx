@@ -12,7 +12,6 @@
 
 #include "plmbase.h"
 #include "plmregister.h"
-#include "plmsys.h"
 
 #include "plm_math.h"
 #include "itk_tps.h"

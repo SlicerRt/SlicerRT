@@ -6,7 +6,7 @@
 #include <string.h>
 #include "plmutil.h"
 #include "plmbase.h"
-#include "plmsys.h"
+
 #include "itk_image.h"
 #include "itk_image_save.h"
 #include "threshbox.h"
