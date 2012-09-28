@@ -39,17 +39,21 @@ vtkMRMLNodeNewMacro(vtkMRMLIsodoseNode);
 //----------------------------------------------------------------------------
 vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
 {
-  this->IsodoseLevelVector.clear();
   this->DoseVolumeNodeId = NULL;
+  this->ColorTableNodeId = NULL;
   this->OutputHierarchyNodeId = NULL;
+  this->ShowIsodoseLines = true;
+  this->ShowIsodoseSurfaces = true;
+  this->ShowScalarBar = false;
+
   this->HideFromEditors = false;
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLIsodoseNode::~vtkMRMLIsodoseNode()
 {
-  this->IsodoseLevelVector.clear();
   this->SetDoseVolumeNodeId(NULL);
+  this->SetColorTableNodeId(NULL);
   this->SetOutputHierarchyNodeId(NULL);
 }
 
@@ -71,12 +75,12 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
   }
 
   {
-    of << indent << " IsodoseLevelVector=\"";
-    for (std::vector<double>::iterator it = this->IsodoseLevelVector.begin(); it != this->IsodoseLevelVector.end(); ++it)
+    std::stringstream ss;
+    if ( this->ColorTableNodeId )
       {
-      of << (*it) << "|";
+      ss << this->ColorTableNodeId;
+      of << indent << " ColorTableNodeId=\"" << ss.str() << "\"";
       }
-    of << "\"";
   }
 
   {
@@ -88,6 +92,11 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
       }
   }
 
+  of << indent << " ShowIsodoseLines=\"" << (this->ShowIsodoseLines ? "true" : "false") << "\"";
+
+  of << indent << " ShowIsodoseSurfaces=\"" << (this->ShowIsodoseSurfaces ? "true" : "false") << "\"";
+
+  of << indent << " ShowScalarBar=\"" << (this->ShowScalarBar ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -110,60 +119,32 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetAndObserveDoseVolumeNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "IsodoseLevelVector")) 
+    else if (!strcmp(attName, "ColorTableNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      std::string valueStr = ss.str();
-      std::string separatorCharacter("|");
-
-      this->IsodoseLevelVector.clear();
-      size_t separatorPosition = valueStr.find( separatorCharacter );
-      while (separatorPosition != std::string::npos)
-        {
-        std::string mapPairStr = valueStr.substr(0, separatorPosition);
-        size_t colonPosition = mapPairStr.find( ":" );
-        if (colonPosition == std::string::npos)
-          {
-          continue;
-          }
-        std::string doseLevelName = mapPairStr.substr(0, colonPosition);
-
-        double doseLevelValue;
-        std::stringstream vss;
-        vss << mapPairStr.substr( colonPosition+1 );
-        vss >> doseLevelValue;
-        
-        double tempLevel;
-        tempLevel = doseLevelValue;
-        this->IsodoseLevelVector.push_back(tempLevel);
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-        }
-      if (! valueStr.empty() )
-        {
-        std::string mapPairStr = valueStr.substr(0, separatorPosition);
-        size_t colonPosition = mapPairStr.find( ":" );
-        if (colonPosition != std::string::npos)
-          {
-          std::string doseLevelName = mapPairStr.substr(0, colonPosition);
-
-          double doseLevelValue;
-          std::stringstream vss;
-          vss << mapPairStr.substr( colonPosition+1 );
-          vss >> doseLevelValue;
-
-          double tempLevel;
-          tempLevel = doseLevelValue;
-          this->IsodoseLevelVector.push_back(tempLevel);
-          }
-        }
+      this->SetAndObserveOutputHierarchyNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "OutputHierarchyNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
       this->SetAndObserveOutputHierarchyNodeId(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "ShowIsodoseLines")) 
+      {
+      this->ShowIsodoseLines = 
+        (strcmp(attValue,"true") ? false : true);
+      }
+    else if (!strcmp(attName, "ShowIsodoseSurfaces")) 
+      {
+      this->ShowIsodoseSurfaces = 
+        (strcmp(attValue,"true") ? false : true);
+      }
+    else if (!strcmp(attName, "ShowScalarBar")) 
+      {
+      this->ShowScalarBar = 
+        (strcmp(attValue,"true") ? false : true);
       }
     }
 }
@@ -179,8 +160,12 @@ void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
   vtkMRMLIsodoseNode *node = (vtkMRMLIsodoseNode *) anode;
 
   this->SetAndObserveDoseVolumeNodeId(node->DoseVolumeNodeId);
+  this->SetAndObserveColorTableNodeId(node->ColorTableNodeId);
   this->SetAndObserveOutputHierarchyNodeId(node->OutputHierarchyNodeId);
-  this->IsodoseLevelVector = node->IsodoseLevelVector;
+
+  this->ShowIsodoseLines = node->ShowIsodoseLines;
+  this->ShowIsodoseSurfaces = node->ShowIsodoseSurfaces;
+  this->ShowScalarBar = node->ShowScalarBar;
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -192,8 +177,11 @@ void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLNode::PrintSelf(os,indent);
 
   os << indent << "DoseVolumeNodeId:   " << this->DoseVolumeNodeId << "\n";
+  os << indent << "ColorTableNodeId:   " << this->ColorTableNodeId << "\n";
   os << indent << "OutputHierarchyNodeId:   " << this->OutputHierarchyNodeId << "\n";
-  //TODO: Add isodose level vector contents
+  os << indent << "ShowIsodoseLines:   " << (this->ShowIsodoseLines ? "true" : "false") << "\n";
+  os << indent << "ShowIsodoseSurfaces:   " << (this->ShowIsodoseSurfaces ? "true" : "false") << "\n";
+  os << indent << "ShowScalarBar:   " << (this->ShowScalarBar ? "true" : "false") << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -202,6 +190,10 @@ void vtkMRMLIsodoseNode::UpdateReferenceID(const char *oldID, const char *newID)
   if (this->DoseVolumeNodeId && !strcmp(oldID, this->DoseVolumeNodeId))
     {
     this->SetAndObserveDoseVolumeNodeId(newID);
+    }
+  if (this->ColorTableNodeId && !strcmp(oldID, this->ColorTableNodeId))
+    {
+    this->SetAndObserveColorTableNodeId(newID);
     }
   if (this->OutputHierarchyNodeId && !strcmp(oldID, this->OutputHierarchyNodeId))
     {
@@ -222,6 +214,22 @@ void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNodeId(const char* id)
   if (id)
     {
     this->Scene->AddReferencedNodeID(this->DoseVolumeNodeId, this);
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLIsodoseNode::SetAndObserveColorTableNodeId(const char* id)
+{
+  if (this->ColorTableNodeId)
+    {
+    this->Scene->RemoveReferencedNodeID(this->ColorTableNodeId, this);
+    }
+
+  this->SetColorTableNodeId(id);
+
+  if (id)
+    {
+    this->Scene->AddReferencedNodeID(this->ColorTableNodeId, this);
     }
 }
 

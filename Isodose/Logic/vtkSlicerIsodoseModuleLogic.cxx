@@ -13,9 +13,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, RMP, PMH
-  and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  This file was originally developed by Kevin Wang, Radiation Medicine Program, University Health Network
+  and funded by Cancer Care Ontario (CCO)'s ACRU program 
+  and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
@@ -61,7 +61,6 @@ vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 vtkSlicerIsodoseModuleLogic::vtkSlicerIsodoseModuleLogic()
 {
   this->IsodoseNode = NULL;
-  this->ColorTableNodeId = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -115,10 +114,16 @@ void vtkSlicerIsodoseModuleLogic::UpdateFromMRMLScene()
 //---------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
-  if (!node || !this->GetMRMLScene())
+  if (!node || !this->GetMRMLScene() || !this->IsodoseNode)
     {
     return;
     }
+
+  // if the scene is still updating, jump out
+  if (this->GetMRMLScene()->IsBatchProcessing())
+  {
+    return;
+  }
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLIsodoseNode"))
     {
@@ -129,10 +134,16 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 //---------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
-  if (!node || !this->GetMRMLScene())
+  if (!node || !this->GetMRMLScene() || !this->IsodoseNode)
     {
     return;
     }
+
+  // if the scene is still updating, jump out
+  if (this->GetMRMLScene()->IsBatchProcessing())
+  {
+    return;
+  }
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLIsodoseNode"))
     {
@@ -181,14 +192,17 @@ bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
 }
 
 //----------------------------------------------------------------------------
-const char *vtkSlicerIsodoseModuleLogic::GetDefaultLabelMapColorNodeID()
+const char *vtkSlicerIsodoseModuleLogic::GetDefaultLabelMapColorTableNodeId()
 {
-  if (this->ColorTableNodeId == NULL)
+  if (this->IsodoseNode->GetColorTableNodeId() == NULL)
   {
     this->AddDefaultIsodoseColorNode();
+    char* temp = "vtkMRMLColorTableNodeUserDefined";
+    this->IsodoseNode->SetAndObserveColorTableNodeId(temp);
   }
 
-  return this->ColorTableNodeId;
+  //this->colorTableNodeID = temp;
+  return this->IsodoseNode->GetColorTableNodeId();
 }
 
 //----------------------------------------------------------------------------
@@ -200,17 +214,31 @@ void vtkSlicerIsodoseModuleLogic::AddDefaultIsodoseColorNode()
     return;
   }
   
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
+
   // add a random procedural node that covers full integer range
-  vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+  vtkMRMLColorTableNode* isodoseColorNode = this->CreateIsodoseColorNode();
+
+  this->GetMRMLScene()->AddNode(isodoseColorNode);
+
+  isodoseColorNode->Delete();
+
+  vtkDebugMacro("Done adding default color nodes");
+  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
+}
+
+
+//------------------------------------------------------------------------------
+vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode()
+{
+  vtkDebugMacro("vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode: making a default mrml colortable node");
+  vtkMRMLColorTableNode *colorTableNode = vtkMRMLColorTableNode::New();
+  colorTableNode->SetName("IsodoseColor");
   colorTableNode->SetTypeToUser();
-  colorTableNode->SetName("IsodoseColors");
+  colorTableNode->SetAttribute("Category", "User Generated");
   colorTableNode->HideFromEditorsOff();
-  //colorTableNode->SetAttribute("Category", "User Generated");
-  //colorTableNode->SaveWithSceneOff();
-  //colorTableNode->SetSingletonTag(colorTableNode->GetTypeAsString());
-
-  this->GetMRMLScene()->AddNode(colorTableNode);
-
+  colorTableNode->SaveWithSceneOff();
+  colorTableNode->SetSingletonTag(colorTableNode->GetTypeAsString());
   colorTableNode->SetNumberOfColors(6);
   colorTableNode->GetLookupTable()->SetTableRange(0,5);
   colorTableNode->AddColor("5", 0, 1, 0, 0.2);
@@ -219,8 +247,8 @@ void vtkSlicerIsodoseModuleLogic::AddDefaultIsodoseColorNode()
   colorTableNode->AddColor("20", 1, 0.66, 0, 0.2);
   colorTableNode->AddColor("25", 1, 0.33, 0, 0.2);
   colorTableNode->AddColor("30", 1, 0, 0, 0.2);
-
-  this->SetColorTableNodeId( colorTableNode->GetID() );
+  
+  return colorTableNode;
 }
 
 //---------------------------------------------------------------------------
@@ -279,9 +307,9 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     modelHierarchyRootNode->RemoveAllChildrenNodes();
   }
 
-  vtkSmartPointer<vtkMRMLColorTableNode> colorNode = vtkMRMLColorTableNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ColorTableNodeId));  
-  vtkSmartPointer<vtkLookupTable> lookupTable = colorNode->GetLookupTable();
+  vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
+  vtkSmartPointer<vtkLookupTable> lookupTable = colorTableNode->GetLookupTable();
   
   vtkSmartPointer<vtkImageChangeInformation> changeInfo = vtkSmartPointer<vtkImageChangeInformation>::New();
   changeInfo->SetInput(doseVolumeNode->GetImageData());
@@ -295,12 +323,12 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 
   double rgb[3] = {1,1,1};
   double doseLevel = 0.0;
-  for (int i = 0; i < colorNode->GetNumberOfColors(); i++)
+  for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
   {
     double val[6];
-    const char* strIsoLevel = colorNode->GetColorName(i);
+    const char* strIsoLevel = colorTableNode->GetColorName(i);
     double isoLevel = atof(strIsoLevel);
-    colorNode->GetColor(i, val);
+    colorTableNode->GetColor(i, val);
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
     marchingCubes->SetInput(changeInfo->GetOutput());

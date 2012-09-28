@@ -13,9 +13,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
-  and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  This file was originally developed by Kevin Wang, Radiation Medicine Program, University Health Network
+  and funded by Cancer Care Ontario (CCO)'s ACRU program 
+  and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
@@ -53,12 +53,7 @@ public:
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "Isodose";};
 
-  /// Get volumes node IDs to weights map
-  std::vector<double>* GetIsodoseLevelVector()
-  {
-    return &this->IsodoseLevelVector;
-  }
-
+public:
   /// Get dose volume node ID
   vtkGetStringMacro(DoseVolumeNodeId);
 
@@ -71,15 +66,39 @@ public:
   /// Set and observe output hierarchy node ID
   void SetAndObserveOutputHierarchyNodeId(const char* id);
 
+  /// Get color node ID
+  vtkGetStringMacro(ColorTableNodeId);
+
+  /// Set and observe chart node ID
+  void SetAndObserveColorTableNodeId(const char* id);
+
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
  
+  /// Get/Set show Gy for D metrics checkbox state
+  vtkGetMacro(ShowIsodoseLines, bool);
+  vtkSetMacro(ShowIsodoseLines, bool);
+  vtkBooleanMacro(ShowIsodoseLines, bool);
+
+  /// Get/Set Save labelmaps checkbox state
+  vtkGetMacro(ShowIsodoseSurfaces, bool);
+  vtkSetMacro(ShowIsodoseSurfaces, bool);
+  vtkBooleanMacro(ShowIsodoseSurfaces, bool);
+
+  /// Get/Set Save labelmaps checkbox state
+  vtkGetMacro(ShowScalarBar, bool);
+  vtkSetMacro(ShowScalarBar, bool);
+  vtkBooleanMacro(ShowScalarBar, bool);
+
 protected:
   /// Set dose volume node ID
   vtkSetStringMacro(DoseVolumeNodeId);
 
   /// Set output hierarchy node ID
   vtkSetStringMacro(OutputHierarchyNodeId);
+
+  /// Set color node ID
+  vtkSetStringMacro(ColorTableNodeId);
 
 protected:
   vtkMRMLIsodoseNode();
@@ -88,15 +107,23 @@ protected:
   void operator=(const vtkMRMLIsodoseNode&);
 
 protected:
-  /// Map assigning dose levels to the available input volume nodes
-  /// (as the user set it on the module GUI)
-  std::vector<double> IsodoseLevelVector;
-
   /// Selected dose volume MRML node object ID
   char* DoseVolumeNodeId;
 
   /// Selected dose volume MRML node object ID
   char* OutputHierarchyNodeId;
+
+  /// Selected chart MRML node object ID
+  char* ColorTableNodeId;
+
+  /// State of Show isodose lines checkbox
+  bool ShowIsodoseLines;
+
+  /// State of Show isodose surface checkbox
+  bool ShowIsodoseSurfaces;
+
+  /// State of Show scalarbar checkbox
+  bool ShowScalarBar;
 };
 
 #endif

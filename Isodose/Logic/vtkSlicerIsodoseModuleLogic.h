@@ -13,9 +13,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, RMP, PMH
-  and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  This file was originally developed by Kevin Wang, Radiation Medicine Program, University Health Network
+  and funded by Cancer Care Ontario (CCO)'s ACRU program 
+  and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
@@ -55,9 +55,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Return a default color node id for a label map
-  const char * GetDefaultLabelMapColorNodeID();
-
-  void AddDefaultIsodoseColorNode();
+  const char * GetDefaultLabelMapColorTableNodeId();
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
   int ComputeIsodose();
@@ -74,6 +72,10 @@ public:
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
 
+  void AddDefaultIsodoseColorNode();
+
+  vtkMRMLColorTableNode* CreateIsodoseColorNode();
+
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
   virtual void UpdateFromMRMLScene();
@@ -81,9 +83,6 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
-
-  /// Set reference dose volume node ID
-  vtkSetStringMacro(ColorTableNodeId);
 
 protected:
   vtkSlicerIsodoseModuleLogic();
@@ -97,9 +96,6 @@ private:
 protected:
   /// Parameter set MRML node
   vtkMRMLIsodoseNode* IsodoseNode;
-
-  /// Isodose color table node ID
-  char* ColorTableNodeId;
 };
 
 #endif

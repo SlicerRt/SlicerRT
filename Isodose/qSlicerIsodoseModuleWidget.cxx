@@ -13,9 +13,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, RMP, PMH
-  and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  This file was originally developed by Kevin Wang, Radiation Medicine Program, University Health Network
+  and funded by Cancer Care Ontario (CCO)'s ACRU program 
+  and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
   
 ==============================================================================*/
 
@@ -118,7 +118,6 @@ void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
       {
       this->setIsodoseNode( vtkMRMLIsodoseNode::SafeDownCast(node) );
       }
-    d->setDefaultColorNode();
     }
 }
 
@@ -170,6 +169,9 @@ void qSlicerIsodoseModuleWidget::onEnter()
       }
     }
 
+  // set up default color node
+  d->setDefaultColorNode();
+
   updateWidgetFromMRML();
 }
 
@@ -210,7 +212,7 @@ void qSlicerIsodoseModuleWidgetPrivate::setDefaultColorNode()
   {
     return;
   }
-  const char *defaultID = this->logic()->GetDefaultLabelMapColorNodeID();
+  const char *defaultID = this->logic()->GetDefaultLabelMapColorTableNodeId();
   vtkMRMLColorTableNode *defaultNode = vtkMRMLColorTableNode::SafeDownCast(
     q->mrmlScene()->GetNodeByID(defaultID));
   this->tableView_IsodoseLevels->setMRMLColorNode(defaultNode);
@@ -292,7 +294,7 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
     return;
   }
 
-  const char *defaultID = d->logic()->GetDefaultLabelMapColorNodeID();
+  const char *defaultID = d->logic()->GetDefaultLabelMapColorTableNodeId();
   vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(defaultID));
 
@@ -337,49 +339,49 @@ QString qSlicerIsodoseModuleWidget::generateNewIsodoseLevel() const
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerIsodoseModuleWidget::onTextEdited(QString changedString)
-{
-  Q_D(qSlicerIsodoseModuleWidget);
-
-  // Do nothing if unselected
-  if (changedString.isEmpty())
-  {
-    return;
-  }
-
-  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  QStringList list = changedString.split(",");
-  if (list.size() >=1) 
-  {
-    list.sort();
-    int wasModifying = paramNode->StartModify();
-    paramNode->GetIsodoseLevelVector()->clear();
-
-    for (int i = 0; i<list.size(); i++)
-    {
-      bool ok;
-      double level = list.at(i).toDouble(&ok);
-      // Sanity check
-      if (ok && level > 0.0 && level < 10000)
-      {
-        paramNode->GetIsodoseLevelVector()->push_back(level);
-      }
-    }
-    paramNode->Modified();
-    paramNode->EndModify(wasModifying);
-  }
-  else
-  {
-    return;
-  }
-
-  updateButtonsState();
-}
+//void qSlicerIsodoseModuleWidget::onTextEdited(QString changedString)
+//{
+//  Q_D(qSlicerIsodoseModuleWidget);
+//
+//  // Do nothing if unselected
+//  if (changedString.isEmpty())
+//  {
+//    return;
+//  }
+//
+//  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
+//  if (!paramNode || !this->mrmlScene())
+//  {
+//    return;
+//  }
+//
+//  QStringList list = changedString.split(",");
+//  if (list.size() >=1) 
+//  {
+//    list.sort();
+//    int wasModifying = paramNode->StartModify();
+//    paramNode->GetIsodoseLevelVector()->clear();
+//
+//    for (int i = 0; i<list.size(); i++)
+//    {
+//      bool ok;
+//      double level = list.at(i).toDouble(&ok);
+//      // Sanity check
+//      if (ok && level > 0.0 && level < 10000)
+//      {
+//        paramNode->GetIsodoseLevelVector()->push_back(level);
+//      }
+//    }
+//    paramNode->Modified();
+//    paramNode->EndModify(wasModifying);
+//  }
+//  else
+//  {
+//    return;
+//  }
+//
+//  updateButtonsState();
+//}
 
 //------------------------------------------------------------------------------
 void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
@@ -459,7 +461,7 @@ void qSlicerIsodoseModuleWidget::updateButtonsState()
     return;
   }
 
-  const char *defaultID = d->logic()->GetDefaultLabelMapColorNodeID();
+  const char *defaultID = d->logic()->GetDefaultLabelMapColorTableNodeId();
   vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(defaultID));
   bool applyEnabled = d->logic()->GetIsodoseNode()
