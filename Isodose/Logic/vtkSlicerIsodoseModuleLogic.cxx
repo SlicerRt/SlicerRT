@@ -308,14 +308,10 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     modelHierarchyRootNode->RemoveAllChildrenNodes();
   }
 
-  std::cout << "root node" << std::endl;
-
   vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
   vtkSmartPointer<vtkLookupTable> lookupTable = colorTableNode->GetLookupTable();
   
-  std::cout << "color node" << std::endl;
-
   vtkSmartPointer<vtkImageChangeInformation> changeInfo = vtkSmartPointer<vtkImageChangeInformation>::New();
   changeInfo->SetInput(doseVolumeNode->GetImageData());
   double origin[3];
@@ -334,8 +330,6 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     const char* strIsoLevel = colorTableNode->GetColorName(i);
     double isoLevel = atof(strIsoLevel);
     colorTableNode->GetColor(i, val);
-
-    std::cout << "before each marching cube" << std::endl;
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
     marchingCubes->SetInput(changeInfo->GetOutput());
@@ -390,8 +384,6 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
       }
     }
   }
-
-  std::cout << "final" << std::endl;
 
   this->IsodoseNode->SetAndObserveOutputHierarchyNodeId(modelHierarchyRootNode->GetID());
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 

@@ -212,14 +212,10 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
 
   mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
 
-  std::cout << "before logic node" << std::endl;
-
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLIsodoseNode> paramNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
   mrmlScene->AddNode(paramNode);
   paramNode->SetAndObserveDoseVolumeNodeId(doseScalarVolumeNode->GetID());
-
-  std::cout << "before logic node2" << std::endl;
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerIsodoseModuleLogic> isodoseLogic = vtkSmartPointer<vtkSlicerIsodoseModuleLogic>::New();
@@ -227,12 +223,8 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   isodoseLogic->SetAndObserveIsodoseNode(paramNode);
   isodoseLogic->GetDefaultLabelMapColorTableNodeId();
 
-  std::cout << "before logic node3" << std::endl;
-
   // Compute isodose
   isodoseLogic->ComputeIsodose();
-
-  std::cout << "before logic node4" << std::endl;
 
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkMRMLModelHierarchyNode::SafeDownCast(
     mrmlScene->GetNodeByID(paramNode->GetOutputHierarchyNodeId()));  
