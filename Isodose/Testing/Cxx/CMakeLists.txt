@@ -27,7 +27,7 @@ set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
       DataDirectoryPath BaselineIsodoseSurfaceFile 
-      VolumeDifferenceCriterion)
+      TemporarySceneFile VolumeDifferenceCriterion)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
@@ -44,7 +44,7 @@ TEST_WITH_DATA(
   vtkSlicerIsodoseModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dose.nrrd
-  ${TEMP}/TestScene_EclipseProstate.mrml
+  ${TEMP}/TestScene_Isodose_EclipseProstate.mrml
   100.0
 )
 set_tests_properties(vtkSlicerIsodoseModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )

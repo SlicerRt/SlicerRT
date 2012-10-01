@@ -13,8 +13,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, University Health Network
-  and funded by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
+  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
@@ -307,10 +308,14 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     modelHierarchyRootNode->RemoveAllChildrenNodes();
   }
 
+  std::cout << "root node" << std::endl;
+
   vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
   vtkSmartPointer<vtkLookupTable> lookupTable = colorTableNode->GetLookupTable();
   
+  std::cout << "color node" << std::endl;
+
   vtkSmartPointer<vtkImageChangeInformation> changeInfo = vtkSmartPointer<vtkImageChangeInformation>::New();
   changeInfo->SetInput(doseVolumeNode->GetImageData());
   double origin[3];
@@ -329,6 +334,8 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     const char* strIsoLevel = colorTableNode->GetColorName(i);
     double isoLevel = atof(strIsoLevel);
     colorTableNode->GetColor(i, val);
+
+    std::cout << "before each marching cube" << std::endl;
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
     marchingCubes->SetInput(changeInfo->GetOutput());
@@ -383,6 +390,8 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
       }
     }
   }
+
+  std::cout << "final" << std::endl;
 
   this->IsodoseNode->SetAndObserveOutputHierarchyNodeId(modelHierarchyRootNode->GetID());
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
