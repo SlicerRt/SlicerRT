@@ -13,9 +13,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
-  and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
+  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  with funds provided by the Ontario Ministry of Health and Long-Term Care
+  and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
@@ -57,7 +58,10 @@ public:
   int AccumulateDoseVolumes();
 
 public:
+  /// Set and observe dose accumulation parameter node 
   void SetAndObserveDoseAccumulationNode(vtkMRMLDoseAccumulationNode* node);
+
+  /// Get dose accumulation parameter node 
   vtkGetObjectMacro(DoseAccumulationNode, vtkMRMLDoseAccumulationNode);
 
 protected:
