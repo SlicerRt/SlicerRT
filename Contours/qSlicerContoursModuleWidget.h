@@ -44,6 +44,8 @@ public:
   qSlicerContoursModuleWidget(QWidget *parent=0);
   virtual ~qSlicerContoursModuleWidget();
 
+  virtual void enter();
+
 protected:
   /// Determine whether the active representation is the 
   /// same in the selected contours and returns it if it is
@@ -53,6 +55,9 @@ protected:
   /// (if the desired representation is labelmap and there is
   /// at least one contour not having that representation)
   bool isReferenceVolumeNeeded();
+
+  /// Set state according to currently selected representation type
+  void onActiveRepresentationComboboxSelectionChanged(int index);
 
 protected slots:
   void contourNodeChanged(vtkMRMLNode*);
@@ -64,8 +69,9 @@ protected slots:
 
 protected:
   QScopedPointer<qSlicerContoursModuleWidgetPrivate> d_ptr;
-  
+
   virtual void setup();
+  void onEnter();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerContoursModuleWidget);

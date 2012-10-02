@@ -48,6 +48,10 @@ public:
   /// List of currently selected contour nodes. Contains the selected
   /// contour node or the children of the selected contour hierarchy node
   std::vector<vtkMRMLContourNode*> SelectedContourNodes;
+
+  /// Using this flag prevents overriding the parameter set node contents when the
+  ///   QMRMLCombobox selects the first instance of the specified node type when initializing
+  bool ModuleWindowInitialized;
 };
 
 //-----------------------------------------------------------------------------
@@ -56,6 +60,7 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerContoursModuleWidgetPrivate::qSlicerContoursModuleWidgetPrivate(qSlicerContoursModuleWidget& object)
   : q_ptr(&object)
+  , ModuleWindowInitialized(false)
 {
   this->SelectedContourNodes.clear();
 }
@@ -79,6 +84,28 @@ qSlicerContoursModuleWidget::qSlicerContoursModuleWidget(QWidget* _parent)
 //-----------------------------------------------------------------------------
 qSlicerContoursModuleWidget::~qSlicerContoursModuleWidget()
 {
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::enter()
+{
+  this->onEnter();
+  this->Superclass::enter();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::onEnter()
+{
+  if (this->mrmlScene() == 0)
+  {
+    return;
+  }
+
+  Q_D(qSlicerContoursModuleWidget);
+
+  d->ModuleWindowInitialized = true;
+
+  this->contourNodeChanged( d->MRMLNodeComboBox_Contour->currentNode() );
 }
 
 //-----------------------------------------------------------------------------
@@ -166,14 +193,7 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContoursModuleWidget);
 
-  d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
-  d->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
-  d->label_ReferenceVolume->setEnabled(false);
-  d->doubleSpinBox_DownsamplingFactor->setEnabled(false);
-  d->label_DownsamplingFactor->setEnabled(false);
-
-  bool enabled = true;
-  if (!this->mrmlScene() || !node)
+  if (!this->mrmlScene() || !node || !d->ModuleWindowInitialized)
   {
     d->comboBox_ActiveRepresentation->setEnabled(false);
     return;
@@ -218,14 +238,20 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 
     // Select the representation type shared by all the children contour nodes
     vtkMRMLContourNode::ContourRepresentationType representationType = this->getRepresentationTypeOfSelectedContours();
+    d->comboBox_ActiveRepresentation->blockSignals(true); // Ensure the state si set only once
     if (representationType != vtkMRMLContourNode::None)
     {
       d->comboBox_ActiveRepresentation->setCurrentIndex((int)representationType);
+
+      // Make sure the state is set even if the representation combobox selection has not actually changed
+      this->onActiveRepresentationComboboxSelectionChanged((int)representationType);
     }
     else
     {
       d->comboBox_ActiveRepresentation->setCurrentIndex(-1); // Void selection
+      this->onActiveRepresentationComboboxSelectionChanged(-1);
     }
+    d->comboBox_ActiveRepresentation->blockSignals(false);
 
     // Get the downsampling factor of the selected contour nodes
     double downsamplingFactor = 0.0;
@@ -258,6 +284,12 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 
 //-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::activeRepresentationComboboxSelectionChanged(int index)
+{
+  this->onActiveRepresentationComboboxSelectionChanged(index);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged(int index)
 {
   Q_D(qSlicerContoursModuleWidget);
 
@@ -308,7 +340,7 @@ void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 
   d->pushButton_ApplyChangeRepresentation->setEnabled(false);
 
-  if (!this->mrmlScene() || !node)
+  if (!this->mrmlScene() || !node || !d->ModuleWindowInitialized)
   {
     return;
   }
