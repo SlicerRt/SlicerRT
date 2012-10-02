@@ -34,7 +34,7 @@ macro(TEST_WITH_DATA TestName TestExecutableName
     -DataDirectoryPath ${DataDirectoryPath}
     -BaselineDoseAccumulationDoseFile ${BaselineDoseAccumulationDoseFile}
     -TemporarySceneFile ${TemporarySceneFile}
-    -VolumeDifferenceCriterion ${VolumeDifferenceCriterion}
+    -DoseDifferenceCriterion ${DoseDifferenceCriterion}
   )
 endmacro()
 
@@ -45,6 +45,12 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dose.nrrd
   ${TEMP}/TestScene_DoseAccumulation_EclipseProstate.mrml
-  100.0
+  1.0
 )
 set_tests_properties(vtkSliceDoseAccumulationModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+#ADD_TEST(vtkSlicerDoseAccumulationModuleCompareToBaselineTest
+#   ${CMAKE_COMMAND} -E compare_files 
+#   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dose.nrrd 
+#   ${TEMP}/AccumulatedDose.nrrd
+#  )

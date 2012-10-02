@@ -45,6 +45,9 @@
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 #include <vtkLookupTable.h>
+#include <vtkNRRDWriter.h>
+#include <vtkMatrix4x4.h>
+#include <vtkImageMathematics.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -125,21 +128,21 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  double volumeDifferenceCriterion = 0.0;
+  double doseDifferenceCriterion = 0.0;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-VolumeDifferenceCriterion") == 0)
+    if (STRCASECMP(argv[argIndex], "-DoseDifferenceCriterion") == 0)
     {
-      volumeDifferenceCriterion = atof(argv[argIndex+1]);
-      std::cout << "Volume difference criterion: " << volumeDifferenceCriterion << std::endl;
+      doseDifferenceCriterion = atof(argv[argIndex+1]);
+      std::cout << "Dose difference criterion: " << doseDifferenceCriterion << std::endl;
       argIndex += 2;
     }
   }
 
   // Constraint the criteria to be greater than zero
-  if (volumeDifferenceCriterion == 0.0)
+  if (doseDifferenceCriterion == 0.0)
   {
-    volumeDifferenceCriterion = EPSILON;
+    doseDifferenceCriterion = EPSILON;
   }
 
   // Create scene
@@ -229,8 +232,6 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
 
   mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
 
-  std::cout << "before paramnode" << std::endl;
-
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLDoseAccumulationNode> paramNode = vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New();
   mrmlScene->AddNode(paramNode);
@@ -243,23 +244,18 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode2->GetID()] = 0.5;
   paramNode->SetAndObserveAccumulatedDoseVolumeNodeId(OutputVolumeNode->GetID());
 
-  std::cout << "before logic node" << std::endl;
-
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic> doseAccumulationLogic = vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic>::New();
   doseAccumulationLogic->SetMRMLScene(mrmlScene);
   doseAccumulationLogic->SetAndObserveDoseAccumulationNode(paramNode);
 
-  std::cout << "after accumulation1" << std::endl;
   // Compute DoseAccumulation
   doseAccumulationLogic->AccumulateDoseVolumes();
-
-  std::cout << "after accumulation" << std::endl;
 
   vtkSmartPointer<vtkMRMLVolumeNode> accumulatedDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     mrmlScene->GetNodeByID(paramNode->GetAccumulatedDoseVolumeNodeId()));  
   if (accumulatedDoseVolumeNode == NULL)
-  {
+  { 
     mrmlScene->Commit();
     std::cerr << "Invalid model hierarchy node!" << std::endl;
     return EXIT_FAILURE;
@@ -268,27 +264,30 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
   mrmlScene->Commit();
 
-  bool returnWithSuccess = true;
+  //std::string accumulatedDoseFileName = vtksys::SystemTools::GetParentDirectory(temporarySceneFileName) + "/AccumulatedDose.nrrd";
+  //vtkSmartPointer<vtkNRRDWriter> writer = vtkSmartPointer<vtkNRRDWriter>::New();
+  //writer->SetFileName(accumulatedDoseFileName.c_str());
+  //writer->SetInput(accumulatedDoseVolumeNode->GetImageData());
+  //vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
+  //accumulatedDoseVolumeNode->GetIJKToRASMatrix(mat);
+  //writer->SetIJKToRASMatrix(mat);
+  //writer->Write();
 
-  // Compare DoseAccumulation surfaces
-  double agreementAcceptancePercentage = -1.0;
-  if (vtksys::SystemTools::FileExists(baselineDoseAccumulationDoseFileName))
-  {
-    //if (CompareDoseAccumulationSurfaces(temporaryDvhTableCsvFileName, baselineDvhTableCsvFileName, maxDose,
-    //  volumeDifferenceCriterion, doseToAgreementCriterion, agreementAcceptancePercentage) > 0)
-    //{
-    //  std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
-    //  returnWithSuccess = false;
-    //}
-  }
-  else
-  {
-    //std::cerr << "Failed to open baseline DVH table: " << baselineDvhTableCsvFileName << std::endl;
-    //returnWithSuccess = false;
-  }
+  vtkSmartPointer<vtkImageMathematics> math = vtkSmartPointer<vtkImageMathematics>::New();
+  math->SetInput1(doseScalarVolumeNode->GetImageData());
+  math->SetInput2(accumulatedDoseVolumeNode->GetImageData());
+  math->SetOperationToSubtract();
+  math->Update();
 
-  if (!returnWithSuccess)
+  vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
+  histogram->SetInput(math->GetOutput());
+  histogram->Update();
+  double maxDiff = histogram->GetMax()[0];
+  double minDiff = histogram->GetMin()[0];
+
+  if (maxDiff > doseDifferenceCriterion || minDiff < -doseDifferenceCriterion)
   {
+    std::cerr << "Difference between baseline and accumulated dose exceeds threshold" << std::endl;
     return EXIT_FAILURE;
   }
 
