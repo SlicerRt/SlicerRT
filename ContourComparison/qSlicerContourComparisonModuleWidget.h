@@ -57,8 +57,9 @@ public slots:
   void updateWidgetFromMRML();
 
 protected slots:
-  void referenceContourLabelmapVolumeNodeChanged(vtkMRMLNode*);
-  void compareContourLabelmapVolumeNodeChanged(vtkMRMLNode*);
+  void referenceContourNodeChanged(vtkMRMLNode*);
+  void compareContourNodeChanged(vtkMRMLNode*);
+  void referenceVolumeNodeChanged(vtkMRMLNode*);
 
   void applyClicked();
 

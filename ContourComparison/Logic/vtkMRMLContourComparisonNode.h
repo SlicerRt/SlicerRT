@@ -56,26 +56,35 @@ public:
 
 public:
   /// Get reference contour labelmap volume node ID
-  vtkGetStringMacro(ReferenceContourLabelmapVolumeNodeId);
+  vtkGetStringMacro(ReferenceContourNodeId);
 
   /// Set and observe reference contour labelmap volume node ID
-  void SetAndObserveReferenceContourLabelmapVolumeNodeId(const char* id);
+  void SetAndObserveReferenceContourNodeId(const char* id);
 
   /// Get compare contour labelmap volume node ID
-  vtkGetStringMacro(CompareContourLabelmapVolumeNodeId);
+  vtkGetStringMacro(CompareContourNodeId);
 
   /// Set and observe reference contour labelmap volume node ID
-  void SetAndObserveCompareContourLabelmapVolumeNodeId(const char* id);
+  void SetAndObserveCompareContourNodeId(const char* id);
+
+  /// Get reference volume node ID
+  vtkGetStringMacro(RasterizationReferenceVolumeNodeId);
+
+  /// Set and observe reference volume node ID
+  void SetAndObserveReferenceVolumeNodeId(const char* id);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
 protected:
   /// Set reference contour labelmap volume node ID
-  vtkSetStringMacro(ReferenceContourLabelmapVolumeNodeId);
+  vtkSetStringMacro(ReferenceContourNodeId);
 
   /// Set compare contour labelmap volume node ID
-  vtkSetStringMacro(CompareContourLabelmapVolumeNodeId);
+  vtkSetStringMacro(CompareContourNodeId);
+
+  /// Set reference volume node ID
+  vtkSetStringMacro(RasterizationReferenceVolumeNodeId);
 
 protected:
   vtkMRMLContourComparisonNode();
@@ -85,10 +94,13 @@ protected:
 
 protected:
   /// Selected reference contour labelmap volume MRML node object ID
-  char* ReferenceContourLabelmapVolumeNodeId;
+  char* ReferenceContourNodeId;
 
   /// Selected compare contour labelmap volume MRML node object ID
-  char* CompareContourLabelmapVolumeNodeId;
+  char* CompareContourNodeId;
+
+  /// Selected reference volume MRML node object ID (needed for rasterization)
+  char* RasterizationReferenceVolumeNodeId;
 };
 
 #endif

@@ -52,6 +52,10 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
+  /// Determines if a reference volume node is needed
+  /// (at least one of the input contours lack indexed labelmap representation)
+  bool IsReferenceVolumeNeeded();
+
   /// Compute dice statistics from the selected input contour labelmaps
   void ComputeDiceStatistics();
 
@@ -81,7 +85,7 @@ protected:
 protected:
 //BTX  
   /// Convert VTK image to ITK image
-  void ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, itk::Image<float, 3>::Pointer outItkVolume);
+  void ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, itk::Image<unsigned char, 3>::Pointer outItkVolume);
 //ETX
 
 private:

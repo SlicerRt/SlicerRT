@@ -25,13 +25,13 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
 
 // Plastimatch includes
 #include "dice_statistics.h"
 
 // MRML includes
-#include <vtkMRMLVolumeNode.h>
-#include <vtkMRMLScalarVolumeDisplayNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
@@ -158,7 +158,7 @@ void vtkSlicerContourComparisonModuleLogic::OnMRMLSceneEndClose()
 
 //----------------------------------------------------------------------------
 void vtkSlicerContourComparisonModuleLogic
-::ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, itk::Image<float, 3>::Pointer outItkVolume)
+::ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, itk::Image<unsigned char, 3>::Pointer outItkVolume)
 {
   if ( inVolumeNode == NULL )
   {
@@ -262,119 +262,82 @@ void vtkSlicerContourComparisonModuleLogic
   imageExport->Export( outItkVolume->GetBufferPointer() );
 }
 
+//-----------------------------------------------------------------------------
+bool vtkSlicerContourComparisonModuleLogic::IsReferenceVolumeNeeded()
+{
+  if (!this->ContourComparisonNode || !this->GetMRMLScene())
+  {
+    return false;
+  }
+
+  vtkMRMLContourNode* referenceContourNode = vtkMRMLContourNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetReferenceContourNodeId()));
+  vtkMRMLContourNode* compareContourNode = vtkMRMLContourNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetCompareContourNodeId()));
+
+  if (!referenceContourNode || !compareContourNode)
+  {
+    return false;
+  }
+
+  return !( referenceContourNode->GetIndexedLabelmapVolumeNodeId()
+        && compareContourNode->GetIndexedLabelmapVolumeNodeId() );
+}
+
 //---------------------------------------------------------------------------
 void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
 {
-  //vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
-  //double checkpointStart = timer->GetUniversalTime();
+  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
+  double checkpointStart = timer->GetUniversalTime();
 
-  //// Convert input images to the format Plastimatch can use
-  //vtkMRMLVolumeNode* ReferenceContourLabelmapVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-  //  this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetReferenceContourLabelmapVolumeNodeId()));
-  //itk::Image<float, 3>::Pointer ReferenceContourLabelmapVolumeItk = itk::Image<float, 3>::New();
+  // Convert input images to the format Plastimatch can use
+  vtkMRMLContourNode* referenceContourNode = vtkMRMLContourNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetReferenceContourNodeId()));
+  itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk
+    = itk::Image<unsigned char, 3>::New();
 
-  //vtkMRMLVolumeNode* CompareContourLabelmapVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-  //  this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetCompareContourLabelmapVolumeNodeId()));
-  //itk::Image<float, 3>::Pointer CompareContourLabelmapVolumeItk = itk::Image<float, 3>::New();
+  vtkMRMLContourNode* compareContourNode = vtkMRMLContourNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetCompareContourNodeId()));
+  itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk
+    = itk::Image<unsigned char, 3>::New();
 
-  //// Convert inputs to ITK images
-  //double checkpointItkConvertStart = timer->GetUniversalTime();
-  //ConvertVolumeNodeToItkImage(ReferenceContourLabelmapVolumeNode, ReferenceContourLabelmapVolumeItk);
-  //ConvertVolumeNodeToItkImage(CompareContourLabelmapVolumeNode, CompareContourLabelmapVolumeItk);
+  if (this->IsReferenceVolumeNeeded())
+  {
+    referenceContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
+      this->ContourComparisonNode->GetRasterizationReferenceVolumeNodeId() );
+    compareContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
+      this->ContourComparisonNode->GetRasterizationReferenceVolumeNodeId() );
+  }
 
-  //// Compute gamma dose volume
-  //double checkpointGammaStart = timer->GetUniversalTime();
-  //Gamma_dose_comparison gamma;
-  //gamma.set_reference_image(ReferenceContourLabelmapVolumeItk);
-  //gamma.set_compare_image(CompareContourLabelmapVolumeItk);
-  //gamma.set_spatial_tolerance(this->ContourComparisonNode->GetDtaDistanceToleranceMm());
-  //gamma.set_dose_difference_tolerance(this->ContourComparisonNode->GetDoseDifferenceTolerancePercent());
-  //if (!this->ContourComparisonNode->GetUseMaximumDose())
-  //{
-  //  gamma.set_reference_dose(this->ContourComparisonNode->GetReferenceDoseGy());
-  //}
-  ////gamma.set_analysis_threshold(this->ContourComparisonNode->GetAnalysisThresholdPercent()); //TODO: uncomment when Plastimatch supports it
-  //gamma.set_gamma_max(this->ContourComparisonNode->GetMaximumGamma());
+  vtkMRMLScalarVolumeNode* referenceContourLabelmapVolumeNode
+    = referenceContourNode->GetIndexedLabelmapVolumeNode();
+  vtkMRMLScalarVolumeNode* compareContourLabelmapVolumeNode
+    = compareContourNode->GetIndexedLabelmapVolumeNode();
+  if (!referenceContourLabelmapVolumeNode || !compareContourLabelmapVolumeNode)
+  {
+    vtkErrorMacro("Failed to get indexed labelmap representation from selected input contours!");
+    return;
+  }
 
-  //gamma.run();
+  // Convert inputs to ITK images
+  double checkpointItkConvertStart = timer->GetUniversalTime();
+  ConvertVolumeNodeToItkImage(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk);
+  ConvertVolumeNodeToItkImage(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk);
 
-  //itk::Image<float, 3>::Pointer gammaVolumeItk = gamma.get_gamma_image_itk();
+  // Compute gamma dose volume
+  double checkpointDiceStart = timer->GetUniversalTime();
+  Dice_statistics dice;
+  dice.set_reference_image(referenceContourLabelmapVolumeItk);
+  dice.set_compare_image(compareContourLabelmapVolumeItk);
 
-  //// Convert output to VTK
-  //double checkpointVtkConvertStart = timer->GetUniversalTime();
-  //vtkSmartPointer<vtkImageData> gammaVolume = vtkSmartPointer<vtkImageData>::New();
-  //itk::Image<float, 3>::RegionType region = gammaVolumeItk->GetBufferedRegion();
-  //itk::Image<float, 3>::SizeType imageSize = region.GetSize();
-  //int extent[6]={0, imageSize[0]-1, 0, imageSize[1]-1, 0, imageSize[2]-1};
-  //gammaVolume->SetExtent(extent);
-  //gammaVolume->SetScalarType(VTK_FLOAT);
-  //gammaVolume->SetNumberOfScalarComponents(1);
-  //gammaVolume->AllocateScalars();
+  dice.run();
 
-  //float* gammaPtr = (float*)gammaVolume->GetScalarPointer();
-  //itk::ImageRegionIteratorWithIndex< itk::Image<float, 3> > itGammaItk(
-  //  gammaVolumeItk, gammaVolumeItk->GetLargestPossibleRegion() );
-  //for ( itGammaItk.GoToBegin(); !itGammaItk.IsAtEnd(); ++itGammaItk )
-  //{
-  //  itk::Image<float, 3>::IndexType i = itGammaItk.GetIndex();
-  //  (*gammaPtr) = gammaVolumeItk->GetPixel(i);
-  //  gammaPtr++;
-  //}
-
-  //// Set properties of output volume node
-  //vtkMRMLVolumeNode* gammaVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-  //  this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetGammaVolumeNodeId()));
-
-  //if (gammaVolumeNode==NULL)
-  //{
-  //  vtkErrorMacro("gammaVolumeNode is invalid");
-  //  return;
-  //}
-
-  //gammaVolumeNode->CopyOrientation(ReferenceContourLabelmapVolumeNode);
-  //gammaVolumeNode->SetAndObserveImageData(gammaVolume);
-
-  //// Assign gamma volume under the transform node of the reference volume node
-  //if (ReferenceContourLabelmapVolumeNode->GetParentTransformNode())
-  //{
-  //  gammaVolumeNode->SetAndObserveTransformNodeID(ReferenceContourLabelmapVolumeNode->GetParentTransformNode()->GetID());
-  //}
-
-  //// Set default colormap to red
-  //if (gammaVolumeNode->GetVolumeDisplayNode()==NULL)
-  //{
-  //  // gammaVolumeNode->CreateDefaultDisplayNodes(); unfortunately this is not implemented for Scalar nodes
-  //  vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> sdisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-  //  sdisplayNode->SetScene(this->GetMRMLScene());
-  //  this->GetMRMLScene()->AddNode(sdisplayNode);
-  //  gammaVolumeNode->SetAndObserveDisplayNodeID(sdisplayNode->GetID());
-  //}
-  //if (gammaVolumeNode->GetVolumeDisplayNode()!=NULL)
-  //{
-  //  gammaVolumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-  //}
-  //else
-  //{
-  //  vtkWarningMacro("Display node is not available for gamma volume node. The default color table will be used.");
-  //}
-
-  //// Select as active volume
-  //if (this->GetApplicationLogic()!=NULL)
-  //{
-  //  if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
-  //  {
-  //    this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(gammaVolumeNode->GetID());
-  //    this->GetApplicationLogic()->PropagateVolumeSelection();
-  //  }
-  //}
-
-  //if (this->LogSpeedMeasurements)
-  //{
-  //  double checkpointEnd = timer->GetUniversalTime();
-  //  std::cout << "Total gamma computation time: " << checkpointEnd-checkpointStart << " s" << std::endl
-  //    << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s" << std::endl
-  //    << "\tConverting from VTK to ITK: " << checkpointGammaStart-checkpointItkConvertStart << " s" << std::endl
-  //    << "\tGamma computation: " << checkpointVtkConvertStart-checkpointGammaStart << " s" << std::endl
-  //    << "\tConverting back from ITK to VTK: " << checkpointEnd-checkpointVtkConvertStart << " s" << std::endl;
-  //}
+  if (this->LogSpeedMeasurements)
+  {
+    double checkpointEnd = timer->GetUniversalTime();
+    std::cout << "Total gamma computation time: " << checkpointEnd-checkpointStart << " s" << std::endl
+      << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s" << std::endl
+      << "\tConverting from VTK to ITK: " << checkpointDiceStart-checkpointItkConvertStart << " s" << std::endl
+      << "\tDice computation: " << checkpointEnd-checkpointDiceStart << " s" << std::endl;
+  }
 }

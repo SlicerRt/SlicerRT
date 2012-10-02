@@ -82,7 +82,6 @@ qSlicerContourComparisonModuleWidget::~qSlicerContourComparisonModuleWidget()
 {
 }
 
-
 //-----------------------------------------------------------------------------
 void qSlicerContourComparisonModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 {
@@ -172,15 +171,20 @@ void qSlicerContourComparisonModuleWidget::setContourComparisonNode(vtkMRMLNode 
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
-    if ((!paramNode->GetReferenceContourLabelmapVolumeNodeId() || strcmp(paramNode->GetReferenceContourLabelmapVolumeNodeId(), ""))
-      && d->MRMLNodeComboBox_ReferenceContourLabelmapVolume->currentNode())
+    if ((!paramNode->GetReferenceContourNodeId() || strcmp(paramNode->GetReferenceContourNodeId(), ""))
+      && d->MRMLNodeComboBox_ReferenceContour->currentNode())
     {
-      paramNode->SetAndObserveReferenceContourLabelmapVolumeNodeId(d->MRMLNodeComboBox_ReferenceContourLabelmapVolume->currentNodeId().toLatin1());
+      paramNode->SetAndObserveReferenceContourNodeId(d->MRMLNodeComboBox_ReferenceContour->currentNodeId().toLatin1());
     }
-    if ((!paramNode->GetCompareContourLabelmapVolumeNodeId() || strcmp(paramNode->GetCompareContourLabelmapVolumeNodeId(), ""))
-      && d->MRMLNodeComboBox_CompareContourLabelmapVolume->currentNode())
+    if ((!paramNode->GetCompareContourNodeId() || strcmp(paramNode->GetCompareContourNodeId(), ""))
+      && d->MRMLNodeComboBox_CompareContour->currentNode())
     {
-      paramNode->SetAndObserveCompareContourLabelmapVolumeNodeId(d->MRMLNodeComboBox_CompareContourLabelmapVolume->currentNodeId().toLatin1());
+      paramNode->SetAndObserveCompareContourNodeId(d->MRMLNodeComboBox_CompareContour->currentNodeId().toLatin1());
+    }
+    if ((!paramNode->GetRasterizationReferenceVolumeNodeId() || strcmp(paramNode->GetRasterizationReferenceVolumeNodeId(), ""))
+      && d->MRMLNodeComboBox_ReferenceVolume->currentNode())
+    {
+      paramNode->SetAndObserveReferenceVolumeNodeId(d->MRMLNodeComboBox_ReferenceVolume->currentNodeId().toLatin1());
     }
     updateButtonsState();
   }
@@ -194,17 +198,31 @@ void qSlicerContourComparisonModuleWidget::updateWidgetFromMRML()
   Q_D(qSlicerContourComparisonModuleWidget);
 
   vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (paramNode && this->mrmlScene())
+  if (!paramNode || !this->mrmlScene())
   {
-    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetContourComparisonNode());
-    if (paramNode->GetReferenceContourLabelmapVolumeNodeId() && strcmp(paramNode->GetReferenceContourLabelmapVolumeNodeId(),""))
-    {
-      d->MRMLNodeComboBox_ReferenceContourLabelmapVolume->setCurrentNode(paramNode->GetReferenceContourLabelmapVolumeNodeId());
-    }
-    if (paramNode->GetCompareContourLabelmapVolumeNodeId() && strcmp(paramNode->GetCompareContourLabelmapVolumeNodeId(),""))
-    {
-      d->MRMLNodeComboBox_CompareContourLabelmapVolume->setCurrentNode(paramNode->GetCompareContourLabelmapVolumeNodeId());
-    }
+    return;
+  }
+
+  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetContourComparisonNode());
+  if (paramNode->GetReferenceContourNodeId() && strcmp(paramNode->GetReferenceContourNodeId(),""))
+  {
+    d->MRMLNodeComboBox_ReferenceContour->setCurrentNode(paramNode->GetReferenceContourNodeId());
+  }
+  if (paramNode->GetCompareContourNodeId() && strcmp(paramNode->GetCompareContourNodeId(),""))
+  {
+    d->MRMLNodeComboBox_CompareContour->setCurrentNode(paramNode->GetCompareContourNodeId());
+  }
+
+  if ( d->logic()->IsReferenceVolumeNeeded()
+    && paramNode->GetRasterizationReferenceVolumeNodeId() && strcmp(paramNode->GetRasterizationReferenceVolumeNodeId(),"") )
+  {
+    d->MRMLNodeComboBox_ReferenceVolume->setEnabled(true);
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(paramNode->GetRasterizationReferenceVolumeNodeId());
+  }
+  else
+  {
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
+    d->MRMLNodeComboBox_ReferenceVolume->setEnabled(d->logic()->IsReferenceVolumeNeeded());
   }
 }
 
@@ -218,8 +236,9 @@ void qSlicerContourComparisonModuleWidget::setup()
   d->label_Warning->setText("");
 
   // Make connections
-  connect( d->MRMLNodeComboBox_ReferenceContourLabelmapVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceContourLabelmapVolumeNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_CompareContourLabelmapVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareContourLabelmapVolumeNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_ReferenceContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceContourNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_CompareContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareContourNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
 
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
@@ -237,10 +256,13 @@ void qSlicerContourComparisonModuleWidget::updateButtonsState()
   Q_D(qSlicerContourComparisonModuleWidget);
 
   bool applyEnabled = d->logic()->GetContourComparisonNode()
-                   && d->logic()->GetContourComparisonNode()->GetReferenceContourLabelmapVolumeNodeId()
-                   && strcmp(d->logic()->GetContourComparisonNode()->GetReferenceContourLabelmapVolumeNodeId(), "")
-                   && d->logic()->GetContourComparisonNode()->GetCompareContourLabelmapVolumeNodeId()
-                   && strcmp(d->logic()->GetContourComparisonNode()->GetCompareContourLabelmapVolumeNodeId(), "");
+                   && d->logic()->GetContourComparisonNode()->GetReferenceContourNodeId()
+                   && strcmp(d->logic()->GetContourComparisonNode()->GetReferenceContourNodeId(), "")
+                   && d->logic()->GetContourComparisonNode()->GetCompareContourNodeId()
+                   && strcmp(d->logic()->GetContourComparisonNode()->GetCompareContourNodeId(), "")
+                   && ( ! d->logic()->IsReferenceVolumeNeeded()
+                     || ( d->logic()->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId()
+                        && strcmp(d->logic()->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId(), "") ) );
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
 
@@ -253,7 +275,7 @@ void qSlicerContourComparisonModuleWidget::onLogicModified()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::referenceContourLabelmapVolumeNodeChanged(vtkMRMLNode* node)
+void qSlicerContourComparisonModuleWidget::referenceContourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
@@ -264,14 +286,14 @@ void qSlicerContourComparisonModuleWidget::referenceContourLabelmapVolumeNodeCha
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveReferenceContourLabelmapVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveReferenceContourNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::compareContourLabelmapVolumeNodeChanged(vtkMRMLNode* node)
+void qSlicerContourComparisonModuleWidget::compareContourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
@@ -282,7 +304,25 @@ void qSlicerContourComparisonModuleWidget::compareContourLabelmapVolumeNodeChang
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveCompareContourLabelmapVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveCompareContourNodeId(node->GetID());
+  paramNode->DisableModifiedEventOff();
+
+  updateButtonsState();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContourComparisonModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerContourComparisonModuleWidget);
+
+  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
+  if (!paramNode || !this->mrmlScene() || !node || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveReferenceVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
@@ -296,6 +336,8 @@ void qSlicerContourComparisonModuleWidget::applyClicked()
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
   d->logic()->ComputeDiceStatistics();
+
+  //TODO: display results
 
   QApplication::restoreOverrideCursor();
 }

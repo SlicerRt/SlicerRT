@@ -39,8 +39,9 @@ vtkMRMLNodeNewMacro(vtkMRMLContourComparisonNode);
 //----------------------------------------------------------------------------
 vtkMRMLContourComparisonNode::vtkMRMLContourComparisonNode()
 {
-  this->ReferenceContourLabelmapVolumeNodeId = NULL;
-  this->CompareContourLabelmapVolumeNodeId = NULL;
+  this->ReferenceContourNodeId = NULL;
+  this->CompareContourNodeId = NULL;
+  this->RasterizationReferenceVolumeNodeId = NULL;
 
   this->HideFromEditors = false;
 }
@@ -48,8 +49,9 @@ vtkMRMLContourComparisonNode::vtkMRMLContourComparisonNode()
 //----------------------------------------------------------------------------
 vtkMRMLContourComparisonNode::~vtkMRMLContourComparisonNode()
 {
-  this->SetReferenceContourLabelmapVolumeNodeId(NULL);
-  this->SetCompareContourLabelmapVolumeNodeId(NULL);
+  this->SetReferenceContourNodeId(NULL);
+  this->SetCompareContourNodeId(NULL);
+  this->SetRasterizationReferenceVolumeNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -60,23 +62,18 @@ void vtkMRMLContourComparisonNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  {
-    std::stringstream ss;
-    if ( this->ReferenceContourLabelmapVolumeNodeId )
-      {
-      ss << this->ReferenceContourLabelmapVolumeNodeId;
-      of << indent << " ReferenceContourLabelmapVolumeNodeId=\"" << ss.str() << "\"";
-     }
-  }
-
-  {
-    std::stringstream ss;
-    if ( this->CompareContourLabelmapVolumeNodeId )
-      {
-      ss << this->CompareContourLabelmapVolumeNodeId;
-      of << indent << " CompareContourLabelmapVolumeNodeId=\"" << ss.str() << "\"";
-     }
-  }
+  if ( this->ReferenceContourNodeId )
+    {
+    of << indent << " ReferenceContourNodeId=\"" << this->ReferenceContourNodeId << "\"";
+    }
+  if ( this->CompareContourNodeId )
+    {
+    of << indent << " CompareContourNodeId=\"" << this->CompareContourNodeId << "\"";
+    }
+  if ( this->RasterizationReferenceVolumeNodeId )
+    {
+    of << indent << " ReferenceVolumeNodeId=\"" << this->RasterizationReferenceVolumeNodeId << "\"";
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -93,17 +90,23 @@ void vtkMRMLContourComparisonNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "ReferenceContourLabelmapVolumeNodeId")) 
+    if (!strcmp(attName, "ReferenceContourNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveReferenceContourLabelmapVolumeNodeId(ss.str().c_str());
+      this->SetAndObserveReferenceContourNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "CompareContourLabelmapVolumeNodeId")) 
+    else if (!strcmp(attName, "CompareContourNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveCompareContourLabelmapVolumeNodeId(ss.str().c_str());
+      this->SetAndObserveCompareContourNodeId(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "ReferenceVolumeNodeId")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetAndObserveReferenceVolumeNodeId(ss.str().c_str());
       }
     }
 }
@@ -118,8 +121,9 @@ void vtkMRMLContourComparisonNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLContourComparisonNode *node = (vtkMRMLContourComparisonNode *) anode;
 
-  this->SetAndObserveReferenceContourLabelmapVolumeNodeId(node->ReferenceContourLabelmapVolumeNodeId);
-  this->SetAndObserveCompareContourLabelmapVolumeNodeId(node->CompareContourLabelmapVolumeNodeId);
+  this->SetAndObserveReferenceContourNodeId(node->ReferenceContourNodeId);
+  this->SetAndObserveCompareContourNodeId(node->CompareContourNodeId);
+  this->SetAndObserveReferenceVolumeNodeId(node->RasterizationReferenceVolumeNodeId);
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -130,51 +134,72 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "ReferenceContourLabelmapVolumeNodeId:   " << this->ReferenceContourLabelmapVolumeNodeId << "\n";
-  os << indent << "CompareContourLabelmapVolumeNodeId:   " << this->CompareContourLabelmapVolumeNodeId << "\n";
+  os << indent << "ReferenceContourNodeId:   " << this->ReferenceContourNodeId << "\n";
+  os << indent << "CompareContourNodeId:   " << this->CompareContourNodeId << "\n";
+  os << indent << "ReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourComparisonNode::SetAndObserveReferenceContourLabelmapVolumeNodeId(const char* id)
+void vtkMRMLContourComparisonNode::SetAndObserveReferenceContourNodeId(const char* id)
 {
-  if (this->ReferenceContourLabelmapVolumeNodeId)
+  if (this->ReferenceContourNodeId)
   {
-    this->Scene->RemoveReferencedNodeID(this->ReferenceContourLabelmapVolumeNodeId, this);
+    this->Scene->RemoveReferencedNodeID(this->ReferenceContourNodeId, this);
   }
 
-  this->SetReferenceContourLabelmapVolumeNodeId(id);
+  this->SetReferenceContourNodeId(id);
 
   if (id)
   {
-    this->Scene->AddReferencedNodeID(this->ReferenceContourLabelmapVolumeNodeId, this);
+    this->Scene->AddReferencedNodeID(this->ReferenceContourNodeId, this);
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourComparisonNode::SetAndObserveCompareContourLabelmapVolumeNodeId(const char* id)
+void vtkMRMLContourComparisonNode::SetAndObserveCompareContourNodeId(const char* id)
 {
-  if (this->CompareContourLabelmapVolumeNodeId)
+  if (this->CompareContourNodeId)
   {
-    this->Scene->RemoveReferencedNodeID(this->CompareContourLabelmapVolumeNodeId, this);
+    this->Scene->RemoveReferencedNodeID(this->CompareContourNodeId, this);
   }
 
-  this->SetCompareContourLabelmapVolumeNodeId(id);
+  this->SetCompareContourNodeId(id);
 
   if (id)
   {
-    this->Scene->AddReferencedNodeID(this->CompareContourLabelmapVolumeNodeId, this);
+    this->Scene->AddReferencedNodeID(this->CompareContourNodeId, this);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourComparisonNode::SetAndObserveReferenceVolumeNodeId(const char* id)
+{
+  if (this->RasterizationReferenceVolumeNodeId)
+  {
+    this->Scene->RemoveReferencedNodeID(this->RasterizationReferenceVolumeNodeId, this);
+  }
+
+  this->SetRasterizationReferenceVolumeNodeId(id);
+
+  if (id)
+  {
+    this->Scene->AddReferencedNodeID(this->RasterizationReferenceVolumeNodeId, this);
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLContourComparisonNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
-  if (this->ReferenceContourLabelmapVolumeNodeId && !strcmp(oldID, this->ReferenceContourLabelmapVolumeNodeId))
+  if (this->ReferenceContourNodeId && !strcmp(oldID, this->ReferenceContourNodeId))
     {
-    this->SetAndObserveReferenceContourLabelmapVolumeNodeId(newID);
+    this->SetAndObserveReferenceContourNodeId(newID);
     }
-  if (this->CompareContourLabelmapVolumeNodeId && !strcmp(oldID, this->CompareContourLabelmapVolumeNodeId))
+  if (this->CompareContourNodeId && !strcmp(oldID, this->CompareContourNodeId))
     {
-    this->SetAndObserveCompareContourLabelmapVolumeNodeId(newID);
+    this->SetAndObserveCompareContourNodeId(newID);
+    }
+  if (this->RasterizationReferenceVolumeNodeId && !strcmp(oldID, this->RasterizationReferenceVolumeNodeId))
+    {
+    this->SetAndObserveReferenceVolumeNodeId(newID);
     }
 }
