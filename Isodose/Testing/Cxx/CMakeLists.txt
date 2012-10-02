@@ -43,7 +43,7 @@ TEST_WITH_DATA(
   vtkSlicerIsodoseModuleLogicTest_EclipseProstate
   vtkSlicerIsodoseModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dose.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/5.vtk
   ${TEMP}/TestScene_Isodose_EclipseProstate.mrml
   100.0
 )

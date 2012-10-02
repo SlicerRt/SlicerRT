@@ -44,6 +44,9 @@
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 #include <vtkLookupTable.h>
+#include <vtkCollection.h>
+#include <vtkPolyDataReader.h>
+#include <vtkMassProperties.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -221,7 +224,9 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   vtkSmartPointer<vtkSlicerIsodoseModuleLogic> isodoseLogic = vtkSmartPointer<vtkSlicerIsodoseModuleLogic>::New();
   isodoseLogic->SetMRMLScene(mrmlScene);
   isodoseLogic->SetAndObserveIsodoseNode(paramNode);
-  isodoseLogic->GetDefaultLabelMapColorTableNodeId();
+  vtkMRMLColorTableNode* isodoseColorNode = vtkMRMLColorTableNode::SafeDownCast(
+    mrmlScene->GetNodeByID(isodoseLogic->GetDefaultLabelMapColorTableNodeId()));
+  isodoseColorNode->SetNumberOfColors(1);
 
   // Compute isodose
   isodoseLogic->ComputeIsodose();
@@ -239,26 +244,28 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->Commit();
 
   bool returnWithSuccess = true;
+  
+  vtkSmartPointer<vtkCollection> collection = vtkSmartPointer<vtkCollection>::New();
+  modelHierarchyRootNode->GetChildrenModelNodes(collection);
+  vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+  
+  //std::string isodoseBaselineFileName = vtksys::SystemTools::GetParentDirectory(temporarySceneFileName) + "/5.vtk";
+  vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
+  reader->SetFileName(baselineIsodoseSurfaceFileName);
+  reader->Update();
 
-  // Compare isodose surfaces
-  double agreementAcceptancePercentage = -1.0;
-  if (vtksys::SystemTools::FileExists(baselineIsodoseSurfaceFileName))
-  {
-    //if (CompareIsodoseSurfaces(temporaryDvhTableCsvFileName, baselineDvhTableCsvFileName, maxDose,
-    //  volumeDifferenceCriterion, doseToAgreementCriterion, agreementAcceptancePercentage) > 0)
-    //{
-    //  std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
-    //  returnWithSuccess = false;
-    //}
-  }
-  else
-  {
-    //std::cerr << "Failed to open baseline DVH table: " << baselineDvhTableCsvFileName << std::endl;
-    //returnWithSuccess = false;
-  }
+  vtkSmartPointer<vtkPolyData> baselinePolyData = vtkSmartPointer<vtkPolyData>::New();
+  vtkSmartPointer<vtkMassProperties> properties = vtkSmartPointer<vtkMassProperties>::New();
+  properties->SetInput(reader->GetOutput());
+  properties->Update();
+  
+  vtkSmartPointer<vtkMassProperties> properties2 = vtkSmartPointer<vtkMassProperties>::New();
+  properties2->SetInput(modelNode->GetPolyData());
+  properties2->Update();
 
-  if (!returnWithSuccess)
+  if (abs(properties->GetVolume() - properties2->GetVolume()) > volumeDifferenceCriterion)
   {
+    std::cerr << "Volume difference exceeds threshold!" << std::endl;
     return EXIT_FAILURE;
   }
 
