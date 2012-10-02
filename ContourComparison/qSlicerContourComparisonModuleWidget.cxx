@@ -172,20 +172,15 @@ void qSlicerContourComparisonModuleWidget::setContourComparisonNode(vtkMRMLNode 
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
-    if ((!paramNode->GetReferenceDoseVolumeNodeId() || strcmp(paramNode->GetReferenceDoseVolumeNodeId(), ""))
-      && d->MRMLNodeComboBox_ReferenceDoseVolume->currentNode())
+    if ((!paramNode->GetReferenceContourLabelmapVolumeNodeId() || strcmp(paramNode->GetReferenceContourLabelmapVolumeNodeId(), ""))
+      && d->MRMLNodeComboBox_ReferenceContourLabelmapVolume->currentNode())
     {
-      paramNode->SetAndObserveReferenceDoseVolumeNodeId(d->MRMLNodeComboBox_ReferenceDoseVolume->currentNodeId().toLatin1());
+      paramNode->SetAndObserveReferenceContourLabelmapVolumeNodeId(d->MRMLNodeComboBox_ReferenceContourLabelmapVolume->currentNodeId().toLatin1());
     }
-    if ((!paramNode->GetCompareDoseVolumeNodeId() || strcmp(paramNode->GetCompareDoseVolumeNodeId(), ""))
-      && d->MRMLNodeComboBox_CompareDoseVolume->currentNode())
+    if ((!paramNode->GetCompareContourLabelmapVolumeNodeId() || strcmp(paramNode->GetCompareContourLabelmapVolumeNodeId(), ""))
+      && d->MRMLNodeComboBox_CompareContourLabelmapVolume->currentNode())
     {
-      paramNode->SetAndObserveCompareDoseVolumeNodeId(d->MRMLNodeComboBox_CompareDoseVolume->currentNodeId().toLatin1());
-    }
-    if ((!paramNode->GetGammaVolumeNodeId() || strcmp(paramNode->GetGammaVolumeNodeId(), ""))
-      && d->MRMLNodeComboBox_GammaVolume->currentNode())
-    {
-      paramNode->SetAndObserveGammaVolumeNodeId(d->MRMLNodeComboBox_GammaVolume->currentNodeId().toLatin1());
+      paramNode->SetAndObserveCompareContourLabelmapVolumeNodeId(d->MRMLNodeComboBox_CompareContourLabelmapVolume->currentNodeId().toLatin1());
     }
     updateButtonsState();
   }
@@ -202,30 +197,13 @@ void qSlicerContourComparisonModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetContourComparisonNode());
-    if (paramNode->GetReferenceDoseVolumeNodeId() && strcmp(paramNode->GetReferenceDoseVolumeNodeId(),""))
+    if (paramNode->GetReferenceContourLabelmapVolumeNodeId() && strcmp(paramNode->GetReferenceContourLabelmapVolumeNodeId(),""))
     {
-      d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNode(paramNode->GetReferenceDoseVolumeNodeId());
+      d->MRMLNodeComboBox_ReferenceContourLabelmapVolume->setCurrentNode(paramNode->GetReferenceContourLabelmapVolumeNodeId());
     }
-    if (paramNode->GetCompareDoseVolumeNodeId() && strcmp(paramNode->GetCompareDoseVolumeNodeId(),""))
+    if (paramNode->GetCompareContourLabelmapVolumeNodeId() && strcmp(paramNode->GetCompareContourLabelmapVolumeNodeId(),""))
     {
-      d->MRMLNodeComboBox_CompareDoseVolume->setCurrentNode(paramNode->GetCompareDoseVolumeNodeId());
-    }
-    if (paramNode->GetGammaVolumeNodeId() && strcmp(paramNode->GetGammaVolumeNodeId(),""))
-    {
-      d->MRMLNodeComboBox_GammaVolume->setCurrentNode(paramNode->GetGammaVolumeNodeId());
-    }
-    d->doubleSpinBox_DtaDistanceTolerance->setValue(paramNode->GetDtaDistanceToleranceMm());
-    d->doubleSpinBox_DoseDifferenceTolerance->setValue(paramNode->GetDoseDifferenceTolerancePercent());
-    d->doubleSpinBox_ReferenceDose->setValue(paramNode->GetReferenceDoseGy());
-    d->doubleSpinBox_AnalysisThreshold->setValue(paramNode->GetAnalysisThresholdPercent());
-    d->doubleSpinBox_MaximumGamma->setValue(paramNode->GetMaximumGamma());
-    if (paramNode->GetUseMaximumDose())
-    {
-      d->radioButton_ReferenceDose_MaximumDose->setChecked(true);
-    }
-    else
-    {
-      d->radioButton_ReferenceDose_CustomValue->setChecked(true);
+      d->MRMLNodeComboBox_CompareContourLabelmapVolume->setCurrentNode(paramNode->GetCompareContourLabelmapVolumeNodeId());
     }
   }
 }
@@ -240,24 +218,12 @@ void qSlicerContourComparisonModuleWidget::setup()
   d->label_Warning->setText("");
 
   // Make connections
-  connect( d->MRMLNodeComboBox_ReferenceDoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceDoseVolumeNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_CompareDoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareDoseVolumeNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_GammaVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(GammaVolumeNodeChanged(vtkMRMLNode*)) );
-
-  connect( d->doubleSpinBox_DtaDistanceTolerance, SIGNAL(valueChanged(double)), this, SLOT(dtaDistanceToleranceChanged(double)) );
-  connect( d->doubleSpinBox_DoseDifferenceTolerance, SIGNAL(valueChanged(double)), this, SLOT(doseDifferenceToleranceChanged(double)) );
-  connect( d->doubleSpinBox_ReferenceDose, SIGNAL(valueChanged(double)), this, SLOT(referenceDoseChanged(double)) );
-  connect( d->doubleSpinBox_AnalysisThreshold, SIGNAL(valueChanged(double)), this, SLOT(analysisThresholdChanged(double)) );
-  connect( d->doubleSpinBox_MaximumGamma, SIGNAL(valueChanged(double)), this, SLOT(maximumGammaChanged(double)) );
-  connect( d->radioButton_ReferenceDose_MaximumDose, SIGNAL(toggled(bool)), this, SLOT(referenceDoseUseMaximumDoseChanged(bool)) );
+  connect( d->MRMLNodeComboBox_ReferenceContourLabelmapVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceContourLabelmapVolumeNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_CompareContourLabelmapVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareContourLabelmapVolumeNodeChanged(vtkMRMLNode*)) );
 
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourComparisonNode(vtkMRMLNode*)) );
-
-  // TODO: re-enable when it is implemented in Plastimatch (#135)
-  d->label_7->setVisible(false);
-  d->doubleSpinBox_AnalysisThreshold->setVisible(false);
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -271,12 +237,10 @@ void qSlicerContourComparisonModuleWidget::updateButtonsState()
   Q_D(qSlicerContourComparisonModuleWidget);
 
   bool applyEnabled = d->logic()->GetContourComparisonNode()
-                   && d->logic()->GetContourComparisonNode()->GetReferenceDoseVolumeNodeId()
-                   && strcmp(d->logic()->GetContourComparisonNode()->GetReferenceDoseVolumeNodeId(), "")
-                   && d->logic()->GetContourComparisonNode()->GetCompareDoseVolumeNodeId()
-                   && strcmp(d->logic()->GetContourComparisonNode()->GetCompareDoseVolumeNodeId(), "")
-                   && d->logic()->GetContourComparisonNode()->GetGammaVolumeNodeId()
-                   && strcmp(d->logic()->GetContourComparisonNode()->GetGammaVolumeNodeId(), "");
+                   && d->logic()->GetContourComparisonNode()->GetReferenceContourLabelmapVolumeNodeId()
+                   && strcmp(d->logic()->GetContourComparisonNode()->GetReferenceContourLabelmapVolumeNodeId(), "")
+                   && d->logic()->GetContourComparisonNode()->GetCompareContourLabelmapVolumeNodeId()
+                   && strcmp(d->logic()->GetContourComparisonNode()->GetCompareContourLabelmapVolumeNodeId(), "");
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
 
@@ -289,7 +253,7 @@ void qSlicerContourComparisonModuleWidget::onLogicModified()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNode* node)
+void qSlicerContourComparisonModuleWidget::referenceContourLabelmapVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
@@ -300,16 +264,14 @@ void qSlicerContourComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRM
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveReferenceDoseVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveReferenceContourLabelmapVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
-
-  checkDoseVolumeAttributes();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode* node)
+void qSlicerContourComparisonModuleWidget::compareContourLabelmapVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
@@ -320,128 +282,10 @@ void qSlicerContourComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLN
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveCompareDoseVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveCompareContourLabelmapVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   updateButtonsState();
-
-  checkDoseVolumeAttributes();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::GammaVolumeNodeChanged(vtkMRMLNode* node)
-{
-  Q_D(qSlicerContourComparisonModuleWidget);
-
-  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene() || !node || !d->ModuleWindowInitialized)
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveGammaVolumeNodeId(node->GetID());
-  paramNode->DisableModifiedEventOff();
-
-  updateButtonsState();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::dtaDistanceToleranceChanged(double value)
-{
-  Q_D(qSlicerContourComparisonModuleWidget);
-
-  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetDtaDistanceToleranceMm(value);
-  paramNode->DisableModifiedEventOff();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::doseDifferenceToleranceChanged(double value)
-{
-  Q_D(qSlicerContourComparisonModuleWidget);
-
-  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetDoseDifferenceTolerancePercent(value);
-  paramNode->DisableModifiedEventOff();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::referenceDoseUseMaximumDoseChanged(bool state)
-{
-  Q_D(qSlicerContourComparisonModuleWidget);
-
-  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  d->doubleSpinBox_ReferenceDose->setEnabled(!state);
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetUseMaximumDose(state);
-  paramNode->DisableModifiedEventOff();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::referenceDoseChanged(double value)
-{
-  Q_D(qSlicerContourComparisonModuleWidget);
-
-  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetReferenceDoseGy(value);
-  paramNode->DisableModifiedEventOff();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::analysisThresholdChanged(double value)
-{
-  Q_D(qSlicerContourComparisonModuleWidget);
-
-  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAnalysisThresholdPercent(value);
-  paramNode->DisableModifiedEventOff();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::maximumGammaChanged(double value)
-{
-  Q_D(qSlicerContourComparisonModuleWidget);
-
-  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetMaximumGamma(value);
-  paramNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -451,37 +295,7 @@ void qSlicerContourComparisonModuleWidget::applyClicked()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  d->logic()->ComputeGammaDoseDifference();
+  d->logic()->ComputeDiceStatistics();
 
   QApplication::restoreOverrideCursor();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::checkDoseVolumeAttributes()
-{
-  Q_D(qSlicerContourComparisonModuleWidget);
-
-  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene() || !d->ModuleWindowInitialized)
-  {
-    return;
-  }
-
-  vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-    this->mrmlScene()->GetNodeByID(paramNode->GetReferenceDoseVolumeNodeId()));
-  vtkMRMLVolumeNode* compareDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-    this->mrmlScene()->GetNodeByID(paramNode->GetCompareDoseVolumeNodeId()));
-
-  if (referenceDoseVolumeNode && !d->logic()->DoseVolumeContainsDose(referenceDoseVolumeNode))
-  {
-    d->label_Warning->setText(tr(" Selected reference volume is not a dose"));
-  }
-  else if (compareDoseVolumeNode && !d->logic()->DoseVolumeContainsDose(compareDoseVolumeNode))
-  {
-    d->label_Warning->setText(tr(" Selected compare volume is not a dose"));
-  }
-  else
-  {
-    d->label_Warning->setText("");
-  }
 }

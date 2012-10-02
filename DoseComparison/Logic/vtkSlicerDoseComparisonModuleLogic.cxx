@@ -31,8 +31,6 @@
 
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLVolumeDisplayNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLTransformNode.h>
@@ -42,7 +40,6 @@
 #include <vtkImageData.h>
 #include <vtkImageExport.h>
 #include <vtkTimerLog.h>
-#include <vtkGeneralTransform.h>
 #include <vtkTransform.h>
 
 // ITK includes

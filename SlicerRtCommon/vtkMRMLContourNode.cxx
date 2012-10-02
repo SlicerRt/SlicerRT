@@ -583,6 +583,14 @@ bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
 
     return (indexedLabelmapVolumeNode != NULL);
     }
+  else if (this->ActiveRepresentationType == IndexedLabelmap
+    && type == ClosedSurfaceModel)
+  {
+    vtkMRMLModelNode* closedSurfaceVolumeNode
+      = this->ConvertFromIndexedLabelmapToClosedSurfaceModel(this->IndexedLabelmapVolumeNode);
+
+    return (closedSurfaceVolumeNode != NULL);
+  }
   else
     {
     vtkWarningMacro("Requested conversion not implemented yet!");
@@ -786,4 +794,11 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   this->SetAndObserveIndexedLabelmapVolumeNodeId(indexedLabelmapVolumeNode->GetID());
 
   return indexedLabelmapVolumeNode;
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceModel(vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode)
+{
+  vtkErrorMacro("Error: Indexed labelmap to closed surface model conversion not implemented yet!");
+  return NULL;
 }

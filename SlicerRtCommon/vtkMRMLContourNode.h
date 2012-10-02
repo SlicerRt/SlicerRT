@@ -132,6 +132,9 @@ protected:
   /// Convert model representation to indexed labelmap
   vtkMRMLScalarVolumeNode* ConvertFromModelToIndexedLabelmap(vtkMRMLModelNode* modelNode);
 
+  /// Convert indexed labelmap representation to closed surface model
+  vtkMRMLModelNode* ConvertFromIndexedLabelmapToClosedSurfaceModel(vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode);
+
 protected:
   /// Set ribbon model node ID
   vtkSetReferenceStringMacro(RibbonModelNodeId);
@@ -153,7 +156,6 @@ protected:
   ~vtkMRMLContourNode();
   vtkMRMLContourNode(const vtkMRMLContourNode&);
   void operator=(const vtkMRMLContourNode&);
-
 protected:
   /// Ribbon model representation
   vtkMRMLModelNode* RibbonModelNode;

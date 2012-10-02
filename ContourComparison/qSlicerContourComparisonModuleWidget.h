@@ -57,16 +57,8 @@ public slots:
   void updateWidgetFromMRML();
 
 protected slots:
-  void referenceDoseVolumeNodeChanged(vtkMRMLNode*);
-  void compareDoseVolumeNodeChanged(vtkMRMLNode*);
-  void GammaVolumeNodeChanged(vtkMRMLNode*);
-
-  void dtaDistanceToleranceChanged(double);
-  void doseDifferenceToleranceChanged(double);
-  void referenceDoseUseMaximumDoseChanged(bool);
-  void referenceDoseChanged(double);
-  void analysisThresholdChanged(double);
-  void maximumGammaChanged(double);
+  void referenceContourLabelmapVolumeNodeChanged(vtkMRMLNode*);
+  void compareContourLabelmapVolumeNodeChanged(vtkMRMLNode*);
 
   void applyClicked();
 
@@ -75,9 +67,6 @@ protected slots:
 protected:
   /// Updates button states
   void updateButtonsState();
-
-  /// Checks dose volume attributes and display a warning if they are not present
-  void checkDoseVolumeAttributes();
 
 protected:
   QScopedPointer<qSlicerContourComparisonModuleWidgetPrivate> d_ptr;

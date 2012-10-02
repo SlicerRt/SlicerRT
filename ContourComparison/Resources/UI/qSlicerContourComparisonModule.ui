@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>525</width>
-    <height>382</height>
+    <height>405</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,124 +52,32 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Reference dose volume:</string>
+         <string>Reference contour:</string>
         </property>
        </widget>
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Compare dose volume:</string>
+         <string>Compare contour:</string>
         </property>
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceDoseVolume">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceContourLabelmapVolume">
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
+          <string>vtkMRMLContourNode</string>
          </stringlist>
         </property>
        </widget>
       </item>
       <item row="2" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_CompareDoseVolume">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_CompareContourLabelmapVolume">
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
+          <string>vtkMRMLContourNode</string>
          </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="toolTip">
-         <string>Distance to agreement (DTA) tolerance, in mm</string>
-        </property>
-        <property name="text">
-         <string>DTA distance tolerance (mm):</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="toolTip">
-         <string>Dose difference tolerance. If a reference dose (prescription dose) is specified, the dose difference tolerance is treated as a percent of the reference dose. Otherwise it is treated as a percent of the maximum dose in the reference volume. To use a 3% dose tolerance, you would set this value to 0.03</string>
-        </property>
-        <property name="text">
-         <string>Dose difference tolerance (%):</string>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="0">
-       <widget class="QLabel" name="label_8">
-        <property name="toolTip">
-         <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
-        </property>
-        <property name="text">
-         <string>Maximum gamma:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_DtaDistanceTolerance">
-        <property name="toolTip">
-         <string>Distance to agreement (DTA) tolerance, in mm</string>
-        </property>
-        <property name="maximum">
-         <double>20.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>3.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseDifferenceTolerance">
-        <property name="toolTip">
-         <string>Dose difference tolerance. If a reference dose (prescription dose) is specified, the dose difference tolerance is treated as a percent of the reference dose. Otherwise it is treated as a percent of the maximum dose in the reference volume. To use a 3% dose tolerance, you would set this value to 0.03</string>
-        </property>
-        <property name="maximum">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>3.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_MaximumGamma">
-        <property name="toolTip">
-         <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
-        </property>
-        <property name="maximum">
-         <double>10.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>2.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="10" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_AnalysisThreshold">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="toolTip">
-         <string>Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 0.10. The threshold is applied to the reference image</string>
-        </property>
-       </widget>
-      </item>
-      <item row="10" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="toolTip">
-         <string>Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 0.10. The threshold is applied to the reference image</string>
-        </property>
-        <property name="text">
-         <string>Analysis threshold (Gy):</string>
         </property>
        </widget>
       </item>
@@ -234,60 +142,7 @@
            </font>
           </property>
           <property name="text">
-           <string>The selected volume is not a dose</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="toolTip">
-         <string>Reference dose (prescription dose). This is used in dose comparison</string>
-        </property>
-        <property name="text">
-         <string>Reference dose:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="2">
-       <layout class="QGridLayout" name="gridLayout_3">
-        <property name="horizontalSpacing">
-         <number>0</number>
-        </property>
-        <property name="verticalSpacing">
-         <number>4</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QRadioButton" name="radioButton_ReferenceDose_MaximumDose">
-          <property name="text">
-           <string>Use maximum dose</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QRadioButton" name="radioButton_ReferenceDose_CustomValue">
-          <property name="text">
-           <string>Use custom value (Gy):</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_ReferenceDose">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="toolTip">
-           <string>Reference dose (prescription dose). This is used in dose comparison</string>
-          </property>
-          <property name="minimum">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="value">
-           <double>5.000000000000000</double>
+           <string>Warning text</string>
           </property>
          </widget>
         </item>
@@ -311,22 +166,174 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_GammaVolume">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
-         </stringlist>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Dice coefficient:</string>
         </property>
-        <property name="renameEnabled">
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="toolTip">
+         <string>Number of true positive voxels, i.e. positive reference voxels that are positive in the compare contour labelmap</string>
+        </property>
+        <property name="text">
+         <string>True positives:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="toolTip">
+         <string>Number of true negative voxels, i.e. negative reference voxels that are negative in compare contour labelmap</string>
+        </property>
+        <property name="text">
+         <string>True negatives:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="toolTip">
+         <string>Number of false positive voxels, i.e. negative reference voxels that are positive in compare contour labelmap</string>
+        </property>
+        <property name="text">
+         <string>False positives:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="toolTip">
+         <string>Number of false negative voxels, i.e. positive reference voxels that are negative in compare contour labelmap</string>
+        </property>
+        <property name="text">
+         <string>False negatives:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="toolTip">
+         <string>Location of the center of mass of the reference structure</string>
+        </property>
+        <property name="text">
+         <string>Reference center:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="toolTip">
+         <string>Location of the center of mass of the compare structure</string>
+        </property>
+        <property name="text">
+         <string>Compare center:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Reference volume (cc):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="label_12">
+        <property name="text">
+         <string>Compare volume (cc):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEdit_DiceCoefficient">
+        <property name="text">
+         <string>N/A</string>
+        </property>
+        <property name="readOnly">
          <bool>true</bool>
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_9">
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="lineEdit_TruePositives">
         <property name="text">
-         <string>Gamma volume:</string>
+         <string>N/A</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="lineEdit_TrueNegatives">
+        <property name="text">
+         <string>N/A</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="lineEdit_FalsePositives">
+        <property name="text">
+         <string>N/A</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="lineEdit_FalseNegatives">
+        <property name="text">
+         <string>N/A</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLineEdit" name="lineEdit_ReferenceCenter">
+        <property name="text">
+         <string>N/A</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLineEdit" name="lineEdit_CompareCenter">
+        <property name="text">
+         <string>N/A</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QLineEdit" name="lineEdit_ReferenceVolume">
+        <property name="text">
+         <string>N/A</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QLineEdit" name="lineEdit_CompareVolume">
+        <property name="text">
+         <string>N/A</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -412,7 +419,7 @@
   <connection>
    <sender>qSlicerContourComparisonModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ReferenceDoseVolume</receiver>
+   <receiver>MRMLNodeComboBox_ReferenceContourLabelmapVolume</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -428,7 +435,7 @@
   <connection>
    <sender>qSlicerContourComparisonModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_CompareDoseVolume</receiver>
+   <receiver>MRMLNodeComboBox_CompareContourLabelmapVolume</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -438,22 +445,6 @@
     <hint type="destinationlabel">
      <x>216</x>
      <y>83</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerContourComparisonModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_GammaVolume</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>346</x>
-     <y>352</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>344</x>
-     <y>315</y>
     </hint>
    </hints>
   </connection>

@@ -39,16 +39,8 @@ vtkMRMLNodeNewMacro(vtkMRMLContourComparisonNode);
 //----------------------------------------------------------------------------
 vtkMRMLContourComparisonNode::vtkMRMLContourComparisonNode()
 {
-  this->ReferenceDoseVolumeNodeId = NULL;
-  this->CompareDoseVolumeNodeId = NULL;
-  this->GammaVolumeNodeId = NULL;
-
-  this->DtaDistanceToleranceMm = 3.0;
-  this->DoseDifferenceTolerancePercent = 3.0;
-  this->ReferenceDoseGy = 0.0;
-  this->AnalysisThresholdPercent = 0.0;
-  this->MaximumGamma = 2.0;
-  this->UseMaximumDose = true;
+  this->ReferenceContourLabelmapVolumeNodeId = NULL;
+  this->CompareContourLabelmapVolumeNodeId = NULL;
 
   this->HideFromEditors = false;
 }
@@ -56,9 +48,8 @@ vtkMRMLContourComparisonNode::vtkMRMLContourComparisonNode()
 //----------------------------------------------------------------------------
 vtkMRMLContourComparisonNode::~vtkMRMLContourComparisonNode()
 {
-  this->SetReferenceDoseVolumeNodeId(NULL);
-  this->SetCompareDoseVolumeNodeId(NULL);
-  this->SetGammaVolumeNodeId(NULL);
+  this->SetReferenceContourLabelmapVolumeNodeId(NULL);
+  this->SetCompareContourLabelmapVolumeNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -71,37 +62,21 @@ void vtkMRMLContourComparisonNode::WriteXML(ostream& of, int nIndent)
 
   {
     std::stringstream ss;
-    if ( this->ReferenceDoseVolumeNodeId )
+    if ( this->ReferenceContourLabelmapVolumeNodeId )
       {
-      ss << this->ReferenceDoseVolumeNodeId;
-      of << indent << " ReferenceDoseVolumeNodeId=\"" << ss.str() << "\"";
+      ss << this->ReferenceContourLabelmapVolumeNodeId;
+      of << indent << " ReferenceContourLabelmapVolumeNodeId=\"" << ss.str() << "\"";
      }
   }
 
   {
     std::stringstream ss;
-    if ( this->CompareDoseVolumeNodeId )
+    if ( this->CompareContourLabelmapVolumeNodeId )
       {
-      ss << this->CompareDoseVolumeNodeId;
-      of << indent << " CompareDoseVolumeNodeId=\"" << ss.str() << "\"";
+      ss << this->CompareContourLabelmapVolumeNodeId;
+      of << indent << " CompareContourLabelmapVolumeNodeId=\"" << ss.str() << "\"";
      }
   }
-
-  {
-    std::stringstream ss;
-    if ( this->GammaVolumeNodeId )
-      {
-      ss << this->GammaVolumeNodeId;
-      of << indent << " GammaVolumeNodeId=\"" << ss.str() << "\"";
-     }
-  }
-
-  of << indent << " DtaDistanceToleranceMm=\"" << this->DtaDistanceToleranceMm << "\"";
-  of << indent << " DoseDifferenceTolerancePercent=\"" << this->DoseDifferenceTolerancePercent << "\"";
-  of << indent << " ReferenceDoseGy=\"" << this->ReferenceDoseGy << "\"";
-  of << indent << " AnalysisThresholdPercent=\"" << this->AnalysisThresholdPercent << "\"";
-  of << indent << " MaximumGamma=\"" << this->MaximumGamma << "\"";
-  of << indent << " UseMaximumDose=\"" << (this->UseMaximumDose ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -118,58 +93,17 @@ void vtkMRMLContourComparisonNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "ReferenceDoseVolumeNodeId")) 
+    if (!strcmp(attName, "ReferenceContourLabelmapVolumeNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveReferenceDoseVolumeNodeId(ss.str().c_str());
+      this->SetAndObserveReferenceContourLabelmapVolumeNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "CompareDoseVolumeNodeId")) 
+    else if (!strcmp(attName, "CompareContourLabelmapVolumeNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveCompareDoseVolumeNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "GammaVolumeNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveGammaVolumeNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "DtaDistanceToleranceMm")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->DtaDistanceToleranceMm = atof(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "DoseDifferenceTolerancePercent")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->DoseDifferenceTolerancePercent = atof(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "ReferenceDoseGy")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->ReferenceDoseGy = atof(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "AnalysisThresholdPercent")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->AnalysisThresholdPercent = atof(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "MaximumGamma")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->MaximumGamma = atof(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "UseMaximumDose")) 
-      {
-      this->UseMaximumDose = 
-        (strcmp(attValue,"true") ? false : true);
+      this->SetAndObserveCompareContourLabelmapVolumeNodeId(ss.str().c_str());
       }
     }
 }
@@ -184,16 +118,8 @@ void vtkMRMLContourComparisonNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLContourComparisonNode *node = (vtkMRMLContourComparisonNode *) anode;
 
-  this->SetAndObserveReferenceDoseVolumeNodeId(node->ReferenceDoseVolumeNodeId);
-  this->SetAndObserveCompareDoseVolumeNodeId(node->CompareDoseVolumeNodeId);
-  this->SetAndObserveGammaVolumeNodeId(node->GammaVolumeNodeId);
-
-  this->DtaDistanceToleranceMm = node->DtaDistanceToleranceMm;
-  this->DoseDifferenceTolerancePercent = node->DoseDifferenceTolerancePercent;
-  this->ReferenceDoseGy = node->ReferenceDoseGy;
-  this->AnalysisThresholdPercent = node->AnalysisThresholdPercent;
-  this->MaximumGamma = node->MaximumGamma;
-  this->UseMaximumDose = node->UseMaximumDose;
+  this->SetAndObserveReferenceContourLabelmapVolumeNodeId(node->ReferenceContourLabelmapVolumeNodeId);
+  this->SetAndObserveCompareContourLabelmapVolumeNodeId(node->CompareContourLabelmapVolumeNodeId);
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -204,79 +130,51 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "ReferenceDoseVolumeNodeId:   " << this->ReferenceDoseVolumeNodeId << "\n";
-  os << indent << "CompareDoseVolumeNodeId:   " << this->CompareDoseVolumeNodeId << "\n";
-  os << indent << "GammaVolumeNodeId:   " << this->GammaVolumeNodeId << "\n";
-
-  os << indent << "DtaDistanceToleranceMm:   " << this->DtaDistanceToleranceMm << "\n";
-  os << indent << "DoseDifferenceTolerancePercent:   " << this->DoseDifferenceTolerancePercent << "\n";
-  os << indent << "ReferenceDoseGy:   " << this->ReferenceDoseGy << "\n";
-  os << indent << "AnalysisThresholdPercent:   " << this->AnalysisThresholdPercent << "\n";
-  os << indent << "MaximumGamma:   " << this->MaximumGamma << "\n";
-  os << indent << "UseMaximumDose:   " << (this->UseMaximumDose ? "true" : "false") << "\n";
+  os << indent << "ReferenceContourLabelmapVolumeNodeId:   " << this->ReferenceContourLabelmapVolumeNodeId << "\n";
+  os << indent << "CompareContourLabelmapVolumeNodeId:   " << this->CompareContourLabelmapVolumeNodeId << "\n";
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourComparisonNode::SetAndObserveReferenceDoseVolumeNodeId(const char* id)
+void vtkMRMLContourComparisonNode::SetAndObserveReferenceContourLabelmapVolumeNodeId(const char* id)
 {
-  if (this->ReferenceDoseVolumeNodeId)
+  if (this->ReferenceContourLabelmapVolumeNodeId)
   {
-    this->Scene->RemoveReferencedNodeID(this->ReferenceDoseVolumeNodeId, this);
+    this->Scene->RemoveReferencedNodeID(this->ReferenceContourLabelmapVolumeNodeId, this);
   }
 
-  this->SetReferenceDoseVolumeNodeId(id);
+  this->SetReferenceContourLabelmapVolumeNodeId(id);
 
   if (id)
   {
-    this->Scene->AddReferencedNodeID(this->ReferenceDoseVolumeNodeId, this);
+    this->Scene->AddReferencedNodeID(this->ReferenceContourLabelmapVolumeNodeId, this);
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourComparisonNode::SetAndObserveCompareDoseVolumeNodeId(const char* id)
+void vtkMRMLContourComparisonNode::SetAndObserveCompareContourLabelmapVolumeNodeId(const char* id)
 {
-  if (this->CompareDoseVolumeNodeId)
+  if (this->CompareContourLabelmapVolumeNodeId)
   {
-    this->Scene->RemoveReferencedNodeID(this->CompareDoseVolumeNodeId, this);
+    this->Scene->RemoveReferencedNodeID(this->CompareContourLabelmapVolumeNodeId, this);
   }
 
-  this->SetCompareDoseVolumeNodeId(id);
+  this->SetCompareContourLabelmapVolumeNodeId(id);
 
   if (id)
   {
-    this->Scene->AddReferencedNodeID(this->CompareDoseVolumeNodeId, this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLContourComparisonNode::SetAndObserveGammaVolumeNodeId(const char* id)
-{
-  if (this->GammaVolumeNodeId)
-  {
-    this->Scene->RemoveReferencedNodeID(this->GammaVolumeNodeId, this);
-  }
-
-  this->SetGammaVolumeNodeId(id);
-
-  if (id)
-  {
-    this->Scene->AddReferencedNodeID(this->GammaVolumeNodeId, this);
+    this->Scene->AddReferencedNodeID(this->CompareContourLabelmapVolumeNodeId, this);
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLContourComparisonNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
-  if (this->ReferenceDoseVolumeNodeId && !strcmp(oldID, this->ReferenceDoseVolumeNodeId))
+  if (this->ReferenceContourLabelmapVolumeNodeId && !strcmp(oldID, this->ReferenceContourLabelmapVolumeNodeId))
     {
-    this->SetAndObserveReferenceDoseVolumeNodeId(newID);
+    this->SetAndObserveReferenceContourLabelmapVolumeNodeId(newID);
     }
-  if (this->CompareDoseVolumeNodeId && !strcmp(oldID, this->CompareDoseVolumeNodeId))
+  if (this->CompareContourLabelmapVolumeNodeId && !strcmp(oldID, this->CompareContourLabelmapVolumeNodeId))
     {
-    this->SetAndObserveCompareDoseVolumeNodeId(newID);
-    }
-  if (this->GammaVolumeNodeId && !strcmp(oldID, this->GammaVolumeNodeId))
-    {
-    this->SetAndObserveGammaVolumeNodeId(newID);
+    this->SetAndObserveCompareContourLabelmapVolumeNodeId(newID);
     }
 }

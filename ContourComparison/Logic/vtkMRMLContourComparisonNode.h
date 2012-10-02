@@ -55,61 +55,27 @@ public:
   virtual const char* GetNodeTagName() {return "ContourComparison";};
 
 public:
-  /// Get reference dose volume node ID
-  vtkGetStringMacro(ReferenceDoseVolumeNodeId);
+  /// Get reference contour labelmap volume node ID
+  vtkGetStringMacro(ReferenceContourLabelmapVolumeNodeId);
 
-  /// Set and observe reference dose volume node ID
-  void SetAndObserveReferenceDoseVolumeNodeId(const char* id);
+  /// Set and observe reference contour labelmap volume node ID
+  void SetAndObserveReferenceContourLabelmapVolumeNodeId(const char* id);
 
-  /// Get compare dose volume node ID
-  vtkGetStringMacro(CompareDoseVolumeNodeId);
+  /// Get compare contour labelmap volume node ID
+  vtkGetStringMacro(CompareContourLabelmapVolumeNodeId);
 
-  /// Set and observe reference dose volume node ID
-  void SetAndObserveCompareDoseVolumeNodeId(const char* id);
-
-  /// Get output gamma volume node ID
-  vtkGetStringMacro(GammaVolumeNodeId);
-
-  /// Set and observe reference dose volume node ID
-  void SetAndObserveGammaVolumeNodeId(const char* id);
-
-  /// Get/Set distance to agreement (DTA) tolerance, in mm
-  vtkGetMacro(DtaDistanceToleranceMm, double);
-  vtkSetMacro(DtaDistanceToleranceMm, double);
-
-  /// Get/Set dose difference tolerance in percent
-  vtkGetMacro(DoseDifferenceTolerancePercent, double);
-  vtkSetMacro(DoseDifferenceTolerancePercent, double);
-
-  /// Get/Set reference dose (prescription dose) in Gy
-  vtkGetMacro(ReferenceDoseGy, double);
-  vtkSetMacro(ReferenceDoseGy, double);
-
-  /// Get/Set dose threshold for gamma analysis
-  vtkGetMacro(AnalysisThresholdPercent, double);
-  vtkSetMacro(AnalysisThresholdPercent, double);
-
-  /// Get/Set maximum gamma
-  vtkGetMacro(MaximumGamma, double);
-  vtkSetMacro(MaximumGamma, double);
-
-  /// Get/Set use maximum dose
-  vtkGetMacro(UseMaximumDose, bool);
-  vtkSetMacro(UseMaximumDose, bool);
-  vtkBooleanMacro(UseMaximumDose, bool);
+  /// Set and observe reference contour labelmap volume node ID
+  void SetAndObserveCompareContourLabelmapVolumeNodeId(const char* id);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
 protected:
-  /// Set reference dose volume node ID
-  vtkSetStringMacro(ReferenceDoseVolumeNodeId);
+  /// Set reference contour labelmap volume node ID
+  vtkSetStringMacro(ReferenceContourLabelmapVolumeNodeId);
 
-  /// Set compare dose volume node ID
-  vtkSetStringMacro(CompareDoseVolumeNodeId);
-
-  /// Set output gamma volume node ID
-  vtkSetStringMacro(GammaVolumeNodeId);
+  /// Set compare contour labelmap volume node ID
+  vtkSetStringMacro(CompareContourLabelmapVolumeNodeId);
 
 protected:
   vtkMRMLContourComparisonNode();
@@ -118,38 +84,11 @@ protected:
   void operator=(const vtkMRMLContourComparisonNode&);
 
 protected:
-  /// Selected reference dose volume MRML node object ID
-  char* ReferenceDoseVolumeNodeId;
+  /// Selected reference contour labelmap volume MRML node object ID
+  char* ReferenceContourLabelmapVolumeNodeId;
 
-  /// Selected compare dose volume MRML node object ID
-  char* CompareDoseVolumeNodeId;
-
-  /// Selected output gamma volume MRML node object ID
-  char* GammaVolumeNodeId;
-
-  /// Distance to agreement (DTA) tolerance, in mm
-  double DtaDistanceToleranceMm;
-
-  /// Dose difference tolerance. If a reference dose (prescription dose) is specified,
-  ///   the dose difference tolerance is treated as a percent of the reference dose.
-  ///   Otherwise it is treated as a percent of the maximum dose in the reference volume.
-  ///   To use a 3% dose tolerance, you would set this value to 0.03
-  double DoseDifferenceTolerancePercent;
-
-  /// Reference dose (prescription dose). This is used in dose comparison
-  double ReferenceDoseGy;
-
-  /// Dose threshold for gamma analysis. This is used to ignore voxels which have dose below
-  ///   a certain value. For example, to consider only voxels which have dose greater than
-  ///   10% of the prescription dose, set the analysis threshold to 0.10. The threshold is
-  ///   applied to the reference image.
-  double AnalysisThresholdPercent;
-
-  /// Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3.
-  double MaximumGamma;
-
-  /// Flag indicating whether the Use maximum dose option is selected (else the Use custom value is selected)
-  bool UseMaximumDose;
+  /// Selected compare contour labelmap volume MRML node object ID
+  char* CompareContourLabelmapVolumeNodeId;
 };
 
 #endif

@@ -52,11 +52,8 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
-  /// Compute gamma metric according to the selected input volumes and parameters (ContourComparison parameter set node content)
-  void ComputeGammaDoseDifference();
-
-  /// Return false if the argument volume contains a volume that is really a dose volume
-  bool DoseVolumeContainsDose(vtkMRMLNode* node);
+  /// Compute dice statistics from the selected input contour labelmaps
+  void ComputeDiceStatistics();
 
 public:
   void SetAndObserveContourComparisonNode(vtkMRMLContourComparisonNode* node);
