@@ -81,41 +81,27 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  {
-    std::stringstream ss;
-    if ( this->DoseVolumeNodeId )
-      {
-      ss << this->DoseVolumeNodeId;
-      of << indent << " DoseVolumeNodeId=\"" << ss.str() << "\"";
-      }
-  }
+  if ( this->DoseVolumeNodeId )
+    {
+    of << indent << " DoseVolumeNodeId=\"" << this->DoseVolumeNodeId << "\"";
+    }
 
-  {
-    std::stringstream ss;
-    if ( this->StructureSetContourNodeId )
-      {
-      ss << this->StructureSetContourNodeId;
-      of << indent << " StructureSetContourNodeId=\"" << ss.str() << "\"";
-      }
-  }
+  if ( this->StructureSetContourNodeId )
+    {
+    of << indent << " StructureSetContourNodeId=\"" << this->StructureSetContourNodeId << "\"";
+    }
 
-  {
-    std::stringstream ss;
-    if ( this->ChartNodeId )
-      {
-      ss << this->ChartNodeId;
-      of << indent << " ChartNodeId=\"" << ss.str() << "\"";
-      }
-  }
+  if ( this->ChartNodeId )
+    {
+    of << indent << " ChartNodeId=\"" << this->ChartNodeId << "\"";
+    }
 
-  {
-    of << indent << " DvhDoubleArrayNodeIds=\"";
-    for (std::vector<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
-      {
-      of << (*it) << "|";
-      }
-    of << "\"";
-  }
+  of << indent << " DvhDoubleArrayNodeIds=\"";
+  for (std::vector<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
+    {
+    of << (*it) << "|";
+    }
+  of << "\"";
 
   {
     std::stringstream ss;
@@ -123,14 +109,12 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
     of << indent << " ShowHideAll=\"" << ss.str() << "\"";
   }
 
-  {
-    of << indent << " ShowInChartCheckStates=\"";
-    for (std::vector<bool>::iterator it = this->ShowInChartCheckStates.begin(); it != this->ShowInChartCheckStates.end(); ++it)
-      {
-      of << ((*it) ? "true" : "false") << "|";
-      }
-    of << "\"";
-  }
+  of << indent << " ShowInChartCheckStates=\"";
+  for (std::vector<bool>::iterator it = this->ShowInChartCheckStates.begin(); it != this->ShowInChartCheckStates.end(); ++it)
+    {
+    of << ((*it) ? "true" : "false") << "|";
+    }
+  of << "\"";
 
   {
     std::stringstream ss;
@@ -277,13 +261,11 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "ShowDMetrics")) 
       {
-      this->ShowDMetrics = 
-        (strcmp(attValue,"true") ? false : true);
+      this->ShowDMetrics = (strcmp(attValue,"true") ? false : true);
       }
     //else if (!strcmp(attName, "SaveLabelmaps")) 
     //  {
-    //  this->SaveLabelmaps = 
-    //    (strcmp(attValue,"true") ? false : true);
+    //  this->SaveLabelmaps = (strcmp(attValue,"true") ? false : true);
     //  }
     }
 }

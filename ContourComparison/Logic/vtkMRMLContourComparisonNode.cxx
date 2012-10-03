@@ -43,6 +43,17 @@ vtkMRMLContourComparisonNode::vtkMRMLContourComparisonNode()
   this->CompareContourNodeId = NULL;
   this->RasterizationReferenceVolumeNodeId = NULL;
 
+  this->DiceCoefficient = -1.0;
+  this->TruePositives = 0;
+  this->TrueNegatives = 0;
+  this->FalsePositives = 0;
+  this->FalseNegatives = 0;
+  this->ReferenceCenter[0] = this->ReferenceCenter[1] = this->ReferenceCenter[2] = 0.0;
+  this->CompareCenter[0] = this->CompareCenter[1] = this->CompareCenter[2] = 0.0;
+  this->ReferenceVolumeCc = -1.0;
+  this->CompareVolumeCc = -1.0;
+  this->ResultsValidOff();
+
   this->HideFromEditors = false;
 }
 
@@ -74,6 +85,38 @@ void vtkMRMLContourComparisonNode::WriteXML(ostream& of, int nIndent)
     {
     of << indent << " ReferenceVolumeNodeId=\"" << this->RasterizationReferenceVolumeNodeId << "\"";
     }
+
+  of << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
+  of << indent << " TruePositives=\"" << this->TruePositives << "\"";
+  of << indent << " TrueNegatives=\"" << this->TrueNegatives << "\"";
+  of << indent << " FalsePositives=\"" << this->FalsePositives << "\"";
+  of << indent << " FalseNegatives=\"" << this->FalseNegatives << "\"";
+
+  {
+    std::stringstream ss;
+    of << indent << " ReferenceCenter=\"";
+    for (int i=0; i<3; ++i)
+    {
+      ss << this->ReferenceCenter;
+      of << ss.str() << "|";
+    }
+    of << "\"";
+  }
+  {
+    std::stringstream ss;
+    of << indent << " CompareCenter=\"";
+    for (int i=0; i<3; ++i)
+    {
+      ss << this->CompareCenter;
+      of << ss.str() << "|";
+    }
+    of << "\"";
+  }
+
+  of << indent << " ReferenceVolumeCc=\"" << this->ReferenceVolumeCc << "\"";
+  of << indent << " CompareVolumeCc=\"" << this->CompareVolumeCc << "\"";
+
+  of << indent << " ResultsValid=\"" << (this->ResultsValid ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -108,6 +151,84 @@ void vtkMRMLContourComparisonNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetAndObserveReferenceVolumeNodeId(ss.str().c_str());
       }
+    else if (!strcmp(attName, "DiceCoefficient")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->DiceCoefficient = atof(ss.str().c_str()); //TODO: use other conversion tool
+      }
+    else if (!strcmp(attName, "TruePositives")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->TruePositives = atoi(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "TrueNegatives")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->TrueNegatives = atoi(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "FalsePositives")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->FalsePositives = atoi(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "FalseNegatives")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->FalseNegatives = atoi(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "ReferenceCenter")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      std::string valueStr = ss.str();
+      std::string separatorCharacter("|");
+
+      size_t separatorPosition = valueStr.find( separatorCharacter );
+      this->ReferenceCenter[0] = atof(valueStr.substr(0, separatorPosition).c_str());
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->ReferenceCenter[1] = atof(valueStr.substr(0, separatorPosition).c_str());
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->CompareCenter[2] = atof(valueStr.substr(0, separatorPosition).c_str());
+      }
+    else if (!strcmp(attName, "CompareCenter")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      std::string valueStr = ss.str();
+      std::string separatorCharacter("|");
+
+      size_t separatorPosition = valueStr.find( separatorCharacter );
+      this->CompareCenter[0] = atof(valueStr.substr(0, separatorPosition).c_str());
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->CompareCenter[1] = atof(valueStr.substr(0, separatorPosition).c_str());
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->CompareCenter[2] = atof(valueStr.substr(0, separatorPosition).c_str());
+      }
+    else if (!strcmp(attName, "ReferenceVolumeCc")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->ReferenceVolumeCc = atof(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "CompareVolumeCc")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->CompareVolumeCc = atof(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "ResultsValid")) 
+      {
+      this->ResultsValid = (strcmp(attValue,"true") ? false : true);
+      }
     }
 }
 
@@ -125,6 +246,17 @@ void vtkMRMLContourComparisonNode::Copy(vtkMRMLNode *anode)
   this->SetAndObserveCompareContourNodeId(node->CompareContourNodeId);
   this->SetAndObserveReferenceVolumeNodeId(node->RasterizationReferenceVolumeNodeId);
 
+  this->DiceCoefficient = node->DiceCoefficient;
+  this->TruePositives = node->TruePositives;
+  this->TrueNegatives = node->TrueNegatives;
+  this->FalsePositives = node->FalsePositives;
+  this->FalseNegatives = node->FalseNegatives;
+  this->SetReferenceCenter( node->GetReferenceCenter() );
+  this->SetCompareCenter( node->GetCompareCenter() );
+  this->ReferenceVolumeCc = node->ReferenceVolumeCc;
+  this->CompareVolumeCc = node->CompareVolumeCc;
+  this->ResultsValid = node->ResultsValid;
+
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
 }
@@ -137,7 +269,38 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ReferenceContourNodeId:   " << this->ReferenceContourNodeId << "\n";
   os << indent << "CompareContourNodeId:   " << this->CompareContourNodeId << "\n";
   os << indent << "ReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
-}
+
+  os << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
+  os << indent << " TruePositives=\"" << this->TruePositives << "\"";
+  os << indent << " TrueNegatives=\"" << this->TrueNegatives << "\"";
+  os << indent << " FalsePositives=\"" << this->FalsePositives << "\"";
+  os << indent << " FalseNegatives=\"" << this->FalseNegatives << "\"";
+
+  {
+    std::stringstream ss;
+    os << indent << " ReferenceCenter=\"";
+    for (int i=0; i<3; ++i)
+    {
+      ss << this->ReferenceCenter;
+      os << ss.str() << "|";
+    }
+    os << "\"";
+  }
+  {
+    std::stringstream ss;
+    os << indent << " CompareCenter=\"";
+    for (int i=0; i<3; ++i)
+    {
+      ss << this->CompareCenter;
+      os << ss.str() << "|";
+    }
+    os << "\"";
+  }
+
+  os << indent << " ReferenceVolumeCc=\"" << this->ReferenceVolumeCc << "\"";
+  os << indent << " CompareVolumeCc=\"" << this->CompareVolumeCc << "\"";
+
+  os << indent << " ResultsValid=\"" << (this->ResultsValid ? "true" : "false") << "\"";}
 
 //----------------------------------------------------------------------------
 void vtkMRMLContourComparisonNode::SetAndObserveReferenceContourNodeId(const char* id)

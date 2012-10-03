@@ -69,6 +69,9 @@ protected:
   /// Updates button states
   void updateButtonsState();
 
+  /// Invalidate the results (change the values with 'N/A')
+  void invalidateResults();
+
 protected:
   QScopedPointer<qSlicerContourComparisonModuleWidgetPrivate> d_ptr;
   

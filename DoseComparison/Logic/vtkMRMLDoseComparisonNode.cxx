@@ -69,32 +69,20 @@ void vtkMRMLDoseComparisonNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  {
-    std::stringstream ss;
-    if ( this->ReferenceDoseVolumeNodeId )
-      {
-      ss << this->ReferenceDoseVolumeNodeId;
-      of << indent << " ReferenceDoseVolumeNodeId=\"" << ss.str() << "\"";
-     }
-  }
+  if ( this->ReferenceDoseVolumeNodeId )
+    {
+    of << indent << " ReferenceDoseVolumeNodeId=\"" << this->ReferenceDoseVolumeNodeId << "\"";
+    }
 
-  {
-    std::stringstream ss;
-    if ( this->CompareDoseVolumeNodeId )
-      {
-      ss << this->CompareDoseVolumeNodeId;
-      of << indent << " CompareDoseVolumeNodeId=\"" << ss.str() << "\"";
-     }
-  }
+  if ( this->CompareDoseVolumeNodeId )
+    {
+    of << indent << " CompareDoseVolumeNodeId=\"" << this->CompareDoseVolumeNodeId << "\"";
+    }
 
-  {
-    std::stringstream ss;
-    if ( this->GammaVolumeNodeId )
-      {
-      ss << this->GammaVolumeNodeId;
-      of << indent << " GammaVolumeNodeId=\"" << ss.str() << "\"";
-     }
-  }
+  if ( this->GammaVolumeNodeId )
+    {
+    of << indent << " GammaVolumeNodeId=\"" << this->GammaVolumeNodeId << "\"";
+    }
 
   of << indent << " DtaDistanceToleranceMm=\"" << this->DtaDistanceToleranceMm << "\"";
   of << indent << " DoseDifferenceTolerancePercent=\"" << this->DoseDifferenceTolerancePercent << "\"";
@@ -140,7 +128,7 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->DtaDistanceToleranceMm = atof(ss.str().c_str());
+      this->DtaDistanceToleranceMm = atof(ss.str().c_str()); //TODO: use other conversion tool
       }
     else if (!strcmp(attName, "DoseDifferenceTolerancePercent")) 
       {

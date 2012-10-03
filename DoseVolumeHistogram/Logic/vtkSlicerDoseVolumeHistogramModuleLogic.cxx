@@ -462,7 +462,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
   // Get color node created for the structure set
   const char* seriesNameChars = structureSetHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
-  std::string seriesName = (seriesNameChars ? seriesNameChars : "Series");
+  std::string seriesName = (seriesNameChars ? seriesNameChars : "EmptySeriesName");
 
   std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
 

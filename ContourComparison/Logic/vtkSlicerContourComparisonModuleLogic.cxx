@@ -287,6 +287,13 @@ bool vtkSlicerContourComparisonModuleLogic::IsReferenceVolumeNeeded()
 //---------------------------------------------------------------------------
 void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
 {
+  if (!this->ContourComparisonNode || !this->GetMRMLScene())
+  {
+    return;
+  }
+
+  this->ContourComparisonNode->ResultsValidOff();
+
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
 
@@ -321,8 +328,8 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
 
   // Convert inputs to ITK images
   double checkpointItkConvertStart = timer->GetUniversalTime();
-  ConvertVolumeNodeToItkImage(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk);
-  ConvertVolumeNodeToItkImage(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk);
+  this->ConvertVolumeNodeToItkImage(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk);
+  this->ConvertVolumeNodeToItkImage(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk);
 
   // Compute gamma dose volume
   double checkpointDiceStart = timer->GetUniversalTime();
@@ -331,6 +338,26 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
   dice.set_compare_image(compareContourLabelmapVolumeItk);
 
   dice.run();
+
+  this->ContourComparisonNode->SetDiceCoefficient(dice.get_dice());
+  this->ContourComparisonNode->SetTruePositives(dice.get_true_positives());
+  this->ContourComparisonNode->SetTrueNegatives(dice.get_true_negatives());
+  this->ContourComparisonNode->SetFalsePositives(dice.get_false_positives());
+  this->ContourComparisonNode->SetFalseNegatives(dice.get_false_negatives());
+
+  itk::Vector<double, 3> referenceCenterItk = dice.get_reference_center();
+  double referenceCenterArray[3]
+    = { referenceCenterItk[0], referenceCenterItk[1], referenceCenterItk[2] };
+  this->ContourComparisonNode->SetReferenceCenter(referenceCenterArray);
+
+  itk::Vector<double, 3> compareCenterItk = dice.get_compare_center();
+  double compareCenterArray[3]
+  = { compareCenterItk[0], compareCenterItk[1], compareCenterItk[2] };
+  this->ContourComparisonNode->SetCompareCenter(compareCenterArray);
+
+  this->ContourComparisonNode->SetReferenceVolumeCc(dice.get_reference_volume());
+  this->ContourComparisonNode->SetCompareVolumeCc(dice.get_compare_volume());
+  this->ContourComparisonNode->ResultsValidOn();
 
   if (this->LogSpeedMeasurements)
   {

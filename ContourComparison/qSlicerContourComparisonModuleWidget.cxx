@@ -289,6 +289,8 @@ void qSlicerContourComparisonModuleWidget::referenceContourNodeChanged(vtkMRMLNo
   paramNode->SetAndObserveReferenceContourNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
+  this->invalidateResults();
+
   updateButtonsState();
 }
 
@@ -306,6 +308,8 @@ void qSlicerContourComparisonModuleWidget::compareContourNodeChanged(vtkMRMLNode
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveCompareContourNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
+
+  this->invalidateResults();
 
   updateButtonsState();
 }
@@ -325,6 +329,8 @@ void qSlicerContourComparisonModuleWidget::referenceVolumeNodeChanged(vtkMRMLNod
   paramNode->SetAndObserveReferenceVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
+  this->invalidateResults();
+
   updateButtonsState();
 }
 
@@ -333,11 +339,67 @@ void qSlicerContourComparisonModuleWidget::applyClicked()
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
+  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
   d->logic()->ComputeDiceStatistics();
 
-  //TODO: display results
+  if (paramNode->GetResultsValid())
+  {
+    d->lineEdit_DiceCoefficient->setText(
+      QString("%1").arg(paramNode->GetDiceCoefficient()) );
+    d->lineEdit_TruePositives->setText(
+      QString("%1").arg(paramNode->GetTruePositives()) );
+    d->lineEdit_TrueNegatives->setText(
+      QString("%1").arg(paramNode->GetTrueNegatives()) );
+    d->lineEdit_FalsePositives->setText(
+      QString("%1").arg(paramNode->GetFalsePositives()) );
+    d->lineEdit_FalseNegatives->setText(
+      QString("%1").arg(paramNode->GetFalseNegatives()) );
+    d->lineEdit_ReferenceCenter->setText(
+      QString("(%1, %2, %3)").arg(paramNode->GetReferenceCenter()[0]).
+      arg(paramNode->GetReferenceCenter()[1]).arg(paramNode->GetReferenceCenter()[2]) );
+    d->lineEdit_CompareCenter->setText(
+      QString("(%1, %2, %3)").arg(paramNode->GetCompareCenter()[0]).
+      arg(paramNode->GetCompareCenter()[1]).arg(paramNode->GetCompareCenter()[2]) );
+    d->lineEdit_ReferenceVolume->setText(
+      QString("%1").arg(paramNode->GetReferenceVolumeCc()) );
+    d->lineEdit_CompareVolume->setText(
+      QString("%1").arg(paramNode->GetCompareVolumeCc()) );
+  }
+  else
+  {
+    this->invalidateResults();
+  }
 
   QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContourComparisonModuleWidget::invalidateResults()
+{
+  Q_D(qSlicerContourComparisonModuleWidget);
+
+  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  paramNode->ResultsValidOff();
+
+  d->lineEdit_DiceCoefficient->setText(tr("N/A"));
+  d->lineEdit_TruePositives->setText(tr("N/A"));
+  d->lineEdit_TrueNegatives->setText(tr("N/A"));
+  d->lineEdit_FalsePositives->setText(tr("N/A"));
+  d->lineEdit_FalseNegatives->setText(tr("N/A"));
+  d->lineEdit_ReferenceCenter->setText(tr("N/A"));
+  d->lineEdit_CompareCenter->setText(tr("N/A"));
+  d->lineEdit_ReferenceVolume->setText(tr("N/A"));
+  d->lineEdit_CompareVolume->setText(tr("N/A"));
 }
