@@ -245,10 +245,10 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   double rasterizationDownsamplingFactor = 2.0;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex+1], "-rasterizationDownsamplingFactor") == 0)
+    if (STRCASECMP(argv[argIndex], "-RasterizationDownsamplingFactor") == 0)
     {
       rasterizationDownsamplingFactor = atof(argv[argIndex+1]);
-      std::cout << "Rasterization magnification factor: " << rasterizationDownsamplingFactor << std::endl;
+      std::cout << "Rasterization downsampling factor: " << rasterizationDownsamplingFactor << std::endl;
       argIndex += 2;
     }
   }
@@ -310,6 +310,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
 
   // Load dose volume
+  std::string seriesName("Series");
   std::string doseVolumeFileName = std::string(dataDirectoryPath) + "/Dose.nrrd";
   if (!vtksys::SystemTools::FileExists(doseVolumeFileName.c_str()))
   {
@@ -339,7 +340,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   // Create contour hierarchy root node
   vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyRootNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
-  std::string hierarchyNodeName = "All contours";
+  std::string hierarchyNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX;
   contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
   contourHierarchyRootNode->AllowMultipleChildrenOn();
   contourHierarchyRootNode->HideFromEditorsOff();
@@ -366,7 +367,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Add color table node
   vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
   std::string structureSetColorTableNodeName;
-  structureSetColorTableNodeName = hierarchyNodeName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+  structureSetColorTableNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
   structureSetColorTableNode->HideFromEditorsOff();
   structureSetColorTableNode->SetTypeToUser();
@@ -379,6 +380,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
   std::vector<std::string>::iterator it;
+
   for (it = structureNames.begin(); it != structureNames.end(); ++it)
   {
     // Read polydata

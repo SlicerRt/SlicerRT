@@ -451,6 +451,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
   // Get structure set hierarchy node
   vtkMRMLContourHierarchyNode* structureContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(
     vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->GetMRMLScene(), structureContourNodes[0]->GetID()));
+
   if (!structureContourHierarchyNode)
   {
     vtkErrorMacro("Error: No hierarchy node found for structure '" << structureContourNodes[0]->GetName() << "'");
@@ -460,9 +461,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     = vtkMRMLContourHierarchyNode::SafeDownCast(structureContourHierarchyNode->GetParentNode());
 
   // Get color node created for the structure set
-  std::string seriesName = structureSetHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
+  const char* seriesNameChars = structureSetHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
+  std::string seriesName = (seriesNameChars ? seriesNameChars : "Series");
+
   std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+
   vtkCollection* colorNodes = this->GetMRMLScene()->GetNodesByName(colorNodeName.c_str());
+
   if (colorNodes->GetNumberOfItems() == 0)
   {
     vtkErrorMacro("Error: No color table found for structure set '" << structureSetHierarchyNode->GetName() << "'");
