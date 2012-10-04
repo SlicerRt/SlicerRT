@@ -51,6 +51,7 @@
 #include <vtkPolyDataNormals.h>
 #include <vtkLookupTable.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkWindowedSincPolyDataFilter.h>
 
 // STD includes
 #include <cassert>
@@ -335,6 +336,9 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     marchingCubes->SetInput(changeInfo->GetOutput());
     marchingCubes->SetNumberOfContours(1); 
     marchingCubes->SetValue(0, isoLevel);
+    marchingCubes->ComputeScalarsOff();
+    marchingCubes->ComputeGradientsOff();
+    marchingCubes->ComputeNormalsOff();
     marchingCubes->Update();
 
     vtkSmartPointer<vtkPolyData> isoPolyData= marchingCubes->GetOutput();
@@ -346,13 +350,25 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 
       vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
       decimate->SetInput(triangleFilter->GetOutput());
-      decimate->SetTargetReduction(0.9);
+      decimate->SetTargetReduction(0.6);
+      decimate->SetFeatureAngle(60);
+      decimate->SplittingOff();
       decimate->PreserveTopologyOn();
+      decimate->SetMaximumError(1);
       decimate->Update();
 
+      vtkSmartPointer<vtkWindowedSincPolyDataFilter> smootherSinc = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+      smootherSinc->SetPassBand(0.1);
+      smootherSinc->SetInput(decimate->GetOutput() );
+      smootherSinc->SetNumberOfIterations(2);
+      smootherSinc->FeatureEdgeSmoothingOff();
+      smootherSinc->BoundarySmoothingOff();
+      smootherSinc->Update();
+
       vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-      normals->SetInput(decimate->GetOutput());
-      normals->SetFeatureAngle(45);
+      normals->SetInput(smootherSinc->GetOutput());
+      normals->ComputePointNormalsOn();
+      normals->SetFeatureAngle(60);
       normals->Update();
   
       vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
