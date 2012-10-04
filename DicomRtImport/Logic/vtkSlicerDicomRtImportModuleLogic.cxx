@@ -43,7 +43,7 @@ limitations under the License.
 #include <vtkMRMLAnnotationFiducialNode.h>
 #include <vtkMRMLAnnotationTextDisplayNode.h>
 #include <vtkMRMLVolumeNode.h>
-#include <vtkMRMLVolumeDisplayNode.h>
+#include <vtkMRMLScalarVolumeDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLColorTableNode.h>
 
@@ -419,6 +419,15 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
       if (volumeNode->GetVolumeDisplayNode()!=NULL)
       {
         volumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+
+        // Set threshold values so that the background is black
+        vtkMRMLScalarVolumeDisplayNode* scalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(volumeNode->GetVolumeDisplayNode());
+        if (scalarVolumeDisplayNode)
+        {
+          scalarVolumeDisplayNode->AutoThresholdOff();
+          scalarVolumeDisplayNode->SetLowerThreshold(0.0001);
+          scalarVolumeDisplayNode->SetApplyThreshold(1);
+        }
       }
       // Select as active volume
       if (this->GetApplicationLogic()!=NULL)
