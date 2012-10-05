@@ -524,30 +524,33 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     }
 
     // Convert stenciled dose volume to labelmap
-    vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
-    threshold->SetInput(structureStenciledDoseVolumeNode->GetImageData());
-    threshold->SetInValue(structureColorIndex);
-    threshold->SetOutValue(0);
-    threshold->ThresholdByUpper(VTK_DOUBLE_MIN+1.0);
-    threshold->SetOutputScalarTypeToUnsignedChar();
-    threshold->Update();
-    structureStenciledDoseVolumeNode->GetImageData()->DeepCopy(threshold->GetOutput());
-
-    vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
-    displayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
-    if (colorNode)
+    if ((*it)->GetIndexedLabelmapVolumeNodeId() == NULL)
     {
-      displayNode->SetAndObserveColorNodeID(colorNode->GetID());
-    }
-    else
-    {
-      displayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
-    }
+      vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
+      threshold->SetInput(structureStenciledDoseVolumeNode->GetImageData());
+      threshold->SetInValue(structureColorIndex);
+      threshold->SetOutValue(0);
+      threshold->ThresholdByUpper(VTK_DOUBLE_MIN+1.0);
+      threshold->SetOutputScalarTypeToUnsignedChar();
+      threshold->Update();
+      structureStenciledDoseVolumeNode->GetImageData()->DeepCopy(threshold->GetOutput());
 
-    structureStenciledDoseVolumeNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-    structureStenciledDoseVolumeNode->LabelMapOn();
-    this->GetMRMLScene()->AddNode(structureStenciledDoseVolumeNode);
-    (*it)->SetAndObserveIndexedLabelmapVolumeNodeId(structureStenciledDoseVolumeNode->GetID());
+      vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
+      displayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
+      if (colorNode)
+      {
+        displayNode->SetAndObserveColorNodeID(colorNode->GetID());
+      }
+      else
+      {
+        displayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
+      }
+
+      structureStenciledDoseVolumeNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+      structureStenciledDoseVolumeNode->LabelMapOn();
+      this->GetMRMLScene()->AddNode(structureStenciledDoseVolumeNode);
+      (*it)->SetAndObserveIndexedLabelmapVolumeNodeId(structureStenciledDoseVolumeNode->GetID());
+    }
 
     double checkpointStructureEnd = timer->GetUniversalTime();
     sumRasterization += checkpointDvhStart-checkpointRasterizationStart;

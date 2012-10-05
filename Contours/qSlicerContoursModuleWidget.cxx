@@ -124,6 +124,7 @@ void qSlicerContoursModuleWidget::setup()
   connect( d->doubleSpinBox_DownsamplingFactor, SIGNAL(valueChanged(double)), this, SLOT(downsamplingFactorChanged(double)) );
 
   d->label_Warning->setVisible(false);
+  d->label_ActiveSelected->setVisible(false);
 }
 
 
@@ -293,11 +294,12 @@ void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged
 {
   Q_D(qSlicerContoursModuleWidget);
 
+  d->label_ActiveSelected->setVisible(false);
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
   d->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
-  d->pushButton_ApplyChangeRepresentation->setEnabled(false);
   d->doubleSpinBox_DownsamplingFactor->setEnabled(false);
   d->label_DownsamplingFactor->setEnabled(false);
+  d->pushButton_ApplyChangeRepresentation->setEnabled(false);
 
   if (!this->mrmlScene())
   {
@@ -309,18 +311,23 @@ void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged
   {
     // If the user did not change the representation
     d->label_ReferenceVolume->setEnabled(false);
+    d->pushButton_ApplyChangeRepresentation->setEnabled(false);
+    if (index != (int)vtkMRMLContourNode::None)
+    {
+      d->label_ActiveSelected->setVisible(true);
+    }
   }
   else if (representationTypeInSelectedNodes != vtkMRMLContourNode::IndexedLabelmap
     && index == (int)vtkMRMLContourNode::IndexedLabelmap)
   {
     // If the active representation of the selected nodes is not labelmap, but the user changed it to labelmap
-    d->doubleSpinBox_DownsamplingFactor->setEnabled(true);
-    d->label_DownsamplingFactor->setEnabled(true);
-
     bool referenceVolumeNeeded = this->isReferenceVolumeNeeded();
     d->label_Warning->setVisible(referenceVolumeNeeded);
+    d->doubleSpinBox_DownsamplingFactor->setEnabled(referenceVolumeNeeded);
+    d->label_DownsamplingFactor->setEnabled(referenceVolumeNeeded);
     d->MRMLNodeComboBox_ReferenceVolume->setEnabled(referenceVolumeNeeded);
     d->label_ReferenceVolume->setEnabled(referenceVolumeNeeded);
+    d->pushButton_ApplyChangeRepresentation->setEnabled(true);
   }
   else if (index == (int)vtkMRMLContourNode::BitfieldLabelmap)
   {
@@ -383,17 +390,43 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
 
   for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
   {
-    vtkMRMLScalarVolumeNode* indexedLabelmapNode = (*it)->GetIndexedLabelmapVolumeNode();
-    if (!indexedLabelmapNode)
+    if (d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::RibbonModel)
     {
-      std::cerr << "Failed to get '" << (std::string)d->comboBox_ActiveRepresentation->currentText().toLatin1()
-        << "' representation from contour node '" << (*it)->GetName() << "' to " << "!" << std::endl;
+      (*it)->SetActiveRepresentationByType(vtkMRMLContourNode::RibbonModel);
     }
-    else
+    else if (d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::IndexedLabelmap)
     {
-      (*it)->SetActiveRepresentationByNode(indexedLabelmapNode);
+      vtkMRMLScalarVolumeNode* indexedLabelmapNode = (*it)->GetIndexedLabelmapVolumeNode();
+      if (!indexedLabelmapNode)
+      {
+        std::cerr << "Failed to get '" << (std::string)d->comboBox_ActiveRepresentation->currentText().toLatin1()
+          << "' representation from contour node '" << (*it)->GetName() << "' to " << "!" << std::endl;
+      }
+      else
+      {
+        (*it)->SetActiveRepresentationByNode(indexedLabelmapNode);
+      }
+    }
+    else if (d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::ClosedSurfaceModel)
+    {
+      vtkMRMLContourNode::ContourRepresentationType representationTypeInSelectedNodes = this->getRepresentationTypeOfSelectedContours();
+      d->comboBox_ActiveRepresentation->setCurrentIndex((int)representationTypeInSelectedNodes);
+      std::cerr << "Conversion to closed surface model representation is not implemented yet!" << std::endl;
+    }
+    else if (d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::BitfieldLabelmap)
+    {
+      vtkMRMLContourNode::ContourRepresentationType representationTypeInSelectedNodes = this->getRepresentationTypeOfSelectedContours();
+      d->comboBox_ActiveRepresentation->setCurrentIndex((int)representationTypeInSelectedNodes);
+      std::cerr << "Bitfield labelmap representation is not yet supported!" << std::endl;
     }
   }
+
+  // We're done converting, disable controls
+  d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
+  d->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
+  d->doubleSpinBox_DownsamplingFactor->setEnabled(false);
+  d->label_DownsamplingFactor->setEnabled(false);
+  d->pushButton_ApplyChangeRepresentation->setEnabled(false);
 
   QApplication::restoreOverrideCursor();
 }

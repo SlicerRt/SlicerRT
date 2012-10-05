@@ -485,37 +485,22 @@ void vtkMRMLContourNode::SetActiveRepresentationByNode(vtkMRMLDisplayableNode *n
 
   // Check whether the argument node is referenced, because we don't 
   //   want to start hiding nodes until we know we have one to show
-  bool referenced = false;
+  ContourRepresentationType foundType = None;
   for (unsigned int i=0; i<NumberOfRepresentationTypes; ++i)
     {
     if (representations[i] == node)
       {
-      referenced = true;
+      foundType = ContourRepresentationType(i);
+      break;
       }
     }
-  if (!referenced)
+  if (foundType == None)
     {
     vtkErrorMacro("Failed to set active representation: given node is not one of the referenced representations!");
     return;
     }
 
-  //mrmlScene->StartState(vtkMRMLScene::BatchProcessState); //TODO:
-
-  // Show only the active representation and set active representation type
-  for (unsigned int i=0; i<NumberOfRepresentationTypes; ++i)
-    {
-    if (representations[i] == node)
-      {
-      representations[i]->HideFromEditorsOff();
-      this->ActiveRepresentationType = (ContourRepresentationType)i;
-      }
-    else if (representations[i])
-      {
-      representations[i]->HideFromEditorsOn();
-      }
-    }
-
-  //mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
+  this->SetActiveRepresentationByType(foundType);
 }
 
 //----------------------------------------------------------------------------
@@ -535,9 +520,10 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
   std::vector<vtkMRMLDisplayableNode*> representations
     = this->CreateTemporaryRepresentationsVector();
 
-  //mrmlScene->StartState(vtkMRMLScene::BatchProcessState); //TODO:
+  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
 
   // Show only the active representation and set active representation type
+  bool success = false;
   for (unsigned int i=0; i<NumberOfRepresentationTypes; ++i)
     {
     if (i == type)
@@ -545,7 +531,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
       if (representations[i])
         {
         representations[i]->HideFromEditorsOff();
-        this->ActiveRepresentationType = type;
+        success = true;
         }
       else
         {
@@ -558,7 +544,17 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
       }
     }
 
-  //mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
+  // Make sure the original representation type is shown on failure to set the new one
+  if (!success && representations[this->ActiveRepresentationType])
+    {
+    representations[this->ActiveRepresentationType]->HideFromEditorsOff();
+    }
+  else
+    {
+    this->ActiveRepresentationType = type; // Set the type when there is no valid pointer (yet)
+    }
+
+  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
 }
 
 //----------------------------------------------------------------------------
