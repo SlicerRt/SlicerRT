@@ -199,8 +199,6 @@ const char *vtkSlicerIsodoseModuleLogic::GetDefaultLabelMapColorTableNodeId()
   if (this->IsodoseNode->GetColorTableNodeId() == NULL)
   {
     this->AddDefaultIsodoseColorNode();
-    char* temp = "vtkMRMLColorTableNodeUserDefined";
-    this->IsodoseNode->SetAndObserveColorTableNodeId(temp);
   }
 
   //this->colorTableNodeID = temp;
@@ -220,8 +218,10 @@ void vtkSlicerIsodoseModuleLogic::AddDefaultIsodoseColorNode()
 
   // add a random procedural node that covers full integer range
   vtkMRMLColorTableNode* isodoseColorNode = this->CreateIsodoseColorNode();
-
   this->GetMRMLScene()->AddNode(isodoseColorNode);
+
+  char* temp = isodoseColorNode->GetID();
+  this->IsodoseNode->SetAndObserveColorTableNodeId(temp);
 
   isodoseColorNode->Delete();
 
@@ -235,12 +235,12 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode()
 {
   vtkDebugMacro("vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode: making a default mrml colortable node");
   vtkMRMLColorTableNode *colorTableNode = vtkMRMLColorTableNode::New();
-  colorTableNode->SetName("IsodoseColor");
+  std::string nodeName = std::string(this->IsodoseNode->GetName()) + ": IsodoseColor";
+  colorTableNode->SetName(nodeName.c_str());
   colorTableNode->SetTypeToUser();
   colorTableNode->SetAttribute("Category", "User Generated");
   colorTableNode->HideFromEditorsOff();
   colorTableNode->SaveWithSceneOff();
-  colorTableNode->SetSingletonTag(colorTableNode->GetTypeAsString());
   colorTableNode->SetNumberOfColors(6);
   colorTableNode->GetLookupTable()->SetTableRange(0,5);
   colorTableNode->AddColor("5", 0, 1, 0, 0.2);
@@ -291,7 +291,7 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
     modelHierarchyRootNode->AllowMultipleChildrenOn();
     modelHierarchyRootNode->HideFromEditorsOff();
-    std::string hierarchyNodeName = std::string(doseVolumeNode->GetName()) + " - Isosurface";
+    std::string hierarchyNodeName = std::string(this->IsodoseNode->GetName()) + ": " + std::string(doseVolumeNode->GetName());
     modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
     this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
 

@@ -192,6 +192,13 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
     {
       this->doseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
     }
+    d->setDefaultColorNode();
+    vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
+      this->mrmlScene()->GetNodeByID(paramNode->GetColorTableNodeId()));       
+    d->spinBox_NumberOfLevels->setValue(colorTableNode->GetNumberOfColors());
+    d->checkBox_Isoline->setChecked(paramNode->GetShowIsodoseLines());
+    d->checkBox_Isosurface->setChecked(paramNode->GetShowIsodoseSurfaces());
+    //d->checkBox_Scalarbar->setChecked(paramNode->GetShowScalarBar());
   }
 
 }
@@ -392,6 +399,10 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
   {
     return;
   }
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetShowIsodoseLines(visible);
+  paramNode->DisableModifiedEventOff();
+
   vtkMRMLModelHierarchyNode* modelHierarchyNode = NULL;
   modelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetOutputHierarchyNodeId()));
@@ -420,6 +431,10 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
   {
     return;
   }
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetShowIsodoseSurfaces(visible);
+  paramNode->DisableModifiedEventOff();
+
   vtkMRMLModelHierarchyNode* modelHierarchyNode = NULL;
   modelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetOutputHierarchyNodeId()));
