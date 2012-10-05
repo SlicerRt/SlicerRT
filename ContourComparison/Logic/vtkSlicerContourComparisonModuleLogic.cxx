@@ -28,6 +28,7 @@
 #include "vtkMRMLContourNode.h"
 
 // Plastimatch includes
+#include "itk_image.h"
 #include "dice_statistics.h"
 
 // MRML includes
@@ -308,10 +309,13 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
   itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk
     = itk::Image<unsigned char, 3>::New();
 
-  if (this->IsReferenceVolumeNeeded())
+  if (referenceContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
   {
     referenceContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
       this->ContourComparisonNode->GetRasterizationReferenceVolumeNodeId() );
+  }
+  if (compareContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
+  {
     compareContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
       this->ContourComparisonNode->GetRasterizationReferenceVolumeNodeId() );
   }
@@ -330,6 +334,12 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
   double checkpointItkConvertStart = timer->GetUniversalTime();
   this->ConvertVolumeNodeToItkImage(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk);
   this->ConvertVolumeNodeToItkImage(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk);
+
+  if (!itk_image_header_compare(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk))
+  {
+    vtkErrorMacro("The reference and the compare images have different sizes!");
+    return;
+  }
 
   // Compute gamma dose volume
   double checkpointDiceStart = timer->GetUniversalTime();

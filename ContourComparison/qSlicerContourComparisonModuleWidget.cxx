@@ -216,11 +216,13 @@ void qSlicerContourComparisonModuleWidget::updateWidgetFromMRML()
   if ( d->logic()->IsReferenceVolumeNeeded()
     && paramNode->GetRasterizationReferenceVolumeNodeId() && strcmp(paramNode->GetRasterizationReferenceVolumeNodeId(),"") )
   {
+    d->label_ReferenceVolume->setEnabled(true);
     d->MRMLNodeComboBox_ReferenceVolume->setEnabled(true);
     d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(paramNode->GetRasterizationReferenceVolumeNodeId());
   }
   else
   {
+    d->label_ReferenceVolume->setEnabled(d->logic()->IsReferenceVolumeNeeded());
     d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
     d->MRMLNodeComboBox_ReferenceVolume->setEnabled(d->logic()->IsReferenceVolumeNeeded());
   }
@@ -264,6 +266,8 @@ void qSlicerContourComparisonModuleWidget::updateButtonsState()
                      || ( d->logic()->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId()
                         && strcmp(d->logic()->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId(), "") ) );
   d->pushButton_Apply->setEnabled(applyEnabled);
+
+  updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
