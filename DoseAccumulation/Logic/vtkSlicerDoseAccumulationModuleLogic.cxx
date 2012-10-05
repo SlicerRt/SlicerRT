@@ -193,7 +193,7 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
   // Make sure inputs are initialized
   if (this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->empty())
   {
-    std::cerr << "Dose accumulation: No dose volume selected" << std::endl;
+    vtkErrorMacro("Dose accumulation: No dose volume selected");
     return -1;
   }
 
@@ -203,6 +203,11 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
   std::set<std::string>::iterator iterIds = this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->begin();
   std::string Id = *iterIds;
   vtkSmartPointer<vtkMRMLScalarVolumeNode> inputVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(Id));
+  if (!inputVolumeNode->GetImageData())
+  {
+    vtkErrorMacro("No image data found in input volume");
+    return -1;
+  }
   std::map<std::string,double> *VolumeNodeIdsToWeightsMap = this->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap();
   double weight = (*VolumeNodeIdsToWeightsMap)[Id];
 
@@ -244,6 +249,11 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
       iterIds++;
       Id = *iterIds;
       inputVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(Id));
+      if (!inputVolumeNode->GetImageData())
+      {
+        vtkErrorMacro("No image data found in input volume");
+        continue;
+      }
       weight = (*VolumeNodeIdsToWeightsMap)[Id];
 
       inputVolumeNode->GetOrigin(originX2, originY2, originZ2); 
@@ -275,8 +285,14 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
 
   outputVolumeNode->SetAndObserveImageData(baseImageData);
   outputVolumeNode->SetAndObserveDisplayNodeID( outputVolumeDisplayNode->GetID() );
+
   // Set default colormap to rainbow
   outputVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+
+  // Set threshold values so that the background is black
+  outputVolumeDisplayNode->AutoThresholdOff();
+  outputVolumeDisplayNode->SetLowerThreshold(0.0001);
+  outputVolumeDisplayNode->SetApplyThreshold(1);
 
   // Select as active volume
   if (this->GetApplicationLogic()!=NULL)
