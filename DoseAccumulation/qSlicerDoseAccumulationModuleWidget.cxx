@@ -205,8 +205,9 @@ void qSlicerDoseAccumulationModuleWidget::setup()
 
   d->label_Warning->setText("");
 
-  d->tableWidget_Volumes->setColumnWidth(0, 24);
-  d->tableWidget_Volumes->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents); 
+  d->tableWidget_Volumes->setColumnWidth(0, 20);
+  d->tableWidget_Volumes->setColumnWidth(1, 300);
+  //d->tableWidget_Volumes->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents); 
 
   // Make connections
   connect( d->checkBox_ShowDoseVolumesOnly, SIGNAL( stateChanged(int) ), this, SLOT( showDoseOnlyChanged(int) ) );
