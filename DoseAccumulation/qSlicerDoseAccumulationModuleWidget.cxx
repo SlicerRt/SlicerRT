@@ -388,6 +388,8 @@ void qSlicerDoseAccumulationModuleWidget::applyClicked()
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
   d->logic()->AccumulateDoseVolumes();
+
+  refreshVolumesTable();
 }
 
 //-----------------------------------------------------------------------------
