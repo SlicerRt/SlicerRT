@@ -5,7 +5,7 @@ set(EXTENSION_NAME SlicerRT)
 
 # ------------------------------------------------------------------------
 set(SLICERRT_VERSION_MAJOR "0")
-set(SLICERRT_VERSION_MINOR "4")
+set(SLICERRT_VERSION_MINOR "5")
 set(SLICERRT_VERSION_PATCH "0")
 set(SLICERRT_VERSION ${SLICERRT_VERSION_MAJOR}.${SLICERRT_VERSION_MINOR}.${SLICERRT_VERSION_PATCH})
 
@@ -56,9 +56,9 @@ add_subdirectory(DoseAccumulation)
 add_subdirectory(DoseVolumeHistogram)
 add_subdirectory(DoseComparison)
 add_subdirectory(Isodose)
+add_subdirectory(Contours)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-  add_subdirectory(Contours)
   add_subdirectory(ProtonDose)
   add_subdirectory(ContourComparison)
  
