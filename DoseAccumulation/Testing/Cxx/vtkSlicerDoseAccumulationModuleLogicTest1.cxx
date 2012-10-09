@@ -227,13 +227,6 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   //OutputVolumeNode->SetAndObserveStorageNodeID(doseVolumeArchetypeStorageNode->GetID());
   //OutputVolumeNode->Copy(doseScalarVolumeNode);
   mrmlScene->AddNode(OutputVolumeNode);
-
-  // Determine maximum dose
-  vtkNew<vtkImageAccumulate> doseStat;
-  doseStat->SetInput(doseScalarVolumeNode->GetImageData());
-  doseStat->Update();
-  double maxDose = doseStat->GetMax()[0];
-
   mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
 
   // Create and set up parameter set MRML node

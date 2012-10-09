@@ -211,12 +211,6 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  // Determine maximum dose
-  vtkNew<vtkImageAccumulate> doseStat;
-  doseStat->SetInput(doseScalarVolumeNode->GetImageData());
-  doseStat->Update();
-  double maxDose = doseStat->GetMax()[0];
-
   mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
 
   // Create and set up parameter set MRML node
@@ -246,8 +240,6 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
 
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
   mrmlScene->Commit();
-
-  bool returnWithSuccess = true;
   
   vtkSmartPointer<vtkCollection> collection = vtkSmartPointer<vtkCollection>::New();
   modelHierarchyRootNode->GetChildrenModelNodes(collection);

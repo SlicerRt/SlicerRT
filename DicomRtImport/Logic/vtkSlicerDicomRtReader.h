@@ -128,7 +128,7 @@ protected:
 
     void SetPolyData(vtkPolyData* roiPolyData);
 
-    int Number;
+    unsigned int Number;
     std::string Name;
     std::string Description;
     double DisplayColor[3];
