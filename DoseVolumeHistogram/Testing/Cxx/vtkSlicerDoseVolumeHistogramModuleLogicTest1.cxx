@@ -344,6 +344,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
   contourHierarchyRootNode->AllowMultipleChildrenOn();
   contourHierarchyRootNode->HideFromEditorsOff();
+  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), seriesName.c_str());
   mrmlScene->AddNode(contourHierarchyRootNode);
   //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
 
