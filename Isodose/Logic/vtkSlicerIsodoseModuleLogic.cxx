@@ -265,20 +265,6 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
 
-  // Get dose grid scaling and dose units
-  const char* doseGridScalingString = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
-  double doseGridScaling = 1.0;
-  if (doseGridScalingString!=NULL)
-  {
-    doseGridScaling = atof(doseGridScalingString);
-  }
-  else
-  {
-    vtkWarningMacro("Dose grid scaling attribute is not set for the selected dose volume. Assuming scaling = 1.");
-  }
-
-  const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
-
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
   // Hierarchy node for the loaded structure sets
@@ -323,8 +309,6 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   changeInfo->SetOutputSpacing(-spacing[0], -spacing[1], spacing[2]);
   changeInfo->Update();
 
-  double rgb[3] = {1,1,1};
-  double doseLevel = 0.0;
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
   {
     double val[6];
