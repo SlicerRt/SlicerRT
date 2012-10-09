@@ -52,7 +52,6 @@
 #include <vtkDoubleArray.h>
 #include <vtkStringArray.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkImageThreshold.h>
 #include <vtkImageResample.h>
 #include <vtkTimerLog.h>
 
@@ -884,7 +883,11 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     return;
   }
 
-  double structureVolume = atof(structureVolumeStr);
+  std::stringstream ss;
+  ss << structureVolumeStr;
+  double doubleValue;
+  ss >> doubleValue;
+  double structureVolume = doubleValue;
   if (structureVolume == 0.0)
   {
     vtkErrorMacro("Error: Failed to parse structure total volume attribute value!");
@@ -933,7 +936,11 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     return;
   }
 
-  double structureVolume = atof(structureVolumeStr);
+  std::stringstream ss;
+  ss << structureVolumeStr;
+  double doubleValue;
+  ss >> doubleValue;
+  double structureVolume = doubleValue;
   if (structureVolume == 0.0)
   {
     vtkErrorMacro("Error: Failed to parse structure total volume attribute value!");
@@ -1156,7 +1163,12 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
     vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
       this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(i)) );
     const char* totalVolumeStr = doubleArrayNode->GetAttribute(totalVolumeAttributeName.c_str());
-    double totalVolume = atof(totalVolumeStr);
+
+    std::stringstream ss;
+    ss << totalVolumeStr;
+    double doubleValue;
+    ss >> doubleValue;
+    double totalVolume = doubleValue;
 
     outfile << structureNames->GetValue(i).c_str() << " Dose (Gy)" << (comma ? "," : "\t");
     outfile << structureNames->GetValue(i).c_str() << SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE

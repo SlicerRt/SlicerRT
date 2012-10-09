@@ -44,10 +44,10 @@ vtkMRMLContourComparisonNode::vtkMRMLContourComparisonNode()
   this->RasterizationReferenceVolumeNodeId = NULL;
 
   this->DiceCoefficient = -1.0;
-  this->TruePositives = 0;
-  this->TrueNegatives = 0;
-  this->FalsePositives = 0;
-  this->FalseNegatives = 0;
+  this->TruePositivesPercent = -1.0;
+  this->TrueNegativesPercent = -1.0;
+  this->FalsePositivesPercent = -1.0;
+  this->FalseNegativesPercent = -1.0;
   this->ReferenceCenter[0] = this->ReferenceCenter[1] = this->ReferenceCenter[2] = 0.0;
   this->CompareCenter[0] = this->CompareCenter[1] = this->CompareCenter[2] = 0.0;
   this->ReferenceVolumeCc = -1.0;
@@ -87,10 +87,10 @@ void vtkMRMLContourComparisonNode::WriteXML(ostream& of, int nIndent)
     }
 
   of << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
-  of << indent << " TruePositives=\"" << this->TruePositives << "\"";
-  of << indent << " TrueNegatives=\"" << this->TrueNegatives << "\"";
-  of << indent << " FalsePositives=\"" << this->FalsePositives << "\"";
-  of << indent << " FalseNegatives=\"" << this->FalseNegatives << "\"";
+  of << indent << " TruePositivesPercent=\"" << this->TruePositivesPercent << "\"";
+  of << indent << " TrueNegativesPercent=\"" << this->TrueNegativesPercent << "\"";
+  of << indent << " FalsePositivesPercent=\"" << this->FalsePositivesPercent << "\"";
+  of << indent << " FalseNegativesPercent=\"" << this->FalseNegativesPercent << "\"";
 
   {
     std::stringstream ss;
@@ -155,31 +155,41 @@ void vtkMRMLContourComparisonNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->DiceCoefficient = atof(ss.str().c_str()); //TODO: use other conversion tool
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->DiceCoefficient = doubleAttValue;
       }
-    else if (!strcmp(attName, "TruePositives")) 
+    else if (!strcmp(attName, "TruePositivesPercent")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->TruePositives = atoi(ss.str().c_str());
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->TruePositivesPercent = doubleAttValue;
       }
-    else if (!strcmp(attName, "TrueNegatives")) 
+    else if (!strcmp(attName, "TrueNegativesPercent")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->TrueNegatives = atoi(ss.str().c_str());
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->TrueNegativesPercent = doubleAttValue;
       }
-    else if (!strcmp(attName, "FalsePositives")) 
+    else if (!strcmp(attName, "FalsePositivesPercent")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->FalsePositives = atoi(ss.str().c_str());
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->FalsePositivesPercent = doubleAttValue;
       }
-    else if (!strcmp(attName, "FalseNegatives")) 
+    else if (!strcmp(attName, "FalseNegativesPercent")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->FalseNegatives = atoi(ss.str().c_str());
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->FalseNegativesPercent = doubleAttValue;
       }
     else if (!strcmp(attName, "ReferenceCenter")) 
       {
@@ -189,13 +199,32 @@ void vtkMRMLContourComparisonNode::ReadXMLAttributes(const char** atts)
       std::string separatorCharacter("|");
 
       size_t separatorPosition = valueStr.find( separatorCharacter );
-      this->ReferenceCenter[0] = atof(valueStr.substr(0, separatorPosition).c_str());
-      valueStr = valueStr.substr( separatorPosition+1 );
-      separatorPosition = valueStr.find( separatorCharacter );
-      this->ReferenceCenter[1] = atof(valueStr.substr(0, separatorPosition).c_str());
-      valueStr = valueStr.substr( separatorPosition+1 );
-      separatorPosition = valueStr.find( separatorCharacter );
-      this->CompareCenter[2] = atof(valueStr.substr(0, separatorPosition).c_str());
+
+        {
+        std::stringstream ss;
+        ss << valueStr.substr(0, separatorPosition);
+        double doubleValue;
+        ss >> doubleValue;
+        this->ReferenceCenter[0] = doubleValue;
+        }
+        {
+        valueStr = valueStr.substr( separatorPosition+1 );
+        separatorPosition = valueStr.find( separatorCharacter );
+        std::stringstream ss;
+        ss << valueStr.substr(0, separatorPosition);
+        double doubleValue;
+        ss >> doubleValue;
+        this->ReferenceCenter[1] = doubleValue;
+        }
+        {
+        valueStr = valueStr.substr( separatorPosition+1 );
+        separatorPosition = valueStr.find( separatorCharacter );
+        std::stringstream ss;
+        ss << valueStr.substr(0, separatorPosition);
+        double doubleValue;
+        ss >> doubleValue;
+        this->ReferenceCenter[2] = doubleValue;
+        }
       }
     else if (!strcmp(attName, "CompareCenter")) 
       {
@@ -205,25 +234,48 @@ void vtkMRMLContourComparisonNode::ReadXMLAttributes(const char** atts)
       std::string separatorCharacter("|");
 
       size_t separatorPosition = valueStr.find( separatorCharacter );
-      this->CompareCenter[0] = atof(valueStr.substr(0, separatorPosition).c_str());
-      valueStr = valueStr.substr( separatorPosition+1 );
-      separatorPosition = valueStr.find( separatorCharacter );
-      this->CompareCenter[1] = atof(valueStr.substr(0, separatorPosition).c_str());
-      valueStr = valueStr.substr( separatorPosition+1 );
-      separatorPosition = valueStr.find( separatorCharacter );
-      this->CompareCenter[2] = atof(valueStr.substr(0, separatorPosition).c_str());
+
+        {
+        std::stringstream ss;
+        ss << valueStr.substr(0, separatorPosition);
+        double doubleValue;
+        ss >> doubleValue;
+        this->CompareCenter[0] = doubleValue;
+        }
+        {
+        valueStr = valueStr.substr( separatorPosition+1 );
+        separatorPosition = valueStr.find( separatorCharacter );
+        std::stringstream ss;
+        ss << valueStr.substr(0, separatorPosition);
+        double doubleValue;
+        ss >> doubleValue;
+        this->CompareCenter[1] = doubleValue;
+        }
+        {
+        valueStr = valueStr.substr( separatorPosition+1 );
+        separatorPosition = valueStr.find( separatorCharacter );
+        std::stringstream ss;
+        ss << valueStr.substr(0, separatorPosition);
+        double doubleValue;
+        ss >> doubleValue;
+        this->CompareCenter[2] = doubleValue;
+        }
       }
     else if (!strcmp(attName, "ReferenceVolumeCc")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->ReferenceVolumeCc = atof(ss.str().c_str());
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->ReferenceVolumeCc = doubleAttValue;
       }
     else if (!strcmp(attName, "CompareVolumeCc")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->CompareVolumeCc = atof(ss.str().c_str());
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->CompareVolumeCc = doubleAttValue;
       }
     else if (!strcmp(attName, "ResultsValid")) 
       {
@@ -247,10 +299,10 @@ void vtkMRMLContourComparisonNode::Copy(vtkMRMLNode *anode)
   this->SetAndObserveReferenceVolumeNodeId(node->RasterizationReferenceVolumeNodeId);
 
   this->DiceCoefficient = node->DiceCoefficient;
-  this->TruePositives = node->TruePositives;
-  this->TrueNegatives = node->TrueNegatives;
-  this->FalsePositives = node->FalsePositives;
-  this->FalseNegatives = node->FalseNegatives;
+  this->TruePositivesPercent = node->TruePositivesPercent;
+  this->TrueNegativesPercent = node->TrueNegativesPercent;
+  this->FalsePositivesPercent = node->FalsePositivesPercent;
+  this->FalseNegativesPercent = node->FalseNegativesPercent;
   this->SetReferenceCenter( node->GetReferenceCenter() );
   this->SetCompareCenter( node->GetCompareCenter() );
   this->ReferenceVolumeCc = node->ReferenceVolumeCc;
@@ -271,10 +323,10 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
 
   os << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
-  os << indent << " TruePositives=\"" << this->TruePositives << "\"";
-  os << indent << " TrueNegatives=\"" << this->TrueNegatives << "\"";
-  os << indent << " FalsePositives=\"" << this->FalsePositives << "\"";
-  os << indent << " FalseNegatives=\"" << this->FalseNegatives << "\"";
+  os << indent << " TruePositivesPercent=\"" << this->TruePositivesPercent << "\"";
+  os << indent << " TrueNegativesPercent=\"" << this->TrueNegativesPercent << "\"";
+  os << indent << " FalsePositivesPercent=\"" << this->FalsePositivesPercent << "\"";
+  os << indent << " FalseNegativesPercent=\"" << this->FalseNegativesPercent << "\"";
 
   {
     std::stringstream ss;

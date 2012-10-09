@@ -313,7 +313,12 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   {
     double val[6];
     const char* strIsoLevel = colorTableNode->GetColorName(i);
-    double isoLevel = atof(strIsoLevel);
+
+    std::stringstream ss;
+    ss << strIsoLevel;
+    double doubleValue;
+    ss >> doubleValue;
+    double isoLevel = doubleValue;
     colorTableNode->GetColor(i, val);
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();

@@ -153,7 +153,9 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->ActiveRepresentationType = (ContourRepresentationType)atoi(ss.str().c_str());
+      int intAttValue;
+      ss >> intAttValue;
+      this->ActiveRepresentationType = (ContourRepresentationType)intAttValue;
       }
     }
 }

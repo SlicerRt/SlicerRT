@@ -133,7 +133,11 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-DoseDifferenceCriterion") == 0)
     {
-      doseDifferenceCriterion = atof(argv[argIndex+1]);
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      double doubleValue;
+      ss >> doubleValue;
+      doseDifferenceCriterion = doubleValue;
       std::cout << "Dose difference criterion: " << doseDifferenceCriterion << std::endl;
       argIndex += 2;
     }

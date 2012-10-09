@@ -383,7 +383,12 @@ double GetSliceThickness(OFString referencedSOPInstanceUID)
     std::cerr << "Could not find slice thickness tag in image file" << std::endl;
     return defaultSliceThickness;
   }
-  double sliceThickness = atof(sliceThicknessString.c_str());
+
+  std::stringstream ss;
+  ss << sliceThicknessString;
+  double doubleValue;
+  ss >> doubleValue;
+  double sliceThickness = doubleValue;
   if (sliceThickness <= 0.0 || sliceThickness > 20.0)
   {
     std::cerr << "Slice thickness field value is invalid: " << sliceThicknessString << std::endl;
@@ -419,7 +424,11 @@ double GetDistanceBetweenContourPlanes(DRTContourSequence &rtContourSequenceObje
 
     OFString numberofpoints;
     contourItem.getNumberOfContourPoints(numberofpoints);    
-    int number = atoi(numberofpoints.c_str());
+
+    std::stringstream ss;
+    ss << numberofpoints;
+    int number;
+    ss >> number;
     if (number<3)
     {
       continue;
@@ -552,7 +561,10 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
         OFString numberofpoints;
         contourItem.getNumberOfContourPoints(numberofpoints);
         //cout << "\t contour number:" << contourNumber.c_str() << " numberOf points: "<< numberofpoints.c_str() << OFendl;
-        int number = atoi(numberofpoints.c_str());
+        std::stringstream ss;
+        ss << numberofpoints;
+        int number;
+        ss >> number;
 
         OFVector<Float64>  contourData_LPS;
         contourItem.getContourData(contourData_LPS);

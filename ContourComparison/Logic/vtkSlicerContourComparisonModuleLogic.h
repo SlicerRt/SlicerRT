@@ -57,7 +57,7 @@ public:
   bool IsReferenceVolumeNeeded();
 
   /// Compute dice statistics from the selected input contour labelmaps
-  void ComputeDiceStatistics();
+  void ComputeDiceStatistics(std::string &errorMessage);
 
 public:
   void SetAndObserveContourComparisonNode(vtkMRMLContourComparisonNode* node);

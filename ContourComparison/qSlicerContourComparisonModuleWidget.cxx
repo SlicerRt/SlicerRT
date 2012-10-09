@@ -236,6 +236,7 @@ void qSlicerContourComparisonModuleWidget::setup()
   this->Superclass::setup();
 
   d->label_Warning->setText("");
+  d->label_Error->setText("");
 
   // Make connections
   connect( d->MRMLNodeComboBox_ReferenceContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceContourNodeChanged(vtkMRMLNode*)) );
@@ -351,33 +352,41 @@ void qSlicerContourComparisonModuleWidget::applyClicked()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  d->logic()->ComputeDiceStatistics();
+  std::string errorMessage;
+  d->logic()->ComputeDiceStatistics(errorMessage);
 
   if (paramNode->GetResultsValid())
   {
+    d->label_Error->setText("");
+
     d->lineEdit_DiceCoefficient->setText(
       QString("%1").arg(paramNode->GetDiceCoefficient()) );
     d->lineEdit_TruePositives->setText(
-      QString("%1").arg(paramNode->GetTruePositives()) );
+      QString("%1 %").arg(paramNode->GetTruePositivesPercent(),0,'f',2) );
     d->lineEdit_TrueNegatives->setText(
-      QString("%1").arg(paramNode->GetTrueNegatives()) );
+      QString("%1 %").arg(paramNode->GetTrueNegativesPercent(),0,'f',2) );
     d->lineEdit_FalsePositives->setText(
-      QString("%1").arg(paramNode->GetFalsePositives()) );
+      QString("%1 %").arg(paramNode->GetFalsePositivesPercent(),0,'f',2) );
     d->lineEdit_FalseNegatives->setText(
-      QString("%1").arg(paramNode->GetFalseNegatives()) );
+      QString("%1 %").arg(paramNode->GetFalseNegativesPercent(),0,'f',2) );
     d->lineEdit_ReferenceCenter->setText(
-      QString("(%1, %2, %3)").arg(paramNode->GetReferenceCenter()[0]).
-      arg(paramNode->GetReferenceCenter()[1]).arg(paramNode->GetReferenceCenter()[2]) );
+      QString("(%1, %2, %3 )")
+      .arg(paramNode->GetReferenceCenter()[0],7,'f',2,QLatin1Char(' '))
+      .arg(paramNode->GetReferenceCenter()[1],7,'f',2,QLatin1Char(' '))
+      .arg(paramNode->GetReferenceCenter()[2],7,'f',2,QLatin1Char(' ')) );
     d->lineEdit_CompareCenter->setText(
-      QString("(%1, %2, %3)").arg(paramNode->GetCompareCenter()[0]).
-      arg(paramNode->GetCompareCenter()[1]).arg(paramNode->GetCompareCenter()[2]) );
+      QString("(%1, %2, %3 )")
+      .arg(paramNode->GetCompareCenter()[0],7,'f',2,QLatin1Char(' '))
+      .arg(paramNode->GetCompareCenter()[1],7,'f',2,QLatin1Char(' '))
+      .arg(paramNode->GetCompareCenter()[2],7,'f',2,QLatin1Char(' ')) );
     d->lineEdit_ReferenceVolume->setText(
-      QString("%1").arg(paramNode->GetReferenceVolumeCc()) );
+      QString("%1 cc").arg(paramNode->GetReferenceVolumeCc()) );
     d->lineEdit_CompareVolume->setText(
-      QString("%1").arg(paramNode->GetCompareVolumeCc()) );
+      QString("%1 cc").arg(paramNode->GetCompareVolumeCc()) );
   }
   else
   {
+    d->label_Error->setText(QString(errorMessage.c_str()));
     this->invalidateResults();
   }
 

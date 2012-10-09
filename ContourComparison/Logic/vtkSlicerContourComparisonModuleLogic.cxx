@@ -157,6 +157,11 @@ void vtkSlicerContourComparisonModuleLogic::OnMRMLSceneEndClose()
   this->Modified();
 }
 
+
+
+
+
+#include <vtkImageThreshold.h>
 //----------------------------------------------------------------------------
 void vtkSlicerContourComparisonModuleLogic
 ::ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, itk::Image<unsigned char, 3>::Pointer outItkVolume)
@@ -180,9 +185,18 @@ void vtkSlicerContourComparisonModuleLogic
     return; 
   }
 
-  // convert vtkImageData to itkImage 
+  // Paint the foreground with label 1 so that Plastimatch can count them properly
+  vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
+  threshold->SetInput(inVolume);
+  threshold->SetInValue(1);
+  threshold->SetOutValue(0);
+  threshold->ThresholdByUpper(1);
+  threshold->SetOutputScalarTypeToUnsignedChar();
+  threshold->Update();
+
+  // Convert vtkImageData to itkImage 
   vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
-  imageExport->SetInput(inVolume);
+  imageExport->SetInput(threshold->GetOutput());
   imageExport->Update(); 
 
   // Determine input volume to world transform
@@ -286,7 +300,7 @@ bool vtkSlicerContourComparisonModuleLogic::IsReferenceVolumeNeeded()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
+void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &errorMessage)
 {
   if (!this->ContourComparisonNode || !this->GetMRMLScene())
   {
@@ -337,9 +351,16 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
 
   if (!itk_image_header_compare(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk))
   {
-    vtkErrorMacro("The reference and the compare images have different sizes!");
+    errorMessage = "The reference and the compare contour labelmaps have different sizes!";
+    vtkErrorMacro( << errorMessage);
     return;
   }
+
+  // Get voxel volume and number of voxels (the itk_image_header_compare check made sure the spacings match)
+  itk::Image<unsigned char, 3>::SpacingType spacing = referenceContourLabelmapVolumeItk->GetSpacing();
+  double voxelVolumeCc = spacing[0] * spacing[1] * spacing[2];
+  itk::Image<unsigned char, 3>::RegionType region = referenceContourLabelmapVolumeItk->GetLargestPossibleRegion();
+  unsigned long numberOfVoxels = region.GetNumberOfPixels();
 
   // Compute gamma dose volume
   double checkpointDiceStart = timer->GetUniversalTime();
@@ -350,10 +371,10 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
   dice.run();
 
   this->ContourComparisonNode->SetDiceCoefficient(dice.get_dice());
-  this->ContourComparisonNode->SetTruePositives(dice.get_true_positives());
-  this->ContourComparisonNode->SetTrueNegatives(dice.get_true_negatives());
-  this->ContourComparisonNode->SetFalsePositives(dice.get_false_positives());
-  this->ContourComparisonNode->SetFalseNegatives(dice.get_false_negatives());
+  this->ContourComparisonNode->SetTruePositivesPercent(dice.get_true_positives() * 100.0 / (double)numberOfVoxels);
+  this->ContourComparisonNode->SetTrueNegativesPercent(dice.get_true_negatives() * 100.0 / (double)numberOfVoxels);
+  this->ContourComparisonNode->SetFalsePositivesPercent(dice.get_false_positives() * 100.0 / (double)numberOfVoxels);
+  this->ContourComparisonNode->SetFalseNegativesPercent(dice.get_false_negatives() * 100.0 / (double)numberOfVoxels);
 
   itk::Vector<double, 3> referenceCenterItk = dice.get_reference_center();
   double referenceCenterArray[3]
@@ -365,8 +386,8 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
   = { compareCenterItk[0], compareCenterItk[1], compareCenterItk[2] };
   this->ContourComparisonNode->SetCompareCenter(compareCenterArray);
 
-  this->ContourComparisonNode->SetReferenceVolumeCc(dice.get_reference_volume());
-  this->ContourComparisonNode->SetCompareVolumeCc(dice.get_compare_volume());
+  this->ContourComparisonNode->SetReferenceVolumeCc(dice.get_reference_volume() * voxelVolumeCc);
+  this->ContourComparisonNode->SetCompareVolumeCc(dice.get_compare_volume() * voxelVolumeCc);
   this->ContourComparisonNode->ResultsValidOn();
 
   if (this->LogSpeedMeasurements)

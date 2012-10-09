@@ -187,7 +187,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-VolumeDifferenceCriterion") == 0)
     {
-      volumeDifferenceCriterion = atof(argv[argIndex+1]);
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      double doubleValue;
+      ss >> doubleValue;
+      volumeDifferenceCriterion = doubleValue;
       std::cout << "Volume difference criterion: " << volumeDifferenceCriterion << std::endl;
       argIndex += 2;
     }
@@ -197,7 +201,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-DoseToAgreementCriterion") == 0)
     {
-      doseToAgreementCriterion = atof(argv[argIndex+1]);
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      double doubleValue;
+      ss >> doubleValue;
+      doseToAgreementCriterion = doubleValue;
       std::cout << "Dose-to-agreement criterion: " << doseToAgreementCriterion << std::endl;
       argIndex += 2;
     }
@@ -207,7 +215,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-AgreementAcceptancePercentageThreshold") == 0)
     {
-      agreementAcceptancePercentageThreshold = atof(argv[argIndex+1]);
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      double doubleValue;
+      ss >> doubleValue;
+      agreementAcceptancePercentageThreshold = doubleValue;
       std::cout << "Agreement acceptance percentage threshold: " << agreementAcceptancePercentageThreshold << std::endl;
       argIndex += 2;
     }
@@ -217,7 +229,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-MetricDifferenceThreshold") == 0)
     {
-      metricDifferenceThreshold = atof(argv[argIndex+1]);
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      double doubleValue;
+      ss >> doubleValue;
+      metricDifferenceThreshold = doubleValue;
       std::cout << "Metric difference threshold: " << metricDifferenceThreshold << std::endl;
       argIndex += 2;
     }
@@ -227,7 +243,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-DvhStartValue") == 0)
     {
-      dvhStartValue = atof(argv[argIndex+1]);
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      double doubleValue;
+      ss >> doubleValue;
+      dvhStartValue = doubleValue;
       std::cout << "DVH start value: " << dvhStartValue << std::endl;
       argIndex += 2;
     }
@@ -237,7 +257,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-DvhStepSize") == 0)
     {
-      dvhStepSize = atof(argv[argIndex+1]);
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      double doubleValue;
+      ss >> doubleValue;
+      dvhStepSize = doubleValue;
       std::cout << "DVH step size: " << dvhStepSize << std::endl;
       argIndex += 2;
     }
@@ -247,7 +271,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-RasterizationDownsamplingFactor") == 0)
     {
-      rasterizationDownsamplingFactor = atof(argv[argIndex+1]);
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      double doubleValue;
+      ss >> doubleValue;
+      rasterizationDownsamplingFactor = doubleValue;
       std::cout << "Rasterization downsampling factor: " << rasterizationDownsamplingFactor << std::endl;
       argIndex += 2;
     }
@@ -623,7 +651,12 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
 
             std::string structureVolumeString = field.substr( middlePosition + SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(), 
               field.size() - middlePosition - SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
-            double structureVolume = atof(structureVolumeString.c_str());
+
+            std::stringstream ss;
+            ss << structureVolumeString;
+            double doubleValue;
+            ss >> doubleValue;
+            double structureVolume = doubleValue;
             if (structureVolume == 0)
             {
               std::cerr << "Invalid structure volume in CSV header field " << field << std::endl;
@@ -649,11 +682,22 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
       int structureNumber = 0;
       while (commaPosition != std::string::npos)
       {
-        double dose = atof(lineStr.substr(0, commaPosition).c_str());
+        double doubleValue;
+        {
+          std::stringstream ss;
+          ss << lineStr.substr(0, commaPosition);
+          ss >> doubleValue;
+        }
+        double dose = doubleValue;
 
         lineStr = lineStr.substr(commaPosition+1);
         commaPosition = lineStr.find(csvSeparatorCharacter);
-        double percent = atof(lineStr.substr(0, commaPosition).c_str());
+        {
+          std::stringstream ss;
+          ss << lineStr.substr(0, commaPosition);
+          ss >> doubleValue;
+        }
+        double percent = doubleValue;
 
         if ((dose != 0.0 || percent != 0.0) && (commaPosition > 0))
         {
@@ -839,8 +883,19 @@ int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baseline
         }
         else
         {
-          double currentMetric = atof(currentLineStr.substr(0, currentCommaPosition).c_str());
-          double baselineMetric = atof(baselineLineStr.substr(0, baselineCommaPosition).c_str());
+          double doubleValue;
+          {
+            std::stringstream ss;
+            ss << currentLineStr.substr(0, currentCommaPosition);
+            ss >> doubleValue;
+          }
+          double currentMetric = doubleValue;
+          {
+            std::stringstream ss;
+            ss << baselineLineStr.substr(0, baselineCommaPosition);
+            ss >> doubleValue;
+          }
+          double baselineMetric = doubleValue;
 
           double error = DBL_MAX;
           if (baselineMetric < EPSILON && currentMetric < EPSILON)

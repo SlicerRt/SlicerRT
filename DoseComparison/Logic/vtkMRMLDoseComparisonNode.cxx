@@ -128,31 +128,41 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->DtaDistanceToleranceMm = atof(ss.str().c_str()); //TODO: use other conversion tool
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->DtaDistanceToleranceMm = doubleAttValue;
       }
     else if (!strcmp(attName, "DoseDifferenceTolerancePercent")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->DoseDifferenceTolerancePercent = atof(ss.str().c_str());
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->DoseDifferenceTolerancePercent = doubleAttValue;
       }
     else if (!strcmp(attName, "ReferenceDoseGy")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->ReferenceDoseGy = atof(ss.str().c_str());
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->ReferenceDoseGy = doubleAttValue;
       }
     else if (!strcmp(attName, "AnalysisThresholdPercent")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->AnalysisThresholdPercent = atof(ss.str().c_str());
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->AnalysisThresholdPercent = doubleAttValue;
       }
     else if (!strcmp(attName, "MaximumGamma")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->MaximumGamma = atof(ss.str().c_str());
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->MaximumGamma = doubleAttValue;
       }
     else if (!strcmp(attName, "UseMaximumDose")) 
       {

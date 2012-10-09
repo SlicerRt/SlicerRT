@@ -78,25 +78,25 @@ public:
   /// Set result dice coefficient
   vtkSetMacro(DiceCoefficient, float);
 
-  /// Get number of true positive labelmap voxels
-  vtkGetMacro(TruePositives, unsigned int);
-  /// Set number of true positive labelmap voxels
-  vtkSetMacro(TruePositives, unsigned int);
+  /// Get percentage of true positive labelmap voxels
+  vtkGetMacro(TruePositivesPercent, double);
+  /// Set percentage of true positive labelmap voxels
+  vtkSetMacro(TruePositivesPercent, double);
 
-  /// Get number of true negative labelmap voxels
-  vtkGetMacro(TrueNegatives, unsigned int);
-  /// Set number of true negative labelmap voxels
-  vtkSetMacro(TrueNegatives, unsigned int);
+  /// Get percentage of true negative labelmap voxels
+  vtkGetMacro(TrueNegativesPercent, double);
+  /// Set percentage of true negative labelmap voxels
+  vtkSetMacro(TrueNegativesPercent, double);
 
-  /// Get number of false positive labelmap voxels
-  vtkGetMacro(FalsePositives, unsigned int);
-  /// Set number of false positive labelmap voxels
-  vtkSetMacro(FalsePositives, unsigned int);
+  /// Get percentage of false positive labelmap voxels
+  vtkGetMacro(FalsePositivesPercent, double);
+  /// Set percentage of false positive labelmap voxels
+  vtkSetMacro(FalsePositivesPercent, double);
 
-  /// Get number of false negative labelmap voxels
-  vtkGetMacro(FalseNegatives, unsigned int);
-  /// Set number of false negative labelmap voxels
-  vtkSetMacro(FalseNegatives, unsigned int);
+  /// Get percentage of false negative labelmap voxels
+  vtkGetMacro(FalseNegativesPercent, double);
+  /// Set percentage of false negative labelmap voxels
+  vtkSetMacro(FalseNegativesPercent, double);
 
   /// Get location of the center of mass of the reference structure
   vtkGetVector3Macro(ReferenceCenter, double);
@@ -152,17 +152,17 @@ protected:
   /// Result dice coefficient
   float DiceCoefficient;
 
-  /// Number of true positive labelmap voxels, i.e. positive reference voxels that are positive in compare image
-  unsigned int TruePositives;
+  /// Percentage of true positive labelmap voxels, i.e. positive reference voxels that are positive in compare image
+  double TruePositivesPercent;
 
-  /// Number of true negative labelmap voxels, i.e. negative reference voxels that are negative in compare image
-  unsigned int TrueNegatives;
+  /// Percentage of true negative labelmap voxels, i.e. negative reference voxels that are negative in compare image
+  double TrueNegativesPercent;
 
-  /// Number of false positive labelmap voxels, i.e. negative reference voxels that are positive in compare image
-  unsigned int FalsePositives;
+  /// Percentage of false positive labelmap voxels, i.e. negative reference voxels that are positive in compare image
+  double FalsePositivesPercent;
 
-  /// Number of false negative labelmap voxels, i.e. positive reference voxels that are negative in compare image
-  unsigned int FalseNegatives;
+  /// Percentage of false negative labelmap voxels, i.e. positive reference voxels that are negative in compare image
+  double FalseNegativesPercent;
 
   /// Location of the center of mass of the reference structure
   double ReferenceCenter[3];

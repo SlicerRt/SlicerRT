@@ -207,7 +207,9 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->ShowHideAll = atoi(ss.str().c_str());
+      int intAttValue;
+      ss >> intAttValue;
+      this->ShowHideAll = intAttValue;
       }
     else if (!strcmp(attName, "ShowInChartCheckStates")) 
       {

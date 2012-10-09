@@ -403,7 +403,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
       imageCast->Update();
       floatVolumeData->DeepCopy(imageCast->GetOutput());
 
-      double doseGridScaling = atof(rtReader->GetDoseGridScaling());
+      std::stringstream ss;
+      ss << rtReader->GetDoseGridScaling();
+      double doubleValue;
+      ss >> doubleValue;
+      double doseGridScaling = doubleValue;
+
       float value = 0.0;
       float* floatPtr = (float*)floatVolumeData->GetScalarPointer();
       for (long i=0; i<floatVolumeData->GetNumberOfPoints(); ++i)

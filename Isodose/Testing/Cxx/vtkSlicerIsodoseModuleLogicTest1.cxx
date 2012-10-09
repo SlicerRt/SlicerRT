@@ -132,7 +132,11 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-VolumeDifferenceCriterion") == 0)
     {
-      volumeDifferenceCriterion = atof(argv[argIndex+1]);
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      double doubleValue;
+      ss >> doubleValue;
+      volumeDifferenceCriterion = doubleValue;
       std::cout << "Volume difference criterion: " << volumeDifferenceCriterion << std::endl;
       argIndex += 2;
     }
