@@ -508,7 +508,7 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(double *r
   fiducialNode->SetName(roiLabel);
   fiducialNode->AddControlPoint(roiPosition, 0, 1);
   fiducialNode->SetLocked(1);
-  fiducialNode->SetVisible(0);
+  fiducialNode->SetDisplayVisibility(0);
   this->GetMRMLScene()->AddNode(fiducialNode);
 
   fiducialNode->CreateAnnotationTextDisplayNode();
