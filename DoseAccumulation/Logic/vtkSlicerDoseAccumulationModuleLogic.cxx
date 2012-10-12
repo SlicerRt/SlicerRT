@@ -290,9 +290,9 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
   outputVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
 
   // Set threshold values so that the background is black
-  outputVolumeDisplayNode->AutoThresholdOff();
-  outputVolumeDisplayNode->SetLowerThreshold(0.0001);
-  outputVolumeDisplayNode->SetApplyThreshold(1);
+  //outputVolumeDisplayNode->AutoThresholdOff();
+  //outputVolumeDisplayNode->SetLowerThreshold(0.0001);
+  //outputVolumeDisplayNode->SetApplyThreshold(1);
 
   // Select as active volume
   if (this->GetApplicationLogic()!=NULL)
