@@ -13,6 +13,4 @@ foreach(script_name ${KIT_UNITTEST_SCRIPTS})
 endforeach()
 
 #-----------------------------------------------------------------------------
-slicer_add_python_unittest(
-  SCRIPT DicomRtImportTest1.py
-  SLICER_ARGS --no-main-window TESTNAME_PREFIX nomainwindow_)
+slicer_add_python_unittest(SCRIPT DicomRtImportSelfTest.py)
