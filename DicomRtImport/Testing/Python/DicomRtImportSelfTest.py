@@ -173,6 +173,13 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
 
     self.delayMs = 500
 
+    logFile = open('d:/pyTestLog.txt', 'w')
+    logFile.write(repr(slicer.modules.models) + '\n')
+    logFile.write(repr(slicer.modules.dicomrtimportselftest) + '\n')
+    logFile.write(repr(slicer.modules.dicomrtimport) + '\n')
+    logFile.write(repr(slicer.modules.models) + '\n')
+    logFile.close()
+
     self.moduleName = "DicomRtImportSelfTest"
     """ Determine data directory for the tests """
     moduleFilePath = eval('slicer.modules.%s.path' % self.moduleName.lower())
