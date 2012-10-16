@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>345</width>
+    <width>558</width>
     <height>406</height>
    </rect>
   </property>
@@ -30,8 +30,8 @@
       </widget>
      </item>
      <item>
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Contour" native="true">
-       <property name="nodeTypes" stdset="0">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Contour">
+       <property name="nodeTypes">
         <stringlist>
          <string>vtkMRMLContourNode</string>
          <string>vtkMRMLContourHierarchyNode</string>
@@ -42,8 +42,8 @@
     </layout>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ChangeActiveRepresentation" native="true">
-     <property name="text" stdset="0">
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ChangeActiveRepresentation">
+     <property name="text">
       <string>Change active representation</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
@@ -91,30 +91,30 @@
        </widget>
       </item>
       <item row="1" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume" native="true">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="toolTip">
          <string>A reference volume is needed if the active representation is a model and volume is needed</string>
         </property>
-        <property name="nodeTypes" stdset="0">
+        <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLScalarVolumeNode</string>
          </stringlist>
         </property>
-        <property name="selectNodeUponCreation" stdset="0">
+        <property name="selectNodeUponCreation">
          <bool>false</bool>
         </property>
-        <property name="addEnabled" stdset="0">
+        <property name="addEnabled">
          <bool>false</bool>
         </property>
-        <property name="removeEnabled" stdset="0">
+        <property name="removeEnabled">
          <bool>false</bool>
         </property>
        </widget>
       </item>
-      <item row="3" column="1" colspan="2">
+      <item row="4" column="1" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <property name="spacing">
          <number>4</number>
@@ -237,6 +237,9 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="toolTip">
+         <string>The created labelmap will be downsampled along each axes by this value (i.e. the dimensions of the created labelmap will be the reference volume dimension divided by this number)</string>
+        </property>
         <property name="decimals">
          <number>4</number>
         </property>
@@ -264,6 +267,26 @@
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="ctkSliderWidget" name="SliderWidget_TargetReductionFactor">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>The created closed surface model will be decimated using this parameter (e.g., if TargetReduction is set to 0.9, this filter will try to reduce the data set to 10% of its original size)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="label_TargetReductionFactor">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Target reduction factor:</string>
         </property>
        </widget>
       </item>
@@ -302,6 +325,11 @@
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

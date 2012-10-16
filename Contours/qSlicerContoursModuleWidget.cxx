@@ -122,6 +122,7 @@ void qSlicerContoursModuleWidget::setup()
   connect( d->comboBox_ActiveRepresentation, SIGNAL(currentIndexChanged(int)), this, SLOT(activeRepresentationComboboxSelectionChanged(int)) );
   connect( d->pushButton_ApplyChangeRepresentation, SIGNAL(clicked()), this, SLOT(applyChangeRepresentationClicked()) );
   connect( d->doubleSpinBox_DownsamplingFactor, SIGNAL(valueChanged(double)), this, SLOT(downsamplingFactorChanged(double)) );
+  connect( d->SliderWidget_TargetReductionFactor, SIGNAL(valueChanged(double)), this, SLOT(targetReductionFactorChanged(double)) );
 
   d->label_Warning->setVisible(false);
   d->label_ActiveSelected->setVisible(false);
@@ -377,6 +378,17 @@ void qSlicerContoursModuleWidget::downsamplingFactorChanged(double value)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::targetReductionFactorChanged(double value)
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
+  {
+    (*it)->SetDecimationTargetReductionFactor(value);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
 {
   Q_D(qSlicerContoursModuleWidget);
@@ -400,7 +412,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
       if (!indexedLabelmapNode)
       {
         std::cerr << "Failed to get '" << (std::string)d->comboBox_ActiveRepresentation->currentText().toLatin1()
-          << "' representation from contour node '" << (*it)->GetName() << "' to " << "!" << std::endl;
+          << "' representation from contour node '" << (*it)->GetName() << "' !" << std::endl;
       }
       else
       {
@@ -409,9 +421,16 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
     }
     else if (d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::ClosedSurfaceModel)
     {
-      vtkMRMLContourNode::ContourRepresentationType representationTypeInSelectedNodes = this->getRepresentationTypeOfSelectedContours();
-      d->comboBox_ActiveRepresentation->setCurrentIndex((int)representationTypeInSelectedNodes);
-      std::cerr << "Conversion to closed surface model representation is not implemented yet!" << std::endl;
+      vtkMRMLModelNode* closedSurfaceModelNode = (*it)->GetClosedSurfaceModelNode();
+      if (!closedSurfaceModelNode)
+      {
+        std::cerr << "Failed to get '" << (std::string)d->comboBox_ActiveRepresentation->currentText().toLatin1()
+          << "' representation from contour node '" << (*it)->GetName() << "' !" << std::endl;
+      }
+      else
+      {
+        (*it)->SetActiveRepresentationByNode((vtkMRMLDisplayableNode*)closedSurfaceModelNode);
+      }
     }
     else if (d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::BitfieldLabelmap)
     {

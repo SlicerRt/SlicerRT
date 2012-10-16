@@ -31,7 +31,6 @@
 #include <vtkStripper.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkImageCast.h>
-#include <vtkDataSetWriter.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPolyDataToLabelmapFilter);

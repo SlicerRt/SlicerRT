@@ -64,6 +64,7 @@ vtkMRMLContourNode::vtkMRMLContourNode()
   this->RasterizationReferenceVolumeNodeId = NULL;
 
   this->RasterizationDownsamplingFactor = 2.0;
+  this->DecimationTargetReductionFactor = 0.0;
 
   this->HideFromEditorsOff();
 }
@@ -107,6 +108,9 @@ void vtkMRMLContourNode::WriteXML(ostream& of, int nIndent)
     of << indent << " RasterizationReferenceVolumeNodeId=\"" << this->RasterizationReferenceVolumeNodeId << "\"";
     }
   of << indent << " ActiveRepresentationType=\"" << (int)this->ActiveRepresentationType << "\"";
+
+  of << indent << " RasterizationDownsamplingFactor=\"" << this->RasterizationDownsamplingFactor << "\"";
+  of << indent << " DecimationTargetReductionFactor=\"" << this->DecimationTargetReductionFactor << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -157,6 +161,22 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
       ss >> intAttValue;
       this->ActiveRepresentationType = (ContourRepresentationType)intAttValue;
       }
+    else if (!strcmp(attName, "RasterizationDownsamplingFactor")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->RasterizationDownsamplingFactor = doubleAttValue;
+      }
+    else if (!strcmp(attName, "DecimationTargetReductionFactor")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->DecimationTargetReductionFactor = doubleAttValue;
+      }
     }
 }
 
@@ -184,6 +204,9 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
   this->SetBitfieldLabelmapVolumeNodeId( node->BitfieldLabelmapVolumeNodeId );
 
   this->SetAndObserveRasterizationReferenceVolumeNodeId( node->RasterizationReferenceVolumeNodeId );
+
+  this->SetRasterizationDownsamplingFactor( node->RasterizationDownsamplingFactor );
+  this->SetDecimationTargetReductionFactor( node->DecimationTargetReductionFactor );
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -267,6 +290,8 @@ void vtkMRMLContourNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "BitfieldLabelmapVolumeNodeId:   " << this->BitfieldLabelmapVolumeNodeId << "\n";
   os << indent << "RasterizationReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
   os << indent << "ActiveRepresentationType:   " << this->ActiveRepresentationType << "\n";
+  os << indent << "RasterizationDownsamplingFactor:   " << this->RasterizationDownsamplingFactor << "\n";
+  os << indent << "DecimationTargetReductionFactor:   " << this->DecimationTargetReductionFactor << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -351,6 +376,10 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetIndexedLabelmapVolumeNode()
       {
       node = this->IndexedLabelmapVolumeNode;
       }
+    else
+      {
+      vtkErrorMacro("Conversion to indexed labelmap failed!");
+      }
     }
   else
     {
@@ -388,10 +417,25 @@ void vtkMRMLContourNode::SetAndObserveClosedSurfaceModelNodeId(const char *nodeI
 vtkMRMLModelNode* vtkMRMLContourNode::GetClosedSurfaceModelNode()
 {
   vtkMRMLModelNode* node = NULL;
-  if (this->Scene && this->ClosedSurfaceModelNodeId != NULL )
+  if (!this->Scene)
+    {
+    return node;
+    }
+  else if (this->ClosedSurfaceModelNodeId != NULL )
     {
     vtkMRMLNode* snode = this->Scene->GetNodeByID(this->ClosedSurfaceModelNodeId);
     node = vtkMRMLModelNode::SafeDownCast(snode);
+    }
+  else
+    {
+    if (this->ConvertToRepresentation(ClosedSurfaceModel))
+      {
+      node = this->ClosedSurfaceModelNode;
+      }
+    else
+      {
+      vtkErrorMacro("Conversion to closed surface model failed!");
+      }
     }
   return node;
 }

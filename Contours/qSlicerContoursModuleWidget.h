@@ -64,6 +64,7 @@ protected slots:
   void referenceVolumeNodeChanged(vtkMRMLNode* node);
   void activeRepresentationComboboxSelectionChanged(int index);
   void downsamplingFactorChanged(double value);
+  void targetReductionFactorChanged(double value);
 
   void applyChangeRepresentationClicked();
 

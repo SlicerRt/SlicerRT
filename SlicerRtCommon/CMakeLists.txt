@@ -12,6 +12,8 @@ SET (SlicerRtCommon_SRCS
   vtkMRMLContourHierarchyNode.h
   vtkPolyDataToLabelmapFilter.cxx
   vtkPolyDataToLabelmapFilter.h
+  vtkLabelmapToModelFilter.cxx
+  vtkLabelmapToModelFilter.h
   )
 
 SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${Slicer_Libs_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)

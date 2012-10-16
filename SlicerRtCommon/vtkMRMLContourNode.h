@@ -122,6 +122,11 @@ public:
   /// Set rasterization downsampling factor
   vtkSetMacro(RasterizationDownsamplingFactor, double);
 
+  /// Get target reduction factor
+  vtkGetMacro(DecimationTargetReductionFactor, double);
+  /// Set target reduction factor
+  vtkSetMacro(DecimationTargetReductionFactor, double);
+
 protected:
   /// Create a temporary vector for easier batch handling of representations
   std::vector<vtkMRMLDisplayableNode*> CreateTemporaryRepresentationsVector();
@@ -186,6 +191,9 @@ protected:
 
   /// Downsampling factor for contour polydata to labelmap conversion (rasterization)
   double RasterizationDownsamplingFactor;
+
+  /// Target reduction factor for decimation applied in labelmap to closed surface model conversion
+  double DecimationTargetReductionFactor;
 };
 
 #endif // __vtkMRMLContourNode_h
