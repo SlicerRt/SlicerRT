@@ -173,6 +173,7 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
 
     self.delayMs = 500
 
+    #TODO: Comment out
     #logFile = open('d:/pyTestLog.txt', 'w')
     #logFile.write(repr(slicer.modules.models) + '\n')
     #logFile.write(repr(slicer.modules.dicomrtimportselftest) + '\n')
@@ -184,8 +185,13 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     """ Determine data directory for the tests """
     moduleFilePath = eval('slicer.modules.%s.path' % self.moduleName.lower())
     moduleDir = os.path.dirname(moduleFilePath)
-    self.dataDir = moduleDir + '/../../Data'
-    #self.dataDir = 'd:/SlicerRT_SVN_src/DicomRtImport/Data'
+
+    self.dataDir = '@CMAKE_CURRENT_SOURCE_DIR@/../../Data'
+    self.dataDir = os.path.abspath(self.dataDir)
+
+    self.tempDir = '@CMAKE_CURRENT_BINARY_DIR@/Temp'
+    self.dicomDatabaseDir = '@CMAKE_CURRENT_BINARY_DIR@/CtkDicomDatabase'
+
 
   def runTest(self):
     """Run as few or as many tests as needed here.
@@ -207,9 +213,11 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
 
     # Open test database and empty it
     databaseFileName = 'ctkDICOM.sql'
-    databaseDir = self.dataDir + '/CtkDicomDatabase'
 
-    slicer.modules.dicom.widgetRepresentation().self().onDatabaseDirectoryChanged(databaseDir)
+    if not os.access(self.dicomDatabaseDir, os.F_OK):
+      os.mkdir(self.dicomDatabaseDir)
+
+    slicer.modules.dicom.widgetRepresentation().self().onDatabaseDirectoryChanged(self.dicomDatabaseDir)
     self.assertTrue( slicer.dicomDatabase.isOpen )
 
     initialized = slicer.dicomDatabase.initializeDatabase()
@@ -283,11 +291,10 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
   def test_DicomRtImportSelfTest_5SaveScene(self):
     self.delayDisplay("Starting test: 5SaveScene",self.delayMs)
 
-    tempDir = self.dataDir + '/Temp'
-    if not os.access(tempDir, os.F_OK):
-      os.mkdir(tempDir)
+    if not os.access(self.tempDir, os.F_OK):
+      os.mkdir(self.tempDir)
 
-    sceneFileName = tempDir + '/DicomRtImportTestScene.mrml'
+    sceneFileName = self.tempDir + '/DicomRtImportTestScene.mrml'
     if os.access(sceneFileName, os.F_OK):
       os.remove(sceneFileName)
 
@@ -306,3 +313,5 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     self.assertTrue( initialized )
 
     self.delayDisplay('Test 6ClearDicomDatabase passed!',self.delayMs)
+
+    slicer.mrmlScene.Clear(0)
