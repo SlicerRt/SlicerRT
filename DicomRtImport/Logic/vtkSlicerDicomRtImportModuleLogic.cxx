@@ -52,8 +52,6 @@ limitations under the License.
 #include <vtkPolyData.h>
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
-#include <vtkTriangleFilter.h>
-#include <vtkPolyDataNormals.h>
 #include <vtkImageCast.h>
 #include <vtkStringArray.h>
 #include <vtkLookupTable.h>
