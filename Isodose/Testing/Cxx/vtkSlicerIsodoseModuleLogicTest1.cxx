@@ -127,25 +127,25 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  double volumeDifferenceCriterion = 0.0;
+  double volumeDifferenceToleranceCc = 0.0;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-VolumeDifferenceCriterion") == 0)
+    if (STRCASECMP(argv[argIndex], "-VolumeDifferenceToleranceCc") == 0)
     {
       std::stringstream ss;
       ss << argv[argIndex+1];
       double doubleValue;
       ss >> doubleValue;
-      volumeDifferenceCriterion = doubleValue;
-      std::cout << "Volume difference criterion: " << volumeDifferenceCriterion << std::endl;
+      volumeDifferenceToleranceCc = doubleValue;
+      std::cout << "Volume difference Tolerance(Cc): " << volumeDifferenceToleranceCc << std::endl;
       argIndex += 2;
     }
   }
 
   // Constraint the criteria to be greater than zero
-  if (volumeDifferenceCriterion == 0.0)
+  if (volumeDifferenceToleranceCc == 0.0)
   {
-    volumeDifferenceCriterion = EPSILON;
+    volumeDifferenceToleranceCc = EPSILON;
   }
 
   // Create scene
@@ -259,9 +259,9 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   properties2->SetInput(modelNode->GetPolyData());
   properties2->Update();
 
-  if (abs(properties->GetVolume() - properties2->GetVolume()) > volumeDifferenceCriterion)
+  if (abs(properties->GetVolume() - properties2->GetVolume()) > volumeDifferenceToleranceCc)
   {
-    std::cerr << "Volume difference exceeds threshold!" << std::endl;
+    std::cerr << "Volume difference Tolerance(Cc) exceeds threshold!" << std::endl;
     return EXIT_FAILURE;
   }
 
