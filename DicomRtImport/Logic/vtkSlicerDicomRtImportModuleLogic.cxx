@@ -326,6 +326,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
           std::string contourNodeName;
           contourNodeName = std::string(roiLabel) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
           contourNode->SetName(contourNodeName.c_str());
+          contourNode->SetStructureName(roiLabel);
           contourNode->SetAndObserveRibbonModelNodeId(addedDisplayableNode->GetID());
           contourNode->SetActiveRepresentationByNode(addedDisplayableNode);
           contourNode->HideFromEditorsOff();
@@ -530,9 +531,11 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiContour(vtkPoly
   // Disable backface culling to make the back side of the contour visible as well
   displayNode->SetBackfaceCulling(0);
 
+  std::string modelNodeName = std::string(roiLabel) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
+
   vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
   modelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(modelNode));
-  modelNode->SetName(roiLabel);
+  modelNode->SetName(modelNodeName.c_str());
   modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   modelNode->SetAndObservePolyData(roiPoly);
   modelNode->SetHideFromEditors(0);

@@ -104,19 +104,21 @@ vtkSlicerDicomRtReader::ROIStructureSetEntry& vtkSlicerDicomRtReader::ROIStructu
 
 void vtkSlicerDicomRtReader::ROIStructureSetEntry::SetPolyData(vtkPolyData* roiPolyData)
 {
-  if (roiPolyData==PolyData)
+  if (roiPolyData == this->PolyData)
   {
     // not changed
     return;
   }
-  if (PolyData!=NULL)
+  if (this->PolyData != NULL)
   {
-    PolyData->UnRegister(NULL);
+    this->PolyData->UnRegister(NULL);
   }
-  PolyData=roiPolyData;
-  if (PolyData!=NULL)
+
+  this->PolyData = roiPolyData;
+
+  if (this->PolyData != NULL)
   {
-    PolyData->Register(NULL);
+    this->PolyData->Register(NULL);
   }
 }
 
@@ -128,7 +130,8 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 {
   this->FileName = NULL;
 
-  this->ROIContourSequencePolyData = NULL;
+  this->ROIContourSequenceVector.clear();
+
   this->SetPixelSpacing(0,0);
   this->DoseUnits = NULL;
   this->DoseGridScaling = NULL;
@@ -141,6 +144,7 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::~vtkSlicerDicomRtReader()
 {
+  this->ROIContourSequenceVector.clear();
 }
 
 //----------------------------------------------------------------------------

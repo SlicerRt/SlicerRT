@@ -172,9 +172,6 @@ protected:
   ROIStructureSetEntry* FindROIByNumber(unsigned int roiNumber);
 
 protected:
-  /// Structure set contours
-  vtkPolyData* ROIContourSequencePolyData;
-
   /// Input file name
   char* FileName;
 

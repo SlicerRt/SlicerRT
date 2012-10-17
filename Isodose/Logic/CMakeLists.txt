@@ -16,6 +16,7 @@ set(${KIT}_SRCS
   )
 
 set(${KIT}_TARGET_LIBRARIES
+  vtkSlicerRtCommon
   ${ITK_LIBRARIES}
   )
 

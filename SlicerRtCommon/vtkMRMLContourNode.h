@@ -84,6 +84,11 @@ public:
   ContourRepresentationType GetActiveRepresentationType() { return this->ActiveRepresentationType; };
 
 public:
+  /// Get structure name
+  vtkGetStringMacro(StructureName);
+  /// Set structure name
+  vtkSetStringMacro(StructureName);
+
   /// Get ribbon model node ID
   vtkGetStringMacro(RibbonModelNodeId);
   /// Get ribbon model node
@@ -161,7 +166,11 @@ protected:
   ~vtkMRMLContourNode();
   vtkMRMLContourNode(const vtkMRMLContourNode&);
   void operator=(const vtkMRMLContourNode&);
+
 protected:
+  /// Name of the structure that corresponds to this contour
+  char *StructureName;
+
   /// Ribbon model representation
   vtkMRMLModelNode* RibbonModelNode;
   /// Ribbon model representation model node ID

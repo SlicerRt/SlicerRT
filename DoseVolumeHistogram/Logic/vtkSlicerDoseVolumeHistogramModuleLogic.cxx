@@ -282,52 +282,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
 
-  // Create model to doseRas transform
-  vtkSmartPointer<vtkGeneralTransform> modelToDoseRasTransform=vtkSmartPointer<vtkGeneralTransform>::New();
-  vtkSmartPointer<vtkGeneralTransform> doseRasToWorldTransform=vtkSmartPointer<vtkGeneralTransform>::New();
-  vtkMRMLTransformNode* modelTransformNode=structureModelNode->GetParentTransformNode();
-  vtkMRMLTransformNode* doseTransformNode=doseVolumeNode->GetParentTransformNode();
-
-  if (doseTransformNode!=NULL)
-  {
-    // the dosemap is transformed
-    doseTransformNode->GetTransformToWorld(doseRasToWorldTransform);    
-    if (modelTransformNode!=NULL)
-    {
-      modelToDoseRasTransform->PostMultiply(); // GetTransformToNode assumes PostMultiply
-      modelTransformNode->GetTransformToNode(doseTransformNode,modelToDoseRasTransform);
-    }
-    else
-    {
-      // modelTransformNode is NULL => the transform will be computed for the world coordinate frame
-      doseTransformNode->GetTransformToWorld(modelToDoseRasTransform);
-      modelToDoseRasTransform->Inverse();
-    }
-  }
-  else
-  {
-    // the dosemap is not transformed => modelToDoseRasTransformMatrix = modelToWorldTransformMatrix
-    if (modelTransformNode!=NULL)
-    {
-      // the model is transformed
-      modelTransformNode->GetTransformToWorld(modelToDoseRasTransform);
-    }
-    else
-    {
-      // neither the model nor the dosemap is transformed
-      modelToDoseRasTransform->Identity();
-    }
-  }
-
-  // Create doseRas to doseIjk transform
-  vtkSmartPointer<vtkMatrix4x4> doseRasToDoseIjkTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  doseVolumeNode->GetRASToIJKMatrix( doseRasToDoseIjkTransformMatrix );  
-  
   // Create model to doseIjk transform
-  vtkNew<vtkGeneralTransform> modelToDoseIjkTransform;
-  modelToDoseIjkTransform->Concatenate(doseRasToDoseIjkTransformMatrix);
-  modelToDoseIjkTransform->Concatenate(modelToDoseRasTransform);
-
+  vtkSmartPointer<vtkGeneralTransform> modelToDoseIjkTransform=vtkSmartPointer<vtkGeneralTransform>::New();
+  SlicerRtCommon::GetTransformFromModelToVolumeIjk(structureModelNode, doseVolumeNode, modelToDoseIjkTransform);
 
   // Transform the model polydata to doseIjk coordinate frame (the labelmap image coordinate frame is doseIjk)
   vtkNew<vtkTransformPolyDataFilter> transformPolyDataModelToDoseIjkFilter;
@@ -372,7 +329,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     structureStenciledDoseVolumeImageData->SetSpacing(1.0, 1.0, 1.0); // The spacing is set to the MRML node
   }
 
-  std::string stenciledDoseNodeName = std::string(structureModelNode->GetName()) + SlicerRtCommon::DVH_STRUCTURE_LABELMAP_NODE_NAME_POSTFIX;
+  std::string stenciledDoseNodeName = std::string(structureContourNode->GetStructureName()) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
   stenciledDoseNodeName = this->GetMRMLScene()->GenerateUniqueName(stenciledDoseNodeName);
 
   structureStenciledDoseVolumeNode->SetAndObserveTransformNodeID( doseVolumeNode->GetTransformNodeID() );
@@ -502,7 +459,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     while (colorNode)
     {
       int colorIndex = -1;
-      if ((colorIndex = colorNode->GetColorIndexByName(modelNode->GetName())) != -1)
+      if ((colorIndex = colorNode->GetColorIndexByName((*it)->GetStructureName())) != -1)
       {
         double modelColor[3];
         double foundColor[4];
@@ -518,7 +475,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     }
     if (structureColorIndex == -1)
     {
-      vtkWarningMacro("No matching entry found in the color tables for structure '" << modelNode->GetName() << "'");
+      vtkWarningMacro("No matching entry found in the color tables for structure '" << (*it)->GetStructureName() << "'");
       structureColorIndex = 1; // Gray 'invalid' color
     }
 
@@ -557,13 +514,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
     if (this->LogSpeedMeasurements)
     {
-      std::cout << "\tStructure '" << modelNode->GetName() << "':\n\t\tTotal: " << checkpointStructureEnd-checkpointStructureStart
+      std::cout << "\tStructure '" << (*it)->GetStructureName() << "':\n\t\tTotal: " << checkpointStructureEnd-checkpointStructureStart
         << " s\n\t\tRasterization: " << checkpointDvhStart-checkpointRasterizationStart
         << " s\n\t\tDVH computation: " << checkpointLabelmapCreationStart-checkpointDvhStart
         << " s\n\t\tLabelmap creation: " /*<< (this->GetDoseVolumeHistogramNode()->GetSaveLabelmaps()?"On":"Off") << "): "*/
         << checkpointStructureEnd-checkpointLabelmapCreationStart << std::endl;
     }
-  }
+  } // for all contours
 
   double checkpointEnd = timer->GetUniversalTime();
   if (this->LogSpeedMeasurements)
@@ -618,16 +575,20 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     return;
   }
 
+  //TODO: use contour's structure name
+  std::string modelNodeName(structureModelNode->GetName());
+  std::string structureName = modelNodeName.substr(0, modelNodeName.find(" - "));
+
   // Create node and fill statistics
   vtkMRMLDoubleArrayNode* arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLDoubleArrayNode") );
-  std::string dvhArrayNodeName = std::string(structureModelNode->GetName()) + SlicerRtCommon::DVH_ARRAY_NODE_NAME_POSTFIX;
+  std::string dvhArrayNodeName = structureName + SlicerRtCommon::DVH_ARRAY_NODE_NAME_POSTFIX;
   dvhArrayNodeName = this->GetMRMLScene()->GenerateUniqueName(dvhArrayNodeName);
   arrayNode->SetName(dvhArrayNodeName.c_str());
   //arrayNode->HideFromEditorsOff();
 
   arrayNode->SetAttribute(SlicerRtCommon::DVH_TYPE_ATTRIBUTE_NAME.c_str(), SlicerRtCommon::DVH_TYPE_ATTRIBUTE_VALUE.c_str());
   arrayNode->SetAttribute(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), doseVolumeNode->GetID());
-  arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureModelNode->GetName());
+  arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureName.c_str());
   arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME.c_str(), structureModelNode->GetID());
 
   char attributeValue[64];

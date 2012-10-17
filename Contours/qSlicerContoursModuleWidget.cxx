@@ -301,6 +301,8 @@ void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged
   d->doubleSpinBox_DownsamplingFactor->setEnabled(false);
   d->label_DownsamplingFactor->setEnabled(false);
   d->pushButton_ApplyChangeRepresentation->setEnabled(false);
+  d->label_TargetReductionFactor->setEnabled(false);
+  d->SliderWidget_TargetReductionFactor->setEnabled(false);
 
   if (!this->mrmlScene())
   {
@@ -328,6 +330,13 @@ void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged
     d->label_DownsamplingFactor->setEnabled(referenceVolumeNeeded);
     d->MRMLNodeComboBox_ReferenceVolume->setEnabled(referenceVolumeNeeded);
     d->label_ReferenceVolume->setEnabled(referenceVolumeNeeded);
+    d->pushButton_ApplyChangeRepresentation->setEnabled(true);
+  }
+  else if (representationTypeInSelectedNodes == vtkMRMLContourNode::IndexedLabelmap
+    && index == (int)vtkMRMLContourNode::ClosedSurfaceModel)
+  {
+    d->label_TargetReductionFactor->setEnabled(true);
+    d->SliderWidget_TargetReductionFactor->setEnabled(true);
     d->pushButton_ApplyChangeRepresentation->setEnabled(true);
   }
   else if (index == (int)vtkMRMLContourNode::BitfieldLabelmap)

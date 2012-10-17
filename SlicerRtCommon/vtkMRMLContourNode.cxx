@@ -24,6 +24,7 @@
 #include "vtkMRMLContourNode.h"
 #include "vtkMRMLContourHierarchyNode.h"
 #include "vtkPolyDataToLabelmapFilter.h"
+#include "vtkLabelmapToModelFilter.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -31,6 +32,7 @@
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLTransformNode.h>
+#include <vtkMRMLModelDisplayNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -47,6 +49,8 @@ vtkMRMLNodeNewMacro(vtkMRMLContourNode);
 //----------------------------------------------------------------------------
 vtkMRMLContourNode::vtkMRMLContourNode()
 {
+  this->StructureName = NULL;
+
   this->RibbonModelNode = NULL;
   this->RibbonModelNodeId = NULL;
 
@@ -87,6 +91,10 @@ void vtkMRMLContourNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
+  if (this->StructureName != NULL) 
+    {
+    of << indent << " StructureName=\"" << this->StructureName << "\"";
+    }
   if (this->RibbonModelNodeId != NULL) 
     {
     of << indent << " RibbonModelNodeId=\"" << this->RibbonModelNodeId << "\"";
@@ -127,7 +135,11 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "RibbonModelNodeId")) 
+    if (!strcmp(attName, "StructureName")) 
+      {
+      this->SetStructureName(attValue);
+      }
+    else if (!strcmp(attName, "RibbonModelNodeId")) 
       {
       this->SetAndObserveRibbonModelNodeId(NULL); // clear any previous observers
       // Do not add observers yet because updates may be wrong before reading all the xml attributes
@@ -189,6 +201,8 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
   this->DisableModifiedEventOn();
 
   vtkMRMLContourNode *node = (vtkMRMLContourNode *) anode;
+
+  this->SetStructureName( node->GetStructureName() );
 
   // Observers must be removed here, otherwise MRML updates would activate nodes on the undo stack
   this->SetAndObserveRibbonModelNodeId( NULL );
@@ -645,7 +659,7 @@ bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
 vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(vtkMRMLModelNode* modelNode)
 {
   vtkMRMLScene* mrmlScene = this->Scene;
-  if (!mrmlScene)
+  if (!mrmlScene || !modelNode)
   {
     return NULL;
   }
@@ -676,61 +690,6 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
     return NULL;
   }
 
-  // Create model to volumeRas transform
-  vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeRasTransform=vtkSmartPointer<vtkGeneralTransform>::New();
-  vtkSmartPointer<vtkGeneralTransform> referenceVolumeRasToWorldTransform=vtkSmartPointer<vtkGeneralTransform>::New();
-  vtkMRMLTransformNode* modelTransformNode = modelNode->GetParentTransformNode();
-  vtkMRMLTransformNode* referenceVolumeTransformNode = referenceVolumeNode->GetParentTransformNode();
-
-  if (referenceVolumeTransformNode!=NULL)
-  {
-    // the reference volume is transformed
-    referenceVolumeTransformNode->GetTransformToWorld(referenceVolumeRasToWorldTransform);    
-    if (modelTransformNode!=NULL)
-    {
-      modelToReferenceVolumeRasTransform->PostMultiply(); // GetTransformToNode assumes PostMultiply
-      modelTransformNode->GetTransformToNode(referenceVolumeTransformNode,modelToReferenceVolumeRasTransform);
-    }
-    else
-    {
-      // modelTransformNode is NULL => the transform will be computed for the world coordinate frame
-      referenceVolumeTransformNode->GetTransformToWorld(modelToReferenceVolumeRasTransform);
-      modelToReferenceVolumeRasTransform->Inverse();
-    }
-  }
-  else
-  {
-    // the reference volume is not transformed => modelToReferenceVolumeRasTransformMatrix = modelToWorldTransformMatrix
-    if (modelTransformNode!=NULL)
-    {
-      // the model is transformed
-      modelTransformNode->GetTransformToWorld(modelToReferenceVolumeRasTransform);
-    }
-    else
-    {
-      // neither the model nor the reference volume is transformed
-      modelToReferenceVolumeRasTransform->Identity();
-    }
-  }
-
-  // Create referenceVolumeRas to referenceVolumeIjk transform
-  vtkSmartPointer<vtkMatrix4x4> referenceVolumeRasToReferenceVolumeIjkTransformMatrix
-    = vtkSmartPointer<vtkMatrix4x4>::New();
-  referenceVolumeNode->GetRASToIJKMatrix( referenceVolumeRasToReferenceVolumeIjkTransformMatrix );  
-
-  // Create model to referenceIjk transform
-  vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform
-    = vtkSmartPointer<vtkGeneralTransform>::New();
-  modelToReferenceVolumeIjkTransform->Concatenate(referenceVolumeRasToReferenceVolumeIjkTransformMatrix);
-  modelToReferenceVolumeIjkTransform->Concatenate(modelToReferenceVolumeRasTransform);
-
-
-  // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
-  vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter
-    = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( modelNode->GetPolyData() );
-  transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(modelToReferenceVolumeIjkTransform.GetPointer());
-
   // Get color node created for the structure set
   vtkMRMLContourHierarchyNode* parentContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(contourHierarchyNode->GetParentNode());
 
@@ -747,7 +706,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   while (colorNode)
   {
     int colorIndex = -1;
-    if ((colorIndex = colorNode->GetColorIndexByName(modelNode->GetName())) != -1)
+    if ((colorIndex = colorNode->GetColorIndexByName(this->StructureName)) != -1)
     {
       double modelColor[3];
       double foundColor[4];
@@ -763,13 +722,23 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   }
   if (structureColorIndex == -1)
   {
-    vtkWarningMacro("No matching entry found in the color tables for structure '" << modelNode->GetName() << "'");
+    vtkWarningMacro("No matching entry found in the color tables for structure '" << this->StructureName << "'");
     structureColorIndex = 1; // Gray 'invalid' color
   }
 
+
+  // Create model to referenceIjk transform
+  vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  SlicerRtCommon::GetTransformFromModelToVolumeIjk(modelNode, referenceVolumeNode, modelToReferenceVolumeIjkTransform);
+
+  // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter
+    = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( modelNode->GetPolyData() );
+  transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(modelToReferenceVolumeIjkTransform.GetPointer());
+
   // Convert model to labelmap
-  vtkSmartPointer<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter
-    = vtkSmartPointer<vtkPolyDataToLabelmapFilter>::New();
+  vtkSmartPointer<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter = vtkSmartPointer<vtkPolyDataToLabelmapFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
   polyDataToLabelmapFilter->SetBackgroundValue(0);
   polyDataToLabelmapFilter->SetLabelValue(structureColorIndex);
@@ -793,9 +762,9 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   }
   polyDataToLabelmapFilter->Update();    
 
+
   // Create indexed labelmap volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> indexedLabelmapVolumeNode
-    = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> indexedLabelmapVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   indexedLabelmapVolumeNode->CopyOrientation( referenceVolumeNode );
   if (this->RasterizationDownsamplingFactor != 1.0)
   {
@@ -809,14 +778,13 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
     indexedLabelmapVolumeImageData->SetSpacing(1.0, 1.0, 1.0); // The spacing is set to the MRML node
   }
 
-  std::string indexedLabelmapVolumeNodeName = std::string(modelNode->GetName()) + SlicerRtCommon::DVH_STRUCTURE_LABELMAP_NODE_NAME_POSTFIX;
+  std::string indexedLabelmapVolumeNodeName = std::string(this->StructureName) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
   indexedLabelmapVolumeNodeName = mrmlScene->GenerateUniqueName(indexedLabelmapVolumeNodeName);
 
   indexedLabelmapVolumeNode->SetAndObserveTransformNodeID( indexedLabelmapVolumeNode->GetTransformNodeID() );
   indexedLabelmapVolumeNode->SetName( indexedLabelmapVolumeNodeName.c_str() );
   indexedLabelmapVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
   indexedLabelmapVolumeNode->LabelMapOn();
-  //indexedLabelmapVolumeNode->SetAttribute( SlicerRtCommon::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), indexedLabelmapVolumeNode->GetID() );
   mrmlScene->AddNode(indexedLabelmapVolumeNode);
 
   // Create display node
@@ -841,6 +809,95 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
 //----------------------------------------------------------------------------
 vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceModel(vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode)
 {
-  vtkErrorMacro("Error: Indexed labelmap to closed surface model conversion not implemented yet!");
-  return NULL;
+  vtkMRMLScene* mrmlScene = this->Scene;
+  if (!mrmlScene || !indexedLabelmapVolumeNode)
+  {
+    return NULL;
+  }
+
+  // Get hierarchy node
+  vtkMRMLContourHierarchyNode* contourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(
+    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(mrmlScene, this->ID));
+  if (!contourHierarchyNode)
+  {
+    vtkErrorMacro("Error: No hierarchy node found for structure '" << this->Name << "'");
+    return NULL;
+  }
+
+  // Get color node created for the structure set
+  vtkMRMLContourHierarchyNode* parentContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(contourHierarchyNode->GetParentNode());
+
+  std::string seriesName = parentContourHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
+  std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+  vtkCollection* colorNodes = mrmlScene->GetNodesByName(colorNodeName.c_str());
+  if (colorNodes->GetNumberOfItems() == 0)
+  {
+    vtkErrorMacro("Error: No color table found for structure set '" << parentContourHierarchyNode->GetName() << "'");
+  }
+  colorNodes->InitTraversal();
+  vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+  int structureColorIndex = -1;
+  while (colorNode)
+  {
+    int colorIndex = -1;
+    if ((colorIndex = colorNode->GetColorIndexByName(this->StructureName)) != -1)
+    {
+        structureColorIndex = colorIndex;
+        break;
+    }
+    colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+  }
+  if (structureColorIndex == -1)
+  {
+    vtkWarningMacro("No matching entry found in the color tables for structure '" << this->StructureName << "'");
+    structureColorIndex = 1; // Gray 'invalid' color
+  }
+
+
+  // Convert labelmap to model
+  vtkSmartPointer<vtkLabelmapToModelFilter> labelmapToModelFilter = vtkSmartPointer<vtkLabelmapToModelFilter>::New();
+  labelmapToModelFilter->SetInputLabelmap( indexedLabelmapVolumeNode->GetImageData() );
+  labelmapToModelFilter->SetDecimateTargetReduction( this->DecimationTargetReductionFactor );
+  labelmapToModelFilter->Update();    
+
+
+  // Create closed surface model node
+  vtkSmartPointer<vtkMRMLModelNode> closedSurfaceModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+
+  std::string closedSurfaceModelNodeName = this->StructureName + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
+  closedSurfaceModelNodeName = mrmlScene->GenerateUniqueName(closedSurfaceModelNodeName);
+
+  closedSurfaceModelNode->SetAndObserveTransformNodeID( indexedLabelmapVolumeNode->GetTransformNodeID() );
+  closedSurfaceModelNode->SetName( closedSurfaceModelNodeName.c_str() );
+
+  // Create model to referenceIjk transform
+  vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  SlicerRtCommon::GetTransformFromModelToVolumeIjk(closedSurfaceModelNode, indexedLabelmapVolumeNode, modelToReferenceVolumeIjkTransform);
+
+  // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter
+    = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( labelmapToModelFilter->GetOutput() );
+  transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(modelToReferenceVolumeIjkTransform.GetPointer());
+  transformPolyDataModelToReferenceVolumeIjkFilter->Update();
+
+  closedSurfaceModelNode->SetAndObservePolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
+
+  mrmlScene->AddNode(closedSurfaceModelNode);
+
+  // Create display node
+  vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
+  if (colorNode)
+  {
+    double color[3];
+    colorNode->GetColor(structureColorIndex, color);
+    displayNode->SetColor(color);
+  }
+
+  closedSurfaceModelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+
+  this->SetAndObserveClosedSurfaceModelNodeId(closedSurfaceModelNode->GetID());
+
+  return closedSurfaceModelNode;
 }
