@@ -888,9 +888,10 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
   // Create display node
   vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
   displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
+
+  double color[4];
   if (colorNode)
   {
-    double color[3];
     colorNode->GetColor(structureColorIndex, color);
     displayNode->SetColor(color);
   }

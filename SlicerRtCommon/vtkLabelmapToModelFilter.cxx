@@ -67,5 +67,52 @@ vtkPolyData* vtkLabelmapToModelFilter::GetOutput()
 //----------------------------------------------------------------------------
 void vtkLabelmapToModelFilter::Update()
 {
-  //this->OutputModel->ShallowCopy(imageCast->GetOutput());
+  if (!this->InputLabelmap || !this->OutputModel)
+  {
+    vtkErrorMacro("Input labelmap and output poly data have to be initialized!");
+    return;
+  }
+
+  // Run marching cubes
+  vtkSmartPointer<vtkMarchingCubes> marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
+  marchingCubes->SetInput(this->InputLabelmap);
+  marchingCubes->SetNumberOfContours(1);
+  marchingCubes->SetValue(0, 0.5);
+  marchingCubes->ComputeScalarsOff();
+  marchingCubes->ComputeGradientsOff();
+  marchingCubes->ComputeNormalsOff();
+  try
+  {
+    marchingCubes->Update();
+  }
+  catch(...)
+  {
+    vtkErrorMacro("Error while running marching cubes!");
+    return;
+  }
+  if (marchingCubes->GetOutput()->GetNumberOfPolys() == 0)
+  {
+    vtkErrorMacro("No polygons can be created!");
+    return;
+  }
+
+  // Decimate
+  vtkSmartPointer<vtkDecimatePro> decimator = vtkSmartPointer<vtkDecimatePro>::New();
+  decimator->SetInput(marchingCubes->GetOutput() );
+  decimator->SetFeatureAngle(60);
+  decimator->SplittingOff();
+  decimator->PreserveTopologyOn();
+  decimator->SetMaximumError(1);
+  decimator->SetTargetReduction(this->DecimateTargetReduction);
+  try
+  {
+    decimator->Update();
+  }
+  catch(...)
+  {
+    vtkErrorMacro("Error decimating model");
+    return;
+  }
+
+  this->OutputModel->ShallowCopy(decimator->GetOutput());
 } 

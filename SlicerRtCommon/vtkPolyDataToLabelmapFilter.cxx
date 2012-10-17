@@ -85,6 +85,12 @@ vtkImageData* vtkPolyDataToLabelmapFilter::GetOutput()
 //----------------------------------------------------------------------------
 void vtkPolyDataToLabelmapFilter::Update()
 {
+  if (!this->InputPolyData || !this->ReferenceImageData || !this->OutputLabelmap)
+  {
+    vtkErrorMacro("Input poly data, reference image and output labelmap have to be initialized!");
+    return;
+  }
+
   vtkNew<vtkPolyDataNormals> normalFilter;
   normalFilter->SetInput(this->InputPolyData);
   normalFilter->ConsistencyOn();
