@@ -1,21 +1,22 @@
 #-----------------------------------------------------------------------------
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/DicomRtImportSelfTest.py.in 
-	${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}/DicomRtImportSelfTest.py
+	${CMAKE_CURRENT_SOURCE_DIR}/DicomRtImportSelfTestPaths.py.in 
+	${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}/DicomRtImportSelfTestPaths.py
 	)
 	
 #-----------------------------------------------------------------------------
-set(MODULE_PYTHON_SCRIPTS
+set(MODULE_TEST_PYTHON_SCRIPTS
+  DicomRtImportSelfTestPaths.py
   DicomRtImportSelfTest.py
   )
 
-set(MODULE_PYTHON_RESOURCES
+set(MODULE_TEST_PYTHON_RESOURCES
   )
 
 ctkMacroCompilePythonScript(
   TARGET_NAME DicomRtImportSelfTest
-  SCRIPTS "${MODULE_PYTHON_SCRIPTS}"
-  RESOURCES "${MODULE_PYTHON_RESOURCES}"
+  SCRIPTS "${MODULE_TEST_PYTHON_SCRIPTS}"
+  RESOURCES "${MODULE_PTEST_YTHON_RESOURCES}"
   DESTINATION_DIR ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}
   INSTALL_DIR ${Slicer_INSTALL_QTSCRIPTEDMODULES_LIB_DIR}
   NO_INSTALL_SUBDIR
