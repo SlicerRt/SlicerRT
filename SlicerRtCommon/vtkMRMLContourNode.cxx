@@ -672,15 +672,6 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
     return NULL;
   }
 
-  // Get hierarchy node
-  vtkMRMLContourHierarchyNode* contourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(
-    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(mrmlScene, this->ID));
-  if (!contourHierarchyNode)
-  {
-    vtkErrorMacro("Error: No hierarchy node found for structure '" << this->Name << "'");
-    return NULL;
-  }
-
   // Get reference volume node
   vtkMRMLVolumeNode* referenceVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     mrmlScene->GetNodeByID(this->RasterizationReferenceVolumeNodeId));
@@ -690,42 +681,10 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
     return NULL;
   }
 
-  // Get color node created for the structure set
-  vtkMRMLContourHierarchyNode* parentContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(contourHierarchyNode->GetParentNode());
-
-  std::string seriesName = parentContourHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
-  std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
-  vtkCollection* colorNodes = mrmlScene->GetNodesByName(colorNodeName.c_str());
-  if (colorNodes->GetNumberOfItems() == 0)
-  {
-    vtkErrorMacro("Error: No color table found for structure set '" << parentContourHierarchyNode->GetName() << "'");
-  }
-  colorNodes->InitTraversal();
-  vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+  // Get color index
+  vtkMRMLColorTableNode* colorNode = NULL;
   int structureColorIndex = -1;
-  while (colorNode)
-  {
-    int colorIndex = -1;
-    if ((colorIndex = colorNode->GetColorIndexByName(this->StructureName)) != -1)
-    {
-      double modelColor[3];
-      double foundColor[4];
-      modelNode->GetDisplayNode()->GetColor(modelColor);
-      colorNode->GetColor(colorIndex, foundColor);
-      if ((modelColor[0] == foundColor[0]) && (modelColor[1] == foundColor[1]) && (modelColor[2] == foundColor[2]))
-      {
-        structureColorIndex = colorIndex;
-        break;
-      }
-    }
-    colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
-  }
-  if (structureColorIndex == -1)
-  {
-    vtkWarningMacro("No matching entry found in the color tables for structure '" << this->StructureName << "'");
-    structureColorIndex = 1; // Gray 'invalid' color
-  }
-
+  SlicerRtCommon::GetColorIndexForContour(this, mrmlScene, structureColorIndex, colorNode, modelNode);
 
   // Create model to referenceIjk transform
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
@@ -815,44 +774,10 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
     return NULL;
   }
 
-  // Get hierarchy node
-  vtkMRMLContourHierarchyNode* contourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(
-    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(mrmlScene, this->ID));
-  if (!contourHierarchyNode)
-  {
-    vtkErrorMacro("Error: No hierarchy node found for structure '" << this->Name << "'");
-    return NULL;
-  }
-
-  // Get color node created for the structure set
-  vtkMRMLContourHierarchyNode* parentContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(contourHierarchyNode->GetParentNode());
-
-  std::string seriesName = parentContourHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
-  std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
-  vtkCollection* colorNodes = mrmlScene->GetNodesByName(colorNodeName.c_str());
-  if (colorNodes->GetNumberOfItems() == 0)
-  {
-    vtkErrorMacro("Error: No color table found for structure set '" << parentContourHierarchyNode->GetName() << "'");
-  }
-  colorNodes->InitTraversal();
-  vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+  // Get color index
+  vtkMRMLColorTableNode* colorNode = NULL;
   int structureColorIndex = -1;
-  while (colorNode)
-  {
-    int colorIndex = -1;
-    if ((colorIndex = colorNode->GetColorIndexByName(this->StructureName)) != -1)
-    {
-        structureColorIndex = colorIndex;
-        break;
-    }
-    colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
-  }
-  if (structureColorIndex == -1)
-  {
-    vtkWarningMacro("No matching entry found in the color tables for structure '" << this->StructureName << "'");
-    structureColorIndex = 1; // Gray 'invalid' color
-  }
-
+  SlicerRtCommon::GetColorIndexForContour(this, mrmlScene, structureColorIndex, colorNode);
 
   // Convert labelmap to model
   vtkSmartPointer<vtkLabelmapToModelFilter> labelmapToModelFilter = vtkSmartPointer<vtkLabelmapToModelFilter>::New();
@@ -874,13 +799,15 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   SlicerRtCommon::GetTransformFromModelToVolumeIjk(closedSurfaceModelNode, indexedLabelmapVolumeNode, modelToReferenceVolumeIjkTransform);
   
-  modelToReferenceVolumeIjkTransform->Inverse();
+  vtkSmartPointer<vtkGeneralTransform> referenceVolumeIjkToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  referenceVolumeIjkToModelTransform->Concatenate(modelToReferenceVolumeIjkTransform);
+  referenceVolumeIjkToModelTransform->Inverse();
 
   // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter
     = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( labelmapToModelFilter->GetOutput() );
-  transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(modelToReferenceVolumeIjkTransform.GetPointer());
+  transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(referenceVolumeIjkToModelTransform.GetPointer());
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
 
   closedSurfaceModelNode->SetAndObservePolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );

@@ -9,6 +9,11 @@ class vtkMRMLTransformableNode;
 class vtkGeneralTransform;
 class vtkMRMLVolumeNode;
 class vtkMRMLModelNode;
+class vtkMRMLContourNode;
+class vtkMRMLScene;
+class vtkMRMLColorTableNode;
+
+#define EPSILON 0.0001
 
 class SlicerRtCommon
 {
@@ -69,6 +74,17 @@ public:
     /param fromModelToVolumeIjkTransform Output transform
   */
   static void GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* fromModelNode, vtkMRMLVolumeNode* toVolumeNode, vtkGeneralTransform* fromModelToVolumeIjkTransform);
+
+  /*!
+    Get the index of the color of a contour from the associated color table
+    /param contourNode The contour object corresponding to the structure we seek the color of
+    /param mrmlScene The MRML scene we do the search in
+    /param colorIndex Index of the found color in the associated color table
+    /param colorNode Output argument for the found color node (optional)
+    /param referenceModelNode A model that we want to double check the found color against
+             (we only select the color if its color is the same as the one we found)
+  */
+  static void GetColorIndexForContour(vtkMRMLContourNode* contourNode, vtkMRMLScene* mrmlScene, int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLModelNode* referenceModelNode=NULL);
 
 private:
   /*!

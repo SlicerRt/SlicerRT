@@ -52,8 +52,6 @@
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 
-#define EPSILON 0.0001
-
 /* Define case insensitive string compare for all supported platforms. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
 #  if defined(__BORLANDC__)

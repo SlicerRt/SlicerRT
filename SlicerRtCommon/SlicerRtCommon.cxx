@@ -1,14 +1,22 @@
 #include "SlicerRtCommon.h"
 
+// SlicerRT includes
+#include "vtkMRMLContourNode.h"
+#include "vtkMRMLContourHierarchyNode.h"
+
 // MRML includes
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLScene.h>;
+#include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLDisplayNode.h>
 
 // VTK includes
 #include <vtkGeneralTransform.h>
 #include <vtkSmartPointer.h>
 #include <vtkMatrix4x4.h>
+#include <vtkCollection.h>
 
 //----------------------------------------------------------------------------
 // Constant strings
@@ -129,4 +137,74 @@ void SlicerRtCommon::GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* fromMode
   fromModelToToVolumeIjkTransform->Identity();
   fromModelToToVolumeIjkTransform->Concatenate(toVolumeRasToToVolumeIjkTransformMatrix);
   fromModelToToVolumeIjkTransform->Concatenate(fromModelToToVolumeRasTransform);
+}
+
+//----------------------------------------------------------------------------
+void SlicerRtCommon::GetColorIndexForContour(vtkMRMLContourNode* contourNode, vtkMRMLScene* mrmlScene, int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLModelNode* referenceModelNode/*=NULL*/)
+{
+  // Initialize output color index with Gray 'invalid' color
+  colorIndex = 1;
+
+  if (!contourNode)
+  {
+    return;
+  }
+
+  // Get hierarchy node
+  vtkMRMLContourHierarchyNode* contourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(
+    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(mrmlScene, contourNode->GetID()));
+  if (!contourHierarchyNode)
+  {
+    std::cerr << "Error: No hierarchy node found for structure '" << contourNode->GetName() << "'" << std::endl;
+    return;
+  }
+
+  // Get color node created for the structure set
+  vtkMRMLContourHierarchyNode* parentContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(contourHierarchyNode->GetParentNode());
+
+  std::string seriesName = parentContourHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
+  std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+  vtkCollection* colorNodes = mrmlScene->GetNodesByName(colorNodeName.c_str());
+  if (colorNodes->GetNumberOfItems() == 0)
+  {
+    std::cerr << "Error: No color table found for structure set '" << parentContourHierarchyNode->GetName() << "'" << std::endl;
+  }
+  colorNodes->InitTraversal();
+  colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+  int structureColorIndex = -1;
+  while (colorNode)
+  {
+    int currentColorIndex = -1;
+    if ((currentColorIndex = colorNode->GetColorIndexByName(contourNode->GetStructureName())) != -1)
+    {
+      if (referenceModelNode)
+      {
+        double modelColor[3];
+        double foundColor[4];
+        referenceModelNode->GetDisplayNode()->GetColor(modelColor);
+        colorNode->GetColor(currentColorIndex, foundColor);
+        if ((fabs(modelColor[0]-foundColor[0]) < EPSILON) && (fabs(modelColor[1]-foundColor[1]) < EPSILON) && (fabs(modelColor[2]-foundColor[2])) < EPSILON)
+        {
+          structureColorIndex = currentColorIndex;
+          break;
+        }
+      }
+      else
+      {
+        structureColorIndex = currentColorIndex;
+        break;
+      }
+    }
+    colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+  }
+
+  colorNodes->Delete();
+
+  if (structureColorIndex == -1)
+  {
+    std::cout << "No matching entry found in the color tables for structure '" << contourNode->GetStructureName() << "'" << std::endl;
+    return;
+  }
+
+  colorIndex = structureColorIndex;
 }

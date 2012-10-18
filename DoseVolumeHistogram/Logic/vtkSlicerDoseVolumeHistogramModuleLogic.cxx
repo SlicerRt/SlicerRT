@@ -404,31 +404,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     return;
   }
 
-  // Get structure set hierarchy node
-  vtkMRMLContourHierarchyNode* structureContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(
-    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->GetMRMLScene(), structureContourNodes[0]->GetID()));
-
-  if (!structureContourHierarchyNode)
-  {
-    vtkErrorMacro("Error: No hierarchy node found for structure '" << structureContourNodes[0]->GetName() << "'");
-    return;
-  }
-  vtkMRMLContourHierarchyNode* structureSetHierarchyNode
-    = vtkMRMLContourHierarchyNode::SafeDownCast(structureContourHierarchyNode->GetParentNode());
-
-  // Get color node created for the structure set
-  const char* seriesNameChars = structureSetHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
-  std::string seriesName = (seriesNameChars ? seriesNameChars : "EmptySeriesName");
-
-  std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
-
-  vtkCollection* colorNodes = this->GetMRMLScene()->GetNodesByName(colorNodeName.c_str());
-
-  if (colorNodes->GetNumberOfItems() == 0)
-  {
-    vtkErrorMacro("Error: No color table found for structure set '" << structureSetHierarchyNode->GetName() << "'");
-  }
-
   // Compute DVH for each structure
   for (std::vector<vtkMRMLContourNode*>::iterator it = structureContourNodes.begin(); it != structureContourNodes.end(); ++it)
   {
@@ -452,32 +427,10 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
     double checkpointLabelmapCreationStart = timer->GetUniversalTime();
 
-    // Get color table node and structure color index
-    colorNodes->InitTraversal();
-    vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+    // Get color index
+    vtkMRMLColorTableNode* colorNode = NULL;
     int structureColorIndex = -1;
-    while (colorNode)
-    {
-      int colorIndex = -1;
-      if ((colorIndex = colorNode->GetColorIndexByName((*it)->GetStructureName())) != -1)
-      {
-        double modelColor[3];
-        double foundColor[4];
-        modelNode->GetDisplayNode()->GetColor(modelColor);
-        colorNode->GetColor(colorIndex, foundColor);
-        if ((modelColor[0] == foundColor[0]) && (modelColor[1] == foundColor[1]) && (modelColor[2] == foundColor[2]))
-        {
-          structureColorIndex = colorIndex;
-          break;
-        }
-      }
-      colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
-    }
-    if (structureColorIndex == -1)
-    {
-      vtkWarningMacro("No matching entry found in the color tables for structure '" << (*it)->GetStructureName() << "'");
-      structureColorIndex = 1; // Gray 'invalid' color
-    }
+    SlicerRtCommon::GetColorIndexForContour((*it), this->GetMRMLScene(), structureColorIndex, colorNode, modelNode);
 
     // Convert stenciled dose volume to labelmap
     if ((*it)->GetIndexedLabelmapVolumeNodeId() == NULL)
@@ -529,8 +482,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
       << "Sum DVH computation time: " << sumDvhComputation << " s" << std::endl
       << "Total: " << checkpointEnd-checkpointStart << " s" << std::endl;
   }
-
-  colorNodes->Delete();
 }
 
 //---------------------------------------------------------------------------
