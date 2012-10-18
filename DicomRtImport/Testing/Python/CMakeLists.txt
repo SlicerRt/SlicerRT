@@ -6,8 +6,8 @@ configure_file(
 	
 #-----------------------------------------------------------------------------
 set(MODULE_TEST_PYTHON_SCRIPTS
-  DicomRtImportSelfTestPaths.py
   DicomRtImportSelfTest.py
+  ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}/DicomRtImportSelfTestPaths.py
   )
 
 set(MODULE_TEST_PYTHON_RESOURCES
