@@ -278,6 +278,18 @@
         <property name="toolTip">
          <string>The created closed surface model will be decimated using this parameter (e.g., if TargetReduction is set to 0.9, this filter will try to reduce the data set to 10% of its original size)</string>
         </property>
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="pageStep">
+         <double>0.200000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>0.999000000000000</double>
+        </property>
        </widget>
       </item>
       <item row="3" column="1">

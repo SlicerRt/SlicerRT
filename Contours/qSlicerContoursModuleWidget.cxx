@@ -163,6 +163,21 @@ vtkMRMLContourNode::ContourRepresentationType qSlicerContoursModuleWidget::getRe
   }
 }
 
+//-----------------------------------------------------------------------------
+bool qSlicerContoursModuleWidget::selectedContoursContainRepresentation(vtkMRMLContourNode::ContourRepresentationType representationType)
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
+  {
+    if (!(*it)->RepresentationExists(representationType))
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 //-----------------------------------------------------------------------------
 bool qSlicerContoursModuleWidget::isReferenceVolumeNeeded()
@@ -175,16 +190,9 @@ bool qSlicerContoursModuleWidget::isReferenceVolumeNeeded()
     // If the user did not change the representation
     return false;
   }
-  else if (representationTypeInSelectedNodes != vtkMRMLContourNode::IndexedLabelmap
-    && d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::IndexedLabelmap)
+  else
   {
-    for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
-    {
-      if ((*it)->GetIndexedLabelmapVolumeNodeId() == NULL)
-      {
-        return true;
-      }
-    }
+    return !selectedContoursContainRepresentation(vtkMRMLContourNode::IndexedLabelmap);
   }
 
   return false;
@@ -330,14 +338,24 @@ void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged
     d->label_DownsamplingFactor->setEnabled(referenceVolumeNeeded);
     d->MRMLNodeComboBox_ReferenceVolume->setEnabled(referenceVolumeNeeded);
     d->label_ReferenceVolume->setEnabled(referenceVolumeNeeded);
-    d->pushButton_ApplyChangeRepresentation->setEnabled(true);
+    d->pushButton_ApplyChangeRepresentation->setEnabled(!referenceVolumeNeeded);
   }
-  else if (representationTypeInSelectedNodes == vtkMRMLContourNode::IndexedLabelmap
+  else if ( (representationTypeInSelectedNodes == vtkMRMLContourNode::IndexedLabelmap
+          || representationTypeInSelectedNodes == vtkMRMLContourNode::RibbonModel)
     && index == (int)vtkMRMLContourNode::ClosedSurfaceModel)
   {
     d->label_TargetReductionFactor->setEnabled(true);
     d->SliderWidget_TargetReductionFactor->setEnabled(true);
     d->pushButton_ApplyChangeRepresentation->setEnabled(true);
+
+    // If indexed labelmap is missing in even one selected node then enable controls
+    bool referenceVolumeNeeded = this->isReferenceVolumeNeeded();
+    d->label_Warning->setVisible(referenceVolumeNeeded);
+    d->doubleSpinBox_DownsamplingFactor->setEnabled(referenceVolumeNeeded);
+    d->label_DownsamplingFactor->setEnabled(referenceVolumeNeeded);
+    d->MRMLNodeComboBox_ReferenceVolume->setEnabled(referenceVolumeNeeded);
+    d->label_ReferenceVolume->setEnabled(referenceVolumeNeeded);
+    d->pushButton_ApplyChangeRepresentation->setEnabled(!referenceVolumeNeeded);
   }
   else if (index == (int)vtkMRMLContourNode::BitfieldLabelmap)
   {

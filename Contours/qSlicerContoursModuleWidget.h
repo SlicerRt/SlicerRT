@@ -51,6 +51,10 @@ protected:
   /// same in the selected contours and returns it if it is
   vtkMRMLContourNode::ContourRepresentationType getRepresentationTypeOfSelectedContours();
 
+  /// Determine if the selected modules contain a certain representation
+  /// /return True if every selected node has the given type of representation, false otherwise
+  bool selectedContoursContainRepresentation(vtkMRMLContourNode::ContourRepresentationType representationType);
+
   /// Determines if a reference volume node is needed
   /// (if the desired representation is labelmap and there is
   /// at least one contour not having that representation)

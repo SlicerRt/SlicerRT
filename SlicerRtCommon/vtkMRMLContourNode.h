@@ -83,6 +83,9 @@ public:
   /// Get active representation type
   ContourRepresentationType GetActiveRepresentationType() { return this->ActiveRepresentationType; };
 
+  /// Determines whether a representation exists in the contour node
+  bool RepresentationExists(ContourRepresentationType type);
+
 public:
   /// Get structure name
   vtkGetStringMacro(StructureName);

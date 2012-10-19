@@ -631,6 +631,27 @@ void vtkMRMLContourNode::ShowRepresentation(vtkMRMLDisplayableNode* representati
   }
 }
 
+
+//----------------------------------------------------------------------------
+bool vtkMRMLContourNode::RepresentationExists( ContourRepresentationType type )
+{
+  switch (type)
+    {
+    case RibbonModel:
+      return this->RibbonModelNodeId ? true : false;
+    case IndexedLabelmap:
+      return this->IndexedLabelmapVolumeNodeId ? true : false;
+    case ClosedSurfaceModel:
+      return this->ClosedSurfaceModelNodeId ? true : false;
+    case BitfieldLabelmap:
+      return this->BitfieldLabelmapVolumeNodeId ? true : false;
+    default:
+      return false;
+    }
+
+  return false;
+}
+
 //----------------------------------------------------------------------------
 bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
 {
@@ -638,8 +659,9 @@ bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
     {
     return true;
     }
-  else if ((this->ActiveRepresentationType == RibbonModel
-    || this->ActiveRepresentationType == ClosedSurfaceModel)
+  // Active representation is a model of any kind and we want an indexed labelmap
+  else if ( (this->ActiveRepresentationType == RibbonModel
+          || this->ActiveRepresentationType == ClosedSurfaceModel)
     && type == IndexedLabelmap)
     {
     if (!this->RasterizationReferenceVolumeNodeId)
@@ -649,18 +671,43 @@ bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
       }
 
     vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode = this->ConvertFromModelToIndexedLabelmap(
-      (this->ActiveRepresentationType == RibbonModel ? this->RibbonModelNode : this->ClosedSurfaceModelNode) );
+      (this->RibbonModelNode ? this->RibbonModelNode : this->ClosedSurfaceModelNode) );
 
     return (indexedLabelmapVolumeNode != NULL);
     }
+  // Active representation is an indexed labelmap and we want a closed surface model
   else if (this->ActiveRepresentationType == IndexedLabelmap
     && type == ClosedSurfaceModel)
-  {
+    {
     vtkMRMLModelNode* closedSurfaceVolumeNode
       = this->ConvertFromIndexedLabelmapToClosedSurfaceModel(this->IndexedLabelmapVolumeNode);
 
     return (closedSurfaceVolumeNode != NULL);
-  }
+    }
+  // Active representation is a ribbon model and we want a closed surface model
+  else if (this->ActiveRepresentationType == RibbonModel
+    && type == ClosedSurfaceModel)
+    {
+    // If the indexed labelmap is not created yet then we convert to it first
+    if (!this->IndexedLabelmapVolumeNode)
+      {
+      if (!this->RasterizationReferenceVolumeNodeId)
+        {
+        vtkErrorMacro("Unable to convert to indexed labelmap without a reference volume node (it is needed to convert into closed surface model)!");
+        return false;
+        }
+      if (this->ConvertFromModelToIndexedLabelmap(this->RibbonModelNode) == NULL)
+        {
+        vtkErrorMacro("Conversion to indexed labelmap failed (it is needed to convert into closed surface model)!");
+        return false;
+        }
+      }
+
+    vtkMRMLModelNode* closedSurfaceVolumeNode
+      = this->ConvertFromIndexedLabelmapToClosedSurfaceModel(this->IndexedLabelmapVolumeNode);
+
+    return (closedSurfaceVolumeNode != NULL);
+    }
   else
     {
     vtkWarningMacro("Requested conversion not implemented yet!");
