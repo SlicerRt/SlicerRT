@@ -295,10 +295,10 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
   def TestSection_6ClearDatabase(self):
     self.delayDisplay("6: Clear database",self.delayMs)
 
-    slicer.dicomDatabase.closeDatabase()
-    self.assertFalse( slicer.dicomDatabase.isOpen )
-
     initialized = slicer.dicomDatabase.initializeDatabase()
     self.assertTrue( initialized )
 
-    slicer.mrmlScene.Clear(0)
+    slicer.dicomDatabase.closeDatabase()
+    self.assertFalse( slicer.dicomDatabase.isOpen )
+
+    #slicer.mrmlScene.Clear(0)

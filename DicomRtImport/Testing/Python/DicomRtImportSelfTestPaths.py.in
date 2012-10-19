@@ -1,7 +1,7 @@
-class DicomRtImportSelfTestPaths:
-  def __init__(self):
-    self.dataDir = '@CMAKE_CURRENT_SOURCE_DIR@/../../Data'
-    self.dataDir = os.path.abspath(self.dataDir)
+import os
 
-    self.tempDir = '@CMAKE_CURRENT_BINARY_DIR@/Temp'
-    self.dicomDatabaseDir = '@CMAKE_CURRENT_BINARY_DIR@/CtkDicomDatabase'
+dataDir = '@CMAKE_CURRENT_SOURCE_DIR@/../../Data'
+dataDir = os.path.abspath(dataDir)
+
+tempDir = '@CMAKE_CURRENT_BINARY_DIR@/Temp'
+dicomDatabaseDir = '@CMAKE_CURRENT_BINARY_DIR@/CtkDicomDatabase'
