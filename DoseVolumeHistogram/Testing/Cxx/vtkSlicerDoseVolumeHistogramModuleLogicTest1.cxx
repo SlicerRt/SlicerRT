@@ -448,6 +448,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     contourNode->SetAndObserveRibbonModelNodeId(modelNode->GetID());
     contourNode->SetActiveRepresentationByNode(modelNode);
     contourNode->SetRasterizationDownsamplingFactor(rasterizationDownsamplingFactor);
+    contourNode->SetStructureName((*it).c_str());
     contourNode->HideFromEditorsOff();
 
     // Put the contour node in the hierarchy
@@ -611,7 +612,7 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   std::vector<std::string> structureNames;
   std::vector<double> structureVolumeCCs;
 
-  char line[1024];
+  char line[16384];
   for (int i=0; i<2; ++i)
   {
     std::ifstream dvhStream;
@@ -630,7 +631,7 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
 
     bool firstLine = true;
     int fieldCount = 0;
-    while (dvhStream.getline(line, 1024, '\n'))
+    while (dvhStream.getline(line, 16384, '\n'))
     {
       std::string lineStr(line);
       size_t commaPosition = lineStr.find(csvSeparatorCharacter);

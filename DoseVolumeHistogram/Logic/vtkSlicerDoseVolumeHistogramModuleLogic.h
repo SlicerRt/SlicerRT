@@ -40,8 +40,9 @@
 
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
+class vtkImageData;
+class vtkImageStencilData;
 class vtkMRMLDoubleArrayNode;
-class vtkMRMLScalarVolumeNode;
 class vtkMRMLContourNode;
 class vtkMRMLModelNode;
 class vtkMRMLChartViewNode;
@@ -145,11 +146,11 @@ protected:
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
 
-  /// Compute DVH for the given volume (which is the selected dose volume stenciled with a structure) with the given structure model node
-  void ComputeDvh(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, vtkMRMLModelNode* structureModelNode);
+  /// Compute DVH for the given structure contour node volume with the stenciled dose volume (the indexed labelmap representation but with dose values instead of the labels)
+  void ComputeDvh(vtkMRMLContourNode* structureContourNode);
 
-  /// Get stenciled dose volume for a structure (ROI)
-  virtual void GetStenciledDoseVolumeForContour(vtkMRMLScalarVolumeNode* structureStenciledDoseVolumeNode, vtkMRMLContourNode* structureContourNode);
+  /// Get the resampled dose volume and the stencil for a structure on the resampled dose volume
+  virtual void GetStencilForContour(vtkMRMLContourNode* structureContourNode, vtkImageData* resampledDoseVolume, vtkImageStencilData* structureStencil);
 
   /// Return the chart view node object from the layout
   vtkMRMLChartViewNode* GetChartViewNode();

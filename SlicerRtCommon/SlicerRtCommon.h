@@ -44,7 +44,7 @@ public:
   static const std::string DVH_TYPE_ATTRIBUTE_NAME;
   static const std::string DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_NAME_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_MODEL_NODE_ID_ATTRIBUTE_NAME;
+  static const std::string DVH_STRUCTURE_CONTOUR_NODE_ID_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME;
