@@ -590,7 +590,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
       {
       if (representations[i])
         {
-        representations[i]->HideFromEditorsOff();
+        this->ShowRepresentation(representations[i], true);
         success = true;
         }
       else
@@ -600,14 +600,14 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
       }
     else if (representations[i])
       {
-      representations[i]->HideFromEditorsOn();
+      this->ShowRepresentation(representations[i], false);
       }
     }
 
   // Make sure the original representation type is shown on failure to set the new one
   if (!success && representations[this->ActiveRepresentationType])
     {
-    representations[this->ActiveRepresentationType]->HideFromEditorsOff();
+    this->ShowRepresentation(representations[this->ActiveRepresentationType], true);
     }
   else
     {
@@ -615,6 +615,20 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
     }
 
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
+}
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::ShowRepresentation(vtkMRMLDisplayableNode* representation, bool show)
+{
+  representation->SetHideFromEditors((!show)?1:0);
+  representation->SetDisplayVisibility(show?1:0);
+  
+  vtkMRMLDisplayNode* displayNode;
+  if (displayNode = representation->GetDisplayNode())
+  {
+    displayNode->SetSliceIntersectionVisibility(show?1:0);
+  }
 }
 
 //----------------------------------------------------------------------------

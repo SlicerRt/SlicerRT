@@ -145,6 +145,9 @@ protected:
   /// Convert indexed labelmap representation to closed surface model
   vtkMRMLModelNode* ConvertFromIndexedLabelmapToClosedSurfaceModel(vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode);
 
+  /// Show (true) or hide (false) a representation completely (editors, viewers, slice intersections)
+  void ShowRepresentation(vtkMRMLDisplayableNode* representation, bool show);
+
 protected:
   /// Set ribbon model node ID
   vtkSetReferenceStringMacro(RibbonModelNodeId);
