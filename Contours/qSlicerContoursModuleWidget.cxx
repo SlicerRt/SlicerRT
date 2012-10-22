@@ -357,11 +357,6 @@ void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged
     d->label_ReferenceVolume->setEnabled(referenceVolumeNeeded);
     d->pushButton_ApplyChangeRepresentation->setEnabled(!referenceVolumeNeeded);
   }
-  else if (index == (int)vtkMRMLContourNode::BitfieldLabelmap)
-  {
-    // Bitfield labelmap is not supported yet
-    d->pushButton_ApplyChangeRepresentation->setEnabled(false);
-  }
   else
   {
     d->pushButton_ApplyChangeRepresentation->setEnabled(true);
@@ -458,12 +453,6 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
       {
         (*it)->SetActiveRepresentationByNode((vtkMRMLDisplayableNode*)closedSurfaceModelNode);
       }
-    }
-    else if (d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::BitfieldLabelmap)
-    {
-      vtkMRMLContourNode::ContourRepresentationType representationTypeInSelectedNodes = this->getRepresentationTypeOfSelectedContours();
-      d->comboBox_ActiveRepresentation->setCurrentIndex((int)representationTypeInSelectedNodes);
-      std::cerr << "Bitfield labelmap representation is not yet supported!" << std::endl;
     }
   }
 

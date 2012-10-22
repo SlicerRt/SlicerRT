@@ -39,7 +39,6 @@ public:
     RibbonModel,
     IndexedLabelmap,
     ClosedSurfaceModel,
-    BitfieldLabelmap,
     NumberOfRepresentationTypes
   };
 
@@ -113,13 +112,6 @@ public:
   /// Set and observe closed surface model node
   void SetAndObserveClosedSurfaceModelNodeId(const char *nodeID);
 
-  /// Get bitfield labelmap volume node ID
-  vtkGetStringMacro(BitfieldLabelmapVolumeNodeId);
-  /// Get bitfield labelmap volume node
-  vtkMRMLScalarVolumeNode* GetBitfieldLabelmapVolumeNode();
-  /// Set and observe bitfield labelmap volume node
-  void SetAndObserveBitfieldLabelmapVolumeNodeId(const char *nodeID);
-
   /// Get rasterization reference volume node ID
   vtkGetStringMacro(RasterizationReferenceVolumeNodeId);
   /// Set and observe rasterization reference volume node ID
@@ -161,9 +153,6 @@ protected:
   /// Set closed surface model node ID
   vtkSetReferenceStringMacro(ClosedSurfaceModelNodeId);
 
-  /// Set bitfield labelmap volume node ID
-  vtkSetReferenceStringMacro(BitfieldLabelmapVolumeNodeId);
-
   /// Set rasterization reference volume node ID
   vtkSetStringMacro(RasterizationReferenceVolumeNodeId);
 
@@ -191,12 +180,6 @@ protected:
   vtkMRMLModelNode* ClosedSurfaceModelNode;
   /// Closed surface model representation model node ID
   char *ClosedSurfaceModelNodeId;
-
-  /// Bitfield labelmap volume representation
-  ///  Note: It won't work as is, because bitfield labelmaps store contour data for more than one contour!
-  vtkMRMLScalarVolumeNode* BitfieldLabelmapVolumeNode;
-  /// Bitfield labelmap volume representation volume node ID
-  char *BitfieldLabelmapVolumeNodeId;
 
   /// Active representation type
   ContourRepresentationType ActiveRepresentationType;

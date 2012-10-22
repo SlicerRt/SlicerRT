@@ -60,9 +60,6 @@ vtkMRMLContourNode::vtkMRMLContourNode()
   this->ClosedSurfaceModelNode = NULL;
   this->ClosedSurfaceModelNodeId = NULL;
 
-  this->BitfieldLabelmapVolumeNode = NULL;
-  this->BitfieldLabelmapVolumeNodeId = NULL;
-
   this->ActiveRepresentationType = None;
 
   this->RasterizationReferenceVolumeNodeId = NULL;
@@ -79,7 +76,6 @@ vtkMRMLContourNode::~vtkMRMLContourNode()
   this->SetAndObserveRibbonModelNodeId(NULL);
   this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
   this->SetAndObserveClosedSurfaceModelNodeId(NULL);
-  this->SetAndObserveBitfieldLabelmapVolumeNodeId(NULL);
   this->SetRasterizationReferenceVolumeNodeId(NULL);
 }
 
@@ -106,10 +102,6 @@ void vtkMRMLContourNode::WriteXML(ostream& of, int nIndent)
   if (this->ClosedSurfaceModelNodeId != NULL) 
     {
     of << indent << " ClosedSurfaceModelNodeId=\"" << this->ClosedSurfaceModelNodeId << "\"";
-    }
-  if (this->BitfieldLabelmapVolumeNodeId != NULL) 
-    {
-    of << indent << " BitfieldLabelmapVolumeNodeId=\"" << this->BitfieldLabelmapVolumeNodeId << "\"";
     }
   if (this->RasterizationReferenceVolumeNodeId != NULL) 
     {
@@ -155,11 +147,6 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
       {
       this->SetAndObserveClosedSurfaceModelNodeId(NULL);
       this->SetClosedSurfaceModelNodeId(attValue);
-      }
-    else if (!strcmp(attName, "BitfieldLabelmapVolumeNodeId")) 
-      {
-      this->SetAndObserveBitfieldLabelmapVolumeNodeId(NULL);
-      this->SetBitfieldLabelmapVolumeNodeId(attValue);
       }
     else if (!strcmp(attName, "RasterizationReferenceVolumeNodeId")) 
       {
@@ -214,9 +201,6 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
   this->SetAndObserveClosedSurfaceModelNodeId( NULL );
   this->SetClosedSurfaceModelNodeId( node->ClosedSurfaceModelNodeId );
 
-  this->SetAndObserveBitfieldLabelmapVolumeNodeId( NULL );
-  this->SetBitfieldLabelmapVolumeNodeId( node->BitfieldLabelmapVolumeNodeId );
-
   this->SetAndObserveRasterizationReferenceVolumeNodeId( node->RasterizationReferenceVolumeNodeId );
 
   this->SetRasterizationDownsamplingFactor( node->RasterizationDownsamplingFactor );
@@ -243,10 +227,6 @@ void vtkMRMLContourNode::UpdateReferences()
     {
     this->SetAndObserveClosedSurfaceModelNodeId(NULL);
     }
-  if (this->BitfieldLabelmapVolumeNodeId != NULL && this->Scene->GetNodeByID(this->BitfieldLabelmapVolumeNodeId) == NULL)
-    {
-    this->SetAndObserveBitfieldLabelmapVolumeNodeId(NULL);
-    }
   if (this->RasterizationReferenceVolumeNodeId != NULL && this->Scene->GetNodeByID(this->RasterizationReferenceVolumeNodeId) == NULL)
     {
     this->SetAndObserveRasterizationReferenceVolumeNodeId(NULL);
@@ -270,10 +250,6 @@ void vtkMRMLContourNode::UpdateReferenceID(const char *oldID, const char *newID)
     {
     this->SetAndObserveClosedSurfaceModelNodeId(newID);
     }
-  if (this->BitfieldLabelmapVolumeNodeId && !strcmp(oldID, this->BitfieldLabelmapVolumeNodeId))
-    {
-    this->SetAndObserveBitfieldLabelmapVolumeNodeId(newID);
-    }
   if (this->RasterizationReferenceVolumeNodeId && !strcmp(oldID, this->RasterizationReferenceVolumeNodeId))
     {
     this->SetAndObserveRasterizationReferenceVolumeNodeId(newID);
@@ -288,7 +264,6 @@ void vtkMRMLContourNode::UpdateScene(vtkMRMLScene *scene)
   this->SetAndObserveRibbonModelNodeId(this->RibbonModelNodeId);
   this->SetAndObserveIndexedLabelmapVolumeNodeId(this->IndexedLabelmapVolumeNodeId);
   this->SetAndObserveClosedSurfaceModelNodeId(this->ClosedSurfaceModelNodeId);
-  this->SetAndObserveBitfieldLabelmapVolumeNodeId(this->BitfieldLabelmapVolumeNodeId);
   this->SetAndObserveRasterizationReferenceVolumeNodeId(this->RasterizationReferenceVolumeNodeId);
   this->SetActiveRepresentationByType(this->ActiveRepresentationType);
 }
@@ -301,7 +276,6 @@ void vtkMRMLContourNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "RibbonModelNodeId:   " << this->RibbonModelNodeId << "\n";
   os << indent << "IndexedLabelmapVolumeNodeId:   " << this->IndexedLabelmapVolumeNodeId << "\n";
   os << indent << "ClosedSurfaceModelNodeId:   " << this->ClosedSurfaceModelNodeId << "\n";
-  os << indent << "BitfieldLabelmapVolumeNodeId:   " << this->BitfieldLabelmapVolumeNodeId << "\n";
   os << indent << "RasterizationReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
   os << indent << "ActiveRepresentationType:   " << this->ActiveRepresentationType << "\n";
   os << indent << "RasterizationDownsamplingFactor:   " << this->RasterizationDownsamplingFactor << "\n";
@@ -455,43 +429,6 @@ vtkMRMLModelNode* vtkMRMLContourNode::GetClosedSurfaceModelNode()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourNode::SetAndObserveBitfieldLabelmapVolumeNodeId(const char *nodeID)
-{
-  vtkSetAndObserveMRMLObjectMacro(this->BitfieldLabelmapVolumeNode, NULL);
-  this->SetBitfieldLabelmapVolumeNodeId(nodeID);
-  if (!nodeID)
-    {
-    return;
-    }
-
-  vtkMRMLScalarVolumeNode *tnode = this->GetBitfieldLabelmapVolumeNode();
-  if (tnode)
-    {
-    tnode->HideFromEditorsOn();
-    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-    vtkSetAndObserveMRMLObjectEventsMacro(this->BitfieldLabelmapVolumeNode, tnode, events);
-    }
-  else
-    {
-    vtkErrorMacro("Failed to set BitfieldLabelmap node ID!");
-    this->SetBitfieldLabelmapVolumeNodeId(NULL);
-    }
-}
-
-//----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetBitfieldLabelmapVolumeNode()
-{
-  vtkMRMLScalarVolumeNode* node = NULL;
-  if (this->Scene && this->BitfieldLabelmapVolumeNodeId != NULL )
-    {
-    vtkMRMLNode* snode = this->Scene->GetNodeByID(this->BitfieldLabelmapVolumeNodeId);
-    node = vtkMRMLScalarVolumeNode::SafeDownCast(snode);
-    }
-  return node;
-}
-
-//----------------------------------------------------------------------------
 void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const char* id)
 {
   if (this->RasterizationReferenceVolumeNodeId && this->Scene)
@@ -523,10 +460,6 @@ std::vector<vtkMRMLDisplayableNode*> vtkMRMLContourNode::CreateTemporaryRepresen
   if (this->ClosedSurfaceModelNode)
     {
     representations[ClosedSurfaceModel] = this->ClosedSurfaceModelNode;
-    }
-  if (this->BitfieldLabelmapVolumeNode)
-    {
-    representations[BitfieldLabelmap] = this->BitfieldLabelmapVolumeNode;
     }
   return representations;
 }
@@ -643,8 +576,6 @@ bool vtkMRMLContourNode::RepresentationExists( ContourRepresentationType type )
       return this->IndexedLabelmapVolumeNodeId ? true : false;
     case ClosedSurfaceModel:
       return this->ClosedSurfaceModelNodeId ? true : false;
-    case BitfieldLabelmap:
-      return this->BitfieldLabelmapVolumeNodeId ? true : false;
     default:
       return false;
     }
