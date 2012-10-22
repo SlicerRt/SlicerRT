@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <string>
 
+// ITK includes
+#include "itkImage.h"
+
 class vtkMRMLTransformableNode;
 class vtkGeneralTransform;
 class vtkMRMLVolumeNode;
@@ -86,6 +89,17 @@ public:
   */
   static void GetColorIndexForContour(vtkMRMLContourNode* contourNode, vtkMRMLScene* mrmlScene, int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLModelNode* referenceModelNode=NULL);
 
+  /*!
+    Convert VTK image to ITK image
+    \param inVolumeNode Input volume node
+    \param outItkVolume Output ITK image
+    \param paintForegroundTo1 Paint non-zero values to 1 (Optional)
+    \return Success
+  */
+//BTX
+  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
+//ETX
+
 private:
   /*!
     Compute transform between two transformable objects
@@ -95,5 +109,7 @@ private:
   */
   static void GetTransformBetweenDisplayables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform);
 };
+
+#include "SlicerRtCommon.txx"
 
 #endif

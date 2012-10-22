@@ -38,9 +38,7 @@
 // VTK includes
 #include <vtkNew.h>
 #include <vtkImageData.h>
-#include <vtkImageExport.h>
 #include <vtkTimerLog.h>
-#include <vtkTransform.h>
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
@@ -171,112 +169,6 @@ bool vtkSlicerDoseComparisonModuleLogic::DoseVolumeContainsDose(vtkMRMLNode* nod
   return false;
 }
 
-//----------------------------------------------------------------------------
-void vtkSlicerDoseComparisonModuleLogic
-::ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, itk::Image<float, 3>::Pointer outItkVolume)
-{
-  if ( inVolumeNode == NULL )
-  {
-    vtkErrorMacro("Failed to convert vtk image to itk image - input MRML volume node is NULL!"); 
-    return; 
-  }
-
-  vtkImageData* inVolume = inVolumeNode->GetImageData();
-  if ( inVolume == NULL )
-  {
-    vtkErrorMacro("Failed to convert vtk image to itk image - image in input MRML volume node is NULL!"); 
-    return; 
-  }
-
-  if ( outItkVolume.IsNull() )
-  {
-    vtkErrorMacro("Failed to convert vtk image to itk image - output image is NULL!"); 
-    return; 
-  }
-
-  // convert vtkImageData to itkImage 
-  vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
-  imageExport->SetInput(inVolume);
-  imageExport->Update(); 
-
-  // Determine input volume to world transform
-  vtkSmartPointer<vtkMatrix4x4> rasToWorldTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkMRMLTransformNode* inTransformNode=inVolumeNode->GetParentTransformNode();
-  if (inTransformNode!=NULL)
-  {
-    if (inTransformNode->IsTransformToWorldLinear() == 0)
-    {
-      vtkErrorMacro("There is a non-linear transform assigned to an input dose volume. Only linear transforms are supported!");
-      return;
-    }
-    inTransformNode->GetMatrixTransformToWorld(rasToWorldTransformMatrix);
-  }
-
-  vtkSmartPointer<vtkMatrix4x4> inVolumeToRasTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  inVolumeNode->GetIJKToRASMatrix(inVolumeToRasTransformMatrix);
-
-  vtkSmartPointer<vtkTransform> inVolumeToWorldTransform = vtkSmartPointer<vtkTransform>::New();
-  inVolumeToWorldTransform->Identity();
-  inVolumeToWorldTransform->PostMultiply();
-  inVolumeToWorldTransform->Concatenate(inVolumeToRasTransformMatrix);
-  inVolumeToWorldTransform->Concatenate(rasToWorldTransformMatrix);
-
-  // Set ITK image properties
-  double outputSpacing[3];
-  inVolumeToWorldTransform->GetScale(outputSpacing);
-  outItkVolume->SetSpacing(outputSpacing);
-
-  double outputOrigin[3];
-  inVolumeToWorldTransform->GetPosition(outputOrigin);
-  outItkVolume->SetOrigin(outputOrigin);
-
-  double outputOrienationAngles[3];
-  inVolumeToWorldTransform->GetOrientation(outputOrienationAngles);
-  vtkSmartPointer<vtkTransform> inVolumeToWorldOrientationTransform = vtkSmartPointer<vtkTransform>::New();
-  inVolumeToWorldOrientationTransform->Identity();
-  inVolumeToWorldOrientationTransform->RotateX(outputOrienationAngles[0]);
-  inVolumeToWorldOrientationTransform->RotateY(outputOrienationAngles[1]);
-  inVolumeToWorldOrientationTransform->RotateZ(outputOrienationAngles[2]);
-  vtkSmartPointer<vtkMatrix4x4> inVolumeToWorldOrientationTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  inVolumeToWorldOrientationTransform->GetMatrix(inVolumeToWorldOrientationTransformMatrix);
-  itk::Matrix<double,3,3> outputDirectionMatrix;
-  for(int i=0; i<3; i++)
-  {
-    for(int j=0; j<3; j++)
-    {
-      outputDirectionMatrix[i][j] = inVolumeToWorldOrientationTransformMatrix->GetElement(i,j);
-    }
-  }
-  outItkVolume->SetDirection(outputDirectionMatrix);
-
-  int inputExtent[6]={0,0,0,0,0,0}; 
-  inVolume->GetExtent(inputExtent); 
-  itk::Image<float, 3>::SizeType inputSize;
-  inputSize[0] = inputExtent[1] - inputExtent[0] + 1;
-  inputSize[1] = inputExtent[3] - inputExtent[2] + 1;
-  inputSize[2] = inputExtent[5] - inputExtent[4] + 1;
-
-  itk::Image<float, 3>::IndexType start;
-  start[0]=start[1]=start[2]=0.0;
-
-  itk::Image<float, 3>::RegionType region;
-  region.SetSize(inputSize);
-  region.SetIndex(start);
-  outItkVolume->SetRegions(region);
-
-  try
-  {
-    outItkVolume->Allocate();
-  }
-  catch(itk::ExceptionObject & err)
-  {
-    vtkErrorMacro("Failed to allocate memory for the image conversion: " << err.GetDescription() );
-    return;
-  }
-
-  imageExport->Export( outItkVolume->GetBufferPointer() );
-}
-
 //---------------------------------------------------------------------------
 void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 {
@@ -294,8 +186,8 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   // Convert inputs to ITK images
   double checkpointItkConvertStart = timer->GetUniversalTime();
-  ConvertVolumeNodeToItkImage(referenceDoseVolumeNode, referenceDoseVolumeItk);
-  ConvertVolumeNodeToItkImage(compareDoseVolumeNode, compareDoseVolumeItk);
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(referenceDoseVolumeNode, referenceDoseVolumeItk);
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(compareDoseVolumeNode, compareDoseVolumeItk);
 
   // Compute gamma dose volume
   double checkpointGammaStart = timer->GetUniversalTime();

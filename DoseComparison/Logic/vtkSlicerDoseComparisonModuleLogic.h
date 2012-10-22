@@ -31,9 +31,6 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// ITK includes
-#include "itkImage.h"
-
 // STD includes
 #include <cstdlib>
 
@@ -80,12 +77,6 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
-
-protected:
-//BTX  
-  /// Convert VTK image to ITK image
-  void ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, itk::Image<float, 3>::Pointer outItkVolume);
-//ETX
 
 private:
   vtkSlicerDoseComparisonModuleLogic(const vtkSlicerDoseComparisonModuleLogic&); // Not implemented

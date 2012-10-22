@@ -8,7 +8,7 @@
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLScene.h>;
+#include <vtkMRMLScene.h>
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLDisplayNode.h>
 

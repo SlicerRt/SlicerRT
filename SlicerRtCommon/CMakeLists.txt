@@ -6,6 +6,7 @@ project(vtkSlicerRtCommon)
 SET (SlicerRtCommon_SRCS 
   SlicerRtCommon.cxx
   SlicerRtCommon.h
+  SlicerRtCommon.txx
   vtkMRMLContourNode.cxx
   vtkMRMLContourNode.h
   vtkMRMLContourHierarchyNode.cxx
@@ -22,7 +23,10 @@ SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${Slicer_Libs_INCLU
 # Build the library
 
 set(lib_name ${PROJECT_NAME})
-SET (SlicerRtCommon_LIBS ${SlicerRtCommon_LIBS} vtkCommon MRMLCore)
+SET (SlicerRtCommon_LIBS ${SlicerRtCommon_LIBS}
+	vtkCommon
+	MRMLCore
+)
 
 INCLUDE_DIRECTORIES( ${SlicerRtCommon_INCLUDE_DIRS} )
 ADD_LIBRARY(${lib_name} STATIC ${SlicerRtCommon_SRCS})
