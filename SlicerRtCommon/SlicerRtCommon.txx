@@ -3,8 +3,10 @@
 
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLTransformNode.h>
 
 // VTK includes
+#include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 #include <vtkImageExport.h>
 #include <vtkImageThreshold.h>
