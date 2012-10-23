@@ -206,6 +206,8 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
   if (!this->mrmlScene() || !node || !d->ModuleWindowInitialized)
   {
     d->comboBox_ActiveRepresentation->setEnabled(false);
+    d->label_ActiveRepresentation->setText(tr("[No node is selected]"));
+    d->label_ActiveRepresentation->setToolTip(tr(""));
     return;
   }
 
@@ -217,12 +219,17 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
     vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
     if (contourNode)
     {
+      int activeRepresentation = (int)contourNode->GetActiveRepresentationType();
+
       d->SelectedContourNodes.push_back(contourNode);
-      d->comboBox_ActiveRepresentation->setCurrentIndex((int)contourNode->GetActiveRepresentationType());
+      d->comboBox_ActiveRepresentation->setCurrentIndex(activeRepresentation);
 
       d->doubleSpinBox_DownsamplingFactor->blockSignals(true);
       d->doubleSpinBox_DownsamplingFactor->setValue(contourNode->GetRasterizationDownsamplingFactor());
       d->doubleSpinBox_DownsamplingFactor->blockSignals(false);
+
+      d->label_ActiveRepresentation->setText(d->comboBox_ActiveRepresentation->itemText(activeRepresentation));
+      d->label_ActiveRepresentation->setToolTip(tr(""));
     }
   }
   else if (node->IsA("vtkMRMLContourHierarchyNode"))
@@ -255,11 +262,15 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 
       // Make sure the state is set even if the representation combobox selection has not actually changed
       this->onActiveRepresentationComboboxSelectionChanged((int)representationType);
+      d->label_ActiveRepresentation->setText(d->comboBox_ActiveRepresentation->itemText((int)representationType));
+      d->label_ActiveRepresentation->setToolTip(tr(""));
     }
     else
     {
       d->comboBox_ActiveRepresentation->setCurrentIndex(-1); // Void selection
       this->onActiveRepresentationComboboxSelectionChanged(-1);
+      d->label_ActiveRepresentation->setText(tr("Various"));
+      d->label_ActiveRepresentation->setToolTip(tr("The selected hierarchy node contains contours with different active representation types"));
     }
     d->comboBox_ActiveRepresentation->blockSignals(false);
 
@@ -359,7 +370,8 @@ void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged
   }
   else
   {
-    d->pushButton_ApplyChangeRepresentation->setEnabled(true);
+    d->pushButton_ApplyChangeRepresentation->setEnabled(
+      this->selectedContoursContainRepresentation( (vtkMRMLContourNode::ContourRepresentationType)index) );
   }
 }
 
@@ -455,6 +467,9 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
       }
     }
   }
+
+  d->label_ActiveRepresentation->setText(d->comboBox_ActiveRepresentation->currentText());
+  d->label_ActiveRepresentation->setToolTip(tr(""));
 
   // We're done converting, disable controls
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
