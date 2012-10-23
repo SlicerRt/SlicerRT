@@ -72,6 +72,10 @@ public:
   /// when the node is deleted in the scene
   void UpdateReferences();
 
+  /// Handles events registered in the observer manager
+  /// Namely invalidates (deletes) all non-active representations when the active is modified
+  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
+
 public:
   /// Set default representation by the object instance
   void SetActiveRepresentationByNode(vtkMRMLDisplayableNode *node);
