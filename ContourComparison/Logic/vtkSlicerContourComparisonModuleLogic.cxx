@@ -227,13 +227,6 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
   SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk, true);
   SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk, true);
 
-  if (!itk_image_header_compare(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk))
-  {
-    errorMessage = "The reference and the compare contour labelmaps have different sizes!";
-    vtkErrorMacro( << errorMessage);
-    return;
-  }
-
   // Get voxel volume and number of voxels (the itk_image_header_compare check made sure the spacings match)
   itk::Image<unsigned char, 3>::SpacingType spacing = referenceContourLabelmapVolumeItk->GetSpacing();
   double voxelVolumeCc = spacing[0] * spacing[1] * spacing[2];
