@@ -121,8 +121,8 @@ void qSlicerContoursModuleWidget::setup()
 
   connect( d->comboBox_ActiveRepresentation, SIGNAL(currentIndexChanged(int)), this, SLOT(activeRepresentationComboboxSelectionChanged(int)) );
   connect( d->pushButton_ApplyChangeRepresentation, SIGNAL(clicked()), this, SLOT(applyChangeRepresentationClicked()) );
-  connect( d->doubleSpinBox_DownsamplingFactor, SIGNAL(valueChanged(double)), this, SLOT(downsamplingFactorChanged(double)) );
-  connect( d->SliderWidget_TargetReductionFactor, SIGNAL(valueChanged(double)), this, SLOT(targetReductionFactorChanged(double)) );
+  connect( d->SliderWidget_OversamplingFactor, SIGNAL(valueChanged(double)), this, SLOT(downsamplingFactorChanged(double)) );
+  connect( d->SliderWidget_TargetReductionFactorPercent, SIGNAL(valueChanged(double)), this, SLOT(targetReductionFactorPercentChanged(double)) );
 
   d->label_Warning->setVisible(false);
   d->label_ActiveSelected->setVisible(false);
@@ -224,9 +224,9 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
       d->SelectedContourNodes.push_back(contourNode);
       d->comboBox_ActiveRepresentation->setCurrentIndex(activeRepresentation);
 
-      d->doubleSpinBox_DownsamplingFactor->blockSignals(true);
-      d->doubleSpinBox_DownsamplingFactor->setValue(contourNode->GetRasterizationDownsamplingFactor());
-      d->doubleSpinBox_DownsamplingFactor->blockSignals(false);
+      d->SliderWidget_OversamplingFactor->blockSignals(true);
+      d->SliderWidget_OversamplingFactor->setValue(contourNode->GetRasterizationDownsamplingFactor());
+      d->SliderWidget_OversamplingFactor->blockSignals(false);
 
       d->label_ActiveRepresentation->setText(d->comboBox_ActiveRepresentation->itemText(activeRepresentation));
       d->label_ActiveRepresentation->setToolTip(tr(""));
@@ -291,10 +291,10 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
     // Set the downsampling factor on the GUI and also set the first found downsampling factor to all the nodes if they are not the same
     if (sameDownsamplingFactor)
     {
-      d->doubleSpinBox_DownsamplingFactor->blockSignals(true);
+      d->SliderWidget_OversamplingFactor->blockSignals(true);
     }
-    d->doubleSpinBox_DownsamplingFactor->setValue(downsamplingFactor);
-    d->doubleSpinBox_DownsamplingFactor->blockSignals(false);
+    d->SliderWidget_OversamplingFactor->setValue(downsamplingFactor);
+    d->SliderWidget_OversamplingFactor->blockSignals(false);
   }
   else
   {
@@ -317,11 +317,11 @@ void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged
   d->label_ActiveSelected->setVisible(false);
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
   d->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
-  d->doubleSpinBox_DownsamplingFactor->setEnabled(false);
+  d->SliderWidget_OversamplingFactor->setEnabled(false);
   d->label_DownsamplingFactor->setEnabled(false);
   d->pushButton_ApplyChangeRepresentation->setEnabled(false);
   d->label_TargetReductionFactor->setEnabled(false);
-  d->SliderWidget_TargetReductionFactor->setEnabled(false);
+  d->SliderWidget_TargetReductionFactorPercent->setEnabled(false);
 
   if (!this->mrmlScene())
   {
@@ -345,7 +345,7 @@ void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged
     // If the active representation of the selected nodes is not labelmap, but the user changed it to labelmap
     bool referenceVolumeNeeded = this->isReferenceVolumeNeeded();
     d->label_Warning->setVisible(referenceVolumeNeeded);
-    d->doubleSpinBox_DownsamplingFactor->setEnabled(referenceVolumeNeeded);
+    d->SliderWidget_OversamplingFactor->setEnabled(referenceVolumeNeeded);
     d->label_DownsamplingFactor->setEnabled(referenceVolumeNeeded);
     d->MRMLNodeComboBox_ReferenceVolume->setEnabled(referenceVolumeNeeded);
     d->label_ReferenceVolume->setEnabled(referenceVolumeNeeded);
@@ -356,13 +356,13 @@ void qSlicerContoursModuleWidget::onActiveRepresentationComboboxSelectionChanged
     && index == (int)vtkMRMLContourNode::ClosedSurfaceModel)
   {
     d->label_TargetReductionFactor->setEnabled(true);
-    d->SliderWidget_TargetReductionFactor->setEnabled(true);
+    d->SliderWidget_TargetReductionFactorPercent->setEnabled(true);
     d->pushButton_ApplyChangeRepresentation->setEnabled(true);
 
     // If indexed labelmap is missing in even one selected node then enable controls
     bool referenceVolumeNeeded = this->isReferenceVolumeNeeded();
     d->label_Warning->setVisible(referenceVolumeNeeded);
-    d->doubleSpinBox_DownsamplingFactor->setEnabled(referenceVolumeNeeded);
+    d->SliderWidget_OversamplingFactor->setEnabled(referenceVolumeNeeded);
     d->label_DownsamplingFactor->setEnabled(referenceVolumeNeeded);
     d->MRMLNodeComboBox_ReferenceVolume->setEnabled(referenceVolumeNeeded);
     d->label_ReferenceVolume->setEnabled(referenceVolumeNeeded);
@@ -412,13 +412,13 @@ void qSlicerContoursModuleWidget::downsamplingFactorChanged(double value)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::targetReductionFactorChanged(double value)
+void qSlicerContoursModuleWidget::targetReductionFactorPercentChanged(double value)
 {
   Q_D(qSlicerContoursModuleWidget);
 
   for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
   {
-    (*it)->SetDecimationTargetReductionFactor(value);
+    (*it)->SetDecimationTargetReductionFactor(value / 100.0);
   }
 }
 
@@ -474,7 +474,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
   // We're done converting, disable controls
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
   d->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
-  d->doubleSpinBox_DownsamplingFactor->setEnabled(false);
+  d->SliderWidget_OversamplingFactor->setEnabled(false);
   d->label_DownsamplingFactor->setEnabled(false);
   d->pushButton_ApplyChangeRepresentation->setEnabled(false);
 

@@ -95,11 +95,14 @@
       <item row="0" column="1">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Active representation:</string>
+         <string>Convert to:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
+      <item row="0" column="3">
        <widget class="QComboBox" name="comboBox_ActiveRepresentation">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -124,7 +127,7 @@
         </item>
        </widget>
       </item>
-      <item row="1" column="2">
+      <item row="1" column="3">
        <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
         <property name="enabled">
          <bool>false</bool>
@@ -148,7 +151,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1" colspan="2">
+      <item row="4" column="1" colspan="3">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <property name="spacing">
          <number>4</number>
@@ -266,63 +269,38 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_DownsamplingFactor">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="toolTip">
-         <string>The created labelmap will be downsampled along each axes by this value (i.e. the dimensions of the created labelmap will be the reference volume dimension divided by this number)</string>
-        </property>
-        <property name="decimals">
-         <number>4</number>
-        </property>
-        <property name="minimum">
-         <double>0.125000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>8.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.500000000000000</double>
-        </property>
-        <property name="value">
-         <double>2.000000000000000</double>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="1">
        <widget class="QLabel" name="label_DownsamplingFactor">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Downsampling factor:</string>
+         <string>Oversampling factor:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item row="3" column="2">
-       <widget class="ctkSliderWidget" name="SliderWidget_TargetReductionFactor">
+      <item row="3" column="3">
+       <widget class="ctkSliderWidget" name="SliderWidget_TargetReductionFactorPercent">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="toolTip">
-         <string>The created closed surface model will be decimated using this parameter (e.g., if TargetReduction is set to 0.9, this filter will try to reduce the data set to 10% of its original size)</string>
+         <string>The created closed surface model will be decimated using this parameter (e.g., if TargetReduction is set to 90%, this filter will try to reduce the data set to 10% of its original size)</string>
         </property>
         <property name="decimals">
-         <number>3</number>
+         <number>0</number>
         </property>
         <property name="singleStep">
-         <double>0.100000000000000</double>
+         <double>5.000000000000000</double>
         </property>
         <property name="pageStep">
-         <double>0.200000000000000</double>
+         <double>20.000000000000000</double>
         </property>
         <property name="maximum">
-         <double>0.999000000000000</double>
+         <double>100.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -331,8 +309,33 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="toolTip">
+         <string>The created closed surface model will be decimated using this parameter (e.g., if TargetReduction is set to 90%, this filter will try to reduce the data set to 10% of its original size)</string>
+        </property>
         <property name="text">
-         <string>Target reduction factor:</string>
+         <string>Target reduction factor (%):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="ctkSliderWidget" name="SliderWidget_OversamplingFactor">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>A value &gt;1 results in sampling on a finer resolution than the reference volume</string>
+        </property>
+        <property name="decimals">
+         <number>2</number>
+        </property>
+        <property name="minimum">
+         <double>0.250000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>8.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>2.000000000000000</double>
         </property>
        </widget>
       </item>
