@@ -585,8 +585,6 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
 
   std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
 
-  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
-
   // Show only the active representation and set active representation type
   bool success = false;
   for (unsigned int i=0; i<NumberOfRepresentationTypes; ++i)
@@ -618,10 +616,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
     {
     this->ActiveRepresentationType = type; // Set the type when there is no valid pointer (yet)
     }
-
-  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
 }
-
 
 //----------------------------------------------------------------------------
 void vtkMRMLContourNode::ShowRepresentation(vtkMRMLDisplayableNode* representation, bool show)
@@ -635,7 +630,6 @@ void vtkMRMLContourNode::ShowRepresentation(vtkMRMLDisplayableNode* representati
     displayNode->SetSliceIntersectionVisibility(show?1:0);
   }
 }
-
 
 //----------------------------------------------------------------------------
 bool vtkMRMLContourNode::RepresentationExists( ContourRepresentationType type )
