@@ -40,11 +40,8 @@
 #include "vtkSlicerIsodoseModuleLogicExport.h"
 
 // MRML includes
-class vtkMRMLVolumeNode;
 class vtkMRMLIsodoseNode;
-class vtkMRMLColorNode;
 class vtkMRMLColorTableNode;
-class vtkMRMLProceduralColorNode;
 
 /// \ingroup Slicer_QtModules_Isodose
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :

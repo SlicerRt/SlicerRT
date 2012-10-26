@@ -216,7 +216,6 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
   // A volume node needs a display node
   vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> outputVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
   this->GetMRMLScene()->AddNode(outputVolumeDisplayNode);
-  //outputVolumeDisplayNode->SetName(hierarchyNodeName.c_str());
 
   double originX, originY, originZ;
   double spacingX, spacingY, spacingZ;

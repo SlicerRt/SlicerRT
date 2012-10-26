@@ -65,6 +65,10 @@ public:
   static const std::string DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE;
   static const std::string DVH_CSV_HEADER_VOLUME_FIELD_END;
 
+  // Isodose constants
+  static const std::string ISODOSE_MODEL_NODE_NAME_PREFIX;
+  static const std::string ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX;
+
   //----------------------------------------------------------------------------
   // Utility functions
   //----------------------------------------------------------------------------

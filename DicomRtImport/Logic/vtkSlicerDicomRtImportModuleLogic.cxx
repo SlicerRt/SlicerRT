@@ -260,6 +260,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
     vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
     std::string structureSetColorTableNodeName;
     structureSetColorTableNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+    structureSetColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(structureSetColorTableNodeName);
     structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
     structureSetColorTableNode->HideFromEditorsOff();
     structureSetColorTableNode->SetTypeToUser();
@@ -295,15 +296,19 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
         continue;
       }
 
+      std::string contourNodeName;
+      contourNodeName = std::string(roiLabel) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
+      contourNodeName = this->GetMRMLScene()->GenerateUniqueName(contourNodeName);
+
       if (roiPoly->GetNumberOfPoints() == 1)
       {	
         // Point ROI
-        addedDisplayableNode = AddRoiPoint(roiPoly->GetPoint(0), roiLabel, roiColor);
+        addedDisplayableNode = AddRoiPoint(roiPoly->GetPoint(0), contourNodeName, roiColor);
       }
       else
       {
         // Contour ROI
-        addedDisplayableNode = AddRoiContour(roiPoly, roiLabel, roiColor);
+        addedDisplayableNode = AddRoiContour(roiPoly, contourNodeName, roiColor);
 
         // Create Contour node
         if (addedDisplayableNode)
@@ -314,6 +319,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
             contourHierarchyRootNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
             std::string hierarchyNodeName;
             hierarchyNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX;
+            hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
             contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
             contourHierarchyRootNode->AllowMultipleChildrenOn();
             contourHierarchyRootNode->HideFromEditorsOff();
@@ -323,8 +329,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
 
           vtkSmartPointer<vtkMRMLContourNode> contourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
           contourNode = vtkMRMLContourNode::SafeDownCast(this->GetMRMLScene()->AddNode(contourNode));
-          std::string contourNodeName;
-          contourNodeName = std::string(roiLabel) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
           contourNode->SetName(contourNodeName.c_str());
           contourNode->SetStructureName(roiLabel);
           contourNode->SetAndObserveRibbonModelNodeId(addedDisplayableNode->GetID());
@@ -348,6 +352,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
           modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
           std::string hierarchyNodeName;
           hierarchyNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
+          hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
           modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
           modelHierarchyRootNode->AllowMultipleChildrenOn();
           modelHierarchyRootNode->HideFromEditorsOff();
@@ -458,7 +463,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
       // Isocenter fiducial
       double isoColor[3] = { 1.0, 1.0, 1.0 };
       addedDisplayableNode= this->AddRoiPoint(rtReader->GetBeamIsocenterPosition(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
-       // Add new node to the hierarchy node
+
+      // Add new node to the hierarchy node
       if (addedDisplayableNode)
       {
         // Create root node, if it has not been created yet
@@ -467,6 +473,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
           isocenterHierarchyRootNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
           std::string hierarchyNodeName;
           hierarchyNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX;
+          hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
           isocenterHierarchyRootNode->SetName(hierarchyNodeName.c_str());
           isocenterHierarchyRootNode->AllowMultipleChildrenOn();
           isocenterHierarchyRootNode->HideFromEditorsOff();
@@ -501,10 +508,11 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(double *roiPosition, const char* roiLabel, double *roiColor)
+vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(double *roiPosition, std::string baseName, double *roiColor)
 {
   vtkSmartPointer<vtkMRMLAnnotationFiducialNode> fiducialNode = vtkSmartPointer<vtkMRMLAnnotationFiducialNode>::New();
-  fiducialNode->SetName(roiLabel);
+  std::string fiducialNodeName = this->GetMRMLScene()->GenerateUniqueName(baseName);
+  fiducialNode->SetName(baseName.c_str());
   fiducialNode->AddControlPoint(roiPosition, 0, 1);
   fiducialNode->SetLocked(1);
   fiducialNode->SetDisplayVisibility(0);
@@ -520,7 +528,7 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(double *r
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiContour(vtkPolyData *roiPoly, const char* roiLabel, double *roiColor)
+vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiContour(vtkPolyData *roiPoly, std::string baseName, double *roiColor)
 {
   vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
   displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
@@ -531,7 +539,8 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiContour(vtkPoly
   // Disable backface culling to make the back side of the contour visible as well
   displayNode->SetBackfaceCulling(0);
 
-  std::string modelNodeName = std::string(roiLabel) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
+  std::string modelNodeName = baseName + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
+  modelNodeName = this->GetMRMLScene()->GenerateUniqueName(modelNodeName);
 
   vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
   modelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(modelNode));

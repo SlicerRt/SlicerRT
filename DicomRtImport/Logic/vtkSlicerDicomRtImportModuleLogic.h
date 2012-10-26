@@ -70,10 +70,10 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
   /// Add an ROI point to the scene
-  vtkMRMLDisplayableNode* AddRoiPoint(double *roiPosition, const char* roiLabel, double *roiColor);
+  vtkMRMLDisplayableNode* AddRoiPoint(double *roiPosition, std::string baseName, double *roiColor);
 
   /// Add an ROI contour to the scene
-  vtkMRMLDisplayableNode* AddRoiContour(vtkPolyData *roiPoly, const char* roiLabel, double *roiColor);
+  vtkMRMLDisplayableNode* AddRoiContour(vtkPolyData *roiPoly, std::string baseName, double *roiColor);
 
 private:
 
