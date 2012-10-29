@@ -761,7 +761,7 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   }
 
   cout << "RT Dose object" << OFendl << OFendl;
-  OFString doseGridScaling=0;
+  OFString doseGridScaling;
   if (rtDoseObject.getDoseGridScaling(doseGridScaling).bad())
   {
     cerr << "Error: Failed to get Dose Grid Scaling for dose object" << OFendl;
@@ -769,7 +769,7 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   }
   this->SetDoseGridScaling(doseGridScaling.c_str());
 
-  OFString doseUnits=0;
+  OFString doseUnits;
   if (rtDoseObject.getDoseUnits(doseUnits).bad())
   {
     cerr << "Error: Failed to get Dose Units for dose object" << OFendl;

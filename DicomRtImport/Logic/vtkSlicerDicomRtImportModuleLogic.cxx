@@ -72,23 +72,13 @@ vtkSlicerDicomRtImportModuleLogic::vtkSlicerDicomRtImportModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportModuleLogic::~vtkSlicerDicomRtImportModuleLogic()
 {
-  SetVolumesLogic(NULL); // release the volumes logic object
+  this->SetVolumesLogic(NULL); // release the volumes logic object
 }
 
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtImportModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportModuleLogic::InitializeEventListeners()
-{
-  vtkNew<vtkIntArray> events;
-  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
-  this->SetAndObserveMRMLSceneEventsInternal(this->GetMRMLScene(), events.GetPointer());
 }
 
 //-----------------------------------------------------------------------------
@@ -98,22 +88,6 @@ void vtkSlicerDicomRtImportModuleLogic::RegisterNodes()
 
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourHierarchyNode>::New());
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportModuleLogic::UpdateFromMRMLScene()
-{
-  assert(this->GetMRMLScene() != 0);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
-{
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
-{
 }
 
 //---------------------------------------------------------------------------
@@ -384,6 +358,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
   {
     // Load Volume
     vtkMRMLVolumeNode* volumeNode = this->VolumesLogic->AddArchetypeVolume(filename, seriesname);
+
     if (volumeNode == NULL)
     {
       vtkErrorMacro("Failed to load dose volume file '" << filename << "' (series name '" << seriesname << "')");

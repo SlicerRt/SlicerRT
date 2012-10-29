@@ -90,7 +90,7 @@ void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
   events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
-  this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
+  this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
 }
 
 //-----------------------------------------------------------------------------
