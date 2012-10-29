@@ -58,21 +58,22 @@ add_subdirectory(DoseComparison)
 add_subdirectory(Isodose)
 add_subdirectory(Contours)
 
+add_subdirectory(PlmBspline) # requires Plastimatch registration
+add_subdirectory(PlmDicomRtExport)
+add_subdirectory(PlmDicomRtImport)
+add_subdirectory(PlmLandwarp)
+add_subdirectory(PlmXformwarp)
+
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(ProtonDose)
   add_subdirectory(ContourComparison)
  
-  add_subdirectory(PlmBspline) # requires Plastimatch registration
-  add_subdirectory(PlmDicomRtExport)
-  add_subdirectory(PlmDicomRtImport)
   add_subdirectory(PlmDoseComparison)
   add_subdirectory(PlmDvh)
-  add_subdirectory(PlmLandwarp)
   #add_subdirectory(PlmMabs) # requires Plastimatch segmentation  
   #add_subdirectory(PlmSlicerBspline) # disable for now, loadable
   add_subdirectory(PlmSynth)
   add_subdirectory(PlmThreshbox)
-  add_subdirectory(PlmXformwarp)
 endif()
 
 #-----------------------------------------------------------------------------
