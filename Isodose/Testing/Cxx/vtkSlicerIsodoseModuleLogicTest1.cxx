@@ -211,12 +211,10 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
-
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLIsodoseNode> paramNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
-  mrmlScene->AddNode(paramNode);
   paramNode->SetAndObserveDoseVolumeNodeId(doseScalarVolumeNode->GetID());
+  mrmlScene->AddNode(paramNode);
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerIsodoseModuleLogic> isodoseLogic = vtkSmartPointer<vtkSlicerIsodoseModuleLogic>::New();
@@ -237,15 +235,13 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "Invalid model hierarchy node!" << std::endl;
     return EXIT_FAILURE;
   }
-
-  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
-  mrmlScene->Commit();
   
+  mrmlScene->Commit();
+
   vtkSmartPointer<vtkCollection> collection = vtkSmartPointer<vtkCollection>::New();
   modelHierarchyRootNode->GetChildrenModelNodes(collection);
   vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
   
-  //std::string isodoseBaselineFileName = vtksys::SystemTools::GetParentDirectory(temporarySceneFileName) + "/5.vtk";
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
   reader->SetFileName(baselineIsodoseSurfaceFileName);
   reader->Update();

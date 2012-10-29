@@ -212,19 +212,16 @@ void vtkSlicerIsodoseModuleLogic::AddDefaultIsodoseColorNode()
     return;
   }
   
-  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
-
   // add a random procedural node that covers full integer range
   vtkMRMLColorTableNode* isodoseColorNode = this->CreateIsodoseColorNode();
   this->GetMRMLScene()->AddNode(isodoseColorNode);
 
-  char* temp = isodoseColorNode->GetID();
-  this->IsodoseNode->SetAndObserveColorTableNodeId(temp);
+  char* isodoseColorNodeId = isodoseColorNode->GetID();
+  this->IsodoseNode->SetAndObserveColorTableNodeId(isodoseColorNodeId);
 
   isodoseColorNode->Delete();
 
   vtkDebugMacro("Done adding default color nodes");
-  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
 }
 
 
@@ -263,8 +260,6 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
-
-  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
   // Hierarchy node for the loaded structure sets
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkMRMLModelHierarchyNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(
@@ -399,7 +394,6 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   }
 
   this->IsodoseNode->SetAndObserveOutputHierarchyNodeId(modelHierarchyRootNode->GetID());
-  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 
   return 0;
 }
