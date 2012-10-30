@@ -21,7 +21,6 @@ limitations under the License.
 // MRML includes
 
 // VTK includes
-#include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyData.h>
 #include <vtkPoints.h>
@@ -51,8 +50,6 @@ limitations under the License.
 // Qt includes
 #include <QSqlQuery>
 #include <QSqlDatabase>
-//#include <QSqlRecord>
-//#include <QSqlError>
 #include <QVariant>
 #include <QStringList>
 #include <QSettings>

@@ -50,6 +50,9 @@ message(STATUS "SLICERRT_ENABLE_EXPERIMENTAL_MODULES: " ${SLICERRT_ENABLE_EXPERI
 
 #-----------------------------------------------------------------------------
 add_subdirectory(SlicerRtCommon)
+IF (WIN32)
+	add_subdirectory(LeakFinder)
+ENDIF()
 
 add_subdirectory(DicomRtImport)
 add_subdirectory(DoseAccumulation)

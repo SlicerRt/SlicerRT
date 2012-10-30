@@ -49,7 +49,6 @@ limitations under the License.
 #include <vtkMRMLColorTableNode.h>
 
 // VTK includes
-#include <vtkNew.h>
 #include <vtkPolyData.h>
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
@@ -392,7 +391,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
       // Apply dose grid scaling
       vtkSmartPointer<vtkImageData> floatVolumeData = vtkSmartPointer<vtkImageData>::New();
 
-      vtkNew<vtkImageCast> imageCast;
+      vtkSmartPointer<vtkImageCast> imageCast = vtkSmartPointer<vtkImageCast>::New();
       imageCast->SetInput(volumeNode->GetImageData());
       imageCast->SetOutputScalarTypeToFloat();
       imageCast->Update();
