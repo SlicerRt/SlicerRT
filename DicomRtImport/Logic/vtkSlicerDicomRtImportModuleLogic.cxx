@@ -42,8 +42,9 @@ limitations under the License.
 #include <vtkMRMLAnnotationPointDisplayNode.h>
 #include <vtkMRMLAnnotationFiducialNode.h>
 #include <vtkMRMLAnnotationTextDisplayNode.h>
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
+#include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLColorTableNode.h>
 
@@ -357,15 +358,22 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
   if (rtReader->GetLoadRTDoseSuccessful())
   {
     // Load Volume
-    vtkMRMLVolumeNode* volumeNode = this->VolumesLogic->AddArchetypeVolume(filename, seriesname);
+    vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> volumeStorageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
+    vtkSmartPointer<vtkMRMLScalarVolumeNode> volumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+    volumeStorageNode->SetFileName(filename);
+    //volumeStorageNode->ResetFileNameList();
+    //for all files f (TODO: need to pass the whole file list not just the first one)
+    //{
+    //  volumeStorageNode->AddFileName(f)
+    //}
+    //volumeStorageNode.SetSingleFile(0)
 
-    if (volumeNode == NULL)
+    if (volumeStorageNode->ReadData(volumeNode))
     {
-      vtkErrorMacro("Failed to load dose volume file '" << filename << "' (series name '" << seriesname << "')");
-      loadingErrorsOccurred=true;
-    }
-    else
-    {
+      volumeNode->SetScene(this->GetMRMLScene());
+      volumeNode->SetName(seriesname);
+      this->GetMRMLScene()->AddNode(volumeNode);
+
       // Set new spacing
       double* initialSpacing = volumeNode->GetSpacing();
       double* correctSpacing = rtReader->GetPixelSpacing();
@@ -400,19 +408,11 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
       volumeNode->SetAndObserveImageData(floatVolumeData);      
 
       // Set default colormap to rainbow
-      if (volumeNode->GetVolumeDisplayNode()!=NULL)
-      {
-        volumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+      vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> volumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+      volumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+      this->GetMRMLScene()->AddNode(volumeDisplayNode);
+      volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
 
-        // Set threshold values so that the background is black
-        //vtkMRMLScalarVolumeDisplayNode* scalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(volumeNode->GetVolumeDisplayNode());
-        //if (scalarVolumeDisplayNode)
-        //{
-        //  scalarVolumeDisplayNode->AutoThresholdOff();
-        //  scalarVolumeDisplayNode->SetLowerThreshold(0.0001);
-        //  scalarVolumeDisplayNode->SetApplyThreshold(1);
-        //}
-      }
       // Select as active volume
       if (this->GetApplicationLogic()!=NULL)
       {
@@ -423,6 +423,11 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
         }
       }
       loadedSomething=true;
+    }
+    else
+    {
+      vtkErrorMacro("Failed to load dose volume file '" << filename << "' (series name '" << seriesname << "')");
+      loadingErrorsOccurred=true;
     }
   }
 
