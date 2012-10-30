@@ -207,17 +207,25 @@ void vtkSlicerDicomRtImportModuleLogic::Examine(vtkDICOMImportInfo *importInfo)
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const char* seriesname)
+bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo)
 {
-  std::cout << "Loading series '" << seriesname << "' from file '" << filename << "'" << std::endl;
+  bool loadSuccessful = false;
+  if (!loadInfo || !loadInfo->GetLoadableFiles(0) || loadInfo->GetLoadableFiles(0)->GetNumberOfValues() < 1)
+  {
+    vtkErrorMacro("Unable to load Dicom RT data due to invalid loadable information.");
+    return loadSuccessful;
+  }
+
+  vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
+  const char* seriesName = loadInfo->GetLoadableName(0);
+  std::cout << "Loading series '" << seriesName << "' from file '" << firstFileNameStr << "'" << std::endl;
 
   vtkSmartPointer<vtkSlicerDicomRtReader> rtReader = vtkSmartPointer<vtkSlicerDicomRtReader>::New();
-  rtReader->SetFileName(filename);
+  rtReader->SetFileName(firstFileNameStr.c_str());
   rtReader->Update();
 
   // One series can contain composite information, e.g, an RTPLAN series can contain structure sets and plans as well
 
-  bool loadedSomething=false;
   bool loadingErrorsOccurred=false;
 
   // Hierarchy node for the loaded structure sets
@@ -234,7 +242,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
     // Add color table node
     vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
     std::string structureSetColorTableNodeName;
-    structureSetColorTableNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+    structureSetColorTableNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
     structureSetColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(structureSetColorTableNodeName);
     structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
     structureSetColorTableNode->HideFromEditorsOff();
@@ -262,12 +270,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
       vtkPolyData* roiPoly = rtReader->GetROI(internalROIIndex);
       if (roiPoly == NULL)
       {
-        vtkWarningMacro("Cannot read polydata from file: "<<filename<<", ROI: "<<internalROIIndex);
+        vtkWarningMacro("Cannot read polydata from file: " << firstFileNameStr << ", ROI: "<<internalROIIndex);
         continue;
       }
       if (roiPoly->GetNumberOfPoints() < 1)
       {
-        vtkWarningMacro("The ROI polydata does not contain any points, file: "<<filename<<", ROI: "<<internalROIIndex);
+        vtkWarningMacro("The ROI polydata does not contain any points, file: " << firstFileNameStr << ", ROI: "<<internalROIIndex);
         continue;
       }
 
@@ -293,12 +301,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
           {
             contourHierarchyRootNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
             std::string hierarchyNodeName;
-            hierarchyNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX;
+            hierarchyNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX;
             hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
             contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
             contourHierarchyRootNode->AllowMultipleChildrenOn();
             contourHierarchyRootNode->HideFromEditorsOff();
-            contourHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), seriesname);
+            contourHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), seriesName);
             this->GetMRMLScene()->AddNode(contourHierarchyRootNode);
           }
 
@@ -326,7 +334,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
         {
           modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
           std::string hierarchyNodeName;
-          hierarchyNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
+          hierarchyNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
           hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
           modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
           modelHierarchyRootNode->AllowMultipleChildrenOn();
@@ -351,7 +359,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
     }
 
     this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
-    loadedSomething=true;
+    loadSuccessful=true;
   }
 
   // RTDOSE
@@ -360,18 +368,18 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
     // Load Volume
     vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> volumeStorageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
     vtkSmartPointer<vtkMRMLScalarVolumeNode> volumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-    volumeStorageNode->SetFileName(filename);
-    //volumeStorageNode->ResetFileNameList();
-    //for all files f (TODO: need to pass the whole file list not just the first one)
-    //{
-    //  volumeStorageNode->AddFileName(f)
-    //}
-    //volumeStorageNode.SetSingleFile(0)
+    volumeStorageNode->SetFileName(firstFileNameStr.c_str());
+    volumeStorageNode->ResetFileNameList();
+    for (int fileIndex=0; fileIndex<loadInfo->GetLoadableFiles(0)->GetNumberOfValues(); ++fileIndex)
+    {
+      volumeStorageNode->AddFileName(loadInfo->GetLoadableFiles(0)->GetValue(fileIndex).c_str());
+    }
+    volumeStorageNode->SetSingleFile(0);
 
     if (volumeStorageNode->ReadData(volumeNode))
     {
       volumeNode->SetScene(this->GetMRMLScene());
-      volumeNode->SetName(seriesname);
+      volumeNode->SetName(seriesName);
       this->GetMRMLScene()->AddNode(volumeNode);
 
       // Set new spacing
@@ -422,11 +430,11 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
           this->GetApplicationLogic()->PropagateVolumeSelection();
         }
       }
-      loadedSomething=true;
+      loadSuccessful=true;
     }
     else
     {
-      vtkErrorMacro("Failed to load dose volume file '" << filename << "' (series name '" << seriesname << "')");
+      vtkErrorMacro("Failed to load dose volume file '" << firstFileNameStr << "' (series name '" << seriesName << "')");
       loadingErrorsOccurred=true;
     }
   }
@@ -452,7 +460,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
         {
           isocenterHierarchyRootNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
           std::string hierarchyNodeName;
-          hierarchyNodeName = std::string(seriesname) + SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX;
+          hierarchyNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX;
           hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
           isocenterHierarchyRootNode->SetName(hierarchyNodeName.c_str());
           isocenterHierarchyRootNode->AllowMultipleChildrenOn();
@@ -477,14 +485,14 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(const char *filename, const 
     }
 
     this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
-    loadedSomething=true;
+    loadSuccessful=true;
   }
 
   if (loadingErrorsOccurred)
   {
     return false;
   }
-  return loadedSomething;
+  return loadSuccessful;
 }
 
 //---------------------------------------------------------------------------

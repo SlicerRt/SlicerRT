@@ -51,7 +51,7 @@ public:
 
   /// Load DICOM RT series from file name
   /// /return True if loading successful
-  bool LoadDicomRT(const char *filename, const char* seriesname);
+  bool LoadDicomRT(vtkDICOMImportInfo *loadInfo);
 
   /// Set Volumes module logic
   void SetVolumesLogic(vtkSlicerVolumesLogic* volumesLogic);

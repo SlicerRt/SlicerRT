@@ -23,15 +23,18 @@ class DicomRtImportPluginClass(DICOMPlugin):
     fileLists parameter.
     """    
     import vtkSlicerDicomRtImportModuleLogic
+
     # Export file lists to DicomExamineInfo
     examineInfo = vtkSlicerDicomRtImportModuleLogic.vtkDICOMImportInfo()
-    for files in fileLists:	  	
+    for files in fileLists:
       fileListIndex = examineInfo.InsertNextFileList() 
       fileList = examineInfo.GetFileList(fileListIndex) # vtk.vtkStringArray()  	  
       for f in files:
         fileList.InsertNextValue(f)	
+
     # Examine files
     slicer.modules.dicomrtimport.logic().Examine(examineInfo)	
+
     # Import loadables from DicomExamineInfo
     loadables = []
     for loadableIndex in xrange(examineInfo.GetNumberOfLoadables()):
@@ -55,8 +58,19 @@ class DicomRtImportPluginClass(DICOMPlugin):
     using the DicomRtImport module
     """
     success = False
-    if slicer.modules.dicomrtimport.logic().LoadDicomRT(loadable.files[0],loadable.name):
+
+    # Export file lists to DicomExamineInfo
+    import vtkSlicerDicomRtImportModuleLogic
+    loadInfo = vtkSlicerDicomRtImportModuleLogic.vtkDICOMImportInfo()
+    fileListIndex = loadInfo.InsertNextFileList() 
+    fileList = loadInfo.GetFileList(fileListIndex) # vtk.vtkStringArray()      
+    for f in loadable.files:
+      fileList.InsertNextValue(f) 
+    loadInfo.InsertNextLoadable(fileList, loadable.name, loadable.tooltip, loadable.warning, loadable.selected, loadable.confidence)
+
+    if slicer.modules.dicomrtimport.logic().LoadDicomRT(loadInfo):
       success = True
+
     return success
 
 #

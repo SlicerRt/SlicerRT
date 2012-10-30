@@ -67,6 +67,4 @@ void qSlicerDicomRtImportModuleWidget::setup()
 //-----------------------------------------------------------------------------
 void qSlicerDicomRtImportModuleWidget::LoadDicomRt()
 {
-	vtkSlicerDicomRtImportModuleLogic *logic = vtkSlicerDicomRtImportModuleLogic::SafeDownCast(this->logic());
-	logic->LoadDicomRT("\\wangk\\temp\\RTSTRUCT.2.16.840.1.113669.2.931128.198378313.20120104144541.513083.dcm","SeriesName");
 }
