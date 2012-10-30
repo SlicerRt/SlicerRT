@@ -28,7 +28,7 @@ public:
   virtual const char* GetNodeTagName();
 
   /// Find all child model nodes in the hierarchy
-  virtual void GetChildrenContourNodes(vtkCollection *models);
+  virtual void GetChildrenContourNodes(vtkCollection *contours);
 
 protected:
   vtkMRMLContourHierarchyNode();

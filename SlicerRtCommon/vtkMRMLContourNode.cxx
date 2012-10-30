@@ -41,7 +41,6 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkImageResample.h>
 #include <vtkGeneralTransform.h>
-#include <vtkCollection.h>
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourNode);

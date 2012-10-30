@@ -714,7 +714,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromSelectedChart(const c
 //---------------------------------------------------------------------------
 vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode()
 {
-  vtkCollection* layoutNodes = this->GetMRMLScene()->GetNodesByClass("vtkMRMLLayoutNode");
+  vtkSmartPointer<vtkCollection> layoutNodes
+    = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLLayoutNode") );
   layoutNodes->InitTraversal();
   vtkObject* layoutNodeVtkObject = layoutNodes->GetNextItemAsObject();
   vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(layoutNodeVtkObject);
@@ -724,9 +725,9 @@ vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode(
     return NULL;
   }
   layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView );
-  layoutNodes->Delete();
   
-  vtkCollection* chartViewNodes = this->GetMRMLScene()->GetNodesByClass("vtkMRMLChartViewNode");
+  vtkSmartPointer<vtkCollection> chartViewNodes
+    = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLChartViewNode") );
   chartViewNodes->InitTraversal();
   vtkMRMLChartViewNode* chartViewNode = vtkMRMLChartViewNode::SafeDownCast( chartViewNodes->GetNextItemAsObject() );
   if (chartViewNode == NULL)
@@ -734,7 +735,6 @@ vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode(
     vtkErrorMacro("Error: unable to get chart view node!");
     return NULL;
   }
-  chartViewNodes->Delete();
 
   return chartViewNode;
 }

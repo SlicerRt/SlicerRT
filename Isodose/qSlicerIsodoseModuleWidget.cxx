@@ -108,8 +108,6 @@ void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 
   this->Superclass::setMRMLScene(scene);
 
-  //qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
-
   // Find parameters node or create it if there is no one in the scene
   if (scene &&  d->logic()->GetIsodoseNode() == 0)
     {
@@ -198,7 +196,6 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
     d->spinBox_NumberOfLevels->setValue(colorTableNode->GetNumberOfColors());
     d->checkBox_Isoline->setChecked(paramNode->GetShowIsodoseLines());
     d->checkBox_Isosurface->setChecked(paramNode->GetShowIsodoseSurfaces());
-    //d->checkBox_Scalarbar->setChecked(paramNode->GetShowScalarBar());
   }
 
 }
@@ -240,10 +237,7 @@ void qSlicerIsodoseModuleWidget::setup()
   connect( d->checkBox_Isoline, SIGNAL(toggled(bool)), this, SLOT( setIsolineVisibility(bool) ) );
   connect( d->checkBox_Isosurface, SIGNAL(toggled(bool)), this, SLOT( setIsosurfaceVisibility(bool) ) );
 
-  //connect( d->lineEdit_DoseLevels, SIGNAL(textEdited(QString)), this, SLOT(onTextEdited(QString)) );
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
-
-  //connect( d->MRMLNodeComboBox_OutputHierarchy, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( outputHierarchyNodeChanged(vtkMRMLNode*) ) );
 
   // Select the default color node
   d->setDefaultColorNode();
@@ -325,70 +319,14 @@ void qSlicerIsodoseModuleWidget::outputHierarchyNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerIsodoseModuleWidget::storeSelectedTableItemText(QTableWidgetItem* selectedItem, QTableWidgetItem* previousItem)
-{
-  // Q_D(qSlicerIsodoseModuleWidget);
-}
-
-//-----------------------------------------------------------------------------
 QString qSlicerIsodoseModuleWidget::generateNewIsodoseLevel() const
 {
   Q_D(const qSlicerIsodoseModuleWidget);
 
   QString newIsodoseLevelBase("New level");
   QString newIsodoseLevel(newIsodoseLevelBase);
-  int i=0;
-  //while (d->InspectedNode->GetAttribute(newAttributeName.toLatin1()))
-  //  {
-  //  newAttributeName = QString("%1%2").arg(newAttributeNameBase).arg(++i);
-  //  }
   return newIsodoseLevel;
 }
-
-//-----------------------------------------------------------------------------
-//void qSlicerIsodoseModuleWidget::onTextEdited(QString changedString)
-//{
-//  Q_D(qSlicerIsodoseModuleWidget);
-//
-//  // Do nothing if unselected
-//  if (changedString.isEmpty())
-//  {
-//    return;
-//  }
-//
-//  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
-//  if (!paramNode || !this->mrmlScene())
-//  {
-//    return;
-//  }
-//
-//  QStringList list = changedString.split(",");
-//  if (list.size() >=1) 
-//  {
-//    list.sort();
-//    int wasModifying = paramNode->StartModify();
-//    paramNode->GetIsodoseLevelVector()->clear();
-//
-//    for (int i = 0; i<list.size(); i++)
-//    {
-//      bool ok;
-//      double level = list.at(i).toDouble(&ok);
-//      // Sanity check
-//      if (ok && level > 0.0 && level < 10000)
-//      {
-//        paramNode->GetIsodoseLevelVector()->push_back(level);
-//      }
-//    }
-//    paramNode->Modified();
-//    paramNode->EndModify(wasModifying);
-//  }
-//  else
-//  {
-//    return;
-//  }
-//
-//  updateButtonsState();
-//}
 
 //------------------------------------------------------------------------------
 void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
@@ -411,13 +349,12 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
     return;
   }
 
-  vtkMRMLModelNode* modelNode;
-  vtkCollection* collection = vtkCollection::New();
-  modelHierarchyNode->GetChildrenModelNodes(collection);
-  vtkCollectionSimpleIterator it;
-  int i = 0;
-  for (collection->InitTraversal(it); (modelNode = vtkMRMLModelNode::SafeDownCast(collection->GetNextItemAsObject(it))) ; ++i)
+  vtkSmartPointer<vtkCollection> childModelNodes = vtkSmartPointer<vtkCollection>::New();
+  modelHierarchyNode->GetChildrenModelNodes(childModelNodes);
+  childModelNodes->InitTraversal();
+  for (int i=0; i<childModelNodes->GetNumberOfItems(); ++i)
   {
+    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(childModelNodes->GetItemAsObject(i));
     modelNode->GetDisplayNode()->SetSliceIntersectionVisibility(visible);
   }
 }
@@ -442,14 +379,13 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
   {
     return;
   }
-  
-  vtkMRMLModelNode* modelNode;
-  vtkCollection* collection = vtkCollection::New();
-  modelHierarchyNode->GetChildrenModelNodes(collection);
-  vtkCollectionSimpleIterator it;
-  int i = 0;
-  for (collection->InitTraversal(it); (modelNode = vtkMRMLModelNode::SafeDownCast(collection->GetNextItemAsObject(it))) ; ++i)
+
+  vtkSmartPointer<vtkCollection> childModelNodes = vtkSmartPointer<vtkCollection>::New();
+  modelHierarchyNode->GetChildrenModelNodes(childModelNodes);
+  childModelNodes->InitTraversal();
+  for (int i=0; i<childModelNodes->GetNumberOfItems(); ++i)
   {
+    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(childModelNodes->GetItemAsObject(i));
     modelNode->GetDisplayNode()->SetVisibility(visible);
   }
 }

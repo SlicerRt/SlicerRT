@@ -267,7 +267,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  vtkCollection* volumeNodes = d->logic()->GetVolumeNodesFromScene();
+  vtkSmartPointer<vtkCollection> volumeNodes = vtkSmartPointer<vtkCollection>::Take( d->logic()->GetVolumeNodesFromScene() );
 
   // Clear the table
   d->tableWidget_Volumes->clearContents();
@@ -335,8 +335,6 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
 
   // Set new weights map
   d->logic()->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap()->swap(newVolumeNodeIdsToWeightsMap);
-
-  volumeNodes->Delete();
 
   updateButtonsState();
 }

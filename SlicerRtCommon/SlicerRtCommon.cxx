@@ -168,7 +168,7 @@ void SlicerRtCommon::GetColorIndexForContour(vtkMRMLContourNode* contourNode, vt
 
   std::string seriesName = parentContourHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
   std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
-  vtkCollection* colorNodes = mrmlScene->GetNodesByName(colorNodeName.c_str());
+  vtkSmartPointer<vtkCollection> colorNodes = vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName(colorNodeName.c_str()) );
   if (colorNodes->GetNumberOfItems() == 0)
   {
     std::cerr << "Error: No color table found for structure set '" << parentContourHierarchyNode->GetName() << "'" << std::endl;
@@ -201,8 +201,6 @@ void SlicerRtCommon::GetColorIndexForContour(vtkMRMLContourNode* contourNode, vt
     }
     colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
   }
-
-  colorNodes->Delete();
 
   if (structureColorIndex == -1)
   {

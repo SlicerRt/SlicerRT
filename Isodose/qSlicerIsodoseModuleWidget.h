@@ -63,8 +63,6 @@ public slots:
 
 protected slots:
   void doseVolumeNodeChanged(vtkMRMLNode*);
-  //void onTextEdited(QString changedString);
-  void storeSelectedTableItemText(QTableWidgetItem* selectedItem, QTableWidgetItem* previousItem);
   void outputHierarchyNodeChanged(vtkMRMLNode*);
   void setIsolineVisibility(bool);
   void setIsosurfaceVisibility(bool);
