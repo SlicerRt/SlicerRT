@@ -32,7 +32,7 @@
 
 class vtkLeakFinderObserver;
 
-class VTK_EXPORT vtkLeakFinder : public vtkObject
+class vtkLeakFinder : public vtkObject
 {
 public:
   static vtkLeakFinder *New();

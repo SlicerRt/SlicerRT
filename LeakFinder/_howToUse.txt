@@ -1,0 +1,15 @@
+#include "vtkLeakFinder.h"
+
+...
+
+vtkLeakFinder* leakFinder = vtkLeakFinder::New();
+leakFinder->StartTracing();
+
+[piece of code that leaks]
+
+leakFinder->EndTracing();
+std::ofstream f;
+f.open("D:\\trace.log", ios::app);
+f << leakFinder->GetLeakReport();
+f.close();
+leakFinder->Delete();
