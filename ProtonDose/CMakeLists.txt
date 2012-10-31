@@ -7,7 +7,7 @@ string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 #-----------------------------------------------------------------------------
 find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} )
 if(NOT Plastimatch_FOUND)
-  message("Plastimatch library is not found. DoseComparison module will not be built.")
+  message("Plastimatch library is not found. Module ${MODULE_TITLE} will not be built.")
   return()
 endif() 
 
@@ -25,7 +25,6 @@ set(MODULE_INCLUDE_DIRECTORIES
 set(MODULE_SRCS
   qSlicer${MODULE_NAME}Module.cxx
   qSlicer${MODULE_NAME}Module.h
-
   qSlicer${MODULE_NAME}ModuleWidget.cxx
   qSlicer${MODULE_NAME}ModuleWidget.h
   )

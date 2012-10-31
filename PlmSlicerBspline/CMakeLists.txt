@@ -5,8 +5,14 @@ set(MODULE_TITLE "B-spline Registration")
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
+find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} )
+if(NOT Plastimatch_FOUND)
+  message("Plastimatch library is not found. Module ${MODULE_TITLE} will not be built.")
+  return()
+endif() 
+
+#-----------------------------------------------------------------------------
 add_subdirectory(Logic)
-add_subdirectory(MRML)
 
 #-----------------------------------------------------------------------------
 set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
@@ -16,9 +22,6 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
   ${CMAKE_CURRENT_SOURCE_DIR}/MRML
   ${CMAKE_CURRENT_BINARY_DIR}/MRML
-  ${src_plastimatch_SOURCE_DIR}/base
-  ${src_plastimatch_SOURCE_DIR}/register
-  
   )
 
 set(MODULE_SRCS
@@ -39,7 +42,6 @@ set(MODULE_UI_SRCS
 
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
-  vtkSlicer${MODULE_NAME}ModuleMRML
   )
 
 set(MODULE_RESOURCES

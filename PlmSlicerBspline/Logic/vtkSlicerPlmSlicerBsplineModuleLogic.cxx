@@ -3,8 +3,8 @@
    ----------------------------------------------------------------------- */
 #include <string.h>
 // ModuleTemplate includes
-#include "vtkSlicerPlmSlicerBsplineLogic.h"
-#include "vtkMRMLPlmSlicerBsplineParametersNode.h"
+#include "vtkSlicerPlmSlicerBsplineModuleLogic.h"
+#include "vtkMRMLPlmSlicerBsplineNode.h"
 
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
@@ -137,7 +137,7 @@ void vtkSlicerPlmSlicerBsplineLogic::ConvertVtkImageToItkImage(vtkImageData* inV
 
 //----------------------------------------------------------------------------
 //int vtkSlicerPlmSlicerBsplineLogic::Apply()
-int vtkSlicerPlmSlicerBsplineLogic::Apply(vtkMRMLPlmSlicerBsplineParametersNode* pnode)
+int vtkSlicerPlmSlicerBsplineLogic::Apply(vtkMRMLPlmSlicerBsplineNode* pnode)
 {
   vtkMRMLScene *scene = this->GetMRMLScene();
 

@@ -5,8 +5,8 @@
 
 #include "qSlicerPlmSlicerBsplineModuleWidget.h"
 #include "ui_qSlicerPlmSlicerBsplineModule.h"
-#include "vtkMRMLPlmSlicerBsplineParametersNode.h"
-#include "vtkSlicerPlmSlicerBsplineLogic.h"
+#include "vtkMRMLPlmSlicerBsplineNode.h"
+#include "vtkSlicerPlmSlicerBsplineModuleLogic.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -133,17 +133,17 @@ void qSlicerCropVolumeModuleWidget::initializeNode(vtkMRMLNode *n)
 //-----------------------------------------------------------------------------
 void qSlicerPlmSlicerBsplineModuleWidget::initializeParameterNode(vtkMRMLScene* scene)
 {
-    vtkCollection* parameterNodes = scene->GetNodesByClass("vtkMRMLPlmSlicerBsplineParametersNode");
+    vtkCollection* parameterNodes = scene->GetNodesByClass("vtkMRMLPlmSlicerBsplineNode");
 
     if (parameterNodes->GetNumberOfItems() > 0) {
-        this->parametersNode = vtkMRMLPlmSlicerBsplineParametersNode::SafeDownCast(parameterNodes->GetItemAsObject(0));
+        this->parametersNode = vtkMRMLPlmSlicerBsplineNode::SafeDownCast(parameterNodes->GetItemAsObject(0));
         if (!this->parametersNode) {
             qCritical() << "FATAL ERROR: Cannot instantiate PlmSlicerBsplineParameterNode";
             Q_ASSERT(this->parametersNode);
         }
     } else {
         qDebug() << "No PlmSlicerBspline parameter nodes found!";
-        this->parametersNode = vtkMRMLPlmSlicerBsplineParametersNode::New();
+        this->parametersNode = vtkMRMLPlmSlicerBsplineNode::New();
         scene->AddNode(this->parametersNode);
         this->parametersNode->Delete();
     }
@@ -158,7 +158,7 @@ void qSlicerPlmSlicerBsplineModuleWidget::updateParameters()
   Q_D(qSlicerPlmSlicerBsplineModuleWidget);
   if(!this->parametersNode)
     return;
-  vtkMRMLPlmSlicerBsplineParametersNode *pNode = this->parametersNode;
+  vtkMRMLPlmSlicerBsplineNode *pNode = this->parametersNode;
 
   /* Fixed Image */
   vtkMRMLNode *fixedVolumeNode = d->fixedImageMRMLNodeComboBox->currentNode();
@@ -280,7 +280,7 @@ void qSlicerPlmSlicerBsplineModuleWidget::onGridXChanged(int s)
   if (!this->parametersNode) {
     return;
   }
-  vtkMRMLPlmSlicerBsplineParametersNode *p = this->parametersNode;
+  vtkMRMLPlmSlicerBsplineNode *p = this->parametersNode;
   p->SetGridX (s);
 }
 
@@ -291,7 +291,7 @@ void qSlicerPlmSlicerBsplineModuleWidget::onGridYChanged(int s)
     {
     return;
     }
-  vtkMRMLPlmSlicerBsplineParametersNode *p = this->parametersNode;
+  vtkMRMLPlmSlicerBsplineNode *p = this->parametersNode;
   p->SetGridY (s);
 }
 
@@ -302,7 +302,7 @@ void qSlicerPlmSlicerBsplineModuleWidget::onGridZChanged(int s)
     {
     return;
     }
-  vtkMRMLPlmSlicerBsplineParametersNode *p = this->parametersNode;
+  vtkMRMLPlmSlicerBsplineNode *p = this->parametersNode;
   p->SetGridZ (s);
 }
 

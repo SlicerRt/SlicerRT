@@ -10,10 +10,10 @@
 #include "itkImage.h"
 
 #include "vtkSlicerPlmSlicerBsplineModuleLogicExport.h"
-class vtkMRMLPlmSlicerBsplineParametersNode;
+class vtkMRMLPlmSlicerBsplineNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_PLMSLICERBSPLINE_MODULE_LOGIC_EXPORT vtkSlicerPlmSlicerBsplineLogic :
+class VTK_SLICER_PLMSLICERBSPLINE_LOGIC_EXPORT vtkSlicerPlmSlicerBsplineLogic :
   public vtkSlicerModuleLogic
 {
 public:
@@ -25,7 +25,7 @@ public:
   /// Initialize listening to MRML events
   void InitializeEventListeners();
 
-  int Apply(vtkMRMLPlmSlicerBsplineParametersNode*);
+  int Apply(vtkMRMLPlmSlicerBsplineNode*);
 
 protected:
   vtkSlicerPlmSlicerBsplineLogic();

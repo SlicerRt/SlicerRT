@@ -9,7 +9,7 @@
 #include "vtkMRMLVolumeNode.h"
 
 // CropModuleMRML includes
-#include "vtkMRMLPlmSlicerBsplineParametersNode.h"
+#include "vtkMRMLPlmSlicerBsplineNode.h"
 
 // AnnotationModuleMRML includes
 #include "vtkMRMLAnnotationROINode.h"
@@ -17,10 +17,10 @@
 // STD includes
 
 //----------------------------------------------------------------------------
-vtkMRMLNodeNewMacro(vtkMRMLPlmSlicerBsplineParametersNode);
+vtkMRMLNodeNewMacro(vtkMRMLPlmSlicerBsplineNode);
 
 //----------------------------------------------------------------------------
-vtkMRMLPlmSlicerBsplineParametersNode::vtkMRMLPlmSlicerBsplineParametersNode()
+vtkMRMLPlmSlicerBsplineNode::vtkMRMLPlmSlicerBsplineNode()
 {
   this->HideFromEditors = 1;
 
@@ -35,7 +35,7 @@ vtkMRMLPlmSlicerBsplineParametersNode::vtkMRMLPlmSlicerBsplineParametersNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLPlmSlicerBsplineParametersNode::~vtkMRMLPlmSlicerBsplineParametersNode()
+vtkMRMLPlmSlicerBsplineNode::~vtkMRMLPlmSlicerBsplineNode()
 {
 #if 0
   if (this->InputVolumeNodeID)
@@ -56,7 +56,7 @@ vtkMRMLPlmSlicerBsplineParametersNode::~vtkMRMLPlmSlicerBsplineParametersNode()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLPlmSlicerBsplineNode::ReadXMLAttributes(const char** atts)
 {
 #if 0
   std::cerr << "Reading PlmSlicerBspline param node!" << std::endl;
@@ -104,7 +104,7 @@ void vtkMRMLPlmSlicerBsplineParametersNode::ReadXMLAttributes(const char** atts)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLPlmSlicerBsplineNode::WriteXML(ostream& of, int nIndent)
 {
 #if 0
   Superclass::WriteXML(of, nIndent);
@@ -120,7 +120,7 @@ void vtkMRMLPlmSlicerBsplineParametersNode::WriteXML(ostream& of, int nIndent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::UpdateReferenceID(const char *oldID, const char *newID)
+void vtkMRMLPlmSlicerBsplineNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   if (this->FixedVolumeNodeID && !strcmp(oldID, this->FixedVolumeNodeID)) {
     this->SetAndObserveFixedVolumeNodeID(newID);
@@ -137,7 +137,7 @@ void vtkMRMLPlmSlicerBsplineParametersNode::UpdateReferenceID(const char *oldID,
 }
 
 //-----------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::UpdateReferences()
+void vtkMRMLPlmSlicerBsplineNode::UpdateReferences()
 {
    Superclass::UpdateReferences();
 
@@ -158,10 +158,10 @@ void vtkMRMLPlmSlicerBsplineParametersNode::UpdateReferences()
 //----------------------------------------------------------------------------
 // Copy the node\"s attributes to this object.
 // Does NOT copy: ID, FilePrefix, Name, SliceID
-void vtkMRMLPlmSlicerBsplineParametersNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLPlmSlicerBsplineNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
-  vtkMRMLPlmSlicerBsplineParametersNode *node = vtkMRMLPlmSlicerBsplineParametersNode::SafeDownCast(anode);
+  vtkMRMLPlmSlicerBsplineNode *node = vtkMRMLPlmSlicerBsplineNode::SafeDownCast(anode);
   this->DisableModifiedEventOn();
 
   this->SetFixedVolumeNodeID(node->GetFixedVolumeNodeID());
@@ -180,7 +180,7 @@ void vtkMRMLPlmSlicerBsplineParametersNode::Copy(vtkMRMLNode *anode)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::SetAndObserveFixedVolumeNodeID(const char *volumeNodeID)
+void vtkMRMLPlmSlicerBsplineNode::SetAndObserveFixedVolumeNodeID(const char *volumeNodeID)
 {
   vtkSetAndObserveMRMLObjectMacro(this->FixedVolumeNode, NULL);
 
@@ -193,7 +193,7 @@ void vtkMRMLPlmSlicerBsplineParametersNode::SetAndObserveFixedVolumeNodeID(const
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::SetAndObserveMovingVolumeNodeID(const char *volumeNodeID)
+void vtkMRMLPlmSlicerBsplineNode::SetAndObserveMovingVolumeNodeID(const char *volumeNodeID)
 {
   vtkSetAndObserveMRMLObjectMacro(this->MovingVolumeNode, NULL);
 
@@ -206,7 +206,7 @@ void vtkMRMLPlmSlicerBsplineParametersNode::SetAndObserveMovingVolumeNodeID(cons
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::SetAndObserveWarpedVolumeNodeID(const char *volumeNodeID)
+void vtkMRMLPlmSlicerBsplineNode::SetAndObserveWarpedVolumeNodeID(const char *volumeNodeID)
 {
   vtkSetAndObserveMRMLObjectMacro(this->WarpedVolumeNode, NULL);
 
@@ -219,7 +219,7 @@ void vtkMRMLPlmSlicerBsplineParametersNode::SetAndObserveWarpedVolumeNodeID(cons
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::SetAndObserveXformVolumeNodeID(const char *volumeNodeID)
+void vtkMRMLPlmSlicerBsplineNode::SetAndObserveXformVolumeNodeID(const char *volumeNodeID)
 {
   vtkSetAndObserveMRMLObjectMacro(this->XformVolumeNode, NULL);
 
@@ -232,7 +232,7 @@ void vtkMRMLPlmSlicerBsplineParametersNode::SetAndObserveXformVolumeNodeID(const
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineParametersNode::GetFixedVolumeNode()
+vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineNode::GetFixedVolumeNode()
 {
   if (this->FixedVolumeNodeID == NULL)
     {
@@ -249,7 +249,7 @@ vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineParametersNode::GetFixedVolumeNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineParametersNode::GetMovingVolumeNode()
+vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineNode::GetMovingVolumeNode()
 {
   if (this->MovingVolumeNodeID == NULL)
     {
@@ -266,7 +266,7 @@ vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineParametersNode::GetMovingVolumeNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineParametersNode::GetWarpedVolumeNode()
+vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineNode::GetWarpedVolumeNode()
 {
   if (this->WarpedVolumeNodeID == NULL)
     {
@@ -283,7 +283,7 @@ vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineParametersNode::GetWarpedVolumeNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineParametersNode::GetXformVolumeNode()
+vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineNode::GetXformVolumeNode()
 {
   if (this->XformVolumeNodeID == NULL)
     {
@@ -301,7 +301,7 @@ vtkMRMLVolumeNode* vtkMRMLPlmSlicerBsplineParametersNode::GetXformVolumeNode()
 
 
 //-----------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::UpdateScene(vtkMRMLScene *scene)
+void vtkMRMLPlmSlicerBsplineNode::UpdateScene(vtkMRMLScene *scene)
 {
   Superclass::UpdateScene(scene);
   this->SetAndObserveFixedVolumeNodeID(this->FixedVolumeNodeID);
@@ -311,7 +311,7 @@ void vtkMRMLPlmSlicerBsplineParametersNode::UpdateScene(vtkMRMLScene *scene)
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::ProcessMRMLEvents ( vtkObject *caller,
+void vtkMRMLPlmSlicerBsplineNode::ProcessMRMLEvents ( vtkObject *caller,
                                                     unsigned long event,
                                                     void *callData )
 {
@@ -321,7 +321,7 @@ void vtkMRMLPlmSlicerBsplineParametersNode::ProcessMRMLEvents ( vtkObject *calle
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlmSlicerBsplineParametersNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLPlmSlicerBsplineNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 

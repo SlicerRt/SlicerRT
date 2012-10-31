@@ -5,7 +5,7 @@
 
 #include "qSlicerPlmSlicerBsplineModule.h"
 #include "qSlicerPlmSlicerBsplineModuleWidget.h"
-#include "vtkSlicerPlmSlicerBsplineLogic.h"
+#include "vtkSlicerPlmSlicerBsplineModuleLogic.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerPlmSlicerBsplineModule, qSlicerPlmSlicerBsplineModule);

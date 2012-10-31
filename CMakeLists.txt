@@ -74,7 +74,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(PlmDoseComparison)
   add_subdirectory(PlmDvh)
   #add_subdirectory(PlmMabs) # requires Plastimatch segmentation  
-  #add_subdirectory(PlmSlicerBspline) # disable for now, loadable
+  add_subdirectory(PlmSlicerBspline) # disable for now, loadable
   add_subdirectory(PlmSynth)
   add_subdirectory(PlmThreshbox)
 endif()

@@ -1,24 +1,24 @@
 /* -----------------------------------------------------------------------
    See COPYRIGHT.TXT and LICENSE.TXT for copyright and license information
    ----------------------------------------------------------------------- */
-#ifndef __vtkMRMLPlmSlicerBsplineParametersNode_h
-#define __vtkMRMLPlmSlicerBsplineParametersNode_h
+#ifndef __vtkMRMLPlmSlicerBsplineNode_h
+#define __vtkMRMLPlmSlicerBsplineNode_h
 
 #include "vtkMRML.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLNode.h"
-#include "vtkSlicerModuleMRMLExport.h"
+#include "vtkSlicerPlmSlicerBsplineModuleLogicExport.h"
 
 class vtkMRMLAnnotationROINode;
 class vtkMRMLVolumeNode;
 
 /// \ingroup Slicer_QtModules_PlmSlicerBspline
-class VTK_SLICER_PLMSLICERBSPLINE_MODULE_MRML_EXPORT vtkMRMLPlmSlicerBsplineParametersNode : public vtkMRMLNode
+class VTK_SLICER_PLMSLICERBSPLINE_LOGIC_EXPORT vtkMRMLPlmSlicerBsplineNode : public vtkMRMLNode
 {     
   public:   
 
-  static vtkMRMLPlmSlicerBsplineParametersNode *New();
-  vtkTypeMacro(vtkMRMLPlmSlicerBsplineParametersNode,vtkMRMLNode);
+  static vtkMRMLPlmSlicerBsplineNode *New();
+  vtkTypeMacro(vtkMRMLPlmSlicerBsplineNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -104,11 +104,11 @@ class VTK_SLICER_PLMSLICERBSPLINE_MODULE_MRML_EXPORT vtkMRMLPlmSlicerBsplinePara
   vtkGetMacro(GridZ, int);
 
 protected:
-  vtkMRMLPlmSlicerBsplineParametersNode();
-  ~vtkMRMLPlmSlicerBsplineParametersNode();
+  vtkMRMLPlmSlicerBsplineNode();
+  ~vtkMRMLPlmSlicerBsplineNode();
 
-  vtkMRMLPlmSlicerBsplineParametersNode(const vtkMRMLPlmSlicerBsplineParametersNode&);
-  void operator=(const vtkMRMLPlmSlicerBsplineParametersNode&);
+  vtkMRMLPlmSlicerBsplineNode(const vtkMRMLPlmSlicerBsplineNode&);
+  void operator=(const vtkMRMLPlmSlicerBsplineNode&);
 
   char *FixedVolumeNodeID;
   char *MovingVolumeNodeID;
