@@ -18,17 +18,22 @@ class StackWalkerStringOutput : public StackWalker
 public:
   StackWalkerStringOutput()
   {
-    this->m_LastStackTraceString = "";
+    m_LastStackTraceString = "";
   };
 
   std::string GetLastStackTraceString()
   {
-    return this->m_LastStackTraceString;
+    return m_LastStackTraceString;
+  };
+
+  void ResetLastStackTraceString()
+  {
+    m_LastStackTraceString = "";
   };
 
   virtual void OnOutput(LPCSTR buffer)
   {
-    m_LastStackTraceString = std::string(buffer);
+    m_LastStackTraceString.append(buffer);
   };
 
 protected:
@@ -63,7 +68,8 @@ public:
   virtual void ConstructingObject(vtkObjectBase* o)
   {
     m_StackWalker->ShowCallstack();
-    m_ObjectTraceEntries[o] = std::string(m_StackWalker->GetLastStackTraceString());
+    m_ObjectTraceEntries[o] = m_StackWalker->GetLastStackTraceString();
+    m_StackWalker->ResetLastStackTraceString();
 
     if (m_OldDebugLeakObserver)
     {
