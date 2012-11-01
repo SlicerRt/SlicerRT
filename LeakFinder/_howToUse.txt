@@ -1,6 +1,13 @@
-1. Apply the patch to VTK. Build VTK
+1. Apply the patch (VTK_5.10.0_LeakFinder.patch) to VTK. Build VTK
 
-2. Add this to your code
+2. If you want to use another debug leaks observer to trace Register and Unregister calls, uncomment the lines
+  m_OldDebugLeakObserver->RegisteringObject(o);
+  in function vtkLeakFinderObserver::RegisteringObject
+  and
+  m_OldDebugLeakObserver->UnRegisteringObject(o);
+  in function vtkLeakFinderObserver::UnregisteringObject
+
+3. Add this to your code
   "
   #include "vtkLeakFinder.h"
 
@@ -28,7 +35,9 @@
     (that appear in the popup message when closing). Then apply the patch and use LeakFinder, and filter out the
     objects that don't actually leak.
 
-3. Examine the trace log
+4. Build and run your program
+
+5. Examine the trace log
   a) Pick a leaking object that has few instances leaking, and is suspected to be a reason for the leaking (for
      example it is constructed from the own code).
   b) Try to match the Register callstacks to the Unregister ones. The Register call that does not have a

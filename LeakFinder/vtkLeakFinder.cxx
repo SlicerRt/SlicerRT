@@ -142,7 +142,7 @@ public:
 
     if (m_OldDebugLeakObserver)
     {
-      m_OldDebugLeakObserver->RegisteringObject(o);
+      //m_OldDebugLeakObserver->RegisteringObject(o);
     }
   }
 
@@ -162,7 +162,7 @@ public:
 
     if (m_OldDebugLeakObserver)
     {
-      m_OldDebugLeakObserver->UnregisteringObject(o);
+      //m_OldDebugLeakObserver->UnregisteringObject(o);
     }
   }
 
