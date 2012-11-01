@@ -1,15 +1,35 @@
-#include "vtkLeakFinder.h"
+1. Apply the patch to VTK. Build VTK
 
-...
+2. Add this to your code
+  "
+  #include "vtkLeakFinder.h"
 
-vtkLeakFinder* leakFinder = vtkLeakFinder::New();
-leakFinder->StartTracing();
+  ...
 
-[piece of code that leaks]
+  vtkLeakFinder* leakFinder = vtkLeakFinder::New();
+  leakFinder->SetOutputFileName("D:\\trace.log"); // Optional
+  leakFinder->StartTracing();
+  "
+  [piece of code that leaks]
 
-leakFinder->EndTracing();
-std::ofstream f;
-f.open("D:\\trace.log", ios::app);
-f << leakFinder->GetLeakReport();
-f.close();
-leakFinder->Delete();
+[Option 1: End tracing manually]
+  (probably many objects are not destructed, so the log will be not quite correct)
+  "
+  leakFinder->EndTracing();
+  "
+  
+[Option 2: Let LeakFinder finalize itself]
+  (the leaking objects are collected at the last possible moment before the application closes itself)
+
+  Known problem: In vtkDebugLeaksManager destructor, the counter never reaches 0 if StackWalker::ShowCallstack
+    is called (otherwise it does), and so the Finalizing function is not called. There's a workaround in the
+    current patch we made, but unfortunately that way many more objects are shown as leaking. The recommended
+    usage is to run the application without the VTK patch and LeakFinder and make note of the leaking objects
+    (that appear in the popup message when closing). Then apply the patch and use LeakFinder, and filter out the
+    objects that don't actually leak.
+
+3. Examine the trace log
+  a) Pick a leaking object that has few instances leaking, and is suspected to be a reason for the leaking (for
+     example it is constructed from the own code).
+  b) Try to match the Register callstacks to the Unregister ones. The Register call that does not have a
+     corresponding Unregister call is the cause of the leak.

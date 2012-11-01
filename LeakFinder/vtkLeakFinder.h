@@ -46,17 +46,25 @@ public:
 public:
   /// Start tracing the VTK objects' lifetime
   void StartTracing();
-  /// End tracing manually. The report string is closed
+
+  /// End tracing manually. The leak report is assembled and written immediately.
+  /// It is possible not to call this function, then the leak report is saved at the last possible
+  ///   moment before exiting. VTK needs to be patched for this functionality to work.
   void EndTracing();
 
-  /// Return leak report
-  std::string GetLeakReport();
+  /// Set output file name to observer.
+  /// The leak report is written in this file.
+  void SetOutputFileName(std::string fileName);
+
+  /// Set flag whether Register and Unregister calls are traced (their call stack saved)
+  void SetTraceRegisterAndUnregister(bool trace);
 
 protected:
   vtkLeakFinder();
   virtual ~vtkLeakFinder();
 
 protected:
+  /// Observer object whose overridden functions are called on certain events
   vtkLeakFinderObserver* Observer;
 };
 

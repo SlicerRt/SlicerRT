@@ -5,6 +5,7 @@
 // VTK includes
 #include "vtkObjectFactory.h"
 #include "vtkDebugLeaks.h"
+#include "vtksys/SystemTools.hxx" 
 
 // STD includes
 #include <sstream>
@@ -24,15 +25,12 @@ public:
     m_LastStackTraceString = "";
   }
 
+  /// Get last stack trace string (that is filled with calling ShowCallstack). Also clears the result string.
   std::string GetLastStackTraceString()
   {
-    return m_LastStackTraceString;
-  }
-
-  /// Resets the output string. Has to be called after getting the output and before the next ShowCallstack call
-  void ResetLastStackTraceString()
-  {
+    std::string lastStackTraceString = m_LastStackTraceString;
     m_LastStackTraceString = "";
+    return lastStackTraceString;
   }
 
   /// Overridden function that appends the call stack element to the output string
@@ -60,11 +58,22 @@ public:
     m_ObjectTraceEntries.clear();
     m_StackWalker = new StackWalkerStringOutput();
     m_OldDebugLeakObserver = NULL;
+
+    std::string dateTime = vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S");
+    m_OutputFileName = std::string("./trace_") + dateTime + ".log";
+
+    m_TraceRegisterAndUnregister = true;
   }
 
   virtual ~vtkLeakFinderObserver()
   {
+    std::map<vtkObjectBase*, std::vector<std::string> >::iterator it;
+    for (it = m_ObjectTraceEntries.begin(); it != m_ObjectTraceEntries.end(); ++it)
+    {
+      it->second.clear();
+    }
     m_ObjectTraceEntries.clear();
+
     m_OldDebugLeakObserver = NULL;
 
     if (m_StackWalker)
@@ -78,8 +87,12 @@ public:
   virtual void ConstructingObject(vtkObjectBase* o)
   {
     m_StackWalker->ShowCallstack();
-    m_ObjectTraceEntries[o] = m_StackWalker->GetLastStackTraceString();
-    m_StackWalker->ResetLastStackTraceString();
+
+    std::vector<std::string> stackTraceVector;
+    std::string constructingStackTrace("----Construct stack trace----\n");
+    constructingStackTrace.append(m_StackWalker->GetLastStackTraceString());
+    stackTraceVector.push_back(constructingStackTrace);
+    m_ObjectTraceEntries[o] = stackTraceVector;
 
     if (m_OldDebugLeakObserver)
     {
@@ -90,6 +103,7 @@ public:
   /// Callback function that is called every time a VTK class is deleted
   virtual void DestructingObject(vtkObjectBase* o)
   {
+    m_ObjectTraceEntries[o].clear();
     m_ObjectTraceEntries.erase(o);
 
     if (m_OldDebugLeakObserver)
@@ -106,12 +120,50 @@ public:
   {
     this->RestoreOldObserver();
 
-    std::string report = GetLeakReport();
-
     std::ofstream f;
-    f.open("D:\\trace.log", ios::trunc);
+    f.open(m_OutputFileName.c_str(), ios::trunc);
     f << this->GetLeakReport();
     f.close();
+  }
+
+  /// Callback function that is called upon registering an object
+  /// Note: This callback function is only called when a patch is applied to VTK defining the signature of this
+  ///  function in the vtkDebugLeaksObserver abstract class, and calling it in vtkDebugLeaks::ClassFinalize()
+  virtual void RegisteringObject(vtkObjectBase* o)
+  {
+    if (m_TraceRegisterAndUnregister)
+    {
+      m_StackWalker->ShowCallstack();
+
+      std::string registeringStackTrace("----Register stack trace-----\n");
+      registeringStackTrace.append(m_StackWalker->GetLastStackTraceString());
+      m_ObjectTraceEntries[o].push_back(registeringStackTrace);
+    }
+
+    if (m_OldDebugLeakObserver)
+    {
+      m_OldDebugLeakObserver->RegisteringObject(o);
+    }
+  }
+
+  /// Callback function that is called upon unregistering an object
+  /// Note: This callback function is only called when a patch is applied to VTK defining the signature of this
+  ///  function in the vtkDebugLeaksObserver abstract class, and calling it in vtkDebugLeaks::ClassFinalize()
+  virtual void UnregisteringObject(vtkObjectBase* o)
+  {
+    if (m_TraceRegisterAndUnregister)
+    {
+      m_StackWalker->ShowCallstack();
+
+      std::string unregisteringStackTrace("----Unregister stack trace---\n");
+      unregisteringStackTrace.append(m_StackWalker->GetLastStackTraceString());
+      m_ObjectTraceEntries[o].push_back(unregisteringStackTrace);
+    }
+
+    if (m_OldDebugLeakObserver)
+    {
+      m_OldDebugLeakObserver->UnregisteringObject(o);
+    }
   }
 
   /// Returns a string containing information (pointer, type and call stack at the point of creation)
@@ -124,13 +176,18 @@ public:
     }
 
     std::string report("");
-    std::map<vtkObjectBase*, std::string>::iterator it;
-    for (it=m_ObjectTraceEntries.begin(); it!=m_ObjectTraceEntries.end(); ++it)
+    std::map<vtkObjectBase*, std::vector<std::string> >::iterator entriesIt;
+    for (entriesIt=m_ObjectTraceEntries.begin(); entriesIt!=m_ObjectTraceEntries.end(); ++entriesIt)
     {
       std::stringstream ss;
       ss.setf(ios::hex,ios::basefield);
-      ss << "Pointer: " << it->first << " (type: " << it->first->GetClassName() << ")" << std::endl;
-      ss << "Stack trace: " << std::endl << it->second << std::endl << std::endl;
+      ss << std::endl << std::endl;
+      ss << "Pointer: " << entriesIt->first << " (type: " << entriesIt->first->GetClassName() << ")" << std::endl;
+      for (std::vector<std::string>::iterator it = entriesIt->second.begin(); it != entriesIt->second.end(); ++it)
+      {
+        ss << (*it) << std::endl;
+      }
+      ss << std::endl;
       report.append(ss.str());
     }
     return report;
@@ -149,15 +206,34 @@ public:
     this->SetOldDebugLeakObserver(NULL);
   }
 
+  /// Set output file name
+  void SetOutputFileName(std::string fileName)
+  {
+    m_OutputFileName = fileName;
+  }
+
+  /// Set trace register/unregister flag
+  void SetTraceRegisterAndUnregister(bool trace)
+  {
+    m_TraceRegisterAndUnregister = trace;
+  }
+
 protected:
   /// Stack walker object that extracts the call stack
   StackWalkerStringOutput* m_StackWalker;
 
-  /// Map containing the constructed VTK objects and the call stacks at the point of their creation
-  std::map<vtkObjectBase*, std::string> m_ObjectTraceEntries;
+  /// Map containing the constructed VTK objects and the call stacks
+  ///   at the point of their creation, registers and unregisters
+  std::map<vtkObjectBase*, std::vector<std::string> > m_ObjectTraceEntries;
 
   /// Previously set debug leaks observer
   vtkDebugLeaksObserver* m_OldDebugLeakObserver;
+
+  /// Output file name that is used when saving the leak report in the Finalizing function
+  std::string m_OutputFileName;
+
+  /// Flag whether Register and Unregister calls are traced (their call stack saved)
+  bool m_TraceRegisterAndUnregister;
 };
 
 
@@ -193,11 +269,17 @@ void vtkLeakFinder::StartTracing()
 //----------------------------------------------------------------------------
 void vtkLeakFinder::EndTracing()
 {
-  this->Observer->RestoreOldObserver();
+  this->Observer->Finalizing();
 }
 
 //----------------------------------------------------------------------------
-std::string vtkLeakFinder::GetLeakReport()
+void vtkLeakFinder::SetOutputFileName(std::string fileName)
 {
-  return this->Observer->GetLeakReport();
+  this->Observer->SetOutputFileName(fileName);
+}
+
+//----------------------------------------------------------------------------
+void vtkLeakFinder::SetTraceRegisterAndUnregister(bool trace)
+{
+  this->Observer->SetTraceRegisterAndUnregister(trace);
 }
