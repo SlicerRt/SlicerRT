@@ -32,6 +32,11 @@
 
 class vtkLeakFinderObserver;
 
+/*!
+ * \brief Utility class that helps discovering memory leaks by keeping track of the created but not destroyed VTK
+ *   objects. Returns a leak report containing the pointers, types and the call stacks at the point of their creation,
+ *   when ending tracing manually, or writes a file just before exit (VTK patch needed for this).
+ */
 class vtkLeakFinder : public vtkObject
 {
 public:
@@ -39,9 +44,12 @@ public:
   vtkTypeMacro(vtkLeakFinder, vtkObject);
 
 public:
+  /// Start tracing the VTK objects' lifetime
   void StartTracing();
+  /// End tracing manually. The report string is closed
   void EndTracing();
 
+  /// Return leak report
   std::string GetLeakReport();
 
 protected:
