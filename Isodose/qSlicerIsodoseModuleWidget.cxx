@@ -13,8 +13,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, University Health Network
-  and funded by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
+  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
   
 ==============================================================================*/
@@ -48,7 +49,6 @@
 // STD includes
 #include <sstream>
 #include <string>
-
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Isodose
@@ -170,7 +170,7 @@ void qSlicerIsodoseModuleWidget::onEnter()
   // set up default color node
   d->setDefaultColorNode();
 
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -205,7 +205,7 @@ void qSlicerIsodoseModuleWidget::onLogicModified()
 {
   Q_D(qSlicerIsodoseModuleWidget);
 
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -242,7 +242,7 @@ void qSlicerIsodoseModuleWidget::setup()
   // Select the default color node
   d->setDefaultColorNode();
 
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -256,7 +256,7 @@ void qSlicerIsodoseModuleWidget::setIsodoseNode(vtkMRMLNode *node)
   qvtkReconnect( d->logic()->GetIsodoseNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
   d->logic()->SetAndObserveIsodoseNode(paramNode);
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -283,7 +283,7 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
     d->label_NotDoseVolumeWarning->setText(tr(" Selected volume is not a dose"));
   }
 
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------

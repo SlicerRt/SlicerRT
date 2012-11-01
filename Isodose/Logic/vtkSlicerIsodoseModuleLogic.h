@@ -81,7 +81,6 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
-
 protected:
   vtkSlicerIsodoseModuleLogic();
   virtual ~vtkSlicerIsodoseModuleLogic();
