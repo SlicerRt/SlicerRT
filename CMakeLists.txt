@@ -70,7 +70,8 @@ add_subdirectory(PlmXformwarp)
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(ProtonDose)
   add_subdirectory(ContourComparison)
- 
+  add_subdirectory(ContourMorphology)
+
   add_subdirectory(PlmDoseComparison)
   add_subdirectory(PlmDvh)
   #add_subdirectory(PlmMabs) # requires Plastimatch segmentation  
