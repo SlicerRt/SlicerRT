@@ -1,0 +1,144 @@
+From d688b1448cbeafa6d152bd28f0ee335772f9fd0a Mon Sep 17 00:00:00 2001
+From: Csaba Pinter <pinter@cs.queensu.ca>
+Date: Thu, 1 Nov 2012 17:19:52 -0400
+Subject: [PATCH] LeakFinder patch
+
+---
+ Common/vtkDebugLeaks.cxx               |   23 +++++++++++++++++++++++
+ Common/vtkDebugLeaks.h                 |    6 ++++++
+ Common/vtkDebugLeaksManager.cxx        |   10 +++++++++-
+ Common/vtkObjectBase.cxx               |    8 ++++++++
+ GUISupport/Qt/vtkQtDebugLeaksModel.cxx |    4 ++++
+ 5 files changed, 50 insertions(+), 1 deletion(-)
+
+diff --git a/Common/vtkDebugLeaks.cxx b/Common/vtkDebugLeaks.cxx
+index 50deaaa..a6e38b6 100644
+--- a/Common/vtkDebugLeaks.cxx
++++ b/Common/vtkDebugLeaks.cxx
+@@ -336,6 +336,24 @@ void vtkDebugLeaks::DestructingObject(vtkObjectBase* object)
+ }
+ 
+ //----------------------------------------------------------------------------
++void vtkDebugLeaks::RegisteringObject(vtkObjectBase* object)
++{
++  if (vtkDebugLeaks::Observer)
++    {
++    vtkDebugLeaks::Observer->RegisteringObject(object);
++    }
++}
++
++//----------------------------------------------------------------------------
++void vtkDebugLeaks::UnregisteringObject(vtkObjectBase* object)
++{
++  if (vtkDebugLeaks::Observer)
++    {
++    vtkDebugLeaks::Observer->UnregisteringObject(object);
++    }
++}
++
++//----------------------------------------------------------------------------
+ int vtkDebugLeaks::PrintCurrentLeaks()
+ {
+ #ifdef VTK_DEBUG_LEAKS
+@@ -456,6 +474,11 @@ void vtkDebugLeaks::ClassInitialize()
+ void vtkDebugLeaks::ClassFinalize()
+ {
+ #ifdef VTK_DEBUG_LEAKS
++  if (vtkDebugLeaks::Observer)
++    {
++    vtkDebugLeaks::Observer->Finalizing();
++    }
++
+   // Report leaks.
+   int leaked = vtkDebugLeaks::PrintCurrentLeaks();
+ 
+diff --git a/Common/vtkDebugLeaks.h b/Common/vtkDebugLeaks.h
+index d7efba5..9f8540f 100644
+--- a/Common/vtkDebugLeaks.h
++++ b/Common/vtkDebugLeaks.h
+@@ -82,6 +82,9 @@ protected:
+   static void ConstructingObject(vtkObjectBase* object);
+   static void DestructingObject(vtkObjectBase* object);
+ 
++  static void RegisteringObject(vtkObjectBase* object);
++  static void UnregisteringObject(vtkObjectBase* object);
++
+   //BTX
+   friend class vtkDebugLeaksManager;
+   friend class vtkObjectBase;
+@@ -106,6 +109,9 @@ public:
+   virtual ~vtkDebugLeaksObserver() {};
+   virtual void ConstructingObject(vtkObjectBase*) = 0;
+   virtual void DestructingObject(vtkObjectBase*) = 0;
++  virtual void Finalizing() = 0;
++  virtual void RegisteringObject(vtkObjectBase*) = 0;
++  virtual void UnregisteringObject(vtkObjectBase*) = 0;
+ };
+ //ETX
+ 
+diff --git a/Common/vtkDebugLeaksManager.cxx b/Common/vtkDebugLeaksManager.cxx
+index 936ebe9..11bfc38 100644
+--- a/Common/vtkDebugLeaksManager.cxx
++++ b/Common/vtkDebugLeaksManager.cxx
+@@ -36,10 +36,18 @@ vtkDebugLeaksManager::vtkDebugLeaksManager()
+ 
+ vtkDebugLeaksManager::~vtkDebugLeaksManager()
+ {
+-  if(--vtkDebugLeaksManagerCount == 0)
++  // This has been changed because the StackWalker::ShowCallstack() call
++  //   somehow prevents this counter from going down to zero (this is only a workaround!)
++  if(vtkDebugLeaksManagerCount != 0)
+     {
+     vtkDebugLeaks::ClassFinalize();
++    vtkDebugLeaksManagerCount = 0;
+     }
++
++  //if(--vtkDebugLeaksManagerCount == 0)
++  //  {
++  //  vtkDebugLeaks::ClassFinalize();
++  //  }
+ }
+ 
+ #if defined(_MSC_VER)
+diff --git a/Common/vtkObjectBase.cxx b/Common/vtkObjectBase.cxx
+index b384ddc..d2ff027 100644
+--- a/Common/vtkObjectBase.cxx
++++ b/Common/vtkObjectBase.cxx
+@@ -180,11 +180,19 @@ void vtkObjectBase::Register(vtkObjectBase* o)
+ {
+   // Do not participate in garbage collection by default.
+   this->RegisterInternal(o, 0);
++
++#ifdef VTK_DEBUG_LEAKS
++  vtkDebugLeaks::RegisteringObject(this);
++#endif
+ }
+ 
+ //----------------------------------------------------------------------------
+ void vtkObjectBase::UnRegister(vtkObjectBase* o)
+ {
++#ifdef VTK_DEBUG_LEAKS
++  vtkDebugLeaks::UnregisteringObject(this);
++#endif
++
+   // Do not participate in garbage collection by default.
+   this->UnRegisterInternal(o, 0);
+ }
+diff --git a/GUISupport/Qt/vtkQtDebugLeaksModel.cxx b/GUISupport/Qt/vtkQtDebugLeaksModel.cxx
+index 09cd093..e1450e9 100644
+--- a/GUISupport/Qt/vtkQtDebugLeaksModel.cxx
++++ b/GUISupport/Qt/vtkQtDebugLeaksModel.cxx
+@@ -46,6 +46,10 @@ public:
+     this->Model.removeObject(object);
+     }
+ 
++  virtual void Finalizing() {}
++  virtual void RegisteringObject(vtkObjectBase* object) {}
++  virtual void UnregisteringObject(vtkObjectBase* object) {}
++
+   vtkQtDebugLeaksModel& Model;
+ 
+ private:
+-- 
+1.7.10.msysgit.1
+
