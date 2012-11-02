@@ -46,7 +46,7 @@ QString qSlicerPlmSlicerBsplineModule::helpText()const
 {
   QString help = 
     "This module performs BSpline registration. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/PlmBspline\">%1/Documentation/%2.%3/Modules/PlmBspline</a><br>";
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/PlmBSplineDeformableRegistration\">%1/Documentation/%2.%3/Modules/PlmBSplineDeformableRegistration</a><br>";
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
