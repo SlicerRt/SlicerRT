@@ -1,20 +1,19 @@
 import os
 import unittest
-import DicomRtImportSelfTestPaths
 from __main__ import vtk, qt, ctk, slicer
 
 #
-# DicomRtImportSelfTest
+# SlicerRtDemo_RSNA2012_SelfTest
 #
 
-class DicomRtImportSelfTest:
+class SlicerRtDemo_RSNA2012_SelfTest:
   def __init__(self, parent):
-    parent.title = "DicomRtImportSelfTest" # TODO make this more human readable by adding spaces
+    parent.title = "SlicerRT Demo RSNA2012 Self Test"
     parent.categories = ["Testing.TestCases"]
-    parent.dependencies = ["DicomRtImport", "Contours"]
+    parent.dependencies = ["DicomRtImport", "DoseAccumulation", "DoseVolumeHistogram", "Contours"]
     parent.contributors = ["Csaba Pinter (Queen's)"]
     parent.helpText = """
-    This is a self test for the DicomRtImport DICOM plugin module.
+    This is a self test that automatically runs the demo/tutorial prepared for RSNA 2012.
     """
     parent.acknowledgementText = """This file was originally developed by Csaba Pinter, PerkLab, Queen's University and was supported through the Applied Cancer Research Unit program of Cancer Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care""" # replace with organization, grant and thanks.
     self.parent = parent
@@ -26,17 +25,17 @@ class DicomRtImportSelfTest:
       slicer.selfTests
     except AttributeError:
       slicer.selfTests = {}
-    slicer.selfTests['DicomRtImportSelfTest'] = self.runTest
+    slicer.selfTests['SlicerRtDemo_RSNA2012_SelfTest'] = self.runTest
 
   def runTest(self):
-    tester = DicomRtImportSelfTestTest()
+    tester = SlicerRtDemo_RSNA2012_SelfTest_Test()
     tester.runTest()
 
 #
-# qDicomRtImportSelfTestWidget
+# qSlicerRtDemo_RSNA2012_SelfTest_Widget
 #
 
-class DicomRtImportSelfTestWidget:
+class SlicerRtDemo_RSNA2012_SelfTest_Widget:
   def __init__(self, parent = None):
     if not parent:
       self.parent = slicer.qMRMLWidget()
@@ -57,7 +56,7 @@ class DicomRtImportSelfTestWidget:
     #  your module to users)
     self.reloadButton = qt.QPushButton("Reload")
     self.reloadButton.toolTip = "Reload this module."
-    self.reloadButton.name = "DicomRtImportSelfTest Reload"
+    self.reloadButton.name = "SlicerRtDemo RSNA2012 Self Test Reload"
     self.layout.addWidget(self.reloadButton)
     self.reloadButton.connect('clicked()', self.onReload)
 
@@ -72,7 +71,7 @@ class DicomRtImportSelfTestWidget:
     # Add vertical spacer
     self.layout.addStretch(1)
 
-  def onReload(self,moduleName="DicomRtImportSelfTest"):
+  def onReload(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
     """Generic reload method for any scripted module.
     ModuleWizard will subsitute correct default moduleName.
     """
@@ -111,17 +110,17 @@ class DicomRtImportSelfTestWidget:
         'globals()["%s"].%s(parent)' % (moduleName, widgetName))
     globals()[widgetName.lower()].setup()
 
-  def onReloadAndTest(self,moduleName="DicomRtImportSelfTest"):
+  def onReloadAndTest(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
     tester.runTest()
 
 #
-# DicomRtImportSelfTestLogic
+# SlicerRtDemo_RSNA2012_SelfTestLogic
 #
 
-class DicomRtImportSelfTestLogic:
+class SlicerRtDemo_RSNA2012_SelfTestLogic:
   """This class should implement all the actual 
   computation done by your module.  The interface 
   should be such that other python code can import
@@ -145,7 +144,7 @@ class DicomRtImportSelfTestLogic:
     return True
 
 
-class DicomRtImportSelfTestTest(unittest.TestCase):
+class SlicerRtDemo_RSNA2012_SelfTest_Test(unittest.TestCase):
   """
   This is the test case for your scripted module.
   """
@@ -177,12 +176,12 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     #TODO: Comment out
     #logFile = open('d:/pyTestLog.txt', 'w')
     #logFile.write(repr(slicer.modules.models) + '\n')
-    #logFile.write(repr(slicer.modules.dicomrtimportselftest) + '\n')
+    #logFile.write(repr(slicer.modules.SlicerRtDemo_RSNA2012_SelfTest) + '\n')
     #logFile.write(repr(slicer.modules.dicomrtimport) + '\n')
     #logFile.write(repr(slicer.modules.models) + '\n')
     #logFile.close()
 
-    self.moduleName = "DicomRtImportSelfTest"
+    self.moduleName = "SlicerRtDemo_RSNA2012_SelfTest"
     """ Determine data directory for the tests """
     moduleFilePath = eval('slicer.modules.%s.path' % self.moduleName.lower())
     moduleDir = os.path.dirname(moduleFilePath)
@@ -192,9 +191,9 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     """
     self.setUp()
 
-    self.test_DicomRtImportSelfTest_FullTest1()
+    self.test_SlicerRtDemo_RSNA2012_SelfTest_FullTest1()
 
-  def test_DicomRtImportSelfTest_FullTest1(self):
+  def test_SlicerRtDemo_RSNA2012_SelfTest_FullTest1(self):
     # Check for DicomRtImport module
     self.assertTrue( slicer.modules.dicomrtimport )
 
@@ -208,34 +207,31 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
 
 
   def TestSection_0RetrieveInputData(self):
-    if os.access(DicomRtImportSelfTestPaths.dataDir, os.F_OK):
-      self.dataDir = DicomRtImportSelfTestPaths.dataDir
-      self.dicomDatabaseDir = DicomRtImportSelfTestPaths.dicomDatabaseDir
-      self.tempDir = DicomRtImportSelfTestPaths.tempDir
-    else:
-      import urllib
+    self.delayDisplay("0: Retrieve input data",self.delayMs)
 
-      dicomRtImportSelfTestDir = slicer.app.temporaryPath + '/DicomRtImportSelfTest'
-      if not os.access(dicomRtImportSelfTestDir, os.F_OK):
-        os.mkdir(dicomRtImportSelfTestDir)
-      self.dataDir = dicomRtImportSelfTestDir + '/EclipseProstatePhantomRtData'
-      if not os.access(self.dataDir, os.F_OK):
-        os.mkdir(self.dataDir)
-      self.dicomDatabaseDir = dicomRtImportSelfTestDir + '/CtkDicomDatabase'
-      self.tempDir = dicomRtImportSelfTestDir + '/Temp'
+    import urllib
 
-      downloads = (
-          ('http://slicer.kitware.com/midas3/download?items=10613', 'RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm'),
-          ('http://slicer.kitware.com/midas3/download?items=10614', 'RP.1.2.246.352.71.5.2088656855.377401.20110920153647.dcm'),
-          ('http://slicer.kitware.com/midas3/download?items=10615', 'RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm')
-          )
+    SlicerRtDemo_RSNA2012_SelfTestDir = slicer.app.temporaryPath + '/SlicerRtDemo_RSNA2012_SelfTest'
+    if not os.access(SlicerRtDemo_RSNA2012_SelfTestDir, os.F_OK):
+      os.mkdir(SlicerRtDemo_RSNA2012_SelfTestDir)
+    self.dataDir = SlicerRtDemo_RSNA2012_SelfTestDir + '/EclipseProstatePhantomRtData'
+    if not os.access(self.dataDir, os.F_OK):
+      os.mkdir(self.dataDir)
+    self.dicomDatabaseDir = SlicerRtDemo_RSNA2012_SelfTestDir + '/CtkDicomDatabase'
+    self.tempDir = SlicerRtDemo_RSNA2012_SelfTestDir + '/Temp'
 
-      for url,name in downloads:
-        filePath = self.dataDir + '/' + name
-        if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-          print('Requesting download %s from %s...\n' % (name, url))
-          urllib.urlretrieve(url, filePath)
-      self.delayDisplay('Finished with download and loading\n')
+    downloads = (
+        ('http://slicer.kitware.com/midas3/download?items=10613', 'RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm'),
+        ('http://slicer.kitware.com/midas3/download?items=10614', 'RP.1.2.246.352.71.5.2088656855.377401.20110920153647.dcm'),
+        ('http://slicer.kitware.com/midas3/download?items=10615', 'RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm')
+        )
+
+    for url,name in downloads:
+      filePath = self.dataDir + '/' + name
+      if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
+        print('Requesting download %s from %s...\n' % (name, url))
+        urllib.urlretrieve(url, filePath)
+    self.delayDisplay('Finished with download and loading\n')
 
   def TestSection_1OpenDatabase(self):
     self.delayDisplay("1: Open database",self.delayMs)

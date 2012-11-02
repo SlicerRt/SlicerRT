@@ -51,7 +51,7 @@ message(STATUS "SLICERRT_ENABLE_EXPERIMENTAL_MODULES: " ${SLICERRT_ENABLE_EXPERI
 #-----------------------------------------------------------------------------
 add_subdirectory(SlicerRtCommon)
 IF (WIN32)
-	add_subdirectory(LeakFinder)
+  add_subdirectory(LeakFinder)
 ENDIF()
 
 add_subdirectory(DicomRtImport)
@@ -78,6 +78,10 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(PlmSlicerBspline) # disable for now, loadable
   add_subdirectory(PlmSynth)
   add_subdirectory(PlmThreshbox)
+endif()
+
+if(BUILD_TESTING)
+  add_subdirectory(Testing)
 endif()
 
 #-----------------------------------------------------------------------------
