@@ -198,6 +198,7 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     # Check for DicomRtImport module
     self.assertTrue( slicer.modules.dicomrtimport )
 
+    self.TestSection_0RetrieveInputData()
     self.TestSection_1OpenDatabase()
     self.TestSection_2ImportStudy()
     self.TestSection_3SelectLoadables()
@@ -205,17 +206,48 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     self.TestSection_5SaveScene()
     self.TestSection_6ClearDatabase()
 
+
+  def TestSection_0RetrieveInputData(self):
+    if os.access(DicomRtImportSelfTestPaths.dataDir, os.F_OK):
+      self.dataDir = DicomRtImportSelfTestPaths.dataDir
+      self.dicomDatabaseDir = DicomRtImportSelfTestPaths.dicomDatabaseDir
+      self.tempDir = DicomRtImportSelfTestPaths.tempDir
+    else:
+      import urllib
+
+      dicomRtImportSelfTestDir = slicer.app.temporaryPath + '/DicomRtImportSelfTest'
+      if not os.access(dicomRtImportSelfTestDir, os.F_OK):
+        os.mkdir(dicomRtImportSelfTestDir)
+      self.dataDir = dicomRtImportSelfTestDir + '/EclipseProstatePhantomRtData'
+      if not os.access(self.dataDir, os.F_OK):
+        os.mkdir(self.dataDir)
+      self.dicomDatabaseDir = dicomRtImportSelfTestDir + '/CtkDicomDatabase'
+      self.tempDir = dicomRtImportSelfTestDir + '/Temp'
+
+      downloads = (
+          ('http://slicer.kitware.com/midas3/download?items=10613', 'RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm'),
+          ('http://slicer.kitware.com/midas3/download?items=10614', 'RP.1.2.246.352.71.5.2088656855.377401.20110920153647.dcm'),
+          ('http://slicer.kitware.com/midas3/download?items=10615', 'RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm')
+          )
+
+      for url,name in downloads:
+        filePath = self.dataDir + '/' + name
+        if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
+          print('Requesting download %s from %s...\n' % (name, url))
+          urllib.urlretrieve(url, filePath)
+      self.delayDisplay('Finished with download and loading\n')
+
   def TestSection_1OpenDatabase(self):
     self.delayDisplay("1: Open database",self.delayMs)
 
     # Open test database and empty it
     databaseFileName = 'ctkDICOM.sql'
 
-    if not os.access(DicomRtImportSelfTestPaths.dicomDatabaseDir, os.F_OK):
-      os.mkdir(DicomRtImportSelfTestPaths.dicomDatabaseDir)
+    if not os.access(self.dicomDatabaseDir, os.F_OK):
+      os.mkdir(self.dicomDatabaseDir)
 
     dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-    dicomWidget.onDatabaseDirectoryChanged(DicomRtImportSelfTestPaths.dicomDatabaseDir)
+    dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
     self.assertTrue( slicer.dicomDatabase.isOpen )
 
     initialized = slicer.dicomDatabase.initializeDatabase()
@@ -228,8 +260,7 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     self.assertTrue( indexer )
 
     # Import study to database
-    studyDir = DicomRtImportSelfTestPaths.dataDir + '/EclipseProstatePhantomRtData'
-    indexer.addDirectory( slicer.dicomDatabase, studyDir )
+    indexer.addDirectory( slicer.dicomDatabase, self.dataDir )
     indexer.waitForImportFinished()
 
     self.assertTrue( len(slicer.dicomDatabase.patients()) == 1 )
@@ -278,10 +309,10 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
   def TestSection_5SaveScene(self):
     self.delayDisplay("5: Save scene",self.delayMs)
 
-    if not os.access(DicomRtImportSelfTestPaths.tempDir, os.F_OK):
-      os.mkdir(DicomRtImportSelfTestPaths.tempDir)
+    if not os.access(self.tempDir, os.F_OK):
+      os.mkdir(self.tempDir)
 
-    sceneFileName = DicomRtImportSelfTestPaths.tempDir + '/DicomRtImportTestScene.mrml'
+    sceneFileName = self.tempDir + '/DicomRtImportTestScene.mrml'
     if os.access(sceneFileName, os.F_OK):
       os.remove(sceneFileName)
 
