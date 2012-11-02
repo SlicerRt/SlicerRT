@@ -281,15 +281,9 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
   }
   d->CheckboxToVolumeIdMap.clear();
 
-  if (volumeNodes == NULL)
-  {
-    return;
-  }
-
   d->tableWidget_Volumes->setRowCount(volumeNodes->GetNumberOfItems());
   if (volumeNodes->GetNumberOfItems() < 1 || !d->logic()->GetDoseAccumulationNode())
   {
-    volumeNodes->Delete();
     return;
   }
 
