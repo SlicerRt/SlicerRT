@@ -44,8 +44,10 @@ qSlicerPlmSlicerBsplineModule::~qSlicerPlmSlicerBsplineModule()
 //-----------------------------------------------------------------------------
 QString qSlicerPlmSlicerBsplineModule::helpText()const
 {
-  return "This PlmSlicerBspline module illustrates how a loadable module should "
-      "be implemented.";
+  QString help = 
+    "This module performs BSpline registration. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/PlmBspline\">%1/Documentation/%2.%3/Modules/PlmBspline</a><br>";
+  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------

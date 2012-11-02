@@ -74,8 +74,9 @@ qSlicerIsodoseModule::~qSlicerIsodoseModule()
 QString qSlicerIsodoseModule::helpText()const
 {
   QString help = 
-    "This module generates iso dose surface models using user defined dose levels.";
-  return help;
+    "This module generates iso dose surface models using user defined dose levels. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/Isodose\">%1/Documentation/%2.%3/Modules/Isodose</a><br>";
+  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------

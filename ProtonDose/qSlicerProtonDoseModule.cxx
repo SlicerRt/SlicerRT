@@ -69,8 +69,9 @@ qSlicerProtonDoseModule::~qSlicerProtonDoseModule()
 QString qSlicerProtonDoseModule::helpText()const
 {
   QString help = 
-    "This module generates iso dose surface models using user defined dose levels.";
-  return help;
+    "This module computes proton dose distributions. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/ProtonDose\">%1/Documentation/%2.%3/Modules/ProtonDose</a><br>";
+  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------

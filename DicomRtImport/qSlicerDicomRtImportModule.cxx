@@ -68,7 +68,10 @@ qSlicerDicomRtImportModule::~qSlicerDicomRtImportModule()
 //-----------------------------------------------------------------------------
 QString qSlicerDicomRtImportModule::helpText()const
 {
-  return "This DicomRtImport module enables importing and loading DICOM RT files into the Slicer DICOM database and the Slicer scene";
+  QString help = 
+    "The DicomRtImport module enables importing and loading DICOM RT files into the Slicer DICOM database and the Slicer scene. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DicomRtImport\">%1/Documentation/%2.%3/Modules/Models</a><br>";
+  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------

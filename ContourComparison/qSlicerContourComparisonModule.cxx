@@ -67,8 +67,9 @@ qSlicerContourComparisonModule::~qSlicerContourComparisonModule()
 QString qSlicerContourComparisonModule::helpText()const
 {
   QString help = 
-    "Compute contour similarity metrics.";
-  return help;
+    "This module computes contour similarity metrics. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/ContourComparison\">%1/Documentation/%2.%3/Modules/ContourComparison</a><br>";
+  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------

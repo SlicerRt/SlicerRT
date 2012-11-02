@@ -67,8 +67,9 @@ qSlicerDoseComparisonModule::~qSlicerDoseComparisonModule()
 QString qSlicerDoseComparisonModule::helpText()const
 {
   QString help = 
-    "Compute and display dose comparison metrics.";
-  return help;
+    "This module computes and displays dose comparison metrics. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DoseComparison\">%1/Documentation/%2.%3/Modules/DoseComparison</a><br>";
+  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------

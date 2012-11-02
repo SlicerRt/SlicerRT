@@ -67,7 +67,10 @@ qSlicerContourMorphologyModule::~qSlicerContourMorphologyModule()
 //-----------------------------------------------------------------------------
 QString qSlicerContourMorphologyModule::helpText()const
 {
-  return "This loadable modules performs simualtion study of patient motion.";
+  QString help = 
+    "The Contour morphology module performs simualtion study of patient motion. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/ContourMorphology\">%1/Documentation/%2.%3/Modules/ContourMorphology</a><br>";
+  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------

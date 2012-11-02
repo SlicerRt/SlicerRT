@@ -70,8 +70,9 @@ vtkMRMLAbstractLogic* qSlicerContoursModule::createLogic()
 QString qSlicerContoursModule::helpText()const
 {
   QString help = 
-    "The Contours module manages contours and contour hierarchies.";
-  return help;
+    "The Contours module manages contours and contour hierarchies. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/Contours\">%1/Documentation/%2.%3/Modules/Contours</a><br>";
+  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------

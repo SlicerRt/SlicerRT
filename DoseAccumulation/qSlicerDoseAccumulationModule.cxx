@@ -73,8 +73,9 @@ qSlicerDoseAccumulationModule::~qSlicerDoseAccumulationModule()
 QString qSlicerDoseAccumulationModule::helpText()const
 {
   QString help = 
-    "This module accumulates the multiple dose distribution maps into one dose map.";
-  return help;
+    "This module accumulates the multiple dose distribution maps into one dose map. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DoseAccumulation\">%1/Documentation/%2.%3/Modules/DoseAccumulation</a><br>";
+  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------
