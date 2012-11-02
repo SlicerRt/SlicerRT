@@ -142,6 +142,7 @@ public:
 
     if (m_OldDebugLeakObserver)
     {
+      // Uncomment this if you have an other observer you want to use at the same time that supports Register/Unregister
       //m_OldDebugLeakObserver->RegisteringObject(o);
     }
   }
@@ -162,6 +163,7 @@ public:
 
     if (m_OldDebugLeakObserver)
     {
+      // Uncomment this if you have an other observer you want to use at the same time that supports Register/Unregister
       //m_OldDebugLeakObserver->UnregisteringObject(o);
     }
   }
