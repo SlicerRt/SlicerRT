@@ -30,9 +30,7 @@
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 
-#include "vtkSlicerContoursModuleMRMLExport.h"
-
-class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourNode : public vtkMRMLDisplayableNode
+class vtkMRMLContourNode : public vtkMRMLDisplayableNode
 {
 public:
   enum ContourRepresentationType

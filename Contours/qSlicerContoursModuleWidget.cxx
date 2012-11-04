@@ -19,8 +19,6 @@
 
 ==============================================================================*/
 
-// Qt includes
-
 // SlicerQt includes
 #include "qSlicerContoursModuleWidget.h"
 #include "ui_qSlicerContoursModule.h"

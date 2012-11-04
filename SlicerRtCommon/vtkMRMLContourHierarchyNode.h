@@ -8,10 +8,8 @@
 
 #include "vtkMRMLDisplayableHierarchyNode.h"
 
-#include "vtkSlicerContoursModuleMRMLExport.h"
-
 /// \ingroup Slicer_QtModules_Contour
-class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourHierarchyNode : public vtkMRMLDisplayableHierarchyNode
+class vtkMRMLContourHierarchyNode : public vtkMRMLDisplayableHierarchyNode
 {
 public:
   static vtkMRMLContourHierarchyNode *New();

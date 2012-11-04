@@ -5,7 +5,7 @@ set(MODULE_TITLE ${MODULE_NAME})
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
-add_subdirectory(MRML)
+#add_subdirectory(MRML)
 
 #-----------------------------------------------------------------------------
 set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
@@ -50,7 +50,7 @@ slicerMacroBuildQtModule(
   TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
   RESOURCES ${MODULE_RESOURCES}
   )
-  
+
 #-----------------------------------------------------------------------------
 if(BUILD_TESTING)
   add_subdirectory(Testing)

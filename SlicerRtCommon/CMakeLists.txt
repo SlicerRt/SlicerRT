@@ -7,6 +7,10 @@ SET (SlicerRtCommon_SRCS
   SlicerRtCommon.cxx
   SlicerRtCommon.h
   SlicerRtCommon.txx
+  vtkMRMLContourNode.cxx
+  vtkMRMLContourNode.h
+  vtkMRMLContourHierarchyNode.cxx
+  vtkMRMLContourHierarchyNode.h
   vtkPolyDataToLabelmapFilter.cxx
   vtkPolyDataToLabelmapFilter.h
   vtkLabelmapToModelFilter.cxx
@@ -21,7 +25,8 @@ SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${Slicer_Libs_INCLU
 set(lib_name ${PROJECT_NAME})
 SET (SlicerRtCommon_LIBS ${SlicerRtCommon_LIBS}
 	vtkCommon
-)
+	MRMLCore
+  )
 
 INCLUDE_DIRECTORIES( ${SlicerRtCommon_INCLUDE_DIRS} )
 ADD_LIBRARY(${lib_name} STATIC ${SlicerRtCommon_SRCS})
