@@ -169,7 +169,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
-    slicer.mrmlScene.Clear(0) #TODO:
+    slicer.mrmlScene.Clear(0)
 
     self.delayMs = 700
 
@@ -232,11 +232,12 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
   def test_SlicerRtDemo_RSNA2012_SelfTest_FullTest(self):
     # Check for DicomRtImport module
     self.assertTrue( slicer.modules.dicomrtimport )
+    self.assertTrue( slicer.modules.brainsfit )
     self.assertTrue( slicer.modules.brainsresample )
-    self.assertTrue( slicer.modules.dosevolumehistogram )
     self.assertTrue( slicer.modules.doseaccumulation )
+    self.assertTrue( slicer.modules.dosevolumehistogram )
 
-    self.TestSection_00SetupPaths()
+    self.TestSection_00SetupPathsAndNames()
     self.TestSection_01OpenTempDatabase()
     self.TestSection_02DownloadDay1Data()
     self.TestSection_03ImportDay1Study()
@@ -244,10 +245,12 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.TestSection_05LoadDay2Data()
     self.TestSection_06SetDisplayOptions()
     self.TestSection_07RegisterDay2CTToDay1CT()
+    self.TestSection_08ResampleDoseVolumes()
+    self.TestSection_09SetDoseVolumeAttributes()
 
     #self.TestSection_06ClearDatabase()
 
-  def TestSection_00SetupPaths(self):
+  def TestSection_00SetupPathsAndNames(self):
     slicerRtDemo_RSNA2012_SelfTestDir = slicer.app.temporaryPath + '/SlicerRtDemo_RSNA2012_SelfTest'
     if not os.access(slicerRtDemo_RSNA2012_SelfTestDir, os.F_OK):
       os.mkdir(slicerRtDemo_RSNA2012_SelfTestDir)
@@ -263,6 +266,17 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.dicomDatabaseDir = slicerRtDemo_RSNA2012_SelfTestDir + '/CtkDicomDatabase'
     self.dicomZipFilePath = slicerRtDemo_RSNA2012_SelfTestDir + '/EclipseEntDicomRt.zip'
     self.tempDir = slicerRtDemo_RSNA2012_SelfTestDir + '/Temp'
+    
+    self.day1CTName = '2: ENT IMRT'
+    self.day1DoseName = '5: RTDOSE'
+    self.day2CTName = '2_ENT_IMRT_Day2'
+    self.day2DoseName = '5_RTDOSE_Day2'
+    self.transformDay2ToDay1RigidName = 'Transform_Day2ToDay1_Rigid'
+    self.transformDay2ToDay1BSplineName = 'Transform_Day2ToDay1_BSpline'
+    self.day2DoseRigidName = '5_RTDOSE_Day2Registered_Rigid'
+    self.day2DoseBSpline = '5_RTDOSE_Day2Registered_BSpline'
+    self.DoseUnitNameAttributeName = 'DicomRtImport.DoseUnitName'
+    self.DoseUnitValueAttributeName = 'DicomRtImport.DoseUnitValue'
 
   def TestSection_01OpenTempDatabase(self):
     # Open test database and empty it
@@ -297,7 +311,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     for url,filePath in downloads:
       if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
         if downloaded == 0:
-          self.delayDisplay('Downloading Day 1 input data...',self.delayMs)
+          self.delayDisplay('Downloading Day 1 input data.\n  It may take a few minutes...',self.delayMs)
         print('Requesting download from %s...' % (url))
         urllib.urlretrieve(url, filePath)
         downloaded += 1
@@ -369,15 +383,15 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
   def TestSection_05LoadDay2Data(self):
     import urllib
     downloads = (
-        ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/2_ENT_IMRT_Day2.nrrd', slicer.util.loadVolume),
-        ('http://slicer.kitware.com/midas3/download?items=10703', self.day2DataDir + '/5_RTDOSE_Day2.nrrd', slicer.util.loadVolume),
+        ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/' + self.day2CTName + '.nrrd', slicer.util.loadVolume),
+        ('http://slicer.kitware.com/midas3/download?items=10703', self.day2DataDir + '/' + self.day2DoseName + '.nrrd', slicer.util.loadVolume),
         )
 
     downloaded = 0
     for url,filePath,loader in downloads:
       if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
         if downloaded == 0:
-          self.delayDisplay('Downloading Day 2 input data...',self.delayMs)
+          self.delayDisplay('Downloading Day 2 input data.\n  It may take a few minutes...',self.delayMs)
         print('Requesting download from %s...\n' % (url))
         urllib.urlretrieve(url, filePath)
         downloaded += 1
@@ -394,15 +408,15 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     layoutManager.setLayout(3)
 
     # Set Day 2 dose color map
-    day2Dose = slicer.util.getNode(pattern='5_RTDOSE_Day2')
+    day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
     day2Dose.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 
     # Set CT windows
-    day1CT = slicer.util.getNode(pattern='2: ENT IMRT')
+    day1CT = slicer.util.getNode(pattern=self.day1CTName)
     day1CT.GetDisplayNode().SetAutoWindowLevel(0)
     day1CT.GetDisplayNode().SetWindowLevel(250,80)
 
-    day2CT = slicer.util.getNode(pattern='2_ENT_IMRT_Day2')
+    day2CT = slicer.util.getNode(pattern=self.day2CTName)
     day2CT.GetDisplayNode().SetAutoWindowLevel(0)
     day2CT.GetDisplayNode().SetWindowLevel(250,80)
 
@@ -441,29 +455,35 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSFit')
+      brainsFit = slicer.modules.brainsfit
 
       # Register Day 2 CT to Day 1 CT using rigid registration
-      self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration",self.delayMs)
+      self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration.\n  It may take a few minutes...",self.delayMs)
 
       parametersRigid = {}
-      day1CT = slicer.util.getNode(pattern='2: ENT IMRT')
+      day1CT = slicer.util.getNode(pattern=self.day1CTName)
       parametersRigid["fixedVolume"] = day1CT.GetID()
 
-      day2CT = slicer.util.getNode(pattern='2_ENT_IMRT_Day2')
+      day2CT = slicer.util.getNode(pattern=self.day2CTName)
       parametersRigid["movingVolume"] = day2CT.GetID()
       
       linearTransform = slicer.vtkMRMLLinearTransformNode()
-      linearTransform.SetName('Transform_Day2ToDay1_Rigid')
+      linearTransform.SetName(self.transformDay2ToDay1RigidName)
       slicer.mrmlScene.AddNode( linearTransform )
       parametersRigid["linearTransform"] = linearTransform.GetID()
 
       parametersRigid["useRigid"] = True
 
-      brainsFit = slicer.modules.brainsfit
-      slicer.cli.run(brainsFit, None, parametersRigid)
+      self.cliBrainsFitRigidNode = None
+      self.cliBrainsFitRigidNode = slicer.cli.run(brainsFit, None, parametersRigid)
+      waitCount = 0
+      while self.cliBrainsFitRigidNode.GetStatusString() != 'Completed' and waitCount < 100:
+        self.delayDisplay( "Register Day 2 CT to Day 1 CT using rigid registration... %d" % waitCount )
+        waitCount += 1
+      self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration finished",self.delayMs)
 
       # Register Day 2 CT to Day 1 CT using BSpline registration
-      self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration",self.delayMs)
+      self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration.\n  It may take a few minutes...",self.delayMs)
 
       parametersBSpline = {}
       parametersBSpline["fixedVolume"] = day1CT.GetID()
@@ -471,14 +491,110 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       parametersBSpline["initialTransform"] = linearTransform.GetID()
 
       bsplineTransform = slicer.vtkMRMLBSplineTransformNode()
-      bsplineTransform.SetName('Transform_Day2ToDay1_BSpline')
+      bsplineTransform.SetName(self.transformDay2ToDay1BSplineName)
       slicer.mrmlScene.AddNode( bsplineTransform )
       parametersBSpline["bsplineTransform"] = bsplineTransform.GetID()
 
       parametersBSpline["useBSpline"] = True
 
-      brainsFit = slicer.modules.brainsfit
-      slicer.cli.run(brainsFit, None, parametersBSpline)
+      self.cliBrainsFitBSplineNode = None
+      self.cliBrainsFitBSplineNode = slicer.cli.run(brainsFit, None, parametersBSpline)
+      waitCount = 0
+      while self.cliBrainsFitBSplineNode.GetStatusString() != 'Completed' and waitCount < 100:
+        self.delayDisplay( "Register Day 2 CT to Day 1 CT using BSpline registration... %d" % waitCount )
+        waitCount += 1
+      self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration finished",self.delayMs)
+
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+
+  def TestSection_08ResampleDoseVolumes(self):
+    try:
+      mainWindow = slicer.util.mainWindow()
+      mainWindow.moduleSelector().selectModule('BRAINSResample')
+      brainsResample = slicer.modules.brainsresample
+
+      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
+
+      # Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform
+      self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform",self.delayMs)
+
+      parametersRigid = {}
+      parametersRigid["inputVolume"] = day2Dose.GetID()
+      parametersRigid["referenceVolume"] = day1Dose.GetID()
+
+      day2DoseRigid = slicer.vtkMRMLScalarVolumeNode()
+      day2DoseRigid.SetName(self.day2DoseRigidName)
+      slicer.mrmlScene.AddNode( day2DoseRigid )
+      parametersRigid["outputVolume"] = day2DoseRigid.GetID()
+
+      parametersRigid["pixelType"] = 'float'
+
+      transformDay2ToDay1Rigid = slicer.util.getNode(pattern=self.transformDay2ToDay1RigidName)
+      parametersRigid["warpTransform"] = transformDay2ToDay1Rigid.GetID()
+
+      self.cliBrainsResampleRigidNode = None
+      self.cliBrainsResampleRigidNode = slicer.cli.run(brainsResample, None, parametersRigid)
+      waitCount = 0
+      while self.cliBrainsResampleRigidNode.GetStatusString() != 'Completed' and waitCount < 100:
+        self.delayDisplay( "Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform... %d" % waitCount )
+        waitCount += 1
+      self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform finished",self.delayMs)
+
+      # Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform
+      self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform",self.delayMs)
+
+      parametersBSpline = {}
+      parametersBSpline["inputVolume"] = day2Dose.GetID()
+      parametersBSpline["referenceVolume"] = day1Dose.GetID()
+
+      day2DoseBSpline = slicer.vtkMRMLScalarVolumeNode()
+      day2DoseBSpline.SetName(self.day2DoseBSpline)
+      slicer.mrmlScene.AddNode( day2DoseBSpline )
+      parametersBSpline["outputVolume"] = day2DoseBSpline.GetID()
+
+      parametersBSpline["pixelType"] = 'float'
+
+      transformDay2ToDay1BSpline = slicer.util.getNode(pattern=self.transformDay2ToDay1BSplineName)
+      parametersBSpline["warpTransform"] = transformDay2ToDay1BSpline.GetID()
+
+      self.cliBrainsResampleBSplineNode = None
+      self.cliBrainsResampleBSplineNode = slicer.cli.run(brainsResample, None, parametersBSpline)
+      waitCount = 0
+      while self.cliBrainsResampleBSplineNode.GetStatusString() != 'Completed' and waitCount < 100:
+        self.delayDisplay( "Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform... %d" % waitCount )
+        waitCount += 1
+      self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform finished",self.delayMs)
+
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+
+  def TestSection_09SetDoseVolumeAttributes(self):
+    self.delayDisplay("Setting attributes for resampled dose volumes",self.delayMs)
+
+    try:
+      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      doseUnitName = day1Dose.GetAttribute(self.DoseUnitNameAttributeName)
+      doseUnitValue = day1Dose.GetAttribute(self.DoseUnitValueAttributeName)
+
+      day2DoseRigid = slicer.util.getNode(pattern=self.day2DoseRigidName)
+      self.assertTrue(day2DoseRigid)
+      day2DoseRigid.SetAttribute(self.DoseUnitNameAttributeName,doseUnitName)
+      day2DoseRigid.SetAttribute(self.DoseUnitValueAttributeName,doseUnitValue)
+      self.assertTrue(day2DoseRigid.GetDisplayNode())
+      day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
+
+      day2DoseBSpline = slicer.util.getNode(pattern=self.day2DoseBSpline)
+      self.assertTrue(day2DoseBSpline)
+      day2DoseBSpline.SetAttribute(self.DoseUnitNameAttributeName,doseUnitName)
+      day2DoseBSpline.SetAttribute(self.DoseUnitValueAttributeName,doseUnitValue)
+      self.assertTrue(day2DoseBSpline.GetDisplayNode())
+      day2DoseBSpline.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 
     except Exception, e:
       import traceback
