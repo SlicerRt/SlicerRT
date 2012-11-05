@@ -35,7 +35,7 @@ class SlicerRtDemo_RSNA2012_SelfTest:
 # qSlicerRtDemo_RSNA2012_SelfTest_Widget
 #
 
-class SlicerRtDemo_RSNA2012_SelfTest_Widget:
+class SlicerRtDemo_RSNA2012_SelfTestWidget:
   def __init__(self, parent = None):
     if not parent:
       self.parent = slicer.qMRMLWidget()
@@ -56,7 +56,7 @@ class SlicerRtDemo_RSNA2012_SelfTest_Widget:
     #  your module to users)
     self.reloadButton = qt.QPushButton("Reload")
     self.reloadButton.toolTip = "Reload this module."
-    self.reloadButton.name = "SlicerRtDemo RSNA2012 Self Test Reload"
+    self.reloadButton.name = "SlicerRtDemo_RSNA2012_SelfTest Reload"
     self.layout.addWidget(self.reloadButton)
     self.reloadButton.connect('clicked()', self.onReload)
 
@@ -144,7 +144,7 @@ class SlicerRtDemo_RSNA2012_SelfTestLogic:
     return True
 
 
-class SlicerRtDemo_RSNA2012_SelfTest_Test(unittest.TestCase):
+class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
   """
   This is the test case for your scripted module.
   """
@@ -182,9 +182,6 @@ class SlicerRtDemo_RSNA2012_SelfTest_Test(unittest.TestCase):
     #logFile.close()
 
     self.moduleName = "SlicerRtDemo_RSNA2012_SelfTest"
-    """ Determine data directory for the tests """
-    moduleFilePath = eval('slicer.modules.%s.path' % self.moduleName.lower())
-    moduleDir = os.path.dirname(moduleFilePath)
 
   def runTest(self):
     """Run as few or as many tests as needed here.
@@ -197,128 +194,153 @@ class SlicerRtDemo_RSNA2012_SelfTest_Test(unittest.TestCase):
     # Check for DicomRtImport module
     self.assertTrue( slicer.modules.dicomrtimport )
 
-    self.TestSection_0RetrieveInputData()
-    self.TestSection_1OpenDatabase()
-    self.TestSection_2ImportStudy()
-    self.TestSection_3SelectLoadables()
-    self.TestSection_4LoadIntoSlicer()
-    self.TestSection_5SaveScene()
-    self.TestSection_6ClearDatabase()
+    self.TestSection_00RetrieveInputData()
+    self.TestSection_01OpenDatabase()
+    self.TestSection_02ImportStudy()
+    self.TestSection_03SelectLoadablesAndLoad()
+    self.TestSection_04LoadDay2Data()
+    self.TestSection_05SetDisplayOptions()
+    self.TestSection_06RegisterDay2CTToDay1CT()
+
+    #self.TestSection_06ClearDatabase()
 
 
-  def TestSection_0RetrieveInputData(self):
+  def TestSection_00RetrieveInputData(self):
     self.delayDisplay("0: Retrieve input data",self.delayMs)
 
     import urllib
 
-    SlicerRtDemo_RSNA2012_SelfTestDir = slicer.app.temporaryPath + '/SlicerRtDemo_RSNA2012_SelfTest'
-    if not os.access(SlicerRtDemo_RSNA2012_SelfTestDir, os.F_OK):
-      os.mkdir(SlicerRtDemo_RSNA2012_SelfTestDir)
-    self.dataDir = SlicerRtDemo_RSNA2012_SelfTestDir + '/EclipseProstatePhantomRtData'
-    if not os.access(self.dataDir, os.F_OK):
-      os.mkdir(self.dataDir)
-    self.dicomDatabaseDir = SlicerRtDemo_RSNA2012_SelfTestDir + '/CtkDicomDatabase'
-    self.tempDir = SlicerRtDemo_RSNA2012_SelfTestDir + '/Temp'
+    slicerRtDemo_RSNA2012_SelfTestDir = slicer.app.temporaryPath + '/SlicerRtDemo_RSNA2012_SelfTest'
+    if not os.access(slicerRtDemo_RSNA2012_SelfTestDir, os.F_OK):
+      os.mkdir(slicerRtDemo_RSNA2012_SelfTestDir)
+    self.dicomDataDir = slicerRtDemo_RSNA2012_SelfTestDir + '/EclipseEntPhantomRtData'
+    if not os.access(self.dicomDataDir, os.F_OK):
+      os.mkdir(self.dicomDataDir)
+    self.day2DataDir = slicerRtDemo_RSNA2012_SelfTestDir + '/EclipseEntComputedDay2Data'
+    if not os.access(self.day2DataDir, os.F_OK):
+      os.mkdir(self.day2DataDir)
+    self.dicomDatabaseDir = slicerRtDemo_RSNA2012_SelfTestDir + '/CtkDicomDatabase'
+    self.tempDir = slicerRtDemo_RSNA2012_SelfTestDir + '/Temp'
 
+    dicomZipFilePath = slicerRtDemo_RSNA2012_SelfTestDir + '/EclipseEntDicomRt.zip'
     downloads = (
-        ('http://slicer.kitware.com/midas3/download?items=10613', 'RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm'),
-        ('http://slicer.kitware.com/midas3/download?items=10614', 'RP.1.2.246.352.71.5.2088656855.377401.20110920153647.dcm'),
-        ('http://slicer.kitware.com/midas3/download?items=10615', 'RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm')
+        ('http://slicer.kitware.com/midas3/download?items=10704', dicomZipFilePath),
+        ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/2_ENT_IMRT_Day2.nrrd'),
+        ('http://slicer.kitware.com/midas3/download?items=10703', self.day2DataDir + '/5_RTDOSE_Day2.nrrd')
         )
 
-    for url,name in downloads:
-      filePath = self.dataDir + '/' + name
+    downloaded = 0
+    for url,filePath in downloads:
       if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-        print('Requesting download %s from %s...\n' % (name, url))
+        if downloaded == 0:
+          self.delayDisplay('Downloading input data...',self.delayMs)
+        print('Requesting download from %s...\n' % (url))
         urllib.urlretrieve(url, filePath)
-    self.delayDisplay('Finished with download and loading\n')
+        downloaded += 1
+    if downloaded > 0:
+      self.delayDisplay('Downloading input data finished',self.delayMs)
 
-  def TestSection_1OpenDatabase(self):
-    self.delayDisplay("1: Open database",self.delayMs)
+    numOfFilesInDicomDataDir = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
+    if (numOfFilesInDicomDataDir != 141):
+      slicer.app.applicationLogic().Unzip(dicomZipFilePath, self.dicomDataDir)
+      self.delayDisplay("Unzipping done",self.delayMs)
+
+  def TestSection_01OpenDatabase(self):
+    self.delayDisplay("1: Open temp database",self.delayMs)
 
     # Open test database and empty it
-    databaseFileName = 'ctkDICOM.sql'
+    try:
+      qt.QDir().mkpath(self.dicomDatabaseDir)
 
-    if not os.access(self.dicomDatabaseDir, os.F_OK):
-      os.mkdir(self.dicomDatabaseDir)
+      if slicer.dicomDatabase:
+        self.originalDatabaseDirectory = os.path.split(slicer.dicomDatabase.databaseFilename)[0]
+      else:
+        self.originalDatabaseDirectory = None
+        settings = qt.QSettings()
+        settings.setValue('DatabaseDirectory', self.dicomDatabaseDir)
 
-    dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-    dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
-    self.assertTrue( slicer.dicomDatabase.isOpen )
+      dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
+      dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
+      self.assertTrue( slicer.dicomDatabase.isOpen )
 
-    initialized = slicer.dicomDatabase.initializeDatabase()
-    self.assertTrue( initialized )
+      initialized = slicer.dicomDatabase.initializeDatabase()
+      self.assertTrue( initialized )
 
-  def TestSection_2ImportStudy(self):
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+
+  def TestSection_02ImportStudy(self):
     self.delayDisplay("2: Import study",self.delayMs)
 
-    indexer = ctk.ctkDICOMIndexer()
-    self.assertTrue( indexer )
+    try:
+      mainWindow = slicer.util.mainWindow()
+      mainWindow.moduleSelector().selectModule('DICOM')
 
-    # Import study to database
-    indexer.addDirectory( slicer.dicomDatabase, self.dataDir )
-    indexer.waitForImportFinished()
+      # Import study to database
+      dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
+      dicomWidget.dicomApp.suspendModel()
+      indexer = ctk.ctkDICOMIndexer()
+      self.assertTrue( indexer )
 
-    self.assertTrue( len(slicer.dicomDatabase.patients()) == 1 )
-    self.assertTrue( slicer.dicomDatabase.patients()[0] )
+      indexer.addDirectory( slicer.dicomDatabase, self.dicomDataDir )
+      indexer.waitForImportFinished()
+      dicomWidget.dicomApp.resumeModel()
 
-  def TestSection_3SelectLoadables(self):
-    self.delayDisplay("3: Select loadables",self.delayMs)
+      self.assertTrue( len(slicer.dicomDatabase.patients()) == 1 )
+      self.assertTrue( slicer.dicomDatabase.patients()[0] )
 
-    # Choose first patient from the patient list
-    detailsPopup = slicer.modules.dicom.widgetRepresentation().self().detailsPopup
-    detailsPopup.offerLoadables( slicer.dicomDatabase.patients()[0], "Patient" )
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-    loadables = detailsPopup.loadableTable.loadables
-    self.assertTrue( len(loadables) == 4 )
+  def TestSection_03SelectLoadablesAndLoad(self):
+    self.delayDisplay("3: Select loadables and load data",self.delayMs)
 
-    # Make sure the loadables are good (RT is assigned to 3 out of 4 and they are selected)
-    loadablesByPlugin = detailsPopup.loadablesByPlugin
-    rtFound = False
-    loadablesForRt = 0
-    for plugin in loadablesByPlugin:
-      if plugin.loadType == 'RT':
-        rtFound = True
-      else:
-        continue
-      for loadable in loadablesByPlugin[plugin]:
-        loadablesForRt += 1
-        self.assertTrue( loadable.selected )
+    try:
+      # Choose first patient from the patient list
+      dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
+      index = dicomWidget.tree.indexAt(qt.QPoint(0,0))
+      dicomWidget.onTreeClicked(index)
 
-    self.assertTrue( rtFound )
-    self.assertTrue( loadablesForRt == 3 )
+      # Make sure the loadables are good (RT is assigned to 3 out of 4 and they are selected)
+      loadablesByPlugin = dicomWidget.detailsPopup.loadablesByPlugin
+      rtFound = False
+      loadablesForRt = 0
+      for plugin in loadablesByPlugin:
+        if plugin.loadType == 'RT':
+          rtFound = True
+        else:
+          continue
+        for loadable in loadablesByPlugin[plugin]:
+          loadablesForRt += 1
+          self.assertTrue( loadable.selected )
 
-  def TestSection_4LoadIntoSlicer(self):
-    self.delayDisplay("4: Load into Slicer",self.delayMs)
+      self.assertTrue( rtFound )
+      self.assertTrue( loadablesForRt == 2 )
 
-    detailsPopup = slicer.modules.dicom.widgetRepresentation().self().detailsPopup
-    detailsPopup.loadCheckedLoadables()
+      dicomWidget.detailsPopup.loadCheckedLoadables()
 
-    # Verify that the correct number of objects were loaded
-    scene = slicer.mrmlScene
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == 1 )
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 7 )
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == 6 )
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') ) == 7 )
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLAnnotationFiducialNode*') ) == 5 )
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_5SaveScene(self):
-    self.delayDisplay("5: Save scene",self.delayMs)
+  def TestSection_04LoadDay2Data(self):
+    #TODO:
+    pass
 
-    if not os.access(self.tempDir, os.F_OK):
-      os.mkdir(self.tempDir)
+  def TestSection_05SetDisplayOptions(self):
+    #TODO: Opacity, colormap for day2 etc.
+    pass
+  
+  def TestSection_06RegisterDay2CTToDay1CT(self):
+    #TODO:
+    pass
 
-    sceneFileName = self.tempDir + '/DicomRtImportTestScene.mrml'
-    if os.access(sceneFileName, os.F_OK):
-      os.remove(sceneFileName)
-
-    # Save MRML scene into file
-    slicer.mrmlScene.Commit(sceneFileName)
-
-    readable = os.access(sceneFileName, os.R_OK)
-    self.assertTrue( readable )
-
-  def TestSection_6ClearDatabase(self):
+  def TestSection_06ClearDatabase(self):
     self.delayDisplay("6: Clear database",self.delayMs)
 
     initialized = slicer.dicomDatabase.initializeDatabase()
@@ -326,3 +348,8 @@ class SlicerRtDemo_RSNA2012_SelfTest_Test(unittest.TestCase):
 
     slicer.dicomDatabase.closeDatabase()
     self.assertFalse( slicer.dicomDatabase.isOpen )
+
+    self.delayDisplay("Restoring original database directory",self.delayMs)
+    if self.originalDatabaseDirectory:
+      dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
+      dicomWidget.onDatabaseDirectoryChanged(self.originalDatabaseDirectory)

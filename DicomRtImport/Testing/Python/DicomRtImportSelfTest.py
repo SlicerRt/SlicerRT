@@ -182,11 +182,6 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     #logFile.write(repr(slicer.modules.models) + '\n')
     #logFile.close()
 
-    self.moduleName = "DicomRtImportSelfTest"
-    """ Determine data directory for the tests """
-    moduleFilePath = eval('slicer.modules.%s.path' % self.moduleName.lower())
-    moduleDir = os.path.dirname(moduleFilePath)
-
   def runTest(self):
     """Run as few or as many tests as needed here.
     """
@@ -241,8 +236,6 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     self.delayDisplay("1: Open database",self.delayMs)
 
     # Open test database and empty it
-    databaseFileName = 'ctkDICOM.sql'
-
     if not os.access(self.dicomDatabaseDir, os.F_OK):
       os.mkdir(self.dicomDatabaseDir)
 
