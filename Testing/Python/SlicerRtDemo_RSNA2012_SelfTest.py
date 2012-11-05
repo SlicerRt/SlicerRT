@@ -440,7 +440,45 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
   def TestSection_07RegisterDay2CTToDay1CT(self):
     try:
       mainWindow = slicer.util.mainWindow()
-      #mainWindow.moduleSelector().selectModule('BRAINSFit')
+      mainWindow.moduleSelector().selectModule('BRAINSFit')
+
+      # Register Day 2 CT to Day 1 CT using rigid registration
+      self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration",self.delayMs)
+
+      parametersRigid = {}
+      day1CT = slicer.util.getNode(pattern='2: ENT IMRT')
+      parametersRigid["fixedVolume"] = day1CT.GetID()
+
+      day2CT = slicer.util.getNode(pattern='2_ENT_IMRT_Day2')
+      parametersRigid["movingVolume"] = day2CT.GetID()
+      
+      linearTransform = slicer.vtkMRMLLinearTransformNode()
+      linearTransform.SetName('Transform_Day2ToDay1_Rigid')
+      slicer.mrmlScene.AddNode( linearTransform )
+      parametersRigid["linearTransform"] = linearTransform.GetID()
+
+      parametersRigid["useRigid"] = True
+
+      brainsFit = slicer.modules.brainsfit
+      slicer.cli.run(brainsFit, None, parametersRigid)
+
+      # Register Day 2 CT to Day 1 CT using BSpline registration
+      self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration",self.delayMs)
+
+      parametersBSpline = {}
+      parametersBSpline["fixedVolume"] = day1CT.GetID()
+      parametersBSpline["movingVolume"] = day2CT.GetID()
+      parametersBSpline["initialTransform"] = linearTransform.GetID()
+
+      bsplineTransform = slicer.vtkMRMLBSplineTransformNode()
+      bsplineTransform.SetName('Transform_Day2ToDay1_BSpline')
+      slicer.mrmlScene.AddNode( bsplineTransform )
+      parametersBSpline["bsplineTransform"] = bsplineTransform.GetID()
+
+      parametersBSpline["useBSpline"] = True
+
+      brainsFit = slicer.modules.brainsfit
+      slicer.cli.run(brainsFit, None, parametersBSpline)
 
     except Exception, e:
       import traceback
@@ -448,7 +486,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
   def TestSection_06ClearDatabase(self):
-    self.delayDisplay("6: Clear database",self.delayMs)
+    self.delayDisplay("Clear database",self.delayMs)
 
     initialized = slicer.dicomDatabase.initializeDatabase()
     self.assertTrue( initialized )
