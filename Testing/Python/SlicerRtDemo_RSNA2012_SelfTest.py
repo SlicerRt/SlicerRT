@@ -247,8 +247,10 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.TestSection_07RegisterDay2CTToDay1CT()
     self.TestSection_08ResampleDoseVolumes()
     self.TestSection_09SetDoseVolumeAttributes()
+    # self.TestSection_10AccumulateDose()
+    # self.TestSection_11ComputeDvh()
 
-    #self.TestSection_06ClearDatabase()
+    #self.TestSection_12ClearDatabase()
 
   def TestSection_00SetupPathsAndNames(self):
     slicerRtDemo_RSNA2012_SelfTestDir = slicer.app.temporaryPath + '/SlicerRtDemo_RSNA2012_SelfTest'
@@ -582,6 +584,10 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       doseUnitName = day1Dose.GetAttribute(self.DoseUnitNameAttributeName)
       doseUnitValue = day1Dose.GetAttribute(self.DoseUnitValueAttributeName)
 
+      day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
+      day2Dose.SetAttribute(self.DoseUnitNameAttributeName,doseUnitName)
+      day2Dose.SetAttribute(self.DoseUnitValueAttributeName,doseUnitValue)
+
       day2DoseRigid = slicer.util.getNode(pattern=self.day2DoseRigidName)
       self.assertTrue(day2DoseRigid)
       day2DoseRigid.SetAttribute(self.DoseUnitNameAttributeName,doseUnitName)
@@ -601,11 +607,46 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_06ClearDatabase(self):
+  def TestSection_10AccumulateDose(self):
+    try:
+      mainWindow = slicer.util.mainWindow()
+      mainWindow.moduleSelector().selectModule('DoseAccumulation')
+      doseAccumulationLogic = slicer.modules.doseaccumulation.logic()
+
+      # Accumulate Day 1 dose and untransformed Day 2 dose
+      doseAccumulationNodeUnregistered = slicer.modulelogic.vtkMRMLDoseAccumulationNode()
+      
+      # Accumulate Day 1 dose and Day 2 dose transformed using the rigid transform
+      
+      # Accumulate Day 1 dose and Day 2 dose transformed using the BSpline transform
+      
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+
+  def TestSection_11ComputeDvh(self):
+    try:
+      mainWindow = slicer.util.mainWindow()
+      mainWindow.moduleSelector().selectModule('DoseVolumeHistogram')
+      doseVolumeHistogramLogic = slicer.modules.dosevolumehistogram.logic()
+
+      # Compute DVH using untransformed accumulated dose
+      doseVolumeHistogramNodeUnregistered = slicer.modulelogic.vtkMRMLDoseAccumulationNode()
+      
+      # Compute DVH using accumulated dose volume that used Day 2 dose after rigid transform
+      
+      # Compute DVH using accumulated dose volume that used Day 2 dose after BSpline transform
+      
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+
+  def TestSection_12ClearDatabase(self):
     self.delayDisplay("Clear database",self.delayMs)
 
     initialized = slicer.dicomDatabase.initializeDatabase()
-    self.assertTrue( initialized )
 
     slicer.dicomDatabase.closeDatabase()
     self.assertFalse( slicer.dicomDatabase.isOpen )
