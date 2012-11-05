@@ -227,16 +227,21 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   outputIndexedLabelmapVolumeNode->SetName( outputIndexedLabelmapVolumeNodeName.c_str() );
   outputIndexedLabelmapVolumeNode->SetAndObserveImageData( tempImageData );
   outputIndexedLabelmapVolumeNode->LabelMapOn();
+  outputIndexedLabelmapVolumeNode->HideFromEditorsOff();
   this->GetMRMLScene()->AddNode(outputIndexedLabelmapVolumeNode);
 
   // Create display node
   vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> labelmapDisplayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
   labelmapDisplayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(labelmapDisplayNode));
   labelmapDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
+  outputIndexedLabelmapVolumeNodeName.append("Display");
+  labelmapDisplayNode->SetName(outputIndexedLabelmapVolumeNodeName.c_str());
+  labelmapDisplayNode->SetVisibility(1);
+  this->GetMRMLScene()->AddNode(labelmapDisplayNode);
   outputIndexedLabelmapVolumeNode->SetAndObserveDisplayNodeID( labelmapDisplayNode->GetID() );
 
   outputContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(outputIndexedLabelmapVolumeNode->GetID());
-  this->GetMRMLScene()->AddNode(outputContourNode);
+  outputContourNode->SetActiveRepresentationByNode(outputIndexedLabelmapVolumeNode);
 
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 
