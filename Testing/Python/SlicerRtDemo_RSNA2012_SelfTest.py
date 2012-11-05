@@ -169,7 +169,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
-    slicer.mrmlScene.Clear(0)
+    slicer.mrmlScene.Clear(0) #TODO:
 
     self.delayMs = 700
 
@@ -183,71 +183,88 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
 
     self.moduleName = "SlicerRtDemo_RSNA2012_SelfTest"
 
+  def clickAndDrag(self,widget,button='Left',start=(10,10),end=(10,40),steps=20,modifiers=[]):
+    """Send synthetic mouse events to the specified widget (qMRMLSliceWidget or qMRMLThreeDView)
+    button : "Left", "Middle", "Right", or "None"
+    start, end : window coordinates for action
+    steps : number of steps to move in
+    modifiers : list containing zero or more of "Shift" or "Control"
+    """
+    style = widget.interactorStyle()
+    interator = style.GetInteractor()
+    if button == 'Left':
+      down = style.OnLeftButtonDown
+      up = style.OnLeftButtonUp
+    elif button == 'Right':
+      down = style.OnRightButtonDown
+      up = style.OnRightButtonUp
+    elif button == 'Middle':
+      down = style.OnMiddleButtonDown
+      up = style.OnMiddleButtonUp
+    elif button == 'None' or not button:
+      down = lambda : None
+      up = lambda : None
+    else:
+      raise Exception("Bad button - should be Left or Right, not %s" % button)
+    if 'Shift' in modifiers:
+      interator.SetShiftKey(1)
+    if 'Control' in modifiers:
+      interator.SetControlKey(1)
+    interator.SetEventPosition(*start)
+    down()
+    for step in xrange(steps):
+      frac = float(step)/steps
+      x = int(start[0] + frac*(end[0]-start[0]))
+      y = int(start[1] + frac*(end[1]-start[1]))
+      interator.SetEventPosition(x,y)
+      style.OnMouseMove()
+    up()
+    interator.SetShiftKey(0)
+    interator.SetControlKey(0)
+
   def runTest(self):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
 
-    self.test_SlicerRtDemo_RSNA2012_SelfTest_FullTest1()
+    self.test_SlicerRtDemo_RSNA2012_SelfTest_FullTest()
 
-  def test_SlicerRtDemo_RSNA2012_SelfTest_FullTest1(self):
+  def test_SlicerRtDemo_RSNA2012_SelfTest_FullTest(self):
     # Check for DicomRtImport module
     self.assertTrue( slicer.modules.dicomrtimport )
+    self.assertTrue( slicer.modules.brainsresample )
+    self.assertTrue( slicer.modules.dosevolumehistogram )
+    self.assertTrue( slicer.modules.doseaccumulation )
 
-    self.TestSection_00RetrieveInputData()
-    self.TestSection_01OpenDatabase()
-    self.TestSection_02ImportStudy()
-    self.TestSection_03SelectLoadablesAndLoad()
-    self.TestSection_04LoadDay2Data()
-    self.TestSection_05SetDisplayOptions()
-    self.TestSection_06RegisterDay2CTToDay1CT()
+    self.TestSection_00SetupPaths()
+    self.TestSection_01OpenTempDatabase()
+    self.TestSection_02DownloadDay1Data()
+    self.TestSection_03ImportDay1Study()
+    self.TestSection_04SelectLoadablesAndLoad()
+    self.TestSection_05LoadDay2Data()
+    self.TestSection_06SetDisplayOptions()
+    self.TestSection_07RegisterDay2CTToDay1CT()
 
     #self.TestSection_06ClearDatabase()
 
-
-  def TestSection_00RetrieveInputData(self):
-    self.delayDisplay("0: Retrieve input data",self.delayMs)
-
-    import urllib
-
+  def TestSection_00SetupPaths(self):
     slicerRtDemo_RSNA2012_SelfTestDir = slicer.app.temporaryPath + '/SlicerRtDemo_RSNA2012_SelfTest'
     if not os.access(slicerRtDemo_RSNA2012_SelfTestDir, os.F_OK):
       os.mkdir(slicerRtDemo_RSNA2012_SelfTestDir)
+
     self.dicomDataDir = slicerRtDemo_RSNA2012_SelfTestDir + '/EclipseEntPhantomRtData'
     if not os.access(self.dicomDataDir, os.F_OK):
       os.mkdir(self.dicomDataDir)
+
     self.day2DataDir = slicerRtDemo_RSNA2012_SelfTestDir + '/EclipseEntComputedDay2Data'
     if not os.access(self.day2DataDir, os.F_OK):
       os.mkdir(self.day2DataDir)
+
     self.dicomDatabaseDir = slicerRtDemo_RSNA2012_SelfTestDir + '/CtkDicomDatabase'
+    self.dicomZipFilePath = slicerRtDemo_RSNA2012_SelfTestDir + '/EclipseEntDicomRt.zip'
     self.tempDir = slicerRtDemo_RSNA2012_SelfTestDir + '/Temp'
 
-    dicomZipFilePath = slicerRtDemo_RSNA2012_SelfTestDir + '/EclipseEntDicomRt.zip'
-    downloads = (
-        ('http://slicer.kitware.com/midas3/download?items=10704', dicomZipFilePath),
-        ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/2_ENT_IMRT_Day2.nrrd'),
-        ('http://slicer.kitware.com/midas3/download?items=10703', self.day2DataDir + '/5_RTDOSE_Day2.nrrd')
-        )
-
-    downloaded = 0
-    for url,filePath in downloads:
-      if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-        if downloaded == 0:
-          self.delayDisplay('Downloading input data...',self.delayMs)
-        print('Requesting download from %s...\n' % (url))
-        urllib.urlretrieve(url, filePath)
-        downloaded += 1
-    if downloaded > 0:
-      self.delayDisplay('Downloading input data finished',self.delayMs)
-
-    numOfFilesInDicomDataDir = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
-    if (numOfFilesInDicomDataDir != 141):
-      slicer.app.applicationLogic().Unzip(dicomZipFilePath, self.dicomDataDir)
-      self.delayDisplay("Unzipping done",self.delayMs)
-
-  def TestSection_01OpenDatabase(self):
-    self.delayDisplay("1: Open temp database",self.delayMs)
-
+  def TestSection_01OpenTempDatabase(self):
     # Open test database and empty it
     try:
       qt.QDir().mkpath(self.dicomDatabaseDir)
@@ -264,15 +281,36 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.assertTrue( slicer.dicomDatabase.isOpen )
 
       initialized = slicer.dicomDatabase.initializeDatabase()
-      self.assertTrue( initialized )
 
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_02ImportStudy(self):
-    self.delayDisplay("2: Import study",self.delayMs)
+  def TestSection_02DownloadDay1Data(self):
+    import urllib
+    downloads = (
+        ('http://slicer.kitware.com/midas3/download?items=10704', self.dicomZipFilePath),
+        )
+
+    downloaded = 0
+    for url,filePath in downloads:
+      if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
+        if downloaded == 0:
+          self.delayDisplay('Downloading Day 1 input data...',self.delayMs)
+        print('Requesting download from %s...' % (url))
+        urllib.urlretrieve(url, filePath)
+        downloaded += 1
+    if downloaded > 0:
+      self.delayDisplay('Downloading Day 1 input data finished',self.delayMs)
+
+    numOfFilesInDicomDataDir = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
+    if (numOfFilesInDicomDataDir != 141):
+      slicer.app.applicationLogic().Unzip(self.dicomZipFilePath, self.dicomDataDir)
+      self.delayDisplay("Unzipping done",self.delayMs)
+
+  def TestSection_03ImportDay1Study(self):
+    self.delayDisplay("Import Day 1 study",self.delayMs)
 
     try:
       mainWindow = slicer.util.mainWindow()
@@ -296,8 +334,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_03SelectLoadablesAndLoad(self):
-    self.delayDisplay("3: Select loadables and load data",self.delayMs)
+  def TestSection_04SelectLoadablesAndLoad(self):
+    self.delayDisplay("Select loadables and load data",self.delayMs)
 
     try:
       # Choose first patient from the patient list
@@ -328,17 +366,86 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_04LoadDay2Data(self):
-    #TODO:
-    pass
+  def TestSection_05LoadDay2Data(self):
+    import urllib
+    downloads = (
+        ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/2_ENT_IMRT_Day2.nrrd', slicer.util.loadVolume),
+        ('http://slicer.kitware.com/midas3/download?items=10703', self.day2DataDir + '/5_RTDOSE_Day2.nrrd', slicer.util.loadVolume),
+        )
 
-  def TestSection_05SetDisplayOptions(self):
-    #TODO: Opacity, colormap for day2 etc.
-    pass
-  
-  def TestSection_06RegisterDay2CTToDay1CT(self):
-    #TODO:
-    pass
+    downloaded = 0
+    for url,filePath,loader in downloads:
+      if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
+        if downloaded == 0:
+          self.delayDisplay('Downloading Day 2 input data...',self.delayMs)
+        print('Requesting download from %s...\n' % (url))
+        urllib.urlretrieve(url, filePath)
+        downloaded += 1
+      if loader:
+        print('Loading %s...' % (os.path.split(filePath)[1]))
+        loader(filePath)
+    if downloaded > 0:
+      self.delayDisplay('Downloading Day 2 input data finished',self.delayMs)
+
+  def TestSection_06SetDisplayOptions(self):
+    self.delayDisplay('Setting display options for loaded data',self.delayMs)
+
+    layoutManager = slicer.app.layoutManager()
+    layoutManager.setLayout(3)
+
+    # Set Day 2 dose color map
+    day2Dose = slicer.util.getNode(pattern='5_RTDOSE_Day2')
+    day2Dose.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
+
+    # Set CT windows
+    day1CT = slicer.util.getNode(pattern='2: ENT IMRT')
+    day1CT.GetDisplayNode().SetAutoWindowLevel(0)
+    day1CT.GetDisplayNode().SetWindowLevel(250,80)
+
+    day2CT = slicer.util.getNode(pattern='2_ENT_IMRT_Day2')
+    day2CT.GetDisplayNode().SetAutoWindowLevel(0)
+    day2CT.GetDisplayNode().SetWindowLevel(250,80)
+
+    # Set volumes to show
+    sliceWidgetNames = ['Red', 'Green', 'Yellow']
+    for sliceWidgetName in sliceWidgetNames:
+      slice = layoutManager.sliceWidget(sliceWidgetName)
+      sliceLogic = slice.sliceLogic()
+      compositeNode = sliceLogic.GetSliceCompositeNode()
+      compositeNode.SetBackgroundVolumeID(day1CT.GetID())
+      compositeNode.SetForegroundVolumeID(day2CT.GetID())
+      sliceLogic.SetForegroundOpacity(0.5)
+
+    layoutManager.sliceWidget(sliceWidgetNames[0]).sliceController().setSliceOffsetValue(138)
+    layoutManager.sliceWidget(sliceWidgetNames[1]).sliceController().setSliceOffsetValue(-18)
+    
+    # Set structure visibilities/transparencies
+    body = slicer.util.getNode(pattern='BODY_Contour_RibbonModel')
+    body.GetDisplayNode().SetOpacity(0.3)
+    optBrain = slicer.util.getNode(pattern='optBRAIN_Contour_RibbonModel')
+    optBrain.GetDisplayNode().SetVisibility(0)
+    optOptic = slicer.util.getNode(pattern='optOptic_Contour_RibbonModel')
+    optOptic.GetDisplayNode().SetVisibility(0)
+    brain = slicer.util.getNode(pattern='BRAIN_Contour_RibbonModel')
+    brain.GetDisplayNode().SetOpacity(0.3)
+    ptv = slicer.util.getNode(pattern='PTV1_Contour_RibbonModel')
+    ptv.GetDisplayNode().SetOpacity(0.4)
+    ctv = slicer.util.getNode(pattern='CTV_Contour_RibbonModel')
+    ctv.GetDisplayNode().SetOpacity(0.5)
+
+    threeDView = layoutManager.threeDWidget(0).threeDView()
+    self.clickAndDrag(threeDView,button='Middle',start=(10,220),end=(10,10))
+    self.clickAndDrag(threeDView,start=(10,70),end=(90,10))
+
+  def TestSection_07RegisterDay2CTToDay1CT(self):
+    try:
+      mainWindow = slicer.util.mainWindow()
+      #mainWindow.moduleSelector().selectModule('BRAINSFit')
+
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
   def TestSection_06ClearDatabase(self):
     self.delayDisplay("6: Clear database",self.delayMs)
