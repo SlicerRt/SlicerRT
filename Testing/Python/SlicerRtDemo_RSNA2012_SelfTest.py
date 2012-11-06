@@ -248,9 +248,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.testSection_08ResampleDoseVolumes()
     self.testSection_09SetDoseVolumeAttributes()
     self.testSection_10AccumulateDose()
-    # self.testSection_11ComputeDvh()
-
-    #self.testSection_12ClearDatabase()
+    self.testSection_11ComputeDvh()
+    # self.testSection_12ClearDatabase()
 
   def testSection_00SetupPathsAndNames(self):
     slicerRtDemo_RSNA2012_SelfTestDir = slicer.app.temporaryPath + '/SlicerRtDemo_RSNA2012_SelfTest'
@@ -277,12 +276,12 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.transformDay2ToDay1BSplineName = 'Transform_Day2ToDay1_BSpline'
     self.day2DoseRigidName = '5_RTDOSE_Day2Registered_Rigid'
     self.day2DoseBSplineName = '5_RTDOSE_Day2Registered_BSpline'
-    self.DoseUnitNameAttributeName = 'DicomRtImport.DoseUnitName'
-    self.DoseUnitValueAttributeName = 'DicomRtImport.DoseUnitValue'
-    self.DoseAccumulationDoseVolumeNameProperty = 'DoseAccumulation.DoseVolumeNodeName'
-    self.AccumulatedDoseUnregisteredName = '5_RTDOSE Accumulated Unregistered'
-    self.AccumulatedDoseRigidName = '5_RTDOSE Accumulated Rigid'
-    self.AccumulatedDoseBSplineName = '5_RTDOSE Accumulated BSpline'
+    self.doseUnitNameAttributeName = 'DicomRtImport.DoseUnitName'
+    self.doseUnitValueAttributeName = 'DicomRtImport.DoseUnitValue'
+    self.doseAccumulationDoseVolumeNameProperty = 'DoseAccumulation.DoseVolumeNodeName'
+    self.accumulatedDoseUnregisteredName = '5_RTDOSE Accumulated Unregistered'
+    self.accumulatedDoseRigidName = '5_RTDOSE Accumulated Rigid'
+    self.accumulatedDoseBSplineName = '5_RTDOSE Accumulated BSpline'
 
   def testSection_01OpenTempDatabase(self):
     # Open test database and empty it
@@ -585,24 +584,24 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
 
     try:
       day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
-      doseUnitName = day1Dose.GetAttribute(self.DoseUnitNameAttributeName)
-      doseUnitValue = day1Dose.GetAttribute(self.DoseUnitValueAttributeName)
+      doseUnitName = day1Dose.GetAttribute(self.doseUnitNameAttributeName)
+      doseUnitValue = day1Dose.GetAttribute(self.doseUnitValueAttributeName)
 
       day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
-      day2Dose.SetAttribute(self.DoseUnitNameAttributeName,doseUnitName)
-      day2Dose.SetAttribute(self.DoseUnitValueAttributeName,doseUnitValue)
+      day2Dose.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
+      day2Dose.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
 
       day2DoseRigid = slicer.util.getNode(pattern=self.day2DoseRigidName)
       self.assertTrue(day2DoseRigid)
-      day2DoseRigid.SetAttribute(self.DoseUnitNameAttributeName,doseUnitName)
-      day2DoseRigid.SetAttribute(self.DoseUnitValueAttributeName,doseUnitValue)
+      day2DoseRigid.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
+      day2DoseRigid.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
       self.assertTrue(day2DoseRigid.GetDisplayNode())
       day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 
       day2DoseBSplineName = slicer.util.getNode(pattern=self.day2DoseBSplineName)
       self.assertTrue(day2DoseBSplineName)
-      day2DoseBSplineName.SetAttribute(self.DoseUnitNameAttributeName,doseUnitName)
-      day2DoseBSplineName.SetAttribute(self.DoseUnitValueAttributeName,doseUnitValue)
+      day2DoseBSplineName.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
+      day2DoseBSplineName.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
       self.assertTrue(day2DoseBSplineName.GetDisplayNode())
       day2DoseBSplineName.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 
@@ -615,7 +614,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     try:
       checkboxes = slicer.util.findChildren(widget=widget, className='QCheckbox')
       for checkbox in checkboxes:
-        if checkbox.property(self.DoseAccumulationDoseVolumeNameProperty) == doseVolumeName:
+        if checkbox.property(self.doseAccumulationDoseVolumeNameProperty) == doseVolumeName:
           checkbox.setChecked(checked)
           break
 
@@ -637,21 +636,21 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
 
       # Create output volumes
       accumulatedDoseUnregistered = slicer.vtkMRMLScalarVolumeNode()
-      accumulatedDoseUnregistered.SetName(self.AccumulatedDoseUnregisteredName)
+      accumulatedDoseUnregistered.SetName(self.accumulatedDoseUnregisteredName)
       slicer.mrmlScene.AddNode( accumulatedDoseUnregistered )
 
       accumulatedDoseRigid = slicer.vtkMRMLScalarVolumeNode()
-      accumulatedDoseRigid.SetName(self.AccumulatedDoseRigidName)
+      accumulatedDoseRigid.SetName(self.accumulatedDoseRigidName)
       slicer.mrmlScene.AddNode( accumulatedDoseRigid )
 
       accumulatedDoseBSpline = slicer.vtkMRMLScalarVolumeNode()
-      accumulatedDoseBSpline.SetName(self.AccumulatedDoseBSplineName)
+      accumulatedDoseBSpline.SetName(self.accumulatedDoseBSplineName)
       slicer.mrmlScene.AddNode( accumulatedDoseBSpline )
 
       # Accumulate Day 1 dose and untransformed Day 2 dose
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose",self.delayMs)
       self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 1)
-      outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)     
+      outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)
       applyButton.click()
 
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose finished",self.delayMs)
@@ -660,7 +659,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       # Accumulate Day 1 dose and Day 2 dose transformed using the rigid transform
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration",self.delayMs)
       self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 1)
-      outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseRigid)     
+      outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseRigid)
       applyButton.click()
 
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration finished",self.delayMs)
@@ -669,7 +668,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       # Accumulate Day 1 dose and Day 2 dose transformed using the BSpline transform
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration",self.delayMs)
       self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseBSplineName, 1)
-      outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseBSpline)     
+      outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseBSpline)
       applyButton.click()
 
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration finished",self.delayMs)
@@ -683,13 +682,45 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('DoseVolumeHistogram')
+      dvhWidget = slicer.modules.dosevolumehistogram.widgetRepresentation()
+
+      computeDvhButton = slicer.util.findChildren(widget=dvhWidget, text='Compute DVH')[0]
+      mrmlNodeComboboxes = slicer.util.findChildren(widget=dvhWidget, className='qMRMLNodeComboBox')
+      for mrmlNodeCombobox in mrmlNodeComboboxes:
+        if 'vtkMRMLScalarVolumeNode' in mrmlNodeCombobox.nodeTypes:
+          doseVolumeNodeCombobox = mrmlNodeCombobox
+        elif 'vtkMRMLContourNode' in mrmlNodeCombobox.nodeTypes:
+          contourNodeCombobox = mrmlNodeCombobox
+        elif 'vtkMRMLChartNode' in mrmlNodeCombobox.nodeTypes:
+          chartNodeCombobox = mrmlNodeCombobox
+
+      ptvContour = slicer.util.getNode(pattern='PTV1_Contour')
+      contourNodeCombobox.setCurrentNode(ptvContour)
 
       # Compute DVH using untransformed accumulated dose
-      
+      self.delayDisplay("Compute DVH of accumulated dose (unregistered)",self.delayMs)
+      accumulatedDoseUnregistered = slicer.util.getNode(pattern=self.accumulatedDoseUnregisteredName)
+      doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)
+      computeDvhButton.click()
+
       # Compute DVH using accumulated dose volume that used Day 2 dose after rigid transform
-      
+      self.delayDisplay("Compute DVH of accumulated dose (rigid registration)",self.delayMs)
+      accumulatedDoseRigid = slicer.util.getNode(pattern=self.accumulatedDoseRigidName)
+      doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseRigid)
+      computeDvhButton.click()
+
       # Compute DVH using accumulated dose volume that used Day 2 dose after BSpline transform
-      
+      self.delayDisplay("Compute DVH of accumulated dose (BSpline registration)",self.delayMs)
+      accumulatedDoseBSpline = slicer.util.getNode(pattern=self.accumulatedDoseBSplineName)
+      doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseBSpline)
+      computeDvhButton.click()
+
+      # Create chart and show plots
+      chartNodeCombobox.addNode()
+      self.delayDisplay("Show DVH charts",self.delayMs)
+      showAllCheckbox = slicer.util.findChildren(widget=dvhWidget, text='Show/hide all', className='qCheckBox')[0]
+      showAllCheckbox.setChecked(1)
+
     except Exception, e:
       import traceback
       traceback.print_exc()
