@@ -1235,8 +1235,9 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::AssembleDoseMetricAttributeName( std::string doseMetricAttributeNamePrefix, const char* doseUnitName, std::string &attributeName )
 {
+  std::string doseUnitNameStr(doseUnitName?doseUnitName:"N/A");
   std::ostringstream attributeNameStream;
-  attributeNameStream << SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << doseMetricAttributeNamePrefix << " (" << doseUnitName << ")";
+  attributeNameStream << SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << doseMetricAttributeNamePrefix << " (" << doseUnitNameStr << ")";
 
   attributeName = attributeNameStream.str();
 }

@@ -68,8 +68,46 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     self.layout.addWidget(self.reloadAndTestButton)
     self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
 
-    # Add vertical spacer
+    # Buttons to perform parts of the test
     self.layout.addStretch(1)
+
+    # Load data button
+    self.loadDataButton = qt.QPushButton("Load data")
+    self.loadDataButton.toolTip = "Download (if necessary), import and load input data."
+    self.loadDataButton.name = "SlicerRtDemo_RSNA2012_SelfTest LoadData"
+    self.layout.addWidget(self.loadDataButton)
+    self.loadDataButton.connect('clicked()', self.onLoadData)
+
+    # Register button
+    self.registerButton = qt.QPushButton("Register")
+    self.registerButton.toolTip = "Registers Day 2 CT to Day 1 CT. Data needs to be loaded!"
+    self.registerButton.name = "SlicerRtDemo_RSNA2012_SelfTest register"
+    self.layout.addWidget(self.registerButton)
+    self.registerButton.connect('clicked()', self.onRegister)
+
+    # Resample button
+    self.resampleButton = qt.QPushButton("Resample")
+    self.resampleButton.toolTip = "Resamples Day 2 dose volume using the resulting transformations. All previous steps are needed to be run!"
+    self.resampleButton.name = "SlicerRtDemo_RSNA2012_SelfTest resample"
+    self.layout.addWidget(self.resampleButton)
+    self.resampleButton.connect('clicked()', self.onResample)
+
+    # Accumulate dose button
+    self.accumulateDoseButton = qt.QPushButton("Accumulate dose")
+    self.accumulateDoseButton.toolTip = "Accumulates doses using all the Day 2 variants. All previous steps are needed to be run!"
+    self.accumulateDoseButton.name = "SlicerRtDemo_RSNA2012_SelfTest accumulateDose"
+    self.layout.addWidget(self.accumulateDoseButton)
+    self.accumulateDoseButton.connect('clicked()', self.onAccumulateDose)
+
+    # Compute DVH button
+    self.computeDvhButton = qt.QPushButton("Compute DVH")
+    self.computeDvhButton.toolTip = "Computes DVH on the accumulated doses. All previous steps are needed to be run!"
+    self.computeDvhButton.name = "SlicerRtDemo_RSNA2012_SelfTest computeDvh"
+    self.layout.addWidget(self.computeDvhButton)
+    self.computeDvhButton.connect('clicked()', self.onComputeDvh)
+
+    # Add vertical spacer
+    self.layout.addStretch(4)
 
   def onReload(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
     """Generic reload method for any scripted module.
@@ -115,6 +153,62 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
     tester.runTest()
+
+  def onLoadData(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    self.onReload()
+    evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
+    tester = eval(evalString)
+    
+    tester.setUp()
+    if not hasattr(tester,'setupPathsAndNamesDone'):
+      tester.testSection_00SetupPathsAndNames()
+    tester.testSection_01OpenTempDatabase()
+    tester.testSection_02DownloadDay1Data()
+    tester.testSection_03ImportDay1Study()
+    tester.testSection_04SelectLoadablesAndLoad()
+    tester.testSection_05LoadDay2Data()
+    tester.testSection_06SetDisplayOptions()
+
+  def onRegister(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    self.onReload()
+    evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
+    tester = eval(evalString)
+    
+    tester.setUp(clearScene=False)
+    if not hasattr(tester,'setupPathsAndNamesDone'):
+      tester.testSection_00SetupPathsAndNames()
+    tester.testSection_07RegisterDay2CTToDay1CT()
+
+  def onResample(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    self.onReload()
+    evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
+    tester = eval(evalString)
+
+    tester.setUp(clearScene=False)
+    if not hasattr(tester,'setupPathsAndNamesDone'):
+      tester.testSection_00SetupPathsAndNames()
+    tester.testSection_08ResampleDoseVolumes()
+    tester.testSection_09SetDoseVolumeAttributes()
+
+  def onAccumulateDose(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    self.onReload()
+    evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
+    tester = eval(evalString)
+    
+    tester.setUp(clearScene=False)
+    if not hasattr(tester,'setupPathsAndNamesDone'):
+      tester.testSection_00SetupPathsAndNames()
+    tester.testSection_10AccumulateDose()
+
+  def onComputeDvh(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    self.onReload()
+    evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
+    tester = eval(evalString)
+    
+    tester.setUp(clearScene=False)
+    if not hasattr(tester,'setupPathsAndNamesDone'):
+      tester.testSection_00SetupPathsAndNames()
+    tester.testSection_11ComputeDvh()
 
 #
 # SlicerRtDemo_RSNA2012_SelfTestLogic
@@ -166,10 +260,11 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     qt.QTimer.singleShot(msec, self.info.close)
     self.info.exec_()
 
-  def setUp(self):
+  def setUp(self,clearScene=True):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
-    slicer.mrmlScene.Clear(0)
+    if clearScene:
+      slicer.mrmlScene.Clear(0)
 
     self.delayMs = 700
 
@@ -282,6 +377,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.accumulatedDoseUnregisteredName = '5_RTDOSE Accumulated Unregistered'
     self.accumulatedDoseRigidName = '5_RTDOSE Accumulated Rigid'
     self.accumulatedDoseBSplineName = '5_RTDOSE Accumulated BSpline'
+    
+    self.setupPathsAndNamesDone = True
 
   def testSection_01OpenTempDatabase(self):
     # Open test database and empty it
