@@ -26,6 +26,9 @@
 #include "qSlicerDoseAccumulationModuleWidget.h"
 #include "ui_qSlicerDoseAccumulationModule.h"
 
+// SlicerRtCommon includes
+#include "SlicerRtCommon.h"
+
 // DoseAccumulation includes
 #include "vtkSlicerDoseAccumulationModuleLogic.h"
 #include "vtkMRMLDoseAccumulationNode.h"
@@ -302,6 +305,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_Volumes);
     checkbox->setToolTip(tr("Include this volume in accumulated dose volume"));
+    checkbox->setProperty(SlicerRtCommon::DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME.c_str(), QString(volumeNode->GetName()));
     d->CheckboxToVolumeIdMap[checkbox] = volumeNode->GetID();
 
     // Set previous checked state of the checkbox

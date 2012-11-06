@@ -237,22 +237,22 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.assertTrue( slicer.modules.doseaccumulation )
     self.assertTrue( slicer.modules.dosevolumehistogram )
 
-    self.TestSection_00SetupPathsAndNames()
-    self.TestSection_01OpenTempDatabase()
-    self.TestSection_02DownloadDay1Data()
-    self.TestSection_03ImportDay1Study()
-    self.TestSection_04SelectLoadablesAndLoad()
-    self.TestSection_05LoadDay2Data()
-    self.TestSection_06SetDisplayOptions()
-    self.TestSection_07RegisterDay2CTToDay1CT()
-    self.TestSection_08ResampleDoseVolumes()
-    self.TestSection_09SetDoseVolumeAttributes()
-    # self.TestSection_10AccumulateDose()
-    # self.TestSection_11ComputeDvh()
+    self.testSection_00SetupPathsAndNames()
+    self.testSection_01OpenTempDatabase()
+    self.testSection_02DownloadDay1Data()
+    self.testSection_03ImportDay1Study()
+    self.testSection_04SelectLoadablesAndLoad()
+    self.testSection_05LoadDay2Data()
+    self.testSection_06SetDisplayOptions()
+    self.testSection_07RegisterDay2CTToDay1CT()
+    self.testSection_08ResampleDoseVolumes()
+    self.testSection_09SetDoseVolumeAttributes()
+    self.testSection_10AccumulateDose()
+    # self.testSection_11ComputeDvh()
 
-    #self.TestSection_12ClearDatabase()
+    #self.testSection_12ClearDatabase()
 
-  def TestSection_00SetupPathsAndNames(self):
+  def testSection_00SetupPathsAndNames(self):
     slicerRtDemo_RSNA2012_SelfTestDir = slicer.app.temporaryPath + '/SlicerRtDemo_RSNA2012_SelfTest'
     if not os.access(slicerRtDemo_RSNA2012_SelfTestDir, os.F_OK):
       os.mkdir(slicerRtDemo_RSNA2012_SelfTestDir)
@@ -276,11 +276,15 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.transformDay2ToDay1RigidName = 'Transform_Day2ToDay1_Rigid'
     self.transformDay2ToDay1BSplineName = 'Transform_Day2ToDay1_BSpline'
     self.day2DoseRigidName = '5_RTDOSE_Day2Registered_Rigid'
-    self.day2DoseBSpline = '5_RTDOSE_Day2Registered_BSpline'
+    self.day2DoseBSplineName = '5_RTDOSE_Day2Registered_BSpline'
     self.DoseUnitNameAttributeName = 'DicomRtImport.DoseUnitName'
     self.DoseUnitValueAttributeName = 'DicomRtImport.DoseUnitValue'
+    self.DoseAccumulationDoseVolumeNameProperty = 'DoseAccumulation.DoseVolumeNodeName'
+    self.AccumulatedDoseUnregisteredName = '5_RTDOSE Accumulated Unregistered'
+    self.AccumulatedDoseRigidName = '5_RTDOSE Accumulated Rigid'
+    self.AccumulatedDoseBSplineName = '5_RTDOSE Accumulated BSpline'
 
-  def TestSection_01OpenTempDatabase(self):
+  def testSection_01OpenTempDatabase(self):
     # Open test database and empty it
     try:
       qt.QDir().mkpath(self.dicomDatabaseDir)
@@ -303,7 +307,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_02DownloadDay1Data(self):
+  def testSection_02DownloadDay1Data(self):
     import urllib
     downloads = (
         ('http://slicer.kitware.com/midas3/download?items=10704', self.dicomZipFilePath),
@@ -325,7 +329,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       slicer.app.applicationLogic().Unzip(self.dicomZipFilePath, self.dicomDataDir)
       self.delayDisplay("Unzipping done",self.delayMs)
 
-  def TestSection_03ImportDay1Study(self):
+  def testSection_03ImportDay1Study(self):
     self.delayDisplay("Import Day 1 study",self.delayMs)
 
     try:
@@ -350,7 +354,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_04SelectLoadablesAndLoad(self):
+  def testSection_04SelectLoadablesAndLoad(self):
     self.delayDisplay("Select loadables and load data",self.delayMs)
 
     try:
@@ -382,7 +386,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_05LoadDay2Data(self):
+  def testSection_05LoadDay2Data(self):
     import urllib
     downloads = (
         ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/' + self.day2CTName + '.nrrd', slicer.util.loadVolume),
@@ -403,7 +407,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     if downloaded > 0:
       self.delayDisplay('Downloading Day 2 input data finished',self.delayMs)
 
-  def TestSection_06SetDisplayOptions(self):
+  def testSection_06SetDisplayOptions(self):
     self.delayDisplay('Setting display options for loaded data',self.delayMs)
 
     layoutManager = slicer.app.layoutManager()
@@ -453,7 +457,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.clickAndDrag(threeDView,button='Middle',start=(10,220),end=(10,10))
     self.clickAndDrag(threeDView,start=(10,70),end=(90,10))
 
-  def TestSection_07RegisterDay2CTToDay1CT(self):
+  def testSection_07RegisterDay2CTToDay1CT(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSFit')
@@ -512,7 +516,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_08ResampleDoseVolumes(self):
+  def testSection_08ResampleDoseVolumes(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSResample')
@@ -553,10 +557,10 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       parametersBSpline["inputVolume"] = day2Dose.GetID()
       parametersBSpline["referenceVolume"] = day1Dose.GetID()
 
-      day2DoseBSpline = slicer.vtkMRMLScalarVolumeNode()
-      day2DoseBSpline.SetName(self.day2DoseBSpline)
-      slicer.mrmlScene.AddNode( day2DoseBSpline )
-      parametersBSpline["outputVolume"] = day2DoseBSpline.GetID()
+      day2DoseBSplineName = slicer.vtkMRMLScalarVolumeNode()
+      day2DoseBSplineName.SetName(self.day2DoseBSplineName)
+      slicer.mrmlScene.AddNode( day2DoseBSplineName )
+      parametersBSpline["outputVolume"] = day2DoseBSplineName.GetID()
 
       parametersBSpline["pixelType"] = 'float'
 
@@ -576,7 +580,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_09SetDoseVolumeAttributes(self):
+  def testSection_09SetDoseVolumeAttributes(self):
     self.delayDisplay("Setting attributes for resampled dose volumes",self.delayMs)
 
     try:
@@ -595,44 +599,92 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.assertTrue(day2DoseRigid.GetDisplayNode())
       day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 
-      day2DoseBSpline = slicer.util.getNode(pattern=self.day2DoseBSpline)
-      self.assertTrue(day2DoseBSpline)
-      day2DoseBSpline.SetAttribute(self.DoseUnitNameAttributeName,doseUnitName)
-      day2DoseBSpline.SetAttribute(self.DoseUnitValueAttributeName,doseUnitValue)
-      self.assertTrue(day2DoseBSpline.GetDisplayNode())
-      day2DoseBSpline.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
+      day2DoseBSplineName = slicer.util.getNode(pattern=self.day2DoseBSplineName)
+      self.assertTrue(day2DoseBSplineName)
+      day2DoseBSplineName.SetAttribute(self.DoseUnitNameAttributeName,doseUnitName)
+      day2DoseBSplineName.SetAttribute(self.DoseUnitValueAttributeName,doseUnitValue)
+      self.assertTrue(day2DoseBSplineName.GetDisplayNode())
+      day2DoseBSplineName.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_10AccumulateDose(self):
+  def doseAccumulation_CheckDoseVolume(self, widget, doseVolumeName, checked):
+    try:
+      checkboxes = slicer.util.findChildren(widget=widget, className='QCheckbox')
+      for checkbox in checkboxes:
+        if checkbox.property(self.DoseAccumulationDoseVolumeNameProperty) == doseVolumeName:
+          checkbox.setChecked(checked)
+          break
+
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+
+  def testSection_10AccumulateDose(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('DoseAccumulation')
-      doseAccumulationLogic = slicer.modules.doseaccumulation.logic()
+      doseAccumulationWidget = slicer.modules.doseaccumulation.widgetRepresentation()
+
+      applyButton = slicer.util.findChildren(widget=doseAccumulationWidget, text='Apply')[0]
+      outputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Output')[0]
+      outputMrmlNodeCombobox = slicer.util.findChildren(widget=outputFrame, className='qMRMLNodeComboBox')[0]
+      self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day1DoseName, 1)
+
+      # Create output volumes
+      accumulatedDoseUnregistered = slicer.vtkMRMLScalarVolumeNode()
+      accumulatedDoseUnregistered.SetName(self.AccumulatedDoseUnregisteredName)
+      slicer.mrmlScene.AddNode( accumulatedDoseUnregistered )
+
+      accumulatedDoseRigid = slicer.vtkMRMLScalarVolumeNode()
+      accumulatedDoseRigid.SetName(self.AccumulatedDoseRigidName)
+      slicer.mrmlScene.AddNode( accumulatedDoseRigid )
+
+      accumulatedDoseBSpline = slicer.vtkMRMLScalarVolumeNode()
+      accumulatedDoseBSpline.SetName(self.AccumulatedDoseBSplineName)
+      slicer.mrmlScene.AddNode( accumulatedDoseBSpline )
 
       # Accumulate Day 1 dose and untransformed Day 2 dose
-      doseAccumulationNodeUnregistered = slicer.modulelogic.vtkMRMLDoseAccumulationNode()
-      
+      self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose",self.delayMs)
+      self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 1)
+      outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)     
+      applyButton.click()
+
+      self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose finished",self.delayMs)
+      self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 0)
+
       # Accumulate Day 1 dose and Day 2 dose transformed using the rigid transform
-      
+      self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration",self.delayMs)
+      self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 1)
+      outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseRigid)     
+      applyButton.click()
+
+      self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration finished",self.delayMs)
+      self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 0)
+
       # Accumulate Day 1 dose and Day 2 dose transformed using the BSpline transform
-      
+      self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration",self.delayMs)
+      self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseBSplineName, 1)
+      outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseBSpline)     
+      applyButton.click()
+
+      self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration finished",self.delayMs)
+
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_11ComputeDvh(self):
+  def testSection_11ComputeDvh(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('DoseVolumeHistogram')
-      doseVolumeHistogramLogic = slicer.modules.dosevolumehistogram.logic()
 
       # Compute DVH using untransformed accumulated dose
-      doseVolumeHistogramNodeUnregistered = slicer.modulelogic.vtkMRMLDoseAccumulationNode()
       
       # Compute DVH using accumulated dose volume that used Day 2 dose after rigid transform
       
@@ -643,7 +695,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
 
-  def TestSection_12ClearDatabase(self):
+  def testSection_12ClearDatabase(self):
     self.delayDisplay("Clear database",self.delayMs)
 
     initialized = slicer.dicomDatabase.initializeDatabase()

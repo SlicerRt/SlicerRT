@@ -65,6 +65,10 @@ public:
   static const std::string DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE;
   static const std::string DVH_CSV_HEADER_VOLUME_FIELD_END;
 
+  // DoseAccumulation constants
+  static const std::string DOSEACCUMULATION_ATTRIBUTE_PREFIX;
+  static const std::string DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME;
+
   // Isodose constants
   static const std::string ISODOSE_MODEL_NODE_NAME_PREFIX;
   static const std::string ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX;
