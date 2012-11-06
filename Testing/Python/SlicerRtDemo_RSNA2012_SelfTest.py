@@ -161,13 +161,13 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     
     tester.setUp()
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.testSection_00SetupPathsAndNames()
-    tester.testSection_01OpenTempDatabase()
-    tester.testSection_02DownloadDay1Data()
-    tester.testSection_03ImportDay1Study()
-    tester.testSection_04SelectLoadablesAndLoad()
-    tester.testSection_05LoadDay2Data()
-    tester.testSection_06SetDisplayOptions()
+      tester.TestSection_00SetupPathsAndNames()
+    tester.TestSection_01OpenTempDatabase()
+    tester.TestSection_02DownloadDay1Data()
+    tester.TestSection_03ImportDay1Study()
+    tester.TestSection_04SelectLoadablesAndLoad()
+    tester.TestSection_05LoadDay2Data()
+    tester.TestSection_06SetDisplayOptions()
 
   def onRegister(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
     self.onReload()
@@ -176,8 +176,8 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     
     tester.setUp(clearScene=False)
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.testSection_00SetupPathsAndNames()
-    tester.testSection_07RegisterDay2CTToDay1CT()
+      tester.TestSection_00SetupPathsAndNames()
+    tester.TestSection_07RegisterDay2CTToDay1CT()
 
   def onResample(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
     self.onReload()
@@ -186,9 +186,9 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
 
     tester.setUp(clearScene=False)
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.testSection_00SetupPathsAndNames()
-    tester.testSection_08ResampleDoseVolumes()
-    tester.testSection_09SetDoseVolumeAttributes()
+      tester.TestSection_00SetupPathsAndNames()
+    tester.TestSection_08ResampleDoseVolumes()
+    tester.TestSection_09SetDoseVolumeAttributes()
 
   def onAccumulateDose(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
     self.onReload()
@@ -197,8 +197,8 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     
     tester.setUp(clearScene=False)
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.testSection_00SetupPathsAndNames()
-    tester.testSection_10AccumulateDose()
+      tester.TestSection_00SetupPathsAndNames()
+    tester.TestSection_10AccumulateDose()
 
   def onComputeDvh(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
     self.onReload()
@@ -207,8 +207,8 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     
     tester.setUp(clearScene=False)
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.testSection_00SetupPathsAndNames()
-    tester.testSection_11ComputeDvh()
+      tester.TestSection_00SetupPathsAndNames()
+    tester.TestSection_11ComputeDvh()
 
 #
 # SlicerRtDemo_RSNA2012_SelfTestLogic
@@ -332,21 +332,21 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.assertTrue( slicer.modules.doseaccumulation )
     self.assertTrue( slicer.modules.dosevolumehistogram )
 
-    self.testSection_00SetupPathsAndNames()
-    self.testSection_01OpenTempDatabase()
-    self.testSection_02DownloadDay1Data()
-    self.testSection_03ImportDay1Study()
-    self.testSection_04SelectLoadablesAndLoad()
-    self.testSection_05LoadDay2Data()
-    self.testSection_06SetDisplayOptions()
-    self.testSection_07RegisterDay2CTToDay1CT()
-    self.testSection_08ResampleDoseVolumes()
-    self.testSection_09SetDoseVolumeAttributes()
-    self.testSection_10AccumulateDose()
-    self.testSection_11ComputeDvh()
-    # self.testSection_12ClearDatabase()
+    self.TestSection_00SetupPathsAndNames()
+    self.TestSection_01OpenTempDatabase()
+    self.TestSection_02DownloadDay1Data()
+    self.TestSection_03ImportDay1Study()
+    self.TestSection_04SelectLoadablesAndLoad()
+    self.TestSection_05LoadDay2Data()
+    self.TestSection_06SetDisplayOptions()
+    self.TestSection_07RegisterDay2CTToDay1CT()
+    self.TestSection_08ResampleDoseVolumes()
+    self.TestSection_09SetDoseVolumeAttributes()
+    self.TestSection_10AccumulateDose()
+    self.TestSection_11ComputeDvh()
+    # self.TestSection_12ClearDatabase()
 
-  def testSection_00SetupPathsAndNames(self):
+  def TestSection_00SetupPathsAndNames(self):
     slicerRtDemo_RSNA2012_SelfTestDir = slicer.app.temporaryPath + '/SlicerRtDemo_RSNA2012_SelfTest'
     if not os.access(slicerRtDemo_RSNA2012_SelfTestDir, os.F_OK):
       os.mkdir(slicerRtDemo_RSNA2012_SelfTestDir)
@@ -380,7 +380,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     
     self.setupPathsAndNamesDone = True
 
-  def testSection_01OpenTempDatabase(self):
+  def TestSection_01OpenTempDatabase(self):
     # Open test database and empty it
     try:
       qt.QDir().mkpath(self.dicomDatabaseDir)
@@ -401,9 +401,9 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     except Exception, e:
       import traceback
       traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def testSection_02DownloadDay1Data(self):
+  def TestSection_02DownloadDay1Data(self):
     import urllib
     downloads = (
         ('http://slicer.kitware.com/midas3/download?items=10704', self.dicomZipFilePath),
@@ -425,7 +425,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       slicer.app.applicationLogic().Unzip(self.dicomZipFilePath, self.dicomDataDir)
       self.delayDisplay("Unzipping done",self.delayMs)
 
-  def testSection_03ImportDay1Study(self):
+  def TestSection_03ImportDay1Study(self):
     self.delayDisplay("Import Day 1 study",self.delayMs)
 
     try:
@@ -448,9 +448,9 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     except Exception, e:
       import traceback
       traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def testSection_04SelectLoadablesAndLoad(self):
+  def TestSection_04SelectLoadablesAndLoad(self):
     self.delayDisplay("Select loadables and load data",self.delayMs)
 
     try:
@@ -480,9 +480,9 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     except Exception, e:
       import traceback
       traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def testSection_05LoadDay2Data(self):
+  def TestSection_05LoadDay2Data(self):
     import urllib
     downloads = (
         ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/' + self.day2CTName + '.nrrd', slicer.util.loadVolume),
@@ -503,7 +503,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     if downloaded > 0:
       self.delayDisplay('Downloading Day 2 input data finished',self.delayMs)
 
-  def testSection_06SetDisplayOptions(self):
+  def TestSection_06SetDisplayOptions(self):
     self.delayDisplay('Setting display options for loaded data',self.delayMs)
 
     layoutManager = slicer.app.layoutManager()
@@ -550,10 +550,11 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     ctv.GetDisplayNode().SetOpacity(0.5)
 
     threeDView = layoutManager.threeDWidget(0).threeDView()
-    self.clickAndDrag(threeDView,button='Middle',start=(10,220),end=(10,10))
+    self.clickAndDrag(threeDView,button='Middle',start=(10,110),end=(10,10))
+    self.clickAndDrag(threeDView,button='Middle',start=(10,100),end=(10,10))
     self.clickAndDrag(threeDView,start=(10,70),end=(90,10))
 
-  def testSection_07RegisterDay2CTToDay1CT(self):
+  def TestSection_07RegisterDay2CTToDay1CT(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSFit')
@@ -610,9 +611,9 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     except Exception, e:
       import traceback
       traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def testSection_08ResampleDoseVolumes(self):
+  def TestSection_08ResampleDoseVolumes(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSResample')
@@ -674,9 +675,9 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     except Exception, e:
       import traceback
       traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def testSection_09SetDoseVolumeAttributes(self):
+  def TestSection_09SetDoseVolumeAttributes(self):
     self.delayDisplay("Setting attributes for resampled dose volumes",self.delayMs)
 
     try:
@@ -705,7 +706,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     except Exception, e:
       import traceback
       traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
   def doseAccumulation_CheckDoseVolume(self, widget, doseVolumeName, checked):
     try:
@@ -718,9 +719,9 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     except Exception, e:
       import traceback
       traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def testSection_10AccumulateDose(self):
+  def TestSection_10AccumulateDose(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('DoseAccumulation')
@@ -773,9 +774,9 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     except Exception, e:
       import traceback
       traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def testSection_11ComputeDvh(self):
+  def TestSection_11ComputeDvh(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('DoseVolumeHistogram')
@@ -821,9 +822,9 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     except Exception, e:
       import traceback
       traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs)
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def testSection_12ClearDatabase(self):
+  def TestSection_12ClearDatabase(self):
     self.delayDisplay("Clear database",self.delayMs)
 
     initialized = slicer.dicomDatabase.initializeDatabase()

@@ -22,5 +22,5 @@ slicer_add_python_unittest(
                 ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}
                 ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Debug
                 ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Release
-                ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDEXTENSIONS_LIB_DIR} 
+                ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR} 
   )
