@@ -41,6 +41,7 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkImageResample.h>
 #include <vtkGeneralTransform.h>
+#include <vtkCollection.h>
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourNode);
@@ -741,7 +742,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   // Get color index
   vtkMRMLColorTableNode* colorNode = NULL;
   int structureColorIndex = -1;
-  SlicerRtCommon::GetColorIndexForContour(this, mrmlScene, structureColorIndex, colorNode, modelNode);
+  this->GetColorIndex(structureColorIndex, colorNode, modelNode);
 
   // Create model to referenceIjk transform
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
@@ -834,7 +835,7 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
   // Get color index
   vtkMRMLColorTableNode* colorNode = NULL;
   int structureColorIndex = -1;
-  SlicerRtCommon::GetColorIndexForContour(this, mrmlScene, structureColorIndex, colorNode);
+  this->GetColorIndex(structureColorIndex, colorNode);
 
   // Convert labelmap to model
   vtkSmartPointer<vtkLabelmapToModelFilter> labelmapToModelFilter = vtkSmartPointer<vtkLabelmapToModelFilter>::New();
@@ -887,4 +888,67 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
   this->SetAndObserveClosedSurfaceModelNodeId(closedSurfaceModelNode->GetID());
 
   return closedSurfaceModelNode;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLModelNode* referenceModelNode/*=NULL*/)
+{
+  // Initialize output color index with Gray 'invalid' color
+  colorIndex = 1;
+
+  // Get hierarchy node
+  vtkMRMLContourHierarchyNode* contourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(
+    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->ID));
+  if (!contourHierarchyNode)
+  {
+    std::cerr << "Error: No hierarchy node found for structure '" << this->Name << "'" << std::endl;
+    return;
+  }
+
+  // Get color node created for the structure set
+  vtkMRMLContourHierarchyNode* parentContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(contourHierarchyNode->GetParentNode());
+
+  std::string seriesName = parentContourHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
+  std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+  vtkSmartPointer<vtkCollection> colorNodes = vtkSmartPointer<vtkCollection>::Take( this->Scene->GetNodesByName(colorNodeName.c_str()) );
+  if (colorNodes->GetNumberOfItems() == 0)
+  {
+    std::cerr << "Error: No color table found for structure set '" << parentContourHierarchyNode->GetName() << "'" << std::endl;
+  }
+  colorNodes->InitTraversal();
+  colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+  int structureColorIndex = -1;
+  while (colorNode)
+  {
+    int currentColorIndex = -1;
+    if ((currentColorIndex = colorNode->GetColorIndexByName(this->StructureName)) != -1)
+    {
+      if (referenceModelNode)
+      {
+        double modelColor[3];
+        double foundColor[4];
+        referenceModelNode->GetDisplayNode()->GetColor(modelColor);
+        colorNode->GetColor(currentColorIndex, foundColor);
+        if ((fabs(modelColor[0]-foundColor[0]) < EPSILON) && (fabs(modelColor[1]-foundColor[1]) < EPSILON) && (fabs(modelColor[2]-foundColor[2])) < EPSILON)
+        {
+          structureColorIndex = currentColorIndex;
+          break;
+        }
+      }
+      else
+      {
+        structureColorIndex = currentColorIndex;
+        break;
+      }
+    }
+    colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+  }
+
+  if (structureColorIndex == -1)
+  {
+    std::cout << "No matching entry found in the color tables for structure '" << this->StructureName << "'" << std::endl;
+    return;
+  }
+
+  colorIndex = structureColorIndex;
 }

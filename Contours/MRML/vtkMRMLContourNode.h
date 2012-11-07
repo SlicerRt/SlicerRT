@@ -27,10 +27,13 @@
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
 
+#include "vtkSlicerContoursModuleMRMLExport.h"
+
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
+class vtkMRMLColorTableNode;
 
-class vtkMRMLContourNode : public vtkMRMLDisplayableNode
+class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourNode : public vtkMRMLDisplayableNode
 {
 public:
   enum ContourRepresentationType
@@ -146,6 +149,15 @@ protected:
 
   /// Show (true) or hide (false) a representation completely (editors, viewers, slice intersections)
   void ShowRepresentation(vtkMRMLDisplayableNode* representation, bool show);
+
+  /*!
+    Get the index of the color of the contour from the associated color table
+    /param colorIndex Index of the found color in the associated color table
+    /param colorNode Output argument for the found color node (optional)
+    /param referenceModelNode A model that we want to double check the found color against
+             (we only select the color if its color is the same as the one we found)
+  */
+  void GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLModelNode* referenceModelNode=NULL);
 
 protected:
   /// Set ribbon model node ID

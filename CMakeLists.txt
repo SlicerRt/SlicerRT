@@ -54,12 +54,12 @@ IF (WIN32)
   add_subdirectory(LeakFinder)
 ENDIF()
 
+add_subdirectory(Contours)
 add_subdirectory(DicomRtImport)
 add_subdirectory(DoseAccumulation)
 add_subdirectory(DoseVolumeHistogram)
 add_subdirectory(DoseComparison)
 add_subdirectory(Isodose)
-add_subdirectory(Contours)
 
 add_subdirectory(PlmBspline) # requires Plastimatch registration
 add_subdirectory(PlmDicomRtExport)

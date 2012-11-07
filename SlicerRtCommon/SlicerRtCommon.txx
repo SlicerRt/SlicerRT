@@ -1,6 +1,3 @@
-// SlicerRT includes
-#include "vtkMRMLContourNode.h"
-
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLTransformNode.h>

@@ -7,6 +7,7 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_LOGIC_EXPORT")
 set(${KIT}_INCLUDE_DIRECTORIES
   ${QT_QTSQL_INCLUDE_DIR}
   ${SlicerRtCommon_INCLUDE_DIRS}
+  ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -33,6 +34,7 @@ find_library( DCMTK_dcmrt_LIBRARY dcmrt
  
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
+  vtkSlicerContoursModuleMRML
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   ${DCMTK_LIBRARIES}
