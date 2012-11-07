@@ -822,20 +822,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
 
   // Compute volume for all D's
   vtkDoubleArray* doubleArray = dvhArrayNode->GetArray();
-  double maximumDose = 0.0;
-  for (int d=-1; d<(int)volumeSizes.size(); ++d)
+  for (int d=0; d<(int)volumeSizes.size(); ++d)
   {
     double volumeSize = 0.0;
     double doseForVolume = 0.0;
 
-    // First we get the maximum dose
-    // (D0.1cc can be taken as an approximation of the maximum point dose as far
-    //  as clinically relevant toxicity (e.g. micro-ulceration) is concerned)
-    if (d == -1)
-    {
-      volumeSize = 0.1;
-    }
-    else if (isPercent)
+    if (isPercent)
     {
       volumeSize = volumeSizes[d] * structureVolume / 100.0;
     }
@@ -874,14 +866,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
     }
 
     // Set found dose
-    if (d == -1)
-    {
-      maximumDose = doseForVolume;
-    }
-    else
-    {
-      dMetrics.push_back( maximumDose - doseForVolume );
-    }
+    dMetrics.push_back(doseForVolume);
   }
 }
 
