@@ -192,7 +192,7 @@ void vtkMRMLContourMorphologyNode::UpdateReferenceID(const char *oldID, const ch
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::SetAndObserveContourNodeID(const char* id)
 {
-  if (this->ContourNodeID)
+  if (this->ContourNodeID != NULL)
     {
     this->Scene->RemoveReferencedNodeID(this->ContourNodeID, this);
     }
@@ -208,7 +208,7 @@ void vtkMRMLContourMorphologyNode::SetAndObserveContourNodeID(const char* id)
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::SetAndObserveOutputContourNodeID(const char* id)
 {
-  if (this->ContourNodeID)
+  if (this->OutputContourNodeID != NULL)
     {
     this->Scene->RemoveReferencedNodeID(this->OutputContourNodeID, this);
     }
