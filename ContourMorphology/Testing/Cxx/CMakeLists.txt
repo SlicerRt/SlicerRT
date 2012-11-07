@@ -10,7 +10,7 @@ SlicerMacroConfigureGenericCxxModuleTests(${MODULE_NAME} KIT_TEST_SRCS KIT_TEST_
 #set(CMAKE_TESTDRIVER_BEFORE_TESTMAIN "DEBUG_LEAKS_ENABLE_EXIT_ERROR();" )
 create_test_sourcelist(Tests ${KIT}CxxTests.cxx
   ${KIT_TEST_NAMES_CXX}
-  # Add source of your tests after this line.
+  vtkSlicerContourMorphologyModuleLogicTest1.cxx
   #EXTRA_INCLUDE vtkMRMLDebugLeaksMacro.h
   )
 list(REMOVE_ITEM Tests ${KIT_TEST_NAMES_CXX})
@@ -26,3 +26,29 @@ foreach(testname ${KIT_TEST_NAMES})
 endforeach()
 
 # Add your test after this line, using SIMPLE_TEST( <testname> )
+#-----------------------------------------------------------------------------
+set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
+
+macro(TEST_WITH_DATA TestName TestExecutableName
+      DataDirectoryPath BaselineContourLabelmapFile 
+      TemporarySceneFile VolumeDifferenceToleranceCc)
+  add_test(
+    NAME ${TestName}
+    COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
+    -DataDirectoryPath ${DataDirectoryPath}
+    -BaselineContourLabelmapFile  ${BaselineContourLabelmapFile}
+    -TemporarySceneFile ${TemporarySceneFile}
+    -VolumeDifferenceToleranceCc ${VolumeDifferenceToleranceCc}
+  )
+endmacro()
+
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate
+  vtkSlicerContourMorphologyModuleLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/PTV_Contour_Labelmap_Exp.nrrd
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  100.0
+)
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
