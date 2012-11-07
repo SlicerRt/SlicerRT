@@ -237,7 +237,7 @@ void vtkMRMLIsodoseNode::SetAndObserveColorTableNodeId(const char* id)
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::SetAndObserveOutputHierarchyNodeId(const char* id)
 {
-  if (this->DoseVolumeNodeId)
+  if (this->OutputHierarchyNodeId)
     {
     this->Scene->RemoveReferencedNodeID(this->OutputHierarchyNodeId, this);
     }
