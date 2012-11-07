@@ -27,14 +27,14 @@ set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
       DataDirectoryPath BaselineIsodoseSurfaceFile 
-      TemporarySceneFile VolumeDifferenceCriterion)
+      TemporarySceneFile VolumeDifferenceToleranceCc)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
     -BaselineIsodoseSurfaceFile ${BaselineIsodoseSurfaceFile}
     -TemporarySceneFile ${TemporarySceneFile}
-    -VolumeDifferenceCriterion ${VolumeDifferenceCriterion}
+    -VolumeDifferenceToleranceCc ${VolumeDifferenceToleranceCc}
   )
 endmacro()
 
