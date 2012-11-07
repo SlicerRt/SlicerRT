@@ -832,6 +832,8 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
     return NULL;
   }
 
+  mrmlScene->StartState(vtkMRMLScene::BatchProcessState); //TODO: workaround for issue #162
+
   // Get color index
   vtkMRMLColorTableNode* colorNode = NULL;
   int structureColorIndex = -1;
@@ -843,15 +845,30 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
   labelmapToModelFilter->SetDecimateTargetReduction( this->DecimationTargetReductionFactor );
   labelmapToModelFilter->Update();    
 
+  // Create display node
+  vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
+  displayNode->SliceIntersectionVisibilityOn();  
+  displayNode->VisibilityOn(); 
+
+  double color[4];
+  if (colorNode)
+  {
+    colorNode->GetColor(structureColorIndex, color);
+    displayNode->SetColor(color);
+  }
 
   // Create closed surface model node
   vtkSmartPointer<vtkMRMLModelNode> closedSurfaceModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  closedSurfaceModelNode = vtkMRMLModelNode::SafeDownCast(mrmlScene->AddNode(closedSurfaceModelNode));
 
   std::string closedSurfaceModelNodeName = std::string(this->Name) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
   closedSurfaceModelNodeName = mrmlScene->GenerateUniqueName(closedSurfaceModelNodeName);
 
-  closedSurfaceModelNode->SetAndObserveTransformNodeID( indexedLabelmapVolumeNode->GetTransformNodeID() );
   closedSurfaceModelNode->SetName( closedSurfaceModelNodeName.c_str() );
+
+  closedSurfaceModelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  closedSurfaceModelNode->SetAndObserveTransformNodeID( indexedLabelmapVolumeNode->GetTransformNodeID() );
 
   // Create model to referenceIjk transform
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
@@ -870,20 +887,7 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
 
   closedSurfaceModelNode->SetAndObservePolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
 
-  mrmlScene->AddNode(closedSurfaceModelNode);
-
-  // Create display node
-  vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
-
-  double color[4];
-  if (colorNode)
-  {
-    colorNode->GetColor(structureColorIndex, color);
-    displayNode->SetColor(color);
-  }
-
-  closedSurfaceModelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  mrmlScene->EndState(vtkMRMLScene::BatchProcessState); //TODO: workaround for issue #162
 
   this->SetAndObserveClosedSurfaceModelNodeId(closedSurfaceModelNode->GetID());
 
