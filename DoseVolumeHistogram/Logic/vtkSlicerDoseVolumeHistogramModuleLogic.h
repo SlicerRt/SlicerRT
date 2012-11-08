@@ -60,6 +60,14 @@ class vtkMRMLDoseVolumeHistogramNode;
 #endif
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
+///
+/// \brief The DoseVolumeHistogram module computes dose volume histogram (DVH) and metrics from a dose map and structure set(s).
+///
+/// The dimensions of the 3D elements (voxels) describing delineated structures are derived from the selected dose distribution volume,
+/// in which the voxels have width in the transverse imaging plane as described in the DICOM image header. The image set volume is
+/// defined by a grid of voxels derived from the voxel grid in the dose volume. The dose grid is oversampled by a factor currently
+/// fixed to the value 2. The centre of each voxel is examined and if found to lie within a structure, is included in the volume for
+/// that structure. The dose value at the centre of the cube is interpolated in 3D from the dose grid.
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramModuleLogic :
   public vtkSlicerModuleLogic
 {

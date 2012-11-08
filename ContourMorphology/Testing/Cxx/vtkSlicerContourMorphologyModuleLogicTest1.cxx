@@ -49,7 +49,7 @@
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 
-#define EPSILON 100
+#define MIN_VOLUME_DIFFERENCE_TOLERANCE_CC 100
 
 /* Define case insensitive string compare for all supported platforms. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
@@ -143,7 +143,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   // Constraint the criteria to be greater than zero
   if (volumeDifferenceToleranceCc == 0.0)
   {
-    volumeDifferenceToleranceCc = EPSILON;
+    volumeDifferenceToleranceCc = MIN_VOLUME_DIFFERENCE_TOLERANCE_CC;
   }
 
   // Create scene
