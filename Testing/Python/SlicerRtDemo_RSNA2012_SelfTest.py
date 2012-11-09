@@ -361,6 +361,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
 
     self.dicomDatabaseDir = slicerRtDemo_RSNA2012_SelfTestDir + '/CtkDicomDatabase'
     self.dicomZipFilePath = slicerRtDemo_RSNA2012_SelfTestDir + '/EclipseEntDicomRt.zip'
+    self.expectedNumOfFilesInDicomDataDir = 141
     self.tempDir = slicerRtDemo_RSNA2012_SelfTestDir + '/Temp'
     
     self.day1CTName = '2: ENT IMRT'
@@ -421,9 +422,12 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.delayDisplay('Downloading Day 1 input data finished',self.delayMs)
 
     numOfFilesInDicomDataDir = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
-    if (numOfFilesInDicomDataDir != 141):
+    if (numOfFilesInDicomDataDir != self.expectedNumOfFilesInDicomDataDir):
       slicer.app.applicationLogic().Unzip(self.dicomZipFilePath, self.dicomDataDir)
       self.delayDisplay("Unzipping done",self.delayMs)
+
+    numOfFilesInDicomDataDirTest = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
+    self.assertTrue( numOfFilesInDicomDataDirTest == self.expectedNumOfFilesInDicomDataDir )
 
   def TestSection_03ImportDay1Study(self):
     self.delayDisplay("Import Day 1 study",self.delayMs)
@@ -454,6 +458,11 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     self.delayDisplay("Select loadables and load data",self.delayMs)
 
     try:
+      numOfScalarVolumeNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') )
+      numOfModelHierarchyNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') )
+      numOfContourNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLContourNode*') )
+      numOfContourHierarchyNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') )
+
       # Choose first patient from the patient list
       dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
       index = dicomWidget.tree.indexAt(qt.QPoint(0,0))
@@ -477,6 +486,13 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
 
       dicomWidget.detailsPopup.loadCheckedLoadables()
 
+      # Verify that the correct number of objects were loaded
+      scene = slicer.mrmlScene
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == numOfModelHierarchyNodesBeforeLoad + 17 )
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == numOfContourNodesBeforeLoad + 16 )
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') ) == numOfContourHierarchyNodesBeforeLoad + 17 )
+      
     except Exception, e:
       import traceback
       traceback.print_exc()
@@ -488,6 +504,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
         ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/' + self.day2CTName + '.nrrd', slicer.util.loadVolume),
         ('http://slicer.kitware.com/midas3/download?items=10703', self.day2DataDir + '/' + self.day2DoseName + '.nrrd', slicer.util.loadVolume),
         )
+
+    numOfScalarVolumeNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') )
 
     downloaded = 0
     for url,filePath,loader in downloads:
@@ -502,6 +520,10 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
         loader(filePath)
     if downloaded > 0:
       self.delayDisplay('Downloading Day 2 input data finished',self.delayMs)
+
+    # Verify that the correct number of objects were loaded
+    scene = slicer.mrmlScene
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
 
   def TestSection_06SetDisplayOptions(self):
     self.delayDisplay('Setting display options for loaded data',self.delayMs)
@@ -556,6 +578,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
 
   def TestSection_07RegisterDay2CTToDay1CT(self):
     try:
+      scene = slicer.mrmlScene
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSFit')
       brainsFit = slicer.modules.brainsfit
@@ -585,6 +608,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
         waitCount += 1
       self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration finished",self.delayMs)
 
+      self.assertTrue( self.cliBrainsFitRigidNode.GetStatusString() == 'Completed' )
+
       # Register Day 2 CT to Day 1 CT using BSpline registration
       self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration.\n  It may take a few minutes...",self.delayMs)
 
@@ -607,6 +632,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
         self.delayDisplay( "Register Day 2 CT to Day 1 CT using BSpline registration... %d" % waitCount )
         waitCount += 1
       self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration finished",self.delayMs)
+
+      self.assertTrue( self.cliBrainsFitBSplineNode.GetStatusString() == 'Completed' )
 
     except Exception, e:
       import traceback
@@ -647,6 +674,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
         waitCount += 1
       self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform finished",self.delayMs)
 
+      self.assertTrue( self.cliBrainsResampleRigidNode.GetStatusString() == 'Completed' )
+
       # Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform
       self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform",self.delayMs)
 
@@ -671,6 +700,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
         self.delayDisplay( "Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform... %d" % waitCount )
         waitCount += 1
       self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform finished",self.delayMs)
+
+      self.assertTrue( self.cliBrainsResampleBSplineNode.GetStatusString() == 'Completed' )
 
     except Exception, e:
       import traceback
@@ -750,6 +781,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 1)
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)
       applyButton.click()
+      
+      self.assertTrue( accumulatedDoseUnregistered.GetImageData() )
 
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose finished",self.delayMs)
       self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 0)
@@ -759,6 +792,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 1)
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseRigid)
       applyButton.click()
+      
+      self.assertTrue( accumulatedDoseRigid.GetImageData() )
 
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration finished",self.delayMs)
       self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 0)
@@ -768,6 +803,8 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseBSplineName, 1)
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseBSpline)
       applyButton.click()
+      
+      self.assertTrue( accumulatedDoseBSpline.GetImageData() )
 
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration finished",self.delayMs)
 
@@ -778,9 +815,12 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
 
   def TestSection_11ComputeDvh(self):
     try:
+      scene = slicer.mrmlScene
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('DoseVolumeHistogram')
       dvhWidget = slicer.modules.dosevolumehistogram.widgetRepresentation()
+
+      numOfDoubleArrayNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') )
 
       computeDvhButton = slicer.util.findChildren(widget=dvhWidget, text='Compute DVH')[0]
       mrmlNodeComboboxes = slicer.util.findChildren(widget=dvhWidget, className='qMRMLNodeComboBox')
@@ -800,7 +840,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       accumulatedDoseUnregistered = slicer.util.getNode(pattern=self.accumulatedDoseUnregisteredName)
       doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)
       computeDvhButton.click()
-
+      
       # Compute DVH using accumulated dose volume that used Day 2 dose after rigid transform
       self.delayDisplay("Compute DVH of accumulated dose (rigid registration)",self.delayMs)
       accumulatedDoseRigid = slicer.util.getNode(pattern=self.accumulatedDoseRigidName)
@@ -813,10 +853,13 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseBSpline)
       computeDvhButton.click()
 
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') ) == numOfDoubleArrayNodesBeforeLoad + 3 )
+
       # Create chart and show plots
       chartNodeCombobox.addNode()
       self.delayDisplay("Show DVH charts",self.delayMs)
       showAllCheckbox = slicer.util.findChildren(widget=dvhWidget, text='Show/hide all', className='qCheckBox')[0]
+      self.assertTrue( showAllCheckbox )
       showAllCheckbox.setChecked(1)
 
     except Exception, e:

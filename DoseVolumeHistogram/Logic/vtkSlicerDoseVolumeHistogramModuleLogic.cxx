@@ -644,8 +644,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   }
 
   // Set chart properties
-  chartViewNode->SetChartNodeID( chartNode->GetID() );
-
   std::string doseAxisName;
   std::string chartTitle;
   const char* doseUnitName=doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
@@ -682,6 +680,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   chartNode->SetProperty(structurePlotName, "color", color);
   const char* lineStyle = dvhArrayNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str());
   chartNode->SetProperty(structurePlotName, "linePattern", lineStyle);
+
+  // Add chart to chart view
+  chartViewNode->SetChartNodeID( chartNode->GetID() );
 }
 
 //---------------------------------------------------------------------------
