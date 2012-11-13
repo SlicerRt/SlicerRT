@@ -92,6 +92,10 @@ public:
   /// Determines whether a representation exists in the contour node
   bool RepresentationExists(ContourRepresentationType type);
 
+  /// Deletes the existing representation and redoes conversion
+  /// Used when conversion parameters have changed
+  void ReconvertRepresentation(ContourRepresentationType type);
+
 public:
   /// Get structure name
   vtkGetStringMacro(StructureName);
@@ -124,10 +128,10 @@ public:
   /// Set and observe rasterization reference volume node ID
   void SetAndObserveRasterizationReferenceVolumeNodeId(const char* id);
 
-  /// Get rasterization downsampling factor
-  vtkGetMacro(RasterizationDownsamplingFactor, double);
-  /// Set rasterization downsampling factor
-  vtkSetMacro(RasterizationDownsamplingFactor, double);
+  /// Get rasterization oversampling factor
+  vtkGetMacro(RasterizationOversamplingFactor, double);
+  /// Set rasterization oversampling factor
+  vtkSetMacro(RasterizationOversamplingFactor, double);
 
   /// Get target reduction factor
   vtkGetMacro(DecimationTargetReductionFactor, double);
@@ -203,8 +207,8 @@ protected:
   /// Rasterization reference volume node ID. This node is used when converting from model to labelmap
   char* RasterizationReferenceVolumeNodeId;
 
-  /// Downsampling factor for contour polydata to labelmap conversion (rasterization)
-  double RasterizationDownsamplingFactor;
+  /// Oversampling factor for contour polydata to labelmap conversion (rasterization)
+  double RasterizationOversamplingFactor;
 
   /// Target reduction factor for decimation applied in labelmap to closed surface model conversion
   double DecimationTargetReductionFactor;

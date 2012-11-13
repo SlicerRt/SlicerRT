@@ -447,7 +447,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     contourNode->SetName(contourNodeName.c_str());
     contourNode->SetAndObserveRibbonModelNodeId(modelNode->GetID());
     contourNode->SetActiveRepresentationByNode(modelNode);
-    contourNode->SetRasterizationDownsamplingFactor(rasterizationDownsamplingFactor);
+    contourNode->SetRasterizationOversamplingFactor(rasterizationDownsamplingFactor);
     contourNode->SetStructureName((*it).c_str());
     contourNode->HideFromEditorsOff();
 

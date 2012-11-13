@@ -64,7 +64,7 @@ vtkMRMLContourNode::vtkMRMLContourNode()
 
   this->RasterizationReferenceVolumeNodeId = NULL;
 
-  this->RasterizationDownsamplingFactor = 2.0;
+  this->RasterizationOversamplingFactor = 2.0;
   this->DecimationTargetReductionFactor = 0.0;
 
   this->HideFromEditorsOff();
@@ -109,7 +109,7 @@ void vtkMRMLContourNode::WriteXML(ostream& of, int nIndent)
     }
   of << indent << " ActiveRepresentationType=\"" << (int)this->ActiveRepresentationType << "\"";
 
-  of << indent << " RasterizationDownsamplingFactor=\"" << this->RasterizationDownsamplingFactor << "\"";
+  of << indent << " RasterizationOversamplingFactor=\"" << this->RasterizationOversamplingFactor << "\"";
   of << indent << " DecimationTargetReductionFactor=\"" << this->DecimationTargetReductionFactor << "\"";
 }
 
@@ -160,13 +160,13 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
       ss >> intAttValue;
       this->ActiveRepresentationType = (ContourRepresentationType)intAttValue;
       }
-    else if (!strcmp(attName, "RasterizationDownsamplingFactor")) 
+    else if (!strcmp(attName, "RasterizationOversamplingFactor")) 
       {
       std::stringstream ss;
       ss << attValue;
       double doubleAttValue;
       ss >> doubleAttValue;
-      this->RasterizationDownsamplingFactor = doubleAttValue;
+      this->RasterizationOversamplingFactor = doubleAttValue;
       }
     else if (!strcmp(attName, "DecimationTargetReductionFactor")) 
       {
@@ -203,7 +203,7 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
 
   this->SetAndObserveRasterizationReferenceVolumeNodeId( node->RasterizationReferenceVolumeNodeId );
 
-  this->SetRasterizationDownsamplingFactor( node->RasterizationDownsamplingFactor );
+  this->SetRasterizationOversamplingFactor( node->RasterizationOversamplingFactor );
   this->SetDecimationTargetReductionFactor( node->DecimationTargetReductionFactor );
 
   this->DisableModifiedEventOff();
@@ -278,7 +278,7 @@ void vtkMRMLContourNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ClosedSurfaceModelNodeId:   " << this->ClosedSurfaceModelNodeId << "\n";
   os << indent << "RasterizationReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
   os << indent << "ActiveRepresentationType:   " << this->ActiveRepresentationType << "\n";
-  os << indent << "RasterizationDownsamplingFactor:   " << this->RasterizationDownsamplingFactor << "\n";
+  os << indent << "RasterizationOversamplingFactor:   " << this->RasterizationOversamplingFactor << "\n";
   os << indent << "DecimationTargetReductionFactor:   " << this->DecimationTargetReductionFactor << "\n";
 }
 
@@ -297,7 +297,6 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
   vtkMRMLVolumeNode* callerVolumeNode = vtkMRMLVolumeNode::SafeDownCast(caller);
   if (!callerModelNode && !callerVolumeNode)
     {
-    vtkErrorMacro("Invalid caller object!"); //TODO: remove (but not the return, that is needed)
     return;
     }
 
@@ -333,7 +332,7 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
     if (i != this->ActiveRepresentationType && representations[i])
       {
       vtkMRMLDisplayableNode* node = representations[i];
-      switch( (ContourRepresentationType)(i) )
+      switch ( (ContourRepresentationType)(i) )
         {
         case RibbonModel:
           this->SetAndObserveRibbonModelNodeId(NULL);
@@ -714,6 +713,82 @@ bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLContourNode::ReconvertRepresentation(ContourRepresentationType type)
+{
+  if (!this->Scene)
+    {
+    return;
+    }
+  if (type == None)
+    {
+    vtkWarningMacro("Cannot convert to 'None' representation type!");
+    return;
+    }
+
+  // Not implemented yet, cannot be re-converted
+  if (type == RibbonModel)
+    {
+    vtkWarningMacro("Convert to 'RibbonMode' representation type is not implemented yet!");
+    return;
+    }
+
+  std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
+
+  // Delete current representation if it exists
+  if (this->RepresentationExists(type))
+    {
+    vtkMRMLDisplayableNode* node = representations[(unsigned int)type];
+    switch (type)
+      {
+      case IndexedLabelmap:
+        this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
+        break;
+      case ClosedSurfaceModel:
+        this->SetAndObserveClosedSurfaceModelNodeId(NULL);
+        break;
+      default:
+        break;
+      }
+
+    this->Scene->RemoveNode(node);
+    }
+
+  // Set active representation type to the one that can be the source of the new conversion
+  switch (type)
+    {
+    case IndexedLabelmap:
+      if (this->RibbonModelNode)
+        {
+        this->SetActiveRepresentationByType(RibbonModel);
+        }
+      else if (this->ClosedSurfaceModelNode)
+        {
+        this->SetActiveRepresentationByType(ClosedSurfaceModel);
+        }
+      break;
+    case ClosedSurfaceModel:
+      if (this->RibbonModelNode)
+        {
+        this->SetActiveRepresentationByType(RibbonModel);
+        }
+      else if (this->IndexedLabelmapVolumeNode)
+        {
+        this->SetActiveRepresentationByType(IndexedLabelmap);
+        }
+      break;
+    default:
+      break;
+  }
+
+  // Do the conversion as normally
+  bool success = this->ConvertToRepresentation(type);
+  if (!success)
+    {
+    vtkErrorMacro("Failed to re-convert representation to type #" << (unsigned int)type);
+    }
+}
+
+//----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(vtkMRMLModelNode* modelNode)
 {
   vtkMRMLScene* mrmlScene = this->Scene;
@@ -723,10 +798,10 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   }
 
   // Sanity check
-  if ( this->RasterizationDownsamplingFactor < 0.01
-    || this->RasterizationDownsamplingFactor > 100.0 )
+  if ( this->RasterizationOversamplingFactor < 0.01
+    || this->RasterizationOversamplingFactor > 100.0 )
   {
-    vtkErrorMacro("Unreasonable rasterization downsampling factor is given: " << this->RasterizationDownsamplingFactor);
+    vtkErrorMacro("Unreasonable rasterization oversampling factor is given: " << this->RasterizationOversamplingFactor);
     return NULL;
   }
 
@@ -762,13 +837,13 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   polyDataToLabelmapFilter->UseReferenceValuesOff();
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
 
-  if (this->RasterizationDownsamplingFactor != 1.0)
+  if (this->RasterizationOversamplingFactor != 1.0)
   {
     vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
     resampler->SetInput(referenceVolumeNode->GetImageData());
-    resampler->SetAxisMagnificationFactor(0, this->RasterizationDownsamplingFactor);
-    resampler->SetAxisMagnificationFactor(1, this->RasterizationDownsamplingFactor);
-    resampler->SetAxisMagnificationFactor(2, this->RasterizationDownsamplingFactor);
+    resampler->SetAxisMagnificationFactor(0, this->RasterizationOversamplingFactor);
+    resampler->SetAxisMagnificationFactor(1, this->RasterizationOversamplingFactor);
+    resampler->SetAxisMagnificationFactor(2, this->RasterizationOversamplingFactor);
     resampler->Update();
 
     polyDataToLabelmapFilter->SetReferenceImage( resampler->GetOutput() );
@@ -783,13 +858,13 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   // Create indexed labelmap volume node
   vtkSmartPointer<vtkMRMLScalarVolumeNode> indexedLabelmapVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   indexedLabelmapVolumeNode->CopyOrientation( referenceVolumeNode );
-  if (this->RasterizationDownsamplingFactor != 1.0)
+  if (this->RasterizationOversamplingFactor != 1.0)
   {
     double* referenceSpacing = referenceVolumeNode->GetSpacing();
     indexedLabelmapVolumeNode->SetSpacing(
-      referenceSpacing[0]/this->RasterizationDownsamplingFactor,
-      referenceSpacing[1]/this->RasterizationDownsamplingFactor,
-      referenceSpacing[2]/this->RasterizationDownsamplingFactor );
+      referenceSpacing[0]/this->RasterizationOversamplingFactor,
+      referenceSpacing[1]/this->RasterizationOversamplingFactor,
+      referenceSpacing[2]/this->RasterizationOversamplingFactor );
 
     vtkImageData* indexedLabelmapVolumeImageData = polyDataToLabelmapFilter->GetOutput();
     indexedLabelmapVolumeImageData->SetSpacing(1.0, 1.0, 1.0); // The spacing is set to the MRML node

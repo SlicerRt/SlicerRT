@@ -290,7 +290,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
     return;
   }
 
-  double rasterizationDownsamplingFactor = structureContourNode->GetRasterizationDownsamplingFactor();
+  double rasterizationDownsamplingFactor = structureContourNode->GetRasterizationOversamplingFactor();
   if (rasterizationDownsamplingFactor != 1.0)
   {
     vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();

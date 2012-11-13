@@ -47,27 +47,50 @@ public:
   virtual void enter();
 
 protected:
-  /// Determine whether the active representation is the 
-  /// same in the selected contours and returns it if it is
+  /// Get the active representation in the selected contours.
+  /// Returns 'None' when they are not the same (in case of hierarchy)
   vtkMRMLContourNode::ContourRepresentationType getRepresentationTypeOfSelectedContours();
 
+  /// Get reference volume node ID from the selected contours.
+  /// \param referenceVolumeNodeId Output parameter for the reference volume node ID (is empty if they are not the same)
+  /// \return True if the reference volume node IDs are the same, false otherwise
+  bool getReferenceVolumeNodeIdOfSelectedContours(QString &referenceVolumeNodeId);
+
+  /// Get oversampling factor from the selected contours.
+  /// \param oversamplingFactor Output parameter for the oversampling factor (is -1 if they are not the same)
+  /// \return True if the oversampling factors are the same, false otherwise
+  bool getOversamplingFactorOfSelectedContours(double &oversamplingFactor);
+
+  /// Get target reduction factor from the selected contours.
+  /// \param targetReductionFactor Output parameter for the target reduction factor (is -1 if they are not the same)
+  /// \return True if the target reduction factors are the same, false otherwise
+  bool getTargetReductionFactorOfSelectedContours(double &targetReductionFactor);
+
   /// Determine if the selected modules contain a certain representation
-  /// /return True if every selected node has the given type of representation, false otherwise
-  bool selectedContoursContainRepresentation(vtkMRMLContourNode::ContourRepresentationType representationType);
+  /// \param allMustContain If set to true, this function returns true only if all the selected
+  ///        contours contain the representation. Otherwise it returns true even if only one contains it
+  /// \return True if every selected node has the given type of representation, false otherwise
+  bool selectedContoursContainRepresentation(vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain=true);
 
-  /// Determines if a reference volume node is needed
-  /// (if the desired representation is labelmap and there is
-  /// at least one contour not having that representation)
-  bool isReferenceVolumeNeeded();
+  /// Determines if conversion is needed for a certain contour node
+  /// \param contourNode The contour node to investigate
+  /// \param representationToConvertTo The target representation
+  /// \return True if the parameters set on the UI are different from the
+  ///          parameters in the contour node, false otherwise
+  bool isConversionNeeded(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType representationToConvertTo);
 
-  /// Set state according to currently selected representation type
-  void onActiveRepresentationComboboxSelectionChanged(int index);
+  /// Set state according to change active representation widget group changes
+  void updateWidgetsFromChangeActiveRepresentationGroup();
+
+public slots:
+  /// Update widget GUI from parameter node
+  void updateWidgetFromMRML();
 
 protected slots:
   void contourNodeChanged(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode* node);
   void activeRepresentationComboboxSelectionChanged(int index);
-  void downsamplingFactorChanged(double value);
+  void oversamplingFactorChanged(double value);
   void targetReductionFactorPercentChanged(double value);
 
   void applyChangeRepresentationClicked();

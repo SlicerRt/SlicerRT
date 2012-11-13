@@ -21,8 +21,6 @@
 
 // .NAME vtkPolyDataToLabelmapFilter - Converts PolyData model to Labelmap image data
 // .SECTION Description
-// !!! Copied from ModelToLabelMap CLI module !!! TODO: Make the SlicerRT extension use that module and depend on it instead of having this class (or both use this class)
-
 
 #ifndef __vtkPolyDataToLabelmapFilter_h
 #define __vtkPolyDataToLabelmapFilter_h
