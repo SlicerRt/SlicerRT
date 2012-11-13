@@ -124,7 +124,7 @@ void qSlicerContoursModuleWidget::setup()
 
   connect( d->comboBox_ActiveRepresentation, SIGNAL(currentIndexChanged(int)), this, SLOT(activeRepresentationComboboxSelectionChanged(int)) );
   connect( d->pushButton_ApplyChangeRepresentation, SIGNAL(clicked()), this, SLOT(applyChangeRepresentationClicked()) );
-  connect( d->SliderWidget_OversamplingFactor, SIGNAL(valueChanged(double)), this, SLOT(oversamplingFactorChanged(double)) );
+  connect( d->horizontalSlider_OversamplingFactor, SIGNAL(valueChanged(int)), this, SLOT(oversamplingFactorChanged(int)) );
   connect( d->SliderWidget_TargetReductionFactorPercent, SIGNAL(valueChanged(double)), this, SLOT(targetReductionFactorPercentChanged(double)) );
 
   d->label_NoReferenceWarning->setVisible(false);
@@ -276,7 +276,7 @@ bool qSlicerContoursModuleWidget::isConversionNeeded(vtkMRMLContourNode* contour
 
   bool referenceVolumeNodeChanged = ( d->MRMLNodeComboBox_ReferenceVolume->currentNodeId().compare(
                                       QString(contourNode->GetRasterizationReferenceVolumeNodeId()) ) );
-  bool oversamplingFactorChanged = ( fabs(d->SliderWidget_OversamplingFactor->value()
+  bool oversamplingFactorChanged = ( fabs(this->getOversamplingFactor()
                                    - contourNode->GetRasterizationOversamplingFactor()) > EPSILON );
   bool targetReductionFactorChanged = ( fabs(d->SliderWidget_TargetReductionFactorPercent->value()
                                       - contourNode->GetDecimationTargetReductionFactor()) > EPSILON );
@@ -386,7 +386,8 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
 
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
   d->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
-  d->SliderWidget_OversamplingFactor->setEnabled(false);
+  d->horizontalSlider_OversamplingFactor->setEnabled(false);
+  d->lineEdit_OversamplingFactor->setEnabled(false);
   d->label_OversamplingFactor->setEnabled(false);
 
   d->label_TargetReductionFactor->setEnabled(false);
@@ -443,10 +444,11 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
   // Set the oversampling factor on the GUI and also set the first found oversampling factor to all the nodes if they are not the same
   if (sameOversamplingFactor)
   {
-    d->SliderWidget_OversamplingFactor->blockSignals(true);
+    d->horizontalSlider_OversamplingFactor->blockSignals(true);
   }
-  d->SliderWidget_OversamplingFactor->setValue(oversamplingFactor);
-  d->SliderWidget_OversamplingFactor->blockSignals(false);
+  d->horizontalSlider_OversamplingFactor->setValue( (int)(log(oversamplingFactor)/log(2.0)) );
+  d->horizontalSlider_OversamplingFactor->blockSignals(false);
+  d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
 
   // Get target reduction factor for the selected contour nodes
   double targetReductionFactor;
@@ -483,7 +485,8 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
 
   d->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
   d->label_ReferenceVolume->setEnabled(false);
-  d->SliderWidget_OversamplingFactor->setEnabled(false);
+  d->horizontalSlider_OversamplingFactor->setEnabled(false);
+  d->lineEdit_OversamplingFactor->setEnabled(false);
   d->label_OversamplingFactor->setEnabled(false);
 
   d->label_TargetReductionFactor->setEnabled(false);
@@ -508,7 +511,7 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
   double oversamplingFactor = 0.0;
   bool sameOversamplingFactor = this->getOversamplingFactorOfSelectedContours(oversamplingFactor);
   bool oversamplingFactorChanged = ( !sameOversamplingFactor
-    || fabs(d->SliderWidget_OversamplingFactor->value() - oversamplingFactor) > EPSILON );
+    || fabs(this->getOversamplingFactor() - oversamplingFactor) > EPSILON );
 
   // Get target reduction factor for the selected contour nodes
   double targetReductionFactor;
@@ -544,7 +547,8 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
   {
     d->MRMLNodeComboBox_ReferenceVolume->setEnabled(true);
     d->label_ReferenceVolume->setEnabled(true);
-    d->SliderWidget_OversamplingFactor->setEnabled(true);
+    d->horizontalSlider_OversamplingFactor->setEnabled(true);
+    d->lineEdit_OversamplingFactor->setEnabled(true);
     d->label_OversamplingFactor->setEnabled(true);
 
     d->pushButton_ApplyChangeRepresentation->setEnabled(
@@ -588,7 +592,8 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
     {
       d->MRMLNodeComboBox_ReferenceVolume->setEnabled(true);
       d->label_ReferenceVolume->setEnabled(true);
-      d->SliderWidget_OversamplingFactor->setEnabled(true);
+      d->horizontalSlider_OversamplingFactor->setEnabled(true);
+      d->lineEdit_OversamplingFactor->setEnabled(true);
       d->label_OversamplingFactor->setEnabled(true);
 
       if (!d->MRMLNodeComboBox_ReferenceVolume->currentNode())
@@ -636,11 +641,21 @@ void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::oversamplingFactorChanged(double value)
+void qSlicerContoursModuleWidget::oversamplingFactorChanged(int value)
 {
   Q_D(qSlicerContoursModuleWidget);
 
+  d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
+
   this->updateWidgetsFromChangeActiveRepresentationGroup();
+}
+//-----------------------------------------------------------------------------
+
+double qSlicerContoursModuleWidget::getOversamplingFactor()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  return pow(2.0, d->horizontalSlider_OversamplingFactor->value());
 }
 
 //-----------------------------------------------------------------------------
@@ -664,7 +679,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
-  double oversamplingFactor = d->SliderWidget_OversamplingFactor->value();
+  double oversamplingFactor = this->getOversamplingFactor();
   double targetReductionFactor = d->SliderWidget_TargetReductionFactorPercent->value();
 
   // Apply change representation on all selected contours

@@ -87,6 +87,10 @@ protected:
   /// Set state according to change active representation widget group changes
   void updateWidgetsFromChangeActiveRepresentationGroup();
 
+  /// Get oversampling factor based on the value set on the slider
+  /// (The factor is two on the power set on the slider, e.g. -1 -> 2^-1 = 0.5)
+  double getOversamplingFactor();
+
 public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
@@ -95,7 +99,7 @@ protected slots:
   void contourNodeChanged(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode* node);
   void activeRepresentationComboboxSelectionChanged(int index);
-  void oversamplingFactorChanged(double value);
+  void oversamplingFactorChanged(int value);
   void targetReductionFactorPercentChanged(double value);
 
   void applyChangeRepresentationClicked();

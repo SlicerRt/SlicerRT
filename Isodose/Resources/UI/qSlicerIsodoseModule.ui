@@ -532,7 +532,7 @@
       <item row="2" column="1">
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>Number of Iso Levels:</string>
+         <string>Number of iso levels:</string>
         </property>
        </widget>
       </item>
@@ -542,7 +542,7 @@
    <item row="3" column="0">
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_DisplayOptions">
      <property name="text">
-      <string>Display Options</string>
+      <string>Display options</string>
      </property>
      <property name="contentsFrameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -551,7 +551,7 @@
       <item>
        <widget class="QCheckBox" name="checkBox_Isoline">
         <property name="text">
-         <string>Show Isodose lines</string>
+         <string>Show isodose lines</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -561,7 +561,7 @@
       <item>
        <widget class="QCheckBox" name="checkBox_Isosurface">
         <property name="text">
-         <string>Show Isodose Surfaces</string>
+         <string>Show isodose surfaces</string>
         </property>
         <property name="checked">
          <bool>true</bool>
