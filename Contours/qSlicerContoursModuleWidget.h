@@ -79,6 +79,11 @@ protected:
   ///          parameters in the contour node, false otherwise
   bool isConversionNeeded(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType representationToConvertTo);
 
+  /// Determines if conversion is needed for any of the selected contour nodes (\see isConversionNeeded)
+  /// \param checkOnlyExistingRepresentations If true, only those contours will be examined
+  ///        that already have the representation type (look for parameter changes in this case)
+  bool isConversionNeededForSelectedNodes(vtkMRMLContourNode::ContourRepresentationType representationToConvertTo, bool checkOnlyExistingRepresentations=false);
+
   /// Set state according to change active representation widget group changes
   void updateWidgetsFromChangeActiveRepresentationGroup();
 

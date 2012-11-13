@@ -288,14 +288,33 @@ bool qSlicerContoursModuleWidget::isConversionNeeded(vtkMRMLContourNode* contour
   }
   else if ( representationToConvertTo == (int)vtkMRMLContourNode::IndexedLabelmap )
   {
-    return ( !contourNode->GetIndexedLabelmapVolumeNodeId()
+    return ( !contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
            || referenceVolumeNodeChanged || oversamplingFactorChanged );
   }
   else if ( representationToConvertTo == (int)vtkMRMLContourNode::ClosedSurfaceModel )
   {
-    return ( !contourNode->GetIndexedLabelmapVolumeNodeId() 
-          || !contourNode->GetClosedSurfaceModelNodeId()
+    return ( !contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
+          || !contourNode->RepresentationExists(vtkMRMLContourNode::ClosedSurfaceModel)
           || referenceVolumeNodeChanged || oversamplingFactorChanged || targetReductionFactorChanged );
+  }
+
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerContoursModuleWidget::isConversionNeededForSelectedNodes(vtkMRMLContourNode::ContourRepresentationType representationToConvertTo, bool checkOnlyExistingRepresentations/*=false*/)
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
+  {
+    if (!checkOnlyExistingRepresentations || (*it)->RepresentationExists(representationToConvertTo))
+    {
+      if (this->isConversionNeeded((*it), (vtkMRMLContourNode::ContourRepresentationType)d->comboBox_ActiveRepresentation->currentIndex()))
+      {
+        return true;
+      }
+    }
   }
 
   return false;
@@ -541,8 +560,9 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
       d->label_NewConversionWarning->setVisible(parametersChanged);
       conversionNeeded = parametersChanged;
     }
-    // If at least one contour has indexed labelmap representation
-    else if ( this->selectedContoursContainRepresentation(vtkMRMLContourNode::IndexedLabelmap, false) )
+    // If at least one contour has indexed labelmap representation and one needs conversion (parameters changed)
+    else if ( this->selectedContoursContainRepresentation(vtkMRMLContourNode::IndexedLabelmap, false)
+           && this->isConversionNeededForSelectedNodes(vtkMRMLContourNode::IndexedLabelmap, true) )
     {
       d->label_NewConversionWarning->setVisible(true);
     }
@@ -588,6 +608,12 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
     if (this->selectedContoursContainRepresentation(vtkMRMLContourNode::ClosedSurfaceModel))
     {
       d->pushButton_ApplyChangeRepresentation->setEnabled(targetReductionFactorChanged);
+    }
+    // If at least one contour has closed surface model representation and one needs conversion (parameters changed)
+    else if ( this->selectedContoursContainRepresentation(vtkMRMLContourNode::ClosedSurfaceModel, false)
+      && this->isConversionNeededForSelectedNodes(vtkMRMLContourNode::ClosedSurfaceModel, true) )
+    {
+      d->label_NewConversionWarning->setVisible(true);
     }
   }
 }
