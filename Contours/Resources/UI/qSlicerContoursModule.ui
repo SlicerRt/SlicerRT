@@ -130,7 +130,7 @@
       <item row="1" column="3">
        <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="toolTip">
          <string>A reference volume is needed if the active representation is a model and volume is needed</string>
@@ -318,56 +318,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_LabelmapsNotReconvertedWarning">
-            <property name="palette">
-             <palette>
-              <active>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>128</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </active>
-              <inactive>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>128</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </inactive>
-              <disabled>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>120</red>
-                  <green>120</green>
-                  <blue>120</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </disabled>
-             </palette>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Existing labelmaps will not be re-converted</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QLabel" name="label_ActiveSelected">
             <property name="text">
              <string>The current selection is the active representation</string>
@@ -422,7 +372,7 @@
       <item row="1" column="1">
        <widget class="QLabel" name="label_ReferenceVolume">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Reference volume:</string>
@@ -435,7 +385,7 @@
       <item row="2" column="1">
        <widget class="QLabel" name="label_OversamplingFactor">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Oversampling factor:</string>
@@ -448,7 +398,7 @@
       <item row="3" column="3">
        <widget class="ctkSliderWidget" name="SliderWidget_TargetReductionFactorPercent">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="toolTip">
          <string>The created closed surface model will be decimated using this parameter (e.g., if TargetReduction is set to 90%, this filter will try to reduce the data set to 10% of its original size)</string>
@@ -470,7 +420,7 @@
       <item row="3" column="1">
        <widget class="QLabel" name="label_TargetReductionFactor">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="toolTip">
          <string>The created closed surface model will be decimated using this parameter (e.g., if TargetReduction is set to 90%, this filter will try to reduce the data set to 10% of its original size)</string>
@@ -488,7 +438,7 @@
         <item>
          <widget class="QSlider" name="horizontalSlider_OversamplingFactor">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="minimum">
            <number>-2</number>
@@ -505,10 +455,16 @@
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksAbove</enum>
+          </property>
          </widget>
         </item>
         <item>
          <widget class="QLineEdit" name="lineEdit_OversamplingFactor">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
