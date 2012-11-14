@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>414</width>
-    <height>574</height>
+    <width>402</width>
+    <height>528</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -73,6 +73,12 @@
          <stringlist>
           <string>vtkMRMLScalarVolumeNode</string>
          </stringlist>
+        </property>
+        <property name="addEnabled">
+         <bool>false</bool>
+        </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -571,7 +577,7 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="4" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <spacer name="horizontalSpacer_2">
