@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>373</width>
-    <height>462</height>
+    <width>404</width>
+    <height>484</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -206,6 +206,9 @@
          <stringlist>
           <string>vtkMRMLScalarVolumeNode</string>
          </stringlist>
+        </property>
+        <property name="noneEnabled">
+         <bool>true</bool>
         </property>
         <property name="renameEnabled">
          <bool>true</bool>
