@@ -292,9 +292,10 @@ bool qSlicerContoursModuleWidget::isConversionNeeded(vtkMRMLContourNode* contour
   }
   else if ( representationToConvertTo == (int)vtkMRMLContourNode::ClosedSurfaceModel )
   {
-    return ( !contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
-          || !contourNode->RepresentationExists(vtkMRMLContourNode::ClosedSurfaceModel)
-          || referenceVolumeNodeChanged || oversamplingFactorChanged || targetReductionFactorChanged );
+    return ( ( !contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
+            || referenceVolumeNodeChanged || oversamplingFactorChanged )
+          || ( !contourNode->RepresentationExists(vtkMRMLContourNode::ClosedSurfaceModel)
+            || targetReductionFactorChanged ) );
   }
 
   return false;
@@ -468,19 +469,29 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
 {
   Q_D(qSlicerContoursModuleWidget);
 
+  int convertToRepresentationType = d->comboBox_ActiveRepresentation->currentIndex();
+
   d->label_ActiveSelected->setVisible(false);
   d->label_NewConversionWarning->setVisible(false);
   d->label_NoRibbonWarning->setVisible(false);
   d->label_NoReferenceWarning->setVisible(false);
 
-  d->MRMLNodeComboBox_ReferenceVolume->setVisible(false);
-  d->label_ReferenceVolume->setVisible(false);
-  d->horizontalSlider_OversamplingFactor->setVisible(false);
-  d->lineEdit_OversamplingFactor->setVisible(false);
-  d->label_OversamplingFactor->setVisible(false);
-
-  d->label_TargetReductionFactor->setVisible(false);
-  d->SliderWidget_TargetReductionFactorPercent->setVisible(false);
+  if ((convertToRepresentationType != (int)vtkMRMLContourNode::IndexedLabelmap
+    && convertToRepresentationType != (int)vtkMRMLContourNode::ClosedSurfaceModel)
+    || !this->mrmlScene() )
+  {
+    d->MRMLNodeComboBox_ReferenceVolume->setVisible(false);
+    d->label_ReferenceVolume->setVisible(false);
+    d->horizontalSlider_OversamplingFactor->setVisible(false);
+    d->lineEdit_OversamplingFactor->setVisible(false);
+    d->label_OversamplingFactor->setVisible(false);
+  }
+  if ( convertToRepresentationType != (int)vtkMRMLContourNode::ClosedSurfaceModel
+    || !this->mrmlScene() )
+  {
+    d->label_TargetReductionFactor->setVisible(false);
+    d->SliderWidget_TargetReductionFactorPercent->setVisible(false);
+  }
 
   d->pushButton_ApplyChangeRepresentation->setEnabled(false);
 
@@ -488,8 +499,6 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
   {
     return;
   }
-
-  int convertToRepresentationType = d->comboBox_ActiveRepresentation->currentIndex();
 
   // Get reference volume node ID for the selected contour nodes
   QString referenceVolumeNodeId;
@@ -592,9 +601,11 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
       d->pushButton_ApplyChangeRepresentation->setEnabled(false);
     }
 
-    // If at least one contour has closed surface model representation and one needs conversion (parameters changed)
-    if ( this->selectedContoursContainRepresentation(vtkMRMLContourNode::ClosedSurfaceModel, false)
-      && this->isConversionNeededForSelectedNodes(vtkMRMLContourNode::ClosedSurfaceModel, true) )
+    // If at least one contour has closed surface model or indexed labelmap representation and one needs conversion (parameters changed)
+    if ( ( this->selectedContoursContainRepresentation(vtkMRMLContourNode::ClosedSurfaceModel, false)
+        && this->isConversionNeededForSelectedNodes(vtkMRMLContourNode::ClosedSurfaceModel, true) )
+      || ( this->selectedContoursContainRepresentation(vtkMRMLContourNode::IndexedLabelmap, false)
+        && this->isConversionNeededForSelectedNodes(vtkMRMLContourNode::IndexedLabelmap, true) ) )
     {
       d->label_NewConversionWarning->setVisible(true);
     }

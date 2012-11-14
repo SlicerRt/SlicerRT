@@ -924,7 +924,9 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
   vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
   displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
   displayNode->SliceIntersectionVisibilityOn();  
-  displayNode->VisibilityOn(); 
+  displayNode->VisibilityOn();
+  displayNode->SetBackfaceCulling(0);
+
 
   double color[4];
   if (colorNode)
