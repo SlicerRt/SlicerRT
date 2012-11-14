@@ -153,7 +153,7 @@ void qSlicerDoseComparisonModuleWidget::onEnter()
 
   d->ModuleWindowInitialized = true;
 
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -187,10 +187,11 @@ void qSlicerDoseComparisonModuleWidget::setDoseComparisonNode(vtkMRMLNode *node)
     {
       paramNode->SetAndObserveGammaVolumeNodeId(d->MRMLNodeComboBox_GammaVolume->currentNodeId().toLatin1());
     }
-    updateButtonsState();
+
+    this->updateButtonsState();
   }
 
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -228,6 +229,8 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
       d->radioButton_ReferenceDose_CustomValue->setChecked(true);
     }
   }
+
+  this->checkDoseVolumeAttributes();
 }
 
 //-----------------------------------------------------------------------------
@@ -262,7 +265,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -285,7 +288,7 @@ void qSlicerDoseComparisonModuleWidget::onLogicModified()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -303,9 +306,9 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
   paramNode->SetAndObserveReferenceDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  updateButtonsState();
+  this->updateButtonsState();
 
-  checkDoseVolumeAttributes();
+  this->checkDoseVolumeAttributes();
 }
 
 //-----------------------------------------------------------------------------
@@ -323,9 +326,9 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
   paramNode->SetAndObserveCompareDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  updateButtonsState();
+  this->updateButtonsState();
 
-  checkDoseVolumeAttributes();
+  this->checkDoseVolumeAttributes();
 }
 
 //-----------------------------------------------------------------------------
@@ -343,7 +346,7 @@ void qSlicerDoseComparisonModuleWidget::gammaVolumeNodeChanged(vtkMRMLNode* node
   paramNode->SetAndObserveGammaVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
