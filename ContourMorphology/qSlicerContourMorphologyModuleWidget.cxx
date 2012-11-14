@@ -286,6 +286,15 @@ void qSlicerContourMorphologyModuleWidget::outputContourNodeChanged(vtkMRMLNode*
   paramNode->SetAndObserveOutputContourNodeID(node->GetID());
   paramNode->DisableModifiedEventOff();
 
+  if (d->logic()->ContourContainsLabelmap())
+  {
+    d->label_NotLabelmapWarning->setText("");
+  }
+  else
+  {
+    d->label_NotLabelmapWarning->setText(tr("Selected Contour's representation is not a labelmap"));
+  }
+
   this->updateButtonsState();
 }
 

@@ -60,6 +60,9 @@ public:
   vtkGetObjectMacro(ContourMorphologyNode, vtkMRMLContourMorphologyNode);
 
   ///
+  bool ContourContainsLabelmap();
+
+  ///
   int MorphContour();
 
 protected:
