@@ -60,7 +60,7 @@ main (int argc, char * argv [])
     if (plmslc_moving_fiducials.size() < num_fiducials) {
 	num_fiducials = plmslc_moving_fiducials.size();
     }
-    printf ("Num fiducials = %d\n", num_fiducials);
+    printf ("Num fiducials = %lu\n", num_fiducials);
     if (num_fiducials == 0) {
         printf (">> No fiducials.\n");
     }

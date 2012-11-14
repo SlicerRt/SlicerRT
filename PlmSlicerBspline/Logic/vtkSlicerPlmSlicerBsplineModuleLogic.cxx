@@ -208,7 +208,7 @@ int vtkSlicerPlmSlicerBsplineLogic::Apply(vtkMRMLPlmSlicerBsplineNode* pnode)
                 pnode->GetGridZ()
   );
 
-  Xform* xf_out = NULL;
+//  Xform* xf_out = NULL;
 
 //  do_registration_pure (&xf_out, &regd, &regp);
 
