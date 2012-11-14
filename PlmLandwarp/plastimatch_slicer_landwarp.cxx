@@ -10,11 +10,15 @@
 #include <math.h>
 #include <time.h>
 
-#include "plmbase.h"
-#include "plmregister.h"
-
-#include "plm_math.h"
 #include "itk_tps.h"
+#include "landmark_warp.h"
+#include "logfile.h"
+#include "plm_image.h"
+#include "plm_math.h"
+#include "raw_pointset.h"
+#include "rbf_gauss.h"
+#include "rbf_wendland.h"
+#include "xform.h"
 
 // this .h is generated from ...landwarp.xml file by GenerateCLP in Slicer3-build
 #include "plastimatch_slicer_landwarpCLP.h"
@@ -65,7 +69,7 @@ main (int argc, char *argv[])
 
     /* Load moving image */
     lw->m_input_img = plm_image_load_native (
-	plmslc_landwarp_moving_volume.c_str());
+      plmslc_landwarp_moving_volume.c_str());
 
     /* Default geometry comes from moving image.
        But if user specified fixed image, we use that. */
@@ -118,11 +122,13 @@ main (int argc, char *argv[])
     lw->m_moving_landmarks = mov_ps;
 
     do_landmark_warp (lw, plmslc_landwarp_rbf_type.c_str());
+
     if (lw->m_warped_img && plmslc_landwarp_warped_volume != "None") {
 	lw->m_warped_img->save_image (plmslc_landwarp_warped_volume.c_str());
     }
     if (lw->m_vf && plmslc_landwarp_vector_field != "None") {
 	xform_save (lw->m_vf, plmslc_landwarp_vector_field.c_str());
     }
+
     return EXIT_SUCCESS;
 }
