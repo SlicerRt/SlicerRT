@@ -245,7 +245,14 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   doseAccumulationLogic->SetAndObserveDoseAccumulationNode(paramNode);
 
   // Compute DoseAccumulation
-  doseAccumulationLogic->AccumulateDoseVolumes();
+  std::string errorMessage;
+  doseAccumulationLogic->AccumulateDoseVolumes(errorMessage);
+
+  if (!errorMessage.empty())
+  {
+    std::cerr << errorMessage << std::endl;
+    return EXIT_FAILURE;
+  }
 
   vtkSmartPointer<vtkMRMLVolumeNode> accumulatedDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     mrmlScene->GetNodeByID(paramNode->GetAccumulatedDoseVolumeNodeId()));  

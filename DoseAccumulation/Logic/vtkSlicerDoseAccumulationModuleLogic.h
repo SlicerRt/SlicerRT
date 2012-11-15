@@ -55,7 +55,7 @@ public:
   vtkCollection* GetVolumeNodesFromScene();
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
-  int AccumulateDoseVolumes();
+  void AccumulateDoseVolumes(std::string &errorMessage);
 
 public:
   /// Set and observe dose accumulation parameter node 

@@ -188,13 +188,13 @@ vtkCollection* vtkSlicerDoseAccumulationModuleLogic::GetVolumeNodesFromScene()
 }
 
 //---------------------------------------------------------------------------
-int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
+void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &errorMessage)
 {
   // Make sure inputs are initialized
   if (this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->empty())
   {
     vtkErrorMacro("Dose accumulation: No dose volume selected");
-    return -1;
+    return;
   }
 
   int size = this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->size();
@@ -206,7 +206,7 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
   if (!inputVolumeNode->GetImageData())
   {
     vtkErrorMacro("No image data found in input volume");
-    return -1;
+    return;
   }
   std::map<std::string,double> *VolumeNodeIdsToWeightsMap = this->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap();
   double weight = (*VolumeNodeIdsToWeightsMap)[Id];
@@ -250,7 +250,8 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
       inputVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(Id));
       if (!inputVolumeNode->GetImageData())
       {
-        vtkErrorMacro("No image data found in input volume");
+        errorMessage = "No image data found in input volume"; 
+        vtkErrorMacro(<<errorMessage);
         continue;
       }
       weight = (*VolumeNodeIdsToWeightsMap)[Id];
@@ -264,8 +265,9 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
           abs(spacingX-spacingX2) > THRESHOLD || abs(spacingY-spacingY2) > THRESHOLD || abs(spacingZ-spacingZ2) > THRESHOLD ||
           abs(dimensions[0]-dimensions2[0]) > THRESHOLD || abs(dimensions[1]-dimensions2[1]) > THRESHOLD || abs(dimensions[2]-dimensions2[2]) >THRESHOLD)
       {
-        std::cerr << "Dose accumulation: image information does not match!" << std::endl;
-        return -1;
+        errorMessage = "Image geometry information do not match"; 
+        vtkErrorMacro(<<errorMessage);
+        return;
       }
 
       MultiplyFilter2->SetInput(inputVolumeNode->GetImageData());
@@ -304,5 +306,4 @@ int vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
   }
 
   outputVolumeDisplayNode->SetVisibility(1);
-  return 0;
 }

@@ -218,7 +218,8 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
     = compareContourNode->GetIndexedLabelmapVolumeNode();
   if (!referenceContourLabelmapVolumeNode || !compareContourLabelmapVolumeNode)
   {
-    vtkErrorMacro("Failed to get indexed labelmap representation from selected input contours!");
+    errorMessage = "Failed to get indexed labelmap representation from selected contours";
+    vtkErrorMacro(<<errorMessage);
     return;
   }
 

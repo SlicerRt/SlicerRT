@@ -48,8 +48,8 @@ public:
   ~qSlicerDoseAccumulationModuleWidgetPrivate();
   vtkSlicerDoseAccumulationModuleLogic* logic() const;
 public:
-  /// Map that associates dose volume checkboxes to the corresponding MRML node IDs
-  std::map<QCheckBox*, std::string> CheckboxToVolumeIdMap;
+  /// Map that associates dose volume checkboxes to the corresponding MRML node IDs and the dose unit name
+  std::map<QCheckBox*, std::pair<std::string, std::string> > CheckboxToVolumeIdMap;
 
   /// Text of the attribute table item that is being edited
   QString SelectedTableItemText;
@@ -163,7 +163,7 @@ void qSlicerDoseAccumulationModuleWidget::onEnter()
     }
   }
 
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -177,7 +177,8 @@ void qSlicerDoseAccumulationModuleWidget::setDoseAccumulationNode(vtkMRMLNode *n
   qvtkReconnect( d->logic()->GetDoseAccumulationNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
   d->logic()->SetAndObserveDoseAccumulationNode(paramNode);
-  updateWidgetFromMRML();
+
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -196,7 +197,7 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
     }
   }
 
-  refreshVolumesTable();
+  this->refreshVolumesTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -206,11 +207,11 @@ void qSlicerDoseAccumulationModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  d->label_Warning->setText("");
+  d->label_Warning->setVisible(false);
+  d->label_Error->setVisible(false);
 
   d->tableWidget_Volumes->setColumnWidth(0, 20);
   d->tableWidget_Volumes->setColumnWidth(1, 300);
-  //d->tableWidget_Volumes->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents); 
 
   // Make connections
   connect( d->checkBox_ShowDoseVolumesOnly, SIGNAL( stateChanged(int) ), this, SLOT( showDoseOnlyChanged(int) ) );
@@ -226,7 +227,7 @@ void qSlicerDoseAccumulationModuleWidget::setup()
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -244,7 +245,7 @@ void qSlicerDoseAccumulationModuleWidget::accumulatedDoseVolumeNodeChanged(vtkMR
   paramNode->SetAndObserveAccumulatedDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -262,7 +263,7 @@ void qSlicerDoseAccumulationModuleWidget::updateButtonsState()
 //-----------------------------------------------------------------------------
 void qSlicerDoseAccumulationModuleWidget::onLogicModified()
 {
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -276,7 +277,8 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
   d->tableWidget_Volumes->clearContents();
 
   // Clear checkboxes map and save previous weights
-  for (std::map<QCheckBox*, std::string>::iterator it = d->CheckboxToVolumeIdMap.begin(); it != d->CheckboxToVolumeIdMap.end(); ++it)
+  std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator it;
+  for (it = d->CheckboxToVolumeIdMap.begin(); it != d->CheckboxToVolumeIdMap.end(); ++it)
   {
     QCheckBox* checkbox = it->first;
     disconnect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( includeVolumeCheckStateChanged(int) ) );
@@ -302,11 +304,14 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
       continue;
     }
 
+    const char* doseUnitName = volumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+    std::string doseUnitStr = ( doseUnitName ? doseUnitName : "N/A" );
+
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_Volumes);
     checkbox->setToolTip(tr("Include this volume in accumulated dose volume"));
     checkbox->setProperty(SlicerRtCommon::DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME.c_str(), QString(volumeNode->GetName()));
-    d->CheckboxToVolumeIdMap[checkbox] = volumeNode->GetID();
+    d->CheckboxToVolumeIdMap[checkbox] = std::pair<std::string, std::string>(volumeNode->GetID(), doseUnitStr);
 
     // Set previous checked state of the checkbox
     std::set<std::string>* selectedVolumeIds = d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds();
@@ -334,7 +339,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
   // Set new weights map
   d->logic()->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap()->swap(newVolumeNodeIdsToWeightsMap);
 
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -368,7 +373,7 @@ void qSlicerDoseAccumulationModuleWidget::onTableItemChanged(QTableWidgetItem* c
   // Set weight if the selected cell is "editable"
   if (d->SelectedTableItemText.isNull() && d->logic()->GetDoseAccumulationNode())
   {
-    std::string volumeID = d->CheckboxToVolumeIdMap[(QCheckBox*)d->tableWidget_Volumes->cellWidget(changedItem->row(), 0)];
+    std::string volumeID = d->CheckboxToVolumeIdMap[(QCheckBox*)d->tableWidget_Volumes->cellWidget(changedItem->row(), 0)].first;
     (*d->logic()->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap())[volumeID] = changedItem->text().toDouble();
     return;
   }
@@ -384,15 +389,21 @@ void qSlicerDoseAccumulationModuleWidget::applyClicked()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  d->logic()->AccumulateDoseVolumes();
+  std::string errorMessage;
+  d->logic()->AccumulateDoseVolumes(errorMessage);
 
-  refreshVolumesTable();
+  d->label_Error->setVisible( !errorMessage.empty() );
+  d->label_Error->setText( QString(errorMessage.c_str()) );
+
+  this->refreshVolumesTable();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aState)
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
+
+  d->label_Error->setVisible(false);
 
   vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
   if (!paramNode || !this->mrmlScene())
@@ -401,23 +412,27 @@ void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aSt
   }
 
   QCheckBox* senderCheckbox = dynamic_cast<QCheckBox*>(sender());
-
   if (!senderCheckbox)
   {
     std::cerr << "Error: Invalid sender checkbox for show/hide in chart checkbox state change" << std::endl;
     return;
   }
 
+  std::string volumeNodeId( d->CheckboxToVolumeIdMap[senderCheckbox].first );
+
+  // Add or delete node to/from the list
   if (aState)
   {
-    paramNode->GetSelectedInputVolumeIds()->insert(d->CheckboxToVolumeIdMap[senderCheckbox]);
+    paramNode->GetSelectedInputVolumeIds()->insert(volumeNodeId);
   }
   else
   {
-    paramNode->GetSelectedInputVolumeIds()->erase(d->CheckboxToVolumeIdMap[senderCheckbox]);
+    paramNode->GetSelectedInputVolumeIds()->erase(volumeNodeId);
   }
 
-  updateButtonsState();
+  this->checkDoseUnitsInSelectedVolumes();
+
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -435,5 +450,23 @@ void qSlicerDoseAccumulationModuleWidget::showDoseOnlyChanged(int aState)
   paramNode->SetShowDoseVolumesOnly(aState);
   paramNode->DisableModifiedEventOff();
 
-  refreshVolumesTable();
+  this->refreshVolumesTable();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseAccumulationModuleWidget::checkDoseUnitsInSelectedVolumes()
+{
+  Q_D(qSlicerDoseAccumulationModuleWidget);
+
+  std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator it;
+  QSet<QString> doseUnits;
+  for (it=d->CheckboxToVolumeIdMap.begin(); it!=d->CheckboxToVolumeIdMap.end(); ++it)
+  {
+    if (it->first->isChecked())
+    {
+      doseUnits.insert( QString(it->second.second.c_str()) );
+    }
+  }
+
+  d->label_Warning->setVisible( doseUnits.count() > 1 );
 }

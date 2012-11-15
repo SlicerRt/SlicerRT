@@ -88,6 +88,9 @@ protected:
   /// Refresh volumes table
   void refreshVolumesTable();
 
+  /// Checks the dose units and displays warning if they do not match
+  void checkDoseUnitsInSelectedVolumes();
+
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseAccumulationModuleWidget);
   Q_DISABLE_COPY(qSlicerDoseAccumulationModuleWidget);
