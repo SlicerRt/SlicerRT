@@ -378,7 +378,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
     if (volumeStorageNode->ReadData(volumeNode))
     {
       volumeNode->SetScene(this->GetMRMLScene());
-      volumeNode->SetName(seriesName);
+      std::string volumeNodeName = this->GetMRMLScene()->GenerateUniqueName(seriesName);
+      volumeNode->SetName(volumeNodeName.c_str());
       this->GetMRMLScene()->AddNode(volumeNode);
 
       // Set new spacing
