@@ -45,23 +45,23 @@ static void
 do_landmark_warp (Landmark_warp *lw, const char *algorithm)
 {
     if (!strcmp (algorithm, "tps")) {
-	do_landmark_warp_itk_tps (lw);
+        do_landmark_warp_itk_tps (lw);
     }
     else if (!strcmp (algorithm, "gauss")) {
-	do_landmark_warp_gauss (lw);
+        do_landmark_warp_gauss (lw);
     }
     else if (!strcmp (algorithm, "wendland")) {
-	do_landmark_warp_wendland (lw);
+        do_landmark_warp_wendland (lw);
     }
 /*    else {
-	do_landmark_warp_gcs (lw);
+    do_landmark_warp_gcs (lw);
     }
 */
 }
 
 int
 main (int argc, char *argv[])
-{	
+{    
     //PARSE_ARGS comes from ...CLP.h
     PARSE_ARGS;
 
@@ -75,10 +75,10 @@ main (int argc, char *argv[])
        But if user specified fixed image, we use that. */
     lw->m_pih.set_from_plm_image (lw->m_input_img);
     if (plmslc_landwarp_fixed_volume != "") {
-	Plm_image *tmp = plm_image_load_native (
-	    plmslc_landwarp_fixed_volume.c_str());
-	lw->m_pih.set_from_plm_image (tmp);
-	delete tmp;
+        Plm_image *tmp = plm_image_load_native (
+            plmslc_landwarp_fixed_volume.c_str());
+        lw->m_pih.set_from_plm_image (tmp);
+        delete tmp;
     }
 
     /* Set other parameters */
@@ -88,8 +88,11 @@ main (int argc, char *argv[])
     lw->num_clusters=plmslc_landwarp_num_clusters;
 
     unsigned long num_fiducials = plmslc_landwarp_fixed_fiducials.size();
+    if (num_fiducials == 0 || plmslc_landwarp_moving_fiducials.size() == 0) {
+        return EXIT_FAILURE;
+    }
     if (plmslc_landwarp_moving_fiducials.size() < num_fiducials) {
-	num_fiducials = plmslc_landwarp_moving_fiducials.size();
+        num_fiducials = plmslc_landwarp_moving_fiducials.size();
     }
 
     /* NSh: pointset_load_fcsv assumes RAS, as does Slicer.
@@ -102,20 +105,20 @@ main (int argc, char *argv[])
     Raw_pointset *mov_ps = pointset_create ();
 
     for (unsigned long i = 0; i < num_fiducials; i++) {
-	
-	float lm_fix[3] = { 
-	    plmslc_landwarp_fixed_fiducials[i][0],  
-	    plmslc_landwarp_fixed_fiducials[i][1],  
-	    plmslc_landwarp_fixed_fiducials[i][2]
-	};
-	pointset_add_point (fix_ps, lm_fix);
-    
-	float lm_mov[3] = { 
-	    plmslc_landwarp_moving_fiducials[i][0],  
-	    plmslc_landwarp_moving_fiducials[i][1],  
-	    plmslc_landwarp_moving_fiducials[i][2]
-	};
-	pointset_add_point (mov_ps, lm_mov);
+        
+        float lm_fix[3] = { 
+            plmslc_landwarp_fixed_fiducials[i][0],  
+            plmslc_landwarp_fixed_fiducials[i][1],  
+            plmslc_landwarp_fixed_fiducials[i][2]
+        };
+        pointset_add_point (fix_ps, lm_fix);
+        
+        float lm_mov[3] = { 
+            plmslc_landwarp_moving_fiducials[i][0],  
+            plmslc_landwarp_moving_fiducials[i][1],  
+            plmslc_landwarp_moving_fiducials[i][2]
+        };
+        pointset_add_point (mov_ps, lm_mov);
     }
 
     lw->m_fixed_landmarks = fix_ps;
@@ -124,10 +127,10 @@ main (int argc, char *argv[])
     do_landmark_warp (lw, plmslc_landwarp_rbf_type.c_str());
 
     if (lw->m_warped_img && plmslc_landwarp_warped_volume != "None") {
-	lw->m_warped_img->save_image (plmslc_landwarp_warped_volume.c_str());
+        lw->m_warped_img->save_image (plmslc_landwarp_warped_volume.c_str());
     }
     if (lw->m_vf && plmslc_landwarp_vector_field != "None") {
-	xform_save (lw->m_vf, plmslc_landwarp_vector_field.c_str());
+        xform_save (lw->m_vf, plmslc_landwarp_vector_field.c_str());
     }
 
     return EXIT_SUCCESS;
