@@ -197,6 +197,7 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
     }
   }
 
+  this->refreshOutputBaseName();
   this->refreshVolumesTable();
 }
 
@@ -430,8 +431,8 @@ void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aSt
     paramNode->GetSelectedInputVolumeIds()->erase(volumeNodeId);
   }
 
+  this->refreshOutputBaseName();
   this->checkDoseUnitsInSelectedVolumes();
-
   this->updateButtonsState();
 }
 
@@ -458,8 +459,8 @@ void qSlicerDoseAccumulationModuleWidget::checkDoseUnitsInSelectedVolumes()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator it;
   QSet<QString> doseUnits;
+  std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator it;
   for (it=d->CheckboxToVolumeIdMap.begin(); it!=d->CheckboxToVolumeIdMap.end(); ++it)
   {
     if (it->first->isChecked())
@@ -469,4 +470,35 @@ void qSlicerDoseAccumulationModuleWidget::checkDoseUnitsInSelectedVolumes()
   }
 
   d->label_Warning->setVisible( doseUnits.count() > 1 );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseAccumulationModuleWidget::refreshOutputBaseName()
+{
+  Q_D(qSlicerDoseAccumulationModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    return;
+  }
+
+  QString newBaseName(SlicerRtCommon::DOSEACCUMULATION_OUTPUT_BASE_NAME_PREFIX.c_str());
+  std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator it;
+  for (it=d->CheckboxToVolumeIdMap.begin(); it!=d->CheckboxToVolumeIdMap.end(); ++it)
+  {
+    if (it->first->isChecked())
+    {
+      vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(
+        this->mrmlScene()->GetNodeByID(it->second.first.c_str()) );
+      if (!volumeNode)
+      {
+        continue;
+      }
+
+      newBaseName.append("_");
+      newBaseName.append(volumeNode->GetName());
+    }
+  }
+
+  d->MRMLNodeComboBox_AccumulatedDoseVolume->setBaseName( newBaseName.toLatin1() );
 }

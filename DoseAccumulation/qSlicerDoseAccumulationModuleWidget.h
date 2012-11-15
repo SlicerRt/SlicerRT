@@ -91,6 +91,9 @@ protected:
   /// Checks the dose units and displays warning if they do not match
   void checkDoseUnitsInSelectedVolumes();
 
+  /// Assemble new output volume base name from the selected input volume names
+  void refreshOutputBaseName();
+
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseAccumulationModuleWidget);
   Q_DISABLE_COPY(qSlicerDoseAccumulationModuleWidget);

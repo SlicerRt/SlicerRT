@@ -25,6 +25,9 @@
 #include "qSlicerDoseComparisonModuleWidget.h"
 #include "ui_qSlicerDoseComparisonModule.h"
 
+// SlicerRtCommon includes
+#include "SlicerRtCommon.h"
+
 // DoseComparison includes
 #include "vtkSlicerDoseComparisonModuleLogic.h"
 #include "vtkMRMLDoseComparisonNode.h"
@@ -230,6 +233,7 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
     }
   }
 
+  this->refreshOutputBaseName();
   this->checkDoseVolumeAttributes();
 }
 
@@ -306,8 +310,8 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
   paramNode->SetAndObserveReferenceDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
+  this->refreshOutputBaseName();
   this->updateButtonsState();
-
   this->checkDoseVolumeAttributes();
 }
 
@@ -326,8 +330,8 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
   paramNode->SetAndObserveCompareDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
+  this->refreshOutputBaseName();
   this->updateButtonsState();
-
   this->checkDoseVolumeAttributes();
 }
 
@@ -487,4 +491,36 @@ void qSlicerDoseComparisonModuleWidget::checkDoseVolumeAttributes()
   {
     d->label_Warning->setText("");
   }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseComparisonModuleWidget::refreshOutputBaseName()
+{
+  Q_D(qSlicerDoseComparisonModuleWidget);
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  QString newBaseName(SlicerRtCommon::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX.c_str());
+
+  vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->mrmlScene()->GetNodeByID(paramNode->GetReferenceDoseVolumeNodeId()));
+  if (referenceDoseVolumeNode)
+  {
+    newBaseName.append("_");
+    newBaseName.append(referenceDoseVolumeNode->GetName());
+  }
+
+  vtkMRMLVolumeNode* compareDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->mrmlScene()->GetNodeByID(paramNode->GetCompareDoseVolumeNodeId()));
+  if (compareDoseVolumeNode)
+  {
+    newBaseName.append("_");
+    newBaseName.append(compareDoseVolumeNode->GetName());
+  }
+
+  d->MRMLNodeComboBox_GammaVolume->setBaseName( newBaseName.toLatin1() );
 }
