@@ -54,9 +54,11 @@ public:
   static const std::string DVH_TYPE_ATTRIBUTE_VALUE;
   static const char        DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   static const std::string DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
-  static const std::string DVH_METRIC_MEAN_DOSE_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_METRIC_MIN_DOSE_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_METRIC_MAX_DOSE_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_MEAN_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_MIN_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_MAX_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_DOSE_ATTRIBUTE_NAME_POSTFIX;
+  static const std::string DVH_METRIC_INTENSITY_ATTRIBUTE_NAME_POSTFIX;
   static const std::string DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX;
   static const std::string DVH_ARRAY_NODE_NAME_POSTFIX;
   static const std::string DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE;
