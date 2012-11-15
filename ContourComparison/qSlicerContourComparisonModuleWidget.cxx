@@ -186,10 +186,10 @@ void qSlicerContourComparisonModuleWidget::setContourComparisonNode(vtkMRMLNode 
     {
       paramNode->SetAndObserveReferenceVolumeNodeId(d->MRMLNodeComboBox_ReferenceVolume->currentNodeId().toLatin1());
     }
-    updateButtonsState();
+    this->updateButtonsState();
   }
 
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -213,19 +213,11 @@ void qSlicerContourComparisonModuleWidget::updateWidgetFromMRML()
     d->MRMLNodeComboBox_CompareContour->setCurrentNode(paramNode->GetCompareContourNodeId());
   }
 
-  if ( d->logic()->IsReferenceVolumeNeeded()
-    && paramNode->GetRasterizationReferenceVolumeNodeId() && strcmp(paramNode->GetRasterizationReferenceVolumeNodeId(),"") )
-  {
-    d->label_ReferenceVolume->setEnabled(true);
-    d->MRMLNodeComboBox_ReferenceVolume->setEnabled(true);
-    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(paramNode->GetRasterizationReferenceVolumeNodeId());
-  }
-  else
-  {
-    d->label_ReferenceVolume->setEnabled(d->logic()->IsReferenceVolumeNeeded());
-    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
-    d->MRMLNodeComboBox_ReferenceVolume->setEnabled(d->logic()->IsReferenceVolumeNeeded());
-  }
+  bool referenceVolumeNeeded = d->logic()->IsReferenceVolumeNeeded();
+  bool referenceVolumeSelected = ( paramNode->GetRasterizationReferenceVolumeNodeId() && strcmp(paramNode->GetRasterizationReferenceVolumeNodeId(),"") );
+  d->label_NoReferenceVolumeIsSelected->setVisible( referenceVolumeNeeded && !referenceVolumeSelected );
+  d->label_NoReferenceVolumeIsNeeded->setVisible( !referenceVolumeNeeded );
+  d->MRMLNodeComboBox_ReferenceVolume->setVisible( referenceVolumeNeeded );
 }
 
 //-----------------------------------------------------------------------------
@@ -235,7 +227,8 @@ void qSlicerContourComparisonModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  d->label_Warning->setText("");
+  d->label_NoReferenceVolumeIsSelected->setVisible(false);
+  d->label_NoReferenceVolumeIsNeeded->setVisible(false);
   d->label_Error->setText("");
 
   // Make connections
@@ -250,7 +243,7 @@ void qSlicerContourComparisonModuleWidget::setup()
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -268,7 +261,7 @@ void qSlicerContourComparisonModuleWidget::updateButtonsState()
                         && strcmp(d->logic()->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId(), "") ) );
   d->pushButton_Apply->setEnabled(applyEnabled);
 
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -276,7 +269,7 @@ void qSlicerContourComparisonModuleWidget::onLogicModified()
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -295,8 +288,7 @@ void qSlicerContourComparisonModuleWidget::referenceContourNodeChanged(vtkMRMLNo
   paramNode->DisableModifiedEventOff();
 
   this->invalidateResults();
-
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -315,8 +307,7 @@ void qSlicerContourComparisonModuleWidget::compareContourNodeChanged(vtkMRMLNode
   paramNode->DisableModifiedEventOff();
 
   this->invalidateResults();
-
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -335,8 +326,7 @@ void qSlicerContourComparisonModuleWidget::referenceVolumeNodeChanged(vtkMRMLNod
   paramNode->DisableModifiedEventOff();
 
   this->invalidateResults();
-
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
