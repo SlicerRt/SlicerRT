@@ -64,8 +64,8 @@ vtkMRMLContourNode::vtkMRMLContourNode()
 
   this->RasterizationReferenceVolumeNodeId = NULL;
 
-  this->RasterizationOversamplingFactor = 2.0;
-  this->DecimationTargetReductionFactor = 0.0;
+  this->RasterizationOversamplingFactor = -1.0;
+  this->DecimationTargetReductionFactor = -1.0;
 
   this->HideFromEditorsOff();
 }

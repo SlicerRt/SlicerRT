@@ -122,7 +122,7 @@ void qSlicerContoursModuleWidget::setup()
   connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
 
-  connect( d->comboBox_ActiveRepresentation, SIGNAL(currentIndexChanged(int)), this, SLOT(activeRepresentationComboboxSelectionChanged(int)) );
+  connect( d->comboBox_ChangeActiveRepresentation, SIGNAL(currentIndexChanged(int)), this, SLOT(activeRepresentationComboboxSelectionChanged(int)) );
   connect( d->pushButton_ApplyChangeRepresentation, SIGNAL(clicked()), this, SLOT(applyChangeRepresentationClicked()) );
   connect( d->horizontalSlider_OversamplingFactor, SIGNAL(valueChanged(int)), this, SLOT(oversamplingFactorChanged(int)) );
   connect( d->SliderWidget_TargetReductionFactorPercent, SIGNAL(valueChanged(double)), this, SLOT(targetReductionFactorPercentChanged(double)) );
@@ -310,7 +310,7 @@ bool qSlicerContoursModuleWidget::isConversionNeededForSelectedNodes(vtkMRMLCont
   {
     if (!checkOnlyExistingRepresentations || (*it)->RepresentationExists(representationToConvertTo))
     {
-      if (this->isConversionNeeded((*it), (vtkMRMLContourNode::ContourRepresentationType)d->comboBox_ActiveRepresentation->currentIndex()))
+      if (this->isConversionNeeded((*it), (vtkMRMLContourNode::ContourRepresentationType)d->comboBox_ChangeActiveRepresentation->currentIndex()))
       {
         return true;
       }
@@ -327,7 +327,7 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 
   if (!this->mrmlScene() || !node || !d->ModuleWindowInitialized)
   {
-    d->comboBox_ActiveRepresentation->setEnabled(false);
+    d->comboBox_ChangeActiveRepresentation->setEnabled(false);
     d->label_ActiveRepresentation->setText(tr("[No node is selected]"));
     d->label_ActiveRepresentation->setToolTip(tr(""));
     return;
@@ -383,76 +383,79 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
   d->label_NoRibbonWarning->setVisible(false);
   d->label_NoReferenceWarning->setVisible(false);
 
-  d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
-
   d->pushButton_ApplyChangeRepresentation->setEnabled(false);
 
   vtkMRMLNode* selectedNode = d->MRMLNodeComboBox_Contour->currentNode();
   if (!this->mrmlScene() || !selectedNode || !d->ModuleWindowInitialized)
   {
-    d->comboBox_ActiveRepresentation->setEnabled(false);
+    d->comboBox_ChangeActiveRepresentation->setEnabled(false);
     d->label_ActiveRepresentation->setText(tr("[No node is selected]"));
     d->label_ActiveRepresentation->setToolTip(tr(""));
     return;
   }
 
-  d->comboBox_ActiveRepresentation->setEnabled(true);
+  d->comboBox_ChangeActiveRepresentation->setEnabled(true);
 
   // Select the representation type shared by all the children contour nodes
   vtkMRMLContourNode::ContourRepresentationType representationType = this->getRepresentationTypeOfSelectedContours();
-  d->comboBox_ActiveRepresentation->blockSignals(true); // Ensure the state is set only once
   if (representationType != vtkMRMLContourNode::None)
   {
-    d->comboBox_ActiveRepresentation->setCurrentIndex((int)representationType);
-
-    d->label_ActiveRepresentation->setText(d->comboBox_ActiveRepresentation->itemText((int)representationType));
+    d->label_ActiveRepresentation->setText(d->comboBox_ChangeActiveRepresentation->itemText((int)representationType));
     d->label_ActiveRepresentation->setToolTip(tr(""));
   }
   else
   {
-    d->comboBox_ActiveRepresentation->setCurrentIndex(-1); // Void selection
-
     d->label_ActiveRepresentation->setText(tr("Various"));
     d->label_ActiveRepresentation->setToolTip(tr("The selected hierarchy node contains contours with different active representation types"));
   }
-  d->comboBox_ActiveRepresentation->blockSignals(false);
 
   // Get reference volume node ID for the selected contour nodes
   QString referenceVolumeNodeId;
   bool sameReferenceVolumeNodeId = this->getReferenceVolumeNodeIdOfSelectedContours(referenceVolumeNodeId);
 
-  // Set the oversampling factor on the GUI and also set the first found oversampling factor to all the nodes if they are not the same
-  if (sameReferenceVolumeNodeId)
+  // Set the oversampling factor on the GUI
+  // [1] If the selected contours do not have a reference volume, then leave it as is
+  // (in case the user wants to use the last used reference volume in a conversion)
+  if (!referenceVolumeNodeId.isEmpty())
   {
-    d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
+    if (sameReferenceVolumeNodeId)
+    {
+      d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
+    }
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(referenceVolumeNodeId);
+    d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
   }
-  d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(referenceVolumeNodeId);
-  d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
 
   // Get the oversampling factor of the selected contour nodes
   double oversamplingFactor = 0.0;
   bool sameOversamplingFactor = this->getOversamplingFactorOfSelectedContours(oversamplingFactor);
 
-  // Set the oversampling factor on the GUI and also set the first found oversampling factor to all the nodes if they are not the same
-  if (sameOversamplingFactor)
+  // Set the oversampling factor on the GUI ([1] applies here as well)
+  if (oversamplingFactor != -1.0)
   {
-    d->horizontalSlider_OversamplingFactor->blockSignals(true);
+    if (sameOversamplingFactor)
+    {
+      d->horizontalSlider_OversamplingFactor->blockSignals(true);
+    }
+    d->horizontalSlider_OversamplingFactor->setValue( (int)(log(oversamplingFactor)/log(2.0)) );
+    d->horizontalSlider_OversamplingFactor->blockSignals(false);
   }
-  d->horizontalSlider_OversamplingFactor->setValue( (int)(log(oversamplingFactor)/log(2.0)) );
-  d->horizontalSlider_OversamplingFactor->blockSignals(false);
   d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
 
   // Get target reduction factor for the selected contour nodes
   double targetReductionFactor;
   bool sameTargetReductionFactor = this->getTargetReductionFactorOfSelectedContours(targetReductionFactor);
 
-  // Set the oversampling factor on the GUI and also set the first found oversampling factor to all the nodes if they are not the same
-  if (sameTargetReductionFactor)
+  // Set the oversampling factor on the GUI ([1] applies here as well)
+  if (targetReductionFactor != -1.0)
   {
-    d->SliderWidget_TargetReductionFactorPercent->blockSignals(true);
+    if (sameTargetReductionFactor)
+    {
+      d->SliderWidget_TargetReductionFactorPercent->blockSignals(true);
+    }
+    d->SliderWidget_TargetReductionFactorPercent->setValue(targetReductionFactor);
+    d->SliderWidget_TargetReductionFactorPercent->blockSignals(false);
   }
-  d->SliderWidget_TargetReductionFactorPercent->setValue(targetReductionFactor);
-  d->SliderWidget_TargetReductionFactorPercent->blockSignals(false);
 
   // Update apply button state, warning labels, etc.
   this->updateWidgetsFromChangeActiveRepresentationGroup();
@@ -469,7 +472,7 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
 {
   Q_D(qSlicerContoursModuleWidget);
 
-  int convertToRepresentationType = d->comboBox_ActiveRepresentation->currentIndex();
+  int convertToRepresentationType = d->comboBox_ChangeActiveRepresentation->currentIndex();
 
   d->label_ActiveSelected->setVisible(false);
   d->label_NewConversionWarning->setVisible(false);
@@ -538,7 +541,7 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
   {
     bool ribbonModelPresent = this->selectedContoursContainRepresentation(vtkMRMLContourNode::RibbonModel);
 
-    d->pushButton_ApplyChangeRepresentation->setEnabled(ribbonModelPresent);
+    d->pushButton_ApplyChangeRepresentation->setEnabled(!activeSelected && ribbonModelPresent);
     d->label_NoRibbonWarning->setEnabled(!ribbonModelPresent);
   }
   // Converting to indexed labelmap
@@ -667,6 +670,8 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
+  int convertToRepresentationType = d->comboBox_ChangeActiveRepresentation->currentIndex();
+
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
   double oversamplingFactor = this->getOversamplingFactor();
   double targetReductionFactor = d->SliderWidget_TargetReductionFactorPercent->value();
@@ -674,7 +679,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
   // Apply change representation on all selected contours
   for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
   {
-    bool conversionNeeded = this->isConversionNeeded((*it), (vtkMRMLContourNode::ContourRepresentationType)d->comboBox_ActiveRepresentation->currentIndex());
+    bool conversionNeeded = this->isConversionNeeded((*it), (vtkMRMLContourNode::ContourRepresentationType)convertToRepresentationType);
     bool labelmapConversionNeeded = this->isConversionNeeded((*it), vtkMRMLContourNode::IndexedLabelmap);
 
     // Set conversion parameters
@@ -689,11 +694,11 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
     }
 
     // Do conversion if necessary
-    if (d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::RibbonModel)
+    if (convertToRepresentationType == (int)vtkMRMLContourNode::RibbonModel)
     {
       (*it)->SetActiveRepresentationByType(vtkMRMLContourNode::RibbonModel);
     }
-    else if (d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::IndexedLabelmap)
+    else if (convertToRepresentationType == (int)vtkMRMLContourNode::IndexedLabelmap)
     {
       if (conversionNeeded)
       {
@@ -704,7 +709,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
       vtkMRMLScalarVolumeNode* indexedLabelmapNode = (*it)->GetIndexedLabelmapVolumeNode();
       if (!indexedLabelmapNode)
       {
-        std::cerr << "Failed to get '" << (std::string)d->comboBox_ActiveRepresentation->currentText().toLatin1()
+        std::cerr << "Failed to get '" << (std::string)d->comboBox_ChangeActiveRepresentation->currentText().toLatin1()
           << "' representation from contour node '" << (*it)->GetName() << "' !" << std::endl;
       }
       else
@@ -712,7 +717,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
         (*it)->SetActiveRepresentationByNode(indexedLabelmapNode);
       }
     }
-    else if (d->comboBox_ActiveRepresentation->currentIndex() == (int)vtkMRMLContourNode::ClosedSurfaceModel)
+    else if (convertToRepresentationType == (int)vtkMRMLContourNode::ClosedSurfaceModel)
     {
       if (conversionNeeded)
       {
@@ -729,7 +734,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
       vtkMRMLModelNode* closedSurfaceModelNode = (*it)->GetClosedSurfaceModelNode();
       if (!closedSurfaceModelNode)
       {
-        std::cerr << "Failed to get '" << (std::string)d->comboBox_ActiveRepresentation->currentText().toLatin1()
+        std::cerr << "Failed to get '" << (std::string)d->comboBox_ChangeActiveRepresentation->currentText().toLatin1()
           << "' representation from contour node '" << (*it)->GetName() << "' !" << std::endl;
       }
       else
@@ -739,7 +744,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
     }
   }
 
-  d->label_ActiveRepresentation->setText(d->comboBox_ActiveRepresentation->currentText());
+  d->label_ActiveRepresentation->setText(d->comboBox_ChangeActiveRepresentation->currentText());
   d->label_ActiveRepresentation->setToolTip(tr(""));
 
   this->updateWidgetsFromChangeActiveRepresentationGroup();
