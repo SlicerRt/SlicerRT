@@ -40,6 +40,8 @@ public:
   static const std::string CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
   static const std::string CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
   static const std::string CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
+  static const double DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR;
+  static const double DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR;
 
   // DoseVolumeHistogram constants
   static const std::string DVH_ATTRIBUTE_PREFIX;

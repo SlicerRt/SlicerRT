@@ -492,7 +492,15 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
 
   // Compute DVH and get result nodes
-  dvhLogic->ComputeDvh();
+  std::string errorMessage;
+  dvhLogic->ComputeDvh(errorMessage);
+
+  if (!errorMessage.empty())
+  {
+    std::cerr << errorMessage << std::endl;
+    return EXIT_FAILURE;
+  }
+
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
 
   std::vector<std::string>* dvhNodeIDs = paramNode->GetDvhDoubleArrayNodeIds();

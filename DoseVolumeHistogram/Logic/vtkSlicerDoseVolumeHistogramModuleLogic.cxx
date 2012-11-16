@@ -377,7 +377,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetSelectedContourNodes(std::vecto
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
+void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(std::string &errorMessage)
 {
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double sumRasterization = 0.0;
@@ -391,7 +391,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
   if (structureContourNodes.size() == 0)
   {
-    vtkErrorMacro("Error: Empty structure list!");
+    errorMessage = "Empty structure list";
+    vtkErrorMacro(<<errorMessage);
     return;
   }
 
@@ -399,7 +400,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
   for (std::vector<vtkMRMLContourNode*>::iterator it = structureContourNodes.begin(); it != structureContourNodes.end(); ++it)
   {
     double checkpointStructureStart = timer->GetUniversalTime();
-    this->ComputeDvh(*it);
+    this->ComputeDvh(*it, errorMessage);
+    if (!errorMessage.empty())
+    {
+      vtkErrorMacro("DVH computation failed for contour '" << (*it)->GetStructureName() << "' - aborting");
+      return;
+    }
     double checkpointStructureEnd = timer->GetUniversalTime();
 
     if (this->LogSpeedMeasurements)
@@ -416,7 +422,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* structureContourNode)
+void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* structureContourNode, std::string &errorMessage)
 {
   if ( !this->GetMRMLScene() || !this->DoseVolumeHistogramNode || !structureContourNode )
   {
@@ -435,14 +441,17 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   doseStat->Update();
   double maxDose = doseStat->GetMax()[0];
 
-  // Get spacing and voxel volume
+  // Get indexed labelmap representation
   structureContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId());
   vtkMRMLScalarVolumeNode* indexedLabelmapNode = structureContourNode->GetIndexedLabelmapVolumeNode();
   if (!indexedLabelmapNode)
   {
-    vtkErrorMacro("Unable to get indexed labelmap representation from structure contour node '" << structureContourNode->GetName() << "'!");
+    errorMessage = "Unable to get indexed labelmap representation";
+    vtkErrorMacro(<<errorMessage << " from structure contour node '" << structureContourNode->GetName() << "'!");
     return;
   }
+
+  // Get spacing and voxel volume
   double* indexedLabelmapSpacing = indexedLabelmapNode->GetSpacing();
 
   double cubicMMPerVoxel = indexedLabelmapSpacing[0] * indexedLabelmapSpacing[1] * indexedLabelmapSpacing[2];
@@ -460,7 +469,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   if (structureStat->GetVoxelCount() < 1)
   {
-    vtkErrorMacro("No voxels in the structure. DVH computation aborted.");
+    errorMessage = "No voxels in the structure labelmap";
+    vtkErrorMacro(<<errorMessage);
     return;
   }
 
@@ -545,7 +555,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   {
     if (rangeMin<0)
     {
-      vtkWarningMacro("The dose volume contains negative dose values.");
+      errorMessage = "The dose volume contains negative dose values";
+      vtkErrorMacro(<<errorMessage);
       return;
     }
 

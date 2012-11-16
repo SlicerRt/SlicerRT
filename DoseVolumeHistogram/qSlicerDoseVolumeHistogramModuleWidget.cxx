@@ -233,7 +233,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     d->lineEdit_DVolumeCc->setText(paramNode->GetDVolumeValuesCc());
     d->lineEdit_DVolumePercent->setText(paramNode->GetDVolumeValuesPercent());
     d->checkBox_ShowDMetrics->setChecked(paramNode->GetShowDMetrics());
-    //d->checkBox_SaveLabelmaps->setChecked(paramNode->GetSaveLabelmaps());
   }
 
   refreshDvhTable();
@@ -250,13 +249,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   d->label_ImportCSV->setVisible(false);
   d->pushButton_ImportCSV->setVisible(false);
 
-  // Hide save labelmaps checkbox because we always save them to the contour node now
-  d->checkBox_SaveLabelmaps->setVisible(false);
-
   d->tableWidget_ChartStatistics->setSortingEnabled(false);
   d->tableWidget_ChartStatistics->setSelectionMode(QAbstractItemView::NoSelection);
 
-  d->label_NotDoseVolumeWarning->setText("");
+  d->label_NotDoseVolumeWarning->setVisible(false);
+  d->label_Error->setVisible(false);
 
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setDoseVolumeHistogramNode(vtkMRMLNode*) ) );
@@ -274,12 +271,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->lineEdit_DVolumeCc, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumeCcEdited(QString) ) );
   connect( d->lineEdit_DVolumePercent, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumePercentEdited(QString) ) );
   connect( d->checkBox_ShowDMetrics, SIGNAL( stateChanged(int) ), this, SLOT( showDMetricsCheckedStateChanged(int) ) );
-  //connect( d->checkBox_SaveLabelmaps, SIGNAL( stateChanged(int) ), this, SLOT( saveLabelmapsCheckedStateChanged(int) ) );
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 
-  updateChartCheckboxesState();
+  this->updateChartCheckboxesState();
 }
 
 //-----------------------------------------------------------------------------
@@ -329,6 +325,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   d->checkBox_ShowVMetricsCc->setEnabled(vdMetricCanBeShown);
   d->checkBox_ShowVMetricsPercent->setEnabled(vdMetricCanBeShown);
   d->checkBox_ShowDMetrics->setEnabled(vdMetricCanBeShown);
+
+  d->label_Error->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -427,16 +425,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
   paramNode->SetAndObserveDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  updateButtonsState();
+  this->updateButtonsState();
 
-  if (d->logic()->DoseVolumeContainsDose())
-  {
-    d->label_NotDoseVolumeWarning->setText("");
-  }
-  else
-  {
-    d->label_NotDoseVolumeWarning->setText(tr(" Selected volume is not a dose"));
-  }
+  d->label_NotDoseVolumeWarning->setVisible(!d->logic()->DoseVolumeContainsDose());
 }
 
 //-----------------------------------------------------------------------------
@@ -454,7 +445,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::structureSetNodeChanged(vtkMRMLNode
   paramNode->SetAndObserveStructureSetContourNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -472,14 +463,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
   paramNode->SetAndObserveChartNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  updateButtonsState();
-  updateChartCheckboxesState();
+  this->updateButtonsState();
+  this->updateChartCheckboxesState();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::onLogicModified()
 {
-  refreshDvhTable();
+  this->refreshDvhTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -525,7 +516,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   std::vector<double> vDoseValues;
   if (d->checkBox_ShowVMetricsCc->isChecked() || d->checkBox_ShowVMetricsPercent->isChecked())
   {
-    getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValues);
+    this->getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValues);
   }
   int vColumnCount = (d->checkBox_ShowVMetricsCc->isChecked() ? vDoseValues.size() : 0)
     + (d->checkBox_ShowVMetricsPercent->isChecked() ? vDoseValues.size() : 0);
@@ -535,8 +526,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   std::vector<double> dVolumeValuesPercent;
   if (d->checkBox_ShowDMetrics->isChecked())
   {
-    getNumbersFromLineEdit(d->lineEdit_DVolumeCc, dVolumeValuesCc);
-    getNumbersFromLineEdit(d->lineEdit_DVolumePercent, dVolumeValuesPercent);
+    this->getNumbersFromLineEdit(d->lineEdit_DVolumeCc, dVolumeValuesCc);
+    this->getNumbersFromLineEdit(d->lineEdit_DVolumePercent, dVolumeValuesPercent);
   }
 
   // Set up the table
@@ -729,8 +720,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     }
   }
 
-  updateButtonsState();
-  updateChartCheckboxesState();
+  this->updateButtonsState();
+  this->updateChartCheckboxesState();
 }
 
 //-----------------------------------------------------------------------------
@@ -741,7 +732,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // Compute the DVH for the selected structure set using the selected dose volume
-  d->logic()->ComputeDvh();
+  std::string errorMessage;
+  d->logic()->ComputeDvh(errorMessage);
+
+  d->label_Error->setVisible( !errorMessage.empty() );
+  d->label_Error->setText( QString(errorMessage.c_str()) );
 
   QApplication::restoreOverrideCursor();
 }
@@ -821,7 +816,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aS
     d->checkBox_ShowHideAll->blockSignals(false);
   }
 
-  updateButtonsState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -944,12 +939,12 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
   std::vector<double> vDoseValuesCc;
   if (d->checkBox_ShowVMetricsCc->isChecked())
   {
-    getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValuesCc);
+    this->getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValuesCc);
   }
   std::vector<double> vDoseValuesPercent;
   if (d->checkBox_ShowVMetricsPercent->isChecked())
   {
-    getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValuesPercent);
+    this->getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValuesPercent);
   }
 
   // Get requested D metrics
@@ -957,8 +952,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
   std::vector<double> dVolumeValuesPercent;
   if (d->checkBox_ShowDMetrics->isChecked())
   {
-    getNumbersFromLineEdit(d->lineEdit_DVolumeCc, dVolumeValuesCc);
-    getNumbersFromLineEdit(d->lineEdit_DVolumePercent, dVolumeValuesPercent);
+    this->getNumbersFromLineEdit(d->lineEdit_DVolumeCc, dVolumeValuesCc);
+    this->getNumbersFromLineEdit(d->lineEdit_DVolumePercent, dVolumeValuesPercent);
   }
 
   // Export
@@ -1008,7 +1003,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
   paramNode->SetVDoseValues(aText.toLatin1());
   paramNode->DisableModifiedEventOff();
 
-  refreshDvhTable();
+  this->refreshDvhTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -1026,7 +1021,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsCcCheckedStateChanged(i
   paramNode->SetShowVMetricsCc(aState);
   paramNode->DisableModifiedEventOff();
 
-  refreshDvhTable();
+  this->refreshDvhTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -1044,7 +1039,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChan
   paramNode->SetShowVMetricsPercent(aState);
   paramNode->DisableModifiedEventOff();
 
-  refreshDvhTable();
+  this->refreshDvhTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -1062,7 +1057,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aTe
   paramNode->SetDVolumeValuesCc(aText.toLatin1());
   paramNode->DisableModifiedEventOff();
 
-  refreshDvhTable();
+  this->refreshDvhTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -1080,7 +1075,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QStrin
   paramNode->SetDVolumeValuesPercent(aText.toLatin1());
   paramNode->DisableModifiedEventOff();
 
-  refreshDvhTable();
+  this->refreshDvhTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -1098,21 +1093,5 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
   paramNode->SetShowDMetrics(aState);
   paramNode->DisableModifiedEventOff();
 
-  refreshDvhTable();
+  this->refreshDvhTable();
 }
-
-//-----------------------------------------------------------------------------
-//void qSlicerDoseVolumeHistogramModuleWidget::saveLabelmapsCheckedStateChanged(int aState)
-//{
-//  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-//
-//  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-//  if (!paramNode || !this->mrmlScene())
-//  {
-//    return;
-//  }
-//
-//  paramNode->DisableModifiedEventOn();
-//  paramNode->SetSaveLabelmaps(aState);
-//  paramNode->DisableModifiedEventOff();
-//}

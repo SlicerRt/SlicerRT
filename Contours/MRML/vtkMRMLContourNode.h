@@ -163,6 +163,9 @@ protected:
   */
   void GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLModelNode* referenceModelNode=NULL);
 
+  /// Set default conversion parameters if none were explicitly specified
+  void SetDefaultConversionParametersForRepresentation(ContourRepresentationType type);
+
 protected:
   /// Set ribbon model node ID
   vtkSetReferenceStringMacro(RibbonModelNodeId);

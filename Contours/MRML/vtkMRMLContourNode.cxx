@@ -652,13 +652,17 @@ bool vtkMRMLContourNode::RepresentationExists( ContourRepresentationType type )
 bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
 {
   if (type == this->ActiveRepresentationType)
-    {
+  {
     return true;
-    }
+  }
+
+  // Set default parameters if none specified
+  this->SetDefaultConversionParametersForRepresentation(type);
+
   // Active representation is a model of any kind and we want an indexed labelmap
-  else if ( (this->ActiveRepresentationType == RibbonModel
-          || this->ActiveRepresentationType == ClosedSurfaceModel)
-    && type == IndexedLabelmap)
+  if ( ( this->ActiveRepresentationType == RibbonModel
+      || this->ActiveRepresentationType == ClosedSurfaceModel )
+    && type == IndexedLabelmap )
     {
     if (!this->RasterizationReferenceVolumeNodeId)
       {
@@ -672,8 +676,7 @@ bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
     return (indexedLabelmapVolumeNode != NULL);
     }
   // Active representation is an indexed labelmap and we want a closed surface model
-  else if (this->ActiveRepresentationType == IndexedLabelmap
-    && type == ClosedSurfaceModel)
+  else if ( this->ActiveRepresentationType == IndexedLabelmap && type == ClosedSurfaceModel )
     {
     vtkMRMLModelNode* closedSurfaceVolumeNode
       = this->ConvertFromIndexedLabelmapToClosedSurfaceModel(this->IndexedLabelmapVolumeNode);
@@ -681,8 +684,7 @@ bool vtkMRMLContourNode::ConvertToRepresentation(ContourRepresentationType type)
     return (closedSurfaceVolumeNode != NULL);
     }
   // Active representation is a ribbon model and we want a closed surface model
-  else if (this->ActiveRepresentationType == RibbonModel
-    && type == ClosedSurfaceModel)
+  else if (this->ActiveRepresentationType == RibbonModel && type == ClosedSurfaceModel)
     {
     // If the indexed labelmap is not created yet then we convert to it first
     if (!this->IndexedLabelmapVolumeNode)
@@ -1032,4 +1034,23 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
   }
 
   colorIndex = structureColorIndex;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetDefaultConversionParametersForRepresentation(ContourRepresentationType type)
+{
+  if (type == IndexedLabelmap || type == ClosedSurfaceModel)
+    {
+    if (this->RasterizationOversamplingFactor == -1.0)
+      {
+      this->SetRasterizationOversamplingFactor(SlicerRtCommon::DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR);
+      }
+    }
+  else if (type == ClosedSurfaceModel)
+    {
+    if (this->DecimationTargetReductionFactor == -1.0)
+      {
+      this->SetDecimationTargetReductionFactor(SlicerRtCommon::DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR);
+      }
+    }
 }

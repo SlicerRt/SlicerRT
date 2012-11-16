@@ -390,6 +390,8 @@ void qSlicerDoseAccumulationModuleWidget::applyClicked()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
   std::string errorMessage;
   d->logic()->AccumulateDoseVolumes(errorMessage);
 
@@ -397,6 +399,8 @@ void qSlicerDoseAccumulationModuleWidget::applyClicked()
   d->label_Error->setText( QString(errorMessage.c_str()) );
 
   this->refreshVolumesTable();
+
+  QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
