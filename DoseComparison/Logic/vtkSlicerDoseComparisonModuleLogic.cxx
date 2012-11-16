@@ -212,7 +212,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   vtkSmartPointer<vtkImageData> gammaVolume = vtkSmartPointer<vtkImageData>::New();
   itk::Image<float, 3>::RegionType region = gammaVolumeItk->GetBufferedRegion();
   itk::Image<float, 3>::SizeType imageSize = region.GetSize();
-  int extent[6]={0, imageSize[0]-1, 0, imageSize[1]-1, 0, imageSize[2]-1};
+  int extent[6]={0, (int) imageSize[0]-1, 0, (int) imageSize[1]-1, 0, (int) imageSize[2]-1};
   gammaVolume->SetExtent(extent);
   gammaVolume->SetScalarType(VTK_FLOAT);
   gammaVolume->SetNumberOfScalarComponents(1);

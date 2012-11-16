@@ -15,6 +15,8 @@ class vtkMRMLModelNode;
 
 #define EPSILON 0.0001
 
+#define UNUSED_VARIABLE(a) ((void) a)
+
 class SlicerRtCommon
 {
 public:

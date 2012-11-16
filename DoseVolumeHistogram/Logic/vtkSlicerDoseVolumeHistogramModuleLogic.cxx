@@ -383,6 +383,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
   double sumRasterization = 0.0;
   double sumDvhComputation = 0.0;
   double checkpointStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(sumRasterization);
+  UNUSED_VARIABLE(sumDvhComputation);
 
   std::vector<vtkMRMLContourNode*> structureContourNodes;
   this->GetSelectedContourNodes(structureContourNodes);

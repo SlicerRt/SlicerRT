@@ -327,7 +327,7 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
   // The active representation has been modified, and both the caller object and the event is fine:
   //   Delete all non-active representations 
   std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
-  for (unsigned int i=0; i<NumberOfRepresentationTypes; ++i)
+  for (int i=0; i<NumberOfRepresentationTypes; ++i)
     {
     if (i != this->ActiveRepresentationType && representations[i])
       {
@@ -586,7 +586,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
 
   // Show only the active representation and set active representation type
   bool success = false;
-  for (unsigned int i=0; i<NumberOfRepresentationTypes; ++i)
+  for (int i=0; i<NumberOfRepresentationTypes; ++i)
     {
     if (i == type)
       {
