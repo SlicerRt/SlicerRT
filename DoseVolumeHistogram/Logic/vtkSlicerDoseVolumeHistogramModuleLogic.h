@@ -48,17 +48,6 @@ class vtkMRMLModelNode;
 class vtkMRMLChartViewNode;
 class vtkMRMLDoseVolumeHistogramNode;
 
-/* Define case insensitive string compare for all supported platforms. */
-#if defined( _WIN32 ) && !defined(__CYGWIN__)
-#  if defined(__BORLANDC__)
-#    define STRCASECMP stricmp
-#  else
-#    define STRCASECMP _stricmp
-#  endif
-#else
-#  define STRCASECMP strcasecmp
-#endif
-
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 ///
 /// \brief The DoseVolumeHistogram module computes dose volume histogram (DVH) and metrics from a dose map and structure set(s).

@@ -51,19 +51,6 @@
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 
-#define EPSILON 0.0001
-
-/* Define case insensitive string compare for all supported platforms. */
-#if defined( _WIN32 ) && !defined(__CYGWIN__)
-#  if defined(__BORLANDC__)
-#    define STRCASECMP stricmp
-#  else
-#    define STRCASECMP _stricmp
-#  endif
-#else
-#  define STRCASECMP strcasecmp
-#endif
-
 //-----------------------------------------------------------------------------
 int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
 {
