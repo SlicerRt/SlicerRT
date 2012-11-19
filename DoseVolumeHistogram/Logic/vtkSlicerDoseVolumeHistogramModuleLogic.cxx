@@ -510,9 +510,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
     std::ostringstream attributeValueStream;
     attributeValueStream.setf( ios::hex, ios::basefield );
     double* color = structureContourNode->GetRibbonModelNode()->GetDisplayNode()->GetColor();
-    attributeValueStream << std::setw(2) << std::setfill('0') << (int)(color[0]*255.0+0.5)
-                         << std::setw(2) << std::setfill('0') << (int)(color[1]*255.0+0.5)
-                         << std::setw(2) << std::setfill('0') << (int)(color[2]*255.0+0.5);
+    attributeValueStream << "#" << std::setw(2) << std::setfill('0') << (int)(color[0]*255.0+0.5)
+                                << std::setw(2) << std::setfill('0') << (int)(color[1]*255.0+0.5)
+                                << std::setw(2) << std::setfill('0') << (int)(color[2]*255.0+0.5);
     arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str(), attributeValueStream.str().c_str());
   }
 
