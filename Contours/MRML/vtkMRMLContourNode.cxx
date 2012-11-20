@@ -231,6 +231,20 @@ void vtkMRMLContourNode::UpdateReferences()
     {
     this->SetAndObserveRasterizationReferenceVolumeNodeId(NULL);
     }
+
+  // Set a new active representation if the current one was deleted
+  std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
+  if ( !representations[this->ActiveRepresentationType] )
+    {
+    for (int i=0; i<NumberOfRepresentationTypes; ++i)
+      {
+      if ( representations[i] )
+        {
+        this->SetActiveRepresentationByType( (ContourRepresentationType)i );
+        break;
+        }
+      }
+    }
 }
 
 //----------------------------------------------------------------------------
