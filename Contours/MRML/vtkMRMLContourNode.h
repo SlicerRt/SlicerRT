@@ -76,8 +76,9 @@ public:
   void UpdateReferences();
 
   /// Handles events registered in the observer manager
-  /// Namely invalidates (deletes) all non-active representations when the active is modified
-  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
+  /// - Invalidates (deletes) all non-active representations when the active is modified
+  /// - Follows parent transform changes
+  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
 public:
   /// Set default representation by the object instance

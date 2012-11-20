@@ -55,7 +55,6 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
   this->DVolumeValuesCc = NULL;
   this->DVolumeValuesPercent = NULL;
   this->ShowDMetrics = false;
-  //this->SaveLabelmaps = false;
 
   this->HideFromEditors = false;
 }
@@ -148,7 +147,6 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
   }
 
   of << indent << " ShowDMetrics=\"" << (this->ShowDMetrics ? "true" : "false") << "\"";
-  //of << indent << " SaveLabelmaps=\"" << (this->SaveLabelmaps ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -265,10 +263,6 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       {
       this->ShowDMetrics = (strcmp(attValue,"true") ? false : true);
       }
-    //else if (!strcmp(attName, "SaveLabelmaps")) 
-    //  {
-    //  this->SaveLabelmaps = (strcmp(attValue,"true") ? false : true);
-    //  }
     }
 }
 
@@ -297,8 +291,6 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
   this->SetDVolumeValuesCc(node->DVolumeValuesCc);
   this->SetDVolumeValuesPercent(node->DVolumeValuesPercent);
   this->ShowDMetrics = node->ShowDMetrics;
-
-  //this->SaveLabelmaps = node->SaveLabelmaps;
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -340,8 +332,6 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "DVolumeValuesCc:   " << this->DVolumeValuesCc << "\n";
   os << indent << "DVolumeValuesPercent:   " << this->DVolumeValuesPercent << "\n";
   os << indent << "ShowDMetrics:   " << (this->ShowDMetrics ? "true" : "false") << "\n";
-
-  //os << indent << "SaveLabelmaps:   " << (this->SaveLabelmaps ? "true" : "false") << "\n";
 }
 
 //----------------------------------------------------------------------------
