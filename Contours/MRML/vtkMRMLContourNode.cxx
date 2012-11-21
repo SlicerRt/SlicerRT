@@ -43,6 +43,9 @@
 #include <vtkGeneralTransform.h>
 #include <vtkCollection.h>
 
+// STD includes
+#include <algorithm> //TODO: workaround for issue #179
+
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourNode);
 
@@ -1050,7 +1053,15 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
   while (colorNode)
   {
     int currentColorIndex = -1;
-    if ((currentColorIndex = colorNode->GetColorIndexByName(this->StructureName)) != -1)
+
+    //TODO: workaround for issue #179, restore when Slicer mantis issue http://www.na-mic.org/Bug/view.php?id=2783 is fixed
+    // Try to search for the structure name with the spaces replaced with underscores in case it was loaded from scene file
+    std::string structureNameWithUnderscores(this->StructureName);
+    std::replace(structureNameWithUnderscores.begin(), structureNameWithUnderscores.end(), ' ', '_');
+    
+    if ( (currentColorIndex = colorNode->GetColorIndexByName(this->StructureName)) != -1
+      || (currentColorIndex = colorNode->GetColorIndexByName(structureNameWithUnderscores.c_str())) != -1 )
+    //if ((currentColorIndex = colorNode->GetColorIndexByName(this->StructureName)) != -1)
     {
       if (referenceModelNode)
       {
