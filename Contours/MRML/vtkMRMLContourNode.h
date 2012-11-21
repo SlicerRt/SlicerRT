@@ -47,7 +47,7 @@ public:
 
 public:
   static vtkMRMLContourNode *New();
-  vtkTypeMacro(vtkMRMLContourNode,vtkMRMLNode);
+  vtkTypeMacro(vtkMRMLContourNode,vtkMRMLDisplayableNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Create instance of a GAD node. 
@@ -166,6 +166,15 @@ protected:
 
   /// Set default conversion parameters if none were explicitly specified
   void SetDefaultConversionParametersForRepresentation(ContourRepresentationType type);
+
+  /*!
+    Compute transform between a model and a volume IJK coordinate system (to transform the model into the volume voxel space)
+    The transform applied to the parent contour node is ignored
+    /param fromModelNode Model node from which we want to compute the transform
+    /param toVolumeNode Volume node to whose IJK space we want to compute the transform
+    /param fromModelToVolumeIjkTransform Output transform
+  */
+  void GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* fromModelNode, vtkMRMLScalarVolumeNode* toVolumeNode, vtkGeneralTransform* fromModelToVolumeIjkTransform);
 
 protected:
   /// Set ribbon model node ID

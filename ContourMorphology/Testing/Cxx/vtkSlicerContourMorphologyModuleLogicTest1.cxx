@@ -210,7 +210,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> outputLabelmapNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* outputLabelmapNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     mrmlScene->GetNodeByID(outputContourNode->GetIndexedLabelmapVolumeNodeId()));  
 
   mrmlScene->Commit();

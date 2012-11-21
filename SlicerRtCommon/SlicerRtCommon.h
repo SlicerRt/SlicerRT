@@ -98,12 +98,12 @@ public:
 
 public:
   /*!
-    Compute transform between a model and a volume IJK coordinate system (to transform the model into the volume voxel space)
-    /param fromModelNode Model node from which we want to compute the transform
-    /param toVolumeNode Volume node to whose IJK space we want to compute the transform
-    /param fromModelToVolumeIjkTransform Output transform
+    Compute transform between two transformable objects
+    /param fromNode Displayable node from which we want to compute the transform
+    /param toNode Displayable node to which we want to compute the transform
+    /param fromNodeTotoNodeTransform Output transform
   */
-  static void GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* fromModelNode, vtkMRMLVolumeNode* toVolumeNode, vtkGeneralTransform* fromModelToVolumeIjkTransform);
+  static void GetTransformBetweenTransformables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform);
 
   /*!
     Convert VTK image to ITK image
@@ -115,15 +115,6 @@ public:
 //BTX
   template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
 //ETX
-
-private:
-  /*!
-    Compute transform between two transformable objects
-    /param fromNode Displayable node from which we want to compute the transform
-    /param toNode Displayable node to which we want to compute the transform
-    /param fromNodeTotoNodeTransform Output transform
-  */
-  static void GetTransformBetweenDisplayables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform);
 };
 
 #include "SlicerRtCommon.txx"

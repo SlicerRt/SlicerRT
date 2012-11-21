@@ -77,7 +77,7 @@ const std::string SlicerRtCommon::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX = "Gamm
 // Utility functions
 //----------------------------------------------------------------------------
 
-void SlicerRtCommon::GetTransformBetweenDisplayables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform)
+void SlicerRtCommon::GetTransformBetweenTransformables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform)
 {
   if (!fromNodeToToNodeTransform)
   {
@@ -122,30 +122,4 @@ void SlicerRtCommon::GetTransformBetweenDisplayables(vtkMRMLTransformableNode* f
       fromNodeToToNodeTransform->Identity();
     }
   }
-}
-
-//----------------------------------------------------------------------------
-void SlicerRtCommon::GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* fromModelNode, vtkMRMLVolumeNode* toVolumeNode, vtkGeneralTransform* fromModelToToVolumeIjkTransform)
-{
-  if (!fromModelToToVolumeIjkTransform)
-  {
-    return;
-  }
-  if (!fromModelNode || !toVolumeNode)
-  {
-    return;
-  }
-
-  vtkSmartPointer<vtkGeneralTransform> fromModelToToVolumeRasTransform=vtkSmartPointer<vtkGeneralTransform>::New();
-
-  SlicerRtCommon::GetTransformBetweenDisplayables(fromModelNode, toVolumeNode, fromModelToToVolumeRasTransform);
-
-  // Create volumeRas to volumeIjk transform
-  vtkSmartPointer<vtkMatrix4x4> toVolumeRasToToVolumeIjkTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  toVolumeNode->GetRASToIJKMatrix( toVolumeRasToToVolumeIjkTransformMatrix );  
-  
-  // Create model to volumeIjk transform
-  fromModelToToVolumeIjkTransform->Identity();
-  fromModelToToVolumeIjkTransform->Concatenate(toVolumeRasToToVolumeIjkTransformMatrix);
-  fromModelToToVolumeIjkTransform->Concatenate(fromModelToToVolumeRasTransform);
 }
