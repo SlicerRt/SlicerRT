@@ -325,6 +325,8 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContoursModuleWidget);
 
+  d->SelectedContourNodes.clear();
+
   if (!this->mrmlScene() || !node || !d->ModuleWindowInitialized)
   {
     d->comboBox_ChangeActiveRepresentation->setEnabled(false);
@@ -332,8 +334,6 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
     d->label_ActiveRepresentation->setToolTip(tr(""));
     return;
   }
-
-  d->SelectedContourNodes.clear();
 
   if (node->IsA("vtkMRMLContourNode"))
   {
