@@ -465,6 +465,7 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
 void qSlicerContoursModuleWidget::activeRepresentationComboboxSelectionChanged(int index)
 {
   UNUSED_VARIABLE(index);
+
   this->updateWidgetsFromChangeActiveRepresentationGroup();
 }
 
@@ -637,7 +638,6 @@ void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 void qSlicerContoursModuleWidget::oversamplingFactorChanged(int value)
 {
   Q_D(qSlicerContoursModuleWidget);
-  UNUSED_VARIABLE(d);
   UNUSED_VARIABLE(value);
 
   d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
@@ -656,8 +656,6 @@ double qSlicerContoursModuleWidget::getOversamplingFactor()
 //-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::targetReductionFactorPercentChanged(double value)
 {
-  Q_D(qSlicerContoursModuleWidget);
-  UNUSED_VARIABLE(d);
   UNUSED_VARIABLE(value);
 
   this->updateWidgetsFromChangeActiveRepresentationGroup();

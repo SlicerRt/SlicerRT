@@ -206,9 +206,6 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
 //-----------------------------------------------------------------------------
 void qSlicerIsodoseModuleWidget::onLogicModified()
 {
-  Q_D(qSlicerIsodoseModuleWidget);
-  UNUSED_VARIABLE(d);
-
   this->updateWidgetFromMRML();
 }
 
@@ -325,9 +322,6 @@ void qSlicerIsodoseModuleWidget::outputHierarchyNodeChanged(vtkMRMLNode* node)
 //-----------------------------------------------------------------------------
 QString qSlicerIsodoseModuleWidget::generateNewIsodoseLevel() const
 {
-  Q_D(const qSlicerIsodoseModuleWidget);
-  UNUSED_VARIABLE(d);
-
   QString newIsodoseLevelBase("New level");
   QString newIsodoseLevel(newIsodoseLevelBase);
   return newIsodoseLevel;

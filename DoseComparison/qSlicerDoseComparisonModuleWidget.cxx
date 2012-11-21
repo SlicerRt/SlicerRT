@@ -290,9 +290,6 @@ void qSlicerDoseComparisonModuleWidget::updateButtonsState()
 //-----------------------------------------------------------------------------
 void qSlicerDoseComparisonModuleWidget::onLogicModified()
 {
-  Q_D(qSlicerDoseComparisonModuleWidget);
-  UNUSED_VARIABLE(d);
-
   this->updateWidgetFromMRML();
 }
 
