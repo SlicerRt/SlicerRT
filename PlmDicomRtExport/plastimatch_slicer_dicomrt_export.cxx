@@ -6,7 +6,6 @@
 #include <vector>
 #include "plastimatch_slicer_dicomrt_exportCLP.h"
 
-#include "plmbase.h"
 #include "plmutil.h"
 
 #include "plm_config.h"

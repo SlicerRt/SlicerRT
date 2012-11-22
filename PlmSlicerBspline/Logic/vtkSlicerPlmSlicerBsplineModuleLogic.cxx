@@ -18,8 +18,8 @@
 #include <cassert>
 
 // Plastimatch includes
+#include "plm_image.h"
 #include "plm_path.h"   // <-- unghf!
-#include "plmbase.h"
 #include "plmregister.h"
 
 /* JAS 2012.06.22 */
