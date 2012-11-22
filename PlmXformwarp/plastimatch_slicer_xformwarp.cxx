@@ -7,11 +7,9 @@
 #include <iostream>
 #include <vector>
 #include <time.h>
-
-#include "plmbase.h"
-#include "plmutil.h"
-
 #include "plastimatch_slicer_xformwarpCLP.h"
+
+#include "plmutil.h"
 
 #include "rtds_warp.h"
 #include "warp_parms.h"
