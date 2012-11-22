@@ -76,8 +76,7 @@ vtkMRMLContourNode::vtkMRMLContourNode()
   //   can be put under the same transform node
   vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
   events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  vtkMRMLContourNode *tnode = this;
-  vtkSetAndObserveMRMLObjectEventsMacro(tnode, this, events);
+  vtkObserveMRMLObjectEventsMacro(this, events);
 }
 
 //----------------------------------------------------------------------------
