@@ -28,7 +28,7 @@ class SlicerRtDemo_RSNA2012_SelfTest:
     slicer.selfTests['SlicerRtDemo_RSNA2012_SelfTest'] = self.runTest
 
   def runTest(self):
-    tester = SlicerRtDemo_RSNA2012_SelfTest_Test()
+    tester = SlicerRtDemo_RSNA2012_SelfTestTest()
     tester.runTest()
 
 #
