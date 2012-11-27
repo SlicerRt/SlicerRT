@@ -220,12 +220,12 @@
         </column>
         <column>
          <property name="text">
-          <string>Volume</string>
+          <string>Dose Volume</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>Weight</string>
+          <string>Weighting Factor</string>
          </property>
         </column>
        </widget>
