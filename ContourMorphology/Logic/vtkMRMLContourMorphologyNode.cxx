@@ -41,8 +41,9 @@ vtkMRMLNodeNewMacro(vtkMRMLContourMorphologyNode);
 vtkMRMLContourMorphologyNode::vtkMRMLContourMorphologyNode()
 {
   this->ContourNodeID = NULL;
+  this->SecondaryContourNodeID = NULL;
   this->OutputContourNodeID = NULL;
-  this->Expansion = true;
+  this->Operation = SLICERRT_EXPAND;
   this->XSize = 1;
   this->YSize = 1;
   this->ZSize = 1;
@@ -54,6 +55,7 @@ vtkMRMLContourMorphologyNode::vtkMRMLContourMorphologyNode()
 vtkMRMLContourMorphologyNode::~vtkMRMLContourMorphologyNode()
 {
   this->SetContourNodeID(NULL);
+  this->SetSecondaryContourNodeID(NULL);
   this->SetOutputContourNodeID(NULL);
 }
 
@@ -76,6 +78,15 @@ void vtkMRMLContourMorphologyNode::WriteXML(ostream& of, int nIndent)
 
   {
     std::stringstream ss;
+    if ( this->SecondaryContourNodeID )
+      {
+      ss << this->SecondaryContourNodeID;
+      of << indent << " SecondaryContourNodeID=\"" << ss.str() << "\"";
+      }
+  }
+
+  {
+    std::stringstream ss;
     if ( this->OutputContourNodeID )
       {
       ss << this->OutputContourNodeID;
@@ -83,7 +94,7 @@ void vtkMRMLContourMorphologyNode::WriteXML(ostream& of, int nIndent)
       }
   }
 
-  of << indent << " Expansion=\"" << (this->Expansion ? "true" : "false") << "\"";
+  of << indent << " Operation=\"" << (this->Operation) << "\"";
 
   of << indent << " XSize=\"" << (this->XSize) << "\"";
 
@@ -112,15 +123,21 @@ void vtkMRMLContourMorphologyNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetAndObserveContourNodeID(ss.str().c_str());
       }
+    if (!strcmp(attName, "SecondaryContourNodeID")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetAndObserveSecondaryContourNodeID(ss.str().c_str());
+      }
     else if (!strcmp(attName, "OutputContourNodeID")) 
       {
       std::stringstream ss;
       ss << attValue;
       this->SetAndObserveOutputContourNodeID(ss.str().c_str());
       }
-    else if (!strcmp(attName, "Expansion")) 
+    else if (!strcmp(attName, "Operation")) 
       {
-      this->Expansion = 
+      this->Operation = 
         (strcmp(attValue,"true") ? false : true);
       }
     else if (!strcmp(attName, "XSize")) 
@@ -152,9 +169,10 @@ void vtkMRMLContourMorphologyNode::Copy(vtkMRMLNode *anode)
   vtkMRMLContourMorphologyNode *node = (vtkMRMLContourMorphologyNode *)anode;
 
   this->SetAndObserveContourNodeID(node->ContourNodeID);
+  this->SetAndObserveSecondaryContourNodeID(node->ContourNodeID);
   this->SetAndObserveOutputContourNodeID(node->OutputContourNodeID);
 
-  this->Expansion = node->Expansion;
+  this->Operation = node->Operation;
   this->XSize = node->XSize;
   this->YSize = node->YSize;
   this->ZSize = node->ZSize;
@@ -169,8 +187,9 @@ void vtkMRMLContourMorphologyNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLNode::PrintSelf(os,indent);
 
   os << indent << "ContourNodeID:   " << this->ContourNodeID << "\n";
+  os << indent << "SecondaryContourNodeID:   " << this->SecondaryContourNodeID << "\n";
   os << indent << "OutputContourNodeID:   " << this->OutputContourNodeID << "\n";
-  os << indent << "Expansion:   " << (this->Expansion ? "true" : "false") << "\n";
+  os << indent << "Operation:   " << (this->Operation) << "\n";
   os << indent << "XSize:   " << (this->XSize) << "\n";
   os << indent << "YSize:   " << (this->YSize) << "\n";
   os << indent << "ZSize:   " << (this->ZSize) << "\n";
@@ -180,6 +199,10 @@ void vtkMRMLContourMorphologyNode::PrintSelf(ostream& os, vtkIndent indent)
 void vtkMRMLContourMorphologyNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   if (this->ContourNodeID && !strcmp(oldID, this->ContourNodeID))
+    {
+    this->SetAndObserveContourNodeID(newID);
+    }
+  if (this->SecondaryContourNodeID && !strcmp(oldID, this->SecondaryContourNodeID))
     {
     this->SetAndObserveContourNodeID(newID);
     }
@@ -202,6 +225,22 @@ void vtkMRMLContourMorphologyNode::SetAndObserveContourNodeID(const char* id)
   if (id)
     {
     this->Scene->AddReferencedNodeID(this->ContourNodeID, this);
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourMorphologyNode::SetAndObserveSecondaryContourNodeID(const char* id)
+{
+  if (this->SecondaryContourNodeID != NULL)
+    {
+    this->Scene->RemoveReferencedNodeID(this->SecondaryContourNodeID, this);
+    }
+
+  this->SetSecondaryContourNodeID(id);
+
+  if (id)
+    {
+    this->Scene->AddReferencedNodeID(this->SecondaryContourNodeID, this);
     }
 }
 

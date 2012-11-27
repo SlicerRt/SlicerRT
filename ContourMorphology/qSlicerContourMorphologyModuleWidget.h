@@ -64,6 +64,9 @@ protected slots:
   void currentContourNodeChanged(vtkMRMLNode* node);
 
   ///
+  void secondaryContourNodeChanged(vtkMRMLNode* node);
+
+  ///
   void outputContourNodeChanged(vtkMRMLNode* node);
 
   ///
@@ -71,6 +74,15 @@ protected slots:
 
   ///
   void radioButtonShrinkClicked();
+
+  ///
+  void radioButtonUnionClicked();
+
+  ///
+  void radioButtonIntersectClicked();
+
+  ///
+  void radioButtonSubtractClicked();
 
   ///
   void lineEditXSizeChanged(const QString & text);

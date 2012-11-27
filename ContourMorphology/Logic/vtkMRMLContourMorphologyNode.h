@@ -32,6 +32,13 @@
 
 #include "vtkSlicerContourMorphologyModuleLogicExport.h"
 
+// Operation options.
+#define SLICERRT_EXPAND            0
+#define SLICERRT_SHRINK            1
+#define SLICERRT_UNION             2
+#define SLICERRT_INTERSECT         3
+#define SLICERRT_SUBTRACT          4
+
 class VTK_SLICER_CONTOURMORPHOLOGY_MODULE_LOGIC_EXPORT vtkMRMLContourMorphologyNode : public vtkMRMLNode
 {
 public:
@@ -61,6 +68,12 @@ public:
   /// Set and observe dose volume node ID
   void SetAndObserveContourNodeID(const char* id);
 
+  /// Get dose volume node ID
+  vtkGetStringMacro(SecondaryContourNodeID);
+
+  /// Set and observe dose volume node ID
+  void SetAndObserveSecondaryContourNodeID(const char* id);
+
   /// Get output hierarchy node ID
   vtkGetStringMacro(OutputContourNodeID);
 
@@ -70,10 +83,15 @@ public:
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
  
-  /// Get/Set show Gy for D metrics checkbox state
-  vtkGetMacro(Expansion, bool);
-  vtkSetMacro(Expansion, bool);
-  vtkBooleanMacro(Expansion, bool);
+  // Description:
+  // Set/Get the Operation to perform.
+  vtkSetMacro(Operation,int);
+  vtkGetMacro(Operation,int);
+  void SetOperationToExpand() {this->SetOperation(SLICERRT_EXPAND);};
+  void SetOperationToShrink() {this->SetOperation(SLICERRT_SHRINK);};
+  void SetOperationToUnion() {this->SetOperation(SLICERRT_UNION);};
+  void SetOperationToIntersect() {this->SetOperation(SLICERRT_INTERSECT);};
+  void SetOperationToSubtract() {this->SetOperation(SLICERRT_SUBTRACT);};
 
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(XSize, double);
@@ -91,6 +109,9 @@ protected:
   /// Set dose volume node ID
   vtkSetStringMacro(ContourNodeID);
 
+  /// Set dose volume node ID
+  vtkSetStringMacro(SecondaryContourNodeID);
+
   /// Set output hierarchy node ID
   vtkSetStringMacro(OutputContourNodeID);
 
@@ -105,10 +126,13 @@ protected:
   char* ContourNodeID;
 
   /// Selected dose volume MRML node object ID
+  char* SecondaryContourNodeID;
+
+  /// Selected dose volume MRML node object ID
   char* OutputContourNodeID;
 
   /// State of Show isodose lines checkbox
-  bool Expansion;
+  int Operation;
 
   /// State of Show isodose surface checkbox
   double XSize;

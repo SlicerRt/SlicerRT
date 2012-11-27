@@ -182,15 +182,44 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
     {
       this->currentContourNodeChanged(d->MRMLNodeComboBox_CurrentContour->currentNode());
     }
-    if (paramNode->GetExpansion())
+    int op = paramNode->GetOperation();
+    switch (op)
     {
-      d->radioButton_Expand->setChecked(true);
-      d->radioButton_Shrink->setChecked(false);
-    }
-    else
-    {
-      d->radioButton_Expand->setChecked(false);
-      d->radioButton_Shrink->setChecked(true);
+      case SLICERRT_EXPAND:
+        d->radioButton_Expand->setChecked(true);
+        d->radioButton_Shrink->setChecked(false);
+        d->radioButton_Union->setChecked(false);
+        d->radioButton_Intersect->setChecked(false);
+        d->radioButton_Subtract->setChecked(false);
+        break;
+      case SLICERRT_SHRINK:
+        d->radioButton_Expand->setChecked(false);
+        d->radioButton_Shrink->setChecked(true);
+        d->radioButton_Union->setChecked(false);
+        d->radioButton_Intersect->setChecked(false);
+        d->radioButton_Subtract->setChecked(false);
+        break;
+      case SLICERRT_UNION:
+        d->radioButton_Expand->setChecked(false);
+        d->radioButton_Shrink->setChecked(false);
+        d->radioButton_Union->setChecked(true);
+        d->radioButton_Intersect->setChecked(false);
+        d->radioButton_Subtract->setChecked(false);
+        break;
+      case SLICERRT_INTERSECT:
+        d->radioButton_Expand->setChecked(false);
+        d->radioButton_Shrink->setChecked(false);
+        d->radioButton_Union->setChecked(false);
+        d->radioButton_Intersect->setChecked(true);
+        d->radioButton_Subtract->setChecked(false);
+        break;
+      case SLICERRT_SUBTRACT:
+        d->radioButton_Expand->setChecked(false);
+        d->radioButton_Shrink->setChecked(false);
+        d->radioButton_Union->setChecked(false);
+        d->radioButton_Intersect->setChecked(false);
+        d->radioButton_Subtract->setChecked(true);
+        break;
     }
 
     std::ostringstream sstream_xsize;
@@ -224,11 +253,16 @@ void qSlicerContourMorphologyModuleWidget::setup()
 
   // Make connections
   this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setContourMorphologyNode(vtkMRMLNode*) ) );
+
   this->connect( d->MRMLNodeComboBox_CurrentContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( currentContourNodeChanged(vtkMRMLNode*) ) );
+  this->connect( d->MRMLNodeComboBox_SecondaryContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( secondaryContourNodeChanged(vtkMRMLNode*) ) );
   this->connect( d->MRMLNodeComboBox_OutputContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( outputContourNodeChanged(vtkMRMLNode*) ) );
 
   this->connect( d->radioButton_Expand, SIGNAL(clicked()), this, SLOT(radioButtonExpandClicked()));
   this->connect( d->radioButton_Shrink, SIGNAL(clicked()), this, SLOT(radioButtonShrinkClicked()));
+  this->connect( d->radioButton_Union, SIGNAL(clicked()), this, SLOT(radioButtonUnionClicked()));
+  this->connect( d->radioButton_Intersect, SIGNAL(clicked()), this, SLOT(radioButtonIntersectClicked()));
+  this->connect( d->radioButton_Subtract, SIGNAL(clicked()), this, SLOT(radioButtonSubtractClicked()));
 
   this->connect( d->lineEdit_XSize, SIGNAL(textChanged(const QString &)), this, SLOT(lineEditXSizeChanged(const QString &)));
   this->connect( d->lineEdit_YSize, SIGNAL(textChanged(const QString &)), this, SLOT(lineEditYSizeChanged(const QString &)));
@@ -272,6 +306,24 @@ void qSlicerContourMorphologyModuleWidget::currentContourNodeChanged(vtkMRMLNode
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerContourMorphologyModuleWidget::secondaryContourNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerContourMorphologyModuleWidget);
+
+  vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
+  if (!paramNode || !this->mrmlScene() || !node)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveSecondaryContourNodeID(node->GetID());
+  paramNode->DisableModifiedEventOff();
+
+  this->updateButtonsState();
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerContourMorphologyModuleWidget::outputContourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
@@ -309,7 +361,7 @@ void qSlicerContourMorphologyModuleWidget::radioButtonExpandClicked()
     return;
   }
   paramNode->DisableModifiedEventOn();
-  paramNode->SetExpansion(true);
+  paramNode->SetOperationToExpand();
   paramNode->DisableModifiedEventOff();
 }
 
@@ -324,7 +376,52 @@ void qSlicerContourMorphologyModuleWidget::radioButtonShrinkClicked()
     return;
   }
   paramNode->DisableModifiedEventOn();
-  paramNode->SetExpansion(false);
+  paramNode->SetOperationToShrink();
+  paramNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContourMorphologyModuleWidget::radioButtonUnionClicked()
+{
+  Q_D(qSlicerContourMorphologyModuleWidget);
+
+  vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetOperationToUnion();
+  paramNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContourMorphologyModuleWidget::radioButtonIntersectClicked()
+{
+  Q_D(qSlicerContourMorphologyModuleWidget);
+
+  vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetOperationToIntersect();
+  paramNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContourMorphologyModuleWidget::radioButtonSubtractClicked()
+{
+  Q_D(qSlicerContourMorphologyModuleWidget);
+
+  vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetOperationToSubtract();
   paramNode->DisableModifiedEventOff();
 }
 

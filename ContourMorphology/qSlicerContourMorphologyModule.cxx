@@ -83,7 +83,9 @@ QString qSlicerContourMorphologyModule::acknowledgementText()const
 QStringList qSlicerContourMorphologyModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Kevin Wang (RMP, PMH)");
+  moduleContributors << QString("Kevin Wang (UHN, Toronto)");
+  moduleContributors << QString("Csaba Pinter (Queen's)");
+  moduleContributors << QString("Andras Lasso (Queen's)");
   return moduleContributors;
 }
 

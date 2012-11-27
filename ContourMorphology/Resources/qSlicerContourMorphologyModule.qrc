@@ -1,5 +1,10 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource>
     <file>Icons/ContourMorphology.png</file>
+    <file>Icons/expand.png</file>
+    <file>Icons/shrink.png</file>
+    <file>Icons/union.png</file>
+    <file>Icons/intersect.png</file>
+    <file>Icons/subtract.png</file>
   </qresource>
 </RCC>

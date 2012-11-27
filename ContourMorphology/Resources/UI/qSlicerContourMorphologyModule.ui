@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>398</width>
-    <height>383</height>
+    <width>412</width>
+    <height>594</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Contour Morphology</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -64,14 +64,14 @@
       <item row="1" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Current Contour:</string>
+         <string>Reference Contour:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="3" column="1">
        <widget class="QLabel" name="label_NotLabelmapWarning">
         <property name="palette">
          <palette>
@@ -500,6 +500,31 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_SecondaryContour">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLContourNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="addEnabled">
+         <bool>false</bool>
+        </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>Secondary Contour:</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -512,71 +537,40 @@
       <enum>QFrame::StyledPanel</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Operation:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QRadioButton" name="radioButton_Expand">
-          <property name="text">
-           <string>Expansion</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="radioButton_Shrink">
-          <property name="text">
-           <string>Shrinking</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="2" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>X Size:</string>
+         <string>Expand or Shrink in LR (mm):</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="8" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>Y Size:</string>
+         <string>Expand or Shrink in AP (mm):</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="9" column="0">
        <widget class="QLabel" name="label_5">
         <property name="layoutDirection">
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="text">
-         <string>Z Size:</string>
+         <string>Expand or Shrink in SI (mm):</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="9" column="2">
        <widget class="QLineEdit" name="lineEdit_ZSize">
         <property name="text">
          <string>1</string>
@@ -586,7 +580,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="8" column="2">
        <widget class="QLineEdit" name="lineEdit_YSize">
         <property name="text">
          <string>1</string>
@@ -596,13 +590,132 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="6" column="2">
        <widget class="QLineEdit" name="lineEdit_XSize">
         <property name="text">
          <string>1</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QRadioButton" name="radioButton_Shrink">
+        <property name="text">
+         <string>Shrink</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QRadioButton" name="radioButton_Expand">
+        <property name="text">
+         <string>Expand</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="autoFillBackground">
+         <bool>true</bool>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../qSlicerContourMorphologyModule.qrc">:/Icons/expand.png</pixmap>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="openExternalLinks">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../qSlicerContourMorphologyModule.qrc">:/Icons/shrink.png</pixmap>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QRadioButton" name="radioButton_Union">
+        <property name="text">
+         <string>A U B</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QRadioButton" name="radioButton_Intersect">
+        <property name="text">
+         <string>A n B</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QRadioButton" name="radioButton_Subtract">
+        <property name="text">
+         <string>A - B</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../qSlicerContourMorphologyModule.qrc">:/Icons/union.png</pixmap>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../qSlicerContourMorphologyModule.qrc">:/Icons/intersect.png</pixmap>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../qSlicerContourMorphologyModule.qrc">:/Icons/subtract.png</pixmap>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_12">
+        <property name="text">
+         <string>Select Operation:</string>
         </property>
        </widget>
       </item>
@@ -707,7 +820,9 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../qSlicerContourMorphologyModule.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>qSlicerContourMorphologyModule</sender>
@@ -752,8 +867,24 @@
      <y>345</y>
     </hint>
     <hint type="destinationlabel">
-     <x>155</x>
-     <y>258</y>
+     <x>259</x>
+     <y>469</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerContourMorphologyModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_SecondaryContour</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>47</x>
+     <y>519</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>149</x>
+     <y>106</y>
     </hint>
    </hints>
   </connection>

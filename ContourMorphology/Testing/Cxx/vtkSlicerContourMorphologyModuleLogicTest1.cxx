@@ -189,7 +189,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->AddNode(paramNode);
   paramNode->SetAndObserveContourNodeID(contourNode->GetID());
   paramNode->SetAndObserveOutputContourNodeID(outputContourNode->GetID());
-  paramNode->SetExpansion(true);
+  paramNode->SetOperationToExpand();
   paramNode->SetXSize(3);
   paramNode->SetYSize(3);
   paramNode->SetZSize(3);
@@ -210,7 +210,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   
-  vtkMRMLScalarVolumeNode* outputLabelmapNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> outputLabelmapNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     mrmlScene->GetNodeByID(outputContourNode->GetIndexedLabelmapVolumeNodeId()));  
 
   mrmlScene->Commit();
