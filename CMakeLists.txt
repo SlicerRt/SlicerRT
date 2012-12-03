@@ -15,7 +15,7 @@ set(EXTENSION_CATEGORY "Radiotherapy")
 set(EXTENSION_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto)")
 set(EXTENSION_DESCRIPTION "Extensions for radiotherapy research (DICOM-RT import, dose volume histogram, dose accumulation, etc.) Version ${SLICERRT_VERSION}")
 set(EXTENSION_ICONURL "http://wiki.slicer.org/slicerWiki/images/f/f2/SlicerRtExtensionLogo.png")
-set(EXTENSION_SCREENSHOTURLS "https://www.assembla.com/spaces/slicerrt/documents/bEOgkoaZmr4Op-acwqjQWU/download/bEOgkoaZmr4Op-acwqjQWU")
+set(EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/index.php/File:SlicerRT0.6_Montage.png")
 set(EXTENSION_STATUS "Beta")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
