@@ -503,7 +503,6 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(double *r
   fiducialNode->SetName(baseName.c_str());
   fiducialNode->AddControlPoint(roiPosition, 0, 1);
   fiducialNode->SetLocked(1);
-  fiducialNode->SetDisplayVisibility(0);
   this->GetMRMLScene()->AddNode(fiducialNode);
 
   fiducialNode->CreateAnnotationTextDisplayNode();
@@ -511,6 +510,8 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(double *r
   fiducialNode->GetAnnotationPointDisplayNode()->SetGlyphType(vtkMRMLAnnotationPointDisplayNode::Sphere3D);
   fiducialNode->GetAnnotationPointDisplayNode()->SetColor(roiColor);
   fiducialNode->GetAnnotationTextDisplayNode()->SetColor(roiColor);
+
+  fiducialNode->SetDisplayVisibility(0);
 
   return fiducialNode;
 }
