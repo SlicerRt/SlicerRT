@@ -972,8 +972,6 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
     return NULL;
     }
 
-  mrmlScene->StartState(vtkMRMLScene::BatchProcessState); //TODO: workaround for issue #162
-
   // Get color index
   vtkMRMLColorTableNode* colorNode = NULL;
   int structureColorIndex = -1;
@@ -1031,11 +1029,9 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
 
   // Set parent transform node
   if (this->GetTransformNodeID())
-  {
+    {
     closedSurfaceModelNode->SetAndObserveTransformNodeID(this->GetTransformNodeID());
-  }
-
-  mrmlScene->EndState(vtkMRMLScene::BatchProcessState); //TODO: workaround for issue #162
+    }
 
   this->SetAndObserveClosedSurfaceModelNodeId(closedSurfaceModelNode->GetID());
 
@@ -1162,15 +1158,15 @@ void vtkMRMLContourNode::GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* from
   // Determine the 'to' node (the transform that is applied to the labelmap node and also this contour node is ignored)
   vtkMRMLTransformableNode* toNode = vtkMRMLTransformableNode::SafeDownCast(toVolumeNode);
   if (toVolumeNode->GetTransformNodeID())
-  {
-    if ( !this->TransformNodeID || STRCASECMP(this->TransformNodeID, toVolumeNode->GetTransformNodeID()) )
     {
+    if ( !this->TransformNodeID || STRCASECMP(this->TransformNodeID, toVolumeNode->GetTransformNodeID()) )
+      {
       vtkErrorMacro("Parent transform nodes of the contour and its model representation do not match!");
       return;
-    }
+      }
 
     toNode = vtkMRMLTransformableNode::SafeDownCast( this->Scene->GetNodeByID(toVolumeNode->GetTransformNodeID()) );  
-  }
+    }
 
   // Get transform between the source node and the volume
   SlicerRtCommon::GetTransformBetweenTransformables(fromNode, toNode, fromModelToToVolumeRasTransform);
