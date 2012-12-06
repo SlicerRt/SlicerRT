@@ -29,7 +29,7 @@ void vtkMRMLContourHierarchyNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 const char* vtkMRMLContourHierarchyNode::GetNodeTagName()
 {
-  return "ContourHierarchyNode";
+  return "ContourHierarchy";
 }
 //----------------------------------------------------------------------------
 void vtkMRMLContourHierarchyNode::ReadXMLAttributes( const char** atts)
