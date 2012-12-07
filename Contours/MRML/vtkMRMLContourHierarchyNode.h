@@ -29,7 +29,7 @@ public:
   /// Get node XML tag name (like Volume, Contour)
   virtual const char* GetNodeTagName();
 
-  /// Find all child model nodes in the hierarchy
+  /// Find all child contour nodes in the hierarchy
   virtual void GetChildrenContourNodes(vtkCollection *contours);
 
 protected:
