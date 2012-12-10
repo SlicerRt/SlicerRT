@@ -55,6 +55,9 @@ public:
   /// Return a default color node id for a label map
   const char * GetDefaultLabelMapColorTableNodeId();
 
+  /// Set number of isodose levels
+  void SetNumberOfIsodoseLevels(int number);
+
   /// Accumulates dose volumes with the given IDs and corresponding weights
   int ComputeIsodose();
 

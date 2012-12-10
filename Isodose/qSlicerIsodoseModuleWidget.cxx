@@ -296,11 +296,12 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
     return;
   }
 
-  const char *defaultID = d->logic()->GetDefaultLabelMapColorTableNodeId();
-  vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
-    this->mrmlScene()->GetNodeByID(defaultID));
+  d->logic()->SetNumberOfIsodoseLevels(newNumber);
+  //const char *defaultID = d->logic()->GetDefaultLabelMapColorTableNodeId();
+  //vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
+  //  this->mrmlScene()->GetNodeByID(defaultID));
 
-  colorTableNode->SetNumberOfColors(newNumber);
+  //colorTableNode->SetNumberOfColors(newNumber);
 }
 
 //-----------------------------------------------------------------------------

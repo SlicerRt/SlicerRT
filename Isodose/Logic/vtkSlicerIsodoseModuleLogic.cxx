@@ -249,6 +249,25 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode()
   return colorTableNode;
 }
 
+//------------------------------------------------------------------------------
+void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int number)
+{
+  if (this->IsodoseNode->GetColorTableNodeId() == NULL)
+  {
+    return ;
+  }
+  vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
+  colorTableNode->SetNumberOfColors(6);
+  colorTableNode->SetColor(0, "5", 0, 1, 0, 0.2);
+  colorTableNode->SetColor(1, "10", 0.5, 1, 0, 0.2);
+  colorTableNode->SetColor(2, "15", 1, 1, 0, 0.2);
+  colorTableNode->SetColor(3, "20", 1, 0.66, 0, 0.2);
+  colorTableNode->SetColor(4, "25", 1, 0.33, 0, 0.2);
+  colorTableNode->SetColor(5, "30", 1, 0, 0, 0.2);
+  colorTableNode->SetNumberOfColors(number);
+}
+
 //---------------------------------------------------------------------------
 int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 {
