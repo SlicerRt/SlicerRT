@@ -317,17 +317,14 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   vtkSmartPointer<vtkLookupTable> lookupTable = colorTableNode->GetLookupTable();
   
   vtkSmartPointer<vtkGeneralTransform> doseVolumeNodeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  doseVolumeNodeToWorldTransform->Identity();
   vtkSmartPointer<vtkMRMLTransformNode> doseVolumeNodeTransformNode = doseVolumeNode->GetParentTransformNode();
   if (doseVolumeNodeTransformNode!=NULL)
   {
     // toNode is transformed
     doseVolumeNodeTransformNode->GetTransformToWorld(doseVolumeNodeToWorldTransform);    
+    doseVolumeNodeToWorldTransform->Inverse();
   }
-  else
-  {
-    doseVolumeNodeToWorldTransform->Identity();
-  }
-  doseVolumeNodeToWorldTransform->Inverse();
 
   vtkSmartPointer<vtkImageChangeInformation> changeInfo = vtkSmartPointer<vtkImageChangeInformation>::New();
   changeInfo->SetInput(doseVolumeNode->GetImageData());
@@ -338,12 +335,17 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   changeInfo->SetOutputOrigin((origin));
   changeInfo->SetOutputSpacing(-spacing[0], -spacing[1], spacing[2]);
   changeInfo->Update();
+  vtkSmartPointer<vtkImageData> tempImage = changeInfo->GetOutput();
 
-  vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
-  reslice->SetInputConnection(changeInfo->GetOutputPort());
-  reslice->SetInformationInput(changeInfo->GetOutput());
-  reslice->SetResliceTransform(doseVolumeNodeToWorldTransform);
-  reslice->Update();
+  if (doseVolumeNodeTransformNode!=NULL)
+  {
+    vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
+    reslice->SetInputConnection(changeInfo->GetOutputPort());
+    reslice->SetInformationInput(changeInfo->GetOutput());
+    reslice->SetResliceTransform(doseVolumeNodeToWorldTransform);
+    reslice->Update();
+    tempImage = reslice->GetOutput();
+  }
 
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
   {
@@ -358,7 +360,7 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     colorTableNode->GetColor(i, val);
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
-    marchingCubes->SetInput(reslice->GetOutput());
+    marchingCubes->SetInput(tempImage);
     marchingCubes->SetNumberOfContours(1); 
     marchingCubes->SetValue(0, isoLevel);
     marchingCubes->ComputeScalarsOff();
