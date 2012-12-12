@@ -215,6 +215,8 @@ void qSlicerDoseAccumulationModuleWidget::setup()
   d->tableWidget_Volumes->setColumnWidth(1, 300);
 
   // Make connections
+  connect( d->MRMLNodeComboBox_ReferenceDoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( referenceDoseVolumeNodeChanged(vtkMRMLNode*) ) );
+
   connect( d->checkBox_ShowDoseVolumesOnly, SIGNAL( stateChanged(int) ), this, SLOT( showDoseOnlyChanged(int) ) );
 
   connect( d->tableWidget_Volumes, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(onTableItemChanged(QTableWidgetItem*)) );
@@ -229,6 +231,27 @@ void qSlicerDoseAccumulationModuleWidget::setup()
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 
   this->updateButtonsState();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerDoseAccumulationModuleWidget);
+
+  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+  if (!paramNode || !this->mrmlScene() || !node)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveReferenceDoseVolumeNodeId(node->GetID());
+  paramNode->DisableModifiedEventOff();
+
+  this->updateButtonsState();
+
+  d->label_Warning->setVisible(!d->logic()->ReferenceDoseVolumeContainsDose());
+  d->label_Warning->setText(QString("Volume is not a dose volume!"));
 }
 
 //-----------------------------------------------------------------------------
@@ -474,6 +497,7 @@ void qSlicerDoseAccumulationModuleWidget::checkDoseUnitsInSelectedVolumes()
   }
 
   d->label_Warning->setVisible( doseUnits.count() > 1 );
+  d->label_Warning->setText(QString("Dose units does not match!"));
 }
 
 //-----------------------------------------------------------------------------

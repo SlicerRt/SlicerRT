@@ -71,6 +71,12 @@ public:
     return &this->VolumeNodeIdsToWeightsMap;
   }
 
+  /// Get reference dose volume MRML Id 
+  vtkGetStringMacro(ReferenceDoseVolumeNodeId);
+
+  /// Set and observe reference dose volume MRML Id 
+  void SetAndObserveReferenceDoseVolumeNodeId(const char* id);
+
   /// Get output accumulated dose volume MRML Id 
   vtkGetStringMacro(AccumulatedDoseVolumeNodeId);
 
@@ -81,6 +87,9 @@ public:
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
 protected:
+  /// Set output accumulated dose volume MRML Id 
+  vtkSetStringMacro(ReferenceDoseVolumeNodeId);
+
   /// Set output accumulated dose volume MRML Id 
   vtkSetStringMacro(AccumulatedDoseVolumeNodeId);
 
@@ -100,6 +109,9 @@ protected:
   /// Map assigning a weight to the available input volume nodes
   /// (as the user set it on the module GUI)
   std::map<std::string,double> VolumeNodeIdsToWeightsMap;
+
+  /// ID of the output accumulated dose volume node
+  char* ReferenceDoseVolumeNodeId;
 
   /// ID of the output accumulated dose volume node
   char* AccumulatedDoseVolumeNodeId;

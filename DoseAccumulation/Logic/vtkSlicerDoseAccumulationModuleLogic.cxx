@@ -32,12 +32,16 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLTransformNode.h>
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkImageMathematics.h>
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
+#include <vtkImageReslice.h>
+#include <vtkImageChangeInformation.h>
+#include <vtkGeneralTransform.h>
 
 // STD includes
 #include <cassert>
@@ -188,6 +192,27 @@ vtkCollection* vtkSlicerDoseAccumulationModuleLogic::GetVolumeNodesFromScene()
 }
 
 //---------------------------------------------------------------------------
+bool vtkSlicerDoseAccumulationModuleLogic::ReferenceDoseVolumeContainsDose()
+{
+  if (!this->GetMRMLScene() || !this->DoseAccumulationNode)
+  {
+    return false;
+  }
+
+  vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->DoseAccumulationNode->GetReferenceDoseVolumeNodeId()));
+
+  const char* doseUnitName = referenceDoseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+
+  if (doseUnitName != NULL)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+//---------------------------------------------------------------------------
 void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &errorMessage)
 {
   // Make sure inputs are initialized
@@ -217,28 +242,67 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> outputVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
   this->GetMRMLScene()->AddNode(outputVolumeDisplayNode);
 
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> referenceDoseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(
+    this->GetDoseAccumulationNode()->GetReferenceDoseVolumeNodeId()));
+
+  // get reference image info
   double originX, originY, originZ;
   double spacingX, spacingY, spacingZ;
   int dimensions[3] = {0, 0, 0};
-  inputVolumeNode->GetOrigin(originX, originY, originZ);
-  inputVolumeNode->GetSpacing(spacingX, spacingY, spacingZ);
-  inputVolumeNode->GetImageData()->GetDimensions(dimensions);
+  referenceDoseVolumeNode->GetOrigin(originX, originY, originZ);
+  referenceDoseVolumeNode->GetSpacing(spacingX, spacingY, spacingZ);
+  referenceDoseVolumeNode->GetImageData()->GetDimensions(dimensions);
 
+  // set output image info
   outputVolumeNode->CopyOrientation(inputVolumeNode);
   outputVolumeNode->SetOrigin(originX, originY, originZ);
-  outputVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), inputVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str()));
-  outputVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), inputVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str()));
+  outputVolumeNode->SetSpacing(spacingX, spacingY, spacingZ);
+  outputVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), referenceDoseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str()));
+  outputVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), referenceDoseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str()));
+
+  // test if it is LPS orientation
+  // right now wait for response from slicer developer ...
+
+  vtkSmartPointer<vtkGeneralTransform> inputVolumeRASToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = inputVolumeNode->GetParentTransformNode();
+  if (inputVolumeNodeTransformNode!=NULL)
+  {
+    inputVolumeNodeTransformNode->GetTransformToWorld(inputVolumeRASToWorldTransform);    
+    inputVolumeRASToWorldTransform->Inverse();
+  }
+
+  // change image info before reslice
+  double origin[3];
+  double spacing[3];
+  inputVolumeNode->GetOrigin(origin);
+  inputVolumeNode->GetSpacing(spacing);
+  vtkSmartPointer<vtkImageChangeInformation> changeInfo = vtkSmartPointer<vtkImageChangeInformation>::New();
+  changeInfo->SetInput(inputVolumeNode->GetImageData());
+  changeInfo->SetOutputOrigin(origin);
+  changeInfo->SetOutputSpacing(-spacing[0], -spacing[1], spacing[2]);
+  changeInfo->Update();
+  vtkSmartPointer<vtkImageData> tempImage = changeInfo->GetOutput();
+
+  // reslice according to reference image
+  vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
+  reslice->SetInputConnection(changeInfo->GetOutputPort());
+  reslice->SetOutputOrigin(originX, originY, originZ);
+  reslice->SetOutputSpacing(-spacingX, -spacingY, spacingZ);
+  reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
+  if (inputVolumeNodeTransformNode!=NULL)
+  {
+    reslice->SetResliceTransform(inputVolumeRASToWorldTransform);
+  }
+  reslice->Update();
+  tempImage = reslice->GetOutput();
 
   vtkSmartPointer<vtkImageMathematics> MultiplyFilter1 = vtkSmartPointer<vtkImageMathematics>::New();
-  MultiplyFilter1->SetInput(inputVolumeNode->GetImageData());
+  MultiplyFilter1->SetInput(tempImage);
   MultiplyFilter1->SetConstantK(weight);
   MultiplyFilter1->SetOperationToMultiplyByK();
   MultiplyFilter1->Update();
   baseImageData = MultiplyFilter1->GetOutput();
 
-  double originX2, originY2, originZ2;
-  double spacingX2, spacingY2, spacingZ2;
-  int dimensions2[3] = {0, 0, 0};
   if (size >=2)
   {
     for (int i = 1; i < size; i++)
@@ -247,8 +311,8 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
       vtkSmartPointer<vtkImageMathematics> AddFilter = vtkSmartPointer<vtkImageMathematics>::New();
       iterIds++;
       Id = *iterIds;
-      inputVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(Id));
-      if (!inputVolumeNode->GetImageData())
+      vtkSmartPointer<vtkMRMLScalarVolumeNode> inputVolumeNode2 = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(Id));
+      if (!inputVolumeNode2->GetImageData())
       {
         errorMessage = "No image data found in input volume"; 
         vtkErrorMacro(<<errorMessage);
@@ -256,21 +320,37 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
       }
       weight = (*VolumeNodeIdsToWeightsMap)[Id];
 
-      inputVolumeNode->GetOrigin(originX2, originY2, originZ2); 
-      inputVolumeNode->GetSpacing(spacingX2, spacingY2, spacingZ2);
-      inputVolumeNode->GetImageData()->GetDimensions(dimensions2);
-      
-      // Make sure inputs are initialized
-      if (abs(originX-originX2) > THRESHOLD || abs(originY-originY2) > THRESHOLD || abs(originZ-originZ2) > THRESHOLD || 
-          abs(spacingX-spacingX2) > THRESHOLD || abs(spacingY-spacingY2) > THRESHOLD || abs(spacingZ-spacingZ2) > THRESHOLD ||
-          abs(dimensions[0]-dimensions2[0]) > THRESHOLD || abs(dimensions[1]-dimensions2[1]) > THRESHOLD || abs(dimensions[2]-dimensions2[2]) >THRESHOLD)
+      vtkSmartPointer<vtkGeneralTransform> inputVolumeNodeToWorldTransform2 = vtkSmartPointer<vtkGeneralTransform>::New();
+      inputVolumeNodeToWorldTransform2->Identity();
+      vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode2 = inputVolumeNode2->GetParentTransformNode();
+      if (inputVolumeNodeTransformNode2!=NULL)
       {
-        errorMessage = "Image geometry information do not match"; 
-        vtkErrorMacro(<<errorMessage);
-        return;
+        // toNode is transformed
+        inputVolumeNodeTransformNode2->GetTransformToWorld(inputVolumeNodeToWorldTransform2);    
+        inputVolumeNodeToWorldTransform2->Inverse();
       }
 
-      MultiplyFilter2->SetInput(inputVolumeNode->GetImageData());
+      // change image info before reslice
+      double origin[3];
+      double spacing[3];
+      inputVolumeNode2->GetOrigin(origin);
+      inputVolumeNode2->GetSpacing(spacing);
+      vtkSmartPointer<vtkImageChangeInformation> changeInfo2 = vtkSmartPointer<vtkImageChangeInformation>::New();
+      changeInfo2->SetInput(inputVolumeNode2->GetImageData());
+      changeInfo2->SetOutputOrigin(origin);
+      changeInfo2->SetOutputSpacing(-spacing[0], -spacing[1], spacing[2]);
+      changeInfo2->Update();
+
+      // reslice according to reference image
+      vtkSmartPointer<vtkImageReslice> reslice2 = vtkSmartPointer<vtkImageReslice>::New();
+      reslice2->SetInput(changeInfo2->GetOutput());
+      reslice2->SetOutputOrigin(originX, originY, originZ);
+      reslice2->SetOutputSpacing(-spacingX, -spacingY, spacingZ);
+      reslice2->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
+      reslice2->SetResliceTransform(inputVolumeNodeToWorldTransform2);
+      reslice2->Update();
+      
+      MultiplyFilter2->SetInput(reslice2->GetOutput());
       MultiplyFilter2->SetConstantK(weight);
       MultiplyFilter2->SetOperationToMultiplyByK();
       MultiplyFilter2->Update();
@@ -284,7 +364,14 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     }
   }
 
-  outputVolumeNode->SetAndObserveImageData(baseImageData);
+  // change image info back so it will work for slicer ???
+  vtkSmartPointer<vtkImageChangeInformation> changeInfo3 = vtkSmartPointer<vtkImageChangeInformation>::New();
+  changeInfo3->SetInput(baseImageData);
+  changeInfo3->SetOutputOrigin(0,0,0);
+  changeInfo3->SetOutputSpacing(1,1,1);
+  changeInfo3->Update();
+
+  outputVolumeNode->SetAndObserveImageData(changeInfo3->GetOutput());
   outputVolumeNode->SetAndObserveDisplayNodeID( outputVolumeDisplayNode->GetID() );
 
   // Set default colormap to rainbow

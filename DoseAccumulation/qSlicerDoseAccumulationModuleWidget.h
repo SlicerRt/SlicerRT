@@ -62,6 +62,8 @@ public slots:
   void updateWidgetFromMRML();
 
 protected slots:
+  void referenceDoseVolumeNodeChanged(vtkMRMLNode*);
+
   void accumulatedDoseVolumeNodeChanged(vtkMRMLNode*);
 
   void onTableItemChanged(QTableWidgetItem* changedItem);
