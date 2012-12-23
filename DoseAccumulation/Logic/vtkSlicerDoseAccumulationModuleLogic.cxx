@@ -244,6 +244,11 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
 
   vtkSmartPointer<vtkMRMLScalarVolumeNode> referenceDoseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(
     this->GetDoseAccumulationNode()->GetReferenceDoseVolumeNodeId()));
+  if (referenceDoseVolumeNode.GetPointer() == NULL)
+  {
+    vtkErrorMacro("No reference dose volume set!");
+    return;
+  }
 
   // get reference image info
   double originX, originY, originZ;

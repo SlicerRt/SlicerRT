@@ -29,7 +29,7 @@ set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
       DataDirectoryPath BaselineDoseAccumulationDoseFile 
-      TemporarySceneFile VolumeDifferenceCriterion)
+      TemporarySceneFile DoseDifferenceCriterion)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}

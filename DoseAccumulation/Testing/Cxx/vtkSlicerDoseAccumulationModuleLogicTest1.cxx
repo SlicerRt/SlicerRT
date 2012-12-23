@@ -227,6 +227,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode->GetID()] = 0.5;
   (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode2->GetID()] = 0.5;
   paramNode->SetAndObserveAccumulatedDoseVolumeNodeId(OutputVolumeNode->GetID());
+  paramNode->SetAndObserveReferenceDoseVolumeNodeId(doseScalarVolumeNode->GetID());
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic> doseAccumulationLogic = vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic>::New();
