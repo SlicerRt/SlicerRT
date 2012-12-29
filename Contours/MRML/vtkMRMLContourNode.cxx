@@ -990,7 +990,13 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
   displayNode->VisibilityOn();
   displayNode->SetBackfaceCulling(0);
 
+  // Set opacity to match the existing ribbon model visualization
+  if (this->RibbonModelNode && this->RibbonModelNode->GetModelDisplayNode())
+  {
+    displayNode->SetOpacity(this->RibbonModelNode->GetModelDisplayNode()->GetOpacity());
+  }
 
+  // Set color
   double color[4];
   if (colorNode)
     {

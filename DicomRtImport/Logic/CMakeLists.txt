@@ -17,6 +17,8 @@ set(${KIT}_SRCS
   vtkDICOMImportInfo.h
   vtkSlicerDicomRtReader.cxx
   vtkSlicerDicomRtReader.h
+  vtkTopologicalHierarchy.cxx
+  vtkTopologicalHierarchy.h
   )
 
 # DCMTK's dcmrt module is not part of the default list of modules

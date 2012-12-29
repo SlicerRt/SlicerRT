@@ -19,6 +19,7 @@ limitations under the License.
 #include "vtkSlicerDicomRtImportModuleLogic.h"
 #include "vtkSlicerDicomRtReader.h"
 #include "vtkDICOMImportInfo.h"
+#include "vtkTopologicalHierarchy.h"
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
@@ -67,6 +68,8 @@ vtkCxxSetObjectMacro(vtkSlicerDicomRtImportModuleLogic, VolumesLogic, vtkSlicerV
 vtkSlicerDicomRtImportModuleLogic::vtkSlicerDicomRtImportModuleLogic()
 {
   this->VolumesLogic = NULL;
+
+  this->AutoContourOpacityOn();
 }
 
 //----------------------------------------------------------------------------
@@ -256,6 +259,9 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
     structureSetColorTableNode->AddColor("Background", 0.0, 0.0, 0.0, 0.0); // Black background
     structureSetColorTableNode->AddColor("Invalid", 0.5, 0.5, 0.5, 1.0); // Color indicating invalid index
 
+    vtkSmartPointer<vtkPolyDataCollection> roiCollection = vtkSmartPointer<vtkPolyDataCollection>::New();
+    vtkSmartPointer<vtkCollection> displayNodeCollection = vtkSmartPointer<vtkCollection>::New();
+
     for (int internalROIIndex=0; internalROIIndex<numberOfROI; internalROIIndex++) // DICOM starts indexing from 1
     {
       const char* roiLabel = rtReader->GetROIName(internalROIIndex);
@@ -292,6 +298,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
         // Contour ROI
         addedDisplayableNode = AddRoiContour(roiPoly, contourNodeName, roiColor);
 
+        roiCollection->AddItem(roiPoly);
+
         // Create Contour node
         if (addedDisplayableNode)
         {
@@ -322,6 +330,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
           this->GetMRMLScene()->AddNode(contourHierarchyNode);
           contourHierarchyNode->SetParentNodeID( contourHierarchyRootNode->GetID() );
           contourHierarchyNode->SetDisplayableNodeID( contourNode->GetID() );
+
+          displayNodeCollection->AddItem( vtkMRMLModelNode::SafeDownCast(addedDisplayableNode)->GetModelDisplayNode() );
         }
       }
 
@@ -354,6 +364,43 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
         this->GetMRMLScene()->AddNode(modelHierarchyNode);
         modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
         modelHierarchyNode->SetModelNodeID( addedDisplayableNode->GetID() );
+      }
+    }
+
+    // Set opacities according to topological hierarchy levels
+    if (this->AutoContourOpacity)
+    {
+      if (roiCollection->GetNumberOfItems() == displayNodeCollection->GetNumberOfItems())
+      {
+        vtkSmartPointer<vtkTopologicalHierarchy> topologicalHierarchy = vtkSmartPointer<vtkTopologicalHierarchy>::New();
+        topologicalHierarchy->SetInputPolyDatas(roiCollection);
+        topologicalHierarchy->Update();
+        vtkIntArray* levels = topologicalHierarchy->GetOutput();
+
+        int numberOfLevels = 0;
+        for (int i=0; i<levels->GetNumberOfTuples(); ++i)
+        {
+          if (levels->GetValue(i) > numberOfLevels)
+          {
+            numberOfLevels = levels->GetValue(i);
+          }
+        }
+
+        for (int i=0; i<roiCollection->GetNumberOfItems(); ++i)
+        {
+          int level = levels->GetValue(i);
+          vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(
+            displayNodeCollection->GetItemAsObject(i) );
+          if (displayNode)
+          {
+            // displayNode->SetOpacity( 1.0 / pow(2.0, ((double)level) / 2.0) ); // First attempt
+            displayNode->SetOpacity( 1.0 - ((double)level) / (numberOfLevels+1) );
+          }
+        }
+      }
+      else
+      {
+        vtkWarningMacro("Unable to auto-determine opacity: Number of ROIs and display nodes do not match!");
       }
     }
 

@@ -558,18 +558,10 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     layoutManager.sliceWidget(sliceWidgetNames[1]).sliceController().setSliceOffsetValue(-18)
     
     # Set structure visibilities/transparencies
-    body = slicer.util.getNode(pattern='BODY_Contour_RibbonModel')
-    body.GetDisplayNode().SetOpacity(0.3)
     optBrain = slicer.util.getNode(pattern='optBRAIN_Contour_RibbonModel')
     optBrain.GetDisplayNode().SetVisibility(0)
     optOptic = slicer.util.getNode(pattern='optOptic_Contour_RibbonModel')
     optOptic.GetDisplayNode().SetVisibility(0)
-    brain = slicer.util.getNode(pattern='BRAIN_Contour_RibbonModel')
-    brain.GetDisplayNode().SetOpacity(0.3)
-    ptv = slicer.util.getNode(pattern='PTV1_Contour_RibbonModel')
-    ptv.GetDisplayNode().SetOpacity(0.4)
-    ctv = slicer.util.getNode(pattern='CTV_Contour_RibbonModel')
-    ctv.GetDisplayNode().SetOpacity(0.5)
 
     threeDView = layoutManager.threeDWidget(0).threeDView()
     self.clickAndDrag(threeDView,button='Middle',start=(10,110),end=(10,10))
@@ -628,7 +620,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.cliBrainsFitBSplineNode = None
       self.cliBrainsFitBSplineNode = slicer.cli.run(brainsFit, None, parametersBSpline)
       waitCount = 0
-      while self.cliBrainsFitBSplineNode.GetStatusString() != 'Completed' and waitCount < 100:
+      while self.cliBrainsFitBSplineNode.GetStatusString() != 'Completed' and waitCount < 200:
         self.delayDisplay( "Register Day 2 CT to Day 1 CT using BSpline registration... %d" % waitCount )
         waitCount += 1
       self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration finished",self.delayMs)

@@ -56,6 +56,11 @@ public:
   /// Set Volumes module logic
   void SetVolumesLogic(vtkSlicerVolumesLogic* volumesLogic);
 
+public:
+  vtkSetMacro(AutoContourOpacity, bool);
+  vtkGetMacro(AutoContourOpacity, bool);
+  vtkBooleanMacro(AutoContourOpacity, bool);
+
 protected:
   vtkSlicerDicomRtImportModuleLogic();
   virtual ~vtkSlicerDicomRtImportModuleLogic();
@@ -76,6 +81,9 @@ private:
 
 private:
   vtkSlicerVolumesLogic* VolumesLogic;
+
+  /// Flag indicating whether opacity values for the loaded contours are automatically determined
+  bool AutoContourOpacity;
 };
 
 #endif
