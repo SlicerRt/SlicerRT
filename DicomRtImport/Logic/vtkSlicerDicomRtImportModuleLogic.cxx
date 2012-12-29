@@ -373,9 +373,9 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
       if (roiCollection->GetNumberOfItems() == displayNodeCollection->GetNumberOfItems())
       {
         vtkSmartPointer<vtkTopologicalHierarchy> topologicalHierarchy = vtkSmartPointer<vtkTopologicalHierarchy>::New();
-        topologicalHierarchy->SetInputPolyDatas(roiCollection);
+        topologicalHierarchy->SetInputPolyDataCollection(roiCollection);
         topologicalHierarchy->Update();
-        vtkIntArray* levels = topologicalHierarchy->GetOutput();
+        vtkIntArray* levels = topologicalHierarchy->GetOutputLevels();
 
         int numberOfLevels = 0;
         for (int i=0; i<levels->GetNumberOfTuples(); ++i)
@@ -393,7 +393,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
             displayNodeCollection->GetItemAsObject(i) );
           if (displayNode)
           {
-            // displayNode->SetOpacity( 1.0 / pow(2.0, ((double)level) / 2.0) ); // First attempt
+            // The opacity level is set evenly distributed between 0 and 1 (excluding 0)
+            // according to the topological hierarchy level of the contour
             displayNode->SetOpacity( 1.0 - ((double)level) / (numberOfLevels+1) );
           }
         }

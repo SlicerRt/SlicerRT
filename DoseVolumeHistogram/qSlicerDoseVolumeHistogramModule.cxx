@@ -38,7 +38,7 @@
 Q_EXPORT_PLUGIN2(qSlicerDoseVolumeHistogramModule, qSlicerDoseVolumeHistogramModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_DoseVolumeHistogram
 class qSlicerDoseVolumeHistogramModulePrivate
 {
 public:

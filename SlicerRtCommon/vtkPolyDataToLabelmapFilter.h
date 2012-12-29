@@ -32,7 +32,7 @@
 // STD includes
 #include <cstdlib>
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_SlicerRtCommon
 class vtkPolyDataToLabelmapFilter : public vtkObject
 {
 public:

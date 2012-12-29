@@ -36,7 +36,14 @@
 
 class vtkIntArray;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_DicomRtImportLogic
+/// \brief Algorithm class for computing topological hierarchy of multiple poly data models.
+///   The levels of the models are determined according to the models they contain, an outer
+///   model always having larger level value than the inner ones. To determine whether a model
+///   contains another, their bounding boxes are considered. It is possible to constrain a gap
+///   or allow the inner model to protrude the surface of the outer one. The size of this gap
+///   or allowance is defined as a factor /sa ContainConstraintFactor of the outer model size.
+///   This algorithm can be used to automatically determine optimal opacities in complex scenes.
 class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkTopologicalHierarchy : public vtkObject
 {
 public:
@@ -45,37 +52,47 @@ public:
   vtkTypeMacro(vtkTopologicalHierarchy, vtkObject );
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual vtkIntArray* GetOutput();
+  /// Get output topological hierarchy levels
+  virtual vtkIntArray* GetOutputLevels();
 
+  /// Compute topological hierarchy levels for input poly data models using
+  /// their bounding boxes.
+  /// This function has to be explicitly called!
+  /// Output can be get using GetOutputLevels()
   virtual void Update();
 
-  vtkSetObjectMacro(InputPolyDatas, vtkPolyDataCollection);
+  /// Set input poly data collection
+  vtkSetObjectMacro(InputPolyDataCollection, vtkPolyDataCollection);
 
+  /// Set constraint factor (used when determining if a poly data contains another)
   vtkSetMacro(ContainConstraintFactor, double);
+  /// Get constraint factor (used when determining if a poly data contains another)
   vtkGetMacro(ContainConstraintFactor, double);
 
 protected:
+  /// Set output topological hierarchy levels
   vtkSetObjectMacro(OutputLevels, vtkIntArray);
 
 protected:
-  /// Determines if polyOut contains polyIn
+  /// Determines if polyOut contains polyIn considering the constraint factor
+  /// /sa ContainConstraintFactor
   bool Contains(vtkPolyData* polyOut, vtkPolyData* polyIn);
 
   /// Determines if there are empty entries in the output level array
   bool OutputContainsEmptyLevels();
 
 protected:
-  /// Collection of poly datas to determine the hierarchy for
-  vtkPolyDataCollection* InputPolyDatas;
+  /// Collection of poly data to determine the hierarchy for
+  vtkPolyDataCollection* InputPolyDataCollection;
 
-  /// Array containing the levels for the input poly datas
+  /// Array containing the topological hierarchy levels for the input poly data
   /// Update function needs to be called to compute the array
   /// The level values correspond to the poly data with the same index in the input collection
   vtkIntArray* OutputLevels;
 
   /// Constraint factor used when determining if a poly data contains another
-  /// It defines a 'gap' that is needed between the outer and inner poly datas. The gap is computed
-  /// as this factor multiplied by the bounding box length at each dimension.
+  /// It defines a 'gap' that is needed between the outer and inner poly data. The gap is computed
+  /// as this factor multiplied by the bounding box edge length at each dimension.
   /// In case of positive value, the inner poly data has to be that much smaller than the outer one
   /// In case of negative value, it is rather an allowance by which the inner polydata can reach
   /// outside the other

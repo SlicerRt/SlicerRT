@@ -31,7 +31,7 @@ class qSlicerDoseVolumeHistogramModuleWidgetPrivate;
 class vtkMRMLNode;
 class QLineEdit;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_DoseVolumeHistogram
 class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramModuleWidget :
   public qSlicerAbstractModuleWidget
 {

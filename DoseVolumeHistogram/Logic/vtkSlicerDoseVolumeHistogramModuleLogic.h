@@ -48,7 +48,7 @@ class vtkMRMLModelNode;
 class vtkMRMLChartViewNode;
 class vtkMRMLDoseVolumeHistogramNode;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_DoseVolumeHistogram
 ///
 /// \brief The DoseVolumeHistogram module computes dose volume histogram (DVH) and metrics from a dose map and structure set(s).
 ///

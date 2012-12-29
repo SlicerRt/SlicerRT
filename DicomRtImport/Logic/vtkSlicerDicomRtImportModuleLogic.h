@@ -37,7 +37,7 @@ class vtkMRMLDisplayableNode;
 class vtkDICOMImportInfo;
 class vtkPolyData;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_DicomRtImportLogic
 class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtImportModuleLogic :
   public vtkSlicerModuleLogic
 {

@@ -33,7 +33,7 @@
 // STD includes
 #include <cstdlib>
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_SlicerRtCommon
 class vtkLabelmapToModelFilter : public vtkObject
 {
 public:

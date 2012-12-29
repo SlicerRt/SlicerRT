@@ -34,9 +34,9 @@ vtkStandardNewMacro(vtkTopologicalHierarchy);
 //----------------------------------------------------------------------------
 vtkTopologicalHierarchy::vtkTopologicalHierarchy()
 {
-  this->InputPolyDatas = NULL;
-  vtkSmartPointer<vtkPolyDataCollection> inputPolyDatas = vtkSmartPointer<vtkPolyDataCollection>::New();
-  this->SetInputPolyDatas(inputPolyDatas);
+  this->InputPolyDataCollection = NULL;
+  vtkSmartPointer<vtkPolyDataCollection> inputPolyData = vtkSmartPointer<vtkPolyDataCollection>::New();
+  this->SetInputPolyDataCollection(inputPolyData);
 
   this->OutputLevels = NULL;
   vtkSmartPointer<vtkIntArray> outputLevels = vtkSmartPointer<vtkIntArray>::New();
@@ -50,7 +50,7 @@ vtkTopologicalHierarchy::vtkTopologicalHierarchy()
 //----------------------------------------------------------------------------
 vtkTopologicalHierarchy::~vtkTopologicalHierarchy()
 {
-  this->SetInputPolyDatas(NULL);
+  this->SetInputPolyDataCollection(NULL);
   this->SetOutputLevels(NULL);
 }
 
@@ -61,7 +61,7 @@ void vtkTopologicalHierarchy::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-vtkIntArray* vtkTopologicalHierarchy::GetOutput()
+vtkIntArray* vtkTopologicalHierarchy::GetOutputLevels()
 {
   return this->OutputLevels;
 }
@@ -75,10 +75,10 @@ bool vtkTopologicalHierarchy::Contains(vtkPolyData* polyOut, vtkPolyData* polyIn
     return false;
   }
 
-  double extentOut[6];
+  double extentOut[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
   polyOut->GetBounds(extentOut);
   
-  double extentIn[6];
+  double extentIn[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
   polyIn->GetBounds(extentIn);
 
   if ( extentOut[0] < extentIn[0] - this->ContainConstraintFactor * (extentOut[1]-extentOut[0])
@@ -97,55 +97,55 @@ bool vtkTopologicalHierarchy::Contains(vtkPolyData* polyOut, vtkPolyData* polyIn
 //----------------------------------------------------------------------------
 void vtkTopologicalHierarchy::Update()
 {
-  if (!this->InputPolyDatas || !this->OutputLevels)
+  if (!this->InputPolyDataCollection || !this->OutputLevels)
   {
     vtkErrorMacro("Input poly data collection and output int array have to be initialized!");
     return;
   }
 
   this->OutputLevels->Initialize();
-  unsigned int numberOfPolyDatas = this->InputPolyDatas->GetNumberOfItems();
+  unsigned int numberOfPolyData = this->InputPolyDataCollection->GetNumberOfItems();
 
   // Check input polydata collection
-  for (unsigned int i=0; i<numberOfPolyDatas; ++i)
+  for (unsigned int polyOutIndex=0; polyOutIndex<numberOfPolyData; ++polyOutIndex)
   {
-    vtkPolyData* polyOut = vtkPolyData::SafeDownCast(this->InputPolyDatas->GetItemAsObject(i));
+    vtkPolyData* polyOut = vtkPolyData::SafeDownCast(this->InputPolyDataCollection->GetItemAsObject(polyOutIndex));
     if (!polyOut)
     {
-      vtkErrorMacro("Input collection contains invalid object at item " << i);
+      vtkErrorMacro("Input collection contains invalid object at item " << polyOutIndex);
       return;
     }
   }
 
-  std::vector<std::vector<int> > containedPolyDatas(numberOfPolyDatas);
+  std::vector<std::vector<int> > containedPolyData(numberOfPolyData);
   this->OutputLevels->SetNumberOfComponents(1);
-  this->OutputLevels->SetNumberOfTuples(numberOfPolyDatas);
+  this->OutputLevels->SetNumberOfTuples(numberOfPolyData);
   this->OutputLevels->FillComponent(0, -1);
 
   // Step 1: Set level of polydata containing no other polydata to 0
-  this->InputPolyDatas->InitTraversal();
-  for (unsigned int i=0; i<numberOfPolyDatas; ++i)
+  this->InputPolyDataCollection->InitTraversal();
+  for (unsigned int polyOutIndex=0; polyOutIndex<numberOfPolyData; ++polyOutIndex)
   {
-    vtkPolyData* polyOut = vtkPolyData::SafeDownCast(this->InputPolyDatas->GetItemAsObject(i));
+    vtkPolyData* polyOut = vtkPolyData::SafeDownCast(this->InputPolyDataCollection->GetItemAsObject(polyOutIndex));
 
-    for (int j=0; j<numberOfPolyDatas; ++j)
+    for (int polyInIndex=0; polyInIndex<numberOfPolyData; ++polyInIndex)
     {
-      if (i==j)
+      if (polyOutIndex==polyInIndex)
       {
         continue;
       }
 
-      vtkPolyData* polyIn = vtkPolyData::SafeDownCast(this->InputPolyDatas->GetItemAsObject(j));
+      vtkPolyData* polyIn = vtkPolyData::SafeDownCast(this->InputPolyDataCollection->GetItemAsObject(polyInIndex));
 
       if (this->Contains(polyOut, polyIn))
       {
-        containedPolyDatas[i].push_back(j);
+        containedPolyData[polyOutIndex].push_back(polyInIndex);
       }
     }
 
-    if (containedPolyDatas[i].size() == 0)
+    if (containedPolyData[polyOutIndex].size() == 0)
     {
-      this->OutputLevels->SetValue(i, 0);
+      this->OutputLevels->SetValue(polyOutIndex, 0);
     }
   }
 
@@ -159,9 +159,9 @@ void vtkTopologicalHierarchy::Update()
     outputLevelsSnapshot->DeepCopy(this->OutputLevels);
 
     // Step 3: For all polydata without level value assigned
-    for (unsigned int i=0; i<numberOfPolyDatas; ++i)
+    for (unsigned int polyOutIndex=0; polyOutIndex<numberOfPolyData; ++polyOutIndex)
     {
-      if (this->OutputLevels->GetValue(i) > -1)
+      if (this->OutputLevels->GetValue(polyOutIndex) > -1)
       {
         continue;
       }
@@ -170,16 +170,16 @@ void vtkTopologicalHierarchy::Update()
       //   The level that is to be set cannot be lower than the current level value, because then we would
       //   already have assigned it in the previous iterations.
       bool allContainedPolydataHasLevelValueAssigned = true;
-      for (unsigned int j=0; j<numberOfPolyDatas; ++j)
+      for (unsigned int polyInIndex=0; polyInIndex<numberOfPolyData; ++polyInIndex)
       {
-        if (i==j)
+        if (polyOutIndex==polyInIndex)
         {
           continue;
         }
         bool isContained = false;
-        for (std::vector<int>::iterator it=containedPolyDatas[i].begin(); it!=containedPolyDatas[i].end(); ++it)
+        for (std::vector<int>::iterator it=containedPolyData[polyOutIndex].begin(); it!=containedPolyData[polyOutIndex].end(); ++it)
         {
-          if ((*it) == j)
+          if ((*it) == polyInIndex)
           {
             isContained = true;
           }
@@ -189,7 +189,7 @@ void vtkTopologicalHierarchy::Update()
           continue;
         }
 
-        if (outputLevelsSnapshot->GetValue(j) == -1)
+        if (outputLevelsSnapshot->GetValue(polyInIndex) == -1)
         {
           allContainedPolydataHasLevelValueAssigned = false;
           break;
@@ -197,7 +197,7 @@ void vtkTopologicalHierarchy::Update()
       }
       if (allContainedPolydataHasLevelValueAssigned)
       {
-        this->OutputLevels->SetValue(i, currentLevel);
+        this->OutputLevels->SetValue(polyOutIndex, currentLevel);
       }
     }
 
@@ -206,11 +206,11 @@ void vtkTopologicalHierarchy::Update()
   }
 
   // Step 5: Set maximum level to all polydata that has no level value assigned
-  for (unsigned int i=0; i<numberOfPolyDatas; ++i)
+  for (unsigned int polyOutIndex=0; polyOutIndex<numberOfPolyData; ++polyOutIndex)
   {
-    if (this->OutputLevels->GetValue(i) == -1)
+    if (this->OutputLevels->GetValue(polyOutIndex) == -1)
     {
-      this->OutputLevels->SetValue(i, this->MaximumLevel);
+      this->OutputLevels->SetValue(polyOutIndex, this->MaximumLevel);
     }
   }
 }

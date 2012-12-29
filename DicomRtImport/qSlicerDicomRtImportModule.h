@@ -25,7 +25,7 @@
 
 class qSlicerDicomRtImportModulePrivate;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_DicomRtImport
 class Q_SLICER_QTMODULES_DICOMRTIMPORT_EXPORT qSlicerDicomRtImportModule :
   public qSlicerLoadableModule
 {
