@@ -36,6 +36,12 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
     -DPLMLIB_CONFIG_ENABLE_DOSE:BOOL=TRUE)
 endif ()
 
+# Choose which Plastimatch revision to build
+set (PLM_SVN_REVISION "4005")
+if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
+  set (PLM_SVN_REVISION "4027")
+endif ()
+
 ExternalProject_Add( Plastimatch
   SOURCE_DIR "${SLICERRT_PLASTIMATCH_SOURCE_DIR}" 
   BINARY_DIR "${SLICERRT_PLASTIMATCH_DIR}"
@@ -43,7 +49,7 @@ ExternalProject_Add( Plastimatch
   SVN_USERNAME "anonymous"
   SVN_PASSWORD "anonymous"
   SVN_REPOSITORY https://forge.abcd.harvard.edu/svn/plastimatch/plastimatch/trunk
-  SVN_REVISION -r "4005"
+  SVN_REVISION -r "${PLM_SVN_REVISION}"
   # Avoid "Server certificate verification failed: issuer is not trusted" error
   SVN_TRUST_CERT 1
   #--Configure step-------------
