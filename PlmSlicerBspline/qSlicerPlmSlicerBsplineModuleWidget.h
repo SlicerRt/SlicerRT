@@ -36,8 +36,11 @@ protected:
 
 protected slots:
   void initializeParameterNode(vtkMRMLScene* scene);
+#if defined (commentout)
   void updateParameters();
+#endif
   void onApply();
+  void onDebugButton();
   void onFixedVolumeChanged();
   void onMovingVolumeChanged();
   void onWarpedVolumeChanged();

@@ -182,37 +182,27 @@ int vtkSlicerPlmSlicerBsplineLogic::Apply(vtkMRMLPlmSlicerBsplineNode* pnode)
 
   /* Setup the registration parms - single stage only */
 
-  /* JAS 2012.06.22
-   *   There seems to be a linking issue somewhere
-   *   because writing to members of regp crashes
-   *   Slicer.  Oddly, reading back values set by
-   *   the regp constructor works fine. o_O */
-#if 0
   Registration_parms regp;
-  regp.num_stages = 1;
-  fprintf (stderr, "num_stages: %i\n", regp.num_stages);
-  regp.stages[0] = new Stage_parms ();
-  regp.stages[0]->stage_no = 1;
-  regp.stages[0]->grid_spac[0] = pnode->GetGridX ();
-  regp.stages[0]->grid_spac[1] = pnode->GetGridY ();
-  regp.stages[0]->grid_spac[2] = pnode->GetGridZ ();
-#endif
+  Stage_parms *sp = regp.append_stage ();
+  sp->grid_spac[0] = pnode->GetGridX ();
+  sp->grid_spac[0] = pnode->GetGridY ();
+  sp->grid_spac[0] = pnode->GetGridZ ();
 
   Registration_data regd;
   regd.fixed_image = fixed;
   regd.moving_image = moving;
 
-  fprintf (stderr, "DEBUG: Control Grid: %i %i %i\n", 
-                pnode->GetGridX(),
-                pnode->GetGridY(),
-                pnode->GetGridZ()
+  printf ("PLM DEBUG: Control Grid: %i %i %i\n", 
+           pnode->GetGridX(),
+           pnode->GetGridY(),
+           pnode->GetGridZ()
   );
 
-//  Xform* xf_out = NULL;
+  Xform* xf_out = NULL;
 
-//  do_registration_pure (&xf_out, &regd, &regp);
+  do_registration_pure (&xf_out, &regd, &regp);
 
-  fprintf (stderr, "DEBUG: Apply () Complete!\n");
+  printf ("PLM DEBUG: Apply () Complete!\n");
 
   return 0;
 }

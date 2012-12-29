@@ -62,32 +62,40 @@ void qSlicerPlmSlicerBsplineModuleWidget::setup()
   this->Superclass::setup();
 
   /* Volumes */
-  connect (d->fixedImageMRMLNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
-          this, SLOT(onFixedVolumeChanged()));
-  connect (d->movingImageMRMLNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
-          this, SLOT(onMovingVolumeChanged()));
-  connect (d->warpedImageMRMLNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
-          this, SLOT(onWarpedVolumeChanged()));
-  connect (d->xformImageMRMLNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
-          this, SLOT(onXformVolumeChanged()));
+  connect (d->fixedImageMRMLNodeComboBox, 
+           SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+           this, SLOT(onFixedVolumeChanged()));
+  connect (d->movingImageMRMLNodeComboBox, 
+           SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+           this, SLOT(onMovingVolumeChanged()));
+  connect (d->warpedImageMRMLNodeComboBox, 
+           SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+           this, SLOT(onWarpedVolumeChanged()));
+  connect (d->xformImageMRMLNodeComboBox, 
+           SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+           this, SLOT(onXformVolumeChanged()));
 
   /* Similarity Metric Radios */
   connect (d->radioButtonMSE, SIGNAL(toggled(bool)),
-          this, SLOT(onMSEChanged()));
+           this, SLOT(onMSEChanged()));
   connect (d->radioButtonMI, SIGNAL(toggled(bool)),
-          this, SLOT(onMIChanged()));
+           this, SLOT(onMIChanged()));
 
   /* Grid Spinner Boxes */
   connect (d->spinBoxGridX, SIGNAL(valueChanged(int)),
-          this, SLOT(onGridXChanged(int)));
+           this, SLOT(onGridXChanged(int)));
   connect (d->spinBoxGridY, SIGNAL(valueChanged(int)),
-          this, SLOT(onGridYChanged(int)));
+           this, SLOT(onGridYChanged(int)));
   connect (d->spinBoxGridZ, SIGNAL(valueChanged(int)),
-          this, SLOT(onGridZChanged(int)));
+           this, SLOT(onGridZChanged(int)));
+
+  /* Greg's "debug" button */
+  connect (d->debugPushButton, SIGNAL(clicked()),
+           this, SLOT(onDebugButton()));
 
   /* the "GO" button */
   connect (d->registerPushButton, SIGNAL(clicked()),
-          this, SLOT(onApply()));
+           this, SLOT(onApply()));
 }
 
 void qSlicerPlmSlicerBsplineModuleWidget::enter()
@@ -133,26 +141,27 @@ void qSlicerCropVolumeModuleWidget::initializeNode(vtkMRMLNode *n)
 //-----------------------------------------------------------------------------
 void qSlicerPlmSlicerBsplineModuleWidget::initializeParameterNode(vtkMRMLScene* scene)
 {
-    vtkCollection* parameterNodes = scene->GetNodesByClass("vtkMRMLPlmSlicerBsplineNode");
+  vtkCollection* parameterNodes = scene->GetNodesByClass("vtkMRMLPlmSlicerBsplineNode");
 
-    if (parameterNodes->GetNumberOfItems() > 0) {
-        this->parametersNode = vtkMRMLPlmSlicerBsplineNode::SafeDownCast(parameterNodes->GetItemAsObject(0));
-        if (!this->parametersNode) {
-            qCritical() << "FATAL ERROR: Cannot instantiate PlmSlicerBsplineParameterNode";
-            Q_ASSERT(this->parametersNode);
-        }
-    } else {
-        qDebug() << "No PlmSlicerBspline parameter nodes found!";
-        this->parametersNode = vtkMRMLPlmSlicerBsplineNode::New();
-        scene->AddNode(this->parametersNode);
-        this->parametersNode->Delete();
+  if (parameterNodes->GetNumberOfItems() > 0) {
+    this->parametersNode = vtkMRMLPlmSlicerBsplineNode::SafeDownCast(parameterNodes->GetItemAsObject(0));
+    if (!this->parametersNode) {
+      qCritical() << "FATAL ERROR: Cannot instantiate PlmSlicerBsplineParameterNode";
+      Q_ASSERT(this->parametersNode);
     }
+  } else {
+    qDebug() << "No PlmSlicerBspline parameter nodes found!";
+    this->parametersNode = vtkMRMLPlmSlicerBsplineNode::New();
+    scene->AddNode(this->parametersNode);
+    this->parametersNode->Delete();
+  }
 
-    parameterNodes->Delete();
+  parameterNodes->Delete();
 }
 
 
 //-----------------------------------------------------------------------------
+#if defined (commentout)
 void qSlicerPlmSlicerBsplineModuleWidget::updateParameters()
 {
   Q_D(qSlicerPlmSlicerBsplineModuleWidget);
@@ -171,8 +180,10 @@ void qSlicerPlmSlicerBsplineModuleWidget::updateParameters()
   /* Moving Image */
   vtkMRMLNode *movingVolumeNode = d->movingImageMRMLNodeComboBox->currentNode();
   if (movingVolumeNode) {
+    printf ("Setting MovingVolumeNodeID (A)\n");
     pNode->SetMovingVolumeNodeID(movingVolumeNode->GetID());
   } else {
+    printf ("Setting MovingVolumeNodeID (B)\n");
     pNode->SetMovingVolumeNodeID(NULL);
   }
 
@@ -197,6 +208,20 @@ void qSlicerPlmSlicerBsplineModuleWidget::updateParameters()
   pNode->SetGridY (d->spinBoxGridY->value());
   pNode->SetGridZ (d->spinBoxGridZ->value());
 }
+#endif
+
+//-----------------------------------------------------------------------------
+void qSlicerPlmSlicerBsplineModuleWidget::onDebugButton()
+{
+  Q_D(const qSlicerPlmSlicerBsplineModuleWidget);
+
+  vtkSlicerPlmSlicerBsplineLogic *logic = d->logic();
+  qDebug("PLM DEBUG onDebug() parametersNode: %p", this->parametersNode);
+
+//  vtkMRMLScene* scene = this->Superclass::getMRMLScene ();
+  vtkMRMLScene* scene = this->Superclass::mrmlScene ();
+  qDebug("MRMLScene: %p", scene);
+}
 
 //-----------------------------------------------------------------------------
 void qSlicerPlmSlicerBsplineModuleWidget::onApply()
@@ -204,7 +229,7 @@ void qSlicerPlmSlicerBsplineModuleWidget::onApply()
   Q_D(const qSlicerPlmSlicerBsplineModuleWidget);
 
   vtkSlicerPlmSlicerBsplineLogic *logic = d->logic();
-  fprintf (stderr, "parametersNode: %p\n", this->parametersNode);
+  qDebug("PLM DEBUG onApply() parametersNode: %p", this->parametersNode);
   logic->Apply(this->parametersNode);
 }
 
@@ -223,25 +248,27 @@ void qSlicerPlmSlicerBsplineModuleWidget::onFixedVolumeChanged()
 //-----------------------------------------------------------------------------
 void qSlicerPlmSlicerBsplineModuleWidget::onMovingVolumeChanged()
 {
-    Q_D(qSlicerPlmSlicerBsplineModuleWidget);
-    if (!this->parametersNode) return;
+  Q_D(qSlicerPlmSlicerBsplineModuleWidget);
+  if (!this->parametersNode) return;
 
-    vtkMRMLNode* node = d->movingImageMRMLNodeComboBox->currentNode();
-    if (node) {
-        this->parametersNode->SetMovingVolumeNodeID(node->GetID());
-    }
+  qDebug ("onMovingVolumeChanged !");
+  vtkMRMLNode* node = d->movingImageMRMLNodeComboBox->currentNode();
+  if (node) {
+    qDebug ("Even got a node.  Oh yeah.");
+    this->parametersNode->SetMovingVolumeNodeID(node->GetID());
+  }
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerPlmSlicerBsplineModuleWidget::onWarpedVolumeChanged()
 {
-    Q_D(qSlicerPlmSlicerBsplineModuleWidget);
-    if (!this->parametersNode) return;
+  Q_D(qSlicerPlmSlicerBsplineModuleWidget);
+  if (!this->parametersNode) return;
 
-    vtkMRMLNode* node = d->warpedImageMRMLNodeComboBox->currentNode();
-    if (node) {
-        this->parametersNode->SetWarpedVolumeNodeID(node->GetID());
-    }
+  vtkMRMLNode* node = d->warpedImageMRMLNodeComboBox->currentNode();
+  if (node) {
+    this->parametersNode->SetWarpedVolumeNodeID(node->GetID());
+  }
 }
 
 //-----------------------------------------------------------------------------
