@@ -253,26 +253,26 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
     this->GetMRMLScene()->AddNode(structureSetColorTableNode);
 
     // Add ROIs
-    int numberOfROI = rtReader->GetNumberOfROIs();
-    structureSetColorTableNode->SetNumberOfColors(numberOfROI+2);
-    structureSetColorTableNode->GetLookupTable()->SetTableRange(0,numberOfROI+1);
+    int numberOfRois = rtReader->GetNumberOfRois();
+    structureSetColorTableNode->SetNumberOfColors(numberOfRois+2);
+    structureSetColorTableNode->GetLookupTable()->SetTableRange(0,numberOfRois+1);
     structureSetColorTableNode->AddColor("Background", 0.0, 0.0, 0.0, 0.0); // Black background
     structureSetColorTableNode->AddColor("Invalid", 0.5, 0.5, 0.5, 1.0); // Color indicating invalid index
 
     vtkSmartPointer<vtkPolyDataCollection> roiCollection = vtkSmartPointer<vtkPolyDataCollection>::New();
     vtkSmartPointer<vtkCollection> displayNodeCollection = vtkSmartPointer<vtkCollection>::New();
 
-    for (int internalROIIndex=0; internalROIIndex<numberOfROI; internalROIIndex++) // DICOM starts indexing from 1
+    for (int internalROIIndex=0; internalROIIndex<numberOfRois; internalROIIndex++) // DICOM starts indexing from 1
     {
-      const char* roiLabel = rtReader->GetROIName(internalROIIndex);
-      double *roiColor = rtReader->GetROIDisplayColor(internalROIIndex);
+      const char* roiLabel = rtReader->GetRoiName(internalROIIndex);
+      double *roiColor = rtReader->GetRoiDisplayColor(internalROIIndex);
       vtkMRMLDisplayableNode* addedDisplayableNode = NULL;
 
       // Save color into the color table
       structureSetColorTableNode->AddColor(roiLabel, roiColor[0], roiColor[1], roiColor[2]);
 
       // Get structure
-      vtkPolyData* roiPoly = rtReader->GetROI(internalROIIndex);
+      vtkPolyData* roiPoly = rtReader->GetRoiPolyData(internalROIIndex);
       if (roiPoly == NULL)
       {
         vtkWarningMacro("Cannot read polydata from file: " << firstFileNameStr << ", ROI: "<<internalROIIndex);

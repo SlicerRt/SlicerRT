@@ -61,7 +61,7 @@ limitations under the License.
 #include <ctkDICOMDatabase.h>
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomRtReader::ROIStructureSetEntry::ROIStructureSetEntry()
+vtkSlicerDicomRtReader::RoiEntry::RoiEntry()
 {
   Number=0;
   DisplayColor[0]=1.0;
@@ -70,12 +70,12 @@ vtkSlicerDicomRtReader::ROIStructureSetEntry::ROIStructureSetEntry()
   PolyData=NULL;
 }
 
-vtkSlicerDicomRtReader::ROIStructureSetEntry::~ROIStructureSetEntry()
+vtkSlicerDicomRtReader::RoiEntry::~RoiEntry()
 {
   SetPolyData(NULL);
 }
 
-vtkSlicerDicomRtReader::ROIStructureSetEntry::ROIStructureSetEntry(const ROIStructureSetEntry& src)
+vtkSlicerDicomRtReader::RoiEntry::RoiEntry(const RoiEntry& src)
 {
   Number=src.Number;
   Name=src.Name;
@@ -87,7 +87,7 @@ vtkSlicerDicomRtReader::ROIStructureSetEntry::ROIStructureSetEntry(const ROIStru
   SetPolyData(src.PolyData);
 }
 
-vtkSlicerDicomRtReader::ROIStructureSetEntry& vtkSlicerDicomRtReader::ROIStructureSetEntry::operator=(const ROIStructureSetEntry &src)
+vtkSlicerDicomRtReader::RoiEntry& vtkSlicerDicomRtReader::RoiEntry::operator=(const RoiEntry &src)
 {
   Number=src.Number;
   Name=src.Name;
@@ -99,7 +99,7 @@ vtkSlicerDicomRtReader::ROIStructureSetEntry& vtkSlicerDicomRtReader::ROIStructu
   return (*this);
 }
 
-void vtkSlicerDicomRtReader::ROIStructureSetEntry::SetPolyData(vtkPolyData* roiPolyData)
+void vtkSlicerDicomRtReader::RoiEntry::SetPolyData(vtkPolyData* roiPolyData)
 {
   if (roiPolyData == this->PolyData)
   {
@@ -120,6 +120,7 @@ void vtkSlicerDicomRtReader::ROIStructureSetEntry::SetPolyData(vtkPolyData* roiP
 }
 
 //----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtReader);
 
 //----------------------------------------------------------------------------
@@ -127,7 +128,7 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 {
   this->FileName = NULL;
 
-  this->ROIContourSequenceVector.clear();
+  this->RoiSequenceVector.clear();
 
   this->SetPixelSpacing(0,0);
   this->DoseUnits = NULL;
@@ -141,7 +142,7 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::~vtkSlicerDicomRtReader()
 {
-  this->ROIContourSequenceVector.clear();
+  this->RoiSequenceVector.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -207,8 +208,7 @@ void vtkSlicerDicomRtReader::Update()
     } 
     else 
     {
-      //OFLOG_FATAL(drtdumpLogger, OFFIS_CONSOLE_APPLICATION << ": error (" << result.text()
-      //    << ") reading file: " << ifname);
+      //OFLOG_FATAL(drtdumpLogger, OFFIS_CONSOLE_APPLICATION << ": error (" << result.text() << ") reading file: " << ifname);
     }
   } 
   else 
@@ -242,7 +242,7 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
         }
 
         // Read item into the BeamSequenceVector
-        BeamSequenceEntry beamEntry;
+        BeamEntry beamEntry;
 
         OFString beamName;
         currentBeamSequenceObject.getBeamName(beamName);
@@ -266,12 +266,12 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
             DRTControlPointSequence::Item &controlPointItem = rtControlPointSequenceObject.getCurrentItem();
             if ( controlPointItem.isValid())
             {
-              OFVector<Float64>  IsocenterPositionData_LPS;
-              controlPointItem.getIsocenterPosition(IsocenterPositionData_LPS);
+              OFVector<Float64> IsocenterPositionDataLps;
+              controlPointItem.getIsocenterPosition(IsocenterPositionDataLps);
               // convert from DICOM LPS -> Slicer RAS
-              beamEntry.IsocenterPosition[0] = -IsocenterPositionData_LPS[0];
-              beamEntry.IsocenterPosition[1] = -IsocenterPositionData_LPS[1];
-              beamEntry.IsocenterPosition[2] = IsocenterPositionData_LPS[2];
+              beamEntry.IsocenterPositionRas[0] = -IsocenterPositionDataLps[0];
+              beamEntry.IsocenterPositionRas[1] = -IsocenterPositionDataLps[1];
+              beamEntry.IsocenterPositionRas[2] = IsocenterPositionDataLps[2];
             }
           }
           // while (rtControlPointSequenceObject.gotoNextItem().good());
@@ -295,54 +295,56 @@ OFString GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStruc
     std::cerr << "No referenced frame of reference sequence object item is available" << std::endl;
     return invalidUid;
   }
-  //do
-  //{
+
   DRTReferencedFrameOfReferenceSequence::Item &currentReferencedFrameOfReferenceSequenceItem = rtReferencedFrameOfReferenceSequenceObject.getCurrentItem();
   if (!currentReferencedFrameOfReferenceSequenceItem.isValid())
   {
     std::cerr << "Frame of reference sequence object item is invalid" << std::endl;
     return invalidUid;
   }
-  // Sint32 ROINumber;
+
   DRTRTReferencedStudySequence &rtReferencedStudySequenceObject = currentReferencedFrameOfReferenceSequenceItem.getRTReferencedStudySequence();
   if (!rtReferencedStudySequenceObject.gotoFirstItem().good())
   {
     std::cerr << "No referenced study sequence object item is available" << std::endl;
     return invalidUid;
   }
-  //do
-  //{
+
   DRTRTReferencedStudySequence::Item &rtReferencedStudySequenceItem = rtReferencedStudySequenceObject.getCurrentItem();
   if (!rtReferencedStudySequenceItem.isValid())
   {
     std::cerr << "Referenced study sequence object item is invalid" << std::endl;
     return invalidUid;
   }
-  //rtReferencedStudySequenceItem.getReferencedSOPInstanceUID(ReferencedSOPInstanceUID);
+
   DRTRTReferencedSeriesSequence &rtReferencedSeriesSequenceObject = rtReferencedStudySequenceItem.getRTReferencedSeriesSequence();
   if (!rtReferencedSeriesSequenceObject.gotoFirstItem().good())
   {
     std::cerr << "No referenced series sequence object item is available" << std::endl;
     return invalidUid;
   }
+
   DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject.getCurrentItem();
   if (!rtReferencedSeriesSequenceItem.isValid())
   {
     std::cerr << "Referenced series sequence object item is invalid" << std::endl;
     return invalidUid;
   }
+
   DRTContourImageSequence &rtContourImageSequenceObject = rtReferencedSeriesSequenceItem.getContourImageSequence();
   if (!rtContourImageSequenceObject.gotoFirstItem().good())
   {
     std::cerr << "No contour image sequence object item is available" << std::endl;
     return invalidUid;
   }
+
   DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject.getCurrentItem();
   if (!rtContourImageSequenceItem.isValid())
   {
     std::cerr << "Contour image sequence object item is invalid" << std::endl;
     return invalidUid;
   }
+
   OFString resultUid;
   rtContourImageSequenceItem.getReferencedSOPInstanceUID(resultUid);
   return resultUid;
@@ -498,7 +500,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     {
       continue;
     }
-    ROIStructureSetEntry roiEntry;
+    RoiEntry roiEntry;
 
     OFString roiName;
     currentROISequenceObject.getROIName(roiName);
@@ -511,10 +513,10 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     Sint32 roiNumber;
     currentROISequenceObject.getROINumber(roiNumber);
     roiEntry.Number=roiNumber;
-    // cout << "roi number:" << ROINumber << " roi name:" << ROIName << " roi description:" << ROIDescription << OFendl;
+    // cout << "roi number:" << roiNumber << " roi name:" << ROIName << " roi description:" << ROIDescription << OFendl;
 
     // save to vector          
-    this->ROIContourSequenceVector.push_back(roiEntry);
+    this->RoiSequenceVector.push_back(roiEntry);
   }
   while (rtStructureSetROISequenceObject.gotoNextItem().good());
 
@@ -522,7 +524,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   OFString referencedSOPInstanceUID=GetReferencedFrameOfReferenceSOPInstanceUID(rtStructureSetObject);
   double sliceThickness = GetSliceThickness(referencedSOPInstanceUID);
 
-  Sint32 referenceROINumber;
+  Sint32 referenceRoiNumber;
   DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
   if (!rtROIContourSequenceObject.gotoFirstItem().good())
   {
@@ -542,8 +544,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
     vtkIdType pointId=0;
 
-    currentRoiObject.getReferencedROINumber(referenceROINumber);
-    //cout << "refence roi number:" << referenceROINumber << OFendl;
+    currentRoiObject.getReferencedROINumber(referenceRoiNumber);
     DRTContourSequence &rtContourSequenceObject = currentRoiObject.getContourSequence();
 
     if (rtContourSequenceObject.gotoFirstItem().good())
@@ -585,10 +586,10 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       }
       while (rtContourSequenceObject.gotoNextItem().good());
 
-    } // if gotofirstitem
+    } // if gotoFirstItem
 
     // Save it into ROI vector
-    ROIStructureSetEntry* referenceROI=FindROIByNumber(referenceROINumber);
+    RoiEntry* referenceROI = this->FindRoiByNumber(referenceRoiNumber);
     if (referenceROI==NULL)
     {
       std::cerr << "Reference ROI is not found" << std::endl;      
@@ -610,8 +611,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       tempPolyData->SetPoints(tempPoints);
       tempPolyData->SetLines(tempCellArray);
 
-      // Remove coincident points (if there are multiple
-      // contour points at the same position then the
+      // Remove coincident points (if there are multiple contour points at the same position then the
       // ribbon filter fails)
       vtkSmartPointer<vtkCleanPolyData> cleaner=vtkSmartPointer<vtkCleanPolyData>::New();
       cleaner->SetInput(tempPolyData);
@@ -646,15 +646,15 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 }
 
 //----------------------------------------------------------------------------
-int vtkSlicerDicomRtReader::GetNumberOfROIs()
+int vtkSlicerDicomRtReader::GetNumberOfRois()
 {
-  return this->ROIContourSequenceVector.size();
+  return this->RoiSequenceVector.size();
 }
 
 //----------------------------------------------------------------------------
-const char* vtkSlicerDicomRtReader::GetROINameByROINumber(unsigned int ROINumber)
+const char* vtkSlicerDicomRtReader::GetRoiNameByRoiNumber(unsigned int roiNumber)
 {
-  ROIStructureSetEntry* roi=FindROIByNumber(ROINumber);
+  RoiEntry* roi = this->FindRoiByNumber(roiNumber);
   if (roi==NULL)
   {
     return NULL;
@@ -663,9 +663,9 @@ const char* vtkSlicerDicomRtReader::GetROINameByROINumber(unsigned int ROINumber
 }
 
 //----------------------------------------------------------------------------
-vtkPolyData* vtkSlicerDicomRtReader::GetROIByROINumber(unsigned int ROINumber)
+vtkPolyData* vtkSlicerDicomRtReader::GetRoiPolyDataByRoiNumber(unsigned int roiNumber)
 {
-  ROIStructureSetEntry* roi=FindROIByNumber(ROINumber);
+  RoiEntry* roi = this->FindRoiByNumber(roiNumber);
   if (roi==NULL)
   {
     return NULL;
@@ -674,9 +674,9 @@ vtkPolyData* vtkSlicerDicomRtReader::GetROIByROINumber(unsigned int ROINumber)
 }
 
 //----------------------------------------------------------------------------
-double* vtkSlicerDicomRtReader::GetROIDisplayColorByROINumber(unsigned int ROINumber)
+double* vtkSlicerDicomRtReader::GetRoiDisplayColorByRoiNumber(unsigned int roiNumber)
 {
-  ROIStructureSetEntry* roi=FindROIByNumber(ROINumber);
+  RoiEntry* roi = this->FindRoiByNumber(roiNumber);
   if (roi==NULL)
   {
     return NULL;
@@ -685,36 +685,36 @@ double* vtkSlicerDicomRtReader::GetROIDisplayColorByROINumber(unsigned int ROINu
 }
 
 //----------------------------------------------------------------------------
-const char* vtkSlicerDicomRtReader::GetROIName(unsigned int number)
+const char* vtkSlicerDicomRtReader::GetRoiName(unsigned int internalIndex)
 {
-  if (number >= this->ROIContourSequenceVector.size())
+  if (internalIndex >= this->RoiSequenceVector.size())
   {
-    vtkWarningMacro("Cannot get roi with number: " << number);
+    vtkWarningMacro("Cannot get roi with number: " << internalIndex);
     return NULL;
   }
-  return this->ROIContourSequenceVector[number].Name.c_str();
+  return this->RoiSequenceVector[internalIndex].Name.c_str();
 }
 
 //----------------------------------------------------------------------------
-vtkPolyData* vtkSlicerDicomRtReader::GetROI(unsigned int number)
+vtkPolyData* vtkSlicerDicomRtReader::GetRoiPolyData(unsigned int internalIndex)
 {
-  if (number >= this->ROIContourSequenceVector.size())
+  if (internalIndex >= this->RoiSequenceVector.size())
   {
-    vtkWarningMacro("Cannot get roi with number: " << number);
+    vtkWarningMacro("Cannot get roi with number: " << internalIndex);
     return NULL;
   }
-  return this->ROIContourSequenceVector[number].PolyData;
+  return this->RoiSequenceVector[internalIndex].PolyData;
 }
 
 //----------------------------------------------------------------------------
-double* vtkSlicerDicomRtReader::GetROIDisplayColor(unsigned int number)
+double* vtkSlicerDicomRtReader::GetRoiDisplayColor(unsigned int internalIndex)
 {
-  if (number >= this->ROIContourSequenceVector.size())
+  if (internalIndex >= this->RoiSequenceVector.size())
   {
-    vtkWarningMacro("Cannot get roi with number: " << number);
+    vtkWarningMacro("Cannot get roi with number: " << internalIndex);
     return NULL;
   }
-  return this->ROIContourSequenceVector[number].DisplayColor;
+  return this->RoiSequenceVector[internalIndex].DisplayColor;
 }
 
 //----------------------------------------------------------------------------
@@ -724,9 +724,9 @@ int vtkSlicerDicomRtReader::GetNumberOfBeams()
 }
 
 //----------------------------------------------------------------------------
-const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int BeamNumber)
+const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
 {
-  BeamSequenceEntry* beam=FindBeamByNumber(BeamNumber);
+  BeamEntry* beam=FindBeamByNumber(beamNumber);
   if (beam==NULL)
   {
     return NULL;
@@ -735,14 +735,14 @@ const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int BeamNumber)
 }
 
 //----------------------------------------------------------------------------
-double* vtkSlicerDicomRtReader::GetBeamIsocenterPosition(unsigned int BeamNumber)
+double* vtkSlicerDicomRtReader::GetBeamIsocenterPosition(unsigned int beamNumber)
 {
-  BeamSequenceEntry* beam=FindBeamByNumber(BeamNumber);
+  BeamEntry* beam=FindBeamByNumber(beamNumber);
   if (beam==NULL)
   {
     return NULL;
   }  
-  return beam->IsocenterPosition;
+  return beam->IsocenterPositionRas;
 }
 
 //----------------------------------------------------------------------------
@@ -788,7 +788,7 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomRtReader::BeamSequenceEntry* vtkSlicerDicomRtReader::FindBeamByNumber(unsigned int beamNumber)
+vtkSlicerDicomRtReader::BeamEntry* vtkSlicerDicomRtReader::FindBeamByNumber(unsigned int beamNumber)
 {
   for (unsigned int i=0; i<this->BeamSequenceVector.size(); i++)
   {
@@ -802,13 +802,13 @@ vtkSlicerDicomRtReader::BeamSequenceEntry* vtkSlicerDicomRtReader::FindBeamByNum
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomRtReader::ROIStructureSetEntry* vtkSlicerDicomRtReader::FindROIByNumber(unsigned int roiNumber)
+vtkSlicerDicomRtReader::RoiEntry* vtkSlicerDicomRtReader::FindRoiByNumber(unsigned int roiNumber)
 {
-  for (unsigned int i=0; i<this->ROIContourSequenceVector.size(); i++)
+  for (unsigned int i=0; i<this->RoiSequenceVector.size(); i++)
   {
-    if (this->ROIContourSequenceVector[i].Number == roiNumber)
+    if (this->RoiSequenceVector[i].Number == roiNumber)
     {
-      return &this->ROIContourSequenceVector[i];
+      return &this->RoiSequenceVector[i];
     }
   }
   // not found

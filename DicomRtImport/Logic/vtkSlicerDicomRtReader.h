@@ -60,40 +60,40 @@ public:
 
 public:
   /// Get number of created ROIs
-  int GetNumberOfROIs();
+  int GetNumberOfRois();
 
-  /// Get name of a certain ROI
-  /// \param ROINumber Number of ROI to get
-  const char* GetROINameByROINumber(unsigned int ROINumber);
+  /// Get name of a certain ROI by its ROI number
+  /// \param roiNumber Number (index) of the ROI in question
+  const char* GetRoiNameByRoiNumber(unsigned int roiNumber);
 
-  /// Get display color of a certain ROI
-  /// \param ROINumber Number of ROI to get
-  double* GetROIDisplayColorByROINumber(unsigned int ROINumber);
+  /// Get display color of a certain ROI by its ROI number
+  /// \param roiNumber Number (index) of the ROI in question
+  double* GetRoiDisplayColorByRoiNumber(unsigned int roiNumber);
 
-  /// Get a certain structure set ROI
-  /// \param ROINumber Number of ROI to get
-  vtkPolyData* GetROIByROINumber(unsigned int ROINumber);
+  /// Get model of a certain ROI by its ROI number
+  /// \param roiNumber Number (index) of the ROI in question
+  vtkPolyData* GetRoiPolyDataByRoiNumber(unsigned int roiNumber);
 
-  /// Get name of a certain ROI
-  /// \param number internal id number of ROI to get
-  const char* GetROIName(unsigned int number);
+  /// Get name of a certain ROI by internal index
+  /// \param internalIndex Internal index of ROI to get
+  const char* GetRoiName(unsigned int internalIndex);
 
-  /// Get display color of a certain ROI
-  /// \param number internal id number of ROI to get
-  double* GetROIDisplayColor(unsigned int number);
+  /// Get display color of a certain ROI by internal index
+  /// \param internalIndex Internal index of ROI to get
+  double* GetRoiDisplayColor(unsigned int internalIndex);
 
-  /// Get a certain structure set ROI
-  /// \param number internal id number of ROI to get
-  vtkPolyData* GetROI(unsigned int number);
+  /// Get model of a certain ROI by internal index
+  /// \param internalIndex Internal index of ROI to get
+  vtkPolyData* GetRoiPolyData(unsigned int internalIndex);
 
   /// Get number of beams
   int GetNumberOfBeams();  
 
   /// Get name of beam
-  const char* GetBeamName(unsigned int BeamNumber);
+  const char* GetBeamName(unsigned int beamNumber);
 
   /// Get beam isocenter
-  double* GetBeamIsocenterPosition(unsigned int BeamNumber);
+  double* GetBeamIsocenterPosition(unsigned int beamNumber);
 
   /// Set input file name
   vtkSetStringMacro(FileName);
@@ -118,44 +118,43 @@ public:
 
 protected:
   /// Structure storing an RT structure set
-  class ROIStructureSetEntry
+  class RoiEntry
   {
   public:
-    ROIStructureSetEntry();
-    virtual ~ROIStructureSetEntry();
-    ROIStructureSetEntry(const ROIStructureSetEntry& src);
-    ROIStructureSetEntry &operator=(const ROIStructureSetEntry &src);
+    RoiEntry();
+    virtual ~RoiEntry();
+    RoiEntry(const RoiEntry& src);
+    RoiEntry &operator=(const RoiEntry &src);
 
     void SetPolyData(vtkPolyData* roiPolyData);
 
     unsigned int Number;
-    std::string Name;
-    std::string Description;
-    double DisplayColor[3];
+    std::string  Name;
+    std::string  Description;
+    double       DisplayColor[3];
     vtkPolyData* PolyData;
   };
 
   /// Structure storing an RT structure set
-  class BeamSequenceEntry
+  class BeamEntry
   {
   public:
-    BeamSequenceEntry()
+    BeamEntry()
     {
       Number=-1;
-      IsocenterPosition[0]=0.0;
-      IsocenterPosition[1]=0.0;
-      IsocenterPosition[2]=0.0;
+      IsocenterPositionRas[0]=0.0;
+      IsocenterPositionRas[1]=0.0;
+      IsocenterPositionRas[2]=0.0;
     }
     unsigned int Number;
     std::string Name;
     std::string Type;
     std::string Description;
-    double IsocenterPosition[3]; // in RAS
+    double IsocenterPositionRas[3]; // in RAS
   };
 
 protected:
   /// Load RT Structure Set
-
   void LoadRTStructureSet(DcmDataset*);
 
   /// Load RT Plan 
@@ -168,18 +167,18 @@ protected:
   /*! Set pixel spacing */
   vtkSetVector2Macro(PixelSpacing, double); 
 
-  BeamSequenceEntry* FindBeamByNumber(unsigned int beamNumber);
-  ROIStructureSetEntry* FindROIByNumber(unsigned int roiNumber);
+  BeamEntry* FindBeamByNumber(unsigned int beamNumber);
+  RoiEntry* FindRoiByNumber(unsigned int roiNumber);
 
 protected:
   /// Input file name
   char* FileName;
 
   /// List of loaded contour ROIs from structure set
-  std::vector<ROIStructureSetEntry> ROIContourSequenceVector;
+  std::vector<RoiEntry> RoiSequenceVector;
 
   /// List of loaded contour ROIs from structure set
-  std::vector<BeamSequenceEntry> BeamSequenceVector;
+  std::vector<BeamEntry> BeamSequenceVector;
 
   /// Pixel spacing - for RTDOSE
   double PixelSpacing[2];
