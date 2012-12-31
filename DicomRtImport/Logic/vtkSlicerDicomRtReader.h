@@ -40,12 +40,6 @@
 class vtkPolyData;
 class DcmDataset;
 
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO: investigate why the wrapping fails
-
-//BTX
-
 /// \ingroup SlicerRt_DicomRtImport
 class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtReader : public vtkObject
 {
@@ -209,7 +203,5 @@ private:
   vtkSlicerDicomRtReader(const vtkSlicerDicomRtReader&); // Not implemented
   void operator=(const vtkSlicerDicomRtReader&);         // Not implemented
 };
-
-//ETX
 
 #endif
