@@ -252,31 +252,92 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
         currentBeamSequenceObject.getBeamDescription(beamDescription);
         beamEntry.Description=beamDescription.c_str();
 
+        OFString beamType;
+        currentBeamSequenceObject.getBeamType(beamType);
+        beamEntry.Type=beamType.c_str();
+
         Sint32 beamNumber;
         currentBeamSequenceObject.getBeamNumber(beamNumber);        
         beamEntry.Number = beamNumber;
 
-        this->BeamSequenceVector.push_back(beamEntry);
+        Float64 sourceAxisDistance;
+        currentBeamSequenceObject.getSourceAxisDistance(sourceAxisDistance);
+        beamEntry.SourceAxisDistance = sourceAxisDistance;
 
         DRTControlPointSequence &rtControlPointSequenceObject = currentBeamSequenceObject.getControlPointSequence();
         if (rtControlPointSequenceObject.gotoFirstItem().good())
         {
-          // do // comment out for now since only first control point (as isocenter)
+          // do // comment out for now since only first control point is loaded (as isocenter)
           {
             DRTControlPointSequence::Item &controlPointItem = rtControlPointSequenceObject.getCurrentItem();
-            if ( controlPointItem.isValid())
+            if (controlPointItem.isValid())
             {
-              OFVector<Float64> IsocenterPositionDataLps;
-              controlPointItem.getIsocenterPosition(IsocenterPositionDataLps);
+              OFVector<Float64> isocenterPositionDataLps;
+              controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
               // convert from DICOM LPS -> Slicer RAS
-              beamEntry.IsocenterPositionRas[0] = -IsocenterPositionDataLps[0];
-              beamEntry.IsocenterPositionRas[1] = -IsocenterPositionDataLps[1];
-              beamEntry.IsocenterPositionRas[2] = IsocenterPositionDataLps[2];
-            }
+              beamEntry.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
+              beamEntry.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
+              beamEntry.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
+
+              Float64 gantryAngle;
+              controlPointItem.getGantryAngle(gantryAngle);
+              beamEntry.GantryAngle = gantryAngle;
+
+              Float64 patientSupportAngle;
+              controlPointItem.getPatientSupportAngle(patientSupportAngle);
+              beamEntry.PatientSupportAngle = patientSupportAngle;
+
+              Float64 beamLimitingDeviceAngle;
+              controlPointItem.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
+              beamEntry.BeamLimitingDeviceAngle = beamLimitingDeviceAngle;
+
+              unsigned int numberOfFoundCollimatorPositionItems = 0;
+              DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequenceObject
+                = controlPointItem.getBeamLimitingDevicePositionSequence();
+              if (currentCollimatorPositionSequenceObject.gotoFirstItem().good())
+              {
+                do 
+                {
+                  if (++numberOfFoundCollimatorPositionItems > 2)
+                  {
+                    std::cerr << "Unexpected number of collimator position items (we expect exactly 2)" << std::endl;
+                    break;
+                  }
+
+                  DRTBeamLimitingDevicePositionSequence::Item &collimatorPositionItem
+                    = currentCollimatorPositionSequenceObject.getCurrentItem();
+                  if (collimatorPositionItem.isValid())
+                  {
+                    OFString rtBeamLimitingDeviceType;
+                    collimatorPositionItem.getRTBeamLimitingDeviceType(rtBeamLimitingDeviceType);
+
+                    OFVector<Float64> leafJawPositions;
+                    collimatorPositionItem.getLeafJawPositions(leafJawPositions);
+
+                    if ( !rtBeamLimitingDeviceType.compare("ASYMX") || !rtBeamLimitingDeviceType.compare("X") )
+                    {
+                      beamEntry.LeafJawPositions[0][0] = leafJawPositions[0];
+                      beamEntry.LeafJawPositions[0][1] = leafJawPositions[1];
+                    }
+                    else if ( !rtBeamLimitingDeviceType.compare("ASYMY") || !rtBeamLimitingDeviceType.compare("Y") )
+                    {
+                      beamEntry.LeafJawPositions[1][0] = leafJawPositions[0];
+                      beamEntry.LeafJawPositions[1][1] = leafJawPositions[1];
+                    }
+                    else
+                    {
+                      std::cerr << "Unsupported collimator type: " << rtBeamLimitingDeviceType << std::endl;
+                    }
+                  }
+                }
+                while (currentCollimatorPositionSequenceObject.gotoNextItem().good());
+              }
+            } //endif controlPointItem.isValid()
           }
           // while (rtControlPointSequenceObject.gotoNextItem().good());
         }
 
+        this->BeamSequenceVector.push_back(beamEntry);
       }
       while (rtPlaneBeamSequenceObject.gotoNextItem().good());
     }
@@ -726,7 +787,7 @@ int vtkSlicerDicomRtReader::GetNumberOfBeams()
 //----------------------------------------------------------------------------
 const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
 {
-  BeamEntry* beam=FindBeamByNumber(beamNumber);
+  BeamEntry* beam=this->FindBeamByNumber(beamNumber);
   if (beam==NULL)
   {
     return NULL;
@@ -737,7 +798,7 @@ const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
 //----------------------------------------------------------------------------
 double* vtkSlicerDicomRtReader::GetBeamIsocenterPosition(unsigned int beamNumber)
 {
-  BeamEntry* beam=FindBeamByNumber(beamNumber);
+  BeamEntry* beam=this->FindBeamByNumber(beamNumber);
   if (beam==NULL)
   {
     return NULL;

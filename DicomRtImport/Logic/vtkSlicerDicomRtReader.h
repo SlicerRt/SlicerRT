@@ -139,12 +139,34 @@ protected:
       IsocenterPositionRas[0]=0.0;
       IsocenterPositionRas[1]=0.0;
       IsocenterPositionRas[2]=0.0;
+      SourceAxisDistance=0.0;
+      GantryAngle=0.0;
+      PatientSupportAngle=0.0;
+      BeamLimitingDeviceAngle=0.0;
+      // TODO: good default values for the jaw positions?
+      LeafJawPositions[0][0]=0.0;
+      LeafJawPositions[0][1]=0.0;
+      LeafJawPositions[1][0]=0.0;
+      LeafJawPositions[1][1]=0.0;
     }
     unsigned int Number;
     std::string Name;
     std::string Type;
     std::string Description;
-    double IsocenterPositionRas[3]; // in RAS
+    double IsocenterPositionRas[3];
+
+    // TODO: 
+    // In case of VMAT the following parameters can change by each control point
+    //   (this is not supported yet!)
+    // In case of IMRT, these are fixed (for Slicer visualization, in reality there is
+    //   a second control point that defines the CumulativeMetersetWeight to know when
+    //   to end irradiation.
+    double SourceAxisDistance;
+    double GantryAngle;
+    double PatientSupportAngle;
+    double BeamLimitingDeviceAngle;
+    /// Jaw positions: X and Y positions with isocenter as origin (e.g. {{-50,50}{-50,50}} )
+    double LeafJawPositions[2][2];
   };
 
 protected:
