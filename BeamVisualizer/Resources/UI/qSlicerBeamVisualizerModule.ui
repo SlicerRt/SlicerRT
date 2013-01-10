@@ -229,7 +229,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>395</x>
-     <y>775</y>
+     <y>155</y>
     </hint>
    </hints>
   </connection>
@@ -262,6 +262,22 @@
     <hint type="destinationlabel">
      <x>166</x>
      <y>74</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerBeamVisualizerModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_SourceFiducial</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>301</x>
+     <y>4</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>315</x>
+     <y>86</y>
     </hint>
    </hints>
   </connection>

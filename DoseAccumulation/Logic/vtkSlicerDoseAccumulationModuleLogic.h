@@ -54,7 +54,7 @@ public:
   /// Collect and return volume nodes (if in DoseAccumulationNode ShowDoseVolumesOnly is set to true, then only return dose volumes)
   vtkCollection* GetVolumeNodesFromScene();
 
-  /// 
+  /// TODO:
   bool ReferenceDoseVolumeContainsDose();
 
   /// Accumulates dose volumes with the given IDs and corresponding weights

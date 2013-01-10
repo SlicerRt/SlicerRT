@@ -195,6 +195,14 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
     {
       d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNode(paramNode->GetAccumulatedDoseVolumeNodeId());
     }
+    if (paramNode->GetReferenceDoseVolumeNodeId() && strcmp(paramNode->GetReferenceDoseVolumeNodeId(),""))
+    {
+      d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNode(paramNode->GetReferenceDoseVolumeNodeId());
+    }
+    else
+    {
+      this->referenceDoseVolumeNodeChanged(d->MRMLNodeComboBox_ReferenceDoseVolume->currentNode());
+    }
   }
 
   this->refreshOutputBaseName();

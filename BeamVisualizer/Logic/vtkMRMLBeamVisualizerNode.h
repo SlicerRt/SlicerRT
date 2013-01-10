@@ -26,10 +26,6 @@
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
 
-// STD includes
-#include <set>
-#include <map>
-
 #include "vtkSlicerBeamVisualizerModuleLogicExport.h"
 
 class VTK_SLICER_BEAMVISUALIZER_LOGIC_EXPORT vtkMRMLBeamVisualizerNode : public vtkMRMLNode
@@ -54,44 +50,36 @@ public:
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "BeamVisualizer";};
 
-  /// Enable/Disable show dose volumes only
-  vtkBooleanMacro(ShowDoseVolumesOnly, bool);
-  vtkGetMacro(ShowDoseVolumesOnly, bool);
-  vtkSetMacro(ShowDoseVolumesOnly, bool);
+  /// Get isocenter fiducial MRML Id 
+  vtkGetStringMacro(IsocenterFiducialNodeId);
 
-  /// Get selected input volumes MRML Ids
-  std::set<std::string>* GetSelectedInputVolumeIds()
-  {
-    return &this->SelectedInputVolumeIds;
-  }
+  /// Get source fiducial MRML Id 
+  vtkGetStringMacro(SourceFiducialNodeId);
 
-  /// Get volumes node IDs to weights map
-  std::map<std::string,double>* GetVolumeNodeIdsToWeightsMap()
-  {
-    return &this->VolumeNodeIdsToWeightsMap;
-  }
+  /// Set and observe isocenter fiducial MRML Id 
+  void SetAndObserveIsocenterFiducialNodeId(const char* id);
 
-  /// Get reference dose volume MRML Id 
-  vtkGetStringMacro(ReferenceDoseVolumeNodeId);
+  /// Set and observe souce fiducial MRML Id 
+  void SetAndObserveSourceFiducialNodeId(const char* id);
 
-  /// Set and observe reference dose volume MRML Id 
-  void SetAndObserveReferenceDoseVolumeNodeId(const char* id);
+  /// Get output beam model MRML Id 
+  vtkGetStringMacro(BeamModelNodeId);
 
-  /// Get output accumulated dose volume MRML Id 
-  vtkGetStringMacro(AccumulatedDoseVolumeNodeId);
-
-  /// Set and observe output accumulated dose volume MRML Id 
-  void SetAndObserveAccumulatedDoseVolumeNodeId(const char* id);
+  /// Set and observe output beam model MRML Id 
+  void SetAndObserveBeamModelNodeId(const char* id);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
 protected:
-  /// Set output accumulated dose volume MRML Id 
-  vtkSetStringMacro(ReferenceDoseVolumeNodeId);
+  /// Set isocenter fiducial MRML Id 
+  vtkSetStringMacro(IsocenterFiducialNodeId);
 
-  /// Set output accumulated dose volume MRML Id 
-  vtkSetStringMacro(AccumulatedDoseVolumeNodeId);
+  /// Set source fiducial MRML Id 
+  vtkSetStringMacro(SourceFiducialNodeId);
+
+  /// Set output beam model MRML Id 
+  vtkSetStringMacro(BeamModelNodeId);
 
 protected:
   vtkMRMLBeamVisualizerNode();
@@ -100,21 +88,14 @@ protected:
   void operator=(const vtkMRMLBeamVisualizerNode&);
 
 protected:
-  /// State of Show dose volumes only checkbox
-  bool ShowDoseVolumesOnly;
+  /// ID of the input isocenter fiducial node
+  char* IsocenterFiducialNodeId;
 
-  /// List of IDs of the selected input volume nodes
-  std::set<std::string> SelectedInputVolumeIds;
+  /// ID of the input source fiducial node
+  char* SourceFiducialNodeId;
 
-  /// Map assigning a weight to the available input volume nodes
-  /// (as the user set it on the module GUI)
-  std::map<std::string,double> VolumeNodeIdsToWeightsMap;
-
-  /// ID of the output accumulated dose volume node
-  char* ReferenceDoseVolumeNodeId;
-
-  /// ID of the output accumulated dose volume node
-  char* AccumulatedDoseVolumeNodeId;
+  /// ID of the output beam model node
+  char* BeamModelNodeId;
 };
 
 #endif

@@ -34,7 +34,7 @@
 #include "vtkMRMLBeamVisualizerNode.h"
 
 // MRML includes
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLAnnotationFiducialNode.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_BeamVisualizer
@@ -47,12 +47,6 @@ public:
   qSlicerBeamVisualizerModuleWidgetPrivate(qSlicerBeamVisualizerModuleWidget& object);
   ~qSlicerBeamVisualizerModuleWidgetPrivate();
   vtkSlicerBeamVisualizerModuleLogic* logic() const;
-public:
-  /// Map that associates dose volume checkboxes to the corresponding MRML node IDs and the dose unit name
-  //std::map<QCheckBox*, std::pair<std::string, std::string> > CheckboxToVolumeIdMap;
-
-  /// Text of the attribute table item that is being edited
-  //QString SelectedTableItemText;
 };
 
 //-----------------------------------------------------------------------------
@@ -61,15 +55,12 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerBeamVisualizerModuleWidgetPrivate::qSlicerBeamVisualizerModuleWidgetPrivate(qSlicerBeamVisualizerModuleWidget& object)
   : q_ptr(&object)
-  //, SelectedTableItemText(QString())
 {
-  //this->CheckboxToVolumeIdMap.clear();
 }
 
 //-----------------------------------------------------------------------------
 qSlicerBeamVisualizerModuleWidgetPrivate::~qSlicerBeamVisualizerModuleWidgetPrivate()
 {
-  //this->CheckboxToVolumeIdMap.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -186,19 +177,29 @@ void qSlicerBeamVisualizerModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerBeamVisualizerModuleWidget);
 
-  //vtkMRMLBeamVisualizerNode* paramNode = d->logic()->GetBeamVisualizerNode();
-  //if (paramNode && this->mrmlScene())
-  //{
-  //  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetBeamVisualizerNode());
-  //  d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
-  //  if (paramNode->GetAccumulatedDoseVolumeNodeId() && strcmp(paramNode->GetAccumulatedDoseVolumeNodeId(),""))
-  //  {
-  //    d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNode(paramNode->GetAccumulatedDoseVolumeNodeId());
-  //  }
-  //}
+  vtkMRMLBeamVisualizerNode* paramNode = d->logic()->GetBeamVisualizerNode();
+  if (paramNode && this->mrmlScene())
+  {
+    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetBeamVisualizerNode());
+    if (paramNode->GetIsocenterFiducialNodeId() && strcmp(paramNode->GetIsocenterFiducialNodeId(),""))
+    {
+      d->MRMLNodeComboBox_IsocenterFiducial->setCurrentNode(paramNode->GetIsocenterFiducialNodeId());
+    }
+    else
+    {
+      this->isocenterFiducialNodeChanged(d->MRMLNodeComboBox_IsocenterFiducial->currentNode());
+    }
+    if (paramNode->GetSourceFiducialNodeId() && strcmp(paramNode->GetSourceFiducialNodeId(),""))
+    {
+      d->MRMLNodeComboBox_SourceFiducial->setCurrentNode(paramNode->GetSourceFiducialNodeId());
+    }
+    else
+    {
+      this->sourceFiducialNodeChanged(d->MRMLNodeComboBox_SourceFiducial->currentNode());
+    }
+  }
 
-  //this->refreshOutputBaseName();
-  //this->refreshVolumesTable();
+  this->refreshOutputBaseName();
 }
 
 //-----------------------------------------------------------------------------
@@ -208,22 +209,12 @@ void qSlicerBeamVisualizerModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  //d->label_Warning->setVisible(false);
-  //d->label_Error->setVisible(false);
+  // Make connections
+  connect( d->MRMLNodeComboBox_IsocenterFiducial, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( isocenterFiducialNodeChanged(vtkMRMLNode*) ) );
+  connect( d->MRMLNodeComboBox_SourceFiducial, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( sourceFiducialNodeChanged(vtkMRMLNode*) ) );
 
-  //d->tableWidget_Volumes->setColumnWidth(0, 20);
-  //d->tableWidget_Volumes->setColumnWidth(1, 300);
-
-  //// Make connections
-  //connect( d->MRMLNodeComboBox_ReferenceDoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( referenceDoseVolumeNodeChanged(vtkMRMLNode*) ) );
-
-  //connect( d->checkBox_ShowDoseVolumesOnly, SIGNAL( stateChanged(int) ), this, SLOT( showDoseOnlyChanged(int) ) );
-
-  //connect( d->tableWidget_Volumes, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(onTableItemChanged(QTableWidgetItem*)) );
-  //connect( d->tableWidget_Volumes, SIGNAL(currentItemChanged(QTableWidgetItem*,QTableWidgetItem*)), this, SLOT(storeSelectedTableItemText(QTableWidgetItem*,QTableWidgetItem*)) );
-
-  //connect( d->MRMLNodeComboBox_AccumulatedDoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(accumulatedDoseVolumeNodeChanged(vtkMRMLNode*)) );
-  //connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
+  connect( d->MRMLNodeComboBox_BeamModel, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(beamModelNodeChanged(vtkMRMLNode*)) );
+  connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setBeamVisualizerNode(vtkMRMLNode*)) );
 
@@ -234,7 +225,7 @@ void qSlicerBeamVisualizerModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNode* node)
+void qSlicerBeamVisualizerModuleWidget::isocenterFiducialNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerBeamVisualizerModuleWidget);
 
@@ -244,18 +235,16 @@ void qSlicerBeamVisualizerModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
     return;
   }
 
-  //paramNode->DisableModifiedEventOn();
-  //paramNode->SetAndObserveReferenceDoseVolumeNodeId(node->GetID());
-  //paramNode->DisableModifiedEventOff();
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveIsocenterFiducialNodeId(node->GetID());
+  paramNode->DisableModifiedEventOff();
 
-  //this->updateButtonsState();
-
-  //d->label_Warning->setVisible(!d->logic()->ReferenceDoseVolumeContainsDose());
-  //d->label_Warning->setText(QString("Volume is not a dose volume!"));
+  this->updateButtonsState();
+  this->refreshOutputBaseName();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::accumulatedDoseVolumeNodeChanged(vtkMRMLNode* node)
+void qSlicerBeamVisualizerModuleWidget::sourceFiducialNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerBeamVisualizerModuleWidget);
 
@@ -265,11 +254,30 @@ void qSlicerBeamVisualizerModuleWidget::accumulatedDoseVolumeNodeChanged(vtkMRML
     return;
   }
 
-  //paramNode->DisableModifiedEventOn();
-  //paramNode->SetAndObserveAccumulatedDoseVolumeNodeId(node->GetID());
-  //paramNode->DisableModifiedEventOff();
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveSourceFiducialNodeId(node->GetID());
+  paramNode->DisableModifiedEventOff();
 
-  //this->updateButtonsState();
+  this->updateButtonsState();
+  this->refreshOutputBaseName();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBeamVisualizerModuleWidget::beamModelNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerBeamVisualizerModuleWidget);
+
+  vtkMRMLBeamVisualizerNode* paramNode = d->logic()->GetBeamVisualizerNode();
+  if (!paramNode || !this->mrmlScene() || !node)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveBeamModelNodeId(node->GetID());
+  paramNode->DisableModifiedEventOff();
+
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -277,11 +285,12 @@ void qSlicerBeamVisualizerModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerBeamVisualizerModuleWidget);
 
-  //bool applyEnabled = d->logic()->GetBeamVisualizerNode()
-  //                 && d->logic()->GetBeamVisualizerNode()->GetAccumulatedDoseVolumeNodeId()
-  //                 && strcmp(d->logic()->GetBeamVisualizerNode()->GetAccumulatedDoseVolumeNodeId(), "")
-  //                 && d->logic()->GetBeamVisualizerNode()->GetSelectedInputVolumeIds()->size() > 0;
-  //d->pushButton_Apply->setEnabled(applyEnabled);
+  bool applyEnabled = d->logic()->GetBeamVisualizerNode()
+                   && d->logic()->GetBeamVisualizerNode()->GetIsocenterFiducialNodeId()
+                   && strcmp(d->logic()->GetBeamVisualizerNode()->GetIsocenterFiducialNodeId(), "")
+                   && d->logic()->GetBeamVisualizerNode()->GetSourceFiducialNodeId()
+                   && strcmp(d->logic()->GetBeamVisualizerNode()->GetSourceFiducialNodeId(), "");
+  d->pushButton_Apply->setEnabled(applyEnabled);
 }
 
 //-----------------------------------------------------------------------------
@@ -298,12 +307,7 @@ void qSlicerBeamVisualizerModuleWidget::applyClicked()
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   std::string errorMessage;
-  d->logic()->AccumulateDoseVolumes(errorMessage);
-
-  //d->label_Error->setVisible( !errorMessage.empty() );
-  //d->label_Error->setText( QString(errorMessage.c_str()) );
-
-  //this->refreshVolumesTable();
+  d->logic()->CreateBeamModel(errorMessage);
 
   QApplication::restoreOverrideCursor();
 }
@@ -313,28 +317,29 @@ void qSlicerBeamVisualizerModuleWidget::refreshOutputBaseName()
 {
   Q_D(qSlicerBeamVisualizerModuleWidget);
 
-  if (!this->mrmlScene())
+  vtkMRMLBeamVisualizerNode* paramNode = d->logic()->GetBeamVisualizerNode();
+  if (!paramNode || !this->mrmlScene())
   {
     return;
   }
 
-  //QString newBaseName(SlicerRtCommon::BeamVisualizer_OUTPUT_BASE_NAME_PREFIX.c_str());
-  //std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator it;
-  //for (it=d->CheckboxToVolumeIdMap.begin(); it!=d->CheckboxToVolumeIdMap.end(); ++it)
-  //{
-  //  if (it->first->isChecked())
-  //  {
-  //    vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(
-  //      this->mrmlScene()->GetNodeByID(it->second.first.c_str()) );
-  //    if (!volumeNode)
-  //    {
-  //      continue;
-  //    }
+  QString newBaseName(SlicerRtCommon::BEAMVISUALIZER_OUTPUT_BASE_NAME_PREFIX.c_str());
 
-  //    newBaseName.append("_");
-  //    newBaseName.append(volumeNode->GetName());
-  //  }
-  //}
+  vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
+    this->mrmlScene()->GetNodeByID(paramNode->GetIsocenterFiducialNodeId()) );
+  if (isocenterNode)
+  {
+    newBaseName.append("_");
+    newBaseName.append(isocenterNode->GetName());
+  }
 
-  //d->MRMLNodeComboBox_AccumulatedDoseVolume->setBaseName( newBaseName.toLatin1() );
+  vtkMRMLAnnotationFiducialNode* sourceNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
+    this->mrmlScene()->GetNodeByID(paramNode->GetSourceFiducialNodeId()) );
+  if (sourceNode)
+  {
+    newBaseName.append("_");
+    newBaseName.append(sourceNode->GetName());
+  }
+
+  d->MRMLNodeComboBox_BeamModel->setBaseName( newBaseName.toLatin1() );
 }

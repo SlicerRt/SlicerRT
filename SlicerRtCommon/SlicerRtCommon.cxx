@@ -73,6 +73,9 @@ const std::string SlicerRtCommon::ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX = "_Isod
 // Dose comparison constants
 const std::string SlicerRtCommon::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX = "GammaVolume";
 
+// BeamVisualizer constants
+const std::string SlicerRtCommon::BEAMVISUALIZER_OUTPUT_BASE_NAME_PREFIX = "BeamModel";
+
 //----------------------------------------------------------------------------
 // Utility functions
 //----------------------------------------------------------------------------

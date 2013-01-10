@@ -24,7 +24,8 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLAnnotationFiducialNode.h>
+#include <vtkMRMLModelNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -39,11 +40,9 @@ vtkMRMLNodeNewMacro(vtkMRMLBeamVisualizerNode);
 //----------------------------------------------------------------------------
 vtkMRMLBeamVisualizerNode::vtkMRMLBeamVisualizerNode()
 {
-  this->ShowDoseVolumesOnly = true;
-  this->SelectedInputVolumeIds.clear();
-  this->VolumeNodeIdsToWeightsMap.clear();
-  this->ReferenceDoseVolumeNodeId = NULL;
-  this->AccumulatedDoseVolumeNodeId = NULL;
+  this->IsocenterFiducialNodeId = NULL;
+  this->SourceFiducialNodeId = NULL;
+  this->BeamModelNodeId = NULL;
 
   this->HideFromEditors = false;
 }
@@ -51,10 +50,9 @@ vtkMRMLBeamVisualizerNode::vtkMRMLBeamVisualizerNode()
 //----------------------------------------------------------------------------
 vtkMRMLBeamVisualizerNode::~vtkMRMLBeamVisualizerNode()
 {
-  this->SelectedInputVolumeIds.clear();
-  this->VolumeNodeIdsToWeightsMap.clear();
-  this->SetReferenceDoseVolumeNodeId(NULL);
-  this->SetAccumulatedDoseVolumeNodeId(NULL);
+  this->SetIsocenterFiducialNodeId(NULL);
+  this->SetSourceFiducialNodeId(NULL);
+  this->SetBeamModelNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -65,41 +63,30 @@ void vtkMRMLBeamVisualizerNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  of << indent << " ShowDoseVolumesOnly=\"" << (this->ShowDoseVolumesOnly ? "true" : "false") << "\"";
-
-  {
-    of << indent << " SelectedInputVolumeIds=\"";
-    for (std::set<std::string>::iterator it = this->SelectedInputVolumeIds.begin(); it != this->SelectedInputVolumeIds.end(); ++it)
-      {
-      of << (*it) << "|";
-      }
-    of << "\"";
-  }
-
-  {
-    of << indent << " VolumeNodeIdsToWeightsMap=\"";
-    for (std::map<std::string,double>::iterator it = this->VolumeNodeIdsToWeightsMap.begin(); it != this->VolumeNodeIdsToWeightsMap.end(); ++it)
-      {
-      of << it->first << ":" << it->second << "|";
-      }
-    of << "\"";
-  }
-
   {
     std::stringstream ss;
-    if ( this->ReferenceDoseVolumeNodeId )
+    if ( this->IsocenterFiducialNodeId )
       {
-      ss << this->ReferenceDoseVolumeNodeId;
-      of << indent << " ReferenceDoseVolumeNodeId=\"" << ss.str() << "\"";
+      ss << this->IsocenterFiducialNodeId;
+      of << indent << " IsocenterFiducialNodeId=\"" << ss.str() << "\"";
      }
   }
 
   {
     std::stringstream ss;
-    if ( this->AccumulatedDoseVolumeNodeId )
+    if ( this->SourceFiducialNodeId )
+    {
+      ss << this->SourceFiducialNodeId;
+      of << indent << " SourceFiducialNodeId=\"" << ss.str() << "\"";
+    }
+  }
+
+  {
+    std::stringstream ss;
+    if ( this->BeamModelNodeId )
       {
-      ss << this->AccumulatedDoseVolumeNodeId;
-      of << indent << " AccumulatedDoseVolumeNodeId=\"" << ss.str() << "\"";
+      ss << this->BeamModelNodeId;
+      of << indent << " BeamModelNodeId=\"" << ss.str() << "\"";
      }
   }
 }
@@ -116,87 +103,23 @@ void vtkMRMLBeamVisualizerNode::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
-    if (!strcmp(attName, "ShowDoseVolumesOnly")) 
-      {
-      this->ShowDoseVolumesOnly = 
-        (strcmp(attValue,"true") ? false : true);
-      }
-    else if (!strcmp(attName, "SelectedInputVolumeIds")) 
+    if (!strcmp(attName, "IsocenterFiducialNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      std::string valueStr = ss.str();
-      std::string separatorCharacter("|");
-
-      this->SelectedInputVolumeIds.clear();
-      size_t separatorPosition = valueStr.find( separatorCharacter );
-      while (separatorPosition != std::string::npos)
-        {
-        this->SelectedInputVolumeIds.insert( valueStr.substr(0, separatorPosition) );
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-        }
-      if (! valueStr.empty() )
-        {
-        this->SelectedInputVolumeIds.insert( valueStr );
-        }
+      this->SetAndObserveIsocenterFiducialNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "VolumeNodeIdsToWeightsMap")) 
+    else if (!strcmp(attName, "SourceFiducialNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      std::string valueStr = ss.str();
-      std::string separatorCharacter("|");
-
-      this->VolumeNodeIdsToWeightsMap.clear();
-      size_t separatorPosition = valueStr.find( separatorCharacter );
-      while (separatorPosition != std::string::npos)
-        {
-        std::string mapPairStr = valueStr.substr(0, separatorPosition);
-        size_t colonPosition = mapPairStr.find( ":" );
-        if (colonPosition == std::string::npos)
-          {
-          continue;
-          }
-        std::string volumeNodeId = mapPairStr.substr(0, colonPosition);
-
-        double weight;
-        std::stringstream vss;
-        vss << mapPairStr.substr( colonPosition+1 );
-        vss >> weight;
-
-        this->VolumeNodeIdsToWeightsMap[volumeNodeId] = weight;
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-        }
-      if (! valueStr.empty() )
-        {
-        std::string mapPairStr = valueStr.substr(0, separatorPosition);
-        size_t colonPosition = mapPairStr.find( ":" );
-        if (colonPosition != std::string::npos)
-          {
-          std::string volumeNodeId = mapPairStr.substr(0, colonPosition);
-
-          double weight;
-          std::stringstream vss;
-          vss << mapPairStr.substr( colonPosition+1 );
-          vss >> weight;
-
-          this->VolumeNodeIdsToWeightsMap[volumeNodeId] = weight;
-          }
-        }
+      this->SetAndObserveSourceFiducialNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "ReferenceDoseVolumeNodeId")) 
+    else if (!strcmp(attName, "BeamModelNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveReferenceDoseVolumeNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "AccumulatedDoseVolumeNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveAccumulatedDoseVolumeNodeId(ss.str().c_str());
+      this->SetAndObserveBeamModelNodeId(ss.str().c_str());
       }
     }
 }
@@ -211,12 +134,9 @@ void vtkMRMLBeamVisualizerNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLBeamVisualizerNode *node = (vtkMRMLBeamVisualizerNode *) anode;
 
-  this->SetShowDoseVolumesOnly(node->ShowDoseVolumesOnly);
-  this->SetAndObserveReferenceDoseVolumeNodeId(node->ReferenceDoseVolumeNodeId);
-  this->SetAndObserveAccumulatedDoseVolumeNodeId(node->AccumulatedDoseVolumeNodeId);
-
-  this->SelectedInputVolumeIds = node->SelectedInputVolumeIds;
-  this->VolumeNodeIdsToWeightsMap = node->VolumeNodeIdsToWeightsMap;
+  this->SetAndObserveIsocenterFiducialNodeId(node->IsocenterFiducialNodeId);
+  this->SetAndObserveSourceFiducialNodeId(node->SourceFiducialNodeId);
+  this->SetAndObserveBeamModelNodeId(node->BeamModelNodeId);
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -227,83 +147,72 @@ void vtkMRMLBeamVisualizerNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "ShowDoseVolumesOnly:   " << (this->ShowDoseVolumesOnly ? "true" : "false") << "\n";
-
-  {
-    os << indent << "SelectedInputVolumeIds:   ";
-    for (std::set<std::string>::iterator it = this->SelectedInputVolumeIds.begin(); it != this->SelectedInputVolumeIds.end(); ++it)
-      {
-      os << (*it) << "|";
-      }
-    os << "\n";
-  }
-
-  {
-    os << indent << "VolumeNodeIdsToWeightsMap:   ";
-    for (std::map<std::string,double>::iterator it = this->VolumeNodeIdsToWeightsMap.begin(); it != this->VolumeNodeIdsToWeightsMap.end(); ++it)
-      {
-      os << it->first << ":" << it->second << "|";
-      }
-    os << "\n";
-  }
-
-  os << indent << "ReferenceDoseVolumeNodeId:   " << this->ReferenceDoseVolumeNodeId << "\n";
-  os << indent << "AccumulatedDoseVolumeNodeId:   " << this->AccumulatedDoseVolumeNodeId << "\n";
+  os << indent << "IsocenterFiducialNodeId:   " << this->IsocenterFiducialNodeId << "\n";
+  os << indent << "SourceFiducialNodeId:   " << this->SourceFiducialNodeId << "\n";
+  os << indent << "BeamModelNodeId:   " << this->BeamModelNodeId << "\n";
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamVisualizerNode::SetAndObserveReferenceDoseVolumeNodeId(const char* id)
+void vtkMRMLBeamVisualizerNode::SetAndObserveIsocenterFiducialNodeId(const char* id)
 {
-  if (this->ReferenceDoseVolumeNodeId)
+  if (this->IsocenterFiducialNodeId)
   {
-    this->Scene->RemoveReferencedNodeID(this->ReferenceDoseVolumeNodeId, this);
+    this->Scene->RemoveReferencedNodeID(this->IsocenterFiducialNodeId, this);
   }
 
-  this->SetReferenceDoseVolumeNodeId(id);
+  this->SetIsocenterFiducialNodeId(id);
 
   if (id)
   {
-    this->Scene->AddReferencedNodeID(this->ReferenceDoseVolumeNodeId, this);
+    this->Scene->AddReferencedNodeID(this->IsocenterFiducialNodeId, this);
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamVisualizerNode::SetAndObserveAccumulatedDoseVolumeNodeId(const char* id)
+void vtkMRMLBeamVisualizerNode::SetAndObserveSourceFiducialNodeId(const char* id)
 {
-  if (this->AccumulatedDoseVolumeNodeId)
+  if (this->SourceFiducialNodeId)
   {
-    this->Scene->RemoveReferencedNodeID(this->AccumulatedDoseVolumeNodeId, this);
+    this->Scene->RemoveReferencedNodeID(this->SourceFiducialNodeId, this);
   }
 
-  this->SetAccumulatedDoseVolumeNodeId(id);
+  this->SetSourceFiducialNodeId(id);
 
   if (id)
   {
-    this->Scene->AddReferencedNodeID(this->AccumulatedDoseVolumeNodeId, this);
+    this->Scene->AddReferencedNodeID(this->SourceFiducialNodeId, this);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLBeamVisualizerNode::SetAndObserveBeamModelNodeId(const char* id)
+{
+  if (this->BeamModelNodeId)
+  {
+    this->Scene->RemoveReferencedNodeID(this->BeamModelNodeId, this);
+  }
+
+  this->SetBeamModelNodeId(id);
+
+  if (id)
+  {
+    this->Scene->AddReferencedNodeID(this->BeamModelNodeId, this);
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLBeamVisualizerNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
-  if (this->SelectedInputVolumeIds.find(oldID) != this->SelectedInputVolumeIds.end())
+  if (this->IsocenterFiducialNodeId && !strcmp(oldID, this->IsocenterFiducialNodeId))
     {
-    this->SelectedInputVolumeIds.erase(oldID);
-    this->SelectedInputVolumeIds.insert(newID);
+    this->SetAndObserveIsocenterFiducialNodeId(newID);
     }
-  std::map<std::string,double>::iterator it;
-  if ((it = this->VolumeNodeIdsToWeightsMap.find(oldID)) != this->VolumeNodeIdsToWeightsMap.end())
+  if (this->SourceFiducialNodeId && !strcmp(oldID, this->SourceFiducialNodeId))
     {
-      double weight = it->second;
-      this->VolumeNodeIdsToWeightsMap.erase(oldID);
-      this->VolumeNodeIdsToWeightsMap[newID] = weight;
+    this->SetAndObserveSourceFiducialNodeId(newID);
     }
-  if (this->ReferenceDoseVolumeNodeId && !strcmp(oldID, this->ReferenceDoseVolumeNodeId))
+  if (this->BeamModelNodeId && !strcmp(oldID, this->BeamModelNodeId))
     {
-    this->SetAndObserveReferenceDoseVolumeNodeId(newID);
-    }
-  if (this->AccumulatedDoseVolumeNodeId && !strcmp(oldID, this->AccumulatedDoseVolumeNodeId))
-    {
-    this->SetAndObserveAccumulatedDoseVolumeNodeId(newID);
+    this->SetAndObserveBeamModelNodeId(newID);
     }
 }

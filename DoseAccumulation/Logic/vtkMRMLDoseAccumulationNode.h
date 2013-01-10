@@ -87,7 +87,7 @@ public:
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
 protected:
-  /// Set output accumulated dose volume MRML Id 
+  /// Set input reference dose volume MRML Id 
   vtkSetStringMacro(ReferenceDoseVolumeNodeId);
 
   /// Set output accumulated dose volume MRML Id 
@@ -110,7 +110,7 @@ protected:
   /// (as the user set it on the module GUI)
   std::map<std::string,double> VolumeNodeIdsToWeightsMap;
 
-  /// ID of the output accumulated dose volume node
+  /// ID of the input reference dose volume node
   char* ReferenceDoseVolumeNodeId;
 
   /// ID of the output accumulated dose volume node

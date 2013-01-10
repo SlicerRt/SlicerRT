@@ -89,8 +89,11 @@ public:
   static const std::string ISODOSE_MODEL_NODE_NAME_PREFIX;
   static const std::string ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX;
 
-  // Dose comparison constants
+  // DoseComparison constants
   static const std::string DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX;
+
+  // BeamVisualizer constants
+  static const std::string BEAMVISUALIZER_OUTPUT_BASE_NAME_PREFIX;
 
   //----------------------------------------------------------------------------
   // Utility functions

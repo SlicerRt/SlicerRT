@@ -51,14 +51,8 @@ public:
   vtkTypeMacro(vtkSlicerBeamVisualizerModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Collect and return volume nodes (if in BeamVisualizerNode ShowDoseVolumesOnly is set to true, then only return dose volumes)
-  vtkCollection* GetVolumeNodesFromScene();
-
-  /// 
-  bool ReferenceDoseVolumeContainsDose();
-
-  /// Accumulates dose volumes with the given IDs and corresponding weights
-  void AccumulateDoseVolumes(std::string &errorMessage);
+  /// Create beam geometry model from isocenter and source fiducials
+  void CreateBeamModel(std::string &errorMessage);
 
 public:
   /// Set and observe dose accumulation parameter node 
