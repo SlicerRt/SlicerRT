@@ -306,7 +306,6 @@ void qSlicerBeamVisualizerModuleWidget::applyClicked()
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   std::string errorMessage;
-  d->logic()->ComputeSourceFiducialPosition(errorMessage);
   d->logic()->CreateBeamModel(errorMessage);
 
   QApplication::restoreOverrideCursor();

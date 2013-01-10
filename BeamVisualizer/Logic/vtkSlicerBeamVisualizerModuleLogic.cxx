@@ -29,14 +29,17 @@
 // MRML includes
 #include <vtkMRMLAnnotationFiducialNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLModelDisplayNode.h>
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
+#include <vtkConeSource.h>
 
 // STD includes
 #include <cassert>
+//#include <cmath>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerBeamVisualizerModuleLogic);
@@ -246,7 +249,14 @@ void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::stri
 
   // Get source position
   double* sourceCoordinates = isocenterToSourceTransform->TransformPoint(isocenterCoordinates);
-  sourceNode->AddControlPoint(sourceCoordinates, 0, 1);
+  if (sourceNode->GetNumberOfControlPoints() == 0)
+  {
+    sourceNode->AddControlPoint(sourceCoordinates, 0, 1);
+  }
+  else
+  {
+    sourceNode->SetControlPoint(0, sourceCoordinates);
+  }
 
   vtkDebugMacro("Source coordinates computed to be ("
     << sourceCoordinates[0] << ", " << sourceCoordinates[1] << ", " << sourceCoordinates[2] << ")");
@@ -259,6 +269,7 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
   {
     return;
   }
+
   if ( !this->BeamVisualizerNode->GetIsocenterFiducialNodeId()
     || !strcmp(this->BeamVisualizerNode->GetIsocenterFiducialNodeId(), "")
     || !this->BeamVisualizerNode->GetSourceFiducialNodeId()
@@ -269,12 +280,31 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
     return;
   }
 
-  // Get isocenter fiducial node
+  // Compute source position
+  std::string errorMessageSource("");
+  this->ComputeSourceFiducialPosition(errorMessageSource);
+  if (!errorMessageSource.empty())
+  {
+    errorMessage = "Failed to compute source position!";
+    vtkErrorMacro(<<errorMessage);
+    return;
+  }
+
+  // Get isocenter and source fiducial nodes
   vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->BeamVisualizerNode->GetIsocenterFiducialNodeId()) );
   if (!isocenterNode)
   {
     errorMessage = "Unable to retrieve isocenter fiducial node according its ID!";
+    vtkErrorMacro(<<errorMessage); 
+    return;
+  }
+  // Get source fiducial node
+  vtkMRMLAnnotationFiducialNode* sourceNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->BeamVisualizerNode->GetSourceFiducialNodeId()) );
+  if (!sourceNode)
+  {
+    errorMessage = "Unable to retrieve source fiducial node according its ID!";
     vtkErrorMacro(<<errorMessage); 
     return;
   }
@@ -299,8 +329,17 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
     ss >> jawPosition[0][0] >> jawPosition[0][1] >> jawPosition[1][0] >> jawPosition[1][1];
   }
 
+  double sourceAxisDistance = 0.0;
+  const char* sourceAxisDistanceChars = isocenterNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
+  if (sourceAxisDistanceChars != NULL)
+  {
+    std::stringstream ss;
+    ss << sourceAxisDistanceChars;
+    ss >> sourceAxisDistance;
+  }
+
   // Get beam model node
-  if ( this->BeamVisualizerNode->GetBeamModelNodeId()
+  if ( !this->BeamVisualizerNode->GetBeamModelNodeId()
     || !strcmp(this->BeamVisualizerNode->GetBeamModelNodeId(), "") )
   {
     errorMessage = "Empty beam model node ID!";
@@ -315,4 +354,53 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
     vtkErrorMacro(<<errorMessage); 
     return;
   }
+
+  // Get isocenter and source positions
+  if (isocenterNode->GetNumberOfControlPoints() != 1)
+  {
+    errorMessage = "Invalid isocenter fiducial control point count! It is supposed to be 1.";
+    vtkErrorMacro(<<errorMessage); 
+    return;
+  }
+  double* isocenterCoordinates = isocenterNode->GetControlPointCoordinates(0);
+  if (sourceNode->GetNumberOfControlPoints() != 1)
+  {
+    errorMessage = "Invalid source fiducial control point count! It is supposed to be 1.";
+    vtkErrorMacro(<<errorMessage); 
+    return;
+  }
+  double* sourceCoordinates = sourceNode->GetControlPointCoordinates(0);
+
+  // Create beam model
+  // TODO: creat "pyramid" shape considering collimator angle instead of cone
+  vtkSmartPointer<vtkConeSource> coneSource = vtkSmartPointer<vtkConeSource>::New();
+  coneSource->SetCenter(
+    (isocenterCoordinates[0] + sourceCoordinates[0]) / 2.0,
+    (isocenterCoordinates[1] + sourceCoordinates[1]) / 2.0,
+    (isocenterCoordinates[2] + sourceCoordinates[2]) / 2.0 );
+  coneSource->SetDirection(
+    sourceCoordinates[0] - isocenterCoordinates[0],
+    sourceCoordinates[1] - isocenterCoordinates[1],
+    sourceCoordinates[2] - isocenterCoordinates[2] );
+  double baseRadius = fabs(jawPosition[0][0] - jawPosition[0][1]) / 2.0;
+  //coneSource->SetAngle( tan(baseRadius/sourceAxisDistance) );
+  coneSource->SetRadius(baseRadius);
+  coneSource->SetHeight(sourceAxisDistance);
+  coneSource->Update();
+
+  // Create display node
+  vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
+  displayNode->SliceIntersectionVisibilityOn();  
+  displayNode->VisibilityOn(); 
+  displayNode->SetColor(0.0, 1.0, 0.0);
+  displayNode->SetOpacity(0.3);
+  // Disable backface culling to make the back side of the contour visible as well
+  displayNode->SetBackfaceCulling(0);
+
+  beamModelNode->SetAndObservePolyData( coneSource->GetOutput() );
+  beamModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  beamModelNode->SetHideFromEditors(0);
+  beamModelNode->SetSelectable(1);
+  beamModelNode->Modified();
 }
