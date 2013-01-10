@@ -146,23 +146,44 @@ void vtkSlicerBeamVisualizerModuleLogic::OnMRMLSceneEndClose()
 //---------------------------------------------------------------------------
 void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::string &errorMessage)
 {
-  if (!this->BeamVisualizerNode || !this->BeamVisualizerNode->IsocenterFiducialNodeId
-    || !strcmp(this->BeamVisualizerNode->IsocenterFiducialNodeId, "")
+  if (!this->BeamVisualizerNode || !this->GetMRMLScene())
   {
-    errorMessage = "Empty isocenter fiducial node ID!";
     return;
   }
+  if ( !this->BeamVisualizerNode->GetIsocenterFiducialNodeId()
+    || !strcmp(this->BeamVisualizerNode->GetIsocenterFiducialNodeId(), "") )
+  {
+    errorMessage = "Empty isocenter fiducial node ID!";
+    vtkErrorMacro(<<errorMessage); 
+    return;
+  }
+
+  vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->BeamVisualizerNode->GetIsocenterFiducialNodeId()) );
+  if (!isocenterNode)
+  {
+    errorMessage = "Unable to retrieve isocenter fiducial node according its ID!";
+    vtkErrorMacro(<<errorMessage); 
+    return;
+  }
+
+  double collimatorAngle;
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessage)
 {
-  if (!this->BeamVisualizerNode || !this->BeamVisualizerNode->GetIsocenterFiducialNodeId()
+  if (!this->BeamVisualizerNode || !this->GetMRMLScene())
+  {
+    return;
+  }
+  if ( !this->BeamVisualizerNode->GetIsocenterFiducialNodeId()
     || !strcmp(this->BeamVisualizerNode->GetIsocenterFiducialNodeId(), "")
     || this->BeamVisualizerNode->GetSourceFiducialNodeId()
     || !strcmp(this->BeamVisualizerNode->GetSourceFiducialNodeId(), "") )
   {
     errorMessage = "Insufficient input (isocenter and.or source fiducial is empty)!";
+    vtkErrorMacro(<<errorMessage);
     return;
   }
 }
