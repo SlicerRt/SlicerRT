@@ -124,6 +124,7 @@ main (int argc, char * argv [])
 	"convergence_tol=5\n"
 	"grad_tol=1.5\n"
 	"regularization_lambda=" << stage_1_regularization << "\n"
+	"landmark_stiffness=" << stage_1_landm_penalty << "\n"
 	"res=" 
 	<< stage_1_resolution[0] << " "
 	<< stage_1_resolution[1] << " "
@@ -138,7 +139,8 @@ main (int argc, char * argv [])
 	command_string << 
 	    "[STAGE]\n"
 	    "max_its=" << stage_2_its << "\n"
-	    "regularization_lambda=" << stage_1_regularization << "\n"
+	    "regularization_lambda=" << stage_2_regularization << "\n"
+	    "landmark_stiffness=" << stage_2_landm_penalty << "\n"
 	    "res=" 
 	    << stage_2_resolution[0] << " "
 	    << stage_2_resolution[1] << " "
@@ -149,6 +151,23 @@ main (int argc, char * argv [])
 	    << stage_2_grid_size << "\n"
 	    ;
     }
+
+	if (enable_stage_3) {
+	    command_string << 
+	    	"[STAGE]\n"
+	    	"max_its=" << stage_3_its << "\n"
+	    	"regularization_lambda=" << stage_3_regularization << "\n"
+	    	"landmark_stiffness=" << stage_3_landm_penalty << "\n"
+	    	"res=" 
+	    	<< stage_3_resolution[0] << " "
+	    	<< stage_3_resolution[1] << " "
+	    	<< stage_3_resolution[2] << "\n"
+	    	"grid_spac="
+	    	<< stage_3_grid_size << " "
+	    	<< stage_3_grid_size << " "
+	    	<< stage_3_grid_size << "\n"
+	    	;
+    	}
 
     std::cout << command_string.str() << "\n";
 

@@ -186,6 +186,13 @@
       <longflag>--stage_1_regularization</longflag>
       <description>Second derivative smoothness penalty</description>
     </double>
+    <double>
+      <name>stage_1_landm_penalty</name>
+      <label>Landmark Penalty</label>
+      <default>0.005</default>
+      <longflag>--stage_1_landm_penalty</longflag>
+      <description>Penalty for landmark mismatch</description>
+    </double>
     <integer>
       <name>stage_1_its</name>
       <label>Max iterations</label>
@@ -227,11 +234,66 @@
       <longflag>--stage2_regularization</longflag>
       <description>Second derivative smoothness penalty</description>
     </double>
+    <double>
+      <name>stage_2_landm_penalty</name>
+      <label>Landmark Penalty</label>
+      <default>0.005</default>
+      <longflag>--stage_2_landm_penalty</longflag>
+      <description>Penalty for landmark mismatch</description>
+    </double>
     <integer>
       <name>stage_2_its</name>
       <label>Max iterations</label>
       <default>50</default>
       <longflag>--stage2its</longflag>
+      <description>Maximum number of iterations</description>
+    </integer>
+    </parameters>
+
+  <!-- STAGE 3 -->
+  <parameters>
+    <label>Stage 3 Options</label>
+    <description></description>
+    <boolean>
+      <name>enable_stage_3</name>
+      <label>Enable Stage 3?</label>
+      <default>false</default>
+      <longflag>--enablestage3</longflag>
+      <description>Check this box if you want to run three registration stages</description>
+    </boolean>
+    <integer-vector>
+      <name>stage_3_resolution</name>
+      <label>Image subsampling rate (vox)</label>
+      <default>2,2,1</default>
+      <longflag>--stage3res</longflag>
+      <description>This defines the image subsampling rate.  For example, (4,4,2) would subsample a 4x4x2 voxel block down to a single voxel.</description>
+    </integer-vector>
+    <double>
+      <name>stage_3_grid_size</name>
+      <label>Grid size (mm)</label>
+      <default>50</default>
+      <longflag>--stage3gridsize</longflag>
+      <description>Approximate B-Spline Grid Spacing (isotropic)</description>
+    </double>
+    <double>
+      <name>stage_3_regularization</name>
+      <label>Regularization</label>
+      <default>0.005</default>
+      <longflag>--stage3_regularization</longflag>
+      <description>Second derivative smoothness penalty</description>
+    </double>
+    <double>
+      <name>stage_3_landm_penalty</name>
+      <label>Landmark Penalty</label>
+      <default>0.005</default>
+      <longflag>--stage_3_landm_penalty</longflag>
+      <description>Penalty for landmark mismatch</description>
+    </double>
+    <integer>
+      <name>stage_3_its</name>
+      <label>Max iterations</label>
+      <default>50</default>
+      <longflag>--stage3its</longflag>
       <description>Maximum number of iterations</description>
     </integer>
   </parameters>
