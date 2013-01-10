@@ -144,6 +144,25 @@ void vtkSlicerBeamVisualizerModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
+void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::string &errorMessage)
+{
+  if (!this->BeamVisualizerNode || !this->BeamVisualizerNode->IsocenterFiducialNodeId
+    || !strcmp(this->BeamVisualizerNode->IsocenterFiducialNodeId, "")
+  {
+    errorMessage = "Empty isocenter fiducial node ID!";
+    return;
+  }
+}
+
+//---------------------------------------------------------------------------
 void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessage)
 {
+  if (!this->BeamVisualizerNode || !this->BeamVisualizerNode->GetIsocenterFiducialNodeId()
+    || !strcmp(this->BeamVisualizerNode->GetIsocenterFiducialNodeId(), "")
+    || this->BeamVisualizerNode->GetSourceFiducialNodeId()
+    || !strcmp(this->BeamVisualizerNode->GetSourceFiducialNodeId(), "") )
+  {
+    errorMessage = "Insufficient input (isocenter and.or source fiducial is empty)!";
+    return;
+  }
 }

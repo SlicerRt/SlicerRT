@@ -193,9 +193,9 @@ void qSlicerBeamVisualizerModuleWidget::updateWidgetFromMRML()
     {
       d->MRMLNodeComboBox_SourceFiducial->setCurrentNode(paramNode->GetSourceFiducialNodeId());
     }
-    else
+    if (paramNode->GetBeamModelNodeId() && strcmp(paramNode->GetBeamModelNodeId(),""))
     {
-      this->sourceFiducialNodeChanged(d->MRMLNodeComboBox_SourceFiducial->currentNode());
+      d->MRMLNodeComboBox_BeamModel->setCurrentNode(paramNode->GetBeamModelNodeId());
     }
   }
 
@@ -259,7 +259,6 @@ void qSlicerBeamVisualizerModuleWidget::sourceFiducialNodeChanged(vtkMRMLNode* n
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
-  this->refreshOutputBaseName();
 }
 
 //-----------------------------------------------------------------------------
@@ -323,23 +322,19 @@ void qSlicerBeamVisualizerModuleWidget::refreshOutputBaseName()
     return;
   }
 
-  QString newBaseName(SlicerRtCommon::BEAMVISUALIZER_OUTPUT_BASE_NAME_PREFIX.c_str());
+  QString newBeamModelBaseName(SlicerRtCommon::BEAMVISUALIZER_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX.c_str());
+  QString newSourceFiducialBaseName(SlicerRtCommon::BEAMVISUALIZER_OUTPUT_SOURCE_FIDUCIAL_PREFIX.c_str());
 
   vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetIsocenterFiducialNodeId()) );
   if (isocenterNode)
   {
-    newBaseName.append("_");
-    newBaseName.append(isocenterNode->GetName());
+    newBeamModelBaseName.append("_");
+    newBeamModelBaseName.append(isocenterNode->GetName());
+    newSourceFiducialBaseName.append("_");
+    newSourceFiducialBaseName.append(isocenterNode->GetName());
   }
 
-  vtkMRMLAnnotationFiducialNode* sourceNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
-    this->mrmlScene()->GetNodeByID(paramNode->GetSourceFiducialNodeId()) );
-  if (sourceNode)
-  {
-    newBaseName.append("_");
-    newBaseName.append(sourceNode->GetName());
-  }
-
-  d->MRMLNodeComboBox_BeamModel->setBaseName( newBaseName.toLatin1() );
+  d->MRMLNodeComboBox_BeamModel->setBaseName( newBeamModelBaseName.toLatin1() );
+  d->MRMLNodeComboBox_SourceFiducial->setBaseName( newSourceFiducialBaseName.toLatin1() );
 }

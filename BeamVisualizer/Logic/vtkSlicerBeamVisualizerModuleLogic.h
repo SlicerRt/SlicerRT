@@ -51,6 +51,9 @@ public:
   vtkTypeMacro(vtkSlicerBeamVisualizerModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  /// Compute and set source fiducial position from isocenter position and beam parameters
+  void ComputeSourceFiducialPosition(std::string &errorMessage);
+
   /// Create beam geometry model from isocenter and source fiducials
   void CreateBeamModel(std::string &errorMessage);
 
