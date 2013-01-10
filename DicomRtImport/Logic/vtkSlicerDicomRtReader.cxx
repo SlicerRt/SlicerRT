@@ -796,7 +796,7 @@ const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
 }
 
 //----------------------------------------------------------------------------
-double* vtkSlicerDicomRtReader::GetBeamIsocenterPosition(unsigned int beamNumber)
+double* vtkSlicerDicomRtReader::GetBeamIsocenterPositionRas(unsigned int beamNumber)
 {
   BeamEntry* beam=this->FindBeamByNumber(beamNumber);
   if (beam==NULL)
@@ -804,6 +804,65 @@ double* vtkSlicerDicomRtReader::GetBeamIsocenterPosition(unsigned int beamNumber
     return NULL;
   }  
   return beam->IsocenterPositionRas;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamSourceAxisDistance(unsigned int beamNumber)
+{
+  BeamEntry* beam=this->FindBeamByNumber(beamNumber);
+  if (beam==NULL)
+  {
+    return NULL;
+  }  
+  return beam->SourceAxisDistance;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamGantryAngle(unsigned int beamNumber)
+{
+  BeamEntry* beam=this->FindBeamByNumber(beamNumber);
+  if (beam==NULL)
+  {
+    return NULL;
+  }  
+  return beam->GantryAngle;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamPatientSupportAngle(unsigned int beamNumber)
+{
+  BeamEntry* beam=this->FindBeamByNumber(beamNumber);
+  if (beam==NULL)
+  {
+    return NULL;
+  }  
+  return beam->PatientSupportAngle;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber)
+{
+  BeamEntry* beam=this->FindBeamByNumber(beamNumber);
+  if (beam==NULL)
+  {
+    return NULL;
+  }  
+  return beam->BeamLimitingDeviceAngle;
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerDicomRtReader::GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2])
+{
+  BeamEntry* beam=this->FindBeamByNumber(beamNumber);
+  if (beam==NULL)
+  {
+    jawPositions[0][0]=jawPositions[0][1]=jawPositions[1][0]=jawPositions[1][1]=0.0;
+    return;
+  }  
+  jawPositions[0][0]=beam->LeafJawPositions[0][0];
+  jawPositions[0][1]=beam->LeafJawPositions[0][1];
+  jawPositions[1][0]=beam->LeafJawPositions[1][0];
+  jawPositions[1][1]=beam->LeafJawPositions[1][1];
 }
 
 //----------------------------------------------------------------------------

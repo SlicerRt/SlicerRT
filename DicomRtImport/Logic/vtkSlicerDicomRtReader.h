@@ -86,8 +86,24 @@ public:
   /// Get name of beam
   const char* GetBeamName(unsigned int beamNumber);
 
-  /// Get beam isocenter
-  double* GetBeamIsocenterPosition(unsigned int beamNumber);
+  /// Get beam isocenter for a given beam
+  double* GetBeamIsocenterPositionRas(unsigned int beamNumber);
+
+  /// Get beam source axis distance for a given beam
+  double GetBeamSourceAxisDistance(unsigned int beamNumber);
+
+  /// Get beam gantry angle for a given beam
+  double GetBeamGantryAngle(unsigned int beamNumber);
+
+  /// Get beam patient support (couch) angle for a given beam
+  double GetBeamPatientSupportAngle(unsigned int beamNumber);
+
+  /// Get beam beam limiting device (collimator) angle for a given beam
+  double GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber);
+
+  /// Get beam leaf jaw positions for a given beam
+  /// \param jawPositions Array in which the jaw positions are copied
+  void GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2]);
 
   /// Set input file name
   vtkSetStringMacro(FileName);

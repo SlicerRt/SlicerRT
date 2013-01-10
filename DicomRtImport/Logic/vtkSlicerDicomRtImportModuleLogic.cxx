@@ -498,7 +498,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
     {
       // Isocenter fiducial
       double isoColor[3] = { 1.0, 1.0, 1.0 };
-      addedDisplayableNode= this->AddRoiPoint(rtReader->GetBeamIsocenterPosition(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
+      addedDisplayableNode= this->AddRoiPoint(rtReader->GetBeamIsocenterPositionRas(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
 
       // Add new node to the hierarchy node
       if (addedDisplayableNode)
@@ -522,6 +522,32 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
           modelDisplayNode->SetVisibility(1);
           this->GetMRMLScene()->AddNode(modelDisplayNode);
           isocenterHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+
+          // Add attributes containing beam information to the isocenter fiducial node
+          // TODO: Add these in the PatientHierarchy node when available
+          std::stringstream sourceAxisDistanceStream;
+          sourceAxisDistanceStream << rtReader->GetBeamSourceAxisDistance(dicomBeamIndex);
+          addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str(),
+            sourceAxisDistanceStream.str().c_str() );
+          std::stringstream gantryAngleStream;
+          gantryAngleStream << rtReader->GetBeamGantryAngle(dicomBeamIndex);
+          addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str(),
+            gantryAngleStream.str().c_str() );
+          std::stringstream couchAngleStream;
+          couchAngleStream << rtReader->GetBeamPatientSupportAngle(dicomBeamIndex);
+          addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COUCH_ANGLE_ATTRIBUTE_NAME.c_str(),
+            couchAngleStream.str().c_str() );
+          std::stringstream collimatorAngleStream;
+          collimatorAngleStream << rtReader->GetBeamBeamLimitingDeviceAngle(dicomBeamIndex);
+          addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
+            collimatorAngleStream.str().c_str() );
+          std::stringstream jawPositionsStream;
+          double jawPositions[2][2];
+          rtReader->GetBeamLeafJawPositions(dicomBeamIndex, jawPositions);
+          jawPositionsStream << jawPositions[0][0] << "," << jawPositions[0][1] << ","
+            << jawPositions[1][0] << "," << jawPositions[1][1];
+          addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str(),
+            jawPositionsStream.str().c_str() );
         }
 
         // put the new node in the hierarchy
