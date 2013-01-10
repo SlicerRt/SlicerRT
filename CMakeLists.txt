@@ -71,6 +71,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(ProtonDose)
   add_subdirectory(ContourComparison)
   add_subdirectory(ContourMorphology)
+  add_subdirectory(BeamVisualizer)
 
   add_subdirectory(PlmDoseComparison)
   add_subdirectory(PlmDvh)

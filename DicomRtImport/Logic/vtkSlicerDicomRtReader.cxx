@@ -267,7 +267,7 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
         DRTControlPointSequence &rtControlPointSequenceObject = currentBeamSequenceObject.getControlPointSequence();
         if (rtControlPointSequenceObject.gotoFirstItem().good())
         {
-          // do // comment out for now since only first control point is loaded (as isocenter)
+          // do // TODO: comment out for now since only first control point is loaded (as isocenter)
           {
             DRTControlPointSequence::Item &controlPointItem = rtControlPointSequenceObject.getCurrentItem();
             if (controlPointItem.isValid())
