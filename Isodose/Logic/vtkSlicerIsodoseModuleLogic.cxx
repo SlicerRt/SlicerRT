@@ -280,6 +280,8 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     return 0;
   }
 
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
 
@@ -437,6 +439,8 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
   }
 
   this->IsodoseNode->SetAndObserveOutputHierarchyNodeId(modelHierarchyRootNode->GetID());
+    
+  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 
   return 0;
 }
