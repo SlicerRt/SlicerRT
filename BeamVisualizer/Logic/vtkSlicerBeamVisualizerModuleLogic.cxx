@@ -36,10 +36,10 @@
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 #include <vtkConeSource.h>
+#include <vtkTransformPolyDataFilter.h>
 
 // STD includes
 #include <cassert>
-//#include <cmath>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerBeamVisualizerModuleLogic);
@@ -221,30 +221,30 @@ void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::stri
   if (!sourceNode)
   {
     errorMessage = "Unable to retrieve source fiducial node according its ID!";
-    vtkErrorMacro(<<errorMessage); 
+    vtkErrorMacro(<<errorMessage);
     return;
   }
 
   // Compute isocenter to source transformation
+  //TODO: It is assumed that the center of rotation for the couch is the isocenter. Is it true?
+  vtkSmartPointer<vtkTransform> couchToSourceTransform = vtkSmartPointer<vtkTransform>::New();
+  couchToSourceTransform->Identity();
+  couchToSourceTransform->RotateWXYZ((-1.0)*couchAngle, 0.0, 1.0, 0.0);
+
+  vtkSmartPointer<vtkTransform> gantryToCouchTransform = vtkSmartPointer<vtkTransform>::New();
+  gantryToCouchTransform->Identity();
+  gantryToCouchTransform->RotateWXYZ(gantryAngle, 0.0, 0.0, 1.0);
+
   vtkSmartPointer<vtkTransform> isocenterToGantryTransform = vtkSmartPointer<vtkTransform>::New();
   isocenterToGantryTransform->Identity();
   isocenterToGantryTransform->Translate(0.0, sourceAxisDistance, 0.0);
-
-  vtkSmartPointer<vtkTransform> gantryToCollimatorTransform = vtkSmartPointer<vtkTransform>::New();
-  gantryToCollimatorTransform->Identity();
-  gantryToCollimatorTransform->RotateWXYZ(gantryAngle, 0.0, 0.0, 1.0);
-
-  //TODO: It is assumed that the center of rotation for the couch is the isocenter. Is it true?
-  vtkSmartPointer<vtkTransform> collimatorToSourceTransform = vtkSmartPointer<vtkTransform>::New();
-  collimatorToSourceTransform->Identity();
-  collimatorToSourceTransform->RotateWXYZ(couchAngle, 0.0, 1.0, 0.0);
 
   // Psource = Tcollimator2source * Tgantry2collimator * Tisocenter2gantry * Pisocenter
   vtkSmartPointer<vtkTransform> isocenterToSourceTransform = vtkSmartPointer<vtkTransform>::New();
   isocenterToSourceTransform->Identity();
   isocenterToSourceTransform->PreMultiply();
-  isocenterToSourceTransform->Concatenate(collimatorToSourceTransform);
-  isocenterToSourceTransform->Concatenate(gantryToCollimatorTransform);
+  isocenterToSourceTransform->Concatenate(couchToSourceTransform);
+  isocenterToSourceTransform->Concatenate(gantryToCouchTransform);
   isocenterToSourceTransform->Concatenate(isocenterToGantryTransform);
 
   // Get source position
@@ -371,22 +371,33 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
   }
   double* sourceCoordinates = sourceNode->GetControlPointCoordinates(0);
 
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+
   // Create beam model
-  // TODO: creat "pyramid" shape considering collimator angle instead of cone
+  // TODO: creat a real "pyramid" shape considering collimator angle instead of low-resolution cone
   vtkSmartPointer<vtkConeSource> coneSource = vtkSmartPointer<vtkConeSource>::New();
   coneSource->SetCenter(
-    (isocenterCoordinates[0] + sourceCoordinates[0]) / 2.0,
-    (isocenterCoordinates[1] + sourceCoordinates[1]) / 2.0,
-    (isocenterCoordinates[2] + sourceCoordinates[2]) / 2.0 );
+    (isocenterCoordinates[0]),
+    (isocenterCoordinates[1]),
+    (isocenterCoordinates[2]) );
   coneSource->SetDirection(
     sourceCoordinates[0] - isocenterCoordinates[0],
     sourceCoordinates[1] - isocenterCoordinates[1],
     sourceCoordinates[2] - isocenterCoordinates[2] );
   double baseRadius = fabs(jawPosition[0][0] - jawPosition[0][1]) / 2.0;
-  //coneSource->SetAngle( tan(baseRadius/sourceAxisDistance) );
-  coneSource->SetRadius(baseRadius);
-  coneSource->SetHeight(sourceAxisDistance);
+  coneSource->SetRadius(baseRadius*2.0/**sqrt(2.0)*/);
+  coneSource->SetHeight(sourceAxisDistance*2.0);
+  coneSource->SetResolution(/*4*/32);
   coneSource->Update();
+
+  // Rotate cone by 45 degrees to match the beam shape
+  vtkSmartPointer<vtkTransform> coneTransform = vtkSmartPointer<vtkTransform>::New();
+  coneTransform->Identity();
+  //coneTransform->RotateX(45.0);
+  vtkSmartPointer<vtkTransformPolyDataFilter> coneTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  coneTransformFilter->AddInputConnection(coneSource->GetOutputPort());
+  coneTransformFilter->SetTransform(coneTransform);
+  coneTransformFilter->Update();
 
   // Create display node
   vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
@@ -398,9 +409,12 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
   // Disable backface culling to make the back side of the contour visible as well
   displayNode->SetBackfaceCulling(0);
 
-  beamModelNode->SetAndObservePolyData( coneSource->GetOutput() );
+  beamModelNode->SetAndObservePolyData( coneTransformFilter->GetOutput() );
+  //beamModelNode->SetAndObservePolyData( coneSource->GetOutput() );
   beamModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   beamModelNode->SetHideFromEditors(0);
   beamModelNode->SetSelectable(1);
   beamModelNode->Modified();
+
+  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 }
