@@ -39,6 +39,7 @@
 
 #include "vtkSlicerBeamVisualizerModuleLogicExport.h"
 
+class vtkTransform;
 class vtkMRMLVolumeNode;
 class vtkMRMLBeamVisualizerNode;
 
@@ -52,7 +53,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Compute and set source fiducial position from isocenter position and beam parameters
-  void ComputeSourceFiducialPosition(std::string &errorMessage);
+  void ComputeSourceFiducialPosition(std::string &errorMessage, vtkTransform* isocenterToSourceTransform=NULL);
 
   /// Create beam geometry model from isocenter and source fiducials
   void CreateBeamModel(std::string &errorMessage);

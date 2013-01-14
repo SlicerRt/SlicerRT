@@ -35,6 +35,7 @@
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
+#include <vtkMatrix4x4.h>
 #include <vtkConeSource.h>
 #include <vtkTransformPolyDataFilter.h>
 
@@ -147,7 +148,7 @@ void vtkSlicerBeamVisualizerModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::string &errorMessage)
+void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::string &errorMessage, vtkTransform* aIsocenterToSourceTransform/*=NULL*/)
 {
   if (!this->BeamVisualizerNode || !this->GetMRMLScene())
   {
@@ -216,6 +217,12 @@ void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::stri
     vtkErrorMacro(<<errorMessage); 
     return;
   }
+  if (!strcmp(this->BeamVisualizerNode->GetSourceFiducialNodeId(), this->BeamVisualizerNode->GetIsocenterFiducialNodeId()))
+  {
+    errorMessage = "Source and Isocenter fiducial nodes are set to be the same! They have to be different.";
+    vtkErrorMacro(<<errorMessage); 
+    return;
+  }
   vtkMRMLAnnotationFiducialNode* sourceNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->BeamVisualizerNode->GetSourceFiducialNodeId()) );
   if (!sourceNode)
@@ -260,6 +267,12 @@ void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::stri
 
   vtkDebugMacro("Source coordinates computed to be ("
     << sourceCoordinates[0] << ", " << sourceCoordinates[1] << ", " << sourceCoordinates[2] << ")");
+
+  if (aIsocenterToSourceTransform)
+  {
+    aIsocenterToSourceTransform->Identity();
+    aIsocenterToSourceTransform->DeepCopy(isocenterToSourceTransform);
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -282,7 +295,8 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
 
   // Compute source position
   std::string errorMessageSource("");
-  this->ComputeSourceFiducialPosition(errorMessageSource);
+  vtkSmartPointer<vtkTransform> isocenterToSourceTransform = vtkSmartPointer<vtkTransform>::New();
+  this->ComputeSourceFiducialPosition(errorMessageSource, isocenterToSourceTransform);
   if (!errorMessageSource.empty())
   {
     errorMessage = "Failed to compute source position!";
@@ -354,6 +368,12 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
     vtkErrorMacro(<<errorMessage); 
     return;
   }
+  if (beamModelNode->IsA("vtkMRMLAnnotationFiducialNode"))
+  {
+    errorMessage = "Beam model node is not supposed to be an annotation fiducial node!";
+    vtkErrorMacro(<<errorMessage); 
+    return;
+  }
 
   // Get isocenter and source positions
   if (isocenterNode->GetNumberOfControlPoints() != 1)
@@ -376,27 +396,52 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
   // Create beam model
   // TODO: creat a real "pyramid" shape considering collimator angle instead of low-resolution cone
   vtkSmartPointer<vtkConeSource> coneSource = vtkSmartPointer<vtkConeSource>::New();
-  coneSource->SetCenter(
-    (isocenterCoordinates[0]),
-    (isocenterCoordinates[1]),
-    (isocenterCoordinates[2]) );
-  coneSource->SetDirection(
-    sourceCoordinates[0] - isocenterCoordinates[0],
-    sourceCoordinates[1] - isocenterCoordinates[1],
-    sourceCoordinates[2] - isocenterCoordinates[2] );
+  //coneSource->SetCenter(
+  //  (isocenterCoordinates[0]),
+  //  (isocenterCoordinates[1]),
+  //  (isocenterCoordinates[2]) );
+  //coneSource->SetDirection(
+  //  sourceCoordinates[0] - isocenterCoordinates[0],
+  //  sourceCoordinates[1] - isocenterCoordinates[1],
+  //  sourceCoordinates[2] - isocenterCoordinates[2] );
   double baseRadius = fabs(jawPosition[0][0] - jawPosition[0][1]) / 2.0;
-  coneSource->SetRadius(baseRadius*2.0/**sqrt(2.0)*/);
+  coneSource->SetRadius(baseRadius*2.0*sqrt(2.0));
   coneSource->SetHeight(sourceAxisDistance*2.0);
-  coneSource->SetResolution(/*4*/32);
+  coneSource->SetResolution(4);
   coneSource->Update();
 
+  // Assemble transform that places the beam in the proper position and orientation
+  vtkSmartPointer<vtkMatrix4x4> isocenterPositionToIsocenterTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  isocenterPositionToIsocenterTransformMatrix->DeepCopy(isocenterToSourceTransform->GetMatrix());
+  isocenterPositionToIsocenterTransformMatrix->SetElement(0, 3, 0.0);
+  isocenterPositionToIsocenterTransformMatrix->SetElement(1, 3, 0.0);
+  isocenterPositionToIsocenterTransformMatrix->SetElement(2, 3, 0.0);
+  vtkSmartPointer<vtkTransform> isocenterPositionToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();
+  isocenterPositionToIsocenterTransform->SetMatrix(isocenterPositionToIsocenterTransformMatrix);
+
+  vtkSmartPointer<vtkTransform> coneSourceToIsocenterPositionTransform = vtkSmartPointer<vtkTransform>::New();
+  coneSourceToIsocenterPositionTransform->Identity();
+  coneSourceToIsocenterPositionTransform->Translate(isocenterCoordinates);
+
+  //TODO: Scale pyramid to match jaws positions in Y direction
+
   // Rotate cone by 45 degrees to match the beam shape
-  vtkSmartPointer<vtkTransform> coneTransform = vtkSmartPointer<vtkTransform>::New();
-  coneTransform->Identity();
-  //coneTransform->RotateX(45.0);
+  vtkSmartPointer<vtkTransform> tiltedConeSourceToConeSourceTransform = vtkSmartPointer<vtkTransform>::New();
+  tiltedConeSourceToConeSourceTransform->Identity();
+  tiltedConeSourceToConeSourceTransform->RotateZ(90.0);
+  tiltedConeSourceToConeSourceTransform->RotateX(45.0);
+  //tiltedConeSourceToConeSourceTransform->RotateY(collimatorAngle); //TODO: Uncomment and try with a suitable test data
+
+  vtkSmartPointer<vtkTransform> tiltedConeSourceToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();
+  tiltedConeSourceToIsocenterTransform->Identity();
+  tiltedConeSourceToIsocenterTransform->PreMultiply();
+  tiltedConeSourceToIsocenterTransform->Concatenate(isocenterPositionToIsocenterTransform);
+  tiltedConeSourceToIsocenterTransform->Concatenate(coneSourceToIsocenterPositionTransform);
+  tiltedConeSourceToIsocenterTransform->Concatenate(tiltedConeSourceToConeSourceTransform);
+
   vtkSmartPointer<vtkTransformPolyDataFilter> coneTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   coneTransformFilter->AddInputConnection(coneSource->GetOutputPort());
-  coneTransformFilter->SetTransform(coneTransform);
+  coneTransformFilter->SetTransform(tiltedConeSourceToIsocenterTransform);
   coneTransformFilter->Update();
 
   // Create display node
