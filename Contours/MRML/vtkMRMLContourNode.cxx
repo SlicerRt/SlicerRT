@@ -972,6 +972,10 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
     return NULL;
     }
 
+  // TODO: Workaround for the the issue that slice intersections are not visible
+  // of newly converted models
+  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
+
   // Get color index
   vtkMRMLColorTableNode* colorNode = NULL;
   int structureColorIndex = -1;
@@ -1040,6 +1044,9 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
     }
 
   this->SetAndObserveClosedSurfaceModelNodeId(closedSurfaceModelNode->GetID());
+
+  // TODO: Workaround (see above)
+  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
 
   return closedSurfaceModelNode;
 }
