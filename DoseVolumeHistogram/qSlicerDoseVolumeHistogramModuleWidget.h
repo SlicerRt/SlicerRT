@@ -74,6 +74,7 @@ protected slots:
   void lineEditDVolumeCcEdited(QString aText);
   void lineEditDVolumePercentEdited(QString aText);
   void showDMetricsCheckedStateChanged(int aState);
+  void showDoseVolumesOnlyCheckboxChanged(int aState);
 
   void onLogicModified();
 

@@ -116,6 +116,11 @@ public:
   vtkSetMacro(ShowDMetrics, bool);
   vtkBooleanMacro(ShowDMetrics, bool);
 
+  /// Get/Set show dose volumes only checkbox state
+  vtkGetMacro(ShowDoseVolumesOnly, bool);
+  vtkSetMacro(ShowDoseVolumesOnly, bool);
+  vtkBooleanMacro(ShowDoseVolumesOnly, bool);
+
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
@@ -172,6 +177,9 @@ protected:
 
   /// State of Show Gy for D metrics checkbox
   bool ShowDMetrics;
+
+  /// State of Show dose volumse only checkbox
+  bool ShowDoseVolumesOnly;
 };
 
 #endif
