@@ -299,7 +299,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   this->ComputeSourceFiducialPosition(errorMessageSource, isocenterToSourceTransform);
   if (!errorMessageSource.empty())
   {
-    errorMessage = "Failed to compute source position!";
+    errorMessage = "Failed to compute source position:\n" + errorMessageSource;
     vtkErrorMacro(<<errorMessage);
     return;
   }
@@ -394,16 +394,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
   // Create beam model
-  // TODO: creat a real "pyramid" shape considering collimator angle instead of low-resolution cone
   vtkSmartPointer<vtkConeSource> coneSource = vtkSmartPointer<vtkConeSource>::New();
-  //coneSource->SetCenter(
-  //  (isocenterCoordinates[0]),
-  //  (isocenterCoordinates[1]),
-  //  (isocenterCoordinates[2]) );
-  //coneSource->SetDirection(
-  //  sourceCoordinates[0] - isocenterCoordinates[0],
-  //  sourceCoordinates[1] - isocenterCoordinates[1],
-  //  sourceCoordinates[2] - isocenterCoordinates[2] );
   double baseRadius = fabs(jawPosition[0][0] - jawPosition[0][1]) / 2.0;
   coneSource->SetRadius(baseRadius*2.0*sqrt(2.0));
   coneSource->SetHeight(sourceAxisDistance*2.0);
@@ -455,7 +446,6 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   displayNode->SetBackfaceCulling(0);
 
   beamModelNode->SetAndObservePolyData( coneTransformFilter->GetOutput() );
-  //beamModelNode->SetAndObservePolyData( coneSource->GetOutput() );
   beamModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   beamModelNode->SetHideFromEditors(0);
   beamModelNode->SetSelectable(1);

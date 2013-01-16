@@ -235,7 +235,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     d->checkBox_ShowDMetrics->setChecked(paramNode->GetShowDMetrics());
   }
 
-  refreshDvhTable();
+  this->refreshDvhTable();
 }
 
 //-----------------------------------------------------------------------------

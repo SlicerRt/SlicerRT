@@ -200,6 +200,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
   }
 
   this->refreshOutputBaseName();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -208,6 +209,8 @@ void qSlicerBeamsModuleWidget::setup()
   Q_D(qSlicerBeamsModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
+
+  d->label_Error->setVisible(false);
 
   // Make connections
   connect( d->MRMLNodeComboBox_IsocenterFiducial, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( isocenterFiducialNodeChanged(vtkMRMLNode*) ) );
@@ -290,6 +293,8 @@ void qSlicerBeamsModuleWidget::updateButtonsState()
                    && d->logic()->GetBeamsNode()->GetSourceFiducialNodeId()
                    && strcmp(d->logic()->GetBeamsNode()->GetSourceFiducialNodeId(), "");
   d->pushButton_Apply->setEnabled(applyEnabled);
+
+  d->label_Error->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -307,6 +312,9 @@ void qSlicerBeamsModuleWidget::applyClicked()
 
   std::string errorMessage;
   d->logic()->CreateBeamModel(errorMessage);
+
+  d->label_Error->setVisible( !errorMessage.empty() );
+  d->label_Error->setText( QString(errorMessage.c_str()) );
 
   QApplication::restoreOverrideCursor();
 }
