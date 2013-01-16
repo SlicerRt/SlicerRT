@@ -23,134 +23,134 @@
 #include <QCheckBox>
 
 // SlicerQt includes
-#include "qSlicerBeamVisualizerModuleWidget.h"
-#include "ui_qSlicerBeamVisualizerModule.h"
+#include "qSlicerBeamsModuleWidget.h"
+#include "ui_qSlicerBeamsModule.h"
 
 // SlicerRtCommon includes
 #include "SlicerRtCommon.h"
 
-// BeamVisualizer includes
-#include "vtkSlicerBeamVisualizerModuleLogic.h"
-#include "vtkMRMLBeamVisualizerNode.h"
+// Beams includes
+#include "vtkSlicerBeamsModuleLogic.h"
+#include "vtkMRMLBeamsNode.h"
 
 // MRML includes
 #include <vtkMRMLAnnotationFiducialNode.h>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_BeamVisualizer
-class qSlicerBeamVisualizerModuleWidgetPrivate: public Ui_qSlicerBeamVisualizerModule
+/// \ingroup Slicer_QtModules_Beams
+class qSlicerBeamsModuleWidgetPrivate: public Ui_qSlicerBeamsModule
 {
-  Q_DECLARE_PUBLIC(qSlicerBeamVisualizerModuleWidget);
+  Q_DECLARE_PUBLIC(qSlicerBeamsModuleWidget);
 protected:
-  qSlicerBeamVisualizerModuleWidget* const q_ptr;
+  qSlicerBeamsModuleWidget* const q_ptr;
 public:
-  qSlicerBeamVisualizerModuleWidgetPrivate(qSlicerBeamVisualizerModuleWidget& object);
-  ~qSlicerBeamVisualizerModuleWidgetPrivate();
-  vtkSlicerBeamVisualizerModuleLogic* logic() const;
+  qSlicerBeamsModuleWidgetPrivate(qSlicerBeamsModuleWidget& object);
+  ~qSlicerBeamsModuleWidgetPrivate();
+  vtkSlicerBeamsModuleLogic* logic() const;
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerBeamVisualizerModuleWidgetPrivate methods
+// qSlicerBeamsModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerBeamVisualizerModuleWidgetPrivate::qSlicerBeamVisualizerModuleWidgetPrivate(qSlicerBeamVisualizerModuleWidget& object)
+qSlicerBeamsModuleWidgetPrivate::qSlicerBeamsModuleWidgetPrivate(qSlicerBeamsModuleWidget& object)
   : q_ptr(&object)
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerBeamVisualizerModuleWidgetPrivate::~qSlicerBeamVisualizerModuleWidgetPrivate()
+qSlicerBeamsModuleWidgetPrivate::~qSlicerBeamsModuleWidgetPrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-vtkSlicerBeamVisualizerModuleLogic*
-qSlicerBeamVisualizerModuleWidgetPrivate::logic() const
+vtkSlicerBeamsModuleLogic*
+qSlicerBeamsModuleWidgetPrivate::logic() const
 {
-  Q_Q(const qSlicerBeamVisualizerModuleWidget);
-  return vtkSlicerBeamVisualizerModuleLogic::SafeDownCast(q->logic());
+  Q_Q(const qSlicerBeamsModuleWidget);
+  return vtkSlicerBeamsModuleLogic::SafeDownCast(q->logic());
 } 
 
 //-----------------------------------------------------------------------------
-// qSlicerBeamVisualizerModuleWidget methods
+// qSlicerBeamsModuleWidget methods
 
 //-----------------------------------------------------------------------------
-qSlicerBeamVisualizerModuleWidget::qSlicerBeamVisualizerModuleWidget(QWidget* _parent)
+qSlicerBeamsModuleWidget::qSlicerBeamsModuleWidget(QWidget* _parent)
   : Superclass( _parent )
-  , d_ptr( new qSlicerBeamVisualizerModuleWidgetPrivate(*this) )
+  , d_ptr( new qSlicerBeamsModuleWidgetPrivate(*this) )
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerBeamVisualizerModuleWidget::~qSlicerBeamVisualizerModuleWidget()
+qSlicerBeamsModuleWidget::~qSlicerBeamsModuleWidget()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::setMRMLScene(vtkMRMLScene* scene)
+void qSlicerBeamsModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 {
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
 
   this->Superclass::setMRMLScene(scene);
 
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene &&  d->logic()->GetBeamVisualizerNode() == 0)
+  if (scene &&  d->logic()->GetBeamsNode() == 0)
   {
-    vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLBeamVisualizerNode");
+    vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLBeamsNode");
     if (node)
     {
-      this->setBeamVisualizerNode( vtkMRMLBeamVisualizerNode::SafeDownCast(node) );
+      this->setBeamsNode( vtkMRMLBeamsNode::SafeDownCast(node) );
     }
   }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::onSceneImportedEvent()
+void qSlicerBeamsModuleWidget::onSceneImportedEvent()
 {
   this->onEnter();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::enter()
+void qSlicerBeamsModuleWidget::enter()
 {
   this->onEnter();
   this->Superclass::enter();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::onEnter()
+void qSlicerBeamsModuleWidget::onEnter()
 {
   if (this->mrmlScene() == 0)
   {
     return;
   }
 
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
 
   // First check the logic if it has a parameter node
   if (d->logic() == NULL)
   {
     return;
   }
-  vtkMRMLBeamVisualizerNode* paramNode = d->logic()->GetBeamVisualizerNode();
+  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
 
   // If we have a parameter node select it
   if (paramNode == NULL)
   {
-    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLBeamVisualizerNode");
+    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLBeamsNode");
     if (node)
     {
-      paramNode = vtkMRMLBeamVisualizerNode::SafeDownCast(node);
-      d->logic()->SetAndObserveBeamVisualizerNode(paramNode);
+      paramNode = vtkMRMLBeamsNode::SafeDownCast(node);
+      d->logic()->SetAndObserveBeamsNode(paramNode);
       return;
     }
     else 
     {
-      vtkSmartPointer<vtkMRMLBeamVisualizerNode> newNode = vtkSmartPointer<vtkMRMLBeamVisualizerNode>::New();
+      vtkSmartPointer<vtkMRMLBeamsNode> newNode = vtkSmartPointer<vtkMRMLBeamsNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveBeamVisualizerNode(newNode);
+      d->logic()->SetAndObserveBeamsNode(newNode);
     }
   }
 
@@ -158,29 +158,29 @@ void qSlicerBeamVisualizerModuleWidget::onEnter()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::setBeamVisualizerNode(vtkMRMLNode *node)
+void qSlicerBeamsModuleWidget::setBeamsNode(vtkMRMLNode *node)
 {
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
 
-  vtkMRMLBeamVisualizerNode* paramNode = vtkMRMLBeamVisualizerNode::SafeDownCast(node);
+  vtkMRMLBeamsNode* paramNode = vtkMRMLBeamsNode::SafeDownCast(node);
 
   // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect( d->logic()->GetBeamVisualizerNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
+  qvtkReconnect( d->logic()->GetBeamsNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
-  d->logic()->SetAndObserveBeamVisualizerNode(paramNode);
+  d->logic()->SetAndObserveBeamsNode(paramNode);
 
   this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::updateWidgetFromMRML()
+void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
 {
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
 
-  vtkMRMLBeamVisualizerNode* paramNode = d->logic()->GetBeamVisualizerNode();
+  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
   if (paramNode && this->mrmlScene())
   {
-    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetBeamVisualizerNode());
+    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetBeamsNode());
     if (paramNode->GetIsocenterFiducialNodeId() && strcmp(paramNode->GetIsocenterFiducialNodeId(),""))
     {
       d->MRMLNodeComboBox_IsocenterFiducial->setCurrentNode(paramNode->GetIsocenterFiducialNodeId());
@@ -203,9 +203,9 @@ void qSlicerBeamVisualizerModuleWidget::updateWidgetFromMRML()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::setup()
+void qSlicerBeamsModuleWidget::setup()
 {
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
 
@@ -216,7 +216,7 @@ void qSlicerBeamVisualizerModuleWidget::setup()
   connect( d->MRMLNodeComboBox_BeamModel, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(beamModelNodeChanged(vtkMRMLNode*)) );
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
-  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setBeamVisualizerNode(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setBeamsNode(vtkMRMLNode*)) );
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -225,11 +225,11 @@ void qSlicerBeamVisualizerModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::isocenterFiducialNodeChanged(vtkMRMLNode* node)
+void qSlicerBeamsModuleWidget::isocenterFiducialNodeChanged(vtkMRMLNode* node)
 {
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
 
-  vtkMRMLBeamVisualizerNode* paramNode = d->logic()->GetBeamVisualizerNode();
+  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
     return;
@@ -244,11 +244,11 @@ void qSlicerBeamVisualizerModuleWidget::isocenterFiducialNodeChanged(vtkMRMLNode
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::sourceFiducialNodeChanged(vtkMRMLNode* node)
+void qSlicerBeamsModuleWidget::sourceFiducialNodeChanged(vtkMRMLNode* node)
 {
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
 
-  vtkMRMLBeamVisualizerNode* paramNode = d->logic()->GetBeamVisualizerNode();
+  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
     return;
@@ -262,11 +262,11 @@ void qSlicerBeamVisualizerModuleWidget::sourceFiducialNodeChanged(vtkMRMLNode* n
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::beamModelNodeChanged(vtkMRMLNode* node)
+void qSlicerBeamsModuleWidget::beamModelNodeChanged(vtkMRMLNode* node)
 {
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
 
-  vtkMRMLBeamVisualizerNode* paramNode = d->logic()->GetBeamVisualizerNode();
+  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
     return;
@@ -280,28 +280,28 @@ void qSlicerBeamVisualizerModuleWidget::beamModelNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::updateButtonsState()
+void qSlicerBeamsModuleWidget::updateButtonsState()
 {
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
 
-  bool applyEnabled = d->logic()->GetBeamVisualizerNode()
-                   && d->logic()->GetBeamVisualizerNode()->GetIsocenterFiducialNodeId()
-                   && strcmp(d->logic()->GetBeamVisualizerNode()->GetIsocenterFiducialNodeId(), "")
-                   && d->logic()->GetBeamVisualizerNode()->GetSourceFiducialNodeId()
-                   && strcmp(d->logic()->GetBeamVisualizerNode()->GetSourceFiducialNodeId(), "");
+  bool applyEnabled = d->logic()->GetBeamsNode()
+                   && d->logic()->GetBeamsNode()->GetIsocenterFiducialNodeId()
+                   && strcmp(d->logic()->GetBeamsNode()->GetIsocenterFiducialNodeId(), "")
+                   && d->logic()->GetBeamsNode()->GetSourceFiducialNodeId()
+                   && strcmp(d->logic()->GetBeamsNode()->GetSourceFiducialNodeId(), "");
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::onLogicModified()
+void qSlicerBeamsModuleWidget::onLogicModified()
 {
   this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::applyClicked()
+void qSlicerBeamsModuleWidget::applyClicked()
 {
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
@@ -312,18 +312,18 @@ void qSlicerBeamVisualizerModuleWidget::applyClicked()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModuleWidget::refreshOutputBaseName()
+void qSlicerBeamsModuleWidget::refreshOutputBaseName()
 {
-  Q_D(qSlicerBeamVisualizerModuleWidget);
+  Q_D(qSlicerBeamsModuleWidget);
 
-  vtkMRMLBeamVisualizerNode* paramNode = d->logic()->GetBeamVisualizerNode();
+  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
   if (!paramNode || !this->mrmlScene())
   {
     return;
   }
 
-  QString newBeamModelBaseName(SlicerRtCommon::BEAMVISUALIZER_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX.c_str());
-  QString newSourceFiducialBaseName(SlicerRtCommon::BEAMVISUALIZER_OUTPUT_SOURCE_FIDUCIAL_PREFIX.c_str());
+  QString newBeamModelBaseName(SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX.c_str());
+  QString newSourceFiducialBaseName(SlicerRtCommon::BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX.c_str());
 
   vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetIsocenterFiducialNodeId()) );

@@ -19,18 +19,18 @@
 
 ==============================================================================*/
  
-#ifndef __qSlicerBeamVisualizerModule_h
-#define __qSlicerBeamVisualizerModule_h
+#ifndef __qSlicerBeamsModule_h
+#define __qSlicerBeamsModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-#include "qSlicerBeamVisualizerModuleExport.h"
+#include "qSlicerBeamsModuleExport.h"
 
-class qSlicerBeamVisualizerModulePrivate;
+class qSlicerBeamsModulePrivate;
 
-/// \ingroup Slicer_QtModules_BeamVisualizer
-class Q_SLICER_QTMODULES_BEAMVISUALIZER_EXPORT qSlicerBeamVisualizerModule :
+/// \ingroup Slicer_QtModules_Beams
+class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -39,8 +39,8 @@ class Q_SLICER_QTMODULES_BEAMVISUALIZER_EXPORT qSlicerBeamVisualizerModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerBeamVisualizerModule(QObject *parent=0);
-  virtual ~qSlicerBeamVisualizerModule();
+  explicit qSlicerBeamsModule(QObject *parent=0);
+  virtual ~qSlicerBeamsModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
   
@@ -71,11 +71,11 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
 protected:
-  QScopedPointer<qSlicerBeamVisualizerModulePrivate> d_ptr;
+  QScopedPointer<qSlicerBeamsModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerBeamVisualizerModule);
-  Q_DISABLE_COPY(qSlicerBeamVisualizerModule);
+  Q_DECLARE_PRIVATE(qSlicerBeamsModule);
+  Q_DISABLE_COPY(qSlicerBeamsModule);
 
 };
 

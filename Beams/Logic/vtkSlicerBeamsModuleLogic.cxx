@@ -19,9 +19,9 @@
 
 ==============================================================================*/
 
-// BeamVisualizer includes
-#include "vtkSlicerBeamVisualizerModuleLogic.h"
-#include "vtkMRMLBeamVisualizerNode.h"
+// Beams includes
+#include "vtkSlicerBeamsModuleLogic.h"
+#include "vtkMRMLBeamsNode.h"
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
@@ -43,34 +43,34 @@
 #include <cassert>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerBeamVisualizerModuleLogic);
+vtkStandardNewMacro(vtkSlicerBeamsModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerBeamVisualizerModuleLogic::vtkSlicerBeamVisualizerModuleLogic()
+vtkSlicerBeamsModuleLogic::vtkSlicerBeamsModuleLogic()
 {
-  this->BeamVisualizerNode = NULL;
+  this->BeamsNode = NULL;
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerBeamVisualizerModuleLogic::~vtkSlicerBeamVisualizerModuleLogic()
+vtkSlicerBeamsModuleLogic::~vtkSlicerBeamsModuleLogic()
 {
-  vtkSetAndObserveMRMLNodeMacro(this->BeamVisualizerNode, NULL);
+  vtkSetAndObserveMRMLNodeMacro(this->BeamsNode, NULL);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerBeamsModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::SetAndObserveBeamVisualizerNode(vtkMRMLBeamVisualizerNode *node)
+void vtkSlicerBeamsModuleLogic::SetAndObserveBeamsNode(vtkMRMLBeamsNode *node)
 {
-  vtkSetAndObserveMRMLNodeMacro(this->BeamVisualizerNode, node);
+  vtkSetAndObserveMRMLNodeMacro(this->BeamsNode, node);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+void vtkSlicerBeamsModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -82,18 +82,18 @@ void vtkSlicerBeamVisualizerModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * new
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::RegisterNodes()
+void vtkSlicerBeamsModuleLogic::RegisterNodes()
 {
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
     return;
   }
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLBeamVisualizerNode>::New());
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLBeamsNode>::New());
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::UpdateFromMRMLScene()
+void vtkSlicerBeamsModuleLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 
@@ -101,61 +101,61 @@ void vtkSlicerBeamVisualizerModuleLogic::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
+void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
     return;
   }
 
-  if (node->IsA("vtkMRMLAnnotationFiducialNode") || node->IsA("vtkMRMLBeamVisualizerNode"))
+  if (node->IsA("vtkMRMLAnnotationFiducialNode") || node->IsA("vtkMRMLBeamsNode"))
   {
     this->Modified();
   }
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
+void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
     return;
   }
 
-  if (node->IsA("vtkMRMLAnnotationFiducialNode") || node->IsA("vtkMRMLBeamVisualizerNode"))
+  if (node->IsA("vtkMRMLAnnotationFiducialNode") || node->IsA("vtkMRMLBeamsNode"))
   {
     this->Modified();
   }
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::OnMRMLSceneEndImport()
+void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndImport()
 {
   // If we have a parameter node select it
-  vtkMRMLBeamVisualizerNode *paramNode = NULL;
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLBeamVisualizerNode");
+  vtkMRMLBeamsNode *paramNode = NULL;
+  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLBeamsNode");
   if (node)
   {
-    paramNode = vtkMRMLBeamVisualizerNode::SafeDownCast(node);
-    vtkSetAndObserveMRMLNodeMacro(this->BeamVisualizerNode, paramNode);
+    paramNode = vtkMRMLBeamsNode::SafeDownCast(node);
+    vtkSetAndObserveMRMLNodeMacro(this->BeamsNode, paramNode);
   }
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::OnMRMLSceneEndClose()
+void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndClose()
 {
   this->Modified();
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::string &errorMessage, vtkTransform* aIsocenterToSourceTransform/*=NULL*/)
+void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &errorMessage, vtkTransform* aIsocenterToSourceTransform/*=NULL*/)
 {
-  if (!this->BeamVisualizerNode || !this->GetMRMLScene())
+  if (!this->BeamsNode || !this->GetMRMLScene())
   {
     return;
   }
-  if ( !this->BeamVisualizerNode->GetIsocenterFiducialNodeId()
-    || !strcmp(this->BeamVisualizerNode->GetIsocenterFiducialNodeId(), "") )
+  if ( !this->BeamsNode->GetIsocenterFiducialNodeId()
+    || !strcmp(this->BeamsNode->GetIsocenterFiducialNodeId(), "") )
   {
     errorMessage = "Empty isocenter fiducial node ID!";
     vtkErrorMacro(<<errorMessage); 
@@ -164,7 +164,7 @@ void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::stri
 
   // Get isocenter fiducial node
   vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->BeamVisualizerNode->GetIsocenterFiducialNodeId()) );
+    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetIsocenterFiducialNodeId()) );
   if (!isocenterNode)
   {
     errorMessage = "Unable to retrieve isocenter fiducial node according its ID!";
@@ -210,21 +210,21 @@ void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::stri
   }
 
   // Get source fiducial node
-  if ( !this->BeamVisualizerNode->GetSourceFiducialNodeId()
-    || !strcmp(this->BeamVisualizerNode->GetSourceFiducialNodeId(), "") )
+  if ( !this->BeamsNode->GetSourceFiducialNodeId()
+    || !strcmp(this->BeamsNode->GetSourceFiducialNodeId(), "") )
   {
     errorMessage = "Empty source fiducial node ID!";
     vtkErrorMacro(<<errorMessage); 
     return;
   }
-  if (!strcmp(this->BeamVisualizerNode->GetSourceFiducialNodeId(), this->BeamVisualizerNode->GetIsocenterFiducialNodeId()))
+  if (!strcmp(this->BeamsNode->GetSourceFiducialNodeId(), this->BeamsNode->GetIsocenterFiducialNodeId()))
   {
     errorMessage = "Source and Isocenter fiducial nodes are set to be the same! They have to be different.";
     vtkErrorMacro(<<errorMessage); 
     return;
   }
   vtkMRMLAnnotationFiducialNode* sourceNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->BeamVisualizerNode->GetSourceFiducialNodeId()) );
+    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetSourceFiducialNodeId()) );
   if (!sourceNode)
   {
     errorMessage = "Unable to retrieve source fiducial node according its ID!";
@@ -276,17 +276,17 @@ void vtkSlicerBeamVisualizerModuleLogic::ComputeSourceFiducialPosition(std::stri
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessage)
+void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
 {
-  if (!this->BeamVisualizerNode || !this->GetMRMLScene())
+  if (!this->BeamsNode || !this->GetMRMLScene())
   {
     return;
   }
 
-  if ( !this->BeamVisualizerNode->GetIsocenterFiducialNodeId()
-    || !strcmp(this->BeamVisualizerNode->GetIsocenterFiducialNodeId(), "")
-    || !this->BeamVisualizerNode->GetSourceFiducialNodeId()
-    || !strcmp(this->BeamVisualizerNode->GetSourceFiducialNodeId(), "") )
+  if ( !this->BeamsNode->GetIsocenterFiducialNodeId()
+    || !strcmp(this->BeamsNode->GetIsocenterFiducialNodeId(), "")
+    || !this->BeamsNode->GetSourceFiducialNodeId()
+    || !strcmp(this->BeamsNode->GetSourceFiducialNodeId(), "") )
   {
     errorMessage = "Insufficient input (isocenter and/or source fiducial is empty)!";
     vtkErrorMacro(<<errorMessage);
@@ -306,7 +306,7 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
 
   // Get isocenter and source fiducial nodes
   vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->BeamVisualizerNode->GetIsocenterFiducialNodeId()) );
+    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetIsocenterFiducialNodeId()) );
   if (!isocenterNode)
   {
     errorMessage = "Unable to retrieve isocenter fiducial node according its ID!";
@@ -315,7 +315,7 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
   }
   // Get source fiducial node
   vtkMRMLAnnotationFiducialNode* sourceNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->BeamVisualizerNode->GetSourceFiducialNodeId()) );
+    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetSourceFiducialNodeId()) );
   if (!sourceNode)
   {
     errorMessage = "Unable to retrieve source fiducial node according its ID!";
@@ -353,15 +353,15 @@ void vtkSlicerBeamVisualizerModuleLogic::CreateBeamModel(std::string &errorMessa
   }
 
   // Get beam model node
-  if ( !this->BeamVisualizerNode->GetBeamModelNodeId()
-    || !strcmp(this->BeamVisualizerNode->GetBeamModelNodeId(), "") )
+  if ( !this->BeamsNode->GetBeamModelNodeId()
+    || !strcmp(this->BeamsNode->GetBeamModelNodeId(), "") )
   {
     errorMessage = "Empty beam model node ID!";
     vtkErrorMacro(<<errorMessage); 
     return;
   }
   vtkMRMLModelNode* beamModelNode = vtkMRMLModelNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->BeamVisualizerNode->GetBeamModelNodeId()) );
+    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetBeamModelNodeId()) );
   if (!beamModelNode)
   {
     errorMessage = "Unable to retrieve beam model node according its ID!";

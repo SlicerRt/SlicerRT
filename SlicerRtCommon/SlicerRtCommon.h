@@ -98,8 +98,8 @@ public:
   static const std::string DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX;
 
   // BeamVisualizer constants
-  static const std::string BEAMVISUALIZER_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX;
-  static const std::string BEAMVISUALIZER_OUTPUT_SOURCE_FIDUCIAL_PREFIX;
+  static const std::string BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX;
+  static const std::string BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX;
 
   //----------------------------------------------------------------------------
   // Utility functions

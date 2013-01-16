@@ -19,23 +19,23 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerBeamVisualizerModuleWidget_h
-#define __qSlicerBeamVisualizerModuleWidget_h
+#ifndef __qSlicerBeamsModuleWidget_h
+#define __qSlicerBeamsModuleWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerBeamVisualizerModuleExport.h"
+#include "qSlicerBeamsModuleExport.h"
 
-class qSlicerBeamVisualizerModuleWidgetPrivate;
+class qSlicerBeamsModuleWidgetPrivate;
 class vtkMRMLNode;
 class QTableWidgetItem;
 
 // STD includes
 #include <map>
 
-/// \ingroup Slicer_QtModules_BeamVisualizer
-class Q_SLICER_QTMODULES_BEAMVISUALIZER_EXPORT qSlicerBeamVisualizerModuleWidget :
+/// \ingroup Slicer_QtModules_Beams
+class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
@@ -43,8 +43,8 @@ class Q_SLICER_QTMODULES_BEAMVISUALIZER_EXPORT qSlicerBeamVisualizerModuleWidget
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerBeamVisualizerModuleWidget(QWidget *parent=0);
-  virtual ~qSlicerBeamVisualizerModuleWidget();
+  qSlicerBeamsModuleWidget(QWidget *parent=0);
+  virtual ~qSlicerBeamsModuleWidget();
 
   virtual void enter();
 
@@ -56,7 +56,7 @@ public slots:
   void onSceneImportedEvent();
 
   /// Set current parameter node
-  void setBeamVisualizerNode(vtkMRMLNode *node);
+  void setBeamsNode(vtkMRMLNode *node);
 
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
@@ -72,7 +72,7 @@ protected slots:
   void onLogicModified();
 
 protected:
-  QScopedPointer<qSlicerBeamVisualizerModuleWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerBeamsModuleWidgetPrivate> d_ptr;
 
 protected:
   virtual void setup();
@@ -86,8 +86,8 @@ protected:
   void refreshOutputBaseName();
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerBeamVisualizerModuleWidget);
-  Q_DISABLE_COPY(qSlicerBeamVisualizerModuleWidget);
+  Q_DECLARE_PRIVATE(qSlicerBeamsModuleWidget);
+  Q_DISABLE_COPY(qSlicerBeamsModuleWidget);
 };
 
 #endif

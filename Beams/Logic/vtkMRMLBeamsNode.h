@@ -19,20 +19,20 @@
 
 ==============================================================================*/
 
-#ifndef __vtkMRMLBeamVisualizerNode_h
-#define __vtkMRMLBeamVisualizerNode_h
+#ifndef __vtkMRMLBeamsNode_h
+#define __vtkMRMLBeamsNode_h
 
 // MRML includes
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
 
-#include "vtkSlicerBeamVisualizerModuleLogicExport.h"
+#include "vtkSlicerBeamsModuleLogicExport.h"
 
-class VTK_SLICER_BEAMVISUALIZER_LOGIC_EXPORT vtkMRMLBeamVisualizerNode : public vtkMRMLNode
+class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkMRMLBeamsNode : public vtkMRMLNode
 {
 public:
-  static vtkMRMLBeamVisualizerNode *New();
-  vtkTypeMacro(vtkMRMLBeamVisualizerNode,vtkMRMLNode);
+  static vtkMRMLBeamsNode *New();
+  vtkTypeMacro(vtkMRMLBeamsNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Create instance of a GAD node. 
@@ -48,7 +48,7 @@ public:
   virtual void Copy(vtkMRMLNode *node);
 
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() {return "BeamVisualizer";};
+  virtual const char* GetNodeTagName() {return "Beams";};
 
   /// Get isocenter fiducial MRML Id 
   vtkGetStringMacro(IsocenterFiducialNodeId);
@@ -82,10 +82,10 @@ protected:
   vtkSetStringMacro(BeamModelNodeId);
 
 protected:
-  vtkMRMLBeamVisualizerNode();
-  ~vtkMRMLBeamVisualizerNode();
-  vtkMRMLBeamVisualizerNode(const vtkMRMLBeamVisualizerNode&);
-  void operator=(const vtkMRMLBeamVisualizerNode&);
+  vtkMRMLBeamsNode();
+  ~vtkMRMLBeamsNode();
+  vtkMRMLBeamsNode(const vtkMRMLBeamsNode&);
+  void operator=(const vtkMRMLBeamsNode&);
 
 protected:
   /// ID of the input isocenter fiducial node

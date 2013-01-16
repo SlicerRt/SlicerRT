@@ -22,70 +22,70 @@
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
-// BeamVisualizer Logic includes
-#include <vtkSlicerBeamVisualizerModuleLogic.h>
+// Beams Logic includes
+#include <vtkSlicerBeamsModuleLogic.h>
 
-// BeamVisualizer includes
-#include "qSlicerBeamVisualizerModule.h"
-#include "qSlicerBeamVisualizerModuleWidget.h"
-
-//-----------------------------------------------------------------------------
-Q_EXPORT_PLUGIN2(qSlicerBeamVisualizerModule, qSlicerBeamVisualizerModule);
+// Beams includes
+#include "qSlicerBeamsModule.h"
+#include "qSlicerBeamsModuleWidget.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_BeamVisualizer
-class qSlicerBeamVisualizerModulePrivate
+Q_EXPORT_PLUGIN2(qSlicerBeamsModule, qSlicerBeamsModule);
+
+//-----------------------------------------------------------------------------
+/// \ingroup Slicer_QtModules_Beams
+class qSlicerBeamsModulePrivate
 {
 public:
-  qSlicerBeamVisualizerModulePrivate();
+  qSlicerBeamsModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerBeamVisualizerModulePrivate methods
+// qSlicerBeamsModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerBeamVisualizerModulePrivate::qSlicerBeamVisualizerModulePrivate()
+qSlicerBeamsModulePrivate::qSlicerBeamsModulePrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerBeamVisualizerModule methods
+// qSlicerBeamsModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerBeamVisualizerModule::qSlicerBeamVisualizerModule(QObject* _parent)
+qSlicerBeamsModule::qSlicerBeamsModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerBeamVisualizerModulePrivate)
+  , d_ptr(new qSlicerBeamsModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerBeamVisualizerModule::categories()const
+QStringList qSlicerBeamsModule::categories()const
 {
   return QStringList() << "Radiotherapy";
 }
 
 //-----------------------------------------------------------------------------
-qSlicerBeamVisualizerModule::~qSlicerBeamVisualizerModule()
+qSlicerBeamsModule::~qSlicerBeamsModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerBeamVisualizerModule::helpText()const
+QString qSlicerBeamsModule::helpText()const
 {
   QString help = 
     "This module displays and handles beam geometry modules created from the loaded isocenter and source fiducials. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/BeamVisualizer\">%1/Documentation/%2.%3/Modules/BeamVisualizer</a><br>";
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/Beams\">%1/Documentation/%2.%3/Modules/Beams</a><br>";
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerBeamVisualizerModule::acknowledgementText()const
+QString qSlicerBeamsModule::acknowledgementText()const
 {
   return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerBeamVisualizerModule::contributors()const
+QStringList qSlicerBeamsModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Csaba Pinter (Queen's)");
@@ -93,25 +93,25 @@ QStringList qSlicerBeamVisualizerModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerBeamVisualizerModule::icon()const
+QIcon qSlicerBeamsModule::icon()const
 {
-  return QIcon(":/Icons/BeamVisualizer.png");
+  return QIcon(":/Icons/Beams.png");
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamVisualizerModule::setup()
+void qSlicerBeamsModule::setup()
 {
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerBeamVisualizerModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation * qSlicerBeamsModule::createWidgetRepresentation()
 {
-  return new qSlicerBeamVisualizerModuleWidget;
+  return new qSlicerBeamsModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerBeamVisualizerModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerBeamsModule::createLogic()
 {
-  return vtkSlicerBeamVisualizerModuleLogic::New();
+  return vtkSlicerBeamsModuleLogic::New();
 }

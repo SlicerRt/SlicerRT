@@ -19,8 +19,8 @@
 
 ==============================================================================*/
 
-// MRMLBeamVisualizer includes
-#include "vtkMRMLBeamVisualizerNode.h"
+// MRMLBeams includes
+#include "vtkMRMLBeamsNode.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -35,10 +35,10 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
-vtkMRMLNodeNewMacro(vtkMRMLBeamVisualizerNode);
+vtkMRMLNodeNewMacro(vtkMRMLBeamsNode);
 
 //----------------------------------------------------------------------------
-vtkMRMLBeamVisualizerNode::vtkMRMLBeamVisualizerNode()
+vtkMRMLBeamsNode::vtkMRMLBeamsNode()
 {
   this->IsocenterFiducialNodeId = NULL;
   this->SourceFiducialNodeId = NULL;
@@ -48,7 +48,7 @@ vtkMRMLBeamVisualizerNode::vtkMRMLBeamVisualizerNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLBeamVisualizerNode::~vtkMRMLBeamVisualizerNode()
+vtkMRMLBeamsNode::~vtkMRMLBeamsNode()
 {
   this->SetIsocenterFiducialNodeId(NULL);
   this->SetSourceFiducialNodeId(NULL);
@@ -56,7 +56,7 @@ vtkMRMLBeamVisualizerNode::~vtkMRMLBeamVisualizerNode()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamVisualizerNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLBeamsNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of, nIndent);
 
@@ -92,7 +92,7 @@ void vtkMRMLBeamVisualizerNode::WriteXML(ostream& of, int nIndent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamVisualizerNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLBeamsNode::ReadXMLAttributes(const char** atts)
 {
   vtkMRMLNode::ReadXMLAttributes(atts);
 
@@ -127,12 +127,12 @@ void vtkMRMLBeamVisualizerNode::ReadXMLAttributes(const char** atts)
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
-void vtkMRMLBeamVisualizerNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLBeamsNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
   this->DisableModifiedEventOn();
 
-  vtkMRMLBeamVisualizerNode *node = (vtkMRMLBeamVisualizerNode *) anode;
+  vtkMRMLBeamsNode *node = (vtkMRMLBeamsNode *) anode;
 
   this->SetAndObserveIsocenterFiducialNodeId(node->IsocenterFiducialNodeId);
   this->SetAndObserveSourceFiducialNodeId(node->SourceFiducialNodeId);
@@ -143,7 +143,7 @@ void vtkMRMLBeamVisualizerNode::Copy(vtkMRMLNode *anode)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamVisualizerNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLBeamsNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
@@ -153,7 +153,7 @@ void vtkMRMLBeamVisualizerNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamVisualizerNode::SetAndObserveIsocenterFiducialNodeId(const char* id)
+void vtkMRMLBeamsNode::SetAndObserveIsocenterFiducialNodeId(const char* id)
 {
   if (this->IsocenterFiducialNodeId)
   {
@@ -169,7 +169,7 @@ void vtkMRMLBeamVisualizerNode::SetAndObserveIsocenterFiducialNodeId(const char*
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamVisualizerNode::SetAndObserveSourceFiducialNodeId(const char* id)
+void vtkMRMLBeamsNode::SetAndObserveSourceFiducialNodeId(const char* id)
 {
   if (this->SourceFiducialNodeId)
   {
@@ -185,7 +185,7 @@ void vtkMRMLBeamVisualizerNode::SetAndObserveSourceFiducialNodeId(const char* id
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamVisualizerNode::SetAndObserveBeamModelNodeId(const char* id)
+void vtkMRMLBeamsNode::SetAndObserveBeamModelNodeId(const char* id)
 {
   if (this->BeamModelNodeId)
   {
@@ -201,7 +201,7 @@ void vtkMRMLBeamVisualizerNode::SetAndObserveBeamModelNodeId(const char* id)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamVisualizerNode::UpdateReferenceID(const char *oldID, const char *newID)
+void vtkMRMLBeamsNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   if (this->IsocenterFiducialNodeId && !strcmp(oldID, this->IsocenterFiducialNodeId))
     {

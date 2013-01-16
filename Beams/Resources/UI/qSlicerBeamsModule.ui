@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerBeamVisualizerModule</class>
- <widget class="qSlicerWidget" name="qSlicerBeamVisualizerModule">
+ <class>qSlicerBeamsModule</class>
+ <widget class="qSlicerWidget" name="qSlicerBeamsModule">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -36,7 +36,7 @@
       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
        <property name="nodeTypes">
         <stringlist>
-         <string>vtkMRMLBeamVisualizerNode</string>
+         <string>vtkMRMLBeamsNode</string>
         </stringlist>
        </property>
       </widget>
@@ -215,7 +215,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>qSlicerBeamVisualizerModule</sender>
+   <sender>qSlicerBeamsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MRMLNodeComboBox_BeamModel</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -231,7 +231,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerBeamVisualizerModule</sender>
+   <sender>qSlicerBeamsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MRMLNodeComboBox_ParameterSet</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -247,7 +247,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerBeamVisualizerModule</sender>
+   <sender>qSlicerBeamsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MRMLNodeComboBox_IsocenterFiducial</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -263,7 +263,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerBeamVisualizerModule</sender>
+   <sender>qSlicerBeamsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MRMLNodeComboBox_SourceFiducial</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>

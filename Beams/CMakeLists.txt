@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "BeamVisualizer")
-set(MODULE_TITLE "Beam Visualizer")
+set(MODULE_NAME "Beams")
+set(MODULE_TITLE "Beams")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
