@@ -193,9 +193,17 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     {
       d->MRMLNodeComboBox_SourceFiducial->setCurrentNode(paramNode->GetSourceFiducialNodeId());
     }
+    else
+    {
+      this->sourceFiducialNodeChanged(d->MRMLNodeComboBox_SourceFiducial->currentNode());
+    }
     if (paramNode->GetBeamModelNodeId() && strcmp(paramNode->GetBeamModelNodeId(),""))
     {
       d->MRMLNodeComboBox_BeamModel->setCurrentNode(paramNode->GetBeamModelNodeId());
+    }
+    else
+    {
+      this->beamModelNodeChanged(d->MRMLNodeComboBox_BeamModel->currentNode());
     }
   }
 

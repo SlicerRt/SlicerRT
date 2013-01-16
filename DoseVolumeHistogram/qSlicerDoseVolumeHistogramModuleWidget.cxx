@@ -191,7 +191,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setDoseVolumeHistogramNode(vtkMRMLN
   qvtkReconnect( d->logic()->GetDoseVolumeHistogramNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
   d->logic()->SetAndObserveDoseVolumeHistogramNode(paramNode);
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
