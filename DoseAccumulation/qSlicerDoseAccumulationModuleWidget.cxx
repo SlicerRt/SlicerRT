@@ -191,11 +191,11 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseAccumulationNode());
     d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
-    if (paramNode->GetAccumulatedDoseVolumeNodeId() && strcmp(paramNode->GetAccumulatedDoseVolumeNodeId(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetAccumulatedDoseVolumeNodeId()))
     {
       d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNode(paramNode->GetAccumulatedDoseVolumeNodeId());
     }
-    if (paramNode->GetReferenceDoseVolumeNodeId() && strcmp(paramNode->GetReferenceDoseVolumeNodeId(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceDoseVolumeNodeId()))
     {
       d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNode(paramNode->GetReferenceDoseVolumeNodeId());
     }
@@ -286,8 +286,7 @@ void qSlicerDoseAccumulationModuleWidget::updateButtonsState()
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
   bool applyEnabled = d->logic()->GetDoseAccumulationNode()
-                   && d->logic()->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeNodeId()
-                   && strcmp(d->logic()->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeNodeId(), "")
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeNodeId())
                    && d->logic()->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->size() > 0;
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
@@ -531,7 +530,6 @@ void qSlicerDoseAccumulationModuleWidget::refreshOutputBaseName()
         continue;
       }
 
-      newBaseName.append("_");
       newBaseName.append(volumeNode->GetName());
     }
   }

@@ -175,17 +175,17 @@ void qSlicerDoseComparisonModuleWidget::setDoseComparisonNode(vtkMRMLNode *node)
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
-    if ((!paramNode->GetReferenceDoseVolumeNodeId() || strcmp(paramNode->GetReferenceDoseVolumeNodeId(), ""))
-      && d->MRMLNodeComboBox_ReferenceDoseVolume->currentNode())
+    if ( (SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceDoseVolumeNodeId()))
+      && d->MRMLNodeComboBox_ReferenceDoseVolume->currentNode() )
     {
       paramNode->SetAndObserveReferenceDoseVolumeNodeId(d->MRMLNodeComboBox_ReferenceDoseVolume->currentNodeId().toLatin1());
     }
-    if ((!paramNode->GetCompareDoseVolumeNodeId() || strcmp(paramNode->GetCompareDoseVolumeNodeId(), ""))
-      && d->MRMLNodeComboBox_CompareDoseVolume->currentNode())
+    if ( (SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareDoseVolumeNodeId()))
+      && d->MRMLNodeComboBox_CompareDoseVolume->currentNode() )
     {
       paramNode->SetAndObserveCompareDoseVolumeNodeId(d->MRMLNodeComboBox_CompareDoseVolume->currentNodeId().toLatin1());
     }
-    if ((!paramNode->GetGammaVolumeNodeId() || strcmp(paramNode->GetGammaVolumeNodeId(), ""))
+    if ( (SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetGammaVolumeNodeId()))
       && d->MRMLNodeComboBox_GammaVolume->currentNode())
     {
       paramNode->SetAndObserveGammaVolumeNodeId(d->MRMLNodeComboBox_GammaVolume->currentNodeId().toLatin1());
@@ -206,15 +206,15 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseComparisonNode());
-    if (paramNode->GetReferenceDoseVolumeNodeId() && strcmp(paramNode->GetReferenceDoseVolumeNodeId(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceDoseVolumeNodeId()))
     {
       d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNode(paramNode->GetReferenceDoseVolumeNodeId());
     }
-    if (paramNode->GetCompareDoseVolumeNodeId() && strcmp(paramNode->GetCompareDoseVolumeNodeId(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareDoseVolumeNodeId()))
     {
       d->MRMLNodeComboBox_CompareDoseVolume->setCurrentNode(paramNode->GetCompareDoseVolumeNodeId());
     }
-    if (paramNode->GetGammaVolumeNodeId() && strcmp(paramNode->GetGammaVolumeNodeId(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetGammaVolumeNodeId()))
     {
       d->MRMLNodeComboBox_GammaVolume->setCurrentNode(paramNode->GetGammaVolumeNodeId());
     }
@@ -278,12 +278,9 @@ void qSlicerDoseComparisonModuleWidget::updateButtonsState()
   Q_D(qSlicerDoseComparisonModuleWidget);
 
   bool applyEnabled = d->logic()->GetDoseComparisonNode()
-                   && d->logic()->GetDoseComparisonNode()->GetReferenceDoseVolumeNodeId()
-                   && strcmp(d->logic()->GetDoseComparisonNode()->GetReferenceDoseVolumeNodeId(), "")
-                   && d->logic()->GetDoseComparisonNode()->GetCompareDoseVolumeNodeId()
-                   && strcmp(d->logic()->GetDoseComparisonNode()->GetCompareDoseVolumeNodeId(), "")
-                   && d->logic()->GetDoseComparisonNode()->GetGammaVolumeNodeId()
-                   && strcmp(d->logic()->GetDoseComparisonNode()->GetGammaVolumeNodeId(), "");
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetDoseComparisonNode()->GetReferenceDoseVolumeNodeId())
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetDoseComparisonNode()->GetCompareDoseVolumeNodeId())
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetDoseComparisonNode()->GetGammaVolumeNodeId());
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
 
@@ -508,7 +505,6 @@ void qSlicerDoseComparisonModuleWidget::refreshOutputBaseName()
     this->mrmlScene()->GetNodeByID(paramNode->GetReferenceDoseVolumeNodeId()));
   if (referenceDoseVolumeNode)
   {
-    newBaseName.append("_");
     newBaseName.append(referenceDoseVolumeNode->GetName());
   }
 
@@ -516,7 +512,6 @@ void qSlicerDoseComparisonModuleWidget::refreshOutputBaseName()
     this->mrmlScene()->GetNodeByID(paramNode->GetCompareDoseVolumeNodeId()));
   if (compareDoseVolumeNode)
   {
-    newBaseName.append("_");
     newBaseName.append(compareDoseVolumeNode->GetName());
   }
 

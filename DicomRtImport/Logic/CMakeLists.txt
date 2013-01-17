@@ -8,6 +8,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${QT_QTSQL_INCLUDE_DIR}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -42,6 +43,7 @@ set(${KIT}_TARGET_LIBRARIES
   ${DCMTK_LIBRARIES}
   ${DCMTK_dcmrt_LIBRARY}
   vtkSlicerVolumesModuleLogic
+  vtkSlicerBeamsModuleLogic
   vtkSlicerAnnotationsModuleMRML
   )
 

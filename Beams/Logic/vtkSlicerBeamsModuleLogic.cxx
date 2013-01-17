@@ -210,8 +210,7 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
   }
 
   // Get source fiducial node
-  if ( !this->BeamsNode->GetSourceFiducialNodeId()
-    || !strcmp(this->BeamsNode->GetSourceFiducialNodeId(), "") )
+  if (SlicerRtCommon::IsStringNullOrEmpty(this->BeamsNode->GetSourceFiducialNodeId()))
   {
     errorMessage = "Empty source fiducial node ID!";
     vtkErrorMacro(<<errorMessage); 
@@ -283,10 +282,8 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
     return;
   }
 
-  if ( !this->BeamsNode->GetIsocenterFiducialNodeId()
-    || !strcmp(this->BeamsNode->GetIsocenterFiducialNodeId(), "")
-    || !this->BeamsNode->GetSourceFiducialNodeId()
-    || !strcmp(this->BeamsNode->GetSourceFiducialNodeId(), "") )
+  if ( SlicerRtCommon::IsStringNullOrEmpty(this->BeamsNode->GetIsocenterFiducialNodeId())
+    || SlicerRtCommon::IsStringNullOrEmpty(this->BeamsNode->GetSourceFiducialNodeId()) )
   {
     errorMessage = "Insufficient input (isocenter and/or source fiducial is empty)!";
     vtkErrorMacro(<<errorMessage);

@@ -97,9 +97,10 @@ public:
   // DoseComparison constants
   static const std::string DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX;
 
-  // BeamVisualizer constants
+  // Beams constants
   static const std::string BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX;
   static const std::string BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX;
+  static const std::string BEAMS_PARAMETER_SET_BASE_NAME_PREFIX;
 
   //----------------------------------------------------------------------------
   // Utility functions
@@ -113,6 +114,9 @@ public:
     /param fromNodeTotoNodeTransform Output transform
   */
   static void GetTransformBetweenTransformables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform);
+
+  /// Returns true if the string is null or empty, returns false otherwise
+  static bool IsStringNullOrEmpty(char* aString);
 
   /*!
     Convert VTK image to ITK image

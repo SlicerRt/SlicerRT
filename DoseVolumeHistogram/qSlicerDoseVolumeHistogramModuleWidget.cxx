@@ -203,7 +203,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
-    if (paramNode->GetDoseVolumeNodeId() && strcmp(paramNode->GetDoseVolumeNodeId(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetDoseVolumeNodeId()))
     {
       d->MRMLNodeComboBox_DoseVolume->setCurrentNode(paramNode->GetDoseVolumeNodeId());
     }
@@ -211,7 +211,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     {
       this->doseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
     }
-    if (paramNode->GetStructureSetContourNodeId() && strcmp(paramNode->GetStructureSetContourNodeId(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetStructureSetContourNodeId()))
     {
       d->MRMLNodeComboBox_StructureSet->setCurrentNode(paramNode->GetStructureSetContourNodeId());
     }
@@ -219,7 +219,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     {
       this->structureSetNodeChanged(d->MRMLNodeComboBox_StructureSet->currentNode());
     }
-    if (paramNode->GetChartNodeId() && strcmp(paramNode->GetChartNodeId(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetChartNodeId()))
     {
       d->MRMLNodeComboBox_Chart->setCurrentNode(paramNode->GetChartNodeId());
     }
@@ -291,15 +291,13 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   if (paramNode)
   {
     // Enable/disable ComputeDVH button
-    bool dvhCanBeComputed = paramNode->GetDoseVolumeNodeId()
-                     && strcmp(paramNode->GetDoseVolumeNodeId(), "")
-                     && paramNode->GetStructureSetContourNodeId()
-                     && strcmp(paramNode->GetStructureSetContourNodeId(), "");
+    bool dvhCanBeComputed = !SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetDoseVolumeNodeId())
+                     && !SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetStructureSetContourNodeId());
     d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
 
     // Enable/disable Export DVH to file button
     bool dvhCanBeExported = false;
-    if (paramNode->GetChartNodeId() && strcmp(paramNode->GetChartNodeId(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetChartNodeId()))
     {
       for (std::vector<bool>::iterator stateIt=paramNode->GetShowInChartCheckStates()->begin();
         stateIt!=paramNode->GetShowInChartCheckStates()->end(); ++stateIt)

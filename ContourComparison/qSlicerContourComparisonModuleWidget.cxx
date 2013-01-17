@@ -29,6 +29,9 @@
 #include "vtkSlicerContourComparisonModuleLogic.h"
 #include "vtkMRMLContourComparisonNode.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
 
@@ -171,18 +174,18 @@ void qSlicerContourComparisonModuleWidget::setContourComparisonNode(vtkMRMLNode 
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
-    if ((!paramNode->GetReferenceContourNodeId() || strcmp(paramNode->GetReferenceContourNodeId(), ""))
-      && d->MRMLNodeComboBox_ReferenceContour->currentNode())
+    if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceContourNodeId())
+      && d->MRMLNodeComboBox_ReferenceContour->currentNode() )
     {
       paramNode->SetAndObserveReferenceContourNodeId(d->MRMLNodeComboBox_ReferenceContour->currentNodeId().toLatin1());
     }
-    if ((!paramNode->GetCompareContourNodeId() || strcmp(paramNode->GetCompareContourNodeId(), ""))
-      && d->MRMLNodeComboBox_CompareContour->currentNode())
+    if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareContourNodeId())
+      && d->MRMLNodeComboBox_CompareContour->currentNode() )
     {
       paramNode->SetAndObserveCompareContourNodeId(d->MRMLNodeComboBox_CompareContour->currentNodeId().toLatin1());
     }
-    if ((!paramNode->GetRasterizationReferenceVolumeNodeId() || strcmp(paramNode->GetRasterizationReferenceVolumeNodeId(), ""))
-      && d->MRMLNodeComboBox_ReferenceVolume->currentNode())
+    if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetRasterizationReferenceVolumeNodeId())
+      && d->MRMLNodeComboBox_ReferenceVolume->currentNode() )
     {
       paramNode->SetAndObserveReferenceVolumeNodeId(d->MRMLNodeComboBox_ReferenceVolume->currentNodeId().toLatin1());
     }
@@ -204,17 +207,18 @@ void qSlicerContourComparisonModuleWidget::updateWidgetFromMRML()
   }
 
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetContourComparisonNode());
-  if (paramNode->GetReferenceContourNodeId() && strcmp(paramNode->GetReferenceContourNodeId(),""))
+  if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceContourNodeId()))
   {
     d->MRMLNodeComboBox_ReferenceContour->setCurrentNode(paramNode->GetReferenceContourNodeId());
   }
-  if (paramNode->GetCompareContourNodeId() && strcmp(paramNode->GetCompareContourNodeId(),""))
+  if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareContourNodeId()))
   {
     d->MRMLNodeComboBox_CompareContour->setCurrentNode(paramNode->GetCompareContourNodeId());
   }
 
   bool referenceVolumeNeeded = d->logic()->IsReferenceVolumeNeeded();
-  bool referenceVolumeSelected = ( paramNode->GetRasterizationReferenceVolumeNodeId() && strcmp(paramNode->GetRasterizationReferenceVolumeNodeId(),"") );
+
+  bool referenceVolumeSelected = ( !SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetRasterizationReferenceVolumeNodeId()) );
   d->label_NoReferenceVolumeIsSelected->setVisible( referenceVolumeNeeded && !referenceVolumeSelected );
   d->label_NoReferenceVolumeIsNeeded->setVisible( !referenceVolumeNeeded );
   d->MRMLNodeComboBox_ReferenceVolume->setVisible( referenceVolumeNeeded );
@@ -252,13 +256,10 @@ void qSlicerContourComparisonModuleWidget::updateButtonsState()
   Q_D(qSlicerContourComparisonModuleWidget);
 
   bool applyEnabled = d->logic()->GetContourComparisonNode()
-                   && d->logic()->GetContourComparisonNode()->GetReferenceContourNodeId()
-                   && strcmp(d->logic()->GetContourComparisonNode()->GetReferenceContourNodeId(), "")
-                   && d->logic()->GetContourComparisonNode()->GetCompareContourNodeId()
-                   && strcmp(d->logic()->GetContourComparisonNode()->GetCompareContourNodeId(), "")
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetReferenceContourNodeId())
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetCompareContourNodeId())
                    && ( ! d->logic()->IsReferenceVolumeNeeded()
-                     || ( d->logic()->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId()
-                        && strcmp(d->logic()->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId(), "") ) );
+                     || ( !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId()) ) );
   d->pushButton_Apply->setEnabled(applyEnabled);
 
   this->updateWidgetFromMRML();

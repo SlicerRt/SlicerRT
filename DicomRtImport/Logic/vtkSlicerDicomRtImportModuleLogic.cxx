@@ -25,6 +25,8 @@ limitations under the License.
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkMRMLContourHierarchyNode.h"
+#include "vtkSlicerBeamsModuleLogic.h"
+#include "vtkMRMLBeamsNode.h"
 
 // DCMTK includes
 #include <dcmtk/dcmdata/dcfilefo.h>
@@ -522,40 +524,78 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
           modelDisplayNode->SetVisibility(1);
           this->GetMRMLScene()->AddNode(modelDisplayNode);
           isocenterHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
-
-          // Add attributes containing beam information to the isocenter fiducial node
-          // TODO: Add these in the PatientHierarchy node when available
-          std::stringstream sourceAxisDistanceStream;
-          sourceAxisDistanceStream << rtReader->GetBeamSourceAxisDistance(dicomBeamIndex);
-          addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str(),
-            sourceAxisDistanceStream.str().c_str() );
-          std::stringstream gantryAngleStream;
-          gantryAngleStream << rtReader->GetBeamGantryAngle(dicomBeamIndex);
-          addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str(),
-            gantryAngleStream.str().c_str() );
-          std::stringstream couchAngleStream;
-          couchAngleStream << rtReader->GetBeamPatientSupportAngle(dicomBeamIndex);
-          addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COUCH_ANGLE_ATTRIBUTE_NAME.c_str(),
-            couchAngleStream.str().c_str() );
-          std::stringstream collimatorAngleStream;
-          collimatorAngleStream << rtReader->GetBeamBeamLimitingDeviceAngle(dicomBeamIndex);
-          addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
-            collimatorAngleStream.str().c_str() );
-          std::stringstream jawPositionsStream;
-          double jawPositions[2][2];
-          rtReader->GetBeamLeafJawPositions(dicomBeamIndex, jawPositions);
-          jawPositionsStream << jawPositions[0][0] << " " << jawPositions[0][1] << " "
-            << jawPositions[1][0] << " " << jawPositions[1][1];
-          addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str(),
-            jawPositionsStream.str().c_str() );
         }
 
-        // put the new node in the hierarchy
+        // Add attributes containing beam information to the isocenter fiducial node
+        // TODO: Add these in the PatientHierarchy node when available
+        std::stringstream sourceAxisDistanceStream;
+        sourceAxisDistanceStream << rtReader->GetBeamSourceAxisDistance(dicomBeamIndex);
+        addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str(),
+          sourceAxisDistanceStream.str().c_str() );
+        std::stringstream gantryAngleStream;
+        gantryAngleStream << rtReader->GetBeamGantryAngle(dicomBeamIndex);
+        addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str(),
+          gantryAngleStream.str().c_str() );
+        std::stringstream couchAngleStream;
+        couchAngleStream << rtReader->GetBeamPatientSupportAngle(dicomBeamIndex);
+        addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COUCH_ANGLE_ATTRIBUTE_NAME.c_str(),
+          couchAngleStream.str().c_str() );
+        std::stringstream collimatorAngleStream;
+        collimatorAngleStream << rtReader->GetBeamBeamLimitingDeviceAngle(dicomBeamIndex);
+        addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
+          collimatorAngleStream.str().c_str() );
+        std::stringstream jawPositionsStream;
+        double jawPositions[2][2];
+        rtReader->GetBeamLeafJawPositions(dicomBeamIndex, jawPositions);
+        jawPositionsStream << jawPositions[0][0] << " " << jawPositions[0][1] << " "
+          << jawPositions[1][0] << " " << jawPositions[1][1];
+        addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str(),
+          jawPositionsStream.str().c_str() );
+
+        // Create source fiducial and beam model nodes
+        std::string sourceFiducialName;
+        sourceFiducialName = this->GetMRMLScene()->GenerateUniqueName(
+          SlicerRtCommon::BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX + std::string(addedDisplayableNode->GetName()) );
+        vtkSmartPointer<vtkMRMLAnnotationFiducialNode> sourceFiducialNode = vtkSmartPointer<vtkMRMLAnnotationFiducialNode>::New();
+        sourceFiducialNode->SetName(sourceFiducialName.c_str());
+        this->GetMRMLScene()->AddNode(sourceFiducialNode);
+
+        std::string beamModelName;
+        beamModelName = this->GetMRMLScene()->GenerateUniqueName(
+          SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX + std::string(addedDisplayableNode->GetName()) );
+        vtkSmartPointer<vtkMRMLModelNode> beamModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+        beamModelNode->SetName(beamModelName.c_str());
+        this->GetMRMLScene()->AddNode(beamModelNode);
+
+        // Create Beams parameter set node
+        std::string beamParameterSetNodeName;
+        beamParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
+          SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX + std::string(addedDisplayableNode->GetName()) );
+        vtkSmartPointer<vtkMRMLBeamsNode> beamParameterSetNode = vtkSmartPointer<vtkMRMLBeamsNode>::New();
+        beamParameterSetNode->SetName(beamParameterSetNodeName.c_str());
+        beamParameterSetNode->SetAndObserveIsocenterFiducialNodeId(addedDisplayableNode->GetID());
+        beamParameterSetNode->SetAndObserveSourceFiducialNodeId(sourceFiducialNode->GetID());
+        beamParameterSetNode->SetAndObserveBeamModelNodeId(beamModelNode->GetID());
+        this->GetMRMLScene()->AddNode(beamParameterSetNode);
+
+        // Create beam geometry
+        vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic = vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
+        beamsLogic->SetAndObserveBeamsNode(beamParameterSetNode);
+        beamsLogic->SetAndObserveMRMLScene(this->GetMRMLScene());
+        std::string errorMessage;
+        beamsLogic->CreateBeamModel(errorMessage);
+        if (!errorMessage.empty())
+        {
+          vtkWarningMacro("Failed to create beam geometry for isocenter: " << addedDisplayableNode->GetName());
+        }
+
+        // Put the new node in the annotation hierarchy
         vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterHierarchyNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
         this->GetMRMLScene()->AddNode(isocenterHierarchyNode);
         isocenterHierarchyNode->SetParentNodeID( isocenterHierarchyRootNode->GetID() );
         isocenterHierarchyNode->SetDisplayableNodeID( addedDisplayableNode->GetID() );
-      }
+
+      } //endif addedDisplayableNode
     }
 
     this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 

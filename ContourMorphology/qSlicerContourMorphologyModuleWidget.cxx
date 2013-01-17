@@ -35,6 +35,9 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLContourNode.h>
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
 // VTK includes
 #include <vtkLookupTable.h>
 #include <vtkRenderer.h>
@@ -174,7 +177,7 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
-    if (paramNode->GetContourNodeID() && strcmp(paramNode->GetContourNodeID(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetContourNodeID()))
     {
       d->MRMLNodeComboBox_CurrentContour->setCurrentNode(paramNode->GetContourNodeID());
     }
@@ -480,8 +483,7 @@ void qSlicerContourMorphologyModuleWidget::updateButtonsState()
   }
 
   bool applyEnabled = d->logic()->GetContourMorphologyNode()
-                   && d->logic()->GetContourMorphologyNode()->GetContourNodeID()
-                   && strcmp(d->logic()->GetContourMorphologyNode()->GetContourNodeID(), "");
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetContourNodeID());
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
 

@@ -185,7 +185,7 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
-    if (paramNode->GetDoseVolumeNodeId() && strcmp(paramNode->GetDoseVolumeNodeId(),""))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetDoseVolumeNodeId()))
     {
       d->MRMLNodeComboBox_DoseVolume->setCurrentNode(paramNode->GetDoseVolumeNodeId());
     }
@@ -416,8 +416,7 @@ void qSlicerIsodoseModuleWidget::updateButtonsState()
   vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(defaultID));
   bool applyEnabled = d->logic()->GetIsodoseNode()
-                   && d->logic()->GetIsodoseNode()->GetDoseVolumeNodeId()
-                   && strcmp(d->logic()->GetIsodoseNode()->GetDoseVolumeNodeId(), "")
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetIsodoseNode()->GetDoseVolumeNodeId())
                    && colorTableNode->GetNumberOfColors() > 0;
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
