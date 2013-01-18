@@ -231,6 +231,16 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
     return;
   }
 
+  sourceNode->SetLocked(1);
+  sourceNode->CreateAnnotationTextDisplayNode();
+  sourceNode->CreateAnnotationPointDisplayNode();
+  sourceNode->GetAnnotationPointDisplayNode()->SetGlyphType(vtkMRMLAnnotationPointDisplayNode::Sphere3D);
+  sourceNode->GetAnnotationPointDisplayNode()->SetColor(
+    isocenterNode->GetAnnotationPointDisplayNode()->GetColor() );
+  sourceNode->GetAnnotationTextDisplayNode()->SetColor(
+    isocenterNode->GetAnnotationTextDisplayNode()->GetColor() );
+
+
   // Compute isocenter to source transformation
   //TODO: It is assumed that the center of rotation for the couch is the isocenter. Is it true?
   vtkSmartPointer<vtkTransform> couchToSourceTransform = vtkSmartPointer<vtkTransform>::New();
@@ -242,6 +252,7 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
   gantryToCouchTransform->RotateWXYZ(gantryAngle, 0.0, 0.0, 1.0);
 
   vtkSmartPointer<vtkTransform> isocenterToGantryTransform = vtkSmartPointer<vtkTransform>::New();
+
   isocenterToGantryTransform->Identity();
   isocenterToGantryTransform->Translate(0.0, sourceAxisDistance, 0.0);
 
@@ -438,7 +449,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   displayNode->SliceIntersectionVisibilityOn();  
   displayNode->VisibilityOn(); 
   displayNode->SetColor(0.0, 1.0, 0.0);
-  displayNode->SetOpacity(0.3);
+  displayNode->SetOpacity(0.2);
   // Disable backface culling to make the back side of the contour visible as well
   displayNode->SetBackfaceCulling(0);
 
