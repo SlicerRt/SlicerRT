@@ -63,16 +63,16 @@ public:
 
 public:
   /// Get dose volume node ID
-  vtkGetStringMacro(ContourNodeID);
+  vtkGetStringMacro(ReferenceContourNodeID);
 
   /// Set and observe dose volume node ID
-  void SetAndObserveContourNodeID(const char* id);
+  void SetAndObserveReferenceContourNodeID(const char* id);
 
   /// Get dose volume node ID
-  vtkGetStringMacro(SecondaryContourNodeID);
+  vtkGetStringMacro(InputContourNodeID);
 
   /// Set and observe dose volume node ID
-  void SetAndObserveSecondaryContourNodeID(const char* id);
+  void SetAndObserveInputContourNodeID(const char* id);
 
   /// Get output hierarchy node ID
   vtkGetStringMacro(OutputContourNodeID);
@@ -107,10 +107,10 @@ public:
 
 protected:
   /// Set dose volume node ID
-  vtkSetStringMacro(ContourNodeID);
+  vtkSetStringMacro(ReferenceContourNodeID);
 
   /// Set dose volume node ID
-  vtkSetStringMacro(SecondaryContourNodeID);
+  vtkSetStringMacro(InputContourNodeID);
 
   /// Set output hierarchy node ID
   vtkSetStringMacro(OutputContourNodeID);
@@ -123,10 +123,10 @@ protected:
 
 protected:
   /// Selected dose volume MRML node object ID
-  char* ContourNodeID;
+  char* ReferenceContourNodeID;
 
   /// Selected dose volume MRML node object ID
-  char* SecondaryContourNodeID;
+  char* InputContourNodeID;
 
   /// Selected dose volume MRML node object ID
   char* OutputContourNodeID;

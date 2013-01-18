@@ -187,7 +187,8 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLContourMorphologyNode> paramNode = vtkSmartPointer<vtkMRMLContourMorphologyNode>::New();
   mrmlScene->AddNode(paramNode);
-  paramNode->SetAndObserveContourNodeID(contourNode->GetID());
+  paramNode->SetAndObserveReferenceContourNodeID(contourNode->GetID());
+  paramNode->SetAndObserveInputContourNodeID(contourNode->GetID());
   paramNode->SetAndObserveOutputContourNodeID(outputContourNode->GetID());
   paramNode->SetOperationToExpand();
   paramNode->SetXSize(3);

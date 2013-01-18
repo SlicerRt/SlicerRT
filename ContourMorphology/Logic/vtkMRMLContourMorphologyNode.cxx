@@ -40,8 +40,8 @@ vtkMRMLNodeNewMacro(vtkMRMLContourMorphologyNode);
 //----------------------------------------------------------------------------
 vtkMRMLContourMorphologyNode::vtkMRMLContourMorphologyNode()
 {
-  this->ContourNodeID = NULL;
-  this->SecondaryContourNodeID = NULL;
+  this->ReferenceContourNodeID = NULL;
+  this->InputContourNodeID = NULL;
   this->OutputContourNodeID = NULL;
   this->Operation = SLICERRT_EXPAND;
   this->XSize = 1;
@@ -54,8 +54,8 @@ vtkMRMLContourMorphologyNode::vtkMRMLContourMorphologyNode()
 //----------------------------------------------------------------------------
 vtkMRMLContourMorphologyNode::~vtkMRMLContourMorphologyNode()
 {
-  this->SetContourNodeID(NULL);
-  this->SetSecondaryContourNodeID(NULL);
+  this->SetReferenceContourNodeID(NULL);
+  this->SetInputContourNodeID(NULL);
   this->SetOutputContourNodeID(NULL);
 }
 
@@ -69,19 +69,19 @@ void vtkMRMLContourMorphologyNode::WriteXML(ostream& of, int nIndent)
 
   {
     std::stringstream ss;
-    if ( this->ContourNodeID )
+    if ( this->ReferenceContourNodeID )
       {
-      ss << this->ContourNodeID;
-      of << indent << " ContourNodeID=\"" << ss.str() << "\"";
+      ss << this->ReferenceContourNodeID;
+      of << indent << " ReferenceContourNodeID=\"" << ss.str() << "\"";
       }
   }
 
   {
     std::stringstream ss;
-    if ( this->SecondaryContourNodeID )
+    if ( this->InputContourNodeID )
       {
-      ss << this->SecondaryContourNodeID;
-      of << indent << " SecondaryContourNodeID=\"" << ss.str() << "\"";
+      ss << this->InputContourNodeID;
+      of << indent << " InputContourNodeID=\"" << ss.str() << "\"";
       }
   }
 
@@ -117,17 +117,17 @@ void vtkMRMLContourMorphologyNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "ContourNodeID")) 
+    if (!strcmp(attName, "ReferenceContourNodeID")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveContourNodeID(ss.str().c_str());
+      this->SetAndObserveReferenceContourNodeID(ss.str().c_str());
       }
-    if (!strcmp(attName, "SecondaryContourNodeID")) 
+    if (!strcmp(attName, "InputContourNodeID")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveSecondaryContourNodeID(ss.str().c_str());
+      this->SetAndObserveInputContourNodeID(ss.str().c_str());
       }
     else if (!strcmp(attName, "OutputContourNodeID")) 
       {
@@ -168,8 +168,8 @@ void vtkMRMLContourMorphologyNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLContourMorphologyNode *node = (vtkMRMLContourMorphologyNode *)anode;
 
-  this->SetAndObserveContourNodeID(node->ContourNodeID);
-  this->SetAndObserveSecondaryContourNodeID(node->ContourNodeID);
+  this->SetAndObserveReferenceContourNodeID(node->ReferenceContourNodeID);
+  this->SetAndObserveInputContourNodeID(node->InputContourNodeID);
   this->SetAndObserveOutputContourNodeID(node->OutputContourNodeID);
 
   this->Operation = node->Operation;
@@ -186,8 +186,8 @@ void vtkMRMLContourMorphologyNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "ContourNodeID:   " << this->ContourNodeID << "\n";
-  os << indent << "SecondaryContourNodeID:   " << this->SecondaryContourNodeID << "\n";
+  os << indent << "ReferenceContourNodeID:   " << this->ReferenceContourNodeID << "\n";
+  os << indent << "InputContourNodeID:   " << this->InputContourNodeID << "\n";
   os << indent << "OutputContourNodeID:   " << this->OutputContourNodeID << "\n";
   os << indent << "Operation:   " << (this->Operation) << "\n";
   os << indent << "XSize:   " << (this->XSize) << "\n";
@@ -198,13 +198,13 @@ void vtkMRMLContourMorphologyNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
-  if (this->ContourNodeID && !strcmp(oldID, this->ContourNodeID))
+  if (this->ReferenceContourNodeID && !strcmp(oldID, this->ReferenceContourNodeID))
     {
-    this->SetAndObserveContourNodeID(newID);
+    this->SetAndObserveReferenceContourNodeID(newID);
     }
-  if (this->SecondaryContourNodeID && !strcmp(oldID, this->SecondaryContourNodeID))
+  if (this->InputContourNodeID && !strcmp(oldID, this->InputContourNodeID))
     {
-    this->SetAndObserveContourNodeID(newID);
+    this->SetAndObserveInputContourNodeID(newID);
     }
   if (this->OutputContourNodeID && !strcmp(oldID, this->OutputContourNodeID))
     {
@@ -213,34 +213,34 @@ void vtkMRMLContourMorphologyNode::UpdateReferenceID(const char *oldID, const ch
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourMorphologyNode::SetAndObserveContourNodeID(const char* id)
+void vtkMRMLContourMorphologyNode::SetAndObserveReferenceContourNodeID(const char* id)
 {
-  if (this->ContourNodeID != NULL)
+  if (this->ReferenceContourNodeID != NULL)
     {
-    this->Scene->RemoveReferencedNodeID(this->ContourNodeID, this);
+    this->Scene->RemoveReferencedNodeID(this->ReferenceContourNodeID, this);
     }
 
-  this->SetContourNodeID(id);
+  this->SetReferenceContourNodeID(id);
 
   if (id)
     {
-    this->Scene->AddReferencedNodeID(this->ContourNodeID, this);
+    this->Scene->AddReferencedNodeID(this->ReferenceContourNodeID, this);
     }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourMorphologyNode::SetAndObserveSecondaryContourNodeID(const char* id)
+void vtkMRMLContourMorphologyNode::SetAndObserveInputContourNodeID(const char* id)
 {
-  if (this->SecondaryContourNodeID != NULL)
+  if (this->InputContourNodeID != NULL)
     {
-    this->Scene->RemoveReferencedNodeID(this->SecondaryContourNodeID, this);
+    this->Scene->RemoveReferencedNodeID(this->InputContourNodeID, this);
     }
 
-  this->SetSecondaryContourNodeID(id);
+  this->SetInputContourNodeID(id);
 
   if (id)
     {
-    this->Scene->AddReferencedNodeID(this->SecondaryContourNodeID, this);
+    this->Scene->AddReferencedNodeID(this->InputContourNodeID, this);
     }
 }
 

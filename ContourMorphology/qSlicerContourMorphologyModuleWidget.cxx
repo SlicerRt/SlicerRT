@@ -177,13 +177,13 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
-    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetContourNodeID()))
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceContourNodeID()))
     {
-      d->MRMLNodeComboBox_CurrentContour->setCurrentNode(paramNode->GetContourNodeID());
+      d->MRMLNodeComboBox_ReferenceContour->setCurrentNode(paramNode->GetReferenceContourNodeID());
     }
     else
     {
-      this->currentContourNodeChanged(d->MRMLNodeComboBox_CurrentContour->currentNode());
+      this->currentContourNodeChanged(d->MRMLNodeComboBox_ReferenceContour->currentNode());
     }
     int op = paramNode->GetOperation();
     switch (op)
@@ -257,8 +257,8 @@ void qSlicerContourMorphologyModuleWidget::setup()
   // Make connections
   this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setContourMorphologyNode(vtkMRMLNode*) ) );
 
-  this->connect( d->MRMLNodeComboBox_CurrentContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( currentContourNodeChanged(vtkMRMLNode*) ) );
-  this->connect( d->MRMLNodeComboBox_SecondaryContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( secondaryContourNodeChanged(vtkMRMLNode*) ) );
+  this->connect( d->MRMLNodeComboBox_ReferenceContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( currentContourNodeChanged(vtkMRMLNode*) ) );
+  this->connect( d->MRMLNodeComboBox_InputContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( secondaryContourNodeChanged(vtkMRMLNode*) ) );
   this->connect( d->MRMLNodeComboBox_OutputContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( outputContourNodeChanged(vtkMRMLNode*) ) );
 
   this->connect( d->radioButton_Expand, SIGNAL(clicked()), this, SLOT(radioButtonExpandClicked()));
@@ -302,7 +302,7 @@ void qSlicerContourMorphologyModuleWidget::currentContourNodeChanged(vtkMRMLNode
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveContourNodeID(node->GetID());
+  paramNode->SetAndObserveReferenceContourNodeID(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -320,7 +320,7 @@ void qSlicerContourMorphologyModuleWidget::secondaryContourNodeChanged(vtkMRMLNo
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveSecondaryContourNodeID(node->GetID());
+  paramNode->SetAndObserveInputContourNodeID(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -483,7 +483,9 @@ void qSlicerContourMorphologyModuleWidget::updateButtonsState()
   }
 
   bool applyEnabled = d->logic()->GetContourMorphologyNode()
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetContourNodeID());
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetReferenceContourNodeID()
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetInputContourNodeID()
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetOutputContourNodeID());
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
 

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>412</width>
+    <width>429</width>
     <height>594</height>
    </rect>
   </property>
@@ -44,14 +44,14 @@
        <number>4</number>
       </property>
       <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_CurrentContour">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceContour">
         <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLContourNode</string>
          </stringlist>
         </property>
         <property name="noneEnabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="addEnabled">
          <bool>false</bool>
@@ -501,14 +501,14 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_SecondaryContour">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_InputContour">
         <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLContourNode</string>
          </stringlist>
         </property>
         <property name="noneEnabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="addEnabled">
          <bool>false</bool>
@@ -521,7 +521,7 @@
       <item row="2" column="0">
        <widget class="QLabel" name="label_13">
         <property name="text">
-         <string>Secondary Contour (B):</string>
+         <string>Input Contour (B):</string>
         </property>
        </widget>
       </item>
@@ -823,12 +823,13 @@
  <resources>
   <include location="../qSlicerContourMorphologyModule.qrc"/>
   <include location="../qSlicerContourMorphologyModule.qrc"/>
+  <include location="../qSlicerContourMorphologyModule.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>qSlicerContourMorphologyModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_CurrentContour</receiver>
+   <receiver>MRMLNodeComboBox_ReferenceContour</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -876,7 +877,7 @@
   <connection>
    <sender>qSlicerContourMorphologyModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_SecondaryContour</receiver>
+   <receiver>MRMLNodeComboBox_InputContour</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
