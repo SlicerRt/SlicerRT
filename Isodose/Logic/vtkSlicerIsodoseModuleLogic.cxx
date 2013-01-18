@@ -53,6 +53,7 @@
 #include <vtkLookupTable.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkWindowedSincPolyDataFilter.h>
+#include <vtkTransformPolyDataFilter.h>
 
 // STD includes
 #include <cassert>
@@ -274,16 +275,20 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int number)
 //---------------------------------------------------------------------------
 int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 {
-  // Make sure inputs are initialized
-  if (!this->GetMRMLScene() || !this->IsodoseNode)
-  {
-    return 0;
-  }
-
-  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+  double origin[3] = {0, 0, 0};
+  double spacing[3] = {1, 1, 1};
+  int dimensions[3] = {0, 0, 0};
 
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
+  // Make sure inputs are initialized
+  if (!this->GetMRMLScene() || !this->IsodoseNode || !doseVolumeNode)
+  {
+    vtkErrorMacro("Isodose: inputs are not initialized!");
+    return -1;
+  }
+
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
   // Hierarchy node for the loaded structure sets
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkMRMLModelHierarchyNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(
@@ -318,36 +323,38 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
   vtkSmartPointer<vtkLookupTable> lookupTable = colorTableNode->GetLookupTable();
   
-  vtkSmartPointer<vtkGeneralTransform> doseVolumeNodeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  doseVolumeNodeToWorldTransform->Identity();
-  vtkSmartPointer<vtkMRMLTransformNode> doseVolumeNodeTransformNode = doseVolumeNode->GetParentTransformNode();
-  if (doseVolumeNodeTransformNode!=NULL)
-  {
-    // toNode is transformed
-    doseVolumeNodeTransformNode->GetTransformToWorld(doseVolumeNodeToWorldTransform);    
-    doseVolumeNodeToWorldTransform->Inverse();
-  }
+  vtkSmartPointer<vtkMatrix4x4> inputIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  doseVolumeNode->GetIJKToRASMatrix(inputIJK2RASMatrix);
+  vtkSmartPointer<vtkMatrix4x4> referenceRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  doseVolumeNode->GetRASToIJKMatrix(referenceRAS2IJKMatrix);
 
-  vtkSmartPointer<vtkImageChangeInformation> changeInfo = vtkSmartPointer<vtkImageChangeInformation>::New();
-  changeInfo->SetInput(doseVolumeNode->GetImageData());
-  double origin[3];
-  double spacing[3];
-  doseVolumeNode->GetOrigin(origin);
+  vtkSmartPointer<vtkTransform> outputResliceTransform = vtkSmartPointer<vtkTransform>::New();
+  outputResliceTransform->Identity();
+  outputResliceTransform->PostMultiply();
+  outputResliceTransform->SetMatrix(inputIJK2RASMatrix);
+
+  vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = doseVolumeNode->GetParentTransformNode();
+  vtkSmartPointer<vtkMatrix4x4> inputRAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  if (inputVolumeNodeTransformNode!=NULL)
+  {
+    inputVolumeNodeTransformNode->GetMatrixTransformToWorld(inputRAS2RASMatrix);  
+    outputResliceTransform->Concatenate(inputRAS2RASMatrix);
+  }
+  
+  outputResliceTransform->Concatenate(referenceRAS2IJKMatrix);
+  outputResliceTransform->Inverse();
+
+  doseVolumeNode->GetOrigin(origin); 
   doseVolumeNode->GetSpacing(spacing);
-  changeInfo->SetOutputOrigin((origin));
-  changeInfo->SetOutputSpacing(-spacing[0], -spacing[1], spacing[2]);
-  changeInfo->Update();
-  vtkSmartPointer<vtkImageData> tempImage = changeInfo->GetOutput();
-
-  if (doseVolumeNodeTransformNode!=NULL)
-  {
-    vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
-    reslice->SetInputConnection(changeInfo->GetOutputPort());
-    reslice->SetInformationInput(changeInfo->GetOutput());
-    reslice->SetResliceTransform(doseVolumeNodeToWorldTransform);
-    reslice->Update();
-    tempImage = reslice->GetOutput();
-  }
+  doseVolumeNode->GetImageData()->GetDimensions(dimensions);
+  vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
+  reslice->SetInput(doseVolumeNode->GetImageData());
+  reslice->SetOutputOrigin(0, 0, 0);
+  reslice->SetOutputSpacing(1, 1, 1);
+  reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
+  reslice->SetResliceTransform(outputResliceTransform);
+  reslice->Update();
+  vtkSmartPointer<vtkImageData> tempImage = reslice->GetOutput();
 
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
   {
@@ -399,6 +406,15 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
       normals->ComputePointNormalsOn();
       normals->SetFeatureAngle(60);
       normals->Update();
+
+      vtkSmartPointer<vtkTransform> inputIJKToRASTransform = vtkSmartPointer<vtkTransform>::New();
+      inputIJKToRASTransform->Identity();
+      inputIJKToRASTransform->SetMatrix(inputIJK2RASMatrix);
+
+      vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyData = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+      transformPolyData->SetInput(normals->GetOutput());
+      transformPolyData->SetTransform(inputIJKToRASTransform);
+      transformPolyData->Update();
   
       vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
       displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(displayNode));
@@ -422,7 +438,7 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
       isodoseModelNodeName = this->GetMRMLScene()->GenerateUniqueName(isodoseModelNodeName);
       modelNode->SetName(isodoseModelNodeName.c_str());
       modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-      modelNode->SetAndObservePolyData(normals->GetOutput());
+      modelNode->SetAndObservePolyData(transformPolyData->GetOutput());
       modelNode->SetHideFromEditors(0);
       modelNode->SetSelectable(1);
 
