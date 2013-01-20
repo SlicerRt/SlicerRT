@@ -234,9 +234,10 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
 
   // Hierarchy node for the loaded structure sets
   // It is not created here yet because maybe there won't be anything to put in it.
-  vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode;
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> structureModelHierarchyRootNode;
   vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyRootNode;    
   vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterHierarchyRootNode;    
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyRootNode;
 
   // RTSTRUCT
   if (rtReader->GetLoadRTStructureSetSuccessful())
@@ -341,16 +342,16 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
       if (addedDisplayableNode)
       {
         // Create root model hierarchy node, if it has not been created yet
-        if (modelHierarchyRootNode.GetPointer()==NULL)
+        if (structureModelHierarchyRootNode.GetPointer()==NULL)
         {
-          modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+          structureModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
           std::string hierarchyNodeName;
           hierarchyNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
           hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
-          modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
-          modelHierarchyRootNode->AllowMultipleChildrenOn();
-          modelHierarchyRootNode->HideFromEditorsOff();
-          this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
+          structureModelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+          structureModelHierarchyRootNode->AllowMultipleChildrenOn();
+          structureModelHierarchyRootNode->HideFromEditorsOff();
+          this->GetMRMLScene()->AddNode(structureModelHierarchyRootNode);
 
           // A hierarchy node needs a display node
           vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
@@ -358,13 +359,13 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
           modelDisplayNode->SetName(hierarchyNodeName.c_str());
           modelDisplayNode->SetVisibility(1);
           this->GetMRMLScene()->AddNode(modelDisplayNode);
-          modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+          structureModelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
         }
 
         // Put the new node in the hierarchy
         vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
         this->GetMRMLScene()->AddNode(modelHierarchyNode);
-        modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
+        modelHierarchyNode->SetParentNodeID( structureModelHierarchyRootNode->GetID() );
         modelHierarchyNode->SetModelNodeID( addedDisplayableNode->GetID() );
       }
     }
@@ -526,6 +527,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
           isocenterHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
         }
 
+        // Put the new node in the annotation hierarchy
+        vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterHierarchyNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
+        this->GetMRMLScene()->AddNode(isocenterHierarchyNode);
+        isocenterHierarchyNode->SetParentNodeID( isocenterHierarchyRootNode->GetID() );
+        isocenterHierarchyNode->SetDisplayableNodeID( addedDisplayableNode->GetID() );
+
         // Add attributes containing beam information to the isocenter fiducial node
         // TODO: Add these in the PatientHierarchy node when available
         std::stringstream sourceAxisDistanceStream;
@@ -589,12 +596,31 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
           vtkWarningMacro("Failed to create beam geometry for isocenter: " << addedDisplayableNode->GetName());
         }
 
-        // Put the new node in the annotation hierarchy
-        vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterHierarchyNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
-        this->GetMRMLScene()->AddNode(isocenterHierarchyNode);
-        isocenterHierarchyNode->SetParentNodeID( isocenterHierarchyRootNode->GetID() );
-        isocenterHierarchyNode->SetDisplayableNodeID( addedDisplayableNode->GetID() );
+        if (beamModelHierarchyRootNode.GetPointer()==NULL)
+        {
+          beamModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+          std::string hierarchyNodeName;
+          hierarchyNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
+          hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
+          beamModelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+          beamModelHierarchyRootNode->AllowMultipleChildrenOn();
+          beamModelHierarchyRootNode->HideFromEditorsOff();
+          this->GetMRMLScene()->AddNode(beamModelHierarchyRootNode);
 
+          // A hierarchy node needs a display node
+          vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+          hierarchyNodeName.append("Display");
+          modelDisplayNode->SetName(hierarchyNodeName.c_str());
+          modelDisplayNode->SetVisibility(1);
+          this->GetMRMLScene()->AddNode(modelDisplayNode);
+          beamModelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+        }
+
+        // Put the new beam model in the beam model hierarchy
+        vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+        this->GetMRMLScene()->AddNode(beamModelHierarchyNode);
+        beamModelHierarchyNode->SetParentNodeID( beamModelHierarchyRootNode->GetID() );
+        beamModelHierarchyNode->SetDisplayableNodeID( beamModelNode->GetID() );
       } //endif addedDisplayableNode
     }
 

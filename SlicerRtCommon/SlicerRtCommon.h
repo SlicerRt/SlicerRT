@@ -52,6 +52,7 @@ public:
   static const std::string DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX;
+  static const std::string DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
 
   // Contour (vtkMRMLContourNode) constants
   static const std::string CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
