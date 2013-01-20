@@ -44,6 +44,8 @@ vtkMRMLBeamsNode::vtkMRMLBeamsNode()
   this->SourceFiducialNodeId = NULL;
   this->BeamModelNodeId = NULL;
 
+  this->BeamModelOpacity = 0.08;
+
   this->HideFromEditors = false;
 }
 
@@ -71,7 +73,6 @@ void vtkMRMLBeamsNode::WriteXML(ostream& of, int nIndent)
       of << indent << " IsocenterFiducialNodeId=\"" << ss.str() << "\"";
      }
   }
-
   {
     std::stringstream ss;
     if ( this->SourceFiducialNodeId )
@@ -80,7 +81,6 @@ void vtkMRMLBeamsNode::WriteXML(ostream& of, int nIndent)
       of << indent << " SourceFiducialNodeId=\"" << ss.str() << "\"";
     }
   }
-
   {
     std::stringstream ss;
     if ( this->BeamModelNodeId )
@@ -88,6 +88,14 @@ void vtkMRMLBeamsNode::WriteXML(ostream& of, int nIndent)
       ss << this->BeamModelNodeId;
       of << indent << " BeamModelNodeId=\"" << ss.str() << "\"";
      }
+  }
+  {
+    std::stringstream ss;
+    if ( this->BeamModelOpacity )
+    {
+      ss << this->BeamModelOpacity;
+      of << indent << " BeamModelOpacity=\"" << ss.str() << "\"";
+    }
   }
 }
 
@@ -121,6 +129,14 @@ void vtkMRMLBeamsNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetAndObserveBeamModelNodeId(ss.str().c_str());
       }
+    else if (!strcmp(attName, "BeamModelOpacity")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      double beamModelOpacity;
+      ss << beamModelOpacity;
+      this->BeamModelOpacity = beamModelOpacity;
+      }
     }
 }
 
@@ -137,6 +153,7 @@ void vtkMRMLBeamsNode::Copy(vtkMRMLNode *anode)
   this->SetAndObserveIsocenterFiducialNodeId(node->IsocenterFiducialNodeId);
   this->SetAndObserveSourceFiducialNodeId(node->SourceFiducialNodeId);
   this->SetAndObserveBeamModelNodeId(node->BeamModelNodeId);
+  this->SetBeamModelOpacity(node->GetBeamModelOpacity());
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -150,6 +167,7 @@ void vtkMRMLBeamsNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "IsocenterFiducialNodeId:   " << this->IsocenterFiducialNodeId << "\n";
   os << indent << "SourceFiducialNodeId:   " << this->SourceFiducialNodeId << "\n";
   os << indent << "BeamModelNodeId:   " << this->BeamModelNodeId << "\n";
+  os << indent << "BeamModelOpacity:   " << this->BeamModelOpacity << "\n";
 }
 
 //----------------------------------------------------------------------------

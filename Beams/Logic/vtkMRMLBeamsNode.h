@@ -50,26 +50,32 @@ public:
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "Beams";};
 
-  /// Get isocenter fiducial MRML Id 
-  vtkGetStringMacro(IsocenterFiducialNodeId);
-
-  /// Get source fiducial MRML Id 
-  vtkGetStringMacro(SourceFiducialNodeId);
-
   /// Set and observe isocenter fiducial MRML Id 
   void SetAndObserveIsocenterFiducialNodeId(const char* id);
 
   /// Set and observe souce fiducial MRML Id 
   void SetAndObserveSourceFiducialNodeId(const char* id);
 
-  /// Get output beam model MRML Id 
-  vtkGetStringMacro(BeamModelNodeId);
-
   /// Set and observe output beam model MRML Id 
   void SetAndObserveBeamModelNodeId(const char* id);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
+
+public:
+  /// Get isocenter fiducial MRML Id 
+  vtkGetStringMacro(IsocenterFiducialNodeId);
+
+  /// Get source fiducial MRML Id 
+  vtkGetStringMacro(SourceFiducialNodeId);
+
+  /// Get output beam model MRML Id 
+  vtkGetStringMacro(BeamModelNodeId);
+
+  /// Set beams model opacity
+  vtkSetMacro(BeamModelOpacity,double);
+  /// Get beams model opacity
+  vtkGetMacro(BeamModelOpacity,double);
 
 protected:
   /// Set isocenter fiducial MRML Id 
@@ -96,6 +102,9 @@ protected:
 
   /// ID of the output beam model node
   char* BeamModelNodeId;
+
+  /// Opacity of the created beam model
+  double BeamModelOpacity;
 };
 
 #endif

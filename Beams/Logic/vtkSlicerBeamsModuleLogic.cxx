@@ -451,7 +451,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   displayNode->SliceIntersectionVisibilityOn();  
   displayNode->VisibilityOn(); 
   displayNode->SetColor(0.0, 1.0, 0.0);
-  displayNode->SetOpacity(0.2);
+  displayNode->SetOpacity(this->BeamsNode->GetBeamModelOpacity());
   // Disable backface culling to make the back side of the contour visible as well
   displayNode->SetBackfaceCulling(0);
 
