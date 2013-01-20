@@ -29,6 +29,8 @@
 // MRML includes
 #include <vtkMRMLAnnotationFiducialNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLAnnotationPointDisplayNode.h>
+#include <vtkMRMLAnnotationTextDisplayNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 
 // VTK includes
