@@ -33,6 +33,7 @@
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
+#include <vtkMRMLModelHierarchyNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -994,12 +995,12 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
   displayNode->VisibilityOn();
   displayNode->SetBackfaceCulling(0);
 
-  // Set opacity to match the existing ribbon model visualization
+  // Set visibility and opacity to match the existing ribbon model visualization
   if (this->RibbonModelNode && this->RibbonModelNode->GetModelDisplayNode())
-  {
+    {
+    displayNode->SetVisibility(this->RibbonModelNode->GetModelDisplayNode()->GetVisibility());
     displayNode->SetOpacity(this->RibbonModelNode->GetModelDisplayNode()->GetOpacity());
-  }
-
+    }
   // Set color
   double color[4];
   if (colorNode)
@@ -1043,6 +1044,28 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
     closedSurfaceModelNode->SetAndObserveTransformNodeID(this->GetTransformNodeID());
     }
 
+  // Put new model in the same model hierarchy as the ribbons
+  if (this->RibbonModelNode && this->RibbonModelNodeId)
+    {
+    vtkMRMLModelHierarchyNode* ribbonModelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
+      vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->RibbonModelNodeId));
+    if (ribbonModelHierarchyNode)
+      {
+      vtkMRMLModelHierarchyNode* parentModelHierarchyNode
+        = vtkMRMLModelHierarchyNode::SafeDownCast(ribbonModelHierarchyNode->GetParentNode());
+
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      this->Scene->AddNode(modelHierarchyNode);
+      modelHierarchyNode->SetParentNodeID( parentModelHierarchyNode->GetID() );
+      modelHierarchyNode->SetModelNodeID( closedSurfaceModelNode->GetID() );
+      }
+    else
+      {
+      std::cerr << "Error: No hierarchy node found for ribbon '" << this->RibbonModelNode->GetName() << "'" << std::endl;
+      }
+    }
+
+  // Set new model node as closed surface representation of this contour
   this->SetAndObserveClosedSurfaceModelNodeId(closedSurfaceModelNode->GetID());
 
   // TODO: Workaround (see above)

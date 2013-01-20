@@ -673,6 +673,9 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
+  // TODO: Workaround for update issues
+  this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
+
   int convertToRepresentationType = d->comboBox_ChangeActiveRepresentation->currentIndex();
 
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
@@ -751,6 +754,8 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
   d->label_ActiveRepresentation->setToolTip(tr(""));
 
   this->updateWidgetsFromChangeActiveRepresentationGroup();
+
+  this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
 
   QApplication::restoreOverrideCursor();
 }
