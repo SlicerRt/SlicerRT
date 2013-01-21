@@ -218,7 +218,8 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   // Make sure inputs are initialized
   if (this->GetDoseAccumulationNode()->GetSelectedInputVolumeIds()->empty())
   {
-    vtkErrorMacro("Dose accumulation: No dose volume selected");
+    errorMessage = "Dose accumulation: No dose volume selected";
+    vtkErrorMacro(<<errorMessage);
     return;
   }
 
@@ -230,7 +231,8 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   vtkSmartPointer<vtkMRMLScalarVolumeNode> inputVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(Id));
   if (!inputVolumeNode->GetImageData())
   {
-    vtkErrorMacro("No image data found in input volume");
+    errorMessage = "No image data found in input volume";
+    vtkErrorMacro(<<errorMessage);
     return;
   }
   std::map<std::string,double> *VolumeNodeIdsToWeightsMap = this->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap();
@@ -246,7 +248,8 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     this->GetDoseAccumulationNode()->GetReferenceDoseVolumeNodeId()));
   if (referenceDoseVolumeNode.GetPointer() == NULL)
   {
-    vtkErrorMacro("No reference dose volume set!");
+    errorMessage = "No reference dose volume set";
+    vtkErrorMacro(<<errorMessage);
     return;
   }
 
@@ -266,7 +269,7 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   outputVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), referenceDoseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str()));
 
   // test if it is LPS orientation
-  // right now wait for response from slicer developer ...
+  // TODO: right now wait for response from slicer developer ...
 
   vtkSmartPointer<vtkGeneralTransform> inputVolumeRASToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = inputVolumeNode->GetParentTransformNode();

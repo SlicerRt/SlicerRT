@@ -443,7 +443,6 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.assertTrue( indexer )
 
       indexer.addDirectory( slicer.dicomDatabase, self.dicomDataDir )
-      indexer.waitForImportFinished()
       dicomWidget.dicomApp.resumeModel()
 
       self.assertTrue( len(slicer.dicomDatabase.patients()) == 1 )
@@ -749,6 +748,11 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('DoseAccumulation')
       doseAccumulationWidget = slicer.modules.doseaccumulation.widgetRepresentation()
+
+      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      imputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Input')[0]
+      referenceVolumeCombobox = slicer.util.findChildren(widget=imputFrame, className='qMRMLNodeComboBox')[0]
+      referenceVolumeCombobox.setCurrentNode(day1Dose)
 
       applyButton = slicer.util.findChildren(widget=doseAccumulationWidget, text='Apply')[0]
       outputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Output')[0]

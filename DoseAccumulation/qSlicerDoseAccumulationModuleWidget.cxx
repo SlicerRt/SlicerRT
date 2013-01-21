@@ -504,7 +504,7 @@ void qSlicerDoseAccumulationModuleWidget::checkDoseUnitsInSelectedVolumes()
   }
 
   d->label_Warning->setVisible( doseUnits.count() > 1 );
-  d->label_Warning->setText(QString("Dose units does not match!"));
+  d->label_Warning->setText(QString("Dose units do not match!"));
 }
 
 //-----------------------------------------------------------------------------
