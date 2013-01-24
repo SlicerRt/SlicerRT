@@ -44,8 +44,8 @@ TEST_WITH_DATA(
   vtkSlicerIsodoseModuleLogicTest_EclipseProstate
   vtkSlicerIsodoseModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/5.vtk
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/IsodoseBaseline.vtk
   ${TEMP}/TestScene_Isodose_EclipseProstate.mrml
-  100.0
+  1.0
 )
 set_tests_properties(vtkSlicerIsodoseModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )

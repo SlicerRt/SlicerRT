@@ -45,7 +45,6 @@
 #include <vtkImageAccumulate.h>
 #include <vtkLookupTable.h>
 #include <vtkCollection.h>
-#include <vtkPolyDataReader.h>
 #include <vtkMassProperties.h>
 
 // VTKSYS includes
@@ -234,15 +233,15 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   reader->Update();
 
   vtkSmartPointer<vtkPolyData> baselinePolyData = vtkSmartPointer<vtkPolyData>::New();
-  vtkSmartPointer<vtkMassProperties> properties = vtkSmartPointer<vtkMassProperties>::New();
-  properties->SetInput(reader->GetOutput());
-  properties->Update();
-  
-  vtkSmartPointer<vtkMassProperties> properties2 = vtkSmartPointer<vtkMassProperties>::New();
-  properties2->SetInput(modelNode->GetPolyData());
-  properties2->Update();
+  vtkSmartPointer<vtkMassProperties> propertiesBaseline = vtkSmartPointer<vtkMassProperties>::New();
+  propertiesBaseline->SetInput(reader->GetOutput());
+  propertiesBaseline->Update();
 
-  if (abs(properties->GetVolume() - properties2->GetVolume()) > volumeDifferenceToleranceCc)
+  vtkSmartPointer<vtkMassProperties> propertiesCurrent = vtkSmartPointer<vtkMassProperties>::New();
+  propertiesCurrent->SetInput(modelNode->GetPolyData());
+  propertiesCurrent->Update();
+
+  if (fabs(propertiesBaseline->GetVolume() - propertiesCurrent->GetVolume()) > volumeDifferenceToleranceCc)
   {
     std::cerr << "Volume difference Tolerance(Cc) exceeds threshold!" << std::endl;
     return EXIT_FAILURE;
