@@ -220,7 +220,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   }
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
-
+  
   if (referenceContourNode->GetActiveRepresentationType() != vtkMRMLContourNode::IndexedLabelmap)
   {
     vtkErrorMacro("Cannot Morph the contour when its representation is not labelmap!");

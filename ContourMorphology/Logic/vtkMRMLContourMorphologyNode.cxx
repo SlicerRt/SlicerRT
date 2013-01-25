@@ -137,23 +137,19 @@ void vtkMRMLContourMorphologyNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "Operation")) 
       {
-      this->Operation = 
-        (strcmp(attValue,"true") ? false : true);
+      this->Operation = atoi(attValue);
       }
     else if (!strcmp(attName, "XSize")) 
       {
-      this->XSize = 
-        (strcmp(attValue,"true") ? false : true);
+      this->XSize = atof(attValue);
       }
     else if (!strcmp(attName, "YSize")) 
       {
-      this->YSize = 
-        (strcmp(attValue,"true") ? false : true);
+      this->YSize = atof(attValue);
       }
     else if (!strcmp(attName, "ZSize")) 
       {
-      this->ZSize = 
-        (strcmp(attValue,"true") ? false : true);
+      this->ZSize = atof(attValue);
       }
     }
 }

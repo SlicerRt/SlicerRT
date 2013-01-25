@@ -61,10 +61,10 @@ public slots:
 protected slots:
 
   ///
-  void currentContourNodeChanged(vtkMRMLNode* node);
+  void referenceContourNodeChanged(vtkMRMLNode* node);
 
   ///
-  void secondaryContourNodeChanged(vtkMRMLNode* node);
+  void inputContourNodeChanged(vtkMRMLNode* node);
 
   ///
   void outputContourNodeChanged(vtkMRMLNode* node);

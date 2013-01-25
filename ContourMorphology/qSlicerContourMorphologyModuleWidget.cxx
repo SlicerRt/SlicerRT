@@ -183,7 +183,15 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
     }
     else
     {
-      this->currentContourNodeChanged(d->MRMLNodeComboBox_ReferenceContour->currentNode());
+      this->referenceContourNodeChanged(d->MRMLNodeComboBox_ReferenceContour->currentNode());
+    }
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetInputContourNodeID()))
+    {
+      d->MRMLNodeComboBox_InputContour->setCurrentNode(paramNode->GetInputContourNodeID());
+    }
+    else
+    {
+      this->inputContourNodeChanged(d->MRMLNodeComboBox_InputContour->currentNode());
     }
     int op = paramNode->GetOperation();
     switch (op)
@@ -257,8 +265,8 @@ void qSlicerContourMorphologyModuleWidget::setup()
   // Make connections
   this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setContourMorphologyNode(vtkMRMLNode*) ) );
 
-  this->connect( d->MRMLNodeComboBox_ReferenceContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( currentContourNodeChanged(vtkMRMLNode*) ) );
-  this->connect( d->MRMLNodeComboBox_InputContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( secondaryContourNodeChanged(vtkMRMLNode*) ) );
+  this->connect( d->MRMLNodeComboBox_ReferenceContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( referenceContourNodeChanged(vtkMRMLNode*) ) );
+  this->connect( d->MRMLNodeComboBox_InputContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( inputContourNodeChanged(vtkMRMLNode*) ) );
   this->connect( d->MRMLNodeComboBox_OutputContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( outputContourNodeChanged(vtkMRMLNode*) ) );
 
   this->connect( d->radioButton_Expand, SIGNAL(clicked()), this, SLOT(radioButtonExpandClicked()));
@@ -291,7 +299,7 @@ void qSlicerContourMorphologyModuleWidget::setContourMorphologyNode(vtkMRMLNode 
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContourMorphologyModuleWidget::currentContourNodeChanged(vtkMRMLNode* node)
+void qSlicerContourMorphologyModuleWidget::referenceContourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
@@ -301,6 +309,16 @@ void qSlicerContourMorphologyModuleWidget::currentContourNodeChanged(vtkMRMLNode
     return;
   }
 
+  vtkMRMLContourNode* referenceContourNode = vtkMRMLContourNode::SafeDownCast(node);
+  if (referenceContourNode->GetActiveRepresentationType() != vtkMRMLContourNode::IndexedLabelmap)
+  {
+    d->label_NotLabelmapWarning->setText(tr("Reference contour representation is not labelmap!"));
+    return;
+  }
+  else
+  {
+    d->label_NotLabelmapWarning->setText("");
+  }
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveReferenceContourNodeID(node->GetID());
   paramNode->DisableModifiedEventOff();
@@ -309,7 +327,7 @@ void qSlicerContourMorphologyModuleWidget::currentContourNodeChanged(vtkMRMLNode
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContourMorphologyModuleWidget::secondaryContourNodeChanged(vtkMRMLNode* node)
+void qSlicerContourMorphologyModuleWidget::inputContourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
@@ -319,6 +337,16 @@ void qSlicerContourMorphologyModuleWidget::secondaryContourNodeChanged(vtkMRMLNo
     return;
   }
 
+  vtkMRMLContourNode* inputContourNode = vtkMRMLContourNode::SafeDownCast(node);
+  if (inputContourNode->GetActiveRepresentationType() != vtkMRMLContourNode::IndexedLabelmap)
+  {
+    d->label_NotLabelmapWarning->setText(tr("Input contour representation is not labelmap!"));
+    return;
+  }
+  else
+  {
+    d->label_NotLabelmapWarning->setText("");
+  }
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveInputContourNodeID(node->GetID());
   paramNode->DisableModifiedEventOff();
@@ -340,15 +368,6 @@ void qSlicerContourMorphologyModuleWidget::outputContourNodeChanged(vtkMRMLNode*
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveOutputContourNodeID(node->GetID());
   paramNode->DisableModifiedEventOff();
-
-  if (d->logic()->ContourContainsLabelmap())
-  {
-    d->label_NotLabelmapWarning->setText("");
-  }
-  else
-  {
-    d->label_NotLabelmapWarning->setText(tr("Selected Contour's representation is not a labelmap"));
-  }
 
   this->updateButtonsState();
 }
