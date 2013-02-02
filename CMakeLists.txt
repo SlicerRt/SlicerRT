@@ -61,6 +61,7 @@ add_subdirectory(DoseAccumulation)
 add_subdirectory(DoseVolumeHistogram)
 add_subdirectory(DoseComparison)
 add_subdirectory(Isodose)
+add_subdirectory(ContourMorphology)
 
 add_subdirectory(PlmBspline) # requires Plastimatch registration
 add_subdirectory(PlmDicomRtExport)
@@ -71,7 +72,6 @@ add_subdirectory(PlmXformwarp)
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(ProtonDose)
   add_subdirectory(ContourComparison)
-  add_subdirectory(ContourMorphology)
 
   add_subdirectory(PlmDoseComparison)
   add_subdirectory(PlmDvh)
