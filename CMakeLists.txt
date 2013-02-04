@@ -81,6 +81,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(PlmThreshbox)
   
   add_subdirectory(MatlabCommander)
+  add_subdirectory(DicomRtExport)
 endif()
 
 if(BUILD_TESTING)
