@@ -577,7 +577,7 @@
      </layout>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <spacer name="horizontalSpacer_2">
@@ -603,6 +603,32 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="4" column="0">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_ScalarBar">
+     <property name="text">
+      <string>Scalar bar</string>
+     </property>
+     <property name="contentsFrameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QCheckBox" name="checkBox_ScalarBar">
+        <property name="text">
+         <string>Show scalar bar in 3D viewer</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_ScalarBar2D">
+        <property name="text">
+         <string>Show scalar bar in 2D viewer</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>

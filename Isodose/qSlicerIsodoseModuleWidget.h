@@ -77,6 +77,12 @@ protected slots:
   void setIsosurfaceVisibility(bool);
 
   ///
+  void setScalarBarVisibility(bool);
+
+  ///
+  void setScalarBar2DVisibility(bool);
+
+  ///
   void applyClicked();
 
   ///

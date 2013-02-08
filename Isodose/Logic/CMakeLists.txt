@@ -14,8 +14,6 @@ set(${KIT}_SRCS
   vtkMRML${MODULE_NAME}Node.cxx
   vtkMRML${MODULE_NAME}Node.h
   vtkSlicerRTScalarBarActor.cxx
-  vtkSlicerRTScalarBarWidget.cxx
-  vtkSlicerRTScalarBarRepresentation.cxx
   )
 
 set(${KIT}_TARGET_LIBRARIES
