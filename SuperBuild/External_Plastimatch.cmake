@@ -37,9 +37,9 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 endif ()
 
 # Choose which Plastimatch revision to build
-set (PLM_SVN_REVISION "4005")
+set (PLM_SVN_REVISION "4092")
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-  set (PLM_SVN_REVISION "4027")
+  set (PLM_SVN_REVISION "4092")
 endif ()
 
 ExternalProject_Add( Plastimatch

@@ -10,7 +10,7 @@ endif()
 #-----------------------------------------------------------------------------
 set(MODULE_INCLUDE_DIRECTORIES
   ${Plastimatch_DIR}
-  ${PLASTIMATCH_INCLUDE_DIRS}  
+  ${PLASTIMATCH_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS

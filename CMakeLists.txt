@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 2.8.9)
 
 #-----------------------------------------------------------------------------
 set(EXTENSION_NAME SlicerRT)
 
 # ------------------------------------------------------------------------
 set(SLICERRT_VERSION_MAJOR "0")
-set(SLICERRT_VERSION_MINOR "7")
+set(SLICERRT_VERSION_MINOR "8")
 set(SLICERRT_VERSION_PATCH "0")
 set(SLICERRT_VERSION ${SLICERRT_VERSION_MAJOR}.${SLICERRT_VERSION_MINOR}.${SLICERRT_VERSION_PATCH})
 

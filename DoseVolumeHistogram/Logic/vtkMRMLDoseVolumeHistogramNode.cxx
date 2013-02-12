@@ -267,9 +267,9 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       this->ShowDMetrics = (strcmp(attValue,"true") ? false : true);
       }
     else if (!strcmp(attName, "ShowDoseVolumesOnly")) 
-    {
+      {
       this->ShowDoseVolumesOnly = (strcmp(attValue,"true") ? false : true);
-    }
+      }
     }
 }
 
