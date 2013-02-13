@@ -139,7 +139,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
     volumeDifferenceToleranceCc = EPSILON;
   }
 
-// Make sure NRRD reading works
+  // Make sure NRRD reading works
 #if ITK_VERSION_MAJOR > 3
   itk::itkFactoryRegistration();
 #endif

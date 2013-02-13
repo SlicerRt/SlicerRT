@@ -295,7 +295,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
       {	
         // Point ROI
         addedDisplayableNode = AddRoiPoint(roiPoly->GetPoint(0), contourNodeName, roiColor);
-      }
+      } // endif Point ROI
       else
       {
         // Contour ROI
@@ -336,7 +336,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
 
           displayNodeCollection->AddItem( vtkMRMLModelNode::SafeDownCast(addedDisplayableNode)->GetModelDisplayNode() );
         }
-      }
+      } // endif Contour ROI
 
       // Add new node to the hierarchy node
       if (addedDisplayableNode)
@@ -410,7 +410,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
 
     this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
     loadSuccessful=true;
-  }
+  } // endif RTSTRUCT
 
   // RTDOSE
   if (rtReader->GetLoadRTDoseSuccessful())
@@ -488,7 +488,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
       vtkErrorMacro("Failed to load dose volume file '" << firstFileNameStr << "' (series name '" << seriesName << "')");
       loadingErrorsOccurred=true;
     }
-  }
+  } // endif RTDOSE
 
   // RTPLAN
   if (rtReader->GetLoadRTPlanSuccessful())
@@ -626,7 +626,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
 
     this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
     loadSuccessful=true;
-  }
+  } // endif RTPLAN
 
   if (loadingErrorsOccurred)
   {

@@ -141,7 +141,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
     doseDifferenceCriterion = EPSILON;
   }
 
-// Make sure NRRD reading works
+  // Make sure NRRD reading works
 #if ITK_VERSION_MAJOR > 3
   itk::itkFactoryRegistration();
 #endif
