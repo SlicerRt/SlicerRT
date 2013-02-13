@@ -47,6 +47,11 @@
 #include <vtkCollection.h>
 #include <vtkMassProperties.h>
 
+// ITK includes
+#if ITK_VERSION_MAJOR > 3
+  #include "itkFactoryRegistration.h"
+#endif
+
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 
@@ -133,6 +138,11 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   {
     volumeDifferenceToleranceCc = EPSILON;
   }
+
+// Make sure NRRD reading works
+#if ITK_VERSION_MAJOR > 3
+  itk::itkFactoryRegistration();
+#endif
 
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
