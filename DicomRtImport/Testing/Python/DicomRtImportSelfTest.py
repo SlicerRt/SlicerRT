@@ -294,10 +294,10 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     # Verify that the correct number of objects were loaded
     scene = slicer.mrmlScene
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == 1 )
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 7 )
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 13 )
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == 6 )
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') ) == 7 )
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLAnnotationFiducialNode*') ) == 5 )
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLAnnotationFiducialNode*') ) == 10 )
 
   def TestSection_5SaveScene(self):
     self.delayDisplay("5: Save scene",self.delayMs)

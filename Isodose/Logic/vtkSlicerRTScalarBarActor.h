@@ -38,6 +38,12 @@
 // MRMLLogic includes
 #include "vtkSlicerIsodoseModuleLogicExport.h"
 
+// Due to some reason the Python wrapping of this class fails, therefore
+// put everything between BTX/ETX to exclude from wrapping.
+// TODO #210: investigate why the wrapping fails
+//BTX
+
+/// \ingroup SlicerRt_Isodose
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerRTScalarBarActor 
   : public vtkScalarBarActor
 {
@@ -73,6 +79,8 @@ private:
   vtkSlicerRTScalarBarActor(const vtkSlicerRTScalarBarActor&);  // Not implemented.
   void operator=(const vtkSlicerRTScalarBarActor&);  // Not implemented.
 };
+
+//ETX
 
 #endif
 
