@@ -348,15 +348,18 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   }
 
   vtkSmartPointer<vtkMRMLScalarVolumeNode> outputIndexedLabelmapVolumeNode = NULL;
-  outputIndexedLabelmapVolumeNode = outputContourNode->GetIndexedLabelmapVolumeNode();
   std::string outputIndexedLabelmapVolumeNodeName;
-  if (outputIndexedLabelmapVolumeNode == NULL)
+  if (outputContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
   {
     outputIndexedLabelmapVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
     outputIndexedLabelmapVolumeNodeName = std::string(outputContourNode->GetName()) + std::string(" - Labelmap");
     outputIndexedLabelmapVolumeNodeName = this->GetMRMLScene()->GenerateUniqueName(outputIndexedLabelmapVolumeNodeName);
     outputIndexedLabelmapVolumeNode->SetName( outputIndexedLabelmapVolumeNodeName.c_str() );
     this->GetMRMLScene()->AddNode(outputIndexedLabelmapVolumeNode);
+  }
+  else
+  {
+    outputIndexedLabelmapVolumeNode = outputContourNode->GetIndexedLabelmapVolumeNode();
   }
   outputIndexedLabelmapVolumeNode->CopyOrientation( referenceLabelmapNode );
   outputIndexedLabelmapVolumeNode->SetAndObserveTransformNodeID( outputIndexedLabelmapVolumeNode->GetTransformNodeID() );

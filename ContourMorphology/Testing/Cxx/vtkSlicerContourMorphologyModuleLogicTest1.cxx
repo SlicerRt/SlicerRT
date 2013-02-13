@@ -206,12 +206,12 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   paramNode->SetZSize(3);
 
   // Create and set up logic
-  vtkSmartPointer<vtkSlicerContourMorphologyModuleLogic> ContourMorphologyLogic = vtkSmartPointer<vtkSlicerContourMorphologyModuleLogic>::New();
-  ContourMorphologyLogic->SetMRMLScene(mrmlScene);
-  ContourMorphologyLogic->SetAndObserveContourMorphologyNode(paramNode);
+  vtkSmartPointer<vtkSlicerContourMorphologyModuleLogic> contourMorphologyLogic = vtkSmartPointer<vtkSlicerContourMorphologyModuleLogic>::New();
+  contourMorphologyLogic->SetMRMLScene(mrmlScene);
+  contourMorphologyLogic->SetAndObserveContourMorphologyNode(paramNode);
 
   // Compute ContourMorphology
-  ContourMorphologyLogic->MorphContour();
+  contourMorphologyLogic->MorphContour();
 
   outputContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->GetNodeByID(paramNode->GetOutputContourNodeID()));  
   if (outputContourNode == NULL)
@@ -253,14 +253,13 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   }
   mrmlScene->Commit();
 
-  // use vtkimagedifferenct
   vtkSmartPointer<vtkImageMathematics> difference = vtkSmartPointer<vtkImageMathematics>::New();
   difference->SetInput1(outputLabelmapNode->GetImageData());
   difference->SetInput2(labelmapBaselineScalarVolumeNode->GetImageData());
   difference->SetOperationToSubtract();
   difference->Update();
 
-  // use vtkimageaccumulate to do histogram
+  // Compute histogram
   vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
   histogram->SetInput(difference->GetOutput());
   histogram->IgnoreZeroOn();
