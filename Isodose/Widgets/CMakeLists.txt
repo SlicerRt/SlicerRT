@@ -1,4 +1,4 @@
-project(vtkSlicer${MODULE_NAME}ModuleLogic)
+project(vtkSlicer${MODULE_NAME}ModuleWidgets)
 
 set(KIT ${PROJECT_NAME})
 
@@ -9,15 +9,12 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
-  vtkSlicer${MODULE_NAME}ModuleLogic.cxx
-  vtkSlicer${MODULE_NAME}ModuleLogic.h
-  vtkMRML${MODULE_NAME}Node.cxx
-  vtkMRML${MODULE_NAME}Node.h
+  vtkSlicerRTScalarBarActor.cxx
+  vtkSlicerRTScalarBarActor.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
-  ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   )
 

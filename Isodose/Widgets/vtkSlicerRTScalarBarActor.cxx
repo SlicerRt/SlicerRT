@@ -20,7 +20,7 @@
   
 ==============================================================================*/
 
-// 
+// SlicerRt includes
 #include "vtkSlicerRTScalarBarActor.h"
 
 // VTK includes
@@ -31,6 +31,7 @@
 #include "vtkTextProperty.h"
 #include "vtkViewport.h"
 #include "vtkLookupTable.h"
+#include "vtkSmartPointer.h"
 
 vtkCxxRevisionMacro(vtkSlicerRTScalarBarActor, "$Revision$");
 vtkStandardNewMacro(vtkSlicerRTScalarBarActor);
@@ -38,14 +39,16 @@ vtkStandardNewMacro(vtkSlicerRTScalarBarActor);
 //---------------------------------------------------------------------------
 vtkSlicerRTScalarBarActor::vtkSlicerRTScalarBarActor()
 {
-  this->Names.clear();
+  this->ColorNames = NULL;
+  vtkSmartPointer<vtkStringArray> colorNames = vtkSmartPointer<vtkStringArray>::New();
+  this->SetColorNames(colorNames);
+
   this->UseColorNameAsLabel = 0;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerRTScalarBarActor::~vtkSlicerRTScalarBarActor()
 {
-  this->Names.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -67,15 +70,15 @@ int vtkSlicerRTScalarBarActor::SetColorName(int ind, const char *name)
   vtkLookupTable* lookupTable = vtkLookupTable::SafeDownCast(this->LookupTable);
   if (lookupTable)
     {
-    if (lookupTable->GetNumberOfColors() != this->Names.size())
+    if (lookupTable->GetNumberOfColors() != this->ColorNames->GetNumberOfValues())
       {
-      this->Names.resize(lookupTable->GetNumberOfColors());
+      this->ColorNames->SetNumberOfValues(lookupTable->GetNumberOfColors());
       }
     
-    std::string newName(name);
-    if (this->Names[ind] != newName)
+    vtkStdString newName(name);
+    if (this->ColorNames->GetValue(ind) != newName)
       {
-      this->Names[ind] = newName;
+      this->ColorNames->SetValue(ind, newName);
       }
     }
   return 1;
@@ -91,7 +94,7 @@ void vtkSlicerRTScalarBarActor::AllocateAndSizeLabels(int *labelSize,
 
   if (this->GetUseColorNameAsLabel() == 1)
     {
-    this->NumberOfLabels = this->Names.size();
+    this->NumberOfLabels = this->ColorNames->GetNumberOfValues();
     }
 
   this->TextMappers = new vtkTextMapper * [this->NumberOfLabels];
@@ -147,7 +150,7 @@ void vtkSlicerRTScalarBarActor::AllocateAndSizeLabels(int *labelSize,
     //
     if (this->GetUseColorNameAsLabel() == 1)
       {
-      strcpy(string, this->Names[i].c_str());
+      strcpy(string, this->ColorNames->GetValue(i).c_str());
       }
     else
       {

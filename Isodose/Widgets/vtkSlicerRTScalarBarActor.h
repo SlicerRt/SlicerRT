@@ -28,20 +28,12 @@
 #ifndef __vtkSlicerRTScalarBarActor_h
 #define __vtkSlicerRTScalarBarActor_h
 
-// Std includes
-#include <string>
-#include <vector>
-
-// vtk includes
+// VTK includes
 #include "vtkScalarBarActor.h"
+#include "vtkStringArray.h"
 
 // MRMLLogic includes
-#include "vtkSlicerIsodoseModuleLogicExport.h"
-
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
+#include "vtkSlicerIsodoseModuleWidgetsExport.h"
 
 /// \ingroup SlicerRt_Isodose
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerRTScalarBarActor 
@@ -53,13 +45,22 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
   static vtkSlicerRTScalarBarActor *New();
 
-  /// Get/Set for the flag on using color names as label
+  /// Get for the flag on using color names as label
   vtkGetMacro(UseColorNameAsLabel, int);
+  /// Set for the flag on using color names as label
   vtkSetMacro(UseColorNameAsLabel, int);
+  /// Get/Set for the flag on using color names as label
   vtkBooleanMacro(UseColorNameAsLabel, int);
+
+  /// Get color names array
+  vtkGetObjectMacro(ColorNames, vtkStringArray);
 
   /// Set the ith color name.
   int SetColorName(int ind, const char *name);
+
+protected:
+  /// Set color names array
+  vtkSetObjectMacro(ColorNames, vtkStringArray);
 
 protected:
   vtkSlicerRTScalarBarActor();
@@ -70,7 +71,7 @@ protected:
                                      vtkViewport *viewport, double *range);
 
   /// A vector of names for the color table elements
-  std::vector<std::string> Names;
+  vtkStringArray* ColorNames;
 
   /// flag for setting color name as label
   int UseColorNameAsLabel;
@@ -80,7 +81,4 @@ private:
   void operator=(const vtkSlicerRTScalarBarActor&);  // Not implemented.
 };
 
-//ETX
-
 #endif
-
