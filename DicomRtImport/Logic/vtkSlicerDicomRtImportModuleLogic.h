@@ -28,14 +28,12 @@
 #include "vtkSlicerModuleLogic.h"
 #include "vtkSlicerVolumesLogic.h"
 
-// STD includes
-#include <cstdlib>
-
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 
 class vtkMRMLDisplayableNode;
 class vtkDICOMImportInfo;
 class vtkPolyData;
+class vtkSlicerDicomRtReader;
 
 /// \ingroup SlicerRt_DicomRtImportLogic
 class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtImportModuleLogic :
@@ -68,14 +66,28 @@ protected:
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
 
+  /// Load RT Structure Set and related objects into the MRML scene
+  /// \return Success flag
+  bool LoadRtStructureSet(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo);
+
   /// Add an ROI point to the scene
   vtkMRMLDisplayableNode* AddRoiPoint(double *roiPosition, std::string baseName, double *roiColor);
 
   /// Add an ROI contour to the scene
   vtkMRMLDisplayableNode* AddRoiContour(vtkPolyData *roiPoly, std::string baseName, double *roiColor);
 
-private:
+  /// Load RT Dose and related objects into the MRML scene
+  /// \return Success flag
+  bool LoadRtDose(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo);
 
+  /// Load RT Plan and related objects into the MRML scene
+  /// \return Success flag
+  bool LoadRtPlan(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo);
+
+  /// Insert currently loaded series in the proper place in patient hierarchy
+  void InsertSeriesInPatientHierarchy(vtkSlicerDicomRtReader* rtReader);
+
+private:
   vtkSlicerDicomRtImportModuleLogic(const vtkSlicerDicomRtImportModuleLogic&); // Not implemented
   void operator=(const vtkSlicerDicomRtImportModuleLogic&);              // Not implemented
 

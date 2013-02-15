@@ -24,14 +24,14 @@
 #include "vtkSlicerRTScalarBarActor.h"
 
 // VTK includes
-#include "vtkObjectFactory.h"
-#include "vtkPolyDataMapper2D.h"
-#include "vtkScalarsToColors.h"
-#include "vtkTextMapper.h"
-#include "vtkTextProperty.h"
-#include "vtkViewport.h"
-#include "vtkLookupTable.h"
-#include "vtkSmartPointer.h"
+#include <vtkObjectFactory.h>
+#include <vtkPolyDataMapper2D.h>
+#include <vtkScalarsToColors.h>
+#include <vtkTextMapper.h>
+#include <vtkTextProperty.h>
+#include <vtkViewport.h>
+#include <vtkLookupTable.h>
+#include <vtkSmartPointer.h>
 
 vtkCxxRevisionMacro(vtkSlicerRTScalarBarActor, "$Revision$");
 vtkStandardNewMacro(vtkSlicerRTScalarBarActor);
