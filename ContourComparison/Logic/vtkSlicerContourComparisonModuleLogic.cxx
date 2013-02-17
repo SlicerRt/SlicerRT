@@ -28,7 +28,6 @@
 #include "vtkMRMLContourNode.h"
 
 // Plastimatch includes
-#include "itk_image.h"
 #include "dice_statistics.h"
 #include "hausdorff_distance.h"
 
@@ -47,13 +46,106 @@
 // STD includes
 #include <cassert>
 
-//----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+/// \ingroup Slicer_QtModules_ContourComparison
+class vtkSlicerContourComparisonModuleLogicPrivate : public vtkObject
+{
+public:
+  static vtkSlicerContourComparisonModuleLogicPrivate *New();
+  vtkTypeMacro(vtkSlicerContourComparisonModuleLogicPrivate,vtkObject);
+
+  /// Get input contours as labelmaps, then convert them to ITK volumes
+  void GetInputContoursAsItkVolumes( itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk,
+    itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk, double &checkpointItkConvertStart, std::string & errorMessage );
+
+  vtkSetObjectMacro(Logic, vtkSlicerContourComparisonModuleLogic);
+
+protected:
+  vtkSlicerContourComparisonModuleLogicPrivate();
+
+  vtkSlicerContourComparisonModuleLogic* Logic;
+};
+
+//-----------------------------------------------------------------------------
+// vtkSlicerContourComparisonModuleLogicPrivate methods
+
+//-----------------------------------------------------------------------------
+vtkStandardNewMacro(vtkSlicerContourComparisonModuleLogicPrivate);
+
+//-----------------------------------------------------------------------------
+vtkSlicerContourComparisonModuleLogicPrivate::vtkSlicerContourComparisonModuleLogicPrivate()
+: Logic(NULL)
+{
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsItkVolumes(
+  itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk,
+  itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk,
+  double &checkpointItkConvertStart, std::string & errorMessage )
+{
+  if (!this->Logic->GetContourComparisonNode() || !this->Logic->GetMRMLScene())
+  {
+    return;
+  }
+
+  vtkMRMLContourNode* referenceContourNode = vtkMRMLContourNode::SafeDownCast(
+    this->Logic->GetMRMLScene()->GetNodeByID(this->Logic->GetContourComparisonNode()->GetReferenceContourNodeId()));
+  vtkMRMLContourNode* compareContourNode = vtkMRMLContourNode::SafeDownCast(
+    this->Logic->GetMRMLScene()->GetNodeByID(this->Logic->GetContourComparisonNode()->GetCompareContourNodeId()));
+
+  if (referenceContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
+  {
+    referenceContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
+      this->Logic->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId() );
+  }
+  if (compareContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
+  {
+    compareContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
+      this->Logic->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId() );
+  }
+
+  vtkMRMLScalarVolumeNode* referenceContourLabelmapVolumeNode
+    = referenceContourNode->GetIndexedLabelmapVolumeNode();
+  vtkMRMLScalarVolumeNode* compareContourLabelmapVolumeNode
+    = compareContourNode->GetIndexedLabelmapVolumeNode();
+  if (!referenceContourLabelmapVolumeNode || !compareContourLabelmapVolumeNode)
+  {
+    errorMessage = "Failed to get indexed labelmap representation from selected contours";
+    vtkErrorMacro(<<errorMessage);
+    return;
+  }
+
+  // Convert inputs to ITK images
+  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
+  checkpointItkConvertStart = timer->GetUniversalTime();
+
+  if ( SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk, true) == false
+    || SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk, true) == false )
+  {
+    errorMessage = "Failed to convert contour labelmaps to ITK volumes!";
+    vtkErrorMacro(<<errorMessage);
+    return;
+  }
+}
+
+//-----------------------------------------------------------------------------
+// vtkSlicerContourComparisonModuleLogic methods
+
+//-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerContourComparisonModuleLogic);
+vtkCxxSetObjectMacro(vtkSlicerContourComparisonModuleLogic, LogicPrivate, vtkSlicerContourComparisonModuleLogicPrivate);
 
 //----------------------------------------------------------------------------
 vtkSlicerContourComparisonModuleLogic::vtkSlicerContourComparisonModuleLogic()
 {
   this->ContourComparisonNode = NULL;
+
+  this->LogicPrivate = NULL;
+  vtkSmartPointer<vtkSlicerContourComparisonModuleLogicPrivate> logicPrivate
+    = vtkSmartPointer<vtkSlicerContourComparisonModuleLogicPrivate>::New();
+  logicPrivate->SetLogic(this);
+  this->SetLogicPrivate(logicPrivate);
 
   this->LogSpeedMeasurementsOff();
 }
@@ -61,7 +153,8 @@ vtkSlicerContourComparisonModuleLogic::vtkSlicerContourComparisonModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerContourComparisonModuleLogic::~vtkSlicerContourComparisonModuleLogic()
 {
-  SetAndObserveContourComparisonNode(NULL); // release the node object to avoid memory leaks
+  this->SetAndObserveContourComparisonNode(NULL);
+  this->SetLogicPrivate(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -179,57 +272,6 @@ bool vtkSlicerContourComparisonModuleLogic::IsReferenceVolumeNeeded()
 }
 
 //---------------------------------------------------------------------------
-//void vtkSlicerContourComparisonModuleLogic::GetInputContoursAsItkVolumes(
-//  itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk,
-//  itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk,
-//  double &checkpointItkConvertStart, std::string & errorMessage )
-//{
-//  if (!this->ContourComparisonNode || !this->GetMRMLScene())
-//  {
-//    return;
-//  }
-//
-//  vtkMRMLContourNode* referenceContourNode = vtkMRMLContourNode::SafeDownCast(
-//    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetReferenceContourNodeId()));
-//  vtkMRMLContourNode* compareContourNode = vtkMRMLContourNode::SafeDownCast(
-//    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetCompareContourNodeId()));
-//
-//  if (referenceContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
-//  {
-//    referenceContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
-//      this->ContourComparisonNode->GetRasterizationReferenceVolumeNodeId() );
-//  }
-//  if (compareContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
-//  {
-//    compareContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
-//      this->ContourComparisonNode->GetRasterizationReferenceVolumeNodeId() );
-//  }
-//
-//  vtkMRMLScalarVolumeNode* referenceContourLabelmapVolumeNode
-//    = referenceContourNode->GetIndexedLabelmapVolumeNode();
-//  vtkMRMLScalarVolumeNode* compareContourLabelmapVolumeNode
-//    = compareContourNode->GetIndexedLabelmapVolumeNode();
-//  if (!referenceContourLabelmapVolumeNode || !compareContourLabelmapVolumeNode)
-//  {
-//    errorMessage = "Failed to get indexed labelmap representation from selected contours";
-//    vtkErrorMacro(<<errorMessage);
-//    return;
-//  }
-//
-//  // Convert inputs to ITK images
-//  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
-//  checkpointItkConvertStart = timer->GetUniversalTime();
-//
-//  if ( SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk, true) == false
-//    || SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk, true) == false )
-//  {
-//    errorMessage = "Failed to convert contour labelmaps to ITK volumes!";
-//    vtkErrorMacro(<<errorMessage);
-//    return;
-//  }
-//}
-
-//---------------------------------------------------------------------------
 void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &errorMessage)
 {
   if (!this->ContourComparisonNode || !this->GetMRMLScene())
@@ -248,46 +290,9 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
     = itk::Image<unsigned char, 3>::New();
   itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk
     = itk::Image<unsigned char, 3>::New();
-  //this->GetInputContoursAsItkVolumes(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk, checkpointItkConvertStart, errorMessage);
-  //if (!errorMessage.empty())
-  //{
-  //  return;
-  //}
-  vtkMRMLContourNode* referenceContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetReferenceContourNodeId()));
-  vtkMRMLContourNode* compareContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetCompareContourNodeId()));
-
-  if (referenceContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
+  this->LogicPrivate->GetInputContoursAsItkVolumes(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk, checkpointItkConvertStart, errorMessage);
+  if (!errorMessage.empty())
   {
-    referenceContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
-      this->ContourComparisonNode->GetRasterizationReferenceVolumeNodeId() );
-  }
-  if (compareContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
-  {
-    compareContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
-      this->ContourComparisonNode->GetRasterizationReferenceVolumeNodeId() );
-  }
-
-  vtkMRMLScalarVolumeNode* referenceContourLabelmapVolumeNode
-    = referenceContourNode->GetIndexedLabelmapVolumeNode();
-  vtkMRMLScalarVolumeNode* compareContourLabelmapVolumeNode
-    = compareContourNode->GetIndexedLabelmapVolumeNode();
-  if (!referenceContourLabelmapVolumeNode || !compareContourLabelmapVolumeNode)
-  {
-    errorMessage = "Failed to get indexed labelmap representation from selected contours";
-    vtkErrorMacro(<<errorMessage);
-    return;
-  }
-
-  // Convert inputs to ITK images
-  checkpointItkConvertStart = timer->GetUniversalTime();
-
-  if ( SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk, true) == false
-    || SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk, true) == false )
-  {
-    errorMessage = "Failed to convert contour labelmaps to ITK volumes!";
-    vtkErrorMacro(<<errorMessage);
     return;
   }
 
@@ -354,46 +359,9 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
     = itk::Image<unsigned char, 3>::New();
   itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk
     = itk::Image<unsigned char, 3>::New();
-  //this->GetInputContoursAsItkVolumes(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk, checkpointItkConvertStart, errorMessage);
-  //if (!errorMessage.empty())
-  //{
-  //  return;
-  //}
-  vtkMRMLContourNode* referenceContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetReferenceContourNodeId()));
-  vtkMRMLContourNode* compareContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetCompareContourNodeId()));
-
-  if (referenceContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
+  this->LogicPrivate->GetInputContoursAsItkVolumes(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk, checkpointItkConvertStart, errorMessage);
+  if (!errorMessage.empty())
   {
-    referenceContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
-      this->ContourComparisonNode->GetRasterizationReferenceVolumeNodeId() );
-  }
-  if (compareContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
-  {
-    compareContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
-      this->ContourComparisonNode->GetRasterizationReferenceVolumeNodeId() );
-  }
-
-  vtkMRMLScalarVolumeNode* referenceContourLabelmapVolumeNode
-    = referenceContourNode->GetIndexedLabelmapVolumeNode();
-  vtkMRMLScalarVolumeNode* compareContourLabelmapVolumeNode
-    = compareContourNode->GetIndexedLabelmapVolumeNode();
-  if (!referenceContourLabelmapVolumeNode || !compareContourLabelmapVolumeNode)
-  {
-    errorMessage = "Failed to get indexed labelmap representation from selected contours";
-    vtkErrorMacro(<<errorMessage);
-    return;
-  }
-
-  // Convert inputs to ITK images
-  checkpointItkConvertStart = timer->GetUniversalTime();
-
-  if ( SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk, true) == false
-    || SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk, true) == false )
-  {
-    errorMessage = "Failed to convert contour labelmaps to ITK volumes!";
-    vtkErrorMacro(<<errorMessage);
     return;
   }
 

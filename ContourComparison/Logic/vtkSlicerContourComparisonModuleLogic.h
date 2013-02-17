@@ -31,13 +31,10 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// Plastimatch includes
-//#include "itk_image.h"
-
 #include "vtkSlicerContourComparisonModuleLogicExport.h"
 
-class vtkMRMLVolumeNode;
 class vtkMRMLContourComparisonNode;
+class vtkSlicerContourComparisonModuleLogicPrivate;
 
 /// \ingroup Slicer_QtModules_ContourComparison
 class VTK_SLICER_CONTOURCOMPARISON_LOGIC_EXPORT vtkSlicerContourComparisonModuleLogic :
@@ -68,8 +65,8 @@ public:
   vtkBooleanMacro(LogSpeedMeasurements, bool);
 
 protected:
-  /// Get input contours as labelmaps, then convert them to ITK volumes
-  //void GetInputContoursAsItkVolumes( itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk, itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk, double &checkpointItkConvertStart, std::string & errorMessage );
+  /// Set private logic implementation
+  void SetLogicPrivate(vtkSlicerContourComparisonModuleLogicPrivate* logicPrivate);
 
 protected:
   vtkSlicerContourComparisonModuleLogic();
@@ -96,8 +93,9 @@ protected:
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
+
+  /// Private implementation class for the logic
+  vtkSlicerContourComparisonModuleLogicPrivate* LogicPrivate;
 };
 
-
 #endif
-

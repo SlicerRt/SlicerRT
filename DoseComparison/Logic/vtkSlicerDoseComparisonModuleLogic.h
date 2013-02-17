@@ -31,9 +31,6 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// STD includes
-#include <cstdlib>
-
 #include "vtkSlicerDoseComparisonModuleLogicExport.h"
 
 class vtkMRMLVolumeNode;
@@ -90,6 +87,4 @@ protected:
   bool LogSpeedMeasurements;
 };
 
-
 #endif
-
