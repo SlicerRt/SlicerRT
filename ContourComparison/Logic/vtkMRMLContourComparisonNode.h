@@ -118,10 +118,30 @@ public:
   /// Set volume of the compare structure
   vtkSetMacro(CompareVolumeCc, double);
 
-  /// Get/Set results valid flag
-  vtkGetMacro(ResultsValid, bool);
-  vtkSetMacro(ResultsValid, bool);
-  vtkBooleanMacro(ResultsValid, bool);
+  /// Get/Set Dice results valid flag
+  vtkGetMacro(DiceResultsValid, bool);
+  vtkSetMacro(DiceResultsValid, bool);
+  vtkBooleanMacro(DiceResultsValid, bool);
+
+  /// Get maximum Hausdorff distance
+  vtkGetMacro(MaximumHausdorffDistanceMm, double);
+  /// Set maximum Hausdorff distance
+  vtkSetMacro(MaximumHausdorffDistanceMm, double);
+
+  /// Get average Hausdorff distance
+  vtkGetMacro(AverageHausdorffDistanceMm, double);
+  /// Set average Hausdorff distance
+  vtkSetMacro(AverageHausdorffDistanceMm, double);
+
+  /// Get 95% Hausdorff distance
+  vtkGetMacro(Percent95HausdorffDistanceMm, double);
+  /// Set 95% Hausdorff distance
+  vtkSetMacro(Percent95HausdorffDistanceMm, double);
+
+  /// Get/Set results Hausdorff valid flag
+  vtkGetMacro(HausdorffResultsValid, bool);
+  vtkSetMacro(HausdorffResultsValid, bool);
+  vtkBooleanMacro(HausdorffResultsValid, bool);
 
 protected:
   /// Set reference contour labelmap volume node ID
@@ -176,8 +196,20 @@ protected:
   /// Volume of the compare structure
   double CompareVolumeCc;
 
-  /// Flag telling whether the results are valid
-  bool ResultsValid;
+  /// Flag telling whether the Dice similarity results are valid
+  bool DiceResultsValid;
+
+  /// Maximum Hausdorff distance
+  double MaximumHausdorffDistanceMm;
+
+  /// Average Hausdorff distance
+  double AverageHausdorffDistanceMm;
+
+  /// 95% Hausdorff distance
+  double Percent95HausdorffDistanceMm;
+
+  /// Flag telling whether the Hausdorff results are valid
+  bool HausdorffResultsValid;
 };
 
 #endif

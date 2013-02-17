@@ -61,7 +61,11 @@ protected slots:
   void compareContourNodeChanged(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode*);
 
-  void applyClicked();
+  /// Compute Dice similarity metrics and display results
+  void computeDiceClicked();
+
+  /// Compute Dice similarity metrics and display results
+  void computeHausdorffClicked();
 
   void onLogicModified();
 
@@ -69,8 +73,11 @@ protected:
   /// Updates button states
   void updateButtonsState();
 
-  /// Invalidate the results (change the values with 'N/A')
-  void invalidateResults();
+  /// Invalidate the Dice similarity results (change the values with 'N/A')
+  void invalidateDiceResults();
+
+  /// Invalidate the Hausdorff distance results (change the values with 'N/A')
+  void invalidateHausdorffResults();
 
 protected:
   QScopedPointer<qSlicerContourComparisonModuleWidgetPrivate> d_ptr;

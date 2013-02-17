@@ -31,8 +31,8 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// STD includes
-#include <cstdlib>
+// Plastimatch includes
+//#include "itk_image.h"
 
 #include "vtkSlicerContourComparisonModuleLogicExport.h"
 
@@ -53,8 +53,11 @@ public:
   /// (at least one of the input contours lack indexed labelmap representation)
   bool IsReferenceVolumeNeeded();
 
-  /// Compute dice statistics from the selected input contour labelmaps
+  /// Compute Dice statistics from the selected input contour labelmaps
   void ComputeDiceStatistics(std::string &errorMessage);
+
+  /// Compute Hausdorff distances from the selected input contour labelmaps
+  void ComputeHausdorffDistances(std::string &errorMessage);
 
 public:
   void SetAndObserveContourComparisonNode(vtkMRMLContourComparisonNode* node);
@@ -63,6 +66,10 @@ public:
   vtkGetMacro(LogSpeedMeasurements, bool);
   vtkSetMacro(LogSpeedMeasurements, bool);
   vtkBooleanMacro(LogSpeedMeasurements, bool);
+
+protected:
+  /// Get input contours as labelmaps, then convert them to ITK volumes
+  //void GetInputContoursAsItkVolumes( itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk, itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk, double &checkpointItkConvertStart, std::string & errorMessage );
 
 protected:
   vtkSlicerContourComparisonModuleLogic();

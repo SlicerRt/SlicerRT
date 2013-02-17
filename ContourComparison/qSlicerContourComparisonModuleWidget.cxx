@@ -155,7 +155,7 @@ void qSlicerContourComparisonModuleWidget::onEnter()
 
   d->ModuleWindowInitialized = true;
 
-  updateWidgetFromMRML();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -240,7 +240,8 @@ void qSlicerContourComparisonModuleWidget::setup()
   connect( d->MRMLNodeComboBox_CompareContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareContourNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
 
-  connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
+  connect( d->pushButton_ComputeDice, SIGNAL(clicked()), this, SLOT(computeDiceClicked()) );
+  connect( d->pushButton_ComputeHausdorff, SIGNAL(clicked()), this, SLOT(computeHausdorffClicked()) );
 
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourComparisonNode(vtkMRMLNode*)) );
 
@@ -255,12 +256,13 @@ void qSlicerContourComparisonModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
-  bool applyEnabled = d->logic()->GetContourComparisonNode()
+  bool computeEnabled = d->logic()->GetContourComparisonNode()
                    && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetReferenceContourNodeId())
                    && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetCompareContourNodeId())
                    && ( ! d->logic()->IsReferenceVolumeNeeded()
                      || ( !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId()) ) );
-  d->pushButton_Apply->setEnabled(applyEnabled);
+  d->pushButton_ComputeDice->setEnabled(computeEnabled);
+  d->pushButton_ComputeHausdorff->setEnabled(computeEnabled);
 
   this->updateWidgetFromMRML();
 }
@@ -288,7 +290,8 @@ void qSlicerContourComparisonModuleWidget::referenceContourNodeChanged(vtkMRMLNo
   paramNode->SetAndObserveReferenceContourNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  this->invalidateResults();
+  this->invalidateDiceResults();
+  this->invalidateHausdorffResults();
   this->updateButtonsState();
 }
 
@@ -307,7 +310,8 @@ void qSlicerContourComparisonModuleWidget::compareContourNodeChanged(vtkMRMLNode
   paramNode->SetAndObserveCompareContourNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  this->invalidateResults();
+  this->invalidateDiceResults();
+  this->invalidateHausdorffResults();
   this->updateButtonsState();
 }
 
@@ -326,12 +330,13 @@ void qSlicerContourComparisonModuleWidget::referenceVolumeNodeChanged(vtkMRMLNod
   paramNode->SetAndObserveReferenceVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  this->invalidateResults();
+  this->invalidateDiceResults();
+  this->invalidateHausdorffResults();
   this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::applyClicked()
+void qSlicerContourComparisonModuleWidget::computeHausdorffClicked()
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
@@ -346,7 +351,43 @@ void qSlicerContourComparisonModuleWidget::applyClicked()
   std::string errorMessage;
   d->logic()->ComputeDiceStatistics(errorMessage);
 
-  if (paramNode->GetResultsValid())
+  if (paramNode->GetHausdorffResultsValid())
+  {
+    d->label_Error->setText("");
+
+    d->lineEdit_MaximumHausdorffDistance->setText(
+      QString("%1 mm").arg(paramNode->GetMaximumHausdorffDistanceMm(),0,'f',2) );
+    d->lineEdit_AverageHausdorffDistance->setText(
+      QString("%1 mm").arg(paramNode->GetAverageHausdorffDistanceMm(),0,'f',2) );
+    d->lineEdit_95PercentHausdorffDistance->setText(
+      QString("%1 mm").arg(paramNode->GetPercent95HausdorffDistanceMm(),0,'f',2) );
+  }
+  else
+  {
+    d->label_Error->setText(QString(errorMessage.c_str()));
+    this->invalidateHausdorffResults();
+  }
+
+  QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContourComparisonModuleWidget::computeDiceClicked()
+{
+  Q_D(qSlicerContourComparisonModuleWidget);
+
+  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  std::string errorMessage;
+  d->logic()->ComputeDiceStatistics(errorMessage);
+
+  if (paramNode->GetDiceResultsValid())
   {
     d->label_Error->setText("");
 
@@ -378,14 +419,14 @@ void qSlicerContourComparisonModuleWidget::applyClicked()
   else
   {
     d->label_Error->setText(QString(errorMessage.c_str()));
-    this->invalidateResults();
+    this->invalidateDiceResults();
   }
 
   QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContourComparisonModuleWidget::invalidateResults()
+void qSlicerContourComparisonModuleWidget::invalidateDiceResults()
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
@@ -395,7 +436,7 @@ void qSlicerContourComparisonModuleWidget::invalidateResults()
     return;
   }
 
-  paramNode->ResultsValidOff();
+  paramNode->DiceResultsValidOff();
 
   d->lineEdit_DiceCoefficient->setText(tr("N/A"));
   d->lineEdit_TruePositives->setText(tr("N/A"));
@@ -406,4 +447,22 @@ void qSlicerContourComparisonModuleWidget::invalidateResults()
   d->lineEdit_CompareCenter->setText(tr("N/A"));
   d->lineEdit_ReferenceVolume->setText(tr("N/A"));
   d->lineEdit_CompareVolume->setText(tr("N/A"));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContourComparisonModuleWidget::invalidateHausdorffResults()
+{
+  Q_D(qSlicerContourComparisonModuleWidget);
+
+  vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  paramNode->HausdorffResultsValidOff();
+
+  d->lineEdit_MaximumHausdorffDistance->setText(tr("N/A"));
+  d->lineEdit_AverageHausdorffDistance->setText(tr("N/A"));
+  d->lineEdit_95PercentHausdorffDistance->setText(tr("N/A"));
 }
