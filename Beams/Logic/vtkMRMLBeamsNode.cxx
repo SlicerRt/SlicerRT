@@ -134,7 +134,7 @@ void vtkMRMLBeamsNode::ReadXMLAttributes(const char** atts)
       std::stringstream ss;
       ss << attValue;
       double beamModelOpacity;
-      ss << beamModelOpacity;
+      ss >> beamModelOpacity;
       this->BeamModelOpacity = beamModelOpacity;
       }
     }
