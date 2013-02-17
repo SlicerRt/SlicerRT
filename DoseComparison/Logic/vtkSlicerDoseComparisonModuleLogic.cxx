@@ -60,7 +60,7 @@ vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerDoseComparisonModuleLogic::~vtkSlicerDoseComparisonModuleLogic()
 {
-  SetAndObserveDoseComparisonNode(NULL); // release the node object to avoid memory leaks
+  this->SetAndObserveDoseComparisonNode(NULL); // release the node object to avoid memory leaks
 }
 
 //----------------------------------------------------------------------------

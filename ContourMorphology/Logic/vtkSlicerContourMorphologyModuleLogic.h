@@ -32,15 +32,8 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// MRML includes
-
-// STD includes
-#include <cstdlib>
-
 #include "vtkSlicerContourMorphologyModuleLogicExport.h"
 
-class vtkMRMLScalarVolumeNode;
-class vtkMRMLContourNode;
 class vtkMRMLContourMorphologyNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -48,21 +41,20 @@ class VTK_SLICER_CONTOURMORPHOLOGY_MODULE_LOGIC_EXPORT vtkSlicerContourMorpholog
   public vtkSlicerModuleLogic
 {
 public:
-
   static vtkSlicerContourMorphologyModuleLogic *New();
   vtkTypeMacro(vtkSlicerContourMorphologyModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  ///
+  /// TODO
   void SetAndObserveContourMorphologyNode(vtkMRMLContourMorphologyNode* node);
 
-  ///
+  /// TODO
   vtkGetObjectMacro(ContourMorphologyNode, vtkMRMLContourMorphologyNode);
 
-  ///
+  /// TODO
   bool ContourContainsLabelmap();
 
-  ///
+  /// TODO
   int MorphContour();
 
 protected:
@@ -79,11 +71,11 @@ protected:
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
 
+protected:
   /// Parameter set MRML node
   vtkMRMLContourMorphologyNode* ContourMorphologyNode;
 
 private:
-
   vtkSlicerContourMorphologyModuleLogic(const vtkSlicerContourMorphologyModuleLogic&); // Not implemented
   void operator=(const vtkSlicerContourMorphologyModuleLogic&);               // Not implemented
 };

@@ -122,9 +122,9 @@ void vtkSlicerContourMorphologyModuleLogic::UpdateFromMRMLScene()
 void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene() || !this->ContourMorphologyNode)
-    {
+  {
     return;
-    }
+  }
 
   // if the scene is still updating, jump out
   if (this->GetMRMLScene()->IsBatchProcessing())
@@ -133,18 +133,18 @@ void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* no
   }
 
   if (node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLContourMorphologyNode"))
-    {
+  {
     this->Modified();
-    }
+  }
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene() || !this->ContourMorphologyNode)
-    {
+  {
     return;
-    }
+  }
 
   // if the scene is still updating, jump out
   if (this->GetMRMLScene()->IsBatchProcessing())
@@ -153,9 +153,9 @@ void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* 
   }
 
   if (node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLContourMorphologyNode"))
-    {
+  {
     this->Modified();
-    }
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -165,10 +165,10 @@ void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneEndImport()
   vtkMRMLContourMorphologyNode *paramNode = NULL;
   vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLContourMorphologyNode");
   if (node)
-    {
+  {
     paramNode = vtkMRMLContourMorphologyNode::SafeDownCast(node);
     vtkSetAndObserveMRMLNodeMacro(this->ContourMorphologyNode, paramNode);
-    }
+  }
 }
 
 //---------------------------------------------------------------------------
