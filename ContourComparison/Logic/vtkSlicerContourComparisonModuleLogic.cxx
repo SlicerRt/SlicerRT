@@ -19,6 +19,8 @@
 
 ==============================================================================*/
 
+#include <omp.h>
+
 // ContourComparison includes
 #include "vtkSlicerContourComparisonModuleLogic.h"
 #include "vtkMRMLContourComparisonNode.h"
@@ -303,41 +305,41 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
   unsigned long numberOfVoxels = region.GetNumberOfPixels();
 
   //// Compute Dice similarity metrics
-  //double checkpointDiceStart = timer->GetUniversalTime();
-  //Dice_statistics dice;
-  //dice.set_reference_image(referenceContourLabelmapVolumeItk);
-  //dice.set_compare_image(compareContourLabelmapVolumeItk);
+  double checkpointDiceStart = timer->GetUniversalTime();
+  Dice_statistics dice;
+  dice.set_reference_image(referenceContourLabelmapVolumeItk);
+  dice.set_compare_image(compareContourLabelmapVolumeItk);
 
-  //dice.run();
+  dice.run();
 
-  //this->ContourComparisonNode->SetDiceCoefficient(dice.get_dice());
-  //this->ContourComparisonNode->SetTruePositivesPercent(dice.get_true_positives() * 100.0 / (double)numberOfVoxels);
-  //this->ContourComparisonNode->SetTrueNegativesPercent(dice.get_true_negatives() * 100.0 / (double)numberOfVoxels);
-  //this->ContourComparisonNode->SetFalsePositivesPercent(dice.get_false_positives() * 100.0 / (double)numberOfVoxels);
-  //this->ContourComparisonNode->SetFalseNegativesPercent(dice.get_false_negatives() * 100.0 / (double)numberOfVoxels);
+  this->ContourComparisonNode->SetDiceCoefficient(dice.get_dice());
+  this->ContourComparisonNode->SetTruePositivesPercent(dice.get_true_positives() * 100.0 / (double)numberOfVoxels);
+  this->ContourComparisonNode->SetTrueNegativesPercent(dice.get_true_negatives() * 100.0 / (double)numberOfVoxels);
+  this->ContourComparisonNode->SetFalsePositivesPercent(dice.get_false_positives() * 100.0 / (double)numberOfVoxels);
+  this->ContourComparisonNode->SetFalseNegativesPercent(dice.get_false_negatives() * 100.0 / (double)numberOfVoxels);
 
-  //itk::Vector<double, 3> referenceCenterItk = dice.get_reference_center();
-  //double referenceCenterArray[3]
-  //  = { referenceCenterItk[0], referenceCenterItk[1], referenceCenterItk[2] };
-  //this->ContourComparisonNode->SetReferenceCenter(referenceCenterArray);
+  itk::Vector<double, 3> referenceCenterItk = dice.get_reference_center();
+  double referenceCenterArray[3]
+    = { referenceCenterItk[0], referenceCenterItk[1], referenceCenterItk[2] };
+  this->ContourComparisonNode->SetReferenceCenter(referenceCenterArray);
 
-  //itk::Vector<double, 3> compareCenterItk = dice.get_compare_center();
-  //double compareCenterArray[3]
-  //= { compareCenterItk[0], compareCenterItk[1], compareCenterItk[2] };
-  //this->ContourComparisonNode->SetCompareCenter(compareCenterArray);
+  itk::Vector<double, 3> compareCenterItk = dice.get_compare_center();
+  double compareCenterArray[3]
+  = { compareCenterItk[0], compareCenterItk[1], compareCenterItk[2] };
+  this->ContourComparisonNode->SetCompareCenter(compareCenterArray);
 
-  //this->ContourComparisonNode->SetReferenceVolumeCc(dice.get_reference_volume() * voxelVolumeCc);
-  //this->ContourComparisonNode->SetCompareVolumeCc(dice.get_compare_volume() * voxelVolumeCc);
-  //this->ContourComparisonNode->DiceResultsValidOn();
+  this->ContourComparisonNode->SetReferenceVolumeCc(dice.get_reference_volume() * voxelVolumeCc);
+  this->ContourComparisonNode->SetCompareVolumeCc(dice.get_compare_volume() * voxelVolumeCc);
+  this->ContourComparisonNode->DiceResultsValidOn();
 
-  //if (this->LogSpeedMeasurements)
-  //{
-  //  double checkpointEnd = timer->GetUniversalTime();
-  //  std::cout << "Total Dice computation time: " << checkpointEnd-checkpointStart << " s" << std::endl
-  //    << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s" << std::endl
-  //    << "\tConverting from VTK to ITK: " << checkpointDiceStart-checkpointItkConvertStart << " s" << std::endl
-  //    << "\tDice computation: " << checkpointEnd-checkpointDiceStart << " s" << std::endl;
-  //}
+  if (this->LogSpeedMeasurements)
+  {
+    double checkpointEnd = timer->GetUniversalTime();
+    std::cout << "Total Dice computation time: " << checkpointEnd-checkpointStart << " s" << std::endl
+      << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s" << std::endl
+      << "\tConverting from VTK to ITK: " << checkpointDiceStart-checkpointItkConvertStart << " s" << std::endl
+      << "\tDice computation: " << checkpointEnd-checkpointDiceStart << " s" << std::endl;
+  }
 }
 
 //---------------------------------------------------------------------------
