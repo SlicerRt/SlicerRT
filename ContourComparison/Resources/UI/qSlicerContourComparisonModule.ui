@@ -349,9 +349,6 @@
       </item>
       <item row="2" column="1">
        <widget class="QLineEdit" name="lineEdit_95PercentHausdorffDistance">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
