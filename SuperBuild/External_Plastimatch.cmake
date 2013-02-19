@@ -59,6 +59,8 @@ ExternalProject_Add( Plastimatch
     -DBUILD_SHARED_LIBS:BOOL=OFF 
     -DBUILD_TESTING:BOOL=OFF 
     -DPLM_CONFIG_INSTALL_LIBRARIES:BOOL=ON 
+    # CUDA build is disabled until ticket #226 can be resolved.
+    -DPLM_CONFIG_DISABLE_CUDA:BOOL=ON
     ${PLASTIMATCH_EXTRA_LIBRARIES}
     -DDCMTK_DIR:STRING=${DCMTK_DIR}
     -DITK_DIR:STRING=${ITK_DIR}    
