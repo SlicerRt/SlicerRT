@@ -19,8 +19,6 @@
 
 ==============================================================================*/
 
-#include <omp.h>
-
 // ContourComparison includes
 #include "vtkSlicerContourComparisonModuleLogic.h"
 #include "vtkMRMLContourComparisonNode.h"
@@ -32,6 +30,10 @@
 // Plastimatch includes
 #include "dice_statistics.h"
 #include "hausdorff_distance.h"
+#if OPENMP_FOUND
+#include <omp.h>
+#endif
+
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
