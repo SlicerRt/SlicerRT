@@ -369,12 +369,6 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
     return;
   }
 
-  // Get voxel volume and number of voxels (the itk_image_header_compare check made sure the spacings match)
-  itk::Image<unsigned char, 3>::SpacingType spacing = referenceContourLabelmapVolumeItk->GetSpacing();
-  double voxelVolumeCc = spacing[0] * spacing[1] * spacing[2];
-  itk::Image<unsigned char, 3>::RegionType region = referenceContourLabelmapVolumeItk->GetLargestPossibleRegion();
-  unsigned long numberOfVoxels = region.GetNumberOfPixels();
-
   // Compute Hausdorff distances
   double checkpointHausdorffStart = timer->GetUniversalTime();
   Hausdorff_distance hausdorff;

@@ -22,12 +22,8 @@
 #ifndef __vtkDICOMImportInfo_h
 #define __vtkDICOMImportInfo_h
 
-// Slicer includes
-#include "vtkSlicerModuleLogic.h"
-#include "vtkSlicerVolumesLogic.h"
-
-// STD includes
-#include <cstdlib>
+// VTK includes
+#include "vtkObject.h"
 
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 

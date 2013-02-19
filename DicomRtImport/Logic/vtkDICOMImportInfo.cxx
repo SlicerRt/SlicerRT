@@ -21,6 +21,7 @@ limitations under the License.
 // MRML includes
 
 // VTK includes
+#include <vtkObjectFactory.h>
 #include <vtkStringArray.h>
 
 // STD includes

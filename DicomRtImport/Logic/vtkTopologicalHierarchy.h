@@ -29,17 +29,9 @@
 // VTK includes
 #include <vtkPolyDataCollection.h>
 
-// STD includes
-#include <cstdlib>
-
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 
 class vtkIntArray;
-
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
 
 /// \ingroup SlicerRt_DicomRtImportLogic
 /// \brief Algorithm class for computing topological hierarchy of multiple poly data models.
@@ -114,7 +106,5 @@ private:
   vtkTopologicalHierarchy(const vtkTopologicalHierarchy&); // Not implemented
   void operator=(const vtkTopologicalHierarchy&);               // Not implemented
 };
-
-//ETX
 
 #endif 

@@ -465,14 +465,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
   paramNode->SetAndObserveChartNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
 
-  this->updateButtonsState();
   this->updateChartCheckboxesState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::onLogicModified()
 {
-  this->refreshDvhTable();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -722,8 +722,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     }
   }
 
-  this->updateButtonsState();
   this->updateChartCheckboxesState();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -818,6 +818,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aS
     d->checkBox_ShowHideAll->blockSignals(false);
   }
 
+  this->updateChartCheckboxesState();
   this->updateButtonsState();
 }
 
