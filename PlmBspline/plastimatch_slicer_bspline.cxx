@@ -12,19 +12,48 @@
 #include "plastimatch_slicer_bsplineCLP.h"
 #include "plm_stages.h"
 
+#include "warp_parms.h"
+
+#include "landmark_warp.h"
+#include "logfile.h"
+#include "plm_image.h"
+#include "plm_math.h"
+#include "raw_pointset.h"
+#include "xform.h"
+
 int 
 main (int argc, char * argv [])
 {
     PARSE_ARGS;
 
     std::ostringstream command_string;
-
-    command_string <<
+    Warp_parms parms;
+	
+	command_string <<
 	"[GLOBAL]\n"
 	"fixed=" << plmslc_fixed_volume << "\n"
 	"moving=" << plmslc_moving_volume << "\n";
 
-    if (plmslc_output_warped != "" && plmslc_output_warped != "None") {
+    /* Get xform either from MRML scene or file */
+    if (plmslc_xformwarp_input_xform_s != "" 
+	&& plmslc_xformwarp_input_xform_s != "None")
+    {
+	parms.xf_in_fn = plmslc_xformwarp_input_xform_s.c_str();
+    }
+    else if (plmslc_xformwarp_input_vf_s != "" 
+	&& plmslc_xformwarp_input_vf_s != "None")
+    {
+	parms.xf_in_fn = plmslc_xformwarp_input_vf_s.c_str();
+    }
+    else if (plmslc_xformwarp_input_xform_f != "" 
+	&& plmslc_xformwarp_input_xform_f != "None")
+    {
+	parms.xf_in_fn = plmslc_xformwarp_input_xform_f.c_str();
+    }
+
+    printf ("xf_in_fn = %s\n", (const char*) parms.xf_in_fn);
+
+	if (plmslc_output_warped != "" && plmslc_output_warped != "None") {
 	command_string << 
 	    "img_out=" << plmslc_output_warped << "\n";
     }
@@ -64,8 +93,7 @@ main (int argc, char * argv [])
     if (num_fiducials == 0) {
         printf (">> No fiducials.\n");
     }
-
-    /* Stage 0 */
+	/* Stage 0 */
     if (enable_stage_0) {
 	command_string << 
 	    "[STAGE]\n"
@@ -109,6 +137,10 @@ main (int argc, char * argv [])
         }
     }
 
+	command_string <<
+		"warped_landmarks=" << plmslc_warped_fiducials_f << "\n"
+		;
+
     /* Stage 1 */
     command_string << 
 	"[STAGE]\n"
@@ -135,9 +167,13 @@ main (int argc, char * argv [])
 	<< stage_1_grid_size << "\n"
 	;
     
+//    if (!enable_stage_2 && !enable_stage_3) command_string <<
+//		"warped_landmarks=" << plmslc_warped_fiducials_f << "\n"
+//		;
+
     if (enable_stage_2) {
 	command_string << 
-	    "[STAGE]\n"
+	    "[STAGE]\n" 
 	    "max_its=" << stage_2_its << "\n"
 	    "regularization_lambda=" << stage_2_regularization << "\n"
 	    "landmark_stiffness=" << stage_2_landm_penalty << "\n"
@@ -150,6 +186,11 @@ main (int argc, char * argv [])
 	    << stage_2_grid_size << " "
 	    << stage_2_grid_size << "\n"
 	    ;
+
+  //  if (!enable_stage_3) command_string <<
+//		"warped_landmarks=" << plmslc_warped_fiducials_f << "\n"
+//		;
+
     }
 
 	if (enable_stage_3) {
@@ -167,6 +208,11 @@ main (int argc, char * argv [])
 	    	<< stage_3_grid_size << " "
 	    	<< stage_3_grid_size << "\n"
 	    	;
+
+//		command_string <<
+//		"warped_landmarks=" << plmslc_warped_fiducials_f << "\n"
+//		;
+
     	}
 
     std::cout << command_string.str() << "\n";
@@ -176,7 +222,13 @@ main (int argc, char * argv [])
 	return EXIT_FAILURE;
     }
 
-    do_registration (&regp);
+
+//  if (!plmslc_interactive_registration) 
+	do_registration (&regp);
+//		else { 
+//		prepare config for interactive registration
+//		do_interactive_registration();
+// 		}
 
     return EXIT_SUCCESS;
 }

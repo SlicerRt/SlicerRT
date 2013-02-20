@@ -27,6 +27,30 @@
       <default>None</default>
       <description>Volume to warp</description>
     </image>
+    <transform fileExtensions=".txt" type="bspline">
+      <name>plmslc_xformwarp_input_xform_s</name>
+      <longflag>plmslc_xformwarp_input_xform_s</longflag>
+      <description>Input B-spline transform from MRML tree</description>
+      <label>Input B-spline transform (MRML)</label>
+      <default>None</default>
+      <channel>input</channel>
+    </transform>
+    <transform fileExtensions=".nrrd" type="nonlinear">
+      <name>plmslc_xformwarp_input_vf_s</name>
+      <longflag>plmslc_xformwarp_input_vf_s</longflag>
+      <description>Input GridTransform from MRML tree</description>
+      <label>Input vector field (MRML)</label>
+      <default>None</default>
+      <channel>input</channel>
+    </transform>
+    <string>
+      <name>plmslc_xformwarp_input_xform_f</name>
+      <longflag>plmslc_xformwarp_input_xform_f</longflag>
+      <description>Input transform</description>
+      <label>Input transform (file)</label>
+      <default>None</default>
+      <channel>input</channel>
+    </string>
     <point coordinateSystem="ras" multiple="true">
       <name>plmslc_fixed_fiducials</name>
       <longflag>--plmslc_fixed_fiducials</longflag>
@@ -84,6 +108,24 @@
       <label>Output vector field (file)</label>
       <default>None</default>
       <channel>input</channel>
+    </string>
+<!--
+    <point coordinateSystem="ras" multiple="true">
+      <name>plmslc_warped_fiducials</name>
+      <longflag>plmslc_warped_fiducials</longflag>
+      <label>Warped Fiducials</label>
+      <channel>output</channel>
+      <description>Fiducials warped by the vector field</description>
+      <default>None</default>
+    </point>
+-->
+    <string>
+      <name>plmslc_warped_fiducials_f</name>
+      <longflag>plmslc_warped_fiducials_f</longflag>
+      <description>Warped fiducials file (absolute path)</description>
+      <label>Warped fiducials (file)</label>
+      <default>None</default>
+      <channel>output</channel>
     </string>
 
     <!-- Settings -->
@@ -297,4 +339,54 @@
       <description>Maximum number of iterations</description>
     </integer>
   </parameters>
+
+  <!-- INTERACTIVE REGISTRATION -->
+  <parameters>
+    <label>Interactive Registration</label>
+    <description>Option for interactive registration</description>
+    <boolean>
+      <name>plmslc_interactive_registration</name>
+      <label>Interactive registration</label>
+      <default>false</default>
+      <longflag>--interactive_registration</longflag>
+      <description>Check this box if you want to manually control registration</description>
+    </boolean>
+    <label>Options</label>
+    <description></description>
+    <integer-vector>
+      <name>resolution</name>
+      <label>Image subsampling rate (vox)</label>
+      <default>4,4,2</default>
+      <longflag>--resolution</longflag>
+      <description>This defines the image subsampling rate.  For example, (4,4,2) would subsample a 4x4x2 voxel block down to a single voxel.</description>
+    </integer-vector>
+    <double>
+      <name>grid_size</name>
+      <label>Grid size (mm)</label>
+      <default>100</default>
+      <longflag>--gridsize</longflag>
+      <description>Approximate B-Spline Grid Spacing (isotropic)</description>
+    </double>
+    <double>
+      <name>regularization</name>
+      <label>Regularization</label>
+      <default>0.005</default>
+      <longflag>--regularization</longflag>
+      <description>Second derivative smoothness penalty</description>
+    </double>
+    <double>
+      <name>landm_penalty</name>
+      <label>Landmark Penalty</label>
+      <default>0.05</default>
+      <longflag>--landm_penalty</longflag>
+      <description>Penalty for landmark mismatch</description>
+    </double>
+    <integer>
+      <name>its</name>
+      <label>Max iterations</label>
+      <default>50</default>
+      <longflag>--its</longflag>
+      <description>Maximum number of iterations</description>
+    </integer>
+  </parameters>    
 </executable>
