@@ -1,5 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource>
     <file>Icons/DoseVolumeHistogram.png</file>
+    <file>Icons/LayoutFourUpQuantitativeView.png</file>
+    <file>Icons/LayoutOneUpQuantitativeView.png</file>
   </qresource>
 </RCC>

@@ -75,6 +75,8 @@ protected slots:
   void lineEditDVolumePercentEdited(QString aText);
   void showDMetricsCheckedStateChanged(int aState);
   void showDoseVolumesOnlyCheckboxChanged(int aState);
+  void switchToFourUpQuantitativeLayout();
+  void switchToOneUpQuantitativeLayout();
 
   void onLogicModified();
 
