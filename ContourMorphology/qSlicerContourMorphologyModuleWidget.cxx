@@ -250,8 +250,6 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
 //-----------------------------------------------------------------------------
 void qSlicerContourMorphologyModuleWidget::onLogicModified()
 {
-  Q_D(qSlicerContourMorphologyModuleWidget);
-
   this->updateWidgetFromMRML();
 }
 
