@@ -494,6 +494,15 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
     this->GetMRMLScene()->AddNode(volumeDisplayNode);
     volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
 
+    // Set display threshold
+    double doseUnitScaling = 0.0;
+    std::stringstream doseUnitScalingSs;
+    doseUnitScalingSs << rtReader->GetDoseGridScaling();
+    doseUnitScalingSs >> doseUnitScaling;
+    volumeDisplayNode->AutoThresholdOff();
+    volumeDisplayNode->SetLowerThreshold(0.5 * doseUnitScaling);
+    volumeDisplayNode->SetApplyThreshold(1);
+
     // Select as active volume
     if (this->GetApplicationLogic()!=NULL)
     {

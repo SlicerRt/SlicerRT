@@ -318,10 +318,17 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
     return;
   }
 
+  // Get dose unit scaling
+  const char* doseUnitScalingChars = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
+  double doseUnitScaling = 0.0;
+  std::stringstream doseUnitScalingSs;
+  doseUnitScalingSs << doseUnitScalingChars;
+  doseUnitScalingSs >> doseUnitScaling;
+
   // Create stencil for structure  
   vtkNew<vtkImageToImageStencil> stencil;
   stencil->SetInput(indexedLabelmap);
-  stencil->ThresholdByUpper(0.5);
+  stencil->ThresholdByUpper(0.5 * doseUnitScaling);
   stencil->Update();
   structureStencil->DeepCopy(stencil->GetOutput());
 }
@@ -426,7 +433,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
 
-  // Get dose grid scaling and dose units
+  // Get dose unit name
   const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
   // Get maximum dose from dose volume

@@ -265,8 +265,9 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   outputVolumeNode->CopyOrientation(inputVolumeNode);
   outputVolumeNode->SetOrigin(originX, originY, originZ);
   outputVolumeNode->SetSpacing(spacingX, spacingY, spacingZ);
+  const char* doseUnitScalingChars = referenceDoseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
   outputVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), referenceDoseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str()));
-  outputVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), referenceDoseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str()));
+  outputVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), doseUnitScalingChars);
 
   // test if it is LPS orientation
   // TODO: right now wait for response from slicer developer ...
@@ -386,9 +387,13 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   outputVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
 
   // Set threshold values so that the background is black
-  //outputVolumeDisplayNode->AutoThresholdOff();
-  //outputVolumeDisplayNode->SetLowerThreshold(0.0001);
-  //outputVolumeDisplayNode->SetApplyThreshold(1);
+  double doseUnitScaling = 0.0;
+  std::stringstream doseUnitScalingSs;
+  doseUnitScalingSs << doseUnitScalingChars;
+  doseUnitScalingSs >> doseUnitScaling;
+  outputVolumeDisplayNode->AutoThresholdOff();
+  outputVolumeDisplayNode->SetLowerThreshold(0.5 * doseUnitScaling);
+  outputVolumeDisplayNode->SetApplyThreshold(1);
 
   // Select as active volume
   if (this->GetApplicationLogic()!=NULL)
