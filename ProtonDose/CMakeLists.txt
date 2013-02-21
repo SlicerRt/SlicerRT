@@ -27,6 +27,8 @@ set(MODULE_SRCS
   qSlicer${MODULE_NAME}Module.h
   qSlicer${MODULE_NAME}ModuleWidget.cxx
   qSlicer${MODULE_NAME}ModuleWidget.h
+  qSlicer${MODULE_NAME}BeamParameters.h
+  qSlicer${MODULE_NAME}BeamParameters.cxx
   )
 
 set(MODULE_MOC_SRCS

@@ -22,7 +22,12 @@
 #include "qSlicerAbstractModuleWidget.h"
 
 #include "qSlicerProtonDoseModuleExport.h"
+#include "qSlicerProtonDoseBeamParameters.h"
 
+// library includes
+#include <vector>
+
+// classes
 class qSlicerProtonDoseModuleWidgetPrivate;
 class vtkMRMLNode;
 class QTableWidgetItem;
@@ -54,12 +59,42 @@ public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
 
+  // actions from the QPush Button  
+  void beamChanged();
+  void beamNameChanged();
+  
+  void addBeam();
+  void deleteBeam();
+  void loadBeam();
+  void saveBeam();
+
+  // actions from the editing of the editlines for isocenter, jaw and energy
+  void editIso_x();
+  void editIso_y();
+  void editIso_z();
+  void editRange();
+  void editMod();
+  void editXJaw();
+  void editYJaw();
+
+  // actions when change the rotations of the SpinBox
+  void gantryChanged(double);
+  void collimatorChanged(double);
+  void couchRotationChanged(double);
+  void couchPitchChanged(double);
+  void couchRollChanged(double);
+
+  // Update of the data beam on the window
+  void beamQtUpdate();
+
+  // Creation of the configuration file
+  void configFileCreation();
+
 protected slots:
   void doseVolumeNodeChanged(vtkMRMLNode*);
   void storeSelectedTableItemText(QTableWidgetItem* selectedItem, QTableWidgetItem* previousItem);
   void outputHierarchyNodeChanged(vtkMRMLNode*);
 
-  void gantryChanged(double);
   void applyClicked();
 
   void onLogicModified();
@@ -79,6 +114,8 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerProtonDoseModuleWidget);
   Q_DISABLE_COPY(qSlicerProtonDoseModuleWidget);
+  std::vector<ProtonBeamParameters> beam; // vector of beam classes - each case contains a beam with its parameter
+  int beam_max, beam_actual; // two parameters to manage the beam that appears on the screen (beam_actual) - max beam is used for adding and deleting a beam
 };
 
 #endif

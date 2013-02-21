@@ -134,6 +134,8 @@ void vtkSlicerProtonDoseModuleLogic::OnMRMLSceneEndClose()
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
+
+//Greg! here is where you have to work!!!  <----------------------
 int vtkSlicerProtonDoseModuleLogic::ComputeProtonDose()
 {
   // Make sure inputs are initialized
