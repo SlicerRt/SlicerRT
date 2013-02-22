@@ -148,3 +148,39 @@ bool SlicerRtCommon::IsStringNullOrEmpty(char* aString)
   }
   return false;
 }
+
+//----------------------------------------------------------------------------
+void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor,
+                                                               int outputExtent[6], double outputSpacing[3] )
+{
+  if (!inputVolumeNode || !inputVolumeNode->GetImageData())
+  {
+    return;
+  }
+
+  // Sanity check
+  if ( oversamplingFactor < 0.01
+    || oversamplingFactor > 100.0 )
+  {
+    return;
+  }
+
+  int extent[6];
+  double spacing[3];
+  int extentMin, extentMax;
+  inputVolumeNode->GetImageData()->GetWholeExtent(extent);
+  inputVolumeNode->GetImageData()->GetSpacing(spacing);
+
+  for (unsigned int axis=0; axis<3; ++axis)
+  {
+    extentMin = extent[axis*2];
+    unsigned int size = extent[axis*2+1] - extentMin + 1;
+
+    extentMax = (int)(floor(static_cast<double>(extentMin + size) * oversamplingFactor) - 1);
+    extentMin = (int)(ceil(static_cast<double>(extentMin) * oversamplingFactor));
+
+    outputExtent[axis*2] = extentMin;
+    outputExtent[axis*2+1] = extentMax;
+    outputSpacing[axis] = spacing[axis] / oversamplingFactor;
+  }
+}

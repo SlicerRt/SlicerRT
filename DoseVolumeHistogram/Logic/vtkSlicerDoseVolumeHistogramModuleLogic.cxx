@@ -51,7 +51,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkStringArray.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkImageResample.h>
+#include <vtkImageReslice.h>
 #include <vtkTimerLog.h>
 
 // VTKSYS includes
@@ -287,17 +287,21 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
     return;
   }
 
-  double rasterizationDownsamplingFactor = structureContourNode->GetRasterizationOversamplingFactor();
-  if (rasterizationDownsamplingFactor != 1.0)
+  double rasterizationOversamplingFactor = structureContourNode->GetRasterizationOversamplingFactor();
+  if (rasterizationOversamplingFactor != 1.0)
   {
-    vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
-    resampler->SetInput(doseVolumeNode->GetImageData());
-    resampler->SetAxisMagnificationFactor(0, rasterizationDownsamplingFactor);
-    resampler->SetAxisMagnificationFactor(1, rasterizationDownsamplingFactor);
-    resampler->SetAxisMagnificationFactor(2, rasterizationDownsamplingFactor);
-    resampler->Update();
+    int outputExtent[6];
+    double outputSpacing[3];
+    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(doseVolumeNode, rasterizationOversamplingFactor, outputExtent, outputSpacing);
 
-    resampledDoseVolume->DeepCopy(resampler->GetOutput());
+    vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
+    reslicer->SetInput(doseVolumeNode->GetImageData());
+    reslicer->SetInterpolationMode(VTK_RESLICE_LINEAR);
+    reslicer->SetOutputExtent(outputExtent);
+    reslicer->SetOutputSpacing(outputSpacing);
+    reslicer->Update();
+
+    resampledDoseVolume->DeepCopy(reslicer->GetOutput());
   }
   else
   {

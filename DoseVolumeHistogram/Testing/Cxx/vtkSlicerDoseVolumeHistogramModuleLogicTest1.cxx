@@ -258,17 +258,17 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
     }
   }
-  double rasterizationDownsamplingFactor = 2.0;
+  double rasterizationOversamplingFactor = 2.0;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-RasterizationDownsamplingFactor") == 0)
+    if (STRCASECMP(argv[argIndex], "-RasterizationOversamplingFactor") == 0)
     {
       std::stringstream ss;
       ss << argv[argIndex+1];
       double doubleValue;
       ss >> doubleValue;
-      rasterizationDownsamplingFactor = doubleValue;
-      std::cout << "Rasterization downsampling factor: " << rasterizationDownsamplingFactor << std::endl;
+      rasterizationOversamplingFactor = doubleValue;
+      std::cout << "Rasterization oversampling factor: " << rasterizationOversamplingFactor << std::endl;
       argIndex += 2;
     }
   }
@@ -446,7 +446,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     contourNode->SetName(contourNodeName.c_str());
     contourNode->SetAndObserveRibbonModelNodeId(modelNode->GetID());
     contourNode->SetActiveRepresentationByNode(modelNode);
-    contourNode->SetRasterizationOversamplingFactor(rasterizationDownsamplingFactor);
+    contourNode->SetRasterizationOversamplingFactor(rasterizationOversamplingFactor);
     contourNode->SetStructureName((*it).c_str());
     contourNode->HideFromEditorsOff();
 

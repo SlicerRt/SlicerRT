@@ -119,6 +119,9 @@ public:
   /// Returns true if the string is null or empty, returns false otherwise
   static bool IsStringNullOrEmpty(char* aString);
 
+  /// Computes extent and spacing of a volume for an oversampling factor
+  static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor, int outputExtent[3], double outputSpacing[3]);
+
   /*!
     Convert VTK image to ITK image
     \param inVolumeNode Input volume node

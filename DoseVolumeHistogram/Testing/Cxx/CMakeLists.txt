@@ -30,7 +30,7 @@ macro(TEST_WITH_DATA TestName TestExecutableName
       DataDirectoryPath BaselineDvhTableCsvFile BaselineDvhMetricCsvFile
       TemporarySceneFile TemporaryDvhTableCsvFile TemporaryDvhMetricCsvFile
       VolumeDifferenceCriterion DoseToAgreementCriterion AgreementAcceptancePercentageThreshold MetricDifferenceThreshold
-      DvhStartValue DvhStepSize RasterizationDownsamplingFactor)
+      DvhStartValue DvhStepSize RasterizationOversamplingFactor)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
@@ -46,7 +46,7 @@ macro(TEST_WITH_DATA TestName TestExecutableName
     -MetricDifferenceThreshold ${MetricDifferenceThreshold}
     -DvhStartValue ${DvhStartValue}
     -DvhStepSize ${DvhStepSize}
-    -RasterizationDownsamplingFactor ${RasterizationDownsamplingFactor}
+    -RasterizationOversamplingFactor ${RasterizationOversamplingFactor}
   )
 endmacro()
 
