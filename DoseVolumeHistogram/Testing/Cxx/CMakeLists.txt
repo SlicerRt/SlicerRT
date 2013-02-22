@@ -102,7 +102,7 @@ TEST_WITH_DATA(
   ${TEMP}/TestDvhMetrics_EclipseEnt_CERR_SlicerRT.csv
   1.0
   1.0
-  95.0
+  94.0
   3.0
   0.01
   0.01
@@ -142,7 +142,7 @@ TEST_WITH_DATA(
   ${TEMP}/TestDvhMetrics_EclipseProstate_Eclipse_SlicerRT.csv
   1.0
   1.0
-  95.0
+  94.0
   3.0
   0.01
   0.01
@@ -162,7 +162,7 @@ TEST_WITH_DATA(
   ${TEMP}/TestDvhMetrics_EclipseEnt_Eclipse_SlicerRT.csv
   1.0
   1.0
-  95.0
+  92.0
   3.0
   0.01
   0.01
