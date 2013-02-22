@@ -1,6 +1,6 @@
 import os
 import unittest
-import DicomRtImportSelfTestPaths
+import util.DicomRtImportSelfTestPaths
 from __main__ import vtk, qt, ctk, slicer
 
 #
