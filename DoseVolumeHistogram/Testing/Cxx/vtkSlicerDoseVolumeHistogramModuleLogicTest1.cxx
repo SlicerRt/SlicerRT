@@ -365,7 +365,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   // Create contour hierarchy root node
   vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyRootNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
-  std::string hierarchyNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX;
+  std::string hierarchyNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
   contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
   contourHierarchyRootNode->AllowMultipleChildrenOn();
   contourHierarchyRootNode->HideFromEditorsOff();
@@ -455,7 +455,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
     contourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(mrmlScene->AddNode(contourHierarchyNode));
     contourHierarchyNode->SetParentNodeID( contourHierarchyRootNode->GetID() );
-    contourHierarchyNode->SetDisplayableNodeID( contourNode->GetID() );
+    contourHierarchyNode->SetAssociatedNodeID( contourNode->GetID() );
 
     // Add color into the color table
     structureSetColorTableNode->AddColor(it->c_str(), 1.0, 0.0, 0.0);

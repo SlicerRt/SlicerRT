@@ -121,6 +121,10 @@ void vtkSlicerDicomRtReader::RoiEntry::SetPolyData(vtkPolyData* roiPolyData)
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+const std::string vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_DATABASE_FILENAME = "/ctkDICOM.sql";
+const std::string vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME = "SlicerRt";
+
 vtkStandardNewMacro(vtkSlicerDicomRtReader);
 
 //----------------------------------------------------------------------------
@@ -133,6 +137,15 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->SetPixelSpacing(0,0);
   this->DoseUnits = NULL;
   this->DoseGridScaling = NULL;
+
+  this->PatientName = NULL;
+  this->PatientId = NULL;
+  this->StudyInstanceUid = NULL;
+  this->StudyDescription = NULL;
+  this->SeriesInstanceUid = NULL;
+  this->SeriesDescription = NULL;
+
+  this->DatabaseFile = NULL;
 
   this->LoadRTStructureSetSuccessful = false;
   this->LoadRTDoseSuccessful = false;
@@ -156,6 +169,12 @@ void vtkSlicerDicomRtReader::Update()
 {
   if ((this->FileName != NULL) && (strlen(this->FileName) > 0))
   {
+    // Set DICOM database file name
+    QSettings settings;
+    QString databaseDirectory = settings.value("DatabaseDirectory").toString();
+    QString databaseFile = databaseDirectory + DICOMRTREADER_DICOM_DATABASE_FILENAME.c_str();
+    this->SetDatabaseFile(databaseFile.toLatin1());
+
     // load DICOM file or dataset
     DcmFileFormat fileformat;
 
@@ -343,11 +362,14 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
     }
   }
 
+  // Get and store patient, study and series information
+  this->GetAndStoreHierarchyInformation(&rtPlanObject);
+
   this->LoadRTPlanSuccessful = true;
 }
 
 //----------------------------------------------------------------------------
-OFString GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStructureSetObject)
+OFString vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStructureSetObject)
 {
   OFString invalidUid;
   DRTReferencedFrameOfReferenceSequence &rtReferencedFrameOfReferenceSequenceObject = rtStructureSetObject.getReferencedFrameOfReferenceSequence();
@@ -412,18 +434,16 @@ OFString GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStruc
 }
 
 //----------------------------------------------------------------------------
-double GetSliceThickness(OFString referencedSOPInstanceUID)
+double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceUID)
 {
   double defaultSliceThickness = 2.0;
 
   // Get DICOM image filename from SOP instance UID
   ctkDICOMDatabase dicomDatabase;
-  QSettings settings;
-  QString databaseDirectory = settings.value("DatabaseDirectory").toString();
-  dicomDatabase.openDatabase(databaseDirectory + "/ctkDICOM.sql", "SlicerRt");
+  dicomDatabase.openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
   QString referencedFilename=dicomDatabase.fileForInstance(referencedSOPInstanceUID.c_str());
   dicomDatabase.closeDatabase();
-  if ( referencedFilename.isEmpty() ) //isNull?
+  if ( referencedFilename.isEmpty() ) //TODO: isNull?
   {
     std::cerr << "No referenced image file is found, default slice thickness is used for contour import" << std::endl;
     return defaultSliceThickness;
@@ -432,7 +452,7 @@ double GetSliceThickness(OFString referencedSOPInstanceUID)
   // Load DICOM file
   DcmFileFormat fileformat;
   OFCondition result;
-  result = fileformat.loadFile( referencedFilename.toStdString().c_str(), EXS_Unknown);
+  result = fileformat.loadFile(referencedFilename.toStdString().c_str(), EXS_Unknown);
   if (!result.good())
   {
     std::cerr << "Could not load image file" << std::endl;
@@ -466,7 +486,7 @@ double GetSliceThickness(OFString referencedSOPInstanceUID)
 // Variables for estimating the distance between contour planes.
 // This is not a reliable solution, as it assumes that the plane normals are (0,0,1) and
 // the distance between all planes are equal.
-double GetDistanceBetweenContourPlanes(DRTContourSequence &rtContourSequenceObject)
+double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTContourSequence &rtContourSequenceObject)
 {
   double invalidResult=-1.0;
   if (!rtContourSequenceObject.gotoFirstItem().good())
@@ -703,6 +723,9 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   }
   while (rtROIContourSequenceObject.gotoNextItem().good());
 
+  // Get and store patient, study and series information
+  this->GetAndStoreHierarchyInformation(&rtStructureSetObject);
+
   this->LoadRTStructureSetSuccessful = true;
 }
 
@@ -900,9 +923,11 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
     cerr << "Error: Failed to get Pixel Spacing for dose object" << OFendl;
     return; // mandatory DICOM value
   }
+  this->SetPixelSpacing(pixelSpacingOFVector[0], pixelSpacingOFVector[1]);
   cout << "Pixel Spacing: (" << pixelSpacingOFVector[0] << ", " << pixelSpacingOFVector[1] << ")" << OFendl;
 
-  this->SetPixelSpacing(pixelSpacingOFVector[0], pixelSpacingOFVector[1]);
+  // Get and store patient, study and series information
+  this->GetAndStoreHierarchyInformation(&rtDoseObject);
 
   this->LoadRTDoseSuccessful = true;
 }

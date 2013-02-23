@@ -60,7 +60,7 @@ void vtkMRMLContourHierarchyNode::GetChildrenContourNodes(vtkCollection *contour
     if (mnode->IsA("vtkMRMLContourNode"))
       {
       hnode = vtkMRMLContourHierarchyNode::SafeDownCast(
-        vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(scene, mnode->GetID()));
+        vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, mnode->GetID()));
 
       while (hnode)
         {

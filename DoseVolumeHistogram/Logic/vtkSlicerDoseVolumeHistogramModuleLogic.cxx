@@ -318,7 +318,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
     || resampledDoseDimensions[1] != indexedLabelmapDimensions[1]
     || resampledDoseDimensions[2] != indexedLabelmapDimensions[2] )
   {
-    vtkErrorMacro("Resampled dose volume has different dimensions than the indexed labelmap (probably downsampling factor has been changed)!");
+    vtkErrorMacro("Resampled dose volume has different dimensions than the indexed labelmap (probably oversampling factor has been changed)!");
     return;
   }
 

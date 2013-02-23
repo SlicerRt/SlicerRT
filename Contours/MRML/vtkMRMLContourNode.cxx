@@ -1085,7 +1085,7 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
 
   // Get hierarchy node
   vtkMRMLContourHierarchyNode* contourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(
-    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->ID));
+    vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->Scene, this->ID));
   if (!contourHierarchyNode)
     {
     std::cerr << "Error: No hierarchy node found for structure '" << this->Name << "'" << std::endl;

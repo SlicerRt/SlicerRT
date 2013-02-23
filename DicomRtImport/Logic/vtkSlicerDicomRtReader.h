@@ -24,10 +24,6 @@
 #ifndef __vtkSlicerDicomRtReader_h
 #define __vtkSlicerDicomRtReader_h
 
-// Slicer includes
-
-// MRML includes
-
 // VTK includes
 #include "vtkObject.h"
 
@@ -39,6 +35,9 @@
 
 class vtkPolyData;
 class DcmDataset;
+class OFString;
+class DRTContourSequence;
+class DRTStructureSetIOD;
 
 // Due to some reason the Python wrapping of this class fails, therefore
 // put everything between BTX/ETX to exclude from wrapping.
@@ -48,6 +47,9 @@ class DcmDataset;
 /// \ingroup SlicerRt_DicomRtImport
 class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtReader : public vtkObject
 {
+public:
+  static const std::string DICOMRTREADER_DICOM_DATABASE_FILENAME;
+  static const std::string DICOMRTREADER_DICOM_CONNECTION_NAME;
 
 public:
   static vtkSlicerDicomRtReader *New();
@@ -113,16 +115,34 @@ public:
   /// Set input file name
   vtkSetStringMacro(FileName);
 
-  /*! Get pixel spacing */
+  /// Get pixel spacing
   vtkGetVector2Macro(PixelSpacing, double); 
 
-  /*! Get dose units */
+  /// Get dose units
   vtkGetStringMacro(DoseUnits); 
+  /// Set dose units
   vtkSetStringMacro(DoseUnits); 
 
-  /*! Get dose units */
+  /// Get dose grid scaling
   vtkGetStringMacro(DoseGridScaling); 
+  /// Set dose grid scaling
   vtkSetStringMacro(DoseGridScaling); 
+
+  /// Get patient name
+  vtkGetStringMacro(PatientName); 
+  /// Get patient ID
+  vtkGetStringMacro(PatientId); 
+  /// Get study instance UID
+  vtkGetStringMacro(StudyInstanceUid); 
+  /// Get study description
+  vtkGetStringMacro(StudyDescription); 
+  /// Get series instance UID
+  vtkGetStringMacro(SeriesInstanceUid); 
+  /// Get series description
+  vtkGetStringMacro(SeriesDescription); 
+
+  /// Get DICOM database file name
+  vtkGetStringMacro(DatabaseFile);
 
   /// Get load structure set successful flag
   vtkGetMacro(LoadRTStructureSetSuccessful, bool);
@@ -195,17 +215,52 @@ protected:
   void LoadRTStructureSet(DcmDataset*);
 
   /// Load RT Plan 
-  void LoadRTPlan(DcmDataset*);  
+  void LoadRTPlan(DcmDataset*);
 
   /// Load RT Dose
   void LoadRTDose(DcmDataset*);
 
 protected:
-  /*! Set pixel spacing */
-  vtkSetVector2Macro(PixelSpacing, double); 
+  /// Set pixel spacing
+  vtkSetVector2Macro(PixelSpacing, double);
 
+  /// Set patient name
+  vtkSetStringMacro(PatientName);
+  /// Set patient ID
+  vtkSetStringMacro(PatientId);
+  /// Set study instance UID
+  vtkSetStringMacro(StudyInstanceUid);
+  /// Set study description
+  vtkSetStringMacro(StudyDescription); 
+  /// Set series instance UID
+  vtkSetStringMacro(SeriesInstanceUid);
+  /// Set series description
+  vtkSetStringMacro(SeriesDescription); 
+
+  /// Set DICOM database file name
+  vtkSetStringMacro(DatabaseFile);
+
+protected:
+  /// Find and return a beam entry according to its beam number
   BeamEntry* FindBeamByNumber(unsigned int beamNumber);
+
+  /// Find and return a ROI entry according to its ROI number
   RoiEntry* FindRoiByNumber(unsigned int roiNumber);
+
+  /// Variables for estimating the distance between contour planes.
+  /// This is not a reliable solution, as it assumes that the plane normals are (0,0,1) and
+  /// the distance between all planes are equal.
+  double GetDistanceBetweenContourPlanes(DRTContourSequence &rtContourSequenceObject);
+
+  /// Get slice thickness for an SOP instance
+  double GetSliceThickness(OFString referencedSOPInstanceUID);
+
+  /// Get frame of reference for an SOP instance
+  OFString GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStructureSetObject);
+
+//xBTX //TODO #210: Re-enable
+  template<class T> void GetAndStoreHierarchyInformation(T* dcmtkIodObject);
+//xETX
 
 protected:
   /// Input file name
@@ -229,6 +284,27 @@ protected:
   /// Store it as a string, because it will be passed as a MRML node attribute.
   char* DoseGridScaling;
 
+  /// Patient name
+  char* PatientName;
+
+  /// Patient ID
+  char* PatientId;
+
+  /// Study instance UID
+  char* StudyInstanceUid;
+
+  /// Study description
+  char* StudyDescription;
+
+  /// Series instance UID
+  char* SeriesInstanceUid;
+
+  /// Series description
+  char* SeriesDescription;
+
+  /// DICOM database file name
+  char* DatabaseFile;
+
   /// Flag indicating if RT Structure Set has been successfully read from the input dataset
   bool LoadRTStructureSetSuccessful;
 
@@ -246,6 +322,8 @@ private:
   vtkSlicerDicomRtReader(const vtkSlicerDicomRtReader&); // Not implemented
   void operator=(const vtkSlicerDicomRtReader&);         // Not implemented
 };
+
+#include "vtkSlicerDicomRtReader.txx"
 
 //ETX
 

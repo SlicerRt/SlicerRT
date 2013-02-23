@@ -8,6 +8,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${QT_QTSQL_INCLUDE_DIR}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerPatientHierarchyModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   )
 
@@ -18,6 +19,7 @@ set(${KIT}_SRCS
   vtkDICOMImportInfo.h
   vtkSlicerDicomRtReader.cxx
   vtkSlicerDicomRtReader.h
+  vtkSlicerDicomRtReader.txx
   vtkTopologicalHierarchy.cxx
   vtkTopologicalHierarchy.h
   )
@@ -37,6 +39,7 @@ find_library( DCMTK_dcmrt_LIBRARY dcmrt
  
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
+  vtkSlicerPatientHierarchyModuleMRML
   vtkSlicerContoursModuleMRML
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}

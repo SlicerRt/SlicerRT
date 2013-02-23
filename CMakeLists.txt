@@ -54,6 +54,7 @@ IF (WIN32)
   add_subdirectory(LeakFinder)
 ENDIF()
 
+add_subdirectory(PatientHierarchy)
 add_subdirectory(Contours)
 add_subdirectory(Beams)
 add_subdirectory(DicomRtImport)
