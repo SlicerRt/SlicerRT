@@ -167,9 +167,7 @@ main (int argc, char * argv [])
 	<< stage_1_grid_size << "\n"
 	;
     
-//    if (!enable_stage_2 && !enable_stage_3) command_string <<
-//		"warped_landmarks=" << plmslc_warped_fiducials_f << "\n"
-//		;
+		
 
     if (enable_stage_2) {
 	command_string << 
@@ -186,10 +184,6 @@ main (int argc, char * argv [])
 	    << stage_2_grid_size << " "
 	    << stage_2_grid_size << "\n"
 	    ;
-
-  //  if (!enable_stage_3) command_string <<
-//		"warped_landmarks=" << plmslc_warped_fiducials_f << "\n"
-//		;
 
     }
 
@@ -208,10 +202,6 @@ main (int argc, char * argv [])
 	    	<< stage_3_grid_size << " "
 	    	<< stage_3_grid_size << "\n"
 	    	;
-
-//		command_string <<
-//		"warped_landmarks=" << plmslc_warped_fiducials_f << "\n"
-//		;
 
     	}
 
