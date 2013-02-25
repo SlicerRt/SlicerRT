@@ -145,6 +145,7 @@ const char* vtkMRMLPatientHierarchyNode::GetNodeTagName()
 {
   return "PatientHierarchy";
 }
+
 //----------------------------------------------------------------------------
 void vtkMRMLPatientHierarchyNode::ReadXMLAttributes( const char** atts)
 {

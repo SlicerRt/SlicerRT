@@ -289,7 +289,10 @@ void vtkMRMLContourNode::UpdateScene(vtkMRMLScene *scene)
   this->SetAndObserveIndexedLabelmapVolumeNodeId(this->IndexedLabelmapVolumeNodeId);
   this->SetAndObserveClosedSurfaceModelNodeId(this->ClosedSurfaceModelNodeId);
   this->SetAndObserveRasterizationReferenceVolumeNodeId(this->RasterizationReferenceVolumeNodeId);
-  this->SetActiveRepresentationByType(this->ActiveRepresentationType);
+  if (this->ActiveRepresentationType != None)
+    {
+    this->SetActiveRepresentationByType(this->ActiveRepresentationType);
+    }
 }
 
 //----------------------------------------------------------------------------

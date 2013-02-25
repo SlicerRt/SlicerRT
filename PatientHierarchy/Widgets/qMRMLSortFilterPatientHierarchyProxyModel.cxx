@@ -28,7 +28,11 @@
 #include "qMRMLSortFilterPatientHierarchyProxyModel.h"
 
 // VTK includes
+
+// MRML includes
 #include <vtkMRMLHierarchyNode.h>
+#include <vtkMRMLModelNode.h>
+#include <vtkMRMLVolumeNode.h>
 
 // -----------------------------------------------------------------------------
 // qMRMLSortFilterPatientHierarchyProxyModelPrivate
@@ -68,23 +72,43 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
   // (maybe (option to) hide the hierarchy node if a displayable node is
   // associated with it)
 
+  if (!node)
+  {
+    return Accept;
+  }
+
   AcceptType res = this->Superclass::filterAcceptsNode(node);
-  if (res == Accept || res == AcceptButPotentiallyRejectable)
+  if (res == Reject || res == RejectButPotentiallyAcceptable)
   {
     return res;
   }
+
   vtkMRMLPatientHierarchyNode* hNode = vtkMRMLPatientHierarchyNode::SafeDownCast(node);
-  if (!hNode)
-  {
-    return res;
-  }
   // Don't show vtkMRMLPatientHierarchyNode if they are tied to a displayable node
   // The only vtkMRMLPatientHierarchyNode to display are the ones who reference other
   // vtkMRMLPatientHierarchyNode (tree parent) or empty (tree parent to be)
-  if (hNode->GetAssociatedNode())
+  if (hNode)
   {
-    return RejectButPotentiallyAcceptable;
+    if (hNode->GetAssociatedNode())
+    {
+      return RejectButPotentiallyAcceptable;
+    }
+    else
+    {
+      return Accept;
+    }
   }
 
-  return res;
+  vtkMRMLModelNode* mNode = vtkMRMLModelNode::SafeDownCast(node);
+  if (mNode)
+  {
+    return AcceptButPotentiallyRejectable;
+  }
+  vtkMRMLVolumeNode* vNode = vtkMRMLVolumeNode::SafeDownCast(node);
+  if (vNode)
+  {
+    return AcceptButPotentiallyRejectable;
+  }
+
+  return Reject;
 }
