@@ -242,6 +242,14 @@
       <longflag>--stage1its</longflag>
       <description>Maximum number of iterations</description>
     </integer>
+    <image>
+      <name>plmslc_output_warped_1</name>
+      <longflag>--plmslc_output_warped_1</longflag>
+      <description>Warped output image</description>
+      <label>Output volume_1</label>
+      <default>None</default>
+      <channel>output</channel>
+    </image>
   </parameters>
 
   <!-- STAGE 2 -->
@@ -290,6 +298,14 @@
       <longflag>--stage2its</longflag>
       <description>Maximum number of iterations</description>
     </integer>
+    <image>
+      <name>plmslc_output_warped_2</name>
+      <longflag>--plmslc_output_warped_2</longflag>
+      <description>Warped output image</description>
+      <label>Output volume_2</label>
+      <default>None</default>
+      <channel>output</channel>
+    </image>
     </parameters>
 
   <!-- STAGE 3 -->
@@ -338,6 +354,14 @@
       <longflag>--stage3its</longflag>
       <description>Maximum number of iterations</description>
     </integer>
+    <image>
+      <name>plmslc_output_warped_3</name>
+      <longflag>--plmslc_output_warped_3</longflag>
+      <description>Warped output image</description>
+      <label>Output volume_3</label>
+      <default>None</default>
+      <channel>output</channel>
+    </image>
   </parameters>
 
   <!-- INTERACTIVE REGISTRATION -->

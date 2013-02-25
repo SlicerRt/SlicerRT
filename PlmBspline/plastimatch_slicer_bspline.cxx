@@ -57,6 +57,8 @@ main (int argc, char * argv [])
 	command_string << 
 	    "img_out=" << plmslc_output_warped << "\n";
     }
+    	command_string <<
+	    "warped_landmarks=" << plmslc_warped_fiducials_f << "\n";
 
     /* GCS FIX: You can specify two output bspline xforms, but not 
        (yet) two output vector field files */
@@ -137,10 +139,6 @@ main (int argc, char * argv [])
         }
     }
 
-	command_string <<
-		"warped_landmarks=" << plmslc_warped_fiducials_f << "\n"
-		;
-
     /* Stage 1 */
     command_string << 
 	"[STAGE]\n"
@@ -166,7 +164,10 @@ main (int argc, char * argv [])
 	<< stage_1_grid_size << " "
 	<< stage_1_grid_size << "\n"
 	;
-    
+    if (plmslc_output_warped_1 != "" && plmslc_output_warped_1 != "None") {
+	command_string << 
+	    "img_out=" << plmslc_output_warped_1 << "\n";
+    }
 		
 
     if (enable_stage_2) {
@@ -184,8 +185,12 @@ main (int argc, char * argv [])
 	    << stage_2_grid_size << " "
 	    << stage_2_grid_size << "\n"
 	    ;
+   if (plmslc_output_warped_2 != "" && plmslc_output_warped_2 != "None") {
+	command_string << 
+	    "img_out=" << plmslc_output_warped_2 << "\n";
+    }   
+}
 
-    }
 
 	if (enable_stage_3) {
 	    command_string << 
@@ -202,7 +207,10 @@ main (int argc, char * argv [])
 	    	<< stage_3_grid_size << " "
 	    	<< stage_3_grid_size << "\n"
 	    	;
-
+	if (plmslc_output_warped_3 != "" && plmslc_output_warped_3 != "None") {
+	command_string << 
+	    "img_out=" << plmslc_output_warped_3 << "\n";
+    }
     	}
 
     std::cout << command_string.str() << "\n";
@@ -211,7 +219,7 @@ main (int argc, char * argv [])
     if (regp.set_command_string (command_string.str()) < 0) {
 	return EXIT_FAILURE;
     }
-
+    
 
 //  if (!plmslc_interactive_registration) 
 	do_registration (&regp);
