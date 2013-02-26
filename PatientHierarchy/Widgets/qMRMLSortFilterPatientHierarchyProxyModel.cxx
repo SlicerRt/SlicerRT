@@ -91,7 +91,7 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
   {
     if (hNode->GetAssociatedNode())
     {
-      return RejectButPotentiallyAcceptable;
+      return Accept;//RejectButPotentiallyAcceptable;
     }
     else
     {

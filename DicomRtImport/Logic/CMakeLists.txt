@@ -9,6 +9,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerPatientHierarchyModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerPatientHierarchyModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   )
 
@@ -40,6 +41,7 @@ find_library( DCMTK_dcmrt_LIBRARY dcmrt
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerPatientHierarchyModuleMRML
+  vtkSlicerPatientHierarchyModuleLogic
   vtkSlicerContoursModuleMRML
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}

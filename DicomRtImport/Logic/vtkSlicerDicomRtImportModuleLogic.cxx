@@ -26,6 +26,7 @@ limitations under the License.
 #include "vtkMRMLContourNode.h"
 #include "vtkMRMLContourHierarchyNode.h"
 #include "vtkMRMLPatientHierarchyNode.h"
+#include "vtkSlicerPatientHierarchyModuleLogic.h"
 #include "vtkSlicerBeamsModuleLogic.h"
 #include "vtkMRMLBeamsNode.h"
 
@@ -861,20 +862,20 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiContour(vtkPoly
 void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlicerDicomRtReader* rtReader )
 {
   // Get the higher level parent nodes by their IDs (to fill their attributes later if they do not exist yet)
-  vtkMRMLPatientHierarchyNode* patientNode = vtkMRMLPatientHierarchyNode::GetPatientHierarchyNodeByUid(
+  vtkMRMLPatientHierarchyNode* patientNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid(
     this->GetMRMLScene(), rtReader->GetDatabaseFile(), rtReader->GetPatientId() );
-  vtkMRMLPatientHierarchyNode* studyNode = vtkMRMLPatientHierarchyNode::GetPatientHierarchyNodeByUid(
+  vtkMRMLPatientHierarchyNode* studyNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid(
     this->GetMRMLScene(), rtReader->GetDatabaseFile(), rtReader->GetStudyInstanceUid() );
 
   // Insert series in hierarchy
-  vtkMRMLPatientHierarchyNode::InsertDicomSeriesInHierarchy(
+  vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
     this->GetMRMLScene(), rtReader->GetDatabaseFile(),
     rtReader->GetPatientId(), rtReader->GetStudyInstanceUid(), rtReader->GetSeriesInstanceUid() );
 
   // Fill patient and study attributes if they have been just created
   if (patientNode == NULL)
   {
-    patientNode = vtkMRMLPatientHierarchyNode::GetPatientHierarchyNodeByUid(
+    patientNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid(
       this->GetMRMLScene(), rtReader->GetDatabaseFile(), rtReader->GetPatientId() );
     if (patientNode)
     {
@@ -889,7 +890,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
   }
   if (studyNode == NULL)
   {
-    studyNode = vtkMRMLPatientHierarchyNode::GetPatientHierarchyNodeByUid(
+    studyNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid(
       this->GetMRMLScene(), rtReader->GetDatabaseFile(), rtReader->GetStudyInstanceUid() );
     if (studyNode)
     {
