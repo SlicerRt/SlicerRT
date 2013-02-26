@@ -900,11 +900,13 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   polyDataToLabelmapFilter->UseReferenceValuesOff();
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
 
+  double outputNodeOrigin[3];
+  double outputNodeSpacing[3];
   if (this->RasterizationOversamplingFactor != 1.0)
     {
     int outputExtent[6];
     double outputSpacing[3];
-    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(referenceVolumeNode, this->RasterizationOversamplingFactor, outputExtent, outputSpacing);
+    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(referenceVolumeNode, this->RasterizationOversamplingFactor, outputNodeOrigin, outputNodeSpacing, outputExtent, outputSpacing);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
     reslicer->SetInput(referenceVolumeNode->GetImageData());
@@ -924,16 +926,16 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   // Create indexed labelmap volume node
   vtkSmartPointer<vtkMRMLScalarVolumeNode> indexedLabelmapVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   indexedLabelmapVolumeNode->CopyOrientation( referenceVolumeNode );
+
+  // The origin and spacing has to be set to the MRML node instead of the image data
   if (this->RasterizationOversamplingFactor != 1.0)
     {
-    double* referenceSpacing = referenceVolumeNode->GetSpacing();
-    indexedLabelmapVolumeNode->SetSpacing(
-      referenceSpacing[0]/this->RasterizationOversamplingFactor,
-      referenceSpacing[1]/this->RasterizationOversamplingFactor,
-      referenceSpacing[2]/this->RasterizationOversamplingFactor );
+    indexedLabelmapVolumeNode->SetOrigin(outputNodeOrigin[0], outputNodeOrigin[1], outputNodeOrigin[2]);
+    indexedLabelmapVolumeNode->SetSpacing(outputNodeSpacing[0], outputNodeSpacing[1], outputNodeSpacing[2]);
 
     vtkImageData* indexedLabelmapVolumeImageData = polyDataToLabelmapFilter->GetOutput();
-    indexedLabelmapVolumeImageData->SetSpacing(1.0, 1.0, 1.0); // The spacing is set to the MRML node
+    indexedLabelmapVolumeImageData->SetSpacing(1.0, 1.0, 1.0);
+    indexedLabelmapVolumeImageData->SetOrigin(0.0, 0.0, 0.0);
     }
 
   std::string indexedLabelmapVolumeNodeName = std::string(this->Name) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;

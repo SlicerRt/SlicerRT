@@ -122,8 +122,16 @@ public:
   /// Returns true if the string is null or empty, returns false otherwise
   static bool IsStringNullOrEmpty(char* aString);
 
-  /// Computes extent and spacing of a volume for an oversampling factor
-  static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor, int outputExtent[3], double outputSpacing[3]);
+  /*!
+    Computes origin, extent, and spacing of a volume for an oversampling factor
+    \param inputVolumeNode Volume node that needs to be oversampled
+    \param oversamplingFactor Oversampling factor (e.g. in case of 2, the voxels will be half the size in each dimension)
+    \param outputNodeOrigin Output origin that has to be set to the node
+    \param outputNodeSpacing Output spacing that has to be set to the node
+    \param outputImageDataExtent Output extent that has to be set to the reslice algorithm
+    \param outputImageDataSpacing Output spacing that has to be set to the reslice algorithm
+  */
+  static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor, double outputNodeOrigin[3], double outputNodeSpacing[3], int outputImageDataExtent[6], double outputImageDataSpacing[3]);
 
   /*!
     Convert VTK image to ITK image

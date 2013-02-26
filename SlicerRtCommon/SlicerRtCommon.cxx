@@ -154,7 +154,8 @@ bool SlicerRtCommon::IsStringNullOrEmpty(char* aString)
 
 //----------------------------------------------------------------------------
 void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor,
-                                                               int outputExtent[6], double outputSpacing[3] )
+                                                               double outputNodeOrigin[3], double outputNodeSpacing[3],
+                                                               int outputImageDataExtent[6], double outputImageDataSpacing[3] )
 {
   if (!inputVolumeNode || !inputVolumeNode->GetImageData())
   {
@@ -168,22 +169,28 @@ void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode
     return;
   }
 
-  int extent[6];
-  double spacing[3];
+  double nodeOrigin[3];
+  double nodeSpacing[3];
+  int imageDataExtent[6];
+  double imageDataSpacing[3];
   int extentMin, extentMax;
-  inputVolumeNode->GetImageData()->GetWholeExtent(extent);
-  inputVolumeNode->GetImageData()->GetSpacing(spacing);
+  inputVolumeNode->GetOrigin(nodeOrigin);
+  inputVolumeNode->GetSpacing(nodeSpacing);
+  inputVolumeNode->GetImageData()->GetWholeExtent(imageDataExtent);
+  inputVolumeNode->GetImageData()->GetSpacing(imageDataSpacing);
 
   for (unsigned int axis=0; axis<3; ++axis)
   {
-    extentMin = extent[axis*2];
-    unsigned int size = extent[axis*2+1] - extentMin + 1;
+    extentMin = imageDataExtent[axis*2];
+    unsigned int size = imageDataExtent[axis*2+1] - extentMin + 1;
 
     extentMax = (int)(floor(static_cast<double>(extentMin + size) * oversamplingFactor) - 1);
     extentMin = (int)(ceil(static_cast<double>(extentMin) * oversamplingFactor));
 
-    outputExtent[axis*2] = extentMin;
-    outputExtent[axis*2+1] = extentMax;
-    outputSpacing[axis] = spacing[axis] / oversamplingFactor;
+    outputImageDataExtent[axis*2] = extentMin;
+    outputImageDataExtent[axis*2+1] = extentMax;
+    outputImageDataSpacing[axis] = imageDataSpacing[axis] / oversamplingFactor;
+    outputNodeSpacing[axis] = nodeSpacing[axis] / oversamplingFactor;
+    outputNodeOrigin[axis] = nodeOrigin[axis] - ((nodeSpacing[axis]/2.0) - (outputNodeSpacing[axis]/2.0));
   }
 }
