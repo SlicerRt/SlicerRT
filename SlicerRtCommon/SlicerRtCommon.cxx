@@ -11,6 +11,7 @@
 #include <vtkGeneralTransform.h>
 #include <vtkSmartPointer.h>
 #include <vtkMatrix4x4.h>
+#include <vtkImageData.h>
 
 //----------------------------------------------------------------------------
 // Constant strings
@@ -154,7 +155,6 @@ bool SlicerRtCommon::IsStringNullOrEmpty(char* aString)
 
 //----------------------------------------------------------------------------
 void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor,
-                                                               double outputNodeOrigin[3], double outputNodeSpacing[3],
                                                                int outputImageDataExtent[6], double outputImageDataSpacing[3] )
 {
   if (!inputVolumeNode || !inputVolumeNode->GetImageData())
@@ -169,13 +169,9 @@ void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode
     return;
   }
 
-  double nodeOrigin[3];
-  double nodeSpacing[3];
   int imageDataExtent[6];
   double imageDataSpacing[3];
   int extentMin, extentMax;
-  inputVolumeNode->GetOrigin(nodeOrigin);
-  inputVolumeNode->GetSpacing(nodeSpacing);
   inputVolumeNode->GetImageData()->GetWholeExtent(imageDataExtent);
   inputVolumeNode->GetImageData()->GetSpacing(imageDataSpacing);
 
@@ -190,7 +186,35 @@ void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode
     outputImageDataExtent[axis*2] = extentMin;
     outputImageDataExtent[axis*2+1] = extentMax;
     outputImageDataSpacing[axis] = imageDataSpacing[axis] / oversamplingFactor;
-    outputNodeSpacing[axis] = nodeSpacing[axis] / oversamplingFactor;
-    outputNodeOrigin[axis] = nodeOrigin[axis] - ((nodeSpacing[axis]/2.0) - (outputNodeSpacing[axis]/2.0));
+  }
+}
+
+//----------------------------------------------------------------------------
+void SlicerRtCommon::GetOriginAndScalingForResampledVolume( vtkMRMLVolumeNode* inputVolumeNode, vtkImageData* reslicedImage,
+                                                           double outputNodeOrigin[3], double outputNodeSpacing[3] )
+{
+  if (!inputVolumeNode || !inputVolumeNode->GetImageData() || !reslicedImage)
+  {
+    return;
+  }
+
+  double nodeOrigin[3];
+  double nodeSpacing[3];
+  inputVolumeNode->GetOrigin(nodeOrigin);
+  inputVolumeNode->GetSpacing(nodeSpacing);
+
+  double imageDataOrigin[3];
+  double imageDataSpacing[3];
+  reslicedImage->GetOrigin(imageDataOrigin);
+  reslicedImage->GetSpacing(imageDataSpacing);
+
+  vtkSmartPointer<vtkMatrix4x4> inputVolumeRasToIjkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  inputVolumeNode->GetRASToIJKMatrix( inputVolumeRasToIjkTransformMatrix );
+
+  for (unsigned int axis=0; axis<3; ++axis)
+  {
+    outputNodeSpacing[axis] = nodeSpacing[axis] * imageDataSpacing[axis];
+    outputNodeOrigin[axis] = nodeOrigin[axis]
+      + (1.0/inputVolumeRasToIjkTransformMatrix->GetElement(axis,axis)) * imageDataOrigin[axis];
   }
 }

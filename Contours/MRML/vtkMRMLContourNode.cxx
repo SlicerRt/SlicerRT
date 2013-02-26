@@ -893,6 +893,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(modelToReferenceVolumeIjkTransform.GetPointer());
 
   // Convert model to labelmap
+  vtkImageData* reslicedVtkVolume = NULL;
   vtkSmartPointer<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter = vtkSmartPointer<vtkPolyDataToLabelmapFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
   polyDataToLabelmapFilter->SetBackgroundValue(0);
@@ -906,7 +907,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
     {
     int outputExtent[6];
     double outputSpacing[3];
-    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(referenceVolumeNode, this->RasterizationOversamplingFactor, outputNodeOrigin, outputNodeSpacing, outputExtent, outputSpacing);
+    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(referenceVolumeNode, this->RasterizationOversamplingFactor, outputExtent, outputSpacing);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
     reslicer->SetInput(referenceVolumeNode->GetImageData());
@@ -914,6 +915,8 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
     reslicer->SetOutputExtent(outputExtent);
     reslicer->SetOutputSpacing(outputSpacing);
     reslicer->Update();
+
+    SlicerRtCommon::GetOriginAndScalingForResampledVolume(referenceVolumeNode, reslicer->GetOutput(), outputNodeOrigin, outputNodeSpacing);
 
     polyDataToLabelmapFilter->SetReferenceImage( reslicer->GetOutput() );
     }

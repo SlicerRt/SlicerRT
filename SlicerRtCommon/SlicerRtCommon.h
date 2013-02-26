@@ -12,6 +12,7 @@ class vtkMRMLTransformableNode;
 class vtkGeneralTransform;
 class vtkMRMLVolumeNode;
 class vtkMRMLModelNode;
+class vtkImageData;
 
 #define EPSILON 0.0001
 
@@ -126,13 +127,20 @@ public:
     Computes origin, extent, and spacing of a volume for an oversampling factor
     \param inputVolumeNode Volume node that needs to be oversampled
     \param oversamplingFactor Oversampling factor (e.g. in case of 2, the voxels will be half the size in each dimension)
-    \param outputNodeOrigin Output origin that has to be set to the node
-    \param outputNodeSpacing Output spacing that has to be set to the node
     \param outputImageDataExtent Output extent that has to be set to the reslice algorithm
     \param outputImageDataSpacing Output spacing that has to be set to the reslice algorithm
   */
-  static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor, double outputNodeOrigin[3], double outputNodeSpacing[3], int outputImageDataExtent[6], double outputImageDataSpacing[3]);
+  static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor, int outputImageDataExtent[6], double outputImageDataSpacing[3]);
 
+  /*!
+    Computes origin and spacing for a volume node according to the resampled VTK image
+    \param inputVolumeNode Volume node that needs to be oversampled
+    \param outputNodeOrigin Output origin that has to be set to the node
+    \param outputNodeSpacing Output spacing that has to be set to the node
+  */
+  static void GetOriginAndScalingForResampledVolume(vtkMRMLVolumeNode* inputVolumeNode, vtkImageData* reslicedImage, double outputNodeOrigin[3], double outputNodeSpacing[3]);
+
+//BTX
   /*!
     Convert VTK image to ITK image
     \param inVolumeNode Input volume node
@@ -140,7 +148,6 @@ public:
     \param paintForegroundTo1 Paint non-zero values to 1 (Optional)
     \return Success
   */
-//BTX
   template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
 //ETX
 };

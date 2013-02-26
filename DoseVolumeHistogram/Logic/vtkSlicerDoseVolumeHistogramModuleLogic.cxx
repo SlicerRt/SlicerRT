@@ -290,11 +290,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
   double rasterizationOversamplingFactor = structureContourNode->GetRasterizationOversamplingFactor();
   if (rasterizationOversamplingFactor != 1.0)
   {
-    double outputNodeOrigin[3];
-    double outputNodeSpacing[3];
     int outputExtent[6];
     double outputSpacing[3];
-    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(doseVolumeNode, rasterizationOversamplingFactor, outputNodeOrigin, outputNodeSpacing, outputExtent, outputSpacing);
+    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(doseVolumeNode, rasterizationOversamplingFactor, outputExtent, outputSpacing);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
     reslicer->SetInput(doseVolumeNode->GetImageData());
