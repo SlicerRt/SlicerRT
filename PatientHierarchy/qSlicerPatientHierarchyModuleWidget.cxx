@@ -27,7 +27,6 @@
 #include "SlicerRtCommon.h"
 
 // SlicerRt includes
-#include "vtkMRMLPatientHierarchyNode.h"
 #include "qMRMLScenePatientHierarchyModel.h"
 #include "qMRMLSortFilterPatientHierarchyProxyModel.h"
 

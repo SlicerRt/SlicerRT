@@ -33,7 +33,7 @@
 
 #include "vtkSlicerPatientHierarchyModuleLogicExport.h"
 
-class vtkMRMLPatientHierarchyNode;
+class vtkMRMLHierarchyNode;
 
 /// \ingroup Slicer_QtModules_PatientHierarchy
 class VTK_SLICER_PATIENTHIERARCHY_LOGIC_EXPORT vtkSlicerPatientHierarchyModuleLogic :
@@ -44,15 +44,19 @@ public:
   vtkTypeMacro(vtkSlicerPatientHierarchyModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  // Default patient hierarchy tags
+  static const char* PATIENTHIERARCHY_LEVEL_PATIENT;
+  static const char* PATIENTHIERARCHY_LEVEL_STUDY;
+  static const char* PATIENTHIERARCHY_LEVEL_SERIES;
+  static const char* PATIENTHIERARCHY_LEVEL_SUBSERIES;
+
 public:
   /// Find patient hierarchy node according to an instance UID and database
-  static vtkMRMLPatientHierarchyNode* GetPatientHierarchyNodeByUid(
-    vtkMRMLScene *scene, const char* dicomDatabaseFileName, const char* uid );
+  static vtkMRMLHierarchyNode* GetPatientHierarchyNodeByUid(vtkMRMLScene *scene, const char* uid);
 
   /// Place series in patient hierarchy. Create patient and study node if needed
   static void InsertDicomSeriesInHierarchy(
-    vtkMRMLScene *scene, const char* dicomDatabaseFileName, 
-    const char* patientId, const char* studyInstanceUid, const char* seriesInstanceUid );
+    vtkMRMLScene *scene, const char* patientId, const char* studyInstanceUid, const char* seriesInstanceUid );
 
   /// Determine if two patient hierarchy nodes are in the same branch (share the same parent)
   /// \param nodeId1 ID of the first node to check. Can be patient hierarchy node or a node
@@ -62,7 +66,10 @@ public:
   /// \return True if the two nodes or their associated hierarchy nodes share a parent on the
   ///   specified level, false otherwise
   static bool AreNodesInSameBranch( vtkMRMLScene *scene,
-    const char* nodeId1, const char* nodeId2, int lowestCommonLevel );
+    const char* nodeId1, const char* nodeId2, const char* lowestCommonLevel=NULL );
+
+  /// Determine if a node is a patient hierarchy node
+  static bool IsPatientHierarchyNode(vtkMRMLNode *node);
 
 protected:
   vtkSlicerPatientHierarchyModuleLogic();

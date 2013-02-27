@@ -88,6 +88,12 @@ const std::string SlicerRtCommon::BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX = "Source_
 const std::string SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX = "BeamModel_";
 const std::string SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX = "BeamParameterSet_";
 
+// Patient hierarchy constants
+const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME = "HierarchyType";
+const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE = "Patient";
+const char* SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME = "DicomLevel";
+const char* SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME = "DicomUid";
+
 //----------------------------------------------------------------------------
 // Utility functions
 //----------------------------------------------------------------------------
@@ -196,6 +202,7 @@ void SlicerRtCommon::GetIjkToRasMatrixForResampledVolume( vtkMRMLVolumeNode* inp
   if ( !inputVolumeNode || !reslicedImage
     || !reslicedImageIjkToInputVolumeRasTransformMatrix )
   {
+    std::cerr << "One or more input objects are NULL!";
     return;
   }
 

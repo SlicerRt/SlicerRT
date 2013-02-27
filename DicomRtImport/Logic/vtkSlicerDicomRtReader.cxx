@@ -375,56 +375,56 @@ OFString vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceSOPInstanceUID(DRT
   DRTReferencedFrameOfReferenceSequence &rtReferencedFrameOfReferenceSequenceObject = rtStructureSetObject.getReferencedFrameOfReferenceSequence();
   if (!rtReferencedFrameOfReferenceSequenceObject.gotoFirstItem().good())
   {
-    std::cerr << "No referenced frame of reference sequence object item is available" << std::endl;
+    vtkErrorMacro("No referenced frame of reference sequence object item is available");
     return invalidUid;
   }
 
   DRTReferencedFrameOfReferenceSequence::Item &currentReferencedFrameOfReferenceSequenceItem = rtReferencedFrameOfReferenceSequenceObject.getCurrentItem();
   if (!currentReferencedFrameOfReferenceSequenceItem.isValid())
   {
-    std::cerr << "Frame of reference sequence object item is invalid" << std::endl;
+    vtkErrorMacro("Frame of reference sequence object item is invalid");
     return invalidUid;
   }
 
   DRTRTReferencedStudySequence &rtReferencedStudySequenceObject = currentReferencedFrameOfReferenceSequenceItem.getRTReferencedStudySequence();
   if (!rtReferencedStudySequenceObject.gotoFirstItem().good())
   {
-    std::cerr << "No referenced study sequence object item is available" << std::endl;
+    vtkErrorMacro("No referenced study sequence object item is available");
     return invalidUid;
   }
 
   DRTRTReferencedStudySequence::Item &rtReferencedStudySequenceItem = rtReferencedStudySequenceObject.getCurrentItem();
   if (!rtReferencedStudySequenceItem.isValid())
   {
-    std::cerr << "Referenced study sequence object item is invalid" << std::endl;
+    vtkErrorMacro("Referenced study sequence object item is invalid");
     return invalidUid;
   }
 
   DRTRTReferencedSeriesSequence &rtReferencedSeriesSequenceObject = rtReferencedStudySequenceItem.getRTReferencedSeriesSequence();
   if (!rtReferencedSeriesSequenceObject.gotoFirstItem().good())
   {
-    std::cerr << "No referenced series sequence object item is available" << std::endl;
+    vtkErrorMacro("No referenced series sequence object item is available");
     return invalidUid;
   }
 
   DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject.getCurrentItem();
   if (!rtReferencedSeriesSequenceItem.isValid())
   {
-    std::cerr << "Referenced series sequence object item is invalid" << std::endl;
+    vtkErrorMacro("Referenced series sequence object item is invalid");
     return invalidUid;
   }
 
   DRTContourImageSequence &rtContourImageSequenceObject = rtReferencedSeriesSequenceItem.getContourImageSequence();
   if (!rtContourImageSequenceObject.gotoFirstItem().good())
   {
-    std::cerr << "No contour image sequence object item is available" << std::endl;
+    vtkErrorMacro("No contour image sequence object item is available");
     return invalidUid;
   }
 
   DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject.getCurrentItem();
   if (!rtContourImageSequenceItem.isValid())
   {
-    std::cerr << "Contour image sequence object item is invalid" << std::endl;
+    vtkErrorMacro("Contour image sequence object item is invalid");
     return invalidUid;
   }
 

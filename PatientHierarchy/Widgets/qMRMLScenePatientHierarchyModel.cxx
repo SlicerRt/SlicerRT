@@ -18,7 +18,7 @@
 #include "qMRMLScenePatientHierarchyModel.h"
 
 // SlicerRT includes
-#include "vtkMRMLPatientHierarchyNode.h"
+#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // Qt includes
 
@@ -28,6 +28,7 @@
 // MRMLLogic includes
 
 // MRML includes
+#include "vtkMRMLHierarchyNode.h"
 
 // VTK includes
 
@@ -64,7 +65,7 @@ qMRMLScenePatientHierarchyModel::~qMRMLScenePatientHierarchyModel()
 //------------------------------------------------------------------------------
 vtkMRMLNode* qMRMLScenePatientHierarchyModel::parentNode(vtkMRMLNode* node)const
 {
-  return vtkMRMLPatientHierarchyNode::SafeDownCast(
+  return vtkMRMLHierarchyNode::SafeDownCast(
     this->Superclass::parentNode(node));
 }
 
@@ -75,14 +76,16 @@ bool qMRMLScenePatientHierarchyModel::canBeAChild(vtkMRMLNode* node)const
     {
     return false;
     }
-  return node->IsA("vtkMRMLPatientHierarchyNode") || node->IsA("vtkMRMLNode");
+  return node->IsA("vtkMRMLNode");
 }
 
 //------------------------------------------------------------------------------
 bool qMRMLScenePatientHierarchyModel::canBeAParent(vtkMRMLNode* node)const
 {
-  vtkMRMLPatientHierarchyNode* hnode = vtkMRMLPatientHierarchyNode::SafeDownCast(node);
-  if (hnode && hnode->GetAssociatedNodeID() == 0)
+  vtkMRMLHierarchyNode* hnode = vtkMRMLHierarchyNode::SafeDownCast(node);
+  if ( hnode
+    && vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(hnode)
+    && hnode->GetAssociatedNodeID() == 0 )
     {
     return true;
     }

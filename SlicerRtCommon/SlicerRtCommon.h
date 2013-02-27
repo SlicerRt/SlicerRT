@@ -108,6 +108,12 @@ public:
   static const std::string BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX;
   static const std::string BEAMS_PARAMETER_SET_BASE_NAME_PREFIX;
 
+  // Patient hierarchy constants
+  static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME;
+  static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE;
+  static const char* PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME;
+  static const char* PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME;
+
   //----------------------------------------------------------------------------
   // Utility functions
   //----------------------------------------------------------------------------

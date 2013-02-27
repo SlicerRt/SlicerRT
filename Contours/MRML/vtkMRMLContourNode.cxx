@@ -1070,7 +1070,7 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
       }
     else
       {
-      std::cerr << "Error: No hierarchy node found for ribbon '" << this->RibbonModelNode->GetName() << "'" << std::endl;
+      vtkErrorMacro("Error: No hierarchy node found for ribbon '" << this->RibbonModelNode->GetName() << "'");
       }
     }
 
@@ -1094,7 +1094,7 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
     vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->Scene, this->ID));
   if (!contourHierarchyNode)
     {
-    std::cerr << "Error: No hierarchy node found for structure '" << this->Name << "'" << std::endl;
+    vtkErrorMacro("Error: No hierarchy node found for structure '" << this->Name << "'");
     return;
     }
 
@@ -1106,7 +1106,7 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
   vtkSmartPointer<vtkCollection> colorNodes = vtkSmartPointer<vtkCollection>::Take( this->Scene->GetNodesByName(colorNodeName.c_str()) );
   if (colorNodes->GetNumberOfItems() == 0)
     {
-    std::cerr << "Error: No color table found for structure set '" << parentContourHierarchyNode->GetName() << "'" << std::endl;
+    vtkErrorMacro("Error: No color table found for structure set '" << parentContourHierarchyNode->GetName() << "'");
     }
   colorNodes->InitTraversal();
   colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());

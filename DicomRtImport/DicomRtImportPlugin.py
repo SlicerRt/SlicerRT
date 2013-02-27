@@ -122,49 +122,46 @@ class DicomRtImportPlugin:
     tags['patientID'] = "0010,0020"
     tags['patientName'] = "0010,0010"
 
-    import vtkSlicerPatientHierarchyModuleMRML
     from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
     try:
-      vtkSlicerPatientHierarchyModuleMRML.vtkMRMLPatientHierarchyNode
       vtkSlicerPatientHierarchyModuleLogic
     except AttributeError:
       import sys
       sys.stderr.write('Unable to create PatientHierarchy nodes: PatientHierarchy module not found!')
       return
 
-    databaseFile = slicer.dicomDatabase.databaseFilename
     firstFile = loadable.files[0]
 
-    seriesNode = vtkSlicerPatientHierarchyModuleMRML.vtkMRMLPatientHierarchyNode()
+    seriesNode = slicer.vtkMRMLHierarchyNode()
     seriesNode.HideFromEditorsOff()
     seriesNode.SetAssociatedNodeID(volumeNode.GetID())
-    seriesNode.AddTag("Patient",1)
-    seriesNode.SetDicomDatabaseFileName(databaseFile)
+    seriesNode.SetAttribute('HierarchyType','Patient')
+    seriesNode.SetAttribute('DicomLevel','Patient')
     seriesDescription = slicer.dicomDatabase.fileValue(firstFile,tags['seriesDescription'])
     if seriesDescription == '':
       seriesDescription = 'No description'
     seriesDescription = seriesDescription + '_Hierarchy'
     seriesNode.SetName(seriesDescription)
     seriesInstanceUid = slicer.dicomDatabase.fileValue(firstFile,tags['seriesInstanceUID'])
-    seriesNode.SetUid(seriesInstanceUid)
+    seriesNode.SetAttribute('DicomUid',seriesInstanceUid)
     slicer.mrmlScene.AddNode(seriesNode)
 
     patientId = slicer.dicomDatabase.fileValue(firstFile,tags['patientID'])
-    patientNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUid(slicer.mrmlScene, databaseFile, patientId)
+    patientNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUid(slicer.mrmlScene, patientId)
     studyInstanceUid = slicer.dicomDatabase.fileValue(firstFile,tags['studyInstanceUID'])
-    studyNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUid(slicer.mrmlScene, databaseFile, studyInstanceUid)
-    vtkSlicerPatientHierarchyModuleLogic.InsertDicomSeriesInHierarchy(slicer.mrmlScene, databaseFile, patientId, studyInstanceUid, seriesInstanceUid)
+    studyNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUid(slicer.mrmlScene, studyInstanceUid)
+    vtkSlicerPatientHierarchyModuleLogic.InsertDicomSeriesInHierarchy(slicer.mrmlScene, patientId, studyInstanceUid, seriesInstanceUid)
 
     if patientNode == None:
-      patientNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUid(slicer.mrmlScene, databaseFile, patientId)
+      patientNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUid(slicer.mrmlScene, patientId)
       if patientNode != None:
         patientName = slicer.dicomDatabase.fileValue(firstFile,tags['patientName'])
         if patientName == '':
           patientName = 'No name'
         patientNode.SetName(patientName)
-        
+
     if studyNode == None:
-      studyNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUid(slicer.mrmlScene, databaseFile, studyInstanceUid)
+      studyNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUid(slicer.mrmlScene, studyInstanceUid)
       if studyNode != None:
         studyDescription = slicer.dicomDatabase.fileValue(firstFile,tags['studyDescription'])
         if studyDescription == '':

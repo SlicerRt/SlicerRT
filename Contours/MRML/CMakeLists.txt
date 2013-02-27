@@ -6,7 +6,7 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT"
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
-  ${vtkSlicerPatientHierarchyModuleMRML_INCLUDE_DIRECTORIES}
+  ${vtkSlicerPatientHierarchyModuleLogic_INCLUDE_DIRECTORIES}
   )
 
 # --------------------------------------------------------------------------
@@ -26,7 +26,7 @@ SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
-  vtkSlicerPatientHierarchyModuleMRML
+  vtkSlicerPatientHierarchyModuleLogic
   ${ITK_LIBRARIES}
   )
 

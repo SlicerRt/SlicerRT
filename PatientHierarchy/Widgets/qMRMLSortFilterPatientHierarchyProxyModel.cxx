@@ -13,13 +13,14 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Julien Finet, Kitware Inc.
-  and was partially funded by NIH grant 3P41RR013218-12S1
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
 // SlicerRT includes
-#include "vtkMRMLPatientHierarchyNode.h"
+#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // Qt includes
 
@@ -33,6 +34,7 @@
 #include <vtkMRMLHierarchyNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLAnnotationNode.h>
 
 // -----------------------------------------------------------------------------
 // qMRMLSortFilterPatientHierarchyProxyModelPrivate
@@ -83,11 +85,11 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
     return res;
   }
 
-  vtkMRMLPatientHierarchyNode* hNode = vtkMRMLPatientHierarchyNode::SafeDownCast(node);
-  // Don't show vtkMRMLPatientHierarchyNode if they are tied to a displayable node
-  // The only vtkMRMLPatientHierarchyNode to display are the ones who reference other
-  // vtkMRMLPatientHierarchyNode (tree parent) or empty (tree parent to be)
-  if (hNode)
+  vtkMRMLHierarchyNode* hNode = vtkMRMLHierarchyNode::SafeDownCast(node);
+  // Don't show patient hierarchy node if they are tied to a displayable node
+  // The only patient hierarchy node to display are the ones who reference other
+  // patient hierarchy node (tree parent) or empty (tree parent to be)
+  if (hNode && vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(hNode))
   {
     if (hNode->GetAssociatedNode())
     {
@@ -106,6 +108,11 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
   }
   vtkMRMLVolumeNode* vNode = vtkMRMLVolumeNode::SafeDownCast(node);
   if (vNode)
+  {
+    return AcceptButPotentiallyRejectable;
+  }
+  vtkMRMLAnnotationNode* aNode = vtkMRMLAnnotationNode::SafeDownCast(node);
+  if (aNode)
   {
     return AcceptButPotentiallyRejectable;
   }

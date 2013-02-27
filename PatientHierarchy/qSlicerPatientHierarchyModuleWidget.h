@@ -27,9 +27,6 @@
 
 #include "qSlicerPatientHierarchyModuleExport.h"
 
-// SlicerRtCommon includes
-#include "vtkMRMLPatientHierarchyNode.h"
-
 class qSlicerPatientHierarchyModuleWidgetPrivate;
 class vtkMRMLNode;
 

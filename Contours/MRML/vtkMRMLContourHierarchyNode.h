@@ -6,16 +6,16 @@
 #ifndef __vtkMRMLContourHierarchyNode_h
 #define __vtkMRMLContourHierarchyNode_h
 
-#include "vtkMRMLPatientHierarchyNode.h"
+#include "vtkMRMLHierarchyNode.h"
 
 #include "vtkSlicerContoursModuleMRMLExport.h"
 
 /// \ingroup Slicer_QtModules_Contour
-class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourHierarchyNode : public vtkMRMLPatientHierarchyNode
+class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourHierarchyNode : public vtkMRMLHierarchyNode
 {
 public:
   static vtkMRMLContourHierarchyNode *New();
-  vtkTypeMacro(vtkMRMLContourHierarchyNode,vtkMRMLPatientHierarchyNode);
+  vtkTypeMacro(vtkMRMLContourHierarchyNode,vtkMRMLHierarchyNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual vtkMRMLNode* CreateNodeInstance();
