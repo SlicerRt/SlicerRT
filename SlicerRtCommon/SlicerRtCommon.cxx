@@ -210,11 +210,16 @@ void SlicerRtCommon::GetOriginAndScalingForResampledVolume( vtkMRMLVolumeNode* i
 
   vtkSmartPointer<vtkMatrix4x4> inputVolumeRasToIjkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   inputVolumeNode->GetRASToIJKMatrix( inputVolumeRasToIjkTransformMatrix );
+  vtkSmartPointer<vtkTransform> inputVolumeRasToIjkTransform = vtkSmartPointer<vtkTransform>::New();
+  inputVolumeRasToIjkTransform->SetMatrix(inputVolumeRasToIjkTransformMatrix);
+  inputVolumeRasToIjkTransform->Inverse();
+  double imageDataOriginVectorIjk[4] = {imageDataOrigin[0], imageDataOrigin[1], imageDataOrigin[2], 0.0};
+  double imageDataOriginVectorRas[4];
+  inputVolumeRasToIjkTransform->MultiplyPoint(imageDataOriginVectorIjk, imageDataOriginVectorRas);
 
   for (unsigned int axis=0; axis<3; ++axis)
   {
     outputNodeSpacing[axis] = nodeSpacing[axis] * imageDataSpacing[axis];
-    outputNodeOrigin[axis] = nodeOrigin[axis]
-      + (1.0/inputVolumeRasToIjkTransformMatrix->GetElement(axis,axis)) * imageDataOrigin[axis];
+    outputNodeOrigin[axis] = nodeOrigin[axis] + imageDataOriginVectorRas[axis];
   }
 }
