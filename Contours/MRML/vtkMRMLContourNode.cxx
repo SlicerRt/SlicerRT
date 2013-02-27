@@ -383,33 +383,33 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
   // Parent transform changed (of this contour node or one of the representations)
   else if (eventID == vtkMRMLTransformableNode::TransformModifiedEvent)
     {
-      vtkMRMLTransformableNode* callerNode = vtkMRMLTransformableNode::SafeDownCast(caller);
-      if ( !callerNode
-        || !( caller->IsA("vtkMRMLContourNode") || caller->IsA("vtkMRMLModelNode") || caller->IsA("vtkMRMLScalarVolumeNode")) )
-        {
-        return;
-        }
+    vtkMRMLTransformableNode* callerNode = vtkMRMLTransformableNode::SafeDownCast(caller);
+    if ( !callerNode
+      || !( caller->IsA("vtkMRMLContourNode") || caller->IsA("vtkMRMLModelNode") || caller->IsA("vtkMRMLScalarVolumeNode")) )
+      {
+      return;
+      }
 
-      const char* newTransformNodeId = callerNode->GetTransformNodeID();
+    const char* newTransformNodeId = callerNode->GetTransformNodeID();
 
-      // Set the parent transform to this contour node
-      if ( ( this->TransformNodeID || newTransformNodeId )
-        && ( this->TransformNodeID != newTransformNodeId || STRCASECMP(this->TransformNodeID, newTransformNodeId) ) )
-        {
-        this->SetAndObserveTransformNodeID(newTransformNodeId);
-        }
+    // Set the parent transform to this contour node
+    if ( ( (!this->TransformNodeID || !newTransformNodeId) && (this->TransformNodeID != newTransformNodeId) )
+      || ( this->TransformNodeID && newTransformNodeId && STRCASECMP(this->TransformNodeID, newTransformNodeId) ) )
+      {
+      this->SetAndObserveTransformNodeID(newTransformNodeId);
+      }
 
-      // Set the parent transform to the representations
-      std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
-      for (int i=0; i<NumberOfRepresentationTypes; ++i)
+    // Set the parent transform to the representations
+    std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
+    for (int i=0; i<NumberOfRepresentationTypes; ++i)
+      {
+      if ( representations[i]
+        && ( ( (!representations[i]->GetTransformNodeID() || !newTransformNodeId) && (representations[i]->GetTransformNodeID() != newTransformNodeId) )
+          || ( representations[i]->GetTransformNodeID() && newTransformNodeId && STRCASECMP(representations[i]->GetTransformNodeID(), newTransformNodeId) ) ) )
         {
-        if ( representations[i] && (representations[i]->GetTransformNodeID() || newTransformNodeId)
-          && ( representations[i]->GetTransformNodeID() != newTransformNodeId
-            || STRCASECMP(representations[i]->GetTransformNodeID(), newTransformNodeId) ) )
-          {
-          representations[i]->SetAndObserveTransformNodeID(newTransformNodeId);
-          }
+        representations[i]->SetAndObserveTransformNodeID(newTransformNodeId);
         }
+      }
     }
 }
 
