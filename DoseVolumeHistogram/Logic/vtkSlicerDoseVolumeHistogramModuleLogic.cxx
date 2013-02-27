@@ -322,17 +322,10 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
     return;
   }
 
-  // Get dose unit scaling
-  const char* doseUnitScalingChars = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
-  double doseUnitScaling = 0.0;
-  std::stringstream doseUnitScalingSs;
-  doseUnitScalingSs << doseUnitScalingChars;
-  doseUnitScalingSs >> doseUnitScaling;
-
   // Create stencil for structure  
   vtkNew<vtkImageToImageStencil> stencil;
   stencil->SetInput(indexedLabelmap);
-  stencil->ThresholdByUpper(0.5 * doseUnitScaling);
+  stencil->ThresholdByUpper(0.5); // Thresholds only the labelmap, so the point is to keep the ones bigger than 0
   stencil->Update();
   structureStencil->DeepCopy(stencil->GetOutput());
 }
