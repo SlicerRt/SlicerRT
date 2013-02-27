@@ -51,6 +51,9 @@ public:
   vtkGetMacro(DecimateTargetReduction, double);
   vtkSetMacro(DecimateTargetReduction, double);
 
+  vtkGetMacro(LabelValue, double);
+  vtkSetMacro(LabelValue, double);
+
 protected:
   vtkSetObjectMacro(OutputModel, vtkPolyData);
 
@@ -58,6 +61,8 @@ protected:
   vtkImageData* InputLabelmap;
   vtkPolyData* OutputModel;
   double DecimateTargetReduction;
+  /// Use this value for the marching cubes
+  double LabelValue;
 
 protected:
   vtkLabelmapToModelFilter();

@@ -995,6 +995,7 @@ vtkMRMLModelNode* vtkMRMLContourNode::ConvertFromIndexedLabelmapToClosedSurfaceM
   vtkSmartPointer<vtkLabelmapToModelFilter> labelmapToModelFilter = vtkSmartPointer<vtkLabelmapToModelFilter>::New();
   labelmapToModelFilter->SetInputLabelmap( indexedLabelmapVolumeNode->GetImageData() );
   labelmapToModelFilter->SetDecimateTargetReduction( this->DecimationTargetReductionFactor );
+  labelmapToModelFilter->SetLabelValue( structureColorIndex );
   labelmapToModelFilter->Update();    
 
   // Create display node
