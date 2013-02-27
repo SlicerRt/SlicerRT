@@ -78,15 +78,15 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLVol
   inVolumeToWorldTransform->Concatenate(rasToWorldTransformMatrix);
 
   // Set ITK image properties
-  double outputSpacing[3];
+  double outputSpacing[3] = {0.0, 0.0, 0.0};
   inVolumeToWorldTransform->GetScale(outputSpacing);
   outItkVolume->SetSpacing(outputSpacing);
 
-  double outputOrigin[3];
+  double outputOrigin[3] = {0.0, 0.0, 0.0};
   inVolumeToWorldTransform->GetPosition(outputOrigin);
   outItkVolume->SetOrigin(outputOrigin);
 
-  double outputOrienationAngles[3];
+  double outputOrienationAngles[3] = {0.0, 0.0, 0.0};
   inVolumeToWorldTransform->GetOrientation(outputOrienationAngles);
   vtkSmartPointer<vtkTransform> inVolumeToWorldOrientationTransform = vtkSmartPointer<vtkTransform>::New();
   inVolumeToWorldOrientationTransform->Identity();

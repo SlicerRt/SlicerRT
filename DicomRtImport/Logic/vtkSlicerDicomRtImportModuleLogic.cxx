@@ -738,7 +738,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
         collimatorAngleStream.str().c_str() );
       std::stringstream jawPositionsStream;
-      double jawPositions[2][2];
+      double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};
       rtReader->GetBeamLeafJawPositions(dicomBeamIndex, jawPositions);
       jawPositionsStream << jawPositions[0][0] << " " << jawPositions[0][1] << " "
         << jawPositions[1][0] << " " << jawPositions[1][1];

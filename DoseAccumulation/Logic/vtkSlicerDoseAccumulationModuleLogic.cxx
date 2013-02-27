@@ -281,8 +281,8 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   }
 
   // change image info before reslice
-  double origin[3];
-  double spacing[3];
+  double origin[3] = {0.0, 0.0, 0.0};
+  double spacing[3] = {0.0, 0.0, 0.0};
   inputVolumeNode->GetOrigin(origin);
   inputVolumeNode->GetSpacing(spacing);
   vtkSmartPointer<vtkImageChangeInformation> changeInfo = vtkSmartPointer<vtkImageChangeInformation>::New();
@@ -340,8 +340,8 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
       }
 
       // change image info before reslice
-      double origin[3];
-      double spacing[3];
+      double origin[3] = {0.0, 0.0, 0.0};
+      double spacing[3] = {0.0, 0.0, 0.0};
       inputVolumeNode2->GetOrigin(origin);
       inputVolumeNode2->GetSpacing(spacing);
       vtkSmartPointer<vtkImageChangeInformation> changeInfo2 = vtkSmartPointer<vtkImageChangeInformation>::New();

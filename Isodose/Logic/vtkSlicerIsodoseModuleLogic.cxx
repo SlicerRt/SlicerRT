@@ -358,7 +358,7 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
 
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
   {
-    double val[6];
+    double val[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     const char* strIsoLevel = colorTableNode->GetColorName(i);
 
     std::stringstream ss;

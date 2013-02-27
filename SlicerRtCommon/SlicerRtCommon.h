@@ -10,6 +10,7 @@
 
 class vtkMRMLTransformableNode;
 class vtkGeneralTransform;
+class vtkMatrix4x4;
 class vtkMRMLVolumeNode;
 class vtkMRMLModelNode;
 class vtkImageData;
@@ -133,12 +134,12 @@ public:
   static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor, int outputImageDataExtent[6], double outputImageDataSpacing[3]);
 
   /*!
-    Computes origin and spacing for a volume node according to the resampled VTK image
+    Computes IJK to RAS matrix for a volume node according to the resampled VTK image
     \param inputVolumeNode Volume node that needs to be oversampled
-    \param outputNodeOrigin Output origin that has to be set to the node
-    \param outputNodeSpacing Output spacing that has to be set to the node
+    \param reslicedImage Resliced image data (output of the reslice filter)
+    \param reslicedImageIjkToInputVolumeRasTransformMatrix IJKToRAS matrix that needs to be set to the volume node containing the resampled image
   */
-  static void GetOriginAndScalingForResampledVolume(vtkMRMLVolumeNode* inputVolumeNode, vtkImageData* reslicedImage, double outputNodeOrigin[3], double outputNodeSpacing[3]);
+  static void GetIjkToRasMatrixForResampledVolume(vtkMRMLVolumeNode* inputVolumeNode, vtkImageData* reslicedImage, vtkMatrix4x4* reslicedImageIjkToInputVolumeRasTransformMatrix);
 
 //BTX
   /*!

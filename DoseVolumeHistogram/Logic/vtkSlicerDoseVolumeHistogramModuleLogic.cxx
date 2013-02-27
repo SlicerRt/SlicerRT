@@ -290,8 +290,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
   double rasterizationOversamplingFactor = structureContourNode->GetRasterizationOversamplingFactor();
   if (rasterizationOversamplingFactor != 1.0)
   {
-    int outputExtent[6];
-    double outputSpacing[3];
+    int outputExtent[6] = {0, 0, 0, 0, 0, 0};
+    double outputSpacing[3] = {0.0, 0.0, 0.0};
     SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(doseVolumeNode, rasterizationOversamplingFactor, outputExtent, outputSpacing);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
@@ -302,6 +302,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
     reslicer->Update();
 
     resampledDoseVolume->DeepCopy(reslicer->GetOutput());
+    resampledDoseVolume->SetSpacing(1.0, 1.0, 1.0);
+    resampledDoseVolume->SetOrigin(0.0, 0.0, 0.0);
   }
   else
   {
@@ -309,9 +311,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
   }
 
   // Sanity check
-  int resampledDoseDimensions[3];
+  int resampledDoseDimensions[3] = {0, 0, 0};
   resampledDoseVolume->GetDimensions(resampledDoseDimensions);
-  int indexedLabelmapDimensions[3];
+  int indexedLabelmapDimensions[3] = {0, 0, 0};
   indexedLabelmap->GetDimensions(indexedLabelmapDimensions);
 
   if ( resampledDoseDimensions[0] != indexedLabelmapDimensions[0]
@@ -469,7 +471,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   vtkSmartPointer<vtkImageStencilData> structureStencil = vtkSmartPointer<vtkImageStencilData>::New();
 
   this->GetStencilForContour(structureContourNode, resampledDoseVolume, structureStencil);
-  int stencilExtent[6];
+  int stencilExtent[6] = {0, 0, 0, 0, 0, 0};
   structureStencil->GetExtent(stencilExtent);
   if (stencilExtent[1]-stencilExtent[0] == 0 || stencilExtent[3]-stencilExtent[2] == 0 || stencilExtent[5]-stencilExtent[4] == 0)
   {

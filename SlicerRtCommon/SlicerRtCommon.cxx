@@ -169,8 +169,8 @@ void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode
     return;
   }
 
-  int imageDataExtent[6];
-  double imageDataSpacing[3];
+  int imageDataExtent[6] = {0, 0, 0, 0, 0, 0};
+  double imageDataSpacing[3] = {0.0, 0.0, 0.0};
   int extentMin, extentMax;
   inputVolumeNode->GetImageData()->GetWholeExtent(imageDataExtent);
   inputVolumeNode->GetImageData()->GetSpacing(imageDataSpacing);
@@ -190,36 +190,30 @@ void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode
 }
 
 //----------------------------------------------------------------------------
-void SlicerRtCommon::GetOriginAndScalingForResampledVolume( vtkMRMLVolumeNode* inputVolumeNode, vtkImageData* reslicedImage,
-                                                           double outputNodeOrigin[3], double outputNodeSpacing[3] )
+void SlicerRtCommon::GetIjkToRasMatrixForResampledVolume( vtkMRMLVolumeNode* inputVolumeNode, vtkImageData* reslicedImage,
+                                                           vtkMatrix4x4* reslicedImageIjkToInputVolumeRasTransformMatrix )
 {
-  if (!inputVolumeNode || !inputVolumeNode->GetImageData() || !reslicedImage)
+  if ( !inputVolumeNode || !reslicedImage
+    || !reslicedImageIjkToInputVolumeRasTransformMatrix )
   {
     return;
   }
 
-  double nodeOrigin[3];
-  double nodeSpacing[3];
-  inputVolumeNode->GetOrigin(nodeOrigin);
-  inputVolumeNode->GetSpacing(nodeSpacing);
-
-  double imageDataOrigin[3];
-  double imageDataSpacing[3];
+  double imageDataOrigin[3] = {0.0, 0.0, 0.0};
+  double imageDataSpacing[3] = {0.0, 0.0, 0.0};
   reslicedImage->GetOrigin(imageDataOrigin);
   reslicedImage->GetSpacing(imageDataSpacing);
+  vtkSmartPointer<vtkTransform> reslicedImageIjkToInputVolumeIjkTransform = vtkSmartPointer<vtkTransform>::New();
+  reslicedImageIjkToInputVolumeIjkTransform->Identity();
+  reslicedImageIjkToInputVolumeIjkTransform->Translate(imageDataOrigin);
+  reslicedImageIjkToInputVolumeIjkTransform->Scale(imageDataSpacing);
 
-  vtkSmartPointer<vtkMatrix4x4> inputVolumeRasToIjkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  inputVolumeNode->GetRASToIJKMatrix( inputVolumeRasToIjkTransformMatrix );
-  vtkSmartPointer<vtkTransform> inputVolumeRasToIjkTransform = vtkSmartPointer<vtkTransform>::New();
-  inputVolumeRasToIjkTransform->SetMatrix(inputVolumeRasToIjkTransformMatrix);
-  inputVolumeRasToIjkTransform->Inverse();
-  double imageDataOriginVectorIjk[4] = {imageDataOrigin[0], imageDataOrigin[1], imageDataOrigin[2], 0.0};
-  double imageDataOriginVectorRas[4];
-  inputVolumeRasToIjkTransform->MultiplyPoint(imageDataOriginVectorIjk, imageDataOriginVectorRas);
+  vtkSmartPointer<vtkMatrix4x4> inputVolumeIjkToRasTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  inputVolumeNode->GetIJKToRASMatrix( inputVolumeIjkToRasTransformMatrix );
 
-  for (unsigned int axis=0; axis<3; ++axis)
-  {
-    outputNodeSpacing[axis] = nodeSpacing[axis] * imageDataSpacing[axis];
-    outputNodeOrigin[axis] = nodeOrigin[axis] + imageDataOriginVectorRas[axis];
-  }
+  vtkSmartPointer<vtkTransform> reslicedImageIjkToInputVolumeRasTransform = vtkSmartPointer<vtkTransform>::New();
+  reslicedImageIjkToInputVolumeRasTransform->Identity();
+  reslicedImageIjkToInputVolumeRasTransform->Concatenate(inputVolumeIjkToRasTransformMatrix);
+  reslicedImageIjkToInputVolumeRasTransform->Concatenate(reslicedImageIjkToInputVolumeIjkTransform);
+  reslicedImageIjkToInputVolumeRasTransformMatrix->DeepCopy(reslicedImageIjkToInputVolumeRasTransform->GetMatrix());
 }

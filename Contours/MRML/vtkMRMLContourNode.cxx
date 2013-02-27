@@ -901,12 +901,11 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   polyDataToLabelmapFilter->UseReferenceValuesOff();
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
 
-  double outputNodeOrigin[3];
-  double outputNodeSpacing[3];
+  vtkSmartPointer<vtkMatrix4x4> reslicedImageIjkToIndexedLabelmapRasTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   if (this->RasterizationOversamplingFactor != 1.0)
     {
-    int outputExtent[6];
-    double outputSpacing[3];
+    int outputExtent[6] = {0, 0, 0, 0, 0, 0};
+    double outputSpacing[3] = {0.0, 0.0, 0.0};
     SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(referenceVolumeNode, this->RasterizationOversamplingFactor, outputExtent, outputSpacing);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
@@ -916,7 +915,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
     reslicer->SetOutputSpacing(outputSpacing);
     reslicer->Update();
 
-    SlicerRtCommon::GetOriginAndScalingForResampledVolume(referenceVolumeNode, reslicer->GetOutput(), outputNodeOrigin, outputNodeSpacing);
+    SlicerRtCommon::GetIjkToRasMatrixForResampledVolume(referenceVolumeNode, reslicer->GetOutput(), reslicedImageIjkToIndexedLabelmapRasTransformMatrix);
 
     polyDataToLabelmapFilter->SetReferenceImage( reslicer->GetOutput() );
     }
@@ -933,8 +932,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::ConvertFromModelToIndexedLabelmap(v
   // The origin and spacing has to be set to the MRML node instead of the image data
   if (this->RasterizationOversamplingFactor != 1.0)
     {
-    indexedLabelmapVolumeNode->SetOrigin(outputNodeOrigin[0], outputNodeOrigin[1], outputNodeOrigin[2]);
-    indexedLabelmapVolumeNode->SetSpacing(outputNodeSpacing[0], outputNodeSpacing[1], outputNodeSpacing[2]);
+    indexedLabelmapVolumeNode->SetIJKToRASMatrix(reslicedImageIjkToIndexedLabelmapRasTransformMatrix);
 
     vtkImageData* indexedLabelmapVolumeImageData = polyDataToLabelmapFilter->GetOutput();
     indexedLabelmapVolumeImageData->SetSpacing(1.0, 1.0, 1.0);
