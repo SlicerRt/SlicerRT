@@ -93,7 +93,7 @@ vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid( vtkMRMLScene
     if (node && vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(node))
     {
       const char* nodeUid = node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
-      if (nodeUid && STRCASECMP(uid, nodeUid))
+      if (nodeUid && !STRCASECMP(uid, nodeUid))
       {
         return node;
       }
@@ -132,15 +132,15 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
           "Patient hierarchy node '" << node->GetName() << "' does not have a Uid thus invalid!");
         continue;
       }
-      if (!strcmp(patientId, nodeUid))
+      if (!STRCASECMP(patientId, nodeUid))
       {
         patientNode = node;
       }
-      else if (!strcmp(studyInstanceUid, nodeUid))
+      else if (!STRCASECMP(studyInstanceUid, nodeUid))
       {
         studyNode = node;
       }
-      else if (!strcmp(seriesInstanceUid, nodeUid))
+      else if (!STRCASECMP(seriesInstanceUid, nodeUid))
       {
         seriesNode = node;
       }
