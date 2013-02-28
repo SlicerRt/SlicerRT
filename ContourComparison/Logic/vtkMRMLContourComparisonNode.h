@@ -26,10 +26,6 @@
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
 
-// STD includes
-#include <vector>
-#include <set>
-
 #include "vtkSlicerContourComparisonModuleLogicExport.h"
 
 class VTK_SLICER_CONTOURCOMPARISON_LOGIC_EXPORT vtkMRMLContourComparisonNode : public vtkMRMLNode
@@ -128,15 +124,25 @@ public:
   /// Set maximum Hausdorff distance
   vtkSetMacro(MaximumHausdorffDistanceMm, double);
 
-  /// Get average Hausdorff distance
-  vtkGetMacro(AverageHausdorffDistanceMm, double);
+  /// Get average Hausdorff distance for the whole volume
+  vtkGetMacro(AverageHausdorffDistanceForVolumeMm, double);
   /// Set average Hausdorff distance
-  vtkSetMacro(AverageHausdorffDistanceMm, double);
+  vtkSetMacro(AverageHausdorffDistanceForVolumeMm, double);
 
-  /// Get 95% Hausdorff distance
-  vtkGetMacro(Percent95HausdorffDistanceMm, double);
-  /// Set 95% Hausdorff distance
-  vtkSetMacro(Percent95HausdorffDistanceMm, double);
+  /// Get average Hausdorff distance for the boundary voxels
+  vtkGetMacro(AverageHausdorffDistanceForBoundaryMm, double);
+  /// Set average Hausdorff distance for the boundary voxels
+  vtkSetMacro(AverageHausdorffDistanceForBoundaryMm, double);
+
+  /// Get 95% Hausdorff distance for whole volume
+  vtkGetMacro(Percent95HausdorffDistanceForVolumeMm, double);
+  /// Set 95% Hausdorff distance for whole volume
+  vtkSetMacro(Percent95HausdorffDistanceForVolumeMm, double);
+
+  /// Get 95% Hausdorff distance for the boundary voxels
+  vtkGetMacro(Percent95HausdorffDistanceForBoundaryMm, double);
+  /// Set 95% Hausdorff distance for the boundary voxels
+  vtkSetMacro(Percent95HausdorffDistanceForBoundaryMm, double);
 
   /// Get/Set results Hausdorff valid flag
   vtkGetMacro(HausdorffResultsValid, bool);
@@ -202,11 +208,17 @@ protected:
   /// Maximum Hausdorff distance
   double MaximumHausdorffDistanceMm;
 
-  /// Average Hausdorff distance
-  double AverageHausdorffDistanceMm;
+  /// Average Hausdorff distance for the whole volume
+  double AverageHausdorffDistanceForVolumeMm;
 
-  /// 95% Hausdorff distance
-  double Percent95HausdorffDistanceMm;
+  /// Average Hausdorff distance for the boundary voxels
+  double AverageHausdorffDistanceForBoundaryMm;
+
+  /// 95% Hausdorff distance for the whole volume
+  double Percent95HausdorffDistanceForVolumeMm;
+
+  /// 95% Hausdorff distance for the boundary voxels
+  double Percent95HausdorffDistanceForBoundaryMm;
 
   /// Flag telling whether the Hausdorff results are valid
   bool HausdorffResultsValid;

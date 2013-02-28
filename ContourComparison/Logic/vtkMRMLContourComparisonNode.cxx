@@ -55,8 +55,10 @@ vtkMRMLContourComparisonNode::vtkMRMLContourComparisonNode()
   this->DiceResultsValidOff();
 
   this->MaximumHausdorffDistanceMm = -1.0;
-  this->AverageHausdorffDistanceMm = -1.0;
-  this->Percent95HausdorffDistanceMm = -1.0;
+  this->AverageHausdorffDistanceForVolumeMm = -1.0;
+  this->AverageHausdorffDistanceForBoundaryMm = -1.0;
+  this->Percent95HausdorffDistanceForVolumeMm = -1.0;
+  this->Percent95HausdorffDistanceForBoundaryMm = -1.0;
   this->HausdorffResultsValidOff();
 
   this->HideFromEditors = false;
@@ -124,8 +126,10 @@ void vtkMRMLContourComparisonNode::WriteXML(ostream& of, int nIndent)
   of << indent << " DiceResultsValid=\"" << (this->DiceResultsValid ? "true" : "false") << "\"";
 
   of << indent << " MaximumHausdorffDistanceMm=\"" << this->MaximumHausdorffDistanceMm << "\"";
-  of << indent << " AverageHausdorffDistanceMm=\"" << this->AverageHausdorffDistanceMm << "\"";
-  of << indent << " Percent95HausdorffDistanceMm=\"" << this->Percent95HausdorffDistanceMm << "\"";
+  of << indent << " AverageHausdorffDistanceForVolumeMm=\"" << this->AverageHausdorffDistanceForVolumeMm << "\"";
+  of << indent << " AverageHausdorffDistanceForBoundaryMm=\"" << this->AverageHausdorffDistanceForBoundaryMm << "\"";
+  of << indent << " Percent95HausdorffDistanceForVolumeMm=\"" << this->Percent95HausdorffDistanceForVolumeMm << "\"";
+  of << indent << " Percent95HausdorffDistanceForBoundaryMm=\"" << this->Percent95HausdorffDistanceForBoundaryMm << "\"";
 
   of << indent << " HausdorffResultsValid=\"" << (this->HausdorffResultsValid ? "true" : "false") << "\"";
 }
@@ -300,22 +304,38 @@ void vtkMRMLContourComparisonNode::ReadXMLAttributes(const char** atts)
       ss >> doubleAttValue;
       this->MaximumHausdorffDistanceMm = doubleAttValue;
       }
-    else if (!strcmp(attName, "AverageHausdorffDistanceMm")) 
+    else if (!strcmp(attName, "AverageHausdorffDistanceForVolumeMm")) 
       {
       std::stringstream ss;
       ss << attValue;
       double doubleAttValue;
       ss >> doubleAttValue;
-      this->AverageHausdorffDistanceMm = doubleAttValue;
+      this->AverageHausdorffDistanceForVolumeMm = doubleAttValue;
       }
-    else if (!strcmp(attName, "Percent95HausdorffDistanceMm")) 
+    else if (!strcmp(attName, "AverageHausdorffDistanceForBoundaryMm")) 
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->AverageHausdorffDistanceForBoundaryMm = doubleAttValue;
+    }
+    else if (!strcmp(attName, "Percent95HausdorffDistanceForVolumeMm")) 
       {
       std::stringstream ss;
       ss << attValue;
       double doubleAttValue;
       ss >> doubleAttValue;
-      this->Percent95HausdorffDistanceMm = doubleAttValue;
+      this->Percent95HausdorffDistanceForVolumeMm = doubleAttValue;
       }
+    else if (!strcmp(attName, "Percent95HausdorffDistanceForBoundaryMm")) 
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->Percent95HausdorffDistanceForBoundaryMm = doubleAttValue;
+    }
     else if (!strcmp(attName, "HausdorffResultsValid")) 
       {
       this->HausdorffResultsValid = (strcmp(attValue,"true") ? false : true);
@@ -348,8 +368,10 @@ void vtkMRMLContourComparisonNode::Copy(vtkMRMLNode *anode)
   this->CompareVolumeCc = node->CompareVolumeCc;
   this->DiceResultsValid = node->DiceResultsValid;
   this->MaximumHausdorffDistanceMm = node->MaximumHausdorffDistanceMm;
-  this->AverageHausdorffDistanceMm = node->AverageHausdorffDistanceMm;
-  this->Percent95HausdorffDistanceMm = node->Percent95HausdorffDistanceMm;
+  this->AverageHausdorffDistanceForVolumeMm = node->AverageHausdorffDistanceForVolumeMm;
+  this->AverageHausdorffDistanceForBoundaryMm = node->AverageHausdorffDistanceForBoundaryMm;
+  this->Percent95HausdorffDistanceForVolumeMm = node->Percent95HausdorffDistanceForVolumeMm;
+  this->Percent95HausdorffDistanceForBoundaryMm = node->Percent95HausdorffDistanceForBoundaryMm;
   this->HausdorffResultsValid = node->HausdorffResultsValid;
 
   this->DisableModifiedEventOff();
@@ -398,8 +420,10 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << " DiceResultsValid=\"" << (this->DiceResultsValid ? "true" : "false") << "\"";
 
   os << indent << " MaximumHausdorffDistanceMm=\"" << this->MaximumHausdorffDistanceMm << "\"";
-  os << indent << " AverageHausdorffDistanceMm=\"" << this->AverageHausdorffDistanceMm << "\"";
-  os << indent << " Percent95HausdorffDistanceMm=\"" << this->Percent95HausdorffDistanceMm << "\"";
+  os << indent << " AverageHausdorffDistanceForVolumeMm=\"" << this->AverageHausdorffDistanceForVolumeMm << "\"";
+  os << indent << " AverageHausdorffDistanceForBoundaryMm=\"" << this->AverageHausdorffDistanceForBoundaryMm << "\"";
+  os << indent << " Percent95HausdorffDistanceForVolumeMm=\"" << this->Percent95HausdorffDistanceForVolumeMm << "\"";
+  os << indent << " Percent95HausdorffDistanceForBoundaryMm=\"" << this->Percent95HausdorffDistanceForBoundaryMm << "\"";
 
   os << indent << " HausdorffResultsValid=\"" << (this->HausdorffResultsValid ? "true" : "false") << "\"";
 }
