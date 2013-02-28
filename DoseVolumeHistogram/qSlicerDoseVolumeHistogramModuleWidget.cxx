@@ -31,6 +31,10 @@
 #include "qSlicerDoseVolumeHistogramModuleWidget.h"
 #include "ui_qSlicerDoseVolumeHistogramModule.h"
 
+// QSlicer includes
+#include "qSlicerApplication.h"
+#include "qSlicerLayoutManager.h" 
+
 // DoseVolumeHistogram includes
 #include "vtkSlicerDoseVolumeHistogramModuleLogic.h"
 #include "vtkMRMLDoseVolumeHistogramNode.h"
@@ -39,6 +43,7 @@
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLChartNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
+#include <vtkMRMLLayoutNode.h>
 
 // VTK includes
 #include <vtkStringArray.h>
@@ -255,6 +260,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   d->label_NotDoseVolumeWarning->setVisible(false);
   d->label_Error->setVisible(false);
 
+  d->pushButton_SwitchToFourUpQuantitativeLayout->setEnabled(false);
+  d->pushButton_SwitchToOneUpQuantitativeLayout->setEnabled(false);
+
   // Show only dose volumes in the dose volume combobox by default
   d->MRMLNodeComboBox_DoseVolume->addAttribute("vtkMRMLScalarVolumeNode", SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
 
@@ -298,26 +306,29 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
     d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
 
     // Enable/disable Export DVH to file button
-    bool dvhCanBeExported = false;
+    bool dvhIsPlotted = false;
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetChartNodeId()))
     {
       for (std::vector<bool>::iterator stateIt=paramNode->GetShowInChartCheckStates()->begin();
         stateIt!=paramNode->GetShowInChartCheckStates()->end(); ++stateIt)
       {
+        // If at lease one DVH is displayed in the chart view
         if (*stateIt)
         {
-          dvhCanBeExported = true;
+          dvhIsPlotted = true;
           break;
         }
       }
-      d->pushButton_ExportDvhToCsv->setToolTip( dvhCanBeExported ? tr("Export DVH values from the selected structures in the selected chart to CSV file") :
+      d->pushButton_ExportDvhToCsv->setToolTip( dvhIsPlotted ? tr("Export DVH values from the selected structures in the selected chart to CSV file") :
         tr("Only the shown structures are saved in the file. No structures are selected, so none can be saved!"));
     }
     else
     {
       d->pushButton_ExportDvhToCsv->setToolTip(tr("Chart node needs to be selected first before saving DVH values to file!"));
     }
-    d->pushButton_ExportDvhToCsv->setEnabled(dvhCanBeExported);
+    d->pushButton_ExportDvhToCsv->setEnabled(dvhIsPlotted);
+    d->pushButton_SwitchToFourUpQuantitativeLayout->setEnabled(dvhIsPlotted);
+    d->pushButton_SwitchToOneUpQuantitativeLayout->setEnabled(dvhIsPlotted);
 
     // Enable/disable Export metrics button
     bool dvhMetricsCanBeExported = (paramNode->GetDvhDoubleArrayNodeIds()->size() > 0);
@@ -1129,13 +1140,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDoseVolumesOnlyCheckboxChanged(
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::switchToFourUpQuantitativeLayout()
 {
-  // TODO
-  std::cerr << "Not implemented yet!" << std::endl;
+  qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::switchToOneUpQuantitativeLayout()
 {
-  // TODO
-  std::cerr << "Not implemented yet!" << std::endl;
+  qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutOneUpQuantitativeView);
 }

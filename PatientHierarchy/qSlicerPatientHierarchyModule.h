@@ -61,7 +61,7 @@ public:
 
   /// TODO: Un-hide
   /// Make this module hidden
-  virtual bool isHidden()const { return true; };
+  virtual bool isHidden()const { return false/*true*/; };
 
 protected:
 
