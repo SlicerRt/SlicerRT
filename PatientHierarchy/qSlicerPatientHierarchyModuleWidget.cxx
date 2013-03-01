@@ -47,6 +47,9 @@ public:
   /// Using this flag prevents overriding the parameter set node contents when the
   ///   QMRMLCombobox selects the first instance of the specified node type when initializing
   bool ModuleWindowInitialized;
+
+  /// Scene model
+  qMRMLScenePatientHierarchyModel* SceneModel;
 };
 
 //-----------------------------------------------------------------------------
@@ -56,6 +59,7 @@ public:
 qSlicerPatientHierarchyModuleWidgetPrivate::qSlicerPatientHierarchyModuleWidgetPrivate(qSlicerPatientHierarchyModuleWidget& object)
   : q_ptr(&object)
   , ModuleWindowInitialized(false)
+  , SceneModel(NULL)
 {
 }
 
@@ -109,7 +113,6 @@ void qSlicerPatientHierarchyModuleWidget::setup()
   this->Superclass::setup();
 
   connect( d->DisplayMRMLIDsCheckBox, SIGNAL(toggled(bool)), this, SLOT(setMRMLIDsVisible(bool)) );
-  connect( d->ShowHiddenCheckBox, SIGNAL(toggled(bool)), d->MRMLTreeView->sortFilterProxyModel(), SLOT(setShowHidden(bool)) );
 
   // Set up tree view
   //connect( d->MRMLTreeView, SIGNAL(editNodeRequested(vtkMRMLNode*)), qSlicerApplication::application(), SLOT(openNodeModule(vtkMRMLNode*)));
@@ -139,23 +142,17 @@ void qSlicerPatientHierarchyModuleWidget::setSceneModel()
   Q_D(qSlicerPatientHierarchyModuleWidget);
 
   // Set scene model
-  qMRMLSceneModel* sceneModel = new qMRMLScenePatientHierarchyModel(this);
+  d->SceneModel = new qMRMLScenePatientHierarchyModel(this);
   qMRMLSortFilterProxyModel* filterModel = new qMRMLSortFilterPatientHierarchyProxyModel(this);
-  d->MRMLTreeView->setSceneModel(sceneModel, tr("PatientHierarchy"));
+  d->MRMLTreeView->setSceneModel(d->SceneModel, tr("PatientHierarchy"));
   d->MRMLTreeView->setSortFilterProxyModel(filterModel);
 
-  d->MRMLTreeView->sceneModel()->setIDColumn(1);
-  d->MRMLTreeView->sceneModel()->setHorizontalHeaderLabels(
-    QStringList() << "Nodes" << "IDs");
-
   d->MRMLTreeView->header()->setStretchLastSection(false);
-  d->MRMLTreeView->header()->setResizeMode(0, QHeaderView::Stretch);
+  d->MRMLTreeView->header()->setResizeMode(0, QHeaderView::ResizeToContents);
   d->MRMLTreeView->header()->setResizeMode(1, QHeaderView::ResizeToContents);
+  d->MRMLTreeView->header()->setResizeMode(2, QHeaderView::Stretch);
 
   this->setMRMLIDsVisible(d->DisplayMRMLIDsCheckBox->isChecked());
-
-  connect(d->ShowHiddenCheckBox, SIGNAL(toggled(bool)),
-    d->MRMLTreeView->sortFilterProxyModel(), SLOT(setShowHidden(bool)));
 
   d->MRMLTreeView->sortFilterProxyModel()->invalidate();
 }
@@ -165,7 +162,7 @@ void qSlicerPatientHierarchyModuleWidget::setMRMLIDsVisible(bool visible)
 {
   Q_D(qSlicerPatientHierarchyModuleWidget);
 
-  d->MRMLTreeView->setColumnHidden(1, !visible);
+  d->MRMLTreeView->setColumnHidden(d->SceneModel->IDColumn(), !visible);
   const int columnCount = d->MRMLTreeView->header()->count();
   for(int i = 0; i < columnCount; ++i)
   {

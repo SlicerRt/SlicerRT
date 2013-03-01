@@ -58,6 +58,7 @@ public:
   static const std::string DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_NO_NAME;
   static const std::string DICOMRTIMPORT_NO_DESCRIPTION;
+  static const std::string DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
 
   // Contour (vtkMRMLContourNode) constants

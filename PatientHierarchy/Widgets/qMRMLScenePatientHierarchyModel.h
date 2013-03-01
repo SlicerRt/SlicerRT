@@ -34,15 +34,18 @@ class qMRMLScenePatientHierarchyModelPrivate;
 class Q_SLICER_MODULE_PATIENTHIERARCHY_WIDGETS_EXPORT qMRMLScenePatientHierarchyModel : public qMRMLSceneHierarchyModel
 {
   Q_OBJECT
+
+  /// This property holds the column index where the node ID is displayed (3 by default)
+  /// \sa IDColumn(), setIDColumn(),
+  Q_PROPERTY (int IDColumn READ IDColumn WRITE setIDColumn)
+
 public:
   typedef qMRMLSceneHierarchyModel Superclass;
   qMRMLScenePatientHierarchyModel(QObject *parent=0);
   virtual ~qMRMLScenePatientHierarchyModel();
 
-  ///
+  /// Retrieve parent of a node
   virtual vtkMRMLNode* parentNode(vtkMRMLNode* node)const;
-
-  //virtual int          nodeIndex(vtkMRMLNode* node)const;
 
   /// Fast function that only check the type of the node to know if it can be a child.
   virtual bool         canBeAChild(vtkMRMLNode* node)const;
@@ -52,6 +55,19 @@ public:
 
   /// If newParent == 0, set the node into the vtkMRMLScene
   //virtual bool reparent(vtkMRMLNode* node, vtkMRMLNode* newParent);
+
+  //virtual int          nodeIndex(vtkMRMLNode* node)const;
+
+  /// Return the ID column number
+  /// \sa IDColumn, setIDColumn
+  int IDColumn()const;
+  /// Set the ID column number. Resizes the number of columns if needed.
+  /// \sa IDColumn, IDColumn()
+  void setIDColumn(int column);
+
+protected:
+  /// Get the largest column ID
+  virtual int maxColumnId()const;
 
 private:
   Q_DECLARE_PRIVATE(qMRMLScenePatientHierarchyModel);

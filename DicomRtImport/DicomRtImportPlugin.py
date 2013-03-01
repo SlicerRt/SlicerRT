@@ -135,7 +135,7 @@ class DicomRtImportPlugin:
     seriesNode = slicer.vtkMRMLHierarchyNode()
     seriesNode.HideFromEditorsOff()
     seriesNode.SetAssociatedNodeID(volumeNode.GetID())
-    seriesNode.SetAttribute('HierarchyType','Patient')
+    seriesNode.SetAttribute('HierarchyType','PatientHierarchy')
     seriesNode.SetAttribute('DicomLevel','Patient')
     seriesDescription = slicer.dicomDatabase.fileValue(firstFile,tags['seriesDescription'])
     if seriesDescription == '':

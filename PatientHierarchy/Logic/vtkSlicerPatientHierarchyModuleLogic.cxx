@@ -128,8 +128,12 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
       const char* nodeUID = node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
       if (!nodeUID)
       {
-        vtkWarningWithObjectMacro(scene,
-          "Patient hierarchy node '" << node->GetName() << "' does not have a UID thus invalid!");
+        if ( !node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME)
+          || STRCASECMP(node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME), vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES) )
+        {
+          vtkWarningWithObjectMacro(scene,
+            "Patient hierarchy node '" << node->GetName() << "' does not have a UID thus invalid!");
+        }
         continue;
       }
       if (!STRCASECMP(patientId, nodeUID))
@@ -151,7 +155,7 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
   {
     vtkErrorWithObjectMacro(scene,
       "vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy: Patient hierarchy node with ID="
-      << patientId << " cannot be found!");
+      << seriesInstanceUID << " cannot be found!");
     return;
   }
 

@@ -30,7 +30,8 @@
 
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 
-class vtkMRMLDisplayableNode;
+class vtkMRMLModelNode;
+class vtkMRMLAnnotationFiducialNode;
 class vtkDICOMImportInfo;
 class vtkPolyData;
 class vtkSlicerDicomRtReader;
@@ -68,21 +69,21 @@ protected:
 
   /// Load RT Structure Set and related objects into the MRML scene
   /// \return Success flag
-  bool LoadRtStructureSet(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo);
+  bool LoadRtStructureSet(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo* loadInfo);
 
   /// Add an ROI point to the scene
-  vtkMRMLDisplayableNode* AddRoiPoint(double *roiPosition, std::string baseName, double *roiColor);
+  vtkMRMLAnnotationFiducialNode* AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor);
 
   /// Add an ROI contour to the scene
-  vtkMRMLDisplayableNode* AddRoiContour(vtkPolyData *roiPoly, std::string baseName, double *roiColor);
+  vtkMRMLModelNode* AddRoiContour(vtkPolyData* roiPoly, std::string baseName, double* roiColor);
 
   /// Load RT Dose and related objects into the MRML scene
   /// \return Success flag
-  bool LoadRtDose(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo);
+  bool LoadRtDose(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo* loadInfo);
 
   /// Load RT Plan and related objects into the MRML scene
   /// \return Success flag
-  bool LoadRtPlan(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo);
+  bool LoadRtPlan(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo* loadInfo);
 
   /// Insert currently loaded series in the proper place in patient hierarchy
   void InsertSeriesInPatientHierarchy(vtkSlicerDicomRtReader* rtReader);

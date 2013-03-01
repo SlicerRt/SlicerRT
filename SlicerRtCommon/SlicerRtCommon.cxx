@@ -36,6 +36,7 @@ const std::string SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_PO
 const std::string SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX = "_PatientHierarchy";
 const std::string SlicerRtCommon::DICOMRTIMPORT_NO_NAME = "No name";
 const std::string SlicerRtCommon::DICOMRTIMPORT_NO_DESCRIPTION = "No description";
+const std::string SlicerRtCommon::DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTFIX = "_Sources";
 const std::string SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX = "_BeamModels";
 
 // Contour (vtkMRMLContourNode) constants

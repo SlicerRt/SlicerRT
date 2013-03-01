@@ -13,49 +13,54 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
 ==============================================================================*/
 
 #include "qMRMLScenePatientHierarchyModel.h"
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+
+// Patient Hierarchy includes
+#include "qMRMLScenePatientHierarchyModel_p.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 
-// Qt includes
-
-// qMRML includes
-#include "qMRMLSceneHierarchyModel_p.h"
-
-// MRMLLogic includes
-
 // MRML includes
-#include "vtkMRMLHierarchyNode.h"
-
-// VTK includes
+#include <vtkMRMLHierarchyNode.h>
 
 //------------------------------------------------------------------------------
-class qMRMLScenePatientHierarchyModelPrivate: public qMRMLSceneHierarchyModelPrivate
-{
-protected:
-  Q_DECLARE_PUBLIC(qMRMLScenePatientHierarchyModel);
-public:
-  qMRMLScenePatientHierarchyModelPrivate(qMRMLScenePatientHierarchyModel& object);
-
-};
-
-//------------------------------------------------------------------------------
-qMRMLScenePatientHierarchyModelPrivate
-::qMRMLScenePatientHierarchyModelPrivate(qMRMLScenePatientHierarchyModel& object)
-: qMRMLSceneHierarchyModelPrivate(object)
+qMRMLScenePatientHierarchyModelPrivate::qMRMLScenePatientHierarchyModelPrivate(qMRMLScenePatientHierarchyModel& object)
+: Superclass(object)
 {
 }
+
+//------------------------------------------------------------------------------
+void qMRMLScenePatientHierarchyModelPrivate::init()
+{
+  Q_Q(qMRMLScenePatientHierarchyModel);
+  this->Superclass::init();
+
+  q->setCheckableColumn(0);
+  q->setVisibilityColumn(1);
+  q->setNameColumn(2);
+  q->setIDColumn(3);
+
+  q->setHorizontalHeaderLabels(
+    QStringList() << "" << "Vis" << "Name" << "ID");
+}
+
 
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 qMRMLScenePatientHierarchyModel::qMRMLScenePatientHierarchyModel(QObject *vparent)
-:qMRMLSceneHierarchyModel(new qMRMLScenePatientHierarchyModelPrivate(*this), vparent)
+: Superclass(new qMRMLScenePatientHierarchyModelPrivate(*this), vparent)
 {
+  Q_D(qMRMLScenePatientHierarchyModel);
+  d->init();
 }
 
 //------------------------------------------------------------------------------
@@ -92,3 +97,31 @@ bool qMRMLScenePatientHierarchyModel::canBeAParent(vtkMRMLNode* node)const
     }
   return false;
 }
+
+//------------------------------------------------------------------------------
+int qMRMLScenePatientHierarchyModel::maxColumnId()const
+{
+  Q_D(const qMRMLScenePatientHierarchyModel);
+  int maxId = this->Superclass::maxColumnId();
+  maxId = qMax(maxId, d->CheckableColumn);
+  maxId = qMax(maxId, d->VisibilityColumn);
+  maxId = qMax(maxId, d->NameColumn);
+  maxId = qMax(maxId, d->IDColumn);
+  return maxId;
+}
+
+//------------------------------------------------------------------------------
+int qMRMLScenePatientHierarchyModel::IDColumn()const
+{
+  Q_D(const qMRMLScenePatientHierarchyModel);
+  return d->IDColumn;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLScenePatientHierarchyModel::setIDColumn(int column)
+{
+  Q_D(qMRMLScenePatientHierarchyModel);
+  d->IDColumn = column;
+  this->updateColumnCount();
+}
+
