@@ -369,8 +369,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         // Create root contour hierarchy node for the series, if it has not been created yet
         if (contourHierarchySeriesNode.GetPointer()==NULL)
         {
+          std::string contourHierarchySeriesNodeName(seriesName);
+          contourHierarchySeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX);
+          contourHierarchySeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
+          contourHierarchySeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(contourHierarchySeriesNodeName);
           contourHierarchySeriesNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
-          contourHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
+          contourHierarchySeriesNode->SetName(contourHierarchySeriesNodeName.c_str());
           contourHierarchySeriesNode->AllowMultipleChildrenOn();
           contourHierarchySeriesNode->HideFromEditorsOff();
           contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
@@ -393,8 +397,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         contourNode->HideFromEditorsOff();
 
         // Put the contour node in the hierarchy
-        vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyNode
-          = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
+        vtkSmartPointer<vtkMRMLHierarchyNode> contourHierarchyNode
+          = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
         std::string phContourNodeName(contourNodeName);
         phContourNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
         phContourNodeName = this->GetMRMLScene()->GenerateUniqueName(phContourNodeName);

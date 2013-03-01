@@ -53,13 +53,13 @@ void vtkMRMLContourHierarchyNode::GetChildrenContourNodes(vtkCollection *contour
     }
 
   vtkMRMLNode *mnode = NULL;
-  vtkMRMLContourHierarchyNode *hnode = NULL;
+  vtkMRMLHierarchyNode *hnode = NULL;
   for (int n=0; n < scene->GetNumberOfNodes(); n++) 
     {
     mnode = scene->GetNthNode(n);
     if (mnode->IsA("vtkMRMLContourNode"))
       {
-      hnode = vtkMRMLContourHierarchyNode::SafeDownCast(
+      hnode = vtkMRMLHierarchyNode::SafeDownCast(
         vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, mnode->GetID()));
 
       while (hnode)
@@ -69,7 +69,7 @@ void vtkMRMLContourHierarchyNode::GetChildrenContourNodes(vtkCollection *contour
           contours->AddItem(mnode);
           break;
           }
-        hnode = vtkMRMLContourHierarchyNode::SafeDownCast(hnode->GetParentNode());
+        hnode = vtkMRMLHierarchyNode::SafeDownCast(hnode->GetParentNode());
         } // end while
       } // end if
     } // end for
