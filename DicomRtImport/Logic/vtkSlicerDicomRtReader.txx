@@ -18,7 +18,7 @@
   Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
-
+#include <dcmtk/ofstd/ofstring.h>
 //----------------------------------------------------------------------------
 template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformation(T* dcmtkIodObject)
 {
