@@ -735,6 +735,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     }
   }
 
+  d->tableWidget_ChartStatistics->resizeColumnsToContents();
+
   this->updateChartCheckboxesState();
   this->updateButtonsState();
 }
