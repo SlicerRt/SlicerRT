@@ -19,8 +19,10 @@
 
 ==============================================================================*/
 
-// SlicerRT includes
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
+
+// SlicerRT includes
+#include "vtkMRMLContourNode.h"
 
 // Qt includes
 
@@ -86,14 +88,14 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
   }
 
   vtkMRMLHierarchyNode* hNode = vtkMRMLHierarchyNode::SafeDownCast(node);
-  // Don't show patient hierarchy node if they are tied to a displayable node
-  // The only patient hierarchy node to display are the ones who reference other
-  // patient hierarchy node (tree parent) or empty (tree parent to be)
   if (hNode && vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(hNode))
   {
+    // Don't show patient hierarchy node if they are tied to a displayable node
+    // The only patient hierarchy node to display are the ones who reference other
+    // patient hierarchy node (tree parent) or empty (tree parent to be)
     if (hNode->GetAssociatedNode())
     {
-      return Accept;//RejectButPotentiallyAcceptable;
+      return RejectButPotentiallyAcceptable;
     }
     else
     {
@@ -113,6 +115,11 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
   }
   vtkMRMLAnnotationNode* aNode = vtkMRMLAnnotationNode::SafeDownCast(node);
   if (aNode)
+  {
+    return AcceptButPotentiallyRejectable;
+  }
+  vtkMRMLContourNode* cNode = vtkMRMLContourNode::SafeDownCast(node);
+  if (cNode)
   {
     return AcceptButPotentiallyRejectable;
   }
