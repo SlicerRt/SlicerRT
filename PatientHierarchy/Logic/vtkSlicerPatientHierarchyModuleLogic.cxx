@@ -77,7 +77,7 @@ void vtkSlicerPatientHierarchyModuleLogic::UpdateFromMRMLScene()
 
 //---------------------------------------------------------------------------
 vtkMRMLHierarchyNode*
-vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid( vtkMRMLScene *scene, const char* uid )
+vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID( vtkMRMLScene *scene, const char* uid )
 {
   if (!scene || !uid)
   {
@@ -90,10 +90,10 @@ vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid( vtkMRMLScene
   for (unsigned int i=0; i<numberOfNodes; i++)
   {
     vtkMRMLHierarchyNode* node = vtkMRMLHierarchyNode::SafeDownCast(patientHierarchyNodes[i]);
-    if (node && vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(node))
+    if (node && SlicerRtCommon::IsPatientHierarchyNode(node))
     {
-      const char* nodeUid = node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
-      if (nodeUid && !STRCASECMP(uid, nodeUid))
+      const char* nodeUID = node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
+      if (nodeUID && !STRCASECMP(uid, nodeUID))
       {
         return node;
       }
@@ -105,9 +105,9 @@ vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid( vtkMRMLScene
 
 //---------------------------------------------------------------------------
 void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
-  vtkMRMLScene *scene, const char* patientId, const char* studyInstanceUid, const char* seriesInstanceUid )
+  vtkMRMLScene *scene, const char* patientId, const char* studyInstanceUID, const char* seriesInstanceUID )
 {
-  if ( !scene || !patientId || !studyInstanceUid || !seriesInstanceUid )
+  if ( !scene || !patientId || !studyInstanceUID || !seriesInstanceUID )
   {
     return;
   }
@@ -123,24 +123,24 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
   for (unsigned int i=0; i<numberOfNodes; i++)
   {
     vtkMRMLHierarchyNode *node = vtkMRMLHierarchyNode::SafeDownCast(patientHierarchyNodes[i]);
-    if ( node && vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(node) )
+    if ( node && SlicerRtCommon::IsPatientHierarchyNode(node) )
     {
-      const char* nodeUid = node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
-      if (!nodeUid)
+      const char* nodeUID = node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
+      if (!nodeUID)
       {
         vtkWarningWithObjectMacro(scene,
-          "Patient hierarchy node '" << node->GetName() << "' does not have a Uid thus invalid!");
+          "Patient hierarchy node '" << node->GetName() << "' does not have a UID thus invalid!");
         continue;
       }
-      if (!STRCASECMP(patientId, nodeUid))
+      if (!STRCASECMP(patientId, nodeUID))
       {
         patientNode = node;
       }
-      else if (!STRCASECMP(studyInstanceUid, nodeUid))
+      else if (!STRCASECMP(studyInstanceUID, nodeUID))
       {
         studyNode = node;
       }
-      else if (!STRCASECMP(seriesInstanceUid, nodeUid))
+      else if (!STRCASECMP(seriesInstanceUID, nodeUID))
       {
         seriesNode = node;
       }
@@ -180,7 +180,7 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
     studyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
       vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY);
     studyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
-      studyInstanceUid);
+      studyInstanceUID);
     studyNode->SetParentNodeID(patientNode->GetID());
     scene->AddNode(studyNode);
   }
@@ -222,8 +222,8 @@ bool vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLScene *sc
   }
 
   // Check if valid nodes are found
-  if ( !node1 || vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(node1)
-    || !node2 || vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(node2) )
+  if ( !node1 || SlicerRtCommon::IsPatientHierarchyNode(node1)
+    || !node2 || SlicerRtCommon::IsPatientHierarchyNode(node2) )
   {
     return false;
   }
@@ -234,7 +234,7 @@ bool vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLScene *sc
     while (true)
     {
       node1 = vtkMRMLHierarchyNode::SafeDownCast(node1->GetParentNode());
-      if (!vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(node1))
+      if (!SlicerRtCommon::IsPatientHierarchyNode(node1))
       {
         node1 = NULL;
         vtkWarningWithObjectMacro(scene, "Patient hierarchy node (ID='" << nodeId1 << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
@@ -256,7 +256,7 @@ bool vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLScene *sc
     while (true)
     {
       node2 = vtkMRMLHierarchyNode::SafeDownCast(node2->GetParentNode());
-      if (!vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(node2))
+      if (!SlicerRtCommon::IsPatientHierarchyNode(node2))
       {
         node2 = NULL;
         vtkWarningWithObjectMacro(scene, "Patient hierarchy node (ID='" << nodeId2 << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
@@ -276,9 +276,9 @@ bool vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLScene *sc
     }
   }
 
-  const char* node1Uid = node1->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
-  const char* node2Uid = node2->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
-  if ( !node1Uid || !node2Uid )
+  const char* node1UID = node1->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
+  const char* node2UID = node2->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
+  if ( !node1UID || !node2UID )
   {
     vtkErrorWithObjectMacro(scene,
       "vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch: Found ancestor node contains empty UID!");
@@ -287,29 +287,10 @@ bool vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLScene *sc
 
   // Check if the found nodes match
   // (handling the case when two patient hierarchy nodes point to the same DICOM object)
-  if ( !strcmp(node1Uid, node2Uid) )
+  if ( !strcmp(node1UID, node2UID) )
   {
     return true;
   }
 
   return false;
-}
-
-//---------------------------------------------------------------------------
-bool vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(vtkMRMLNode *node)
-{
-  bool isPatientHierarchyNode = false;
-  if (node->IsA("vtkMRMLHierarchyNode"))
-  {
-    const char* nodeType = node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME);
-    if ( nodeType && !STRCASECMP(nodeType, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE) )
-    {
-      if ( node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME) )
-      {
-        isPatientHierarchyNode = true;
-      }
-    }
-  }
-
-  return isPatientHierarchyNode;
 }

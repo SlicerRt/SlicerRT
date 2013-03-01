@@ -18,6 +18,7 @@
 #include "qMRMLScenePatientHierarchyModel.h"
 
 // SlicerRT includes
+#include "SlicerRtCommon.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // Qt includes
@@ -84,7 +85,7 @@ bool qMRMLScenePatientHierarchyModel::canBeAParent(vtkMRMLNode* node)const
 {
   vtkMRMLHierarchyNode* hnode = vtkMRMLHierarchyNode::SafeDownCast(node);
   if ( hnode
-    && vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(hnode)
+    && SlicerRtCommon::IsPatientHierarchyNode(hnode)
     && hnode->GetAssociatedNodeID() == 0 )
     {
     return true;

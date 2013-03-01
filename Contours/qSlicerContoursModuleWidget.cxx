@@ -23,13 +23,10 @@
 #include "qSlicerContoursModuleWidget.h"
 #include "ui_qSlicerContoursModule.h"
 
-// SlicerRtCommon includes
-#include "SlicerRtCommon.h"
-
 // SlicerRt includes
+#include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkMRMLContourHierarchyNode.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
@@ -345,7 +342,7 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
     }
   }
   else if ( node->IsA("vtkMRMLContourHierarchyNode")
-    && vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(node) )
+    && SlicerRtCommon::IsPatientHierarchyNode(node) )
   {
     vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
     vtkMRMLContourHierarchyNode::SafeDownCast(node)->GetChildrenContourNodes(childContourNodes);

@@ -11,6 +11,7 @@
 class vtkMRMLTransformableNode;
 class vtkGeneralTransform;
 class vtkMatrix4x4;
+class vtkMRMLNode;
 class vtkMRMLVolumeNode;
 class vtkMRMLModelNode;
 class vtkImageData;
@@ -146,6 +147,9 @@ public:
     \param reslicedImageIjkToInputVolumeRasTransformMatrix IJKToRAS matrix that needs to be set to the volume node containing the resampled image
   */
   static void GetIjkToRasMatrixForResampledVolume(vtkMRMLVolumeNode* inputVolumeNode, vtkImageData* reslicedImage, vtkMatrix4x4* reslicedImageIjkToInputVolumeRasTransformMatrix);
+
+  /// Determine if a node is a patient hierarchy node
+  static bool IsPatientHierarchyNode(vtkMRMLNode* node);
 
 //BTX
   /*!

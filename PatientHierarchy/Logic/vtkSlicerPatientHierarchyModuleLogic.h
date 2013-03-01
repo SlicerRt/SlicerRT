@@ -51,12 +51,12 @@ public:
   static const char* PATIENTHIERARCHY_LEVEL_SUBSERIES;
 
 public:
-  /// Find patient hierarchy node according to an instance UID and database
-  static vtkMRMLHierarchyNode* GetPatientHierarchyNodeByUid(vtkMRMLScene *scene, const char* uid);
+  /// Find patient hierarchy node according to a UID and database
+  static vtkMRMLHierarchyNode* GetPatientHierarchyNodeByUID(vtkMRMLScene *scene, const char* uid);
 
   /// Place series in patient hierarchy. Create patient and study node if needed
   static void InsertDicomSeriesInHierarchy(
-    vtkMRMLScene *scene, const char* patientId, const char* studyInstanceUid, const char* seriesInstanceUid );
+    vtkMRMLScene *scene, const char* patientId, const char* studyInstanceUID, const char* seriesInstanceUID );
 
   /// Determine if two patient hierarchy nodes are in the same branch (share the same parent)
   /// \param nodeId1 ID of the first node to check. Can be patient hierarchy node or a node
@@ -67,9 +67,6 @@ public:
   ///   specified level, false otherwise
   static bool AreNodesInSameBranch( vtkMRMLScene *scene,
     const char* nodeId1, const char* nodeId2, const char* lowestCommonLevel=NULL );
-
-  /// Determine if a node is a patient hierarchy node
-  static bool IsPatientHierarchyNode(vtkMRMLNode *node);
 
 protected:
   vtkSlicerPatientHierarchyModuleLogic();

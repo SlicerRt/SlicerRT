@@ -90,7 +90,7 @@ const std::string SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX = "BeamPa
 
 // Patient hierarchy constants
 const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME = "HierarchyType";
-const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE = "Patient";
+const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE = "PatientHierarchy";
 const char* SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME = "DicomLevel";
 const char* SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME = "DicomUid";
 
@@ -223,4 +223,23 @@ void SlicerRtCommon::GetIjkToRasMatrixForResampledVolume( vtkMRMLVolumeNode* inp
   reslicedImageIjkToInputVolumeRasTransform->Concatenate(inputVolumeIjkToRasTransformMatrix);
   reslicedImageIjkToInputVolumeRasTransform->Concatenate(reslicedImageIjkToInputVolumeIjkTransform);
   reslicedImageIjkToInputVolumeRasTransformMatrix->DeepCopy(reslicedImageIjkToInputVolumeRasTransform->GetMatrix());
+}
+
+//---------------------------------------------------------------------------
+bool SlicerRtCommon::IsPatientHierarchyNode(vtkMRMLNode *node)
+{
+  bool isPatientHierarchyNode = false;
+  if (node->IsA("vtkMRMLHierarchyNode"))
+  {
+    const char* nodeType = node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME);
+    if ( nodeType && !STRCASECMP(nodeType, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE) )
+    {
+      if ( node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME) )
+      {
+        isPatientHierarchyNode = true;
+      }
+    }
+  }
+
+  return isPatientHierarchyNode;
 }

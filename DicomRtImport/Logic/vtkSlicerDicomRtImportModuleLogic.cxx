@@ -884,9 +884,9 @@ vtkMRMLDisplayableNode* vtkSlicerDicomRtImportModuleLogic::AddRoiContour(vtkPoly
 void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlicerDicomRtReader* rtReader )
 {
   // Get the higher level parent nodes by their IDs (to fill their attributes later if they do not exist yet)
-  vtkMRMLHierarchyNode* patientNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid(
+  vtkMRMLHierarchyNode* patientNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(
     this->GetMRMLScene(), rtReader->GetPatientId() );
-  vtkMRMLHierarchyNode* studyNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid(
+  vtkMRMLHierarchyNode* studyNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(
     this->GetMRMLScene(), rtReader->GetStudyInstanceUid() );
 
   // Insert series in hierarchy
@@ -896,7 +896,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
   // Fill patient and study attributes if they have been just created
   if (patientNode == NULL)
   {
-    patientNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid(
+    patientNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(
       this->GetMRMLScene(), rtReader->GetPatientId() );
     if (patientNode)
     {
@@ -911,7 +911,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
   }
   if (studyNode == NULL)
   {
-    studyNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUid(
+    studyNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(
       this->GetMRMLScene(), rtReader->GetStudyInstanceUid() );
     if (studyNode)
     {

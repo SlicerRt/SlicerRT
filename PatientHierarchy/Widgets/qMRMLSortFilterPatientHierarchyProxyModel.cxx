@@ -22,6 +22,7 @@
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // SlicerRT includes
+#include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
 
 // Qt includes
@@ -88,7 +89,7 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
   }
 
   vtkMRMLHierarchyNode* hNode = vtkMRMLHierarchyNode::SafeDownCast(node);
-  if (hNode && vtkSlicerPatientHierarchyModuleLogic::IsPatientHierarchyNode(hNode))
+  if (hNode && SlicerRtCommon::IsPatientHierarchyNode(hNode))
   {
     // Don't show patient hierarchy node if they are tied to a displayable node
     // The only patient hierarchy node to display are the ones who reference other
