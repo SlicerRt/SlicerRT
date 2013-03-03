@@ -625,7 +625,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
 //---------------------------------------------------------------------------
 bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo)
 {
-  vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> planSeriesHierarchyNode;
+  vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterSeriesHierarchyNode;
   vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> sourceHierarchyRootNode;
   vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyRootNode;
 
@@ -634,6 +634,21 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
   std::string phSeriesNodeName(seriesName);
   phSeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
   phSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(phSeriesNodeName);
+
+  // Create root patient hierarchy node for the plan series
+  isocenterSeriesHierarchyNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
+  isocenterSeriesHierarchyNode->HideFromEditorsOff();
+  isocenterSeriesHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+    SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  isocenterSeriesHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+    vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+  isocenterSeriesHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
+    rtReader->GetSeriesInstanceUid());
+  std::string isocenterHierarchyRootNodeName;
+  isocenterHierarchyRootNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX;
+  isocenterHierarchyRootNodeName = this->GetMRMLScene()->GenerateUniqueName(isocenterHierarchyRootNodeName);
+  isocenterSeriesHierarchyNode->SetName(isocenterHierarchyRootNodeName.c_str());
+  this->GetMRMLScene()->AddNode(isocenterSeriesHierarchyNode);
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
@@ -648,24 +663,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
     // Add new node to the hierarchy node
     if (addedDisplayableNode)
     {
-      // Create root patient hierarchy node for the plan series, if it has not been created yet
-      if (planSeriesHierarchyNode.GetPointer()==NULL)
-      {
-        planSeriesHierarchyNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
-        planSeriesHierarchyNode->HideFromEditorsOff();
-        planSeriesHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-          SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-        planSeriesHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-          vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-        planSeriesHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
-          rtReader->GetSeriesInstanceUid());
-        std::string isocenterHierarchyRootNodeName;
-        isocenterHierarchyRootNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX;
-        isocenterHierarchyRootNodeName = this->GetMRMLScene()->GenerateUniqueName(isocenterHierarchyRootNodeName);
-        planSeriesHierarchyNode->SetName(isocenterHierarchyRootNodeName.c_str());
-        this->GetMRMLScene()->AddNode(planSeriesHierarchyNode);
-      }
-
       // Create root source annotation hierarchy node, if it has not been created yet
       if (sourceHierarchyRootNode.GetPointer()==NULL)
       {
@@ -694,7 +691,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         beamModelHierarchyRootNode->SetName(beamsHierarchyNodeName.c_str());
         beamModelHierarchyRootNode->AllowMultipleChildrenOn();
         beamModelHierarchyRootNode->HideFromEditorsOff();
-        beamModelHierarchyRootNode->SetParentNodeID(planSeriesHierarchyNode->GetID());
         this->GetMRMLScene()->AddNode(beamModelHierarchyRootNode);
 
         // A hierarchy node needs a display node
@@ -709,7 +705,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       // Put the new isocenter fiducial node in the annotation hierarchy
       vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterHierarchyNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
       this->GetMRMLScene()->AddNode(isocenterHierarchyNode);
-      isocenterHierarchyNode->SetParentNodeID( planSeriesHierarchyNode->GetID() );
+      isocenterHierarchyNode->SetParentNodeID( isocenterSeriesHierarchyNode->GetID() );
       isocenterHierarchyNode->SetDisplayableNodeID( addedDisplayableNode->GetID() );
 
       // Create patient hierarchy entry for the isocenter fiducial
@@ -723,7 +719,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
       patientHierarchyFiducialNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
         vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
-      patientHierarchyFiducialNode->SetParentNodeID(planSeriesHierarchyNode->GetID());
+      patientHierarchyFiducialNode->SetParentNodeID(isocenterSeriesHierarchyNode->GetID());
       this->GetMRMLScene()->AddNode(patientHierarchyFiducialNode);
 
       // Add attributes containing beam information to the isocenter fiducial node
@@ -811,8 +807,15 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
     } //endif addedDisplayableNode
   }
 
-  // Insert series in patient hierarchy
+  // Insert plan isocenter series in patient hierarchy
   this->InsertSeriesInPatientHierarchy(rtReader);
+
+  // Insert beam model subseries under the study
+  vtkMRMLHierarchyNode* studyNode = isocenterSeriesHierarchyNode->GetParentNode();
+  if (studyNode && SlicerRtCommon::IsPatientHierarchyNode(studyNode))
+  {
+    beamModelHierarchyRootNode->SetParentNodeID(studyNode->GetID());
+  }
 
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 

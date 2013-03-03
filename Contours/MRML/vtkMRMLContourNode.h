@@ -80,6 +80,12 @@ public:
   /// - Follows parent transform changes
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
+  /// Overridden function to get visibility from active representation
+  virtual int GetDisplayVisibility();
+
+  /// Overridden function to set visibility to active representations
+  virtual void SetDisplayVisibility(int visible);
+
 public:
   /// Set default representation by the object instance
   void SetActiveRepresentationByNode(vtkMRMLDisplayableNode *node);

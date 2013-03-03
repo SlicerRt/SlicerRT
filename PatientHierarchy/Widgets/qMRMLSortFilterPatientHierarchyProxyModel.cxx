@@ -23,7 +23,6 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
-#include "vtkMRMLContourNode.h"
 
 // Qt includes
 
@@ -35,9 +34,6 @@
 
 // MRML includes
 #include <vtkMRMLHierarchyNode.h>
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLVolumeNode.h>
-#include <vtkMRMLAnnotationNode.h>
 
 // -----------------------------------------------------------------------------
 // qMRMLSortFilterPatientHierarchyProxyModelPrivate
@@ -104,23 +100,11 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
     }
   }
 
-  vtkMRMLModelNode* mNode = vtkMRMLModelNode::SafeDownCast(node);
-  if (mNode)
-  {
-    return AcceptButPotentiallyRejectable;
-  }
-  vtkMRMLVolumeNode* vNode = vtkMRMLVolumeNode::SafeDownCast(node);
-  if (vNode)
-  {
-    return AcceptButPotentiallyRejectable;
-  }
-  vtkMRMLAnnotationNode* aNode = vtkMRMLAnnotationNode::SafeDownCast(node);
-  if (aNode)
-  {
-    return AcceptButPotentiallyRejectable;
-  }
-  vtkMRMLContourNode* cNode = vtkMRMLContourNode::SafeDownCast(node);
-  if (cNode)
+  // Accept if potential leaf node
+  if ( node->IsA("vtkMRMLContourNode")
+    || node->IsA("vtkMRMLModelNode")
+    || node->IsA("vtkMRMLVolumeNode")
+    || node->IsA("vtkMRMLAnnotationNode") )
   {
     return AcceptButPotentiallyRejectable;
   }

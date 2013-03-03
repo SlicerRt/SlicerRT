@@ -229,6 +229,11 @@ void SlicerRtCommon::GetIjkToRasMatrixForResampledVolume( vtkMRMLVolumeNode* inp
 //---------------------------------------------------------------------------
 bool SlicerRtCommon::IsPatientHierarchyNode(vtkMRMLNode *node)
 {
+  if (!node)
+  {
+    return false;
+  }
+
   bool isPatientHierarchyNode = false;
   if (node->IsA("vtkMRMLHierarchyNode"))
   {

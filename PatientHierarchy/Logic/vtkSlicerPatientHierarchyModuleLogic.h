@@ -68,6 +68,13 @@ public:
   static bool AreNodesInSameBranch( vtkMRMLScene *scene,
     const char* nodeId1, const char* nodeId2, const char* lowestCommonLevel=NULL );
 
+  /// Set patient hierarchy branch visibility
+  static void SetBranchVisibility(vtkMRMLHierarchyNode* node, int visible);
+
+  /// Get patient hierarchy branch visibility
+  /// \return Visibility value (0:Hidden, 1:Visible, 2:PartiallyVisible)
+  static int GetBranchVisibility(vtkMRMLHierarchyNode* node);
+
 protected:
   vtkSlicerPatientHierarchyModuleLogic();
   virtual ~vtkSlicerPatientHierarchyModuleLogic();

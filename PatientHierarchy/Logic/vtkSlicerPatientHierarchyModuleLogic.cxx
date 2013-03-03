@@ -27,6 +27,8 @@
 
 // MRML includes
 #include <vtkMRMLHierarchyNode.h>
+#include <vtkMRMLModelNode.h>
+#include <vtkMRMLDisplayNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -297,4 +299,66 @@ bool vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLScene *sc
   }
 
   return false;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(vtkMRMLHierarchyNode* node, int visible)
+{
+  if (visible != 0 && visible != 1)
+  {
+    vtkErrorWithObjectMacro(node, "SetBranchVisibility: Invalid visibility value to set: " << visible);
+    return;
+  }
+
+  vtkSmartPointer<vtkCollection> childDisplayableNodes = vtkSmartPointer<vtkCollection>::New();
+  node->GetAssociatedChildrendNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
+  childDisplayableNodes->InitTraversal();
+  for (int i=0; i<childDisplayableNodes->GetNumberOfItems(); ++i)
+  {
+    vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(childDisplayableNodes->GetItemAsObject(i));
+    if (displayableNode)
+    {
+      displayableNode->SetDisplayVisibility(visible);
+
+      vtkMRMLDisplayNode* displayNode = displayableNode->GetDisplayNode();
+      if (displayNode)
+      {
+        displayNode->SetSliceIntersectionVisibility(visible);
+      }
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
+int vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(vtkMRMLHierarchyNode* node)
+{
+  int visible = -1;
+  vtkSmartPointer<vtkCollection> childDisplayableNodes = vtkSmartPointer<vtkCollection>::New();
+  node->GetAssociatedChildrendNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
+  childDisplayableNodes->InitTraversal();
+  for (int i=0; i<childDisplayableNodes->GetNumberOfItems(); ++i)
+  {
+    vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(childDisplayableNodes->GetItemAsObject(i));
+    if (displayableNode)
+    {
+      // If we set visibility
+      if (visible == -1)
+      {
+        visible = displayableNode->GetDisplayVisibility();
+
+        // We expect only 0 or 1 from leaf nodes
+        if (visible == 2)
+        {
+          vtkWarningWithObjectMacro(node, "GetBranchVisibility: Unexpected visibility value for node " << displayableNode->GetName());
+        }
+      }
+      // If the current node visibility does not match the found visibility, then set partial visibility
+      else if (displayableNode->GetDisplayVisibility() != visible)
+      {
+        return 2;
+      }
+    }
+  }
+
+  return visible;
 }

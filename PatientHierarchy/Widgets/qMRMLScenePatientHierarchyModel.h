@@ -48,15 +48,15 @@ public:
   virtual vtkMRMLNode* parentNode(vtkMRMLNode* node)const;
 
   /// Fast function that only check the type of the node to know if it can be a child.
-  virtual bool         canBeAChild(vtkMRMLNode* node)const;
+  virtual bool canBeAChild(vtkMRMLNode* node)const;
 
   /// Fast function that only check the type of the node to know if it can be a parent.
-  virtual bool         canBeAParent(vtkMRMLNode* node)const;
+  virtual bool canBeAParent(vtkMRMLNode* node)const;
 
   /// If newParent == 0, set the node into the vtkMRMLScene
   //virtual bool reparent(vtkMRMLNode* node, vtkMRMLNode* newParent);
 
-  //virtual int          nodeIndex(vtkMRMLNode* node)const;
+  //virtual int nodeIndex(vtkMRMLNode* node)const;
 
   /// Return the ID column number
   /// \sa IDColumn, setIDColumn
@@ -68,6 +68,12 @@ public:
 protected:
   /// Get the largest column ID
   virtual int maxColumnId()const;
+
+  /// Overridden function to handle tree view item display from node data
+  virtual void updateItemDataFromNode(QStandardItem* item, vtkMRMLNode* node, int column);
+
+  /// Overridden function to handle node update from tree view item
+  virtual void updateNodeFromItemData(vtkMRMLNode* node, QStandardItem* item);
 
 private:
   Q_DECLARE_PRIVATE(qMRMLScenePatientHierarchyModel);

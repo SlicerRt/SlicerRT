@@ -684,8 +684,8 @@ void vtkMRMLContourNode::ShowRepresentation(vtkMRMLDisplayableNode* representati
   representation->SetHideFromEditors((!show)?1:0);
   representation->SetDisplayVisibility(show?1:0);
   
-  vtkMRMLDisplayNode* displayNode;
-  if ( (displayNode = representation->GetDisplayNode()) != NULL )
+  vtkMRMLDisplayNode* displayNode = representation->GetDisplayNode();
+  if (displayNode)
   {
     displayNode->SetSliceIntersectionVisibility(show?1:0);
   }
@@ -1226,3 +1226,42 @@ void vtkMRMLContourNode::GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* from
   fromModelToToVolumeIjkTransform->Concatenate(toVolumeRasToToVolumeIjkTransformMatrix);
   fromModelToToVolumeIjkTransform->Concatenate(fromModelToToVolumeRasTransform);
 }
+
+//---------------------------------------------------------------------------
+int vtkMRMLContourNode::GetDisplayVisibility()
+{
+  std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
+  vtkMRMLDisplayableNode* activeRepresentation = representations[this->ActiveRepresentationType];
+  if (!activeRepresentation)
+  {
+    vtkErrorMacro("Invalid active contour representation for contour node " << this->Name);
+    return 0;
+  }
+
+  return activeRepresentation->GetDisplayVisibility();
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLContourNode::SetDisplayVisibility(int visible)
+{
+  if (visible != 0 && visible != 1)
+  {
+    return;
+  }
+
+  std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
+  vtkMRMLDisplayableNode* activeRepresentation = representations[this->ActiveRepresentationType];
+  if (!activeRepresentation)
+  {
+    vtkErrorMacro("Invalid active contour representation for contour node " << this->Name);
+  }
+
+  activeRepresentation->SetDisplayVisibility(visible);
+
+  vtkMRMLDisplayNode* displayNode = activeRepresentation->GetDisplayNode();
+  if (displayNode)
+  {
+    displayNode->SetSliceIntersectionVisibility(visible);
+  }
+}
+

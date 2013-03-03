@@ -30,6 +30,7 @@
 
 // MRML includes
 #include <vtkMRMLHierarchyNode.h>
+#include <vtkMRMLDisplayNode.h>
 
 //------------------------------------------------------------------------------
 qMRMLScenePatientHierarchyModelPrivate::qMRMLScenePatientHierarchyModelPrivate(qMRMLScenePatientHierarchyModel& object)
@@ -43,13 +44,16 @@ void qMRMLScenePatientHierarchyModelPrivate::init()
   Q_Q(qMRMLScenePatientHierarchyModel);
   this->Superclass::init();
 
-  q->setCheckableColumn(0);
-  q->setVisibilityColumn(1);
-  q->setNameColumn(2);
-  q->setIDColumn(3);
+  q->setVisibilityColumn(0);
+  q->setNameColumn(1);
+  q->setIDColumn(2);
 
   q->setHorizontalHeaderLabels(
     QStringList() << "" << "Vis" << "Name" << "ID");
+
+  q->horizontalHeaderItem(0)->setToolTip(QObject::tr("Show/hide branch or leaf"));
+  q->horizontalHeaderItem(1)->setToolTip(QObject::tr("Node name"));
+  q->horizontalHeaderItem(2)->setToolTip(QObject::tr("Node ID"));
 }
 
 
@@ -103,7 +107,6 @@ int qMRMLScenePatientHierarchyModel::maxColumnId()const
 {
   Q_D(const qMRMLScenePatientHierarchyModel);
   int maxId = this->Superclass::maxColumnId();
-  maxId = qMax(maxId, d->CheckableColumn);
   maxId = qMax(maxId, d->VisibilityColumn);
   maxId = qMax(maxId, d->NameColumn);
   maxId = qMax(maxId, d->IDColumn);
@@ -125,3 +128,83 @@ void qMRMLScenePatientHierarchyModel::setIDColumn(int column)
   this->updateColumnCount();
 }
 
+//------------------------------------------------------------------------------
+void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item, vtkMRMLNode* node, int column)
+{
+  Q_D(qMRMLScenePatientHierarchyModel);
+  if (column == this->nameColumn())
+  {
+    item->setText(QString(node->GetName()));
+    item->setToolTip(node->GetNodeTagName());
+  }
+  if (column == this->idColumn())
+  {
+    item->setText(QString(node->GetID()));
+  }
+  if (column == this->visibilityColumn())
+  {
+    int visible = -1;
+    if (SlicerRtCommon::IsPatientHierarchyNode(node))
+    {
+      visible = vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility( vtkMRMLHierarchyNode::SafeDownCast(node) );
+    }
+    else if (node->IsA("vtkMRMLDisplayableNode"))
+    {
+      vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
+      visible = displayableNode->GetDisplayVisibility();
+    }
+
+    // It should be fine to set the icon even if it is the same, but due
+    // to a bug in Qt (http://bugreports.qt.nokia.com/browse/QTBUG-20248),
+    // it would fire a superflous itemChanged() signal.
+    if (item->data(VisibilityRole).isNull() || item->data(VisibilityRole).toInt() != visible)
+    {
+      item->setData(visible, VisibilityRole);
+      switch (visible)
+      {
+      case 0:
+        item->setIcon(d->HiddenIcon);
+        break;
+      case 1:
+        item->setIcon(d->VisibleIcon);
+        break;
+      case 2:
+        item->setIcon(d->PartiallyVisibleIcon);
+        break;
+      default:
+        break;
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, QStandardItem* item)
+{
+  if (item->column() == this->nameColumn())
+  {
+    node->SetName(item->text().toLatin1());
+  }
+  if (item->column() == this->visibilityColumn())
+  {
+    Q_ASSERT(!item->data(VisibilityRole).isNull());
+    int visible = item->data(VisibilityRole).toInt();
+    if (SlicerRtCommon::IsPatientHierarchyNode(node))
+    {
+      this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
+      vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility( vtkMRMLHierarchyNode::SafeDownCast(node), visible );
+      this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
+    }
+    else if (node->IsA("vtkMRMLDisplayableNode"))
+    {
+      vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
+      displayableNode->SetDisplayVisibility(visible);
+
+      vtkMRMLDisplayNode* displayNode = displayableNode->GetDisplayNode();
+      if (displayNode)
+      {
+        displayNode->SetSliceIntersectionVisibility(visible);
+      }
+    }
+  }
+}

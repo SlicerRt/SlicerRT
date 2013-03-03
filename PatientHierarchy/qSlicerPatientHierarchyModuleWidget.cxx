@@ -143,8 +143,9 @@ void qSlicerPatientHierarchyModuleWidget::setSceneModel()
 
   // Set scene model
   d->SceneModel = new qMRMLScenePatientHierarchyModel(this);
-  qMRMLSortFilterProxyModel* filterModel = new qMRMLSortFilterPatientHierarchyProxyModel(this);
   d->MRMLTreeView->setSceneModel(d->SceneModel, tr("PatientHierarchy"));
+
+  qMRMLSortFilterProxyModel* filterModel = new qMRMLSortFilterPatientHierarchyProxyModel(this);
   d->MRMLTreeView->setSortFilterProxyModel(filterModel);
 
   d->MRMLTreeView->header()->setStretchLastSection(false);
