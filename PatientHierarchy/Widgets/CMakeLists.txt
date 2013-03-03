@@ -10,13 +10,17 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
+  qMRMLPatientHierarchyTreeView.cxx
+  qMRMLPatientHierarchyTreeView.h
   qMRMLScenePatientHierarchyModel.cxx
   qMRMLScenePatientHierarchyModel.h
+  qMRMLScenePatientHierarchyModel_p.h
   qMRMLSortFilterPatientHierarchyProxyModel.cxx
   qMRMLSortFilterPatientHierarchyProxyModel.h
   )
 
 set(${KIT}_MOC_SRCS
+  qMRMLPatientHierarchyTreeView.h
   qMRMLScenePatientHierarchyModel.h
   qMRMLSortFilterPatientHierarchyProxyModel.h
   )
@@ -52,4 +56,4 @@ if(BUILD_TESTING)
 endif()
 
 #-----------------------------------------------------------------------------
-#add_subdirectory(DesignerPlugins)
+add_subdirectory(DesignerPlugins)

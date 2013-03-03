@@ -43,10 +43,6 @@ public:
 
   virtual void enter();
 
-protected:
-  /// Setup scene model for the tree widget
-  void setSceneModel();
-
 public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();

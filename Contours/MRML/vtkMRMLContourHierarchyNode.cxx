@@ -20,6 +20,23 @@ vtkMRMLContourHierarchyNode::~vtkMRMLContourHierarchyNode()
 {
 }
 
+//---------------------------------------------------------------------------
+void vtkMRMLContourHierarchyNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData)
+{
+  Superclass::ProcessMRMLEvents(caller, event, callData);
+
+  //TODO
+  /*
+  vtkMRMLModelDisplayNode *dnode = this->GetModelDisplayNode();
+  if ( dnode != NULL && dnode == vtkMRMLModelDisplayNode::SafeDownCast(caller)
+    && event ==  vtkCommand::ModifiedEvent )
+    {
+    this->InvokeEvent(vtkCommand::ModifiedEvent, NULL);
+    }
+  return;
+  */
+}
+
 //----------------------------------------------------------------------------
 void vtkMRMLContourHierarchyNode::PrintSelf(ostream& os, vtkIndent indent)
 {

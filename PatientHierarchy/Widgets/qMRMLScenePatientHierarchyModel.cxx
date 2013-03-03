@@ -49,7 +49,7 @@ void qMRMLScenePatientHierarchyModelPrivate::init()
   q->setIDColumn(2);
 
   q->setHorizontalHeaderLabels(
-    QStringList() << "" << "Vis" << "Name" << "ID");
+    QStringList() << "Vis" << "Name" << "ID");
 
   q->horizontalHeaderItem(0)->setToolTip(QObject::tr("Show/hide branch or leaf"));
   q->horizontalHeaderItem(1)->setToolTip(QObject::tr("Node name"));
@@ -111,21 +111,6 @@ int qMRMLScenePatientHierarchyModel::maxColumnId()const
   maxId = qMax(maxId, d->NameColumn);
   maxId = qMax(maxId, d->IDColumn);
   return maxId;
-}
-
-//------------------------------------------------------------------------------
-int qMRMLScenePatientHierarchyModel::IDColumn()const
-{
-  Q_D(const qMRMLScenePatientHierarchyModel);
-  return d->IDColumn;
-}
-
-//------------------------------------------------------------------------------
-void qMRMLScenePatientHierarchyModel::setIDColumn(int column)
-{
-  Q_D(qMRMLScenePatientHierarchyModel);
-  d->IDColumn = column;
-  this->updateColumnCount();
 }
 
 //------------------------------------------------------------------------------

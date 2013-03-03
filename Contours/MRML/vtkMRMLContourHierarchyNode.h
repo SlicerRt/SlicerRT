@@ -20,6 +20,9 @@ public:
 
   virtual vtkMRMLNode* CreateNodeInstance();
 
+  /// Propagate events generated in contour nodes
+  virtual void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void *callData);
+
   /// Read node attributes from XML file
   virtual void ReadXMLAttributes( const char** atts);
 

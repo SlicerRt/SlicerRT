@@ -59,10 +59,6 @@ public:
   /// Return the categories for the module
   virtual QStringList categories()const;
 
-  /// TODO: Un-hide
-  /// Make this module hidden
-  virtual bool isHidden()const { return true; };
-
 protected:
 
   /// Initialize the module. Register the volumes reader/writer

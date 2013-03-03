@@ -21,21 +21,15 @@
     <number>4</number>
    </property>
    <item>
-    <widget class="qMRMLTreeView" name="MRMLTreeView">
+    <widget class="qMRMLPatientHierarchyTreeView" name="PatientHierarchyTreeView">
      <property name="dragDropMode">
       <enum>QAbstractItemView::InternalMove</enum>
      </property>
      <property name="indentation">
-      <number>10</number>
+      <number>12</number>
      </property>
-     <property name="sceneModelType">
-      <string/>
-     </property>
-     <property name="minSizeHint">
-      <size>
-       <width>0</width>
-       <height>120</height>
-      </size>
+     <property name="nodeTypes">
+      <stringlist/>
      </property>
      <property name="editMenuActionVisible">
       <bool>true</bool>
@@ -100,6 +94,11 @@
    <header>qMRMLNodeAttributeTableWidget.h</header>
   </customwidget>
   <customwidget>
+   <class>qMRMLPatientHierarchyTreeView</class>
+   <extends>qMRMLTreeView</extends>
+   <header>qMRMLPatientHierarchyTreeView.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
    <header>ctkCollapsibleGroupBox.h</header>
@@ -111,16 +110,16 @@
   <connection>
    <sender>qSlicerPatientHierarchyModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLTreeView</receiver>
+   <receiver>PatientHierarchyTreeView</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>356</x>
-     <y>3</y>
+     <x>243</x>
+     <y>2</y>
     </hint>
     <hint type="destinationlabel">
-     <x>357</x>
-     <y>62</y>
+     <x>247</x>
+     <y>55</y>
     </hint>
    </hints>
   </connection>
