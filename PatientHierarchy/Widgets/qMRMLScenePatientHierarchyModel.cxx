@@ -139,10 +139,16 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       visible = displayableNode->GetDisplayVisibility();
     }
 
+    // Disable icon for volume nodes
+    if (node->IsA("vtkMRMLVolumeNode"))
+    {
+      QIcon emptyIcon;
+      item->setIcon(emptyIcon);
+    }
     // It should be fine to set the icon even if it is the same, but due
     // to a bug in Qt (http://bugreports.qt.nokia.com/browse/QTBUG-20248),
     // it would fire a superflous itemChanged() signal.
-    if (item->data(VisibilityRole).isNull() || item->data(VisibilityRole).toInt() != visible)
+    else if (item->data(VisibilityRole).isNull() || item->data(VisibilityRole).toInt() != visible)
     {
       item->setData(visible, VisibilityRole);
       switch (visible)
@@ -161,6 +167,8 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       }
     }
   }
+
+  //this->Superclass::updateItemDataFromNode(item, node, column);
 }
 
 //------------------------------------------------------------------------------
@@ -174,21 +182,24 @@ void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
   {
     Q_ASSERT(!item->data(VisibilityRole).isNull());
     int visible = item->data(VisibilityRole).toInt();
-    if (SlicerRtCommon::IsPatientHierarchyNode(node))
+    if (visible > -1)
     {
-      this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
-      vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility( vtkMRMLHierarchyNode::SafeDownCast(node), visible );
-      this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
-    }
-    else if (node->IsA("vtkMRMLDisplayableNode"))
-    {
-      vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
-      displayableNode->SetDisplayVisibility(visible);
-
-      vtkMRMLDisplayNode* displayNode = displayableNode->GetDisplayNode();
-      if (displayNode)
+      if (SlicerRtCommon::IsPatientHierarchyNode(node))
       {
-        displayNode->SetSliceIntersectionVisibility(visible);
+        this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
+        vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility( vtkMRMLHierarchyNode::SafeDownCast(node), visible );
+        this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
+      }
+      else if (node->IsA("vtkMRMLDisplayableNode"))
+      {
+        vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
+        displayableNode->SetDisplayVisibility(visible);
+
+        vtkMRMLDisplayNode* displayNode = displayableNode->GetDisplayNode();
+        if (displayNode)
+        {
+          displayNode->SetSliceIntersectionVisibility(visible);
+        }
       }
     }
   }

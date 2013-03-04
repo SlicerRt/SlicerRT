@@ -325,8 +325,12 @@ void vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(vtkMRMLHierarchyN
       {
         displayNode->SetSliceIntersectionVisibility(visible);
       }
+
+      displayableNode->Modified();
     }
   }
+
+  node->Modified();
 }
 
 //---------------------------------------------------------------------------

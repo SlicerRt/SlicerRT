@@ -23,6 +23,9 @@
 #include <QHeaderView>
 #include <QMessageBox>
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
 // PatientHierarchy includes
 #include "qMRMLPatientHierarchyTreeView.h"
 #include "qMRMLScenePatientHierarchyModel.h"
@@ -30,6 +33,8 @@
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
+#include <vtkMRMLHierarchyNode.h>
+#include <vtkMRMLDisplayNode.h>
 
 //------------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_PatientHierarchy
@@ -66,24 +71,14 @@ void qMRMLPatientHierarchyTreeViewPrivate::init()
   this->SceneModel = new qMRMLScenePatientHierarchyModel(q);
   q->setSceneModel(this->SceneModel, "PatientHierarchy");
 
-  //QStringList nodeTypes = QStringList();
-  //nodeTypes.append("vtkMRMLHierarchyNode");
-  //nodeTypes.append("vtkMRMLDisplayableNode");
   this->SortFilterModel = new qMRMLSortFilterPatientHierarchyProxyModel(q);
-  //this->SortFilterModel->setNodeTypes(nodeTypes);
   q->setSortFilterProxyModel(this->SortFilterModel);
 
   //q->setShowScene(false);
-  //this->SortFilterModel->setSourceModel(this->SceneModel);
-  //q->qMRMLTreeView::setModel(this->SortFilterModel);
 
   q->header()->setStretchLastSection(false);
   q->header()->setResizeMode(0, QHeaderView::ResizeToContents);
   q->header()->setResizeMode(1, QHeaderView::Stretch);
-
-  //QObject::connect( q, SIGNAL(clicked(QModelIndex)), q, SLOT(onClicked(QModelIndex)) );
-
-  //QObject::connect( q->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), q, SLOT(onSelectionChanged(QItemSelection,QItemSelection)), Qt::DirectConnection );
 }
 
 //------------------------------------------------------------------------------
@@ -106,23 +101,31 @@ void qMRMLPatientHierarchyTreeView::toggleVisibility(const QModelIndex& index)
   Q_D(qMRMLPatientHierarchyTreeView);
   vtkMRMLNode* node = d->SortFilterModel->mrmlNodeFromIndex(index);
   if (!node)
-    {
+  {
     return;
-    }
-  //TODO
-  /*
-  vtkMRMLPatientHierarchyNode* PatientHierarchyNode = vtkMRMLPatientHierarchyNode::SafeDownCast(node);
+  }
 
-  if (PatientHierarchyNode)
+  if (SlicerRtCommon::IsPatientHierarchyNode(node))
+  {
+    vtkMRMLHierarchyNode* hnode = vtkMRMLHierarchyNode::SafeDownCast(node);
+    int visible = (vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(hnode) == 1 ? 0 : 1);
+
+    this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
+    vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility( hnode, visible );
+    this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
+  }
+  else if (node->IsA("vtkMRMLDisplayableNode"))
+  {
+    vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
+    int visible = (displayableNode->GetDisplayVisibility() ? 0 : 1);
+    displayableNode->SetDisplayVisibility(visible);
+
+    vtkMRMLDisplayNode* displayNode = displayableNode->GetDisplayNode();
+    if (displayNode)
     {
-    // this is a valid PatientHierarchyNode
-    PatientHierarchyNode->SetDisplayVisibility(!PatientHierarchyNode->GetDisplayVisibility());
+      displayNode->SetSliceIntersectionVisibility(visible);
     }
-  else
-    {
-    this->Superclass::toggleVisibility(index);
-    }
-  */
+  }
 }
 
 //-----------------------------------------------------------------------------

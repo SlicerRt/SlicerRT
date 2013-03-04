@@ -41,7 +41,7 @@ public:
   virtual ~qMRMLSortFilterPatientHierarchyProxyModel();
 
 protected:
-  ///TODO:
+  /// Filters nodes to decide which to display in the view
   virtual AcceptType filterAcceptsNode(vtkMRMLNode* node)const;
   
 protected:

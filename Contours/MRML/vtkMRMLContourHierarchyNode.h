@@ -6,12 +6,12 @@
 #ifndef __vtkMRMLContourHierarchyNode_h
 #define __vtkMRMLContourHierarchyNode_h
 
-#include "vtkMRMLHierarchyNode.h"
+#include "vtkMRMLDisplayableHierarchyNode.h"
 
 #include "vtkSlicerContoursModuleMRMLExport.h"
 
 /// \ingroup Slicer_QtModules_Contour
-class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourHierarchyNode : public vtkMRMLHierarchyNode
+class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourHierarchyNode : public vtkMRMLDisplayableHierarchyNode
 {
 public:
   static vtkMRMLContourHierarchyNode *New();
@@ -19,9 +19,6 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual vtkMRMLNode* CreateNodeInstance();
-
-  /// Propagate events generated in contour nodes
-  virtual void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void *callData);
 
   /// Read node attributes from XML file
   virtual void ReadXMLAttributes( const char** atts);
