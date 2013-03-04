@@ -42,15 +42,17 @@ limitations under the License.
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelHierarchyNode.h>
-#include <vtkMRMLAnnotationHierarchyNode.h>
-#include <vtkMRMLAnnotationPointDisplayNode.h>
-#include <vtkMRMLAnnotationFiducialNode.h>
-#include <vtkMRMLAnnotationTextDisplayNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLColorTableNode.h>
+
+// Annotations includes
+#include <vtkMRMLAnnotationHierarchyNode.h>
+#include <vtkMRMLAnnotationPointDisplayNode.h>
+#include <vtkMRMLAnnotationFiducialNode.h>
+#include <vtkMRMLAnnotationTextDisplayNode.h>
 
 // VTK includes
 #include <vtkPolyData.h>
@@ -729,12 +731,11 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         beamModelHierarchyRootNode->SetAndObserveDisplayNodeID( beamModelHierarchyRootDisplayNode->GetID() );
       }
 
-      // Put the new isocenter fiducial node in the annotation hierarchy
-      vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterHierarchyNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
+      // Set up automatically created isocenter fiducial node properly
+      vtkMRMLAnnotationHierarchyNode* isocenterHierarchyNode =
+        vtkMRMLAnnotationHierarchyNode::SafeDownCast( vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->GetMRMLScene(), addedDisplayableNode->GetID()) );
       isocenterHierarchyNode->SetParentNodeID( isocenterSeriesHierarchyRootNode->GetID() );
       isocenterHierarchyNode->SetIndexInParent(dicomBeamIndex);
-      isocenterHierarchyNode->SetDisplayableNodeID( addedDisplayableNode->GetID() );
-      this->GetMRMLScene()->AddNode(isocenterHierarchyNode);
 
       // Create patient hierarchy entry for the isocenter fiducial
       vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchyFiducialNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
@@ -784,13 +785,13 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       sourceFiducialNode->SetName(sourceFiducialName.c_str());
       this->GetMRMLScene()->AddNode(sourceFiducialNode);
 
-      // Put the new source fiducial node in the annotation hierarchy
-      vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> sourceHierarchyNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
+      // Set up automatically created source fiducial node properly
+      vtkMRMLAnnotationHierarchyNode* sourceHierarchyNode =
+        vtkMRMLAnnotationHierarchyNode::SafeDownCast( vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->GetMRMLScene(), sourceFiducialNode->GetID()) );
       sourceHierarchyNode->SetParentNodeID( sourceHierarchyRootNode->GetID() );
       sourceHierarchyNode->SetIndexInParent(dicomBeamIndex);
-      sourceHierarchyNode->SetDisplayableNodeID( sourceFiducialNode->GetID() );
-      this->GetMRMLScene()->AddNode(sourceHierarchyNode);
 
+      // Add beam model node to the scene
       std::string beamModelName;
       beamModelName = this->GetMRMLScene()->GenerateUniqueName(
         SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX + std::string(addedDisplayableNode->GetName()) );

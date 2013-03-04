@@ -310,6 +310,8 @@ void vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(vtkMRMLHierarchyN
     return;
   }
 
+  node->GetScene()->StartState(vtkMRMLScene::BatchProcessState);
+
   vtkSmartPointer<vtkCollection> childDisplayableNodes = vtkSmartPointer<vtkCollection>::New();
   node->GetAssociatedChildrendNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
   childDisplayableNodes->InitTraversal();
@@ -327,10 +329,29 @@ void vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(vtkMRMLHierarchyN
       }
 
       displayableNode->Modified();
+      // Set Modified flag for all parent nodes so that their icons are refreshed in the tree view
+      vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(displayableNode);
     }
   }
 
-  node->Modified();
+  node->GetScene()->EndState(vtkMRMLScene::BatchProcessState);
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(vtkMRMLNode* node)
+{
+  std::set<vtkMRMLHierarchyNode*> parentNodes;
+  vtkMRMLHierarchyNode* parentNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode( node->GetScene(), node->GetID() );
+  do 
+  {
+    parentNodes.insert(parentNode);
+  }
+  while (parentNode = parentNode->GetParentNode());
+
+  for (std::set<vtkMRMLHierarchyNode*>::iterator parentsIt = parentNodes.begin(); parentsIt != parentNodes.end(); ++ parentsIt)
+  {
+    (*parentsIt)->Modified();
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -343,7 +364,7 @@ int vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(vtkMRMLHierarchyNo
   for (int i=0; i<childDisplayableNodes->GetNumberOfItems(); ++i)
   {
     vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(childDisplayableNodes->GetItemAsObject(i));
-    if (displayableNode)
+    if (displayableNode && !displayableNode->IsA("vtkMRMLVolumeNode"))
     {
       // If we set visibility
       if (visible == -1)

@@ -25,6 +25,7 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
 
 // PatientHierarchy includes
 #include "qMRMLPatientHierarchyTreeView.h"
@@ -74,7 +75,7 @@ void qMRMLPatientHierarchyTreeViewPrivate::init()
   this->SortFilterModel = new qMRMLSortFilterPatientHierarchyProxyModel(q);
   q->setSortFilterProxyModel(this->SortFilterModel);
 
-  //q->setShowScene(false);
+  q->setShowScene(false);
 
   q->header()->setStretchLastSection(false);
   q->header()->setResizeMode(0, QHeaderView::ResizeToContents);
@@ -110,15 +111,25 @@ void qMRMLPatientHierarchyTreeView::toggleVisibility(const QModelIndex& index)
     vtkMRMLHierarchyNode* hnode = vtkMRMLHierarchyNode::SafeDownCast(node);
     int visible = (vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(hnode) == 1 ? 0 : 1);
 
-    this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
     vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility( hnode, visible );
-    this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
   }
-  else if (node->IsA("vtkMRMLDisplayableNode"))
+  else if (node->IsA("vtkMRMLContourNode"))
+  {
+    vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
+    int visible = (contourNode->GetDisplayVisibility() ? 0 : 1);
+    contourNode->SetDisplayVisibility(visible);
+    // Make sure the icons changes in the tree view
+    contourNode->Modified();
+    vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(contourNode);
+  }
+  else if (node->IsA("vtkMRMLDisplayableNode") && !node->IsA("vtkMRMLVolumeNode"))
   {
     vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
     int visible = (displayableNode->GetDisplayVisibility() ? 0 : 1);
     displayableNode->SetDisplayVisibility(visible);
+    // Make sure the icons changes in the tree view
+    displayableNode->Modified();
+    vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(displayableNode);
 
     vtkMRMLDisplayNode* displayNode = displayableNode->GetDisplayNode();
     if (displayNode)

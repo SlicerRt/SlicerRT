@@ -75,6 +75,9 @@ public:
   /// \return Visibility value (0:Hidden, 1:Visible, 2:PartiallyVisible)
   static int GetBranchVisibility(vtkMRMLHierarchyNode* node);
 
+  /// Find all ancestor hierarchy nodes of the input node and set Modified flag on them
+  static void SetModifiedToAllAncestors(vtkMRMLNode* node);
+
 protected:
   vtkSlicerPatientHierarchyModuleLogic();
   virtual ~vtkSlicerPatientHierarchyModuleLogic();

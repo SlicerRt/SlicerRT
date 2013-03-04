@@ -244,7 +244,7 @@ void vtkMRMLContourNode::UpdateReferences()
 
   // Set a new active representation if the current one was deleted
   std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
-  if ( !representations[this->ActiveRepresentationType] )
+  if ( this->ActiveRepresentationType != None && !representations[this->ActiveRepresentationType] )
     {
     for (int i=0; i<NumberOfRepresentationTypes; ++i)
       {
@@ -1230,6 +1230,11 @@ void vtkMRMLContourNode::GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* from
 //---------------------------------------------------------------------------
 int vtkMRMLContourNode::GetDisplayVisibility()
 {
+  if (this->ActiveRepresentationType == None)
+  {
+    return 0;
+  }
+
   std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
   vtkMRMLDisplayableNode* activeRepresentation = representations[this->ActiveRepresentationType];
   if (!activeRepresentation)
@@ -1244,7 +1249,7 @@ int vtkMRMLContourNode::GetDisplayVisibility()
 //---------------------------------------------------------------------------
 void vtkMRMLContourNode::SetDisplayVisibility(int visible)
 {
-  if (visible != 0 && visible != 1)
+  if ( (visible != 0 && visible != 1) || this->ActiveRepresentationType == None )
   {
     return;
   }

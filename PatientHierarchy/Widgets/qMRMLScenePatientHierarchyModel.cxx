@@ -23,6 +23,7 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
 
 // Patient Hierarchy includes
 #include "qMRMLScenePatientHierarchyModel_p.h"
@@ -133,6 +134,11 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
     {
       visible = vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility( vtkMRMLHierarchyNode::SafeDownCast(node) );
     }
+    else if (node->IsA("vtkMRMLContourNode"))
+    {
+      vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
+      visible = contourNode->GetDisplayVisibility();
+    }
     else if (node->IsA("vtkMRMLDisplayableNode"))
     {
       vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
@@ -167,30 +173,31 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       }
     }
   }
-
-  //this->Superclass::updateItemDataFromNode(item, node, column);
 }
 
 //------------------------------------------------------------------------------
 void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, QStandardItem* item)
 {
-  if (item->column() == this->nameColumn())
+  if ( item->column() == this->nameColumn() )
   {
     node->SetName(item->text().toLatin1());
   }
-  if (item->column() == this->visibilityColumn())
+  if ( item->column() == this->visibilityColumn()
+    && !item->data(VisibilityRole).isNull() )
   {
-    Q_ASSERT(!item->data(VisibilityRole).isNull());
     int visible = item->data(VisibilityRole).toInt();
     if (visible > -1)
     {
       if (SlicerRtCommon::IsPatientHierarchyNode(node))
       {
-        this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
         vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility( vtkMRMLHierarchyNode::SafeDownCast(node), visible );
-        this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
       }
-      else if (node->IsA("vtkMRMLDisplayableNode"))
+      else if (node->IsA("vtkMRMLContourNode"))
+      {
+        vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
+        contourNode->SetDisplayVisibility(visible);
+      }
+      else if (node->IsA("vtkMRMLDisplayableNode") && !node->IsA("vtkMRMLVolumeNode"))
       {
         vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
         displayableNode->SetDisplayVisibility(visible);
