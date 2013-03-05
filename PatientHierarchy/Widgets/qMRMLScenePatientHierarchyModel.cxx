@@ -37,6 +37,9 @@
 qMRMLScenePatientHierarchyModelPrivate::qMRMLScenePatientHierarchyModelPrivate(qMRMLScenePatientHierarchyModel& object)
 : Superclass(object)
 {
+  this->NodeTypeColumn = -1;
+
+  this->PatientIcon = QIcon(":Icons/Patient.png");
 }
 
 //------------------------------------------------------------------------------
@@ -47,13 +50,15 @@ void qMRMLScenePatientHierarchyModelPrivate::init()
 
   q->setNameColumn(0);
   q->setVisibilityColumn(q->nameColumn());
-  q->setIDColumn(1);
+  q->setNodeTypeColumn(1);
+  q->setIDColumn(2);
 
   q->setHorizontalHeaderLabels(
-    QStringList() << "Nodes" << "IDs");
+    QStringList() << "Nodes" << "Type" << "IDs");
 
-  q->horizontalHeaderItem(0)->setToolTip(QObject::tr("Node names and show/hide controls"));
-  q->horizontalHeaderItem(1)->setToolTip(QObject::tr("Node ID"));
+  q->horizontalHeaderItem(0)->setToolTip(QObject::tr("Node name and show/hide button"));
+  q->horizontalHeaderItem(1)->setToolTip(QObject::tr("Node type (Patient/Study/Anatomy/Dose/Contour/Beam/ColorTable)"));
+  q->horizontalHeaderItem(2)->setToolTip(QObject::tr("Node ID"));
 }
 
 
@@ -103,11 +108,27 @@ bool qMRMLScenePatientHierarchyModel::canBeAParent(vtkMRMLNode* node)const
 }
 
 //------------------------------------------------------------------------------
+int qMRMLScenePatientHierarchyModel::nodeTypeColumn()const
+{
+  Q_D(const qMRMLScenePatientHierarchyModel);
+  return d->NodeTypeColumn;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLScenePatientHierarchyModel::setNodeTypeColumn(int column)
+{
+  Q_D(qMRMLScenePatientHierarchyModel);
+  d->NodeTypeColumn = column;
+  this->updateColumnCount();
+}
+
+//------------------------------------------------------------------------------
 int qMRMLScenePatientHierarchyModel::maxColumnId()const
 {
   Q_D(const qMRMLScenePatientHierarchyModel);
   int maxId = this->Superclass::maxColumnId();
   maxId = qMax(maxId, d->VisibilityColumn);
+  maxId = qMax(maxId, d->NodeTypeColumn);
   maxId = qMax(maxId, d->NameColumn);
   maxId = qMax(maxId, d->IDColumn);
   return maxId;
@@ -169,6 +190,36 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
         break;
       default:
         break;
+      }
+    }
+  }
+  if (column == this->nodeTypeColumn())
+  {
+    if (SlicerRtCommon::IsPatientHierarchyNode(node))
+    {
+      if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
+        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_PATIENT) )
+      {
+        item->setIcon(d->PatientIcon);
+      }
+      else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
+        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY) )
+      {
+        //TODO: Add study icon
+      }
+      else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
+        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES) )
+      {
+        //TODO: Check for volume, structure set, etc.
+      }
+      else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
+        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES) )
+      {
+        //TODO: Check for contour, isocenter, beam, etc.
+      }
+      else
+      {
+        vtkWarningWithObjectMacro(node, "Invalid DICOM level found for node '" << node->GetName() << "'");
       }
     }
   }

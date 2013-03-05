@@ -36,10 +36,15 @@ class Q_SLICER_MODULE_PATIENTHIERARCHY_WIDGETS_EXPORT qMRMLScenePatientHierarchy
 {
 protected:
   Q_DECLARE_PUBLIC(qMRMLScenePatientHierarchyModel);
+
 public:
   typedef qMRMLSceneHierarchyModelPrivate Superclass;
   qMRMLScenePatientHierarchyModelPrivate(qMRMLScenePatientHierarchyModel& object);
   virtual void init();
+
+  int NodeTypeColumn;
+
+  QIcon PatientIcon;
 };
 
 #endif

@@ -78,6 +78,12 @@ public:
   /// Find all ancestor hierarchy nodes of the input node and set Modified flag on them
   static void SetModifiedToAllAncestors(vtkMRMLNode* node);
 
+  /// Determine if a node is of a certain DICOM level
+  /// \param node Node to examine
+  /// \param level DICOM level to check (should be one of the logic constants)
+  /// \return True if the node is of the specified level, false otherwise
+  static bool IsDicomLevel( vtkMRMLNode* node, const char* level );
+
 protected:
   vtkSlicerPatientHierarchyModuleLogic();
   virtual ~vtkSlicerPatientHierarchyModuleLogic();

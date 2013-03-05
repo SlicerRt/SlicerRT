@@ -35,6 +35,10 @@ class Q_SLICER_MODULE_PATIENTHIERARCHY_WIDGETS_EXPORT qMRMLScenePatientHierarchy
 {
   Q_OBJECT
 
+  /// Control in which column vtkMRMLNode::NodeType are displayed (Qt::DecorationRole).
+  /// A value of -1 hides it. Hidden by default (value of -1).
+  Q_PROPERTY (int nodeTypeColumn READ nodeTypeColumn WRITE setNodeTypeColumn)
+
 public:
   typedef qMRMLSceneHierarchyModel Superclass;
   qMRMLScenePatientHierarchyModel(QObject *parent=0);
@@ -53,6 +57,9 @@ public:
   //virtual bool reparent(vtkMRMLNode* node, vtkMRMLNode* newParent);
 
   //virtual int nodeIndex(vtkMRMLNode* node)const;
+
+  int nodeTypeColumn()const;
+  void setNodeTypeColumn(int column);
 
 protected:
   /// Get the largest column ID

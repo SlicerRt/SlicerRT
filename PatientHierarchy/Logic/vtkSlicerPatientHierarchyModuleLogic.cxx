@@ -387,3 +387,35 @@ int vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(vtkMRMLHierarchyNo
 
   return visible;
 }
+
+//---------------------------------------------------------------------------
+bool vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( vtkMRMLNode* node, const char* level )
+{
+  if (!node || !level)
+  {
+    return false;
+  }
+
+  vtkMRMLHierarchyNode* hnode = NULL;
+  if (node->IsA("vtkMRMLHierarchyNode"))
+  {
+    hnode = vtkMRMLHierarchyNode::SafeDownCast(node);
+  }
+  else
+  {
+    hnode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(node->GetScene(), node->GetID());
+  }
+
+  if (!hnode)
+  {
+    return false;
+  }
+
+  const char* nodeLevel = hnode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME);
+  if (nodeLevel && !STRCASECMP(level, nodeLevel))
+  {
+    return true;
+  }
+
+  return false;
+}
