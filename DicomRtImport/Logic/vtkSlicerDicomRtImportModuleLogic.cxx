@@ -407,8 +407,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         contourNode->HideFromEditorsOff();
 
         // Put the contour node in the hierarchy
-        vtkSmartPointer<vtkMRMLHierarchyNode> contourHierarchyNode
-          = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+        vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyNode
+          = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
         std::string phContourNodeName(contourNodeName);
         phContourNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
         phContourNodeName = this->GetMRMLScene()->GenerateUniqueName(phContourNodeName);

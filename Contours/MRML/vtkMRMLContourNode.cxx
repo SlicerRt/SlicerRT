@@ -1091,16 +1091,16 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
   colorIndex = 1;
 
   // Get hierarchy node
-  vtkMRMLContourHierarchyNode* contourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(
+  vtkMRMLDisplayableHierarchyNode* hierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(
     vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->Scene, this->ID));
-  if (!contourHierarchyNode)
+  if (!hierarchyNode)
     {
     vtkErrorMacro("Error: No hierarchy node found for structure '" << this->Name << "'");
     return;
     }
 
   // Get color node created for the structure set
-  vtkMRMLContourHierarchyNode* parentContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(contourHierarchyNode->GetParentNode());
+  vtkMRMLContourHierarchyNode* parentContourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(hierarchyNode->GetParentNode());
 
   std::string seriesName = parentContourHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
   std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;

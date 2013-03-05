@@ -78,8 +78,8 @@ void qMRMLPatientHierarchyTreeViewPrivate::init()
   q->setShowScene(false);
 
   q->header()->setStretchLastSection(false);
-  q->header()->setResizeMode(0, QHeaderView::ResizeToContents);
-  q->header()->setResizeMode(1, QHeaderView::Stretch);
+  q->header()->setResizeMode(0, QHeaderView::Stretch);
+  q->header()->setResizeMode(1, QHeaderView::ResizeToContents);
 }
 
 //------------------------------------------------------------------------------
