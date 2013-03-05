@@ -119,14 +119,19 @@ public:
   vtkSetMacro(DiceResultsValid, bool);
   vtkBooleanMacro(DiceResultsValid, bool);
 
-  /// Get maximum Hausdorff distance
-  vtkGetMacro(MaximumHausdorffDistanceMm, double);
-  /// Set maximum Hausdorff distance
-  vtkSetMacro(MaximumHausdorffDistanceMm, double);
+  /// Get maximum Hausdorff distance for the whole volume
+  vtkGetMacro(MaximumHausdorffDistanceForVolumeMm, double);
+  /// Set maximum Hausdorff distance for the whole volume
+  vtkSetMacro(MaximumHausdorffDistanceForVolumeMm, double);
+
+  /// Get maximum Hausdorff distance for the boundary voxels
+  vtkGetMacro(MaximumHausdorffDistanceForBoundaryMm, double);
+  /// Set maximum Hausdorff distance for the boundary voxels
+  vtkSetMacro(MaximumHausdorffDistanceForBoundaryMm, double);
 
   /// Get average Hausdorff distance for the whole volume
   vtkGetMacro(AverageHausdorffDistanceForVolumeMm, double);
-  /// Set average Hausdorff distance
+  /// Set average Hausdorff distance for the whole volume
   vtkSetMacro(AverageHausdorffDistanceForVolumeMm, double);
 
   /// Get average Hausdorff distance for the boundary voxels
@@ -205,8 +210,11 @@ protected:
   /// Flag telling whether the Dice similarity results are valid
   bool DiceResultsValid;
 
-  /// Maximum Hausdorff distance
-  double MaximumHausdorffDistanceMm;
+  /// Maximum Hausdorff distance for the whole volume
+  double MaximumHausdorffDistanceForVolumeMm;
+
+  /// Maximum Hausdorff distance for the boundary voxels
+  double MaximumHausdorffDistanceForBoundaryMm;
 
   /// Average Hausdorff distance for the whole volume
   double AverageHausdorffDistanceForVolumeMm;

@@ -355,14 +355,10 @@ void qSlicerContourComparisonModuleWidget::computeHausdorffClicked()
   {
     d->label_Error->setText("");
 
-    d->lineEdit_MaximumHausdorffDistance->setText(
-      QString("%1 mm").arg(paramNode->GetMaximumHausdorffDistanceMm(),0,'f',2) );
-    d->lineEdit_AverageHausdorffDistanceForVolume->setText(
-      QString("%1 mm").arg(paramNode->GetAverageHausdorffDistanceForVolumeMm(),0,'f',2) );
+    d->lineEdit_MaximumHausdorffDistanceForBoundary->setText(
+      QString("%1 mm").arg(paramNode->GetMaximumHausdorffDistanceForBoundaryMm(),0,'f',2) );
     d->lineEdit_AverageHausdorffDistanceForBoundary->setText(
       QString("%1 mm").arg(paramNode->GetAverageHausdorffDistanceForBoundaryMm(),0,'f',2) );
-    d->lineEdit_95PercentHausdorffDistanceForVolume->setText(
-      QString("%1 mm").arg(paramNode->GetPercent95HausdorffDistanceForVolumeMm(),0,'f',2) );
     d->lineEdit_95PercentHausdorffDistanceForBoundary->setText(
       QString("%1 mm").arg(paramNode->GetPercent95HausdorffDistanceForBoundaryMm(),0,'f',2) );
   }
@@ -466,9 +462,7 @@ void qSlicerContourComparisonModuleWidget::invalidateHausdorffResults()
 
   paramNode->HausdorffResultsValidOff();
 
-  d->lineEdit_MaximumHausdorffDistance->setText(tr("N/A"));
-  d->lineEdit_AverageHausdorffDistanceForVolume->setText(tr("N/A"));
+  d->lineEdit_MaximumHausdorffDistanceForBoundary->setText(tr("N/A"));
   d->lineEdit_AverageHausdorffDistanceForBoundary->setText(tr("N/A"));
-  d->lineEdit_95PercentHausdorffDistanceForVolume->setText(tr("N/A"));
   d->lineEdit_95PercentHausdorffDistanceForBoundary->setText(tr("N/A"));
 }

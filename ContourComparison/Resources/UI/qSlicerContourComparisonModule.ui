@@ -275,6 +275,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Maximum Hausdorff distance for boundary voxels of the input structures</string>
+        </property>
         <property name="text">
          <string>Maximum:</string>
         </property>
@@ -284,12 +287,15 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="lineEdit_MaximumHausdorffDistance">
+       <widget class="QLineEdit" name="lineEdit_MaximumHausdorffDistanceForBoundary">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Maximum Hausdorff distance for boundary voxels of the input structures</string>
         </property>
         <property name="text">
          <string>N/A</string>
@@ -299,7 +305,7 @@
         </property>
        </widget>
       </item>
-      <item row="8" column="0" colspan="2">
+      <item row="6" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <property name="spacing">
          <number>4</number>
@@ -351,7 +357,7 @@
         </item>
        </layout>
       </item>
-      <item row="7" column="0" colspan="2">
+      <item row="5" column="0" colspan="2">
        <spacer name="verticalSpacer_3">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -369,8 +375,11 @@
       </item>
       <item row="4" column="0">
        <widget class="QLabel" name="label_16">
+        <property name="toolTip">
+         <string>95% Hausdorff distance for boundary voxels of the input structures</string>
+        </property>
         <property name="text">
-         <string>95% (boundary):</string>
+         <string>95%:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -379,6 +388,9 @@
       </item>
       <item row="4" column="1">
        <widget class="QLineEdit" name="lineEdit_95PercentHausdorffDistanceForBoundary">
+        <property name="toolTip">
+         <string>95% Hausdorff distance for boundary voxels of the input structures</string>
+        </property>
         <property name="text">
          <string>N/A</string>
         </property>
@@ -389,8 +401,11 @@
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_17">
+        <property name="toolTip">
+         <string>Average Hausdorff distance for boundary voxels of the input structures</string>
+        </property>
         <property name="text">
-         <string>Average (boundary):</string>
+         <string>Average:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -399,69 +414,8 @@
       </item>
       <item row="2" column="1">
        <widget class="QLineEdit" name="lineEdit_AverageHausdorffDistanceForBoundary">
-        <property name="text">
-         <string>N/A</string>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_15">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>95% (volume):</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QLineEdit" name="lineEdit_95PercentHausdorffDistanceForVolume">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>N/A</string>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_13">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Average (volume):</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QLineEdit" name="lineEdit_AverageHausdorffDistanceForVolume">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+        <property name="toolTip">
+         <string>Average Hausdorff distance for boundary voxels of the input structures</string>
         </property>
         <property name="text">
          <string>N/A</string>
@@ -600,6 +554,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Number of true positive voxels, i.e. positive reference voxels that are positive in the compare contour labelmap</string>
+        </property>
         <property name="text">
          <string>N/A</string>
         </property>
@@ -654,6 +611,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Number of true negative voxels, i.e. negative reference voxels that are negative in compare contour labelmap</string>
+        </property>
         <property name="text">
          <string>N/A</string>
         </property>
@@ -669,6 +629,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Number of false positive voxels, i.e. negative reference voxels that are positive in compare contour labelmap</string>
         </property>
         <property name="text">
          <string>N/A</string>
@@ -705,6 +668,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Number of false negative voxels, i.e. positive reference voxels that are negative in compare contour labelmap</string>
+        </property>
         <property name="text">
          <string>N/A</string>
         </property>
@@ -740,6 +706,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Location of the center of mass of the reference structure</string>
+        </property>
         <property name="text">
          <string>N/A</string>
         </property>
@@ -774,6 +743,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Location of the center of mass of the compare structure</string>
         </property>
         <property name="text">
          <string>N/A</string>

@@ -49,15 +49,15 @@ void qMRMLScenePatientHierarchyModelPrivate::init()
   this->Superclass::init();
 
   q->setNameColumn(0);
-  q->setVisibilityColumn(q->nameColumn());
-  q->setNodeTypeColumn(1);
+  q->setNodeTypeColumn(q->nameColumn());
+  q->setVisibilityColumn(1);
   q->setIDColumn(2);
 
   q->setHorizontalHeaderLabels(
-    QStringList() << "Nodes" << "Type" << "IDs");
+    QStringList() << "Nodes" << "Vis" << "IDs");
 
-  q->horizontalHeaderItem(0)->setToolTip(QObject::tr("Node name and show/hide button"));
-  q->horizontalHeaderItem(1)->setToolTip(QObject::tr("Node type (Patient/Study/Anatomy/Dose/Contour/Beam/ColorTable)"));
+  q->horizontalHeaderItem(0)->setToolTip(QObject::tr("Node name and type"));
+  q->horizontalHeaderItem(1)->setToolTip(QObject::tr("Show/hide branch or node"));
   q->horizontalHeaderItem(2)->setToolTip(QObject::tr("Node ID"));
 }
 

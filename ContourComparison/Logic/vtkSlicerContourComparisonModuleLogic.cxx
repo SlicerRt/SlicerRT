@@ -377,7 +377,8 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
 
   hausdorff.run();
 
-  this->ContourComparisonNode->SetMaximumHausdorffDistanceMm(hausdorff.get_hausdorff());
+  this->ContourComparisonNode->SetMaximumHausdorffDistanceForVolumeMm(hausdorff.get_boundary_hausdorff());
+  this->ContourComparisonNode->SetMaximumHausdorffDistanceForBoundaryMm(hausdorff.get_hausdorff());
   this->ContourComparisonNode->SetAverageHausdorffDistanceForVolumeMm(hausdorff.get_average_hausdorff());
   this->ContourComparisonNode->SetAverageHausdorffDistanceForBoundaryMm(hausdorff.get_average_boundary_hausdorff());
   this->ContourComparisonNode->SetPercent95HausdorffDistanceForVolumeMm(hausdorff.get_percent_hausdorff());
