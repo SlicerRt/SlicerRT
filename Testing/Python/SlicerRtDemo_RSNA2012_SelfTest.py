@@ -414,10 +414,12 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     for url,filePath in downloads:
       if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
         if downloaded == 0:
-          self.delayDisplay('Downloading Day 1 input data.\n  It may take a few minutes...',self.delayMs)
+          self.delayDisplay('Downloading Day 1 input data to folder\n' + self.dicomZipFilePath + '.\n\n  It may take a few minutes...',self.delayMs)
         print('Requesting download from %s...' % (url))
         urllib.urlretrieve(url, filePath)
         downloaded += 1
+      else:
+        self.delayDisplay('Day 1 input data has been found in folder ' + self.dicomZipFilePath, self.delayMs)
     if downloaded > 0:
       self.delayDisplay('Downloading Day 1 input data finished',self.delayMs)
 
@@ -490,7 +492,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == numOfModelHierarchyNodesBeforeLoad + 17 )
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == numOfContourNodesBeforeLoad + 16 )
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') ) == numOfContourHierarchyNodesBeforeLoad + 17 )
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') ) > numOfContourHierarchyNodesBeforeLoad )
       
     except Exception, e:
       import traceback
@@ -510,10 +512,12 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     for url,filePath,loader in downloads:
       if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
         if downloaded == 0:
-          self.delayDisplay('Downloading Day 2 input data.\n  It may take a few minutes...',self.delayMs)
+          self.delayDisplay('Downloading Day 2 input data to folder\n' + self.day2DataDir + '\n\n  It may take a few minutes...',self.delayMs)
         print('Requesting download from %s...\n' % (url))
         urllib.urlretrieve(url, filePath)
         downloaded += 1
+      else:
+        self.delayDisplay('Day 2 input data has been found in folder ' + self.day2DataDir, self.delayMs)
       if loader:
         print('Loading %s...' % (os.path.split(filePath)[1]))
         loader(filePath)
@@ -521,7 +525,6 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.delayDisplay('Downloading Day 2 input data finished',self.delayMs)
 
     # Verify that the correct number of objects were loaded
-    scene = slicer.mrmlScene
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
 
   def TestSection_06SetDisplayOptions(self):
