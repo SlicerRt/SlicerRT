@@ -466,6 +466,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
 
       # Choose first patient from the patient list
       dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
+      self.delayDisplay("Wait for DICOM browser to initialize",self.delayMs)
       index = dicomWidget.tree.indexAt(qt.QPoint(0,0))
       dicomWidget.onTreeClicked(index)
 
@@ -622,7 +623,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.cliBrainsFitBSplineNode = None
       self.cliBrainsFitBSplineNode = slicer.cli.run(brainsFit, None, parametersBSpline)
       waitCount = 0
-      while self.cliBrainsFitBSplineNode.GetStatusString() != 'Completed' and waitCount < 200:
+      while self.cliBrainsFitBSplineNode.GetStatusString() != 'Completed' and waitCount < 600:
         self.delayDisplay( "Register Day 2 CT to Day 1 CT using BSpline registration... %d" % waitCount )
         waitCount += 1
       self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration finished",self.delayMs)
