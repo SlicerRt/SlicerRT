@@ -736,7 +736,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
 
   def doseAccumulation_CheckDoseVolume(self, widget, doseVolumeName, checked):
     try:
-      checkboxes = slicer.util.findChildren(widget=widget, className='QCheckbox')
+      checkboxes = slicer.util.findChildren(widget=widget, className='QCheckBox')
       for checkbox in checkboxes:
         if checkbox.property(self.doseAccumulationDoseVolumeNameProperty) == doseVolumeName:
           checkbox.setChecked(checked)
@@ -754,15 +754,20 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       doseAccumulationWidget = slicer.modules.doseaccumulation.widgetRepresentation()
 
       day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
-      imputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Input')[0]
-      referenceVolumeCombobox = slicer.util.findChildren(widget=imputFrame, className='qMRMLNodeComboBox')[0]
+      inputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Input')[0]
+      referenceVolumeCombobox = slicer.util.findChildren(widget=inputFrame, className='qMRMLNodeComboBox')[0]
       referenceVolumeCombobox.setCurrentNode(day1Dose)
 
       applyButton = slicer.util.findChildren(widget=doseAccumulationWidget, text='Apply')[0]
       outputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Output')[0]
       outputMrmlNodeCombobox = slicer.util.findChildren(widget=outputFrame, className='qMRMLNodeComboBox')[0]
-      self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day1DoseName, 1)
+      
+      self.assertTrue( referenceVolumeCombobox != None )
+      self.assertTrue( applyButton != None )
+      self.assertTrue( outputMrmlNodeCombobox != None )
 
+      self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day1DoseName, 1)
+      
       # Create output volumes
       accumulatedDoseUnregistered = slicer.vtkMRMLScalarVolumeNode()
       accumulatedDoseUnregistered.SetName(self.accumulatedDoseUnregisteredName)
