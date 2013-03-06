@@ -1091,8 +1091,8 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
   colorIndex = 1;
 
   // Get hierarchy node
-  vtkMRMLDisplayableHierarchyNode* hierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(
-    vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->Scene, this->ID));
+  vtkMRMLDisplayableHierarchyNode* hierarchyNode = 
+    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->ID);
   if (!hierarchyNode)
     {
     vtkErrorMacro("Error: No hierarchy node found for structure '" << this->Name << "'");

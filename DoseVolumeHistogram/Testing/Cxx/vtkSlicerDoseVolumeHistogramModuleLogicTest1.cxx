@@ -296,6 +296,9 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
+  mrmlScene->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
+  mrmlScene->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourHierarchyNode>::New());
+
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);
   mrmlScene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
   mrmlScene->SetURL(temporarySceneFileName);
@@ -458,9 +461,9 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     contourNode->HideFromEditorsOff();
 
     // Put the contour node in the hierarchy
-    vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyNode
-      = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
-    contourHierarchyNode = vtkMRMLContourHierarchyNode::SafeDownCast(mrmlScene->AddNode(contourHierarchyNode));
+    vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyNode
+      = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
+    contourHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(mrmlScene->AddNode(contourHierarchyNode));
     contourHierarchyNode->SetParentNodeID( contourHierarchyRootNode->GetID() );
     contourHierarchyNode->SetAssociatedNodeID( contourNode->GetID() );
     contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,

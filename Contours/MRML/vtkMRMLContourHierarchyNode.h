@@ -15,7 +15,7 @@ class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourHierarchyNode : publi
 {
 public:
   static vtkMRMLContourHierarchyNode *New();
-  vtkTypeMacro(vtkMRMLContourHierarchyNode,vtkMRMLHierarchyNode);
+  vtkTypeMacro(vtkMRMLContourHierarchyNode,vtkMRMLDisplayableHierarchyNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual vtkMRMLNode* CreateNodeInstance();
