@@ -17,6 +17,17 @@ class DicomRtImportPluginClass(DICOMPlugin):
     super(DicomRtImportPluginClass,self).__init__()
     self.loadType = "RT"
     
+    self.tags['Modality'] = "0008,0060"
+
+    self.tags['RTPlanLabel'] = "300a,0002"
+    self.tags['RTPlanName'] = "300a,0003"
+    self.tags['RTPlanDescription'] = "300a,0004"
+    
+    self.tags['StructureSetLabel'] = "3006,0002"
+    
+    self.tags['ReferencedRTPlanSequence'] = "300c,0002"
+    self.tags['ReferencedSOPInstanceUID'] = "0008,1155"
+
   def examine(self,fileLists):
     """ Returns a list of DICOMLoadable instances
     corresponding to ways of interpreting the 
@@ -34,7 +45,7 @@ class DicomRtImportPluginClass(DICOMPlugin):
 
     # Examine files
     slicer.modules.dicomrtimport.logic().Examine(examineInfo)	
-
+    
     # Import loadables from DicomExamineInfo
     loadables = []
     for loadableIndex in xrange(examineInfo.GetNumberOfLoadables()):
@@ -44,14 +55,28 @@ class DicomRtImportPluginClass(DICOMPlugin):
       for fileIndex in xrange(loadableFilesVtk.GetNumberOfValues()):
         loadableFilesPy.append(loadableFilesVtk.GetValue(fileIndex))
       loadable.files = loadableFilesPy
-      loadable.name = examineInfo.GetLoadableName(loadableIndex)
+      print loadable.files
+      name = examineInfo.GetLoadableName(loadableIndex)
+      if "RTDOSE" in name:
+        # if this is RTDose, then we need to find the RTPlan name for it
+        # this is done in python plugin as it is easy to access the dicomDatabase
+        seriesType = slicer.dicomDatabase.fileValue(loadable.files[0], self.tags['Modality'])
+        if seriesType == "RTDOSE":
+          slicer.dicomDatabase.loadFileHeader(loadable.files[0])
+          string = slicer.dicomDatabase.headerValue(self.tags['ReferencedSOPInstanceUID'])
+          string2 = string.split("[")
+          referenceRTPlanInstanceUID = string2[1].split("]") 
+          rtplanfile = slicer.dicomDatabase.fileForInstance(referenceRTPlanInstanceUID[0])
+          name = name + ": " + slicer.dicomDatabase.fileValue(rtplanfile,self.tags['RTPlanLabel'])
+        else:
+          pass
+      loadable.name = name
       loadable.tooltip = examineInfo.GetLoadableTooltip(loadableIndex)
       loadable.selected = examineInfo.GetLoadableSelected(loadableIndex)
       loadable.confidence = examineInfo.GetLoadableConfidence(loadableIndex)
       loadables.append(loadable)
          
     return loadables
-
   
   def load(self,loadable):
     """Load the selection as an RT object
