@@ -44,12 +44,12 @@ macro(TEST_WITH_DATA TestName TestExecutableName
 endmacro()
 
 #-----------------------------------------------------------------------------
-# TEST_WITH_DATA(
-  # vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate
-  # vtkSlicerContourMorphologyModuleLogicTest1
-  # ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
-  # ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/PTV_Contour_Labelmap_Exp.nrrd
-  # ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
-  # 100.0
-# )
-# set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+TEST_WITH_DATA(
+  vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate
+  vtkSlicerContourMorphologyModuleLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/PTV_Contour_Labelmap_Exp.nrrd
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  1000.0
+)
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
