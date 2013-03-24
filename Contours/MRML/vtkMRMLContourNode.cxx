@@ -393,8 +393,8 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
     const char* newTransformNodeId = callerNode->GetTransformNodeID();
 
     // Set the parent transform to this contour node
-    if ( ( (!this->TransformNodeID || !newTransformNodeId) && (this->TransformNodeID != newTransformNodeId) )
-      || ( this->TransformNodeID && newTransformNodeId && STRCASECMP(this->TransformNodeID, newTransformNodeId) ) )
+    if ( ( (!this->GetTransformNodeID() || !newTransformNodeId) && (this->GetTransformNodeID() != newTransformNodeId) )
+      || ( this->GetTransformNodeID() && newTransformNodeId && STRCASECMP(this->GetTransformNodeID(), newTransformNodeId) ) )
       {
       this->SetAndObserveTransformNodeID(newTransformNodeId);
       }
@@ -1192,7 +1192,7 @@ void vtkMRMLContourNode::GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* from
   vtkMRMLTransformableNode* fromNode = vtkMRMLTransformableNode::SafeDownCast(fromModelNode);
   if (fromModelNode->GetTransformNodeID())
     {
-    if ( !this->TransformNodeID || STRCASECMP(this->TransformNodeID, fromModelNode->GetTransformNodeID()) )
+    if ( !this->GetTransformNodeID() || STRCASECMP(this->GetTransformNodeID(), fromModelNode->GetTransformNodeID()) )
       {
       vtkErrorMacro("Parent transform nodes of the contour and its model representation do not match!");
       return;
@@ -1205,7 +1205,7 @@ void vtkMRMLContourNode::GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* from
   vtkMRMLTransformableNode* toNode = vtkMRMLTransformableNode::SafeDownCast(toVolumeNode);
   if (toVolumeNode->GetTransformNodeID())
     {
-    if ( !this->TransformNodeID || STRCASECMP(this->TransformNodeID, toVolumeNode->GetTransformNodeID()) )
+    if ( !this->GetTransformNodeID() || STRCASECMP(this->GetTransformNodeID(), toVolumeNode->GetTransformNodeID()) )
       {
       vtkErrorMacro("Parent transform nodes of the contour and its model representation do not match!");
       return;
