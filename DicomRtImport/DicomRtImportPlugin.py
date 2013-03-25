@@ -16,16 +16,10 @@ class DicomRtImportPluginClass(DICOMPlugin):
   def __init__(self,epsilon=0.01):
     super(DicomRtImportPluginClass,self).__init__()
     self.loadType = "RT"
-    
-    self.tags['Modality'] = "0008,0060"
 
+    self.tags = {}
+    self.tags['Modality'] = "0008,0060"
     self.tags['RTPlanLabel'] = "300a,0002"
-    self.tags['RTPlanName'] = "300a,0003"
-    self.tags['RTPlanDescription'] = "300a,0004"
-    
-    self.tags['StructureSetLabel'] = "3006,0002"
-    
-    self.tags['ReferencedRTPlanSequence'] = "300c,0002"
     self.tags['ReferencedSOPInstanceUID'] = "0008,1155"
 
   def examine(self,fileLists):
@@ -55,7 +49,7 @@ class DicomRtImportPluginClass(DICOMPlugin):
       for fileIndex in xrange(loadableFilesVtk.GetNumberOfValues()):
         loadableFilesPy.append(loadableFilesVtk.GetValue(fileIndex))
       loadable.files = loadableFilesPy
-      print loadable.files
+
       name = examineInfo.GetLoadableName(loadableIndex)
       if "RTDOSE" in name:
         # if this is RTDose, then we need to find the RTPlan name for it
@@ -63,11 +57,13 @@ class DicomRtImportPluginClass(DICOMPlugin):
         seriesType = slicer.dicomDatabase.fileValue(loadable.files[0], self.tags['Modality'])
         if seriesType == "RTDOSE":
           slicer.dicomDatabase.loadFileHeader(loadable.files[0])
-          string = slicer.dicomDatabase.headerValue(self.tags['ReferencedSOPInstanceUID'])
-          string2 = string.split("[")
-          referenceRTPlanInstanceUID = string2[1].split("]") 
-          rtplanfile = slicer.dicomDatabase.fileForInstance(referenceRTPlanInstanceUID[0])
-          name = name + ": " + slicer.dicomDatabase.fileValue(rtplanfile,self.tags['RTPlanLabel'])
+          referencedSOPInstanceFullString = slicer.dicomDatabase.headerValue(self.tags['ReferencedSOPInstanceUID'])
+          referenceRTPlanInstanceUID = referencedSOPInstanceFullString.split("[")[1].split("]")[0]
+          if len(referenceRTPlanInstanceUID) > 0:
+            rtPlanFileName = slicer.dicomDatabase.fileForInstance(referenceRTPlanInstanceUID)
+            print('rtPlanFileName = ' + repr(rtPlanFileName))
+            if len(rtPlanFileName) > 0:
+              name = name + ": " + slicer.dicomDatabase.fileValue(rtPlanFileName,self.tags['RTPlanLabel'])
         else:
           pass
       loadable.name = name
@@ -75,7 +71,7 @@ class DicomRtImportPluginClass(DICOMPlugin):
       loadable.selected = examineInfo.GetLoadableSelected(loadableIndex)
       loadable.confidence = examineInfo.GetLoadableConfidence(loadableIndex)
       loadables.append(loadable)
-         
+
     return loadables
   
   def load(self,loadable):
