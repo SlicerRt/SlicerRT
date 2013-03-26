@@ -153,14 +153,14 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
-  // Create dose volume node
+  // Create labelmap volume node
   vtkSmartPointer<vtkMRMLScalarVolumeNode> labelmapScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   mrmlScene->AddNode(labelmapScalarVolumeNode);
   labelmapScalarVolumeNode->SetName("PTV_Labelmap");
   labelmapScalarVolumeNode->LabelMapOn();
   //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
 
-  // Load dose volume
+  // Load labelmap volume
   std::string labelmapVolumeFileName = std::string(dataDirectoryPath) + "/PTV_Contour_Labelmap.nrrd";
   if (!vtksys::SystemTools::FileExists(labelmapVolumeFileName.c_str()))
   {
@@ -182,16 +182,16 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  // Create dose volume node
+  // Create contour node
   vtkSmartPointer<vtkMRMLContourNode> contourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
   contourNode->SetName("PTV_contour");
   mrmlScene->AddNode(contourNode);
   contourNode->SetAndObserveIndexedLabelmapVolumeNodeId(labelmapScalarVolumeNode->GetID());
   contourNode->SetActiveRepresentationByNode(labelmapScalarVolumeNode);
 
-  // Create dose volume node
+  // Create output contour node
   vtkSmartPointer<vtkMRMLContourNode> outputContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  outputContourNode->SetName("outputcontour");
+  outputContourNode->SetName("OutputContour");
   mrmlScene->AddNode(outputContourNode);
 
   // Create and set up parameter set MRML node
@@ -232,7 +232,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   labelmapExpandBaselineScalarVolumeNode->SetName("PTV_Labelmap_Exp");
   //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
 
-  // Load dose volume
+  // Load baseline labelmap volume
   std::string labelmapExpandBaselineVolumeFileName = std::string(dataDirectoryPath) + "/PTV_Contour_Labelmap_Exp.nrrd";
   if (!vtksys::SystemTools::FileExists(labelmapExpandBaselineVolumeFileName.c_str()))
   {
@@ -271,19 +271,20 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  // now start to test shrinking
+  /////////////////
+  // Test shrinking
   paramNode->SetOperationToShrink();
   paramNode->SetXSize(5);
   paramNode->SetYSize(5);
   paramNode->SetZSize(5);
 
-  // Compute ContourMorphology
+  // Morph contour
   contourMorphologyLogic->MorphContour();
 
   // Create baseline expand labelmap node
   vtkSmartPointer<vtkMRMLScalarVolumeNode> labelmapShrinkBaselineScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   mrmlScene->AddNode(labelmapShrinkBaselineScalarVolumeNode);
-  labelmapShrinkBaselineScalarVolumeNode->SetName("PTV_Labelmap_Shrk");
+  labelmapShrinkBaselineScalarVolumeNode->SetName("PTV_Labelmap_Shrinked");
   //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
 
   // Load dose volume
@@ -307,14 +308,12 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   }
   mrmlScene->Commit();
 
-  //vtkSmartPointer<vtkImageMathematics> difference = vtkSmartPointer<vtkImageMathematics>::New();
   difference->SetInput1(outputLabelmapNode->GetImageData());
   difference->SetInput2(labelmapShrinkBaselineScalarVolumeNode->GetImageData());
   difference->SetOperationToSubtract();
   difference->Update();
 
   // Compute histogram
-  //vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
   histogram->SetInput(difference->GetOutput());
   histogram->IgnoreZeroOn();
   histogram->Update();
@@ -327,12 +326,13 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
 
   // Create dose volume node
   vtkSmartPointer<vtkMRMLContourNode> contourNode2 = vtkSmartPointer<vtkMRMLContourNode>::New();
-  contourNode2->SetName("PTV_contour_exp");
+  contourNode2->SetName("PTV_Labelmap_Expanded");
   mrmlScene->AddNode(contourNode2);
   contourNode2->SetAndObserveIndexedLabelmapVolumeNodeId(labelmapExpandBaselineScalarVolumeNode->GetID());
   contourNode2->SetActiveRepresentationByNode(labelmapExpandBaselineScalarVolumeNode);
 
-  // now start to test union
+  /////////////
+  // Test union
   paramNode->SetAndObserveReferenceContourNodeID(contourNode2->GetID());
   paramNode->SetAndObserveInputContourNodeID(contourNode->GetID());
   paramNode->SetOperationToUnion();
@@ -342,14 +342,12 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
 
   mrmlScene->Commit();
 
-  //vtkSmartPointer<vtkImageMathematics> difference = vtkSmartPointer<vtkImageMathematics>::New();
   difference->SetInput1(labelmapExpandBaselineScalarVolumeNode->GetImageData());
   difference->SetInput2(outputLabelmapNode->GetImageData());
   difference->SetOperationToSubtract();
   difference->Update();
 
   // Compute histogram
-  //vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
   histogram->SetInput(difference->GetOutput());
   histogram->IgnoreZeroOn();
   histogram->Update();
@@ -360,7 +358,8 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  // now start to test intersection
+  ////////////////////
+  // Test intersection
   paramNode->SetAndObserveReferenceContourNodeID(contourNode2->GetID());
   paramNode->SetAndObserveInputContourNodeID(contourNode->GetID());
   paramNode->SetOperationToIntersect();
@@ -370,14 +369,12 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
 
   mrmlScene->Commit();
 
-  //vtkSmartPointer<vtkImageMathematics> difference = vtkSmartPointer<vtkImageMathematics>::New();
   difference->SetInput1(outputLabelmapNode->GetImageData());
   difference->SetInput2(labelmapScalarVolumeNode->GetImageData());
   difference->SetOperationToSubtract();
   difference->Update();
 
   // Compute histogram
-  //vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
   histogram->SetInput(difference->GetOutput());
   histogram->IgnoreZeroOn();
   histogram->Update();
