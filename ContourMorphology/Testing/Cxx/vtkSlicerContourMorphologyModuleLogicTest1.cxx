@@ -29,18 +29,11 @@
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
-#include <vtkMRMLModelHierarchyNode.h>
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLContourNode.h>
 
 // VTK includes
-#include <vtkDoubleArray.h>
-#include <vtkPolyDataReader.h>
-#include <vtkPolyData.h>
 #include <vtkNew.h>
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
