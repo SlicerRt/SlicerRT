@@ -396,6 +396,7 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
 
     vtkSmartPointer<vtkMRMLLinearTransformNode> inputCompareTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
     inputCompareTransformNode->ApplyTransformMatrix(inputCompareTransform->GetMatrix());
+    mrmlScene->AddNode(inputCompareTransformNode);
 
     inputLabelmapCompareScalarVolumeNode->SetAndObserveTransformNodeID(inputCompareTransformNode->GetID());
   }
