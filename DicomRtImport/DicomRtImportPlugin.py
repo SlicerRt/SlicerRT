@@ -61,7 +61,6 @@ class DicomRtImportPluginClass(DICOMPlugin):
           referenceRTPlanInstanceUID = referencedSOPInstanceFullString.split("[")[1].split("]")[0]
           if len(referenceRTPlanInstanceUID) > 0:
             rtPlanFileName = slicer.dicomDatabase.fileForInstance(referenceRTPlanInstanceUID)
-            print('rtPlanFileName = ' + repr(rtPlanFileName))
             if len(rtPlanFileName) > 0:
               name = name + ": " + slicer.dicomDatabase.fileValue(rtPlanFileName,self.tags['RTPlanLabel'])
         else:
