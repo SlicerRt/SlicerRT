@@ -35,6 +35,7 @@ class Q_SLICER_QTMODULES_CONTOURCOMPARISON_EXPORT qSlicerContourComparisonModule
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
+  QVTK_OBJECT
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;

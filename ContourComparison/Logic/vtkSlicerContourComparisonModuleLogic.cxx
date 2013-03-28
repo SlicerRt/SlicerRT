@@ -62,10 +62,11 @@ public:
   void GetInputContoursAsItkVolumes( itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk,
     itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk, double &checkpointItkConvertStart, std::string & errorMessage );
 
-  vtkSetObjectMacro(Logic, vtkSlicerContourComparisonModuleLogic);
+  void SetLogic(vtkSlicerContourComparisonModuleLogic* logic) { this->Logic = logic; };
 
 protected:
   vtkSlicerContourComparisonModuleLogicPrivate();
+  ~vtkSlicerContourComparisonModuleLogicPrivate();
 
   vtkSlicerContourComparisonModuleLogic* Logic;
 };
@@ -80,6 +81,12 @@ vtkStandardNewMacro(vtkSlicerContourComparisonModuleLogicPrivate);
 vtkSlicerContourComparisonModuleLogicPrivate::vtkSlicerContourComparisonModuleLogicPrivate()
 : Logic(NULL)
 {
+}
+
+//-----------------------------------------------------------------------------
+vtkSlicerContourComparisonModuleLogicPrivate::~vtkSlicerContourComparisonModuleLogicPrivate()
+{
+  this->SetLogic(NULL);
 }
 
 //---------------------------------------------------------------------------

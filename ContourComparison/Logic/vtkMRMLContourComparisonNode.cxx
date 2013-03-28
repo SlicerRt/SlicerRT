@@ -91,7 +91,7 @@ void vtkMRMLContourComparisonNode::WriteXML(ostream& of, int nIndent)
     }
   if ( this->RasterizationReferenceVolumeNodeId )
     {
-    of << indent << " ReferenceVolumeNodeId=\"" << this->RasterizationReferenceVolumeNodeId << "\"";
+    of << indent << " RasterizationReferenceVolumeNodeId=\"" << this->RasterizationReferenceVolumeNodeId << "\"";
     }
 
   of << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
@@ -105,7 +105,7 @@ void vtkMRMLContourComparisonNode::WriteXML(ostream& of, int nIndent)
     of << indent << " ReferenceCenter=\"";
     for (int i=0; i<3; ++i)
     {
-      ss << this->ReferenceCenter;
+      ss << this->ReferenceCenter[i];
       of << ss.str() << "|";
     }
     of << "\"";
@@ -115,7 +115,7 @@ void vtkMRMLContourComparisonNode::WriteXML(ostream& of, int nIndent)
     of << indent << " CompareCenter=\"";
     for (int i=0; i<3; ++i)
     {
-      ss << this->CompareCenter;
+      ss << this->CompareCenter[i];
       of << ss.str() << "|";
     }
     of << "\"";
@@ -162,11 +162,11 @@ void vtkMRMLContourComparisonNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetAndObserveCompareContourNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "ReferenceVolumeNodeId")) 
+    else if (!strcmp(attName, "RasterizationReferenceVolumeNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveReferenceVolumeNodeId(ss.str().c_str());
+      this->SetAndObserveRasterizationReferenceVolumeNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "DiceCoefficient")) 
       {
@@ -365,7 +365,7 @@ void vtkMRMLContourComparisonNode::Copy(vtkMRMLNode *anode)
 
   this->SetAndObserveReferenceContourNodeId(node->ReferenceContourNodeId);
   this->SetAndObserveCompareContourNodeId(node->CompareContourNodeId);
-  this->SetAndObserveReferenceVolumeNodeId(node->RasterizationReferenceVolumeNodeId);
+  this->SetAndObserveRasterizationReferenceVolumeNodeId(node->RasterizationReferenceVolumeNodeId);
 
   this->DiceCoefficient = node->DiceCoefficient;
   this->TruePositivesPercent = node->TruePositivesPercent;
@@ -396,7 +396,7 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "ReferenceContourNodeId:   " << this->ReferenceContourNodeId << "\n";
   os << indent << "CompareContourNodeId:   " << this->CompareContourNodeId << "\n";
-  os << indent << "ReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
+  os << indent << "RasterizationReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
 
   os << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
   os << indent << " TruePositivesPercent=\"" << this->TruePositivesPercent << "\"";
@@ -409,7 +409,7 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << " ReferenceCenter=\"";
     for (int i=0; i<3; ++i)
     {
-      ss << this->ReferenceCenter;
+      ss << this->ReferenceCenter[i];
       os << ss.str() << "|";
     }
     os << "\"";
@@ -419,7 +419,7 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << " CompareCenter=\"";
     for (int i=0; i<3; ++i)
     {
-      ss << this->CompareCenter;
+      ss << this->CompareCenter[i];
       os << ss.str() << "|";
     }
     os << "\"";
@@ -473,7 +473,7 @@ void vtkMRMLContourComparisonNode::SetAndObserveCompareContourNodeId(const char*
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourComparisonNode::SetAndObserveReferenceVolumeNodeId(const char* id)
+void vtkMRMLContourComparisonNode::SetAndObserveRasterizationReferenceVolumeNodeId(const char* id)
 {
   if (this->RasterizationReferenceVolumeNodeId)
     {
@@ -501,6 +501,6 @@ void vtkMRMLContourComparisonNode::UpdateReferenceID(const char *oldID, const ch
     }
   if (this->RasterizationReferenceVolumeNodeId && !strcmp(oldID, this->RasterizationReferenceVolumeNodeId))
     {
-    this->SetAndObserveReferenceVolumeNodeId(newID);
+    this->SetAndObserveRasterizationReferenceVolumeNodeId(newID);
     }
 }

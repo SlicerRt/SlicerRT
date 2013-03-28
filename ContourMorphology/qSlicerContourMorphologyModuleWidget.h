@@ -36,6 +36,7 @@ class Q_SLICER_QTMODULES_CONTOURMORPHOLOGY_EXPORT qSlicerContourMorphologyModule
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
+  QVTK_OBJECT
 
 public:
 

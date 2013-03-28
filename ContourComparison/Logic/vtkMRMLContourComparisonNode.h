@@ -28,7 +28,7 @@
 
 #include "vtkSlicerContourComparisonModuleLogicExport.h"
 
-class VTK_SLICER_CONTOURCOMPARISON_LOGIC_EXPORT vtkMRMLContourComparisonNode : public vtkMRMLNode
+class VTK_SLICER_CONTOURCOMPARISON_MODULE_LOGIC_EXPORT vtkMRMLContourComparisonNode : public vtkMRMLNode
 {
 public:
   static vtkMRMLContourComparisonNode *New();
@@ -67,7 +67,7 @@ public:
   /// Get reference volume node ID
   vtkGetStringMacro(RasterizationReferenceVolumeNodeId);
   /// Set and observe reference volume node ID
-  void SetAndObserveReferenceVolumeNodeId(const char* id);
+  void SetAndObserveRasterizationReferenceVolumeNodeId(const char* id);
 
   /// Get result dice coefficient
   vtkGetMacro(DiceCoefficient, float);

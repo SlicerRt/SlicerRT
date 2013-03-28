@@ -27,9 +27,6 @@
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
 
-// STD includes
-#include <vector>
-
 #include "vtkSlicerContourMorphologyModuleLogicExport.h"
 
 // Operation options.

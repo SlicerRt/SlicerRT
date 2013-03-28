@@ -279,6 +279,9 @@ void qSlicerContourMorphologyModuleWidget::setup()
 
   this->connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
+  // Handle scene change event if occurs
+  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
+
   this->updateButtonsState();
 }
 

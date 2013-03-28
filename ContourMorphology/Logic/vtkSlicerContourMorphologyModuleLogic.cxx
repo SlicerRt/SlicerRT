@@ -73,7 +73,7 @@ vtkSlicerContourMorphologyModuleLogic::vtkSlicerContourMorphologyModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerContourMorphologyModuleLogic::~vtkSlicerContourMorphologyModuleLogic()
 {
-  vtkSetAndObserveMRMLNodeMacro(this->ContourMorphologyNode, NULL);
+  this->SetAndObserveContourMorphologyNode(NULL);
 }
 
 //----------------------------------------------------------------------------

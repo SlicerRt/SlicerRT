@@ -49,6 +49,7 @@ vtkSlicerRTScalarBarActor::vtkSlicerRTScalarBarActor()
 //----------------------------------------------------------------------------
 vtkSlicerRTScalarBarActor::~vtkSlicerRTScalarBarActor()
 {
+  this->SetColorNames(NULL);
 }
 
 //----------------------------------------------------------------------------

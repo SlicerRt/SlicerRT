@@ -422,6 +422,7 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerContourComparisonModuleLogic> contourComparisonLogic = vtkSmartPointer<vtkSlicerContourComparisonModuleLogic>::New();
+
   contourComparisonLogic->SetMRMLScene(mrmlScene);
   contourComparisonLogic->SetAndObserveContourComparisonNode(paramNode);
 
