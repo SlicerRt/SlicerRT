@@ -267,6 +267,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       slicer.mrmlScene.Clear(0)
 
     self.delayMs = 700
+    self.performDeformableRegistration = False
 
     #TODO: Comment out
     #logFile = open('d:/pyTestLog.txt', 'w')
@@ -606,29 +607,30 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.assertTrue( self.cliBrainsFitRigidNode.GetStatusString() == 'Completed' )
 
       # Register Day 2 CT to Day 1 CT using BSpline registration
-      self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration.\n  It may take a few minutes...",self.delayMs)
+      if self.performDeformableRegistration:
+        self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration.\n  It may take a few minutes...",self.delayMs)
 
-      parametersBSpline = {}
-      parametersBSpline["fixedVolume"] = day1CT.GetID()
-      parametersBSpline["movingVolume"] = day2CT.GetID()
-      parametersBSpline["initialTransform"] = linearTransform.GetID()
+        parametersBSpline = {}
+        parametersBSpline["fixedVolume"] = day1CT.GetID()
+        parametersBSpline["movingVolume"] = day2CT.GetID()
+        parametersBSpline["initialTransform"] = linearTransform.GetID()
 
-      bsplineTransform = slicer.vtkMRMLBSplineTransformNode()
-      bsplineTransform.SetName(self.transformDay2ToDay1BSplineName)
-      slicer.mrmlScene.AddNode( bsplineTransform )
-      parametersBSpline["bsplineTransform"] = bsplineTransform.GetID()
+        bsplineTransform = slicer.vtkMRMLBSplineTransformNode()
+        bsplineTransform.SetName(self.transformDay2ToDay1BSplineName)
+        slicer.mrmlScene.AddNode( bsplineTransform )
+        parametersBSpline["bsplineTransform"] = bsplineTransform.GetID()
 
-      parametersBSpline["useBSpline"] = True
+        parametersBSpline["useBSpline"] = True
 
-      self.cliBrainsFitBSplineNode = None
-      self.cliBrainsFitBSplineNode = slicer.cli.run(brainsFit, None, parametersBSpline)
-      waitCount = 0
-      while self.cliBrainsFitBSplineNode.GetStatusString() != 'Completed' and waitCount < 600:
-        self.delayDisplay( "Register Day 2 CT to Day 1 CT using BSpline registration... %d" % waitCount )
-        waitCount += 1
-      self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration finished",self.delayMs)
+        self.cliBrainsFitBSplineNode = None
+        self.cliBrainsFitBSplineNode = slicer.cli.run(brainsFit, None, parametersBSpline)
+        waitCount = 0
+        while self.cliBrainsFitBSplineNode.GetStatusString() != 'Completed' and waitCount < 600:
+          self.delayDisplay( "Register Day 2 CT to Day 1 CT using BSpline registration... %d" % waitCount )
+          waitCount += 1
+        self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration finished",self.delayMs)
 
-      self.assertTrue( self.cliBrainsFitBSplineNode.GetStatusString() == 'Completed' )
+        self.assertTrue( self.cliBrainsFitBSplineNode.GetStatusString() == 'Completed' )
 
     except Exception, e:
       import traceback
@@ -672,31 +674,32 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.assertTrue( self.cliBrainsResampleRigidNode.GetStatusString() == 'Completed' )
 
       # Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform
-      self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform",self.delayMs)
+      if self.performDeformableRegistration:
+        self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform",self.delayMs)
 
-      parametersBSpline = {}
-      parametersBSpline["inputVolume"] = day2Dose.GetID()
-      parametersBSpline["referenceVolume"] = day1Dose.GetID()
+        parametersBSpline = {}
+        parametersBSpline["inputVolume"] = day2Dose.GetID()
+        parametersBSpline["referenceVolume"] = day1Dose.GetID()
 
-      day2DoseBSplineName = slicer.vtkMRMLScalarVolumeNode()
-      day2DoseBSplineName.SetName(self.day2DoseBSplineName)
-      slicer.mrmlScene.AddNode( day2DoseBSplineName )
-      parametersBSpline["outputVolume"] = day2DoseBSplineName.GetID()
+        day2DoseBSplineName = slicer.vtkMRMLScalarVolumeNode()
+        day2DoseBSplineName.SetName(self.day2DoseBSplineName)
+        slicer.mrmlScene.AddNode( day2DoseBSplineName )
+        parametersBSpline["outputVolume"] = day2DoseBSplineName.GetID()
 
-      parametersBSpline["pixelType"] = 'float'
+        parametersBSpline["pixelType"] = 'float'
 
-      transformDay2ToDay1BSpline = slicer.util.getNode(pattern=self.transformDay2ToDay1BSplineName)
-      parametersBSpline["warpTransform"] = transformDay2ToDay1BSpline.GetID()
+        transformDay2ToDay1BSpline = slicer.util.getNode(pattern=self.transformDay2ToDay1BSplineName)
+        parametersBSpline["warpTransform"] = transformDay2ToDay1BSpline.GetID()
 
-      self.cliBrainsResampleBSplineNode = None
-      self.cliBrainsResampleBSplineNode = slicer.cli.run(brainsResample, None, parametersBSpline)
-      waitCount = 0
-      while self.cliBrainsResampleBSplineNode.GetStatusString() != 'Completed' and waitCount < 100:
-        self.delayDisplay( "Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform... %d" % waitCount )
-        waitCount += 1
-      self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform finished",self.delayMs)
+        self.cliBrainsResampleBSplineNode = None
+        self.cliBrainsResampleBSplineNode = slicer.cli.run(brainsResample, None, parametersBSpline)
+        waitCount = 0
+        while self.cliBrainsResampleBSplineNode.GetStatusString() != 'Completed' and waitCount < 100:
+          self.delayDisplay( "Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform... %d" % waitCount )
+          waitCount += 1
+        self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform finished",self.delayMs)
 
-      self.assertTrue( self.cliBrainsResampleBSplineNode.GetStatusString() == 'Completed' )
+        self.assertTrue( self.cliBrainsResampleBSplineNode.GetStatusString() == 'Completed' )
 
     except Exception, e:
       import traceback
@@ -722,12 +725,13 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.assertTrue(day2DoseRigid.GetDisplayNode())
       day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 
-      day2DoseBSplineName = slicer.util.getNode(pattern=self.day2DoseBSplineName)
-      self.assertTrue(day2DoseBSplineName)
-      day2DoseBSplineName.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
-      day2DoseBSplineName.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
-      self.assertTrue(day2DoseBSplineName.GetDisplayNode())
-      day2DoseBSplineName.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
+      if self.performDeformableRegistration:
+        day2DoseBSplineName = slicer.util.getNode(pattern=self.day2DoseBSplineName)
+        self.assertTrue(day2DoseBSplineName)
+        day2DoseBSplineName.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
+        day2DoseBSplineName.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
+        self.assertTrue(day2DoseBSplineName.GetDisplayNode())
+        day2DoseBSplineName.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 
     except Exception, e:
       import traceback
@@ -777,9 +781,10 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       accumulatedDoseRigid.SetName(self.accumulatedDoseRigidName)
       slicer.mrmlScene.AddNode( accumulatedDoseRigid )
 
-      accumulatedDoseBSpline = slicer.vtkMRMLScalarVolumeNode()
-      accumulatedDoseBSpline.SetName(self.accumulatedDoseBSplineName)
-      slicer.mrmlScene.AddNode( accumulatedDoseBSpline )
+      if self.performDeformableRegistration:
+        accumulatedDoseBSpline = slicer.vtkMRMLScalarVolumeNode()
+        accumulatedDoseBSpline.SetName(self.accumulatedDoseBSplineName)
+        slicer.mrmlScene.AddNode( accumulatedDoseBSpline )
 
       # Accumulate Day 1 dose and untransformed Day 2 dose
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose",self.delayMs)
@@ -804,14 +809,15 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 0)
 
       # Accumulate Day 1 dose and Day 2 dose transformed using the BSpline transform
-      self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration",self.delayMs)
-      self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseBSplineName, 1)
-      outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseBSpline)
-      applyButton.click()
-      
-      self.assertTrue( accumulatedDoseBSpline.GetImageData() )
+      if self.performDeformableRegistration:
+        self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration",self.delayMs)
+        self.doseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseBSplineName, 1)
+        outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseBSpline)
+        applyButton.click()
+        
+        self.assertTrue( accumulatedDoseBSpline.GetImageData() )
 
-      self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration finished",self.delayMs)
+        self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration finished",self.delayMs)
 
     except Exception, e:
       import traceback
@@ -853,12 +859,13 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       computeDvhButton.click()
 
       # Compute DVH using accumulated dose volume that used Day 2 dose after BSpline transform
-      self.delayDisplay("Compute DVH of accumulated dose (BSpline registration)",self.delayMs)
-      accumulatedDoseBSpline = slicer.util.getNode(pattern=self.accumulatedDoseBSplineName)
-      doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseBSpline)
-      computeDvhButton.click()
+      if self.performDeformableRegistration:
+        self.delayDisplay("Compute DVH of accumulated dose (BSpline registration)",self.delayMs)
+        accumulatedDoseBSpline = slicer.util.getNode(pattern=self.accumulatedDoseBSplineName)
+        doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseBSpline)
+        computeDvhButton.click()
 
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') ) == numOfDoubleArrayNodesBeforeLoad + 3 )
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') ) == numOfDoubleArrayNodesBeforeLoad + 2 + self.performDeformableRegistration )
 
       # Create chart and show plots
       chartNodeCombobox.addNode()
