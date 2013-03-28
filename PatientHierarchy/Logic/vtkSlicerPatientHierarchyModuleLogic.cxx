@@ -114,8 +114,8 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
     return;
   }
 
-  vtkMRMLHierarchyNode* patientNode = NULL;
-  vtkMRMLHierarchyNode* studyNode = NULL;
+  vtkSmartPointer<vtkMRMLHierarchyNode> patientNode;
+  vtkSmartPointer<vtkMRMLHierarchyNode> studyNode;
   vtkMRMLHierarchyNode* seriesNode = NULL;
 
   std::vector<vtkMRMLNode*> patientHierarchyNodes;
@@ -140,11 +140,13 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
       }
       if (!STRCASECMP(patientId, nodeUID))
       {
-        patientNode = node;
+        patientNode = vtkSmartPointer<vtkMRMLHierarchyNode>::Take(node);
+        patientNode->Register(NULL);
       }
       else if (!STRCASECMP(studyInstanceUID, nodeUID))
       {
-        studyNode = node;
+        studyNode = vtkSmartPointer<vtkMRMLHierarchyNode>::Take(node);
+        studyNode->Register(NULL);
       }
       else if (!STRCASECMP(seriesInstanceUID, nodeUID))
       {
@@ -164,7 +166,7 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
   // Create patient and study nodes if they do not exist yet
   if (!patientNode)
   {
-    patientNode = vtkMRMLHierarchyNode::New();
+    patientNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
     patientNode->AllowMultipleChildrenOn();
     patientNode->HideFromEditorsOff();
     patientNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
@@ -178,7 +180,7 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
 
   if (!studyNode)
   {
-    studyNode = vtkMRMLHierarchyNode::New();
+    studyNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
     studyNode->AllowMultipleChildrenOn();
     studyNode->HideFromEditorsOff();
     studyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
