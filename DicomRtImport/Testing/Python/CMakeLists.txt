@@ -48,8 +48,7 @@ endforeach()
 #-----------------------------------------------------------------------------
 slicer_add_python_unittest(
   SCRIPT DicomRtImportSelfTest.py
-  SLICER_ARGS #--no-main-window
-              --disable-cli-modules
+  SLICER_ARGS --disable-cli-modules
               --additional-module-paths
                 ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}
                 ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Debug

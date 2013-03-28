@@ -203,10 +203,12 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
 
 
   def TestSection_0RetrieveInputData(self):
-    if os.access(DicomRtImportSelfTestPaths.dataDir, os.F_OK):
-      self.dataDir = DicomRtImportSelfTestPaths.dataDir
-      self.dicomDatabaseDir = DicomRtImportSelfTestPaths.dicomDatabaseDir
-      self.tempDir = DicomRtImportSelfTestPaths.tempDir
+    if 'util' in globals() and hasattr(util, 'DicomRtImportSelfTestPaths'):
+      if os.access(util.DicomRtImportSelfTestPaths.dataDir, os.F_OK):
+        self.dataDir = util.DicomRtImportSelfTestPaths.dataDir
+        self.dicomDatabaseDir = util.DicomRtImportSelfTestPaths.dicomDatabaseDir
+        self.tempDir = util.DicomRtImportSelfTestPaths.tempDir
+        self.delayDisplay('Test data found locally',self.delayMs)
     else:
       import urllib
 
@@ -230,7 +232,7 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
         if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
           print('Requesting download %s from %s...\n' % (name, url))
           urllib.urlretrieve(url, filePath)
-      self.delayDisplay('Finished with download and loading\n')
+      self.delayDisplay('Finished with download test data',self.delayMs)
 
   def TestSection_1OpenDatabase(self):
     self.delayDisplay("1: Open database",self.delayMs)
@@ -267,9 +269,9 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     detailsPopup.offerLoadables( slicer.dicomDatabase.patients()[0], "Patient" )
 
     loadables = detailsPopup.loadableTable.loadables
-    self.assertTrue( len(loadables) == 4 )
+    self.assertTrue( len(loadables) == 6 )
 
-    # Make sure the loadables are good (RT is assigned to 3 out of 4 and they are selected)
+    # Make sure the loadables are good (RT is assigned to 3 out of 6 and they are selected)
     loadablesByPlugin = detailsPopup.loadablesByPlugin
     rtFound = False
     loadablesForRt = 0
@@ -296,7 +298,7 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == 1 )
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 13 )
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == 6 )
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') ) == 7 )
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') ) == 1 )
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLAnnotationFiducialNode*') ) == 10 )
 
   def TestSection_5SaveScene(self):
