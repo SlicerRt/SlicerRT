@@ -34,9 +34,10 @@ find_library( DCMTK_dcmrt_LIBRARY dcmrt
     ${CTK_DCMTK_DIR}/dcmrt/Release
     ${CTK_DCMTK_DIR}/dcmrt/Debug
     ${CTK_DCMTK_DIR}/lib
+    ${CTK_DCMTK_DIR}/../..
   NO_DEFAULT_PATH
 )   
- 
+
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerPatientHierarchyModuleLogic
