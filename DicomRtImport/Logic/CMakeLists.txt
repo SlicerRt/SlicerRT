@@ -24,16 +24,6 @@ set(${KIT}_SRCS
   vtkTopologicalHierarchy.h
   )
 
-# DCMTK's dcmrt module is not part of the default list of modules
-# so we need to add it manually
-find_library( DCMTK_dcmrt_LIBRARY dcmrt
-  PATHS
-    ${DCMTK_DIR}/lib
-    ${DCMTK_DIR}/lib/Release
-    ${DCMTK_DIR}/lib/Debug
-  NO_DEFAULT_PATH
-)   
-
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerPatientHierarchyModuleLogic
@@ -41,7 +31,6 @@ set(${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   ${DCMTK_LIBRARIES}
-  ${DCMTK_dcmrt_LIBRARY}
   vtkSlicerVolumesModuleLogic
   vtkSlicerBeamsModuleLogic
   vtkSlicerAnnotationsModuleMRML
