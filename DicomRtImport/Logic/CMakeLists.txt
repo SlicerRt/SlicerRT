@@ -28,13 +28,9 @@ set(${KIT}_SRCS
 # so we need to add it manually
 find_library( DCMTK_dcmrt_LIBRARY dcmrt
   PATHS
-    ${CTK_DCMTK_DIR}/dcmrt/libsrc
-    ${CTK_DCMTK_DIR}/dcmrt/libsrc/Release
-    ${CTK_DCMTK_DIR}/dcmrt/libsrc/Debug
-    ${CTK_DCMTK_DIR}/dcmrt/Release
-    ${CTK_DCMTK_DIR}/dcmrt/Debug
-    ${CTK_DCMTK_DIR}/lib
-    ${CTK_DCMTK_DIR}/../..
+    ${DCMTK_DIR}/lib
+    ${DCMTK_DIR}/lib/Release
+    ${DCMTK_DIR}/lib/Debug
   NO_DEFAULT_PATH
 )   
 

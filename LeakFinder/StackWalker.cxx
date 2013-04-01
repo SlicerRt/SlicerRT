@@ -24,7 +24,8 @@
  *
  **********************************************************************/
 #include <windows.h>
-#include <tchar.h>
+//#include <tchar.h>
+#include <../../VC/include/tchar.h> // Workaround for avoiding the use of the file with same name in DCMTK
 #include <stdio.h>
 #pragma comment(lib, "version.lib")  // for "VerQueryValue"
 
