@@ -31,25 +31,117 @@ endforeach()
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
-      DataDirectoryPath BaselineContourLabelmapFile 
-      TemporarySceneFile VolumeDifferenceToleranceCc)
+      DataDirectoryPath ReferenceContourLabelmapFile
+      InputContourLabelmapFile BaselineContourLabelmapFile 
+      TemporarySceneFile MorphologicalOperation
+      MorphologicalParameter ApplySimpleTransformToInput VolumeDifferenceToleranceVoxel)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
+    -ReferenceContourLabelmapFile  ${ReferenceContourLabelmapFile}
+    -InputContourLabelmapFile  ${InputContourLabelmapFile}
     -BaselineContourLabelmapFile  ${BaselineContourLabelmapFile}
     -TemporarySceneFile ${TemporarySceneFile}
-    -VolumeDifferenceToleranceCc ${VolumeDifferenceToleranceCc}
+    -MorphologicalOperation ${MorphologicalOperation}
+    -MorphologicalParameter ${MorphologicalParameter}
+    -ApplySimpleTransformToInput ${ApplySimpleTransformToInput}
+    -VolumeDifferenceToleranceVoxel ${VolumeDifferenceToleranceVoxel}
   )
 endmacro()
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
-  vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate
+  vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Expand
   vtkSlicerContourMorphologyModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/PTV_Contour_Labelmap_Exp.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
+  PTV_Contour_Labelmap.nrrd
+  PTV_Contour_Labelmap.nrrd
+  ContourMorphology_Expand_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
-  1000.0
+  Expand
+  5.0
+  0
+  100.0
 )
-set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Expand PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Shrink
+  vtkSlicerContourMorphologyModuleLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
+  PTV_Contour_Labelmap.nrrd
+  PTV_Contour_Labelmap.nrrd
+  ContourMorphology_Shrink_Baseline.nrrd
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  Shrink
+  5.0
+  0
+  100.0
+)
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Shrink PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Union
+  vtkSlicerContourMorphologyModuleLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
+  PTV_Contour_Labelmap.nrrd
+  Bladder_Contour_Labelmap.nrrd
+  ContourMorphology_Union_Baseline.nrrd
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  Union
+  0.0
+  0
+  100.0
+)
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Union PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect
+  vtkSlicerContourMorphologyModuleLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
+  PTV_Contour_Labelmap.nrrd
+  Bladder_Contour_Labelmap.nrrd
+  ContourMorphology_Intersect_Baseline.nrrd
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  Intersect
+  0.0
+  0
+  100.0
+)
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Subtract
+  vtkSlicerContourMorphologyModuleLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
+  PTV_Contour_Labelmap.nrrd
+  Bladder_Contour_Labelmap.nrrd
+  ContourMorphology_Subtract_Baseline.nrrd
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  Subtract
+  0.0
+  0
+  100.0
+)
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Subtract PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+
+#-----------------------------------------------------------------------------
+TEST_WITH_DATA(
+  vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect_ApplyTransform
+  vtkSlicerContourMorphologyModuleLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
+  PTV_Contour_Labelmap.nrrd
+  Bladder_Contour_Labelmap.nrrd
+  ContourMorphology_Intersect_ApplyTransform_Baseline.nrrd
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  Intersect
+  5.0
+  1
+  100.0
+)
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect_ApplyTransform PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )

@@ -32,12 +32,14 @@
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLContourNode.h>
+#include <vtkMRMLLinearTransformNode.h>
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 #include <vtkImageMathematics.h>
+#include <vtkTransform.h>
 
 // ITK includes
 #if ITK_VERSION_MAJOR > 3
@@ -47,7 +49,7 @@
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 
-#define MIN_VOLUME_DIFFERENCE_TOLERANCE_CC 100
+#define MIN_VOLUME_DIFFERENCE_TOLERANCE_VOXEL 100
 
 //-----------------------------------------------------------------------------
 int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
@@ -73,6 +75,47 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "No arguments!" << std::endl;
     return EXIT_FAILURE;
   }
+
+  const char *referenceContourLabelmapFile = NULL;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ReferenceContourLabelmapFile") == 0)
+    {
+      referenceContourLabelmapFile = argv[argIndex+1];
+      std::cout << "Reference Contour labelmap file name: " << referenceContourLabelmapFile << std::endl;
+      argIndex += 2;
+    }
+    else
+    {
+      referenceContourLabelmapFile = "";
+    }
+  }
+  else
+  {
+    std::cerr << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  const char *inputContourLabelmapFileName = NULL;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-InputContourLabelmapFile") == 0)
+    {
+      inputContourLabelmapFileName = argv[argIndex+1];
+      std::cout << "Input Contour labelmap file name: " << inputContourLabelmapFileName << std::endl;
+      argIndex += 2;
+    }
+    else
+    {
+      inputContourLabelmapFileName = "";
+    }
+  }
+  else
+  {
+    std::cerr << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   const char *baselineContourLabelmapFileName = NULL;
   if (argc > argIndex+1)
   {
@@ -92,6 +135,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "No arguments!" << std::endl;
     return EXIT_FAILURE;
   }
+
   const char *temporarySceneFileName = NULL;
   if (argc > argIndex+1)
   {
@@ -112,25 +156,96 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  double volumeDifferenceToleranceCc = 0.0;
+  const char *morphologicalOperation = NULL;
+  unsigned int operation = 0;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-VolumeDifferenceToleranceCc") == 0)
+    if (STRCASECMP(argv[argIndex], "-MorphologicalOperation") == 0)
+    {
+      morphologicalOperation = argv[argIndex+1];
+      std::cout << "Morphological Operation: " << morphologicalOperation << std::endl;
+      argIndex += 2;
+      if (STRCASECMP(morphologicalOperation, "Expand") == 0)
+      {
+        operation = 0;
+      }
+      else if (STRCASECMP(morphologicalOperation, "Shrink") == 0)
+      {
+        operation = 1;
+      }
+      else if (STRCASECMP(morphologicalOperation, "Union") == 0)
+      {
+        operation = 2;
+      }
+      else if (STRCASECMP(morphologicalOperation, "Intersect") == 0)
+      {
+        operation = 3;
+      }
+      else if (STRCASECMP(morphologicalOperation, "Subtract") == 0)
+      {
+        operation = 4;
+      }
+      else 
+      {
+        std::cerr << "Invalid Morphological Operation!" << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+    else
+    {
+      morphologicalOperation = "";
+    }
+  }
+
+  double morphologicalParameter = 0.0;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-MorphologicalParameter") == 0)
     {
       std::stringstream ss;
       ss << argv[argIndex+1];
       double doubleValue;
       ss >> doubleValue;
-      volumeDifferenceToleranceCc = doubleValue;
-      std::cout << "Volume difference Tolerance(Cc): " << volumeDifferenceToleranceCc << std::endl;
+      morphologicalParameter = doubleValue;
+      std::cout << "Morphological Parameter: " << morphologicalParameter << std::endl;
+      argIndex += 2;
+    }
+  }
+
+  unsigned int applySimpleTransformToInput = 0;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ApplySimpleTransformToInput") == 0)
+    {
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      unsigned int intValue;
+      ss >> intValue;
+      applySimpleTransformToInput = intValue;
+      std::cout << "Apply Transform to Input: " << applySimpleTransformToInput << std::endl;
+      argIndex += 2;
+    }
+  }
+
+  double volumeDifferenceToleranceVoxel = 0.0;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-VolumeDifferenceToleranceVoxel") == 0)
+    {
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      double doubleValue;
+      ss >> doubleValue;
+      volumeDifferenceToleranceVoxel = doubleValue;
+      std::cout << "Volume difference Tolerance(Voxel): " << volumeDifferenceToleranceVoxel << std::endl;
       argIndex += 2;
     }
   }
 
   // Constraint the criteria to be greater than zero
-  if (volumeDifferenceToleranceCc == 0.0)
+  if (volumeDifferenceToleranceVoxel == 0.0)
   {
-    volumeDifferenceToleranceCc = MIN_VOLUME_DIFFERENCE_TOLERANCE_CC;
+    volumeDifferenceToleranceVoxel = MIN_VOLUME_DIFFERENCE_TOLERANCE_VOXEL;
   }
 
   // Make sure NRRD reading works
@@ -146,57 +261,103 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
-  // Create labelmap volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> labelmapScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  mrmlScene->AddNode(labelmapScalarVolumeNode);
-  labelmapScalarVolumeNode->SetName("PTV_Labelmap");
-  labelmapScalarVolumeNode->LabelMapOn();
-  //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
+  // Create reference labelmap volume node
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> referenceLabelmapScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  mrmlScene->AddNode(referenceLabelmapScalarVolumeNode);
+  referenceLabelmapScalarVolumeNode->SetName("Reference_Labelmap");
+  referenceLabelmapScalarVolumeNode->LabelMapOn();
 
-  // Load labelmap volume
-  std::string labelmapVolumeFileName = std::string(dataDirectoryPath) + "/PTV_Contour_Labelmap.nrrd";
-  if (!vtksys::SystemTools::FileExists(labelmapVolumeFileName.c_str()))
+  // Load reference labelmap volume
+  std::string referenceLabelmapVolumeFileName = std::string(dataDirectoryPath) + std::string(referenceContourLabelmapFile);
+  std::cerr << "file name is " << referenceLabelmapVolumeFileName << std::endl;
+  if (!vtksys::SystemTools::FileExists(referenceLabelmapVolumeFileName.c_str()))
   {
-    std::cerr << "Loading labelmap from file '" << labelmapVolumeFileName << "' failed - the file does not exist!" << std::endl;
+    std::cerr << "Loading labelmap from file '" << referenceLabelmapVolumeFileName << "' failed - the file does not exist!" << std::endl;
   }
 
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> labelmapVolumeArchetypeStorageNode =
+  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> referenceLabelmapVolumeArchetypeStorageNode =
     vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  mrmlScene->AddNode(labelmapVolumeArchetypeStorageNode);
-  labelmapVolumeArchetypeStorageNode->SetFileName(labelmapVolumeFileName.c_str());
-  //EXERCISE_BASIC_STORAGE_MRML_METHODS(vtkMRMLVolumeArchetypeStorageNode, doseVolumeArchetypeStorageNode);
+  mrmlScene->AddNode(referenceLabelmapVolumeArchetypeStorageNode);
+  referenceLabelmapVolumeArchetypeStorageNode->SetFileName(referenceLabelmapVolumeFileName.c_str());
 
-  labelmapScalarVolumeNode->SetAndObserveStorageNodeID(labelmapVolumeArchetypeStorageNode->GetID());
+  referenceLabelmapScalarVolumeNode->SetAndObserveStorageNodeID(referenceLabelmapVolumeArchetypeStorageNode->GetID());
 
-  if (! labelmapVolumeArchetypeStorageNode->ReadData(labelmapScalarVolumeNode))
+  if (! referenceLabelmapVolumeArchetypeStorageNode->ReadData(referenceLabelmapScalarVolumeNode))
   {
     mrmlScene->Commit();
-    std::cerr << "Reading labelmap from file '" << labelmapVolumeFileName << "' failed!" << std::endl;
+    std::cerr << "Reading labelmap from file '" << referenceLabelmapVolumeFileName << "' failed!" << std::endl;
     return EXIT_FAILURE;
   }
 
-  // Create contour node
-  vtkSmartPointer<vtkMRMLContourNode> contourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  contourNode->SetName("PTV_contour");
-  mrmlScene->AddNode(contourNode);
-  contourNode->SetAndObserveIndexedLabelmapVolumeNodeId(labelmapScalarVolumeNode->GetID());
-  contourNode->SetActiveRepresentationByNode(labelmapScalarVolumeNode);
+  // Create reference contour node
+  vtkSmartPointer<vtkMRMLContourNode> referenceContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+  referenceContourNode->SetName("Reference_contour");
+  mrmlScene->AddNode(referenceContourNode);
+  referenceContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(referenceLabelmapScalarVolumeNode->GetID());
+  referenceContourNode->SetActiveRepresentationByNode(referenceLabelmapScalarVolumeNode);
+
+  // Create input labelmap volume node
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> inputLabelmapScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  mrmlScene->AddNode(inputLabelmapScalarVolumeNode);
+  inputLabelmapScalarVolumeNode->SetName("Input_Labelmap");
+  inputLabelmapScalarVolumeNode->LabelMapOn();
+
+  // Load input labelmap volume
+  std::string inputLabelmapVolumeFileName = std::string(dataDirectoryPath) + std::string(inputContourLabelmapFileName);
+  if (!vtksys::SystemTools::FileExists(inputLabelmapVolumeFileName.c_str()))
+  {
+    std::cerr << "Loading labelmap from file '" << inputLabelmapVolumeFileName << "' failed - the file does not exist!" << std::endl;
+  }
+
+  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> inputLabelmapVolumeArchetypeStorageNode =
+    vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
+  mrmlScene->AddNode(inputLabelmapVolumeArchetypeStorageNode);
+  inputLabelmapVolumeArchetypeStorageNode->SetFileName(inputLabelmapVolumeFileName.c_str());
+
+  inputLabelmapScalarVolumeNode->SetAndObserveStorageNodeID(inputLabelmapVolumeArchetypeStorageNode->GetID());
+
+  if (! inputLabelmapVolumeArchetypeStorageNode->ReadData(inputLabelmapScalarVolumeNode))
+  {
+    mrmlScene->Commit();
+    std::cerr << "Reading labelmap from file '" << inputLabelmapVolumeFileName << "' failed!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  // Create input contour node
+  vtkSmartPointer<vtkMRMLContourNode> inputContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+  inputContourNode->SetName("Input_contour");
+  mrmlScene->AddNode(inputContourNode);
+  inputContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(inputLabelmapScalarVolumeNode->GetID());
+  inputContourNode->SetActiveRepresentationByNode(inputLabelmapScalarVolumeNode);
+
+  if (applySimpleTransformToInput == 1)
+  {
+    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+    transform->Identity();
+    transform->Translate(0,0,-5);
+
+    vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+    transformNode = vtkMRMLLinearTransformNode::SafeDownCast(mrmlScene->AddNode(transformNode));
+    transformNode->SetAndObserveMatrixTransformToParent(transform->GetMatrix());
+
+    inputContourNode->SetAndObserveTransformNodeID(transformNode->GetID());
+  }
 
   // Create output contour node
   vtkSmartPointer<vtkMRMLContourNode> outputContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  outputContourNode->SetName("OutputContour");
+  outputContourNode->SetName("Output_Contour");
   mrmlScene->AddNode(outputContourNode);
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLContourMorphologyNode> paramNode = vtkSmartPointer<vtkMRMLContourMorphologyNode>::New();
   mrmlScene->AddNode(paramNode);
-  paramNode->SetAndObserveReferenceContourNodeID(contourNode->GetID());
-  paramNode->SetAndObserveInputContourNodeID(contourNode->GetID());
+  paramNode->SetAndObserveReferenceContourNodeID(referenceContourNode->GetID());
+  paramNode->SetAndObserveInputContourNodeID(inputContourNode->GetID());
   paramNode->SetAndObserveOutputContourNodeID(outputContourNode->GetID());
-  paramNode->SetOperationToExpand();
-  paramNode->SetXSize(5);
-  paramNode->SetYSize(5);
-  paramNode->SetZSize(5);
+  paramNode->SetOperation(operation);
+  paramNode->SetXSize(morphologicalParameter);
+  paramNode->SetYSize(morphologicalParameter);
+  paramNode->SetZSize(morphologicalParameter);
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerContourMorphologyModuleLogic> contourMorphologyLogic = vtkSmartPointer<vtkSlicerContourMorphologyModuleLogic>::New();
@@ -219,36 +380,35 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
 
   mrmlScene->Commit();
   
-  // Create baseline expand labelmap node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> labelmapExpandBaselineScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  mrmlScene->AddNode(labelmapExpandBaselineScalarVolumeNode);
-  labelmapExpandBaselineScalarVolumeNode->SetName("PTV_Labelmap_Exp");
-  //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
+  // Create baseline labelmap node
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> baselineLabelmapScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  mrmlScene->AddNode(baselineLabelmapScalarVolumeNode);
+  baselineLabelmapScalarVolumeNode->SetName("Baseline_Labelmap");
 
   // Load baseline labelmap volume
-  std::string labelmapExpandBaselineVolumeFileName = std::string(dataDirectoryPath) + "/PTV_Contour_Labelmap_Exp.nrrd";
-  if (!vtksys::SystemTools::FileExists(labelmapExpandBaselineVolumeFileName.c_str()))
+  std::string baselineLabelmapVolumeFileName = std::string(dataDirectoryPath) + std::string(baselineContourLabelmapFileName);
+  if (!vtksys::SystemTools::FileExists(baselineLabelmapVolumeFileName.c_str()))
   {
-    std::cerr << "Loading labelmap from file '" << labelmapExpandBaselineVolumeFileName << "' failed - the file does not exist!" << std::endl;
+    std::cerr << "Loading labelmap from file '" << baselineLabelmapVolumeFileName << "' failed - the file does not exist!" << std::endl;
   }
 
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> labelmapExpandBaselineVolumeArchetypeStorageNode =
+  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> baselineLabelmapVolumeArchetypeStorageNode =
     vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  mrmlScene->AddNode(labelmapExpandBaselineVolumeArchetypeStorageNode);
-  labelmapExpandBaselineVolumeArchetypeStorageNode->SetFileName(labelmapExpandBaselineVolumeFileName.c_str());
-  labelmapExpandBaselineScalarVolumeNode->SetAndObserveStorageNodeID(labelmapExpandBaselineVolumeArchetypeStorageNode->GetID());
+  mrmlScene->AddNode(baselineLabelmapVolumeArchetypeStorageNode);
+  baselineLabelmapVolumeArchetypeStorageNode->SetFileName(baselineLabelmapVolumeFileName.c_str());
+  baselineLabelmapScalarVolumeNode->SetAndObserveStorageNodeID(baselineLabelmapVolumeArchetypeStorageNode->GetID());
 
-  if (! labelmapExpandBaselineVolumeArchetypeStorageNode->ReadData(labelmapExpandBaselineScalarVolumeNode))
+  if (! baselineLabelmapVolumeArchetypeStorageNode->ReadData(baselineLabelmapScalarVolumeNode))
   {
     mrmlScene->Commit();
-    std::cerr << "Reading labelmap from file '" << labelmapExpandBaselineVolumeFileName << "' failed!" << std::endl;
+    std::cerr << "Reading labelmap from file '" << baselineLabelmapVolumeFileName << "' failed!" << std::endl;
     return EXIT_FAILURE;
   }
   mrmlScene->Commit();
 
   vtkSmartPointer<vtkImageMathematics> difference = vtkSmartPointer<vtkImageMathematics>::New();
   difference->SetInput1(outputLabelmapNode->GetImageData());
-  difference->SetInput2(labelmapExpandBaselineScalarVolumeNode->GetImageData());
+  difference->SetInput2(baselineLabelmapScalarVolumeNode->GetImageData());
   difference->SetOperationToSubtract();
   difference->Update();
 
@@ -258,123 +418,9 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   histogram->IgnoreZeroOn();
   histogram->Update();
   
-  if (histogram->GetVoxelCount() > volumeDifferenceToleranceCc)
+  if (histogram->GetVoxelCount() > volumeDifferenceToleranceVoxel)
   {
-    std::cerr << "Contour Expanding: Volume difference Tolerance(Cc) exceeds threshold!" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  /////////////////
-  // Test shrinking
-  paramNode->SetOperationToShrink();
-  paramNode->SetXSize(5);
-  paramNode->SetYSize(5);
-  paramNode->SetZSize(5);
-
-  // Morph contour
-  contourMorphologyLogic->MorphContour();
-
-  // Create baseline expand labelmap node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> labelmapShrinkBaselineScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  mrmlScene->AddNode(labelmapShrinkBaselineScalarVolumeNode);
-  labelmapShrinkBaselineScalarVolumeNode->SetName("PTV_Labelmap_Shrinked");
-  //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
-
-  // Load dose volume
-  std::string labelmapShrinkBaselineVolumeFileName = std::string(dataDirectoryPath) + "/PTV_Contour_Labelmap_Shrk.nrrd";
-  if (!vtksys::SystemTools::FileExists(labelmapShrinkBaselineVolumeFileName.c_str()))
-  {
-    std::cerr << "Loading labelmap from file '" << labelmapShrinkBaselineVolumeFileName << "' failed - the file does not exist!" << std::endl;
-  }
-
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> labelmapShrinkBaselineVolumeArchetypeStorageNode =
-    vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  mrmlScene->AddNode(labelmapShrinkBaselineVolumeArchetypeStorageNode);
-  labelmapShrinkBaselineVolumeArchetypeStorageNode->SetFileName(labelmapShrinkBaselineVolumeFileName.c_str());
-  labelmapShrinkBaselineScalarVolumeNode->SetAndObserveStorageNodeID(labelmapShrinkBaselineVolumeArchetypeStorageNode->GetID());
-
-  if (! labelmapShrinkBaselineVolumeArchetypeStorageNode->ReadData(labelmapShrinkBaselineScalarVolumeNode))
-  {
-    mrmlScene->Commit();
-    std::cerr << "Reading labelmap from file '" << labelmapShrinkBaselineVolumeFileName << "' failed!" << std::endl;
-    return EXIT_FAILURE;
-  }
-  mrmlScene->Commit();
-
-  difference->SetInput1(outputLabelmapNode->GetImageData());
-  difference->SetInput2(labelmapShrinkBaselineScalarVolumeNode->GetImageData());
-  difference->SetOperationToSubtract();
-  difference->Update();
-
-  // Compute histogram
-  histogram->SetInput(difference->GetOutput());
-  histogram->IgnoreZeroOn();
-  histogram->Update();
-  
-  if (histogram->GetVoxelCount() > volumeDifferenceToleranceCc)
-  {
-    std::cerr << "Contour Shrinking: Volume difference Tolerance(Cc) exceeds threshold!" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // Create dose volume node
-  vtkSmartPointer<vtkMRMLContourNode> contourNode2 = vtkSmartPointer<vtkMRMLContourNode>::New();
-  contourNode2->SetName("PTV_Labelmap_Expanded");
-  mrmlScene->AddNode(contourNode2);
-  contourNode2->SetAndObserveIndexedLabelmapVolumeNodeId(labelmapExpandBaselineScalarVolumeNode->GetID());
-  contourNode2->SetActiveRepresentationByNode(labelmapExpandBaselineScalarVolumeNode);
-
-  /////////////
-  // Test union
-  paramNode->SetAndObserveReferenceContourNodeID(contourNode2->GetID());
-  paramNode->SetAndObserveInputContourNodeID(contourNode->GetID());
-  paramNode->SetOperationToUnion();
-
-  // Compute ContourMorphology
-  contourMorphologyLogic->MorphContour();
-
-  mrmlScene->Commit();
-
-  difference->SetInput1(labelmapExpandBaselineScalarVolumeNode->GetImageData());
-  difference->SetInput2(outputLabelmapNode->GetImageData());
-  difference->SetOperationToSubtract();
-  difference->Update();
-
-  // Compute histogram
-  histogram->SetInput(difference->GetOutput());
-  histogram->IgnoreZeroOn();
-  histogram->Update();
-  
-  if (histogram->GetVoxelCount() > volumeDifferenceToleranceCc)
-  {
-    std::cerr << "Contour Union: Volume difference Tolerance(Cc):" << histogram->GetVoxelCount() << " exceeds threshold!" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  ////////////////////
-  // Test intersection
-  paramNode->SetAndObserveReferenceContourNodeID(contourNode2->GetID());
-  paramNode->SetAndObserveInputContourNodeID(contourNode->GetID());
-  paramNode->SetOperationToIntersect();
-
-  // Compute ContourMorphology
-  contourMorphologyLogic->MorphContour();
-
-  mrmlScene->Commit();
-
-  difference->SetInput1(outputLabelmapNode->GetImageData());
-  difference->SetInput2(labelmapScalarVolumeNode->GetImageData());
-  difference->SetOperationToSubtract();
-  difference->Update();
-
-  // Compute histogram
-  histogram->SetInput(difference->GetOutput());
-  histogram->IgnoreZeroOn();
-  histogram->Update();
-  
-  if (histogram->GetVoxelCount() > volumeDifferenceToleranceCc)
-  {
-    std::cerr << "Contour Intersection: Volume difference Tolerance(Cc) exceeds threshold!" << std::endl;
+    std::cerr << "Contour Expanding: Volume difference Tolerance(Voxel) exceeds threshold!" << std::endl;
     return EXIT_FAILURE;
   }
 
