@@ -332,15 +332,15 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
 
   if (applySimpleTransformToInput == 1)
   {
-    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-    transform->Identity();
-    transform->Translate(0,0,-5);
+    vtkSmartPointer<vtkTransform> inputCompareTransform = vtkSmartPointer<vtkTransform>::New();
+    inputCompareTransform->Identity();
+    inputCompareTransform->Translate(0.0, 0.0, -5.0);
 
-    vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
-    transformNode = vtkMRMLLinearTransformNode::SafeDownCast(mrmlScene->AddNode(transformNode));
-    transformNode->SetAndObserveMatrixTransformToParent(transform->GetMatrix());
+    vtkSmartPointer<vtkMRMLLinearTransformNode> inputCompareTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+    inputCompareTransformNode->ApplyTransformMatrix(inputCompareTransform->GetMatrix());
+    mrmlScene->AddNode(inputCompareTransformNode);
 
-    inputContourNode->SetAndObserveTransformNodeID(transformNode->GetID());
+    inputContourNode->SetAndObserveTransformNodeID(inputCompareTransformNode->GetID());
   }
 
   // Create output contour node
