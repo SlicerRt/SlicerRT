@@ -25,6 +25,7 @@
 // PatientHierarchy includes
 #include "qSlicerPatientHierarchyModule.h"
 #include "qSlicerPatientHierarchyModuleWidget.h"
+#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerPatientHierarchyModule, qSlicerPatientHierarchyModule);
@@ -63,7 +64,7 @@ qSlicerPatientHierarchyModule::~qSlicerPatientHierarchyModule()
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerPatientHierarchyModule::createLogic()
 {
-  return NULL;
+  return vtkSlicerPatientHierarchyModuleLogic::New();
 }
 
 //-----------------------------------------------------------------------------

@@ -44,7 +44,16 @@ public:
 
   int NodeTypeColumn;
 
+  QIcon BeamIcon;
+  QIcon ContourIcon;
+  QIcon DoseVolumeIcon;
+  QIcon IsocenterIcon;
   QIcon PatientIcon;
+  QIcon PlanIcon;
+  QIcon ShowInViewersIcon;
+  QIcon StructureSetIcon;
+  QIcon StudyIcon;
+  QIcon VolumeIcon;
 };
 
 #endif

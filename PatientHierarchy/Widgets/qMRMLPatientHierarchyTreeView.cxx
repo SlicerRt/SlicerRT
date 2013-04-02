@@ -36,6 +36,9 @@
 // MRML includes
 #include <vtkMRMLHierarchyNode.h>
 #include <vtkMRMLDisplayNode.h>
+#include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLSliceCompositeNode.h>
+#include <vtkMRMLApplicationLogic.h>
 
 //------------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_PatientHierarchy
@@ -123,7 +126,11 @@ void qMRMLPatientHierarchyTreeView::toggleVisibility(const QModelIndex& index)
     contourNode->Modified();
     vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(contourNode);
   }
-  else if (node->IsA("vtkMRMLDisplayableNode") && !node->IsA("vtkMRMLVolumeNode"))
+  else if (node->IsA("vtkMRMLVolumeNode"))
+  {
+    this->showVolume(node);
+  }
+  else if (node->IsA("vtkMRMLDisplayableNode"))
   {
     vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
     int visible = (displayableNode->GetDisplayVisibility() ? 0 : 1);
@@ -144,11 +151,52 @@ void qMRMLPatientHierarchyTreeView::toggleVisibility(const QModelIndex& index)
 void qMRMLPatientHierarchyTreeView::setLogic(vtkSlicerPatientHierarchyModuleLogic* logic)
 {
   if (!logic)
-    {
+  {
     return;
-    }
+  }
 
   Q_D(qMRMLPatientHierarchyTreeView);
 
   d->Logic = logic;
+}
+
+//---------------------------------------------------------------------------
+void qMRMLPatientHierarchyTreeView::showVolume(vtkMRMLNode* node)
+{
+  if (!node)
+  {
+    std::cerr << "qMRMLPatientHierarchyTreeView::showVolume: NULL node given!" << std::endl;
+    return;
+  }
+
+  Q_D(qMRMLPatientHierarchyTreeView);
+
+  vtkMRMLSelectionNode* selectionNode = d->Logic->GetApplicationLogic()->GetSelectionNode();
+  if (!selectionNode)
+  {
+    vtkErrorWithObjectMacro(node, "ShowVolume: Unable to get selection node to show volume node " << node->GetName());
+    return;
+  }
+
+  vtkMRMLVolumeNode* volumeNode = NULL;
+  if ((volumeNode = vtkMRMLVolumeNode::SafeDownCast(node)) == NULL)
+  {
+    vtkErrorWithObjectMacro(node, "ShowVolume: Attribute node is not a volume node: " << node->GetName());
+    return;
+  }
+
+  selectionNode->SetSecondaryVolumeID(selectionNode->GetActiveVolumeID());
+  selectionNode->SetActiveVolumeID(volumeNode->GetID());
+  d->Logic->GetApplicationLogic()->PropagateVolumeSelection();
+
+  vtkMRMLSliceCompositeNode *cnode = NULL;
+  const int nnodes = volumeNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
+  for (int i = 0; i < nnodes; i++)
+  {
+    cnode = vtkMRMLSliceCompositeNode::SafeDownCast ( volumeNode->GetScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
+    if (cnode && cnode->GetForegroundOpacity() == 0.0)
+    {
+      cnode->SetForegroundOpacity(0.5);
+    }
+  }
 }

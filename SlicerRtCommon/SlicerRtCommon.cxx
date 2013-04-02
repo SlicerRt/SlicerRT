@@ -249,3 +249,23 @@ bool SlicerRtCommon::IsPatientHierarchyNode(vtkMRMLNode *node)
 
   return isPatientHierarchyNode;
 }
+
+//---------------------------------------------------------------------------
+bool SlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
+{
+  if (!node)
+  {
+    return false;
+  }
+
+  if (node->IsA("vtkMRMLVolumeNode"))
+  {
+    const char* doseUnitName = node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+    if (doseUnitName != NULL)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}

@@ -39,7 +39,16 @@ qMRMLScenePatientHierarchyModelPrivate::qMRMLScenePatientHierarchyModelPrivate(q
 {
   this->NodeTypeColumn = -1;
 
+  this->BeamIcon = QIcon(":Icons/Beam.png");
+  this->ContourIcon = QIcon(":Icons/Contour.png");
+  this->DoseVolumeIcon = QIcon(":Icons/DoseVolume.png");
+  this->IsocenterIcon = QIcon(":Icons/Isocenter.png");
   this->PatientIcon = QIcon(":Icons/Patient.png");
+  this->PlanIcon = QIcon(":Icons/Plan.png");
+  this->ShowInViewersIcon = QIcon(":Icons/ShowInViewers.png");
+  this->StructureSetIcon = QIcon(":Icons/StructureSet.png");
+  this->StudyIcon = QIcon(":Icons/Study.png");
+  this->VolumeIcon = QIcon(":Icons/Volume.png");
 }
 
 //------------------------------------------------------------------------------
@@ -165,11 +174,10 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       visible = displayableNode->GetDisplayVisibility();
     }
 
-    // Disable icon for volume nodes
+    // Always set a different icon to volumes. If not a volume then set the appropriate eye icon
     if (node->IsA("vtkMRMLVolumeNode"))
     {
-      QIcon emptyIcon;
-      item->setIcon(emptyIcon);
+      item->setIcon(d->ShowInViewersIcon);
     }
     // It should be fine to set the icon even if it is the same, but due
     // to a bug in Qt (http://bugreports.qt.nokia.com/browse/QTBUG-20248),
@@ -205,22 +213,51 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
         vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY) )
       {
-        //TODO: Add study icon
+        item->setIcon(d->StudyIcon);
       }
       else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
         vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES) )
       {
-        //TODO: Check for volume, structure set, etc.
+        if (node->IsA("vtkMRMLContourHierarchyNode"))
+        {
+          item->setIcon(d->StructureSetIcon);
+        }
+        //TODO: Set icon for plan
       }
       else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
         vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES) )
       {
-        //TODO: Check for contour, isocenter, beam, etc.
+        // Set icon for PH type subseries objects here
       }
       else
       {
         vtkWarningWithObjectMacro(node, "Invalid DICOM level found for node '" << node->GetName() << "'");
       }
+    }
+    else if (node->IsA("vtkMRMLVolumeNode"))
+    {
+      if (SlicerRtCommon::IsDoseVolumeNode(node))
+      {
+        item->setIcon(d->DoseVolumeIcon);
+      }
+      else
+      {
+        item->setIcon(d->VolumeIcon);
+      }
+    }
+    else if (node->IsA("vtkMRMLContourNode"))
+    {
+      item->setIcon(d->ContourIcon);
+    }
+    else if (node->IsA("vtkMRMLAnnotationFiducialNode"))
+    {
+      // TODO: add check to make sure it is an actual isocenter
+      item->setIcon(d->IsocenterIcon);
+    }
+    else if (node->IsA("vtkMRMLModelNode"))
+    {
+      // TODO: add check to make sure it is an actual beam
+      item->setIcon(d->BeamIcon);
     }
   }
 }

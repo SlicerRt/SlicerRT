@@ -156,20 +156,6 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDoseComparisonModuleLogic::DoseVolumeContainsDose(vtkMRMLNode* node)
-{
-  vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
-  const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
-
-  if (doseUnitName != NULL)
-  {
-    return true;
-  }
-
-  return false;
-}
-
-//---------------------------------------------------------------------------
 void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 {
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();

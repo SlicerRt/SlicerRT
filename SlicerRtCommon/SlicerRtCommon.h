@@ -152,6 +152,9 @@ public:
   /// Determine if a node is a patient hierarchy node
   static bool IsPatientHierarchyNode(vtkMRMLNode* node);
 
+  /// Determine if a node is a dose volume node
+  static bool IsDoseVolumeNode(vtkMRMLNode* node);
+
 //BTX
   /*!
     Convert VTK image to ITK image

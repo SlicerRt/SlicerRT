@@ -199,17 +199,8 @@ bool vtkSlicerDoseAccumulationModuleLogic::ReferenceDoseVolumeContainsDose()
     return false;
   }
 
-  vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->DoseAccumulationNode->GetReferenceDoseVolumeNodeId()));
-
-  const char* doseUnitName = referenceDoseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
-
-  if (doseUnitName != NULL)
-  {
-    return true;
-  }
-
-  return false;
+  vtkMRMLNode* referenceDoseVolumeNode = this->GetMRMLScene()->GetNodeByID(this->DoseAccumulationNode->GetReferenceDoseVolumeNodeId());
+  return SlicerRtCommon::IsDoseVolumeNode(referenceDoseVolumeNode);
 }
 
 //---------------------------------------------------------------------------

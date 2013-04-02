@@ -49,6 +49,10 @@ protected:
   /// Toggle visibility
   virtual void toggleVisibility(const QModelIndex& index);
 
+  /// Show volume in slice viewers. The argument node becomes the background, and the previous
+  /// background becomes the foreground with 50% transparency.
+  void showVolume(vtkMRMLNode* node);
+
 protected:
   QScopedPointer<qMRMLPatientHierarchyTreeViewPrivate> d_ptr;
 

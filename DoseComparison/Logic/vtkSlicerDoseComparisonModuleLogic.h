@@ -49,9 +49,6 @@ public:
   /// Compute gamma metric according to the selected input volumes and parameters (DoseComparison parameter set node content)
   void ComputeGammaDoseDifference();
 
-  /// Return false if the argument volume contains a volume that is really a dose volume
-  bool DoseVolumeContainsDose(vtkMRMLNode* node);
-
 public:
   void SetAndObserveDoseComparisonNode(vtkMRMLDoseComparisonNode* node);
   vtkGetObjectMacro(DoseComparisonNode, vtkMRMLDoseComparisonNode);

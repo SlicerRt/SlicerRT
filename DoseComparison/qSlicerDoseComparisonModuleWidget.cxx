@@ -474,11 +474,11 @@ void qSlicerDoseComparisonModuleWidget::checkDoseVolumeAttributes()
   vtkMRMLVolumeNode* compareDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetCompareDoseVolumeNodeId()));
 
-  if (referenceDoseVolumeNode && !d->logic()->DoseVolumeContainsDose(referenceDoseVolumeNode))
+  if (referenceDoseVolumeNode && !SlicerRtCommon::IsDoseVolumeNode(referenceDoseVolumeNode))
   {
     d->label_Warning->setText(tr(" Selected reference volume is not a dose"));
   }
-  else if (compareDoseVolumeNode && !d->logic()->DoseVolumeContainsDose(compareDoseVolumeNode))
+  else if (compareDoseVolumeNode && !SlicerRtCommon::IsDoseVolumeNode(compareDoseVolumeNode))
   {
     d->label_Warning->setText(tr(" Selected compare volume is not a dose"));
   }
