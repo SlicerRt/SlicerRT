@@ -4,7 +4,7 @@
   <title>Matlab Commander</title>
   <description>This module allows running Matlab commands from Slicer.</description>
   <version>0.0</version>
-  <documentation-url>https://www.assembla.com/spaces/slicerrt</documentation-url>
+  <documentation-url>http://slicerrt.org</documentation-url>
   <license>BSD-style</license>
   <contributor>Please direct questions or suggestions to Andras Lasso</contributor>
   <acknowledgements>SlicerRT</acknowledgements>
