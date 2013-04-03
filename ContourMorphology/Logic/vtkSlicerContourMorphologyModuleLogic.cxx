@@ -244,7 +244,8 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
 
   vtkSmartPointer<vtkGeneralTransform> referenceLabelmapNodeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   referenceLabelmapNodeToWorldTransform->Identity();
-  vtkSmartPointer<vtkMRMLTransformNode> referenceLabelmapNodeTransformNode = referenceLabelmapNode->GetParentTransformNode();
+  vtkSmartPointer<vtkMRMLTransformNode> referenceLabelmapNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(referenceLabelmapNode->GetTransformNodeID()));
   if (referenceLabelmapNodeTransformNode!=NULL)
   {
     referenceLabelmapNodeTransformNode->GetTransformToWorld(referenceLabelmapNodeToWorldTransform);    
@@ -261,7 +262,8 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   outputResliceTransform->PostMultiply();
   outputResliceTransform->SetMatrix(inputIJK2RASMatrix);
 
-  vtkSmartPointer<vtkMRMLTransformNode> inputLabelmapNodeTransformNode = inputLabelmapNode->GetParentTransformNode();
+  vtkSmartPointer<vtkMRMLTransformNode> inputLabelmapNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(inputContourNode->GetTransformNodeID()));
   vtkSmartPointer<vtkMatrix4x4> inputRAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   if (inputLabelmapNodeTransformNode!=NULL)
   {
