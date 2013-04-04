@@ -83,6 +83,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   
   add_subdirectory(MatlabCommander)
   add_subdirectory(DicomRtExport)
+  add_subdirectory(RTPlan)
 endif()
 
 if(BUILD_TESTING)
