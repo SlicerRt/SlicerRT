@@ -82,7 +82,7 @@ QString qSlicerRTPlanModule::acknowledgementText()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerRTPlanModule::categories() const
 {
-  return QStringList() << "AdaptiveRT";
+  return QStringList() << "Radiotherapy";
 }
 
 //-----------------------------------------------------------------------------
