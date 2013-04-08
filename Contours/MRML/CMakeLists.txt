@@ -25,7 +25,7 @@ SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
-  vtkSlicerPatientHierarchyModuleLogic
+  MRMLCore
   ${ITK_LIBRARIES}
   )
 

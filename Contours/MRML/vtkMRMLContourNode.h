@@ -87,6 +87,11 @@ public:
   virtual void SetDisplayVisibility(int visible);
 
 public:
+  /// Determines if the argument node is a representation object of a Contour node in the scene
+  /// \return The found contour node whose representation the argument node is, NULL if node is not a representation
+  static vtkMRMLContourNode* IsNodeAContourRepresentation(vtkMRMLScene* scene, vtkMRMLNode* node);
+
+public:
   /// Set default representation by the object instance
   void SetActiveRepresentationByNode(vtkMRMLDisplayableNode *node);
 

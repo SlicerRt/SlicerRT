@@ -347,6 +347,6 @@ void qSlicerBeamsModuleWidget::refreshOutputBaseName()
     newSourceFiducialBaseName.append(isocenterNode->GetName());
   }
 
-  d->MRMLNodeComboBox_BeamModel->setBaseName( newBeamModelBaseName.toLatin1() );
-  d->MRMLNodeComboBox_SourceFiducial->setBaseName( newSourceFiducialBaseName.toLatin1() );
+  d->MRMLNodeComboBox_BeamModel->setBaseName( newBeamModelBaseName );
+  d->MRMLNodeComboBox_SourceFiducial->setBaseName( newSourceFiducialBaseName );
 }

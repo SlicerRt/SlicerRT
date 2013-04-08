@@ -93,6 +93,9 @@ qMRMLPatientHierarchyTreeView::qMRMLPatientHierarchyTreeView(QWidget *parent)
 {
   Q_D(qMRMLPatientHierarchyTreeView);
   d->init();
+
+  connect( d->SceneModel, SIGNAL(sceneUpdated()), this, SIGNAL(treeViewUpdated()) );
+  connect( d->SceneModel, SIGNAL(nodeAdded()), this, SIGNAL(treeViewUpdated()) );
 }
 
 //------------------------------------------------------------------------------

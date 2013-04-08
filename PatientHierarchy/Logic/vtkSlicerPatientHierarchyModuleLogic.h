@@ -34,6 +34,7 @@
 #include "vtkSlicerPatientHierarchyModuleLogicExport.h"
 
 class vtkMRMLHierarchyNode;
+class vtkStringArray;
 
 /// \ingroup Slicer_QtModules_PatientHierarchy
 class VTK_SLICER_PATIENTHIERARCHY_LOGIC_EXPORT vtkSlicerPatientHierarchyModuleLogic :
@@ -52,11 +53,11 @@ public:
 
 public:
   /// Find patient hierarchy node according to a UID and database
-  static vtkMRMLHierarchyNode* GetPatientHierarchyNodeByUID(vtkMRMLScene *scene, const char* uid);
+  static vtkMRMLHierarchyNode* GetPatientHierarchyNodeByUID(vtkMRMLScene* scene, const char* uid);
 
   /// Place series in patient hierarchy. Create patient and study node if needed
   static void InsertDicomSeriesInHierarchy(
-    vtkMRMLScene *scene, const char* patientId, const char* studyInstanceUID, const char* seriesInstanceUID );
+    vtkMRMLScene* scene, const char* patientId, const char* studyInstanceUID, const char* seriesInstanceUID );
 
   /// Determine if two patient hierarchy nodes are in the same branch (share the same parent)
   /// \param nodeId1 ID of the first node to check. Can be patient hierarchy node or a node
@@ -65,7 +66,7 @@ public:
   /// \param lowestCommonLevel Lowest level on which they have to share an ancestor
   /// \return True if the two nodes or their associated hierarchy nodes share a parent on the
   ///   specified level, false otherwise
-  static bool AreNodesInSameBranch( vtkMRMLScene *scene,
+  static bool AreNodesInSameBranch( vtkMRMLScene* scene,
     const char* nodeId1, const char* nodeId2, const char* lowestCommonLevel=NULL );
 
   /// Set patient hierarchy branch visibility
@@ -83,6 +84,14 @@ public:
   /// \param level DICOM level to check (should be one of the logic constants)
   /// \return True if the node is of the specified level, false otherwise
   static bool IsDicomLevel( vtkMRMLNode* node, const char* level );
+
+public:
+  /// Get all nodes by type that are outside the Patient Hierarchy
+  /// \param nodeCollection Collection for the found nodes
+  /// \param className Name of the MRML node class we want to look for (e.g. "vtkMRMLVolumeNode")
+  ///                  If NULL, then the considered type is vtkMRMLNode
+  /// \param includeHiddenNodes Specifies if hidden nodes should be included in the result list
+  void GetNodesOutsidePatientHierarchy(vtkCollection* nodeCollection, const char* className=NULL, bool includeHiddenNodes=false);
 
 protected:
   vtkSlicerPatientHierarchyModuleLogic();

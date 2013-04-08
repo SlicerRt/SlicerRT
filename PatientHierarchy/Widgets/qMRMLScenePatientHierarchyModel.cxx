@@ -267,7 +267,7 @@ void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
 {
   if ( item->column() == this->nameColumn() )
   {
-    node->SetName(item->text().toLatin1());
+    node->SetName(item->text().toLatin1().constData());
   }
   if ( item->column() == this->visibilityColumn()
     && !item->data(VisibilityRole).isNull() )
@@ -297,4 +297,11 @@ void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
       }
     }
   }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLScenePatientHierarchyModel::onMRMLSceneNodeAdded(vtkMRMLScene* scene, vtkMRMLNode* node)
+{
+  Superclass::onMRMLSceneNodeAdded(scene, node);
+  emit nodeAdded();
 }

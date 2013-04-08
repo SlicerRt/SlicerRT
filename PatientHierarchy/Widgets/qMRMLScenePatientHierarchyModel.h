@@ -61,7 +61,14 @@ public:
   int nodeTypeColumn()const;
   void setNodeTypeColumn(int column);
 
+signals:
+  /// Signal invoked when a node is added to the scene
+  void nodeAdded();
+
 protected:
+  /// Overridden function for performing additional steps when a node is added
+  virtual void onMRMLSceneNodeAdded(vtkMRMLScene* scene, vtkMRMLNode* node);
+
   /// Get the largest column ID
   virtual int maxColumnId()const;
 

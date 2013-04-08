@@ -173,7 +173,7 @@ void vtkSlicerDicomRtReader::Update()
     QSettings settings;
     QString databaseDirectory = settings.value("DatabaseDirectory").toString();
     QString databaseFile = databaseDirectory + DICOMRTREADER_DICOM_DATABASE_FILENAME.c_str();
-    this->SetDatabaseFile(databaseFile.toLatin1());
+    this->SetDatabaseFile(databaseFile.toLatin1().constData());
 
     // load DICOM file or dataset
     DcmFileFormat fileformat;

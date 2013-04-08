@@ -386,7 +386,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateChartCheckboxesState()
 
     for (int i=0; i<arraysInSelectedChart->GetNumberOfValues(); ++i)
     {
-      if (arraysInSelectedChart->GetValue(i).compare(it.value().second.toLatin1()) == 0)
+      if (arraysInSelectedChart->GetValue(i).compare(it.value().second.toLatin1().constData()) == 0)
       {
         it.key()->setChecked(true);
         break;
@@ -635,7 +635,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     }
 
     // Store checkbox with the augmented structure set name and the double array ID
-    dvhNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), plotName.toLatin1());
+    dvhNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), plotName.toLatin1().constData());
     d->ChartCheckboxToStructureSetNameMap[checkbox] = QPair<QString, QString>(plotName, dvhNode->GetID());
 
     d->tableWidget_ChartStatistics->setCellWidget(i, 0, checkbox);
@@ -778,11 +778,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aS
 
   if (aState)
   {
-    d->logic()->AddDvhToSelectedChart(d->ChartCheckboxToStructureSetNameMap[senderCheckbox].first.toLatin1(), d->ChartCheckboxToStructureSetNameMap[senderCheckbox].second.toLatin1());
+    d->logic()->AddDvhToSelectedChart(d->ChartCheckboxToStructureSetNameMap[senderCheckbox].first.toLatin1().constData(), d->ChartCheckboxToStructureSetNameMap[senderCheckbox].second.toLatin1().constData());
   }
   else
   {
-    d->logic()->RemoveDvhFromSelectedChart(d->ChartCheckboxToStructureSetNameMap[senderCheckbox].first.toLatin1());
+    d->logic()->RemoveDvhFromSelectedChart(d->ChartCheckboxToStructureSetNameMap[senderCheckbox].first.toLatin1().constData());
   }
 
   if (!d->ShowHideAllClicked)
@@ -1018,7 +1018,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetVDoseValues(aText.toLatin1());
+  paramNode->SetVDoseValues(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
   this->refreshDvhTable();
@@ -1072,7 +1072,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aTe
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetDVolumeValuesCc(aText.toLatin1());
+  paramNode->SetDVolumeValuesCc(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
   this->refreshDvhTable();
@@ -1090,7 +1090,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QStrin
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetDVolumeValuesPercent(aText.toLatin1());
+  paramNode->SetDVolumeValuesPercent(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
   this->refreshDvhTable();

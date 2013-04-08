@@ -1270,3 +1270,41 @@ void vtkMRMLContourNode::SetDisplayVisibility(int visible)
   }
 }
 
+//---------------------------------------------------------------------------
+vtkMRMLContourNode* vtkMRMLContourNode::IsNodeAContourRepresentation(vtkMRMLScene* scene, vtkMRMLNode* node)
+{
+  if (!scene)
+  {
+    std::cerr << "vtkMRMLContourNode::IsNodeAContourRepresentation: NULL argument given!" << std::endl;
+    return NULL;
+  }
+
+  if (!node)
+  {
+    vtkErrorWithObjectMacro(scene, "IsNodeAContourRepresentation: Invalid nodeID argument!");
+    return NULL;
+  }
+
+  // If the node is neither a model nor a volume, the it cannot be a representation
+  if (!node->IsA("vtkMRMLModelNode") && !node->IsA("vtkMRMLVolumeNode"))
+  {
+    return NULL;
+  }
+
+  // Check every contour node if they have the argument node among the representations
+  const char* nodeID = node->GetID();
+  vtkCollection* contourNodes = scene->GetNodesByClass("vtkMRMLContourNode");
+  vtkObject* nextObject = NULL;
+  for (contourNodes->InitTraversal(); nextObject = contourNodes->GetNextItemAsObject(); )
+  {
+    vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(nextObject);
+    if ( (contourNode->GetRibbonModelNodeId() && !STRCASECMP(contourNode->GetRibbonModelNodeId(), nodeID))
+      || (contourNode->GetIndexedLabelmapVolumeNodeId() && !STRCASECMP(contourNode->GetIndexedLabelmapVolumeNodeId(), nodeID))
+      || (contourNode->GetClosedSurfaceModelNodeId() && !STRCASECMP(contourNode->GetClosedSurfaceModelNodeId(), nodeID)) )
+    {
+      return contourNode;
+    }
+  }
+
+  return NULL;
+}

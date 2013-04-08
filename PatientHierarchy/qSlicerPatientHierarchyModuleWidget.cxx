@@ -113,6 +113,7 @@ void qSlicerPatientHierarchyModuleWidget::setup()
   // Set up tree view
   d->PatientHierarchyTreeView->setLogic( vtkSlicerPatientHierarchyModuleLogic::SafeDownCast(this->logic()) );
   connect( d->PatientHierarchyTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)), d->MRMLNodeAttributeTableWidget, SLOT(setMRMLNode(vtkMRMLNode*)) );
+  connect( d->PatientHierarchyTreeView, SIGNAL(treeViewUpdated()), this, SLOT(populateOtherNodesList()) );
 
   this->setMRMLIDsVisible(d->DisplayMRMLIDsCheckBox->isChecked());
 }
@@ -137,4 +138,36 @@ void qSlicerPatientHierarchyModuleWidget::setMRMLIDsVisible(bool visible)
     d->PatientHierarchyTreeView->resizeColumnToContents(i);
   }
   d->DisplayMRMLIDsCheckBox->setChecked(visible);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPatientHierarchyModuleWidget::populateOtherNodesList()
+{
+  Q_D(qSlicerPatientHierarchyModuleWidget);
+
+  d->listWidget_OtherNodes->clear();
+
+  vtkSlicerPatientHierarchyModuleLogic* logic = vtkSlicerPatientHierarchyModuleLogic::SafeDownCast(this->logic());
+  vtkSmartPointer<vtkCollection> otherNodes = vtkSmartPointer<vtkCollection>::New();
+
+  QStringList patientHierarchyLeafNodeTypes;
+  //TODO: Add beam and plan nodes once they are done
+  patientHierarchyLeafNodeTypes << "vtkMRMLContourNode" << "vtkMRMLModelNode" << "vtkMRMLVolumeNode"; // vtkMRMLModelNode includes annotations too
+
+  foreach (QString nodeType, patientHierarchyLeafNodeTypes)
+  {
+    logic->GetNodesOutsidePatientHierarchy(otherNodes, nodeType.toLatin1().constData());
+
+    vtkObject* nextObject = NULL;
+    for (otherNodes->InitTraversal(); nextObject = otherNodes->GetNextItemAsObject(); )
+    {
+      vtkMRMLNode* otherNode = vtkMRMLNode::SafeDownCast(nextObject);
+
+      QListWidgetItem* newItem = new QListWidgetItem(QString(otherNode->GetName()));
+      newItem->setToolTip(QString(otherNode->GetNodeTagName()));
+      newItem->setData(Qt::UserRole, QVariant(otherNode->GetID()));
+
+      d->listWidget_OtherNodes->addItem(newItem);
+    }
+  }
 }

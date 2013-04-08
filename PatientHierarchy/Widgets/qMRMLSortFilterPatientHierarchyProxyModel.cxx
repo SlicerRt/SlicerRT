@@ -69,10 +69,6 @@ qMRMLSortFilterPatientHierarchyProxyModel::~qMRMLSortFilterPatientHierarchyProxy
 qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
 ::filterAcceptsNode(vtkMRMLNode* node)const
 {
-  //TODO: Only PatientHierarchy nodes should be visible
-  // (maybe (option to) hide the hierarchy node if a displayable node is
-  // associated with it)
-
   if (!node)
   {
     return Accept;
@@ -100,11 +96,9 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
     }
   }
 
-  // Accept if potential leaf node
-  if ( node->IsA("vtkMRMLContourNode")
-    || node->IsA("vtkMRMLModelNode")
-    || node->IsA("vtkMRMLVolumeNode")
-    || node->IsA("vtkMRMLAnnotationNode") )
+  // Accept if leaf node
+  vtkMRMLHierarchyNode* possiblePhNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->mrmlScene(), node->GetID());
+  if (SlicerRtCommon::IsPatientHierarchyNode(possiblePhNode))
   {
     return AcceptButPotentiallyRejectable;
   }

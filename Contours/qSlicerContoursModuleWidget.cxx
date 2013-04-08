@@ -714,7 +714,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
       vtkMRMLScalarVolumeNode* indexedLabelmapNode = (*it)->GetIndexedLabelmapVolumeNode();
       if (!indexedLabelmapNode)
       {
-        std::cerr << "Failed to get '" << (std::string)d->comboBox_ChangeActiveRepresentation->currentText().toLatin1()
+        std::cerr << "Failed to get '" << (std::string)d->comboBox_ChangeActiveRepresentation->currentText().toLatin1().constData()
           << "' representation from contour node '" << (*it)->GetName() << "' !" << std::endl;
       }
       else
@@ -739,7 +739,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
       vtkMRMLModelNode* closedSurfaceModelNode = (*it)->GetClosedSurfaceModelNode();
       if (!closedSurfaceModelNode)
       {
-        std::cerr << "Failed to get '" << (std::string)d->comboBox_ChangeActiveRepresentation->currentText().toLatin1()
+        std::cerr << "Failed to get '" << (std::string)d->comboBox_ChangeActiveRepresentation->currentText().toLatin1().constData()
           << "' representation from contour node '" << (*it)->GetName() << "' !" << std::endl;
       }
       else

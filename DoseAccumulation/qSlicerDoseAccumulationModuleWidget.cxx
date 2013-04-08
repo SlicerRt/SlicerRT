@@ -411,7 +411,7 @@ void qSlicerDoseAccumulationModuleWidget::onTableItemChanged(QTableWidgetItem* c
 
   // Revert the edited text if the cell is "non-editable"
   d->tableWidget_Volumes->blockSignals(true);
-  changedItem->setText( d->SelectedTableItemText.toLatin1() );
+  changedItem->setText( d->SelectedTableItemText );
   d->tableWidget_Volumes->blockSignals(false);
 }
 
@@ -534,5 +534,5 @@ void qSlicerDoseAccumulationModuleWidget::refreshOutputBaseName()
     }
   }
 
-  d->MRMLNodeComboBox_AccumulatedDoseVolume->setBaseName( newBaseName.toLatin1() );
+  d->MRMLNodeComboBox_AccumulatedDoseVolume->setBaseName( newBaseName );
 }

@@ -24,6 +24,7 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
 
 // MRML includes
 #include <vtkMRMLHierarchyNode.h>
@@ -32,6 +33,7 @@
 
 // VTK includes
 #include <vtkNew.h>
+#include <vtkStringArray.h>
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
@@ -79,7 +81,7 @@ void vtkSlicerPatientHierarchyModuleLogic::UpdateFromMRMLScene()
 
 //---------------------------------------------------------------------------
 vtkMRMLHierarchyNode*
-vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID( vtkMRMLScene *scene, const char* uid )
+vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(vtkMRMLScene* scene, const char* uid)
 {
   if (!scene || !uid)
   {
@@ -203,6 +205,7 @@ bool vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLScene *sc
 {
   if ( !scene || !nodeId1 || !nodeId2 )
   {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch: NULL arguments given!" << std::endl;
     return false;
   }
 
@@ -420,4 +423,43 @@ bool vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( vtkMRMLNode* node, cons
   }
 
   return false;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPatientHierarchyModuleLogic::GetNodesOutsidePatientHierarchy(vtkCollection* nodeCollection, const char* className/*=NULL*/, bool includeHiddenNodes/*=false*/)
+{
+  if (!nodeCollection)
+  {
+    vtkErrorMacro("GetNodesOutsidePatientHierarchyOfType: Null pointer given as output collection!");
+    return;
+  }
+
+  nodeCollection->RemoveAllItems();
+  nodeCollection->InitTraversal();
+
+  vtkMRMLScene* scene = this->GetMRMLScene();
+
+  // Get all nodes with the specified type (vtkMRMLNode if not specified)
+  vtkCollection* allNodesOfRequestedType = scene->GetNodesByClass(className ? className : "vtkMRMLNode");
+  vtkObject* nextObject = NULL;
+  for (allNodesOfRequestedType->InitTraversal(); nextObject = allNodesOfRequestedType->GetNextItemAsObject(); )
+  {
+    vtkMRMLNode* candidateNode = vtkMRMLNode::SafeDownCast(nextObject);
+    if (candidateNode)
+    {
+      vtkMRMLHierarchyNode* possiblePhNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, candidateNode->GetID());
+      if (!SlicerRtCommon::IsPatientHierarchyNode(possiblePhNode) && (includeHiddenNodes || !candidateNode->GetHideFromEditors()))
+      {
+        // If the node is a contour representation then do not add it to the list
+        if (vtkMRMLContourNode::IsNodeAContourRepresentation(scene, candidateNode))
+        {
+          continue;
+        }
+
+        nodeCollection->AddItem(candidateNode);
+      }
+    }
+  }
+
+  allNodesOfRequestedType->Delete();
 }
