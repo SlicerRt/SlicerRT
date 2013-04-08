@@ -104,10 +104,6 @@ public:
   /// Determines whether a representation exists in the contour node
   bool RepresentationExists(ContourRepresentationType type);
 
-  /// Deletes the existing representation and redoes conversion
-  /// Used when conversion parameters have changed
-  void ReconvertRepresentation(ContourRepresentationType type);
-
 public:
   /// Get structure name
   vtkGetStringMacro(StructureName);
@@ -154,15 +150,6 @@ protected:
   /// Create a temporary vector for easier batch handling of representations
   std::vector<vtkMRMLDisplayableNode*> CreateTemporaryRepresentationsVector();
 
-  /// Convert from a representation to another. Returns true after successful conversion, false otherwise
-  bool ConvertToRepresentation(ContourRepresentationType type);
-
-  /// Convert model representation to indexed labelmap
-  vtkMRMLScalarVolumeNode* ConvertFromModelToIndexedLabelmap(vtkMRMLModelNode* modelNode);
-
-  /// Convert indexed labelmap representation to closed surface model
-  vtkMRMLModelNode* ConvertFromIndexedLabelmapToClosedSurfaceModel(vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode);
-
   /// Show (true) or hide (false) a representation completely (editors, viewers, slice intersections)
   void ShowRepresentation(vtkMRMLDisplayableNode* representation, bool show);
 
@@ -177,15 +164,6 @@ protected:
 
   /// Set default conversion parameters if none were explicitly specified
   void SetDefaultConversionParametersForRepresentation(ContourRepresentationType type);
-
-  /*!
-    Compute transform between a model and a volume IJK coordinate system (to transform the model into the volume voxel space)
-    The transform applied to the parent contour node is ignored
-    /param fromModelNode Model node from which we want to compute the transform
-    /param toVolumeNode Volume node to whose IJK space we want to compute the transform
-    /param fromModelToVolumeIjkTransform Output transform
-  */
-  void GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* fromModelNode, vtkMRMLScalarVolumeNode* toVolumeNode, vtkGeneralTransform* fromModelToVolumeIjkTransform);
 
 protected:
   /// Set ribbon model node ID
@@ -205,6 +183,7 @@ protected:
   ~vtkMRMLContourNode();
   vtkMRMLContourNode(const vtkMRMLContourNode&);
   void operator=(const vtkMRMLContourNode&);
+  friend class vtkConvertContourRepresentations;
 
 protected:
   /// Name of the structure that corresponds to this contour

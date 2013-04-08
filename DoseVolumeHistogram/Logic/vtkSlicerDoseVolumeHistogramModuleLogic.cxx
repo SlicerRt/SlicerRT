@@ -26,19 +26,20 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include <vtkMRMLContourNode.h>
+#include <vtkMRMLContourHierarchyNode.h>
+#include "vtkConvertContourRepresentations.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLContourNode.h>
 #include <vtkMRMLChartNode.h>
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLChartViewNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLContourHierarchyNode.h>
 #include <vtkMRMLColorTableNode.h>
 
 // VTK includes
@@ -448,7 +449,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   if ( structureContourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
     && STRCASECMP(currentReferenceVolumeId.c_str(), this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()) )
   {
-    structureContourNode->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
+    vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
+    converter->SetContourNode(structureContourNode);
+    converter->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
   }
 
   // Get indexed labelmap representation

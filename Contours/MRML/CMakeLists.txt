@@ -16,6 +16,8 @@ set(${KIT}_SRCS
   vtkMRMLContourNode.h
   vtkMRMLContourHierarchyNode.cxx
   vtkMRMLContourHierarchyNode.h
+  vtkConvertContourRepresentations.cxx
+  vtkConvertContourRepresentations.h
   )
 
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)

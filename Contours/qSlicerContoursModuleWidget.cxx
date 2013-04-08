@@ -25,9 +25,12 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+
+// Contours includes
 #include "vtkMRMLContourNode.h"
 #include "vtkMRMLContourHierarchyNode.h"
 #include "vtkSlicerContoursModuleLogic.h"
+#include "vtkConvertContourRepresentations.h"
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
@@ -718,7 +721,9 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
       if (conversionNeeded)
       {
         // Delete original representation and re-convert
-        (*it)->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
+        vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
+        converter->SetContourNode(*it);
+        converter->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
       }
 
       vtkMRMLScalarVolumeNode* indexedLabelmapNode = (*it)->GetIndexedLabelmapVolumeNode();
@@ -739,11 +744,15 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
         // Re-convert labelmap if necessary
         if (labelmapConversionNeeded)
         {
-          (*it)->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
+          vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
+          converter->SetContourNode(*it);
+          converter->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
         }
 
         // Delete original representation and re-convert
-        (*it)->ReconvertRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
+        vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
+        converter->SetContourNode(*it);
+        converter->ReconvertRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
       }
 
       vtkMRMLModelNode* closedSurfaceModelNode = (*it)->GetClosedSurfaceModelNode();
