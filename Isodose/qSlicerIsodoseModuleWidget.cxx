@@ -153,45 +153,45 @@ qSlicerIsodoseModuleWidgetPrivate::qSlicerIsodoseModuleWidgetPrivate(qSlicerIsod
 qSlicerIsodoseModuleWidgetPrivate::~qSlicerIsodoseModuleWidgetPrivate()
 {
   if (this->ScalarBarWidget)
-    {
+  {
     this->ScalarBarWidget->Delete();
     this->ScalarBarWidget = 0;
-    }
+  }
   if (this->ScalarBarActor)
-    {
+  {
     this->ScalarBarActor->Delete();
     this->ScalarBarActor = 0;
-    }
+  }
   if (this->ScalarBarWidget2DRed)
-    {
+  {
     this->ScalarBarWidget2DRed->Delete();
     this->ScalarBarWidget2DRed = 0;
-    }
+  }
   if (this->ScalarBarActor2DRed)
-    {
+  {
     this->ScalarBarActor2DRed->Delete();
     this->ScalarBarActor2DRed = 0;
-    }
+  }
   if (this->ScalarBarWidget2DYellow)
-    {
+  {
     this->ScalarBarWidget2DYellow->Delete();
     this->ScalarBarWidget2DYellow = 0;
-    }
+  }
   if (this->ScalarBarActor2DYellow)
-    {
+  {
     this->ScalarBarActor2DYellow->Delete();
     this->ScalarBarActor2DYellow = 0;
-    }
+  }
   if (this->ScalarBarWidget2DGreen)
-    {
+  {
     this->ScalarBarWidget2DGreen->Delete();
     this->ScalarBarWidget2DGreen = 0;
-    }
+  }
   if (this->ScalarBarActor2DGreen)
-    {
+  {
     this->ScalarBarActor2DGreen->Delete();
     this->ScalarBarActor2DGreen = 0;
-    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -226,13 +226,13 @@ void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 
   // Find parameters node or create it if there is no one in the scene
   if (scene &&  d->logic()->GetIsodoseNode() == 0)
-    {
+  {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLIsodoseNode");
     if (node)
-      {
+    {
       this->setIsodoseNode( vtkMRMLIsodoseNode::SafeDownCast(node) );
-      }
     }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -252,36 +252,36 @@ void qSlicerIsodoseModuleWidget::enter()
 void qSlicerIsodoseModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
-    {
+  {
     return;
-    }
+  }
 
   Q_D(qSlicerIsodoseModuleWidget);
 
   // First check the logic if it has a parameter node
   if (d->logic() == NULL)
-    {
+  {
     return;
-    }
+  }
   vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
 
   // If we have a parameter node select it
   if (paramNode == NULL)
-    {
+  {
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLIsodoseNode");
     if (node)
-      {
+    {
       paramNode = vtkMRMLIsodoseNode::SafeDownCast(node);
       d->logic()->SetAndObserveIsodoseNode(paramNode);
       return;
-      }
+    }
     else 
-      {
+    {
       vtkSmartPointer<vtkMRMLIsodoseNode> newNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
       this->mrmlScene()->AddNode(newNode);
       d->logic()->SetAndObserveIsodoseNode(newNode);
-      }
     }
+  }
 
   // set up default color node
   d->setDefaultColorNode();
@@ -346,6 +346,7 @@ void qSlicerIsodoseModuleWidgetPrivate::setDefaultColorNode()
   this->ScalarBarActor2DRed->SetLookupTable(defaultNode->GetLookupTable());
   this->ScalarBarActor2DYellow->SetLookupTable(defaultNode->GetLookupTable());
   this->ScalarBarActor2DGreen->SetLookupTable(defaultNode->GetLookupTable());
+
   for (int i=0; i<numberOfColors; i++)
   {
     this->ScalarBarActor2DRed->SetColorName(i, defaultNode->GetColorName(i));
@@ -375,13 +376,13 @@ void qSlicerIsodoseModuleWidget::setup()
 
   qSlicerApplication * app = qSlicerApplication::application();
   if (app && app->layoutManager())
-    {
+  {
     qMRMLThreeDView* threeDView = app->layoutManager()->threeDWidget(0)->threeDView();
     vtkRenderer* activeRenderer = app->layoutManager()->activeThreeDRenderer();
     if (activeRenderer)
-      {
+    {
       d->ScalarBarWidget->SetInteractor(activeRenderer->GetRenderWindow()->GetInteractor());
-      }
+    }
     connect(d->checkBox_ScalarBar, SIGNAL(stateChanged(int)), threeDView, SLOT(scheduleRender()));
 
     QStringList sliceViewerNames = app->layoutManager()->sliceViewNames();
@@ -398,7 +399,8 @@ void qSlicerIsodoseModuleWidget::setup()
     connect(d->checkBox_ScalarBar2D, SIGNAL(stateChanged(int)), sliceViewRed, SLOT(scheduleRender()));
     connect(d->checkBox_ScalarBar2D, SIGNAL(stateChanged(int)), sliceViewYellow, SLOT(scheduleRender()));
     connect(d->checkBox_ScalarBar2D, SIGNAL(stateChanged(int)), sliceViewGreen, SLOT(scheduleRender()));
-    }
+  }
+
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
   // Select the default color node
@@ -471,8 +473,6 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
   d->ScalarBarActor2DYellow->SetNumberOfLabels(numberOfColors);
   d->ScalarBarActor2DGreen->SetMaximumNumberOfColors(numberOfColors);
   d->ScalarBarActor2DGreen->SetNumberOfLabels(numberOfColors);
-
-  //colorTableNode->SetNumberOfColors(newNumber);
 }
 
 //-----------------------------------------------------------------------------
@@ -562,7 +562,6 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
 }
 
 //------------------------------------------------------------------------------
-
 void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
 {
   Q_D(qSlicerIsodoseModuleWidget);
@@ -584,10 +583,9 @@ void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
   }
 
   d->ScalarBarWidget->SetEnabled(visible);
-  // calling SetEnabled might fail, make sure the checkbox is up-to-date
-  //d->DisplayScalarBarCheckBox->setChecked(d->ScalarBarWidget->GetEnabled());
 }
 
+//------------------------------------------------------------------------------
 void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
 {
   Q_D(qSlicerIsodoseModuleWidget);
@@ -615,8 +613,6 @@ void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
   d->ScalarBarWidget2DRed->SetEnabled(visible);
   d->ScalarBarWidget2DYellow->SetEnabled(visible);
   d->ScalarBarWidget2DGreen->SetEnabled(visible);
-  // calling SetEnabled might fail, make sure the checkbox is up-to-date
-  //d->DisplayScalarBarCheckBox->setChecked(d->ScalarBarWidget->GetEnabled());
 }
 
 //-----------------------------------------------------------------------------
@@ -626,7 +622,7 @@ void qSlicerIsodoseModuleWidget::applyClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  // Compute the iso dose surface for the selected dose volume
+  // Compute the isodose surface for the selected dose volume
   d->logic()->ComputeIsodose();
 
   QApplication::restoreOverrideCursor();

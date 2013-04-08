@@ -27,6 +27,7 @@
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkMRMLContourHierarchyNode.h"
+#include "vtkSlicerContoursModuleLogic.h"
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
@@ -45,6 +46,7 @@ protected:
 public:
   qSlicerContoursModuleWidgetPrivate(qSlicerContoursModuleWidget& object);
   ~qSlicerContoursModuleWidgetPrivate();
+  vtkSlicerContoursModuleLogic* logic() const;
 public:
   /// List of currently selected contour nodes. Contains the selected
   /// contour node or the children of the selected contour hierarchy node
@@ -71,6 +73,14 @@ qSlicerContoursModuleWidgetPrivate::~qSlicerContoursModuleWidgetPrivate()
 {
   this->SelectedContourNodes.clear();
 }
+
+//-----------------------------------------------------------------------------
+vtkSlicerContoursModuleLogic*
+qSlicerContoursModuleWidgetPrivate::logic() const
+{
+  Q_Q(const qSlicerContoursModuleWidget);
+  return vtkSlicerContoursModuleLogic::SafeDownCast(q->logic());
+} 
 
 //-----------------------------------------------------------------------------
 // qSlicerContoursModuleWidget methods

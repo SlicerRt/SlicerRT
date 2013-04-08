@@ -40,6 +40,7 @@ qMRMLScenePatientHierarchyModelPrivate::qMRMLScenePatientHierarchyModelPrivate(q
   this->NodeTypeColumn = -1;
 
   this->BeamIcon = QIcon(":Icons/Beam.png");
+  this->ColorTableIcon = QIcon(":Icons/ColorTable.png");
   this->ContourIcon = QIcon(":Icons/Contour.png");
   this->DoseVolumeIcon = QIcon(":Icons/DoseVolume.png");
   this->IsocenterIcon = QIcon(":Icons/Isocenter.png");
@@ -244,6 +245,10 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       {
         item->setIcon(d->VolumeIcon);
       }
+    }
+    else if (node->IsA("vtkMRMLColorTableNode"))
+    {
+      item->setIcon(d->ColorTableIcon);
     }
     else if (node->IsA("vtkMRMLContourNode"))
     {

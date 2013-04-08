@@ -92,12 +92,6 @@ void vtkSlicerDicomRtImportModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 //-----------------------------------------------------------------------------
 void vtkSlicerDicomRtImportModuleLogic::RegisterNodes()
 {
-  assert(this->GetMRMLScene() != 0);
-
-  //TODO: Move this in Contours module
-  //  (make sure all the modules are loaded, e.g. bind an observer to the creation of the scene)
-  this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
-  this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourHierarchyNode>::New());
 }
 
 //---------------------------------------------------------------------------

@@ -45,6 +45,7 @@ public:
   int NodeTypeColumn;
 
   QIcon BeamIcon;
+  QIcon ColorTableIcon;
   QIcon ContourIcon;
   QIcon DoseVolumeIcon;
   QIcon IsocenterIcon;

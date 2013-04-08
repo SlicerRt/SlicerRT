@@ -59,49 +59,46 @@ public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
 
-  ///
+  /// Set number of levels
   void setNumberOfLevels(int newNumber);
 
 protected slots:
-
-  ///
+  /// Slot handling change of dose volume node
   void doseVolumeNodeChanged(vtkMRMLNode*);
 
-  ///
+  /// Slot handling change of output hierarchy node
   void outputHierarchyNodeChanged(vtkMRMLNode*);
 
-  ///
+  /// Slot for changing isoline visibility
   void setIsolineVisibility(bool);
 
-  ///
+  /// Slot for changing isosurface visibility
   void setIsosurfaceVisibility(bool);
 
-  ///
+  /// Slot for changing 3D scalar bar visibility
   void setScalarBarVisibility(bool);
 
-  ///
+  /// Slot for changing 2D scalar bar visibility
   void setScalarBar2DVisibility(bool);
 
-  ///
+  /// Slot handling clicking the Apply button
   void applyClicked();
 
-  ///
+  /// Slot called on change in logic
   void onLogicModified();
+
+protected:
+  // Generates a new isodose level name
+  QString generateNewIsodoseLevel() const;
+
+  /// Updates button states
+  void updateButtonsState();
 
 protected:
   QScopedPointer<qSlicerIsodoseModuleWidgetPrivate> d_ptr;
   
-  // Generates a new isodose level name
   virtual void setup();
-
-  // Generates a new isodose level name
   void onEnter();
-
-  // Generates a new isodose level name
-  QString generateNewIsodoseLevel() const;
-  
-  /// Updates button states
-  void updateButtonsState();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerIsodoseModuleWidget);

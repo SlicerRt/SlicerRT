@@ -20,10 +20,10 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerIsodoseModuleLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerIsodoseModuleLogic - slicer logic class for isodose creation
 // .SECTION Description
-// This class manages the logic associated with reading, saving,
-// and changing propertied of the volumes
+// This class manages the logic associated with creating isodose lines and
+// surfaces from dose distributions
 
 
 #ifndef __vtkSlicerIsodoseModuleLogic_h
@@ -31,11 +31,6 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
-
-// MRML includes
-
-// STD includes
-#include <cstdlib>
 
 #include "vtkSlicerIsodoseModuleLogicExport.h"
 
@@ -64,18 +59,21 @@ public:
   /// Return false if the dose volume contains a volume that is really a dose volume
   bool DoseVolumeContainsDose();
 
-  ///
+  /// Set and observe isodose parameter set node
   void SetAndObserveIsodoseNode(vtkMRMLIsodoseNode* node);
 
-  ///
+  /// Get isodose parameter set node
   vtkGetObjectMacro(IsodoseNode, vtkMRMLIsodoseNode);
 
 protected:
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
-
+  /// Add default color node
   void AddDefaultIsodoseColorNode();
 
+  /// Create color node for isodose levels
   vtkMRMLColorTableNode* CreateIsodoseColorNode();
+
+protected:
+  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
@@ -84,12 +82,12 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
+
 protected:
   vtkSlicerIsodoseModuleLogic();
   virtual ~vtkSlicerIsodoseModuleLogic();
 
 private:
-
   vtkSlicerIsodoseModuleLogic(const vtkSlicerIsodoseModuleLogic&); // Not implemented
   void operator=(const vtkSlicerIsodoseModuleLogic&);               // Not implemented
 
