@@ -45,10 +45,6 @@ public:
   /// Register the logic
   void setLogic(vtkSlicerPatientHierarchyModuleLogic* logic);
 
-signals:
-  /// Signal invoked when the Patient Hierarchy Scene Model finished updating (populating the tree is done)
-  void treeViewUpdated();
-
 protected:
   /// Toggle visibility
   virtual void toggleVisibility(const QModelIndex& index);

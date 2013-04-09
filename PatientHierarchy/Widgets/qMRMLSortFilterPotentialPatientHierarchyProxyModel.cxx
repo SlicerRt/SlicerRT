@@ -19,11 +19,12 @@
 
 ==============================================================================*/
 
-#include "qMRMLSortFilterPatientHierarchyProxyModel.h"
+#include "qMRMLSortFilterPotentialPatientHierarchyProxyModel.h"
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
+#include "vtkMRMLContourNode.h"
 
 // qMRML includes
 #include "qMRMLSceneModel.h"
@@ -32,39 +33,44 @@
 #include <vtkMRMLHierarchyNode.h>
 
 // -----------------------------------------------------------------------------
-// qMRMLSortFilterPatientHierarchyProxyModelPrivate
+// qMRMLSortFilterPotentialPatientHierarchyProxyModelPrivate
 
 // -----------------------------------------------------------------------------
-class qMRMLSortFilterPatientHierarchyProxyModelPrivate
+class qMRMLSortFilterPotentialPatientHierarchyProxyModelPrivate
 {
 public:
-  qMRMLSortFilterPatientHierarchyProxyModelPrivate();
+  qMRMLSortFilterPotentialPatientHierarchyProxyModelPrivate();
+
+  bool includeHiddenNodes;
 };
 
 // -----------------------------------------------------------------------------
-qMRMLSortFilterPatientHierarchyProxyModelPrivate::qMRMLSortFilterPatientHierarchyProxyModelPrivate()
+qMRMLSortFilterPotentialPatientHierarchyProxyModelPrivate::qMRMLSortFilterPotentialPatientHierarchyProxyModelPrivate()
+: includeHiddenNodes(false)
 {
 }
 
 // -----------------------------------------------------------------------------
-// qMRMLSortFilterPatientHierarchyProxyModel
+// qMRMLSortFilterPotentialPatientHierarchyProxyModel
 
 //------------------------------------------------------------------------------
-qMRMLSortFilterPatientHierarchyProxyModel::qMRMLSortFilterPatientHierarchyProxyModel(QObject *vparent)
+qMRMLSortFilterPotentialPatientHierarchyProxyModel::qMRMLSortFilterPotentialPatientHierarchyProxyModel(QObject *vparent)
   : qMRMLSortFilterProxyModel(vparent)
-  , d_ptr(new qMRMLSortFilterPatientHierarchyProxyModelPrivate)
+  , d_ptr(new qMRMLSortFilterPotentialPatientHierarchyProxyModelPrivate)
 {
 }
 
 //------------------------------------------------------------------------------
-qMRMLSortFilterPatientHierarchyProxyModel::~qMRMLSortFilterPatientHierarchyProxyModel()
+qMRMLSortFilterPotentialPatientHierarchyProxyModel::~qMRMLSortFilterPotentialPatientHierarchyProxyModel()
 {
 }
 
 //------------------------------------------------------------------------------
-qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
+qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPotentialPatientHierarchyProxyModel
 ::filterAcceptsNode(vtkMRMLNode* node)const
 {
+  Q_D(const qMRMLSortFilterPotentialPatientHierarchyProxyModel);
+
   if (!node)
   {
     return Accept;
@@ -76,27 +82,24 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
     return res;
   }
 
-  vtkMRMLHierarchyNode* hNode = vtkMRMLHierarchyNode::SafeDownCast(node);
-  if (hNode && SlicerRtCommon::IsPatientHierarchyNode(hNode))
+  // Show only if its type is among the potential patient hierarchy types
+  // and it is not associated to a patient hierarchy node
+  // and it is not a representation object of a contour node
+  if (node && vtkSlicerPatientHierarchyModuleLogic::IsPotentialPatientHierarchyNode(node))
   {
-    // Don't show patient hierarchy node if they are tied to a displayable node
-    // The only patient hierarchy node to display are the ones who reference other
-    // patient hierarchy node (tree parent) or empty (tree parent to be)
-    if (hNode->GetAssociatedNode())
+    vtkMRMLHierarchyNode* possiblePhNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->mrmlScene(), node->GetID());
+    if (!SlicerRtCommon::IsPatientHierarchyNode(possiblePhNode) && (d->includeHiddenNodes || !node->GetHideFromEditors()))
     {
-      return RejectButPotentiallyAcceptable;
+      // If the node is a contour representation then do not add it to the list
+      if (vtkMRMLContourNode::IsNodeAContourRepresentation(this->mrmlScene(), node))
+      {
+        return RejectButPotentiallyAcceptable;
+      }
+      else
+      {
+        return Accept;
+      }
     }
-    else
-    {
-      return Accept;
-    }
-  }
-
-  // Accept if leaf node
-  vtkMRMLHierarchyNode* possiblePhNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->mrmlScene(), node->GetID());
-  if (SlicerRtCommon::IsPatientHierarchyNode(possiblePhNode))
-  {
-    return AcceptButPotentiallyRejectable;
   }
 
   return Reject;

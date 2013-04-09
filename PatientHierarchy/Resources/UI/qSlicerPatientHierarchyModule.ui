@@ -72,12 +72,15 @@
     </layout>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_OtherNodes">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_PotentialNodes">
      <property name="text">
-      <string>Nodes outside the Patient Hierarchy</string>
+      <string>Potential patient hierarchy nodes</string>
      </property>
      <property name="checked">
       <bool>false</bool>
+     </property>
+     <property name="collapsed">
+      <bool>true</bool>
      </property>
      <property name="contentsFrameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -90,12 +93,15 @@
        <number>4</number>
       </property>
       <item row="0" column="0">
-       <widget class="QListWidget" name="listWidget_OtherNodes">
+       <widget class="qMRMLPotentialPatientHierarchyListView" name="PotentialPatientHierarchyListView">
         <property name="dragEnabled">
          <bool>true</bool>
         </property>
-        <property name="dragDropMode">
-         <enum>QAbstractItemView::DragOnly</enum>
+        <property name="horizontalScrollMode">
+         <enum>QAbstractItemView::ScrollPerPixel</enum>
+        </property>
+        <property name="isWrapping" stdset="0">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -125,6 +131,16 @@
    <header>qMRMLNodeAttributeTableWidget.h</header>
   </customwidget>
   <customwidget>
+   <class>qMRMLPatientHierarchyTreeView</class>
+   <extends>qMRMLTreeView</extends>
+   <header>qMRMLPatientHierarchyTreeView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLPotentialPatientHierarchyListView</class>
+   <extends>QListView</extends>
+   <header>qMRMLPotentialPatientHierarchyListView.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
@@ -135,11 +151,6 @@
    <extends>QGroupBox</extends>
    <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLPatientHierarchyTreeView</class>
-   <extends>qMRMLTreeView</extends>
-   <header>qMRMLPatientHierarchyTreeView.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -157,6 +168,22 @@
     <hint type="destinationlabel">
      <x>247</x>
      <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerPatientHierarchyModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>PotentialPatientHierarchyListView</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>142</x>
+     <y>3</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>148</x>
+     <y>276</y>
     </hint>
    </hints>
   </connection>

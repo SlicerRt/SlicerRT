@@ -17,12 +17,22 @@ set(${KIT}_SRCS
   qMRMLScenePatientHierarchyModel_p.h
   qMRMLSortFilterPatientHierarchyProxyModel.cxx
   qMRMLSortFilterPatientHierarchyProxyModel.h
+  qMRMLPotentialPatientHierarchyListView.cxx
+  qMRMLPotentialPatientHierarchyListView.h
+  qMRMLScenePotentialPatientHierarchyModel.cxx
+  qMRMLScenePotentialPatientHierarchyModel.h
+  qMRMLScenePotentialPatientHierarchyModel_p.h
+  qMRMLSortFilterPotentialPatientHierarchyProxyModel.cxx
+  qMRMLSortFilterPotentialPatientHierarchyProxyModel.h
   )
 
 set(${KIT}_MOC_SRCS
   qMRMLPatientHierarchyTreeView.h
   qMRMLScenePatientHierarchyModel.h
   qMRMLSortFilterPatientHierarchyProxyModel.h
+  qMRMLPotentialPatientHierarchyListView.h
+  qMRMLScenePotentialPatientHierarchyModel.h
+  qMRMLSortFilterPotentialPatientHierarchyProxyModel.h
   )
 
 set(${KIT}_UI_SRCS

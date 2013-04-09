@@ -426,7 +426,7 @@ bool vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( vtkMRMLNode* node, cons
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerPatientHierarchyModuleLogic::IsCandidateType(vtkMRMLNode* node)
+bool vtkSlicerPatientHierarchyModuleLogic::IsPotentialPatientHierarchyNode(vtkMRMLNode* node)
 {
   //TODO: Add beam and plan nodes once they are done
   if ( node->IsA("vtkMRMLContourNode")
@@ -437,43 +437,4 @@ bool vtkSlicerPatientHierarchyModuleLogic::IsCandidateType(vtkMRMLNode* node)
   }
 
   return false;
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerPatientHierarchyModuleLogic::GetNodesOutsidePatientHierarchy(vtkCollection* nodeCollection, bool includeHiddenNodes/*=false*/)
-{
-  if (!nodeCollection)
-  {
-    vtkErrorMacro("GetNodesOutsidePatientHierarchyOfType: Null pointer given as output collection!");
-    return;
-  }
-
-  nodeCollection->RemoveAllItems();
-  nodeCollection->InitTraversal();
-
-  vtkMRMLScene* scene = this->GetMRMLScene();
-
-  // Get all nodes with the specified type (vtkMRMLNode if not specified)
-  vtkCollection* allNodes = scene->GetNodes();
-  vtkObject* nextObject = NULL;
-  for (allNodes->InitTraversal(); nextObject = allNodes->GetNextItemAsObject(); )
-  {
-    vtkMRMLNode* candidateNode = vtkMRMLNode::SafeDownCast(nextObject);
-    if (candidateNode && vtkSlicerPatientHierarchyModuleLogic::IsCandidateType(candidateNode))
-    {
-      vtkMRMLHierarchyNode* possiblePhNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, candidateNode->GetID());
-      if (!SlicerRtCommon::IsPatientHierarchyNode(possiblePhNode) && (includeHiddenNodes || !candidateNode->GetHideFromEditors()))
-      {
-        // If the node is a contour representation then do not add it to the list
-        if (vtkMRMLContourNode::IsNodeAContourRepresentation(scene, candidateNode))
-        {
-          continue;
-        }
-
-        nodeCollection->AddItem(candidateNode);
-      }
-    }
-  }
-
-  allNodes->Delete();
 }

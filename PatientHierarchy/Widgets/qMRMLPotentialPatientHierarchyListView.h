@@ -19,32 +19,40 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerPatientHierarchyModuleWidgetsPlugin_h
-#define __qSlicerPatientHierarchyModuleWidgetsPlugin_h
+#ifndef __qMRMLPotentialPatientHierarchyListView_h
+#define __qMRMLPotentialPatientHierarchyListView_h
 
 // Qt includes
-#include <QDesignerCustomWidgetCollectionInterface>
+#include <QListView>
+
+// CTK includes
+//#include <ctkPimpl.h>
 
 // PatientHierarchy includes
-#include "qMRMLPatientHierarchyTreeViewPlugin.h"
-#include "qMRMLPotentialPatientHierarchyListViewPlugin.h"
+#include "qSlicerPatientHierarchyModuleWidgetsExport.h"
 
-// \class Group the plugins in one library
-class Q_SLICER_MODULE_PATIENTHIERARCHY_WIDGETS_PLUGINS_EXPORT qSlicerPatientHierarchyModuleWidgetsPlugin
-  : public QObject
-  , public QDesignerCustomWidgetCollectionInterface
+class qMRMLPotentialPatientHierarchyListViewPrivate;
+class vtkMRMLScene;
+
+/// \ingroup Slicer_QtModules_PatientHierarchy
+class Q_SLICER_MODULE_PATIENTHIERARCHY_WIDGETS_EXPORT qMRMLPotentialPatientHierarchyListView : public QListView
 {
   Q_OBJECT
-  Q_INTERFACES(QDesignerCustomWidgetCollectionInterface);
-
 public:
-  QList<QDesignerCustomWidgetInterface*> customWidgets() const
-    {
-    QList<QDesignerCustomWidgetInterface *> plugins;
-    plugins << new qMRMLPatientHierarchyTreeViewPlugin;
-    plugins << new qMRMLPotentialPatientHierarchyListViewPlugin;
-    return plugins;
-    }
+  qMRMLPotentialPatientHierarchyListView(QWidget *parent=0);
+  virtual ~qMRMLPotentialPatientHierarchyListView();
+
+  vtkMRMLScene* mrmlScene()const;
+
+public slots:
+  void setMRMLScene(vtkMRMLScene* scene);
+
+protected:
+  QScopedPointer<qMRMLPotentialPatientHierarchyListViewPrivate> d_ptr;
+
+private:
+  Q_DECLARE_PRIVATE(qMRMLPotentialPatientHierarchyListView);
+  Q_DISABLE_COPY(qMRMLPotentialPatientHierarchyListView);
 };
 
 #endif

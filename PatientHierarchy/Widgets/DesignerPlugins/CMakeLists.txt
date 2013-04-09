@@ -10,11 +10,14 @@ set(${KIT}_SRCS
   qSlicerPatientHierarchyModuleWidgetsPlugin.h
   qMRMLPatientHierarchyTreeViewPlugin.cxx
   qMRMLPatientHierarchyTreeViewPlugin.h
+  qMRMLPotentialPatientHierarchyListViewPlugin.cxx
+  qMRMLPotentialPatientHierarchyListViewPlugin.h
   )
 
 set(${KIT}_MOC_SRCS
   qSlicerPatientHierarchyModuleWidgetsPlugin.h
   qMRMLPatientHierarchyTreeViewPlugin.h
+  qMRMLPotentialPatientHierarchyListViewPlugin.h
   )
 
 set(${KIT}_TARGET_LIBRARIES

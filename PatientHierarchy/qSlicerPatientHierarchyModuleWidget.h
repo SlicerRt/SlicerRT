@@ -51,9 +51,6 @@ protected slots:
   /// Show or hide MRML IDs
   void setMRMLIDsVisible(bool visible);
 
-  /// Populate the Other Nodes list view based on the Patient Hierarchy tree view contents
-  void populateOtherNodesList();
-
 protected:
   QScopedPointer<qSlicerPatientHierarchyModuleWidgetPrivate> d_ptr;
 

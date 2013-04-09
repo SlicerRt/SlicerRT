@@ -19,45 +19,45 @@
 
 ==============================================================================*/
 
-#include "qMRMLPatientHierarchyTreeViewPlugin.h"
-#include "qMRMLPatientHierarchyTreeView.h"
+#include "qMRMLPotentialPatientHierarchyListViewPlugin.h"
+#include "qMRMLPotentialPatientHierarchyListView.h"
 
 //-----------------------------------------------------------------------------
-qMRMLPatientHierarchyTreeViewPlugin::qMRMLPatientHierarchyTreeViewPlugin(QObject* pluginParent)
+qMRMLPotentialPatientHierarchyListViewPlugin::qMRMLPotentialPatientHierarchyListViewPlugin(QObject* pluginParent)
   : QObject(pluginParent)
 {
 }
 
 //-----------------------------------------------------------------------------
-QWidget *qMRMLPatientHierarchyTreeViewPlugin::createWidget(QWidget* parentWidget)
+QWidget *qMRMLPotentialPatientHierarchyListViewPlugin::createWidget(QWidget* parentWidget)
 {
-  qMRMLPatientHierarchyTreeView* pluginWidget
-    = new qMRMLPatientHierarchyTreeView(parentWidget);
+  qMRMLPotentialPatientHierarchyListView* pluginWidget
+    = new qMRMLPotentialPatientHierarchyListView(parentWidget);
   return pluginWidget;
 }
 
 //-----------------------------------------------------------------------------
-QString qMRMLPatientHierarchyTreeViewPlugin::domXml() const
+QString qMRMLPotentialPatientHierarchyListViewPlugin::domXml() const
 {
-  return "<widget class=\"qMRMLPatientHierarchyTreeView\" \
-          name=\"PatientHierarchyTreeView\">\n"
+  return "<widget class=\"qMRMLPotentialPatientHierarchyListView\" \
+          name=\"PotentialPatientHierarchyListView\">\n"
           "</widget>\n";
 }
 
 //-----------------------------------------------------------------------------
-QString qMRMLPatientHierarchyTreeViewPlugin::includeFile() const
+QString qMRMLPotentialPatientHierarchyListViewPlugin::includeFile() const
 {
-  return "qMRMLPatientHierarchyTreeView.h";
+  return "qMRMLPotentialPatientHierarchyListView.h";
 }
 
 //-----------------------------------------------------------------------------
-bool qMRMLPatientHierarchyTreeViewPlugin::isContainer() const
+bool qMRMLPotentialPatientHierarchyListViewPlugin::isContainer() const
 {
   return false;
 }
 
 //-----------------------------------------------------------------------------
-QString qMRMLPatientHierarchyTreeViewPlugin::name() const
+QString qMRMLPotentialPatientHierarchyListViewPlugin::name() const
 {
-  return "qMRMLPatientHierarchyTreeView";
+  return "qMRMLPotentialPatientHierarchyListView";
 }

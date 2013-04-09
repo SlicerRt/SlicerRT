@@ -303,10 +303,3 @@ void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
     }
   }
 }
-
-//------------------------------------------------------------------------------
-void qMRMLScenePatientHierarchyModel::onMRMLSceneNodeAdded(vtkMRMLScene* scene, vtkMRMLNode* node)
-{
-  Superclass::onMRMLSceneNodeAdded(scene, node);
-  emit nodeAdded();
-}
