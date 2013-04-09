@@ -32,11 +32,6 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// MRML includes
-
-// STD includes
-#include <cstdlib>
-
 #include "vtkSlicerDoseAccumulationModuleLogicExport.h"
 
 class vtkMRMLVolumeNode;

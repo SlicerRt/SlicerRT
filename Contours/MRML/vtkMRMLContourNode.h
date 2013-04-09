@@ -104,7 +104,13 @@ public:
   /// Determines whether a representation exists in the contour node
   bool RepresentationExists(ContourRepresentationType type);
 
+  /// Returns true if ribbon model is empty, false otherwise
+  bool RibbonModelContainsEmptyPolydata();
+
 public:
+  /// Set name (changes names of representations too)
+  virtual void SetName(const char* newName);
+
   /// Get structure name
   vtkGetStringMacro(StructureName);
   /// Set structure name

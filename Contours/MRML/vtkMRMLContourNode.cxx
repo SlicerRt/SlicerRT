@@ -312,8 +312,9 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
 {
   Superclass::ProcessMRMLEvents(caller, eventID, callData);
 
-  if (this->Scene == NULL)
+  if (!this->Scene)
     {
+    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene!");
     return;
     }
 
@@ -414,6 +415,10 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
 //----------------------------------------------------------------------------
 void vtkMRMLContourNode::SetAndObserveRibbonModelNodeId(const char *nodeID)
 {
+  if (this->RibbonModelContainsEmptyPolydata() && this->Scene)
+  {
+    this->Scene->RemoveNode(this->RibbonModelNode);
+  }
   vtkSetAndObserveMRMLObjectMacro(this->RibbonModelNode, NULL);
   this->SetRibbonModelNodeId(nodeID);
   if (!nodeID)
@@ -482,6 +487,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetIndexedLabelmapVolumeNode()
   vtkMRMLScalarVolumeNode* node = NULL;
   if (!this->Scene)
     {
+    vtkErrorMacro("GetIndexedLabelmapVolumeNode: Invalid MRML scene!");
     return node;
     }
   else if (this->IndexedLabelmapVolumeNodeId != NULL )
@@ -541,6 +547,7 @@ vtkMRMLModelNode* vtkMRMLContourNode::GetClosedSurfaceModelNode()
   vtkMRMLModelNode* node = NULL;
   if (!this->Scene)
     {
+    vtkErrorMacro("GetClosedSurfaceModelNode: Invalid MRML scene!");
     return node;
     }
   else if (this->ClosedSurfaceModelNodeId != NULL )
@@ -606,6 +613,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByNode(vtkMRMLDisplayableNode *n
   vtkMRMLScene* mrmlScene = this->Scene;
   if (!node || !mrmlScene)
     {
+    vtkErrorMacro("SetActiveRepresentationByNode: Invalid MRML scene or argument node!");
     return;
     }
 
@@ -637,6 +645,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
   vtkMRMLScene* mrmlScene = this->Scene;
   if (!mrmlScene)
     {
+    vtkErrorMacro("SetActiveRepresentationByType: Invalid MRML scene!");
     return;
     }
   if (type == None)
@@ -844,6 +853,47 @@ void vtkMRMLContourNode::SetDisplayVisibility(int visible)
 }
 
 //---------------------------------------------------------------------------
+void vtkMRMLContourNode::SetName(const char* newName)
+{
+  if ( this->Name == NULL && newName == NULL) { return; }
+  if ( this->Name && newName && (!strcmp(this->Name,newName))) { return; }
+  if (this->Name) { delete [] this->Name; }
+  if (newName)
+  {
+    size_t n = strlen(newName) + 1;
+    char *cp1 =  new char[n];
+    const char *cp2 = (newName);
+    this->Name = cp1;
+    do { *cp1++ = *cp2++; } while ( --n );
+
+    // Set new name to representations
+    if (this->RibbonModelNode)
+    {
+      std::string newRibbonModelName(newName);
+      newRibbonModelName.append(SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX);
+      this->RibbonModelNode->SetName(newRibbonModelName.c_str());
+    }
+    if (this->IndexedLabelmapVolumeNode)
+    {
+      std::string newIndexedLabelmapName(newName);
+      newIndexedLabelmapName.append(SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX);
+      this->IndexedLabelmapVolumeNode->SetName(newIndexedLabelmapName.c_str());
+    }
+    if (this->ClosedSurfaceModelNode)
+    {
+      std::string newClosedSurfaceModelName(newName);
+      newClosedSurfaceModelName.append(SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX);
+      this->IndexedLabelmapVolumeNode->SetName(newClosedSurfaceModelName.c_str());
+    }
+  }
+  else
+  {
+    this->Name = NULL;
+  }
+  this->Modified();
+}
+
+//---------------------------------------------------------------------------
 vtkMRMLContourNode* vtkMRMLContourNode::IsNodeAContourRepresentation(vtkMRMLScene* scene, vtkMRMLNode* node)
 {
   if (!scene)
@@ -880,4 +930,11 @@ vtkMRMLContourNode* vtkMRMLContourNode::IsNodeAContourRepresentation(vtkMRMLScen
   }
 
   return NULL;
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLContourNode::RibbonModelContainsEmptyPolydata()
+{
+  return ( this->RibbonModelNode && this->RibbonModelNode->GetPolyData()
+        && this->RibbonModelNode->GetPolyData()->GetNumberOfPoints() == 0 );
 }

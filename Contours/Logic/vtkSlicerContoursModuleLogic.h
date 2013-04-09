@@ -43,9 +43,18 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 protected:
+  /// Creates an empty ribbon model as a default representation for the new contours
+  void CreateEmptyRibbonModelForContour(vtkMRMLNode* node);
+
+protected:
+  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
   virtual void UpdateFromMRMLScene();
+
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
 protected:
   vtkSlicerContoursModuleLogic();
