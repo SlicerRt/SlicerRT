@@ -83,15 +83,16 @@ public:
   /// \param node Node to examine
   /// \param level DICOM level to check (should be one of the logic constants)
   /// \return True if the node is of the specified level, false otherwise
-  static bool IsDicomLevel( vtkMRMLNode* node, const char* level );
+  static bool IsDicomLevel(vtkMRMLNode* node, const char* level);
+
+  /// Determine if a node is a candidate type (e.g. vtkMRMLModelNode, vtkMRMLVolumeNode, or vtkMRMLContourNode)
+  static bool IsCandidateType(vtkMRMLNode* node);
 
 public:
   /// Get all nodes by type that are outside the Patient Hierarchy
   /// \param nodeCollection Collection for the found nodes
-  /// \param className Name of the MRML node class we want to look for (e.g. "vtkMRMLVolumeNode")
-  ///                  If NULL, then the considered type is vtkMRMLNode
   /// \param includeHiddenNodes Specifies if hidden nodes should be included in the result list
-  void GetNodesOutsidePatientHierarchy(vtkCollection* nodeCollection, const char* className=NULL, bool includeHiddenNodes=false);
+  void GetNodesOutsidePatientHierarchy(vtkCollection* nodeCollection, bool includeHiddenNodes=false);
 
 protected:
   vtkSlicerPatientHierarchyModuleLogic();

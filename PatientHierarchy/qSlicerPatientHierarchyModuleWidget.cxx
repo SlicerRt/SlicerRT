@@ -150,24 +150,17 @@ void qSlicerPatientHierarchyModuleWidget::populateOtherNodesList()
   vtkSlicerPatientHierarchyModuleLogic* logic = vtkSlicerPatientHierarchyModuleLogic::SafeDownCast(this->logic());
   vtkSmartPointer<vtkCollection> otherNodes = vtkSmartPointer<vtkCollection>::New();
 
-  QStringList patientHierarchyLeafNodeTypes;
-  //TODO: Add beam and plan nodes once they are done
-  patientHierarchyLeafNodeTypes << "vtkMRMLContourNode" << "vtkMRMLModelNode" << "vtkMRMLVolumeNode"; // vtkMRMLModelNode includes annotations too
+  logic->GetNodesOutsidePatientHierarchy(otherNodes);
 
-  foreach (QString nodeType, patientHierarchyLeafNodeTypes)
+  vtkObject* nextObject = NULL;
+  for (otherNodes->InitTraversal(); nextObject = otherNodes->GetNextItemAsObject(); )
   {
-    logic->GetNodesOutsidePatientHierarchy(otherNodes, nodeType.toLatin1().constData());
+    vtkMRMLNode* otherNode = vtkMRMLNode::SafeDownCast(nextObject);
 
-    vtkObject* nextObject = NULL;
-    for (otherNodes->InitTraversal(); nextObject = otherNodes->GetNextItemAsObject(); )
-    {
-      vtkMRMLNode* otherNode = vtkMRMLNode::SafeDownCast(nextObject);
+    QListWidgetItem* newItem = new QListWidgetItem(QString(otherNode->GetName()));
+    newItem->setToolTip(QString(otherNode->GetNodeTagName()) + "(" + QString(otherNode->GetID()) + ")");
+    newItem->setData(Qt::UserRole, QVariant(otherNode->GetID()));
 
-      QListWidgetItem* newItem = new QListWidgetItem(QString(otherNode->GetName()));
-      newItem->setToolTip(QString(otherNode->GetNodeTagName()));
-      newItem->setData(Qt::UserRole, QVariant(otherNode->GetID()));
-
-      d->listWidget_OtherNodes->addItem(newItem);
-    }
+    d->listWidget_OtherNodes->addItem(newItem);
   }
 }

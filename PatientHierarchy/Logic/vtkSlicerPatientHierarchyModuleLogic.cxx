@@ -426,7 +426,21 @@ bool vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( vtkMRMLNode* node, cons
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPatientHierarchyModuleLogic::GetNodesOutsidePatientHierarchy(vtkCollection* nodeCollection, const char* className/*=NULL*/, bool includeHiddenNodes/*=false*/)
+bool vtkSlicerPatientHierarchyModuleLogic::IsCandidateType(vtkMRMLNode* node)
+{
+  //TODO: Add beam and plan nodes once they are done
+  if ( node->IsA("vtkMRMLContourNode")
+    || node->IsA("vtkMRMLModelNode") // vtkMRMLModelNode includes annotations too
+    || node->IsA("vtkMRMLVolumeNode") )
+  {
+    return true;
+  }
+
+  return false;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPatientHierarchyModuleLogic::GetNodesOutsidePatientHierarchy(vtkCollection* nodeCollection, bool includeHiddenNodes/*=false*/)
 {
   if (!nodeCollection)
   {
@@ -440,12 +454,12 @@ void vtkSlicerPatientHierarchyModuleLogic::GetNodesOutsidePatientHierarchy(vtkCo
   vtkMRMLScene* scene = this->GetMRMLScene();
 
   // Get all nodes with the specified type (vtkMRMLNode if not specified)
-  vtkCollection* allNodesOfRequestedType = scene->GetNodesByClass(className ? className : "vtkMRMLNode");
+  vtkCollection* allNodes = scene->GetNodes();
   vtkObject* nextObject = NULL;
-  for (allNodesOfRequestedType->InitTraversal(); nextObject = allNodesOfRequestedType->GetNextItemAsObject(); )
+  for (allNodes->InitTraversal(); nextObject = allNodes->GetNextItemAsObject(); )
   {
     vtkMRMLNode* candidateNode = vtkMRMLNode::SafeDownCast(nextObject);
-    if (candidateNode)
+    if (candidateNode && vtkSlicerPatientHierarchyModuleLogic::IsCandidateType(candidateNode))
     {
       vtkMRMLHierarchyNode* possiblePhNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, candidateNode->GetID());
       if (!SlicerRtCommon::IsPatientHierarchyNode(possiblePhNode) && (includeHiddenNodes || !candidateNode->GetHideFromEditors()))
@@ -461,5 +475,5 @@ void vtkSlicerPatientHierarchyModuleLogic::GetNodesOutsidePatientHierarchy(vtkCo
     }
   }
 
-  allNodesOfRequestedType->Delete();
+  allNodes->Delete();
 }
