@@ -25,6 +25,7 @@
 // Contours includes
 #include "qSlicerContoursModule.h"
 #include "qSlicerContoursModuleWidget.h"
+#include "vtkSlicerContoursModuleLogic.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerContoursModule, qSlicerContoursModule);
@@ -58,12 +59,6 @@ qSlicerContoursModule::qSlicerContoursModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 qSlicerContoursModule::~qSlicerContoursModule()
 {
-}
-
-//-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerContoursModule::createLogic()
-{
-  return NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -113,4 +108,10 @@ void qSlicerContoursModule::setup()
 qSlicerAbstractModuleRepresentation * qSlicerContoursModule::createWidgetRepresentation()
 {
   return new qSlicerContoursModuleWidget;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLAbstractLogic* qSlicerContoursModule::createLogic()
+{
+  return vtkSlicerContoursModuleLogic::New();
 }

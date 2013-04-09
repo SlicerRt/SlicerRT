@@ -732,7 +732,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       isocenterHierarchyNode->SetIndexInParent(dicomBeamIndex);
 
       // Create patient hierarchy entry for the isocenter fiducial
-      vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchyFiducialNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+      vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> patientHierarchyFiducialNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
       std::string phFiducialNodeName(rtReader->GetBeamName(dicomBeamIndex));
       phFiducialNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
       patientHierarchyFiducialNode->SetName(phFiducialNodeName.c_str());
