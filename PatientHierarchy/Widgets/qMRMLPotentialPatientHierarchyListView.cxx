@@ -53,11 +53,7 @@ void qMRMLPotentialPatientHierarchyListViewPrivate::init()
   qMRMLScenePotentialPatientHierarchyModel* sceneModel = new qMRMLScenePotentialPatientHierarchyModel(q);
   qMRMLSortFilterPotentialPatientHierarchyProxyModel* sortModel = new qMRMLSortFilterPotentialPatientHierarchyProxyModel(q);
   sortModel->setSourceModel(sceneModel);
-  sortModel->setDynamicSortFilter(true);
   q->QListView::setModel(sortModel);
-  q->setWrapping(true);
-  q->setResizeMode(QListView::Adjust);
-  q->setFlow(QListView::TopToBottom);
 }
 
 //------------------------------------------------------------------------------
@@ -85,7 +81,6 @@ void qMRMLPotentialPatientHierarchyListView::setMRMLScene(vtkMRMLScene* scene)
   if (scene)
   {
     this->setRootIndex(sortModel->index(0, 0));
-    sortModel->sort(0);
     sortModel->invalidate();
   }
 }

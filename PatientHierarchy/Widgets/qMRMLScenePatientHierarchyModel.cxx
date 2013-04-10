@@ -33,6 +33,9 @@
 #include <vtkMRMLHierarchyNode.h>
 #include <vtkMRMLDisplayNode.h>
 
+// Qt includes
+#include <QMimeData>
+
 //------------------------------------------------------------------------------
 qMRMLScenePatientHierarchyModelPrivate::qMRMLScenePatientHierarchyModelPrivate(qMRMLScenePatientHierarchyModel& object)
 : Superclass(object)
@@ -85,6 +88,36 @@ qMRMLScenePatientHierarchyModel::qMRMLScenePatientHierarchyModel(QObject *vparen
 //------------------------------------------------------------------------------
 qMRMLScenePatientHierarchyModel::~qMRMLScenePatientHierarchyModel()
 {
+}
+
+//------------------------------------------------------------------------------
+QStringList qMRMLScenePatientHierarchyModel::mimeTypes()const
+{
+  QStringList types;
+  types << "application/vnd.text.list";
+  return types;
+}
+
+//------------------------------------------------------------------------------
+QMimeData* qMRMLScenePatientHierarchyModel::mimeData(const QModelIndexList &indexes) const
+{
+  QMimeData* mimeData = new QMimeData();
+  QByteArray encodedData;
+
+  QDataStream stream(&encodedData, QIODevice::WriteOnly);
+
+  foreach (const QModelIndex &index, indexes)
+  {
+    // Only add one pointer per row
+    if (index.isValid() && index.column() == 0)
+    {
+      QString text = data(index, PointerRole).toString();
+      stream << text;
+    }
+  }
+
+  mimeData->setData("application/vnd.text.list", encodedData);
+  return mimeData;
 }
 
 //------------------------------------------------------------------------------
@@ -302,4 +335,70 @@ void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
       }
     }
   }
+}
+
+//------------------------------------------------------------------------------
+bool qMRMLScenePatientHierarchyModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+{
+  if (action == Qt::IgnoreAction)
+  {
+    return true;
+  }
+  if (!this->mrmlScene())
+  {
+    std::cerr << "qMRMLScenePatientHierarchyModel has invalid MRML scene!" << std::endl;
+    return false;
+  }
+  if (!data->hasFormat("application/vnd.text.list"))
+  {
+    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::dropMimeData: Plain text MIME type is expected");
+    return false;
+  }
+
+  // Nothing can be dropped to the top level (patients can only be loaded at the moment from the DICOM browser)
+  if (!parent.isValid())
+  {
+    vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::dropMimeData: Items cannot be dropped on top level!");
+    return false;
+  }
+  vtkMRMLNode* parentNode = this->mrmlNodeFromIndex(parent);
+  if (!parentNode)
+  {
+    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::dropMimeData: Unable to get parent node!");
+    return false;
+  }
+
+  // Decode MIME data
+  QByteArray encodedData = data->data("application/vnd.text.list");
+  QDataStream stream(&encodedData, QIODevice::ReadOnly);
+  QStringList streamItems;
+  int rows = 0;
+
+  while (!stream.atEnd()) {
+    QString text;
+    stream >> text;
+    streamItems << text;
+    ++rows;
+  }
+
+  if (rows == 0)
+  {
+    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::dropMimeData: Unable to decode dropped MIME data!");
+    return false;
+  }
+  if (rows > 1)
+  {
+    vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::dropMimeData: More than one data item decoded from dropped MIME data! Only the first one will be used.");
+  }
+
+  QString nodePointerString = streamItems[0];
+
+  vtkMRMLNode* droppedNode = vtkMRMLNode::SafeDownCast(reinterpret_cast<vtkObject*>(nodePointerString.toULongLong()));
+  if (!droppedNode)
+  {
+    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::dropMimeData: Unable to get MRML node from dropped MIME text (" << nodePointerString.toLatin1().constData() << ")!");
+    return false;
+  }
+
+  return true;
 }

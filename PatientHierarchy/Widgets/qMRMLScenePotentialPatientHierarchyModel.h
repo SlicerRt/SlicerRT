@@ -40,6 +40,12 @@ public:
   qMRMLScenePotentialPatientHierarchyModel(QObject *parent=0);
   virtual ~qMRMLScenePotentialPatientHierarchyModel();
 
+  /// Function returning the supported MIME types
+  virtual QStringList mimeTypes()const;
+
+  /// Function encoding the dragged item to MIME data
+  virtual QMimeData* mimeData(const QModelIndexList &indexes)const;
+
 protected:
   /// Overridden function to handle tree view item display from node data
   virtual void updateItemDataFromNode(QStandardItem* item, vtkMRMLNode* node, int column);

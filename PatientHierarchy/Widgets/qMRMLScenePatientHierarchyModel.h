@@ -44,6 +44,15 @@ public:
   qMRMLScenePatientHierarchyModel(QObject *parent=0);
   virtual ~qMRMLScenePatientHierarchyModel();
 
+  /// Function returning the supported MIME types
+  virtual QStringList mimeTypes()const;
+
+  /// Function encoding the dragged item to MIME data
+  virtual QMimeData* mimeData(const QModelIndexList &indexes)const;
+
+  /// Handles dropping of items
+  virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
+
   /// Retrieve parent of a node
   virtual vtkMRMLNode* parentNode(vtkMRMLNode* node)const;
 

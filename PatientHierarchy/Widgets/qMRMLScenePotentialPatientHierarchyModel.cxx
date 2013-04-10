@@ -28,6 +28,9 @@
 // MRML includes
 #include <vtkMRMLNode.h>
 
+// Qt includes
+#include <QMimeData>
+
 //------------------------------------------------------------------------------
 qMRMLScenePotentialPatientHierarchyModelPrivate::qMRMLScenePotentialPatientHierarchyModelPrivate(qMRMLScenePotentialPatientHierarchyModel& object)
 : Superclass(object)
@@ -58,13 +61,41 @@ qMRMLScenePotentialPatientHierarchyModel::~qMRMLScenePotentialPatientHierarchyMo
 }
 
 //------------------------------------------------------------------------------
+QStringList qMRMLScenePotentialPatientHierarchyModel::mimeTypes()const
+{
+  QStringList types;
+  types << "application/vnd.text.list";
+  return types;
+}
+
+//------------------------------------------------------------------------------
+QMimeData* qMRMLScenePotentialPatientHierarchyModel::mimeData(const QModelIndexList &indexes) const
+{
+  QMimeData* mimeData = new QMimeData();
+  QByteArray encodedData;
+
+  QDataStream stream(&encodedData, QIODevice::WriteOnly);
+
+  foreach (const QModelIndex &index, indexes)
+  {
+    if (index.isValid())
+    {
+      QString text = data(index, PointerRole).toString();
+      stream << text;
+    }
+  }
+
+  mimeData->setData("application/vnd.text.list", encodedData);
+  return mimeData;
+}
+
+//------------------------------------------------------------------------------
 void qMRMLScenePotentialPatientHierarchyModel::updateItemDataFromNode(QStandardItem* item, vtkMRMLNode* node, int column)
 {
   Q_D(qMRMLScenePotentialPatientHierarchyModel);
 
   item->setText(QString(node->GetName()));
   item->setToolTip(QString(node->GetNodeTagName()) + " type (" + QString(node->GetID()) + ")");
-  item->setData(QVariant(node->GetID()), Qt::UserRole);
 }
 
 //------------------------------------------------------------------------------

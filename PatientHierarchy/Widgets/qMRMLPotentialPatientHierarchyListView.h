@@ -25,9 +25,6 @@
 // Qt includes
 #include <QListView>
 
-// CTK includes
-//#include <ctkPimpl.h>
-
 // PatientHierarchy includes
 #include "qSlicerPatientHierarchyModuleWidgetsExport.h"
 
