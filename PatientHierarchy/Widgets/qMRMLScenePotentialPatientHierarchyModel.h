@@ -40,11 +40,17 @@ public:
   qMRMLScenePotentialPatientHierarchyModel(QObject *parent=0);
   virtual ~qMRMLScenePotentialPatientHierarchyModel();
 
+  /// Overridden function telling the view the supported drop actions
+  virtual Qt::DropActions supportedDropActions()const;
+
   /// Function returning the supported MIME types
   virtual QStringList mimeTypes()const;
 
   /// Function encoding the dragged item to MIME data
   virtual QMimeData* mimeData(const QModelIndexList &indexes)const;
+
+  /// Check the type of the node to know if it can be a child.
+  virtual bool canBeAChild(vtkMRMLNode* node)const;
 
 protected:
   /// Overridden function to handle tree view item display from node data

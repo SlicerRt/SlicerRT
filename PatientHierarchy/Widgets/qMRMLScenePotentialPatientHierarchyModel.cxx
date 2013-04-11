@@ -103,3 +103,15 @@ void qMRMLScenePotentialPatientHierarchyModel::updateNodeFromItemData(vtkMRMLNod
 {
   node->SetName(item->text().toLatin1().constData());
 }
+
+//------------------------------------------------------------------------------
+bool qMRMLScenePotentialPatientHierarchyModel::canBeAChild(vtkMRMLNode* node)const
+{
+  return vtkSlicerPatientHierarchyModuleLogic::IsPotentialPatientHierarchyNode(node);
+}
+
+//------------------------------------------------------------------------------
+Qt::DropActions qMRMLScenePotentialPatientHierarchyModel::supportedDropActions()const
+{
+  return Qt::MoveAction;
+}
