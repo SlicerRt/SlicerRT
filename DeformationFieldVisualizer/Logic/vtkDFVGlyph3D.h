@@ -9,8 +9,9 @@
 
 class vtkMinimalStandardRandomSequence;
 
-class VTK_SLICER_DEFORMATIONFIELDVISUALIZER_MODULE_LOGIC_EXPORT vtkDFVGlyph3D : public vtkGlyph3D{
-
+//------------------------------------------------------------------------------
+class VTK_SLICER_DEFORMATIONFIELDVISUALIZER_MODULE_LOGIC_EXPORT vtkDFVGlyph3D : public vtkGlyph3D
+{
 public:
 	vtkTypeMacro(vtkDFVGlyph3D,vtkGlyph3D);
 	void PrintSelf(ostream& os, vtkIndent indent);

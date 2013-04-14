@@ -1,35 +1,35 @@
-
 #include "vtkDFVGlyph3D.h"
 
-#include "vtkGlyph3D.h"
-#include "vtkObjectFactory.h"
-#include <time.h>
-//#include <algorithm>
+// STD includes
 #include <vector>
-#include <vtkSmartPointer.h>
 
-#include "vtkCellData.h"
-#include "vtkCell.h"
-#include "vtkDataSet.h"
-#include "vtkFloatArray.h"
-#include "vtkIdList.h"
-#include "vtkIdTypeArray.h"
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include "vtkMath.h"
-#include "vtkObjectFactory.h"
-#include "vtkPointData.h"
-#include "vtkPolyData.h"
-#include "vtkSmartPointer.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkTransform.h"
-#include "vtkUnsignedCharArray.h"
+// VTK includes
+#include <vtkGlyph3D.h>
+#include <vtkObjectFactory.h>
+#include <vtkSmartPointer.h>
+#include <vtkCellData.h>
+#include <vtkCell.h>
+#include <vtkDataSet.h>
+#include <vtkFloatArray.h>
+#include <vtkIdList.h>
+#include <vtkIdTypeArray.h>
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
+#include <vtkMath.h>
+#include <vtkObjectFactory.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtkTransform.h>
+#include <vtkUnsignedCharArray.h>
 
 #include <vtkMinimalStandardRandomSequence.h>
 
 vtkStandardNewMacro(vtkDFVGlyph3D);
 
-vtkDFVGlyph3D::vtkDFVGlyph3D(){
+//------------------------------------------------------------------------------
+vtkDFVGlyph3D::vtkDFVGlyph3D()
+{
   this->Scaling = 1;
   this->ColorMode = VTK_COLOR_BY_SCALE;
   this->ScaleMode = VTK_SCALE_BY_SCALAR;
@@ -62,7 +62,7 @@ vtkDFVGlyph3D::vtkDFVGlyph3D(){
   this->SetInputArrayToProcess(3,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS, vtkDataSetAttributes::SCALARS);
 }
 
-
+//------------------------------------------------------------------------------
 int vtkDFVGlyph3D::RequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **inputVector,
@@ -115,7 +115,7 @@ int vtkDFVGlyph3D::RequestData(
 
   pts = vtkIdList::New();
   pts->Allocate(VTK_CELL_SIZE);
-	
+  
   pd = input->GetPointData();
   inSScalars = this->GetInputArrayToProcess(0,inputVector);
   inVectors = this->GetInputArrayToProcess(1,inputVector);
@@ -154,7 +154,6 @@ int vtkDFVGlyph3D::RequestData(
     }
 
   // Check input for consistency
-  //
   if ( (den = this->Range[1] - this->Range[0]) == 0.0 )
     {
     den = 1.0;
@@ -190,7 +189,6 @@ int vtkDFVGlyph3D::RequestData(
     }
 
   // Allocate storage for output PolyData
-  //
   outputPD->CopyVectorsOff();
   outputPD->CopyNormalsOff();
   outputPD->CopyTCoordsOff();
@@ -347,12 +345,9 @@ int vtkDFVGlyph3D::RequestData(
   transformedSourcePts->Allocate(numSourcePts);
 
   
-  //Create list to determine which points will be visible for IsPointVisible
-
-  //std::vector<int> visibleList;
+  // Create list to determine which points will be visible for IsPointVisible
   std::vector<int> visibleList (this->PointMax+1, 0);
-  //visibleList.reserve(PointMax);
-	
+  
   int n, m, rangeLeft, neededValuesLeft;
   
   vtkSmartPointer<vtkMinimalStandardRandomSequence> random = vtkSmartPointer<vtkMinimalStandardRandomSequence>::New();
@@ -361,19 +356,18 @@ int vtkDFVGlyph3D::RequestData(
   m = 0;
   for (n = 0; (n < numPts) && (m < this->PointMax); ++n) {
     random->Next();
-	neededValuesLeft = this->PointMax - m;
-	rangeLeft = numPts - n;
+  neededValuesLeft = this->PointMax - m;
+  rangeLeft = numPts - n;
 
-	if ((random->GetRangeValue(0, rangeLeft)) < neededValuesLeft){
-		visibleList[this->PointMax-m] = n;
-		m++;
+  if ((random->GetRangeValue(0, rangeLeft)) < neededValuesLeft){
+    visibleList[this->PointMax-m] = n;
+    m++;
     }
   }
   
   
   // Traverse all Input points, transforming Source points and copying
   // point attributes.
-  //
   ptIncr=0;
   cellIncr=0;
   for (inPtId=0; inPtId < numPts; inPtId++)
@@ -502,12 +496,12 @@ int vtkDFVGlyph3D::RequestData(
       {
       continue;
       }
-	else if (this->IsPointVisible(vMag, inPtId, visibleList.back()) == 2)
-	  {
-	  visibleList.pop_back();
-	  continue;
-	  }
-	visibleList.pop_back();
+  else if (this->IsPointVisible(vMag, inPtId, visibleList.back()) == 2)
+    {
+    visibleList.pop_back();
+    continue;
+    }
+  visibleList.pop_back();
 
     // Now begin copying/transforming glyph
     trans->Identity();
@@ -569,7 +563,7 @@ int vtkDFVGlyph3D::RequestData(
     // Copy scalar value
     if (inSScalars && (this->ColorMode == VTK_COLOR_BY_SCALE))
       {
-	  //Should not occur in Deformation Field Visualizer
+      //Should not occur in Deformation Field Visualizer
       for (i=0; i < numSourcePts; i++)
         {
         newScalars->InsertTuple(i+ptIncr, &scalex); // = scaley = scalez
@@ -590,20 +584,20 @@ int vtkDFVGlyph3D::RequestData(
         }
       }
     
-    // scale data if appropriate
+    // Scale data if appropriate
     if ( this->Scaling )
       {
       if ( this->ScaleMode == VTK_DATA_SCALING_OFF )
         {
         scalex = this->ScaleFactor;
-		scaley = this->ScaleFactor;
-		scalez = this->ScaleFactor;
+    scaley = this->ScaleFactor;
+    scalez = this->ScaleFactor;
         }
       else
         {
         scalex *= this->ScaleFactor;
-		scaley *= this->ScaleFactor;
-		scalez *= this->ScaleFactor;
+    scaley *= this->ScaleFactor;
+    scalez *= this->ScaleFactor;
         }
       
       if ( scalex == 0.0 )
@@ -618,7 +612,7 @@ int vtkDFVGlyph3D::RequestData(
         {
         scalez = 1.0e-10;
         }
-		
+    
       if ( this->ScaleDirectional )
         {
         scaley = 1;
@@ -627,11 +621,11 @@ int vtkDFVGlyph3D::RequestData(
         {
         scalez = 1;
         }
-		
+    
       trans->Scale(scalex,scaley,scalez);
       }
 
-    // multiply points and normals by resulting matrix
+    // Multiply points and normals by resulting matrix
     if (this->SourceTransform)
       {
       transformedSourcePts->Reset();
@@ -678,7 +672,6 @@ int vtkDFVGlyph3D::RequestData(
     } 
   
   // Update ourselves and release memory
-  //
   output->SetPoints(newPts);
   newPts->Delete();
 
@@ -714,21 +707,20 @@ int vtkDFVGlyph3D::RequestData(
   return 1;
 }
 
+//------------------------------------------------------------------------------
 void vtkDFVGlyph3D::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
+//------------------------------------------------------------------------------
 int vtkDFVGlyph3D::IsPointVisible(double vMag, vtkIdType ptId, int visibleListIndex)
 {
-	if (visibleListIndex == ptId){
-		if ((vMag <= this->MagnitudeMax) && (vMag >= this->MagnitudeMin)){
-			return 1;
-		}
-		return 2;
-	}
-	return 0;
+  if (visibleListIndex == ptId){
+    if ((vMag <= this->MagnitudeMax) && (vMag >= this->MagnitudeMin)){
+      return 1;
+    }
+    return 2;
+  }
+  return 0;
 }
-
-
-
