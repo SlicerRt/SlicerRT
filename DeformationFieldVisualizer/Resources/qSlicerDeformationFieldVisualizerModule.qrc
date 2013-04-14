@@ -1,0 +1,11 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>Icons/DeformationFieldVisualizer.png</file>
+	<file>Icons/GlyphIcon.png</file>
+	<file>Icons/GridIcon.png</file>
+	<file>Icons/BlockIcon.png</file>
+	<file>Icons/ContourIcon.png</file>
+	<file>Icons/GlyphSliceIcon.png</file>
+	<file>Icons/GridSliceIcon.png</file>
+  </qresource>
+</RCC>

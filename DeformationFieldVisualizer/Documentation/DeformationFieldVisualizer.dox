@@ -1,0 +1,6 @@
+/**
+\defgroup Slicer_QtModules_DeformationFieldVisualizer DeformationFieldVisualizer
+\ingroup Slicer_QtModules
+This module allows to visualize deformation fields using various visualization options.
+
+*/

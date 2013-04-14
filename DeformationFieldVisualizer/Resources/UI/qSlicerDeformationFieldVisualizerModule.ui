@@ -1,0 +1,3291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qSlicerDeformationFieldVisualizerModule</class>
+ <widget class="qSlicerWidget" name="qSlicerDeformationFieldVisualizerModule">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>361</width>
+    <height>1048</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="font">
+   <font>
+    <weight>50</weight>
+    <bold>false</bold>
+    <strikeout>false</strikeout>
+    <kerning>true</kerning>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Deformation Field Visualizer</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="ctkCollapsibleButton" name="ParameterSetCollapsibleButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Parameter Set</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_3">
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="ParameterComboBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLDeformationFieldVisualizerParametersNode</string>
+         </stringlist>
+        </property>
+        <property name="showHidden">
+         <bool>true</bool>
+        </property>
+        <property name="renameEnabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="IO">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="cursor">
+      <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="text">
+      <string>IO</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0">
+      <property name="topMargin">
+       <number>9</number>
+      </property>
+      <property name="bottomMargin">
+       <number>9</number>
+      </property>
+      <item>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string>Input</string>
+        </property>
+        <layout class="QFormLayout" name="formLayout">
+         <property name="fieldGrowthPolicy">
+          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="InputVolumeLabel">
+           <property name="toolTip">
+            <string>Input deformation field as a vector volume</string>
+           </property>
+           <property name="text">
+            <string>Deformation Field</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="qMRMLNodeComboBox" name="InputFieldComboBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Input deformation field as a vector volume</string>
+           </property>
+           <property name="nodeTypes">
+            <stringlist>
+             <string>vtkMRMLVectorVolumeNode</string>
+             <string>vtkMRMLTransformNode</string>
+            </stringlist>
+           </property>
+           <property name="noneEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="addEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="removeEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="editEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="renameEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="baseName">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="InputVolumeLabel_2">
+           <property name="toolTip">
+            <string>Reference image for visualizing transform nodes (will only use size, orientation and position)</string>
+           </property>
+           <property name="text">
+            <string>Reference Image</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="qMRMLNodeComboBox" name="InputReferenceComboBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Reference image for visualizing transform nodes (will only use size, orientation and position)</string>
+           </property>
+           <property name="nodeTypes">
+            <stringlist>
+             <string>vtkMRMLVolumeNode</string>
+            </stringlist>
+           </property>
+           <property name="noneEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="addEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="removeEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="editEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="renameEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="baseName">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_2">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string>Output</string>
+        </property>
+        <layout class="QFormLayout" name="formLayout_4">
+         <property name="fieldGrowthPolicy">
+          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="OutputModelLabel">
+           <property name="text">
+            <string>Output Model</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="qMRMLNodeComboBox" name="OutputModelComboBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Output model visualizing deformation field</string>
+           </property>
+           <property name="nodeTypes">
+            <stringlist>
+             <string>vtkMRMLModelNode</string>
+            </stringlist>
+           </property>
+           <property name="noneEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="editEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="renameEnabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="VisualizationOption">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>170</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>Options for visualization of deformation field</string>
+     </property>
+     <property name="text">
+      <string>Visualization Option</string>
+     </property>
+     <property name="autoRepeatInterval">
+      <number>100</number>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="1">
+       <widget class="QPushButton" name="GlyphSliceToggle">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Visualize deformation field using glyphs designed for slice intersections</string>
+        </property>
+        <property name="text">
+         <string>Glyph Slice</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../qSlicerDeformationFieldVisualizerModule.qrc">
+          <normaloff>:/Icons/GlyphSliceIcon.png</normaloff>:/Icons/GlyphSliceIcon.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="GridSliceToggle">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Visualize deformation field using grids designed for slice intersections</string>
+        </property>
+        <property name="text">
+         <string>Grid Slice</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../qSlicerDeformationFieldVisualizerModule.qrc">
+          <normaloff>:/Icons/GridSliceIcon.png</normaloff>:/Icons/GridSliceIcon.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="ContourToggle">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Contour magnitude values of deformation field</string>
+        </property>
+        <property name="text">
+         <string>Contour</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../qSlicerDeformationFieldVisualizerModule.qrc">
+          <normaloff>:/Icons/ContourIcon.png</normaloff>:/Icons/ContourIcon.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="GlyphToggle">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::StrongFocus</enum>
+        </property>
+        <property name="toolTip">
+         <string>Visualize deformation field using glyphs</string>
+        </property>
+        <property name="statusTip">
+         <string/>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
+        </property>
+        <property name="text">
+         <string>Glyph</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../qSlicerDeformationFieldVisualizerModule.qrc">
+          <normaloff>:/Icons/GlyphIcon.png</normaloff>:/Icons/GlyphIcon.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
+        </property>
+        <property name="shortcut">
+         <string notr="true"/>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="GridToggle">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Visualize deformation field using a 3D grid</string>
+        </property>
+        <property name="text">
+         <string>Grid</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../qSlicerDeformationFieldVisualizerModule.qrc">
+          <normaloff>:/Icons/GridIcon.png</normaloff>:/Icons/GridIcon.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="BlockToggle">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Visualize deformation field using a block</string>
+        </property>
+        <property name="text">
+         <string>Block</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../qSlicerDeformationFieldVisualizerModule.qrc">
+          <normaloff>:/Icons/BlockIcon.png</normaloff>:/Icons/BlockIcon.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="Parameters">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Parameters</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="3" column="0">
+       <widget class="ctkCollapsibleGroupBox" name="BlockBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="visible">
+         <bool>false</bool>
+        </property>
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
+        </property>
+        <property name="title">
+         <string>Block Options</string>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
+        </property>
+        <layout class="QFormLayout" name="formLayout_7">
+         <property name="fieldGrowthPolicy">
+          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="BlockScaleLabel">
+           <property name="toolTip">
+            <string>Adjust amount to scale deformation of block</string>
+           </property>
+           <property name="text">
+            <string>Scale Factor</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="ctkSliderWidget" name="InputBlockScale">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Adjust amount to scale deformation of block</string>
+           </property>
+           <property name="decimals">
+            <number>2</number>
+           </property>
+           <property name="singleStep">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="pageStep">
+            <double>0.010000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>10.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="BlockScaleLabel_2">
+           <property name="toolTip">
+            <string>Creates displacement plot as alternate color array (Warning: Experimental; does not work well with large datasets)</string>
+           </property>
+           <property name="text">
+            <string>Add Displacement Array</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="ctkCheckBox" name="InputBlockDisplacementCheck">
+           <property name="toolTip">
+            <string>Creates displacement plot as alternate color array (Warning: Experimental; does not work well with large datasets)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="ctkCollapsibleGroupBox" name="ContourBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="visible">
+         <bool>false</bool>
+        </property>
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
+        </property>
+        <property name="title">
+         <string>Contour Options</string>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
+        </property>
+        <layout class="QFormLayout" name="formLayout_8">
+         <property name="fieldGrowthPolicy">
+          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="ContourNumberLabel">
+           <property name="toolTip">
+            <string>Number of contours to generate between the selected range values</string>
+           </property>
+           <property name="text">
+            <string>Number of Contours</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QDoubleSpinBox" name="InputContourNumber">
+           <property name="toolTip">
+            <string>Number of contours to generate between the selected range values</string>
+           </property>
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="minimum">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>500.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="ContourMinLabel">
+           <property name="toolTip">
+            <string>Range to create contours</string>
+           </property>
+           <property name="text">
+            <string>Range</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="ctkRangeWidget" name="InputContourRange">
+           <property name="toolTip">
+            <string>Range to create contours</string>
+           </property>
+           <property name="decimals">
+            <number>2</number>
+           </property>
+           <property name="singleStep">
+            <double>0.010000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximumValue">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="ctkCollapsibleGroupBox" name="GridBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="visible">
+         <bool>false</bool>
+        </property>
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
+        </property>
+        <property name="title">
+         <string>Grid Options</string>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
+        </property>
+        <layout class="QFormLayout" name="formLayout_6">
+         <property name="fieldGrowthPolicy">
+          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         </property>
+         <item row="1" column="0">
+          <widget class="QLabel" name="GridScaleLabel">
+           <property name="toolTip">
+            <string>Adjust amount to scale deformation of grid</string>
+           </property>
+           <property name="text">
+            <string>Scale Factor</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="ctkSliderWidget" name="InputGridScale">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Adjust amount to scale deformation of grid</string>
+           </property>
+           <property name="decimals">
+            <number>2</number>
+           </property>
+           <property name="singleStep">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="pageStep">
+            <double>0.010000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>10.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="GridDensityLabel">
+           <property name="toolTip">
+            <string>Subsample grid (reduces density of grid by the value specified)</string>
+           </property>
+           <property name="text">
+            <string>Subsample</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QDoubleSpinBox" name="InputGridDensity">
+           <property name="toolTip">
+            <string>Subsample grid (reduces density of grid by the value specified)</string>
+           </property>
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="minimum">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>200.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>6.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="0" column="0" rowspan="2">
+       <widget class="ctkCollapsibleGroupBox" name="GlyphBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string>Glyph Options</string>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="1">
+          <widget class="QLabel" name="InputVolumeLabel_3">
+           <property name="toolTip">
+            <string>Number of glyphs to generate</string>
+           </property>
+           <property name="text">
+            <string>Number of Glyphs</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2" colspan="2">
+          <widget class="ctkSliderWidget" name="InputGlyphPointMax">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Number of glyphs to generate</string>
+           </property>
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="singleStep">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="pageStep">
+            <double>500.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>10000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>2000.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="1" colspan="3">
+          <widget class="ctkCollapsibleGroupBox" name="ArrowSourceOptions">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Arrow Source</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+           <layout class="QFormLayout" name="formLayout_2">
+            <property name="fieldGrowthPolicy">
+             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="TipLengthLabel">
+              <property name="toolTip">
+               <string>Adjust how much of the arrow the tip will cover</string>
+              </property>
+              <property name="text">
+               <string>Tip Length</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="ctkSliderWidget" name="InputGlyphArrowTipLength">
+              <property name="toolTip">
+               <string>Adjust how much of the arrow the tip will cover</string>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>0.350000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="TipRadiusLabel">
+              <property name="toolTip">
+               <string>Adjust radius of base of arrow tip</string>
+              </property>
+              <property name="text">
+               <string>Tip Base Radius</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="ctkSliderWidget" name="InputGlyphArrowTipRadius">
+              <property name="toolTip">
+               <string>Adjust radius of base of arrow tip</string>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>0.500000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="ShaftRadiusLabel">
+              <property name="toolTip">
+               <string>Adjust radius of arrow shaft</string>
+              </property>
+              <property name="text">
+               <string>Shaft Radius</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="ctkSliderWidget" name="InputGlyphArrowShaftRadius">
+              <property name="toolTip">
+               <string>Adjust radius of arrow shaft</string>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>0.150000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="ShaftResolutionLabel">
+              <property name="toolTip">
+               <string>Adjust resolution of arrow (lower is less detailed)</string>
+              </property>
+              <property name="text">
+               <string>Resolution</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="ctkSliderWidget" name="InputGlyphArrowResolution">
+              <property name="toolTip">
+               <string>Adjust resolution of arrow (lower is less detailed)</string>
+              </property>
+              <property name="decimals">
+               <number>0</number>
+              </property>
+              <property name="singleStep">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="minimum">
+               <double>6.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>24.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>6.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="6" column="2" colspan="2">
+          <widget class="ctkComboBox" name="GlyphSourceComboBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Choose a glyph type to use</string>
+           </property>
+           <property name="defaultText">
+            <string/>
+           </property>
+           <item>
+            <property name="text">
+             <string>Arrow</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Cone</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Sphere</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>2D Arrow</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QLabel" name="label_2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Choose a glyph type to use</string>
+           </property>
+           <property name="text">
+            <string>Source</string>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="1" colspan="3">
+          <widget class="ctkCollapsibleGroupBox" name="ConeSourceOptions">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="visible">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string/>
+           </property>
+           <property name="title">
+            <string>Cone Source</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+           <layout class="QFormLayout" name="formLayout_9">
+            <property name="fieldGrowthPolicy">
+             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="toolTip">
+               <string>Adjust height of cone</string>
+              </property>
+              <property name="text">
+               <string>Height</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_4">
+              <property name="toolTip">
+               <string>Adjust radius of base of cone</string>
+              </property>
+              <property name="text">
+               <string>Base Radius</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="ctkSliderWidget" name="InputGlyphConeRadius">
+              <property name="toolTip">
+               <string>Adjust radius of base of cone</string>
+              </property>
+              <property name="singleStep">
+               <double>0.020000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>0.600000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="ctkSliderWidget" name="InputGlyphConeResolution">
+              <property name="toolTip">
+               <string>Adjust resolution of cone (lower is less detailed)</string>
+              </property>
+              <property name="decimals">
+               <number>0</number>
+              </property>
+              <property name="singleStep">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="minimum">
+               <double>6.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>24.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>6.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_6">
+              <property name="toolTip">
+               <string>Adjust resolution of cone (lower is less detailed)</string>
+              </property>
+              <property name="text">
+               <string>Resolution</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="ctkSliderWidget" name="InputGlyphConeHeight">
+              <property name="toolTip">
+               <string>Adjust height of cone</string>
+              </property>
+              <property name="singleStep">
+               <double>0.020000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>5.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="13" column="1" colspan="3">
+          <widget class="ctkCollapsibleGroupBox" name="SphereSourceOptions">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="visible">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string/>
+           </property>
+           <property name="title">
+            <string>Sphere Source</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+           <layout class="QFormLayout" name="formLayout_10">
+            <property name="fieldGrowthPolicy">
+             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_8">
+              <property name="toolTip">
+               <string>Adjust resolution of sphere (lower is less detailed)</string>
+              </property>
+              <property name="text">
+               <string>Resolution</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="ctkSliderWidget" name="InputGlyphSphereResolution">
+              <property name="toolTip">
+               <string>Adjust resolution of sphere (lower is less detailed)</string>
+              </property>
+              <property name="decimals">
+               <number>0</number>
+              </property>
+              <property name="singleStep">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="minimum">
+               <double>6.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>24.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>6.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="4" column="1" colspan="3">
+          <widget class="ctkCollapsibleGroupBox" name="GlyphScaleBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="title">
+            <string>Scaling</string>
+           </property>
+           <layout class="QFormLayout" name="formLayout_5">
+            <property name="fieldGrowthPolicy">
+             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label">
+              <property name="toolTip">
+               <string>Adjust amount to scale size of glyph</string>
+              </property>
+              <property name="text">
+               <string>Scale Factor</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="ctkSliderWidget" name="InputGlyphScale">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>Adjust amount to scale size of glyph</string>
+              </property>
+              <property name="decimals">
+               <number>2</number>
+              </property>
+              <property name="singleStep">
+               <double>0.250000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>10.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QRadioButton" name="InputGlyphScaleDirectional">
+              <property name="toolTip">
+               <string>Scale glyph only along direction of vector</string>
+              </property>
+              <property name="text">
+               <string>Directional Scaling</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QRadioButton" name="InputGlyphScaleIsotropic">
+              <property name="toolTip">
+               <string>Scale glyph in all directions</string>
+              </property>
+              <property name="text">
+               <string>Isotropic Scaling</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="14" column="1">
+          <widget class="QLabel" name="label_5">
+           <property name="toolTip">
+            <string>Seed used for placement of glyphs</string>
+           </property>
+           <property name="text">
+            <string>Random Seed</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="2">
+          <widget class="QSpinBox" name="InputGlyphSeed">
+           <property name="toolTip">
+            <string>Seed used for placement of glyphs</string>
+           </property>
+           <property name="inputMethodHints">
+            <set>Qt::ImhDigitsOnly</set>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>2147483647</number>
+           </property>
+           <property name="singleStep">
+            <number>54723</number>
+           </property>
+           <property name="value">
+            <number>687848400</number>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="3">
+          <widget class="QPushButton" name="GenerateSeedButton">
+           <property name="toolTip">
+            <string>Generate a random seed to use for the glyph visualization</string>
+           </property>
+           <property name="text">
+            <string>Generate Seed</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_10">
+           <property name="toolTip">
+            <string>Only create glyphs within threshold values</string>
+           </property>
+           <property name="text">
+            <string>Magnitude Threshold</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2" colspan="2">
+          <widget class="ctkRangeWidget" name="InputGlyphThreshold">
+           <property name="toolTip">
+            <string>Only create glyphs within threshold values</string>
+           </property>
+           <property name="decimals">
+            <number>2</number>
+           </property>
+           <property name="singleStep">
+            <double>0.010000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximumValue">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="ctkCollapsibleGroupBox" name="GridSliceBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="visible">
+         <bool>false</bool>
+        </property>
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
+        </property>
+        <property name="title">
+         <string>Grid Slice Options</string>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
+        </property>
+        <layout class="QFormLayout" name="formLayout_11">
+         <property name="fieldGrowthPolicy">
+          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_7">
+           <property name="toolTip">
+            <string>Orient grid slice to selected slice view</string>
+           </property>
+           <property name="text">
+            <string>Slice</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="qMRMLNodeComboBox" name="GridSliceComboBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Output model visualizing deformation field</string>
+           </property>
+           <property name="nodeTypes">
+            <stringlist>
+             <string>vtkMRMLSliceNode</string>
+            </stringlist>
+           </property>
+           <property name="noneEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="editEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="renameEnabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="GridScaleLabel_2">
+           <property name="toolTip">
+            <string>Adjust amount to scale deformation of grid</string>
+           </property>
+           <property name="text">
+            <string>Scale Factor</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="ctkSliderWidget" name="InputGridSliceScale">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Adjust amount to scale deformation of grid</string>
+           </property>
+           <property name="decimals">
+            <number>2</number>
+           </property>
+           <property name="singleStep">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="pageStep">
+            <double>0.010000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>10.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="GridSliceDensityLabel">
+           <property name="toolTip">
+            <string>Subsample grid (reduces density of grid by the value specified)</string>
+           </property>
+           <property name="text">
+            <string>Subsample</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="InputGridSliceDensity">
+           <property name="toolTip">
+            <string>Subsample grid (reduces density of grid by the value specified)</string>
+           </property>
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="minimum">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>200.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>6.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="ctkCollapsibleGroupBox" name="GlyphSliceBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="visible">
+         <bool>false</bool>
+        </property>
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
+        </property>
+        <property name="title">
+         <string>Glyph Slice Options</string>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="toolTip">
+            <string>Orient and project glyphs to selected slice view</string>
+           </property>
+           <property name="text">
+            <string>Slice</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="InputVolumeLabel_4">
+           <property name="toolTip">
+            <string>Number of glyphs to generate</string>
+           </property>
+           <property name="text">
+            <string>Number of Glyphs</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1" colspan="2">
+          <widget class="ctkSliderWidget" name="InputGlyphSlicePointMax">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Number of glyphs to generate</string>
+           </property>
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="singleStep">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="pageStep">
+            <double>500.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>10000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>2000.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_13">
+           <property name="toolTip">
+            <string>Only create glyphs within threshold values</string>
+           </property>
+           <property name="text">
+            <string>Magnitude Threshold</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1" colspan="2">
+          <widget class="ctkRangeWidget" name="InputGlyphSliceThreshold">
+           <property name="toolTip">
+            <string>Only create glyphs within threshold values</string>
+           </property>
+           <property name="decimals">
+            <number>2</number>
+           </property>
+           <property name="singleStep">
+            <double>0.010000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximumValue">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="GlyphScaleLabel">
+           <property name="toolTip">
+            <string>Adjust amount to scale size of glyph</string>
+           </property>
+           <property name="text">
+            <string>Scale Factor</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1" colspan="2">
+          <widget class="ctkSliderWidget" name="InputGlyphSliceScale">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Adjust amount to scale size of glyph</string>
+           </property>
+           <property name="decimals">
+            <number>2</number>
+           </property>
+           <property name="singleStep">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="pageStep">
+            <double>0.010000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>10.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_14">
+           <property name="toolTip">
+            <string>Seed used for placement of glyphs</string>
+           </property>
+           <property name="text">
+            <string>Random Seed</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QSpinBox" name="InputGlyphSliceSeed">
+           <property name="toolTip">
+            <string>Seed used for placement of glyphs</string>
+           </property>
+           <property name="inputMethodHints">
+            <set>Qt::ImhDigitsOnly</set>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>2147483647</number>
+           </property>
+           <property name="singleStep">
+            <number>54723</number>
+           </property>
+           <property name="value">
+            <number>687848400</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="2">
+          <widget class="QPushButton" name="GenerateSeedButton2">
+           <property name="toolTip">
+            <string>Generate a random seed to use for the glyph visualization</string>
+           </property>
+           <property name="text">
+            <string>Generate Seed</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" colspan="2">
+          <widget class="qMRMLNodeComboBox" name="GlyphSliceComboBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Output model visualizing deformation field</string>
+           </property>
+           <property name="nodeTypes">
+            <stringlist>
+             <string>vtkMRMLSliceNode</string>
+            </stringlist>
+           </property>
+           <property name="showHidden">
+            <bool>true</bool>
+           </property>
+           <property name="noneEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="addEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="removeEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="editEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="renameEnabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::MinimumExpanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>10</width>
+       <height>10</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="VolumeDisabledLabel">
+     <property name="text">
+      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; font-weight:600; color:#ff0000;&quot;&gt;No input volume selected&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="ModelDisabledLabel">
+     <property name="text">
+      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; font-weight:600; color:#ff0000;&quot;&gt;No output model selected&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="ApplyButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>60</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Visualize</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>qMRMLNodeComboBox</class>
+   <extends>QWidget</extends>
+   <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qSlicerWidget</class>
+   <extends>QWidget</extends>
+   <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>ctkCheckBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>ctkCollapsibleGroupBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ctkComboBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkRangeWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkRangeWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../qSlicerDeformationFieldVisualizerModule.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>qSlicerDeformationFieldVisualizerModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>InputFieldComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>277</x>
+     <y>6</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>315</x>
+     <y>150</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDeformationFieldVisualizerModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>OutputModelComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>208</x>
+     <y>780</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>332</x>
+     <y>235</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>164</x>
+     <y>510</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>201</x>
+     <y>510</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>510</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>265</x>
+     <y>510</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>841</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>841</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDeformationFieldVisualizerModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ParameterComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>69</x>
+     <y>7</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>253</x>
+     <y>60</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>VisualizationOption</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>334</x>
+     <y>401</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>VisualizationOption</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>334</x>
+     <y>401</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>VisualizationOption</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>334</x>
+     <y>401</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>57</x>
+     <y>510</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>46</x>
+     <y>510</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>96</x>
+     <y>293</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>122</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>85</x>
+     <y>297</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>363</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>155</x>
+     <y>841</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>375</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>841</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>97</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>56</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>352</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>119</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>293</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>305</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>352</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>293</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>BlockToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>301</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>342</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>359</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>841</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>841</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BlockBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridSliceBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>363</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>1188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphSliceToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphSliceBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>233</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>1052</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDeformationFieldVisualizerModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>InputReferenceComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>130</x>
+     <y>6</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>152</x>
+     <y>172</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDeformationFieldVisualizerModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>GlyphSliceComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>352</x>
+     <y>1268</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>202</x>
+     <y>880</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDeformationFieldVisualizerModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>GridSliceComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>358</x>
+     <y>1288</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>217</x>
+     <y>1097</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
