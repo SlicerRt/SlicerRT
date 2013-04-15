@@ -22,31 +22,15 @@
 
 // SlicerRtCommon includes
 #include "SlicerRtCommon.h"
-#include "vtkPolyDataToLabelmapFilter.h"
-#include "vtkLabelmapToModelFilter.h"
-#include "vtkMRMLContourNode.h"
 #include "vtkMRMLRTPlanHierarchyNode.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLLabelMapVolumeDisplayNode.h>
-#include <vtkMRMLColorTableNode.h>
-#include <vtkMRMLTransformNode.h>
-#include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLModelHierarchyNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
-#include <vtkIntArray.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkImageResample.h>
-#include <vtkGeneralTransform.h>
-#include <vtkCollection.h>
-
-// STD includes
-#include <algorithm> //TODO: workaround for issue #179
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTPlanHierarchyNode);
@@ -54,7 +38,6 @@ vtkMRMLNodeNewMacro(vtkMRMLRTPlanHierarchyNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanHierarchyNode::vtkMRMLRTPlanHierarchyNode()
 {
-
   this->HideFromEditorsOff();
 
   // Register parent transform modified event so that the representations
@@ -76,7 +59,6 @@ void vtkMRMLRTPlanHierarchyNode::WriteXML(ostream& of, int nIndent)
 
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
-
 }
 
 //----------------------------------------------------------------------------
@@ -92,7 +74,6 @@ void vtkMRMLRTPlanHierarchyNode::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
-
     }
 }
 
@@ -114,28 +95,24 @@ void vtkMRMLRTPlanHierarchyNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLRTPlanHierarchyNode::UpdateReferences()
 {
   Superclass::UpdateReferences();
-
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanHierarchyNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   Superclass::UpdateReferenceID(oldID, newID);
-
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanHierarchyNode::UpdateScene(vtkMRMLScene *scene)
 {
   Superclass::UpdateScene(scene);
-
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanHierarchyNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
-
 }
 
 //----------------------------------------------------------------------------
@@ -157,7 +134,6 @@ void vtkMRMLRTPlanHierarchyNode::ProcessMRMLEvents(vtkObject *caller, unsigned l
       {
       return;
       }
-
     }
 }
 

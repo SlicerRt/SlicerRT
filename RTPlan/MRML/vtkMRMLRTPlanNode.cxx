@@ -20,35 +20,21 @@
 
 ==============================================================================*/
 
-// SlicerRtCommon includes
+// SlicerRt includes
 #include "SlicerRtCommon.h"
-#include "vtkPolyDataToLabelmapFilter.h"
-#include "vtkLabelmapToModelFilter.h"
-#include "vtkMRMLContourNode.h"
+
+// RTPlan includes
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTPlanHierarchyNode.h"
 #include "vtkMRMLRTBeamNode.h"
 
 // MRML includes
-#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLLabelMapVolumeDisplayNode.h>
-#include <vtkMRMLColorTableNode.h>
-#include <vtkMRMLTransformNode.h>
-#include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLModelHierarchyNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
-#include <vtkIntArray.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkImageResample.h>
-#include <vtkGeneralTransform.h>
 #include <vtkCollection.h>
-
-// STD includes
-#include <algorithm> //TODO: workaround for issue #179
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
@@ -239,7 +225,6 @@ void vtkMRMLRTPlanNode::AddRTBeamNode(vtkMRMLRTBeamNode *beamnode)
   if (phrootnode == NULL)
   {
     phrootnode = vtkMRMLRTPlanHierarchyNode::New();
-    //phrootnode->SetName(RTPlanHierarchyRootNodeName.c_str());
     phrootnode->AllowMultipleChildrenOn();
     phrootnode->HideFromEditorsOff();
     scene->AddNode(phrootnode);
@@ -249,10 +234,6 @@ void vtkMRMLRTPlanNode::AddRTBeamNode(vtkMRMLRTBeamNode *beamnode)
 
   // Put the RTBeam node in the hierarchy
   vtkSmartPointer<vtkMRMLRTPlanHierarchyNode> RTPlanHierarchyNode = vtkSmartPointer<vtkMRMLRTPlanHierarchyNode>::New();
-  //std::string RTPlanHierarchyNode(contourNodeName);
-  //RTPlanHierarchyNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
-  //RTPlanHierarchyNode = this->GetMRMLScene()->GenerateUniqueName(phContourNodeName);
-  //RTPlanHierarchyNode->SetName(phContourNodeName.c_str());
   RTPlanHierarchyNode->SetParentNodeID( phrootnode->GetID() );
   RTPlanHierarchyNode->SetAssociatedNodeID( beamnode->GetID() );
   RTPlanHierarchyNode->HideFromEditorsOff();
@@ -281,5 +262,4 @@ void vtkMRMLRTPlanNode::RemoveRTBeamNode(vtkMRMLRTBeamNode *beamnode)
         }
       }// end if
     }// end for
-
 }
