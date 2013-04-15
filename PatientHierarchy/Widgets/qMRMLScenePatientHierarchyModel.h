@@ -62,8 +62,8 @@ public:
   /// Fast function that only check the type of the node to know if it can be a parent.
   virtual bool canBeAParent(vtkMRMLNode* node)const;
 
-  /// If newParent == 0, set the node into the vtkMRMLScene
-  //virtual bool reparent(vtkMRMLNode* node, vtkMRMLNode* newParent);
+  /// Insert/move node in patient hierarchy under newParent
+  virtual bool reparent(vtkMRMLNode* node, vtkMRMLNode* newParent);
 
   //virtual int nodeIndex(vtkMRMLNode* node)const;
 
