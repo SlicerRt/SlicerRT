@@ -59,7 +59,7 @@
         </property>
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLDeformationFieldVisualizerParametersNode</string>
+          <string>vtkMRMLDeformationFieldVisualizerNode</string>
          </stringlist>
         </property>
         <property name="showHidden">

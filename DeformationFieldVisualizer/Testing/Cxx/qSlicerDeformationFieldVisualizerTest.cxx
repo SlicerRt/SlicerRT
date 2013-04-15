@@ -1,7 +1,7 @@
 
 //DeformationFieldVisualizer logic
 #include "vtkSlicerDeformationFieldVisualizerLogic.h"
-#include "vtkMRMLDeformationFieldVisualizerParametersNode.h"
+#include "vtkMRMLDeformationFieldVisualizerNode.h"
 
 // MRML includes
 #include <vtkMRMLModelNode.h>
@@ -74,7 +74,7 @@ int qSlicerDeformationFieldVisualizerTest(int argc, char *argv[])
 	}
 	
 	//Set up parameter node
-	vtkSmartPointer<vtkMRMLDeformationFieldVisualizerParametersNode> pNode = vtkSmartPointer<vtkMRMLDeformationFieldVisualizerParametersNode>::New();
+	vtkSmartPointer<vtkMRMLDeformationFieldVisualizerNode> pNode = vtkSmartPointer<vtkMRMLDeformationFieldVisualizerNode>::New();
 	pNode->SetAndObserveInputVolumeNodeID(inputVolumeNode->GetID());
 	pNode->SetGridDensity(1);
 	scene->AddNode(pNode);

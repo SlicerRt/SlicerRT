@@ -12,8 +12,8 @@ set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}Logic.h
   vtkDFVGlyph3D.cxx
   vtkDFVGlyph3D.h
-  vtkMRMLDeformationFieldVisualizerParametersNode.cxx
-  vtkMRMLDeformationFieldVisualizerParametersNode.h
+  vtkMRMLDeformationFieldVisualizerNode.cxx
+  vtkMRMLDeformationFieldVisualizerNode.h
   )
 
 set(${KIT}_TARGET_LIBRARIES

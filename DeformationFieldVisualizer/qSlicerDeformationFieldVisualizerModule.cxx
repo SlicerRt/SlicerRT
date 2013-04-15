@@ -64,20 +64,20 @@ qSlicerDeformationFieldVisualizerModule::~qSlicerDeformationFieldVisualizerModul
 //-----------------------------------------------------------------------------
 QString qSlicerDeformationFieldVisualizerModule::helpText()const
 {
-  return "This is a placeholder help text.";
+  return "TODO: This is a placeholder help text.";
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerDeformationFieldVisualizerModule::acknowledgementText()const
 {
-  return "Acknowledgement Placeholder.";
+  return "TODO: Acknowledgement Placeholder.";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerDeformationFieldVisualizerModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Franklin King");
+  moduleContributors << QString("Franklin King") << QString("Andras Lasso") << QString("Csaba Pinter");
   return moduleContributors;
 }
 
