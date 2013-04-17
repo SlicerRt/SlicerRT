@@ -186,6 +186,8 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
       d->radioButton_Intersect->setChecked(false);
       d->radioButton_Subtract->setChecked(false);
 
+      d->MRMLNodeComboBox_ContourB->setEnabled(false);
+
       d->doubleSpinBox_XSize->setEnabled(true);
       d->doubleSpinBox_YSize->setEnabled(true);
       d->doubleSpinBox_ZSize->setEnabled(true);
@@ -196,6 +198,8 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
       d->radioButton_Union->setChecked(false);
       d->radioButton_Intersect->setChecked(false);
       d->radioButton_Subtract->setChecked(false);
+
+      d->MRMLNodeComboBox_ContourB->setEnabled(false);
 
       d->doubleSpinBox_XSize->setEnabled(true);
       d->doubleSpinBox_YSize->setEnabled(true);
@@ -208,6 +212,8 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
       d->radioButton_Intersect->setChecked(false);
       d->radioButton_Subtract->setChecked(false);
 
+      d->MRMLNodeComboBox_ContourB->setEnabled(true);
+
       d->doubleSpinBox_XSize->setEnabled(false);
       d->doubleSpinBox_YSize->setEnabled(false);
       d->doubleSpinBox_ZSize->setEnabled(false);
@@ -219,6 +225,8 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
       d->radioButton_Intersect->setChecked(true);
       d->radioButton_Subtract->setChecked(false);
 
+      d->MRMLNodeComboBox_ContourB->setEnabled(true);
+
       d->doubleSpinBox_XSize->setEnabled(false);
       d->doubleSpinBox_YSize->setEnabled(false);
       d->doubleSpinBox_ZSize->setEnabled(false);
@@ -229,6 +237,8 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
       d->radioButton_Union->setChecked(false);
       d->radioButton_Intersect->setChecked(false);
       d->radioButton_Subtract->setChecked(true);
+
+      d->MRMLNodeComboBox_ContourB->setEnabled(true);
 
       d->doubleSpinBox_XSize->setEnabled(false);
       d->doubleSpinBox_YSize->setEnabled(false);
