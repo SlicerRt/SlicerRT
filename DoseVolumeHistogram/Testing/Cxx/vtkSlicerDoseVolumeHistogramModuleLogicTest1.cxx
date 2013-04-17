@@ -455,7 +455,6 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     std::string contourNodeName = (*it) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
     contourNode->SetName(contourNodeName.c_str());
     contourNode->SetAndObserveRibbonModelNodeId(modelNode->GetID());
-    contourNode->SetActiveRepresentationByNode(modelNode);
     contourNode->SetRasterizationOversamplingFactor(rasterizationOversamplingFactor);
     contourNode->SetStructureName((*it).c_str());
     contourNode->HideFromEditorsOff();

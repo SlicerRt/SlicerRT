@@ -153,5 +153,4 @@ void vtkSlicerContoursModuleLogic::CreateEmptyRibbonModelForContour(vtkMRMLNode*
   emptyRibbonModelNode->SetName(emptyRibbonModelName.c_str());
 
   contourNode->SetAndObserveRibbonModelNodeId(emptyRibbonModelNode->GetID());
-  contourNode->SetActiveRepresentationByNode(emptyRibbonModelNode);
 }

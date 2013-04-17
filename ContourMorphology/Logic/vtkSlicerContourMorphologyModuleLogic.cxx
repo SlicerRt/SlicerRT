@@ -389,7 +389,6 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   outputIndexedLabelmapVolumeNode->SetAndObserveDisplayNodeID( labelmapDisplayNode->GetID() );
 
   outputContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(outputIndexedLabelmapVolumeNode->GetID());
-  outputContourNode->SetActiveRepresentationByNode(outputIndexedLabelmapVolumeNode);
 
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 

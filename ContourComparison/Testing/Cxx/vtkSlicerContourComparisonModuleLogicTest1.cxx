@@ -406,13 +406,11 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
   referenceContourNode->SetName("Reference_Contour");
   mrmlScene->AddNode(referenceContourNode);
   referenceContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(inputLabelmapReferenceScalarVolumeNode->GetID());
-  referenceContourNode->SetActiveRepresentationByNode(inputLabelmapReferenceScalarVolumeNode);
 
   vtkSmartPointer<vtkMRMLContourNode> compareContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
   compareContourNode->SetName("Compare_Contour");
   mrmlScene->AddNode(compareContourNode);
   compareContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(inputLabelmapCompareScalarVolumeNode->GetID());
-  compareContourNode->SetActiveRepresentationByNode(inputLabelmapCompareScalarVolumeNode);
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLContourComparisonNode> paramNode = vtkSmartPointer<vtkMRMLContourComparisonNode>::New();

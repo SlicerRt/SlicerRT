@@ -123,6 +123,7 @@ void qSlicerPatientHierarchyModuleWidget::updateWidgetFromMRML()
   Q_D(qSlicerPatientHierarchyModuleWidget);
 
   d->PatientHierarchyTreeView->sortFilterProxyModel()->invalidate();
+  d->PotentialPatientHierarchyListView->sortFilterProxyModel()->invalidate();
 }
 
 //-----------------------------------------------------------------------------

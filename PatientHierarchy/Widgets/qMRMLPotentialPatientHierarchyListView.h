@@ -30,6 +30,7 @@
 
 class qMRMLPotentialPatientHierarchyListViewPrivate;
 class vtkMRMLScene;
+class qMRMLSortFilterProxyModel;
 
 /// \ingroup Slicer_QtModules_PatientHierarchy
 class Q_SLICER_MODULE_PATIENTHIERARCHY_WIDGETS_EXPORT qMRMLPotentialPatientHierarchyListView : public QListView
@@ -40,6 +41,8 @@ public:
   virtual ~qMRMLPotentialPatientHierarchyListView();
 
   vtkMRMLScene* mrmlScene()const;
+
+  qMRMLSortFilterProxyModel* sortFilterProxyModel()const;
 
 public slots:
   void setMRMLScene(vtkMRMLScene* scene);

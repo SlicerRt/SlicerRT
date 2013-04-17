@@ -209,6 +209,8 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
   this->SetAndObserveClosedSurfaceModelNodeId( NULL );
   this->SetClosedSurfaceModelNodeId( node->ClosedSurfaceModelNodeId );
 
+  this->ActiveRepresentationType = node->GetActiveRepresentationType();
+
   this->SetAndObserveRasterizationReferenceVolumeNodeId( node->RasterizationReferenceVolumeNodeId );
 
   this->SetRasterizationOversamplingFactor( node->RasterizationOversamplingFactor );
@@ -354,30 +356,7 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
 
     // The active representation has been modified, and both the caller object and the event is fine:
     //   Delete all non-active representations 
-    std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
-    for (int i=0; i<NumberOfRepresentationTypes; ++i)
-      {
-      if (i != this->ActiveRepresentationType && representations[i])
-        {
-        vtkMRMLDisplayableNode* node = representations[i];
-        switch ( (ContourRepresentationType)(i) )
-          {
-          case RibbonModel:
-            this->SetAndObserveRibbonModelNodeId(NULL);
-            break;
-          case IndexedLabelmap:
-            this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
-            break;
-          case ClosedSurfaceModel:
-            this->SetAndObserveClosedSurfaceModelNodeId(NULL);
-            break;
-          default:
-            break;
-          }
-
-        this->Scene->RemoveNode(node);
-        }
-      }
+    this->DeleteNonActiveRepresentations();
     }
   // Parent transform changed (of this contour node or one of the representations)
   else if (eventID == vtkMRMLTransformableNode::TransformModifiedEvent)
@@ -440,6 +419,8 @@ void vtkMRMLContourNode::SetAndObserveRibbonModelNodeId(const char *nodeID)
     vtkErrorMacro("Failed to set RibbonModel node ID!");
     this->SetRibbonModelNodeId(NULL);
     }
+  this->SetActiveRepresentationByType(RibbonModel);
+  this->DeleteNonActiveRepresentations();
 }
 
 //----------------------------------------------------------------------------
@@ -479,6 +460,8 @@ void vtkMRMLContourNode::SetAndObserveIndexedLabelmapVolumeNodeId(const char *no
     vtkErrorMacro("Failed to set IndexedLabelmap node ID!");
     this->SetIndexedLabelmapVolumeNodeId(NULL);
     }
+  this->SetActiveRepresentationByType(IndexedLabelmap);
+  this->DeleteNonActiveRepresentations();
 }
 
 //----------------------------------------------------------------------------
@@ -539,6 +522,8 @@ void vtkMRMLContourNode::SetAndObserveClosedSurfaceModelNodeId(const char *nodeI
     vtkErrorMacro("Failed to set ClosedSurface node ID!");
     this->SetClosedSurfaceModelNodeId(NULL);
     }
+  this->SetActiveRepresentationByType(ClosedSurfaceModel);
+  this->DeleteNonActiveRepresentations();
 }
 
 //----------------------------------------------------------------------------
@@ -841,6 +826,7 @@ void vtkMRMLContourNode::SetDisplayVisibility(int visible)
   if (!activeRepresentation)
   {
     vtkErrorMacro("Invalid active contour representation for contour node " << this->Name);
+    return;
   }
 
   activeRepresentation->SetDisplayVisibility(visible);
@@ -916,7 +902,7 @@ vtkMRMLContourNode* vtkMRMLContourNode::IsNodeAContourRepresentation(vtkMRMLScen
 
   // Check every contour node if they have the argument node among the representations
   const char* nodeID = node->GetID();
-  vtkCollection* contourNodes = scene->GetNodesByClass("vtkMRMLContourNode");
+  vtkSmartPointer<vtkCollection> contourNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLContourNode") );
   vtkObject* nextObject = NULL;
   for (contourNodes->InitTraversal(); nextObject = contourNodes->GetNextItemAsObject(); )
   {
@@ -937,4 +923,36 @@ bool vtkMRMLContourNode::RibbonModelContainsEmptyPolydata()
 {
   return ( this->RibbonModelNode && this->RibbonModelNode->GetPolyData()
         && this->RibbonModelNode->GetPolyData()->GetNumberOfPoints() == 0 );
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLContourNode::DeleteNonActiveRepresentations()
+{
+  std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
+  for (int i=0; i<NumberOfRepresentationTypes; ++i)
+  {
+    if (i != this->ActiveRepresentationType && representations[i])
+    {
+      vtkMRMLDisplayableNode* node = representations[i];
+      switch ( (ContourRepresentationType)(i) )
+      {
+      case RibbonModel:
+        this->SetAndObserveRibbonModelNodeId(NULL);
+        break;
+      case IndexedLabelmap:
+        this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
+        break;
+      case ClosedSurfaceModel:
+        this->SetAndObserveClosedSurfaceModelNodeId(NULL);
+        break;
+      default:
+        break;
+      }
+
+      if (this->Scene->IsNodePresent(node))
+      {
+        this->Scene->RemoveNode(node);
+      }
+    }
+  }
 }

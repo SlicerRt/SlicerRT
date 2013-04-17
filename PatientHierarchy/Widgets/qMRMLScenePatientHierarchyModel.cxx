@@ -121,13 +121,6 @@ QMimeData* qMRMLScenePatientHierarchyModel::mimeData(const QModelIndexList &inde
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLNode* qMRMLScenePatientHierarchyModel::parentNode(vtkMRMLNode* node)const
-{
-  return vtkMRMLHierarchyNode::SafeDownCast(
-    this->Superclass::parentNode(node));
-}
-
-//------------------------------------------------------------------------------
 bool qMRMLScenePatientHierarchyModel::canBeAChild(vtkMRMLNode* node)const
 {
   if (!node)
@@ -374,7 +367,8 @@ bool qMRMLScenePatientHierarchyModel::dropMimeData(const QMimeData* data, Qt::Dr
   QStringList streamItems;
   int rows = 0;
 
-  while (!stream.atEnd()) {
+  while (!stream.atEnd())
+  {
     QString text;
     stream >> text;
     streamItems << text;
@@ -401,16 +395,7 @@ bool qMRMLScenePatientHierarchyModel::dropMimeData(const QMimeData* data, Qt::Dr
   }
 
   // Reparent the node
-  bool success = this->reparent(droppedNode, parentNode);
-
-  // Add item if dragged from outside the patient hierarchy (there has been no item for it)
-  if (!this->itemFromNode(droppedNode))
-  {
-    this->insertNode(droppedNode, this->itemFromIndex(parent));
-  }
-  this->onMRMLNodeModified(droppedNode);
-
-  return success;
+  return this->reparent(droppedNode, parentNode);
 }
 
 //------------------------------------------------------------------------------
@@ -436,38 +421,65 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   vtkMRMLHierarchyNode* parentPatientHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(newParent);
 
   // Get possible associated hierarchy node for reparented node
-  vtkMRMLHierarchyNode* associatedPatientHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->mrmlScene(), node->GetID());
+  vtkMRMLHierarchyNode* associatedPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(this->mrmlScene(), node->GetID());
+  vtkMRMLHierarchyNode* associatedNonPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode(this->mrmlScene(), node->GetID());
 
-  // Delete associated hierarchy node if it's not a patient hierarchy node (should not occur)
-  if ( associatedPatientHierarchyNode && !SlicerRtCommon::IsPatientHierarchyNode(associatedPatientHierarchyNode) )
+  // Delete associated hierarchy node if it's not a patient hierarchy node. Should not occur unless it is an annotation hierarchy node
+  // (they are an exception as they are needed for the Annotations module; TODO: review when Annotations module ha been improved)
+  if (associatedNonPatientHierarchyNode && !associatedNonPatientHierarchyNode->IsA("vtkMRMLAnnotationHierarchyNode"))
   {
-    // Annotation hierarchy nodes are an exception as they are needed for the Annotations module
-    if ( ! associatedPatientHierarchyNode->IsA("vtkMRMLAnnotationHierarchyNode") )
-    {
-      vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Reparented node had a non-patient hierarchy node associated!");
-      this->mrmlScene()->RemoveNode(associatedPatientHierarchyNode);
-    }
-
-    associatedPatientHierarchyNode = NULL;
+    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Reparented node had a non-patient hierarchy node associated!");
+    this->mrmlScene()->RemoveNode(associatedNonPatientHierarchyNode);
   }
 
-  // Create patient hierarchy node if dropped from outside the tree (the potential nodes list) OR if deleted in previous check
-  if (!associatedPatientHierarchyNode)
+  // Assign parent and node if associated patient hierarchy node already exists and valid
+  if (associatedPatientHierarchyNode)
   {
-    // If parent is a contour hierarchy node than create accordingly
+    associatedPatientHierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
+    associatedPatientHierarchyNode->SetAssociatedNodeID(node->GetID());
+  }
+  // Create patient hierarchy node if dropped from outside the tree (the potential nodes list) OR if deleted in previous check
+  else
+  {
+    // If parent is a contour hierarchy node than create contour for the dropped contour representation
     if (parentPatientHierarchyNode->IsA("vtkMRMLContourHierarchyNode"))
     {
-      vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> newPatientHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
-      this->mrmlScene()->AddNode(newPatientHierarchyNode);
-      associatedPatientHierarchyNode = newPatientHierarchyNode.GetPointer();
+      // Create hierarchy node for contour node
+      associatedPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::New();
+      associatedPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(this->mrmlScene()->AddNode(associatedPatientHierarchyNode));
 
-      //TODO: Create contour node if dropped node is volume or model
+      // Create contour node if dropped node is volume or model
+      if ( (node->IsA("vtkMRMLModelNode") && !node->IsA("vtkMRMLAnnotationNode"))
+        || node->IsA("vtkMRMLScalarVolumeNode") )
+      {
+        vtkSmartPointer<vtkMRMLContourNode> contourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+        contourNode = vtkMRMLContourNode::SafeDownCast(this->mrmlScene()->AddNode(contourNode));
+        std::string contourName(node->GetName());
+        contourName.append(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX.c_str());
+        contourName = this->mrmlScene()->GenerateUniqueName(contourName);
+        contourNode->SetName(contourName.c_str());
+        //contourNode->SetStructureName(roiLabel); //TODO: Utilize PH so that this variable is not needed
+        if (node->IsA("vtkMRMLScalarVolumeNode"))
+        {
+          contourNode->SetAndObserveIndexedLabelmapVolumeNodeId(node->GetID());
+        }
+        else
+        {
+          contourNode->SetAndObserveClosedSurfaceModelNodeId(node->GetID());
+        }
+        contourNode->HideFromEditorsOff();
+        associatedPatientHierarchyNode->SetAssociatedNodeID(contourNode->GetID());
+      }
+      else
+      {
+        associatedPatientHierarchyNode->SetAssociatedNodeID(node->GetID());
+      }
     }
     else
     {
-      vtkSmartPointer<vtkMRMLHierarchyNode> newPatientHierarchyNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
-      this->mrmlScene()->AddNode(newPatientHierarchyNode);
-      associatedPatientHierarchyNode = newPatientHierarchyNode.GetPointer();
+      associatedPatientHierarchyNode = vtkMRMLHierarchyNode::New();
+      associatedPatientHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(this->mrmlScene()->AddNode(associatedPatientHierarchyNode));
+      associatedPatientHierarchyNode->SetAssociatedNodeID(node->GetID());
     }
 
     std::string phNodeName;
@@ -480,10 +492,12 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
     //TODO: Subseries level is the default for now. This and UID has to be specified before export (need the tag editor widget)
     associatedPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
       vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+
+    associatedPatientHierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
   }
 
-  associatedPatientHierarchyNode->SetAssociatedNodeID(node->GetID());
-  associatedPatientHierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
+  // Force updating the whole scene (TODO: this should not be needed)
+  this->updateScene();
 
   return true;
 }

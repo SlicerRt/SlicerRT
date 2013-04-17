@@ -438,3 +438,42 @@ bool vtkSlicerPatientHierarchyModuleLogic::IsPotentialPatientHierarchyNode(vtkMR
 
   return false;
 }
+
+//---------------------------------------------------------------------------
+vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(vtkMRMLScene *scene, const char *associatedNodeId, bool reverseCriterion/*=false*/)
+{
+  if (associatedNodeId == 0)
+  {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode: associated node id is null" << std::endl;
+    return NULL;
+  }
+  if (scene == 0)
+  {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode: scene is null" << std::endl;
+    return NULL;
+  }
+
+  vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLHierarchyNode") );
+  vtkObject* nextObject = NULL;
+  for (hierarchyNodes->InitTraversal(); nextObject = hierarchyNodes->GetNextItemAsObject(); )
+  {
+    vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(nextObject);
+    if (hierarchyNode)
+    {
+      const char* currentAssociatedNodeId = hierarchyNode->GetAssociatedNodeID();
+      if ( currentAssociatedNodeId && !STRCASECMP(currentAssociatedNodeId, associatedNodeId)
+        && (SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode) & !reverseCriterion) )
+      {
+        return hierarchyNode;
+      }
+    }
+  }
+
+  return NULL;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode( vtkMRMLScene *scene, const char *associatedNodeId )
+{
+  return vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(scene, associatedNodeId, true);
+}

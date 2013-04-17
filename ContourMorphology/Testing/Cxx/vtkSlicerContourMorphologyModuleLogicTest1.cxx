@@ -294,7 +294,6 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   referenceContourNode->SetName("Reference_contour");
   mrmlScene->AddNode(referenceContourNode);
   referenceContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(referenceLabelmapScalarVolumeNode->GetID());
-  referenceContourNode->SetActiveRepresentationByNode(referenceLabelmapScalarVolumeNode);
 
   // Create input labelmap volume node
   vtkSmartPointer<vtkMRMLScalarVolumeNode> inputLabelmapScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
@@ -328,7 +327,6 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   inputContourNode->SetName("Input_contour");
   mrmlScene->AddNode(inputContourNode);
   inputContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(inputLabelmapScalarVolumeNode->GetID());
-  inputContourNode->SetActiveRepresentationByNode(inputLabelmapScalarVolumeNode);
 
   if (applySimpleTransformToInput == 1)
   {

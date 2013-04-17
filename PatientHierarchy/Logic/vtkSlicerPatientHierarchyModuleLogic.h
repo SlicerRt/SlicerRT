@@ -86,8 +86,19 @@ public:
   static bool IsDicomLevel(vtkMRMLNode* node, const char* level);
 
   /// Determine if a node has the type of a potential patient hierarchy node
-  //  (e.g. vtkMRMLModelNode, vtkMRMLVolumeNode, or vtkMRMLContourNode)
+  ///  (e.g. vtkMRMLModelNode, vtkMRMLVolumeNode, or vtkMRMLContourNode)
   static bool IsPotentialPatientHierarchyNode(vtkMRMLNode* node);
+
+  /// Get associated patient hierarchy node for a MRML node
+  /// \param scene MRML scene to search in
+  /// \param associatedNodeId ID of the node for which we want the associated hierarchy node
+  /// \param reverseCriterion If set to true, the function returns non patient hierarchy node.
+  ///        Function \sa GetAssociatedNonPatientHierarchyNode should be used instead
+  /// \return The first hierarchy node found that fulfills the conditions
+  static vtkMRMLHierarchyNode* GetAssociatedPatientHierarchyNode(vtkMRMLScene *scene, const char *associatedNodeId, bool reverseCriterion=false);
+
+  /// Utility function to get a non patient hierarchy node associated with a MRML node
+  static vtkMRMLHierarchyNode* GetAssociatedNonPatientHierarchyNode(vtkMRMLScene *scene, const char *associatedNodeId);
 
 protected:
   vtkSlicerPatientHierarchyModuleLogic();

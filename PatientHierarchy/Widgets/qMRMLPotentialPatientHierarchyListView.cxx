@@ -37,12 +37,15 @@ protected:
 public:
   qMRMLPotentialPatientHierarchyListViewPrivate(qMRMLPotentialPatientHierarchyListView& object);
   void init();
+
+  qMRMLSortFilterPotentialPatientHierarchyProxyModel* SortFilterModel;
 };
 
 //------------------------------------------------------------------------------
 qMRMLPotentialPatientHierarchyListViewPrivate::qMRMLPotentialPatientHierarchyListViewPrivate(qMRMLPotentialPatientHierarchyListView& object)
   : q_ptr(&object)
 {
+  this->SortFilterModel = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -51,9 +54,11 @@ void qMRMLPotentialPatientHierarchyListViewPrivate::init()
   Q_Q(qMRMLPotentialPatientHierarchyListView);
   
   qMRMLScenePotentialPatientHierarchyModel* sceneModel = new qMRMLScenePotentialPatientHierarchyModel(q);
-  qMRMLSortFilterPotentialPatientHierarchyProxyModel* sortModel = new qMRMLSortFilterPotentialPatientHierarchyProxyModel(q);
-  sortModel->setSourceModel(sceneModel);
-  q->QListView::setModel(sortModel);
+
+  this->SortFilterModel = new qMRMLSortFilterPotentialPatientHierarchyProxyModel(q);
+  this->SortFilterModel->setSourceModel(sceneModel);
+
+  q->QListView::setModel(this->SortFilterModel);
 }
 
 //------------------------------------------------------------------------------
@@ -91,4 +96,12 @@ vtkMRMLScene* qMRMLPotentialPatientHierarchyListView::mrmlScene()const
   QSortFilterProxyModel* sortModel = qobject_cast<QSortFilterProxyModel*>(this->model());
   Q_ASSERT(qobject_cast<const qMRMLSceneModel*>(sortModel->sourceModel()));
   return qobject_cast<const qMRMLSceneModel*>(sortModel->sourceModel())->mrmlScene();
+}
+
+//--------------------------------------------------------------------------
+qMRMLSortFilterProxyModel* qMRMLPotentialPatientHierarchyListView::sortFilterProxyModel()const
+{
+  Q_D(const qMRMLPotentialPatientHierarchyListView);
+  Q_ASSERT(d->SortFilterModel);
+  return d->SortFilterModel;
 }

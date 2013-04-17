@@ -53,9 +53,6 @@ public:
   /// Handles dropping of items
   virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
 
-  /// Retrieve parent of a node
-  virtual vtkMRMLNode* parentNode(vtkMRMLNode* node)const;
-
   /// Fast function that only check the type of the node to know if it can be a child.
   virtual bool canBeAChild(vtkMRMLNode* node)const;
 
@@ -64,8 +61,6 @@ public:
 
   /// Insert/move node in patient hierarchy under newParent
   virtual bool reparent(vtkMRMLNode* node, vtkMRMLNode* newParent);
-
-  //virtual int nodeIndex(vtkMRMLNode* node)const;
 
   int nodeTypeColumn()const;
   void setNodeTypeColumn(int column);

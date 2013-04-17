@@ -397,7 +397,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         contourNode->SetName(contourNodeName.c_str());
         contourNode->SetStructureName(roiLabel);
         contourNode->SetAndObserveRibbonModelNodeId(addedDisplayableNode->GetID());
-        contourNode->SetActiveRepresentationByNode(addedDisplayableNode);
         contourNode->HideFromEditorsOff();
 
         // Put the contour node in the hierarchy

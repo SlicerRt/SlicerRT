@@ -171,6 +171,9 @@ protected:
   /// Set default conversion parameters if none were explicitly specified
   void SetDefaultConversionParametersForRepresentation(ContourRepresentationType type);
 
+  /// Delete all representations except for the active one
+  void DeleteNonActiveRepresentations();
+
 protected:
   /// Set ribbon model node ID
   vtkSetReferenceStringMacro(RibbonModelNodeId);
@@ -189,6 +192,7 @@ protected:
   ~vtkMRMLContourNode();
   vtkMRMLContourNode(const vtkMRMLContourNode&);
   void operator=(const vtkMRMLContourNode&);
+
   friend class vtkConvertContourRepresentations;
 
 protected:
