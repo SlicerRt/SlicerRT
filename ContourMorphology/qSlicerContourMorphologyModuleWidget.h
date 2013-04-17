@@ -62,13 +62,16 @@ public slots:
 protected slots:
 
   ///
-  void referenceContourNodeChanged(vtkMRMLNode* node);
+  void setContourANode(vtkMRMLNode* node);
 
   ///
-  void inputContourNodeChanged(vtkMRMLNode* node);
+  void setContourBNode(vtkMRMLNode* node);
 
   ///
-  void outputContourNodeChanged(vtkMRMLNode* node);
+  void setReferenceVolumeNode(vtkMRMLNode* node);
+
+  ///
+  void setOutputContourNode(vtkMRMLNode* node);
 
   ///
   void radioButtonExpandClicked();
@@ -86,13 +89,13 @@ protected slots:
   void radioButtonSubtractClicked();
 
   ///
-  void lineEditXSizeChanged(const QString & text);
+  void doubleSpinBoxXSizeChanged(double value);
 
   ///
-  void lineEditYSizeChanged(const QString & text);
+  void doubleSpinBoxYSizeChanged(double value);
 
   ///
-  void lineEditZSizeChanged(const QString & text);
+  void doubleSpinBoxZSizeChanged(double value);
 
   ///
   void applyClicked();

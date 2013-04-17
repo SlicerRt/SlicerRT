@@ -31,16 +31,17 @@ endforeach()
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
-      DataDirectoryPath ReferenceContourLabelmapFile
-      InputContourLabelmapFile BaselineContourLabelmapFile 
+      DataDirectoryPath InputContourALabelmapFile
+      InputContourBLabelmapFile ReferenceVolumeFile BaselineContourLabelmapFile 
       TemporarySceneFile MorphologicalOperation
       MorphologicalParameter ApplySimpleTransformToInput VolumeDifferenceToleranceVoxel)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
-    -ReferenceContourLabelmapFile  ${ReferenceContourLabelmapFile}
-    -InputContourLabelmapFile  ${InputContourLabelmapFile}
+    -InputContourALabelmapFile  ${InputContourALabelmapFile}
+    -InputContourBLabelmapFile  ${InputContourBLabelmapFile}
+    -ReferenceVolumeFile  ${ReferenceVolumeFile}
     -BaselineContourLabelmapFile  ${BaselineContourLabelmapFile}
     -TemporarySceneFile ${TemporarySceneFile}
     -MorphologicalOperation ${MorphologicalOperation}
@@ -57,6 +58,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
   PTV_Contour_Labelmap.nrrd
   PTV_Contour_Labelmap.nrrd
+  RTDOSE.nrrd
   ContourMorphology_Expand_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Expand
@@ -73,6 +75,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
   PTV_Contour_Labelmap.nrrd
   PTV_Contour_Labelmap.nrrd
+  RTDOSE.nrrd
   ContourMorphology_Shrink_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Shrink
@@ -89,6 +92,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
   PTV_Contour_Labelmap.nrrd
   Bladder_Contour_Labelmap.nrrd
+  RTDOSE.nrrd
   ContourMorphology_Union_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Union
@@ -105,6 +109,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
   PTV_Contour_Labelmap.nrrd
   Bladder_Contour_Labelmap.nrrd
+  RTDOSE.nrrd
   ContourMorphology_Intersect_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Intersect
@@ -121,6 +126,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
   PTV_Contour_Labelmap.nrrd
   Bladder_Contour_Labelmap.nrrd
+  RTDose.nrrd
   ContourMorphology_Subtract_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Subtract
@@ -137,6 +143,7 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
   PTV_Contour_Labelmap.nrrd
   Bladder_Contour_Labelmap.nrrd
+  RTDOSE.nrrd
   ContourMorphology_Intersect_ApplyTransform_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Intersect

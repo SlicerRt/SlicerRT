@@ -59,22 +59,28 @@ public:
   virtual const char* GetNodeTagName() {return "ContourMorphology";};
 
 public:
+  /// Get contour A node ID
+  vtkGetStringMacro(ContourANodeID);
+
+  /// Set and observe contour A node ID
+  void SetAndObserveContourANodeID(const char* id);
+
   /// Get dose volume node ID
-  vtkGetStringMacro(ReferenceContourNodeID);
+  vtkGetStringMacro(ContourBNodeID);
 
-  /// Set and observe dose volume node ID
-  void SetAndObserveReferenceContourNodeID(const char* id);
+  /// Set and observe contour B node ID
+  void SetAndObserveContourBNodeID(const char* id);
 
-  /// Get dose volume node ID
-  vtkGetStringMacro(InputContourNodeID);
+  /// Get reference volume node ID
+  vtkGetStringMacro(ReferenceVolumeNodeID);
 
-  /// Set and observe dose volume node ID
-  void SetAndObserveInputContourNodeID(const char* id);
+  /// Set and observe reference volume node ID
+  void SetAndObserveReferenceVolumeNodeID(const char* id);
 
-  /// Get output hierarchy node ID
+  /// Get output contour node ID
   vtkGetStringMacro(OutputContourNodeID);
 
-  /// Set and observe output hierarchy node ID
+  /// Set and observe output contour node ID
   void SetAndObserveOutputContourNodeID(const char* id);
 
   /// Update the stored reference to another node in the scene 
@@ -103,11 +109,14 @@ public:
   vtkSetMacro(ZSize, double);
 
 protected:
-  /// Set dose volume node ID
-  vtkSetStringMacro(ReferenceContourNodeID);
+  /// Set contour A node ID
+  vtkSetStringMacro(ContourANodeID);
 
-  /// Set dose volume node ID
-  vtkSetStringMacro(InputContourNodeID);
+  /// Set contour B node ID
+  vtkSetStringMacro(ContourBNodeID);
+
+  /// Set reference volume node ID
+  vtkSetStringMacro(ReferenceVolumeNodeID);
 
   /// Set output hierarchy node ID
   vtkSetStringMacro(OutputContourNodeID);
@@ -119,13 +128,16 @@ protected:
   void operator=(const vtkMRMLContourMorphologyNode&);
 
 protected:
-  /// Selected dose volume MRML node object ID
-  char* ReferenceContourNodeID;
+  /// Selected contour A MRML node object ID
+  char* ContourANodeID;
 
-  /// Selected dose volume MRML node object ID
-  char* InputContourNodeID;
+  /// Selected contour B MRML node object ID
+  char* ContourBNodeID;
 
-  /// Selected dose volume MRML node object ID
+  /// Selected reference volume MRML node object ID
+  char* ReferenceVolumeNodeID;
+
+  /// Selected output contour MRML node object ID
   char* OutputContourNodeID;
 
   /// State of Show isodose lines checkbox

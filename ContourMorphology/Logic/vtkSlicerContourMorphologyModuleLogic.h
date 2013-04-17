@@ -52,7 +52,10 @@ public:
   vtkGetObjectMacro(ContourMorphologyNode, vtkMRMLContourMorphologyNode);
 
   /// TODO
-  bool ContourContainsLabelmap();
+  int SetContourARepresentationToLabelmap();
+
+  /// TODO
+  int SetContourBRepresentationToLabelmap();
 
   /// TODO
   int MorphContour();

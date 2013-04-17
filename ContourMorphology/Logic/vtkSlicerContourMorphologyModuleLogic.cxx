@@ -132,7 +132,7 @@ void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* no
     return;
   }
 
-  if (node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLContourMorphologyNode"))
+  if (node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLContourMorphologyNode"))
   {
     this->Modified();
   }
@@ -152,7 +152,7 @@ void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* 
     return;
   }
 
-  if (node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLContourMorphologyNode"))
+  if (node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLContourMorphologyNode"))
   {
     this->Modified();
   }
@@ -178,177 +178,243 @@ void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerContourMorphologyModuleLogic::ContourContainsLabelmap()
+int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
 {
   if (!this->GetMRMLScene() || !this->ContourMorphologyNode)
   {
-    return false;
+    return -1;
   }
 
-  vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetReferenceContourNodeID()));
+  vtkMRMLContourNode* inputContourANode = vtkMRMLContourNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetContourANodeID()));
 
-  if (contourNode->GetActiveRepresentationType() == vtkMRMLContourNode::IndexedLabelmap)
+  if (inputContourANode->GetIndexedLabelmapVolumeNodeId() == NULL)
   {
-    return true;
+    vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetReferenceVolumeNodeID()));
+    if (!referenceVolumeNode)
+    {
+      vtkErrorMacro("ContourMorphology: Reference Volume is not initialized!")
+      return -1;
+    }
+    inputContourANode->SetAndObserveRasterizationReferenceVolumeNodeId(
+      this->ContourMorphologyNode->GetReferenceVolumeNodeID() );
+  }
+  
+  vtkMRMLScalarVolumeNode* inputContourALabelmapVolumeNode
+    = inputContourANode->GetIndexedLabelmapVolumeNode();
+  if (!inputContourALabelmapVolumeNode)
+  {
+    vtkErrorMacro(<<"Failed to get indexed labelmap representation from selected contours");
+    return -1;
+  }
+  return 0;
+}
+
+//---------------------------------------------------------------------------
+int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
+{
+  if (!this->GetMRMLScene() || !this->ContourMorphologyNode)
+  {
+    return -1;
   }
 
-  return false;
+  vtkMRMLContourNode* inputContourBNode = vtkMRMLContourNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetContourBNodeID()));
+
+  if (inputContourBNode->GetIndexedLabelmapVolumeNodeId() == NULL)
+  {
+    vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetReferenceVolumeNodeID()));
+    if (!referenceVolumeNode)
+    {
+      vtkErrorMacro("ContourMorphology: Reference Volume is not initialized!")
+      return -1;
+    }
+    inputContourBNode->SetAndObserveRasterizationReferenceVolumeNodeId(
+      this->ContourMorphologyNode->GetReferenceVolumeNodeID() );
+  }
+
+  vtkMRMLScalarVolumeNode* inputContourBLabelmapVolumeNode
+    = inputContourBNode->GetIndexedLabelmapVolumeNode();
+  if (!inputContourBLabelmapVolumeNode)
+  {
+    vtkErrorMacro(<<"Failed to get indexed labelmap representation from selected contours");
+    return -1;
+  }
+  return 0;
 }
 
 //---------------------------------------------------------------------------
 int vtkSlicerContourMorphologyModuleLogic::MorphContour()
 {
-  double originX, originY, originZ;
-  double spacingX, spacingY, spacingZ;
   int dimensions[3] = {0, 0, 0};
-  double originX2, originY2, originZ2;
-  double spacingX2, spacingY2, spacingZ2;
-  int dimensions2[3] = {0, 0, 0};
+  double spacingX, spacingY, spacingZ;
 
-  vtkMRMLContourNode* referenceContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetReferenceContourNodeID()));
-  vtkMRMLContourNode* inputContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetInputContourNodeID()));
+  vtkMRMLContourNode* inputContourANode = vtkMRMLContourNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetContourANodeID()));
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetReferenceVolumeNodeID()));
   vtkMRMLContourNode* outputContourNode = vtkMRMLContourNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetOutputContourNodeID()));
   // Make sure inputs are initialized
-  if (!this->GetMRMLScene() || !referenceContourNode || !inputContourNode || !outputContourNode)
+  if (!this->GetMRMLScene() || !inputContourANode || !referenceVolumeNode || !outputContourNode)
   {
     vtkErrorMacro("ContourMorphology: Inputs are not initialized!")
     return -1;
   }
 
-  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
-  
-  if (referenceContourNode->GetActiveRepresentationType() != vtkMRMLContourNode::IndexedLabelmap)
+  if (this->SetContourARepresentationToLabelmap() != 0)
   {
-    vtkErrorMacro("Cannot Morph the contour when its representation is not labelmap!");
     return -1;
   }
-  vtkMRMLScalarVolumeNode* referenceLabelmapNode = referenceContourNode->GetIndexedLabelmapVolumeNode();
-  referenceLabelmapNode->GetOrigin(originX, originY, originZ); 
-  referenceLabelmapNode->GetSpacing(spacingX, spacingY, spacingZ);
-  referenceLabelmapNode->GetImageData()->GetDimensions(dimensions);
-  vtkSmartPointer<vtkImageData> tempImage2 = referenceLabelmapNode->GetImageData();
+  vtkMRMLScalarVolumeNode* inputLabelmapANode = inputContourANode->GetIndexedLabelmapVolumeNode();
+  inputLabelmapANode->GetSpacing(spacingX, spacingY, spacingZ);
+  referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
 
-  if (inputContourNode->GetActiveRepresentationType() != vtkMRMLContourNode::IndexedLabelmap)
-  {
-    vtkErrorMacro("Cannot Morph the contour when its representation is not labelmap!");
-    return -1;
-  }
-  vtkMRMLScalarVolumeNode* inputLabelmapNode = inputContourNode->GetIndexedLabelmapVolumeNode();
-  inputLabelmapNode->GetOrigin(originX2, originY2, originZ2); 
-  inputLabelmapNode->GetSpacing(spacingX2, spacingY2, spacingZ2);
-  inputLabelmapNode->GetImageData()->GetDimensions(dimensions2);
-
-  vtkSmartPointer<vtkGeneralTransform> referenceLabelmapNodeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  referenceLabelmapNodeToWorldTransform->Identity();
-  vtkSmartPointer<vtkMRMLTransformNode> referenceLabelmapNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(referenceLabelmapNode->GetTransformNodeID()));
-  if (referenceLabelmapNodeTransformNode!=NULL)
-  {
-    referenceLabelmapNodeTransformNode->GetTransformToWorld(referenceLabelmapNodeToWorldTransform);    
-    referenceLabelmapNodeToWorldTransform->Inverse();
-  }
-
-  vtkSmartPointer<vtkMatrix4x4> inputIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  inputLabelmapNode->GetIJKToRASMatrix(inputIJK2RASMatrix);
-  vtkSmartPointer<vtkMatrix4x4> referenceRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  referenceLabelmapNode->GetRASToIJKMatrix(referenceRAS2IJKMatrix);
+  vtkSmartPointer<vtkMatrix4x4> inputContourAIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  inputLabelmapANode->GetIJKToRASMatrix(inputContourAIJK2RASMatrix);
+  vtkSmartPointer<vtkMatrix4x4> referenceVolumeRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  referenceVolumeNode->GetRASToIJKMatrix(referenceVolumeRAS2IJKMatrix);
 
   vtkSmartPointer<vtkTransform> outputResliceTransform = vtkSmartPointer<vtkTransform>::New();
   outputResliceTransform->Identity();
   outputResliceTransform->PostMultiply();
-  outputResliceTransform->SetMatrix(inputIJK2RASMatrix);
+  outputResliceTransform->SetMatrix(inputContourAIJK2RASMatrix);
 
-  vtkSmartPointer<vtkMRMLTransformNode> inputLabelmapNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(inputContourNode->GetTransformNodeID()));
-  vtkSmartPointer<vtkMatrix4x4> inputRAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (inputLabelmapNodeTransformNode!=NULL)
+  vtkSmartPointer<vtkMRMLTransformNode> inputLabelmapANodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(inputContourANode->GetTransformNodeID()));
+  vtkSmartPointer<vtkMatrix4x4> inputContourARAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  if (inputLabelmapANodeTransformNode!=NULL)
   {
-    inputLabelmapNodeTransformNode->GetMatrixTransformToWorld(inputRAS2RASMatrix);  
-    outputResliceTransform->Concatenate(inputRAS2RASMatrix);
+    inputLabelmapANodeTransformNode->GetMatrixTransformToWorld(inputContourARAS2RASMatrix);  
+    outputResliceTransform->Concatenate(inputContourARAS2RASMatrix);
   }
-  outputResliceTransform->Concatenate(referenceRAS2IJKMatrix);
+  outputResliceTransform->Concatenate(referenceVolumeRAS2IJKMatrix);
   outputResliceTransform->Inverse();
 
   vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
-  reslice->SetInput(inputLabelmapNode->GetImageData());
+  reslice->SetInput(inputLabelmapANode->GetImageData());
   reslice->SetOutputOrigin(0, 0, 0);
   reslice->SetOutputSpacing(1, 1, 1);
   reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
   reslice->SetResliceTransform(outputResliceTransform);
   reslice->Update();
 
-  vtkSmartPointer<vtkImageData> tempImage = NULL;
-  tempImage = reslice->GetOutput();
+  vtkSmartPointer<vtkImageData> tempImageA = NULL;
+  tempImageA = reslice->GetOutput();
 
   vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
-  histogram->SetInput(tempImage);
+  histogram->SetInput(tempImageA);
   histogram->Update();
   double valueMax = histogram->GetMax()[0];
 
-  int op = this->ContourMorphologyNode->GetOperation();
+  vtkMRMLScalarVolumeNode* inputLabelmapBNode = NULL;
+  vtkSmartPointer<vtkImageData> tempImageB = NULL;
+  vtkMRMLContourNode* inputContourBNode = vtkMRMLContourNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetContourBNodeID()));
 
-  vtkSmartPointer<vtkImageData> tempImageData = NULL;
+  int op = this->ContourMorphologyNode->GetOperation();
+  if (op == SLICERRT_UNION || op == SLICERRT_INTERSECT || op == SLICERRT_SUBTRACT) 
+  {
+    if (!inputContourBNode)
+    {
+      vtkErrorMacro("ContourMorphology: Inputs are not initialized!")
+      return -1;
+    }
+    if (this->SetContourBRepresentationToLabelmap() != 0)
+    {
+      return -1;
+    }
+    inputLabelmapBNode = inputContourBNode->GetIndexedLabelmapVolumeNode();
+
+    vtkSmartPointer<vtkMatrix4x4> inputContourBIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    inputLabelmapBNode->GetIJKToRASMatrix(inputContourBIJK2RASMatrix);
+
+    vtkSmartPointer<vtkTransform> outputResliceTransform2 = vtkSmartPointer<vtkTransform>::New();
+    outputResliceTransform2->Identity();
+    outputResliceTransform2->PostMultiply();
+    outputResliceTransform2->SetMatrix(inputContourBIJK2RASMatrix);
+
+    vtkSmartPointer<vtkMRMLTransformNode> inputLabelmapBNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID(inputContourBNode->GetTransformNodeID()));
+    vtkSmartPointer<vtkMatrix4x4> inputContourBRAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if (inputLabelmapBNodeTransformNode!=NULL)
+    {
+      inputLabelmapBNodeTransformNode->GetMatrixTransformToWorld(inputContourBRAS2RASMatrix);  
+      outputResliceTransform2->Concatenate(inputContourBRAS2RASMatrix);
+    }
+    outputResliceTransform2->Concatenate(referenceVolumeRAS2IJKMatrix);
+    outputResliceTransform2->Inverse();
+
+    vtkSmartPointer<vtkImageReslice> reslice2 = vtkSmartPointer<vtkImageReslice>::New();
+    reslice2->SetInput(inputLabelmapBNode->GetImageData());
+    reslice2->SetOutputOrigin(0, 0, 0);
+    reslice2->SetOutputSpacing(1, 1, 1);
+    reslice2->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
+    reslice2->SetResliceTransform(outputResliceTransform2);
+    reslice2->Update();
+
+    tempImageB = reslice2->GetOutput();
+  }
+
+  vtkSmartPointer<vtkImageData> tempImageOutput = NULL;
   vtkSmartPointer<vtkImageContinuousDilate3D> dilateFilter = vtkSmartPointer<vtkImageContinuousDilate3D>::New();
   vtkSmartPointer<vtkImageContinuousErode3D> erodeFilter = vtkSmartPointer<vtkImageContinuousErode3D>::New();
   vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
   vtkSmartPointer<vtkImageLogic> logicFilter2 = vtkSmartPointer<vtkImageLogic>::New();
 
-  // temp work around for calculating the kernel size
-  
-  //double spacing[3] = {0,0,0};
-  //volumeNode->GetSpacing(spacing);
   int kernelSize[3] = {1,1,1};
-  kernelSize[0] = (int)(this->GetContourMorphologyNode()->GetXSize()/spacingX2);
-  kernelSize[1] = (int)(this->GetContourMorphologyNode()->GetYSize()/spacingY2);
-  kernelSize[2] = (int)(this->GetContourMorphologyNode()->GetZSize()/spacingZ2);
+  kernelSize[0] = (int)(this->GetContourMorphologyNode()->GetXSize()/spacingX);
+  kernelSize[1] = (int)(this->GetContourMorphologyNode()->GetYSize()/spacingY);
+  kernelSize[2] = (int)(this->GetContourMorphologyNode()->GetZSize()/spacingZ);
   switch (op) 
   {
     case SLICERRT_EXPAND:
-      dilateFilter->SetInput(tempImage);
+      dilateFilter->SetInput(tempImageA);
       dilateFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
       dilateFilter->Update();
-      tempImageData = dilateFilter->GetOutput();
+      tempImageOutput = dilateFilter->GetOutput();
       break;
     case SLICERRT_SHRINK:
-      erodeFilter->SetInput(tempImage);
+      erodeFilter->SetInput(tempImageA);
       erodeFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
       erodeFilter->Update();
-      tempImageData = erodeFilter->GetOutput();
+      tempImageOutput = erodeFilter->GetOutput();
       break;
     case SLICERRT_UNION:
-      logicFilter->SetInput1(tempImage);
-      logicFilter->SetInput2(tempImage2);
+      logicFilter->SetInput1(tempImageA);
+      logicFilter->SetInput2(tempImageB);
       logicFilter->SetOperationToOr();
       logicFilter->SetOutputTrueValue(valueMax);
       logicFilter->Update();
-      tempImageData = logicFilter->GetOutput();
+      tempImageOutput = logicFilter->GetOutput();
       break;
     case SLICERRT_INTERSECT:
-      logicFilter->SetInput1(tempImage);
-      logicFilter->SetInput2(tempImage2);
+      logicFilter->SetInput1(tempImageA);
+      logicFilter->SetInput2(tempImageB);
       logicFilter->SetOperationToAnd();
       logicFilter->SetOutputTrueValue(valueMax);
       logicFilter->Update();
-      tempImageData = logicFilter->GetOutput();
+      tempImageOutput = logicFilter->GetOutput();
       break;
     case SLICERRT_SUBTRACT:
-      logicFilter->SetInput1(tempImage);
+      logicFilter->SetInput1(tempImageB);
       logicFilter->SetOperationToNot();
       logicFilter->SetOutputTrueValue(valueMax);
       logicFilter->Update();
 
-      logicFilter2->SetInput1(logicFilter->GetOutput());
-      logicFilter2->SetInput2(tempImage2);
+      logicFilter2->SetInput1(tempImageA);
+      logicFilter2->SetInput2(logicFilter->GetOutput());
       logicFilter2->SetOperationToAnd();
       logicFilter2->SetOutputTrueValue(valueMax);
-      tempImageData = logicFilter2->GetOutput();
+      logicFilter2->Update();
+      tempImageOutput = logicFilter2->GetOutput();
       break;
   }
 
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+  
   vtkSmartPointer<vtkMRMLScalarVolumeNode> outputIndexedLabelmapVolumeNode = NULL;
   std::string outputIndexedLabelmapVolumeNodeName;
   if (outputContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
@@ -363,9 +429,9 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   {
     outputIndexedLabelmapVolumeNode = outputContourNode->GetIndexedLabelmapVolumeNode();
   }
-  outputIndexedLabelmapVolumeNode->CopyOrientation( referenceLabelmapNode );
+  outputIndexedLabelmapVolumeNode->CopyOrientation( referenceVolumeNode );
   outputIndexedLabelmapVolumeNode->SetAndObserveTransformNodeID( outputIndexedLabelmapVolumeNode->GetTransformNodeID() );
-  outputIndexedLabelmapVolumeNode->SetAndObserveImageData( tempImageData );
+  outputIndexedLabelmapVolumeNode->SetAndObserveImageData( tempImageOutput );
   outputIndexedLabelmapVolumeNode->LabelMapOn();
   outputIndexedLabelmapVolumeNode->HideFromEditorsOff();
 
