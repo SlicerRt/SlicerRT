@@ -64,7 +64,6 @@ add_subdirectory(DoseComparison)
 add_subdirectory(Isodose)
 add_subdirectory(ContourMorphology)
 add_subdirectory(ContourComparison)
-add_subdirectory(DeformationFieldVisualizer)
 
 add_subdirectory(PlmBspline) # requires Plastimatch registration
 add_subdirectory(PlmDicomRtExport)
@@ -85,6 +84,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(MatlabCommander)
   add_subdirectory(DicomRtExport)
   add_subdirectory(RTPlan)
+  add_subdirectory(DeformationFieldVisualizer)
 endif()
 
 if(BUILD_TESTING)
