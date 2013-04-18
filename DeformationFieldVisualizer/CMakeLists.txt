@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "DeformationFieldVisualizer")
-set(MODULE_TITLE ${MODULE_NAME})
+set(MODULE_NAME DeformationFieldVisualizer)
+set(MODULE_TITLE "Deformation Field Visualizer")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
@@ -42,7 +42,6 @@ set(MODULE_UI_SRCS
 
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
-  #vtkSlicerVolumesModuleLogic
   )
 
 set(MODULE_RESOURCES

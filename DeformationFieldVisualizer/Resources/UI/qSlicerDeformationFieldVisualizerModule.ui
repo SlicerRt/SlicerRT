@@ -13,7 +13,7 @@
     <x>0</x>
     <y>0</y>
     <width>361</width>
-    <height>1048</height>
+    <height>1272</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1553,14 +1553,23 @@
              <string>vtkMRMLSliceNode</string>
             </stringlist>
            </property>
-           <property name="noneEnabled">
+           <property name="showHidden">
             <bool>true</bool>
+           </property>
+           <property name="noneEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="addEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="removeEnabled">
+            <bool>false</bool>
            </property>
            <property name="editEnabled">
             <bool>false</bool>
            </property>
            <property name="renameEnabled">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -1850,7 +1859,7 @@
             <bool>true</bool>
            </property>
            <property name="noneEnabled">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <property name="addEnabled">
             <bool>false</bool>

@@ -88,7 +88,7 @@ protected slots:
   
 protected:
   QScopedPointer<qSlicerDeformationFieldVisualizerModuleWidgetPrivate> d_ptr;
-
+  
   virtual void setup();
   void onEnter();
 

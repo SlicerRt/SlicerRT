@@ -368,6 +368,8 @@ void vtkSlicerDeformationFieldVisualizerLogic::CreateVisualization(int option)
   vtkSmartPointer<vtkTransformPolyDataFilter> polydataTransform = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   polydataTransform->SetTransform(unspacedTransformToRAS);
   
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+  
   // Output
   if (outputModelNode->GetModelDisplayNode()==NULL)
   {
@@ -462,6 +464,8 @@ void vtkSlicerDeformationFieldVisualizerLogic::CreateVisualization(int option)
   }
 
   vtkMRMLColorTableNode::SafeDownCast(outputModelNode->GetModelDisplayNode()->GetColorNode())->GetLookupTable()->SetTableRange(0,field->GetPointData()->GetArray(0)->GetMaxNorm());
+  
+  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
 }
 
 //----------------------------------------------------------------------------

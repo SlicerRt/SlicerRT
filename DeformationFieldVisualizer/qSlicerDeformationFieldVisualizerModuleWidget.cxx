@@ -6,6 +6,7 @@
 // SlicerQt includes
 #include "qSlicerDeformationFieldVisualizerModuleWidget.h"
 #include "ui_qSlicerDeformationFieldVisualizerModule.h"
+#include <qSlicerApplication.h>
 
 // DeformationVisualizer includes
 #include "vtkSlicerDeformationFieldVisualizerLogic.h"
@@ -69,11 +70,9 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setMRMLScene(vtkMRMLScene* s
   this->Superclass::setMRMLScene(scene);
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene &&  d->logic()->GetDeformationFieldVisualizerNode() == 0)
-  {
+  if (scene &&  d->logic()->GetDeformationFieldVisualizerNode() == 0){
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLDeformationFieldVisualizerNode");
-    if (node)
-    {
+    if (node){
       this->setDeformationFieldVisualizerParametersNode(vtkMRMLDeformationFieldVisualizerNode::SafeDownCast(node));
     }
   }
@@ -95,32 +94,23 @@ void qSlicerDeformationFieldVisualizerModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerDeformationFieldVisualizerModuleWidget::onEnter()
 {
-  if (!this->mrmlScene())
-  {
-    return;
-  }
+  if (!this->mrmlScene()){return;}
 
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
 
-  if (d->logic() == NULL)
-  {
-    return;
-  }
+  if (d->logic() == NULL){return;}
 
   //Check for existing parameter node
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
 
-  if (pNode == NULL)
-  {
+  if (pNode == NULL){
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLDeformationFieldVisualizerNode");
-    if (node)
-    {
+    if (node){
       pNode = vtkMRMLDeformationFieldVisualizerNode::SafeDownCast(node);
       d->logic()->SetAndObserveDeformationFieldVisualizerNode(pNode);
       return;
     }
-    else
-    {
+    else{
       vtkSmartPointer<vtkMRMLDeformationFieldVisualizerNode> newNode = vtkSmartPointer<vtkMRMLDeformationFieldVisualizerNode>::New();
       this->mrmlScene()->AddNode(newNode);
       d->logic()->SetAndObserveDeformationFieldVisualizerNode(newNode);
@@ -150,34 +140,27 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
 
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
 
-  if (pNode && this->mrmlScene())
-  {
+  if (pNode && this->mrmlScene()){
     d->ParameterComboBox->setCurrentNode(pNode);
 
-    if (pNode->GetInputVolumeNodeID())
-    {
+    if (pNode->GetInputVolumeNodeID()){
       d->InputFieldComboBox->setCurrentNode(pNode->GetInputVolumeNodeID());
     }
-    else
-    {
+    else{
       this->inputVolumeChanged(d->InputFieldComboBox->currentNode());
     }
 
-    if (pNode->GetReferenceVolumeNodeID())
-    {
+    if (pNode->GetReferenceVolumeNodeID()){
       d->InputReferenceComboBox->setCurrentNode(pNode->GetReferenceVolumeNodeID());
     }
-    else
-    {
+    else{
       this->referenceVolumeChanged(d->InputReferenceComboBox->currentNode());
     }    
 
-    if (pNode->GetOutputModelNodeID())
-    {
+    if (pNode->GetOutputModelNodeID()){
       d->OutputModelComboBox->setCurrentNode(pNode->GetOutputModelNodeID());
     }
-    else
-    {
+    else{
       this->outputModelChanged(d->OutputModelComboBox->currentNode());
     }  
 
@@ -218,12 +201,10 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
     d->InputContourRange->setMinimumValue(pNode->GetContourMin());
 
     // Glyph Slice Parameters
-    if (pNode->GetGlyphSliceNodeID())
-    {
+    if (pNode->GetGlyphSliceNodeID()){
       d->GlyphSliceComboBox->setCurrentNode(pNode->GetGlyphSliceNodeID());
     }
-    else
-    {
+    else{
       this->setGlyphSliceNode(d->GlyphSliceComboBox->currentNode());
     }  
     d->InputGlyphSlicePointMax->setValue(pNode->GetGlyphSlicePointMax());
@@ -233,12 +214,10 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
     d->InputGlyphSliceSeed->setValue(pNode->GetGlyphSliceSeed());
 
     // Grid Slice Parameters
-    if (pNode->GetGridSliceNodeID())
-    {
+    if (pNode->GetGridSliceNodeID()){
       d->GridSliceComboBox->setCurrentNode(pNode->GetGridSliceNodeID());
     }
-    else
-    {
+    else{
       this->setGridSliceNode(d->GridSliceComboBox->currentNode());
     }  
     d->InputGridSliceScale->setValue(pNode->GetGridSliceScale());
@@ -259,8 +238,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::inputVolumeChanged(vtkMRMLNo
 
   // TODO: Move into updatefrommrml?
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene() || !node)
-  {
+  if (!pNode || !this->mrmlScene() || !node){
     d->ApplyButton->setEnabled(false);
     d->VolumeDisabledLabel->show();
     return;
@@ -276,25 +254,33 @@ void qSlicerDeformationFieldVisualizerModuleWidget::inputVolumeChanged(vtkMRMLNo
   double maxNorm = 0;
 
   // What to do if there is more than one array? Would there be more than one array?
-  if (strcmp(node->GetClassName(), "vtkMRMLVectorVolumeNode") == 0)
-  {
+  if (strcmp(node->GetClassName(), "vtkMRMLVectorVolumeNode") == 0){
     d->InputReferenceComboBox->setEnabled(false);
     maxNorm = vtkMRMLVectorVolumeNode::SafeDownCast(node)->GetImageData()->GetPointData()->GetArray(0)->GetMaxNorm();
   }
   else if (strcmp(node->GetClassName(), "vtkMRMLLinearTransformNode") == 0 || 
     strcmp(node->GetClassName(), "vtkMRMLBSplineTransformNode") == 0 ||
-    strcmp(node->GetClassName(), "vtkMRMLGridTransformNode") == 0)
-  {
+    strcmp(node->GetClassName(), "vtkMRMLGridTransformNode") == 0){
     d->InputReferenceComboBox->setEnabled(true);
 
     vtkSmartPointer<vtkMRMLVolumeNode> referenceVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->mrmlScene()->GetNodeByID(pNode->GetReferenceVolumeNodeID()));
-    if (referenceVolumeNode == NULL)
-    {
-      return;
-    }
+    if (referenceVolumeNode == NULL){return;}
 
+	//TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
+    QProgressDialog *convertProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
+    convertProgress->setModal(true);
+    convertProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
+    convertProgress->show();
+	convertProgress->setLabelText("Converting transform to vector volume...");
+	
+    convertProgress->setValue(20);
     d->logic()->GenerateTransformField();
+	
+	convertProgress->setValue(80);
     maxNorm = d->logic()->GetFieldMaxNorm() + 1;
+	
+	convertProgress->setValue(100);
+	delete convertProgress;
   }
 
   pNode->SetGlyphThresholdMax(maxNorm);
@@ -317,10 +303,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::referenceVolumeChanged(vtkMR
 
   //TODO: Move into updatefrommrml?
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene() || !node)
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene() || !node){return;}
 
   pNode->DisableModifiedEventOn();
   pNode->SetAndObserveReferenceVolumeNodeID(node->GetID());
@@ -329,17 +312,27 @@ void qSlicerDeformationFieldVisualizerModuleWidget::referenceVolumeChanged(vtkMR
   double maxNorm = 0;
 
   vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNode = vtkMRMLTransformNode::SafeDownCast(this->mrmlScene()->GetNodeByID(pNode->GetInputVolumeNodeID()));
-  if (inputVolumeNode == NULL)
-  {
-    return;
-  }
+  if (inputVolumeNode == NULL){return;}
 
   if (strcmp(inputVolumeNode->GetClassName(), "vtkMRMLLinearTransformNode") == 0 || 
     strcmp(inputVolumeNode->GetClassName(), "vtkMRMLBSplineTransformNode") == 0 ||
-    strcmp(inputVolumeNode->GetClassName(), "vtkMRMLGridTransformNode") == 0)
-  {
+    strcmp(inputVolumeNode->GetClassName(), "vtkMRMLGridTransformNode") == 0){
+	
+	//TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
+    QProgressDialog *convertProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
+    convertProgress->setModal(true);
+    convertProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
+    convertProgress->show();
+	convertProgress->setLabelText("Converting transform to vector volume...");
+	
+	convertProgress->setValue(20);
     d->logic()->GenerateTransformField();
+	
+	convertProgress->setValue(80);
     maxNorm = d->logic()->GetFieldMaxNorm() + 1;
+	
+	convertProgress->setValue(100);
+	delete convertProgress;
   }
 
   pNode->SetGlyphThresholdMax(maxNorm);
@@ -362,8 +355,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::outputModelChanged(vtkMRMLNo
 
   //TODO: Move into updatefrommrml?
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene() || !node)
-  {
+  if (!pNode || !this->mrmlScene() || !node){
     d->ApplyButton->setEnabled(false);
     d->ModelDisabledLabel->show();
     return;
@@ -384,8 +376,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
 
   //TODO: Move into updatefrommrml?
-  if (option == 0)
-  {
+  if (option == 0){
     d->ArrowSourceOptions->setEnabled(true);
     d->ArrowSourceOptions->setVisible(true);
     d->ConeSourceOptions->setEnabled(false);
@@ -393,17 +384,13 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     d->SphereSourceOptions->setEnabled(false);
     d->SphereSourceOptions->setVisible(false);
 
-    if (!pNode || !this->mrmlScene())
-    {
-      return;
-    }
+    if (!pNode || !this->mrmlScene()){return;}
     pNode->DisableModifiedEventOn();
     pNode->SetGlyphScaleDirectional(true);
     pNode->SetGlyphScaleIsotropic(false);
     pNode->DisableModifiedEventOff();
   }
-  else if (option == 1)
-  {
+  else if (option == 1){
     d->ArrowSourceOptions->setEnabled(false);
     d->ArrowSourceOptions->setVisible(false);
     d->ConeSourceOptions->setEnabled(true);
@@ -411,17 +398,13 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     d->SphereSourceOptions->setEnabled(false);
     d->SphereSourceOptions->setVisible(false);  
 
-    if (!pNode || !this->mrmlScene())
-    {
-      return;
-    }
+    if (!pNode || !this->mrmlScene()){return;}
     pNode->DisableModifiedEventOn();
     pNode->SetGlyphScaleDirectional(true);
     pNode->SetGlyphScaleIsotropic(false);
     pNode->DisableModifiedEventOff();
   }
-  else if (option == 2)
-  {
+  else if (option == 2){
     d->ArrowSourceOptions->setEnabled(false);
     d->ArrowSourceOptions->setVisible(false);
     d->ConeSourceOptions->setEnabled(false);
@@ -429,10 +412,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     d->SphereSourceOptions->setEnabled(true);
     d->SphereSourceOptions->setVisible(true);
 
-    if (!pNode || !this->mrmlScene())
-    {
-      return;
-    }
+    if (!pNode || !this->mrmlScene()){return;}
     pNode->DisableModifiedEventOn();
     pNode->SetGlyphScaleDirectional(false);
     pNode->SetGlyphScaleIsotropic(true);
@@ -448,32 +428,47 @@ void qSlicerDeformationFieldVisualizerModuleWidget::visualize()
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
 
-  if (d->InputFieldComboBox->currentNodeId() != NULL && d->OutputModelComboBox->currentNodeId() != NULL)
-  {
-    if (d->GlyphToggle->isChecked())
-    {
-      d->logic()->CreateVisualization(1);
+  if (d->InputFieldComboBox->currentNodeId() != NULL && d->OutputModelComboBox->currentNodeId() != NULL){
+	//TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
+    QProgressDialog *visualizeProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
+    visualizeProgress->setModal(true);
+    visualizeProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
+    visualizeProgress->show();
+	visualizeProgress->setLabelText("Processing...");
+    visualizeProgress->setValue(0);
+	
+    if (d->GlyphToggle->isChecked()){
+		visualizeProgress->setLabelText("Creating glyphs...");
+		visualizeProgress->setValue(20);
+		d->logic()->CreateVisualization(1);
     }
-    else if (d->GridToggle->isChecked())
-    {
-      d->logic()->CreateVisualization(2);
+    else if (d->GridToggle->isChecked()){
+		visualizeProgress->setLabelText("Creating grid...");
+		visualizeProgress->setValue(20);
+		d->logic()->CreateVisualization(2);
     }
-    else if (d->ContourToggle->isChecked())
-    {
-      d->logic()->CreateVisualization(3);
+    else if (d->ContourToggle->isChecked()){
+		visualizeProgress->setLabelText("Creating contours...");
+		visualizeProgress->setValue(20);
+		d->logic()->CreateVisualization(3);
     }
-    else if (d->BlockToggle->isChecked())
-    {
-      d->logic()->CreateVisualization(4);
+    else if (d->BlockToggle->isChecked()){
+		visualizeProgress->setLabelText("Creating block...");
+		visualizeProgress->setValue(20);
+		d->logic()->CreateVisualization(4);
     }
-    else if (d->GlyphSliceToggle->isChecked())
-    {
-      d->logic()->CreateVisualization(5);
+    else if (d->GlyphSliceToggle->isChecked()){
+		visualizeProgress->setLabelText("Creating glyphs for slice view...");
+		visualizeProgress->setValue(20);
+		d->logic()->CreateVisualization(5);
     }
-    else if (d->GridSliceToggle->isChecked())
-    {
-      d->logic()->CreateVisualization(6);
-    }    
+    else if (d->GridSliceToggle->isChecked()){
+		visualizeProgress->setLabelText("Creating grid for slice view...");
+		visualizeProgress->setValue(20);
+		d->logic()->CreateVisualization(6);
+    }
+	visualizeProgress->setValue(100);
+	delete visualizeProgress;
   }
 }
 
@@ -546,10 +541,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphPointMax(double poin
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphPointMax(pointMax);
   pNode->DisableModifiedEventOff();
@@ -560,10 +552,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setSeed()
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphSeed((RAND_MAX+1)*(long)rand()+rand());
   d->InputGlyphSeed->setValue(pNode->GetGlyphSeed());
@@ -575,10 +564,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphSeed(int seed)
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphSeed(seed);
   pNode->DisableModifiedEventOff();
@@ -589,10 +575,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphScale(double scale)
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphScale(scale);
   pNode->DisableModifiedEventOff();
@@ -603,10 +586,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphScaleDirectional(boo
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphScaleDirectional(state);
   pNode->DisableModifiedEventOff();
@@ -617,10 +597,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphScaleIsotropic(bool 
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphScaleIsotropic(state);
   pNode->DisableModifiedEventOff();
@@ -631,10 +608,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphThreshold(double min
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphThresholdMin(min);
   pNode->SetGlyphThresholdMax(max);
@@ -646,10 +620,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphSourceOption(int opt
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphSourceOption(option);
   pNode->DisableModifiedEventOff();
@@ -663,10 +634,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphArrowTipLength(doubl
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphArrowTipLength(length);
   pNode->DisableModifiedEventOff();
@@ -677,10 +645,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphArrowTipRadius(doubl
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphArrowTipRadius(radius);
   pNode->DisableModifiedEventOff();
@@ -691,10 +656,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphArrowShaftRadius(dou
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphArrowShaftRadius(radius);
   pNode->DisableModifiedEventOff();
@@ -705,10 +667,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphArrowResolution(doub
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphArrowResolution(resolution);
   pNode->DisableModifiedEventOff();
@@ -721,10 +680,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphConeHeight(double he
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphConeHeight(height);
   pNode->DisableModifiedEventOff();
@@ -735,10 +691,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphConeRadius(double ra
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphConeRadius(radius);
   pNode->DisableModifiedEventOff();
@@ -749,10 +702,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphConeResolution(doubl
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphConeResolution(resolution);
   pNode->DisableModifiedEventOff();
@@ -765,10 +715,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphSphereResolution(dou
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphSphereResolution(resolution);
   pNode->DisableModifiedEventOff();
@@ -779,10 +726,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGridScale(double scale)
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGridScale(scale);
   pNode->DisableModifiedEventOff();
@@ -793,10 +737,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGridDensity(double densit
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGridDensity(density);
   pNode->DisableModifiedEventOff();
@@ -807,10 +748,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setBlockScale(double scale)
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetBlockScale(scale);
   pNode->DisableModifiedEventOff();
@@ -821,10 +759,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setBlockDisplacementCheck(in
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetBlockDisplacementCheck(state);
   pNode->DisableModifiedEventOff();
@@ -835,10 +770,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setContourNumber(double numb
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetContourNumber(number);
   pNode->DisableModifiedEventOff();
@@ -849,10 +781,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setContourRange(double min, 
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetContourMin(min);
   pNode->SetContourMax(max);
@@ -865,10 +794,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphSliceNode(vtkMRMLNod
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
 
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene() || !node)
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetAndObserveGlyphSliceNodeID(node->GetID());
   pNode->DisableModifiedEventOff();  
@@ -879,10 +805,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphSlicePointMax(double
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphSlicePointMax(pointMax);
   pNode->DisableModifiedEventOff();
@@ -893,10 +816,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphSliceThreshold(doubl
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphSliceThresholdMin(min);
   pNode->SetGlyphSliceThresholdMax(max);
@@ -908,10 +828,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphSliceScale(double sc
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphSliceScale(scale);
   pNode->DisableModifiedEventOff();
@@ -922,10 +839,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphSliceSeed(int seed)
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphSliceSeed(seed);
   pNode->DisableModifiedEventOff();
@@ -936,10 +850,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setSeed2()
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGlyphSliceSeed((RAND_MAX+1)*(long)rand()+rand());
   d->InputGlyphSliceSeed->setValue(pNode->GetGlyphSliceSeed());
@@ -953,10 +864,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGridSliceNode(vtkMRMLNode
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
 
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene() || !node)
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetAndObserveGridSliceNodeID(node->GetID());
   pNode->DisableModifiedEventOff();  
@@ -967,10 +875,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGridSliceScale(double sca
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGridSliceScale(scale);
   pNode->DisableModifiedEventOff();
@@ -981,10 +886,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGridSliceDensity(double d
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
-  {
-    return;
-  }
+  if (!pNode || !this->mrmlScene()){return;}
   pNode->DisableModifiedEventOn();
   pNode->SetGridSliceDensity(density);
   pNode->DisableModifiedEventOff();
