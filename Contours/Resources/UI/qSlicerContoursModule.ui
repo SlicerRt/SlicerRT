@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>432</width>
+    <width>386</width>
     <height>406</height>
    </rect>
   </property>
@@ -268,7 +268,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_NoRibbonWarning">
+           <widget class="QLabel" name="label_NoSourceWarning">
             <property name="palette">
              <palette>
               <active>
@@ -313,10 +313,10 @@
              </font>
             </property>
             <property name="toolTip">
-             <string>Conversion to ribbon model representation not implemented yet</string>
+             <string>There is no suitable source available in the selected contours to convert from. Possible reasons: conversion to ribbon model is not implemented yet; contour hierarchy is selected and the specified parameters are invalid for some of the contained contours</string>
             </property>
             <property name="text">
-             <string>Ribbon model is not present in selected contours</string>
+             <string>There is no suitable source representation</string>
             </property>
            </widget>
           </item>
@@ -336,7 +336,7 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>40</width>
+            <width>8</width>
             <height>20</height>
            </size>
           </property>
@@ -352,13 +352,13 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>72</width>
+            <width>64</width>
             <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>72</width>
+            <width>64</width>
             <height>16777215</height>
            </size>
           </property>

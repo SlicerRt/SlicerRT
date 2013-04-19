@@ -52,8 +52,8 @@ protected:
   vtkMRMLContourNode::ContourRepresentationType getRepresentationTypeOfSelectedContours();
 
   /// Get reference volume node ID from the selected contours.
-  /// \param referenceVolumeNodeId Output parameter for the reference volume node ID (is empty if they are not the same)
-  /// \return True if the reference volume node IDs are the same, false otherwise
+  /// \param referenceVolumeNodeId Output parameter for the reference volume node ID (is empty if they are not the same, or all have been created from labelmap)
+  /// \return True if the reference volume node IDs are the same (or all of them have been created from labelmap), false otherwise
   bool getReferenceVolumeNodeIdOfSelectedContours(QString &referenceVolumeNodeId);
 
   /// Get oversampling factor from the selected contours.
@@ -74,10 +74,10 @@ protected:
 
   /// Determines if conversion is needed for a certain contour node
   /// \param contourNode The contour node to investigate
-  /// \param representationToConvertTo The target representation
+  /// \param targetRepresentation The target representation
   /// \return True if the parameters set on the UI are different from the
   ///          parameters in the contour node, false otherwise
-  bool isConversionNeeded(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType representationToConvertTo);
+  bool isConversionNeeded(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType targetRepresentation);
 
   /// Determines if conversion is needed for any of the selected contour nodes (\see isConversionNeeded)
   /// \param checkOnlyExistingRepresentations If true, only those contours will be examined
@@ -90,6 +90,29 @@ protected:
   /// Get oversampling factor based on the value set on the slider
   /// (The factor is two on the power set on the slider, e.g. -1 -> 2^-1 = 0.5)
   double getOversamplingFactor();
+
+  /// Determines if labelmap conversion is possible for all selected nodes
+  bool isConversionToLabelmapPossibleForSelectedNodes();
+
+  /// Determines if labelmap is available for conversion to closed surface models for all selected nodes.
+  /// Basically checks if conversion is possible for all selected nodes that do not have indexed labelmap representation
+  bool isLabelmapAvailableForConversionToClosedSurfaceModelForSelectedNodes();
+
+  /// Show conversion parameters for selected target representation
+  void showConversionParameterControlsForTargetRepresentation(vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+
+  ///TODO:
+  bool isSuitableSourceAvailableForConversionForContour(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+  bool isSuitableSourceAvailableForConversionForAllSelectedContours(vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+  bool isReferenceVolumeSelectionValidForContour(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+  bool isReferenceVolumeSelectionValidForAllSelectedContours(vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+  bool isNewConversionNecessaryForContour(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+  bool isNewConversionNecessaryForAnySelectedContour(vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+  bool isIntermediateLabelmapConversionNecessary(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+  bool haveConversionParametersChanged();
+  bool haveConversionParametersChangedForIndexedLabelmap();
+  bool haveConversionParametersChangedForClosedSurfaceModel();
+  ///TODO:
 
 public slots:
   /// Update widget GUI from parameter node
@@ -113,6 +136,5 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerContoursModuleWidget);
   Q_DISABLE_COPY(qSlicerContoursModuleWidget);
-};
-
+  };
 #endif

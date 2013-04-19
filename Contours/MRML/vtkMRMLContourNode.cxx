@@ -956,3 +956,17 @@ void vtkMRMLContourNode::DeleteNonActiveRepresentations()
     }
   }
 }
+
+//---------------------------------------------------------------------------
+bool vtkMRMLContourNode::IsLabelmapConversionPossible()
+{
+  return (this->RibbonModelNode || this->ClosedSurfaceModelNode);
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLContourNode::HasBeenCreatedFromIndexedLabelmap()
+{
+  return ( this->IndexedLabelmapVolumeNode
+    && !SlicerRtCommon::IsStringNullOrEmpty(this->RasterizationReferenceVolumeNodeId)
+    && !STRCASECMP(this->IndexedLabelmapVolumeNodeId, this->RasterizationReferenceVolumeNodeId) );
+}
