@@ -392,12 +392,12 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourNode::SetAndObserveRibbonModelNodeId(const char *nodeID)
+void vtkMRMLContourNode::SetAndObserveRibbonModelNodeIdOnly(const char *nodeID)
 {
   if (this->RibbonModelContainsEmptyPolydata() && this->Scene)
-  {
+    {
     this->Scene->RemoveNode(this->RibbonModelNode);
-  }
+    }
   vtkSetAndObserveMRMLObjectMacro(this->RibbonModelNode, NULL);
   this->SetRibbonModelNodeId(nodeID);
   if (!nodeID)
@@ -420,7 +420,16 @@ void vtkMRMLContourNode::SetAndObserveRibbonModelNodeId(const char *nodeID)
     this->SetRibbonModelNodeId(NULL);
     }
   this->SetActiveRepresentationByType(RibbonModel);
-  this->DeleteNonActiveRepresentations();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetAndObserveRibbonModelNodeId(const char *nodeID)
+{
+  this->SetAndObserveRibbonModelNodeIdOnly(nodeID);
+  if (nodeID)
+    {
+    this->DeleteNonActiveRepresentations();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -437,7 +446,7 @@ vtkMRMLModelNode* vtkMRMLContourNode::GetRibbonModelNode()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourNode::SetAndObserveIndexedLabelmapVolumeNodeId(const char *nodeID)
+void vtkMRMLContourNode::SetAndObserveIndexedLabelmapVolumeNodeIdOnly(const char *nodeID)
 {
   vtkSetAndObserveMRMLObjectMacro(this->IndexedLabelmapVolumeNode, NULL);
   this->SetIndexedLabelmapVolumeNodeId(nodeID);
@@ -461,7 +470,16 @@ void vtkMRMLContourNode::SetAndObserveIndexedLabelmapVolumeNodeId(const char *no
     this->SetIndexedLabelmapVolumeNodeId(NULL);
     }
   this->SetActiveRepresentationByType(IndexedLabelmap);
-  this->DeleteNonActiveRepresentations();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetAndObserveIndexedLabelmapVolumeNodeId(const char *nodeID)
+{
+  this->SetAndObserveIndexedLabelmapVolumeNodeIdOnly(nodeID);
+  if (nodeID)
+    {
+    this->DeleteNonActiveRepresentations();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -499,7 +517,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetIndexedLabelmapVolumeNode()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourNode::SetAndObserveClosedSurfaceModelNodeId(const char *nodeID)
+void vtkMRMLContourNode::SetAndObserveClosedSurfaceModelNodeIdOnly(const char *nodeID)
 {
   vtkSetAndObserveMRMLObjectMacro(this->ClosedSurfaceModelNode, NULL);
   this->SetClosedSurfaceModelNodeId(nodeID);
@@ -523,7 +541,16 @@ void vtkMRMLContourNode::SetAndObserveClosedSurfaceModelNodeId(const char *nodeI
     this->SetClosedSurfaceModelNodeId(NULL);
     }
   this->SetActiveRepresentationByType(ClosedSurfaceModel);
-  this->DeleteNonActiveRepresentations();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetAndObserveClosedSurfaceModelNodeId(const char *nodeID)
+{
+  this->SetAndObserveClosedSurfaceModelNodeIdOnly(nodeID);
+  if (nodeID)
+    {
+    this->DeleteNonActiveRepresentations();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -958,7 +985,8 @@ void vtkMRMLContourNode::DeleteNonActiveRepresentations()
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLContourNode::IsLabelmapConversionPossible()
+//TODO: delete this function and use its body instead
+bool vtkMRMLContourNode::ConversionToIndexedLabelmapPossible()
 {
   return (this->RibbonModelNode || this->ClosedSurfaceModelNode);
 }

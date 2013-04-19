@@ -109,7 +109,7 @@ public:
 
   /// Utility function to decide if labelmap conversion is possible
   /// \return True if any of the model representations is available
-  bool IsLabelmapConversionPossible();
+  bool ConversionToIndexedLabelmapPossible();
 
   /// Determines if the contour has been created from an already existing indexed labelmap
   /// \sa RasterizationReferenceVolumeNodeId
@@ -128,21 +128,21 @@ public:
   vtkGetStringMacro(RibbonModelNodeId);
   /// Get ribbon model node
   vtkMRMLModelNode* GetRibbonModelNode();
-  /// Set and observe ribbon model node
+  /// Set and observe ribbon model node. All other representations will be deleted
   void SetAndObserveRibbonModelNodeId(const char *nodeID);
 
   /// Get indexed labelmap volume node ID
   vtkGetStringMacro(IndexedLabelmapVolumeNodeId);
   /// Get indexed labelmap volume node
   vtkMRMLScalarVolumeNode* GetIndexedLabelmapVolumeNode();
-  /// Set and observe indexed labelmap volume node
+  /// Set and observe indexed labelmap volume node. All other representations will be deleted
   void SetAndObserveIndexedLabelmapVolumeNodeId(const char *nodeID);
 
   /// Get closed surface model node ID
   vtkGetStringMacro(ClosedSurfaceModelNodeId);
   /// Get closed surface model node
   vtkMRMLModelNode* GetClosedSurfaceModelNode();
-  /// Set and observe closed surface model node
+  /// Set and observe closed surface model node. All other representations will be deleted
   void SetAndObserveClosedSurfaceModelNodeId(const char *nodeID);
 
   /// Get rasterization reference volume node ID
@@ -194,6 +194,14 @@ protected:
 
   /// Set rasterization reference volume node ID
   vtkSetStringMacro(RasterizationReferenceVolumeNodeId);
+
+private:
+  /// Set and observe ribbon model node while preserving the existing representations (only the should converter call this)
+  void SetAndObserveRibbonModelNodeIdOnly(const char *nodeID);
+  /// Set and observe indexed labelmap volume node while preserving the existing representations (only the should converter call this)
+  void SetAndObserveIndexedLabelmapVolumeNodeIdOnly(const char *nodeID);
+  /// Set and observe closed surface model node while preserving the existing representations (only the should converter call this)
+  void SetAndObserveClosedSurfaceModelNodeIdOnly(const char *nodeID);
 
 protected:
   vtkMRMLContourNode();

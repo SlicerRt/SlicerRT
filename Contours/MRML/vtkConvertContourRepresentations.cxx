@@ -241,7 +241,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     indexedLabelmapVolumeNode->SetAndObserveTransformNodeID(this->ContourNode->GetTransformNodeID());
   }
 
-  this->ContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(indexedLabelmapVolumeNode->GetID());
+  this->ContourNode->SetAndObserveIndexedLabelmapVolumeNodeIdOnly(indexedLabelmapVolumeNode->GetID());
 
   return indexedLabelmapVolumeNode;
 }
@@ -355,7 +355,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   }
 
   // Set new model node as closed surface representation of this contour
-  this->ContourNode->SetAndObserveClosedSurfaceModelNodeId(closedSurfaceModelNode->GetID());
+  this->ContourNode->SetAndObserveClosedSurfaceModelNodeIdOnly(closedSurfaceModelNode->GetID());
 
   // TODO: Workaround (see above)
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
@@ -456,6 +456,7 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
   // Not implemented yet, cannot be re-converted
   if (type == vtkMRMLContourNode::RibbonModel)
   {
+    //TODO: Implement if algorithm is ready
     vtkWarningMacro("Convert to 'RibbonMode' representation type is not implemented yet!");
     return;
   }
@@ -485,6 +486,7 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
   switch (type)
   {
   case vtkMRMLContourNode::IndexedLabelmap:
+    // Prefer ribbon models over closed surface models as source of conversion to indexed labelmap
     if (this->ContourNode->RibbonModelNode)
     {
       this->ContourNode->SetActiveRepresentationByType(vtkMRMLContourNode::RibbonModel);
@@ -495,13 +497,14 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
     }
     break;
   case vtkMRMLContourNode::ClosedSurfaceModel:
-    if (this->ContourNode->RibbonModelNode)
-    {
-      this->ContourNode->SetActiveRepresentationByType(vtkMRMLContourNode::RibbonModel);
-    }
-    else if (this->ContourNode->IndexedLabelmapVolumeNode)
+    // Prefer indexed labelmap over ribbon models as source of conversion to closed surface models
+    if (this->ContourNode->IndexedLabelmapVolumeNode)
     {
       this->ContourNode->SetActiveRepresentationByType(vtkMRMLContourNode::IndexedLabelmap);
+    }
+    else if (this->ContourNode->RibbonModelNode)
+    {
+      this->ContourNode->SetActiveRepresentationByType(vtkMRMLContourNode::RibbonModel);
     }
     break;
   default:
