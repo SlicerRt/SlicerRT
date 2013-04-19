@@ -54,7 +54,7 @@ vtkMRMLDeformationFieldVisualizerNode::vtkMRMLDeformationFieldVisualizerNode(){
 
   //Glyph Slice Parameters
   this->GlyphSliceNodeID = NULL;
-  this->GlyphSlicePointMax = 2000;
+  this->GlyphSlicePointMax = 6000;
   this->GlyphSliceThresholdMax = 0;
   this->GlyphSliceThresholdMin = 0;  
   this->GlyphSliceScale = 1;

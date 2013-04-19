@@ -12,7 +12,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>361</width>
+    <width>367</width>
     <height>1272</height>
    </rect>
   </property>
@@ -1717,10 +1717,10 @@
             <double>500.000000000000000</double>
            </property>
            <property name="maximum">
-            <double>10000.000000000000000</double>
+            <double>30000.000000000000000</double>
            </property>
            <property name="value">
-            <double>2000.000000000000000</double>
+            <double>6000.000000000000000</double>
            </property>
           </widget>
          </item>

@@ -621,6 +621,7 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::BlockVisu
   warp->SetInputConnection(field->GetProducerPort());
   warp->SetScaleFactor(this->DeformationFieldVisualizerNode->GetBlockScale());
 
+  //TODO: Current method of generating polydata is very inefficient but avoids bugs with possible extreme cases. Better method to be implemented.
   vtkSmartPointer<vtkGeometryFilter> geometryFilter = vtkSmartPointer<vtkGeometryFilter>::New();
   geometryFilter->SetInputConnection(warp->GetOutputPort());
   
@@ -658,6 +659,7 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::ContourVi
   norm->SetInputConnection(field->GetProducerPort());
   norm->Update();
   
+  //TODO: Contour visualization is slow. Will optimize.
   vtkSmartPointer<vtkMarchingCubes> iso = vtkSmartPointer<vtkMarchingCubes>::New();
     iso->SetInputConnection(norm->GetOutputPort());
   iso->ComputeScalarsOn();
@@ -698,39 +700,57 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GlyphSlic
   char* orientation = sliceNode->GetOrientationString();
   if (strcmp(orientation, "Axial") == 0)
   {
-    sliceNormal[0] = IJKToRASDirections->Element[0][2];
-    sliceNormal[1] = IJKToRASDirections->Element[1][2];
-    sliceNormal[2] = IJKToRASDirections->Element[2][2];
     width = spacing[2];
-  }
-  else if (strcmp(orientation, "Sagittal") == 0)
-  {
-    sliceNormal[0] = IJKToRASDirections->Element[0][0];
-    sliceNormal[1] = IJKToRASDirections->Element[1][0];
-    sliceNormal[2] = IJKToRASDirections->Element[2][0];  
-    width = spacing[0];    
   }
   else if (strcmp(orientation, "Coronal") == 0)
   {
-    sliceNormal[0] = IJKToRASDirections->Element[0][1];
-    sliceNormal[1] = IJKToRASDirections->Element[1][1];
-    sliceNormal[2] = IJKToRASDirections->Element[2][1];    
     width = spacing[1];
+  } 
+  else if (strcmp(orientation, "Sagittal") == 0)
+  {
+    width = spacing[0];    
   }
+
   //Oblique
+  //TODO: Currently takes the biggest spacing to avoid any issues. Only affects oblique slices, but will change later to a more precise method when slice options are updated
   else
   {
-    sliceNormal[0] = IJKToRASDirections->Element[0][0]*sliceNode->GetSliceToRAS()->Element[0][2] + 
-             IJKToRASDirections->Element[0][1]*sliceNode->GetSliceToRAS()->Element[1][2] + 
-             IJKToRASDirections->Element[0][2]*sliceNode->GetSliceToRAS()->Element[2][2];
-    sliceNormal[1] = IJKToRASDirections->Element[1][0]*sliceNode->GetSliceToRAS()->Element[0][2] + 
-             IJKToRASDirections->Element[1][1]*sliceNode->GetSliceToRAS()->Element[1][2] + 
-             IJKToRASDirections->Element[1][2]*sliceNode->GetSliceToRAS()->Element[2][2];
-    sliceNormal[2] = IJKToRASDirections->Element[2][0]*sliceNode->GetSliceToRAS()->Element[0][2] + 
-             IJKToRASDirections->Element[2][1]*sliceNode->GetSliceToRAS()->Element[1][2] + 
-             IJKToRASDirections->Element[2][2]*sliceNode->GetSliceToRAS()->Element[2][2];
+	if (spacing[0] >= spacing[1] && spacing[0] >= spacing[2])
+	{
+	  width = spacing[0];
+	}
+	else if (spacing[1] >= spacing[0] && spacing[1] >= spacing[2])
+	{
+	  width = spacing[1];
+	}
+	else
+	{
+	  width = spacing[2];
+	}
   }
-  
+ 
+  vtkSmartPointer<vtkMatrix4x4> invertDirs = vtkSmartPointer<vtkMatrix4x4>::New();
+  invertDirs->Identity();
+  int row, col;
+  for (row=0; row<3; row++)
+  {
+    for (col=0; col<3; col++)
+    {
+      invertDirs->SetElement(row, col, IJKToRASDirections->Element[row][col]);
+    }
+  }
+  invertDirs->Invert(); 
+
+  sliceNormal[0] = invertDirs->GetElement(0,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
+				   invertDirs->GetElement(0,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+				   invertDirs->GetElement(0,2)*sliceNode->GetSliceToRAS()->Element[2][2];
+  sliceNormal[1] = invertDirs->GetElement(1,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
+				   invertDirs->GetElement(1,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+				   invertDirs->GetElement(1,2)*sliceNode->GetSliceToRAS()->Element[2][2];
+  sliceNormal[2] = invertDirs->GetElement(2,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
+				   invertDirs->GetElement(2,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+				   invertDirs->GetElement(2,2)*sliceNode->GetSliceToRAS()->Element[2][2]; 
+
   //Projection to slice plane
   float *ptr = (float *)field2->GetPointData()->GetScalars()->GetVoidPointer(0);
   for(int i = 0; i < field2->GetPointData()->GetScalars()->GetNumberOfTuples()*3; i+=3)
@@ -757,6 +777,7 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GlyphSlic
   
   vtkSmartPointer<vtkTransform> rotateArrow = vtkSmartPointer<vtkTransform>::New();
   rotateArrow->RotateX(vtkMath::DegreesFromRadians(acos(abs(sliceNormal[2]))));
+  //std::cout<<vtkMath::DegreesFromRadians(acos(abs(sliceNormal[2])))<<std::endl;
   
   vtkSmartPointer<vtkGlyphSource2D> arrow2DSource = vtkSmartPointer<vtkGlyphSource2D>::New();
   arrow2DSource->SetGlyphTypeToArrow();
@@ -784,7 +805,7 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GlyphSlic
   glyphFilter->Update();
   
   ribbon->SetInputConnection(glyphFilter->GetOutputPort());
-  ribbon->SetWidth(width/2);
+  ribbon->SetWidth(width/2 + 0.15);
   ribbon->SetAngle(90.0);
   ribbon->UseDefaultNormalOn();
   
@@ -844,39 +865,32 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GridSlice
         }
       }
     }
-    
-  if (strcmp(orientation, "Axial") == 0)
-  {
-    sliceNormal[0] = IJKToRASDirections->Element[0][2];
-    sliceNormal[1] = IJKToRASDirections->Element[1][2];
-    sliceNormal[2] = IJKToRASDirections->Element[2][2];  
-    
-  }
-  else if (strcmp(orientation, "Sagittal") == 0)
-  {
-    sliceNormal[0] = IJKToRASDirections->Element[0][0];
-    sliceNormal[1] = IJKToRASDirections->Element[1][0];
-    sliceNormal[2] = IJKToRASDirections->Element[2][0];  
-    
-  }
-  else if (strcmp(orientation, "Coronal") == 0)
-  {
-    sliceNormal[0] = IJKToRASDirections->Element[0][1];
-    sliceNormal[1] = IJKToRASDirections->Element[1][1];
-    sliceNormal[2] = IJKToRASDirections->Element[2][1];  
-    
-  }
-  else{
-    // Reformat not supported yet
-    sliceNormal[0] = 0;
-    sliceNormal[1] = 0;
-    sliceNormal[2] = 0;      
-  }  
 
-  std::cout<<sliceNormal[0]<<std::endl;
-  std::cout<<sliceNormal[1]<<std::endl;
-  std::cout<<sliceNormal[2]<<std::endl;
+  vtkSmartPointer<vtkMatrix4x4> invertDirs = vtkSmartPointer<vtkMatrix4x4>::New();
+  invertDirs->Identity();
+  int row, col;
+  for (row=0; row<3; row++)
+  {
+    for (col=0; col<3; col++)
+    {
+      invertDirs->SetElement(row, col, IJKToRASDirections->Element[row][col]);
+    }
+  }
+  invertDirs->Invert(); 
+
+  sliceNormal[0] = invertDirs->GetElement(0,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
+				   invertDirs->GetElement(0,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+				   invertDirs->GetElement(0,2)*sliceNode->GetSliceToRAS()->Element[2][2];
+  sliceNormal[1] = invertDirs->GetElement(1,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
+				   invertDirs->GetElement(1,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+				   invertDirs->GetElement(1,2)*sliceNode->GetSliceToRAS()->Element[2][2];
+  sliceNormal[2] = invertDirs->GetElement(2,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
+				   invertDirs->GetElement(2,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+				   invertDirs->GetElement(2,2)*sliceNode->GetSliceToRAS()->Element[2][2]; 
   
+  //TODO: The way the grid is made now isn't great. Alternate solution to be implemented later such as resampling the vector volume.
+  //Reformat not supported
+  //TODO: Add support for reformat/oblique slices? 
   if (abs(sliceNormal[0]) < 1.0e-15 && abs(sliceNormal[1]) < 1.0e-15 && abs(sliceNormal[2]) > 1.0e-15)
   {
     width = spacing[2];
