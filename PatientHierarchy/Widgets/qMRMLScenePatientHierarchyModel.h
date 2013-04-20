@@ -65,6 +65,10 @@ public:
   int nodeTypeColumn()const;
   void setNodeTypeColumn(int column);
 
+signals:
+  void saveTreeExpandState();
+  void loadTreeExpandState();
+
 protected:
   /// Get the largest column ID
   virtual int maxColumnId()const;

@@ -425,6 +425,9 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
     vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Target parent node (" << newParent->GetName() << ") is not a valid patient hierarchy parent node!");
   }
 
+  // Prevent collapse of the patient hierarchy tree view (TODO: This is a workaround)
+  emit saveTreeExpandState();
+
   vtkMRMLHierarchyNode* parentPatientHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(newParent);
 
   // Get possible associated hierarchy node for reparented node
@@ -518,6 +521,9 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
 
   // Force updating the whole scene (TODO: this should not be needed)
   this->updateScene();
+
+  // Prevent collapse of the patient hierarchy tree view (TODO: This is a workaround)
+  emit loadTreeExpandState();
 
   return true;
 }

@@ -73,7 +73,8 @@ void qMRMLPatientHierarchyTreeViewPrivate::init()
   Q_Q(qMRMLPatientHierarchyTreeView);
 
   this->SceneModel = new qMRMLScenePatientHierarchyModel(q);
-  this->SceneModel->setLazyUpdate(false); //TODO: Is this needed?
+  QObject::connect( this->SceneModel, SIGNAL(saveTreeExpandState()), q, SLOT(saveTreeExpandState()) );
+  QObject::connect( this->SceneModel, SIGNAL(loadTreeExpandState()), q, SLOT(loadTreeExpandState()) );
   q->setSceneModel(this->SceneModel, "PatientHierarchy");
 
   this->SortFilterModel = new qMRMLSortFilterPatientHierarchyProxyModel(q);

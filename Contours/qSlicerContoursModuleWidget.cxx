@@ -546,7 +546,8 @@ bool qSlicerContoursModuleWidget::haveConversionParametersChangedForIndexedLabel
                                      && d->MRMLNodeComboBox_ReferenceVolume->currentNode() != NULL )
                                    || ( !contourNode->HasBeenCreatedFromIndexedLabelmap()
                                      && d->MRMLNodeComboBox_ReferenceVolume->currentNodeId().compare(contourNode->GetRasterizationReferenceVolumeNodeId()) ) );
-  bool oversamplingFactorChanged = ( fabs(this->getOversamplingFactor() - contourNode->GetRasterizationOversamplingFactor()) > EPSILON );
+  bool oversamplingFactorChanged = ( contourNode->HasBeenCreatedFromIndexedLabelmap() ? false
+                                   : ( fabs(this->getOversamplingFactor() - contourNode->GetRasterizationOversamplingFactor()) > EPSILON ) );
 
   return contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
     && (referenceVolumeNodeChanged || oversamplingFactorChanged);
