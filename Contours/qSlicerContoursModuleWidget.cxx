@@ -539,7 +539,13 @@ bool qSlicerContoursModuleWidget::haveConversionParametersChangedForIndexedLabel
 {
   Q_D(qSlicerContoursModuleWidget);
 
-  bool referenceVolumeNodeChanged = d->MRMLNodeComboBox_ReferenceVolume->currentNodeId().compare( contourNode->GetRasterizationReferenceVolumeNodeId() );
+  // Reference volume has changed if the contour has been created from labelmap (the reference volume is the same as
+  // the indexed labelmap representation, and the reference combobox has empty selection, so the reference node is NULL)
+  // and the reference node is not NULL, or if not created from labelmap, but the selection does not match the current reference
+  bool referenceVolumeNodeChanged = ( ( contourNode->HasBeenCreatedFromIndexedLabelmap()
+                                     && d->MRMLNodeComboBox_ReferenceVolume->currentNode() != NULL )
+                                   || ( !contourNode->HasBeenCreatedFromIndexedLabelmap()
+                                     && d->MRMLNodeComboBox_ReferenceVolume->currentNodeId().compare(contourNode->GetRasterizationReferenceVolumeNodeId()) ) );
   bool oversamplingFactorChanged = ( fabs(this->getOversamplingFactor() - contourNode->GetRasterizationOversamplingFactor()) > EPSILON );
 
   return contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)

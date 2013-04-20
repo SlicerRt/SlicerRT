@@ -757,11 +757,18 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
     {
     vtkErrorMacro("Error: No color table found for structure set '" << parentContourHierarchyNode->GetName() << "'");
     }
-  colorNodes->InitTraversal();
-  colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
+
   int structureColorIndex = -1;
-  while (colorNode)
+  if (!this->StructureName)
     {
+    vtkErrorMacro("Unable to find color index for contour '" << this->Name << "', because structure name is empty!");
+    return;
+    }
+
+  vtkObject* nextObject = NULL;
+  for (colorNodes->InitTraversal(); nextObject = colorNodes->GetNextItemAsObject(); )
+    {
+    vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(nextObject);
     int currentColorIndex = -1;
 
     //TODO: workaround for issue #179, restore when Slicer mantis issue http://www.na-mic.org/Bug/view.php?id=2783 is fixed
@@ -790,12 +797,11 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
         break;
         }
       }
-    colorNode = vtkMRMLColorTableNode::SafeDownCast(colorNodes->GetNextItemAsObject());
     }
 
   if (structureColorIndex == -1)
     {
-    std::cout << "No matching entry found in the color tables for structure '" << this->StructureName << "'" << std::endl;
+    vtkErrorMacro("No matching entry found in the color tables for structure '" << this->StructureName << "'");
     return;
     }
 

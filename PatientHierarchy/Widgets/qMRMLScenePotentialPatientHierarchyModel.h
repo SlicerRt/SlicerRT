@@ -59,6 +59,10 @@ protected:
   /// Overridden function to handle node update from tree view item
   virtual void updateNodeFromItemData(vtkMRMLNode* node, QStandardItem* item);
 
+protected slots:
+  /// Update model when a node is drag&dropped outside
+  void onRowsRemoved(const QModelIndex parent, int start, int end);
+
 private:
   Q_DECLARE_PRIVATE(qMRMLScenePotentialPatientHierarchyModel);
   Q_DISABLE_COPY(qMRMLScenePotentialPatientHierarchyModel);

@@ -28,9 +28,6 @@
      <property name="dragDropMode">
       <enum>QAbstractItemView::DragDrop</enum>
      </property>
-     <property name="defaultDropAction">
-      <enum>Qt::MoveAction</enum>
-     </property>
      <property name="indentation">
       <number>12</number>
      </property>
@@ -102,9 +99,6 @@
        <widget class="qMRMLPotentialPatientHierarchyListView" name="PotentialPatientHierarchyListView">
         <property name="dragDropMode">
          <enum>QAbstractItemView::DragOnly</enum>
-        </property>
-        <property name="defaultDropAction">
-         <enum>Qt::MoveAction</enum>
         </property>
        </widget>
       </item>

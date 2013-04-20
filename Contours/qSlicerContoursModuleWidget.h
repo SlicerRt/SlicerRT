@@ -72,14 +72,9 @@ protected:
   /// \return True if every selected node has the given type of representation, false otherwise
   bool selectedContoursContainRepresentation(vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain=true);
 
-  /// Determines if conversion is needed for a certain contour node
-  /// \param contourNode The contour node to investigate
-  /// \param targetRepresentationType The target representation
-  /// \return True if the parameters set on the UI are different from the
-  ///          parameters in the contour node, false otherwise
-  //bool isConversionNeeded(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
-
   /// Set state according to change active representation widget group changes
+  /// This function makes sure that all the conditions are good for the proposed representation change
+  /// The Apply button is enabled only if those conditions are met. Otherwise, the appropriate messages are displayed 
   void updateWidgetsFromChangeActiveRepresentationGroup();
 
   /// Get oversampling factor based on the value set on the slider
@@ -89,22 +84,44 @@ protected:
   /// Show conversion parameters for selected target representation
   void showConversionParameterControlsForTargetRepresentation(vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
 
-  ///TODO:
+  /// Utility function for getting the target representation type from the combobox
   vtkMRMLContourNode::ContourRepresentationType getTargetRepresentationType();
+
+  /// Determines if a suitable source representation is ready for the current conversion for a certain contour
+  /// \return true if source representation is present and valid
+  ///         (e.g. invalid if intermediate indexed labelmap has changed conversion parameters)
   bool isSuitableSourceAvailableForConversion(vtkMRMLContourNode* contourNode);
+  /// Determines if a suitable source representation is ready for the current conversion for all selected nodes
   bool isSuitableSourceAvailableForConversionForAllSelectedContours();
-  //bool isReferenceVolumeSelectionValid(vtkMRMLContourNode* contourNode);
+
+  /// Determines if reference volume selection is valid for the current conversion for all selected contours
+  /// \return False if any selected contour needs reference volume, but is not selected in the combobox, true otherwise
   bool isReferenceVolumeSelectionValidForAllSelectedContours();
-  /// Indexed labelmap representation is not available when converting to closed surface model
-  //bool isIntermediateLabelmapNeededButMissing(vtkMRMLContourNode* contourNode);
-  //bool isIntermediateLabelmapNeededButMissingInAnySelectedContour();
+
+  /// Determines if conversion parameters have changed for a certain contour.
+  /// \return False if the current conversion needs a representation that have changed conversion parameters, true otherwise
+  /// \sa haveConversionParametersChangedForIndexedLabelmap, \sa haveConversionParametersChangedForClosedSurfaceModel
   bool haveConversionParametersChanged(vtkMRMLContourNode* contourNode);
+  /// Determines if conversion parameters have changed for indexed labelmap conversion
+  /// \return True if contour has indexed labelmap representation, but indexed labelmap conversion parameters have changed
+  /// \sa haveConversionParametersChanged
   bool haveConversionParametersChangedForIndexedLabelmap(vtkMRMLContourNode* contourNode);
+  /// Determines if conversion parameters have changed for closed surface model conversion
+  /// \return True if contour has closed surface model representation, but closed surface model conversion parameters have changed
+  /// \sa haveConversionParametersChanged
   bool haveConversionParametersChangedForClosedSurfaceModel(vtkMRMLContourNode* contourNode);
+  /// Determines if conversion parameters have changed in any of the selected contours
+  /// \sa haveConversionParametersChanged
   bool haveConversionParametersChangedInAnySelectedContour();
+
+  /// Perform conversion to indexed labelmap representation in a certain contour.
+  /// NOTE: The active representation is not changed, only the parameters are set and the conversion is done.
+  /// Used by \sa applyChangeRepresentationClicked
   bool convertToIndexedLabelmap(vtkMRMLContourNode* contourNode);
+  /// Perform conversion to closed surface model representation in a certain contour
+  /// NOTE: The active representation is not changed, only the parameters are set and the conversion is done.
+  /// Used by \sa applyChangeRepresentationClicked
   bool convertToClosedSurfaceModel(vtkMRMLContourNode* contourNode);
-  ///TODO:
 
 public slots:
   /// Update widget GUI from parameter node
@@ -117,6 +134,9 @@ protected slots:
   void oversamplingFactorChanged(int value);
   void targetReductionFactorPercentChanged(double value);
 
+  /// Perform conversions if needed and sets target representation for all selected contours
+  /// This function should only be called if all conditions are good to perform the representation change
+  /// Checking the conditions is done in \sa updateWidgetsFromChangeActiveRepresentationGroup
   void applyChangeRepresentationClicked();
 
 protected:

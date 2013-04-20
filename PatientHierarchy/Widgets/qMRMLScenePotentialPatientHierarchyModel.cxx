@@ -42,6 +42,8 @@ void qMRMLScenePotentialPatientHierarchyModelPrivate::init()
 {
   Q_Q(qMRMLScenePotentialPatientHierarchyModel);
   this->Superclass::init();
+
+  QObject::connect( q, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), q, SLOT(onRowsRemoved(QModelIndex,int,int)) );
 }
 
 
@@ -71,6 +73,8 @@ QStringList qMRMLScenePotentialPatientHierarchyModel::mimeTypes()const
 //------------------------------------------------------------------------------
 QMimeData* qMRMLScenePotentialPatientHierarchyModel::mimeData(const QModelIndexList &indexes) const
 {
+  Q_D(const qMRMLScenePotentialPatientHierarchyModel);
+
   QMimeData* mimeData = new QMimeData();
   QByteArray encodedData;
 
@@ -80,6 +84,7 @@ QMimeData* qMRMLScenePotentialPatientHierarchyModel::mimeData(const QModelIndexL
   {
     if (index.isValid())
     {
+      d->DraggedNodes << this->mrmlNodeFromIndex(index);
       QString text = data(index, PointerRole).toString();
       stream << text;
     }
@@ -114,4 +119,18 @@ bool qMRMLScenePotentialPatientHierarchyModel::canBeAChild(vtkMRMLNode* node)con
 Qt::DropActions qMRMLScenePotentialPatientHierarchyModel::supportedDropActions()const
 {
   return Qt::MoveAction;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLScenePotentialPatientHierarchyModel::onRowsRemoved(const QModelIndex parent, int start, int end)
+{
+  Q_D(const qMRMLScenePotentialPatientHierarchyModel);
+
+  if (d->DraggedNodes.count())
+  {
+    d->DraggedNodes.clear();
+
+    // Force updating the whole scene (TODO: this should not be needed)
+    this->updateScene();
+  }
 }
