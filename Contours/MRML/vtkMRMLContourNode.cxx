@@ -690,7 +690,7 @@ void vtkMRMLContourNode::SetActiveRepresentationByType(ContourRepresentationType
       }
     }
 
-  // Make sure the original representation type is shown on failure to set the new one
+  // Make sure the original representation type is shown if unable to set the new one
   if (!success && representations[this->ActiveRepresentationType])
     {
     this->ShowRepresentation(representations[this->ActiveRepresentationType], true);
@@ -982,13 +982,6 @@ void vtkMRMLContourNode::DeleteNonActiveRepresentations()
       }
     }
   }
-}
-
-//---------------------------------------------------------------------------
-//TODO: delete this function and use its body instead
-bool vtkMRMLContourNode::ConversionToIndexedLabelmapPossible()
-{
-  return (this->RibbonModelNode || this->ClosedSurfaceModelNode);
 }
 
 //---------------------------------------------------------------------------

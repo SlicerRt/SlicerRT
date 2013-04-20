@@ -53,7 +53,7 @@ protected:
 
   /// Get reference volume node ID from the selected contours.
   /// \param referenceVolumeNodeId Output parameter for the reference volume node ID (is empty if they are not the same, or all have been created from labelmap)
-  /// \return True if the reference volume node IDs are the same (or all of them have been created from labelmap), false otherwise
+  /// \return True if the reference volume node IDs are the same or all of them have been created from labelmap, false otherwise
   bool getReferenceVolumeNodeIdOfSelectedContours(QString &referenceVolumeNodeId);
 
   /// Get oversampling factor from the selected contours.
@@ -77,7 +77,7 @@ protected:
   /// \param targetRepresentationType The target representation
   /// \return True if the parameters set on the UI are different from the
   ///          parameters in the contour node, false otherwise
-  bool isConversionNeeded(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+  //bool isConversionNeeded(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
 
   /// Set state according to change active representation widget group changes
   void updateWidgetsFromChangeActiveRepresentationGroup();
@@ -90,20 +90,20 @@ protected:
   void showConversionParameterControlsForTargetRepresentation(vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
 
   ///TODO:
-  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType();
-  bool isSuitableSourceAvailableForConversionForContour(vtkMRMLContourNode* contourNode);
+  vtkMRMLContourNode::ContourRepresentationType getTargetRepresentationType();
+  bool isSuitableSourceAvailableForConversion(vtkMRMLContourNode* contourNode);
   bool isSuitableSourceAvailableForConversionForAllSelectedContours();
-  bool isReferenceVolumeSelectionValidForContour(vtkMRMLContourNode* contourNode);
+  //bool isReferenceVolumeSelectionValid(vtkMRMLContourNode* contourNode);
   bool isReferenceVolumeSelectionValidForAllSelectedContours();
-  bool isNewConversionNecessaryForContour(vtkMRMLContourNode* contourNode);
-  bool isNewConversionNecessaryForAnySelectedContour();
   /// Indexed labelmap representation is not available when converting to closed surface model
-  bool isIntermediateLabelmapNeeded(vtkMRMLContourNode* contourNode);
-  bool isIntermediateLabelmapNeededInAnySelectedContour();
+  //bool isIntermediateLabelmapNeededButMissing(vtkMRMLContourNode* contourNode);
+  //bool isIntermediateLabelmapNeededButMissingInAnySelectedContour();
   bool haveConversionParametersChanged(vtkMRMLContourNode* contourNode);
   bool haveConversionParametersChangedForIndexedLabelmap(vtkMRMLContourNode* contourNode);
   bool haveConversionParametersChangedForClosedSurfaceModel(vtkMRMLContourNode* contourNode);
   bool haveConversionParametersChangedInAnySelectedContour();
+  bool convertToIndexedLabelmap(vtkMRMLContourNode* contourNode);
+  bool convertToClosedSurfaceModel(vtkMRMLContourNode* contourNode);
   ///TODO:
 
 public slots:

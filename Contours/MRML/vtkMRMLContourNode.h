@@ -107,10 +107,6 @@ public:
   /// Returns true if ribbon model is empty, false otherwise
   bool RibbonModelContainsEmptyPolydata();
 
-  /// Utility function to decide if labelmap conversion is possible
-  /// \return True if any of the model representations is available
-  bool ConversionToIndexedLabelmapPossible();
-
   /// Determines if the contour has been created from an already existing indexed labelmap
   /// \sa RasterizationReferenceVolumeNodeId
   bool HasBeenCreatedFromIndexedLabelmap();
@@ -233,8 +229,8 @@ protected:
   ContourRepresentationType ActiveRepresentationType;
 
   /// Rasterization reference volume node ID. This node is used when converting from model to labelmap
-  /// If the reference volume node ID is the same as the indexed labelmap volume node ID, then it means that
-  /// the contour was created from the labelmap, and there was no conversion from model representation
+  /// IMPORTANT: If the reference volume node ID is the same as the indexed labelmap volume node ID, then it
+  /// means that the contour was created from labelmap, and there was no conversion from any model representation
   char* RasterizationReferenceVolumeNodeId;
 
   /// Oversampling factor for contour polydata to labelmap conversion (rasterization)

@@ -145,6 +145,55 @@ void qSlicerContoursModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  d->pushButton_ApplyChangeRepresentation->setEnabled(false);
+
+  if (!this->mrmlScene() || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+  if (!node)
+  {
+    d->label_NoReferenceWarning->setVisible(true);
+    return;
+  }
+
+  d->label_NoReferenceWarning->setVisible(false);
+
+  this->updateWidgetsFromChangeActiveRepresentationGroup();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::oversamplingFactorChanged(int value)
+{
+  Q_D(qSlicerContoursModuleWidget);
+  UNUSED_VARIABLE(value);
+
+  d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
+
+  this->updateWidgetsFromChangeActiveRepresentationGroup();
+}
+//-----------------------------------------------------------------------------
+
+double qSlicerContoursModuleWidget::getOversamplingFactor()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  return pow(2.0, d->horizontalSlider_OversamplingFactor->value());
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::targetReductionFactorPercentChanged(double value)
+{
+  UNUSED_VARIABLE(value);
+
+  this->updateWidgetsFromChangeActiveRepresentationGroup();
+}
+
+//-----------------------------------------------------------------------------
 vtkMRMLContourNode::ContourRepresentationType qSlicerContoursModuleWidget::getRepresentationTypeOfSelectedContours()
 {
   Q_D(qSlicerContoursModuleWidget);
@@ -205,6 +254,7 @@ bool qSlicerContoursModuleWidget::getReferenceVolumeNodeIdOfSelectedContours(QSt
     {
       sameReferenceVolumeNodeId = false;
       referenceVolumeNodeId.clear();
+      break;
     }
   }
 
@@ -286,38 +336,6 @@ bool qSlicerContoursModuleWidget::selectedContoursContainRepresentation(vtkMRMLC
     // None of the contours have the requested representation
     return false;
   }
-}
-
-//-----------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::isConversionNeeded(vtkMRMLContourNode* contourNode, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType)
-{
-  Q_D(qSlicerContoursModuleWidget);
-
-  if ( !contourNode || contourNode->GetActiveRepresentationType() == targetRepresentationType
-    || !this->isSuitableSourceAvailableForConversionForContour(contourNode) )
-  {
-    return false;
-  }
-
-  if ( targetRepresentationType == (int)vtkMRMLContourNode::RibbonModel )
-  {
-    //TODO: Not implemented yet
-    return false;
-  }
-  else if ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap )
-  {
-    //TODO: maybe add condition: !contourNode->HasBeenCreatedFromIndexedLabelmap()
-    return !contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
-         || this->haveConversionParametersChangedForIndexedLabelmap(contourNode);
-  }
-  else if ( targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel )
-  {
-    return this->isIntermediateLabelmapNeeded(contourNode)
-        || !contourNode->RepresentationExists(vtkMRMLContourNode::ClosedSurfaceModel)
-        || this->haveConversionParametersChangedForClosedSurfaceModel(contourNode);
-  }
-
-  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -478,7 +496,7 @@ void qSlicerContoursModuleWidget::activeRepresentationComboboxSelectionChanged(i
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLContourNode::ContourRepresentationType qSlicerContoursModuleWidget::targetRepresentationType()
+vtkMRMLContourNode::ContourRepresentationType qSlicerContoursModuleWidget::getTargetRepresentationType()
 {
   Q_D(qSlicerContoursModuleWidget);
 
@@ -517,32 +535,12 @@ void qSlicerContoursModuleWidget::showConversionParameterControlsForTargetRepres
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::haveConversionParametersChanged(vtkMRMLContourNode* contourNode)
-{
-  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->targetRepresentationType();
-
-  return ( ( ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap || targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel )
-          && haveConversionParametersChangedForIndexedLabelmap(contourNode) )
-        || ( targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel
-          && haveConversionParametersChangedForClosedSurfaceModel(contourNode) ) );
-}
-
-//-----------------------------------------------------------------------------
 bool qSlicerContoursModuleWidget::haveConversionParametersChangedForIndexedLabelmap(vtkMRMLContourNode* contourNode)
 {
   Q_D(qSlicerContoursModuleWidget);
 
-  // Get reference volume node ID for the selected contour nodes
-  QString referenceVolumeNodeId;
-  bool sameReferenceVolumeNodeId = this->getReferenceVolumeNodeIdOfSelectedContours(referenceVolumeNodeId);
-  bool referenceVolumeNodeChanged = ( ! ( sameReferenceVolumeNodeId && 
-    (referenceVolumeNodeId.isEmpty() || !d->MRMLNodeComboBox_ReferenceVolume->currentNodeId().compare(referenceVolumeNodeId)) ) );
-
-  // Get the oversampling factor of the selected contour nodes
-  double oversamplingFactor = 0.0;
-  bool sameOversamplingFactor = this->getOversamplingFactorOfSelectedContours(oversamplingFactor);
-  bool oversamplingFactorChanged = ( !sameOversamplingFactor
-    || fabs(this->getOversamplingFactor() - oversamplingFactor) > EPSILON );
+  bool referenceVolumeNodeChanged = d->MRMLNodeComboBox_ReferenceVolume->currentNodeId().compare( contourNode->GetRasterizationReferenceVolumeNodeId() );
+  bool oversamplingFactorChanged = ( fabs(this->getOversamplingFactor() - contourNode->GetRasterizationOversamplingFactor()) > EPSILON );
 
   return contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
     && (referenceVolumeNodeChanged || oversamplingFactorChanged);
@@ -553,13 +551,20 @@ bool qSlicerContoursModuleWidget::haveConversionParametersChangedForClosedSurfac
 {
   Q_D(qSlicerContoursModuleWidget);
 
-  // Get target reduction factor for the selected contour nodes
-  double targetReductionFactor;
-  bool sameTargetReductionFactor = this->getTargetReductionFactorOfSelectedContours(targetReductionFactor);
-  bool targetReductionFactorChanged = ( !sameTargetReductionFactor
-    || fabs(d->SliderWidget_TargetReductionFactorPercent->value() - targetReductionFactor) > EPSILON );
+  bool targetReductionFactorChanged = ( fabs(d->SliderWidget_TargetReductionFactorPercent->value() - contourNode->GetDecimationTargetReductionFactor()) > EPSILON );
 
   return contourNode->RepresentationExists(vtkMRMLContourNode::ClosedSurfaceModel) && targetReductionFactorChanged;
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerContoursModuleWidget::haveConversionParametersChanged(vtkMRMLContourNode* contourNode)
+{
+  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->getTargetRepresentationType();
+
+  return ( ( ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap || targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel )
+            && haveConversionParametersChangedForIndexedLabelmap(contourNode) )
+          || ( targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel
+            && haveConversionParametersChangedForClosedSurfaceModel(contourNode) ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -579,42 +584,9 @@ bool qSlicerContoursModuleWidget::haveConversionParametersChangedInAnySelectedCo
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::isIntermediateLabelmapNeeded(vtkMRMLContourNode* contourNode)
+bool qSlicerContoursModuleWidget::isSuitableSourceAvailableForConversion(vtkMRMLContourNode* contourNode)
 {
-  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->targetRepresentationType();
-
-  // TODO: Change here if conversion is available to ribbon model
-  if (targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel)
-  {
-    if ( !contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap) )
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-//-----------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::isIntermediateLabelmapNeededInAnySelectedContour()
-{
-  Q_D(qSlicerContoursModuleWidget);
-
-  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
-  {
-    if (this->isIntermediateLabelmapNeeded(*it))
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-//-----------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::isSuitableSourceAvailableForConversionForContour(vtkMRMLContourNode* contourNode)
-{
-  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->targetRepresentationType();
+  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->getTargetRepresentationType();
 
   if ( targetRepresentationType == vtkMRMLContourNode::RibbonModel
     && !contourNode->RepresentationExists(vtkMRMLContourNode::RibbonModel) )
@@ -628,8 +600,9 @@ bool qSlicerContoursModuleWidget::isSuitableSourceAvailableForConversionForConto
     return false;
   }
   else if ( targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel
-    && this->isIntermediateLabelmapNeeded(contourNode)
-    && !contourNode->RepresentationExists(vtkMRMLContourNode::RibbonModel) )
+    && !contourNode->RepresentationExists(vtkMRMLContourNode::RibbonModel)
+    && ( !contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
+      || this->haveConversionParametersChangedForIndexedLabelmap(contourNode) ) )
   {
     return false;
   }
@@ -644,69 +617,7 @@ bool qSlicerContoursModuleWidget::isSuitableSourceAvailableForConversionForAllSe
 
   for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
   {
-    if (!this->isSuitableSourceAvailableForConversionForContour(*it))
-    {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-//-----------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::isNewConversionNecessaryForContour(vtkMRMLContourNode* contourNode)
-{
-  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->targetRepresentationType();
-
-//TODO: start test; DELETE!
-Q_D(qSlicerContoursModuleWidget);
-vtkMRMLContourNode::ContourRepresentationType target = (vtkMRMLContourNode::ContourRepresentationType)d->comboBox_ChangeActiveRepresentation->currentIndex();
-if (target != targetRepresentationType)
-{
-  int i=0; ++i;
-}
-//TODO: end test
-
-  // Determine if the conversion parameters of the target representation has changed
-  bool targetConversionParametersChanged = ( ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap
-                                            && this->haveConversionParametersChangedForIndexedLabelmap(contourNode) )
-                                          || ( targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel
-                                            && this->haveConversionParametersChangedForClosedSurfaceModel(contourNode) ) );
-
-  return (targetConversionParametersChanged || this->isIntermediateLabelmapNeeded(contourNode));
-}
-
-//-----------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::isNewConversionNecessaryForAnySelectedContour()
-{
-  Q_D(qSlicerContoursModuleWidget);
-
-  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
-  {
-    if (this->isNewConversionNecessaryForContour(*it))
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-//-----------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::isReferenceVolumeSelectionValidForContour(vtkMRMLContourNode* contourNode)
-{
-  Q_D(qSlicerContoursModuleWidget);
-
-  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->targetRepresentationType();
-
-  if ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap
-    || this->isIntermediateLabelmapNeeded(contourNode) )
-  {
-    if (d->MRMLNodeComboBox_ReferenceVolume->currentNode())
-    {
-      return true;
-    }
-    else
+    if (!this->isSuitableSourceAvailableForConversion(*it))
     {
       return false;
     }
@@ -720,9 +631,17 @@ bool qSlicerContoursModuleWidget::isReferenceVolumeSelectionValidForAllSelectedC
 {
   Q_D(qSlicerContoursModuleWidget);
 
+  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->getTargetRepresentationType();
+
   for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
   {
-    if (!this->isReferenceVolumeSelectionValidForContour(*it))
+    // If (target is indexed labelmap OR an intermediate labelmap is needed for closed surface conversion BUT missing)
+    // AND (the selected reference node is empty AND was not created from labelmap), then reference volume selection is invalid
+    if ( ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap
+        || ( targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel
+          && !(*it)->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap) ) )
+      && ( !d->MRMLNodeComboBox_ReferenceVolume->currentNode()
+        && !(*it)->HasBeenCreatedFromIndexedLabelmap() ) )
     {
       return false;
     }
@@ -743,7 +662,7 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
 
   // Get representation type for the selected contour nodes and the target type
   vtkMRMLContourNode::ContourRepresentationType representationTypeInSelectedNodes = this->getRepresentationTypeOfSelectedContours();
-  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->targetRepresentationType();
+  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->getTargetRepresentationType();
 
   // If target representation type matches all active representations
   if (targetRepresentationType == representationTypeInSelectedNodes)
@@ -765,6 +684,7 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
     }
     else
     {
+      this->showConversionParameterControlsForTargetRepresentation(vtkMRMLContourNode::None);
       d->pushButton_ApplyChangeRepresentation->setEnabled(false);
     }
 
@@ -797,59 +717,10 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
   d->pushButton_ApplyChangeRepresentation->setEnabled(true);
 
   // Show new conversion message if needed
-  if (this->isNewConversionNecessaryForAnySelectedContour())
+  if (this->haveConversionParametersChangedInAnySelectedContour())
   {
     d->label_NewConversion->setVisible(true);
   }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
-{
-  Q_D(qSlicerContoursModuleWidget);
-
-  d->pushButton_ApplyChangeRepresentation->setEnabled(false);
-
-  if (!this->mrmlScene() || !d->ModuleWindowInitialized)
-  {
-    return;
-  }
-  if (!node)
-  {
-    d->label_NoReferenceWarning->setVisible(true);
-    return;
-  }
-
-  d->label_NoReferenceWarning->setVisible(false);
-
-  this->updateWidgetsFromChangeActiveRepresentationGroup();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::oversamplingFactorChanged(int value)
-{
-  Q_D(qSlicerContoursModuleWidget);
-  UNUSED_VARIABLE(value);
-
-  d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
-
-  this->updateWidgetsFromChangeActiveRepresentationGroup();
-}
-//-----------------------------------------------------------------------------
-
-double qSlicerContoursModuleWidget::getOversamplingFactor()
-{
-  Q_D(qSlicerContoursModuleWidget);
-
-  return pow(2.0, d->horizontalSlider_OversamplingFactor->value());
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::targetReductionFactorPercentChanged(double value)
-{
-  UNUSED_VARIABLE(value);
-
-  this->updateWidgetsFromChangeActiveRepresentationGroup();
 }
 
 //-----------------------------------------------------------------------------
@@ -867,113 +738,94 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
   // TODO: Workaround for update issues
   this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
 
-  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType
-    = (vtkMRMLContourNode::ContourRepresentationType)d->comboBox_ChangeActiveRepresentation->currentIndex();
+  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->getTargetRepresentationType();
 
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
-  double oversamplingFactor = this->getOversamplingFactor();
-  double targetReductionFactor = d->SliderWidget_TargetReductionFactorPercent->value();
-
-  // Apply change representation on all selected contours
-  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
+  // Apply change representation and occurrent conversion on each selected contour
+  // We assume that representation change (and conversion if necessary) is possible for each selected contour,
+  // as the Apply button should only be enabled if it is ensured (\sa updateWidgetsFromChangeActiveRepresentationGroup)
+  for (std::vector<vtkMRMLContourNode*>::iterator currentContourIt = d->SelectedContourNodes.begin(); currentContourIt != d->SelectedContourNodes.end(); ++currentContourIt)
   {
-    bool conversionNeeded = this->isConversionNeeded((*it), targetRepresentationType);
-
-    // Set conversion parameters
-    if (conversionNeeded)
+    // Convert if necessary
+    if ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap
+      || targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel )
     {
-      if (referenceVolumeNode)
+      if ( !(*currentContourIt)->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
+        || this->haveConversionParametersChangedForIndexedLabelmap(*currentContourIt) )
       {
-        (*it)->SetAndObserveRasterizationReferenceVolumeNodeId(referenceVolumeNode->GetID());
-      }
-      (*it)->SetRasterizationOversamplingFactor(oversamplingFactor);
-      (*it)->SetDecimationTargetReductionFactor(targetReductionFactor / 100.0);
-    }
-
-    // Do conversion if necessary
-    if (targetRepresentationType == vtkMRMLContourNode::RibbonModel)
-    {
-      //TODO: Convert when the algorithm is ready
-      (*it)->SetActiveRepresentationByType(vtkMRMLContourNode::RibbonModel);
-    }
-    else if (targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap)
-    {
-      if (conversionNeeded && (*it)->ConversionToIndexedLabelmapPossible())
-      {
-        // Delete possible existing representation and re-convert
-        vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
-        converter->SetContourNode(*it);
-        converter->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
-      }
-
-      vtkMRMLScalarVolumeNode* indexedLabelmapNode = (*it)->GetIndexedLabelmapVolumeNode();
-      if (!indexedLabelmapNode)
-      {
-        vtkErrorWithObjectMacro((*it), "applyChangeRepresentationClicked: Failed to get '"
-          << d->comboBox_ChangeActiveRepresentation->currentText().toLatin1().constData()
-          << "' representation for contour node '" << (*it)->GetName() << "' !");
-      }
-      else
-      {
-        (*it)->SetActiveRepresentationByNode(indexedLabelmapNode);
+        this->convertToIndexedLabelmap(*currentContourIt);
       }
     }
-    else if (targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel)
+    if (targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel)
     {
-      if (conversionNeeded)
+      if ( !(*currentContourIt)->RepresentationExists(vtkMRMLContourNode::ClosedSurfaceModel)
+        || this->haveConversionParametersChangedForClosedSurfaceModel(*currentContourIt) )
       {
-        // Re-convert labelmap if necessary
-        if (this->isIntermediateLabelmapNeeded(*it))
-        {
-          if (!(*it)->ConversionToIndexedLabelmapPossible())
-          {
-            vtkErrorWithObjectMacro((*it), "applyChangeRepresentationClicked: Unable to convert to '"
-              << d->comboBox_ChangeActiveRepresentation->currentText().toLatin1().constData()
-              << "' representation for contour node '" << (*it)->GetName() << "' !");
-            continue;
-          }
-
-          vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
-          converter->SetContourNode(*it);
-          converter->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
-        }
-
-        // Delete possible existing representation and re-convert
-        vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
-        converter->SetContourNode(*it);
-        converter->ReconvertRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
-      }
-
-      vtkMRMLModelNode* closedSurfaceModelNode = (*it)->GetClosedSurfaceModelNode();
-      if (!closedSurfaceModelNode)
-      {
-        vtkErrorWithObjectMacro((*it), "applyChangeRepresentationClicked: Failed to get '"
-          << d->comboBox_ChangeActiveRepresentation->currentText().toLatin1().constData()
-          << "' representation for contour node '" << (*it)->GetName() << "' !");
-      }
-      else
-      {
-        (*it)->SetActiveRepresentationByNode((vtkMRMLDisplayableNode*)closedSurfaceModelNode);
+        this->convertToClosedSurfaceModel(*currentContourIt);
       }
     }
+
+    // Set target representation to node after the occurrent conversions
+    (*currentContourIt)->SetActiveRepresentationByType(targetRepresentationType);
   }
 
-  // Select the representation type shared by all the children contour nodes
-  vtkMRMLContourNode::ContourRepresentationType representationType = this->getRepresentationTypeOfSelectedContours();
-  if (representationType != vtkMRMLContourNode::None)
-  {
-    d->label_ActiveRepresentation->setText(d->comboBox_ChangeActiveRepresentation->itemText((int)representationType));
-    d->label_ActiveRepresentation->setToolTip(tr(""));
-  }
-  else
-  {
-    d->label_ActiveRepresentation->setText(tr("Various"));
-    d->label_ActiveRepresentation->setToolTip(tr("The selected hierarchy node contains contours with different active representation types"));
-  }
+  d->label_ActiveRepresentation->setText(d->comboBox_ChangeActiveRepresentation->currentText());
+  d->label_ActiveRepresentation->setToolTip(tr(""));
 
   this->updateWidgetsFromChangeActiveRepresentationGroup();
 
   this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
 
   QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerContoursModuleWidget::convertToIndexedLabelmap(vtkMRMLContourNode* contourNode)
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
+  double oversamplingFactor = this->getOversamplingFactor();
+
+  // Set indexed labelmap conversion parameters
+  contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(referenceVolumeNode ? referenceVolumeNode->GetID() : NULL);
+  contourNode->SetRasterizationOversamplingFactor(oversamplingFactor);
+
+  // Delete occurrent existing representation and re-convert
+  vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
+  converter->SetContourNode(contourNode);
+  converter->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
+
+  vtkMRMLScalarVolumeNode* indexedLabelmapNode = contourNode->GetIndexedLabelmapVolumeNode();
+  if (!indexedLabelmapNode)
+  {
+    vtkErrorWithObjectMacro(contourNode, "convertToIndexedLabelmap: Failed to get indexed labelmap representation for contour node '" << contourNode->GetName() << "' !");
+    return false;
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerContoursModuleWidget::convertToClosedSurfaceModel(vtkMRMLContourNode* contourNode)
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  double targetReductionFactor = d->SliderWidget_TargetReductionFactorPercent->value();
+
+  // Set closed surface model conversion parameters
+  contourNode->SetDecimationTargetReductionFactor(targetReductionFactor);
+
+  // Delete occurrent existing representation and re-convert
+  vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
+  converter->SetContourNode(contourNode);
+  converter->ReconvertRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
+
+  vtkMRMLModelNode* closedSurfaceModelNode = contourNode->GetClosedSurfaceModelNode();
+  if (!closedSurfaceModelNode)
+  {
+    vtkErrorWithObjectMacro(contourNode, "convertToClosedSurfaceModel:: Failed to get closed surface model representation from contour node '" << contourNode->GetName() << "' !");
+    return false;
+  }
+
+  return true;
 }
