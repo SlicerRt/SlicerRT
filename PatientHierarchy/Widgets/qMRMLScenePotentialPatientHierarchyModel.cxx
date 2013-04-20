@@ -30,6 +30,7 @@
 
 // Qt includes
 #include <QMimeData>
+#include <QTimer>
 
 //------------------------------------------------------------------------------
 qMRMLScenePotentialPatientHierarchyModelPrivate::qMRMLScenePotentialPatientHierarchyModelPrivate(qMRMLScenePotentialPatientHierarchyModel& object)
@@ -131,6 +132,12 @@ void qMRMLScenePotentialPatientHierarchyModel::onRowsRemoved(const QModelIndex p
     d->DraggedNodes.clear();
 
     // Force updating the whole scene (TODO: this should not be needed)
-    this->updateScene();
+    QTimer::singleShot(200, this, SLOT(delayedUpdateScene()));
   }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLScenePotentialPatientHierarchyModel::delayedUpdateScene()
+{
+  this->updateScene();
 }
