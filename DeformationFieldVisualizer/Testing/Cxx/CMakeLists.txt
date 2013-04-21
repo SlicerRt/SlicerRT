@@ -11,7 +11,7 @@ set(CMAKE_TESTDRIVER_BEFORE_TESTMAIN "DEBUG_LEAKS_ENABLE_EXIT_ERROR();" )
 create_test_sourcelist(Tests ${KIT}CxxTests.cxx
   ${KIT_TEST_NAMES_CXX}
   # Add source of your tests after this line.
-  qSlicerDeformationFieldVisualizerTest.cxx
+  #vtkSlicerDeformationFieldVisualizerTest1.cxx
   EXTRA_INCLUDE vtkMRMLDebugLeaksMacro.h
   )
 list(REMOVE_ITEM Tests ${KIT_TEST_NAMES_CXX})
@@ -28,5 +28,4 @@ foreach(testname ${KIT_TEST_NAMES})
 endforeach()
 
 # Add your test after this line, using SIMPLE_TEST( <testname> )
-
-SIMPLE_TEST(qSlicerDeformationFieldVisualizerTest)
+#SIMPLE_TEST(qSlicerDeformationFieldVisualizerTest)
