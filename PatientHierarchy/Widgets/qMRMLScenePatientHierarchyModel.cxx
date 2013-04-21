@@ -475,6 +475,10 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
         if (node->IsA("vtkMRMLScalarVolumeNode"))
         {
           newContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(node->GetID());
+
+          // Make sure the volume is treated as a labelmap
+          node->SetAttribute("LabelMap", "1");
+
           // Set the labelmap itself as reference thus indicating there was no conversion from model representation
           newContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(node->GetID());
           newContourNode->SetRasterizationOversamplingFactor(1.0);

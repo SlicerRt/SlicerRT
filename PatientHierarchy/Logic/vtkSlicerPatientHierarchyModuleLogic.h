@@ -101,13 +101,21 @@ public:
   static vtkMRMLHierarchyNode* GetAssociatedNonPatientHierarchyNode(vtkMRMLScene *scene, const char *associatedNodeId);
 
 protected:
+  /// Create a default structure set node so that contours can be created from potential representations without having
+  /// loaded a DICOM-RT study. This method becomes obsolete when creating new patient hierarchy nodes feature is implemented.
+  void CreateDefaultStructureSetNode();
+
+protected:
   vtkSlicerPatientHierarchyModuleLogic();
   virtual ~vtkSlicerPatientHierarchyModuleLogic();
+
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
 
   virtual void UpdateFromMRMLScene();
+  virtual void OnMRMLSceneEndClose();
 
 private:
   vtkSlicerPatientHierarchyModuleLogic(const vtkSlicerPatientHierarchyModuleLogic&); // Not implemented

@@ -115,6 +115,7 @@ public:
   static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE;
   static const char* PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME;
   static const char* PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME;
+  static const char* PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME;
 
   //----------------------------------------------------------------------------
   // Utility functions

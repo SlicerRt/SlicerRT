@@ -25,15 +25,17 @@
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
+#include "vtkMRMLContourHierarchyNode.h"
 
 // MRML includes
 #include <vtkMRMLHierarchyNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLDisplayNode.h>
+#include <vtkMRMLModelDisplayNode.h>
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkStringArray.h>
+#include <vtkSmartPointer.h>
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
@@ -66,6 +68,14 @@ void vtkSlicerPatientHierarchyModuleLogic::PrintSelf(ostream& os, vtkIndent inde
   this->Superclass::PrintSelf(os, indent);
 }
 
+//---------------------------------------------------------------------------
+void vtkSlicerPatientHierarchyModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+{
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
+  this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
+}
+
 //-----------------------------------------------------------------------------
 void vtkSlicerPatientHierarchyModuleLogic::RegisterNodes()
 {
@@ -76,7 +86,51 @@ void vtkSlicerPatientHierarchyModuleLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 
+  this->CreateDefaultStructureSetNode();
   this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPatientHierarchyModuleLogic::OnMRMLSceneEndClose()
+{
+  assert(this->GetMRMLScene() != 0);
+
+  this->CreateDefaultStructureSetNode();
+  this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPatientHierarchyModuleLogic::CreateDefaultStructureSetNode()
+{
+  assert(this->GetMRMLScene() != 0);
+
+  vtkSmartPointer<vtkCollection> defaultStructureSetNodes = vtkSmartPointer<vtkCollection>::Take(
+    this->GetMRMLScene()->GetNodesByClassByName("vtkMRMLContourHierarchyNode", SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME) );
+  if (defaultStructureSetNodes->GetNumberOfItems() > 0)
+  {
+    vtkWarningMacro("CreateDefaultStructureSetNode: Default structure set node already exists");
+    return;
+  }
+
+  vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
+  contourHierarchyNode->SetName(SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME);
+  contourHierarchyNode->AllowMultipleChildrenOn();
+  contourHierarchyNode->HideFromEditorsOff();
+  contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+    SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+    vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+  contourHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME);
+  this->GetMRMLScene()->AddNode(contourHierarchyNode);
+
+  // A hierarchy node needs a display node
+  vtkSmartPointer<vtkMRMLModelDisplayNode> contourHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  std::string contourHierarchyDisplayNodeName = std::string(SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME) + "Display";
+  contourHierarchyDisplayNode->SetName(contourHierarchyDisplayNodeName.c_str());
+  contourHierarchyDisplayNode->SetVisibility(1);
+
+  this->GetMRMLScene()->AddNode(contourHierarchyDisplayNode);
+  contourHierarchyNode->SetAndObserveDisplayNodeID(contourHierarchyDisplayNode->GetID());
 }
 
 //---------------------------------------------------------------------------

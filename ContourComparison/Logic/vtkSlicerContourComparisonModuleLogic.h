@@ -72,7 +72,7 @@ protected:
   vtkSlicerContourComparisonModuleLogic();
   virtual ~vtkSlicerContourComparisonModuleLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
