@@ -114,13 +114,13 @@ void qSlicerDeformationFieldVisualizerModuleWidget::onEnter()
   {
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLDeformationFieldVisualizerNode");
     if (node)
-	{
+    {
       pNode = vtkMRMLDeformationFieldVisualizerNode::SafeDownCast(node);
       d->logic()->SetAndObserveDeformationFieldVisualizerNode(pNode);
       return;
     }
     else
-	{
+    {
       vtkSmartPointer<vtkMRMLDeformationFieldVisualizerNode> newNode = vtkSmartPointer<vtkMRMLDeformationFieldVisualizerNode>::New();
       this->mrmlScene()->AddNode(newNode);
       d->logic()->SetAndObserveDeformationFieldVisualizerNode(newNode);
@@ -155,29 +155,29 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
     d->ParameterComboBox->setCurrentNode(pNode);
 
     if (pNode->GetInputVolumeNodeID())
-	{
+    {
       d->InputFieldComboBox->setCurrentNode(pNode->GetInputVolumeNodeID());
     }
     else
-	{
+    {
       this->inputVolumeChanged(d->InputFieldComboBox->currentNode());
     }
 
     if (pNode->GetReferenceVolumeNodeID())
-	{
+    {
       d->InputReferenceComboBox->setCurrentNode(pNode->GetReferenceVolumeNodeID());
     }
     else
-	{
+    {
       this->referenceVolumeChanged(d->InputReferenceComboBox->currentNode());
     }    
 
     if (pNode->GetOutputModelNodeID())
-	{
+    {
       d->OutputModelComboBox->setCurrentNode(pNode->GetOutputModelNodeID());
     }
     else
-	{
+    {
       this->outputModelChanged(d->OutputModelComboBox->currentNode());
     }  
 
@@ -219,11 +219,11 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
 
     // Glyph Slice Parameters
     if (pNode->GetGlyphSliceNodeID())
-	{
+    {
       d->GlyphSliceComboBox->setCurrentNode(pNode->GetGlyphSliceNodeID());
     }
     else
-	{
+    {
       this->setGlyphSliceNode(d->GlyphSliceComboBox->currentNode());
     }  
     d->InputGlyphSlicePointMax->setValue(pNode->GetGlyphSlicePointMax());
@@ -234,11 +234,11 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
 
     // Grid Slice Parameters
     if (pNode->GetGridSliceNodeID())
-	{
+    {
       d->GridSliceComboBox->setCurrentNode(pNode->GetGridSliceNodeID());
     }
     else
-	{
+    {
       this->setGridSliceNode(d->GridSliceComboBox->currentNode());
     }  
     d->InputGridSliceScale->setValue(pNode->GetGridSliceScale());
@@ -289,25 +289,25 @@ void qSlicerDeformationFieldVisualizerModuleWidget::inputVolumeChanged(vtkMRMLNo
 
     vtkSmartPointer<vtkMRMLVolumeNode> referenceVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->mrmlScene()->GetNodeByID(pNode->GetReferenceVolumeNodeID()));
     if (referenceVolumeNode == NULL)
-	{
-	  return;
-	}
+  {
+    return;
+  }
 
-	//TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
+  //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
     QProgressDialog *convertProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
     convertProgress->setModal(true);
     convertProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
     convertProgress->show();
-	convertProgress->setLabelText("Converting transform to vector volume...");
-	
+  convertProgress->setLabelText("Converting transform to vector volume...");
+  
     convertProgress->setValue(20);
     d->logic()->GenerateTransformField();
-	
-	convertProgress->setValue(80);
+  
+  convertProgress->setValue(80);
     maxNorm = d->logic()->GetFieldMaxNorm() + 1;
-	
-	convertProgress->setValue(100);
-	delete convertProgress;
+  
+  convertProgress->setValue(100);
+  delete convertProgress;
   }
 
   pNode->SetGlyphThresholdMax(maxNorm);
@@ -350,22 +350,22 @@ void qSlicerDeformationFieldVisualizerModuleWidget::referenceVolumeChanged(vtkMR
   if (strcmp(inputVolumeNode->GetClassName(), "vtkMRMLLinearTransformNode") == 0 || 
     strcmp(inputVolumeNode->GetClassName(), "vtkMRMLBSplineTransformNode") == 0 ||
     strcmp(inputVolumeNode->GetClassName(), "vtkMRMLGridTransformNode") == 0){
-	
-	//TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
+  
+  //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
     QProgressDialog *convertProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
     convertProgress->setModal(true);
     convertProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
     convertProgress->show();
-	convertProgress->setLabelText("Converting transform to vector volume...");
-	
-	convertProgress->setValue(20);
+  convertProgress->setLabelText("Converting transform to vector volume...");
+  
+  convertProgress->setValue(20);
     d->logic()->GenerateTransformField();
-	
-	convertProgress->setValue(80);
+  
+  convertProgress->setValue(80);
     maxNorm = d->logic()->GetFieldMaxNorm() + 1;
-	
-	convertProgress->setValue(100);
-	delete convertProgress;
+  
+  convertProgress->setValue(100);
+  delete convertProgress;
   }
 
   pNode->SetGlyphThresholdMax(maxNorm);
@@ -420,9 +420,9 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     d->SphereSourceOptions->setVisible(false);
 
     if (!pNode || !this->mrmlScene())
-	{
-	  return;
-	}
+  {
+    return;
+  }
     pNode->DisableModifiedEventOn();
     pNode->SetGlyphScaleDirectional(true);
     pNode->SetGlyphScaleIsotropic(false);
@@ -438,9 +438,9 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     d->SphereSourceOptions->setVisible(false);  
 
     if (!pNode || !this->mrmlScene())
-	{
-	  return;
-	}
+  {
+    return;
+  }
     pNode->DisableModifiedEventOn();
     pNode->SetGlyphScaleDirectional(true);
     pNode->SetGlyphScaleIsotropic(false);
@@ -456,9 +456,9 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     d->SphereSourceOptions->setVisible(true);
 
     if (!pNode || !this->mrmlScene())
-	{
-	  return;
-	}
+  {
+    return;
+  }
     pNode->DisableModifiedEventOn();
     pNode->SetGlyphScaleDirectional(false);
     pNode->SetGlyphScaleIsotropic(true);
@@ -476,47 +476,47 @@ void qSlicerDeformationFieldVisualizerModuleWidget::visualize()
 
   if (d->InputFieldComboBox->currentNodeId() != NULL && d->OutputModelComboBox->currentNodeId() != NULL)
   {
-	//TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
+  //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
     QProgressDialog *visualizeProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
     visualizeProgress->setModal(true);
     visualizeProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
     visualizeProgress->show();
-	visualizeProgress->setLabelText("Processing...");
+  visualizeProgress->setLabelText("Processing...");
     visualizeProgress->setValue(0);
-	
+  
     if (d->GlyphToggle->isChecked())
-	{
-	  visualizeProgress->setLabelText("Creating glyphs...");
-	  visualizeProgress->setValue(20);
-	  d->logic()->CreateVisualization(1);
+  {
+    visualizeProgress->setLabelText("Creating glyphs...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(1);
     }
     else if (d->GridToggle->isChecked()){
-	  visualizeProgress->setLabelText("Creating grid...");
-	  visualizeProgress->setValue(20);
-	  d->logic()->CreateVisualization(2);
+    visualizeProgress->setLabelText("Creating grid...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(2);
     }
     else if (d->ContourToggle->isChecked()){
-	  visualizeProgress->setLabelText("Creating contours...");
-	  visualizeProgress->setValue(20);
-	  d->logic()->CreateVisualization(3);
+    visualizeProgress->setLabelText("Creating contours...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(3);
     }
     else if (d->BlockToggle->isChecked()){
-	  visualizeProgress->setLabelText("Creating block...");
-	  visualizeProgress->setValue(20);
-	  d->logic()->CreateVisualization(4);
+    visualizeProgress->setLabelText("Creating block...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(4);
     }
     else if (d->GlyphSliceToggle->isChecked()){
-	  visualizeProgress->setLabelText("Creating glyphs for slice view...");
-	  visualizeProgress->setValue(20);
-	  d->logic()->CreateVisualization(5);
+    visualizeProgress->setLabelText("Creating glyphs for slice view...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(5);
     }
     else if (d->GridSliceToggle->isChecked()){
-	  visualizeProgress->setLabelText("Creating grid for slice view...");
-	  visualizeProgress->setValue(20);
-	  d->logic()->CreateVisualization(6);
+    visualizeProgress->setLabelText("Creating grid for slice view...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(6);
     }
-	visualizeProgress->setValue(100);
-	delete visualizeProgress;
+  visualizeProgress->setValue(100);
+  delete visualizeProgress;
   }
 }
 

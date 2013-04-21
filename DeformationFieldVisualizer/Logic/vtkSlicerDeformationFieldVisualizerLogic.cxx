@@ -715,18 +715,18 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GlyphSlic
   //TODO: Currently takes the biggest spacing to avoid any issues. Only affects oblique slices, but will change later to a more precise method when slice options are updated
   else
   {
-	if (spacing[0] >= spacing[1] && spacing[0] >= spacing[2])
-	{
-	  width = spacing[0];
-	}
-	else if (spacing[1] >= spacing[0] && spacing[1] >= spacing[2])
-	{
-	  width = spacing[1];
-	}
-	else
-	{
-	  width = spacing[2];
-	}
+  if (spacing[0] >= spacing[1] && spacing[0] >= spacing[2])
+  {
+    width = spacing[0];
+  }
+  else if (spacing[1] >= spacing[0] && spacing[1] >= spacing[2])
+  {
+    width = spacing[1];
+  }
+  else
+  {
+    width = spacing[2];
+  }
   }
  
   vtkSmartPointer<vtkMatrix4x4> invertDirs = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -742,14 +742,14 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GlyphSlic
   invertDirs->Invert(); 
 
   sliceNormal[0] = invertDirs->GetElement(0,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
-				   invertDirs->GetElement(0,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
-				   invertDirs->GetElement(0,2)*sliceNode->GetSliceToRAS()->Element[2][2];
+           invertDirs->GetElement(0,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+           invertDirs->GetElement(0,2)*sliceNode->GetSliceToRAS()->Element[2][2];
   sliceNormal[1] = invertDirs->GetElement(1,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
-				   invertDirs->GetElement(1,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
-				   invertDirs->GetElement(1,2)*sliceNode->GetSliceToRAS()->Element[2][2];
+           invertDirs->GetElement(1,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+           invertDirs->GetElement(1,2)*sliceNode->GetSliceToRAS()->Element[2][2];
   sliceNormal[2] = invertDirs->GetElement(2,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
-				   invertDirs->GetElement(2,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
-				   invertDirs->GetElement(2,2)*sliceNode->GetSliceToRAS()->Element[2][2]; 
+           invertDirs->GetElement(2,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+           invertDirs->GetElement(2,2)*sliceNode->GetSliceToRAS()->Element[2][2]; 
 
   //Projection to slice plane
   float *ptr = (float *)field2->GetPointData()->GetScalars()->GetVoidPointer(0);
@@ -879,14 +879,14 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GridSlice
   invertDirs->Invert(); 
 
   sliceNormal[0] = invertDirs->GetElement(0,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
-				   invertDirs->GetElement(0,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
-				   invertDirs->GetElement(0,2)*sliceNode->GetSliceToRAS()->Element[2][2];
+           invertDirs->GetElement(0,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+           invertDirs->GetElement(0,2)*sliceNode->GetSliceToRAS()->Element[2][2];
   sliceNormal[1] = invertDirs->GetElement(1,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
-				   invertDirs->GetElement(1,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
-				   invertDirs->GetElement(1,2)*sliceNode->GetSliceToRAS()->Element[2][2];
+           invertDirs->GetElement(1,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+           invertDirs->GetElement(1,2)*sliceNode->GetSliceToRAS()->Element[2][2];
   sliceNormal[2] = invertDirs->GetElement(2,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
-				   invertDirs->GetElement(2,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
-				   invertDirs->GetElement(2,2)*sliceNode->GetSliceToRAS()->Element[2][2]; 
+           invertDirs->GetElement(2,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
+           invertDirs->GetElement(2,2)*sliceNode->GetSliceToRAS()->Element[2][2]; 
   
   //TODO: The way the grid is made now isn't great. Alternate solution to be implemented later such as resampling the vector volume.
   //Reformat not supported

@@ -70,7 +70,7 @@ QString qSlicerDeformationFieldVisualizerModule::helpText()const
 //-----------------------------------------------------------------------------
 QString qSlicerDeformationFieldVisualizerModule::acknowledgementText()const
 {
-  return "TODO: Acknowledgement Placeholder.";
+  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
 }
 
 //-----------------------------------------------------------------------------
