@@ -7,12 +7,6 @@ set(MODULE_TITLE "Deformation Field Visualizer")
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
-if(NOT Slicer_SOURCE_DIR)
-  find_package(Slicer REQUIRED)
-  include(${Slicer_USE_FILE})
-endif()
-
-#-----------------------------------------------------------------------------
 add_subdirectory(Logic)
 
 #-----------------------------------------------------------------------------
