@@ -405,7 +405,7 @@ void vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(vtkMRMLNode
   {
     parentNodes.insert(parentNode);
   }
-  while (parentNode = (parentNode->GetParentNode()));
+  while ((parentNode = parentNode->GetParentNode())); // The double parentheses avoids a Linux build warning
 
   for (std::set<vtkMRMLHierarchyNode*>::iterator parentsIt = parentNodes.begin(); parentsIt != parentNodes.end(); ++ parentsIt)
   {

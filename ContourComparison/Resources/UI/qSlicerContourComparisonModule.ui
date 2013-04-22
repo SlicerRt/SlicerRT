@@ -213,6 +213,9 @@
       </item>
       <item row="3" column="2">
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>4</number>
+        </property>
         <item>
          <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
           <property name="nodeTypes">
@@ -494,6 +497,22 @@
          </spacer>
         </item>
        </layout>
+      </item>
+      <item row="9" column="0" colspan="2">
+       <spacer name="verticalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>4</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label_4">
@@ -819,41 +838,7 @@
         </property>
        </widget>
       </item>
-      <item row="9" column="0" colspan="2">
-       <spacer name="verticalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>4</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
      </layout>
-     <zorder>label_4</zorder>
-     <zorder>lineEdit_DiceCoefficient</zorder>
-     <zorder>label_6</zorder>
-     <zorder>lineEdit_TruePositives</zorder>
-     <zorder>label_7</zorder>
-     <zorder>label_5</zorder>
-     <zorder>lineEdit_TrueNegatives</zorder>
-     <zorder>lineEdit_FalsePositives</zorder>
-     <zorder>label_8</zorder>
-     <zorder>lineEdit_FalseNegatives</zorder>
-     <zorder>label_9</zorder>
-     <zorder>lineEdit_ReferenceCenter</zorder>
-     <zorder>label_10</zorder>
-     <zorder>lineEdit_CompareCenter</zorder>
-     <zorder>label_11</zorder>
-     <zorder>lineEdit_ReferenceVolume</zorder>
-     <zorder>label_12</zorder>
-     <zorder>lineEdit_CompareVolume</zorder>
     </widget>
    </item>
    <item>

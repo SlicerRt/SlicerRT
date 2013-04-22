@@ -62,6 +62,9 @@ public:
   /// Insert/move node in patient hierarchy under newParent
   virtual bool reparent(vtkMRMLNode* node, vtkMRMLNode* newParent);
 
+  /// Force update of the scene in the model
+  virtual void forceUpdateScene();
+
   int nodeTypeColumn()const;
   void setNodeTypeColumn(int column);
 

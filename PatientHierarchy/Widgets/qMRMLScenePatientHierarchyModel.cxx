@@ -533,3 +533,10 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
 
   return true;
 }
+
+//------------------------------------------------------------------------------
+void qMRMLScenePatientHierarchyModel::forceUpdateScene()
+{
+  // Force updating the whole scene (TODO: this should not be needed)
+  this->updateScene();
+}
