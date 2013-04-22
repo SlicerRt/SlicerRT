@@ -908,7 +908,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGlyphSliceNode(vtkMRMLNod
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
 
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
+  if (!node || !pNode || !this->mrmlScene())
   {
     return;
   }
@@ -996,7 +996,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGridSliceNode(vtkMRMLNode
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
 
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
-  if (!pNode || !this->mrmlScene())
+  if (!node || !pNode || !this->mrmlScene())
   {
     return;
   }
