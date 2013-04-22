@@ -529,7 +529,6 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GridVisua
   double spacing[3];
   field->GetSpacing(spacing);
   int dimensions[3];
-  int dimensions2[3];
   field->GetDimensions(dimensions);
   
   int GridDensity = this->DeformationFieldVisualizerNode->GetGridDensity();
@@ -681,7 +680,6 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GlyphSlic
   field->GetSpacing(spacing);
   int dimensions[3];
   field->GetDimensions(dimensions);
-  int angle = 0;
   vtkSmartPointer<vtkRibbonFilter> ribbon = vtkSmartPointer<vtkRibbonFilter>::New();
   float sliceNormal[3];
   float dot;
@@ -850,21 +848,21 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GridSlice
   sliceNode->GetPrescribedSliceSpacing(sliceSpacing);
   double width = 1;
   
-  //Need to ensure later that orientation of slice lines up with orientation of volume; no guarantee of that currently
-  char* orientation = sliceNode->GetOrientationString();
+  //TODO: Need to ensure later that orientation of slice lines up with orientation of volume; no guarantee of that currently
+  //char* orientation = sliceNode->GetOrientationString();
 
-    int i,j,k;
-    for (k = 0; k < dimensions[2]; k++)
+  int i,j,k;
+  for (k = 0; k < dimensions[2]; k++)
+  {
+    for (j = 0; j < dimensions[1]; j++)
     {
-      for (j = 0; j < dimensions[1]; j++)
+      for (i = 0; i < dimensions[0]; i++)
       {
-        for (i = 0; i < dimensions[0]; i++)
-        {
-          points->SetPoint(i + j*dimensions[0] + k*dimensions[0]*dimensions[1],
-            origin[0] + i + ((spacing[0]-1)*i),origin[1] + j + ((spacing[1]-1)*j),origin[2] + k + ((spacing[2]-1)*k));
-        }
+        points->SetPoint(i + j*dimensions[0] + k*dimensions[0]*dimensions[1],
+          origin[0] + i + ((spacing[0]-1)*i),origin[1] + j + ((spacing[1]-1)*j),origin[2] + k + ((spacing[2]-1)*k));
       }
     }
+  }
 
   vtkSmartPointer<vtkMatrix4x4> invertDirs = vtkSmartPointer<vtkMatrix4x4>::New();
   invertDirs->Identity();

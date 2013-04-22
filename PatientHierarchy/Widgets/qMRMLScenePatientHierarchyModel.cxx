@@ -337,6 +337,8 @@ void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
 bool qMRMLScenePatientHierarchyModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
   Q_D(const qMRMLScenePatientHierarchyModel);
+  Q_UNUSED(row);
+  Q_UNUSED(column);
 
   if (action == Qt::IgnoreAction)
   {

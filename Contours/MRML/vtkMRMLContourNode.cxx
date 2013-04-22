@@ -737,6 +737,7 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
 {
   // Initialize output color index with Gray 'invalid' color
   colorIndex = 1;
+  colorNode = NULL;
 
   // Get hierarchy node
   vtkMRMLDisplayableHierarchyNode* hierarchyNode = 
@@ -766,9 +767,9 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
     }
 
   vtkObject* nextObject = NULL;
-  for (colorNodes->InitTraversal(); nextObject = colorNodes->GetNextItemAsObject(); )
+  for (colorNodes->InitTraversal(); (nextObject = colorNodes->GetNextItemAsObject()); )
     {
-    vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(nextObject);
+    vtkMRMLColorTableNode* currentColorNode = vtkMRMLColorTableNode::SafeDownCast(nextObject);
     int currentColorIndex = -1;
 
     //TODO: workaround for issue #179, restore when Slicer mantis issue http://www.na-mic.org/Bug/view.php?id=2783 is fixed
@@ -776,24 +777,26 @@ void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &
     std::string structureNameWithUnderscores(this->StructureName);
     std::replace(structureNameWithUnderscores.begin(), structureNameWithUnderscores.end(), ' ', '_');
     
-    if ( (currentColorIndex = colorNode->GetColorIndexByName(this->StructureName)) != -1
-      || (currentColorIndex = colorNode->GetColorIndexByName(structureNameWithUnderscores.c_str())) != -1 )
+    if ( (currentColorIndex = currentColorNode->GetColorIndexByName(this->StructureName)) != -1
+      || (currentColorIndex = currentColorNode->GetColorIndexByName(structureNameWithUnderscores.c_str())) != -1 )
       {
       if (referenceModelNode)
         {
         double modelColor[3];
         double foundColor[4];
         referenceModelNode->GetDisplayNode()->GetColor(modelColor);
-        colorNode->GetColor(currentColorIndex, foundColor);
+        currentColorNode->GetColor(currentColorIndex, foundColor);
         if ((fabs(modelColor[0]-foundColor[0]) < EPSILON) && (fabs(modelColor[1]-foundColor[1]) < EPSILON) && (fabs(modelColor[2]-foundColor[2])) < EPSILON)
           {
           structureColorIndex = currentColorIndex;
+          colorNode = currentColorNode;
           break;
           }
         }
       else
         {
         structureColorIndex = currentColorIndex;
+        colorNode = currentColorNode;
         break;
         }
       }
@@ -937,7 +940,7 @@ vtkMRMLContourNode* vtkMRMLContourNode::IsNodeAContourRepresentation(vtkMRMLScen
   const char* nodeID = node->GetID();
   vtkSmartPointer<vtkCollection> contourNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLContourNode") );
   vtkObject* nextObject = NULL;
-  for (contourNodes->InitTraversal(); nextObject = contourNodes->GetNextItemAsObject(); )
+  for (contourNodes->InitTraversal(); (nextObject = contourNodes->GetNextItemAsObject()); )
   {
     vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(nextObject);
     if ( (contourNode->GetRibbonModelNodeId() && !STRCASECMP(contourNode->GetRibbonModelNodeId(), nodeID))

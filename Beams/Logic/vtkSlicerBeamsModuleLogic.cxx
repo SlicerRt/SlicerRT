@@ -399,7 +399,6 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
     vtkErrorMacro(<<errorMessage); 
     return;
   }
-  double* sourceCoordinates = sourceNode->GetControlPointCoordinates(0);
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 

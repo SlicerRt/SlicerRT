@@ -405,7 +405,7 @@ void vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(vtkMRMLNode
   {
     parentNodes.insert(parentNode);
   }
-  while (parentNode = parentNode->GetParentNode());
+  while (parentNode = (parentNode->GetParentNode()));
 
   for (std::set<vtkMRMLHierarchyNode*>::iterator parentsIt = parentNodes.begin(); parentsIt != parentNodes.end(); ++ parentsIt)
   {
@@ -509,7 +509,7 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatient
 
   vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLHierarchyNode") );
   vtkObject* nextObject = NULL;
-  for (hierarchyNodes->InitTraversal(); nextObject = hierarchyNodes->GetNextItemAsObject(); )
+  for (hierarchyNodes->InitTraversal(); (nextObject = hierarchyNodes->GetNextItemAsObject()); )
   {
     vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(nextObject);
     if (hierarchyNode)

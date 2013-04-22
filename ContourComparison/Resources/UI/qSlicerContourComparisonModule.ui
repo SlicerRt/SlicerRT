@@ -854,7 +854,6 @@
      <zorder>lineEdit_ReferenceVolume</zorder>
      <zorder>label_12</zorder>
      <zorder>lineEdit_CompareVolume</zorder>
-     <zorder>verticalSpacer_2</zorder>
     </widget>
    </item>
    <item>

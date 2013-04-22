@@ -17,7 +17,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
   static vtkDFVGlyph3D *New();
 
-  virtual int IsPointVisible(double vmag, vtkIdType ptId, int visibleListIndex);
+  virtual int IsPointVisibleForListIndex(double vmag, vtkIdType ptId, int visibleListIndex);
 
   vtkSetMacro(PointMax,int);
   vtkGetMacro(PointMax,int);  

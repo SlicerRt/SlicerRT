@@ -128,7 +128,7 @@ void vtkTopologicalHierarchy::Update()
   {
     vtkPolyData* polyOut = vtkPolyData::SafeDownCast(this->InputPolyDataCollection->GetItemAsObject(polyOutIndex));
 
-    for (int polyInIndex=0; polyInIndex<numberOfPolyData; ++polyInIndex)
+    for (unsigned int polyInIndex=0; polyInIndex<numberOfPolyData; ++polyInIndex)
     {
       if (polyOutIndex==polyInIndex)
       {

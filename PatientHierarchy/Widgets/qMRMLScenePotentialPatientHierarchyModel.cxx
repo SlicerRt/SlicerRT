@@ -98,7 +98,7 @@ QMimeData* qMRMLScenePotentialPatientHierarchyModel::mimeData(const QModelIndexL
 //------------------------------------------------------------------------------
 void qMRMLScenePotentialPatientHierarchyModel::updateItemDataFromNode(QStandardItem* item, vtkMRMLNode* node, int column)
 {
-  Q_D(qMRMLScenePotentialPatientHierarchyModel);
+  Q_UNUSED(column);
 
   item->setText(QString(node->GetName()));
   item->setToolTip(QString(node->GetNodeTagName()) + " type (" + QString(node->GetID()) + ")");
@@ -126,6 +126,9 @@ Qt::DropActions qMRMLScenePotentialPatientHierarchyModel::supportedDropActions()
 void qMRMLScenePotentialPatientHierarchyModel::onRowsRemoved(const QModelIndex parent, int start, int end)
 {
   Q_D(const qMRMLScenePotentialPatientHierarchyModel);
+  Q_UNUSED(parent);
+  Q_UNUSED(start);
+  Q_UNUSED(end);
 
   if (d->DraggedNodes.count())
   {

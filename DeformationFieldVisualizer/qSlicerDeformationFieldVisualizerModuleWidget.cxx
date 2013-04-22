@@ -608,7 +608,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setSeed()
     return;
   }
   pNode->DisableModifiedEventOn();
-  pNode->SetGlyphSeed((RAND_MAX+1)*(long)rand()+rand());
+  pNode->SetGlyphSeed((RAND_MAX+1)*(long)rand()+rand()); //TODO: Integer overflow here. Why use two random numbers?
   d->InputGlyphSeed->setValue(pNode->GetGlyphSeed());
   pNode->DisableModifiedEventOff();
 }
@@ -984,7 +984,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setSeed2()
     return;
   }
   pNode->DisableModifiedEventOn();
-  pNode->SetGlyphSliceSeed((RAND_MAX+1)*(long)rand()+rand());
+  pNode->SetGlyphSliceSeed((RAND_MAX+1)*(long)rand()+rand()); //TODO: Integer overflow here. Why use two random numbers?
   d->InputGlyphSliceSeed->setValue(pNode->GetGlyphSliceSeed());
   pNode->DisableModifiedEventOff();
 }

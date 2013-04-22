@@ -32,6 +32,7 @@ foreach(dep ${EXTENSION_DEPENDS})
 endforeach()
 
 set(proj inner)
+
 ExternalProject_Add(${proj}
   DOWNLOAD_COMMAND ""
   INSTALL_COMMAND ""

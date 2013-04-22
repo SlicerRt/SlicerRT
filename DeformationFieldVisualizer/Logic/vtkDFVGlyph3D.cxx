@@ -492,11 +492,11 @@ int vtkDFVGlyph3D::RequestData(
       continue;
       }
 
-    if (this->IsPointVisible(vMag, inPtId, visibleList.back()) == 0)
+    if (this->IsPointVisibleForListIndex(vMag, inPtId, visibleList.back()) == 0)
       {
       continue;
       }
-  else if (this->IsPointVisible(vMag, inPtId, visibleList.back()) == 2)
+  else if (this->IsPointVisibleForListIndex(vMag, inPtId, visibleList.back()) == 2)
     {
     visibleList.pop_back();
     continue;
@@ -590,14 +590,14 @@ int vtkDFVGlyph3D::RequestData(
       if ( this->ScaleMode == VTK_DATA_SCALING_OFF )
         {
         scalex = this->ScaleFactor;
-    scaley = this->ScaleFactor;
-    scalez = this->ScaleFactor;
+        scaley = this->ScaleFactor;
+        scalez = this->ScaleFactor;
         }
       else
         {
         scalex *= this->ScaleFactor;
-    scaley *= this->ScaleFactor;
-    scalez *= this->ScaleFactor;
+        scaley *= this->ScaleFactor;
+        scalez *= this->ScaleFactor;
         }
       
       if ( scalex == 0.0 )
@@ -714,13 +714,15 @@ void vtkDFVGlyph3D::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //------------------------------------------------------------------------------
-int vtkDFVGlyph3D::IsPointVisible(double vMag, vtkIdType ptId, int visibleListIndex)
+int vtkDFVGlyph3D::IsPointVisibleForListIndex(double vMag, vtkIdType ptId, int visibleListIndex)
 {
-  if (visibleListIndex == ptId){
-    if ((vMag <= this->MagnitudeMax) && (vMag >= this->MagnitudeMin)){
+  if (visibleListIndex == ptId)
+    {
+    if ((vMag <= this->MagnitudeMax) && (vMag >= this->MagnitudeMin))
+      {
       return 1;
-    }
+      }
     return 2;
-  }
+    }
   return 0;
 }

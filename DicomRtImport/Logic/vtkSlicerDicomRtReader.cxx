@@ -835,7 +835,8 @@ double vtkSlicerDicomRtReader::GetBeamSourceAxisDistance(unsigned int beamNumber
   BeamEntry* beam=this->FindBeamByNumber(beamNumber);
   if (beam==NULL)
   {
-    return NULL;
+    vtkErrorMacro("GetBeamSourceAxisDistance: Unable to find beam of number" << beamNumber);
+    return 0.0;
   }  
   return beam->SourceAxisDistance;
 }
@@ -846,7 +847,8 @@ double vtkSlicerDicomRtReader::GetBeamGantryAngle(unsigned int beamNumber)
   BeamEntry* beam=this->FindBeamByNumber(beamNumber);
   if (beam==NULL)
   {
-    return NULL;
+    vtkErrorMacro("GetBeamGantryAngle: Unable to find beam of number" << beamNumber);
+    return 0.0;
   }  
   return beam->GantryAngle;
 }
@@ -857,7 +859,8 @@ double vtkSlicerDicomRtReader::GetBeamPatientSupportAngle(unsigned int beamNumbe
   BeamEntry* beam=this->FindBeamByNumber(beamNumber);
   if (beam==NULL)
   {
-    return NULL;
+    vtkErrorMacro("GetBeamPatientSupportAngle: Unable to find beam of number" << beamNumber);
+    return 0.0;
   }  
   return beam->PatientSupportAngle;
 }
@@ -868,7 +871,8 @@ double vtkSlicerDicomRtReader::GetBeamBeamLimitingDeviceAngle(unsigned int beamN
   BeamEntry* beam=this->FindBeamByNumber(beamNumber);
   if (beam==NULL)
   {
-    return NULL;
+    vtkErrorMacro("GetBeamBeamLimitingDeviceAngle: Unable to find beam of number" << beamNumber);
+    return 0.0;
   }  
   return beam->BeamLimitingDeviceAngle;
 }

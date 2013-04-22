@@ -164,7 +164,6 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(modelToReferenceVolumeIjkTransform.GetPointer());
 
   // Convert model to labelmap
-  vtkImageData* reslicedVtkVolume = NULL;
   vtkSmartPointer<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter = vtkSmartPointer<vtkPolyDataToLabelmapFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
   polyDataToLabelmapFilter->SetBackgroundValue(0);
