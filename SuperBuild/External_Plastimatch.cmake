@@ -42,6 +42,17 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   set (PLM_SVN_REVISION "4133")
 endif ()
 
+# With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
+# For earlier versions, we nullify the update state to prevent updates and
+# undesirable rebuild.
+set(Plastimatch_EP_DISABLED_UPDATE UPDATE_COMMAND "")
+if(CMAKE_VERSION VERSION_LESS 2.8.9)
+  set(Plastimatch_EP_UPDATE_IF_CMAKE_LATER_THAN_288 ${${PROJECT_NAME}_EP_DISABLED_UPDATE})
+else()
+  set(Plastimatch_EP_UPDATE_IF_CMAKE_LATER_THAN_288 LOG_UPDATE 1)
+endif()
+
+
 ExternalProject_Add( Plastimatch
   SOURCE_DIR "${SLICERRT_PLASTIMATCH_SOURCE_DIR}" 
   BINARY_DIR "${SLICERRT_PLASTIMATCH_DIR}"
@@ -50,12 +61,13 @@ ExternalProject_Add( Plastimatch
   SVN_PASSWORD "anonymous"
   SVN_REPOSITORY https://forge.abcd.harvard.edu/svn/plastimatch/plastimatch/trunk
   SVN_REVISION -r "${PLM_SVN_REVISION}"
+  "${Plastimatch_EP_UPDATE_IF_CMAKE_LATER_THAN_288}"
   # Avoid "Server certificate verification failed: issuer is not trusted" error
   SVN_TRUST_CERT 1
   #--Configure step-------------
   CMAKE_ARGS 
-    #If Plastimatch is build in library mode (PLM_CONFIG_LIBRARY_BUILD) then does not use Slicer libraries
-    #-DSlicer_DIR:STRING=${Slicer_DIR}
+    # If Plastimatch is build in library mode (PLM_CONFIG_LIBRARY_BUILD) then does not use Slicer libraries
+    # -DSlicer_DIR:STRING=${Slicer_DIR}
     -DBUILD_SHARED_LIBS:BOOL=OFF 
     -DBUILD_TESTING:BOOL=OFF 
     -DPLM_CONFIG_INSTALL_LIBRARIES:BOOL=ON 
