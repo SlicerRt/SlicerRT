@@ -201,6 +201,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
       this->ContourMorphologyNode->GetReferenceVolumeNodeID() );
   }
   
+  inputContourANode->SetRasterizationOversamplingFactor(1.0);
   vtkMRMLScalarVolumeNode* inputContourALabelmapVolumeNode
     = inputContourANode->GetIndexedLabelmapVolumeNode();
   if (!inputContourALabelmapVolumeNode)
@@ -235,6 +236,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
       this->ContourMorphologyNode->GetReferenceVolumeNodeID() );
   }
 
+  inputContourBNode->SetRasterizationOversamplingFactor(1.0);
   vtkMRMLScalarVolumeNode* inputContourBLabelmapVolumeNode
     = inputContourBNode->GetIndexedLabelmapVolumeNode();
   if (!inputContourBLabelmapVolumeNode)
@@ -365,9 +367,9 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   vtkSmartPointer<vtkImageLogic> logicFilter2 = vtkSmartPointer<vtkImageLogic>::New();
 
   int kernelSize[3] = {1,1,1};
-  kernelSize[0] = (int)(this->GetContourMorphologyNode()->GetXSize()/spacingX);
-  kernelSize[1] = (int)(this->GetContourMorphologyNode()->GetYSize()/spacingY);
-  kernelSize[2] = (int)(this->GetContourMorphologyNode()->GetZSize()/spacingZ);
+  kernelSize[0] = (int)( 2*(this->GetContourMorphologyNode()->GetXSize()/spacingX + 0.5) );
+  kernelSize[1] = (int)( 2*(this->GetContourMorphologyNode()->GetYSize()/spacingY + 0.5) );
+  kernelSize[2] = (int)( 2*(this->GetContourMorphologyNode()->GetZSize()/spacingZ + 0.5) );
   switch (op) 
   {
     case SLICERRT_EXPAND:

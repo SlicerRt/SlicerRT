@@ -147,7 +147,7 @@ TEST_WITH_DATA(
   ContourMorphology_Intersect_ApplyTransform_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Intersect
-  5.0
+  0.0
   1
   100.0
 )

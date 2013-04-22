@@ -291,22 +291,22 @@ void qSlicerContourMorphologyModuleWidget::setup()
   this->Superclass::setup();
 
   // Make connections
-  this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setContourMorphologyNode(vtkMRMLNode*) ) );
+  this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourMorphologyNode(vtkMRMLNode*)) );
 
-  this->connect( d->MRMLNodeComboBox_ContourA, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setContourANode(vtkMRMLNode*) ) );
-  this->connect( d->MRMLNodeComboBox_ContourB, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setContourBNode(vtkMRMLNode*) ) );
-  this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setReferenceVolumeNode(vtkMRMLNode*) ) );
-  this->connect( d->MRMLNodeComboBox_OutputContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setOutputContourNode(vtkMRMLNode*) ) );
+  this->connect( d->MRMLNodeComboBox_ContourA, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourANode(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_ContourB, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourBNode(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setReferenceVolumeNode(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_OutputContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setOutputContourNode(vtkMRMLNode*)) );
 
-  this->connect( d->radioButton_Expand, SIGNAL(clicked()), this, SLOT(radioButtonExpandClicked()));
-  this->connect( d->radioButton_Shrink, SIGNAL(clicked()), this, SLOT(radioButtonShrinkClicked()));
-  this->connect( d->radioButton_Union, SIGNAL(clicked()), this, SLOT(radioButtonUnionClicked()));
-  this->connect( d->radioButton_Intersect, SIGNAL(clicked()), this, SLOT(radioButtonIntersectClicked()));
-  this->connect( d->radioButton_Subtract, SIGNAL(clicked()), this, SLOT(radioButtonSubtractClicked()));
+  this->connect( d->radioButton_Expand, SIGNAL(clicked()), this, SLOT(radioButtonExpandClicked()) );
+  this->connect( d->radioButton_Shrink, SIGNAL(clicked()), this, SLOT(radioButtonShrinkClicked()) );
+  this->connect( d->radioButton_Union, SIGNAL(clicked()), this, SLOT(radioButtonUnionClicked()) );
+  this->connect( d->radioButton_Intersect, SIGNAL(clicked()), this, SLOT(radioButtonIntersectClicked()) );
+  this->connect( d->radioButton_Subtract, SIGNAL(clicked()), this, SLOT(radioButtonSubtractClicked()) );
 
-  this->connect( d->doubleSpinBox_XSize, SIGNAL(valueChanged(double value)), this, SLOT(doubleSpinBoxXSizeChanged(double value)));
-  this->connect( d->doubleSpinBox_YSize, SIGNAL(valueChanged(double value)), this, SLOT(doubleSpinBoxYSizeChanged(double value)));
-  this->connect( d->doubleSpinBox_ZSize, SIGNAL(valueChanged(double value)), this, SLOT(doubleSpinBoxZSizeChanged(double value)));
+  this->connect( d->doubleSpinBox_XSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxXSizeChanged(double)) );
+  this->connect( d->doubleSpinBox_YSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxYSizeChanged(double)) );
+  this->connect( d->doubleSpinBox_ZSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxZSizeChanged(double)) );
 
   this->connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
