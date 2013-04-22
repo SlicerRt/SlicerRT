@@ -177,7 +177,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   }
 
   const char *morphologicalOperation = NULL;
-  unsigned int operation = 0;
+  vtkMRMLContourMorphologyNode::ContourMorphologyOperationType operation = vtkMRMLContourMorphologyNode::None;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-MorphologicalOperation") == 0)
@@ -187,23 +187,23 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
       if (STRCASECMP(morphologicalOperation, "Expand") == 0)
       {
-        operation = 0;
+        operation = vtkMRMLContourMorphologyNode::Expand;
       }
       else if (STRCASECMP(morphologicalOperation, "Shrink") == 0)
       {
-        operation = 1;
+        operation = vtkMRMLContourMorphologyNode::Shrink;
       }
       else if (STRCASECMP(morphologicalOperation, "Union") == 0)
       {
-        operation = 2;
+        operation = vtkMRMLContourMorphologyNode::Union;
       }
       else if (STRCASECMP(morphologicalOperation, "Intersect") == 0)
       {
-        operation = 3;
+        operation = vtkMRMLContourMorphologyNode::Intersect;
       }
       else if (STRCASECMP(morphologicalOperation, "Subtract") == 0)
       {
-        operation = 4;
+        operation = vtkMRMLContourMorphologyNode::Subtract;
       }
       else 
       {
@@ -398,10 +398,10 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLContourMorphologyNode> paramNode = vtkSmartPointer<vtkMRMLContourMorphologyNode>::New();
   mrmlScene->AddNode(paramNode);
-  paramNode->SetAndObserveContourANodeID(inputContourANode->GetID());
-  paramNode->SetAndObserveContourBNodeID(inputContourBNode->GetID());
-  paramNode->SetAndObserveReferenceVolumeNodeID(referenceVolumeNode->GetID());
-  paramNode->SetAndObserveOutputContourNodeID(outputContourNode->GetID());
+  paramNode->SetAndObserveContourANodeId(inputContourANode->GetID());
+  paramNode->SetAndObserveContourBNodeId(inputContourBNode->GetID());
+  paramNode->SetAndObserveReferenceVolumeNodeId(referenceVolumeNode->GetID());
+  paramNode->SetAndObserveOutputContourNodeId(outputContourNode->GetID());
   paramNode->SetOperation(operation);
   paramNode->SetXSize(morphologicalParameter);
   paramNode->SetYSize(morphologicalParameter);
@@ -415,7 +415,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   // Compute ContourMorphology
   contourMorphologyLogic->MorphContour();
 
-  outputContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->GetNodeByID(paramNode->GetOutputContourNodeID()));  
+  outputContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->GetNodeByID(paramNode->GetOutputContourNodeId()));  
   if (outputContourNode == NULL)
   {
     mrmlScene->Commit();

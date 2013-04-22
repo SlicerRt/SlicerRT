@@ -29,15 +29,19 @@
 
 #include "vtkSlicerContourMorphologyModuleLogicExport.h"
 
-// Operation options.
-#define SLICERRT_EXPAND            0
-#define SLICERRT_SHRINK            1
-#define SLICERRT_UNION             2
-#define SLICERRT_INTERSECT         3
-#define SLICERRT_SUBTRACT          4
-
 class VTK_SLICER_CONTOURMORPHOLOGY_MODULE_LOGIC_EXPORT vtkMRMLContourMorphologyNode : public vtkMRMLNode
 {
+public:
+  enum ContourMorphologyOperationType
+  {
+    None = -1,
+    Expand,
+    Shrink,
+    Union,
+    Intersect,
+    Subtract
+  };
+
 public:
   static vtkMRMLContourMorphologyNode *New();
   vtkTypeMacro(vtkMRMLContourMorphologyNode, vtkMRMLNode);
@@ -56,45 +60,39 @@ public:
   virtual void Copy(vtkMRMLNode *node);
 
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() {return "ContourMorphology";};
+  virtual const char* GetNodeTagName() { return "ContourMorphology"; };
 
 public:
   /// Get contour A node ID
-  vtkGetStringMacro(ContourANodeID);
+  vtkGetStringMacro(ContourANodeId);
 
   /// Set and observe contour A node ID
-  void SetAndObserveContourANodeID(const char* id);
+  void SetAndObserveContourANodeId(const char* id);
 
   /// Get dose volume node ID
-  vtkGetStringMacro(ContourBNodeID);
+  vtkGetStringMacro(ContourBNodeId);
 
   /// Set and observe contour B node ID
-  void SetAndObserveContourBNodeID(const char* id);
+  void SetAndObserveContourBNodeId(const char* id);
 
   /// Get reference volume node ID
-  vtkGetStringMacro(ReferenceVolumeNodeID);
+  vtkGetStringMacro(ReferenceVolumeNodeId);
 
   /// Set and observe reference volume node ID
-  void SetAndObserveReferenceVolumeNodeID(const char* id);
+  void SetAndObserveReferenceVolumeNodeId(const char* id);
 
   /// Get output contour node ID
-  vtkGetStringMacro(OutputContourNodeID);
+  vtkGetStringMacro(OutputContourNodeId);
 
   /// Set and observe output contour node ID
-  void SetAndObserveOutputContourNodeID(const char* id);
+  void SetAndObserveOutputContourNodeId(const char* id);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
  
-  // Description:
-  // Set/Get the Operation to perform.
-  vtkSetMacro(Operation,int);
-  vtkGetMacro(Operation,int);
-  void SetOperationToExpand() {this->SetOperation(SLICERRT_EXPAND);};
-  void SetOperationToShrink() {this->SetOperation(SLICERRT_SHRINK);};
-  void SetOperationToUnion() {this->SetOperation(SLICERRT_UNION);};
-  void SetOperationToIntersect() {this->SetOperation(SLICERRT_INTERSECT);};
-  void SetOperationToSubtract() {this->SetOperation(SLICERRT_SUBTRACT);};
+  /// Get the operation type
+  ContourMorphologyOperationType GetOperation() { return this->Operation; };
+  void SetOperation(ContourMorphologyOperationType operation) { this->Operation = operation; };
 
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(XSize, double);
@@ -110,16 +108,16 @@ public:
 
 protected:
   /// Set contour A node ID
-  vtkSetStringMacro(ContourANodeID);
+  vtkSetStringMacro(ContourANodeId);
 
   /// Set contour B node ID
-  vtkSetStringMacro(ContourBNodeID);
+  vtkSetStringMacro(ContourBNodeId);
 
   /// Set reference volume node ID
-  vtkSetStringMacro(ReferenceVolumeNodeID);
+  vtkSetStringMacro(ReferenceVolumeNodeId);
 
   /// Set output hierarchy node ID
-  vtkSetStringMacro(OutputContourNodeID);
+  vtkSetStringMacro(OutputContourNodeId);
 
 protected:
   vtkMRMLContourMorphologyNode();
@@ -129,27 +127,27 @@ protected:
 
 protected:
   /// Selected contour A MRML node object ID
-  char* ContourANodeID;
+  char* ContourANodeId;
 
   /// Selected contour B MRML node object ID
-  char* ContourBNodeID;
+  char* ContourBNodeId;
 
   /// Selected reference volume MRML node object ID
-  char* ReferenceVolumeNodeID;
+  char* ReferenceVolumeNodeId;
 
   /// Selected output contour MRML node object ID
-  char* OutputContourNodeID;
+  char* OutputContourNodeId;
 
-  /// State of Show isodose lines checkbox
-  int Operation;
+  /// TODO:
+  ContourMorphologyOperationType Operation;
 
-  /// State of Show isodose surface checkbox
+  /// TODO:
   double XSize;
 
-  /// State of Show scalarbar checkbox
+  /// TODO:
   double YSize;
 
-  /// State of Show scalarbar checkbox
+  /// TODO:
   double ZSize;
 };
 

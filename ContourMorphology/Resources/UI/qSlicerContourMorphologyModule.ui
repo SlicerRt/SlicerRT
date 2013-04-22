@@ -6,20 +6,26 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>369</width>
-    <height>603</height>
+    <width>395</width>
+    <height>647</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Contour Morphology</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="margin">
+    <number>4</number>
+   </property>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QLabel" name="label_6">
        <property name="text">
-        <string>Parameter Set:</string>
+        <string>Parameter set:</string>
        </property>
       </widget>
      </item>
@@ -41,6 +47,9 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <property name="margin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
        <number>4</number>
       </property>
       <item row="1" column="1">
@@ -102,27 +111,117 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
-         </stringlist>
-        </property>
-        <property name="addEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="removeEnabled">
-         <bool>false</bool>
+      <item row="3" column="0" rowspan="2">
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>Reference volume:</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_14">
-        <property name="text">
-         <string>Reference Volume:</string>
+      <item row="3" column="1" rowspan="2">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>4</number>
         </property>
-       </widget>
+        <item>
+         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLScalarVolumeNode</string>
+           </stringlist>
+          </property>
+          <property name="addEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="removeEnabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_NoReferenceVolumeIsNeeded">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Both input contours have indexed labelmap representations, no reference volume is needed</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="5" column="0" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_NoReferenceVolumeIsSelected">
+          <property name="palette">
+           <palette>
+            <active>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>128</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </active>
+            <inactive>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>128</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </inactive>
+            <disabled>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>106</red>
+                <green>104</green>
+                <blue>100</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </disabled>
+           </palette>
+          </property>
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Reference volume is needed for conversion</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -130,12 +229,18 @@
    <item>
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_OperationParameters">
      <property name="text">
-      <string>Operation Parameters</string>
+      <string>Operation parameters</string>
      </property>
      <property name="contentsFrameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
+      <property name="margin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
       <item row="6" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
@@ -332,7 +437,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label_12">
         <property name="text">
-         <string>Select Operation:</string>
+         <string>Select operation:</string>
         </property>
        </widget>
       </item>
@@ -351,10 +456,16 @@
       <enum>QFrame::StyledPanel</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <property name="margin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label_7">
         <property name="text">
-         <string>Output Contour:</string>
+         <string>Output contour:</string>
         </property>
        </widget>
       </item>
@@ -410,8 +521,8 @@
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>20</width>
-       <height>40</height>
+       <width>0</width>
+       <height>0</height>
       </size>
      </property>
     </spacer>
@@ -438,6 +549,7 @@
   </customwidget>
  </customwidgets>
  <resources>
+  <include location="../qSlicerContourMorphologyModule.qrc"/>
   <include location="../qSlicerContourMorphologyModule.qrc"/>
   <include location="../qSlicerContourMorphologyModule.qrc"/>
   <include location="../qSlicerContourMorphologyModule.qrc"/>

@@ -49,9 +49,6 @@ public:
   void SetAndObserveContourMorphologyNode(vtkMRMLContourMorphologyNode* node);
 
   /// TODO
-  vtkGetObjectMacro(ContourMorphologyNode, vtkMRMLContourMorphologyNode);
-
-  /// TODO
   int SetContourARepresentationToLabelmap();
 
   /// TODO
@@ -60,12 +57,20 @@ public:
   /// TODO
   int MorphContour();
 
+  /// Determines if a reference volume node is needed
+  /// (at least one of the input contours lack indexed labelmap representation)
+  bool IsReferenceVolumeNeeded();
+
+public:
+  /// TODO
+  vtkGetObjectMacro(ContourMorphologyNode, vtkMRMLContourMorphologyNode);
+
 protected:
   vtkSlicerContourMorphologyModuleLogic();
   virtual ~vtkSlicerContourMorphologyModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
-  
+
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
   virtual void UpdateFromMRMLScene();
