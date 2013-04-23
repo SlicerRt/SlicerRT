@@ -100,6 +100,9 @@ public:
   /// Utility function to get a non patient hierarchy node associated with a MRML node
   static vtkMRMLHierarchyNode* GetAssociatedNonPatientHierarchyNode(vtkMRMLScene *scene, const char *associatedNodeId);
 
+  /// Assemble tooltip for node according to the patient hierarchy tree
+  static std::string GetTooltipForNode(vtkMRMLNode* node);
+
 protected:
   /// Create a default structure set node so that contours can be created from potential representations without having
   /// loaded a DICOM-RT study. This method becomes obsolete when creating new patient hierarchy nodes feature is implemented.

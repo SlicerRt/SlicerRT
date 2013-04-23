@@ -531,3 +531,47 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPati
 {
   return vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(scene, associatedNodeId, true);
 }
+
+//---------------------------------------------------------------------------
+std::string vtkSlicerPatientHierarchyModuleLogic::GetTooltipForNode(vtkMRMLNode* node)
+{
+  if (!node)
+  {
+    return NULL;
+  }
+
+  std::string tooltipString(node->GetNodeTagName());
+
+  vtkMRMLHierarchyNode* phNode = NULL;
+  if (SlicerRtCommon::IsPatientHierarchyNode(node))
+  {
+    phNode = vtkMRMLHierarchyNode::SafeDownCast(node);
+  }
+  else
+  {
+    phNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(node->GetScene(), node->GetID());
+  }
+
+  if (SlicerRtCommon::IsPatientHierarchyNode(phNode))
+  {
+    tooltipString.append(" (");
+    tooltipString.append(phNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME));
+  }
+  else
+  {
+    return tooltipString;
+  }
+
+  phNode = phNode->GetParentNode();
+  while (SlicerRtCommon::IsPatientHierarchyNode(phNode))
+  {
+    tooltipString.append("; ");
+    tooltipString.append(phNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME));
+    tooltipString.append(":");
+    tooltipString.append(phNode->GetName());
+    phNode = phNode->GetParentNode();
+  }
+
+  tooltipString.append(")");
+  return tooltipString;
+}

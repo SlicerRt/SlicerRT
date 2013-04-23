@@ -180,7 +180,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
   if (column == this->nameColumn())
   {
     item->setText(QString(node->GetName()));
-    item->setToolTip(node->GetNodeTagName());
+    item->setToolTip(vtkSlicerPatientHierarchyModuleLogic::GetTooltipForNode(node).c_str());
   }
   if (column == this->idColumn())
   {
