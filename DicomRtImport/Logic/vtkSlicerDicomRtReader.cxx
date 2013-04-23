@@ -18,6 +18,9 @@ limitations under the License.
 // ModuleTemplate includes
 #include "vtkSlicerDicomRtReader.h"
 
+// SlicerRt includes
+#include "SlicerRtCommon.h"
+
 // MRML includes
 
 // VTK includes
@@ -743,7 +746,7 @@ const char* vtkSlicerDicomRtReader::GetRoiNameByRoiNumber(unsigned int roiNumber
   {
     return NULL;
   }  
-  return roi->Name.c_str();
+  return (roi->Name.empty() ? SlicerRtCommon::DICOMRTIMPORT_NO_NAME : roi->Name).c_str();
 }
 
 //----------------------------------------------------------------------------
@@ -776,7 +779,7 @@ const char* vtkSlicerDicomRtReader::GetRoiName(unsigned int internalIndex)
     vtkWarningMacro("Cannot get roi with number: " << internalIndex);
     return NULL;
   }
-  return this->RoiSequenceVector[internalIndex].Name.c_str();
+  return (this->RoiSequenceVector[internalIndex].Name.empty() ? SlicerRtCommon::DICOMRTIMPORT_NO_NAME : this->RoiSequenceVector[internalIndex].Name).c_str();
 }
 
 //----------------------------------------------------------------------------
@@ -814,8 +817,8 @@ const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
   if (beam==NULL)
   {
     return NULL;
-  }  
-  return beam->Name.c_str();
+  }
+  return (beam->Name.empty() ? SlicerRtCommon::DICOMRTIMPORT_NO_NAME : beam->Name).c_str();
 }
 
 //----------------------------------------------------------------------------

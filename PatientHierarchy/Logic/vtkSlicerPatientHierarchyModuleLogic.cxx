@@ -365,7 +365,7 @@ void vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(vtkMRMLHierarchyN
 {
   if (visible != 0 && visible != 1)
   {
-    vtkErrorWithObjectMacro(node, "SetBranchVisibility: Invalid visibility value to set: " << visible);
+    vtkDebugWithObjectMacro(node, "SetBranchVisibility: Invalid visibility value to set: " << visible);
     return;
   }
 

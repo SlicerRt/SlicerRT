@@ -115,7 +115,7 @@ void qMRMLPatientHierarchyTreeView::toggleVisibility(const QModelIndex& index)
   if (SlicerRtCommon::IsPatientHierarchyNode(node))
   {
     vtkMRMLHierarchyNode* hnode = vtkMRMLHierarchyNode::SafeDownCast(node);
-    int visible = (vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(hnode) == 1 ? 0 : 1);
+    int visible = (vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(hnode) > 0 ? 0 : 1);
 
     vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility( hnode, visible );
   }

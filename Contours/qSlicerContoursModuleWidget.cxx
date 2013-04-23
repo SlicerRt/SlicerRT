@@ -370,7 +370,7 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
     childContourNodes->InitTraversal();
     if (childContourNodes->GetNumberOfItems() < 1)
     {
-      vtkWarningWithObjectMacro(node, "contourNodeChanged: Selected contour hierarchy node has no children contour nodes!");
+      vtkDebugWithObjectMacro(node, "contourNodeChanged: Selected contour hierarchy node has no children contour nodes!");
       return;
     }
 
