@@ -309,7 +309,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     }
 
     if (roiPoly->GetNumberOfPoints() == 1)
-    {	
+    {
       // Point ROI
       addedDisplayableNode = this->AddRoiPoint(roiPoly->GetPoint(0), roiLabel, roiColor);
 
@@ -326,6 +326,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
             SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
           patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
             vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+          //TODO: If both point and contour can be found in the series, then 2 PH nodes will be created with the same Series Instance UID!
           patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
             rtReader->GetSeriesInstanceUid());
           this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
@@ -377,6 +378,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
             SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
           contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
             vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+          //TODO: If both point and contour can be found in the series, then 2 PH nodes will be created with the same Series Instance UID!
           contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
             rtReader->GetSeriesInstanceUid());
           contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), seriesName);
@@ -464,7 +466,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
     vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
   patientHierarchyColorTableNode->SetParentNodeID(
-    patientHierarchySeriesNode.GetPointer() ? patientHierarchySeriesNode->GetID() : contourHierarchySeriesNode->GetID() );
+    contourHierarchySeriesNode.GetPointer() ? contourHierarchySeriesNode->GetID() : patientHierarchySeriesNode->GetID() );
   this->GetMRMLScene()->AddNode(patientHierarchyColorTableNode);
 
   // Insert series in patient hierarchy

@@ -22,6 +22,7 @@
 // SlicerQt includes
 #include "qSlicerContoursModuleWidget.h"
 #include "ui_qSlicerContoursModule.h"
+#include <qSlicerApplication.h>
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
@@ -38,6 +39,10 @@
 // VTK includes
 #include <vtkSmartPointer.h>
 #include <vtkCollection.h>
+
+// Qt includes
+#include <QProgressDialog>
+#include <QMainWindow>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Contours
@@ -745,6 +750,15 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
   // TODO: Workaround for update issues
   this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
 
+  QProgressDialog *convertProgress = new QProgressDialog(qSlicerApplication::application()->mainWindow());
+  convertProgress->setModal(true);
+  convertProgress->setMinimumDuration(150);
+  convertProgress->setLabelText("Converting contours to target representation...");
+  convertProgress->show();
+  QApplication::processEvents();
+  unsigned int numberOfContours = d->SelectedContourNodes.size();
+  unsigned int currentContour = 0;
+
   vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->getTargetRepresentationType();
 
   // Apply change representation and occurrent conversion on each selected contour
@@ -773,6 +787,10 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
 
     // Set target representation to node after the occurrent conversions
     (*currentContourIt)->SetActiveRepresentationByType(targetRepresentationType);
+
+    // Set progress
+    ++currentContour;
+    convertProgress->setValue(currentContour/(double)numberOfContours * 100.0);
   }
 
   d->label_ActiveRepresentation->setText(d->comboBox_ChangeActiveRepresentation->currentText());
@@ -780,6 +798,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
 
   this->updateWidgetsFromChangeActiveRepresentationGroup();
 
+  delete convertProgress;
   this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
 
   QApplication::restoreOverrideCursor();
