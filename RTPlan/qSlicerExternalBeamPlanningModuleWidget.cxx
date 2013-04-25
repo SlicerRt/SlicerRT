@@ -21,17 +21,17 @@
 ==============================================================================*/
 
 // SlicerQt includes
-#include "qSlicerRTPlanModuleWidget.h"
-#include "ui_qSlicerRTPlanModule.h"
+#include "qSlicerExternalBeamPlanningModuleWidget.h"
+#include "ui_qSlicerExternalBeamPlanningModule.h"
 
 // SlicerRtCommon includes
 #include "SlicerRtCommon.h"
 
 // SlicerRt includes
-#include "vtkMRMLRTPlanNode.h"
+#include "vtkMRMLExternalBeamPlanningNode.h"
 #include "vtkMRMLRTBeamNode.h"
-#include "vtkMRMLRTPlanModuleNode.h"
-#include "vtkSlicerRTPlanModuleLogic.h"
+#include "vtkMRMLExternalBeamPlanningModuleNode.h"
+#include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
@@ -42,15 +42,15 @@
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Contours
-class qSlicerRTPlanModuleWidgetPrivate: public Ui_qSlicerRTPlanModule
+class qSlicerExternalBeamPlanningModuleWidgetPrivate: public Ui_qSlicerExternalBeamPlanningModule
 {
-  Q_DECLARE_PUBLIC(qSlicerRTPlanModuleWidget);
+  Q_DECLARE_PUBLIC(qSlicerExternalBeamPlanningModuleWidget);
 protected:
-  qSlicerRTPlanModuleWidget* const q_ptr;
+  qSlicerExternalBeamPlanningModuleWidget* const q_ptr;
 public:
-  qSlicerRTPlanModuleWidgetPrivate(qSlicerRTPlanModuleWidget& object);
-  ~qSlicerRTPlanModuleWidgetPrivate();
-  vtkSlicerRTPlanModuleLogic* logic() const;
+  qSlicerExternalBeamPlanningModuleWidgetPrivate(qSlicerExternalBeamPlanningModuleWidget& object);
+  ~qSlicerExternalBeamPlanningModuleWidgetPrivate();
+  vtkSlicerExternalBeamPlanningModuleLogic* logic() const;
 public:
   /// List of currently selected contour nodes. Contains the selected
   /// contour node or the children of the selected contour hierarchy node
@@ -70,10 +70,10 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerRTPlanModuleWidgetPrivate methods
+// qSlicerExternalBeamPlanningModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerRTPlanModuleWidgetPrivate::qSlicerRTPlanModuleWidgetPrivate(qSlicerRTPlanModuleWidget& object)
+qSlicerExternalBeamPlanningModuleWidgetPrivate::qSlicerExternalBeamPlanningModuleWidgetPrivate(qSlicerExternalBeamPlanningModuleWidget& object)
   : q_ptr(&object)
   , ModuleWindowInitialized(false)
 {
@@ -82,97 +82,97 @@ qSlicerRTPlanModuleWidgetPrivate::qSlicerRTPlanModuleWidgetPrivate(qSlicerRTPlan
 }
 
 //-----------------------------------------------------------------------------
-qSlicerRTPlanModuleWidgetPrivate::~qSlicerRTPlanModuleWidgetPrivate()
+qSlicerExternalBeamPlanningModuleWidgetPrivate::~qSlicerExternalBeamPlanningModuleWidgetPrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-vtkSlicerRTPlanModuleLogic*
-qSlicerRTPlanModuleWidgetPrivate::logic() const
+vtkSlicerExternalBeamPlanningModuleLogic*
+qSlicerExternalBeamPlanningModuleWidgetPrivate::logic() const
 {
-  Q_Q(const qSlicerRTPlanModuleWidget);
-  return vtkSlicerRTPlanModuleLogic::SafeDownCast(q->logic());
+  Q_Q(const qSlicerExternalBeamPlanningModuleWidget);
+  return vtkSlicerExternalBeamPlanningModuleLogic::SafeDownCast(q->logic());
 } 
 
 //-----------------------------------------------------------------------------
-// qSlicerRTPlanModuleWidget methods
+// qSlicerExternalBeamPlanningModuleWidget methods
 
 //-----------------------------------------------------------------------------
-qSlicerRTPlanModuleWidget::qSlicerRTPlanModuleWidget(QWidget* _parent)
+qSlicerExternalBeamPlanningModuleWidget::qSlicerExternalBeamPlanningModuleWidget(QWidget* _parent)
   : Superclass( _parent )
-  , d_ptr( new qSlicerRTPlanModuleWidgetPrivate(*this) )
+  , d_ptr( new qSlicerExternalBeamPlanningModuleWidgetPrivate(*this) )
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerRTPlanModuleWidget::~qSlicerRTPlanModuleWidget()
+qSlicerExternalBeamPlanningModuleWidget::~qSlicerExternalBeamPlanningModuleWidget()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::setMRMLScene(vtkMRMLScene* scene)
+void qSlicerExternalBeamPlanningModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   this->Superclass::setMRMLScene(scene);
 
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene &&  d->logic()->GetRTPlanModuleNode() == 0)
+  if (scene &&  d->logic()->GetExternalBeamPlanningModuleNode() == 0)
     {
-    vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLRTPlanModuleNode");
+    vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLExternalBeamPlanningModuleNode");
     if (node)
       {
-      this->setRTPlanModuleNode( vtkMRMLRTPlanModuleNode::SafeDownCast(node) );
+      this->setExternalBeamPlanningModuleNode( vtkMRMLExternalBeamPlanningModuleNode::SafeDownCast(node) );
       }
     }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::onSceneImportedEvent()
+void qSlicerExternalBeamPlanningModuleWidget::onSceneImportedEvent()
 {
   this->onEnter();
 }
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::enter()
+void qSlicerExternalBeamPlanningModuleWidget::enter()
 {
   this->onEnter();
   this->Superclass::enter();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::onEnter()
+void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 {
   if (this->mrmlScene() == 0)
   {
     return;
   }
 
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   // First check the logic if it has a parameter node
   if (d->logic() == NULL)
   {
     return;
   }
-  vtkMRMLRTPlanModuleNode* paramNode = d->logic()->GetRTPlanModuleNode();
+  vtkMRMLExternalBeamPlanningModuleNode* paramNode = d->logic()->GetExternalBeamPlanningModuleNode();
 
   // If we have a parameter node select it
   if (paramNode == NULL)
   {
-    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLRTPlanModuleNode");
+    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLExternalBeamPlanningModuleNode");
     if (node)
     {
-      paramNode = vtkMRMLRTPlanModuleNode::SafeDownCast(node);
-      d->logic()->SetAndObserveRTPlanModuleNode(paramNode);
+      paramNode = vtkMRMLExternalBeamPlanningModuleNode::SafeDownCast(node);
+      d->logic()->SetAndObserveExternalBeamPlanningModuleNode(paramNode);
       return;
     }
     else 
     {
-      vtkSmartPointer<vtkMRMLRTPlanModuleNode> newNode = vtkSmartPointer<vtkMRMLRTPlanModuleNode>::New();
+      vtkSmartPointer<vtkMRMLExternalBeamPlanningModuleNode> newNode = vtkSmartPointer<vtkMRMLExternalBeamPlanningModuleNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveRTPlanModuleNode(newNode);
+      d->logic()->SetAndObserveExternalBeamPlanningModuleNode(newNode);
     }
   }
 
@@ -181,11 +181,11 @@ void qSlicerRTPlanModuleWidget::onEnter()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::updateWidgetFromMRML()
+void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLRTPlanModuleNode* paramNode = d->logic()->GetRTPlanModuleNode();
+  vtkMRMLExternalBeamPlanningModuleNode* paramNode = d->logic()->GetExternalBeamPlanningModuleNode();
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
@@ -198,29 +198,29 @@ void qSlicerRTPlanModuleWidget::updateWidgetFromMRML()
       this->referenceVolumeNodeChanged(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
     }
 
-    if (paramNode->GetRTPlanNodeID() && strcmp(paramNode->GetRTPlanNodeID(),""))
+    if (paramNode->GetExternalBeamPlanningNodeID() && strcmp(paramNode->GetExternalBeamPlanningNodeID(),""))
     {
-      d->MRMLNodeComboBox_RTPlan->setCurrentNode(paramNode->GetRTPlanNodeID());
+      d->MRMLNodeComboBox_ExternalBeamPlanning->setCurrentNode(paramNode->GetExternalBeamPlanningNodeID());
     }
     else
     {
-      this->RTPlanNodeChanged(d->MRMLNodeComboBox_RTPlan->currentNode());
+      this->ExternalBeamPlanningNodeChanged(d->MRMLNodeComboBox_ExternalBeamPlanning->currentNode());
     }
   }
 
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::setup()
+void qSlicerExternalBeamPlanningModuleWidget::setup()
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
 
   // Make connections
-  this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setRTPlanModuleNode(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setExternalBeamPlanningModuleNode(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_RTPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(RTPlanNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_ExternalBeamPlanning, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(ExternalBeamPlanningNodeChanged(vtkMRMLNode*)) );
 
   this->connect( d->pushButton_AddBeam, SIGNAL(clicked()), this, SLOT(addBeamClicked()) );
   this->connect( d->pushButton_RemoveBeam, SIGNAL(clicked()), this, SLOT(removeBeamClicked()) );
@@ -242,31 +242,31 @@ void qSlicerRTPlanModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::setRTPlanModuleNode(vtkMRMLNode *node)
+void qSlicerExternalBeamPlanningModuleWidget::setExternalBeamPlanningModuleNode(vtkMRMLNode *node)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLRTPlanModuleNode* paramNode = vtkMRMLRTPlanModuleNode::SafeDownCast(node);
+  vtkMRMLExternalBeamPlanningModuleNode* paramNode = vtkMRMLExternalBeamPlanningModuleNode::SafeDownCast(node);
 
   // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect( d->logic()->GetRTPlanModuleNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
+  qvtkReconnect( d->logic()->GetExternalBeamPlanningModuleNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
-  d->logic()->SetAndObserveRTPlanModuleNode(paramNode);
+  d->logic()->SetAndObserveExternalBeamPlanningModuleNode(paramNode);
   this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::onLogicModified()
+void qSlicerExternalBeamPlanningModuleWidget::onLogicModified()
 {
   this->updateRTBeamTableWidget();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::updateRTBeamTableWidget()
+void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLRTPlanModuleNode* paramNode = d->logic()->GetRTPlanModuleNode();
+  vtkMRMLExternalBeamPlanningModuleNode* paramNode = d->logic()->GetExternalBeamPlanningModuleNode();
   if (!paramNode || !this->mrmlScene())
   {
     return;
@@ -277,23 +277,23 @@ void qSlicerRTPlanModuleWidget::updateRTBeamTableWidget()
   d->tableWidget_Beams->setColumnCount(0);
   d->tableWidget_Beams->clearContents();
 
-  // get rt beam nodes for rtplan node
-  vtkMRMLRTPlanNode* RTPlanNode = vtkMRMLRTPlanNode::SafeDownCast(
-    this->mrmlScene()->GetNodeByID(d->logic()->GetRTPlanModuleNode()->GetRTPlanNodeID()));
+  // get rt beam nodes for ExternalBeamPlanning node
+  vtkMRMLExternalBeamPlanningNode* ExternalBeamPlanningNode = vtkMRMLExternalBeamPlanningNode::SafeDownCast(
+    this->mrmlScene()->GetNodeByID(d->logic()->GetExternalBeamPlanningModuleNode()->GetExternalBeamPlanningNodeID()));
 
-  // a method to get a list of RTbeam node from rtplan node here
-  if (!RTPlanNode)
-  { // no rtplan node selected
+  // a method to get a list of RTbeam node from ExternalBeamPlanning node here
+  if (!ExternalBeamPlanningNode)
+  { // no ExternalBeamPlanning node selected
     return;
   }
   vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  RTPlanNode->GetRTBeamNodes(beams);
+  ExternalBeamPlanningNode->GetRTBeamNodes(beams);
   
   // go through each rtbeam node
   beams->InitTraversal();
   if (beams->GetNumberOfItems() < 1)
   {
-    std::cerr << "Warning: Selected RTPlan node has no children contour nodes!" << std::endl;
+    std::cerr << "Warning: Selected ExternalBeamPlanning node has no children contour nodes!" << std::endl;
     return;
   }
 
@@ -322,11 +322,11 @@ void qSlicerRTPlanModuleWidget::updateRTBeamTableWidget()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLRTPlanModuleNode* paramNode = d->logic()->GetRTPlanModuleNode();
+  vtkMRMLExternalBeamPlanningModuleNode* paramNode = d->logic()->GetExternalBeamPlanningModuleNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
     return;
@@ -341,18 +341,18 @@ void qSlicerRTPlanModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::RTPlanNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::ExternalBeamPlanningNodeChanged(vtkMRMLNode* node)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLRTPlanModuleNode* paramNode = d->logic()->GetRTPlanModuleNode();
+  vtkMRMLExternalBeamPlanningModuleNode* paramNode = d->logic()->GetExternalBeamPlanningModuleNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
     return;
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveRTPlanNodeID(node->GetID());
+  paramNode->SetAndObserveExternalBeamPlanningNodeID(node->GetID());
   paramNode->DisableModifiedEventOff();
 
   //this->updateButtonsState();
@@ -360,11 +360,11 @@ void qSlicerRTPlanModuleWidget::RTPlanNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::ISOCenterNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::ISOCenterNodeChanged(vtkMRMLNode* node)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLRTPlanModuleNode* paramNode = d->logic()->GetRTPlanModuleNode();
+  vtkMRMLExternalBeamPlanningModuleNode* paramNode = d->logic()->GetExternalBeamPlanningModuleNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
     return;
@@ -379,9 +379,9 @@ void qSlicerRTPlanModuleWidget::ISOCenterNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::addBeamClicked()
+void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   // Compute the DPH for the selected margin cal double array
   std::string errorMessage;
@@ -391,9 +391,9 @@ void qSlicerRTPlanModuleWidget::addBeamClicked()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::removeBeamClicked()
+void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   QTableWidgetItem *item = NULL;
   char beamName[100];
@@ -409,9 +409,9 @@ void qSlicerRTPlanModuleWidget::removeBeamClicked()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::tableWidgetItemClicked(QTableWidgetItem *item)
+void qSlicerExternalBeamPlanningModuleWidget::tableWidgetItemClicked(QTableWidgetItem *item)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   int row = d->tableWidget_Beams->currentRow();
   if (row != d->currentBeamRow)  
@@ -422,9 +422,9 @@ void qSlicerRTPlanModuleWidget::tableWidgetItemClicked(QTableWidgetItem *item)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::updateBeamParameters()
+void qSlicerExternalBeamPlanningModuleWidget::updateBeamParameters()
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   // Compute the DPH for the selected margin cal double array
   std::string errorMessage;
@@ -433,32 +433,32 @@ void qSlicerRTPlanModuleWidget::updateBeamParameters()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::beamNameChanged(const QString & text)
+void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString & text)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   //d->GantryAngle = text;
 
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::beamTypeChanged(const QString & text)
+void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString & text)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::radiationTypeChanged(const QString & text)
+void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(const QString & text)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::gantryAngleChanged(double value)
+void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   QTableWidgetItem *item = NULL;
   char beamName[100];
@@ -473,8 +473,8 @@ void qSlicerRTPlanModuleWidget::gantryAngleChanged(double value)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModuleWidget::collimatorTypeChanged(const QString & text)
+void qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged(const QString & text)
 {
-  Q_D(qSlicerRTPlanModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
 }

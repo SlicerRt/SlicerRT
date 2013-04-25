@@ -20,14 +20,14 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerRTPlanModuleLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerExternalBeamPlanningModuleLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
 
-#ifndef __vtkSlicerRTPlanModuleLogic_h
-#define __vtkSlicerRTPlanModuleLogic_h
+#ifndef __vtkSlicerExternalBeamPlanningModuleLogic_h
+#define __vtkSlicerExternalBeamPlanningModuleLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -37,27 +37,27 @@
 // STD includes
 #include <cstdlib>
 
-#include "vtkSlicerRTPlanModuleLogicExport.h"
+#include "vtkSlicerExternalBeamPlanningModuleLogicExport.h"
 
-class vtkMRMLRTPlanNode;
+class vtkMRMLExternalBeamPlanningNode;
 class vtkMRMLRTBeamNode;
-class vtkMRMLRTPlanModuleNode;
+class vtkMRMLExternalBeamPlanningModuleNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_RTPLAN_MODULE_LOGIC_EXPORT vtkSlicerRTPlanModuleLogic :
+class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkSlicerExternalBeamPlanningModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
 
-  static vtkSlicerRTPlanModuleLogic *New();
-  vtkTypeMacro(vtkSlicerRTPlanModuleLogic, vtkSlicerModuleLogic);
+  static vtkSlicerExternalBeamPlanningModuleLogic *New();
+  vtkTypeMacro(vtkSlicerExternalBeamPlanningModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
   ///
-  void SetAndObserveRTPlanModuleNode(vtkMRMLRTPlanModuleNode* node);
+  void SetAndObserveExternalBeamPlanningModuleNode(vtkMRMLExternalBeamPlanningModuleNode* node);
 
   ///
-  vtkGetObjectMacro(RTPlanModuleNode, vtkMRMLRTPlanModuleNode);
+  vtkGetObjectMacro(ExternalBeamPlanningModuleNode, vtkMRMLExternalBeamPlanningModuleNode);
 
   ///
   void AddBeam();
@@ -72,8 +72,8 @@ public:
   void CreateBeamPolyData();
 
 protected:
-  vtkSlicerRTPlanModuleLogic();
-  virtual ~vtkSlicerRTPlanModuleLogic();
+  vtkSlicerExternalBeamPlanningModuleLogic();
+  virtual ~vtkSlicerExternalBeamPlanningModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
   
@@ -86,12 +86,12 @@ protected:
   virtual void OnMRMLSceneEndClose();
 
   /// Parameter set MRML node
-  vtkMRMLRTPlanModuleNode* RTPlanModuleNode;
+  vtkMRMLExternalBeamPlanningModuleNode* ExternalBeamPlanningModuleNode;
 
 private:
 
-  vtkSlicerRTPlanModuleLogic(const vtkSlicerRTPlanModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerRTPlanModuleLogic&);               // Not implemented
+  vtkSlicerExternalBeamPlanningModuleLogic(const vtkSlicerExternalBeamPlanningModuleLogic&); // Not implemented
+  void operator=(const vtkSlicerExternalBeamPlanningModuleLogic&);               // Not implemented
 };
 
 #endif

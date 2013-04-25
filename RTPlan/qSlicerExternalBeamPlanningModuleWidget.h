@@ -20,32 +20,29 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerRTPlanModuleWidget_h
-#define __qSlicerRTPlanModuleWidget_h
+#ifndef __qSlicerExternalBeamPlanningModuleWidget_h
+#define __qSlicerExternalBeamPlanningModuleWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerRTPlanModuleExport.h"
+#include "qSlicerExternalBeamPlanningModuleExport.h"
 
-// SlicerRtCommon includes
-//#include "vtkMRMLRTPlanNode.h"
-
-class qSlicerRTPlanModuleWidgetPrivate;
+class qSlicerExternalBeamPlanningModuleWidgetPrivate;
 class vtkMRMLNode;
 class QString;
 class QTableWidgetItem;
 
 /// \ingroup Slicer_QtModules_Contours
-class Q_SLICER_QTMODULES_RTPLAN_EXPORT qSlicerRTPlanModuleWidget :
+class Q_SLICER_QTMODULES_EXTERNALBEAMPLANNING_EXPORT qSlicerExternalBeamPlanningModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerRTPlanModuleWidget(QWidget *parent=0);
-  virtual ~qSlicerRTPlanModuleWidget();
+  qSlicerExternalBeamPlanningModuleWidget(QWidget *parent=0);
+  virtual ~qSlicerExternalBeamPlanningModuleWidget();
 
   virtual void enter();
 
@@ -57,7 +54,7 @@ public slots:
   void onSceneImportedEvent();
 
   /// Set current parameter node
-  void setRTPlanModuleNode(vtkMRMLNode*);
+  void setExternalBeamPlanningModuleNode(vtkMRMLNode*);
 
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
@@ -68,7 +65,7 @@ protected slots:
 
   void referenceVolumeNodeChanged(vtkMRMLNode*);
 
-  void RTPlanNodeChanged(vtkMRMLNode*);
+  void ExternalBeamPlanningNodeChanged(vtkMRMLNode*);
 
   void addBeamClicked();
 
@@ -89,7 +86,7 @@ protected slots:
   void tableWidgetItemClicked(QTableWidgetItem *item);
 
 protected:
-  QScopedPointer<qSlicerRTPlanModuleWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;
 
   virtual void setup();
   void onEnter();
@@ -99,8 +96,8 @@ protected:
   void updateBeamParameters();
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerRTPlanModuleWidget);
-  Q_DISABLE_COPY(qSlicerRTPlanModuleWidget);
+  Q_DECLARE_PRIVATE(qSlicerExternalBeamPlanningModuleWidget);
+  Q_DISABLE_COPY(qSlicerExternalBeamPlanningModuleWidget);
 };
 
 #endif

@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "RTPlan")
-set(MODULE_TITLE ${MODULE_NAME})
+set(MODULE_NAME "ExternalBeamPlanning")
+set(MODULE_TITLE "External Beam Planning")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 

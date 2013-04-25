@@ -20,18 +20,18 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerRTPlanModule_h
-#define __qSlicerRTPlanModule_h
+#ifndef __qSlicerExternalBeamPlanningModule_h
+#define __qSlicerExternalBeamPlanningModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-#include "qSlicerRTPlanModuleExport.h"
+#include "qSlicerExternalBeamPlanningModuleExport.h"
 
-class qSlicerRTPlanModulePrivate;
+class qSlicerExternalBeamPlanningModulePrivate;
 
-/// \ingroup Slicer_QtModules_RTPlan
-class Q_SLICER_QTMODULES_RTPLAN_EXPORT qSlicerRTPlanModule :
+/// \ingroup Slicer_QtModules_ExternalBeamPlanning
+class Q_SLICER_QTMODULES_EXTERNALBEAMPLANNING_EXPORT qSlicerExternalBeamPlanningModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -40,8 +40,8 @@ class Q_SLICER_QTMODULES_RTPLAN_EXPORT qSlicerRTPlanModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerRTPlanModule(QObject *parent=0);
-  virtual ~qSlicerRTPlanModule();
+  explicit qSlicerExternalBeamPlanningModule(QObject *parent=0);
+  virtual ~qSlicerExternalBeamPlanningModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
   
@@ -72,11 +72,11 @@ protected:
   virtual qSlicerAbstractModuleRepresentation * createWidgetRepresentation();
 
 protected:
-  QScopedPointer<qSlicerRTPlanModulePrivate> d_ptr;
+  QScopedPointer<qSlicerExternalBeamPlanningModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerRTPlanModule);
-  Q_DISABLE_COPY(qSlicerRTPlanModule);
+  Q_DECLARE_PRIVATE(qSlicerExternalBeamPlanningModule);
+  Q_DISABLE_COPY(qSlicerExternalBeamPlanningModule);
 
 };
 

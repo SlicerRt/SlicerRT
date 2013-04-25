@@ -24,69 +24,69 @@
 #include <QtPlugin>
 
 // ExtensionTemplate Logic includes
-#include <vtkSlicerRTPlanModuleLogic.h>
+#include <vtkSlicerExternalBeamPlanningModuleLogic.h>
 
-// RTPlan includes
-#include "qSlicerRTPlanModule.h"
-#include "qSlicerRTPlanModuleWidget.h"
-
-//-----------------------------------------------------------------------------
-Q_EXPORT_PLUGIN2(qSlicerRTPlanModule, qSlicerRTPlanModule);
+// ExternalBeamPlanning includes
+#include "qSlicerExternalBeamPlanningModule.h"
+#include "qSlicerExternalBeamPlanningModuleWidget.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_RTPlan
-class qSlicerRTPlanModulePrivate
+Q_EXPORT_PLUGIN2(qSlicerExternalBeamPlanningModule, qSlicerExternalBeamPlanningModule);
+
+//-----------------------------------------------------------------------------
+/// \ingroup Slicer_QtModules_ExternalBeamPlanning
+class qSlicerExternalBeamPlanningModulePrivate
 {
 public:
-  qSlicerRTPlanModulePrivate();
+  qSlicerExternalBeamPlanningModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerRTPlanModulePrivate methods
+// qSlicerExternalBeamPlanningModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerRTPlanModulePrivate::qSlicerRTPlanModulePrivate()
+qSlicerExternalBeamPlanningModulePrivate::qSlicerExternalBeamPlanningModulePrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerRTPlanModule methods
+// qSlicerExternalBeamPlanningModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerRTPlanModule::qSlicerRTPlanModule(QObject* _parent)
+qSlicerExternalBeamPlanningModule::qSlicerExternalBeamPlanningModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerRTPlanModulePrivate)
+  , d_ptr(new qSlicerExternalBeamPlanningModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerRTPlanModule::~qSlicerRTPlanModule()
+qSlicerExternalBeamPlanningModule::~qSlicerExternalBeamPlanningModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerRTPlanModule::helpText()const
+QString qSlicerExternalBeamPlanningModule::helpText()const
 {
   QString help = 
-    "The RTPlan module manages RTPlan. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/RTPlan\">%1/Documentation/%2.%3/Modules/RTPlan</a><br>";
+    "The External Beam Planning module facilitates basic EBRT planning. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/ExternalBeamPlanning\">%1/Documentation/%2.%3/Modules/ExternalBeamPlanning</a><br>";
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerRTPlanModule::acknowledgementText()const
+QString qSlicerExternalBeamPlanningModule::acknowledgementText()const
 {
   return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerRTPlanModule::categories() const
+QStringList qSlicerExternalBeamPlanningModule::categories() const
 {
   return QStringList() << "Radiotherapy";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerRTPlanModule::contributors() const
+QStringList qSlicerExternalBeamPlanningModule::contributors() const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Kevin Wang (PMH, Toronto)");
@@ -94,25 +94,25 @@ QStringList qSlicerRTPlanModule::contributors() const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerRTPlanModule::icon()const
+QIcon qSlicerExternalBeamPlanningModule::icon()const
 {
-  return QIcon(":/Icons/RTPlan.png");
+  return QIcon(":/Icons/ExternalBeamPlanning.png");
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRTPlanModule::setup()
+void qSlicerExternalBeamPlanningModule::setup()
 {
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerRTPlanModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation * qSlicerExternalBeamPlanningModule::createWidgetRepresentation()
 {
-  return new qSlicerRTPlanModuleWidget;
+  return new qSlicerExternalBeamPlanningModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerRTPlanModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerExternalBeamPlanningModule::createLogic()
 {
-  return vtkSlicerRTPlanModuleLogic::New();
+  return vtkSlicerExternalBeamPlanningModuleLogic::New();
 }

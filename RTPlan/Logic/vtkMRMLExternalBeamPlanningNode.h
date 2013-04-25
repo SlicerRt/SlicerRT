@@ -20,8 +20,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkMRMLRTPlanModuleNode_h
-#define __vtkMRMLRTPlanModuleNode_h
+#ifndef __vtkMRMLExternalBeamPlanningNode_h
+#define __vtkMRMLExternalBeamPlanningNode_h
 
 // MRML includes
 #include <vtkMRML.h>
@@ -30,13 +30,13 @@
 // STD includes
 #include <vector>
 
-#include "vtkSlicerRTPlanModuleLogicExport.h"
+#include "vtkSlicerExternalBeamPlanningModuleLogicExport.h"
 
-class VTK_SLICER_RTPLAN_MODULE_LOGIC_EXPORT vtkMRMLRTPlanModuleNode : public vtkMRMLNode
+class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkMRMLExternalBeamPlanningNode : public vtkMRMLNode
 {
 public:
-  static vtkMRMLRTPlanModuleNode *New();
-  vtkTypeMacro(vtkMRMLRTPlanModuleNode, vtkMRMLNode);
+  static vtkMRMLExternalBeamPlanningNode *New();
+  vtkTypeMacro(vtkMRMLExternalBeamPlanningNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Create instance of a GAD node. 
@@ -52,7 +52,7 @@ public:
   virtual void Copy(vtkMRMLNode *node);
 
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() {return "RTPlanModule";};
+  virtual const char* GetNodeTagName() {return "ExternalBeamPlanning";};
 
 public:
   /// Get dose volume node ID
@@ -62,10 +62,10 @@ public:
   void SetAndObserveReferenceVolumeNodeID(const char* id);
 
   /// Get dose volume node ID
-  vtkGetStringMacro(RTPlanNodeID);
+  vtkGetStringMacro(ExternalBeamPlanningNodeID);
 
   /// Set and observe dose volume node ID
-  void SetAndObserveRTPlanNodeID(const char* id);
+  void SetAndObserveExternalBeamPlanningNodeID(const char* id);
 
   /// Get dose volume node ID
   vtkGetStringMacro(ISOCenterNodeID);
@@ -81,22 +81,22 @@ protected:
   vtkSetStringMacro(ReferenceVolumeNodeID);
 
   /// Set dose volume node ID
-  vtkSetStringMacro(RTPlanNodeID);
+  vtkSetStringMacro(ExternalBeamPlanningNodeID);
  
   /// Set dose volume node ID
   vtkSetStringMacro(ISOCenterNodeID);
  
 protected:
-  vtkMRMLRTPlanModuleNode();
-  ~vtkMRMLRTPlanModuleNode();
-  vtkMRMLRTPlanModuleNode(const vtkMRMLRTPlanModuleNode&);
-  void operator=(const vtkMRMLRTPlanModuleNode&);
+  vtkMRMLExternalBeamPlanningNode();
+  ~vtkMRMLExternalBeamPlanningNode();
+  vtkMRMLExternalBeamPlanningNode(const vtkMRMLExternalBeamPlanningNode&);
+  void operator=(const vtkMRMLExternalBeamPlanningNode&);
 
   /// Selected dose volume MRML node object ID
   char* ReferenceVolumeNodeID;
 
   /// Selected dose volume MRML node object ID
-  char* RTPlanNodeID;
+  char* ExternalBeamPlanningNodeID;
 
   /// Selected dose volume MRML node object ID
   char* ISOCenterNodeID;
