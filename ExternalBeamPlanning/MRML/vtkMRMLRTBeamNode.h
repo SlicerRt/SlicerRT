@@ -28,7 +28,7 @@
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
 
-#include "vtkSlicerRTPlanModuleMRMLExport.h"
+#include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLDisplayableNode;
@@ -36,7 +36,7 @@ class vtkMRMLColorTableNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLModelNode;
 
-class VTK_SLICER_RTPLAN_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLDisplayableNode
+class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLDisplayableNode
 {
 public:
   enum RTBeamType
@@ -156,7 +156,7 @@ protected:
   RTBeamType  BeamType;
   RTRadiationType RadiationType;
   double SAD;
-  double ISOCenter[3];
+  double Isocenter[3];
   double GantryAngle;
   RTCollimatorType CollimatorType;
 

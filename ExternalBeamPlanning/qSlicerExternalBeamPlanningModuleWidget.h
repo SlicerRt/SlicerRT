@@ -54,7 +54,7 @@ public slots:
   void onSceneImportedEvent();
 
   /// Set current parameter node
-  void setExternalBeamPlanningModuleNode(vtkMRMLNode*);
+  void setExternalBeamPlanningNode(vtkMRMLNode*);
 
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
@@ -65,7 +65,7 @@ protected slots:
 
   void referenceVolumeNodeChanged(vtkMRMLNode*);
 
-  void ExternalBeamPlanningNodeChanged(vtkMRMLNode*);
+  void RTPlanNodeChanged(vtkMRMLNode*);
 
   void addBeamClicked();
 
@@ -81,7 +81,7 @@ protected slots:
 
   void collimatorTypeChanged(const QString &);
 
-  void ISOCenterNodeChanged(vtkMRMLNode*);
+  void IsocenterNodeChanged(vtkMRMLNode*);
 
   void tableWidgetItemClicked(QTableWidgetItem *item);
 

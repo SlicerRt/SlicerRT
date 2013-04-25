@@ -231,7 +231,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
     = inputContourANode->GetIndexedLabelmapVolumeNode();
   if (!inputContourALabelmapVolumeNode)
   {
-    vtkErrorMacro(<<"Failed to get indexed labelmap representation from selected contours");
+    vtkErrorMacro("Failed to get indexed labelmap representation from selected contours");
     return -1;
   }
   return 0;
@@ -266,7 +266,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
     = inputContourBNode->GetIndexedLabelmapVolumeNode();
   if (!inputContourBLabelmapVolumeNode)
   {
-    vtkErrorMacro(<<"Failed to get indexed labelmap representation from selected contours");
+    vtkErrorMacro("Failed to get indexed labelmap representation from selected contours");
     return -1;
   }
   return 0;

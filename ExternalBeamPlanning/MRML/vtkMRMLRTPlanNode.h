@@ -20,25 +20,27 @@
 
 ==============================================================================*/
 
-#ifndef __vtkMRMLRTPlanHierarchyNode_h
-#define __vtkMRMLRTPlanHierarchyNode_h
+#ifndef __vtkMRMLRTPlanNode_h
+#define __vtkMRMLRTPlanNode_h
 
 // MRML includes
 #include <vtkMRML.h>
-#include <vtkMRMLDisplayableHierarchyNode.h>
+#include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
 
-#include "vtkSlicerRTPlanModuleMRMLExport.h"
+#include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 class vtkMRMLColorTableNode;
+class vtkMRMLRTBeamNode;
+class vtkCollection;
 
-class VTK_SLICER_RTPLAN_MODULE_MRML_EXPORT vtkMRMLRTPlanHierarchyNode : public vtkMRMLDisplayableHierarchyNode
+class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLDisplayableNode
 {
 public:
-  static vtkMRMLRTPlanHierarchyNode *New();
-  vtkTypeMacro(vtkMRMLRTPlanHierarchyNode,vtkMRMLHierarchyNode);
+  static vtkMRMLRTPlanNode *New();
+  vtkTypeMacro(vtkMRMLRTPlanNode,vtkMRMLDisplayableNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Create instance of a GAD node. 
@@ -57,7 +59,7 @@ public:
   virtual void UpdateScene(vtkMRMLScene *scene);
 
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() {return "RTPlanHierarchy";};
+  virtual const char* GetNodeTagName() {return "RTPlan";};
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
@@ -71,14 +73,23 @@ public:
   /// - Follows parent transform changes
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
-protected:
-  vtkMRMLRTPlanHierarchyNode();
-  ~vtkMRMLRTPlanHierarchyNode();
-  vtkMRMLRTPlanHierarchyNode(const vtkMRMLRTPlanHierarchyNode&);
-  void operator=(const vtkMRMLRTPlanHierarchyNode&);
+  ///
+  void AddRTBeamNode(vtkMRMLRTBeamNode *);
+
+  ///
+  void RemoveRTBeamNode(vtkMRMLRTBeamNode *);
+
+  ///
+  void GetRTBeamNodes(vtkCollection *);
 
 protected:
-  char* StructureName;
+  vtkMRMLRTPlanNode();
+  ~vtkMRMLRTPlanNode();
+  vtkMRMLRTPlanNode(const vtkMRMLRTPlanNode&);
+  void operator=(const vtkMRMLRTPlanNode&);
+
+protected:
+  char* RTPlanName;
 };
 
-#endif // __vtkMRMLRTPlanHierarchyNode_h
+#endif // __vtkMRMLRTPlanNode_h

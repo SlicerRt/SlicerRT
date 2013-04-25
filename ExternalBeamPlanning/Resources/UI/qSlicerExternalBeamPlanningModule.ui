@@ -36,7 +36,7 @@
       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
        <property name="nodeTypes">
         <stringlist>
-         <string>vtkMRMLExternalBeamPlanningModuleNode</string>
+         <string>vtkMRMLExternalBeamPlanningNode</string>
         </stringlist>
        </property>
       </widget>
@@ -66,7 +66,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ExternalBeamPlanning">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RTPlan">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -75,7 +75,7 @@
         </property>
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLExternalBeamPlanningNode</string>
+          <string>vtkMRMLRTPlanNode</string>
          </stringlist>
         </property>
         <property name="selectNodeUponCreation">
@@ -375,7 +375,7 @@
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ISOCenter">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Isocenter">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -483,7 +483,7 @@
   <connection>
    <sender>qSlicerExternalBeamPlanningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ISOCenter</receiver>
+   <receiver>MRMLNodeComboBox_Isocenter</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">

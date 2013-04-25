@@ -566,7 +566,7 @@ void qSlicerContourMorphologyModuleWidget::applyClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  // TODO:
+  // Perform morphological operation
   d->logic()->MorphContour();
 
   QApplication::restoreOverrideCursor();

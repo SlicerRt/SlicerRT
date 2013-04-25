@@ -20,27 +20,25 @@
 
 ==============================================================================*/
 
-#ifndef __vtkMRMLRTPlanNode_h
-#define __vtkMRMLRTPlanNode_h
+#ifndef __vtkMRMLRTPlanHierarchyNode_h
+#define __vtkMRMLRTPlanHierarchyNode_h
 
 // MRML includes
 #include <vtkMRML.h>
-#include <vtkMRMLDisplayableNode.h>
+#include <vtkMRMLDisplayableHierarchyNode.h>
 #include <vtkMRMLScene.h>
 
-#include "vtkSlicerRTPlanModuleMRMLExport.h"
+#include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 class vtkMRMLColorTableNode;
-class vtkMRMLRTBeamNode;
-class vtkCollection;
 
-class VTK_SLICER_RTPLAN_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLDisplayableNode
+class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTPlanHierarchyNode : public vtkMRMLDisplayableHierarchyNode
 {
 public:
-  static vtkMRMLRTPlanNode *New();
-  vtkTypeMacro(vtkMRMLRTPlanNode,vtkMRMLDisplayableNode);
+  static vtkMRMLRTPlanHierarchyNode *New();
+  vtkTypeMacro(vtkMRMLRTPlanHierarchyNode,vtkMRMLHierarchyNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Create instance of a GAD node. 
@@ -59,7 +57,7 @@ public:
   virtual void UpdateScene(vtkMRMLScene *scene);
 
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() {return "RTPlan";};
+  virtual const char* GetNodeTagName() {return "RTPlanHierarchy";};
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
@@ -73,23 +71,14 @@ public:
   /// - Follows parent transform changes
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
-  ///
-  void AddRTBeamNode(vtkMRMLRTBeamNode *);
-
-  ///
-  void RemoveRTBeamNode(vtkMRMLRTBeamNode *);
-
-  ///
-  void GetRTBeamNodes(vtkCollection *);
+protected:
+  vtkMRMLRTPlanHierarchyNode();
+  ~vtkMRMLRTPlanHierarchyNode();
+  vtkMRMLRTPlanHierarchyNode(const vtkMRMLRTPlanHierarchyNode&);
+  void operator=(const vtkMRMLRTPlanHierarchyNode&);
 
 protected:
-  vtkMRMLRTPlanNode();
-  ~vtkMRMLRTPlanNode();
-  vtkMRMLRTPlanNode(const vtkMRMLRTPlanNode&);
-  void operator=(const vtkMRMLRTPlanNode&);
-
-protected:
-  char* RTPlanName;
+  char* StructureName;
 };
 
-#endif // __vtkMRMLRTPlanNode_h
+#endif // __vtkMRMLRTPlanHierarchyNode_h

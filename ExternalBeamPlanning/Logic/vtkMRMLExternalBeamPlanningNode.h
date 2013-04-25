@@ -55,36 +55,36 @@ public:
   virtual const char* GetNodeTagName() {return "ExternalBeamPlanning";};
 
 public:
-  /// Get dose volume node ID
+  /// Get TODO
   vtkGetStringMacro(ReferenceVolumeNodeID);
 
-  /// Set and observe dose volume node ID
+  /// Set TODO
   void SetAndObserveReferenceVolumeNodeID(const char* id);
 
-  /// Get dose volume node ID
-  vtkGetStringMacro(ExternalBeamPlanningNodeID);
+  /// Get TODO
+  vtkGetStringMacro(RTPlanNodeID);
 
-  /// Set and observe dose volume node ID
-  void SetAndObserveExternalBeamPlanningNodeID(const char* id);
+  /// Set TODO
+  void SetAndObserveRTPlanNodeID(const char* id);
 
-  /// Get dose volume node ID
-  vtkGetStringMacro(ISOCenterNodeID);
+  /// Get TODO
+  vtkGetStringMacro(IsocenterNodeID);
 
-  /// Set and observe dose volume node ID
-  void SetAndObserveISOCenterNodeID(const char* id);
+  /// Set TODO
+  void SetAndObserveIsocenterNodeID(const char* id);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
 protected:
-  /// Set dose volume node ID
+  /// Set TODO
   vtkSetStringMacro(ReferenceVolumeNodeID);
 
-  /// Set dose volume node ID
-  vtkSetStringMacro(ExternalBeamPlanningNodeID);
+  /// Set TODO
+  vtkSetStringMacro(RTPlanNodeID);
  
-  /// Set dose volume node ID
-  vtkSetStringMacro(ISOCenterNodeID);
+  /// Set TODO
+  vtkSetStringMacro(IsocenterNodeID);
  
 protected:
   vtkMRMLExternalBeamPlanningNode();
@@ -92,14 +92,14 @@ protected:
   vtkMRMLExternalBeamPlanningNode(const vtkMRMLExternalBeamPlanningNode&);
   void operator=(const vtkMRMLExternalBeamPlanningNode&);
 
-  /// Selected dose volume MRML node object ID
+  /// TODO
   char* ReferenceVolumeNodeID;
 
-  /// Selected dose volume MRML node object ID
-  char* ExternalBeamPlanningNodeID;
+  /// TODO
+  char* RTPlanNodeID;
 
-  /// Selected dose volume MRML node object ID
-  char* ISOCenterNodeID;
+  /// TODO
+  char* IsocenterNodeID;
 
 };
 

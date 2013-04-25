@@ -41,7 +41,7 @@
 
 class vtkMRMLExternalBeamPlanningNode;
 class vtkMRMLRTBeamNode;
-class vtkMRMLExternalBeamPlanningModuleNode;
+class vtkMRMLRTPlanNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkSlicerExternalBeamPlanningModuleLogic :
@@ -54,10 +54,10 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
   
   ///
-  void SetAndObserveExternalBeamPlanningModuleNode(vtkMRMLExternalBeamPlanningModuleNode* node);
+  void SetAndObserveExternalBeamPlanningNode(vtkMRMLExternalBeamPlanningNode* node);
 
   ///
-  vtkGetObjectMacro(ExternalBeamPlanningModuleNode, vtkMRMLExternalBeamPlanningModuleNode);
+  vtkGetObjectMacro(ExternalBeamPlanningNode, vtkMRMLExternalBeamPlanningNode);
 
   ///
   void AddBeam();
@@ -86,7 +86,7 @@ protected:
   virtual void OnMRMLSceneEndClose();
 
   /// Parameter set MRML node
-  vtkMRMLExternalBeamPlanningModuleNode* ExternalBeamPlanningModuleNode;
+  vtkMRMLExternalBeamPlanningNode* ExternalBeamPlanningNode;
 
 private:
 

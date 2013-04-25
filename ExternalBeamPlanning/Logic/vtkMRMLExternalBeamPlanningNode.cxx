@@ -41,8 +41,8 @@ vtkMRMLNodeNewMacro(vtkMRMLExternalBeamPlanningNode);
 vtkMRMLExternalBeamPlanningNode::vtkMRMLExternalBeamPlanningNode()
 {
   this->ReferenceVolumeNodeID = NULL;
-  this->ExternalBeamPlanningNodeID = NULL;
-  this->ISOCenterNodeID = NULL;
+  this->RTPlanNodeID = NULL;
+  this->IsocenterNodeID = NULL;
 
   this->HideFromEditors = false;
 }
@@ -51,8 +51,8 @@ vtkMRMLExternalBeamPlanningNode::vtkMRMLExternalBeamPlanningNode()
 vtkMRMLExternalBeamPlanningNode::~vtkMRMLExternalBeamPlanningNode()
 {
   this->SetReferenceVolumeNodeID(NULL);
-  this->SetExternalBeamPlanningNodeID(NULL);
-  this->SetISOCenterNodeID(NULL);
+  this->SetRTPlanNodeID(NULL);
+  this->SetIsocenterNodeID(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -74,19 +74,19 @@ void vtkMRMLExternalBeamPlanningNode::WriteXML(ostream& of, int nIndent)
 
   {
     std::stringstream ss;
-    if ( this->ExternalBeamPlanningNodeID )
+    if ( this->RTPlanNodeID )
       {
-      ss << this->ExternalBeamPlanningNodeID;
-      of << indent << " ExternalBeamPlanningNodeID=\"" << ss.str() << "\"";
+      ss << this->RTPlanNodeID;
+      of << indent << " RTPlanNodeID=\"" << ss.str() << "\"";
       }
   }
 
   {
     std::stringstream ss;
-    if ( this->ISOCenterNodeID )
+    if ( this->IsocenterNodeID )
       {
-      ss << this->ISOCenterNodeID;
-      of << indent << " ISOCenterNodeID=\"" << ss.str() << "\"";
+      ss << this->IsocenterNodeID;
+      of << indent << " IsocenterNodeID=\"" << ss.str() << "\"";
       }
   }
 
@@ -112,17 +112,17 @@ void vtkMRMLExternalBeamPlanningNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetAndObserveReferenceVolumeNodeID(ss.str().c_str());
       }
-    else if (!strcmp(attName, "ExternalBeamPlanningNodeID")) 
+    else if (!strcmp(attName, "RTPlanNodeID")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveExternalBeamPlanningNodeID(ss.str().c_str());
+      this->SetAndObserveRTPlanNodeID(ss.str().c_str());
       }
-    else if (!strcmp(attName, "ISOCenterNodeID")) 
+    else if (!strcmp(attName, "IsocenterNodeID")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveISOCenterNodeID(ss.str().c_str());
+      this->SetAndObserveIsocenterNodeID(ss.str().c_str());
       }
     }
 }
@@ -138,8 +138,8 @@ void vtkMRMLExternalBeamPlanningNode::Copy(vtkMRMLNode *anode)
   vtkMRMLExternalBeamPlanningNode *node = (vtkMRMLExternalBeamPlanningNode *)anode;
 
   this->SetAndObserveReferenceVolumeNodeID(node->ReferenceVolumeNodeID);
-  this->SetAndObserveExternalBeamPlanningNodeID(node->ExternalBeamPlanningNodeID);
-  this->SetAndObserveISOCenterNodeID(node->ExternalBeamPlanningNodeID);
+  this->SetAndObserveRTPlanNodeID(node->RTPlanNodeID);
+  this->SetAndObserveIsocenterNodeID(node->RTPlanNodeID);
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -151,8 +151,8 @@ void vtkMRMLExternalBeamPlanningNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLNode::PrintSelf(os,indent);
 
   os << indent << "ReferenceVolumeNodeID:   " << this->ReferenceVolumeNodeID << "\n";
-  os << indent << "ExternalBeamPlanningNodeID:   " << this->ExternalBeamPlanningNodeID << "\n";
-  os << indent << "ISOCenterNodeID:   " << this->ISOCenterNodeID << "\n";
+  os << indent << "RTPlanNodeID:   " << this->RTPlanNodeID << "\n";
+  os << indent << "IsocenterNodeID:   " << this->IsocenterNodeID << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -162,13 +162,13 @@ void vtkMRMLExternalBeamPlanningNode::UpdateReferenceID(const char *oldID, const
     {
     this->SetAndObserveReferenceVolumeNodeID(newID);
     }
-  if (this->ExternalBeamPlanningNodeID && !strcmp(oldID, this->ExternalBeamPlanningNodeID))
+  if (this->RTPlanNodeID && !strcmp(oldID, this->RTPlanNodeID))
     {
-    this->SetAndObserveExternalBeamPlanningNodeID(newID);
+    this->SetAndObserveRTPlanNodeID(newID);
     }
-  if (this->ISOCenterNodeID && !strcmp(oldID, this->ISOCenterNodeID))
+  if (this->IsocenterNodeID && !strcmp(oldID, this->IsocenterNodeID))
     {
-    this->SetAndObserveISOCenterNodeID(newID);
+    this->SetAndObserveIsocenterNodeID(newID);
     }
 }
 
@@ -189,34 +189,34 @@ void vtkMRMLExternalBeamPlanningNode::SetAndObserveReferenceVolumeNodeID(const c
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLExternalBeamPlanningNode::SetAndObserveExternalBeamPlanningNodeID(const char* id)
+void vtkMRMLExternalBeamPlanningNode::SetAndObserveRTPlanNodeID(const char* id)
 {
-  if (this->ExternalBeamPlanningNodeID != NULL)
+  if (this->RTPlanNodeID != NULL)
     {
-    this->Scene->RemoveReferencedNodeID(this->ExternalBeamPlanningNodeID, this);
+    this->Scene->RemoveReferencedNodeID(this->RTPlanNodeID, this);
     }
 
-  this->SetExternalBeamPlanningNodeID(id);
+  this->SetRTPlanNodeID(id);
 
   if (id)
     {
-    this->Scene->AddReferencedNodeID(this->ExternalBeamPlanningNodeID, this);
+    this->Scene->AddReferencedNodeID(this->RTPlanNodeID, this);
     }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLExternalBeamPlanningNode::SetAndObserveISOCenterNodeID(const char* id)
+void vtkMRMLExternalBeamPlanningNode::SetAndObserveIsocenterNodeID(const char* id)
 {
-  if (this->ISOCenterNodeID != NULL)
+  if (this->IsocenterNodeID != NULL)
     {
-    this->Scene->RemoveReferencedNodeID(this->ISOCenterNodeID, this);
+    this->Scene->RemoveReferencedNodeID(this->IsocenterNodeID, this);
     }
 
-  this->SetISOCenterNodeID(id);
+  this->SetIsocenterNodeID(id);
 
   if (id)
     {
-    this->Scene->AddReferencedNodeID(this->ISOCenterNodeID, this);
+    this->Scene->AddReferencedNodeID(this->IsocenterNodeID, this);
     }
 }
 

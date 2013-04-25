@@ -138,16 +138,16 @@ protected:
   /// Selected output contour MRML node object ID
   char* OutputContourNodeId;
 
-  /// TODO:
+  /// Selected contour morphology operation
   ContourMorphologyOperationType Operation;
 
-  /// TODO:
+  /// Dimension parameter for the X axis (for Expand or Shrink)
   double XSize;
 
-  /// TODO:
+  /// Dimension parameter for the Y axis (for Expand or Shrink)
   double YSize;
 
-  /// TODO:
+  /// Dimension parameter for the Z axis (for Expand or Shrink)
   double ZSize;
 };
 

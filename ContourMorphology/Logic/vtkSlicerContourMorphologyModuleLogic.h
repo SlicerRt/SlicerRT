@@ -45,16 +45,16 @@ public:
   vtkTypeMacro(vtkSlicerContourMorphologyModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  /// TODO
+  /// Set and observe parameter set node
   void SetAndObserveContourMorphologyNode(vtkMRMLContourMorphologyNode* node);
 
-  /// TODO
+  /// TODO Re-factor this when doing ticket #278
   int SetContourARepresentationToLabelmap();
 
-  /// TODO
+  /// TODO Re-factor this when doing ticket #278
   int SetContourBRepresentationToLabelmap();
 
-  /// TODO
+  /// Perform selected morphological operation
   int MorphContour();
 
   /// Determines if a reference volume node is needed
@@ -62,7 +62,7 @@ public:
   bool IsReferenceVolumeNeeded();
 
 public:
-  /// TODO
+  /// Get parameter set node
   vtkGetObjectMacro(ContourMorphologyNode, vtkMRMLContourMorphologyNode);
 
 protected:

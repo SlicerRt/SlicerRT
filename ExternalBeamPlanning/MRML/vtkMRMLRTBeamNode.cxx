@@ -58,14 +58,14 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->BeamName = NULL;
   this->BeamNumber = 0.0;
   this->BeamDescription = NULL;
-  this->BeamType = vtkMRMLRTBeamNode::RTBeamType::Static;
-  this->RadiationType = vtkMRMLRTBeamNode::RTRadiationType::Photon;
+  this->BeamType = Static;
+  this->RadiationType = Photon;
   this->SAD = 0.0;
-  this->ISOCenter[0] = 0.0;
-  this->ISOCenter[1] = 0.0;
-  this->ISOCenter[2] = 0.0;
+  this->Isocenter[0] = 0.0;
+  this->Isocenter[1] = 0.0;
+  this->Isocenter[2] = 0.0;
   this->GantryAngle = 0.0;
-  this->CollimatorType = vtkMRMLRTBeamNode::RTCollimatorType::SquareHalfMM;
+  this->CollimatorType = SquareHalfMM;
 
   this->BeamModelNode = NULL;
   this->BeamModelNodeId = NULL;
