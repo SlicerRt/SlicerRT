@@ -1372,7 +1372,7 @@
                <number>2</number>
               </property>
               <property name="singleStep">
-               <double>0.250000000000000</double>
+               <double>0.050000000000000</double>
               </property>
               <property name="pageStep">
                <double>0.010000000000000</double>
@@ -1778,7 +1778,7 @@
             <number>2</number>
            </property>
            <property name="singleStep">
-            <double>1.000000000000000</double>
+            <double>0.050000000000000</double>
            </property>
            <property name="pageStep">
             <double>0.010000000000000</double>

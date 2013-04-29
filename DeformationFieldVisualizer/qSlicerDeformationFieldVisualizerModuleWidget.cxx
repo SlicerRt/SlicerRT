@@ -1,11 +1,12 @@
+// Qt includes
+#include <QDebug>
+#include <QtCore>
+#include <QtGui>
+
 // SlicerQt includes
 #include "qSlicerDeformationFieldVisualizerModuleWidget.h"
 #include "ui_qSlicerDeformationFieldVisualizerModule.h"
 #include <qSlicerApplication.h>
-
-// Qt includes
-#include <QProgressDialog>
-#include <QMainWindow>
 
 // DeformationVisualizer includes
 #include "vtkSlicerDeformationFieldVisualizerLogic.h"
@@ -288,25 +289,25 @@ void qSlicerDeformationFieldVisualizerModuleWidget::inputVolumeChanged(vtkMRMLNo
 
     vtkSmartPointer<vtkMRMLVolumeNode> referenceVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->mrmlScene()->GetNodeByID(pNode->GetReferenceVolumeNodeID()));
     if (referenceVolumeNode == NULL)
-    {
-      return;
-    }
+  {
+    return;
+  }
 
-    //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
-    QProgressDialog *convertProgress = new QProgressDialog(qSlicerApplication::application()->mainWindow());
+  //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
+    QProgressDialog *convertProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
     convertProgress->setModal(true);
     convertProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
     convertProgress->show();
-    convertProgress->setLabelText("Converting transform to vector volume...");
-    
+  convertProgress->setLabelText("Converting transform to vector volume...");
+  
     convertProgress->setValue(20);
     d->logic()->GenerateTransformField();
-    
-    convertProgress->setValue(80);
+  
+  convertProgress->setValue(80);
     maxNorm = d->logic()->GetFieldMaxNorm() + 1;
-    
-    convertProgress->setValue(100);
-    delete convertProgress;
+  
+  convertProgress->setValue(100);
+  delete convertProgress;
   }
 
   pNode->SetGlyphThresholdMax(maxNorm);
@@ -348,23 +349,23 @@ void qSlicerDeformationFieldVisualizerModuleWidget::referenceVolumeChanged(vtkMR
 
   if (strcmp(inputVolumeNode->GetClassName(), "vtkMRMLLinearTransformNode") == 0 || 
     strcmp(inputVolumeNode->GetClassName(), "vtkMRMLBSplineTransformNode") == 0 ||
-    strcmp(inputVolumeNode->GetClassName(), "vtkMRMLGridTransformNode") == 0)
-  {
-    //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
+    strcmp(inputVolumeNode->GetClassName(), "vtkMRMLGridTransformNode") == 0){
+  
+  //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
     QProgressDialog *convertProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
     convertProgress->setModal(true);
     convertProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
     convertProgress->show();
-    convertProgress->setLabelText("Converting transform to vector volume...");
-    
-    convertProgress->setValue(20);
+  convertProgress->setLabelText("Converting transform to vector volume...");
+  
+  convertProgress->setValue(20);
     d->logic()->GenerateTransformField();
   
-    convertProgress->setValue(80);
+  convertProgress->setValue(80);
     maxNorm = d->logic()->GetFieldMaxNorm() + 1;
   
-    convertProgress->setValue(100);
-    delete convertProgress;
+  convertProgress->setValue(100);
+  delete convertProgress;
   }
 
   pNode->SetGlyphThresholdMax(maxNorm);
@@ -419,9 +420,9 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     d->SphereSourceOptions->setVisible(false);
 
     if (!pNode || !this->mrmlScene())
-    {
-      return;
-    }
+  {
+    return;
+  }
     pNode->DisableModifiedEventOn();
     pNode->SetGlyphScaleDirectional(true);
     pNode->SetGlyphScaleIsotropic(false);
@@ -437,9 +438,9 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     d->SphereSourceOptions->setVisible(false);  
 
     if (!pNode || !this->mrmlScene())
-    {
-      return;
-    }
+  {
+    return;
+  }
     pNode->DisableModifiedEventOn();
     pNode->SetGlyphScaleDirectional(true);
     pNode->SetGlyphScaleIsotropic(false);
@@ -455,9 +456,9 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     d->SphereSourceOptions->setVisible(true);
 
     if (!pNode || !this->mrmlScene())
-    {
-      return;
-    }
+  {
+    return;
+  }
     pNode->DisableModifiedEventOn();
     pNode->SetGlyphScaleDirectional(false);
     pNode->SetGlyphScaleIsotropic(true);
@@ -475,52 +476,47 @@ void qSlicerDeformationFieldVisualizerModuleWidget::visualize()
 
   if (d->InputFieldComboBox->currentNodeId() != NULL && d->OutputModelComboBox->currentNodeId() != NULL)
   {
-    //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
+  //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
     QProgressDialog *visualizeProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
     visualizeProgress->setModal(true);
     visualizeProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
     visualizeProgress->show();
-    visualizeProgress->setLabelText("Processing...");
+  visualizeProgress->setLabelText("Processing...");
     visualizeProgress->setValue(0);
   
     if (d->GlyphToggle->isChecked())
-    {
-      visualizeProgress->setLabelText("Creating glyphs...");
-      visualizeProgress->setValue(20);
-      d->logic()->CreateVisualization(1);
+  {
+    visualizeProgress->setLabelText("Creating glyphs...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(1);
     }
-    else if (d->GridToggle->isChecked())
-    {
-      visualizeProgress->setLabelText("Creating grid...");
-      visualizeProgress->setValue(20);
-      d->logic()->CreateVisualization(2);
+    else if (d->GridToggle->isChecked()){
+    visualizeProgress->setLabelText("Creating grid...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(2);
     }
-    else if (d->ContourToggle->isChecked())
-    {
-      visualizeProgress->setLabelText("Creating contours...");
-      visualizeProgress->setValue(20);
-      d->logic()->CreateVisualization(3);
+    else if (d->ContourToggle->isChecked()){
+    visualizeProgress->setLabelText("Creating contours...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(3);
     }
-    else if (d->BlockToggle->isChecked())
-    {
-      visualizeProgress->setLabelText("Creating block...");
-      visualizeProgress->setValue(20);
-      d->logic()->CreateVisualization(4);
+    else if (d->BlockToggle->isChecked()){
+    visualizeProgress->setLabelText("Creating block...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(4);
     }
-    else if (d->GlyphSliceToggle->isChecked())
-    {
-      visualizeProgress->setLabelText("Creating glyphs for slice view...");
-      visualizeProgress->setValue(20);
-      d->logic()->CreateVisualization(5);
+    else if (d->GlyphSliceToggle->isChecked()){
+    visualizeProgress->setLabelText("Creating glyphs for slice view...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(5);
     }
-    else if (d->GridSliceToggle->isChecked())
-    {
-      visualizeProgress->setLabelText("Creating grid for slice view...");
-      visualizeProgress->setValue(20);
-      d->logic()->CreateVisualization(6);
+    else if (d->GridSliceToggle->isChecked()){
+    visualizeProgress->setLabelText("Creating grid for slice view...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(6);
     }
-    visualizeProgress->setValue(100);
-    delete visualizeProgress;
+  visualizeProgress->setValue(100);
+  delete visualizeProgress;
   }
 }
 
@@ -612,7 +608,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setSeed()
     return;
   }
   pNode->DisableModifiedEventOn();
-  pNode->SetGlyphSeed((RAND_MAX+1)*(long)rand()+rand()); //TODO: Integer overflow here. Why use two random numbers?
+  pNode->SetGlyphSeed(rand());
   d->InputGlyphSeed->setValue(pNode->GetGlyphSeed());
   pNode->DisableModifiedEventOff();
 }
@@ -988,7 +984,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setSeed2()
     return;
   }
   pNode->DisableModifiedEventOn();
-  pNode->SetGlyphSliceSeed((RAND_MAX+1)*(long)rand()+rand()); //TODO: Integer overflow here. Why use two random numbers?
+  pNode->SetGlyphSliceSeed(rand());
   d->InputGlyphSliceSeed->setValue(pNode->GetGlyphSliceSeed());
   pNode->DisableModifiedEventOff();
 }

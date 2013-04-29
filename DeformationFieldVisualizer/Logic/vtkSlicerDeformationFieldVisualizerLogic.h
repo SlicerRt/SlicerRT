@@ -14,6 +14,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkMatrix4x4.h>
+#include <vtkImageData.h>
 
 #include "vtkSlicerDeformationFieldVisualizerModuleLogicExport.h"
 
@@ -53,6 +54,11 @@ public:
 public:
   void SetAndObserveDeformationFieldVisualizerNode(vtkMRMLDeformationFieldVisualizerNode *node);
   vtkGetObjectMacro(DeformationFieldVisualizerNode, vtkMRMLDeformationFieldVisualizerNode);
+  
+  //vtkSetObjectMacro(TransformField, vtkImageData);
+  //vtkGetObjectMacro(TransformField, vtkImageData);
+  
+  vtkSmartPointer<vtkImageData> TransformField;
 
 protected:
   vtkSlicerDeformationFieldVisualizerLogic();
@@ -69,7 +75,8 @@ protected:
   virtual void OnMRMLSceneEndClose();
 
 protected:
-  vtkSmartPointer<vtkImageData> TransformField;
+  //vtkImageData *TransformField;
+  //vtkSmartPointer<vtkImageData> TransformField
   
 private:
   vtkSlicerDeformationFieldVisualizerLogic(const vtkSlicerDeformationFieldVisualizerLogic&);// Not implemented

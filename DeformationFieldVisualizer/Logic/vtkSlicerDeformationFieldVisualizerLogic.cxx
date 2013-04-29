@@ -37,6 +37,7 @@
 #include <vtkPoints.h>
 #include <vtkLine.h>
 #include <vtkWarpVector.h>
+#include <vtkExtractVOI.h>
 
 // Block VTK includes
 #include <vtkGeometryFilter.h>
@@ -57,6 +58,8 @@
 #include <cassert>
 #include <math.h>
 
+#include <vtkPolyDataWriter.h>
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDeformationFieldVisualizerLogic);
 
@@ -65,12 +68,14 @@ vtkSlicerDeformationFieldVisualizerLogic::vtkSlicerDeformationFieldVisualizerLog
 {
   this->DeformationFieldVisualizerNode = NULL;
   this->TransformField = vtkSmartPointer<vtkImageData>::New();
+  //this->TransformField = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerDeformationFieldVisualizerLogic::~vtkSlicerDeformationFieldVisualizerLogic()
 {
   vtkSetAndObserveMRMLNodeMacro(this->DeformationFieldVisualizerNode, NULL);
+  //this->SetTransformField(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -185,9 +190,7 @@ void vtkSlicerDeformationFieldVisualizerLogic::GenerateTransformField()
   double spacing[3];
   double dirs[3][3];
   int extent[6];    
-  vtkSmartPointer<vtkImageData> field = vtkSmartPointer<vtkImageData>::New();
   
-  referenceVolumeNode->GetImageData()->GetPointData()->SetActiveVectors("ImageScalars");
   referenceVolumeNode->GetOrigin(origin);
   referenceVolumeNode->GetSpacing(spacing);
   referenceVolumeNode->GetImageData()->GetExtent(extent);
@@ -195,6 +198,7 @@ void vtkSlicerDeformationFieldVisualizerLogic::GenerateTransformField()
   vtkSmartPointer<vtkMatrix4x4> IJKToRAS = vtkSmartPointer<vtkMatrix4x4>::New();  
   referenceVolumeNode->GetIJKToRASMatrix(IJKToRAS);
   
+  vtkSmartPointer<vtkImageData> field = vtkSmartPointer<vtkImageData>::New();
   field->DeepCopy(referenceVolumeNode->GetImageData());
   field->SetScalarTypeToFloat();
   field->SetNumberOfScalarComponents(3);
@@ -205,7 +209,9 @@ void vtkSlicerDeformationFieldVisualizerLogic::GenerateTransformField()
   
   float point1[3];
   float point2[3];
-
+  
+  
+  
   vtkSmartPointer<vtkGeneralTransform> inputTransform = inputVolumeNode->GetTransformToParent();
   float *ptr = (float *)field->GetPointData()->GetScalars()->GetVoidPointer(0);
   for(int k = 0; k < extent[5]+1; k++)
@@ -239,17 +245,18 @@ void vtkSlicerDeformationFieldVisualizerLogic::GenerateTransformField()
     invertDirs->SetElement(row, 3, 0);
   }
   invertDirs->Invert();
-  
+    
   double x,y,z;
+  //float *ptr = (float *)field->GetPointData()->GetScalars()->GetVoidPointer(0);
   for(int i = 0; i < field->GetPointData()->GetScalars()->GetNumberOfTuples()*3; i+=3)
-{
+  {
     x = ptr[i];
     y = ptr[i+1];
     z = ptr[i+2];      
     ptr[i] = x*invertDirs->GetElement(0,0) + y*invertDirs->GetElement(0,1) + z*invertDirs->GetElement(0,2);
     ptr[i+1] = x*invertDirs->GetElement(1,0) + y*invertDirs->GetElement(1,1) + z*invertDirs->GetElement(1,2);
     ptr[i+2] = x*invertDirs->GetElement(2,0) + y*invertDirs->GetElement(2,1) + z*invertDirs->GetElement(2,2);    
-  }
+  }  
   
   this->TransformField = field;
 }
@@ -276,7 +283,7 @@ void vtkSlicerDeformationFieldVisualizerLogic::CreateVisualization(int option)
   {
     return;
   }
-
+  
   double origin[3];
   double spacing[3];
   double dirs[3][3];
@@ -299,7 +306,7 @@ void vtkSlicerDeformationFieldVisualizerLogic::CreateVisualization(int option)
     inputVolumeNode->GetIJKToRASDirections(dirs);
     field->DeepCopy(inputVolumeNode->GetImageData());
     field->SetSpacing(spacing);
-    
+	
     vtkSmartPointer<vtkMatrix4x4> invertDirs = vtkSmartPointer<vtkMatrix4x4>::New();
     invertDirs->Identity();
     int row, col;
@@ -312,7 +319,7 @@ void vtkSlicerDeformationFieldVisualizerLogic::CreateVisualization(int option)
       invertDirs->SetElement(row, 3, 0);
     }
     invertDirs->Invert();
-    
+
     double x,y,z;
     float *ptr = (float *)field->GetPointData()->GetScalars()->GetVoidPointer(0);
     for(int i = 0; i < field->GetPointData()->GetScalars()->GetNumberOfTuples()*3; i+=3)
@@ -348,6 +355,8 @@ void vtkSlicerDeformationFieldVisualizerLogic::CreateVisualization(int option)
     return;
   }
 
+
+  
   // Create IJKToRAS Matrix without spacing; spacing will be added to imagedata directly to avoid warping geometry
   vtkSmartPointer<vtkMatrix4x4> UnspacedIJKToRAS = vtkSmartPointer<vtkMatrix4x4>::New();
   UnspacedIJKToRAS->Identity();
@@ -464,7 +473,7 @@ void vtkSlicerDeformationFieldVisualizerLogic::CreateVisualization(int option)
   }
 
   vtkMRMLColorTableNode::SafeDownCast(outputModelNode->GetModelDisplayNode()->GetColorNode())->GetLookupTable()->SetTableRange(0,field->GetPointData()->GetArray(0)->GetMaxNorm());
-  
+    
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
 }
 
@@ -524,12 +533,25 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GlyphVisu
 //----------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GridVisualization(vtkSmartPointer<vtkImageData> field)
 {
+  //int initialDimensions[3];
+  //field->GetDimensions(initialDimensions);
+  
+  //Reduce number of points
+  //vtkSmartPointer<vtkExtractVOI> subsampled = vtkSmartPointer<vtkExtractVOI>::New();
+  //subsampled->SetInput(norm->GetOutput());
+  //subsampled->SetVOI(origin[0],dimensions[0],origin[1],dimensions[1],origin[2],dimensions[2]);
+  //subsampled->SetSampleRate(1,1,1);
+  //subsampled->SetSampleRate(initialDimensions/((this->DeformationFieldVisualizerNode->GetGridDensity()),1,1);
+  //subsampled->Update();
+
+  //*
   double origin[3];
   field->GetOrigin(origin);
   double spacing[3];
   field->GetSpacing(spacing);
   int dimensions[3];
   field->GetDimensions(dimensions);
+  //*/
   
   int GridDensity = this->DeformationFieldVisualizerNode->GetGridDensity();
   
@@ -658,9 +680,24 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::ContourVi
   norm->SetInputConnection(field->GetProducerPort());
   norm->Update();
   
+  double origin[3];
+  int dimensions[3];
+
+  field->GetOrigin(origin);
+  field->GetDimensions(dimensions);  
+  
+  /*
+  vtkSmartPointer<vtkExtractVOI> subsampled = vtkSmartPointer<vtkExtractVOI>::New();
+  subsampled->SetInput(norm->GetOutput());
+  subsampled->SetVOI(origin[0],dimensions[0],origin[1],dimensions[1],origin[2],dimensions[2]);
+  subsampled->SetSampleRate(4,4,4);
+  subsampled->Update();
+  //*/
+  
   //TODO: Contour visualization is slow. Will optimize.
   vtkSmartPointer<vtkMarchingCubes> iso = vtkSmartPointer<vtkMarchingCubes>::New();
-    iso->SetInputConnection(norm->GetOutputPort());
+    //iso->SetInputConnection(subsampled->GetOutputPort());
+	iso->SetInputConnection(norm->GetOutputPort());
   iso->ComputeScalarsOn();
   iso->ComputeNormalsOff();
   iso->ComputeGradientsOff();
@@ -748,7 +785,7 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GlyphSlic
   sliceNormal[2] = invertDirs->GetElement(2,0)*sliceNode->GetSliceToRAS()->Element[0][2] + 
            invertDirs->GetElement(2,1)*sliceNode->GetSliceToRAS()->Element[1][2] + 
            invertDirs->GetElement(2,2)*sliceNode->GetSliceToRAS()->Element[2][2]; 
-
+				   
   //Projection to slice plane
   float *ptr = (float *)field2->GetPointData()->GetScalars()->GetVoidPointer(0);
   for(int i = 0; i < field2->GetPointData()->GetScalars()->GetNumberOfTuples()*3; i+=3)
@@ -775,7 +812,7 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GlyphSlic
   
   vtkSmartPointer<vtkTransform> rotateArrow = vtkSmartPointer<vtkTransform>::New();
   rotateArrow->RotateX(vtkMath::DegreesFromRadians(acos(abs(sliceNormal[2]))));
-  //std::cout<<vtkMath::DegreesFromRadians(acos(abs(sliceNormal[2])))<<std::endl;
+  //std::cout<<vtkMath::DegreesFromRadians(acos((sliceNormal[2])))<<std::endl;
   
   vtkSmartPointer<vtkGlyphSource2D> arrow2DSource = vtkSmartPointer<vtkGlyphSource2D>::New();
   arrow2DSource->SetGlyphTypeToArrow();
@@ -808,6 +845,7 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GlyphSlic
   ribbon->UseDefaultNormalOn();
   
   return ribbon->GetOutput();
+  //return glyphFilter->GetOutput();
 }
 
 //----------------------------------------------------------------------------
@@ -849,8 +887,6 @@ vtkSmartPointer<vtkPolyData> vtkSlicerDeformationFieldVisualizerLogic::GridSlice
   double width = 1;
   
   //TODO: Need to ensure later that orientation of slice lines up with orientation of volume; no guarantee of that currently
-  //char* orientation = sliceNode->GetOrientationString();
-
   int i,j,k;
   for (k = 0; k < dimensions[2]; k++)
   {

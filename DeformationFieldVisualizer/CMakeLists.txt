@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8.7)
-
 #-----------------------------------------------------------------------------
 set(MODULE_NAME DeformationFieldVisualizer)
 set(MODULE_TITLE "Deformation Field Visualizer")
@@ -16,6 +14,7 @@ set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
+  ${SlicerRtCommon_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
