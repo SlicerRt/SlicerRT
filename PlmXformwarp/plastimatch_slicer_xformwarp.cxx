@@ -9,8 +9,7 @@
 #include <time.h>
 #include "plastimatch_slicer_xformwarpCLP.h"
 
-#include "plmutil.h"
-
+#include "rt_study.h"
 #include "rtds_warp.h"
 #include "warp_parms.h"
 
@@ -25,7 +24,7 @@ main (int argc, char * argv [])
     bool have_ss_img_output = false;
     Warp_parms parms;
     Plm_file_format file_type;
-    Rtds rtds;
+    Rt_study rtds;
 
     /* Input image (to set the size) */
     if (plmslc_xformwarp_reference_vol != "" 

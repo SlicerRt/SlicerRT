@@ -6,9 +6,8 @@
 #include <vector>
 #include "plastimatch_slicer_dicomrt_exportCLP.h"
 
-#include "plmutil.h"
-
 #include "plm_config.h"
+#include "rt_study.h"
 #include "rtds_warp.h"
 #include "warp_parms.h"
 
@@ -19,7 +18,7 @@ main (int argc, char * argv [])
 
     Plm_file_format file_type;
     Warp_parms parms;
-    Rtds rtds;
+    Rt_study rtds;
     int have_input = 0;
 
     /* Optional inputs */

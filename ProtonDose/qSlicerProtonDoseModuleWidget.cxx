@@ -752,7 +752,7 @@ void qSlicerProtonDoseModuleWidget::editMod() // idem iso_x but for mod
 		}
 		else
 		{
-			QMessageBox::warning(this,"", "Warning, Mod must be included between 0 and Range - Range set to 0");
+		QMessageBox::warning(this,"", "Warning, Mod must be included between 0 and Range - Range set to 0");
 			d->lineEdit_Mod->setText("0");
 			beam[beam_actual].accessMod(0);
 		}
@@ -895,9 +895,9 @@ void qSlicerProtonDoseModuleWidget::beamQtUpdate() // this function update the a
 
 void qSlicerProtonDoseModuleWidget::applyClicked() // Greg!!! Here is where you have to compute the dose
 {
-	configFileCreation();
+  configFileCreation();
 		
-	Q_D(qSlicerProtonDoseModuleWidget);
+  Q_D(qSlicerProtonDoseModuleWidget);
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 

@@ -19,7 +19,7 @@ main (int argc, char * argv [])
 
     Plm_file_format file_type;
     Warp_parms parms;
-    Rtds rtds;
+    Rt_study rtds;
 
     /* Required input */
     parms.input_fn = input_dicomrt_ss.c_str();

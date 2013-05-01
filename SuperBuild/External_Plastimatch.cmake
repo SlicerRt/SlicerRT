@@ -37,9 +37,9 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 endif ()
 
 # Choose which Plastimatch revision to build
-set (PLM_SVN_REVISION "4133")
+set (PLM_SVN_REVISION "4257")
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-  set (PLM_SVN_REVISION "4133")
+  set (PLM_SVN_REVISION "4257")
 endif ()
 
 # With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
