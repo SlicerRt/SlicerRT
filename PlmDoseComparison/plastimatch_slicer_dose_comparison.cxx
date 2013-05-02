@@ -8,8 +8,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "plmutil.h"
-
+#include "diff.h"
+#include "gamma_analysis.h"
 #include "itk_image_save.h"
 #include "plm_image.h"
 #include "pstring.h"

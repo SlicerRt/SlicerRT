@@ -5,8 +5,6 @@
 #include <string.h>
 #include "plastimatch_slicer_threshboxCLP.h"
 
-#include "plmutil.h"
-
 #include "itk_image.h"
 #include "itk_image_save.h"
 #include "plm_image.h"

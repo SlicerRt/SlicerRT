@@ -6,9 +6,8 @@
 #include <vector>
 #include "plastimatch_slicer_dicomrt_importCLP.h"
 
-#include "plmutil.h"
-
 #include "plm_config.h"
+#include "rt_study.h"
 #include "rtds_warp.h"
 #include "warp_parms.h"
 
