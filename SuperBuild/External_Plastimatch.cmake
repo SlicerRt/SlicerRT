@@ -22,7 +22,7 @@ endif ()
 
 # Download and build Plastimatch
 
-SET (DCMTK_DIR "${Slicer_DIR}/../DCMTK-install")
+SET (DCMTK_DIR "${Slicer_DIR}/../DCMTK-build")
 SET (SLICERRT_PLASTIMATCH_SOURCE_DIR "${CMAKE_BINARY_DIR}/Plastimatch" CACHE INTERNAL "Path to store Plastimatch sources.")
 SET (SLICERRT_PLASTIMATCH_DIR "${CMAKE_BINARY_DIR}/Plastimatch-build" CACHE INTERNAL "Path to store Plastimatch binaries.")
 
@@ -37,9 +37,9 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 endif ()
 
 # Choose which Plastimatch revision to build
-set (PLM_SVN_REVISION "4257")
+set (PLM_SVN_REVISION "4261")
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-  set (PLM_SVN_REVISION "4257")
+  set (PLM_SVN_REVISION "4261")
 endif ()
 
 # With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
