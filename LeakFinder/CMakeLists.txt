@@ -17,7 +17,7 @@ SET (LeakFinder_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${Slicer_Libs_INCLUDE_D
 
 set(lib_name ${PROJECT_NAME})
 SET (LeakFinder_LIBS ${LeakFinder_LIBS}
-	vtkCommon
+  vtkCommon
 )
 
 INCLUDE_DIRECTORIES( ${LeakFinder_INCLUDE_DIRS} )

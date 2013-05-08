@@ -66,39 +66,42 @@ limitations under the License.
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::RoiEntry::RoiEntry()
 {
-  Number=0;
-  DisplayColor[0]=1.0;
-  DisplayColor[1]=0.0;
-  DisplayColor[2]=0.0;
-  PolyData=NULL;
+  this->Number=0;
+  this->DisplayColor[0]=1.0;
+  this->DisplayColor[1]=0.0;
+  this->DisplayColor[2]=0.0;
+  this->PolyData=NULL;
 }
 
 vtkSlicerDicomRtReader::RoiEntry::~RoiEntry()
 {
-  SetPolyData(NULL);
+  this->SetPolyData(NULL);
 }
 
 vtkSlicerDicomRtReader::RoiEntry::RoiEntry(const RoiEntry& src)
 {
-  Number=src.Number;
-  Name=src.Name;
-  Description=src.Description;
-  DisplayColor[0]=src.DisplayColor[0];
-  DisplayColor[1]=src.DisplayColor[1];
-  DisplayColor[2]=src.DisplayColor[2];
-  PolyData=NULL;
-  SetPolyData(src.PolyData);
+  this->Number=src.Number;
+  this->Name=src.Name;
+  this->Description=src.Description;
+  this->DisplayColor[0]=src.DisplayColor[0];
+  this->DisplayColor[1]=src.DisplayColor[1];
+  this->DisplayColor[2]=src.DisplayColor[2];
+  this->PolyData=NULL;
+  this->SetPolyData(src.PolyData);
+  this->ReferencedSeriesUid=src.ReferencedSeriesUid;
 }
 
 vtkSlicerDicomRtReader::RoiEntry& vtkSlicerDicomRtReader::RoiEntry::operator=(const RoiEntry &src)
 {
-  Number=src.Number;
-  Name=src.Name;
-  Description=src.Description;
-  DisplayColor[0]=src.DisplayColor[0];
-  DisplayColor[1]=src.DisplayColor[1];
-  DisplayColor[2]=src.DisplayColor[2];
-  SetPolyData(src.PolyData);
+  this->Number=src.Number;
+  this->Name=src.Name;
+  this->Description=src.Description;
+  this->DisplayColor[0]=src.DisplayColor[0];
+  this->DisplayColor[1]=src.DisplayColor[1];
+  this->DisplayColor[2]=src.DisplayColor[2];
+  this->SetPolyData(src.PolyData);
+  this->ReferencedSeriesUid=src.ReferencedSeriesUid;
+
   return (*this);
 }
 
@@ -178,7 +181,7 @@ void vtkSlicerDicomRtReader::Update()
     QString databaseFile = databaseDirectory + DICOMRTREADER_DICOM_DATABASE_FILENAME.c_str();
     this->SetDatabaseFile(databaseFile.toLatin1().constData());
 
-    // load DICOM file or dataset
+    // Load DICOM file or dataset
     DcmFileFormat fileformat;
 
     OFCondition result;
@@ -186,7 +189,8 @@ void vtkSlicerDicomRtReader::Update()
     if (result.good())
     {
       DcmDataset *dataset = fileformat.getDataset();
-      // check SOP Class UID for one of the supported RT objects
+
+      // Check SOP Class UID for one of the supported RT objects
       OFString sopClass;
       if (dataset->findAndGetOFString(DCM_SOPClassUID, sopClass).good() && !sopClass.empty())
       {
@@ -249,7 +253,7 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
   if (result.good())
   {
     OFString tmpString, dummyString;
-    std::cout << "Load RT Plan object" << std::endl;
+    vtkDebugMacro("LoadRTPlan: Load RT Plan object");
 
     DRTBeamSequence &rtPlaneBeamSequenceObject = rtPlanObject.getBeamSequence();
     if (rtPlaneBeamSequenceObject.gotoFirstItem().good())
@@ -259,7 +263,7 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
         DRTBeamSequence::Item &currentBeamSequenceObject = rtPlaneBeamSequenceObject.getCurrentItem();  
         if (!currentBeamSequenceObject.isValid())
         {
-          std::cout << "Found an invalid beam sequence in dataset" << std::endl;
+          vtkDebugMacro("LoadRTPlan: Found an invalid beam sequence in dataset");
           continue;
         }
 
@@ -296,7 +300,8 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
             {
               OFVector<Float64> isocenterPositionDataLps;
               controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
-              // convert from DICOM LPS -> Slicer RAS
+
+              // Convert from DICOM LPS -> Slicer RAS
               beamEntry.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
               beamEntry.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
               beamEntry.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
@@ -322,7 +327,7 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
                 {
                   if (++numberOfFoundCollimatorPositionItems > 2)
                   {
-                    std::cerr << "Unexpected number of collimator position items (we expect exactly 2)" << std::endl;
+                    vtkErrorMacro("LoadRTPlan: Unexpected number of collimator position items (we expect exactly 2)");
                     break;
                   }
 
@@ -348,13 +353,13 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
                     }
                     else
                     {
-                      std::cerr << "Unsupported collimator type: " << rtBeamLimitingDeviceType << std::endl;
+                      vtkErrorMacro("LoadRTPlan: Unsupported collimator type: " << rtBeamLimitingDeviceType);
                     }
                   }
                 }
                 while (currentCollimatorPositionSequenceObject.gotoNextItem().good());
               }
-            } //endif controlPointItem.isValid()
+            } // endif controlPointItem.isValid()
           }
           // while (rtControlPointSequenceObject.gotoNextItem().good());
         }
@@ -372,62 +377,98 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
 }
 
 //----------------------------------------------------------------------------
-OFString vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStructureSetObject)
+DRTRTReferencedSeriesSequence* vtkSlicerDicomRtReader::GetReferencedSeriesSequence(DRTStructureSetIOD &rtStructureSetObject)
 {
-  OFString invalidUid;
   DRTReferencedFrameOfReferenceSequence &rtReferencedFrameOfReferenceSequenceObject = rtStructureSetObject.getReferencedFrameOfReferenceSequence();
   if (!rtReferencedFrameOfReferenceSequenceObject.gotoFirstItem().good())
   {
-    vtkErrorMacro("No referenced frame of reference sequence object item is available");
-    return invalidUid;
+    vtkErrorMacro("GetReferencedSeriesSequence: No referenced frame of reference sequence object item is available");
+    return NULL;
   }
 
   DRTReferencedFrameOfReferenceSequence::Item &currentReferencedFrameOfReferenceSequenceItem = rtReferencedFrameOfReferenceSequenceObject.getCurrentItem();
   if (!currentReferencedFrameOfReferenceSequenceItem.isValid())
   {
-    vtkErrorMacro("Frame of reference sequence object item is invalid");
-    return invalidUid;
+    vtkErrorMacro("GetReferencedSeriesSequence: Frame of reference sequence object item is invalid");
+    return NULL;
   }
 
   DRTRTReferencedStudySequence &rtReferencedStudySequenceObject = currentReferencedFrameOfReferenceSequenceItem.getRTReferencedStudySequence();
   if (!rtReferencedStudySequenceObject.gotoFirstItem().good())
   {
-    vtkErrorMacro("No referenced study sequence object item is available");
-    return invalidUid;
+    vtkErrorMacro("GetReferencedSeriesSequence: No referenced study sequence object item is available");
+    return NULL;
   }
 
   DRTRTReferencedStudySequence::Item &rtReferencedStudySequenceItem = rtReferencedStudySequenceObject.getCurrentItem();
   if (!rtReferencedStudySequenceItem.isValid())
   {
-    vtkErrorMacro("Referenced study sequence object item is invalid");
-    return invalidUid;
+    vtkErrorMacro("GetReferencedSeriesSequence: Referenced study sequence object item is invalid");
+    return NULL;
   }
 
   DRTRTReferencedSeriesSequence &rtReferencedSeriesSequenceObject = rtReferencedStudySequenceItem.getRTReferencedSeriesSequence();
   if (!rtReferencedSeriesSequenceObject.gotoFirstItem().good())
   {
-    vtkErrorMacro("No referenced series sequence object item is available");
+    vtkErrorMacro("GetReferencedSeriesSequence: No referenced series sequence object item is available");
+    return NULL;
+  }
+
+  return &rtReferencedSeriesSequenceObject;
+}
+
+//----------------------------------------------------------------------------
+OFString vtkSlicerDicomRtReader::GetReferencedSeriesInstanceUID(DRTStructureSetIOD rtStructureSetObject)
+{
+  OFString invalidUid;
+  DRTRTReferencedSeriesSequence* rtReferencedSeriesSequenceObject = this->GetReferencedSeriesSequence(rtStructureSetObject);
+  if (!rtReferencedSeriesSequenceObject || !rtReferencedSeriesSequenceObject->gotoFirstItem().good())
+  {
+    vtkErrorMacro("GetReferencedFrameOfReferenceSOPInstanceUID: No referenced series sequence object item is available");
     return invalidUid;
   }
 
-  DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject.getCurrentItem();
+  DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject->getCurrentItem();
   if (!rtReferencedSeriesSequenceItem.isValid())
   {
-    vtkErrorMacro("Referenced series sequence object item is invalid");
+    vtkErrorMacro("GetReferencedSeriesInstanceUID: Referenced series sequence object item is invalid");
+    return invalidUid;
+  }
+
+  OFString referencedSeriesInstanceUID;
+  rtReferencedSeriesSequenceItem.getSeriesInstanceUID(referencedSeriesInstanceUID);
+  return referencedSeriesInstanceUID;
+}
+
+//----------------------------------------------------------------------------
+OFString vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStructureSetObject)
+{
+  OFString invalidUid;
+  DRTRTReferencedSeriesSequence* rtReferencedSeriesSequenceObject = this->GetReferencedSeriesSequence(rtStructureSetObject);
+  if (!rtReferencedSeriesSequenceObject || !rtReferencedSeriesSequenceObject->gotoFirstItem().good())
+  {
+    vtkErrorMacro("GetReferencedFrameOfReferenceSOPInstanceUID: No referenced series sequence object item is available");
+    return invalidUid;
+  }
+
+  DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject->getCurrentItem();
+  if (!rtReferencedSeriesSequenceItem.isValid())
+  {
+    vtkErrorMacro("GetReferencedFrameOfReferenceSOPInstanceUID: Referenced series sequence object item is invalid");
     return invalidUid;
   }
 
   DRTContourImageSequence &rtContourImageSequenceObject = rtReferencedSeriesSequenceItem.getContourImageSequence();
   if (!rtContourImageSequenceObject.gotoFirstItem().good())
   {
-    vtkErrorMacro("No contour image sequence object item is available");
+    vtkErrorMacro("GetReferencedFrameOfReferenceSOPInstanceUID: No contour image sequence object item is available");
     return invalidUid;
   }
 
   DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject.getCurrentItem();
   if (!rtContourImageSequenceItem.isValid())
   {
-    vtkErrorMacro("Contour image sequence object item is invalid");
+    vtkErrorMacro("GetReferencedFrameOfReferenceSOPInstanceUID: Contour image sequence object item is invalid");
     return invalidUid;
   }
 
@@ -448,7 +489,7 @@ double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceU
   dicomDatabase.closeDatabase();
   if ( referencedFilename.isEmpty() ) //TODO: isNull?
   {
-    std::cerr << "No referenced image file is found, default slice thickness is used for contour import" << std::endl;
+    vtkErrorMacro("GetSliceThickness: No referenced image file is found, default slice thickness is used for contour import");
     return defaultSliceThickness;
   }
 
@@ -458,7 +499,7 @@ double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceU
   result = fileformat.loadFile(referencedFilename.toStdString().c_str(), EXS_Unknown);
   if (!result.good())
   {
-    std::cerr << "Could not load image file" << std::endl;
+    vtkErrorMacro("GetSliceThickness: Could not load image file");
     return defaultSliceThickness;
   }
   DcmDataset *dataset = fileformat.getDataset();
@@ -467,7 +508,7 @@ double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceU
   OFString sliceThicknessString;
   if (!dataset->findAndGetOFString(DCM_SliceThickness, sliceThicknessString).good())
   {
-    std::cerr << "Could not find slice thickness tag in image file" << std::endl;
+    vtkErrorMacro("GetSliceThickness: Could not find slice thickness tag in image file");
     return defaultSliceThickness;
   }
 
@@ -478,7 +519,7 @@ double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceU
   double sliceThickness = doubleValue;
   if (sliceThickness <= 0.0 || sliceThickness > 20.0)
   {
-    std::cerr << "Slice thickness field value is invalid: " << sliceThicknessString << std::endl;
+    vtkErrorMacro("GetSliceThickness: Slice thickness field value is invalid: " << sliceThicknessString);
     return defaultSliceThickness;
   }
 
@@ -494,7 +535,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTContourSequenc
   double invalidResult=-1.0;
   if (!rtContourSequenceObject.gotoFirstItem().good())
   {
-    std::cerr << "Contour sequence object is invalid" << std::endl;
+    vtkErrorMacro("GetDistanceBetweenContourPlanes: Contour sequence object is invalid");
     return invalidResult;
   }
 
@@ -528,29 +569,30 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTContourSequenc
     switch (contourPlaneIndex)
     {
     case 0:
-      // first contour
+      // First contour
       firstContourPlanePosition=firstContourPointZcoordinate;
       break;
     case 1:
-      // second contour
+      // Second contour
       secondContourPlanePosition=firstContourPointZcoordinate;
       break;
     default:
-      // we ignore all the subsequent contour plane positions
+      // We ignore all the subsequent contour plane positions
       // distance is just estimated based on the first two
       break;
     }
     contourPlaneIndex++;
 
-  } while (rtContourSequenceObject.gotoNextItem().good() && contourPlaneIndex<2);
+  }
+  while (rtContourSequenceObject.gotoNextItem().good() && contourPlaneIndex<2);
 
-  if (contourPlaneIndex<2)
+  if (contourPlaneIndex < 2)
   {
-    std::cerr << "Not found two contours" << std::endl;
+    vtkErrorMacro("GetDistanceBetweenContourPlanes: Less than two contours found!");
     return invalidResult;
   }
 
-  // there were at least contour planes, therefore we have a valid distance estimation
+  // There were at least contour planes, therefore we have a valid distance estimation
   double distanceBetweenContourPlanes=fabs(firstContourPlanePosition-secondContourPlanePosition);
   return distanceBetweenContourPlanes;
 }
@@ -564,17 +606,17 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   OFCondition result = rtStructureSetObject.read(*dataset);
   if (!result.good())
   {
-    std::cerr << "Could not load strucure set object from dataset" << std::endl;
+    vtkErrorMacro("LoadRTStructureSet: Could not load strucure set object from dataset");
     return;
   }
 
-  std::cout << "RT Structure Set object" << std::endl;
+  vtkDebugMacro("LoadRTStructureSet: RT Structure Set object");
 
   // Read ROI name, description, and number into the ROI contour sequence vector
   DRTStructureSetROISequence &rtStructureSetROISequenceObject = rtStructureSetObject.getStructureSetROISequence();
   if (!rtStructureSetROISequenceObject.gotoFirstItem().good())
   {
-    std::cerr << "No structure sets were found" << std::endl;
+    vtkErrorMacro("LoadRTStructureSet: No structure sets were found");
     return;
   }
   do
@@ -597,16 +639,18 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     Sint32 roiNumber;
     currentROISequenceObject.getROINumber(roiNumber);
     roiEntry.Number=roiNumber;
-    // cout << "roi number:" << roiNumber << " roi name:" << ROIName << " roi description:" << ROIDescription << OFendl;
 
-    // save to vector          
+    // Save to vector          
     this->RoiSequenceVector.push_back(roiEntry);
   }
   while (rtStructureSetROISequenceObject.gotoNextItem().good());
 
+  // Get referenced anatomical image
+  OFString referencedSeriesInstanceUID = this->GetReferencedSeriesInstanceUID(rtStructureSetObject);
+
   // Get the slice thickness from the referenced image
-  OFString referencedSOPInstanceUID=GetReferencedFrameOfReferenceSOPInstanceUID(rtStructureSetObject);
-  double sliceThickness = GetSliceThickness(referencedSOPInstanceUID);
+  OFString referencedSOPInstanceUID = this->GetReferencedFrameOfReferenceSOPInstanceUID(rtStructureSetObject);
+  double sliceThickness = this->GetSliceThickness(referencedSOPInstanceUID);
 
   Sint32 referenceRoiNumber;
   DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
@@ -623,7 +667,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       continue;
     }
 
-    // create vtkPolyData
+    // Create vtkPolyData
     vtkSmartPointer<vtkPoints> tempPoints = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
     vtkIdType pointId=0;
@@ -637,7 +681,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       {
         DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
 
-        if ( !contourItem.isValid())
+        if (!contourItem.isValid())
         {
           continue;
         }
@@ -646,7 +690,6 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
         OFString numberofpoints;
         contourItem.getNumberOfContourPoints(numberofpoints);
-        //cout << "\t contour number:" << contourNumber.c_str() << " numberOf points: "<< numberofpoints.c_str() << OFendl;
         std::stringstream ss;
         ss << numberofpoints;
         int number;
@@ -658,13 +701,13 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
         tempCellArray->InsertNextCell(number+1);
         for (int k=0; k<number; k++)
         {
-          // convert from DICOM LPS -> Slicer RAS
+          // Convert from DICOM LPS -> Slicer RAS
           tempPoints->InsertPoint(pointId, -contourData_LPS[3*k], -contourData_LPS[3*k+1], contourData_LPS[3*k+2]);
           tempCellArray->InsertCellPoint(pointId);
           pointId++;
         }
 
-        // to close the contour
+        // Close the contour
         tempCellArray->InsertCellPoint(pointId-number);
 
       }
@@ -676,7 +719,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     RoiEntry* referenceROI = this->FindRoiByNumber(referenceRoiNumber);
     if (referenceROI==NULL)
     {
-      std::cerr << "Reference ROI is not found" << std::endl;      
+      vtkErrorMacro("LoadRTStructureSet: Reference ROI is not found");      
       continue;
     } 
 
@@ -695,12 +738,11 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       tempPolyData->SetPoints(tempPoints);
       tempPolyData->SetLines(tempCellArray);
 
-      // Remove coincident points (if there are multiple contour points at the same position then the
-      // ribbon filter fails)
+      // Remove coincident points (if there are multiple contour points at the same position then the ribbon filter fails)
       vtkSmartPointer<vtkCleanPolyData> cleaner=vtkSmartPointer<vtkCleanPolyData>::New();
       cleaner->SetInput(tempPolyData);
 
-      // convert to ribbon using vtkRibbonFilter
+      // Convert to ribbon using vtkRibbonFilter
       vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
       ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
       ribbonFilter->SetDefaultNormal(0,0,-1);
@@ -717,12 +759,16 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       referenceROI->SetPolyData(normalFilter->GetOutput());
     }
 
+    // Get structure color
     Sint32 roiDisplayColor;
     for (int j=0; j<3; j++)
     {
       currentRoiObject.getROIDisplayColor(roiDisplayColor,j);
       referenceROI->DisplayColor[j] = roiDisplayColor/255.0;
-    }    
+    }
+
+    // Set referenced series UIDs
+    referenceROI->ReferencedSeriesUid = (std::string)referencedSeriesInstanceUID.c_str();
   }
   while (rtROIContourSequenceObject.gotoNextItem().good());
 
@@ -776,21 +822,10 @@ const char* vtkSlicerDicomRtReader::GetRoiName(unsigned int internalIndex)
 {
   if (internalIndex >= this->RoiSequenceVector.size())
   {
-    vtkWarningMacro("Cannot get roi with number: " << internalIndex);
+    vtkErrorMacro("GetRoiName: Cannot get ROI with number: " << internalIndex);
     return NULL;
   }
   return (this->RoiSequenceVector[internalIndex].Name.empty() ? SlicerRtCommon::DICOMRTIMPORT_NO_NAME : this->RoiSequenceVector[internalIndex].Name).c_str();
-}
-
-//----------------------------------------------------------------------------
-vtkPolyData* vtkSlicerDicomRtReader::GetRoiPolyData(unsigned int internalIndex)
-{
-  if (internalIndex >= this->RoiSequenceVector.size())
-  {
-    vtkWarningMacro("Cannot get roi with number: " << internalIndex);
-    return NULL;
-  }
-  return this->RoiSequenceVector[internalIndex].PolyData;
 }
 
 //----------------------------------------------------------------------------
@@ -798,10 +833,32 @@ double* vtkSlicerDicomRtReader::GetRoiDisplayColor(unsigned int internalIndex)
 {
   if (internalIndex >= this->RoiSequenceVector.size())
   {
-    vtkWarningMacro("Cannot get roi with number: " << internalIndex);
+    vtkErrorMacro("GetRoiDisplayColor: Cannot get ROI with number: " << internalIndex);
     return NULL;
   }
   return this->RoiSequenceVector[internalIndex].DisplayColor;
+}
+
+//----------------------------------------------------------------------------
+vtkPolyData* vtkSlicerDicomRtReader::GetRoiPolyData(unsigned int internalIndex)
+{
+  if (internalIndex >= this->RoiSequenceVector.size())
+  {
+    vtkErrorMacro("GetRoiPolyData: Cannot get ROI with number: " << internalIndex);
+    return NULL;
+  }
+  return this->RoiSequenceVector[internalIndex].PolyData;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetRoiReferencedSeriesUid(unsigned int internalIndex)
+{
+  if (internalIndex >= this->RoiSequenceVector.size())
+  {
+    vtkErrorMacro("GetRoiName: Cannot get ROI with number: " << internalIndex);
+    return NULL;
+  }
+  return this->RoiSequenceVector[internalIndex].ReferencedSeriesUid.c_str();
 }
 
 //----------------------------------------------------------------------------
@@ -904,14 +961,14 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   OFCondition result = rtDoseObject.read(*dataset);
   if (result.bad())
   {
-    cerr << "Error: Failed to read RT Dose dataset!" << OFendl;
+    vtkErrorMacro("LoadRTDose: Failed to read RT Dose dataset!");
   }
 
   cout << "RT Dose object" << OFendl << OFendl;
   OFString doseGridScaling;
   if (rtDoseObject.getDoseGridScaling(doseGridScaling).bad())
   {
-    cerr << "Error: Failed to get Dose Grid Scaling for dose object" << OFendl;
+    vtkErrorMacro("LoadRTDose: Failed to get Dose Grid Scaling for dose object");
     return; // mandatory DICOM value
   }
   this->SetDoseGridScaling(doseGridScaling.c_str());
@@ -919,7 +976,7 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   OFString doseUnits;
   if (rtDoseObject.getDoseUnits(doseUnits).bad())
   {
-    cerr << "Error: Failed to get Dose Units for dose object" << OFendl;
+    vtkErrorMacro("LoadRTDose: Failed to get Dose Units for dose object");
     return; // mandatory DICOM value
   }
   this->SetDoseUnits(doseUnits.c_str());
@@ -927,11 +984,11 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   OFVector<Float64> pixelSpacingOFVector;
   if (rtDoseObject.getPixelSpacing(pixelSpacingOFVector).bad() || pixelSpacingOFVector.size() < 2)
   {
-    cerr << "Error: Failed to get Pixel Spacing for dose object" << OFendl;
+    vtkErrorMacro("LoadRTDose: Failed to get Pixel Spacing for dose object");
     return; // mandatory DICOM value
   }
   this->SetPixelSpacing(pixelSpacingOFVector[0], pixelSpacingOFVector[1]);
-  cout << "Pixel Spacing: (" << pixelSpacingOFVector[0] << ", " << pixelSpacingOFVector[1] << ")" << OFendl;
+  vtkDebugMacro("Pixel Spacing: (" << pixelSpacingOFVector[0] << ", " << pixelSpacingOFVector[1] << ")");
 
   // Get and store patient, study and series information
   this->GetAndStoreHierarchyInformation(&rtDoseObject);
@@ -949,7 +1006,9 @@ vtkSlicerDicomRtReader::BeamEntry* vtkSlicerDicomRtReader::FindBeamByNumber(unsi
       return &this->BeamSequenceVector[i];
     }
   }
-  // not found
+
+  // Not found
+  vtkErrorMacro("FindBeamByNumber: Beam cannot be found for number " << beamNumber);
   return NULL;
 }
 
@@ -963,6 +1022,8 @@ vtkSlicerDicomRtReader::RoiEntry* vtkSlicerDicomRtReader::FindRoiByNumber(unsign
       return &this->RoiSequenceVector[i];
     }
   }
-  // not found
+
+  // Not found
+  vtkErrorMacro("FindBeamByNumber: ROI cannot be found for number " << roiNumber);
   return NULL;
 }

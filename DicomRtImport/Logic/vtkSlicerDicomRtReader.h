@@ -38,6 +38,7 @@ class DcmDataset;
 class OFString;
 class DRTContourSequence;
 class DRTStructureSetIOD;
+class DRTRTReferencedSeriesSequence;
 
 // Due to some reason the Python wrapping of this class fails, therefore
 // put everything between BTX/ETX to exclude from wrapping.
@@ -86,6 +87,10 @@ public:
   /// Get model of a certain ROI by internal index
   /// \param internalIndex Internal index of ROI to get
   vtkPolyData* GetRoiPolyData(unsigned int internalIndex);
+
+  /// Get referenced series UID for a certain ROI by internal index
+  /// \param internalIndex Internal index of ROI to get
+  const char* GetRoiReferencedSeriesUid(unsigned int internalIndex);
 
   /// Get number of beams
   int GetNumberOfBeams();  
@@ -164,10 +169,11 @@ protected:
     void SetPolyData(vtkPolyData* roiPolyData);
 
     unsigned int Number;
-    std::string  Name;
-    std::string  Description;
-    double       DisplayColor[3];
+    std::string Name;
+    std::string Description;
+    double DisplayColor[3];
     vtkPolyData* PolyData;
+    std::string ReferencedSeriesUid;
   };
 
   /// Structure storing an RT structure set
@@ -256,7 +262,13 @@ protected:
   double GetSliceThickness(OFString referencedSOPInstanceUID);
 
   /// Get frame of reference for an SOP instance
+  DRTRTReferencedSeriesSequence* GetReferencedSeriesSequence(DRTStructureSetIOD &rtStructureSetObject);
+
+  /// Get frame of reference for an SOP instance
   OFString GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStructureSetObject);
+
+  /// Get referenced series instance UID for the structure set (0020,000E)
+  OFString GetReferencedSeriesInstanceUID(DRTStructureSetIOD rtStructureSetObject);
 
 //xBTX //TODO #210: Re-enable
   template<class T> void GetAndStoreHierarchyInformation(T* dcmtkIodObject);

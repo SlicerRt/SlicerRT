@@ -43,6 +43,10 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 protected:
+  /// Create a default structure set node so that contours can be created from potential representations without having
+  /// loaded a DICOM-RT study. This method becomes obsolete when creating new patient hierarchy nodes feature is implemented.
+  void CreateDefaultStructureSetNode();
+
   /// Creates an empty ribbon model as a default representation for the new contours
   void CreateEmptyRibbonModelForContour(vtkMRMLNode* node);
 
@@ -55,6 +59,7 @@ protected:
 
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+  virtual void OnMRMLSceneEndClose();
 
 protected:
   vtkSlicerContoursModuleLogic();

@@ -25,7 +25,6 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
-#include "vtkMRMLContourNode.h"
 
 // PatientHierarchy includes
 #include "qMRMLPatientHierarchyTreeView.h"
@@ -121,7 +120,7 @@ void qMRMLPatientHierarchyTreeView::toggleVisibility(const QModelIndex& index)
   }
   else if (node->IsA("vtkMRMLContourNode"))
   {
-    vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
+    vtkMRMLDisplayableNode* contourNode = vtkMRMLDisplayableNode::SafeDownCast(node);
     int visible = (contourNode->GetDisplayVisibility() ? 0 : 1);
     contourNode->SetDisplayVisibility(visible);
     // Make sure the icons changes in the tree view

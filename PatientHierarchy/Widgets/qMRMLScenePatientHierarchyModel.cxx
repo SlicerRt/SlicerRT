@@ -23,11 +23,12 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
-#include "vtkMRMLContourNode.h"
 
 // Patient Hierarchy includes
 #include "qMRMLScenePatientHierarchyModel_p.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
+#include "vtkSlicerPatientHierarchyPluginHandler.h"
+#include "vtkSlicerPatientHierarchyPlugin.h"
 
 // MRML includes
 #include <vtkMRMLDisplayableHierarchyNode.h>
@@ -193,11 +194,6 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
     {
       visible = vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility( vtkMRMLHierarchyNode::SafeDownCast(node) );
     }
-    else if (node->IsA("vtkMRMLContourNode"))
-    {
-      vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
-      visible = contourNode->GetDisplayVisibility();
-    }
     else if (node->IsA("vtkMRMLDisplayableNode"))
     {
       vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
@@ -315,7 +311,7 @@ void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
       }
       else if (node->IsA("vtkMRMLContourNode"))
       {
-        vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
+        vtkMRMLDisplayableNode* contourNode = vtkMRMLDisplayableNode::SafeDownCast(node);
         contourNode->SetDisplayVisibility(visible);
       }
       else if (node->IsA("vtkMRMLDisplayableNode") && !node->IsA("vtkMRMLVolumeNode"))
@@ -454,74 +450,36 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   // Create patient hierarchy node if dropped from outside the tree (the potential nodes list) OR if deleted in previous check
   else
   {
-    vtkSmartPointer<vtkMRMLContourNode> newContourNode;
-
-    // If parent is a contour hierarchy node than create contour for the dropped contour representation
-    if (parentPatientHierarchyNode->IsA("vtkMRMLContourHierarchyNode"))
+    // If there is a plugin that can handle the dropped node then let it take care of it
+    bool successfullyReadByPlugin = false;
+    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForNode(node);
+    if (foundPlugin)
     {
-      // Create hierarchy node for contour node
-      associatedPatientHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
-      associatedPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(this->mrmlScene()->AddNode(associatedPatientHierarchyNode));
-
-      // Create contour node if dropped node is volume or model
-      if ( (node->IsA("vtkMRMLModelNode") && !node->IsA("vtkMRMLAnnotationNode"))
-        || node->IsA("vtkMRMLScalarVolumeNode") )
+      successfullyReadByPlugin = foundPlugin->AddNodeToPatientHierarchy(node, parentPatientHierarchyNode);
+      if (!successfullyReadByPlugin)
       {
-        newContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-        newContourNode = vtkMRMLContourNode::SafeDownCast(this->mrmlScene()->AddNode(newContourNode));
-        std::string contourName(node->GetName());
-        contourName.append(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX.c_str());
-        contourName = this->mrmlScene()->GenerateUniqueName(contourName);
-        newContourNode->SetName(contourName.c_str());
-        //contourNode->SetStructureName(roiLabel); //TODO: Utilize PH so that this variable is not needed
-        if (node->IsA("vtkMRMLScalarVolumeNode"))
-        {
-          newContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(node->GetID());
-
-          // Make sure the volume is treated as a labelmap
-          node->SetAttribute("LabelMap", "1");
-
-          // Set the labelmap itself as reference thus indicating there was no conversion from model representation
-          newContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(node->GetID());
-          newContourNode->SetRasterizationOversamplingFactor(1.0);
-        }
-        else
-        {
-          newContourNode->SetAndObserveClosedSurfaceModelNodeId(node->GetID());
-          newContourNode->SetDecimationTargetReductionFactor(0.0);
-        }
-        newContourNode->HideFromEditorsOff();
-        associatedPatientHierarchyNode->SetAssociatedNodeID(newContourNode->GetID());
-        newContourNode->Modified();
-      }
-      else
-      {
-        associatedPatientHierarchyNode->SetAssociatedNodeID(node->GetID());
+        vtkDebugWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Failed to add node "
+          << node->GetName() << " through plugin " << (foundPlugin->GetName()?foundPlugin->GetName():"Unnamed") << "!");
       }
     }
-    else
+
+    if (!foundPlugin || !successfullyReadByPlugin)
     {
+      // Associate to a new hierarchy node and put it in the tree under the parent
       associatedPatientHierarchyNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
       associatedPatientHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(this->mrmlScene()->AddNode(associatedPatientHierarchyNode));
       associatedPatientHierarchyNode->SetAssociatedNodeID(node->GetID());
-    }
-
-    std::string phNodeName;
-    phNodeName = std::string(node->GetName()) + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
-    phNodeName = this->mrmlScene()->GenerateUniqueName(phNodeName);
-    associatedPatientHierarchyNode->SetName(phNodeName.c_str());
-    associatedPatientHierarchyNode->HideFromEditorsOff();
-    associatedPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-      SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-    //TODO: Subseries level is the default for now. This and UID has to be specified before export (need the tag editor widget)
-    associatedPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-      vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
-
-    associatedPatientHierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
-
-    if (newContourNode.GetPointer())
-    {
-      newContourNode->Modified();
+      std::string phNodeName;
+      phNodeName = std::string(node->GetName()) + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
+      phNodeName = this->mrmlScene()->GenerateUniqueName(phNodeName);
+      associatedPatientHierarchyNode->SetName(phNodeName.c_str());
+      associatedPatientHierarchyNode->HideFromEditorsOff();
+      associatedPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+        SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+      //TODO: Subseries level is the default for now. This and UID has to be specified before export (need the tag editor widget)
+      associatedPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+      associatedPatientHierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
     }
   }
 

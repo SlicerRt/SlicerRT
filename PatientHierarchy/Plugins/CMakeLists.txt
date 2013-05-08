@@ -1,19 +1,20 @@
-project(vtkSlicer${MODULE_NAME}ModuleLogic)
+project(vtkSlicer${MODULE_NAME}ModulePlugins)
 
 set(KIT ${PROJECT_NAME})
 
-set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_LOGIC_EXPORT")
+set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_PLUGINS_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
-  vtkSlicer${MODULE_NAME}ModuleLogic.cxx
-  vtkSlicer${MODULE_NAME}ModuleLogic.h
+  vtkSlicer${MODULE_NAME}Plugin.h
+  vtkSlicer${MODULE_NAME}PluginHandler.cxx
+  vtkSlicer${MODULE_NAME}PluginHandler.h
   )
 
-SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Base_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------
 set(${KIT}_TARGET_LIBRARIES

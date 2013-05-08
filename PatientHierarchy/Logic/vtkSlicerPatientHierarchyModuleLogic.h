@@ -85,10 +85,6 @@ public:
   /// \return True if the node is of the specified level, false otherwise
   static bool IsDicomLevel(vtkMRMLNode* node, const char* level);
 
-  /// Determine if a node has the type of a potential patient hierarchy node
-  ///  (e.g. vtkMRMLModelNode, vtkMRMLVolumeNode, or vtkMRMLContourNode)
-  static bool IsPotentialPatientHierarchyNode(vtkMRMLNode* node);
-
   /// Get associated patient hierarchy node for a MRML node
   /// \param scene MRML scene to search in
   /// \param associatedNodeId ID of the node for which we want the associated hierarchy node
@@ -104,21 +100,8 @@ public:
   static std::string GetTooltipForNode(vtkMRMLNode* node);
 
 protected:
-  /// Create a default structure set node so that contours can be created from potential representations without having
-  /// loaded a DICOM-RT study. This method becomes obsolete when creating new patient hierarchy nodes feature is implemented.
-  void CreateDefaultStructureSetNode();
-
-protected:
   vtkSlicerPatientHierarchyModuleLogic();
   virtual ~vtkSlicerPatientHierarchyModuleLogic();
-
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
-
-  /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
-
-  virtual void UpdateFromMRMLScene();
-  virtual void OnMRMLSceneEndClose();
 
 private:
   vtkSlicerPatientHierarchyModuleLogic(const vtkSlicerPatientHierarchyModuleLogic&); // Not implemented

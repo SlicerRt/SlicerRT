@@ -68,10 +68,11 @@ protected:
   void GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* fromModelNode, vtkMRMLScalarVolumeNode* toVolumeNode, vtkGeneralTransform* fromModelToVolumeIjkTransform);
 
   /// Convert model representation to indexed labelmap
-  vtkMRMLScalarVolumeNode* ConvertFromModelToIndexedLabelmap(vtkMRMLModelNode* modelNode);
+  /// \param type Source model type for the conversion
+  vtkMRMLScalarVolumeNode* ConvertFromModelToIndexedLabelmap(vtkMRMLContourNode::ContourRepresentationType type);
 
   /// Convert indexed labelmap representation to closed surface model
-  vtkMRMLModelNode* ConvertFromIndexedLabelmapToClosedSurfaceModel(vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode);
+  vtkMRMLModelNode* ConvertFromIndexedLabelmapToClosedSurfaceModel();
 
 protected:
   // Contour node whose representations to convert

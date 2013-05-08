@@ -37,7 +37,6 @@ protected:
   ~vtkMRMLContourHierarchyNode();
   vtkMRMLContourHierarchyNode(const vtkMRMLContourHierarchyNode&);
   void operator=(const vtkMRMLContourHierarchyNode&);
-
 };
 
 #endif

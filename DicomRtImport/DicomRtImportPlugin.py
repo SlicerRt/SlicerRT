@@ -156,7 +156,7 @@ class DicomRtImportPlugin:
     seriesNode.HideFromEditorsOff()
     seriesNode.SetAssociatedNodeID(volumeNode.GetID())
     seriesNode.SetAttribute('HierarchyType','PatientHierarchy')
-    seriesNode.SetAttribute('DicomLevel','Patient')
+    seriesNode.SetAttribute('DicomLevel','Series')
     seriesDescription = slicer.dicomDatabase.fileValue(firstFile,tags['seriesDescription'])
     if seriesDescription == '':
       seriesDescription = 'No description'

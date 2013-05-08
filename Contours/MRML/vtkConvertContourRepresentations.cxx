@@ -28,6 +28,7 @@
 #include "SlicerRtCommon.h"
 #include "vtkLabelmapToModelFilter.h"
 #include "vtkPolyDataToLabelmapFilter.h"
+#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
@@ -49,7 +50,6 @@
 
 // STD includes
 #include <cassert>
-#include <algorithm> //TODO: workaround for issue #179
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkConvertContourRepresentations);
@@ -117,17 +117,31 @@ void vtkConvertContourRepresentations::GetTransformFromModelToVolumeIjk(
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedLabelmap(vtkMRMLModelNode* modelNode)
+vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedLabelmap(vtkMRMLContourNode::ContourRepresentationType type)
 {
   if (!this->ContourNode)
   {
-    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Invalid ontour node!");
+    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Invalid contour node!");
+    return NULL;
+  }
+  vtkMRMLScene* mrmlScene = this->ContourNode->GetScene();
+  if (!mrmlScene)
+  {
+    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Invalid scene!");
     return NULL;
   }
 
-  vtkMRMLScene* mrmlScene = this->ContourNode->GetScene();
-  if (!mrmlScene || !modelNode)
+  vtkMRMLModelNode* modelNode = NULL;
+  switch (type)
   {
+  case vtkMRMLContourNode::RibbonModel:
+    modelNode = this->ContourNode->RibbonModelNode;
+    break;
+  case vtkMRMLContourNode::ClosedSurfaceModel:
+    modelNode = this->ContourNode->ClosedSurfaceModelNode;
+    break;
+  default:
+    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Invalid source representation type given!");
     return NULL;
   }
 
@@ -144,8 +158,38 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     mrmlScene->GetNodeByID(this->ContourNode->RasterizationReferenceVolumeNodeId));
   if (!referenceVolumeNode)
   {
-    vtkErrorMacro("Error: No reference volume node!");
+    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No reference volume node!");
     return NULL;
+  }
+
+  // Get patient hierarchy node associated to the contour
+  vtkMRMLHierarchyNode* patientHierarchyNode_Contour = vtkMRMLContourHierarchyNode::GetAssociatedHierarchyNode(mrmlScene, this->ContourNode->GetID());
+  vtkMRMLScalarVolumeNode* referenceAnatomyVolume = NULL;
+  if (patientHierarchyNode_Contour)
+  {
+    // Get referenced series (anatomy volume that was used for the contouring)
+    const char* referencedSeriesUid = patientHierarchyNode_Contour->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str());
+    if (referencedSeriesUid)
+    {
+      vtkMRMLHierarchyNode* patientHierarchyNode_ReferencedSeries =
+        vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(mrmlScene, referencedSeriesUid);
+      if (patientHierarchyNode_ReferencedSeries)
+      {
+        referenceAnatomyVolume = vtkMRMLScalarVolumeNode::SafeDownCast(patientHierarchyNode_ReferencedSeries->GetAssociatedNode());
+      }
+      else
+      {
+        vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No referenced series found for contour " << this->ContourNode->Name << "!");
+      }
+    }
+    else
+    {
+      vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No referenced series UID found for contour " << this->ContourNode->Name << "!");
+    }
+  }
+  else
+  {
+    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No patient hierarchy node found for contour " << this->ContourNode->Name << "!");
   }
 
   // Get color index
@@ -246,17 +290,17 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapToClosedSurfaceModel(vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode)
+vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapToClosedSurfaceModel()
 {
   if (!this->ContourNode)
   {
     vtkErrorMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Invalid contour node!");
     return NULL;
   }
-
   vtkMRMLScene* mrmlScene = this->ContourNode->GetScene();
-  if (!mrmlScene || !indexedLabelmapVolumeNode)
+  if (!mrmlScene || !this->ContourNode->IndexedLabelmapVolumeNode)
   {
+    vtkErrorMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Invalid scene!");
     return NULL;
   }
 
@@ -271,7 +315,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
 
   // Convert labelmap to model
   vtkSmartPointer<vtkLabelmapToModelFilter> labelmapToModelFilter = vtkSmartPointer<vtkLabelmapToModelFilter>::New();
-  labelmapToModelFilter->SetInputLabelmap( indexedLabelmapVolumeNode->GetImageData() );
+  labelmapToModelFilter->SetInputLabelmap( this->ContourNode->IndexedLabelmapVolumeNode->GetImageData() );
   labelmapToModelFilter->SetDecimateTargetReduction( this->ContourNode->DecimationTargetReductionFactor );
   labelmapToModelFilter->SetLabelValue( structureColorIndex );
   labelmapToModelFilter->Update();    
@@ -300,18 +344,15 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   // Create closed surface model node
   vtkSmartPointer<vtkMRMLModelNode> closedSurfaceModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
   closedSurfaceModelNode = vtkMRMLModelNode::SafeDownCast(mrmlScene->AddNode(closedSurfaceModelNode));
-
   std::string closedSurfaceModelNodeName = std::string(this->ContourNode->Name) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
   closedSurfaceModelNodeName = mrmlScene->GenerateUniqueName(closedSurfaceModelNodeName);
-
   closedSurfaceModelNode->SetName( closedSurfaceModelNodeName.c_str() );
-
   closedSurfaceModelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-  closedSurfaceModelNode->SetAndObserveTransformNodeID( indexedLabelmapVolumeNode->GetTransformNodeID() );
+  closedSurfaceModelNode->SetAndObserveTransformNodeID( this->ContourNode->IndexedLabelmapVolumeNode->GetTransformNodeID() );
 
   // Create model to referenceIjk transform
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  this->GetTransformFromModelToVolumeIjk(closedSurfaceModelNode, indexedLabelmapVolumeNode, modelToReferenceVolumeIjkTransform);
+  this->GetTransformFromModelToVolumeIjk(closedSurfaceModelNode, this->ContourNode->IndexedLabelmapVolumeNode, modelToReferenceVolumeIjkTransform);
 
   vtkSmartPointer<vtkGeneralTransform> referenceVolumeIjkToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   referenceVolumeIjkToModelTransform->Concatenate(modelToReferenceVolumeIjkTransform);
@@ -391,7 +432,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
     }
 
     vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode = this->ConvertFromModelToIndexedLabelmap(
-      (this->ContourNode->RibbonModelNode ? this->ContourNode->RibbonModelNode : this->ContourNode->ClosedSurfaceModelNode) );
+      (this->ContourNode->RibbonModelNode ? vtkMRMLContourNode::RibbonModel : vtkMRMLContourNode::ClosedSurfaceModel) );
 
     return (indexedLabelmapVolumeNode != NULL);
   }
@@ -399,7 +440,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
   else if ( this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::IndexedLabelmap && type == vtkMRMLContourNode::ClosedSurfaceModel )
   {
     vtkMRMLModelNode* closedSurfaceVolumeNode
-      = this->ConvertFromIndexedLabelmapToClosedSurfaceModel(this->ContourNode->IndexedLabelmapVolumeNode);
+      = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
 
     return (closedSurfaceVolumeNode != NULL);
   }
@@ -415,7 +456,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
         vtkErrorMacro("Unable to convert to indexed labelmap without a reference volume node (it is needed to convert into closed surface model)!");
         return false;
       }
-      if (this->ConvertFromModelToIndexedLabelmap(this->ContourNode->RibbonModelNode) == NULL)
+      if (this->ConvertFromModelToIndexedLabelmap(vtkMRMLContourNode::RibbonModel) == NULL)
       {
         vtkErrorMacro("Conversion to indexed labelmap failed (it is needed to convert into closed surface model)!");
         return false;
@@ -423,7 +464,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
     }
 
     vtkMRMLModelNode* closedSurfaceVolumeNode
-      = this->ConvertFromIndexedLabelmapToClosedSurfaceModel(this->ContourNode->IndexedLabelmapVolumeNode);
+      = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
 
     return (closedSurfaceVolumeNode != NULL);
   }

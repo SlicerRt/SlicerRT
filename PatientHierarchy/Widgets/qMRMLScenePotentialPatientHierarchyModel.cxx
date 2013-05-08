@@ -24,6 +24,8 @@
 // Patient Hierarchy includes
 #include "qMRMLScenePotentialPatientHierarchyModel_p.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
+#include "vtkSlicerPatientHierarchyPluginHandler.h"
+#include "vtkSlicerPatientHierarchyPlugin.h"
 
 // MRML includes
 #include <vtkMRMLNode.h>
@@ -113,7 +115,21 @@ void qMRMLScenePotentialPatientHierarchyModel::updateNodeFromItemData(vtkMRMLNod
 //------------------------------------------------------------------------------
 bool qMRMLScenePotentialPatientHierarchyModel::canBeAChild(vtkMRMLNode* node)const
 {
-  return vtkSlicerPatientHierarchyModuleLogic::IsPotentialPatientHierarchyNode(node);
+  // Volumes and models can be patient hierarchy leaves by default
+  // TODO: Outsource this decision to the modules? (e.g. Beams in case of models)
+  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLModelNode"))
+  {
+    return true;
+  }
+
+  // Otherwise, if there is a plugin that can handle adding the node, then it also can be a child
+  vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForNode(node);
+  if (foundPlugin)
+  {
+    return true;
+  }
+
+  return false;
 }
 
 //------------------------------------------------------------------------------

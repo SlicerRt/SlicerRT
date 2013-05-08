@@ -23,8 +23,10 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
-#include "vtkMRMLContourNode.h"
+
+// PatientHierarchy includes
+#include "vtkSlicerPatientHierarchyPluginHandler.h"
+#include "vtkSlicerPatientHierarchyPlugin.h"
 
 // qMRML includes
 #include "qMRMLSceneModel.h"
@@ -82,23 +84,15 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPotentialPatientHierarchyPr
     return res;
   }
 
-  // Show only if its type is among the potential patient hierarchy types
-  // and it is not associated to a patient hierarchy node
-  // and it is not a representation object of a contour node
-  if (node && vtkSlicerPatientHierarchyModuleLogic::IsPotentialPatientHierarchyNode(node))
+  // Show only nodes that do not have a patient hierarchy node associated
+  vtkMRMLHierarchyNode* possiblePhNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->mrmlScene(), node->GetID());
+  if (!SlicerRtCommon::IsPatientHierarchyNode(possiblePhNode) && (d->includeHiddenNodes || !node->GetHideFromEditors()))
   {
-    vtkMRMLHierarchyNode* possiblePhNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->mrmlScene(), node->GetID());
-    if (!SlicerRtCommon::IsPatientHierarchyNode(possiblePhNode) && (d->includeHiddenNodes || !node->GetHideFromEditors()))
+    // Show only if the node is a potential patient hierarchy node according the the plugins
+    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForNode(node);
+    if (foundPlugin)
     {
-      // If the node is a contour representation then do not add it to the list
-      if (vtkMRMLContourNode::IsNodeAContourRepresentation(this->mrmlScene(), node))
-      {
-        return RejectButPotentiallyAcceptable;
-      }
-      else
-      {
-        return Accept;
-      }
+      return Accept;
     }
   }
 
