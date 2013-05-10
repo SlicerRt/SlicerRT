@@ -22,7 +22,7 @@
 #include "qSlicerAbstractModuleWidget.h"
 
 #include "qSlicerProtonDoseModuleExport.h"
-#include "qSlicerProtonDoseBeamParameters.h"
+#include "vtkMRMLProtonBeamsNode.h"
 
 // library includes
 #include <vector>
@@ -46,20 +46,7 @@ public:
 
   virtual void enter();
 
-public slots:
-  /// Set the current MRML scene to the widget
-  virtual void setMRMLScene(vtkMRMLScene*);
-
-  /// Process loaded scene
-  void onSceneImportedEvent();
-
-  /// Set current parameter node
-  void setProtonDoseNode(vtkMRMLNode *node);
-
-  /// Update widget GUI from parameter node
-  void updateWidgetFromMRML();
-
-  // actions from the QPush Button  
+    // actions from the QPush Button  
   void beamChanged();
   void beamNameChanged();
   
@@ -90,6 +77,21 @@ public slots:
   // Creation of the configuration file
   void configFileCreation();
 
+public slots:
+  /// Set the current MRML scene to the widget
+  virtual void setMRMLScene(vtkMRMLScene*);
+
+  /// Process loaded scene
+  void onSceneImportedEvent();
+
+  /// Set current parameter node
+  void setProtonDoseNode(vtkMRMLNode *node);
+
+  /// Update widget GUI from parameter node
+  void updateWidgetFromMRML();
+
+
+
 protected slots:
   void doseVolumeNodeChanged(vtkMRMLNode*);
   void storeSelectedTableItemText(QTableWidgetItem* selectedItem, QTableWidgetItem* previousItem);
@@ -114,7 +116,7 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerProtonDoseModuleWidget);
   Q_DISABLE_COPY(qSlicerProtonDoseModuleWidget);
-  std::vector<ProtonBeamParameters> beam; // vector of beam classes - each case contains a beam with its parameter
+  std::vector<vtkMRMLProtonBeamsNode> beam; // vector of beam classes - each case contains a beam with its parameter
   int beam_max, beam_actual; // two parameters to manage the beam that appears on the screen (beam_actual) - max beam is used for adding and deleting a beam
 };
 

@@ -73,7 +73,6 @@ add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmXformwarp)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-  add_subdirectory(ProtonDose)
 
   add_subdirectory(PlmDoseComparison)
   add_subdirectory(PlmDvh)

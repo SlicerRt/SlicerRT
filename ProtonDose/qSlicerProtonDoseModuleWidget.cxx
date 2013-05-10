@@ -33,13 +33,11 @@
 
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLProtonBeamsNode.h>
 
 // STD includes
 #include <sstream>
 #include <string>
-
-// class includes
-#include "qSlicerProtonDoseBeamParameters.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ProtonDose
@@ -253,7 +251,7 @@ void qSlicerProtonDoseModuleWidget::setup()
 	beam_max = 1;
 	beam_actual = 0;
 
-	ProtonBeamParameters beam_default;
+	vtkMRMLProtonBeamsNode beam_default;
 
 	beam.push_back(beam_default);
 
@@ -348,11 +346,12 @@ void qSlicerProtonDoseModuleWidget::addBeam()
 		beam_max++;
 		beam_actual = beam_max-1;
 		
-		ProtonBeamParameters beam_default;
+		vtkMRMLProtonBeamsNode beam_default;
 		beam.push_back(beam_default);
 		beam[beam_actual].accessBeamName(new_beam_name.toStdString());
 
 		Q_D(qSlicerProtonDoseModuleWidget);
+
 		d->comboBox_Beam->addItem(QString::fromStdString(beam[beam_actual].readBeamName()));
 		d->comboBox_Beam->setCurrentIndex(beam_actual);
 		beamQtUpdate(); // the created beam appears on the main window
@@ -428,7 +427,9 @@ void qSlicerProtonDoseModuleWidget::loadBeam()
 			int beam_number;
 			std::string beamName;
 			double data;
-			ProtonBeamParameters beam_default;
+			Q_D(qSlicerProtonDoseModuleWidget);
+
+			vtkMRMLProtonBeamsNode beam_default;
 			
 			beam_actual = 0;
 			d->comboBox_Beam->setCurrentIndex(beam_actual);
