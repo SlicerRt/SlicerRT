@@ -53,7 +53,7 @@ public:
 // qSlicerProtonBeamsModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerProtonBeamsModuleWidgetPrivate::qSlicerProtonBeamsModuleWidgetPrivate(qSlicerBeamsModuleWidget& object)
+qSlicerProtonBeamsModuleWidgetPrivate::qSlicerProtonBeamsModuleWidgetPrivate(qSlicerProtonBeamsModuleWidget& object)
   : q_ptr(&object)
 {
 }
@@ -96,7 +96,7 @@ void qSlicerProtonBeamsModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene &&  d->logic()->GetBeamsNode() == 0)
+  if (scene &&  d->logic()->GetProtonBeamsNode() == 0)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLProtonBeamsNode");
     if (node)
@@ -134,7 +134,7 @@ void qSlicerProtonBeamsModuleWidget::onEnter()
   {
     return;
   }
-  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetBeamsNode();
+  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetProtonBeamsNode();
 
   // If we have a parameter node select it
   if (paramNode == NULL)
@@ -143,14 +143,14 @@ void qSlicerProtonBeamsModuleWidget::onEnter()
     if (node)
     {
       paramNode = vtkMRMLProtonBeamsNode::SafeDownCast(node);
-      d->logic()->SetAndObserveBeamsNode(paramNode);
+      d->logic()->SetAndObserveProtonBeamsNode(paramNode);
       return;
     }
     else 
     {
       vtkSmartPointer<vtkMRMLProtonBeamsNode> newNode = vtkSmartPointer<vtkMRMLProtonBeamsNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveBeamsNode(newNode);
+      d->logic()->SetAndObserveProtonBeamsNode(newNode);
     }
   }
 
@@ -162,12 +162,12 @@ void qSlicerProtonBeamsModuleWidget::setBeamsNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerProtonBeamsModuleWidget);
 
-  vtkMRMLProtonBeamsNode* paramNode = vtkMRMLBeamsNode::SafeDownCast(node);
+  vtkMRMLProtonBeamsNode* paramNode = vtkMRMLProtonBeamsNode::SafeDownCast(node);
 
   // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect( d->logic()->GetBeamsNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
+  qvtkReconnect( d->logic()->GetProtonBeamsNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
-  d->logic()->SetAndObserveBeamsNode(paramNode);
+  d->logic()->SetAndObserveProtonBeamsNode(paramNode);
 
   this->updateWidgetFromMRML();
 }
@@ -177,10 +177,10 @@ void qSlicerProtonBeamsModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerProtonBeamsModuleWidget);
 
-  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetBeamsNode();
+  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetProtonBeamsNode();
   if (paramNode && this->mrmlScene())
   {
-    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetBeamsNode());
+    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetProtonBeamsNode());
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetIsocenterFiducialNodeId()))
     {
       d->MRMLNodeComboBox_IsocenterFiducial->setCurrentNode(paramNode->GetIsocenterFiducialNodeId());
@@ -240,7 +240,7 @@ void qSlicerProtonBeamsModuleWidget::isocenterFiducialNodeChanged(vtkMRMLNode* n
 {
   Q_D(qSlicerProtonBeamsModuleWidget);
 
-  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetBeamsNode();
+  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetProtonBeamsNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
     return;
@@ -259,7 +259,7 @@ void qSlicerProtonBeamsModuleWidget::sourceFiducialNodeChanged(vtkMRMLNode* node
 {
   Q_D(qSlicerProtonBeamsModuleWidget);
 
-  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetBeamsNode();
+  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetProtonBeamsNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
     return;
@@ -277,7 +277,7 @@ void qSlicerProtonBeamsModuleWidget::beamModelNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerProtonBeamsModuleWidget);
 
-  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetBeamsNode();
+  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetProtonBeamsNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
     return;
@@ -295,9 +295,9 @@ void qSlicerProtonBeamsModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerProtonBeamsModuleWidget);
 
-  bool applyEnabled = d->logic()->GetBeamsNode()
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetBeamsNode()->GetIsocenterFiducialNodeId())
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetBeamsNode()->GetSourceFiducialNodeId());
+  bool applyEnabled = d->logic()->GetProtonBeamsNode()
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetProtonBeamsNode()->GetIsocenterFiducialNodeId())
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetProtonBeamsNode()->GetSourceFiducialNodeId());
   d->pushButton_Apply->setEnabled(applyEnabled);
 
   d->label_Error->setVisible(false);
@@ -317,7 +317,7 @@ void qSlicerProtonBeamsModuleWidget::applyClicked()
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   std::string errorMessage;
-  d->logic()->CreateBeamModel(errorMessage);
+  d->logic()->CreateProtonBeamModel(errorMessage);
 
   d->label_Error->setVisible( !errorMessage.empty() );
   d->label_Error->setText( QString(errorMessage.c_str()) );
@@ -330,7 +330,7 @@ void qSlicerProtonBeamsModuleWidget::refreshOutputBaseName()
 {
   Q_D(qSlicerProtonBeamsModuleWidget);
 
-  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetBeamsNode();
+  vtkMRMLProtonBeamsNode* paramNode = d->logic()->GetProtonBeamsNode();
   if (!paramNode || !this->mrmlScene())
   {
     return;

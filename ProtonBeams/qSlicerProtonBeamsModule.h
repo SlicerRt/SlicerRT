@@ -25,12 +25,12 @@
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-#include "qSlicerBeamsModuleExport.h"
+#include "qSlicerProtonBeamsModuleExport.h"
 
 class qSlicerProtonBeamsModulePrivate;
 
 /// \ingroup Slicer_QtModules_Beams
-class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerProtonBeamsModule :
+class Q_SLICER_QTMODULES_PROTONBEAMS_EXPORT qSlicerProtonBeamsModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -71,11 +71,11 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
 protected:
-  QScopedPointer<qSlicerBeamsModulePrivate> d_ptr;
+  QScopedPointer<qSlicerProtonBeamsModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerBeamsModule);
-  Q_DISABLE_COPY(qSlicerBeamsModule);
+  Q_DECLARE_PRIVATE(qSlicerProtonBeamsModule);
+  Q_DISABLE_COPY(qSlicerProtonBeamsModule);
 
 };
 

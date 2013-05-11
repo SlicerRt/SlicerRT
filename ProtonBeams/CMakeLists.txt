@@ -6,10 +6,17 @@ string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 
 #-----------------------------------------------------------------------------
+find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} )
+if(NOT Plastimatch_FOUND)
+  message("Plastimatch library is not found. DoseComparison module will not be built.")
+  return()
+endif() 
+
+#-----------------------------------------------------------------------------
 add_subdirectory(Logic)
 
 #-----------------------------------------------------------------------------
-set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_COPYNAME_UPPER}_EXPORT")
+set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 
 set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
@@ -17,12 +24,12 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   )
 
-#set(MODULE_SRCS
-#  qSlicer${MODULE_NAME}Module.cxx
-#  qSlicer${MODULE_NAME}Module.h
-#  qSlicer${MODULE_NAME}ModuleWidget.cxx
-#  qSlicer${MODULE_NAME}ModuleWidget.h
-#  )
+set(MODULE_SRCS
+  qSlicer${MODULE_NAME}Module.cxx
+  qSlicer${MODULE_NAME}Module.h
+  qSlicer${MODULE_NAME}ModuleWidget.cxx
+  qSlicer${MODULE_NAME}ModuleWidget.h
+  )
 
 set(MODULE_MOC_SRCS
   qSlicer${MODULE_NAME}Module.h

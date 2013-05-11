@@ -37,14 +37,15 @@
 // STD includes
 #include <cstdlib>
 
-#include "vtkSlicerBeamsModuleLogicExport.h"
+#include "vtkSlicerProtonBeamsModuleLogicExport.h"
 
 class vtkTransform;
 class vtkMRMLVolumeNode;
 class vtkMRMLProtonBeamsNode;
 
 /// \ingroup Slicer_QtModules_Beams
-class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerProtonBeamsModuleLogic :
+class VTK_SLICER_PROTONBEAMS_LOGIC_EXPORT 
+vtkSlicerProtonBeamsModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:

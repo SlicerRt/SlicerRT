@@ -25,7 +25,7 @@
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerBeamsModuleExport.h"
+#include "qSlicerProtonBeamsModuleExport.h"
 
 class qSlicerProtonBeamsModuleWidgetPrivate;
 class vtkMRMLNode;
@@ -35,7 +35,8 @@ class QTableWidgetItem;
 #include <map>
 
 /// \ingroup Slicer_QtModules_Beams
-class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerProtonBeamsModuleWidget :
+class Q_SLICER_QTMODULES_PROTONBEAMS_EXPORT 
+qSlicerProtonBeamsModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT

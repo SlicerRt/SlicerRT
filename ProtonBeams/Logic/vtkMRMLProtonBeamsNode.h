@@ -26,9 +26,9 @@
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
 
-#include "vtkSlicerBeamsModuleLogicExport.h"
+#include "vtkSlicerProtonBeamsModuleLogicExport.h"
 
-class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkMRMLProtonBeamsNode : public vtkMRMLNode
+class VTK_SLICER_PROTONBEAMS_LOGIC_EXPORT vtkMRMLProtonBeamsNode : public vtkMRMLNode
 {
 public:
   static vtkMRMLProtonBeamsNode *New();

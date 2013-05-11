@@ -73,7 +73,7 @@ qSlicerProtonBeamsModule::~qSlicerProtonBeamsModule()
 QString qSlicerProtonBeamsModule::helpText()const
 {
   QString help = 
-    "This module displays and handles beam geometry modules created from the loaded isocenter and source fiducials for proton beams. "
+    "This module displays and handles beam geometry modules created from the loaded isocenter and source fiducials for proton beams. ";
     /*"For more information see <a href=\"%1/Documentation/%2.%3/Modules/Beams\">%1/Documentation/%2.%3/Modules/Beams</a><br>";*/
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
@@ -83,6 +83,7 @@ QString qSlicerProtonBeamsModule::acknowledgementText()const
 {
   /*return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
 */
+	return "This is the acknowledgment text.";
 }
 
 //-----------------------------------------------------------------------------
