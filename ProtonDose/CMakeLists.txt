@@ -40,6 +40,7 @@ set(MODULE_UI_SRCS
 
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
+  vtkSlicerProtonBeamsModuleLogic
   )
 
 set(MODULE_RESOURCES

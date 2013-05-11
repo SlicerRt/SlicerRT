@@ -78,44 +78,45 @@ public:
   vtkGetMacro(BeamModelOpacity,double);
 
   // accessor of the beam parameters
-	void accessBeamName(std::string);
-	void accessIsocenter_x(double);
-	void accessIsocenter_y(double);
-	void accessIsocenter_z(double);
-	void accessGantryAngle(double);
-	void accessCollimatorAngle(double);
-	void accessRange(double);
-	void accessMod(double);
-	void accessDistanceMin(double);
-	void accessDistanceMax(double);
-	void accessJaw_x(double);
-	void accessJaw_y(double);
-	void accessCouchRotation(double);
-	void accessCouchPitch(double);
-	void accessCouchRoll(double);
+  void accessBeamName(std::string);
+  void accessIsocenter_x(double);
+  void accessIsocenter_y(double);
+  void accessIsocenter_z(double);
+  void accessGantryAngle(double);
+  void accessCollimatorAngle(double);
+  void accessRange(double);
+  void accessMod(double);
+  void accessDistanceMin(double);
+  void accessDistanceMax(double);
+  void accessJaw_x(double);
+  void accessJaw_y(double);
+  void accessCouchRotation(double);
+  void accessCouchPitch(double);
+  void accessCouchRoll(double);
 
 
-	std::string readBeamName(); // reader of the parameters
-	double readIsocenter_x();
-	double readIsocenter_y();
-	double readIsocenter_z();
-	double readGantryAngle();
-	double readCollimatorAngle();
-	double readRange();
-	double readMod();
-	double readDistanceMin();
-	double readDistanceMax();
-	double readJaw_x();
-	double readJaw_y();
-	double readCouchRotation();
-	double readCouchPitch();
-	double readCouchRoll();
-	double readSourceX();
-	double readSourceY();
-	double readSourceZ();
+  std::string readBeamName(); // reader of the parameters
+  double readIsocenter_x();
+  double readIsocenter_y();
+  double readIsocenter_z();
+  double readGantryAngle();
+  double readCollimatorAngle();
+  double readRange();
+  double readMod();
+  double readDistanceMin();
+  double readDistanceMax();
+  double readJaw_x();
+  double readJaw_y();
+  double readCouchRotation();
+  double readCouchPitch();
+  double readCouchRoll();
+  double readSourceX();
+  double readSourceY();
+  double readSourceZ();
 
-	void calculateSourcePosition(); // function to calculate the source position in the patient reference
+  void calculateSourcePosition(); // function to calculate the source position in the patient reference
 
+protected:
   vtkMRMLProtonBeamsNode();
   ~vtkMRMLProtonBeamsNode();
   vtkMRMLProtonBeamsNode(const vtkMRMLProtonBeamsNode&);

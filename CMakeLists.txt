@@ -86,7 +86,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(ExternalBeamPlanning)
 
   add_subdirectory(ProtonBeams)
-#  add_subdirectory(ProtonDose)
+  add_subdirectory(ProtonDose)
 endif()
 
 if(BUILD_TESTING)

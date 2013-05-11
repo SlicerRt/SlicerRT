@@ -39,14 +39,14 @@ class Q_SLICER_QTMODULES_PROTONDOSE_EXPORT qSlicerProtonDoseModuleWidget :
   Q_OBJECT
   QVTK_OBJECT
 
-public:
+    public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerProtonDoseModuleWidget(QWidget *parent=0);
   virtual ~qSlicerProtonDoseModuleWidget();
 
   virtual void enter();
 
-    // actions from the QPush Button  
+  // actions from the QPush Button  
   void beamChanged();
   void beamNameChanged();
   
@@ -116,7 +116,13 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerProtonDoseModuleWidget);
   Q_DISABLE_COPY(qSlicerProtonDoseModuleWidget);
+
+  /* GCS FIX: Can't make a raw vector of these unless you define an 
+     assignment operator and copy constructor.  Instead, use smart 
+     pointer, or add to MRML scene. */
+#if defined (commentout)
   std::vector<vtkMRMLProtonBeamsNode> beam; // vector of beam classes - each case contains a beam with its parameter
+#endif
   int beam_max, beam_actual; // two parameters to manage the beam that appears on the screen (beam_actual) - max beam is used for adding and deleting a beam
 };
 
