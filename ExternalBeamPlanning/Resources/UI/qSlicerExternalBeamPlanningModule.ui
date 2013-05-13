@@ -435,22 +435,6 @@
   <connection>
    <sender>qSlicerExternalBeamPlanningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ExternalBeamPlanning</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>70</x>
-     <y>606</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>256</x>
-     <y>100</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerExternalBeamPlanningModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MRMLNodeComboBox_ReferenceVolume</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
@@ -493,6 +477,22 @@
     <hint type="destinationlabel">
      <x>317</x>
      <y>548</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerExternalBeamPlanningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_RTPlan</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>71</x>
+     <y>735</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>202</x>
+     <y>96</y>
     </hint>
    </hints>
   </connection>
