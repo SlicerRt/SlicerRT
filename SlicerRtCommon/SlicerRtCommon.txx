@@ -14,20 +14,20 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLVol
 {
   if ( inVolumeNode == NULL )
   {
-    std::cerr << "Failed to convert volume node to itk image - input MRML volume node is NULL!" << std::endl;
+    std::cerr << "SlicerRtCommon::ConvertVolumeNodeToItkImage: Failed to convert volume node to itk image - input MRML volume node is NULL!" << std::endl;
     return false; 
   }
 
   vtkImageData* inVolume = inVolumeNode->GetImageData();
   if ( inVolume == NULL )
   {
-    std::cerr << "Failed to convert volume node to itk image - image in input MRML volume node is NULL!" << std::endl; 
+    vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToItkImage: Failed to convert volume node to itk image - image in input MRML volume node is NULL!");
     return false; 
   }
 
   if ( outItkVolume.IsNull() )
   {
-    std::cerr << "Failed to convert volume node to itk image - output image is NULL!" << std::endl; 
+    vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToItkImage: Failed to convert volume node to itk image - output image is NULL!");
     return false; 
   }
 
@@ -62,7 +62,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLVol
   {
     if (inTransformNode->IsTransformToWorldLinear() == 0)
     {
-      std::cerr << "There is a non-linear transform assigned to an input dose volume. Only linear transforms are supported!" << std::endl;
+      vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToItkImage: There is a non-linear transform assigned to an input dose volume. Only linear transforms are supported!");
       return false;
     }
     inTransformNode->GetMatrixTransformToWorld(rasToWorldTransformMatrix);
@@ -126,7 +126,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLVol
   }
   catch(itk::ExceptionObject & err)
   {
-    std::cerr << "Failed to allocate memory for the image conversion: " << err.GetDescription() << std::endl;
+    vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToItkImage: Failed to allocate memory for the image conversion: " << err.GetDescription())
     return false;
   }
 

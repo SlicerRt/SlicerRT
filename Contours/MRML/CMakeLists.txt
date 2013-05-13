@@ -7,6 +7,7 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT"
 set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerPatientHierarchyModuleLogic_INCLUDE_DIRS}
+  ${PLASTIMATCH_INCLUDE_DIRS}
   )
 
 # --------------------------------------------------------------------------
@@ -30,7 +31,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   MRMLCore
   vtkSlicerPatientHierarchyModuleLogic
-  ${ITK_LIBRARIES}
+  ${PLASTIMATCH_LIBRARIES}
   )
 
 SlicerMacroBuildModuleMRML(

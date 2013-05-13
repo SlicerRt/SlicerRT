@@ -198,36 +198,6 @@ void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode
   }
 }
 
-//----------------------------------------------------------------------------
-void SlicerRtCommon::GetIjkToRasMatrixForResampledVolume( vtkMRMLVolumeNode* inputVolumeNode, vtkImageData* reslicedImage,
-                                                           vtkMatrix4x4* reslicedImageIjkToInputVolumeRasTransformMatrix )
-{
-  if ( !inputVolumeNode || !reslicedImage
-    || !reslicedImageIjkToInputVolumeRasTransformMatrix )
-  {
-    std::cerr << "One or more input objects are NULL!";
-    return;
-  }
-
-  double imageDataOrigin[3] = {0.0, 0.0, 0.0};
-  double imageDataSpacing[3] = {0.0, 0.0, 0.0};
-  reslicedImage->GetOrigin(imageDataOrigin);
-  reslicedImage->GetSpacing(imageDataSpacing);
-  vtkSmartPointer<vtkTransform> reslicedImageIjkToInputVolumeIjkTransform = vtkSmartPointer<vtkTransform>::New();
-  reslicedImageIjkToInputVolumeIjkTransform->Identity();
-  reslicedImageIjkToInputVolumeIjkTransform->Translate(imageDataOrigin);
-  reslicedImageIjkToInputVolumeIjkTransform->Scale(imageDataSpacing);
-
-  vtkSmartPointer<vtkMatrix4x4> inputVolumeIjkToRasTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  inputVolumeNode->GetIJKToRASMatrix( inputVolumeIjkToRasTransformMatrix );
-
-  vtkSmartPointer<vtkTransform> reslicedImageIjkToInputVolumeRasTransform = vtkSmartPointer<vtkTransform>::New();
-  reslicedImageIjkToInputVolumeRasTransform->Identity();
-  reslicedImageIjkToInputVolumeRasTransform->Concatenate(inputVolumeIjkToRasTransformMatrix);
-  reslicedImageIjkToInputVolumeRasTransform->Concatenate(reslicedImageIjkToInputVolumeIjkTransform);
-  reslicedImageIjkToInputVolumeRasTransformMatrix->DeepCopy(reslicedImageIjkToInputVolumeRasTransform->GetMatrix());
-}
-
 //---------------------------------------------------------------------------
 bool SlicerRtCommon::IsPatientHierarchyNode(vtkMRMLNode *node)
 {

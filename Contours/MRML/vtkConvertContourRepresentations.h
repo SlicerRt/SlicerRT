@@ -56,7 +56,11 @@ public:
 public:
     vtkGetObjectMacro(ContourNode, vtkMRMLContourNode);
     vtkSetObjectMacro(ContourNode, vtkMRMLContourNode);
-    
+
+    vtkGetMacro(LogSpeedMeasurements, bool);
+    vtkSetMacro(LogSpeedMeasurements, bool);
+    vtkBooleanMacro(LogSpeedMeasurements, bool);
+
 protected:
   /*!
     Compute transform between a model and a volume IJK coordinate system (to transform the model into the volume voxel space)
@@ -77,6 +81,9 @@ protected:
 protected:
   // Contour node whose representations to convert
   vtkMRMLContourNode* ContourNode;
+
+  /// Flag telling whether the speed measurements are logged on standard output
+  bool LogSpeedMeasurements;
 
 protected:
   vtkConvertContourRepresentations();

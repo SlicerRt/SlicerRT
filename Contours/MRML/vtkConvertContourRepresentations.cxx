@@ -47,6 +47,14 @@
 #include <vtkImageReslice.h>
 #include <vtkGeneralTransform.h>
 #include <vtkCollection.h>
+#include <vtkTimerLog.h>
+
+// ITK includes
+#include <itkImageRegionIteratorWithIndex.h>
+
+// Plastimatch includes
+#include "itk_resample.h"
+#include "plm_image_header.h"
 
 // STD includes
 #include <cassert>
@@ -58,6 +66,7 @@ vtkStandardNewMacro(vtkConvertContourRepresentations);
 vtkConvertContourRepresentations::vtkConvertContourRepresentations()
 {
   this->ContourNode = NULL;
+  this->LogSpeedMeasurementsOff();
 }
 
 //----------------------------------------------------------------------------
@@ -153,10 +162,13 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     return NULL;
   }
 
+  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
+  double checkpointStart = timer->GetUniversalTime();
+
   // Get reference volume node
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* selectedReferenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     mrmlScene->GetNodeByID(this->ContourNode->RasterizationReferenceVolumeNodeId));
-  if (!referenceVolumeNode)
+  if (!selectedReferenceVolumeNode)
   {
     vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No reference volume node!");
     return NULL;
@@ -164,7 +176,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
 
   // Get patient hierarchy node associated to the contour
   vtkMRMLHierarchyNode* patientHierarchyNode_Contour = vtkMRMLContourHierarchyNode::GetAssociatedHierarchyNode(mrmlScene, this->ContourNode->GetID());
-  vtkMRMLScalarVolumeNode* referenceAnatomyVolume = NULL;
+  vtkMRMLScalarVolumeNode* referencedAnatomyVolumeNode = NULL;
   if (patientHierarchyNode_Contour)
   {
     // Get referenced series (anatomy volume that was used for the contouring)
@@ -175,22 +187,36 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
         vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(mrmlScene, referencedSeriesUid);
       if (patientHierarchyNode_ReferencedSeries)
       {
-        referenceAnatomyVolume = vtkMRMLScalarVolumeNode::SafeDownCast(patientHierarchyNode_ReferencedSeries->GetAssociatedNode());
+        referencedAnatomyVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(patientHierarchyNode_ReferencedSeries->GetAssociatedNode());
+
+        // Check if the referenced anatomy volume is in the same coordinate system as the contour
+        vtkSmartPointer<vtkGeneralTransform> modelToReferencedAnatomyVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+        SlicerRtCommon::GetTransformBetweenTransformables(modelNode, referencedAnatomyVolumeNode, modelToReferencedAnatomyVolumeIjkTransform);
+        double* transformedPoint = modelToReferencedAnatomyVolumeIjkTransform->TransformPoint(1.0, 0.0, 0.0);
+        if (transformedPoint[0] != 1.0 || transformedPoint[1] != 0.0 || transformedPoint[2] != 0.0)
+        {
+          vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Referenced series '" << referencedAnatomyVolumeNode->GetName()
+            << "' is not in the same coordinate system as contour '" << this->ContourNode->Name << "'!");
+          referencedAnatomyVolumeNode = NULL;
+        }
       }
       else
       {
-        vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No referenced series found for contour " << this->ContourNode->Name << "!");
+        vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No referenced series found for contour '" << this->ContourNode->Name << "'!");
       }
     }
     else
     {
-      vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No referenced series UID found for contour " << this->ContourNode->Name << "!");
+      vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No referenced series UID found for contour '" << this->ContourNode->Name << "'!");
     }
   }
   else
   {
-    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No patient hierarchy node found for contour " << this->ContourNode->Name << "!");
+    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No patient hierarchy node found for contour '" << this->ContourNode->Name << "'!");
   }
+
+  // Use referenced anatomy volume for conversion if available
+  vtkMRMLScalarVolumeNode* referenceVolumeNodeUsedForConversion = (referencedAnatomyVolumeNode ? referencedAnatomyVolumeNode : selectedReferenceVolumeNode);
 
   // Get color index
   vtkMRMLColorTableNode* colorNode = NULL;
@@ -199,7 +225,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
 
   // Create model to referenceIjk transform
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  this->GetTransformFromModelToVolumeIjk(modelNode, referenceVolumeNode, modelToReferenceVolumeIjkTransform);
+  this->GetTransformFromModelToVolumeIjk( modelNode, referenceVolumeNodeUsedForConversion, modelToReferenceVolumeIjkTransform );
 
   // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter
@@ -208,6 +234,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(modelToReferenceVolumeIjkTransform.GetPointer());
 
   // Convert model to labelmap
+  double checkpointLabelmapConversionStart = timer->GetUniversalTime();
   vtkSmartPointer<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter = vtkSmartPointer<vtkPolyDataToLabelmapFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
   polyDataToLabelmapFilter->SetBackgroundValue(0);
@@ -215,52 +242,113 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   polyDataToLabelmapFilter->UseReferenceValuesOff();
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
 
-  vtkSmartPointer<vtkMatrix4x4> reslicedImageIjkToIndexedLabelmapRasTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (this->ContourNode->RasterizationOversamplingFactor != 1.0)
+  // Do oversampling
+  double oversamplingFactor = this->ContourNode->RasterizationOversamplingFactor;
+  double oversampledReferenceVolumeUsedForConversionSpacing[3] = {0.0, 0.0, 0.0};
+  if (oversamplingFactor != 1.0)
   {
-    int outputExtent[6] = {0, 0, 0, 0, 0, 0};
-    double outputSpacing[3] = {0.0, 0.0, 0.0};
-    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(referenceVolumeNode,
-      this->ContourNode->RasterizationOversamplingFactor, outputExtent, outputSpacing);
+    int oversampledReferenceVolumeUsedForConversionExtent[6] = {0, 0, 0, 0, 0, 0};
+    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(referenceVolumeNodeUsedForConversion,
+      oversamplingFactor, oversampledReferenceVolumeUsedForConversionExtent, oversampledReferenceVolumeUsedForConversionSpacing);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
-    reslicer->SetInput(referenceVolumeNode->GetImageData());
+    reslicer->SetInput(referenceVolumeNodeUsedForConversion->GetImageData());
     reslicer->SetInterpolationMode(VTK_RESLICE_LINEAR);
-    reslicer->SetOutputExtent(outputExtent);
-    reslicer->SetOutputSpacing(outputSpacing);
+    reslicer->SetOutputExtent(oversampledReferenceVolumeUsedForConversionExtent);
+    reslicer->SetOutputSpacing(oversampledReferenceVolumeUsedForConversionSpacing);
     reslicer->Update();
-
-    SlicerRtCommon::GetIjkToRasMatrixForResampledVolume(referenceVolumeNode,
-      reslicer->GetOutput(), reslicedImageIjkToIndexedLabelmapRasTransformMatrix);
 
     polyDataToLabelmapFilter->SetReferenceImage( reslicer->GetOutput() );
   }
   else
   {
-    polyDataToLabelmapFilter->SetReferenceImage( referenceVolumeNode->GetImageData() );
+    polyDataToLabelmapFilter->SetReferenceImage( referenceVolumeNodeUsedForConversion->GetImageData() );
   }
-  polyDataToLabelmapFilter->Update();    
+  polyDataToLabelmapFilter->Update();
+
+  // Resample to selected reference coordinate system if referenced anatomy was used
+  double checkpointResamplingStart = timer->GetUniversalTime();
+  int oversampledSelectedReferenceVolumeExtent[6] = {0, 0, 0, 0, 0, 0};
+  double oversampledSelectedReferenceVtkVolumeSpacing[3] = {0.0, 0.0, 0.0};
+  SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( selectedReferenceVolumeNode,
+    oversamplingFactor, oversampledSelectedReferenceVolumeExtent, oversampledSelectedReferenceVtkVolumeSpacing );
+
+  double selectedReferenceSpacing[3];
+  selectedReferenceVolumeNode->GetSpacing(selectedReferenceSpacing);
+  double oversampledSelectedReferenceVolumeSpacing[3] = { selectedReferenceSpacing[0] * oversampledSelectedReferenceVtkVolumeSpacing[0],
+                                                          selectedReferenceSpacing[1] * oversampledSelectedReferenceVtkVolumeSpacing[1],
+                                                          selectedReferenceSpacing[2] * oversampledSelectedReferenceVtkVolumeSpacing[2] };
+
+  vtkSmartPointer<vtkImageData> indexedLabelmapVolumeImageData;
+  if (referencedAnatomyVolumeNode)
+  {
+    vtkSmartPointer<vtkMRMLScalarVolumeNode> intermediateLabelmapNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+    intermediateLabelmapNode->SetAndObserveImageData(polyDataToLabelmapFilter->GetOutput());
+    intermediateLabelmapNode->CopyOrientation(referencedAnatomyVolumeNode);
+    double referencedAnatomyVolumeNodeSpacing[3] = {0.0, 0.0, 0.0};
+    referencedAnatomyVolumeNode->GetSpacing(referencedAnatomyVolumeNodeSpacing);
+    intermediateLabelmapNode->SetSpacing( referencedAnatomyVolumeNodeSpacing[0] * oversampledReferenceVolumeUsedForConversionSpacing[0],
+                                          referencedAnatomyVolumeNodeSpacing[1] * oversampledReferenceVolumeUsedForConversionSpacing[1],
+                                          referencedAnatomyVolumeNodeSpacing[2] * oversampledReferenceVolumeUsedForConversionSpacing[2] );
+
+    // Convert intermediate labelmap to ITK image
+    itk::Image<unsigned char, 3>::Pointer intermediateLabelmapItkVolume = itk::Image<unsigned char, 3>::New();
+    SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(intermediateLabelmapNode, intermediateLabelmapItkVolume);
+
+    plm_long oversampledSelectedReferenceDimensionsLong[3] = { oversampledSelectedReferenceVolumeExtent[1]-oversampledSelectedReferenceVolumeExtent[0]+1,
+                                                               oversampledSelectedReferenceVolumeExtent[3]-oversampledSelectedReferenceVolumeExtent[2]+1,
+                                                               oversampledSelectedReferenceVolumeExtent[5]-oversampledSelectedReferenceVolumeExtent[4]+1 };
+    double selectedReferenceOrigin[3];
+    selectedReferenceVolumeNode->GetOrigin(selectedReferenceOrigin);
+    float selectedReferenceOriginFloat[3] = { selectedReferenceOrigin[0], selectedReferenceOrigin[1], selectedReferenceOrigin[2] };
+    float oversampledSelectedReferenceSpacingFloat[3] = { oversampledSelectedReferenceVolumeSpacing[0], oversampledSelectedReferenceVolumeSpacing[1], oversampledSelectedReferenceVolumeSpacing[2] };
+
+    float selectedReferenceDirectionCosines[9];
+    double selectedReferenceDirections[3][3];
+    selectedReferenceVolumeNode->GetIJKToRASDirections(selectedReferenceDirections);
+    for (int matrixIndex=0; matrixIndex<9; ++matrixIndex)
+    {
+      selectedReferenceDirectionCosines[matrixIndex] = selectedReferenceDirections[matrixIndex/3][matrixIndex%3];
+    }
+
+    Plm_image_header resampledItkImageHeader(oversampledSelectedReferenceDimensionsLong, selectedReferenceOriginFloat, oversampledSelectedReferenceSpacingFloat, selectedReferenceDirectionCosines);
+
+    itk::Image<unsigned char, 3>::Pointer resampledIntermediateLabelmapItkVolume = resample_image(intermediateLabelmapItkVolume, resampledItkImageHeader, 0, 0);
+
+    // Convert resampled image back to VTK
+    indexedLabelmapVolumeImageData = vtkSmartPointer<vtkImageData>::New();
+    int extent[6]={0, oversampledSelectedReferenceDimensionsLong[0]-1, 0, oversampledSelectedReferenceDimensionsLong[1]-1, 0, oversampledSelectedReferenceDimensionsLong[2]-1};
+    indexedLabelmapVolumeImageData->SetExtent(extent);
+    indexedLabelmapVolumeImageData->SetScalarType(VTK_UNSIGNED_CHAR);
+    indexedLabelmapVolumeImageData->SetNumberOfScalarComponents(1);
+    indexedLabelmapVolumeImageData->AllocateScalars();
+
+    unsigned char* indexedLabelmapVolumeImageDataPtr = (unsigned char*)indexedLabelmapVolumeImageData->GetScalarPointer();
+    itk::ImageRegionIteratorWithIndex< itk::Image<unsigned char, 3> > itLabelmapItk( resampledIntermediateLabelmapItkVolume, resampledIntermediateLabelmapItkVolume->GetLargestPossibleRegion() );
+    for ( itLabelmapItk.GoToBegin(); !itLabelmapItk.IsAtEnd(); ++itLabelmapItk )
+    {
+      itk::Image<unsigned char, 3>::IndexType index = itLabelmapItk.GetIndex();
+      (*indexedLabelmapVolumeImageDataPtr) = resampledIntermediateLabelmapItkVolume->GetPixel(index);
+      indexedLabelmapVolumeImageDataPtr++;
+    }
+  }
+  else
+  {
+    indexedLabelmapVolumeImageData = vtkSmartPointer<vtkImageData>::Take(polyDataToLabelmapFilter->GetOutput());
+  }
 
   // Create indexed labelmap volume node
   vtkSmartPointer<vtkMRMLScalarVolumeNode> indexedLabelmapVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  indexedLabelmapVolumeNode->CopyOrientation( referenceVolumeNode );
-
-  // The origin and spacing has to be set to the MRML node instead of the image data
-  if (this->ContourNode->RasterizationOversamplingFactor != 1.0)
-  {
-    indexedLabelmapVolumeNode->SetIJKToRASMatrix(reslicedImageIjkToIndexedLabelmapRasTransformMatrix);
-
-    vtkImageData* indexedLabelmapVolumeImageData = polyDataToLabelmapFilter->GetOutput();
-    indexedLabelmapVolumeImageData->SetSpacing(1.0, 1.0, 1.0);
-    indexedLabelmapVolumeImageData->SetOrigin(0.0, 0.0, 0.0);
-  }
+  indexedLabelmapVolumeNode->CopyOrientation( selectedReferenceVolumeNode );
+  indexedLabelmapVolumeNode->SetSpacing( oversampledSelectedReferenceVolumeSpacing );
+  indexedLabelmapVolumeImageData->SetSpacing(1.0, 1.0, 1.0);
+  indexedLabelmapVolumeImageData->SetOrigin(0.0, 0.0, 0.0);
 
   std::string indexedLabelmapVolumeNodeName = std::string(this->ContourNode->Name) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
   indexedLabelmapVolumeNodeName = mrmlScene->GenerateUniqueName(indexedLabelmapVolumeNodeName);
 
-  indexedLabelmapVolumeNode->SetAndObserveTransformNodeID( indexedLabelmapVolumeNode->GetTransformNodeID() );
   indexedLabelmapVolumeNode->SetName( indexedLabelmapVolumeNodeName.c_str() );
-  indexedLabelmapVolumeNode->SetAndObserveImageData( polyDataToLabelmapFilter->GetOutput() );
+  indexedLabelmapVolumeNode->SetAndObserveImageData( indexedLabelmapVolumeImageData );
   indexedLabelmapVolumeNode->LabelMapOn();
   mrmlScene->AddNode(indexedLabelmapVolumeNode);
 
@@ -286,6 +374,15 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
 
   this->ContourNode->SetAndObserveIndexedLabelmapVolumeNodeIdOnly(indexedLabelmapVolumeNode->GetID());
 
+  if (this->LogSpeedMeasurements)
+  {
+    double checkpointEnd = timer->GetUniversalTime();
+    std::cout << "Total model-labelmap conversion time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s" << std::endl
+      << "\tAccessing associated nodes and transform model: " << checkpointLabelmapConversionStart-checkpointStart << " s" << std::endl
+      << "\tConverting to labelmap (to referenced series if available): " << checkpointResamplingStart-checkpointLabelmapConversionStart << " s" << std::endl
+      << "\tResampling referenced series to selected reference: " << checkpointEnd-checkpointResamplingStart << " s" << std::endl;
+  }
+
   return indexedLabelmapVolumeNode;
 }
 
@@ -303,6 +400,9 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
     vtkErrorMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Invalid scene!");
     return NULL;
   }
+
+  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
+  double checkpointStart = timer->GetUniversalTime();
 
   // TODO: Workaround for the the issue that slice intersections are not visible
   // of newly converted models
@@ -399,6 +499,12 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
 
   // TODO: Workaround (see above)
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
+
+  if (this->LogSpeedMeasurements)
+  {
+    double checkpointEnd = timer->GetUniversalTime();
+    std::cout << "Total labelmap-model conversion time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s" << std::endl;
+  }
 
   return closedSurfaceModelNode;
 }

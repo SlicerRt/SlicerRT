@@ -31,6 +31,11 @@ class vtkMRMLNode;
 class vtkMRMLHierarchyNode;
 class vtkMRMLContourNode;
 
+// Due to some reason the Python wrapping of this class fails, therefore
+// put everything between BTX/ETX to exclude from wrapping.
+// TODO #210: investigate why the wrapping fails
+//BTX
+
 /// \ingroup SlicerRt_QtModules_Contours
 class VTK_SLICER_CONTOURS_LOGIC_EXPORT vtkSlicerContoursPatientHierarchyPlugin: public vtkSlicerPatientHierarchyPlugin
 {
@@ -64,5 +69,7 @@ private:
   vtkSlicerContoursPatientHierarchyPlugin(const vtkSlicerContoursPatientHierarchyPlugin&); // Not implemented
   void operator=(const vtkSlicerContoursPatientHierarchyPlugin&); // Not implemented  
 };
+
+//ETX
 
 #endif

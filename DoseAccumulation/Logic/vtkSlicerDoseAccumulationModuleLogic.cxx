@@ -281,7 +281,7 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   changeInfo->SetOutputOrigin(origin);
   changeInfo->SetOutputSpacing(-spacing[0], -spacing[1], spacing[2]);
   changeInfo->Update();
-  vtkSmartPointer<vtkImageData> tempImage = changeInfo->GetOutput();
+  vtkSmartPointer<vtkImageData> tempImage = changeInfo->GetOutput(); //TODO: tempImage bad variable name
 
   // reslice according to reference image
   vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
@@ -294,7 +294,7 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     reslice->SetResliceTransform(inputVolumeRASToWorldTransform);
   }
   reslice->Update();
-  tempImage = reslice->GetOutput();
+  tempImage = reslice->GetOutput(); //TODO: no pipeline now?
 
   vtkSmartPointer<vtkImageMathematics> MultiplyFilter1 = vtkSmartPointer<vtkImageMathematics>::New();
   MultiplyFilter1->SetInput(tempImage);
@@ -303,7 +303,8 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   MultiplyFilter1->Update();
   baseImageData = MultiplyFilter1->GetOutput();
 
-  if (size >=2)
+  //TODO: review the whole file
+  if (size >=2) //TODO: size bad variable name
   {
     for (int i = 1; i < size; i++)
     {

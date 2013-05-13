@@ -143,14 +143,6 @@ public:
   */
   static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor, int outputImageDataExtent[6], double outputImageDataSpacing[3]);
 
-  /*!
-    Computes IJK to RAS matrix for a volume node according to the resampled VTK image
-    \param inputVolumeNode Volume node that needs to be oversampled
-    \param reslicedImage Resliced image data (output of the reslice filter)
-    \param reslicedImageIjkToInputVolumeRasTransformMatrix IJKToRAS matrix that needs to be set to the volume node containing the resampled image
-  */
-  static void GetIjkToRasMatrixForResampledVolume(vtkMRMLVolumeNode* inputVolumeNode, vtkImageData* reslicedImage, vtkMatrix4x4* reslicedImageIjkToInputVolumeRasTransformMatrix);
-
   /// Determine if a node is a patient hierarchy node
   static bool IsPatientHierarchyNode(vtkMRMLNode* node);
 
