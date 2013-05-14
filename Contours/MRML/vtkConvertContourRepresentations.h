@@ -65,11 +65,11 @@ protected:
   /*!
     Compute transform between a model and a volume IJK coordinate system (to transform the model into the volume voxel space)
     The transform applied to the parent contour node is ignored
-    /param fromModelNode Model node from which we want to compute the transform
+    /param fromNode Transformable node from which we want to compute the transform
     /param toVolumeNode Volume node to whose IJK space we want to compute the transform
     /param fromModelToVolumeIjkTransform Output transform
   */
-  void GetTransformFromModelToVolumeIjk(vtkMRMLModelNode* fromModelNode, vtkMRMLScalarVolumeNode* toVolumeNode, vtkGeneralTransform* fromModelToVolumeIjkTransform);
+  void GetTransformFromNodeToVolumeIjk(vtkMRMLTransformableNode* fromNode, vtkMRMLScalarVolumeNode* toVolumeNode, vtkGeneralTransform* fromModelToVolumeIjkTransform);
 
   /// Convert model representation to indexed labelmap
   /// \param type Source model type for the conversion
