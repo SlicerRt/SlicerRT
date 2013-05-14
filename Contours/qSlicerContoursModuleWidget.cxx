@@ -690,13 +690,14 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
       }
       else
       {
+        this->showConversionParameterControlsForTargetRepresentation(vtkMRMLContourNode::None);
         d->label_NoSourceWarning->setVisible(true);
         d->pushButton_ApplyChangeRepresentation->setEnabled(false);
       }
     }
     else
     {
-      this->showConversionParameterControlsForTargetRepresentation(vtkMRMLContourNode::None);
+      this->showConversionParameterControlsForTargetRepresentation(targetRepresentationType);
       d->pushButton_ApplyChangeRepresentation->setEnabled(false);
     }
 

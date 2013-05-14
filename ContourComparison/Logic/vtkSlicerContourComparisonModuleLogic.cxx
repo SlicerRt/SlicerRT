@@ -344,10 +344,10 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
-    std::cout << "Total Dice computation time: " << checkpointEnd-checkpointStart << " s" << std::endl
-      << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s" << std::endl
-      << "\tConverting from VTK to ITK: " << checkpointDiceStart-checkpointItkConvertStart << " s" << std::endl
-      << "\tDice computation: " << checkpointEnd-checkpointDiceStart << " s" << std::endl;
+    vtkDebugMacro("ComputeDiceStatistics: Total Dice computation time: " << checkpointEnd-checkpointStart << " s\n"
+      << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s\n"
+      << "\tConverting from VTK to ITK: " << checkpointDiceStart-checkpointItkConvertStart << " s\n"
+      << "\tDice computation: " << checkpointEnd-checkpointDiceStart << " s");
   }
 }
 
@@ -395,9 +395,9 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
-    std::cout << "Total Hausdorff computation time: " << checkpointEnd-checkpointStart << " s" << std::endl
-      << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s" << std::endl
-      << "\tConverting from VTK to ITK: " << checkpointHausdorffStart-checkpointItkConvertStart << " s" << std::endl
-      << "\tHausdorff computation: " << checkpointEnd-checkpointHausdorffStart << " s" << std::endl;
+    vtkDebugMacro("ComputeHausdorffDistances: Total Hausdorff computation time: " << checkpointEnd-checkpointStart << " s\n"
+      << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s\n"
+      << "\tConverting from VTK to ITK: " << checkpointHausdorffStart-checkpointItkConvertStart << " s\n"
+      << "\tHausdorff computation: " << checkpointEnd-checkpointHausdorffStart << " s");
   }
 }

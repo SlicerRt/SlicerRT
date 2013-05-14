@@ -404,21 +404,21 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(std::string &errorMessa
     this->ComputeDvh(*it, errorMessage);
     if (!errorMessage.empty())
     {
-      vtkErrorMacro("DVH computation failed for contour '" << (*it)->GetStructureName() << "' - aborting");
+      vtkErrorMacro("ComputeDvh: DVH computation failed for contour '" << (*it)->GetStructureName() << "' - aborting");
       return;
     }
     double checkpointStructureEnd = timer->GetUniversalTime();
 
     if (this->LogSpeedMeasurements)
     {
-      std::cout << "\tStructure '" << (*it)->GetStructureName() << "':\n\t\tTotal: " << checkpointStructureEnd-checkpointStructureStart;
+      vtkDebugMacro("\tStructure '" << (*it)->GetStructureName() << "':\n\t\tTotal: " << checkpointStructureEnd-checkpointStructureStart);
     }
   } // for all contours
 
   double checkpointEnd = timer->GetUniversalTime();
   if (this->LogSpeedMeasurements)
   {
-    std::cout << "Sum DVH computation time: " << checkpointEnd-checkpointStart << " s" << std::endl;
+    vtkDebugMacro("ComputeDvh: Sum DVH computation time: " << checkpointEnd-checkpointStart << " s");
   }
 }
 

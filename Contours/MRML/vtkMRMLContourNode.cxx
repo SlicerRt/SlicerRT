@@ -712,6 +712,12 @@ void vtkMRMLContourNode::ShowRepresentation(vtkMRMLDisplayableNode* representati
   {
     displayNode->SetSliceIntersectionVisibility(show?1:0);
   }
+
+  vtkMRMLHierarchyNode* associatedHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->Scene, representation->GetID());
+  if (associatedHierarchyNode)
+  {
+    associatedHierarchyNode->SetHideFromEditors((!show)?1:0);
+  }
 }
 
 //----------------------------------------------------------------------------

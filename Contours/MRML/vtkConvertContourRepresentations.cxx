@@ -245,18 +245,18 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
 
   // Oversample used reference volume (anatomy if present, selected reference otherwise) and set it to the converter
   double oversamplingFactor = this->ContourNode->RasterizationOversamplingFactor;
-  double oversampledReferenceVolumeUsedForConversionSpacing[3] = {0.0, 0.0, 0.0};
+  double oversampledReferenceVolumeUsedForConversionSpacingMultiplier[3] = {1.0, 1.0, 1.0};
   if (oversamplingFactor != 1.0)
   {
     int oversampledReferenceVolumeUsedForConversionExtent[6] = {0, 0, 0, 0, 0, 0};
     SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(referenceVolumeNodeUsedForConversion,
-      oversamplingFactor, oversampledReferenceVolumeUsedForConversionExtent, oversampledReferenceVolumeUsedForConversionSpacing);
+      oversamplingFactor, oversampledReferenceVolumeUsedForConversionExtent, oversampledReferenceVolumeUsedForConversionSpacingMultiplier);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
     reslicer->SetInput(referenceVolumeNodeUsedForConversion->GetImageData());
     reslicer->SetInterpolationMode(VTK_RESLICE_LINEAR);
     reslicer->SetOutputExtent(oversampledReferenceVolumeUsedForConversionExtent);
-    reslicer->SetOutputSpacing(oversampledReferenceVolumeUsedForConversionSpacing);
+    reslicer->SetOutputSpacing(oversampledReferenceVolumeUsedForConversionSpacingMultiplier);
     reslicer->Update();
 
     polyDataToLabelmapFilter->SetReferenceImage( reslicer->GetOutput() );
@@ -301,9 +301,9 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     intermediateLabelmapNode->CopyOrientation(referencedAnatomyVolumeNode);
     double referencedAnatomyVolumeNodeSpacing[3] = {0.0, 0.0, 0.0};
     referencedAnatomyVolumeNode->GetSpacing(referencedAnatomyVolumeNodeSpacing);
-    intermediateLabelmapNode->SetSpacing( referencedAnatomyVolumeNodeSpacing[0] * oversampledReferenceVolumeUsedForConversionSpacing[0],
-                                          referencedAnatomyVolumeNodeSpacing[1] * oversampledReferenceVolumeUsedForConversionSpacing[1],
-                                          referencedAnatomyVolumeNodeSpacing[2] * oversampledReferenceVolumeUsedForConversionSpacing[2] );
+    intermediateLabelmapNode->SetSpacing( referencedAnatomyVolumeNodeSpacing[0] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[0],
+                                          referencedAnatomyVolumeNodeSpacing[1] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[1],
+                                          referencedAnatomyVolumeNodeSpacing[2] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[2] );
 
     // Determine output (oversampled selected reference volume node) geometry for the resampling
     plm_long oversampledSelectedReferenceDimensionsLong[3] = { oversampledSelectedReferenceVolumeExtent[1]-oversampledSelectedReferenceVolumeExtent[0]+1,
@@ -393,10 +393,10 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
-    std::cout << "Total model-labelmap conversion time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s" << std::endl
-      << "\tAccessing associated nodes and transform model: " << checkpointLabelmapConversionStart-checkpointStart << " s" << std::endl
-      << "\tConverting to labelmap (to referenced series if available): " << checkpointResamplingStart-checkpointLabelmapConversionStart << " s" << std::endl
-      << "\tResampling referenced series to selected reference: " << checkpointEnd-checkpointResamplingStart << " s" << std::endl;
+    vtkDebugMacro("ConvertFromModelToIndexedLabelmap: Total model-labelmap conversion time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s\n"
+      << "\tAccessing associated nodes and transform model: " << checkpointLabelmapConversionStart-checkpointStart << " s\n"
+      << "\tConverting to labelmap (to referenced series if available): " << checkpointResamplingStart-checkpointLabelmapConversionStart << " s\n"
+      << "\tResampling referenced series to selected reference: " << checkpointEnd-checkpointResamplingStart << " s");
   }
 
   return indexedLabelmapVolumeNode;
@@ -420,8 +420,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
 
-  // TODO: Workaround for the the issue that slice intersections are not visible
-  // of newly converted models
+  // TODO: Workaround for the the issue that slice intersections are not visible of newly converted models
   mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
 
   // Get color index
@@ -475,8 +474,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   referenceVolumeIjkToModelTransform->Inverse();
 
   // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
-  vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter
-    = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( labelmapToModelFilter->GetOutput() );
   transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(referenceVolumeIjkToModelTransform.GetPointer());
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
@@ -496,11 +494,27 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
       vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->ContourNode->GetScene(), this->ContourNode->RibbonModelNodeId));
     if (ribbonModelHierarchyNode)
     {
-      vtkMRMLModelHierarchyNode* parentModelHierarchyNode
-        = vtkMRMLModelHierarchyNode::SafeDownCast(ribbonModelHierarchyNode->GetParentNode());
+      vtkMRMLModelHierarchyNode* parentModelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(ribbonModelHierarchyNode->GetParentNode());
 
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-      this->ContourNode->GetScene()->AddNode(modelHierarchyNode);
+      // Use the existing hierarchy node if any
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode;
+      if (this->ContourNode->RepresentationExists(vtkMRMLContourNode::ClosedSurfaceModel))
+      {
+        vtkMRMLHierarchyNode* associatedHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(mrmlScene, this->ContourNode->ClosedSurfaceModelNodeId);
+        if (associatedHierarchyNode && associatedHierarchyNode->IsA("vtkMRMLModelHierarchyNode"))
+        {
+          modelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(associatedHierarchyNode);
+        }
+        else
+        {
+          vtkErrorMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Invalid model hierarchy node for closed surface representation of contour '" << this->ContourNode->GetName() << "'");
+        }
+      }
+      else
+      {
+        modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+        this->ContourNode->GetScene()->AddNode(modelHierarchyNode);
+      }
       modelHierarchyNode->SetParentNodeID( parentModelHierarchyNode->GetID() );
       modelHierarchyNode->SetModelNodeID( closedSurfaceModelNode->GetID() );
     }
@@ -519,7 +533,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
-    std::cout << "Total labelmap-model conversion time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s" << std::endl;
+    vtkDebugMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Total labelmap-model conversion time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s");
   }
 
   return closedSurfaceModelNode;
@@ -549,7 +563,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
   {
     if (!this->ContourNode->RasterizationReferenceVolumeNodeId)
     {
-      vtkErrorMacro("Unable to convert to indexed labelmap without a reference volume node!");
+      vtkErrorMacro("ConvertToRepresentation: Unable to convert to indexed labelmap without a reference volume node!");
       return false;
     }
 
@@ -561,8 +575,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
   // Active representation is an indexed labelmap and we want a closed surface model
   else if ( this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::IndexedLabelmap && type == vtkMRMLContourNode::ClosedSurfaceModel )
   {
-    vtkMRMLModelNode* closedSurfaceVolumeNode
-      = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
+    vtkMRMLModelNode* closedSurfaceVolumeNode = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
 
     return (closedSurfaceVolumeNode != NULL);
   }
@@ -575,24 +588,23 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
     {
       if (!this->ContourNode->RasterizationReferenceVolumeNodeId)
       {
-        vtkErrorMacro("Unable to convert to indexed labelmap without a reference volume node (it is needed to convert into closed surface model)!");
+        vtkErrorMacro("ConvertToRepresentation: Unable to convert to indexed labelmap without a reference volume node (it is needed to convert into closed surface model)!");
         return false;
       }
       if (this->ConvertFromModelToIndexedLabelmap(vtkMRMLContourNode::RibbonModel) == NULL)
       {
-        vtkErrorMacro("Conversion to indexed labelmap failed (it is needed to convert into closed surface model)!");
+        vtkErrorMacro("ConvertToRepresentation: Conversion to indexed labelmap failed (it is needed to convert into closed surface model)!");
         return false;
       }
     }
 
-    vtkMRMLModelNode* closedSurfaceVolumeNode
-      = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
+    vtkMRMLModelNode* closedSurfaceVolumeNode = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
 
     return (closedSurfaceVolumeNode != NULL);
   }
   else
   {
-    vtkWarningMacro("Requested conversion not implemented yet!");
+    vtkWarningMacro("ConvertToRepresentation: Requested conversion not implemented yet!");
   }
 
   return false;
@@ -603,7 +615,7 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
 {
   if (!this->ContourNode)
   {
-    vtkErrorMacro("ConvertToRepresentation: Invalid contour node!");
+    vtkErrorMacro("ReconvertRepresentation: Invalid contour node!");
     return;
   }
   if (!this->ContourNode->GetScene())
@@ -612,7 +624,7 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
   }
   if (type == vtkMRMLContourNode::None)
   {
-    vtkWarningMacro("Cannot convert to 'None' representation type!");
+    vtkWarningMacro("ReconvertRepresentation: Cannot convert to 'None' representation type!");
     return;
   }
 
@@ -620,7 +632,7 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
   if (type == vtkMRMLContourNode::RibbonModel)
   {
     //TODO: Implement if algorithm is ready
-    vtkWarningMacro("Convert to 'RibbonMode' representation type is not implemented yet!");
+    vtkWarningMacro("ReconvertRepresentation: Convert to 'RibbonMode' representation type is not implemented yet!");
     return;
   }
 
@@ -678,6 +690,6 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
   bool success = this->ConvertToRepresentation(type);
   if (!success)
   {
-    vtkErrorMacro("Failed to re-convert representation to type #" << (unsigned int)type);
+    vtkErrorMacro("ReconvertRepresentation: Failed to re-convert representation to type #" << (unsigned int)type);
   }
 }
