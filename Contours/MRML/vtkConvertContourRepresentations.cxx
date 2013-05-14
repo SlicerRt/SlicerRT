@@ -67,6 +67,7 @@ vtkConvertContourRepresentations::vtkConvertContourRepresentations()
 {
   this->ContourNode = NULL;
   this->LogSpeedMeasurementsOff();
+  this->LabelmapResamplingThreshold = 0.5;
 }
 
 //----------------------------------------------------------------------------
@@ -152,6 +153,11 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     || this->ContourNode->RasterizationOversamplingFactor > 100.0 )
   {
     vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Unreasonable rasterization oversampling factor is given: " << this->ContourNode->RasterizationOversamplingFactor);
+    return NULL;
+  }
+  if (this->LabelmapResamplingThreshold < 0.0 || this->LabelmapResamplingThreshold > 1.0)
+  {
+    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Invalid labelmap resampling threshold is given: " << this->LabelmapResamplingThreshold);
     return NULL;
   }
 
@@ -246,7 +252,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   // Oversample used reference volume (anatomy if present, selected reference otherwise) and set it to the converter
   double oversamplingFactor = this->ContourNode->RasterizationOversamplingFactor;
   double oversampledReferenceVolumeUsedForConversionSpacingMultiplier[3] = {1.0, 1.0, 1.0};
-  if (oversamplingFactor != 1.0)
+  if ( oversamplingFactor != 1.0 && referenceVolumeNodeUsedForConversion == selectedReferenceVolumeNode )
   {
     int oversampledReferenceVolumeUsedForConversionExtent[6] = {0, 0, 0, 0, 0, 0};
     SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(referenceVolumeNodeUsedForConversion,
@@ -327,7 +333,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(intermediateLabelmapNode, intermediateLabelmapItkVolume);
 
     Plm_image_header resampledItkImageHeader(oversampledSelectedReferenceDimensionsLong, selectedReferenceOriginFloat, oversampledSelectedReferenceSpacingFloat, selectedReferenceDirectionCosines);
-    itk::Image<unsigned char, 3>::Pointer resampledIntermediateLabelmapItkVolume = resample_image(intermediateLabelmapItkVolume, resampledItkImageHeader, 0, 0);
+    itk::Image<unsigned char, 3>::Pointer resampledIntermediateLabelmapItkVolume = resample_image(intermediateLabelmapItkVolume, resampledItkImageHeader, 0, 1);
 
     // Convert resampled image back to VTK
     indexedLabelmapVolumeImageData = vtkSmartPointer<vtkImageData>::New();
@@ -337,12 +343,14 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     indexedLabelmapVolumeImageData->SetNumberOfScalarComponents(1);
     indexedLabelmapVolumeImageData->AllocateScalars();
 
+    double labelmapThreshold = (double)structureColorIndex * this->LabelmapResamplingThreshold;
     unsigned char* indexedLabelmapVolumeImageDataPtr = (unsigned char*)indexedLabelmapVolumeImageData->GetScalarPointer();
     itk::ImageRegionIteratorWithIndex< itk::Image<unsigned char, 3> > itLabelmapItk( resampledIntermediateLabelmapItkVolume, resampledIntermediateLabelmapItkVolume->GetLargestPossibleRegion() );
     for ( itLabelmapItk.GoToBegin(); !itLabelmapItk.IsAtEnd(); ++itLabelmapItk )
     {
       itk::Image<unsigned char, 3>::IndexType index = itLabelmapItk.GetIndex();
-      (*indexedLabelmapVolumeImageDataPtr) = resampledIntermediateLabelmapItkVolume->GetPixel(index);
+      unsigned char resampledVoxelValue = resampledIntermediateLabelmapItkVolume->GetPixel(index);
+      (*indexedLabelmapVolumeImageDataPtr) = ( resampledVoxelValue < labelmapThreshold ? 0 : (unsigned char)structureColorIndex );
       indexedLabelmapVolumeImageDataPtr++;
     }
   }

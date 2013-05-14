@@ -61,6 +61,9 @@ public:
     vtkSetMacro(LogSpeedMeasurements, bool);
     vtkBooleanMacro(LogSpeedMeasurements, bool);
 
+    vtkGetMacro(LabelmapResamplingThreshold, double);
+    vtkSetMacro(LabelmapResamplingThreshold, double);
+
 protected:
   /*!
     Compute transform between a model and a volume IJK coordinate system (to transform the model into the volume voxel space)
@@ -84,6 +87,10 @@ protected:
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
+
+  /// Threshold used to make the resampled labelmap binary again. The voxels having value > threshold * labelValue
+  /// are kept as foreground voxels in the output. This value has to be between 0 and 1.
+  double LabelmapResamplingThreshold;
 
 protected:
   vtkConvertContourRepresentations();
