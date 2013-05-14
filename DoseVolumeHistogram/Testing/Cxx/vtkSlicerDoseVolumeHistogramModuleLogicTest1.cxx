@@ -305,8 +305,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->Commit();
 
   // Create dose volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode =
-    vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   doseScalarVolumeNode->SetName("Dose");
 
   // Load and set attributes from file
@@ -338,16 +337,26 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->AddNode(doseScalarVolumeNode);
   //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
 
+  // Create patient hierarchy node for dose volume
+  std::string doseVolumeUid("DoseID");
+  vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchySeriesNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+  patientHierarchySeriesNode->SetAssociatedNodeID(doseScalarVolumeNode->GetID());
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME, doseVolumeUid.c_str());
+  patientHierarchySeriesNode->SetName("Dose");
+  mrmlScene->AddNode(patientHierarchySeriesNode);
+
+  vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(mrmlScene, "PatientID", "StudyID", doseVolumeUid.c_str());
+
   // Load dose volume
-  std::string seriesName("Series");
   std::string doseVolumeFileName = std::string(dataDirectoryPath) + "/Dose.nrrd";
   if (!vtksys::SystemTools::FileExists(doseVolumeFileName.c_str()))
   {
     std::cerr << "Loading dose volume from file '" << doseVolumeFileName << "' failed - the file does not exist!" << std::endl;
   }
 
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> doseVolumeArchetypeStorageNode =
-    vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
+  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> doseVolumeArchetypeStorageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
   doseVolumeArchetypeStorageNode->SetFileName(doseVolumeFileName.c_str());
   mrmlScene->AddNode(doseVolumeArchetypeStorageNode);
   //EXERCISE_BASIC_STORAGE_MRML_METHODS(vtkMRMLVolumeArchetypeStorageNode, doseVolumeArchetypeStorageNode);
@@ -368,18 +377,15 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   double maxDose = doseStat->GetMax()[0];
 
   // Create contour hierarchy root node
-  vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyRootNode =
-    vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
-  std::string hierarchyNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
+  std::string structureSetSeriesName("StructureSetSeries");
+  vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyRootNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
+  std::string hierarchyNodeName = structureSetSeriesName + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
   contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
   contourHierarchyRootNode->AllowMultipleChildrenOn();
   contourHierarchyRootNode->HideFromEditorsOff();
-  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-    SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-    vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), seriesName.c_str());
-
+  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), structureSetSeriesName.c_str());
   mrmlScene->AddNode(contourHierarchyRootNode);
   //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
 
@@ -403,7 +409,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Add color table node
   vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
   std::string structureSetColorTableNodeName;
-  structureSetColorTableNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+  structureSetColorTableNodeName = structureSetSeriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
   structureSetColorTableNode->HideFromEditorsOff();
   structureSetColorTableNode->SetTypeToUser();
@@ -430,8 +436,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     }
 
     // Create display node
-    vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode =
-      vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+    vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
     displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
     //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode)
     displayNode->SliceIntersectionVisibilityOn();
@@ -460,15 +465,13 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     contourNode->HideFromEditorsOff();
 
     // Put the contour node in the hierarchy
-    vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyNode
-      = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
+    vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
     contourHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(mrmlScene->AddNode(contourHierarchyNode));
     contourHierarchyNode->SetParentNodeID( contourHierarchyRootNode->GetID() );
     contourHierarchyNode->SetAssociatedNodeID( contourNode->GetID() );
-    contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-      SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-    contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-      vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+    contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+    contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+    contourHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(), doseVolumeUid.c_str());
 
     // Add color into the color table
     structureSetColorTableNode->AddColor(it->c_str(), 1.0, 0.0, 0.0);
@@ -483,13 +486,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->AddNode(chartNode);
 
   // Create and set up logic
-  vtkSmartPointer<vtkSlicerDoseVolumeHistogramModuleLogic> dvhLogic =
-    vtkSmartPointer<vtkSlicerDoseVolumeHistogramModuleLogic>::New();
+  vtkSmartPointer<vtkSlicerDoseVolumeHistogramModuleLogic> dvhLogic = vtkSmartPointer<vtkSlicerDoseVolumeHistogramModuleLogic>::New();
   dvhLogic->SetMRMLScene(mrmlScene);
 
   // Create and set up parameter set MRML node
-  vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode =
-    vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
+  vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode = vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
   paramNode->SetAndObserveDoseVolumeNodeId(doseScalarVolumeNode->GetID());
   paramNode->SetAndObserveStructureSetContourNodeId(contourHierarchyRootNode->GetID());
   paramNode->SetAndObserveChartNodeId(chartNode->GetID());

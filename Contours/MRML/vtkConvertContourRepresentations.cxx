@@ -209,7 +209,16 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   }
 
   // Use referenced anatomy volume for conversion if available
-  vtkMRMLScalarVolumeNode* referenceVolumeNodeUsedForConversion = (referencedAnatomyVolumeNode ? referencedAnatomyVolumeNode : selectedReferenceVolumeNode);
+  vtkMRMLScalarVolumeNode* referenceVolumeNodeUsedForConversion = selectedReferenceVolumeNode;
+  if (referencedAnatomyVolumeNode && referencedAnatomyVolumeNode != selectedReferenceVolumeNode)
+  {
+    referenceVolumeNodeUsedForConversion = referencedAnatomyVolumeNode;
+  }
+  else
+  {
+    // Set referenced anatomy to invalid if it is the same as the selected reference (the resampling step is unnecessary if the two are the same)
+    referencedAnatomyVolumeNode = NULL;
+  }
 
   // Get color index
   vtkMRMLColorTableNode* colorNode = NULL;
@@ -339,7 +348,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   }
   else
   {
-    indexedLabelmapVolumeImageData = vtkSmartPointer<vtkImageData>::Take(polyDataToLabelmapFilter->GetOutput());
+    indexedLabelmapVolumeImageData = polyDataToLabelmapFilter->GetOutput();
   }
 
   // Set VTK volume properties to default, as Slicer uses the MRML node to store these
