@@ -214,11 +214,47 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No patient hierarchy node found for contour '" << this->ContourNode->Name << "'!");
   }
 
-  // Use referenced anatomy volume for conversion if available
+  // If the selected reference is under a transform, then create a temporary copy and harden transform so that the whole transform is reflected in the result
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> temporaryHardenedSelectedReferenceVolumeCopy = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  if (selectedReferenceVolumeNode->GetParentTransformNode())
+  {
+    temporaryHardenedSelectedReferenceVolumeCopy->Copy(selectedReferenceVolumeNode);
+    vtkSmartPointer<vtkMatrix4x4> hardeningMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    selectedReferenceVolumeNode->GetParentTransformNode()->GetMatrixTransformToWorld(hardeningMatrix);
+    temporaryHardenedSelectedReferenceVolumeCopy->ApplyTransformMatrix(hardeningMatrix);
+
+    selectedReferenceVolumeNode = temporaryHardenedSelectedReferenceVolumeCopy.GetPointer();
+  }
+
+  // Use referenced anatomy volume for conversion if available, and has different geometry than the selected reference
   vtkMRMLScalarVolumeNode* referenceVolumeNodeUsedForConversion = selectedReferenceVolumeNode;
   if (referencedAnatomyVolumeNode && referencedAnatomyVolumeNode != selectedReferenceVolumeNode)
   {
-    referenceVolumeNodeUsedForConversion = referencedAnatomyVolumeNode;
+    vtkSmartPointer<vtkMatrix4x4> referencedAnatomyVolumeDirectionMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    referencedAnatomyVolumeNode->GetIJKToRASDirectionMatrix(referencedAnatomyVolumeDirectionMatrix);
+    vtkSmartPointer<vtkMatrix4x4> selectedReferenceVolumeDirectionMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    selectedReferenceVolumeNode->GetIJKToRASDirectionMatrix(selectedReferenceVolumeDirectionMatrix);
+    bool differentGeometry = false;
+    for (int row=0; row<4; ++row)
+    {
+      for (int column=0; column<4; ++column)
+      {
+        if (referencedAnatomyVolumeDirectionMatrix->GetElement(row,column) - selectedReferenceVolumeDirectionMatrix->GetElement(row,column) > EPSILON)
+        {
+          differentGeometry = true;
+          break;
+        }
+      }
+    }
+    if (differentGeometry)
+    {
+      referenceVolumeNodeUsedForConversion = referencedAnatomyVolumeNode;
+    }
+    else
+    {
+      // Set referenced anatomy to invalid if has the same geometry as the selected reference (the resampling step is unnecessary then)
+      referencedAnatomyVolumeNode = NULL;
+    }
   }
   else
   {
@@ -274,30 +310,18 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
 
   polyDataToLabelmapFilter->Update();
 
-  // If the selected reference is under a transform, then create a temporary copy and harden transform so that the whole transform is reflected in the result
+  // Resample to selected reference coordinate system if referenced anatomy was used
   double checkpointResamplingStart = timer->GetUniversalTime();
   int oversampledSelectedReferenceVolumeExtent[6] = {0, 0, 0, 0, 0, 0};
   double oversampledSelectedReferenceVtkVolumeSpacing[3] = {0.0, 0.0, 0.0};
   SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( selectedReferenceVolumeNode,
     oversamplingFactor, oversampledSelectedReferenceVolumeExtent, oversampledSelectedReferenceVtkVolumeSpacing );
-
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> temporaryHardenedSelectedReferenceVolumeCopy = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  if (selectedReferenceVolumeNode->GetParentTransformNode())
-  {
-    temporaryHardenedSelectedReferenceVolumeCopy->Copy(selectedReferenceVolumeNode);
-    vtkSmartPointer<vtkMatrix4x4> hardeningMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    selectedReferenceVolumeNode->GetParentTransformNode()->GetMatrixTransformToWorld(hardeningMatrix);
-    temporaryHardenedSelectedReferenceVolumeCopy->ApplyTransformMatrix(hardeningMatrix);
-
-    selectedReferenceVolumeNode = temporaryHardenedSelectedReferenceVolumeCopy.GetPointer();
-  }
   double selectedReferenceSpacing[3];
   selectedReferenceVolumeNode->GetSpacing(selectedReferenceSpacing);
   double oversampledSelectedReferenceVolumeSpacing[3] = { selectedReferenceSpacing[0] * oversampledSelectedReferenceVtkVolumeSpacing[0],
                                                           selectedReferenceSpacing[1] * oversampledSelectedReferenceVtkVolumeSpacing[1],
                                                           selectedReferenceSpacing[2] * oversampledSelectedReferenceVtkVolumeSpacing[2] };
 
-  // Resample to selected reference coordinate system if referenced anatomy was used
   vtkSmartPointer<vtkImageData> indexedLabelmapVolumeImageData;
   if (referencedAnatomyVolumeNode)
   {
