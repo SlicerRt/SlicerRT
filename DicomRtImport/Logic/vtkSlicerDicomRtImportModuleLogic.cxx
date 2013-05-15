@@ -24,7 +24,6 @@ limitations under the License.
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
-#include "vtkMRMLContourHierarchyNode.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 #include "vtkSlicerBeamsModuleLogic.h"
 #include "vtkMRMLBeamsNode.h"
@@ -253,7 +252,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
 //---------------------------------------------------------------------------
 bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo)
 {
-  vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchySeriesNode;
+  vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchySeriesNode;
   vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchySeriesNode;
   vtkSmartPointer<vtkMRMLModelHierarchyNode> structureModelHierarchyRootNode;
 
@@ -373,7 +372,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
           contourHierarchySeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX);
           contourHierarchySeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
           contourHierarchySeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(contourHierarchySeriesNodeName);
-          contourHierarchySeriesNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
+          contourHierarchySeriesNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
           contourHierarchySeriesNode->SetName(contourHierarchySeriesNodeName.c_str());
           contourHierarchySeriesNode->AllowMultipleChildrenOn();
           contourHierarchySeriesNode->HideFromEditorsOff();
@@ -381,6 +380,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
             SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
           contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
             vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+          contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str(), "1");
           //TODO: If both point and contour can be found in the series, then 2 PH nodes will be created with the same Series Instance UID!
           contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
             rtReader->GetSeriesInstanceUid());
@@ -405,8 +405,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         contourNode->HideFromEditorsOff();
 
         // Put the contour node in the hierarchy
-        vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyNode
-          = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
+        vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
         std::string phContourNodeName(contourNodeName);
         phContourNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
         phContourNodeName = this->GetMRMLScene()->GenerateUniqueName(phContourNodeName);

@@ -22,7 +22,6 @@
 // Contours includes
 #include "vtkConvertContourRepresentations.h"
 #include "vtkMRMLContourNode.h"
-#include "vtkMRMLContourHierarchyNode.h"
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
@@ -174,7 +173,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   }
 
   // Get patient hierarchy node associated to the contour
-  vtkMRMLHierarchyNode* patientHierarchyNode_Contour = vtkMRMLContourHierarchyNode::GetAssociatedHierarchyNode(mrmlScene, this->ContourNode->GetID());
+  vtkMRMLHierarchyNode* patientHierarchyNode_Contour = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(mrmlScene, this->ContourNode->GetID());
   vtkMRMLScalarVolumeNode* referencedAnatomyVolumeNode = NULL;
   if (patientHierarchyNode_Contour)
   {

@@ -36,7 +36,7 @@ class SlicerRtCommon
 {
 public:
   //----------------------------------------------------------------------------
-  // Constant strings
+  // Constant strings (std::string types for easy concatenation)
   //----------------------------------------------------------------------------
 
   // DicomRtImport constants
@@ -50,6 +50,7 @@ public:
   static const std::string DICOMRTIMPORT_BEAM_COLLIMATOR_ANGLE_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME;
+  static const std::string DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME;
 
   static const std::string DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;

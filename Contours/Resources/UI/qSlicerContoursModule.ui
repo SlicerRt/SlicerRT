@@ -34,7 +34,7 @@
        <property name="nodeTypes">
         <stringlist>
          <string>vtkMRMLContourNode</string>
-         <string>vtkMRMLContourHierarchyNode</string>
+         <string>vtkMRMLDisplayableHierarchyNode</string>
         </stringlist>
        </property>
        <property name="renameEnabled">
@@ -143,13 +143,13 @@
           <string>vtkMRMLScalarVolumeNode</string>
          </stringlist>
         </property>
-        <property name="selectNodeUponCreation">
-         <bool>false</bool>
-        </property>
         <property name="addEnabled">
          <bool>false</bool>
         </property>
         <property name="removeEnabled">
+         <bool>false</bool>
+        </property>
+        <property name="selectNodeUponCreation">
          <bool>false</bool>
         </property>
        </widget>

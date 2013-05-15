@@ -16,8 +16,6 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkMRMLContourNode.cxx
   vtkMRMLContourNode.h
-  vtkMRMLContourHierarchyNode.cxx
-  vtkMRMLContourHierarchyNode.h
   vtkConvertContourRepresentations.cxx
   vtkConvertContourRepresentations.h
   )

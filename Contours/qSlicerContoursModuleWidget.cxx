@@ -29,12 +29,12 @@
 
 // Contours includes
 #include "vtkMRMLContourNode.h"
-#include "vtkMRMLContourHierarchyNode.h"
 #include "vtkSlicerContoursModuleLogic.h"
 #include "vtkConvertContourRepresentations.h"
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
+#include "vtkMRMLDisplayableHierarchyNode.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -133,6 +133,9 @@ void qSlicerContoursModuleWidget::setup()
   Q_D(qSlicerContoursModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
+
+  // Filter out hierarchy nodes that are not contour hierarchy nodes
+  d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str()) );
 
   // Make connections
   connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );
@@ -367,11 +370,11 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
       d->SelectedContourNodes.push_back(contourNode);
     }
   }
-  else if ( node->IsA("vtkMRMLContourHierarchyNode")
-    && SlicerRtCommon::IsPatientHierarchyNode(node) )
+  else if ( node->IsA("vtkMRMLDisplayableHierarchyNode")
+    && SlicerRtCommon::IsPatientHierarchyNode(node) && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str()) )
   {
     vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
-    vtkMRMLContourHierarchyNode::SafeDownCast(node)->GetChildrenContourNodes(childContourNodes);
+    vtkMRMLDisplayableHierarchyNode::SafeDownCast(node)->GetChildrenDisplayableNodes(childContourNodes);
     childContourNodes->InitTraversal();
     if (childContourNodes->GetNumberOfItems() < 1)
     {

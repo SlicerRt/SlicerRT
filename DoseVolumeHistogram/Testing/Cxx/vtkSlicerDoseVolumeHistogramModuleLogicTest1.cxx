@@ -26,7 +26,6 @@
 // SlicerRt includes
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
-#include "vtkMRMLContourHierarchyNode.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
@@ -297,7 +296,6 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
   mrmlScene->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
-  mrmlScene->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourHierarchyNode>::New());
 
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);
   mrmlScene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
@@ -378,7 +376,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   // Create contour hierarchy root node
   std::string structureSetSeriesName("StructureSetSeries");
-  vtkSmartPointer<vtkMRMLContourHierarchyNode> contourHierarchyRootNode = vtkSmartPointer<vtkMRMLContourHierarchyNode>::New();
+  vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyRootNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
   std::string hierarchyNodeName = structureSetSeriesName + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
   contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
   contourHierarchyRootNode->AllowMultipleChildrenOn();
@@ -386,6 +384,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   contourHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
   contourHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
   contourHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), structureSetSeriesName.c_str());
+  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str(), "1");
   mrmlScene->AddNode(contourHierarchyRootNode);
   //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
 

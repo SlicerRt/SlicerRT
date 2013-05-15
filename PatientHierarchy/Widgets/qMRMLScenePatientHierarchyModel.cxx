@@ -244,7 +244,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
         vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES) )
       {
-        if (node->IsA("vtkMRMLContourHierarchyNode"))
+        if (node->IsA("vtkMRMLDisplayableHierarchyNode") && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str()))
         {
           item->setIcon(d->StructureSetIcon);
         }

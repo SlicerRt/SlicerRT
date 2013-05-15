@@ -95,7 +95,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
     return false;
   }
 
-  if (!parentNode->IsA("vtkMRMLContourHierarchyNode"))
+  if (! (parentNode->IsA("vtkMRMLDisplayableHierarchyNode") && parentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str())) )
   {
     vtkDebugMacro("AddNodeToPatientHierarchy: Parent node must be a contour hierarchy node!");
     return false;

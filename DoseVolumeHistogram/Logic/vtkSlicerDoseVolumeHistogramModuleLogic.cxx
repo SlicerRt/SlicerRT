@@ -27,7 +27,6 @@
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include <vtkMRMLContourNode.h>
-#include <vtkMRMLContourHierarchyNode.h>
 #include "vtkConvertContourRepresentations.h"
 
 // MRML includes
@@ -41,6 +40,7 @@
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLDisplayableHierarchyNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -198,7 +198,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* 
   }
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
-    || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLContourHierarchyNode")
+    || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLDisplayableHierarchyNode")
     || node->IsA("vtkMRMLChartNode") || node->IsA("vtkMRMLDoseVolumeHistogramNode"))
   {
     this->Modified();
@@ -234,7 +234,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode
   }
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
-    || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLContourHierarchyNode")
+    || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLDisplayableHierarchyNode")
     || node->IsA("vtkMRMLChartNode") || node->IsA("vtkMRMLDoseVolumeHistogramNode"))
   {
     this->Modified();
@@ -354,10 +354,10 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetSelectedContourNodes(std::vecto
       contourNodes.push_back(contourNode);
     }
   }
-  else if (structureSetContourNode->IsA("vtkMRMLContourHierarchyNode"))
+  else if (structureSetContourNode->IsA("vtkMRMLDisplayableHierarchyNode") && structureSetContourNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str()))
   {
     vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
-    vtkMRMLContourHierarchyNode::SafeDownCast(structureSetContourNode)->GetChildrenContourNodes(childContourNodes);
+    vtkMRMLDisplayableHierarchyNode::SafeDownCast(structureSetContourNode)->GetChildrenDisplayableNodes(childContourNodes);
     childContourNodes->InitTraversal();
     if (childContourNodes->GetNumberOfItems() < 1)
     {
