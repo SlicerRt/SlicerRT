@@ -253,7 +253,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
 bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo)
 {
   vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchySeriesNode;
-  vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchySeriesNode;
   vtkSmartPointer<vtkMRMLModelHierarchyNode> structureModelHierarchyRootNode;
 
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
@@ -262,6 +261,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   std::string phSeriesNodeName(seriesName);
   phSeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
   phSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(phSeriesNodeName);
+  std::string contourNodeName;
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
@@ -312,26 +312,55 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     {
       // Point ROI
       addedDisplayableNode = this->AddRoiPoint(roiPoly->GetPoint(0), roiLabel, roiColor);
+    }
+    else
+    {
+      // Contour ROI
+      contourNodeName = std::string(roiLabel) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
+      contourNodeName = this->GetMRMLScene()->GenerateUniqueName(contourNodeName);
 
-      // Create PatientHierarchy node and associate it with the ROI
-      if (addedDisplayableNode)
+      addedDisplayableNode = this->AddRoiContour(roiPoly, contourNodeName, roiColor);
+
+      roiCollection->AddItem(roiPoly);
+
+    }
+
+    // Add new node to the model hierarchy
+    if (addedDisplayableNode)
+    {
+      // Create root contour hierarchy node for the series, if it has not been created yet
+      if (contourHierarchySeriesNode.GetPointer()==NULL)
       {
-        // Create root patient hierarchy node for the series, if it has not been created yet
-        if (patientHierarchySeriesNode.GetPointer()==NULL)
-        {
-          patientHierarchySeriesNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
-          patientHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
-          patientHierarchySeriesNode->HideFromEditorsOff();
-          patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-            SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-          patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-            vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-          //TODO: If both point and contour can be found in the series, then 2 PH nodes will be created with the same Series Instance UID!
-          patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
-            rtReader->GetSeriesInstanceUid());
-          this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
-        }
+        std::string contourHierarchySeriesNodeName(seriesName);
+        contourHierarchySeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX);
+        contourHierarchySeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
+        contourHierarchySeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(contourHierarchySeriesNodeName);
+        contourHierarchySeriesNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
+        contourHierarchySeriesNode->SetName(contourHierarchySeriesNodeName.c_str());
+        contourHierarchySeriesNode->AllowMultipleChildrenOn();
+        contourHierarchySeriesNode->HideFromEditorsOff();
+        contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+          SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+        contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+          vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+        contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str(), "1");
+        //TODO: If both point and contour can be found in the series, then 2 PH nodes will be created with the same Series Instance UID!
+        contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
+          rtReader->GetSeriesInstanceUid());
+        contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), seriesName);
+        this->GetMRMLScene()->AddNode(contourHierarchySeriesNode);
 
+        // A hierarchy node needs a display node
+        vtkSmartPointer<vtkMRMLModelDisplayNode> contourHierarchySeriesDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+        contourHierarchySeriesNodeName.append("Display");
+        contourHierarchySeriesDisplayNode->SetName(contourHierarchySeriesNodeName.c_str());
+        contourHierarchySeriesDisplayNode->SetVisibility(1);
+        this->GetMRMLScene()->AddNode(contourHierarchySeriesDisplayNode);
+        contourHierarchySeriesNode->SetAndObserveDisplayNodeID( contourHierarchySeriesDisplayNode->GetID() );
+      }
+
+      if (roiPoly->GetNumberOfPoints() == 1)
+      {
         // Create patient hierarchy entry for the ROI
         vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> patientHierarchyRoiNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
         std::string phNodeName;
@@ -347,55 +376,11 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
           vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
         patientHierarchyRoiNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(),
           roiReferencedSeriesUid);
-        patientHierarchyRoiNode->SetParentNodeID(patientHierarchySeriesNode->GetID());
+        patientHierarchyRoiNode->SetParentNodeID( contourHierarchySeriesNode->GetID() );
         this->GetMRMLScene()->AddNode(patientHierarchyRoiNode);
       }
-    } // endif Point ROI
-    else
-    {
-      // Contour ROI
-      std::string contourNodeName;
-      contourNodeName = std::string(roiLabel) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
-      contourNodeName = this->GetMRMLScene()->GenerateUniqueName(contourNodeName);
-
-      addedDisplayableNode = this->AddRoiContour(roiPoly, contourNodeName, roiColor);
-
-      roiCollection->AddItem(roiPoly);
-
-      // Create Contour and PatientHierarchy nodes and make association
-      if (addedDisplayableNode)
+      else
       {
-        // Create root contour hierarchy node for the series, if it has not been created yet
-        if (contourHierarchySeriesNode.GetPointer()==NULL)
-        {
-          std::string contourHierarchySeriesNodeName(seriesName);
-          contourHierarchySeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX);
-          contourHierarchySeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
-          contourHierarchySeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(contourHierarchySeriesNodeName);
-          contourHierarchySeriesNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
-          contourHierarchySeriesNode->SetName(contourHierarchySeriesNodeName.c_str());
-          contourHierarchySeriesNode->AllowMultipleChildrenOn();
-          contourHierarchySeriesNode->HideFromEditorsOff();
-          contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-            SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-          contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-            vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-          contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str(), "1");
-          //TODO: If both point and contour can be found in the series, then 2 PH nodes will be created with the same Series Instance UID!
-          contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
-            rtReader->GetSeriesInstanceUid());
-          contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str(), seriesName);
-          this->GetMRMLScene()->AddNode(contourHierarchySeriesNode);
-
-          // A hierarchy node needs a display node
-          vtkSmartPointer<vtkMRMLModelDisplayNode> contourHierarchySeriesDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-          contourHierarchySeriesNodeName.append("Display");
-          contourHierarchySeriesDisplayNode->SetName(contourHierarchySeriesNodeName.c_str());
-          contourHierarchySeriesDisplayNode->SetVisibility(1);
-          this->GetMRMLScene()->AddNode(contourHierarchySeriesDisplayNode);
-          contourHierarchySeriesNode->SetAndObserveDisplayNodeID( contourHierarchySeriesDisplayNode->GetID() );
-        }
-
         // Create contour node
         vtkSmartPointer<vtkMRMLContourNode> contourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
         contourNode = vtkMRMLContourNode::SafeDownCast(this->GetMRMLScene()->AddNode(contourNode));
@@ -422,38 +407,34 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         this->GetMRMLScene()->AddNode(contourHierarchyNode);
 
         displayNodeCollection->AddItem( vtkMRMLModelNode::SafeDownCast(addedDisplayableNode)->GetModelDisplayNode() );
+
+        // Create root model hierarchy node, if it has not been created yet
+        if (structureModelHierarchyRootNode.GetPointer()==NULL)
+        {
+          structureModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+          std::string hierarchyNodeName;
+          hierarchyNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
+          hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
+          structureModelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+          structureModelHierarchyRootNode->AllowMultipleChildrenOn();
+          structureModelHierarchyRootNode->HideFromEditorsOff();
+          this->GetMRMLScene()->AddNode(structureModelHierarchyRootNode);
+
+          // A hierarchy node needs a display node
+          vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+          hierarchyNodeName.append("Display");
+          modelDisplayNode->SetName(hierarchyNodeName.c_str());
+          modelDisplayNode->SetVisibility(1);
+          this->GetMRMLScene()->AddNode(modelDisplayNode);
+          structureModelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+        }
+
+        // Put the new node in the hierarchy
+        vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+        this->GetMRMLScene()->AddNode(modelHierarchyNode);
+        modelHierarchyNode->SetParentNodeID( structureModelHierarchyRootNode->GetID() );
+        modelHierarchyNode->SetModelNodeID( addedDisplayableNode->GetID() );
       }
-    } // endif Contour ROI
-
-    // Add new node to the model hierarchy
-    if (addedDisplayableNode)
-    {
-      // Create root model hierarchy node, if it has not been created yet
-      if (structureModelHierarchyRootNode.GetPointer()==NULL)
-      {
-        structureModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-        std::string hierarchyNodeName;
-        hierarchyNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
-        hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
-        structureModelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
-        structureModelHierarchyRootNode->AllowMultipleChildrenOn();
-        structureModelHierarchyRootNode->HideFromEditorsOff();
-        this->GetMRMLScene()->AddNode(structureModelHierarchyRootNode);
-
-        // A hierarchy node needs a display node
-        vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-        hierarchyNodeName.append("Display");
-        modelDisplayNode->SetName(hierarchyNodeName.c_str());
-        modelDisplayNode->SetVisibility(1);
-        this->GetMRMLScene()->AddNode(modelDisplayNode);
-        structureModelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
-      }
-
-      // Put the new node in the hierarchy
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-      this->GetMRMLScene()->AddNode(modelHierarchyNode);
-      modelHierarchyNode->SetParentNodeID( structureModelHierarchyRootNode->GetID() );
-      modelHierarchyNode->SetModelNodeID( addedDisplayableNode->GetID() );
     }
   }
 
@@ -469,8 +450,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
   patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
     vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
-  patientHierarchyColorTableNode->SetParentNodeID(
-    contourHierarchySeriesNode.GetPointer() ? contourHierarchySeriesNode->GetID() : patientHierarchySeriesNode->GetID() );
+  patientHierarchyColorTableNode->SetParentNodeID(contourHierarchySeriesNode->GetID());
   this->GetMRMLScene()->AddNode(patientHierarchyColorTableNode);
 
   // Insert series in patient hierarchy

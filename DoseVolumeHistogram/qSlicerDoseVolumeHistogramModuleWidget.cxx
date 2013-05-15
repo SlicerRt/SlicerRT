@@ -51,9 +51,6 @@
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 
-// STD includes
-#include <set>
-
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_DoseVolumeHistogram
 class qSlicerDoseVolumeHistogramModuleWidgetPrivate: public Ui_qSlicerDoseVolumeHistogramModule
