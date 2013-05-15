@@ -74,35 +74,42 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     # Load data button
     self.loadDataButton = qt.QPushButton("Load data")
     self.loadDataButton.toolTip = "Download (if necessary), import and load input data."
-    self.loadDataButton.name = "SlicerRtDemo_RSNA2012_SelfTest LoadData"
+    self.loadDataButton.name = "SlicerRtDemo_RSNA2012_SelfTest_LoadData"
     self.layout.addWidget(self.loadDataButton)
     self.loadDataButton.connect('clicked()', self.onLoadData)
+
+    # Perform deformable registration checkbox
+    self.deformableCheckbox = qt.QCheckBox("Perform deformable registration")
+    self.deformableCheckbox.toolTip = "Perform deformable B-spline registration in addition to the default rigid one if checked"
+    self.deformableCheckbox.name = "SlicerRtDemo_RSNA2012_SelfTest_DeformableCheckbox"
+    self.layout.addWidget(self.deformableCheckbox)
+    self.deformableCheckbox.setChecked(False)
 
     # Register button
     self.registerButton = qt.QPushButton("Register")
     self.registerButton.toolTip = "Registers Day 2 CT to Day 1 CT. Data needs to be loaded!"
-    self.registerButton.name = "SlicerRtDemo_RSNA2012_SelfTest register"
+    self.registerButton.name = "SlicerRtDemo_RSNA2012_SelfTest_Register"
     self.layout.addWidget(self.registerButton)
     self.registerButton.connect('clicked()', self.onRegister)
 
     # Resample button
     self.resampleButton = qt.QPushButton("Resample")
     self.resampleButton.toolTip = "Resamples Day 2 dose volume using the resulting transformations. All previous steps are needed to be run!"
-    self.resampleButton.name = "SlicerRtDemo_RSNA2012_SelfTest resample"
+    self.resampleButton.name = "SlicerRtDemo_RSNA2012_SelfTest_Resample"
     self.layout.addWidget(self.resampleButton)
     self.resampleButton.connect('clicked()', self.onResample)
 
     # Accumulate dose button
     self.accumulateDoseButton = qt.QPushButton("Accumulate dose")
     self.accumulateDoseButton.toolTip = "Accumulates doses using all the Day 2 variants. All previous steps are needed to be run!"
-    self.accumulateDoseButton.name = "SlicerRtDemo_RSNA2012_SelfTest accumulateDose"
+    self.accumulateDoseButton.name = "SlicerRtDemo_RSNA2012_SelfTest_AccumulateDose"
     self.layout.addWidget(self.accumulateDoseButton)
     self.accumulateDoseButton.connect('clicked()', self.onAccumulateDose)
 
     # Compute DVH button
     self.computeDvhButton = qt.QPushButton("Compute DVH")
     self.computeDvhButton.toolTip = "Computes DVH on the accumulated doses. All previous steps are needed to be run!"
-    self.computeDvhButton.name = "SlicerRtDemo_RSNA2012_SelfTest computeDvh"
+    self.computeDvhButton.name = "SlicerRtDemo_RSNA2012_SelfTest_ComputeDvh"
     self.layout.addWidget(self.computeDvhButton)
     self.computeDvhButton.connect('clicked()', self.onComputeDvh)
 
@@ -149,17 +156,19 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     globals()[widgetName.lower()].setup()
 
   def onReloadAndTest(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
+    self.deformableCheckbox.setChecked(performDeformableRegistration)
+    tester.performDeformableRegistration = performDeformableRegistration
     tester.runTest()
 
   def onLoadData(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
-    self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
     
-    tester.setUp()
+    tester.setUp(self.deformableCheckbox.checked)
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00SetupPathsAndNames()
     tester.TestSection_01OpenTempDatabase()
@@ -170,20 +179,20 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     tester.TestSection_06SetDisplayOptions()
 
   def onRegister(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
-    self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
     
+    tester.performDeformableRegistration = self.deformableCheckbox.checked
     tester.setUp(clearScene=False)
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00SetupPathsAndNames()
     tester.TestSection_07RegisterDay2CTToDay1CT()
 
   def onResample(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
-    self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
 
+    tester.performDeformableRegistration = self.deformableCheckbox.checked
     tester.setUp(clearScene=False)
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00SetupPathsAndNames()
@@ -191,20 +200,20 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     tester.TestSection_09SetDoseVolumeAttributes()
 
   def onAccumulateDose(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
-    self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
     
+    tester.performDeformableRegistration = self.deformableCheckbox.checked
     tester.setUp(clearScene=False)
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00SetupPathsAndNames()
     tester.TestSection_10AccumulateDose()
 
   def onComputeDvh(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
-    self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
     
+    tester.performDeformableRegistration = self.deformableCheckbox.checked
     tester.setUp(clearScene=False)
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00SetupPathsAndNames()
@@ -243,6 +252,9 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
   This is the test case for your scripted module.
   """
 
+  def __init__(self):
+    self.performDeformableRegistration = False
+
   def delayDisplay(self,message,msec=1000):
     """This utility method displays a small dialog and waits.
     This does two things: 1) it lets the event loop catch up
@@ -260,14 +272,13 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
     qt.QTimer.singleShot(msec, self.info.close)
     self.info.exec_()
 
-  def setUp(self,clearScene=True):
+  def setUp(self, clearScene=True):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
     if clearScene:
       slicer.mrmlScene.Clear(0)
 
     self.delayMs = 700
-    self.performDeformableRegistration = False
 
     #TODO: Comment out
     #logFile = open('d:/pyTestLog.txt', 'w')
@@ -321,7 +332,7 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
   def runTest(self):
     """Run as few or as many tests as needed here.
     """
-    self.setUp()
+    self.setUp(self.performDeformableRegistration)
 
     self.test_SlicerRtDemo_RSNA2012_SelfTest_FullTest()
 
