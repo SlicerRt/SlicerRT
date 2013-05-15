@@ -40,6 +40,9 @@
 #include <vtkSmartPointer.h>
 #include <vtkCollection.h>
 
+// Qt includes
+#include <QDebug>
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Contours
 class qSlicerExternalBeamPlanningModuleWidgetPrivate: public Ui_qSlicerExternalBeamPlanningModule
@@ -227,7 +230,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   this->connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
   this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
-  this->connect( d->comboBox_RadiationType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(radiationTypeChanged(const QString &)) );
+  this->connect( d->comboBox_RadiationType, SIGNAL(currentIndexChanged(int)), this, SLOT(radiationTypeChanged(int)) );
   this->connect( d->MRMLNodeComboBox_Isocenter, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(IsocenterNodeChanged(vtkMRMLNode*)) );
   this->connect( d->SliderWidget_GantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
   this->connect( d->comboBox_CollimatorType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(collimatorTypeChanged(const QString &)) );
@@ -449,10 +452,24 @@ void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString & te
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(const QString & text)
+void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  qDebug ("Radiation type changed (%d)\n", index);
+  if (index == -1) {
+    return;
+  }
+
+  QString text = d->comboBox_RadiationType->currentText();
+
+  qDebug() << "Text is " << text;
+  if (text == "Proton") {
+    d->stackedWidget->setCurrentIndex (1);
+  }
+  else {
+    d->stackedWidget->setCurrentIndex (0);
+  }
 }
 
 //-----------------------------------------------------------------------------

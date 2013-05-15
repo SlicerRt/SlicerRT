@@ -75,7 +75,7 @@ protected slots:
 
   void beamTypeChanged(const QString &);
 
-  void radiationTypeChanged(const QString &);
+  void radiationTypeChanged(int);
 
   void gantryAngleChanged(double);
 
