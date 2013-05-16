@@ -408,7 +408,6 @@ void vtkMRMLContourNode::SetAndObserveRibbonModelNodeIdOnly(const char *nodeID)
   vtkMRMLModelNode *tnode = this->GetRibbonModelNode();
   if (tnode)
     {
-    tnode->HideFromEditorsOn();
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     events->InsertNextValue(vtkMRMLModelNode::PolyDataModifiedEvent);
@@ -458,7 +457,6 @@ void vtkMRMLContourNode::SetAndObserveIndexedLabelmapVolumeNodeIdOnly(const char
   vtkMRMLScalarVolumeNode *tnode = this->GetIndexedLabelmapVolumeNode();
   if (tnode)
     {
-    tnode->HideFromEditorsOn();
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     events->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent);
@@ -529,7 +527,6 @@ void vtkMRMLContourNode::SetAndObserveClosedSurfaceModelNodeIdOnly(const char *n
   vtkMRMLModelNode *tnode = this->GetClosedSurfaceModelNode();
   if (tnode)
     {
-    tnode->HideFromEditorsOn();
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     events->InsertNextValue(vtkMRMLModelNode::PolyDataModifiedEvent);
@@ -840,17 +837,17 @@ void vtkMRMLContourNode::SetDefaultConversionParametersForRepresentation(Contour
 int vtkMRMLContourNode::GetDisplayVisibility()
 {
   if (this->ActiveRepresentationType == None)
-  {
+    {
     return 0;
-  }
+    }
 
   std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
   vtkMRMLDisplayableNode* activeRepresentation = representations[this->ActiveRepresentationType];
   if (!activeRepresentation)
-  {
+    {
     vtkErrorMacro("Invalid active contour representation for contour node " << this->Name);
     return 0;
-  }
+    }
 
   return activeRepresentation->GetDisplayVisibility();
 }
@@ -859,25 +856,25 @@ int vtkMRMLContourNode::GetDisplayVisibility()
 void vtkMRMLContourNode::SetDisplayVisibility(int visible)
 {
   if ( (visible != 0 && visible != 1) || this->ActiveRepresentationType == None )
-  {
+    {
     return;
-  }
+    }
 
   std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
   vtkMRMLDisplayableNode* activeRepresentation = representations[this->ActiveRepresentationType];
   if (!activeRepresentation)
-  {
+    {
     vtkErrorMacro("Invalid active contour representation for contour node " << this->Name);
     return;
-  }
+    }
 
   activeRepresentation->SetDisplayVisibility(visible);
 
   vtkMRMLDisplayNode* displayNode = activeRepresentation->GetDisplayNode();
   if (displayNode)
-  {
+    {
     displayNode->SetSliceIntersectionVisibility(visible);
-  }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -889,29 +886,26 @@ void vtkMRMLContourNode::SetName(const char* newName)
   if (newName)
   {
     size_t n = strlen(newName) + 1;
-    char *cp1 =  new char[n];
+  char *cp1 =  new char[n];
     const char *cp2 = (newName);
     this->Name = cp1;
-    do { *cp1++ = *cp2++; } while ( --n );
+  do { *cp1++ = *cp2++; } while ( --n );
 
-    // Set new name to representations
-    if (this->RibbonModelNode)
+  // Set new name to representations
+  if (this->RibbonModelNode)
     {
-      std::string newRibbonModelName(newName);
-      newRibbonModelName.append(SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX);
-      this->RibbonModelNode->SetName(newRibbonModelName.c_str());
+    std::string newRibbonModelName = std::string(newName) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
+    this->RibbonModelNode->SetName(newRibbonModelName.c_str());
     }
-    if (this->IndexedLabelmapVolumeNode)
+  if (this->IndexedLabelmapVolumeNode)
     {
-      std::string newIndexedLabelmapName(newName);
-      newIndexedLabelmapName.append(SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX);
-      this->IndexedLabelmapVolumeNode->SetName(newIndexedLabelmapName.c_str());
+    std::string newIndexedLabelmapName = std::string(newName) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
+    this->IndexedLabelmapVolumeNode->SetName(newIndexedLabelmapName.c_str());
     }
-    if (this->ClosedSurfaceModelNode)
+  if (this->ClosedSurfaceModelNode)
     {
-      std::string newClosedSurfaceModelName(newName);
-      newClosedSurfaceModelName.append(SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX);
-      this->IndexedLabelmapVolumeNode->SetName(newClosedSurfaceModelName.c_str());
+    std::string newClosedSurfaceModelName = std::string(newName) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
+    this->IndexedLabelmapVolumeNode->SetName(newClosedSurfaceModelName.c_str());
     }
   }
   else
@@ -933,31 +927,31 @@ void vtkMRMLContourNode::DeleteNonActiveRepresentations()
 {
   std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
   for (int i=0; i<NumberOfRepresentationTypes; ++i)
-  {
-    if (i != this->ActiveRepresentationType && representations[i])
     {
+    if (i != this->ActiveRepresentationType && representations[i])
+      {
       vtkMRMLDisplayableNode* node = representations[i];
       switch ( (ContourRepresentationType)(i) )
-      {
-      case RibbonModel:
-        this->SetAndObserveRibbonModelNodeId(NULL);
-        break;
-      case IndexedLabelmap:
-        this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
-        break;
-      case ClosedSurfaceModel:
-        this->SetAndObserveClosedSurfaceModelNodeId(NULL);
-        break;
-      default:
-        break;
-      }
+        {
+        case RibbonModel:
+          this->SetAndObserveRibbonModelNodeId(NULL);
+          break;
+        case IndexedLabelmap:
+          this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
+          break;
+        case ClosedSurfaceModel:
+          this->SetAndObserveClosedSurfaceModelNodeId(NULL);
+          break;
+        default:
+          break;
+        }
 
       if (this->Scene->IsNodePresent(node))
-      {
+        {
         this->Scene->RemoveNode(node);
+        }
       }
     }
-  }
 }
 
 //---------------------------------------------------------------------------

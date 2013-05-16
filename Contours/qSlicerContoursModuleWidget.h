@@ -66,6 +66,9 @@ protected:
   /// \return True if the target reduction factors are the same, false otherwise
   bool getTargetReductionFactorOfSelectedContours(double &targetReductionFactor);
 
+  /// Determines if all selected contours have been created from labelmap
+  bool haveSelectedContoursBeenCreatedFromLabelmap();
+
   /// Determine if the selected modules contain a certain representation
   /// \param allMustContain If set to true, this function returns true only if all the selected
   ///        contours contain the representation. Otherwise it returns true even if only one contains it

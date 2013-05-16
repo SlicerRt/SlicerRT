@@ -284,6 +284,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QLabel" name="label_CreatedFromLabelmap">
+            <property name="toolTip">
+             <string>This is why there is no reference selected, as the contour's labelmap representation is its own reference</string>
+            </property>
+            <property name="text">
+             <string>The selected contour has been created from labelmap</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="label_ActiveSelected">
             <property name="text">
              <string>The current selection is the active representation</string>

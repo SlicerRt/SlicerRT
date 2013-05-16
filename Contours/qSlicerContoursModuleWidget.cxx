@@ -150,6 +150,7 @@ void qSlicerContoursModuleWidget::setup()
   d->label_NewConversion->setVisible(false);
   d->label_NoSourceWarning->setVisible(false);
   d->label_ActiveSelected->setVisible(false);
+  d->label_CreatedFromLabelmap->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -233,6 +234,24 @@ vtkMRMLContourNode::ContourRepresentationType qSlicerContoursModuleWidget::getRe
   {
     return vtkMRMLContourNode::None;
   }
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerContoursModuleWidget::haveSelectedContoursBeenCreatedFromLabelmap()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  bool allCreatedFromLabelmap = true;
+  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
+  {
+    if ( allCreatedFromLabelmap && !(*it)->HasBeenCreatedFromIndexedLabelmap() )
+    {
+      allCreatedFromLabelmap = false;
+      break;
+    }
+  }
+
+  return allCreatedFromLabelmap;
 }
 
 //-----------------------------------------------------------------------------
@@ -411,6 +430,7 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
   d->label_NewConversion->setVisible(false);
   d->label_NoSourceWarning->setVisible(false);
   d->label_NoReferenceWarning->setVisible(false);
+  d->label_CreatedFromLabelmap->setVisible(false);
 
   d->pushButton_ApplyChangeRepresentation->setEnabled(false);
 
@@ -452,9 +472,13 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
     d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(referenceVolumeNodeId);
     d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
   }
-  // If all selected contours have been created from labelmap, then leave it as empty
-  else if (sameReferenceVolumeNodeId)
+  // If all selected contours have the same reference, then leave it as empty
+  else
   {
+    if (this->haveSelectedContoursBeenCreatedFromLabelmap())
+    {
+      d->label_CreatedFromLabelmap->setVisible(true);
+    }
     d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
     d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
     d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
