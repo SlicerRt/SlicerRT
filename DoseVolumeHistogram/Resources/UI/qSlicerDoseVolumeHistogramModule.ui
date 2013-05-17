@@ -137,7 +137,7 @@
           <property name="nodeTypes">
            <stringlist>
             <string>vtkMRMLContourNode</string>
-            <string>vtkMRMLContourHierarchyNode</string>
+            <string>vtkMRMLDisplayableHierarchyNode</string>
            </stringlist>
           </property>
          </widget>

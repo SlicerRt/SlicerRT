@@ -298,7 +298,6 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == 1 )
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 13 )
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == 6 )
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') ) == 1 )
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLAnnotationFiducialNode*') ) == 10 )
 
   def TestSection_5SaveScene(self):

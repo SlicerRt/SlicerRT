@@ -474,7 +474,6 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       numOfScalarVolumeNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') )
       numOfModelHierarchyNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') )
       numOfContourNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLContourNode*') )
-      numOfContourHierarchyNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') )
 
       # Choose first patient from the patient list
       dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
@@ -505,7 +504,6 @@ class SlicerRtDemo_RSNA2012_SelfTestTest(unittest.TestCase):
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == numOfModelHierarchyNodesBeforeLoad + 17 )
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == numOfContourNodesBeforeLoad + 16 )
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourHierarchyNode*') ) > numOfContourHierarchyNodesBeforeLoad )
       
     except Exception, e:
       import traceback
