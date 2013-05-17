@@ -43,6 +43,7 @@ vtkMRMLExternalBeamPlanningNode::vtkMRMLExternalBeamPlanningNode()
   this->ReferenceVolumeNodeID = NULL;
   this->RTPlanNodeID = NULL;
   this->IsocenterNodeID = NULL;
+  this->ProtonTargetVolumeNodeID = NULL;
 
   this->HideFromEditors = false;
 }
@@ -53,6 +54,7 @@ vtkMRMLExternalBeamPlanningNode::~vtkMRMLExternalBeamPlanningNode()
   this->SetReferenceVolumeNodeID(NULL);
   this->SetRTPlanNodeID(NULL);
   this->SetIsocenterNodeID(NULL);
+  this->SetProtonTargetVolumeNodeID(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -66,30 +68,36 @@ void vtkMRMLExternalBeamPlanningNode::WriteXML(ostream& of, int nIndent)
   {
     std::stringstream ss;
     if ( this->ReferenceVolumeNodeID )
-      {
+    {
       ss << this->ReferenceVolumeNodeID;
       of << indent << " ReferenceVolumeNodeID=\"" << ss.str() << "\"";
-      }
+    }
   }
 
   {
     std::stringstream ss;
     if ( this->RTPlanNodeID )
-      {
+    {
       ss << this->RTPlanNodeID;
       of << indent << " RTPlanNodeID=\"" << ss.str() << "\"";
-      }
+    }
   }
 
   {
     std::stringstream ss;
     if ( this->IsocenterNodeID )
-      {
+    {
       ss << this->IsocenterNodeID;
       of << indent << " IsocenterNodeID=\"" << ss.str() << "\"";
-      }
+    }
   }
 
+  if ( this->ProtonTargetVolumeNodeID )
+  {
+    std::stringstream ss;
+    ss << this->ProtonTargetVolumeNodeID;
+    of << indent << " ProtonTargetVolumeNodeID=\"" << ss.str() << "\"";
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -124,6 +132,12 @@ void vtkMRMLExternalBeamPlanningNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetAndObserveIsocenterNodeID(ss.str().c_str());
       }
+    else if (!strcmp(attName, "ProtonTargetVolumeNodeID")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetAndObserveProtonTargetVolumeNodeID(ss.str().c_str());
+      }
     }
 }
 
@@ -139,7 +153,8 @@ void vtkMRMLExternalBeamPlanningNode::Copy(vtkMRMLNode *anode)
 
   this->SetAndObserveReferenceVolumeNodeID(node->ReferenceVolumeNodeID);
   this->SetAndObserveRTPlanNodeID(node->RTPlanNodeID);
-  this->SetAndObserveIsocenterNodeID(node->RTPlanNodeID);
+  this->SetAndObserveIsocenterNodeID(node->IsocenterNodeID);
+  this->SetAndObserveProtonTargetVolumeNodeID(node->ProtonTargetVolumeNodeID);
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -153,23 +168,28 @@ void vtkMRMLExternalBeamPlanningNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ReferenceVolumeNodeID:   " << this->ReferenceVolumeNodeID << "\n";
   os << indent << "RTPlanNodeID:   " << this->RTPlanNodeID << "\n";
   os << indent << "IsocenterNodeID:   " << this->IsocenterNodeID << "\n";
+  os << indent << "ProtonTargetVolumeNodeID:   " << this->ProtonTargetVolumeNodeID << "\n";
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   if (this->ReferenceVolumeNodeID && !strcmp(oldID, this->ReferenceVolumeNodeID))
-    {
+  {
     this->SetAndObserveReferenceVolumeNodeID(newID);
-    }
+  }
   if (this->RTPlanNodeID && !strcmp(oldID, this->RTPlanNodeID))
-    {
+  {
     this->SetAndObserveRTPlanNodeID(newID);
-    }
+  }
   if (this->IsocenterNodeID && !strcmp(oldID, this->IsocenterNodeID))
-    {
+  {
     this->SetAndObserveIsocenterNodeID(newID);
-    }
+  }
+  if (this->ProtonTargetVolumeNodeID && !strcmp(oldID, this->ProtonTargetVolumeNodeID))
+  {
+    this->SetAndObserveProtonTargetVolumeNodeID(newID);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -218,5 +238,21 @@ void vtkMRMLExternalBeamPlanningNode::SetAndObserveIsocenterNodeID(const char* i
     {
     this->Scene->AddReferencedNodeID(this->IsocenterNodeID, this);
     }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLExternalBeamPlanningNode::SetAndObserveProtonTargetVolumeNodeID(const char* id)
+{
+  if (this->ProtonTargetVolumeNodeID != NULL)
+  {
+    this->Scene->RemoveReferencedNodeID(this->ProtonTargetVolumeNodeID, this);
+  }
+
+  this->SetProtonTargetVolumeNodeID(id);
+
+  if (id)
+  {
+    this->Scene->AddReferencedNodeID(this->ProtonTargetVolumeNodeID, this);
+  }
 }
 

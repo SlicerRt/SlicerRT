@@ -28,6 +28,7 @@
 #include "SlicerRtCommon.h"
 
 // SlicerRt includes
+#include "vtkMRMLContourNode.h"
 #include "vtkMRMLExternalBeamPlanningNode.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
@@ -209,8 +210,16 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
     {
       this->RTPlanNodeChanged(d->MRMLNodeComboBox_RTPlan->currentNode());
     }
-  }
 
+    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetProtonTargetVolumeNodeID()))
+    {
+      d->MRMLNodeComboBox_ProtonTargetVolume->setCurrentNode(paramNode->GetProtonTargetVolumeNodeID());
+    }
+    else
+    {
+      this->protonTargetVolumeNodeChanged(d->MRMLNodeComboBox_ProtonTargetVolume->currentNode());
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -239,7 +248,11 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   //this->connect( d->lineEdit_RxDose, SIGNAL(textChanged(const QString &)), this, SLOT(RxDoseChanged(const QString &)) );
   //this->connect( d->lineEdit_BeamOnTime, SIGNAL(textChanged(const QString &)), this, SLOT(beamOnTimeChanged(const QString &)) );
 
+  // Proton widgets
+  this->connect( d->MRMLNodeComboBox_ProtonTargetVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(protonTargetVolumeNodeChanged(vtkMRMLNode*)) );
+
   this->connect( d->tableWidget_Beams, SIGNAL(itemClicked(QtableWidgetItem *item)), this, SLOT(tableWidgetItemClicked(QtableWidgetItem *item)) );
+
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 }
@@ -330,6 +343,8 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  qDebug ("EBP:: rvnode changed %p, %p, %p",
+          paramNode, this->mrmlScene(), node);
   if (!paramNode || !this->mrmlScene() || !node)
   {
     return;
@@ -422,6 +437,31 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetItemClicked(QTableWidge
     d->currentBeamRow = row;
     // need to update beam parameters panel
   } 
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::protonTargetVolumeNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  qDebug ("EBP:: ptvnode changed %p, %p, %p",
+          paramNode, this->mrmlScene(), node);
+
+  if (!paramNode || !this->mrmlScene() || !node)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveProtonTargetVolumeNodeID(node->GetID());
+  paramNode->DisableModifiedEventOff();
+
+#if defined (commentout)
+  // TODO GCS FIX: Update GUI to set range & modulation, etc.
+  // Update UI from selected contours nodes list
+  this->updateWidgetFromMRML();
+#endif
 }
 
 //-----------------------------------------------------------------------------

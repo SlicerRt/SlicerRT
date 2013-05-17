@@ -85,6 +85,8 @@ protected slots:
 
   void tableWidgetItemClicked(QTableWidgetItem *item);
 
+  void protonTargetVolumeNodeChanged(vtkMRMLNode* node);
+
 protected:
   QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;
 

@@ -76,6 +76,12 @@ public:
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
+  /// Get TODO
+  vtkGetStringMacro(ProtonTargetVolumeNodeID);
+
+  /// Set TODO
+  void SetAndObserveProtonTargetVolumeNodeID(const char* id);
+
 protected:
   /// Set TODO
   vtkSetStringMacro(ReferenceVolumeNodeID);
@@ -85,6 +91,9 @@ protected:
  
   /// Set TODO
   vtkSetStringMacro(IsocenterNodeID);
+ 
+  /// Set TODO
+  vtkSetStringMacro(ProtonTargetVolumeNodeID);
  
 protected:
   vtkMRMLExternalBeamPlanningNode();
@@ -100,6 +109,9 @@ protected:
 
   /// TODO
   char* IsocenterNodeID;
+
+  /// TODO
+  char* ProtonTargetVolumeNodeID;
 
 };
 
