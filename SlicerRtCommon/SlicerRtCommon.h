@@ -39,11 +39,32 @@ public:
   // Constant strings (std::string types for easy concatenation)
   //----------------------------------------------------------------------------
 
+  // Patient hierarchy constants
+  static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME;
+  static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE;
+  static const char* PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME;
+  static const char* PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME;
+  static const char* PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME;
+  static const std::string PATIENTHIERARCHY_ATTRIBUTE_PREFIX;
+  static const std::string PATIENTHIERARCHY_PATIENT_NAME_ATTRIBUTE_NAME;
+  static const std::string PATIENTHIERARCHY_PATIENT_ID_ATTRIBUTE_NAME;
+  static const std::string PATIENTHIERARCHY_PATIENT_SEX_ATTRIBUTE_NAME;
+  static const std::string PATIENTHIERARCHY_PATIENT_BIRTH_DATE_ATTRIBUTE_NAME;
+  static const std::string PATIENTHIERARCHY_STUDY_DATE_ATTRIBUTE_NAME;
+  static const std::string PATIENTHIERARCHY_STUDY_TIME_ATTRIBUTE_NAME;
+  static const std::string PATIENTHIERARCHY_SERIES_MODALITY_ATTRIBUTE_NAME;
+
+  // Contour (vtkMRMLContourNode) constants
+  static const std::string CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
+  static const std::string CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
+  static const std::string CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
+  static const double DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR;
+  static const double DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR;
+
   // DicomRtImport constants
   static const std::string DICOMRTIMPORT_ATTRIBUTE_PREFIX;
   static const std::string DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME;
-  static const std::string DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_BEAM_GANTRY_ANGLE_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_BEAM_COUCH_ANGLE_ATTRIBUTE_NAME;
@@ -51,6 +72,7 @@ public:
   static const std::string DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME;
+  static const std::string DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME;
 
   static const std::string DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
@@ -62,13 +84,6 @@ public:
   static const std::string DICOMRTIMPORT_NO_DESCRIPTION;
   static const std::string DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
-
-  // Contour (vtkMRMLContourNode) constants
-  static const std::string CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
-  static const std::string CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
-  static const std::string CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
-  static const double DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR;
-  static const double DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR;
 
   // DoseVolumeHistogram constants
   static const std::string DVH_ATTRIBUTE_PREFIX;
@@ -111,13 +126,6 @@ public:
   static const std::string BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX;
   static const std::string BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX;
   static const std::string BEAMS_PARAMETER_SET_BASE_NAME_PREFIX;
-
-  // Patient hierarchy constants
-  static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME;
-  static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE;
-  static const char* PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME;
-  static const char* PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME;
-  static const char* PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME;
 
   //----------------------------------------------------------------------------
   // Utility functions

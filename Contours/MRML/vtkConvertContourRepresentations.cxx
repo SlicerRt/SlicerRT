@@ -264,7 +264,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   // Get color index
   vtkMRMLColorTableNode* colorNode = NULL;
   int structureColorIndex = -1;
-  this->ContourNode->GetColorIndex(structureColorIndex, colorNode, modelNode);
+  this->ContourNode->GetColor(structureColorIndex, colorNode);
 
   // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
@@ -457,7 +457,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   // Get color index
   vtkMRMLColorTableNode* colorNode = NULL;
   int structureColorIndex = -1;
-  this->ContourNode->GetColorIndex(structureColorIndex, colorNode);
+  this->ContourNode->GetColor(structureColorIndex, colorNode);
 
   // Convert labelmap to model
   vtkSmartPointer<vtkLabelmapToModelFilter> labelmapToModelFilter = vtkSmartPointer<vtkLabelmapToModelFilter>::New();

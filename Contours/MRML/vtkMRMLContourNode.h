@@ -106,14 +106,12 @@ public:
   /// \sa RasterizationReferenceVolumeNodeId
   bool HasBeenCreatedFromIndexedLabelmap();
 
+  /// Get structure name from patient hierarchy
+  const char* GetStructureName();
+
 public:
   /// Set name (changes names of representations too)
   virtual void SetName(const char* newName);
-
-  /// Get structure name
-  vtkGetStringMacro(StructureName);
-  /// Set structure name
-  vtkSetStringMacro(StructureName);
 
   /// Get ribbon model node ID
   vtkGetStringMacro(RibbonModelNodeId);
@@ -159,13 +157,11 @@ protected:
   void ShowRepresentation(vtkMRMLDisplayableNode* representation, bool show);
 
   /*!
-    Get the index of the color of the contour from the associated color table
+    Get the color table and color index for the contour
     /param colorIndex Index of the found color in the associated color table
     /param colorNode Output argument for the found color node (optional)
-    /param referenceModelNode A model that we want to double check the found color against
-             (we only select the color if its color is the same as the one we found)
   */
-  void GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLModelNode* referenceModelNode=NULL);
+  void GetColor(int &colorIndex, vtkMRMLColorTableNode* &colorNode);
 
   /// Set default conversion parameters if none were explicitly specified
   void SetDefaultConversionParametersForRepresentation(ContourRepresentationType type);
@@ -202,9 +198,6 @@ protected:
   friend class vtkConvertContourRepresentations;
 
 protected:
-  /// Name of the structure that corresponds to this contour
-  char *StructureName;
-
   /// Ribbon model representation
   vtkMRMLModelNode* RibbonModelNode;
   /// Ribbon model representation model node ID

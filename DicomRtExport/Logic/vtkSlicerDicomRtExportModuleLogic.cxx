@@ -50,6 +50,7 @@ void vtkSlicerDicomRtExportLogic::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
+//----------------------------------------------------------------------------
 void vtkSlicerDicomRtExportLogic::SaveDicomRT(char *name)
 {
   // to do ...

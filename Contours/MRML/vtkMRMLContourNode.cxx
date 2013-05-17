@@ -51,8 +51,6 @@ vtkMRMLNodeNewMacro(vtkMRMLContourNode);
 //----------------------------------------------------------------------------
 vtkMRMLContourNode::vtkMRMLContourNode()
 {
-  this->StructureName = NULL;
-
   this->RibbonModelNode = NULL;
   this->RibbonModelNodeId = NULL;
 
@@ -95,10 +93,6 @@ void vtkMRMLContourNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  if (this->StructureName != NULL) 
-    {
-    of << indent << " StructureName=\"" << this->StructureName << "\"";
-    }
   if (this->RibbonModelNodeId != NULL) 
     {
     of << indent << " RibbonModelNodeId=\"" << this->RibbonModelNodeId << "\"";
@@ -135,11 +129,7 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "StructureName")) 
-      {
-      this->SetStructureName(attValue);
-      }
-    else if (!strcmp(attName, "RibbonModelNodeId")) 
+    if (!strcmp(attName, "RibbonModelNodeId")) 
       {
       this->SetAndObserveRibbonModelNodeId(NULL); // clear any previous observers
       // Do not add observers yet because updates may be wrong before reading all the xml attributes
@@ -196,8 +186,6 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
   this->DisableModifiedEventOn();
 
   vtkMRMLContourNode *node = (vtkMRMLContourNode *) anode;
-
-  this->SetStructureName( node->GetStructureName() );
 
   // Observers must be removed here, otherwise MRML updates would activate nodes on the undo stack
   this->SetAndObserveRibbonModelNodeId( NULL );
@@ -736,82 +724,75 @@ bool vtkMRMLContourNode::RepresentationExists( ContourRepresentationType type )
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourNode::GetColorIndex(int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLModelNode* referenceModelNode/*=NULL*/)
+const char* vtkMRMLContourNode::GetStructureName()
+{
+  // Get associated patient hierarchy node
+  vtkMRMLDisplayableHierarchyNode* contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->ID);
+  if (!contourPatientHierarchyNode)
+  {
+    vtkErrorMacro("GetColorIndex: No patient hierarchy node found for contour '" << this->Name << "'");
+    return NULL;
+  }
+
+  return contourPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &colorNode)
 {
   // Initialize output color index with Gray 'invalid' color
   colorIndex = 1;
   colorNode = NULL;
 
-  // Get hierarchy node
-  vtkMRMLDisplayableHierarchyNode* hierarchyNode = 
-    vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->ID);
-  if (!hierarchyNode)
+  // Get associated patient hierarchy node and its parent
+  vtkMRMLDisplayableHierarchyNode* contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->ID);
+  if (!contourPatientHierarchyNode)
     {
-    vtkErrorMacro("Error: No hierarchy node found for structure '" << this->Name << "'");
+    vtkErrorMacro("GetColorIndex: No patient hierarchy node found for contour '" << this->Name << "'");
+    return;
+    }
+  vtkMRMLDisplayableHierarchyNode* parentContourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(contourPatientHierarchyNode->GetParentNode());
+  if (!contourPatientHierarchyNode)
+    {
+    vtkErrorMacro("GetColorIndex: No structure set patient hierarchy node found for contour '" << this->Name << "'");
     return;
     }
 
   // Get color node created for the structure set
-  vtkMRMLDisplayableHierarchyNode* parentContourHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(hierarchyNode->GetParentNode());
-
-  std::string seriesName = parentContourHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SERIES_NAME_ATTRIBUTE_NAME.c_str());
-  std::string colorNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
-  vtkSmartPointer<vtkCollection> colorNodes = vtkSmartPointer<vtkCollection>::Take( this->Scene->GetNodesByName(colorNodeName.c_str()) );
-  if (colorNodes->GetNumberOfItems() == 0)
+  vtkSmartPointer<vtkCollection> colorNodes = vtkSmartPointer<vtkCollection>::New();
+  parentContourPatientHierarchyNode->GetAssociatedChildrendNodes(colorNodes, "vtkMRMLColorTableNode");
+  if (colorNodes->GetNumberOfItems() != 1)
     {
-    vtkErrorMacro("Error: No color table found for structure set '" << parentContourHierarchyNode->GetName() << "'");
-    }
-
-  int structureColorIndex = -1;
-  if (!this->StructureName)
-    {
-    vtkErrorMacro("Unable to find color index for contour '" << this->Name << "', because structure name is empty!");
+    vtkErrorMacro("GetColorIndex: Invalid number (" << colorNodes->GetNumberOfItems() << ") of color table nodes found for contour '"
+      << this->Name << "' in structure set '" << parentContourPatientHierarchyNode->GetName() << "'");
     return;
     }
 
-  vtkObject* nextObject = NULL;
-  for (colorNodes->InitTraversal(); (nextObject = colorNodes->GetNextItemAsObject()); )
-    {
-    vtkMRMLColorTableNode* currentColorNode = vtkMRMLColorTableNode::SafeDownCast(nextObject);
-    int currentColorIndex = -1;
+  colorNode = vtkMRMLColorTableNode::SafeDownCast( colorNodes->GetItemAsObject(0) );
 
-    //TODO: workaround for issue #179, restore when Slicer mantis issue http://www.na-mic.org/Bug/view.php?id=2783 is fixed
-    // Try to search for the structure name with the spaces replaced with underscores in case it was loaded from scene file
-    std::string structureNameWithUnderscores(this->StructureName);
-    std::replace(structureNameWithUnderscores.begin(), structureNameWithUnderscores.end(), ' ', '_');
-    
-    if ( (currentColorIndex = currentColorNode->GetColorIndexByName(this->StructureName)) != -1
-      || (currentColorIndex = currentColorNode->GetColorIndexByName(structureNameWithUnderscores.c_str())) != -1 )
-      {
-      if (referenceModelNode)
-        {
-        double modelColor[3];
-        double foundColor[4];
-        referenceModelNode->GetDisplayNode()->GetColor(modelColor);
-        currentColorNode->GetColor(currentColorIndex, foundColor);
-        if ((fabs(modelColor[0]-foundColor[0]) < EPSILON) && (fabs(modelColor[1]-foundColor[1]) < EPSILON) && (fabs(modelColor[2]-foundColor[2])) < EPSILON)
-          {
-          structureColorIndex = currentColorIndex;
-          colorNode = currentColorNode;
-          break;
-          }
-        }
-      else
-        {
-        structureColorIndex = currentColorIndex;
-        colorNode = currentColorNode;
-        break;
-        }
-      }
-    }
-
-  if (structureColorIndex == -1)
+  const char* structureName = contourPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+  if (!structureName)
     {
-    vtkErrorMacro("No matching entry found in the color tables for structure '" << this->StructureName << "'");
+    vtkErrorMacro("GetColorIndex: No structure name found for contour '" << this->Name << "'");
     return;
     }
 
-  colorIndex = structureColorIndex;
+  //TODO: workaround for issue #179, restore when Slicer mantis issue http://www.na-mic.org/Bug/view.php?id=2783 is fixed
+  // Try to search for the structure name with the spaces replaced with underscores in case it was loaded from scene file
+  std::string structureNameWithUnderscores(structureName);
+  std::replace(structureNameWithUnderscores.begin(), structureNameWithUnderscores.end(), ' ', '_');
+
+  int foundColorIndex = -1;
+  if ( (foundColorIndex = colorNode->GetColorIndexByName(structureName)) != -1
+    || (foundColorIndex = colorNode->GetColorIndexByName(structureNameWithUnderscores.c_str())) != -1 )
+    {
+    colorIndex = foundColorIndex;
+    }
+  else
+    {
+    vtkErrorMacro("GetColorIndex: No matching entry found in the color table '" << colorNode->GetName() << "' for contour '" << this->Name
+      << "' (structure '" << structureName <<"')");
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -884,34 +865,34 @@ void vtkMRMLContourNode::SetName(const char* newName)
   if ( this->Name && newName && (!strcmp(this->Name,newName))) { return; }
   if (this->Name) { delete [] this->Name; }
   if (newName)
-  {
+    {
     size_t n = strlen(newName) + 1;
-  char *cp1 =  new char[n];
+    char *cp1 =  new char[n];
     const char *cp2 = (newName);
     this->Name = cp1;
-  do { *cp1++ = *cp2++; } while ( --n );
+    do { *cp1++ = *cp2++; } while ( --n );
 
-  // Set new name to representations
-  if (this->RibbonModelNode)
-    {
-    std::string newRibbonModelName = std::string(newName) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
-    this->RibbonModelNode->SetName(newRibbonModelName.c_str());
+    // Set new name to representations
+    if (this->RibbonModelNode)
+      {
+      std::string newRibbonModelName = std::string(newName) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
+      this->RibbonModelNode->SetName(newRibbonModelName.c_str());
+      }
+    if (this->IndexedLabelmapVolumeNode)
+      {
+      std::string newIndexedLabelmapName = std::string(newName) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
+      this->IndexedLabelmapVolumeNode->SetName(newIndexedLabelmapName.c_str());
+      }
+    if (this->ClosedSurfaceModelNode)
+      {
+      std::string newClosedSurfaceModelName = std::string(newName) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
+      this->IndexedLabelmapVolumeNode->SetName(newClosedSurfaceModelName.c_str());
+      }
     }
-  if (this->IndexedLabelmapVolumeNode)
-    {
-    std::string newIndexedLabelmapName = std::string(newName) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
-    this->IndexedLabelmapVolumeNode->SetName(newIndexedLabelmapName.c_str());
-    }
-  if (this->ClosedSurfaceModelNode)
-    {
-    std::string newClosedSurfaceModelName = std::string(newName) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
-    this->IndexedLabelmapVolumeNode->SetName(newClosedSurfaceModelName.c_str());
-    }
-  }
   else
-  {
+    {
     this->Name = NULL;
-  }
+    }
   this->Modified();
 }
 

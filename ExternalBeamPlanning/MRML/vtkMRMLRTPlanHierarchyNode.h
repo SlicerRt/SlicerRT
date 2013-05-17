@@ -78,7 +78,7 @@ protected:
   void operator=(const vtkMRMLRTPlanHierarchyNode&);
 
 protected:
-  char* StructureName;
+  char* StructureName; //TODO: This should be stored in the Patient Hierarchy
 };
 
 #endif // __vtkMRMLRTPlanHierarchyNode_h
