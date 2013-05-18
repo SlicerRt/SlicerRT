@@ -87,6 +87,8 @@ protected slots:
 
   void protonTargetVolumeNodeChanged(vtkMRMLNode* node);
 
+  void calculateDoseClicked();
+
 protected:
   QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;
 

@@ -234,6 +234,8 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_RTPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(RTPlanNodeChanged(vtkMRMLNode*)) );
 
+  this->connect( d->tableWidget_Beams, SIGNAL(itemClicked(QtableWidgetItem *item)), this, SLOT(tableWidgetItemClicked(QtableWidgetItem *item)) );
+
   this->connect( d->pushButton_AddBeam, SIGNAL(clicked()), this, SLOT(addBeamClicked()) );
   this->connect( d->pushButton_RemoveBeam, SIGNAL(clicked()), this, SLOT(removeBeamClicked()) );
 
@@ -251,7 +253,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   // Proton widgets
   this->connect( d->MRMLNodeComboBox_ProtonTargetVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(protonTargetVolumeNodeChanged(vtkMRMLNode*)) );
 
-  this->connect( d->tableWidget_Beams, SIGNAL(itemClicked(QtableWidgetItem *item)), this, SLOT(tableWidgetItemClicked(QtableWidgetItem *item)) );
+  this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -458,10 +460,65 @@ void qSlicerExternalBeamPlanningModuleWidget::protonTargetVolumeNodeChanged(vtkM
   paramNode->DisableModifiedEventOff();
 
 #if defined (commentout)
+  /* This is just debugging */
+  vtkMRMLContourNode* contourNode;
+  vtkMRMLContourNode::ContourRepresentationType contourRep;
+  contourNode = vtkMRMLContourNode::SafeDownCast(node);
+  contourRep = contourNode->GetActiveRepresentationType();
+  qDebug("Contour representation is %d\n", contourRep);
+#endif
+
+#if defined (commentout)
   // TODO GCS FIX: Update GUI to set range & modulation, etc.
   // Update UI from selected contours nodes list
   this->updateWidgetFromMRML();
 #endif
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  d->label_CalculateDoseStatus->setText("Starting dose calculation...");
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+
+  /* Make sure inputs were specified */
+  const char *refVolID = paramNode->GetReferenceVolumeNodeID();
+  const char *tgtVolID = paramNode->GetProtonTargetVolumeNodeID();
+  if (SlicerRtCommon::IsStringNullOrEmpty(refVolID))
+  {
+    d->label_CalculateDoseStatus->setText("No reference image");
+    return;
+  }
+  if (SlicerRtCommon::IsStringNullOrEmpty(tgtVolID))
+  {
+    d->label_CalculateDoseStatus->setText("No proton target volume");
+    return;
+  }
+
+  /* Make sure contour is in labelmap form */
+  vtkMRMLNode *node;
+  vtkMRMLContourNode* contourNode;
+  vtkMRMLContourNode::ContourRepresentationType contourRep;
+
+  node = this->mrmlScene()->GetNodeByID(tgtVolID);
+  contourNode = vtkMRMLContourNode::SafeDownCast(node);
+  contourRep = contourNode->GetActiveRepresentationType();
+  qDebug("Contour representation is %d\n", contourRep);
+
+  if (contourRep != vtkMRMLContourNode::IndexedLabelmap)
+  {
+    d->label_CalculateDoseStatus->setText("Proton target must be labelmap");
+    return;
+  }
+
+  /* OK, we're good to go (well, not really, but let's pretend). 
+     Do the actual computation in the logic object */
+  d->logic()->ComputeDose();
+
+  d->label_CalculateDoseStatus->setText("Dose calculation done.");
 }
 
 //-----------------------------------------------------------------------------

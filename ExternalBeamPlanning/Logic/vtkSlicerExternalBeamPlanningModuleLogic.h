@@ -71,6 +71,9 @@ public:
   ///
   void CreateBeamPolyData();
 
+  ///
+  void ComputeDose ();
+
 protected:
   vtkSlicerExternalBeamPlanningModuleLogic();
   virtual ~vtkSlicerExternalBeamPlanningModuleLogic();

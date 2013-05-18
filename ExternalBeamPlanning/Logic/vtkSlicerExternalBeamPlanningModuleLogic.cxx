@@ -22,6 +22,7 @@
 
 // ExternalBeamPlanning includes
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
+#include "vtkMRMLContourNode.h"
 #include "vtkMRMLExternalBeamPlanningNode.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
@@ -31,11 +32,11 @@
 #include "SlicerRtCommon.h"
 
 // MRML includes
-#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLAnnotationFiducialNode.h>
 #include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -369,4 +370,27 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
   }
 
   this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
+{
+  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
+  {
+    return;
+  }
+
+  // Convert input images to ITK format for Plastimatch
+  vtkMRMLVolumeNode* referenceVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
+  itk::Image<float, 3>::Pointer referenceVolumeItk = itk::Image<float, 3>::New();
+
+  vtkMRMLContourNode* targetContourNode = vtkMRMLContourNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetProtonTargetVolumeNodeID()));
+  vtkMRMLScalarVolumeNode* targetVolumeNode = targetContourNode->GetIndexedLabelmapVolumeNode();
+  itk::Image<unsigned char, 3>::Pointer targetVolumeItk = itk::Image<unsigned char, 3>::New();
+
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(referenceVolumeNode, referenceVolumeItk);
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(targetVolumeNode, targetVolumeItk);
+
 }

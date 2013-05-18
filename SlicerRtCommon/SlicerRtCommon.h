@@ -147,7 +147,7 @@ public:
   static void GetTransformBetweenTransformables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform);
 
   /// Returns true if the string is null or empty, returns false otherwise
-  static bool IsStringNullOrEmpty(char* aString);
+  static bool IsStringNullOrEmpty(const char* aString);
 
   /*!
     Computes origin, extent, and spacing of a volume for an oversampling factor

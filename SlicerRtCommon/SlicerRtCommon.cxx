@@ -165,7 +165,7 @@ void SlicerRtCommon::GetTransformBetweenTransformables(vtkMRMLTransformableNode*
 }
 
 //----------------------------------------------------------------------------
-bool SlicerRtCommon::IsStringNullOrEmpty(char* aString)
+bool SlicerRtCommon::IsStringNullOrEmpty(const char* aString)
 {
   if (aString == NULL)
   {
