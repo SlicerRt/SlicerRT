@@ -37,7 +37,6 @@ class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModule :
   Q_INTERFACES(qSlicerLoadableModule);
 
 public:
-
   typedef qSlicerLoadableModule Superclass;
   explicit qSlicerBeamsModule(QObject *parent=0);
   virtual ~qSlicerBeamsModule();
@@ -59,8 +58,10 @@ public:
   /// Return the categories for the module
   virtual QStringList categories()const;
 
+  /// Make this module hidden
+  virtual bool isHidden()const { return true; };
+ 
 protected:
-
   /// Initialize the module. Register the volumes reader/writer
   virtual void setup();
 

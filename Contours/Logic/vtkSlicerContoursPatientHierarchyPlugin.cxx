@@ -31,11 +31,15 @@
 #include <vtkMRMLNode.h>
 #include <vtkMRMLDisplayableHierarchyNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLModelNode.h>
+#include <vtkMRMLModelDisplayNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkCollection.h>
+#include <vtkLookupTable.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerContoursPatientHierarchyPlugin);
@@ -85,7 +89,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
 {
   if (!nodeToAdd || !parentNode)
   {
-    vtkErrorMacro("AddNodeToPatientHierarchy: Ivalid argument!");
+    vtkErrorMacro("AddNodeToPatientHierarchy: Invalid argument!");
     return false;
   }
   vtkMRMLScene* mrmlScene = nodeToAdd->GetScene();
@@ -118,7 +122,11 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
     nodeToAdd->GetName() );
   contourPatientHierarchyNode->SetParentNodeID(parentNode->GetID());
 
+  double color[4] = { SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1], SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3] };
+  std::string colorName;
+
   // Create contour node if dropped node is volume or model
+  vtkMRMLContourNode* contourNodeAddedToPatientHierarchy = NULL;
   if ( (nodeToAdd->IsA("vtkMRMLModelNode") && !nodeToAdd->IsA("vtkMRMLAnnotationNode"))
     || nodeToAdd->IsA("vtkMRMLScalarVolumeNode") )
   {
@@ -127,6 +135,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
     std::string contourName = std::string(nodeToAdd->GetName()) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
     contourName = mrmlScene->GenerateUniqueName(contourName);
     newContourNode->SetName(contourName.c_str());
+    colorName = std::string(nodeToAdd->GetName());
 
     if (nodeToAdd->IsA("vtkMRMLScalarVolumeNode"))
     {
@@ -143,21 +152,136 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
     {
       newContourNode->SetAndObserveClosedSurfaceModelNodeId(nodeToAdd->GetID());
       newContourNode->SetDecimationTargetReductionFactor(0.0);
+
+      // Get model color
+      vtkMRMLModelNode* modelNodeToAdd = vtkMRMLModelNode::SafeDownCast(nodeToAdd);
+      if (modelNodeToAdd && modelNodeToAdd->GetDisplayNode())
+      {
+        modelNodeToAdd->GetDisplayNode()->GetColor(color[0], color[1], color[2]);
+      }
     }
     newContourNode->HideFromEditorsOff();
     contourPatientHierarchyNode->SetAssociatedNodeID(newContourNode->GetID());
     newContourNode->Modified();
+
+    contourNodeAddedToPatientHierarchy = newContourNode.GetPointer();
   }
   else if (nodeToAdd->IsA("vtkMRMLContourNode"))
   {
     contourPatientHierarchyNode->SetAssociatedNodeID(nodeToAdd->GetID());
+    contourNodeAddedToPatientHierarchy = vtkMRMLContourNode::SafeDownCast(nodeToAdd);
+
+    // Get color
+    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( mrmlScene->GetNodeByID(
+      contourNodeAddedToPatientHierarchy->GetRibbonModelNodeId() ? contourNodeAddedToPatientHierarchy->GetRibbonModelNodeId() : contourNodeAddedToPatientHierarchy->GetClosedSurfaceModelNodeId()) );
+    if (modelNode && modelNode->GetDisplayNode())
+    {
+      modelNode->GetDisplayNode()->GetColor(color[0], color[1], color[2]);
+    }
+    colorName = std::string(nodeToAdd->GetName());
   }
   else
   {
     vtkErrorMacro("AddNodeToPatientHierarchy: Invalid node type to add!");
     return false;
   }
-  
+
+  // Add color to the new color table
+  vtkMRMLColorTableNode* colorNode = NULL;
+  int structureColorIndex = SlicerRtCommon::COLOR_INDEX_INVALID; // Initializing to this value means that we don't request the color index, just the color table
+  contourNodeAddedToPatientHierarchy->GetColor(structureColorIndex, colorNode);
+  if (!colorNode)
+  {
+    vtkErrorMacro("ReparentInsidePatientHierarchy: There is no color node in structure set patient hierarchy node'" << parentNode->GetName() << "'!");
+    return false;
+  }
+
+  colorNode->SetNumberOfColors(colorNode->GetNumberOfColors()+1);
+  colorNode->GetLookupTable()->SetTableRange(0, colorNode->GetNumberOfColors());
+  colorNode->AddColor(colorName.c_str(), color[0], color[1], color[2], color[3]);
+
+  return true;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerContoursPatientHierarchyPlugin::ReparentInsidePatientHierarchy(vtkMRMLNode* nodeToReparent, vtkMRMLHierarchyNode* parentNode)
+{
+  if (!nodeToReparent || !parentNode)
+  {
+    vtkErrorMacro("ReparentInsidePatientHierarchy: Invalid argument!");
+    return false;
+  }
+  vtkMRMLScene* mrmlScene = nodeToReparent->GetScene();
+  if (!mrmlScene || (mrmlScene != parentNode->GetScene()))
+  {
+    vtkErrorMacro("ReparentInsidePatientHierarchy: Invalid MRML scene!");
+    return false;
+  }
+
+  if (! (parentNode->IsA("vtkMRMLDisplayableHierarchyNode") && parentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str())) )
+  {
+    vtkDebugMacro("ReparentInsidePatientHierarchy: Parent node must be a contour hierarchy node!");
+    return false;
+  }
+
+  vtkMRMLContourNode* contourNodeToReparent = vtkMRMLContourNode::SafeDownCast(nodeToReparent);
+  if (!contourNodeToReparent)
+  {
+    vtkDebugMacro("ReparentInsidePatientHierarchy: Only contour nodes can be reparented using the Contours PatientHierarchy plugin.");
+    return false;
+  }
+
+  // Get color index and the color table that has been associated to the contour node before reparenting
+  vtkMRMLColorTableNode* oldColorNode = NULL;
+  int oldStructureColorIndex = -1;
+  contourNodeToReparent->GetColor(oldStructureColorIndex, oldColorNode);
+
+  // Do the reparenting
+  vtkMRMLDisplayableHierarchyNode* associatedPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(
+    vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(mrmlScene, contourNodeToReparent->GetID()) );
+  if (associatedPatientHierarchyNode)
+  {
+    associatedPatientHierarchyNode->SetParentNodeID(parentNode->GetID());
+  }
+  else
+  {
+    vtkErrorMacro("ReparentInsidePatientHierarchy: There is no patient hierarhcy node associated with the contour to reparent '" << contourNodeToReparent->GetName() << "'!");
+    return false;
+  }
+
+  // Remove color from the color table that has been associated to the contour node before reparenting
+  double color[4];
+  std::string colorName;
+  if (oldColorNode && oldStructureColorIndex != SlicerRtCommon::COLOR_INDEX_INVALID)
+  {
+    // Save color for later insertion in the new color node
+    oldColorNode->GetColor(oldStructureColorIndex, color);
+    colorName = std::string(oldColorNode->GetColorName(oldStructureColorIndex));
+
+    // Set old color entry to invalid
+    oldColorNode->SetColor(oldStructureColorIndex, SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1],
+      SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3]);
+    oldColorNode->SetColorName(oldStructureColorIndex, SlicerRtCommon::COLOR_NAME_REMOVED);
+  }
+  else
+  {
+    vtkErrorMacro("ReparentInsidePatientHierarchy: There was no associated color for contour '" << contourNodeToReparent->GetName() << "' before reparenting!");
+  }
+
+  // Add color to the new color table
+  vtkMRMLColorTableNode* newColorNode = NULL;
+  int newStructureColorIndex = SlicerRtCommon::COLOR_INDEX_INVALID; // Initializing to this value means that we don't request the color index, just the color table
+  contourNodeToReparent->GetColor(newStructureColorIndex, newColorNode);
+  if (!newColorNode)
+  {
+    vtkErrorMacro("ReparentInsidePatientHierarchy: There is no color node in structure set patient hierarchy node'" << parentNode->GetName() << "'!");
+    return false;
+  }
+
+  newColorNode->SetNumberOfColors(newColorNode->GetNumberOfColors()+1);
+  newColorNode->GetLookupTable()->SetTableRange(0, newColorNode->GetNumberOfColors());
+  newColorNode->AddColor(colorName.c_str(), color[0], color[1], color[2], color[3]);
+
   return true;
 }
 
@@ -199,4 +323,3 @@ vtkMRMLContourNode* vtkSlicerContoursPatientHierarchyPlugin::IsNodeAContourRepre
 
   return NULL;
 }
-

@@ -32,11 +32,13 @@
 // VTK includes
 #include <vtkNew.h>
 #include <vtkPolyData.h>
+#include <vtkLookupTable.h>
 
 // MRML includes
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
-#include "vtkMRMLDisplayableHierarchyNode.h"
+#include <vtkMRMLDisplayableHierarchyNode.h>
+#include <vtkMRMLColorTableNode.h>
 
 // STD includes
 #include <cassert>
@@ -150,23 +152,53 @@ void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
     return;
   }
 
-  vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
-  contourHierarchyNode->SetName(SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME);
-  contourHierarchyNode->AllowMultipleChildrenOn();
-  contourHierarchyNode->HideFromEditorsOff();
-  contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-  contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-  contourHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str(), "1");
-  this->GetMRMLScene()->AddNode(contourHierarchyNode);
+  vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> structureSetPatientHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
+  structureSetPatientHierarchyNode->SetName(SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME);
+  structureSetPatientHierarchyNode->AllowMultipleChildrenOn();
+  structureSetPatientHierarchyNode->HideFromEditorsOff();
+  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str(), "1");
+  this->GetMRMLScene()->AddNode(structureSetPatientHierarchyNode);
 
   // A hierarchy node needs a display node
-  vtkSmartPointer<vtkMRMLModelDisplayNode> contourHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  vtkSmartPointer<vtkMRMLModelDisplayNode> structureSetPatientHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
   std::string contourHierarchyDisplayNodeName = std::string(SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME) + "Display";
-  contourHierarchyDisplayNode->SetName(contourHierarchyDisplayNodeName.c_str());
-  contourHierarchyDisplayNode->SetVisibility(1);
+  structureSetPatientHierarchyDisplayNode->SetName(contourHierarchyDisplayNodeName.c_str());
+  structureSetPatientHierarchyDisplayNode->SetVisibility(1);
 
-  this->GetMRMLScene()->AddNode(contourHierarchyDisplayNode);
-  contourHierarchyNode->SetAndObserveDisplayNodeID(contourHierarchyDisplayNode->GetID());
+  this->GetMRMLScene()->AddNode(structureSetPatientHierarchyDisplayNode);
+  structureSetPatientHierarchyNode->SetAndObserveDisplayNodeID(structureSetPatientHierarchyDisplayNode->GetID());
+
+  // Add color table node and default colors
+  vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+  std::string structureSetColorTableNodeName;
+  structureSetColorTableNodeName = SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NODE_NAME + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+  structureSetColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(structureSetColorTableNodeName);
+  structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
+  structureSetColorTableNode->HideFromEditorsOff();
+  structureSetColorTableNode->SetTypeToUser();
+  this->GetMRMLScene()->AddNode(structureSetColorTableNode);
+
+  structureSetColorTableNode->SetNumberOfColors(2);
+  structureSetColorTableNode->GetLookupTable()->SetTableRange(0,1);
+  structureSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_BACKGROUND, 0.0, 0.0, 0.0, 0.0); // Black background
+  structureSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_INVALID,
+    SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1],
+    SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3] ); // Color indicating invalid index
+
+  // Add color table in patient hierarchy
+  vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchyColorTableNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+  std::string phColorTableNodeName;
+  phColorTableNodeName = structureSetColorTableNodeName + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
+  phColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(phColorTableNodeName);
+  patientHierarchyColorTableNode->SetName(phColorTableNodeName.c_str());
+  patientHierarchyColorTableNode->HideFromEditorsOff();
+  patientHierarchyColorTableNode->SetAssociatedNodeID(structureSetColorTableNode->GetID());
+  patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+  patientHierarchyColorTableNode->SetParentNodeID(structureSetPatientHierarchyNode->GetID());
+  this->GetMRMLScene()->AddNode(patientHierarchyColorTableNode);
 }
 
 //---------------------------------------------------------------------------

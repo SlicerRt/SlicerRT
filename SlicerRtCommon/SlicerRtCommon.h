@@ -60,6 +60,12 @@ public:
   static const std::string CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
   static const double DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR;
   static const double DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR;
+  static const char* COLOR_NAME_BACKGROUND;
+  static const char* COLOR_NAME_INVALID;
+  static const char* COLOR_NAME_REMOVED;
+  static const int COLOR_INDEX_BACKGROUND;
+  static const int COLOR_INDEX_INVALID;
+  static const double COLOR_VALUE_INVALID[4];
 
   // DicomRtImport constants
   static const std::string DICOMRTIMPORT_ATTRIBUTE_PREFIX;

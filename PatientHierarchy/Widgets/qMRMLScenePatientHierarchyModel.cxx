@@ -444,8 +444,22 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   // Assign parent and node if associated patient hierarchy node already exists and valid
   if (associatedPatientHierarchyNode)
   {
-    associatedPatientHierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
-    associatedPatientHierarchyNode->SetAssociatedNodeID(node->GetID());
+    bool successfullyReadByPlugin = false;
+    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForNode(node);
+    if (foundPlugin)
+    {
+      successfullyReadByPlugin = foundPlugin->ReparentInsidePatientHierarchy(node, parentPatientHierarchyNode);
+      if (!successfullyReadByPlugin)
+      {
+        vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Failed to reparent node "
+          << node->GetName() << " through plugin " << (foundPlugin->GetName()?foundPlugin->GetName():"Unnamed") << "!");
+      }
+    }
+
+    if (!foundPlugin || !successfullyReadByPlugin)
+    {
+      associatedPatientHierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
+    }
   }
   // Create patient hierarchy node if dropped from outside the tree (the potential nodes list) OR if deleted in previous check
   else
@@ -458,7 +472,7 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
       successfullyReadByPlugin = foundPlugin->AddNodeToPatientHierarchy(node, parentPatientHierarchyNode);
       if (!successfullyReadByPlugin)
       {
-        vtkDebugWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Failed to add node "
+        vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Failed to add node "
           << node->GetName() << " through plugin " << (foundPlugin->GetName()?foundPlugin->GetName():"Unnamed") << "!");
       }
     }

@@ -279,8 +279,10 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   int numberOfRois = rtReader->GetNumberOfRois();
   structureSetColorTableNode->SetNumberOfColors(numberOfRois+2);
   structureSetColorTableNode->GetLookupTable()->SetTableRange(0,numberOfRois+1);
-  structureSetColorTableNode->AddColor("Background", 0.0, 0.0, 0.0, 0.0); // Black background
-  structureSetColorTableNode->AddColor("Invalid", 0.5, 0.5, 0.5, 1.0); // Color indicating invalid index
+  structureSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_BACKGROUND, 0.0, 0.0, 0.0, 0.0); // Black background
+  structureSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_INVALID,
+    SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1],
+    SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3] ); // Color indicating invalid index
 
   vtkSmartPointer<vtkPolyDataCollection> roiCollection = vtkSmartPointer<vtkPolyDataCollection>::New();
   vtkSmartPointer<vtkCollection> displayNodeCollection = vtkSmartPointer<vtkCollection>::New();

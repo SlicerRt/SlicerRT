@@ -40,6 +40,13 @@ const std::string SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX
 const double SlicerRtCommon::DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR = 2.0;
 const double SlicerRtCommon::DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR = 0.0;
 
+const char* SlicerRtCommon::COLOR_NAME_BACKGROUND = "Background";
+const char* SlicerRtCommon::COLOR_NAME_INVALID = "Invalid";
+const char* SlicerRtCommon::COLOR_NAME_REMOVED = "Removed";
+const int SlicerRtCommon::COLOR_INDEX_BACKGROUND = 0;
+const int SlicerRtCommon::COLOR_INDEX_INVALID = 1;
+const double SlicerRtCommon::COLOR_VALUE_INVALID[4] = {0.5, 0.5, 0.5, 1.0};
+
 // DicomRtImport constants
 const std::string SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX = "DicomRtImport.";
 const std::string SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "DoseUnitName";

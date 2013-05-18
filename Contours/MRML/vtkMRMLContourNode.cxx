@@ -24,6 +24,9 @@
 #include "vtkPolyDataToLabelmapFilter.h"
 #include "vtkLabelmapToModelFilter.h"
 
+// PatientHierarchy includes
+#include "vtkSlicerPatientHierarchyModuleLogic.h"
+
 // Contours includes
 #include "vtkMRMLContourNode.h"
 #include "vtkConvertContourRepresentations.h"
@@ -740,12 +743,11 @@ const char* vtkMRMLContourNode::GetStructureName()
 //----------------------------------------------------------------------------
 void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &colorNode)
 {
-  // Initialize output color index with Gray 'invalid' color
-  colorIndex = 1;
   colorNode = NULL;
 
   // Get associated patient hierarchy node and its parent
-  vtkMRMLDisplayableHierarchyNode* contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->ID);
+  vtkMRMLDisplayableHierarchyNode* contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(
+    vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(this->Scene, this->ID) );
   if (!contourPatientHierarchyNode)
     {
     vtkErrorMacro("GetColorIndex: No patient hierarchy node found for contour '" << this->Name << "'");
@@ -770,12 +772,22 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
 
   colorNode = vtkMRMLColorTableNode::SafeDownCast( colorNodes->GetItemAsObject(0) );
 
+  // Do not continue to look for the color index if it was invalid
+  if (colorIndex == SlicerRtCommon::COLOR_INDEX_INVALID)
+  {
+    vtkDebugMacro("GetColorIndex: Input color index was set to invalid, so the color index is not acquired.")
+    return;
+  }
+
   const char* structureName = contourPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
   if (!structureName)
     {
     vtkErrorMacro("GetColorIndex: No structure name found for contour '" << this->Name << "'");
     return;
     }
+
+  // Initialize output color index with Gray 'invalid' color (value 1)
+  colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
 
   //TODO: workaround for issue #179, restore when Slicer mantis issue http://www.na-mic.org/Bug/view.php?id=2783 is fixed
   // Try to search for the structure name with the spaces replaced with underscores in case it was loaded from scene file

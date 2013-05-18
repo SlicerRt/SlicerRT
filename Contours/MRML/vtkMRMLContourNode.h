@@ -109,6 +109,14 @@ public:
   /// Get structure name from patient hierarchy
   const char* GetStructureName();
 
+  /*!
+    Get the color table and color index for the contour
+    /param colorIndex Index of the found color in the associated color table.
+      If COLOR_INDEX_INVALID is set, then only the color node is acquired.
+    /param colorNode Output argument for the found color node (optional)
+  */
+  void GetColor(int &colorIndex, vtkMRMLColorTableNode* &colorNode);
+
 public:
   /// Set name (changes names of representations too)
   virtual void SetName(const char* newName);
@@ -155,13 +163,6 @@ protected:
 
   /// Show (true) or hide (false) a representation completely (editors, viewers, slice intersections)
   void ShowRepresentation(vtkMRMLDisplayableNode* representation, bool show);
-
-  /*!
-    Get the color table and color index for the contour
-    /param colorIndex Index of the found color in the associated color table
-    /param colorNode Output argument for the found color node (optional)
-  */
-  void GetColor(int &colorIndex, vtkMRMLColorTableNode* &colorNode);
 
   /// Set default conversion parameters if none were explicitly specified
   void SetDefaultConversionParametersForRepresentation(ContourRepresentationType type);

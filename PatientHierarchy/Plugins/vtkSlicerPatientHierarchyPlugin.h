@@ -40,15 +40,19 @@ public:
 
 public:
   /// Determines if a non patient hierarchy node can be placed in the hierarchy, and gets a confidence
-  ///   value for a certain MRML node (usually the type and possibly attributes are checked)
+  ///   value for a certain MRML node (usually the type and possibly attributes are checked).
   /// \return Floating point number between 0 and 1, where 0 means that the plugin cannot
-  ///   handle the node at all, and 1 means that the plugin was written exactly for this kind of node
+  ///   handle the node at all, and 1 means that the plugin was written exactly for this kind of node.
   virtual double CanPluginAddNodeToPatientHierarchy(vtkMRMLNode*) = 0;
 
   /// Add a node to patient hierarchy under a specified parent node. If added non patient hierarchy nodes
-  ///   have certain steps to perform when adding them in Patient Hierarchy, those steps take place here
+  ///   have certain steps to perform when adding them in Patient Hierarchy, those steps take place here.
   /// \return True if added successfully, false otherwise
   virtual bool AddNodeToPatientHierarchy(vtkMRMLNode*, vtkMRMLHierarchyNode*) = 0;
+
+  /// Reparent a node that was already in the patient hierarchy under a new parent.
+  /// \return True if reparented successfully, false otherwise
+  virtual bool ReparentInsidePatientHierarchy(vtkMRMLNode*, vtkMRMLHierarchyNode*) = 0;
 
 public:
   /// Get plugin name

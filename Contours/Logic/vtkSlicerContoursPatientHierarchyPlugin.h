@@ -56,6 +56,10 @@ public:
   /// \return True if added successfully, false otherwise
   virtual bool AddNodeToPatientHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLHierarchyNode* parentNode);
 
+  /// Reparent a node that was already in the patient hierarchy under a new parent.
+  /// \return True if reparented successfully, false otherwise
+  virtual bool ReparentInsidePatientHierarchy(vtkMRMLNode* nodeToReparent, vtkMRMLHierarchyNode* parentNode);
+
 protected:
   /// Determines if the argument node is a representation object of a Contour node in the scene
   /// \return The found contour node whose representation the argument node is, NULL if node is not a representation
