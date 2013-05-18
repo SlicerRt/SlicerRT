@@ -54,34 +54,8 @@ main (int argc, char * argv [])
     sm_parms.pattern = PATTERN_SPHERE;
   } 
 	
-  if (create_enclosed){
-    sm_parms.pattern = PATTERN_ENCLOSED_RECT;
-  }
-
-  sm_parms.pattern_ss = PATTERN_SS_ONE;
-  if (plmslc_pattern_ss == 1) sm_parms.pattern_ss = PATTERN_SS_ONE;
-  if (plmslc_pattern_ss == 2) sm_parms.pattern_ss = PATTERN_SS_TWO_APART;
-  if (plmslc_pattern_ss == 3) sm_parms.pattern_ss = PATTERN_SS_TWO_OVERLAP_PLUS_ONE;
-  if (plmslc_pattern_ss == 4) sm_parms.pattern_ss = PATTERN_SS_TWO_OVERLAP_PLUS_ONE_PLUS_EMBED;
-    
-  sm_parms.enclosed_intens_f1 = plmslc_intensity1;
-  sm_parms.enclosed_intens_f2 = plmslc_intensity2;
-
   sm_parms.foreground = plmslc_foreground;
   sm_parms.background = plmslc_background;
-
-  if (create_objstructdose){
-    sm_parms.pattern = PATTERN_OBJSTRUCTDOSE;
-  }
-
-  if (create_objstrucmha && create_objstructdose) { 
-    sm_parms.m_want_ss_img = true;
-  }
-
-  if (create_objdosemha && create_objdosemha){
-    sm_parms.m_want_dose_img = true;
-  }
-
 
   /* Gauss options */
   if (plmslc_gausscenter.size() >= 3) {
@@ -152,16 +126,25 @@ main (int argc, char * argv [])
   /* Also write out dose and structure set image if requested */
   if (plmslc_output_one != "" && plmslc_output_one != "None") {
     Rt_study rtds;
+
+    if (plmslc_output_dosemha != "" && plmslc_output_dosemha != "None") {
+      sm_parms.m_want_dose_img = true;
+    }
+    if (plmslc_output_ssmha != "" && plmslc_output_ssmha != "None") {
+      sm_parms.m_want_ss_img = true;
+    }
+
     synthetic_mha (&rtds, &sm_parms);
     FloatImageType::Pointer img = rtds.get_image()->itk_float();
     itk_image_save_float (img, plmslc_output_one.c_str());
 
-    if (plmslc_output_dosemha != "" && plmslc_output_dosemha != "None" && sm_parms.m_want_dose_img) {
+    if (plmslc_output_dosemha != "" && plmslc_output_dosemha != "None") {
       rtds.get_dose()->save_image (plmslc_output_dosemha.c_str());
     }
 
-    if (create_objstrucmha && create_objstructdose && plmslc_output_ssmha != "" && plmslc_output_ssmha != "None") {
-      rtds.get_rtss()->save_ss_image (plmslc_output_ssmha.c_str());
+    if (plmslc_output_ssmha != "" && plmslc_output_ssmha != "None") {
+      itk_image_save (rtds.get_rtss()->get_structure_image (1),
+                      plmslc_output_ssmha.c_str());
     }
   }
 
@@ -191,18 +174,13 @@ main (int argc, char * argv [])
     sm_parms.gauss_center[1] += xlat[1];
     sm_parms.gauss_center[2] += xlat[2];
 
-    sm_parms.enclosed_xlat1[0]=plmslc_xlat_struct1[0];
-    sm_parms.enclosed_xlat1[1]=plmslc_xlat_struct1[1];
-    sm_parms.enclosed_xlat1[2]=plmslc_xlat_struct1[2];
-    sm_parms.enclosed_xlat2[0]=plmslc_xlat_struct2[0];
-    sm_parms.enclosed_xlat2[1]=plmslc_xlat_struct2[1];
-    sm_parms.enclosed_xlat2[2]=plmslc_xlat_struct2[2];
-
+    /* Only save the image */
     Rt_study rtds;
     synthetic_mha (&rtds, &sm_parms);
     FloatImageType::Pointer img = rtds.get_image()->itk_float();
     itk_image_save_float (img, plmslc_output_two.c_str());
   }
+
 
   return EXIT_SUCCESS;
 }

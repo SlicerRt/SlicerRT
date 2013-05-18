@@ -33,7 +33,7 @@
       <label>Output Labelmap </label>
       <channel>output</channel>
       <default>None</default>
-      <description>Labelmap image for Obj/Str/Dose</description>
+      <description>Output labelmap image</description>
     </image>
     <image>
       <name>plmslc_output_dosemha</name>
@@ -41,9 +41,8 @@
       <label>Output Dose Image</label>
       <channel>output</channel>
       <default>None</default>
-      <description>Dose image for Obj/Str/Dose</description>
+      <description>Output dose image</description>
     </image>
-    
   </parameters>
   <parameters advanced="true">
     <label>Image geometry options</label>
@@ -141,78 +140,4 @@
       <default>10</default>
     </float-vector>
   </parameters>
-  
-  <parameters>
-    <label>Enclosed pattern options</label>
-    <description>Options that control enclosed geometry</description>
-    <boolean>
-      <name>create_enclosed</name>
-      <label>Create Enclosed Geometry?</label>
-      <default>false</default>
-      <longflag>--createenclosed</longflag>
-      <description>Check this box if you want to create enclosed geometry</description>
-    </boolean>
-    <float>
-      <name>plmslc_intensity1</name>
-      <longflag>--intensity1</longflag>
-      <description>Choose the intensity for structure 1 (a number from 0 to 1)</description>
-      <label>Intensity Structure 1</label>
-      <default>0.4</default>
-    </float>
-    <float>
-      <name>plmslc_intensity2</name>
-      <longflag>--intensity2</longflag>
-      <description>Choose the intensity for structure 2 (a number from 0 to 1)</description>
-      <label>Intensity Structure 2</label>
-      <default>0.4</default>
-    </float>
-    <float-vector>
-      <name>plmslc_xlat_struct1</name>
-      <longflag>--xlat_struct1</longflag>
-      <description>Translation of structure 1. Use three numbers (such as "20,-5,10") for translation in x, y, and z axes.</description>
-      <label>Translate Structure 1</label>
-      <default>10, 0, 0</default>
-    </float-vector>
-    <float-vector>
-      <name>plmslc_xlat_struct2</name>
-      <longflag>--xlat_struct2</longflag>
-      <description>Translation of structure 2. Use three numbers (such as "20,-5,10") for translation in x, y, and z axes.</description>
-      <label>Translate Structure 2</label>
-      <default>10, 0, 0 </default>
-    </float-vector>  
-    </parameters>
-
-  <parameters>
-    <label>Object/structure/dose options</label>
-    <description>Options that control obj/struct/dose geometry</description>
-    <boolean>
-      <name>create_objstructdose</name>
-      <label>Cteate Object/Structure/Dose set?</label>
-      <default>false</default>
-      <longflag>--createobjstructdose</longflag>
-      <description>Check this box if you want to create Dose mha</description>
-    </boolean>
-    <boolean>
-      <name>create_objstrucmha</name>
-      <label>Cteate StructureSet?</label>
-      <default>false</default>
-      <longflag>--createstrsetemha</longflag>
-      <description>Check this box if you want to create Structure Set</description>
-    </boolean>
-    <boolean>
-      <name>create_objdosemha</name>
-      <label>Cteate Dose?</label>
-      <default>false</default>
-      <longflag>--createobjdosemha</longflag>
-      <description>Check this box if you want to create Dose</description>
-    </boolean>
-    <integer>
-      <name>plmslc_pattern_ss</name>
-      <longflag>--pattern_ss</longflag>
-      <description>Type of structure pattern</description>
-      <label>Type of structure pattern (1-4)</label>
-      <default>1</default>
-    </integer>
-  </parameters>
-
-  </executable>
+</executable>
