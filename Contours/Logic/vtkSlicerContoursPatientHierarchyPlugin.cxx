@@ -278,8 +278,8 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentInsidePatientHierarchy(vtk
     return false;
   }
 
-  newColorNode->SetNumberOfColors(newColorNode->GetNumberOfColors()+1);
   newColorNode->GetLookupTable()->SetTableRange(0, newColorNode->GetNumberOfColors());
+  newColorNode->SetNumberOfColors(newColorNode->GetNumberOfColors()+1);
   newColorNode->AddColor(colorName.c_str(), color[0], color[1], color[2], color[3]);
 
   return true;

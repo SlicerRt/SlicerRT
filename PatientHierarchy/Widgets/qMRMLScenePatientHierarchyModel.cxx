@@ -430,7 +430,7 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
 
   // Get possible associated hierarchy node for reparented node
   vtkSmartPointer<vtkMRMLHierarchyNode> associatedPatientHierarchyNode
-    = vtkSmartPointer<vtkMRMLHierarchyNode>::Take( vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(this->mrmlScene(), node->GetID()) );
+    = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(this->mrmlScene(), node->GetID());
   vtkMRMLHierarchyNode* associatedNonPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode(this->mrmlScene(), node->GetID());
 
   // Delete associated hierarchy node if it's not a patient hierarchy node. Should not occur unless it is an annotation hierarchy node
@@ -446,6 +446,7 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   {
     bool successfullyReadByPlugin = false;
     vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForNode(node);
+    //TODO: this finds contour plugin for beam models
     if (foundPlugin)
     {
       successfullyReadByPlugin = foundPlugin->ReparentInsidePatientHierarchy(node, parentPatientHierarchyNode);
