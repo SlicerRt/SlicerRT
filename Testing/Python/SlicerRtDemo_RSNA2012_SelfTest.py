@@ -78,19 +78,22 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     self.layout.addWidget(self.loadDataButton)
     self.loadDataButton.connect('clicked()', self.onLoadData)
 
-    # Perform deformable registration checkbox
-    self.deformableCheckbox = qt.QCheckBox("Perform deformable registration")
-    self.deformableCheckbox.toolTip = "Perform deformable B-spline registration in addition to the default rigid one if checked"
-    self.deformableCheckbox.name = "SlicerRtDemo_RSNA2012_SelfTest_DeformableCheckbox"
-    self.layout.addWidget(self.deformableCheckbox)
-    self.deformableCheckbox.setChecked(False)
+    # Register button and checkbox
+    self.registerLayout = qt.QHBoxLayout()
 
-    # Register button
     self.registerButton = qt.QPushButton("Register")
     self.registerButton.toolTip = "Registers Day 2 CT to Day 1 CT. Data needs to be loaded!"
     self.registerButton.name = "SlicerRtDemo_RSNA2012_SelfTest_Register"
-    self.layout.addWidget(self.registerButton)
+    self.registerLayout.addWidget(self.registerButton)
     self.registerButton.connect('clicked()', self.onRegister)
+
+    self.deformableCheckbox = qt.QCheckBox("Perform deformable registration")
+    self.deformableCheckbox.toolTip = "Perform deformable B-spline registration in addition to the default rigid one if checked"
+    self.deformableCheckbox.name = "SlicerRtDemo_RSNA2012_SelfTest_DeformableCheckbox"
+    self.registerLayout.addWidget(self.deformableCheckbox)
+    self.deformableCheckbox.setChecked(False)
+
+    self.layout.addLayout(self.registerLayout)
 
     # Resample button
     self.resampleButton = qt.QPushButton("Resample")
@@ -165,10 +168,14 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     tester.runTest()
 
   def onLoadData(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    performDeformableRegistration = self.deformableCheckbox.checked
+    self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    
-    tester.setUp(self.deformableCheckbox.checked)
+    self.deformableCheckbox.setChecked(performDeformableRegistration)
+    tester.performDeformableRegistration = performDeformableRegistration
+    tester.setUp()
+
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00SetupPathsAndNames()
     tester.TestSection_01OpenTempDatabase()
@@ -179,42 +186,54 @@ class SlicerRtDemo_RSNA2012_SelfTestWidget:
     tester.TestSection_06SetDisplayOptions()
 
   def onRegister(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    performDeformableRegistration = self.deformableCheckbox.checked
+    self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    
-    tester.performDeformableRegistration = self.deformableCheckbox.checked
+    self.deformableCheckbox.setChecked(performDeformableRegistration)
+    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp(clearScene=False)
+
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00SetupPathsAndNames()
     tester.TestSection_07RegisterDay2CTToDay1CT()
 
   def onResample(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    performDeformableRegistration = self.deformableCheckbox.checked
+    self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-
-    tester.performDeformableRegistration = self.deformableCheckbox.checked
+    self.deformableCheckbox.setChecked(performDeformableRegistration)
+    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp(clearScene=False)
+
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00SetupPathsAndNames()
     tester.TestSection_08ResampleDoseVolumes()
     tester.TestSection_09SetDoseVolumeAttributes()
 
   def onAccumulateDose(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    performDeformableRegistration = self.deformableCheckbox.checked
+    self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    
-    tester.performDeformableRegistration = self.deformableCheckbox.checked
+    self.deformableCheckbox.setChecked(performDeformableRegistration)
+    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp(clearScene=False)
+
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00SetupPathsAndNames()
     tester.TestSection_10AccumulateDose()
 
   def onComputeDvh(self,moduleName="SlicerRtDemo_RSNA2012_SelfTest"):
+    performDeformableRegistration = self.deformableCheckbox.checked
+    self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    
-    tester.performDeformableRegistration = self.deformableCheckbox.checked
+    self.deformableCheckbox.setChecked(performDeformableRegistration)
+    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp(clearScene=False)
+
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00SetupPathsAndNames()
     tester.TestSection_11ComputeDvh()
