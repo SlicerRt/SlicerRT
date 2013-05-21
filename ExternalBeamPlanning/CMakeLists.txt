@@ -5,6 +5,13 @@ set(MODULE_TITLE "External Beam Planning")
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
+find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} )
+if(NOT Plastimatch_FOUND)
+  message("Plastimatch library is not found. DoseComparison module will not be built.")
+  return()
+endif() 
+
+#-----------------------------------------------------------------------------
 add_subdirectory(MRML)
 add_subdirectory(Logic)
 

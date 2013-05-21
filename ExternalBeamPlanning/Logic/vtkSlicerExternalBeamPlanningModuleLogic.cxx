@@ -31,6 +31,11 @@
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 
+// Plastimatch includes
+#include "rpl_volume.h"
+#include "proton_beam.h"
+#include "proton_scene.h"
+
 // MRML includes
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
@@ -42,6 +47,9 @@
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
 #include <vtkConeSource.h>
+
+// ITK includes
+#include <itkImageRegionIteratorWithIndex.h>
 
 // STD includes
 #include <cassert>
@@ -393,4 +401,87 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(referenceVolumeNode, referenceVolumeItk);
   SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(targetVolumeNode, targetVolumeItk);
 
+  // Assign inputs to dose calc logic
+  Proton_scene scene;
+  scene.set_patient (referenceVolumeItk);
+
+  float src[3] = { -2000, 0, 0 };
+  float isocenter[3] = { 0, 0, 0 };
+  scene.beam->set_source_position (src);
+  scene.beam->set_isocenter_position (isocenter);
+
+  int ap_dim[2] = { 10, 10 };
+  float ap_offset = -1500;
+  float ap_spacing[2] = { 1, 1 };
+  scene.get_aperture()->set_dim (ap_dim);
+  scene.get_aperture()->set_distance (ap_offset);
+  scene.get_aperture()->set_spacing (ap_spacing);
+
+  scene.set_step_length (1);
+  if (!scene.init ()) {
+    /* Failure.  How to notify the user?? */
+    std::cerr << "Sorry, scene.init() failed.\n";
+    return;
+  }
+
+  /* A little warm fuzzy for the developers */
+  scene.debug ();
+  printf ("Working...\n");
+  fflush(stdout);
+
+  /* Compute the aperture and range compensator */
+  Rpl_volume* rpl_vol = scene.rpl_vol;
+  rpl_vol->compute_segdepth_volume (scene.get_patient_vol(), 0);
+
+  /* Get aperture and range compensator as itk images */
+#if defined (commentout)
+  Plm_image::Pointer& ap 
+    = rpl_vol->get_aperture()->get_aperture_image();
+  itk::Image<unsigned char, 3>::Pointer apertureVolumeItk 
+    = ap->itk_uchar();
+#endif
+  Plm_image::Pointer& rc 
+    = rpl_vol->get_aperture()->get_range_compensator_image();
+  itk::Image<float, 3>::Pointer rangeCompensatorVolumeItk 
+    = rc->itk_float();
+
+  /* Convert range compensator image to vtk */
+  vtkSmartPointer<vtkImageData> rangeCompensatorVolume 
+    = vtkSmartPointer<vtkImageData>::New();
+  itk::Image<float, 3>::RegionType region = rangeCompensatorVolumeItk->GetBufferedRegion();
+  itk::Image<float, 3>::SizeType imageSize = region.GetSize();
+  int extent[6]={0, (int) imageSize[0]-1, 0, (int) imageSize[1]-1, 0, (int) imageSize[2]-1};
+  rangeCompensatorVolume->SetExtent(extent);
+  rangeCompensatorVolume->SetScalarType(VTK_FLOAT);
+  rangeCompensatorVolume->SetNumberOfScalarComponents(1);
+  rangeCompensatorVolume->AllocateScalars();
+
+  float* rangeCompensatorPtr = (float*)rangeCompensatorVolume->GetScalarPointer();
+  itk::ImageRegionIteratorWithIndex< itk::Image<float, 3> > itRangeCompensatorItk(
+    rangeCompensatorVolumeItk, rangeCompensatorVolumeItk->GetLargestPossibleRegion() );
+  for (itRangeCompensatorItk.GoToBegin(); !itRangeCompensatorItk.IsAtEnd(); ++itRangeCompensatorItk)
+  {
+    itk::Image<float, 3>::IndexType i = itRangeCompensatorItk.GetIndex();
+    (*rangeCompensatorPtr) = rangeCompensatorVolumeItk->GetPixel(i);
+    rangeCompensatorPtr++;
+  }
+
+  /* Create the MRML node for the volume */
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> volumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+
+  volumeNode->SetAndObserveImageData (rangeCompensatorVolume);
+  volumeNode->SetSpacing (
+    rangeCompensatorVolumeItk->GetSpacing()[0],
+    rangeCompensatorVolumeItk->GetSpacing()[1],
+    rangeCompensatorVolumeItk->GetSpacing()[2]);
+  volumeNode->SetOrigin (
+    rangeCompensatorVolumeItk->GetOrigin()[0],
+    rangeCompensatorVolumeItk->GetOrigin()[1],
+    rangeCompensatorVolumeItk->GetOrigin()[2]);
+
+  std::string volumeNodeName = this->GetMRMLScene()->GenerateUniqueName(std::string ("range_compensator_"));
+  volumeNode->SetName(volumeNodeName.c_str());
+
+  volumeNode->SetScene(this->GetMRMLScene());
+  this->GetMRMLScene()->AddNode(volumeNode);
 }
