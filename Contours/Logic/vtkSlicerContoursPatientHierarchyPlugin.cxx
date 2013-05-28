@@ -203,8 +203,20 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
   return true;
 }
 
+//----------------------------------------------------------------------------
+double vtkSlicerContoursPatientHierarchyPlugin::CanPluginReparentNodeInsidePatientHierarchy(vtkMRMLNode* node)
+{
+  if ( node->IsA("vtkMRMLContourNode") )
+  {
+    // Node is a potential contour node representation. On adding to the Patient Hierarchy, a contour node will be created
+    return 1.0;
+  }
+
+  return 0.0;
+}
+
 //---------------------------------------------------------------------------
-bool vtkSlicerContoursPatientHierarchyPlugin::ReparentInsidePatientHierarchy(vtkMRMLNode* nodeToReparent, vtkMRMLHierarchyNode* parentNode)
+bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy(vtkMRMLNode* nodeToReparent, vtkMRMLHierarchyNode* parentNode)
 {
   if (!nodeToReparent || !parentNode)
   {

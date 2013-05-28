@@ -165,7 +165,7 @@ bool vtkSlicerPatientHierarchyPluginHandler::RegisterPlugin(vtkSlicerPatientHier
 }
 
 //---------------------------------------------------------------------------
-vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPluginForNode(vtkMRMLNode* node)
+vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPluginForAddToPatientHierarchyForNode(vtkMRMLNode* node)
 {
   PatientHierarchyPluginListType::iterator pluginIt;
   vtkSlicerPatientHierarchyPlugin* mostSuitablePlugin = NULL;
@@ -173,6 +173,25 @@ vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPlug
   for (pluginIt = this->PluginList.begin(); pluginIt != this->PluginList.end(); ++pluginIt)
   {
     double currentConfidence = (*pluginIt)->CanPluginAddNodeToPatientHierarchy(node);
+    if (currentConfidence > bestConfidence)
+    {
+      bestConfidence = currentConfidence;
+      mostSuitablePlugin = (*pluginIt);
+    }
+  }
+
+  return mostSuitablePlugin;
+}
+
+//---------------------------------------------------------------------------
+vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPluginForReparentInsidePatientHierarchyForNode(vtkMRMLNode* node)
+{
+  PatientHierarchyPluginListType::iterator pluginIt;
+  vtkSlicerPatientHierarchyPlugin* mostSuitablePlugin = NULL;
+  double bestConfidence = 0.0;
+  for (pluginIt = this->PluginList.begin(); pluginIt != this->PluginList.end(); ++pluginIt)
+  {
+    double currentConfidence = (*pluginIt)->CanPluginReparentNodeInsidePatientHierarchy(node);
     if (currentConfidence > bestConfidence)
     {
       bestConfidence = currentConfidence;

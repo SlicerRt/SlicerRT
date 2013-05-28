@@ -89,7 +89,7 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPotentialPatientHierarchyPr
   if (!SlicerRtCommon::IsPatientHierarchyNode(possiblePhNode) && (d->includeHiddenNodes || !node->GetHideFromEditors()))
   {
     // Show only if the node is a potential patient hierarchy node according the the plugins
-    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForNode(node);
+    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForAddToPatientHierarchyForNode(node);
     if (foundPlugin)
     {
       return Accept;

@@ -123,7 +123,7 @@ bool qMRMLScenePotentialPatientHierarchyModel::canBeAChild(vtkMRMLNode* node)con
   }
 
   // Otherwise, if there is a plugin that can handle adding the node, then it also can be a child
-  vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForNode(node);
+  vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForAddToPatientHierarchyForNode(node);
   if (foundPlugin)
   {
     return true;

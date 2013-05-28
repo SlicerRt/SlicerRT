@@ -60,8 +60,14 @@ public:
   bool RegisterPlugin(vtkSlicerPatientHierarchyPlugin* plugin);
 
   /// Returns the registered plugin that can handle a node the best
+  /// for adding it from outside the patient hierarchy to inside it
   /// \return The plugin object if found, NULL otherwise
-  vtkSlicerPatientHierarchyPlugin* GetPluginForNode(vtkMRMLNode*);
+  vtkSlicerPatientHierarchyPlugin* GetPluginForAddToPatientHierarchyForNode(vtkMRMLNode*);
+
+  /// Returns the registered plugin that can handle a node the best
+  /// for reparenting it inside the patient hierarchy
+  /// \return The plugin object if found, NULL otherwise
+  vtkSlicerPatientHierarchyPlugin* GetPluginForReparentInsidePatientHierarchyForNode(vtkMRMLNode*);
 
 protected:
   /// TODO

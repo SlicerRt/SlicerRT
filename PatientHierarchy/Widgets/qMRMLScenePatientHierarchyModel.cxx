@@ -445,11 +445,11 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   if (associatedPatientHierarchyNode)
   {
     bool successfullyReadByPlugin = false;
-    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForNode(node);
+    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForReparentInsidePatientHierarchyForNode(node);
     //TODO: this finds contour plugin for beam models
     if (foundPlugin)
     {
-      successfullyReadByPlugin = foundPlugin->ReparentInsidePatientHierarchy(node, parentPatientHierarchyNode);
+      successfullyReadByPlugin = foundPlugin->ReparentNodeInsidePatientHierarchy(node, parentPatientHierarchyNode);
       if (!successfullyReadByPlugin)
       {
         vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Failed to reparent node "
@@ -467,7 +467,7 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   {
     // If there is a plugin that can handle the dropped node then let it take care of it
     bool successfullyReadByPlugin = false;
-    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForNode(node);
+    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForAddToPatientHierarchyForNode(node);
     if (foundPlugin)
     {
       successfullyReadByPlugin = foundPlugin->AddNodeToPatientHierarchy(node, parentPatientHierarchyNode);
