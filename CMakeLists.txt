@@ -21,6 +21,7 @@ set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
 
 #-----------------------------------------------------------------------------
+project(SlicerRT)
 find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
 
