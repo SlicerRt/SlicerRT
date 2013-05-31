@@ -1,4 +1,4 @@
-#include "vtkDFVGlyph3D.h"
+#include "vtkDeformationFieldVisualizerGlyph3D.h"
 
 // STD includes
 #include <vector>
@@ -25,10 +25,10 @@
 
 #include <vtkMinimalStandardRandomSequence.h>
 
-vtkStandardNewMacro(vtkDFVGlyph3D);
+vtkStandardNewMacro(vtkDeformationFieldVisualizerGlyph3D);
 
 //------------------------------------------------------------------------------
-vtkDFVGlyph3D::vtkDFVGlyph3D()
+vtkDeformationFieldVisualizerGlyph3D::vtkDeformationFieldVisualizerGlyph3D()
 {
   this->Scaling = 1;
   this->ColorMode = VTK_COLOR_BY_SCALE;
@@ -63,7 +63,7 @@ vtkDFVGlyph3D::vtkDFVGlyph3D()
 }
 
 //------------------------------------------------------------------------------
-int vtkDFVGlyph3D::RequestData(
+int vtkDeformationFieldVisualizerGlyph3D::RequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **inputVector,
   vtkInformationVector *outputVector)
@@ -708,13 +708,13 @@ int vtkDFVGlyph3D::RequestData(
 }
 
 //------------------------------------------------------------------------------
-void vtkDFVGlyph3D::PrintSelf(ostream& os, vtkIndent indent)
+void vtkDeformationFieldVisualizerGlyph3D::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
 //------------------------------------------------------------------------------
-int vtkDFVGlyph3D::IsPointVisibleForListIndex(double vMag, vtkIdType ptId, int visibleListIndex)
+int vtkDeformationFieldVisualizerGlyph3D::IsPointVisibleForListIndex(double vMag, vtkIdType ptId, int visibleListIndex)
 {
   if (visibleListIndex == ptId)
     {

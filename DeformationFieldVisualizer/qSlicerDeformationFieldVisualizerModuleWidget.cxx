@@ -1,3 +1,24 @@
+/*==============================================================================
+
+  Program: 3D Slicer
+
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  
+  This file was originally developed by Franklin King, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
+==============================================================================*/
+
 // Qt includes
 #include <QDebug>
 #include <QtCore>
@@ -206,7 +227,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
 
     // Grid Parameters
     d->InputGridScale->setValue(pNode->GetGridScale());
-    d->InputGridDensity->setValue(pNode->GetGridDensity());
+    d->InputGridSpacing->setValue(pNode->GetGridSpacingMM());
 
     // Block Parameters
     d->InputBlockScale->setValue(pNode->GetBlockScale());
@@ -216,6 +237,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
     d->InputContourNumber->setValue(pNode->GetContourNumber());
     d->InputContourRange->setMaximumValue(pNode->GetContourMax());
     d->InputContourRange->setMinimumValue(pNode->GetContourMin());
+    d->InputContourDecimation->setValue(pNode->GetContourDecimation());
 
     // Glyph Slice Parameters
     if (pNode->GetGlyphSliceNodeID())
@@ -242,7 +264,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
       this->setGridSliceNode(d->GridSliceComboBox->currentNode());
     }  
     d->InputGridSliceScale->setValue(pNode->GetGridSliceScale());
-    d->InputGridSliceDensity->setValue(pNode->GetGridSliceDensity());
+    d->InputGridSliceSpacing->setValue(pNode->GetGridSliceSpacingMM());
   }
 }
 
@@ -272,55 +294,69 @@ void qSlicerDeformationFieldVisualizerModuleWidget::inputVolumeChanged(vtkMRMLNo
   pNode->DisableModifiedEventOn();
   pNode->SetAndObserveInputVolumeNodeID(node->GetID());
   pNode->DisableModifiedEventOff();
-
-  double maxNorm = 0;
-
+  
+  double* range;
+  
   // What to do if there is more than one array? Would there be more than one array?
   if (strcmp(node->GetClassName(), "vtkMRMLVectorVolumeNode") == 0)
   {
     d->InputReferenceComboBox->setEnabled(false);
-    maxNorm = vtkMRMLVectorVolumeNode::SafeDownCast(node)->GetImageData()->GetPointData()->GetArray(0)->GetMaxNorm();
+    range = vtkMRMLVectorVolumeNode::SafeDownCast(node)->GetImageData()->GetPointData()->GetScalars()->GetRange(-1);
   }
   else if (strcmp(node->GetClassName(), "vtkMRMLLinearTransformNode") == 0 || 
     strcmp(node->GetClassName(), "vtkMRMLBSplineTransformNode") == 0 ||
     strcmp(node->GetClassName(), "vtkMRMLGridTransformNode") == 0)
   {
     d->InputReferenceComboBox->setEnabled(true);
-
     vtkSmartPointer<vtkMRMLVolumeNode> referenceVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->mrmlScene()->GetNodeByID(pNode->GetReferenceVolumeNodeID()));
+
     if (referenceVolumeNode == NULL)
+    {
+      return;
+    }
+
+    //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
+    QProgressDialog *convertProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
+    convertProgress->setCancelButton(0);
+    convertProgress->setModal(true);
+    convertProgress->setMinimumDuration(100);
+    convertProgress->show();
+    convertProgress->setLabelText("Converting transform to vector volume...");
+    
+    convertProgress->setValue(20);
+    d->logic()->GenerateDeformationField();
+    
+    convertProgress->setValue(80);
+    range = d->logic()->GetFieldRange();
+    
+    convertProgress->setValue(100);
+    delete convertProgress;
+  }
+  else
   {
     return;
   }
 
-  //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
-    QProgressDialog *convertProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
-    convertProgress->setModal(true);
-    convertProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
-    convertProgress->show();
-  convertProgress->setLabelText("Converting transform to vector volume...");
-  
-    convertProgress->setValue(20);
-    d->logic()->GenerateTransformField();
-  
-  convertProgress->setValue(80);
-    maxNorm = d->logic()->GetFieldMaxNorm() + 1;
-  
-  convertProgress->setValue(100);
-  delete convertProgress;
-  }
+  pNode->SetGlyphThresholdMin(range[0]);
+  d->InputGlyphThreshold->setMinimum(range[0]);
+  d->InputGlyphThreshold->setMinimumValue(range[0]);
+  pNode->SetGlyphThresholdMax(range[1]);
+  d->InputGlyphThreshold->setMaximum(range[1]);
+  d->InputGlyphThreshold->setMaximumValue(range[1]);
 
-  pNode->SetGlyphThresholdMax(maxNorm);
-  d->InputGlyphThreshold->setMaximum(maxNorm);
-  d->InputGlyphThreshold->setMaximumValue(maxNorm);
+  pNode->SetContourMin(range[0]);
+  d->InputContourRange->setMinimum(range[0]);
+  d->InputContourRange->setMinimumValue(range[0]);
+  pNode->SetContourMax(range[1]);
+  d->InputContourRange->setMaximum(range[1]);
+  d->InputContourRange->setMaximumValue(range[1]);
 
-  pNode->SetContourMax(maxNorm);
-  d->InputContourRange->setMaximum(maxNorm);
-  d->InputContourRange->setMaximumValue(maxNorm);
-
-  pNode->SetGlyphSliceThresholdMax(maxNorm);
-  d->InputGlyphSliceThreshold->setMaximum(maxNorm);
-  d->InputGlyphSliceThreshold->setMaximumValue(maxNorm);    
+  pNode->SetGlyphSliceThresholdMin(range[0]);
+  d->InputGlyphSliceThreshold->setMinimum(range[0]);
+  d->InputGlyphSliceThreshold->setMinimumValue(range[0]);
+  pNode->SetGlyphSliceThresholdMax(range[1]);
+  d->InputGlyphSliceThreshold->setMaximum(range[1]);
+  d->InputGlyphSliceThreshold->setMaximumValue(range[1]);
 }
 
 //-----------------------------------------------------------------------------
@@ -328,7 +364,6 @@ void qSlicerDeformationFieldVisualizerModuleWidget::referenceVolumeChanged(vtkMR
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
 
-  //TODO: Move into updatefrommrml?
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
   if (!pNode || !this->mrmlScene() || !node)
   {
@@ -338,47 +373,50 @@ void qSlicerDeformationFieldVisualizerModuleWidget::referenceVolumeChanged(vtkMR
   pNode->DisableModifiedEventOn();
   pNode->SetAndObserveReferenceVolumeNodeID(node->GetID());
   pNode->DisableModifiedEventOff();
-
-  double maxNorm = 0;
-
+  
   vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNode = vtkMRMLTransformNode::SafeDownCast(this->mrmlScene()->GetNodeByID(pNode->GetInputVolumeNodeID()));
   if (inputVolumeNode == NULL)
   {
     return;
   }
-
-  if (strcmp(inputVolumeNode->GetClassName(), "vtkMRMLLinearTransformNode") == 0 || 
-    strcmp(inputVolumeNode->GetClassName(), "vtkMRMLBSplineTransformNode") == 0 ||
-    strcmp(inputVolumeNode->GetClassName(), "vtkMRMLGridTransformNode") == 0){
   
   //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
     QProgressDialog *convertProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
+    convertProgress->setCancelButton(0);
     convertProgress->setModal(true);
-    convertProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
+    convertProgress->setMinimumDuration(100);
     convertProgress->show();
   convertProgress->setLabelText("Converting transform to vector volume...");
   
   convertProgress->setValue(20);
-    d->logic()->GenerateTransformField();
+  d->logic()->GenerateDeformationField();
   
   convertProgress->setValue(80);
-    maxNorm = d->logic()->GetFieldMaxNorm() + 1;
+  double* range = d->logic()->GetFieldRange();
   
   convertProgress->setValue(100);
   delete convertProgress;
-  }
 
-  pNode->SetGlyphThresholdMax(maxNorm);
-  d->InputGlyphThreshold->setMaximum(maxNorm);
-  d->InputGlyphThreshold->setMaximumValue(maxNorm);
+  pNode->SetGlyphThresholdMin(range[0]);
+  d->InputGlyphThreshold->setMinimum(range[0]);
+  d->InputGlyphThreshold->setMinimumValue(range[0]);
+  pNode->SetGlyphThresholdMax(range[1]);
+  d->InputGlyphThreshold->setMaximum(range[1]);
+  d->InputGlyphThreshold->setMaximumValue(range[1]);
 
-  pNode->SetContourMax(maxNorm);
-  d->InputContourRange->setMaximum(maxNorm);
-  d->InputContourRange->setMaximumValue(maxNorm);
+  pNode->SetContourMin(range[0]);
+  d->InputContourRange->setMinimum(range[0]);
+  d->InputContourRange->setMinimumValue(range[0]);
+  pNode->SetContourMax(range[1]);
+  d->InputContourRange->setMaximum(range[1]);
+  d->InputContourRange->setMaximumValue(range[1]);
 
-  pNode->SetGlyphSliceThresholdMax(maxNorm);
-  d->InputGlyphSliceThreshold->setMaximum(maxNorm);
-  d->InputGlyphSliceThreshold->setMaximumValue(maxNorm);    
+  pNode->SetGlyphSliceThresholdMin(range[0]);
+  d->InputGlyphSliceThreshold->setMinimum(range[0]);
+  d->InputGlyphSliceThreshold->setMinimumValue(range[0]);
+  pNode->SetGlyphSliceThresholdMax(range[1]);
+  d->InputGlyphSliceThreshold->setMaximum(range[1]);
+  d->InputGlyphSliceThreshold->setMaximumValue(range[1]);
 }
 
 //-----------------------------------------------------------------------------
@@ -386,7 +424,6 @@ void qSlicerDeformationFieldVisualizerModuleWidget::outputModelChanged(vtkMRMLNo
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
 
-  //TODO: Move into updatefrommrml?
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
   if (!pNode || !this->mrmlScene() || !node)
   {
@@ -409,8 +446,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
 
-  //TODO: Move into updatefrommrml?
-  if (option == 0)
+  if (option == d->logic()->ARROW_3D)
   {
     d->ArrowSourceOptions->setEnabled(true);
     d->ArrowSourceOptions->setVisible(true);
@@ -428,7 +464,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     pNode->SetGlyphScaleIsotropic(false);
     pNode->DisableModifiedEventOff();
   }
-  else if (option == 1)
+  else if (option == d->logic()->CONE_3D)
   {
     d->ArrowSourceOptions->setEnabled(false);
     d->ArrowSourceOptions->setVisible(false);
@@ -446,7 +482,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateSourceOptions(int opti
     pNode->SetGlyphScaleIsotropic(false);
     pNode->DisableModifiedEventOff();
   }
-  else if (option == 2)
+  else if (option == d->logic()->SPHERE_3D)
   {
     d->ArrowSourceOptions->setEnabled(false);
     d->ArrowSourceOptions->setVisible(false);
@@ -478,42 +514,43 @@ void qSlicerDeformationFieldVisualizerModuleWidget::visualize()
   {
   //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
     QProgressDialog *visualizeProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());
+    visualizeProgress->setCancelButton(0);
     visualizeProgress->setModal(true);
     visualizeProgress->setMinimumDuration(100); //will matter a bit more after progress dialog is remade
     visualizeProgress->show();
   visualizeProgress->setLabelText("Processing...");
     visualizeProgress->setValue(0);
   
-    if (d->GlyphToggle->isChecked())
+  if (d->GlyphToggle->isChecked())
   {
     visualizeProgress->setLabelText("Creating glyphs...");
     visualizeProgress->setValue(20);
-    d->logic()->CreateVisualization(1);
+    d->logic()->CreateVisualization(d->logic()->VIS_MODE_GLYPH_3D);
     }
     else if (d->GridToggle->isChecked()){
     visualizeProgress->setLabelText("Creating grid...");
     visualizeProgress->setValue(20);
-    d->logic()->CreateVisualization(2);
-    }
-    else if (d->ContourToggle->isChecked()){
-    visualizeProgress->setLabelText("Creating contours...");
-    visualizeProgress->setValue(20);
-    d->logic()->CreateVisualization(3);
+    d->logic()->CreateVisualization(d->logic()->VIS_MODE_GRID_3D);
     }
     else if (d->BlockToggle->isChecked()){
     visualizeProgress->setLabelText("Creating block...");
     visualizeProgress->setValue(20);
-    d->logic()->CreateVisualization(4);
+    d->logic()->CreateVisualization(d->logic()->VIS_MODE_BLOCK_3D);
     }
+    else if (d->ContourToggle->isChecked()){
+    visualizeProgress->setLabelText("Creating contours...");
+    visualizeProgress->setValue(20);
+    d->logic()->CreateVisualization(d->logic()->VIS_MODE_CONTOUR_3D);
+    }    
     else if (d->GlyphSliceToggle->isChecked()){
     visualizeProgress->setLabelText("Creating glyphs for slice view...");
     visualizeProgress->setValue(20);
-    d->logic()->CreateVisualization(5);
+    d->logic()->CreateVisualization(d->logic()->VIS_MODE_GLYPH_2D);
     }
     else if (d->GridSliceToggle->isChecked()){
     visualizeProgress->setLabelText("Creating grid for slice view...");
     visualizeProgress->setValue(20);
-    d->logic()->CreateVisualization(6);
+    d->logic()->CreateVisualization(d->logic()->VIS_MODE_GRID_2D);
     }
   visualizeProgress->setValue(100);
   delete visualizeProgress;
@@ -556,7 +593,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setup()
 
   // Grid Parameters
   connect(d->InputGridScale, SIGNAL(valueChanged(double)), this, SLOT(setGridScale(double)));
-  connect(d->InputGridDensity, SIGNAL(valueChanged(double)), this, SLOT(setGridDensity(double)));
+  connect(d->InputGridSpacing, SIGNAL(valueChanged(double)), this, SLOT(setGridSpacingMM(double)));
 
   // Block Parameters  
   connect(d->InputBlockScale, SIGNAL(valueChanged(double)), this, SLOT(setBlockScale(double)));
@@ -565,6 +602,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setup()
   // Contour Parameters
   connect(d->InputContourNumber, SIGNAL(valueChanged(double)), this, SLOT(setContourNumber(double)));
   connect(d->InputContourRange, SIGNAL(valuesChanged(double, double)), this, SLOT(setContourRange(double, double)));
+  connect(d->InputContourDecimation, SIGNAL(valueChanged(double)), this, SLOT(setContourDecimation(double)));
 
   // Glyph Slice Parameters
   connect(d->GlyphSliceComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setGlyphSliceNode(vtkMRMLNode*)));
@@ -577,7 +615,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setup()
   // Grid Slice Parameters
   connect(d->GridSliceComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setGridSliceNode(vtkMRMLNode*)));
   connect(d->InputGridSliceScale, SIGNAL(valueChanged(double)), this, SLOT(setGridSliceScale(double)));
-  connect(d->InputGridSliceDensity, SIGNAL(valueChanged(double)), this, SLOT(setGridSliceDensity(double)));
+  connect(d->InputGridSliceSpacing, SIGNAL(valueChanged(double)), this, SLOT(setGridSliceSpacingMM(double)));
 
   connect(d->ApplyButton, SIGNAL(clicked()), this, SLOT(visualize()));
 }
@@ -832,7 +870,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGridScale(double scale)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDeformationFieldVisualizerModuleWidget::setGridDensity(double density)
+void qSlicerDeformationFieldVisualizerModuleWidget::setGridSpacingMM(double spacing)
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
@@ -841,7 +879,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGridDensity(double densit
     return;
   }
   pNode->DisableModifiedEventOn();
-  pNode->SetGridDensity(density);
+  pNode->SetGridSpacingMM(spacing);
   pNode->DisableModifiedEventOff();
 }
 
@@ -886,7 +924,6 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setContourNumber(double numb
   pNode->SetContourNumber(number);
   pNode->DisableModifiedEventOff();
 }
-
 //-----------------------------------------------------------------------------
 void qSlicerDeformationFieldVisualizerModuleWidget::setContourRange(double min, double max)
 {
@@ -899,6 +936,20 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setContourRange(double min, 
   pNode->DisableModifiedEventOn();
   pNode->SetContourMin(min);
   pNode->SetContourMax(max);
+  pNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDeformationFieldVisualizerModuleWidget::setContourDecimation(double reduction)
+{
+  Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
+  vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
+  if (!pNode || !this->mrmlScene())
+  {
+    return;
+  }
+  pNode->DisableModifiedEventOn();
+  pNode->SetContourDecimation(reduction);
   pNode->DisableModifiedEventOff();
 }
 
@@ -1020,7 +1071,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGridSliceScale(double sca
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDeformationFieldVisualizerModuleWidget::setGridSliceDensity(double density)
+void qSlicerDeformationFieldVisualizerModuleWidget::setGridSliceSpacingMM(double spacing)
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
   vtkMRMLDeformationFieldVisualizerNode* pNode = d->logic()->GetDeformationFieldVisualizerNode();
@@ -1029,6 +1080,6 @@ void qSlicerDeformationFieldVisualizerModuleWidget::setGridSliceDensity(double d
     return;
   }
   pNode->DisableModifiedEventOn();
-  pNode->SetGridSliceDensity(density);
+  pNode->SetGridSliceSpacingMM(spacing);
   pNode->DisableModifiedEventOff();
 }

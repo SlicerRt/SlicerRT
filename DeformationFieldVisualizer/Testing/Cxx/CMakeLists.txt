@@ -27,16 +27,22 @@ endforeach()
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
-      DataDirectoryPath Transform BaselineGridModel 
-      TemporarySceneFile)
+      DataDirectoryPath TemporarySceneFile Transform BaselineGlyphModel BaselineGridModel BaselineBlockModel BaselineContourModel BaselineGlyphSliceModel BaselineGridSliceModel VolumeDifferenceThreshold SurfaceAreaDifferenceThreshold
+      )
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
-    -Transform ${Transform}
-    -BaselineGridModel ${BaselineGridModel}
     -TemporarySceneFile ${TemporarySceneFile}
-    #-VolumeDifferenceThreshold ${VolumeDifferenceThreshold}
+    -Transform ${Transform}
+    -BaselineGlyphModel ${BaselineGlyphModel}
+    -BaselineGridModel ${BaselineGridModel}
+    -BaselineBlockModel ${BaselineBlockModel}
+    -BaselineContourModel ${BaselineContourModel}
+    -BaselineGlyphSliceModel ${BaselineGlyphSliceModel}
+    -BaselineGridSliceModel ${BaselineGridSliceModel}
+    -VolumeDifferenceThreshold ${VolumeDifferenceThreshold}
+    -SurfaceAreaDifferenceThreshold ${SurfaceAreaDifferenceThreshold}  
   )
 endmacro()
 
@@ -45,24 +51,33 @@ TEST_WITH_DATA(
   vtkSlicerDeformationFieldVisualizerModuleLogicTest_LinearTransform
   vtkSlicerDeformationFieldVisualizerTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data
-  LinearTransform.tfm
-  LinearGridBaseline.vtk
-  #LinearContourBaseline.vtk
-  #LinearGlyphBaseline.vtk
-  #LinearBlockBaseline.vtk
   ${TEMP}/TestScene_DeformationFieldVisualizer_LinearTransform.mrml
-  #1.0
+  LinearTransform.tfm
+  LinearGlyphBaseline.vtk
+  LinearGridBaseline.vtk
+  LinearBlockBaseline.vtk
+  LinearContourBaseline.vtk
+  LinearGlyphAxialSliceBaseline.vtk
+  LinearGridSagittalSliceBaseline.vtk
+  1.0
+  1.0
 )
 set_tests_properties(vtkSlicerDeformationFieldVisualizerModuleLogicTest_LinearTransform PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
 
+#-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDeformationFieldVisualizerModuleLogicTest_BSplineTransform
   vtkSlicerDeformationFieldVisualizerTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data
-  BSplineTransform.tfm
-  BSplineGridBaseline.vtk
-  #BSplineBlockBaseline.vtk
   ${TEMP}/TestScene_DeformationFieldVisualizer_BSplineTransform.mrml
-  #1.0
+  BSplineTransform.tfm
+  BSplineGlyphBaseline.vtk
+  BSplineGridBaseline.vtk
+  BSplineBlockBaseline.vtk
+  BSplineContourBaseline.vtk
+  BSplineGlyphAxialSliceBaseline.vtk
+  BSplineGridSagittalSliceBaseline.vtk
+  1.0
+  1.0
 )
 set_tests_properties(vtkSlicerDeformationFieldVisualizerModuleLogicTest_BSplineTransform PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )

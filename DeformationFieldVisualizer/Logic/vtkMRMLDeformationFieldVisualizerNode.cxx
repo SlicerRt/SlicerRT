@@ -1,3 +1,24 @@
+/*==============================================================================
+
+  Program: 3D Slicer
+
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  
+  This file was originally developed by Franklin King, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
+==============================================================================*/
+
 #include "vtkMRMLDeformationFieldVisualizerNode.h"
 
 // VTK includes
@@ -41,7 +62,7 @@ vtkMRMLDeformationFieldVisualizerNode::vtkMRMLDeformationFieldVisualizerNode(){
 
   //Grid Parameters
   this->GridScale = 1;
-  this->GridDensity = 6;
+  this->GridSpacingMM = 12;
   
   //Block Parameters
   this->BlockScale = 1;
@@ -51,6 +72,7 @@ vtkMRMLDeformationFieldVisualizerNode::vtkMRMLDeformationFieldVisualizerNode(){
   this->ContourNumber = 10;
   this->ContourMin = 0;
   this->ContourMax = 6;
+  this->ContourDecimation = 0.25;
 
   //Glyph Slice Parameters
   this->GlyphSliceNodeID = NULL;
@@ -63,7 +85,7 @@ vtkMRMLDeformationFieldVisualizerNode::vtkMRMLDeformationFieldVisualizerNode(){
   //Grid Slice Parameters
   this->GridSliceNodeID = NULL;
   this->GridSliceScale = 1;
-  this->GridSliceDensity = 6;
+  this->GridSliceSpacingMM = 12;
     
 }
 
@@ -205,10 +227,10 @@ void vtkMRMLDeformationFieldVisualizerNode::ReadXMLAttributes(const char** atts)
       ss >> this->GridScale;
       continue;
     }
-    if (!strcmp(attName,"GridDensity")){
+    if (!strcmp(attName,"GridSpacingMM")){
       std::stringstream ss;
       ss << attValue;
-      ss >> this->GridDensity;
+      ss >> this->GridSpacingMM;
       continue;
     }        
     
@@ -243,7 +265,13 @@ void vtkMRMLDeformationFieldVisualizerNode::ReadXMLAttributes(const char** atts)
       ss >> this->ContourMax;
       continue;
     }
-
+    if (!strcmp(attName,"ContourDecimation")){
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->ContourDecimation;
+      continue;
+    }
+    
     if (!strcmp(attName,"GlyphSliceNodeID")){
       std::stringstream ss;
       ss << attValue;
@@ -293,10 +321,10 @@ void vtkMRMLDeformationFieldVisualizerNode::ReadXMLAttributes(const char** atts)
       ss >> this->GridSliceScale;
       continue;
     }  
-    if (!strcmp(attName,"GridSliceDensity")){
+    if (!strcmp(attName,"GridSliceSpacingMM")){
       std::stringstream ss;
       ss << attValue;
-      ss >> this->GridSliceDensity;
+      ss >> this->GridSliceSpacingMM;
       continue;
     }          
   }
@@ -331,7 +359,7 @@ void vtkMRMLDeformationFieldVisualizerNode::WriteXML(ostream& of, int nIndent){
     of << indent << " GlyphSphereResolution=\"" << this->GlyphSphereResolution << "\"";
     
   of << indent << " GridScale=\""<< this->GridScale << "\"";
-  of << indent << " GridDensity=\""<< this->GridDensity << "\"";
+  of << indent << " GridSpacingMM=\""<< this->GridSpacingMM << "\"";
   
   of << indent << " BlockScale=\""<< this->BlockScale << "\"";
   of << indent << " BlockDisplacementCheck=\""<< this->BlockDisplacementCheck << "\"";
@@ -339,6 +367,7 @@ void vtkMRMLDeformationFieldVisualizerNode::WriteXML(ostream& of, int nIndent){
   of << indent << " ContourNumber=\""<< this->ContourNumber << "\"";
   of << indent << " ContourMin=\""<< this->ContourMin << "\"";
   of << indent << " ContourMax=\""<< this->ContourMax << "\"";
+  of << indent << " ContourDecimation=\""<< this->ContourDecimation << "\"";
 
   of << indent << " GlyphSliceNodeID=\"" << (this->GlyphSliceNodeID ? this->GlyphSliceNodeID : "NULL") << "\"";  
   of << indent << " GlyphSlicePointMax=\""<< this->GlyphSlicePointMax << "\"";
@@ -349,7 +378,7 @@ void vtkMRMLDeformationFieldVisualizerNode::WriteXML(ostream& of, int nIndent){
   
   of << indent << " GridSliceNodeID=\"" << (this->GridSliceNodeID ? this->GridSliceNodeID : "NULL") << "\"";    
   of << indent << " GridSliceScale=\""<< this->GridSliceScale << "\"";
-  of << indent << " GridSliceDensity=\""<< this->GridSliceDensity << "\"";      
+  of << indent << " GridSliceSpacingMM=\""<< this->GridSliceSpacingMM << "\"";      
 }
 
 //----------------------------------------------------------------------------
@@ -379,7 +408,7 @@ void vtkMRMLDeformationFieldVisualizerNode::Copy(vtkMRMLNode *anode){
     this->GlyphSphereResolution = node->GlyphSphereResolution;
 
   this->GridScale = node->GridScale;
-  this->GridDensity = node->GridDensity;
+  this->GridSpacingMM = node->GridSpacingMM;
   
   this->BlockScale = node->BlockScale;
   this->BlockDisplacementCheck = node->BlockDisplacementCheck;
@@ -387,6 +416,7 @@ void vtkMRMLDeformationFieldVisualizerNode::Copy(vtkMRMLNode *anode){
   this->ContourNumber = node->ContourNumber;
   this->ContourMin = node->ContourMin;
   this->ContourMax = node->ContourMax;
+  this->ContourDecimation = node->ContourDecimation;
 
   this->GlyphSliceNodeID = (node->GetGlyphSliceNodeID());
   this->GlyphSlicePointMax = node->GlyphSlicePointMax;
@@ -397,7 +427,7 @@ void vtkMRMLDeformationFieldVisualizerNode::Copy(vtkMRMLNode *anode){
   
   this->GridSliceNodeID = (node->GetGridSliceNodeID());
   this->GridSliceScale = node->GridSliceScale;
-  this->GridSliceDensity = node->GridSliceDensity;  
+  this->GridSliceSpacingMM = node->GridSliceSpacingMM;  
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -512,7 +542,7 @@ void vtkMRMLDeformationFieldVisualizerNode::PrintSelf(ostream& os, vtkIndent ind
     os << indent << "   GlyphSphereResolution = " << this->GlyphSphereResolution << "\n";
     
   os << indent << " GridScale = "<< this->GridScale << "\n";
-  os << indent << " GridDensity = "<< this->GridDensity << "\n";
+  os << indent << " GridSpacingMM = "<< this->GridSpacingMM << "\n";
   
   os << indent << " BlockScale = "<< this->BlockScale << "\n";
   os << indent << " BlockDisplacementCheck = "<< this->BlockDisplacementCheck << "\n";
@@ -520,6 +550,7 @@ void vtkMRMLDeformationFieldVisualizerNode::PrintSelf(ostream& os, vtkIndent ind
   os << indent << " ContourNumber = "<< this->ContourNumber << "\n";
   os << indent << " ContourMin = "<< this->ContourMin << "\n";
   os << indent << " ContourMax = "<< this->ContourMax << "\n";
+  os << indent << " ContourDecimation = "<< this->ContourDecimation << "\n";
 
   os << indent << " GlyphSliceNodeID = " << (this->GlyphSliceNodeID ? this->GlyphSliceNodeID : "NULL") << "\n";  
   os << indent << " GlyphSlicePointMax = "<< this->GlyphSlicePointMax << "\n";
@@ -530,6 +561,6 @@ void vtkMRMLDeformationFieldVisualizerNode::PrintSelf(ostream& os, vtkIndent ind
   
   os << indent << " GridSliceNodeID = "<< (this->GridSliceNodeID ? this->GridSliceNodeID : "NULL") << "\n";    
   os << indent << " GridSliceScale = "<< this->GridSliceScale << "\n";
-  os << indent << " GridSliceDensity = "<< this->GridSliceDensity << "\n";    
+  os << indent << " GridSliceSpacingMM = "<< this->GridSliceSpacingMM << "\n";    
 }
 

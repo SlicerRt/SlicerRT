@@ -1,6 +1,0 @@
-0 negligible 0 0 0 0
-1 low 0 255 0 255
-2 medium 255 255 0 255
-3 high 255 0 0 255
-
-

@@ -1,3 +1,23 @@
+/*==============================================================================
+
+  Program: 3D Slicer
+
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  
+  This file was originally developed by Franklin King, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
+==============================================================================*/
 
 #pragma once
 #ifndef __vtkMRMLDeformationFieldVisualizerNode_h
@@ -78,8 +98,8 @@ public:
   // Grid Parameters
   vtkSetMacro(GridScale, float);
   vtkGetMacro(GridScale, float);
-  vtkSetMacro(GridDensity, int);
-  vtkGetMacro(GridDensity, int);
+  vtkSetMacro(GridSpacingMM, int);
+  vtkGetMacro(GridSpacingMM, int);
   
   // Block Parameters
   vtkSetMacro(BlockScale, float);
@@ -94,6 +114,8 @@ public:
   vtkGetMacro(ContourMin, float);
   vtkSetMacro(ContourMax, float);
   vtkGetMacro(ContourMax, float);
+  vtkSetMacro(ContourDecimation, float);
+  vtkGetMacro(ContourDecimation, float); 
   
   // Glyph Slice Parameters
   vtkSetStringMacro(GlyphSliceNodeID);
@@ -116,8 +138,8 @@ public:
   void SetAndObserveGridSliceNodeID(const char* id);
   vtkSetMacro(GridSliceScale, float);
   vtkGetMacro(GridSliceScale, float);
-  vtkSetMacro(GridSliceDensity, int);
-  vtkGetMacro(GridSliceDensity, int);
+  vtkSetMacro(GridSliceSpacingMM, int);
+  vtkGetMacro(GridSliceSpacingMM, int);
   
 protected:
   vtkMRMLDeformationFieldVisualizerNode();
@@ -158,7 +180,7 @@ protected:
 
   // Grid Parameters
   float GridScale;
-  int GridDensity;
+  int GridSpacingMM;
   
   // Block Parameters
   float BlockScale;
@@ -168,6 +190,7 @@ protected:
   int ContourNumber;
   float ContourMin;
   float ContourMax;
+  float ContourDecimation;
 
   // Glyph Slice Parameters
   char* GlyphSliceNodeID;
@@ -180,7 +203,7 @@ protected:
   // Grid Slice Parameters
   char* GridSliceNodeID;
   float GridSliceScale;
-  int GridSliceDensity;
+  int GridSliceSpacingMM;
 };
 
 #endif

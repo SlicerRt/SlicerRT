@@ -12,7 +12,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>367</width>
+    <width>368</width>
     <height>1272</height>
    </rect>
   </property>
@@ -112,10 +112,10 @@
          <item row="0" column="0">
           <widget class="QLabel" name="InputVolumeLabel">
            <property name="toolTip">
-            <string>Input deformation field as a vector volume</string>
+            <string>Input deformation as either a vector volume or a transform</string>
            </property>
            <property name="text">
-            <string>Deformation Field</string>
+            <string>Deformation</string>
            </property>
           </widget>
          </item>
@@ -131,13 +131,16 @@
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string>Input deformation field as a vector volume</string>
+            <string>Input deformation as either a vector volume or a transform</string>
            </property>
            <property name="nodeTypes">
             <stringlist>
              <string>vtkMRMLVectorVolumeNode</string>
              <string>vtkMRMLTransformNode</string>
             </stringlist>
+           </property>
+           <property name="baseName">
+            <string/>
            </property>
            <property name="noneEnabled">
             <bool>true</bool>
@@ -153,9 +156,6 @@
            </property>
            <property name="renameEnabled">
             <bool>true</bool>
-           </property>
-           <property name="baseName">
-            <string/>
            </property>
           </widget>
          </item>
@@ -188,6 +188,9 @@
              <string>vtkMRMLVolumeNode</string>
             </stringlist>
            </property>
+           <property name="baseName">
+            <string/>
+           </property>
            <property name="noneEnabled">
             <bool>true</bool>
            </property>
@@ -202,9 +205,6 @@
            </property>
            <property name="renameEnabled">
             <bool>true</bool>
-           </property>
-           <property name="baseName">
-            <string/>
            </property>
           </widget>
          </item>
@@ -272,7 +272,7 @@
    <item>
     <widget class="ctkCollapsibleButton" name="VisualizationOption">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -765,7 +765,7 @@
             <string>Range to create contours</string>
            </property>
            <property name="decimals">
-            <number>2</number>
+            <number>4</number>
            </property>
            <property name="singleStep">
             <double>0.010000000000000</double>
@@ -775,6 +775,44 @@
            </property>
            <property name="maximumValue">
             <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="ctkSliderWidget" name="InputContourDecimation">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Target decimation as a decimal percentage reduction in polygons (0 results in no decimation, 0.99 results in 99% reduction in polygons)</string>
+           </property>
+           <property name="decimals">
+            <number>2</number>
+           </property>
+           <property name="singleStep">
+            <double>0.010000000000000</double>
+           </property>
+           <property name="pageStep">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>0.990000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.250000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="ContourDecimationLabel">
+           <property name="toolTip">
+            <string>Target decimation as a decimal percentage reduction in polygons (0 results in no decimation, 0.99 results in 99% reduction in polygons)</string>
+           </property>
+           <property name="text">
+            <string>Decimate</string>
            </property>
           </widget>
          </item>
@@ -856,19 +894,22 @@
           </widget>
          </item>
          <item row="2" column="0">
-          <widget class="QLabel" name="GridDensityLabel">
+          <widget class="QLabel" name="GridSpacingLabel">
            <property name="toolTip">
-            <string>Subsample grid (reduces density of grid by the value specified)</string>
+            <string>Resample grid (spacing will be the distance between lines)</string>
            </property>
            <property name="text">
-            <string>Subsample</string>
+            <string>Spacing</string>
            </property>
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QDoubleSpinBox" name="InputGridDensity">
+          <widget class="QDoubleSpinBox" name="InputGridSpacing">
            <property name="toolTip">
-            <string>Subsample grid (reduces density of grid by the value specified)</string>
+            <string>Resample grid (spacing will be the distance between lines)</string>
+           </property>
+           <property name="suffix">
+            <string> mm</string>
            </property>
            <property name="decimals">
             <number>0</number>
@@ -879,8 +920,11 @@
            <property name="maximum">
             <double>200.000000000000000</double>
            </property>
+           <property name="singleStep">
+            <double>2.000000000000000</double>
+           </property>
            <property name="value">
-            <double>6.000000000000000</double>
+            <double>12.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -955,7 +999,7 @@
             <bool>true</bool>
            </property>
            <property name="checked">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <layout class="QFormLayout" name="formLayout_2">
             <property name="fieldGrowthPolicy">
@@ -1113,11 +1157,6 @@
            <item>
             <property name="text">
              <string>Sphere</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>2D Arrow</string>
             </property>
            </item>
           </widget>
@@ -1472,7 +1511,7 @@
             <string>Only create glyphs within threshold values</string>
            </property>
            <property name="decimals">
-            <number>2</number>
+            <number>4</number>
            </property>
            <property name="singleStep">
             <double>0.010000000000000</double>
@@ -1612,19 +1651,22 @@
           </widget>
          </item>
          <item row="3" column="0">
-          <widget class="QLabel" name="GridSliceDensityLabel">
+          <widget class="QLabel" name="GridSliceSpacingLabel">
            <property name="toolTip">
-            <string>Subsample grid (reduces density of grid by the value specified)</string>
+            <string>Resample grid (spacing will be the distance between lines)</string>
            </property>
            <property name="text">
-            <string>Subsample</string>
+            <string>Spacing</string>
            </property>
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QDoubleSpinBox" name="InputGridSliceDensity">
+          <widget class="QDoubleSpinBox" name="InputGridSliceSpacing">
            <property name="toolTip">
-            <string>Subsample grid (reduces density of grid by the value specified)</string>
+            <string>Resample grid (spacing will be the distance between lines)</string>
+           </property>
+           <property name="suffix">
+            <string> mm</string>
            </property>
            <property name="decimals">
             <number>0</number>
@@ -1636,7 +1678,7 @@
             <double>200.000000000000000</double>
            </property>
            <property name="value">
-            <double>6.000000000000000</double>
+            <double>12.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -1740,7 +1782,7 @@
             <string>Only create glyphs within threshold values</string>
            </property>
            <property name="decimals">
-            <number>2</number>
+            <number>4</number>
            </property>
            <property name="singleStep">
             <double>0.010000000000000</double>
