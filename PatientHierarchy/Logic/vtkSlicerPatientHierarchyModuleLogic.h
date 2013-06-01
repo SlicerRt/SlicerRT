@@ -56,7 +56,8 @@ public:
   static vtkMRMLHierarchyNode* GetPatientHierarchyNodeByUID(vtkMRMLScene* scene, const char* uid);
 
   /// Place series in patient hierarchy. Create patient and study node if needed
-  static void InsertDicomSeriesInHierarchy(
+  /// \return Series patient hierarchy node of the inserted series
+  static vtkMRMLHierarchyNode* InsertDicomSeriesInHierarchy(
     vtkMRMLScene* scene, const char* patientId, const char* studyInstanceUID, const char* seriesInstanceUID );
 
   /// Determine if two patient hierarchy nodes are in the same branch (share the same parent)

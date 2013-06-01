@@ -95,12 +95,12 @@ vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(vtkMRMLScene*
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
+vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
   vtkMRMLScene *scene, const char* patientId, const char* studyInstanceUID, const char* seriesInstanceUID )
 {
   if ( !scene || !patientId || !studyInstanceUID || !seriesInstanceUID )
   {
-    return;
+    return NULL;
   }
 
   vtkSmartPointer<vtkMRMLHierarchyNode> patientNode;
@@ -149,7 +149,7 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
     vtkErrorWithObjectMacro(scene,
       "vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy: Patient hierarchy node with ID="
       << seriesInstanceUID << " cannot be found!");
-    return;
+    return NULL;
   }
 
   // Create patient and study nodes if they do not exist yet
@@ -183,6 +183,8 @@ void vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
   }
 
   seriesNode->SetParentNodeID(studyNode->GetID());
+
+  return seriesNode;
 }
 
 //---------------------------------------------------------------------------

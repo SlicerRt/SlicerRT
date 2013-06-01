@@ -427,7 +427,7 @@ OFString vtkSlicerDicomRtReader::GetReferencedSeriesInstanceUID(DRTStructureSetI
   DRTRTReferencedSeriesSequence* rtReferencedSeriesSequenceObject = this->GetReferencedSeriesSequence(rtStructureSetObject);
   if (!rtReferencedSeriesSequenceObject || !rtReferencedSeriesSequenceObject->gotoFirstItem().good())
   {
-    vtkErrorMacro("GetReferencedFrameOfReferenceSOPInstanceUID: No referenced series sequence object item is available");
+    vtkErrorMacro("GetReferencedSeriesInstanceUID: No referenced series sequence object item is available");
     return invalidUid;
   }
 

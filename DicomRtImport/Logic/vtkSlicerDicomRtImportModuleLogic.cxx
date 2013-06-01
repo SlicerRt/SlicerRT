@@ -908,7 +908,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
     this->GetMRMLScene(), rtReader->GetStudyInstanceUid() );
 
   // Insert series in hierarchy
-  vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
+  vtkMRMLHierarchyNode* seriesNode = vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
     this->GetMRMLScene(), rtReader->GetPatientId(), rtReader->GetStudyInstanceUid(), rtReader->GetSeriesInstanceUid() );
 
   // Fill patient and study attributes if they have been just created
@@ -941,6 +941,20 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
       vtkErrorMacro("InsertSeriesInPatientHierarchy: Study node has not been created for series with Instance UID "
         << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
     }
+  }
+  if (seriesNode == NULL)
+  {
+    vtkErrorMacro("InsertSeriesInPatientHierarchy: Failed to insert series with Instance UID "
+      << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
+  }
+  else
+  {
+    // Set DICOM tags to the hierarchy node
+    seriesNode->SetAttribute( SlicerRtCommon::PATIENTHIERARCHY_SERIES_MODALITY_ATTRIBUTE_NAME.c_str(), rtReader->GetSeriesModality() );
+    seriesNode->SetAttribute( SlicerRtCommon::PATIENTHIERARCHY_STUDY_DATE_ATTRIBUTE_NAME.c_str(), rtReader->GetStudyDate() );
+    seriesNode->SetAttribute( SlicerRtCommon::PATIENTHIERARCHY_STUDY_TIME_ATTRIBUTE_NAME.c_str(), rtReader->GetStudyTime() );
+    seriesNode->SetAttribute( SlicerRtCommon::PATIENTHIERARCHY_PATIENT_SEX_ATTRIBUTE_NAME.c_str(), rtReader->GetPatientSex() );
+    seriesNode->SetAttribute( SlicerRtCommon::PATIENTHIERARCHY_PATIENT_BIRTH_DATE_ATTRIBUTE_NAME.c_str(), rtReader->GetPatientBirthDate() );
   }
 }
 

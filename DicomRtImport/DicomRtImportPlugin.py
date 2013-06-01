@@ -143,10 +143,15 @@ class DicomRtImportPlugin:
     tags = {}
     tags['seriesInstanceUID'] = "0020,000E"
     tags['seriesDescription'] = "0008,103E"
+    tags['seriesModality'] = "0008,0060"
     tags['studyInstanceUID'] = "0020,000D"
     tags['studyDescription'] = "0008,1030"
+    tags['studyDate'] = "0008,0020"
+    tags['studyTime'] = "0008,0030"
     tags['patientID'] = "0010,0020"
     tags['patientName'] = "0010,0010"
+    tags['patientSex'] = "0010,0040"
+    tags['patientBirthDate'] = "0010,0030"
 
     from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
     try:
@@ -170,6 +175,11 @@ class DicomRtImportPlugin:
     seriesNode.SetName(seriesDescription)
     seriesInstanceUid = slicer.dicomDatabase.fileValue(firstFile,tags['seriesInstanceUID'])
     seriesNode.SetAttribute('DicomUid',seriesInstanceUid)
+    seriesNode.SetAttribute('PatientHierarchy.SeriesModality',slicer.dicomDatabase.fileValue(firstFile, tags['seriesModality']))
+    seriesNode.SetAttribute('PatientHierarchy.StudyDate',slicer.dicomDatabase.fileValue(firstFile, tags['studyDate']))
+    seriesNode.SetAttribute('PatientHierarchy.StudyTime',slicer.dicomDatabase.fileValue(firstFile, tags['studyTime']))
+    seriesNode.SetAttribute('PatientHierarchy.PatientSex',slicer.dicomDatabase.fileValue(firstFile, tags['patientSex']))
+    seriesNode.SetAttribute('PatientHierarchy.PatientBirthDate',slicer.dicomDatabase.fileValue(firstFile, tags['patientBirthDate']))
     slicer.mrmlScene.AddNode(seriesNode)
     
     slicer.modules.dicomrtimport.logic().AddNodeToLoadedSeriesPatientHierarchyNodes(seriesNode)
