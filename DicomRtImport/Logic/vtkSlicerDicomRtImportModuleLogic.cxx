@@ -72,6 +72,7 @@ vtkCxxSetObjectMacro(vtkSlicerDicomRtImportModuleLogic, VolumesLogic, vtkSlicerV
 vtkSlicerDicomRtImportModuleLogic::vtkSlicerDicomRtImportModuleLogic()
 {
   this->VolumesLogic = NULL;
+  this->LoadedSeriesPatientHierarchyNodes.clear();
 
   this->AutoContourOpacityOn();
 }
@@ -80,6 +81,7 @@ vtkSlicerDicomRtImportModuleLogic::vtkSlicerDicomRtImportModuleLogic()
 vtkSlicerDicomRtImportModuleLogic::~vtkSlicerDicomRtImportModuleLogic()
 {
   this->SetVolumesLogic(NULL); // release the volumes logic object
+  this->LoadedSeriesPatientHierarchyNodes.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -214,7 +216,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
   bool loadSuccessful = false;
   if (!loadInfo || !loadInfo->GetLoadableFiles(0) || loadInfo->GetLoadableFiles(0)->GetNumberOfValues() < 1)
   {
-    vtkErrorMacro("Unable to load Dicom RT data due to invalid loadable information.");
+    vtkErrorMacro("LoadDicomRT: Unable to load Dicom RT data due to invalid loadable information.");
     return loadSuccessful;
   }
 
@@ -262,6 +264,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   phSeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
   phSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(phSeriesNodeName);
   std::string contourNodeName;
+  std::string structureSetReferencedSeriesUid;
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
@@ -291,8 +294,17 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   {
     const char* roiLabel = rtReader->GetRoiName(internalROIIndex);
     double *roiColor = rtReader->GetRoiDisplayColor(internalROIIndex);
-    const char* roiReferencedSeriesUid = rtReader->GetRoiReferencedSeriesUid(internalROIIndex);
     vtkMRMLDisplayableNode* addedDisplayableNode = NULL;
+
+    const char* roiReferencedSeriesUid = rtReader->GetRoiReferencedSeriesUid(internalROIIndex);
+    if (structureSetReferencedSeriesUid.empty())
+    {
+      structureSetReferencedSeriesUid = std::string(roiReferencedSeriesUid);
+    }
+    else if (roiReferencedSeriesUid && STRCASECMP(structureSetReferencedSeriesUid.c_str(), roiReferencedSeriesUid))
+    {
+      vtkWarningMacro("LoadRtStructureSet: ROIs in structure set '" << seriesName << "' have different referenced series UIDs!");
+    }
 
     // Save color into the color table
     structureSetColorTableNode->AddColor(roiLabel, roiColor[0], roiColor[1], roiColor[2]);
@@ -301,12 +313,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     vtkPolyData* roiPoly = rtReader->GetRoiPolyData(internalROIIndex);
     if (roiPoly == NULL)
     {
-      vtkWarningMacro("Cannot read polydata from file: " << firstFileNameStr << ", ROI: " << internalROIIndex);
+      vtkWarningMacro("LoadRtStructureSet: Cannot read polydata from file: " << firstFileNameStr << ", ROI: " << internalROIIndex);
       continue;
     }
     if (roiPoly->GetNumberOfPoints() < 1)
     {
-      vtkWarningMacro("The ROI polydata does not contain any points, file: " << firstFileNameStr << ", ROI: " << internalROIIndex);
+      vtkWarningMacro("LoadRtStructureSet: The ROI polydata does not contain any points, file: " << firstFileNameStr << ", ROI: " << internalROIIndex);
       continue;
     }
 
@@ -349,6 +361,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
           rtReader->GetSeriesInstanceUid());
         this->GetMRMLScene()->AddNode(contourHierarchySeriesNode);
+
+        this->AddNodeToLoadedSeriesPatientHierarchyNodes( (vtkMRMLHierarchyNode*)contourHierarchySeriesNode );
 
         // A hierarchy node needs a display node
         vtkSmartPointer<vtkMRMLModelDisplayNode> contourHierarchySeriesDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
@@ -491,7 +505,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     }
     else
     {
-      vtkWarningMacro("Unable to auto-determine opacity: Number of ROIs and display nodes do not match!");
+      vtkWarningMacro("LoadRtStructureSet: Unable to auto-determine opacity: Number of ROIs and display nodes do not match!");
     }
   }
 
@@ -591,6 +605,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
     patientHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
     this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
 
+    this->AddNodeToLoadedSeriesPatientHierarchyNodes( (vtkMRMLHierarchyNode*)patientHierarchySeriesNode );
+
     // Insert series in patient hierarchy
     this->InsertSeriesInPatientHierarchy(rtReader);
 
@@ -607,7 +623,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
   }
   else
   {
-    vtkErrorMacro("Failed to load dose volume file '" << firstFileNameStr << "' (series name '" << seriesName << "')");
+    vtkErrorMacro("LoadRtDose: Failed to load dose volume file '" << firstFileNameStr << "' (series name '" << seriesName << "')");
     return false;
   }
 }
@@ -654,6 +670,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         isocenterHierarchyRootNodeName = this->GetMRMLScene()->GenerateUniqueName(isocenterHierarchyRootNodeName);
         isocenterSeriesHierarchyRootNode->SetName(isocenterHierarchyRootNodeName.c_str());
         this->GetMRMLScene()->AddNode(isocenterSeriesHierarchyRootNode);
+
+        this->AddNodeToLoadedSeriesPatientHierarchyNodes( (vtkMRMLHierarchyNode*)isocenterSeriesHierarchyRootNode );
 
         // A hierarchy node needs a display node
         vtkSmartPointer<vtkMRMLAnnotationDisplayNode> isocenterSeriesHierarchyRootDisplayNode = vtkSmartPointer<vtkMRMLAnnotationDisplayNode>::New();
@@ -798,7 +816,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       beamsLogic->CreateBeamModel(errorMessage);
       if (!errorMessage.empty())
       {
-        vtkWarningMacro("Failed to create beam geometry for isocenter: " << addedDisplayableNode->GetName());
+        vtkWarningMacro("LoadRtPlan: Failed to create beam geometry for isocenter: " << addedDisplayableNode->GetName());
       }
 
       // Put new beam model in the patient hierarchy
@@ -905,7 +923,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
     }
     else
     {
-      vtkErrorMacro("Patient node has not been created for series with Instance UID "
+      vtkErrorMacro("InsertSeriesInPatientHierarchy: Patient node has not been created for series with Instance UID "
         << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
     }
   }
@@ -920,8 +938,31 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
     }
     else
     {
-      vtkErrorMacro("Study node has not been created for series with Instance UID "
+      vtkErrorMacro("InsertSeriesInPatientHierarchy: Study node has not been created for series with Instance UID "
         << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
     }
   }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDicomRtImportModuleLogic::AddNodeToLoadedSeriesPatientHierarchyNodes(vtkMRMLHierarchyNode* seriesNode)
+{
+  this->LoadedSeriesPatientHierarchyNodes.push_back(seriesNode);
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDicomRtImportModuleLogic::PerformPostLoadSteps()
+{
+  if (this->LoadedSeriesPatientHierarchyNodes.size() == 0)
+  {
+    vtkDebugMacro("PerformPostLoadSteps: No series patient hierarchy node has been created during the last load session");
+    return;
+  }
+
+  //TODO: Structure set under CT
+
+  //TODO: Set up display for the loaded data
+
+  // Clear the loaded series list so that it only contains the new ones on the next load session
+  this->LoadedSeriesPatientHierarchyNodes.clear();
 }

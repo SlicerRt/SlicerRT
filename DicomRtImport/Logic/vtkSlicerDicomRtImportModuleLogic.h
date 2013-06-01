@@ -28,9 +28,13 @@
 #include "vtkSlicerModuleLogic.h"
 #include "vtkSlicerVolumesLogic.h"
 
+// STD includes
+#include <vector>
+
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 
 class vtkMRMLModelNode;
+class vtkMRMLHierarchyNode;
 class vtkMRMLAnnotationFiducialNode;
 class vtkDICOMImportInfo;
 class vtkPolyData;
@@ -54,6 +58,11 @@ public:
 
   /// Set Volumes module logic
   void SetVolumesLogic(vtkSlicerVolumesLogic* volumesLogic);
+
+  /// Perform steps needed after loading all data from the selected loadables
+  void PerformPostLoadSteps();
+
+  void AddNodeToLoadedSeriesPatientHierarchyNodes(vtkMRMLHierarchyNode* seriesNode);
 
 public:
   vtkSetMacro(AutoContourOpacity, bool);
@@ -97,6 +106,11 @@ private:
 
   /// Flag indicating whether opacity values for the loaded contours are automatically determined
   bool AutoContourOpacity;
+
+  /// Patient hierarchy nodes created in the last loading session
+  /// These nodes are used in function \sa PerformPostLoadSteps for creating connections between these
+  /// nodes and to set up display for the loaded data
+  std::vector<vtkMRMLHierarchyNode*> LoadedSeriesPatientHierarchyNodes;
 };
 
 #endif

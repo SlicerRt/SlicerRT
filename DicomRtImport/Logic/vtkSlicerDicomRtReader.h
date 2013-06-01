@@ -28,7 +28,6 @@
 #include "vtkObject.h"
 
 // STD includes
-#include <cstdlib>
 #include <vector>
 
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"

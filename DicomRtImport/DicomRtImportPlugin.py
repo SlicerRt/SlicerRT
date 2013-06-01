@@ -93,6 +93,12 @@ class DicomRtImportPluginClass(DICOMPlugin):
 
     return success
 
+  def onLoadFinished(self):
+    """Perform steps needed after all selected loadables have
+    been loaded
+    """
+    slicer.modules.dicomrtimport.logic().PerformPostLoadSteps()
+    
 #
 # DicomRtImportPlugin
 #
@@ -165,6 +171,8 @@ class DicomRtImportPlugin:
     seriesInstanceUid = slicer.dicomDatabase.fileValue(firstFile,tags['seriesInstanceUID'])
     seriesNode.SetAttribute('DicomUid',seriesInstanceUid)
     slicer.mrmlScene.AddNode(seriesNode)
+    
+    slicer.modules.dicomrtimport.logic().AddNodeToLoadedSeriesPatientHierarchyNodes(seriesNode)
 
     patientId = slicer.dicomDatabase.fileValue(firstFile,tags['patientID'])
     patientNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUID(slicer.mrmlScene, patientId)

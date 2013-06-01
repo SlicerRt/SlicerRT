@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 set(MODULE_NAME "ProtonBeams")
-set(MODULE_TITLE "ProtonBeams")
+set(MODULE_TITLE "Proton Beams")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 

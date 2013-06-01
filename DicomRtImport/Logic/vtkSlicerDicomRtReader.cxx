@@ -21,8 +21,6 @@ limitations under the License.
 // SlicerRt includes
 #include "SlicerRtCommon.h"
 
-// MRML includes
-
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkPolyData.h>
