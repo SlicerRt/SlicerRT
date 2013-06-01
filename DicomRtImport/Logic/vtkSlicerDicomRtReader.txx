@@ -44,6 +44,26 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
     this->SetPatientId(NULL);
   }
 
+  OFString patientSex;
+  if (dcmtkIodObject->getPatientSex(patientSex).good())
+  {
+    this->SetPatientSex(patientSex.c_str());
+  }
+  else
+  {
+    this->SetPatientSex(NULL);
+  }
+
+  OFString patientBirthDate;
+  if (dcmtkIodObject->getPatientBirthDate(patientBirthDate).good())
+  {
+    this->SetPatientBirthDate(patientBirthDate.c_str());
+  }
+  else
+  {
+    this->SetPatientBirthDate(NULL);
+  }
+
   OFString studyInstanceUid;
   if (dcmtkIodObject->getStudyInstanceUID(studyInstanceUid).good())
   {
@@ -64,6 +84,26 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
     this->SetStudyDescription(NULL);
   }
 
+  OFString studyDate;
+  if (dcmtkIodObject->getStudyDate(studyDate).good())
+  {
+    this->SetStudyDate(studyDate.c_str());
+  }
+  else
+  {
+    this->SetStudyDate(NULL);
+  }
+
+  OFString studyTime;
+  if (dcmtkIodObject->getStudyTime(studyTime).good())
+  {
+    this->SetStudyTime(studyTime.c_str());
+  }
+  else
+  {
+    this->SetStudyTime(NULL);
+  }
+
   OFString seriesInstanceUid;
   if (dcmtkIodObject->getSeriesInstanceUID(seriesInstanceUid).good())
   {
@@ -82,5 +122,15 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   else
   {
     this->SetSeriesDescription(NULL);
+  }
+
+  OFString seriesModality;
+  if (dcmtkIodObject->getModality(seriesModality).good())
+  {
+    this->SetSeriesModality(seriesModality.c_str());
+  }
+  else
+  {
+    this->SetSeriesModality(NULL);
   }
 }

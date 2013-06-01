@@ -144,10 +144,15 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 
   this->PatientName = NULL;
   this->PatientId = NULL;
+  this->PatientSex = NULL;
+  this->PatientBirthDate = NULL;
   this->StudyInstanceUid = NULL;
   this->StudyDescription = NULL;
+  this->StudyDate = NULL;
+  this->StudyTime = NULL;
   this->SeriesInstanceUid = NULL;
   this->SeriesDescription = NULL;
+  this->SeriesModality = NULL;
 
   this->DatabaseFile = NULL;
 

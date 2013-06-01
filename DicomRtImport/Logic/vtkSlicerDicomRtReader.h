@@ -128,22 +128,32 @@ public:
   vtkSetStringMacro(DoseUnits); 
 
   /// Get dose grid scaling
-  vtkGetStringMacro(DoseGridScaling); 
+  vtkGetStringMacro(DoseGridScaling);
   /// Set dose grid scaling
-  vtkSetStringMacro(DoseGridScaling); 
+  vtkSetStringMacro(DoseGridScaling);
 
   /// Get patient name
-  vtkGetStringMacro(PatientName); 
+  vtkGetStringMacro(PatientName);
   /// Get patient ID
-  vtkGetStringMacro(PatientId); 
+  vtkGetStringMacro(PatientId);
+  /// Get patient sex
+  vtkGetStringMacro(PatientSex);
+  /// Get patient birth date
+  vtkGetStringMacro(PatientBirthDate);
   /// Get study instance UID
-  vtkGetStringMacro(StudyInstanceUid); 
+  vtkGetStringMacro(StudyInstanceUid);
   /// Get study description
-  vtkGetStringMacro(StudyDescription); 
+  vtkGetStringMacro(StudyDescription);
+  /// Get study date
+  vtkGetStringMacro(StudyDate);
+  /// Get study time
+  vtkGetStringMacro(StudyTime);
   /// Get series instance UID
-  vtkGetStringMacro(SeriesInstanceUid); 
+  vtkGetStringMacro(SeriesInstanceUid);
   /// Get series description
-  vtkGetStringMacro(SeriesDescription); 
+  vtkGetStringMacro(SeriesDescription);
+  /// Get series modality
+  vtkGetStringMacro(SeriesModality);
 
   /// Get DICOM database file name
   vtkGetStringMacro(DatabaseFile);
@@ -233,14 +243,24 @@ protected:
   vtkSetStringMacro(PatientName);
   /// Set patient ID
   vtkSetStringMacro(PatientId);
+  /// Set patient sex
+  vtkSetStringMacro(PatientSex);
+  /// Set patient birth date
+  vtkSetStringMacro(PatientBirthDate);
   /// Set study instance UID
   vtkSetStringMacro(StudyInstanceUid);
   /// Set study description
   vtkSetStringMacro(StudyDescription); 
+  /// Set study date
+  vtkSetStringMacro(StudyDate);
+  /// Set study time
+  vtkSetStringMacro(StudyTime);
   /// Set series instance UID
   vtkSetStringMacro(SeriesInstanceUid);
   /// Set series description
   vtkSetStringMacro(SeriesDescription); 
+  /// Set series modality
+  vtkSetStringMacro(SeriesModality);
 
   /// Set DICOM database file name
   vtkSetStringMacro(DatabaseFile);
@@ -301,17 +321,32 @@ protected:
   /// Patient ID
   char* PatientId;
 
+  /// Patient sex
+  char* PatientSex;
+
+  /// Patient birth date
+  char* PatientBirthDate;
+
   /// Study instance UID
   char* StudyInstanceUid;
 
   /// Study description
   char* StudyDescription;
 
+  /// Study date
+  char* StudyDate;
+
+  /// Study time
+  char* StudyTime;
+
   /// Series instance UID
   char* SeriesInstanceUid;
 
   /// Series description
   char* SeriesDescription;
+
+  /// Series modality
+  char* SeriesModality;
 
   /// DICOM database file name
   char* DatabaseFile;

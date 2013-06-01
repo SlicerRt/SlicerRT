@@ -17,7 +17,7 @@
 // Constant strings
 //----------------------------------------------------------------------------
 
-// Patient hierarchy constants
+// Patient hierarchy constants (the python scripts use the raw strings, those need to be updated when these are changed!)
 const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME = "HierarchyType";
 const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE = "PatientHierarchy";
 const char* SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME = "DicomLevel";
