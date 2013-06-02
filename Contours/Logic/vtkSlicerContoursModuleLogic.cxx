@@ -39,6 +39,7 @@
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLDisplayableHierarchyNode.h>
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // STD includes
 #include <cassert>
@@ -235,4 +236,37 @@ void vtkSlicerContoursModuleLogic::CreateEmptyRibbonModelForContour(vtkMRMLNode*
   emptyRibbonModelNode->SetName(emptyRibbonModelName.c_str());
 
   contourNode->SetAndObserveRibbonModelNodeId(emptyRibbonModelNode->GetID());
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerContoursModuleLogic::PaintLabelmapForeground(vtkMRMLScalarVolumeNode* volumeNode, unsigned char newColor)
+{
+  if (!volumeNode)
+  {
+    std::cerr << "vtkSlicerContoursModuleLogic::PaintLabelmapForeground: volumeNode argument is null!" << std::endl;
+    return;
+  }
+  if (newColor <= SlicerRtCommon::COLOR_INDEX_INVALID)
+  {
+    vtkErrorWithObjectMacro(volumeNode, "PaintLabelmapForeground: Invalid color index given! Color index must be greater than the invalid color index (" << SlicerRtCommon::COLOR_INDEX_INVALID << ")");
+    return;
+  }
+
+  vtkImageData* imageData = volumeNode->GetImageData();
+  if (!imageData || imageData->GetScalarType() != VTK_UNSIGNED_CHAR)
+  {
+    vtkErrorWithObjectMacro(volumeNode, "PaintLabelmapForeground: Invalid image data! Scalar type has to be unsigned char instead of '" << (imageData?imageData->GetScalarTypeAsString():"None") << "'");
+    return;
+  }
+
+  unsigned char* imagePtr = (unsigned char*)imageData->GetScalarPointer();
+  for (long i=0; i<imageData->GetNumberOfPoints(); ++i)
+  {
+    if ( (*imagePtr) != 0 )
+    {
+      (*imagePtr) = newColor;
+    }
+    ++imagePtr;
+  }
+  imageData->Modified();
 }

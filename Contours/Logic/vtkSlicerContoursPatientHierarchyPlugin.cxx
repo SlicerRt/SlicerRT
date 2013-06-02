@@ -26,6 +26,7 @@
 // Contours includes
 #include "vtkSlicerContoursPatientHierarchyPlugin.h"
 #include "vtkMRMLContourNode.h"
+#include "vtkSlicerContoursModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLNode.h>
@@ -34,6 +35,7 @@
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -196,9 +198,25 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
     return false;
   }
 
-  colorNode->SetNumberOfColors(colorNode->GetNumberOfColors()+1);
-  colorNode->GetLookupTable()->SetTableRange(0, colorNode->GetNumberOfColors());
+  int numberOfColors = colorNode->GetNumberOfColors();
+  colorNode->SetNumberOfColors(numberOfColors+1);
+  colorNode->GetLookupTable()->SetTableRange(0, numberOfColors);
   colorNode->AddColor(colorName.c_str(), color[0], color[1], color[2], color[3]);
+
+  // Paint labelmap foreground value to match the index of the newly added color
+  if (nodeToAdd->IsA("vtkMRMLScalarVolumeNode"))
+  {
+    vtkMRMLScalarVolumeNode* scalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(nodeToAdd);
+    if (scalarVolumeNode->GetDisplayNode())
+    {
+      scalarVolumeNode->GetDisplayNode()->SetAndObserveColorNodeID(colorNode->GetID());
+    }
+    else
+    {
+      vtkErrorMacro("ReparentInsidePatientHierarchy: Scalar volume node '" << scalarVolumeNode->GetName() << "' does not have a display node!");
+    }
+    vtkSlicerContoursModuleLogic::PaintLabelmapForeground(scalarVolumeNode, numberOfColors);
+  }
 
   return true;
 }
@@ -259,7 +277,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy
   }
   else
   {
-    vtkErrorMacro("ReparentInsidePatientHierarchy: There is no patient hierarhcy node associated with the contour to reparent '" << contourNodeToReparent->GetName() << "'!");
+    vtkErrorMacro("ReparentInsidePatientHierarchy: There is no patient hierarchy node associated with the contour to reparent '" << contourNodeToReparent->GetName() << "'!");
     return false;
   }
 
@@ -292,9 +310,25 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy
     return false;
   }
 
-  newColorNode->GetLookupTable()->SetTableRange(0, newColorNode->GetNumberOfColors());
-  newColorNode->SetNumberOfColors(newColorNode->GetNumberOfColors()+1);
+  int numberOfColors = newColorNode->GetNumberOfColors();
+  newColorNode->SetNumberOfColors(numberOfColors+1);
+  newColorNode->GetLookupTable()->SetTableRange(0, numberOfColors);
   newColorNode->AddColor(colorName.c_str(), color[0], color[1], color[2], color[3]);
+
+  // Paint labelmap foreground value to match the index of the newly added color
+  if (contourNodeToReparent->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap))
+  {
+    vtkMRMLScalarVolumeNode* scalarVolumeNode = contourNodeToReparent->GetIndexedLabelmapVolumeNode();
+    if (scalarVolumeNode->GetDisplayNode())
+    {
+      scalarVolumeNode->GetDisplayNode()->SetAndObserveColorNodeID(newColorNode->GetID());
+    }
+    else
+    {
+      vtkErrorMacro("ReparentInsidePatientHierarchy: Scalar volume node '" << scalarVolumeNode->GetName() << "' does not have a display node!");
+    }
+    vtkSlicerContoursModuleLogic::PaintLabelmapForeground(scalarVolumeNode, numberOfColors);
+  }
 
   return true;
 }

@@ -33,6 +33,8 @@
 
 #include "vtkSlicerContoursModuleLogicExport.h"
 
+class vtkMRMLScalarVolumeNode;
+
 /// \ingroup Slicer_QtModules_Contours
 class VTK_SLICER_CONTOURS_LOGIC_EXPORT vtkSlicerContoursModuleLogic :
   public vtkSlicerModuleLogic
@@ -41,6 +43,10 @@ public:
   static vtkSlicerContoursModuleLogic *New();
   vtkTypeMacro(vtkSlicerContoursModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  /// Paint the foreground of a specified labelmap to a certain label.
+  /// This makes sure that a labelmap whose color table has changed has the same color afterwards
+  static void PaintLabelmapForeground(vtkMRMLScalarVolumeNode* volumeNode, unsigned char newColor);
 
 protected:
   /// Create a default structure set node so that contours can be created from potential representations without having
