@@ -183,7 +183,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetBeamsNode());
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetIsocenterFiducialNodeId()))
     {
-      d->MRMLNodeComboBox_IsocenterFiducial->setCurrentNode(paramNode->GetIsocenterFiducialNodeId());
+      d->MRMLNodeComboBox_IsocenterFiducial->setCurrentNodeID(paramNode->GetIsocenterFiducialNodeId());
     }
     else
     {
@@ -191,7 +191,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     }
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetSourceFiducialNodeId()))
     {
-      d->MRMLNodeComboBox_SourceFiducial->setCurrentNode(paramNode->GetSourceFiducialNodeId());
+      d->MRMLNodeComboBox_SourceFiducial->setCurrentNodeID(paramNode->GetSourceFiducialNodeId());
     }
     else
     {
@@ -199,7 +199,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     }
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetBeamModelNodeId()))
     {
-      d->MRMLNodeComboBox_BeamModel->setCurrentNode(paramNode->GetBeamModelNodeId());
+      d->MRMLNodeComboBox_BeamModel->setCurrentNodeID(paramNode->GetBeamModelNodeId());
     }
     else
     {

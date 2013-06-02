@@ -193,11 +193,11 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
     d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetAccumulatedDoseVolumeNodeId()))
     {
-      d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNode(paramNode->GetAccumulatedDoseVolumeNodeId());
+      d->MRMLNodeComboBox_AccumulatedDoseVolume->setCurrentNodeID(paramNode->GetAccumulatedDoseVolumeNodeId());
     }
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceDoseVolumeNodeId()))
     {
-      d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNode(paramNode->GetReferenceDoseVolumeNodeId());
+      d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNodeID(paramNode->GetReferenceDoseVolumeNodeId());
     }
     else
     {

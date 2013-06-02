@@ -195,7 +195,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
     if (paramNode->GetReferenceVolumeNodeID() && strcmp(paramNode->GetReferenceVolumeNodeID(),""))
     {
-      d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(paramNode->GetReferenceVolumeNodeID());
+      d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(paramNode->GetReferenceVolumeNodeID());
     }
     else
     {
@@ -204,7 +204,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
 
     if (paramNode->GetRTPlanNodeID() && strcmp(paramNode->GetRTPlanNodeID(),""))
     {
-      d->MRMLNodeComboBox_RTPlan->setCurrentNode(paramNode->GetRTPlanNodeID());
+      d->MRMLNodeComboBox_RTPlan->setCurrentNodeID(paramNode->GetRTPlanNodeID());
     }
     else
     {
@@ -213,7 +213,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
 
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetProtonTargetVolumeNodeID()))
     {
-      d->MRMLNodeComboBox_ProtonTargetVolume->setCurrentNode(paramNode->GetProtonTargetVolumeNodeID());
+      d->MRMLNodeComboBox_ProtonTargetVolume->setCurrentNodeID(paramNode->GetProtonTargetVolumeNodeID());
     }
     else
     {

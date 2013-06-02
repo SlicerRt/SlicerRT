@@ -469,7 +469,7 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
     {
       d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
     }
-    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(referenceVolumeNodeId);
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(referenceVolumeNodeId);
     d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
   }
   // If all selected contours have the same reference, then leave it as empty

@@ -209,11 +209,11 @@ void qSlicerContourComparisonModuleWidget::updateWidgetFromMRML()
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetContourComparisonNode());
   if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceContourNodeId()))
   {
-    d->MRMLNodeComboBox_ReferenceContour->setCurrentNode(paramNode->GetReferenceContourNodeId());
+    d->MRMLNodeComboBox_ReferenceContour->setCurrentNodeID(paramNode->GetReferenceContourNodeId());
   }
   if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareContourNodeId()))
   {
-    d->MRMLNodeComboBox_CompareContour->setCurrentNode(paramNode->GetCompareContourNodeId());
+    d->MRMLNodeComboBox_CompareContour->setCurrentNodeID(paramNode->GetCompareContourNodeId());
   }
 
   bool referenceVolumeNeeded = d->logic()->IsReferenceVolumeNeeded();

@@ -300,7 +300,7 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetDoseVolumeNodeId()))
     {
-      d->MRMLNodeComboBox_DoseVolume->setCurrentNode(paramNode->GetDoseVolumeNodeId());
+      d->MRMLNodeComboBox_DoseVolume->setCurrentNodeID(paramNode->GetDoseVolumeNodeId());
     }
     else
     {

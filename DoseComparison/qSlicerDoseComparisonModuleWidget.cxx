@@ -208,15 +208,15 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseComparisonNode());
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceDoseVolumeNodeId()))
     {
-      d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNode(paramNode->GetReferenceDoseVolumeNodeId());
+      d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNodeID(paramNode->GetReferenceDoseVolumeNodeId());
     }
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareDoseVolumeNodeId()))
     {
-      d->MRMLNodeComboBox_CompareDoseVolume->setCurrentNode(paramNode->GetCompareDoseVolumeNodeId());
+      d->MRMLNodeComboBox_CompareDoseVolume->setCurrentNodeID(paramNode->GetCompareDoseVolumeNodeId());
     }
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetGammaVolumeNodeId()))
     {
-      d->MRMLNodeComboBox_GammaVolume->setCurrentNode(paramNode->GetGammaVolumeNodeId());
+      d->MRMLNodeComboBox_GammaVolume->setCurrentNodeID(paramNode->GetGammaVolumeNodeId());
     }
     d->doubleSpinBox_DtaDistanceTolerance->setValue(paramNode->GetDtaDistanceToleranceMm());
     d->doubleSpinBox_DoseDifferenceTolerance->setValue(paramNode->GetDoseDifferenceTolerancePercent());

@@ -177,7 +177,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
 
     if (pNode->GetInputVolumeNodeID())
     {
-      d->InputFieldComboBox->setCurrentNode(pNode->GetInputVolumeNodeID());
+      d->InputFieldComboBox->setCurrentNodeID(pNode->GetInputVolumeNodeID());
     }
     else
     {
@@ -186,7 +186,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
 
     if (pNode->GetReferenceVolumeNodeID())
     {
-      d->InputReferenceComboBox->setCurrentNode(pNode->GetReferenceVolumeNodeID());
+      d->InputReferenceComboBox->setCurrentNodeID(pNode->GetReferenceVolumeNodeID());
     }
     else
     {
@@ -195,7 +195,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
 
     if (pNode->GetOutputModelNodeID())
     {
-      d->OutputModelComboBox->setCurrentNode(pNode->GetOutputModelNodeID());
+      d->OutputModelComboBox->setCurrentNodeID(pNode->GetOutputModelNodeID());
     }
     else
     {
@@ -242,7 +242,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
     // Glyph Slice Parameters
     if (pNode->GetGlyphSliceNodeID())
     {
-      d->GlyphSliceComboBox->setCurrentNode(pNode->GetGlyphSliceNodeID());
+      d->GlyphSliceComboBox->setCurrentNodeID(pNode->GetGlyphSliceNodeID());
     }
     else
     {
@@ -257,7 +257,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::updateWidgetFromMRML()
     // Grid Slice Parameters
     if (pNode->GetGridSliceNodeID())
     {
-      d->GridSliceComboBox->setCurrentNode(pNode->GetGridSliceNodeID());
+      d->GridSliceComboBox->setCurrentNodeID(pNode->GetGridSliceNodeID());
     }
     else
     {

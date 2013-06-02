@@ -207,7 +207,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetDoseVolumeNodeId()))
     {
-      d->MRMLNodeComboBox_DoseVolume->setCurrentNode(paramNode->GetDoseVolumeNodeId());
+      d->MRMLNodeComboBox_DoseVolume->setCurrentNodeID(paramNode->GetDoseVolumeNodeId());
     }
     else
     {
@@ -215,7 +215,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     }
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetStructureSetContourNodeId()))
     {
-      d->MRMLNodeComboBox_StructureSet->setCurrentNode(paramNode->GetStructureSetContourNodeId());
+      d->MRMLNodeComboBox_StructureSet->setCurrentNodeID(paramNode->GetStructureSetContourNodeId());
     }
     else
     {
@@ -223,7 +223,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     }
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetChartNodeId()))
     {
-      d->MRMLNodeComboBox_Chart->setCurrentNode(paramNode->GetChartNodeId());
+      d->MRMLNodeComboBox_Chart->setCurrentNodeID(paramNode->GetChartNodeId());
     }
     else
     {

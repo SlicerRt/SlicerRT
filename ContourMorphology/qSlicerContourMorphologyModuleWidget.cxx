@@ -245,7 +245,7 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
   if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetContourANodeId()))
   {
-    d->MRMLNodeComboBox_ContourA->setCurrentNode(paramNode->GetContourANodeId());
+    d->MRMLNodeComboBox_ContourA->setCurrentNodeID(paramNode->GetContourANodeId());
   }
   else
   {
@@ -253,7 +253,7 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
   }
   if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetContourBNodeId()))
   {
-    d->MRMLNodeComboBox_ContourB->setCurrentNode(paramNode->GetContourBNodeId());
+    d->MRMLNodeComboBox_ContourB->setCurrentNodeID(paramNode->GetContourBNodeId());
   }
   else
   {
@@ -261,7 +261,7 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
   }
   if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceVolumeNodeId()))
   {
-    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(paramNode->GetReferenceVolumeNodeId());
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(paramNode->GetReferenceVolumeNodeId());
   }
   else
   {
