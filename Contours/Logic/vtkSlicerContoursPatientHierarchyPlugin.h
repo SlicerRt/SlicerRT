@@ -49,7 +49,7 @@ public:
   ///   value for a certain MRML node (usually the type and possibly attributes are checked)
   /// \return Floating point number between 0 and 1, where 0 means that the plugin cannot
   ///   handle the node at all, and 1 means that the plugin was written exactly for this kind of node
-  virtual double CanPluginAddNodeToPatientHierarchy(vtkMRMLNode* node);
+  virtual double CanPluginAddNodeToPatientHierarchy(vtkMRMLNode* nodeToAdd);
 
   /// Add a node to patient hierarchy under a specified parent node. If added non patient hierarchy nodes
   ///   have certain steps to perform when adding them in Patient Hierarchy, those steps take place here
@@ -60,11 +60,11 @@ public:
   /// and gets a confidence value for a certain MRML node (usually the type and possibly attributes are checked).
   /// \return Floating point number between 0 and 1, where 0 means that the plugin cannot
   ///   handle the node at all, and 1 means that the plugin was written exactly for this kind of node.
-  virtual double CanPluginReparentNodeInsidePatientHierarchy(vtkMRMLNode*);
+  virtual double CanPluginReparentNodeInsidePatientHierarchy(vtkMRMLHierarchyNode* nodeToReparent);
 
   /// Reparent a node that was already in the patient hierarchy under a new parent.
   /// \return True if reparented successfully, false otherwise
-  virtual bool ReparentNodeInsidePatientHierarchy(vtkMRMLNode* nodeToReparent, vtkMRMLHierarchyNode* parentNode);
+  virtual bool ReparentNodeInsidePatientHierarchy(vtkMRMLHierarchyNode* nodeToReparent, vtkMRMLHierarchyNode* parentNode);
 
 protected:
   /// Determines if the argument node is a representation object of a Contour node in the scene

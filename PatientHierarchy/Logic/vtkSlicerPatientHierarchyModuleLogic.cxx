@@ -355,6 +355,7 @@ int vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(vtkMRMLHierarchyNo
   vtkSmartPointer<vtkCollection> childDisplayableNodes = vtkSmartPointer<vtkCollection>::New();
   node->GetAssociatedChildrendNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
   childDisplayableNodes->InitTraversal();
+
   for (int i=0; i<childDisplayableNodes->GetNumberOfItems(); ++i)
   {
     vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(childDisplayableNodes->GetItemAsObject(i));
@@ -417,15 +418,22 @@ bool vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( vtkMRMLNode* node, cons
 //---------------------------------------------------------------------------
 vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(vtkMRMLScene *scene, const char *associatedNodeId, bool reverseCriterion/*=false*/)
 {
-  if (associatedNodeId == 0)
-  {
-    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode: associated node id is null" << std::endl;
-    return NULL;
-  }
   if (scene == 0)
   {
     std::cerr << "vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode: scene is null" << std::endl;
     return NULL;
+  }
+  if (associatedNodeId == 0)
+  {
+    vtkErrorWithObjectMacro(scene, "GetAssociatedPatientHierarchyNode: associated node id is null");
+    return NULL;
+  }
+
+  vtkMRMLNode* associatedNode = scene->GetNodeByID(associatedNodeId);
+  if (SlicerRtCommon::IsPatientHierarchyNode(associatedNode))
+  {
+    vtkDebugWithObjectMacro(scene, "GetAssociatedPatientHierarchyNode: Node is already a patient hierarchy node, returning it");
+    return vtkMRMLHierarchyNode::SafeDownCast(associatedNode);
   }
 
   vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLHierarchyNode") );

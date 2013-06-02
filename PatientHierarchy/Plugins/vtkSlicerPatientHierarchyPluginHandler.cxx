@@ -184,7 +184,7 @@ vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPlug
 }
 
 //---------------------------------------------------------------------------
-vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPluginForReparentInsidePatientHierarchyForNode(vtkMRMLNode* node)
+vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPluginForReparentInsidePatientHierarchyForNode(vtkMRMLHierarchyNode* node)
 {
   PatientHierarchyPluginListType::iterator pluginIt;
   vtkSlicerPatientHierarchyPlugin* mostSuitablePlugin = NULL;

@@ -109,7 +109,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
   vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourPatientHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
   contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(mrmlScene->AddNode(contourPatientHierarchyNode));
   std::string phNodeName;
-  phNodeName = std::string(nodeToAdd->GetName()) + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
+  phNodeName = std::string(nodeToAdd->GetName()) + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
   phNodeName = mrmlScene->GenerateUniqueName(phNodeName);
   contourPatientHierarchyNode->SetName(phNodeName.c_str());
   contourPatientHierarchyNode->HideFromEditorsOff();
@@ -204,9 +204,10 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerContoursPatientHierarchyPlugin::CanPluginReparentNodeInsidePatientHierarchy(vtkMRMLNode* node)
+double vtkSlicerContoursPatientHierarchyPlugin::CanPluginReparentNodeInsidePatientHierarchy(vtkMRMLHierarchyNode* node)
 {
-  if ( node->IsA("vtkMRMLContourNode") )
+  vtkMRMLNode* associatedNode = node->GetAssociatedNode();
+  if ( associatedNode && associatedNode->IsA("vtkMRMLContourNode") )
   {
     // Node is a potential contour node representation. On adding to the Patient Hierarchy, a contour node will be created
     return 1.0;
@@ -216,7 +217,7 @@ double vtkSlicerContoursPatientHierarchyPlugin::CanPluginReparentNodeInsidePatie
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy(vtkMRMLNode* nodeToReparent, vtkMRMLHierarchyNode* parentNode)
+bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy(vtkMRMLHierarchyNode* nodeToReparent, vtkMRMLHierarchyNode* parentNode)
 {
   if (!nodeToReparent || !parentNode)
   {
@@ -236,7 +237,8 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy
     return false;
   }
 
-  vtkMRMLContourNode* contourNodeToReparent = vtkMRMLContourNode::SafeDownCast(nodeToReparent);
+  vtkMRMLNode* associatedNode = nodeToReparent->GetAssociatedNode();
+  vtkMRMLContourNode* contourNodeToReparent = vtkMRMLContourNode::SafeDownCast(associatedNode);
   if (!contourNodeToReparent)
   {
     vtkDebugMacro("ReparentInsidePatientHierarchy: Only contour nodes can be reparented using the Contours PatientHierarchy plugin.");

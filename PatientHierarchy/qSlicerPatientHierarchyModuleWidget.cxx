@@ -112,6 +112,7 @@ void qSlicerPatientHierarchyModuleWidget::setup()
 
   // Set up tree view
   d->PatientHierarchyTreeView->setLogic( vtkSlicerPatientHierarchyModuleLogic::SafeDownCast(this->logic()) );
+  d->PatientHierarchyTreeView->expandToDepth(3);
   connect( d->PatientHierarchyTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)), d->MRMLNodeAttributeTableWidget, SLOT(setMRMLNode(vtkMRMLNode*)) );
 
   this->setMRMLIDsVisible(d->DisplayMRMLIDsCheckBox->isChecked());
@@ -125,7 +126,7 @@ void qSlicerPatientHierarchyModuleWidget::updateWidgetFromMRML()
   //d->PatientHierarchyTreeView->sortFilterProxyModel()->invalidate();
   qMRMLScenePatientHierarchyModel* sceneModel = (qMRMLScenePatientHierarchyModel*)d->PatientHierarchyTreeView->sceneModel();
   sceneModel->forceUpdateScene();
-  d->PatientHierarchyTreeView->expandToDepth(2);
+  d->PatientHierarchyTreeView->expandToDepth(3);
 
   d->PotentialPatientHierarchyListView->sortFilterProxyModel()->invalidate();
 }

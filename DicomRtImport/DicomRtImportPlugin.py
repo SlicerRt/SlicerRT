@@ -171,7 +171,7 @@ class DicomRtImportPlugin:
     seriesDescription = slicer.dicomDatabase.fileValue(firstFile,tags['seriesDescription'])
     if seriesDescription == '':
       seriesDescription = 'No description'
-    seriesDescription = seriesDescription + '_Hierarchy'
+    seriesDescription = seriesDescription + '_PatientHierarchy'
     seriesNode.SetName(seriesDescription)
     seriesInstanceUid = slicer.dicomDatabase.fileValue(firstFile,tags['seriesInstanceUID'])
     seriesNode.SetAttribute('DicomUid',seriesInstanceUid)
@@ -196,7 +196,7 @@ class DicomRtImportPlugin:
         patientName = slicer.dicomDatabase.fileValue(firstFile,tags['patientName'])
         if patientName == '':
           patientName = 'No name'
-        patientNode.SetName(patientName)
+        patientNode.SetName(patientName + '_PatientHierarchy')
 
     if studyNode == None:
       studyNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUID(slicer.mrmlScene, studyInstanceUid)
@@ -204,7 +204,7 @@ class DicomRtImportPlugin:
         studyDescription = slicer.dicomDatabase.fileValue(firstFile,tags['studyDescription'])
         if studyDescription == '':
           studyDescription = 'No description'
-        studyNode.SetName(studyDescription)
+        studyNode.SetName(studyDescription + '_PatientHierarchy')
 #
 # DicomRtImportWidget
 #

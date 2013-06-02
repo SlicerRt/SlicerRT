@@ -127,23 +127,22 @@ QMimeData* qMRMLScenePatientHierarchyModel::mimeData(const QModelIndexList &inde
 //------------------------------------------------------------------------------
 bool qMRMLScenePatientHierarchyModel::canBeAChild(vtkMRMLNode* node)const
 {
-  if (!node)
-    {
-    return false;
-    }
-  return node->IsA("vtkMRMLNode");
+  vtkMRMLHierarchyNode* hnode = vtkMRMLHierarchyNode::SafeDownCast(node);
+  if ( hnode && SlicerRtCommon::IsPatientHierarchyNode(hnode) )
+  {
+    return true;
+  }
+  return false;
 }
 
 //------------------------------------------------------------------------------
 bool qMRMLScenePatientHierarchyModel::canBeAParent(vtkMRMLNode* node)const
 {
   vtkMRMLHierarchyNode* hnode = vtkMRMLHierarchyNode::SafeDownCast(node);
-  if ( hnode
-    && SlicerRtCommon::IsPatientHierarchyNode(hnode)
-    && hnode->GetAssociatedNodeID() == 0 )
-    {
+  if ( hnode && SlicerRtCommon::IsPatientHierarchyNode(hnode) )
+  {
     return true;
-    }
+  }
   return false;
 }
 
@@ -178,30 +177,39 @@ int qMRMLScenePatientHierarchyModel::maxColumnId()const
 void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item, vtkMRMLNode* node, int column)
 {
   Q_D(qMRMLScenePatientHierarchyModel);
+
+  vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(node);
+  if (!hierarchyNode || !SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode))
+  {
+    vtkErrorWithObjectMacro(this->mrmlScene(),"qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Invalid node in patient hierarchy tree! Nodes must all be patient hierarchy nodes.");
+    return;
+  }
+  vtkMRMLNode* associatedNode = hierarchyNode->GetAssociatedNode();
+
   if (column == this->nameColumn())
   {
-    item->setText(QString(node->GetName()));
+    QString nodeText(hierarchyNode->GetName());
+    if (nodeText.endsWith(QString(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX.c_str())))
+    {
+      nodeText = nodeText.left( nodeText.size() - SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX.size() );
+    }
+    else
+    {
+      vtkWarningWithObjectMacro(this->mrmlScene(),"qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Patient hierarchy node name should end with '" << SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX << "'. It has the name '" << hierarchyNode->GetName() << "'");
+    }
+    item->setText(nodeText);
     item->setToolTip(vtkSlicerPatientHierarchyModuleLogic::GetTooltipForNode(node).c_str());
   }
   if (column == this->idColumn())
   {
-    item->setText(QString(node->GetID()));
+    item->setText(QString(hierarchyNode->GetID()));
   }
   if (column == this->visibilityColumn())
   {
-    int visible = -1;
-    if (SlicerRtCommon::IsPatientHierarchyNode(node))
-    {
-      visible = vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility( vtkMRMLHierarchyNode::SafeDownCast(node) );
-    }
-    else if (node->IsA("vtkMRMLDisplayableNode"))
-    {
-      vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
-      visible = displayableNode->GetDisplayVisibility();
-    }
+    int visible = vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(hierarchyNode);
 
     // Always set a different icon to volumes. If not a volume then set the appropriate eye icon
-    if (node->IsA("vtkMRMLVolumeNode"))
+    if (associatedNode && associatedNode->IsA("vtkMRMLVolumeNode"))
     {
       item->setIcon(d->ShowInViewersIcon);
     }
@@ -229,65 +237,64 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
   }
   if (column == this->nodeTypeColumn())
   {
-    if (SlicerRtCommon::IsPatientHierarchyNode(node))
+    if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( hierarchyNode,
+      vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_PATIENT) )
     {
-      if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
-        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_PATIENT) )
+      item->setIcon(d->PatientIcon);
+    }
+    else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( hierarchyNode,
+      vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY) )
+    {
+      item->setIcon(d->StudyIcon);
+    }
+    else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( hierarchyNode,
+      vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES) )
+    {
+      if (hierarchyNode->IsA("vtkMRMLDisplayableHierarchyNode") && hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str()))
       {
-        item->setIcon(d->PatientIcon);
+        item->setIcon(d->StructureSetIcon);
       }
-      else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
-        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY) )
+      else if (associatedNode && associatedNode->IsA("vtkMRMLVolumeNode"))
       {
-        item->setIcon(d->StudyIcon);
-      }
-      else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
-        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES) )
-      {
-        if (node->IsA("vtkMRMLDisplayableHierarchyNode") && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str()))
+        if (SlicerRtCommon::IsDoseVolumeNode(associatedNode))
         {
-          item->setIcon(d->StructureSetIcon);
+          item->setIcon(d->DoseVolumeIcon);
         }
-        //TODO: Set icon for plan
+        else
+        {
+          item->setIcon(d->VolumeIcon);
+        }
       }
-      else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel(node,
-        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES) )
+      //TODO: Set icon for plan
+    }
+    else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( hierarchyNode,
+      vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES) )
+    {
+      if (associatedNode)
       {
-        // Set icon for PH type subseries objects here
+        if (associatedNode->IsA("vtkMRMLColorTableNode"))
+        {
+          item->setIcon(d->ColorTableIcon);
+        }
+        else if (associatedNode->IsA("vtkMRMLContourNode"))
+        {
+          item->setIcon(d->ContourIcon);
+        }
+        else if (associatedNode->IsA("vtkMRMLAnnotationFiducialNode"))
+        {
+          // TODO: add check to make sure it is an actual isocenter
+          item->setIcon(d->IsocenterIcon);
+        }
+        else if (associatedNode->IsA("vtkMRMLModelNode"))
+        {
+          // TODO: add check to make sure it is an actual beam
+          item->setIcon(d->BeamIcon);
+        }
       }
-      else
-      {
-        vtkWarningWithObjectMacro(node, "Invalid DICOM level found for node '" << node->GetName() << "'");
-      }
     }
-    else if (node->IsA("vtkMRMLVolumeNode"))
+    else
     {
-      if (SlicerRtCommon::IsDoseVolumeNode(node))
-      {
-        item->setIcon(d->DoseVolumeIcon);
-      }
-      else
-      {
-        item->setIcon(d->VolumeIcon);
-      }
-    }
-    else if (node->IsA("vtkMRMLColorTableNode"))
-    {
-      item->setIcon(d->ColorTableIcon);
-    }
-    else if (node->IsA("vtkMRMLContourNode"))
-    {
-      item->setIcon(d->ContourIcon);
-    }
-    else if (node->IsA("vtkMRMLAnnotationFiducialNode"))
-    {
-      // TODO: add check to make sure it is an actual isocenter
-      item->setIcon(d->IsocenterIcon);
-    }
-    else if (node->IsA("vtkMRMLModelNode"))
-    {
-      // TODO: add check to make sure it is an actual beam
-      item->setIcon(d->BeamIcon);
+      vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Invalid DICOM level found for node '" << node->GetName() << "'");
     }
   }
 }
@@ -295,9 +302,17 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
 //------------------------------------------------------------------------------
 void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, QStandardItem* item)
 {
+  vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(node);
+  if (!hierarchyNode || !SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode))
+  {
+    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::updateNodeFromItemData: Invalid node in patient hierarchy tree! Nodes must all be patient hierarchy nodes.");
+    return;
+  }
+  vtkMRMLNode* associatedNode = hierarchyNode->GetAssociatedNode();
+
   if ( item->column() == this->nameColumn() )
   {
-    node->SetName(item->text().toLatin1().constData());
+    hierarchyNode->SetName(item->text().append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX.c_str()).toLatin1().constData());
   }
   if ( item->column() == this->visibilityColumn()
     && !item->data(VisibilityRole).isNull() )
@@ -305,26 +320,7 @@ void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
     int visible = item->data(VisibilityRole).toInt();
     if (visible > -1)
     {
-      if (SlicerRtCommon::IsPatientHierarchyNode(node))
-      {
-        vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility( vtkMRMLHierarchyNode::SafeDownCast(node), visible );
-      }
-      else if (node->IsA("vtkMRMLContourNode"))
-      {
-        vtkMRMLDisplayableNode* contourNode = vtkMRMLDisplayableNode::SafeDownCast(node);
-        contourNode->SetDisplayVisibility(visible);
-      }
-      else if (node->IsA("vtkMRMLDisplayableNode") && !node->IsA("vtkMRMLVolumeNode"))
-      {
-        vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
-        displayableNode->SetDisplayVisibility(visible);
-
-        vtkMRMLDisplayNode* displayNode = displayableNode->GetDisplayNode();
-        if (displayNode)
-        {
-          displayNode->SetSliceIntersectionVisibility(visible);
-        }
-      }
+      vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(hierarchyNode, visible);
     }
   }
 }
@@ -418,6 +414,14 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
     return false;
   }
 
+  vtkMRMLHierarchyNode* parentPatientHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(newParent);
+  vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(node);
+  if (hierarchyNode && !SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode))
+  {
+    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Invalid node in patient hierarchy tree! Hierarchy nodes must all be patient hierarchy nodes.");
+    return false;
+  }
+
   if (!this->canBeAParent(newParent))
   {
     vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Target parent node (" << newParent->GetName() << ") is not a valid patient hierarchy parent node!");
@@ -426,45 +430,42 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   // Prevent collapse of the patient hierarchy tree view (TODO: This is a workaround)
   emit saveTreeExpandState();
 
-  vtkMRMLHierarchyNode* parentPatientHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(newParent);
-
-  // Get possible associated hierarchy node for reparented node
-  vtkSmartPointer<vtkMRMLHierarchyNode> associatedPatientHierarchyNode
-    = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(this->mrmlScene(), node->GetID());
-  vtkMRMLHierarchyNode* associatedNonPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode(this->mrmlScene(), node->GetID());
-
-  // Delete associated hierarchy node if it's not a patient hierarchy node. Should not occur unless it is an annotation hierarchy node
-  // (they are an exception as they are needed for the Annotations module; TODO: review when Annotations module ha been improved)
-  if (associatedNonPatientHierarchyNode && !associatedNonPatientHierarchyNode->IsA("vtkMRMLAnnotationHierarchyNode"))
-  {
-    vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Reparented node had a non-patient hierarchy node associated!");
-    this->mrmlScene()->RemoveNode(associatedNonPatientHierarchyNode);
-  }
-
-  // Assign parent and node if associated patient hierarchy node already exists and valid
-  if (associatedPatientHierarchyNode)
+  // If dropped from within the patient hierarchy tree
+  if (hierarchyNode)
   {
     bool successfullyReadByPlugin = false;
-    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForReparentInsidePatientHierarchyForNode(node);
-    //TODO: this finds contour plugin for beam models
+    vtkSlicerPatientHierarchyPlugin* foundPlugin
+      = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForReparentInsidePatientHierarchyForNode(hierarchyNode);
     if (foundPlugin)
     {
-      successfullyReadByPlugin = foundPlugin->ReparentNodeInsidePatientHierarchy(node, parentPatientHierarchyNode);
+      successfullyReadByPlugin = foundPlugin->ReparentNodeInsidePatientHierarchy(hierarchyNode, parentPatientHierarchyNode);
       if (!successfullyReadByPlugin)
       {
         vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Failed to reparent node "
-          << node->GetName() << " through plugin " << (foundPlugin->GetName()?foundPlugin->GetName():"Unnamed") << "!");
+          << hierarchyNode->GetName() << " through plugin " << (foundPlugin->GetName()?foundPlugin->GetName():"Unnamed") << "!");
       }
     }
 
     if (!foundPlugin || !successfullyReadByPlugin)
     {
-      associatedPatientHierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
+      hierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
     }
   }
-  // Create patient hierarchy node if dropped from outside the tree (the potential nodes list) OR if deleted in previous check
+  // If dropped from the potential patient hierarchy nodes list
   else
   {
+    // Get possible associated non-patient hierarchy node for reparented node
+    vtkMRMLHierarchyNode* associatedNonPatientHierarchyNode
+      = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode(this->mrmlScene(), node->GetID());
+
+    // Delete associated hierarchy node if it's not a patient hierarchy node. Should not occur unless it is an annotation hierarchy node
+    // (they are an exception as they are needed for the Annotations module; TODO: review when Annotations module ha been improved)
+    if (associatedNonPatientHierarchyNode && !associatedNonPatientHierarchyNode->IsA("vtkMRMLAnnotationHierarchyNode"))
+    {
+      vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Reparented node had a non-patient hierarchy node associated!");
+      this->mrmlScene()->RemoveNode(associatedNonPatientHierarchyNode);
+    }
+
     // If there is a plugin that can handle the dropped node then let it take care of it
     bool successfullyReadByPlugin = false;
     vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForAddToPatientHierarchyForNode(node);
@@ -481,11 +482,11 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
     if (!foundPlugin || !successfullyReadByPlugin)
     {
       // Associate to a new hierarchy node and put it in the tree under the parent
-      associatedPatientHierarchyNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+      vtkSmartPointer<vtkMRMLHierarchyNode> associatedPatientHierarchyNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
       associatedPatientHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(this->mrmlScene()->AddNode(associatedPatientHierarchyNode));
       associatedPatientHierarchyNode->SetAssociatedNodeID(node->GetID());
       std::string phNodeName;
-      phNodeName = std::string(node->GetName()) + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
+      phNodeName = std::string(node->GetName()) + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
       phNodeName = this->mrmlScene()->GenerateUniqueName(phNodeName);
       associatedPatientHierarchyNode->SetName(phNodeName.c_str());
       associatedPatientHierarchyNode->HideFromEditorsOff();
@@ -497,6 +498,7 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
       associatedPatientHierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
     }
   }
+
 
   // Force updating the whole scene (TODO: this should not be needed)
   this->updateScene();

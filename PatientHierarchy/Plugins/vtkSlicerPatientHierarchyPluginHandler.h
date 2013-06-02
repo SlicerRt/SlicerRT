@@ -32,6 +32,7 @@
 #include "vtkSlicerPatientHierarchyModulePluginsExport.h"
 
 class vtkMRMLNode;
+class vtkMRMLHierarchyNode;
 class vtkSlicerPatientHierarchyPlugin;
 
 /*!
@@ -67,7 +68,7 @@ public:
   /// Returns the registered plugin that can handle a node the best
   /// for reparenting it inside the patient hierarchy
   /// \return The plugin object if found, NULL otherwise
-  vtkSlicerPatientHierarchyPlugin* GetPluginForReparentInsidePatientHierarchyForNode(vtkMRMLNode*);
+  vtkSlicerPatientHierarchyPlugin* GetPluginForReparentInsidePatientHierarchyForNode(vtkMRMLHierarchyNode*);
 
 protected:
   /// TODO

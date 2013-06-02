@@ -111,40 +111,23 @@ void qMRMLPatientHierarchyTreeView::toggleVisibility(const QModelIndex& index)
     return;
   }
 
-  if (SlicerRtCommon::IsPatientHierarchyNode(node))
+  vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(node);
+  if (!hierarchyNode || !SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode))
   {
-    vtkMRMLHierarchyNode* hnode = vtkMRMLHierarchyNode::SafeDownCast(node);
-    int visible = (vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(hnode) > 0 ? 0 : 1);
+    vtkErrorWithObjectMacro(this->mrmlScene(),"qMRMLPatientHierarchyTreeView::toggleVisibility: Invalid node in patient hierarchy tree! Nodes must all be patient hierarchy nodes.");
+    return;
+  }
+  vtkMRMLNode* associatedNode = hierarchyNode->GetAssociatedNode();
 
-    vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility( hnode, visible );
-  }
-  else if (node->IsA("vtkMRMLContourNode"))
+  if (associatedNode && associatedNode->IsA("vtkMRMLVolumeNode"))
   {
-    vtkMRMLDisplayableNode* contourNode = vtkMRMLDisplayableNode::SafeDownCast(node);
-    int visible = (contourNode->GetDisplayVisibility() ? 0 : 1);
-    contourNode->SetDisplayVisibility(visible);
-    // Make sure the icons changes in the tree view
-    contourNode->Modified();
-    vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(contourNode);
+    // Showing volume node does not trigger visibility change on the possible children
+    this->showVolume(associatedNode);
   }
-  else if (node->IsA("vtkMRMLVolumeNode"))
+  else
   {
-    this->showVolume(node);
-  }
-  else if (node->IsA("vtkMRMLDisplayableNode"))
-  {
-    vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(node);
-    int visible = (displayableNode->GetDisplayVisibility() ? 0 : 1);
-    displayableNode->SetDisplayVisibility(visible);
-    // Make sure the icons changes in the tree view
-    displayableNode->Modified();
-    vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(displayableNode);
-
-    vtkMRMLDisplayNode* displayNode = displayableNode->GetDisplayNode();
-    if (displayNode)
-    {
-      displayNode->SetSliceIntersectionVisibility(visible);
-    }
+    int visible = (vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(hierarchyNode) > 0 ? 0 : 1);
+    vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(hierarchyNode, visible);
   }
 }
 

@@ -79,24 +79,7 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPatientHierarchyProxyModel
   vtkMRMLHierarchyNode* hNode = vtkMRMLHierarchyNode::SafeDownCast(node);
   if (hNode && SlicerRtCommon::IsPatientHierarchyNode(hNode))
   {
-    // Don't show patient hierarchy node if they are tied to a displayable node
-    // The only patient hierarchy node to display are the ones who reference other
-    // patient hierarchy node (tree parent) or empty (tree parent to be)
-    if (hNode->GetAssociatedNode())
-    {
-      return RejectButPotentiallyAcceptable;
-    }
-    else
-    {
-      return Accept;
-    }
-  }
-
-  // Accept if leaf node
-  vtkMRMLHierarchyNode* possiblePhNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->mrmlScene(), node->GetID());
-  if (SlicerRtCommon::IsPatientHierarchyNode(possiblePhNode))
-  {
-    return AcceptButPotentiallyRejectable;
+    return Accept;
   }
 
   return Reject;

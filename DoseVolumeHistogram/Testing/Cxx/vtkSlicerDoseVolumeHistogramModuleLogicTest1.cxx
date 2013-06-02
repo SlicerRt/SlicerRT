@@ -377,7 +377,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create contour hierarchy root node
   std::string structureSetSeriesName("StructureSetSeries");
   vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyRootNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
-  std::string hierarchyNodeName = structureSetSeriesName + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
+  std::string hierarchyNodeName = structureSetSeriesName + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
   contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
   contourHierarchyRootNode->AllowMultipleChildrenOn();
   contourHierarchyRootNode->HideFromEditorsOff();

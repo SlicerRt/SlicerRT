@@ -261,7 +261,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   const char* seriesName = loadInfo->GetLoadableName(0);
 
   std::string phSeriesNodeName(seriesName);
-  phSeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
+  phSeriesNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
   phSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(phSeriesNodeName);
   std::string contourNodeName;
   std::string structureSetReferencedSeriesUid;
@@ -346,7 +346,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
       {
         std::string contourHierarchySeriesNodeName(seriesName);
         contourHierarchySeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX);
-        contourHierarchySeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
+        contourHierarchySeriesNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
         contourHierarchySeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(contourHierarchySeriesNodeName);
         contourHierarchySeriesNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
         contourHierarchySeriesNode->SetName(contourHierarchySeriesNodeName.c_str());
@@ -378,7 +378,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         // Create patient hierarchy entry for the ROI
         vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> patientHierarchyRoiNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
         std::string phNodeName;
-        phNodeName = std::string(roiLabel) + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
+        phNodeName = std::string(roiLabel) + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
         phNodeName = this->GetMRMLScene()->GenerateUniqueName(phNodeName);
         patientHierarchyRoiNode->SetName(phNodeName.c_str());
         patientHierarchyRoiNode->AllowMultipleChildrenOn();
@@ -405,7 +405,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         // Put the contour node in the hierarchy
         vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourPatientHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
         std::string phContourNodeName(contourNodeName);
-        phContourNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
+        phContourNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
         phContourNodeName = this->GetMRMLScene()->GenerateUniqueName(phContourNodeName);
         contourPatientHierarchyNode->SetName(phContourNodeName.c_str());
         contourPatientHierarchyNode->SetParentNodeID( contourHierarchySeriesNode->GetID() );
@@ -456,7 +456,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   // Add color table in patient hierarchy
   vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchyColorTableNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
   std::string phColorTableNodeName;
-  phColorTableNodeName = structureSetColorTableNodeName + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
+  phColorTableNodeName = structureSetColorTableNodeName + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
   phColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(phColorTableNodeName);
   patientHierarchyColorTableNode->SetName(phColorTableNodeName.c_str());
   patientHierarchyColorTableNode->HideFromEditorsOff();
@@ -470,6 +470,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
 
   // Insert series in patient hierarchy
   this->InsertSeriesInPatientHierarchy(rtReader);
+
+  contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(), structureSetReferencedSeriesUid.c_str());
 
   // Set opacities according to topological hierarchy levels
   if (this->AutoContourOpacity)
@@ -523,7 +525,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
   const char* seriesName = loadInfo->GetLoadableName(0);
 
   std::string phSeriesNodeName(seriesName);
-  phSeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
+  phSeriesNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
   phSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(phSeriesNodeName);
 
   // Load Volume
@@ -638,7 +640,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
   const char* seriesName = loadInfo->GetLoadableName(0);
 
   std::string phSeriesNodeName(seriesName);
-  phSeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
+  phSeriesNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
   phSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(phSeriesNodeName);
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
@@ -738,7 +740,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       // Create patient hierarchy entry for the isocenter fiducial
       vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> patientHierarchyFiducialNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
       std::string phFiducialNodeName(rtReader->GetBeamName(dicomBeamIndex));
-      phFiducialNodeName.append(SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX);
+      phFiducialNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
       patientHierarchyFiducialNode->SetName(phFiducialNodeName.c_str());
       patientHierarchyFiducialNode->HideFromEditorsOff();
       patientHierarchyFiducialNode->SetAssociatedNodeID(addedDisplayableNode->GetID());
@@ -821,7 +823,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
 
       // Put new beam model in the patient hierarchy
       vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-      std::string phBeamNodeName = beamModelName + SlicerRtCommon::DICOMRTIMPORT_PATIENT_HIERARCHY_NODE_NAME_POSTFIX;
+      std::string phBeamNodeName = beamModelName + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
       beamModelHierarchyNode->SetName(phBeamNodeName.c_str());
       beamModelHierarchyNode->HideFromEditorsOff();
       beamModelHierarchyNode->SetDisplayableNodeID(beamModelNode->GetID());
@@ -918,8 +920,10 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
       this->GetMRMLScene(), rtReader->GetPatientId() );
     if (patientNode)
     {
-      patientNode->SetName( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientName())
-        ? rtReader->GetPatientName() : SlicerRtCommon::DICOMRTIMPORT_NO_NAME.c_str() );
+      std::string patientNodeName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientName())
+        ? std::string(rtReader->GetPatientName()) + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX
+        : SlicerRtCommon::DICOMRTIMPORT_NO_NAME + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX );
+      patientNode->SetName( patientNodeName.c_str() );
     }
     else
     {
@@ -933,8 +937,10 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
       this->GetMRMLScene(), rtReader->GetStudyInstanceUid() );
     if (studyNode)
     {
-      studyNode->SetName( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
-        ? rtReader->GetStudyDescription() : SlicerRtCommon::DICOMRTIMPORT_NO_DESCRIPTION.c_str() );
+      std::string studyNodeName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
+        ? std::string(rtReader->GetStudyDescription()) + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX
+        : SlicerRtCommon::DICOMRTIMPORT_NO_DESCRIPTION + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX );
+      studyNode->SetName( studyNodeName.c_str() );
     }
     else
     {
@@ -973,7 +979,32 @@ void vtkSlicerDicomRtImportModuleLogic::PerformPostLoadSteps()
     return;
   }
 
-  //TODO: Structure set under CT
+  // Structure set goes under the anatomical volume in the patient hierarchy tree
+  std::vector<vtkMRMLHierarchyNode*>::iterator loadedSeriesIt;
+  for (loadedSeriesIt = this->LoadedSeriesPatientHierarchyNodes.begin(); loadedSeriesIt != this->LoadedSeriesPatientHierarchyNodes.end(); ++loadedSeriesIt)
+  {
+    const char* modality = (*loadedSeriesIt)->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_SERIES_MODALITY_ATTRIBUTE_NAME.c_str());
+    if (!modality)
+    {
+      vtkErrorMacro("PerformPostLoadSteps: Series '" << (*loadedSeriesIt)->GetName() << "' has invalid modality attribute!");
+    }
+    else if (!STRCASECMP(modality, "RTSTRUCT"))
+    {
+      const char* referencedSeriesUid = (*loadedSeriesIt)->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str());
+      if (referencedSeriesUid)
+      {
+        vtkMRMLHierarchyNode* referencedSeries = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(this->GetMRMLScene(), referencedSeriesUid);
+        if (!referencedSeries)
+        {
+          vtkErrorMacro("PerformPostLoadSteps: Referenced series for structure set '" << (*loadedSeriesIt)->GetName() << "' cannot be found!");
+        }
+        else
+        {
+          (*loadedSeriesIt)->SetParentNodeID(referencedSeries->GetID());
+        }
+      }
+    }
+  }
 
   //TODO: Set up display for the loaded data
 
