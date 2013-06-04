@@ -62,9 +62,6 @@ public:
   /// Copy the node's attributes to this object 
   virtual void Copy(vtkMRMLNode *node);
 
-  /// Updates the referenced nodes from the updated scene
-  virtual void UpdateScene(vtkMRMLScene *scene);
-
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "Contour";};
 
@@ -108,6 +105,9 @@ public:
 
   /// Get structure name from patient hierarchy
   const char* GetStructureName();
+
+  /// Update representation objects: observe nodes, update pointers
+  void UpdateRepresenations();
 
   /*!
     Get the color table and color index for the contour
@@ -197,6 +197,7 @@ protected:
   vtkMRMLContourNode(const vtkMRMLContourNode&);
   void operator=(const vtkMRMLContourNode&);
   friend class vtkConvertContourRepresentations;
+  friend class vtkSlicerContoursModuleLogic;
 
 protected:
   /// Ribbon model representation

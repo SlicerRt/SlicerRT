@@ -70,6 +70,7 @@ void vtkSlicerContoursModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
+  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
 }
 
@@ -141,6 +142,25 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
+void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
+{
+  assert(this->GetMRMLScene() != 0);
+
+  vtkSmartPointer<vtkCollection> contourNodes = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLContourNode") );
+  vtkObject* nextObject = NULL;
+  for (contourNodes->InitTraversal(); (nextObject = contourNodes->GetNextItemAsObject()); )
+  {
+    vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(nextObject);
+    if (contourNode)
+    {
+      contourNode->UpdateRepresenations();
+    }
+  }
+  
+  this->Modified();
+}
+
+//---------------------------------------------------------------------------
 void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
 {
   assert(this->GetMRMLScene() != 0);
@@ -159,6 +179,7 @@ void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
   structureSetPatientHierarchyNode->SetName(defaultStructureSetNodeName.c_str());
   structureSetPatientHierarchyNode->AllowMultipleChildrenOn();
   structureSetPatientHierarchyNode->HideFromEditorsOff();
+  structureSetPatientHierarchyNode->SetSaveWithScene(0);
   structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
   structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
   structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str(), "1");
@@ -180,6 +201,7 @@ void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
   structureSetColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(structureSetColorTableNodeName);
   structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
   structureSetColorTableNode->HideFromEditorsOff();
+  structureSetColorTableNode->SetSaveWithScene(0);
   structureSetColorTableNode->SetTypeToUser();
   this->GetMRMLScene()->AddNode(structureSetColorTableNode);
 
@@ -197,6 +219,7 @@ void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
   phColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(phColorTableNodeName);
   patientHierarchyColorTableNode->SetName(phColorTableNodeName.c_str());
   patientHierarchyColorTableNode->HideFromEditorsOff();
+  patientHierarchyColorTableNode->SetSaveWithScene(0);
   patientHierarchyColorTableNode->SetAssociatedNodeID(structureSetColorTableNode->GetID());
   patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
   patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
@@ -218,6 +241,13 @@ void vtkSlicerContoursModuleLogic::CreateEmptyRibbonModelForContour(vtkMRMLNode*
   if (!contourNode)
   {
     vtkErrorMacro("CreateEmptyRibbonModelForContour: Argument node is not a contour node!");
+    return;
+  }
+
+  // If a scene is being loaded then don't create empty model, because the node will be updated
+  // to the proper representation when importing has finished. \sa vtkMRMLContourNode::ReadXMLAttributes
+  if (contourNode->RibbonModelNodeId && !contourNode->RibbonModelNode)
+  {
     return;
   }
 

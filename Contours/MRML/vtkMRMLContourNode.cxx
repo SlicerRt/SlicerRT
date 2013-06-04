@@ -134,9 +134,9 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "RibbonModelNodeId")) 
       {
-      this->SetAndObserveRibbonModelNodeId(NULL); // clear any previous observers
-      // Do not add observers yet because updates may be wrong before reading all the xml attributes
-      // Observers will be added when all the attributes are read and UpdateScene is called
+      this->SetAndObserveRibbonModelNodeId(NULL); // Clear any previous observers
+      // Do not add observers yet because the representation objects may not exist yet.
+      // The observers and pointers will be added after importing has finished.
       this->SetRibbonModelNodeId(attValue);
       }
     else if (!strcmp(attName, "IndexedLabelmapVolumeNodeId")) 
@@ -268,21 +268,6 @@ void vtkMRMLContourNode::UpdateReferenceID(const char *oldID, const char *newID)
   if (this->RasterizationReferenceVolumeNodeId && !strcmp(oldID, this->RasterizationReferenceVolumeNodeId))
     {
     this->SetAndObserveRasterizationReferenceVolumeNodeId(newID);
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLContourNode::UpdateScene(vtkMRMLScene *scene)
-{
-  Superclass::UpdateScene(scene);
-
-  this->SetAndObserveRibbonModelNodeId(this->RibbonModelNodeId);
-  this->SetAndObserveIndexedLabelmapVolumeNodeId(this->IndexedLabelmapVolumeNodeId);
-  this->SetAndObserveClosedSurfaceModelNodeId(this->ClosedSurfaceModelNodeId);
-  this->SetAndObserveRasterizationReferenceVolumeNodeId(this->RasterizationReferenceVolumeNodeId);
-  if (this->ActiveRepresentationType != None)
-    {
-    this->SetActiveRepresentationByType(this->ActiveRepresentationType);
     }
 }
 
@@ -733,7 +718,7 @@ const char* vtkMRMLContourNode::GetStructureName()
   vtkMRMLDisplayableHierarchyNode* contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->ID);
   if (!contourPatientHierarchyNode)
   {
-    vtkErrorMacro("GetColorIndex: No patient hierarchy node found for contour '" << this->Name << "'");
+    vtkErrorMacro("GetStructureName: No patient hierarchy node found for contour '" << this->Name << "'");
     return NULL;
   }
 
@@ -789,14 +774,8 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
   // Initialize output color index with Gray 'invalid' color (value 1)
   colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
 
-  //TODO: workaround for issue #179, restore when Slicer mantis issue http://www.na-mic.org/Bug/view.php?id=2783 is fixed
-  // Try to search for the structure name with the spaces replaced with underscores in case it was loaded from scene file
-  std::string structureNameWithUnderscores(structureName);
-  std::replace(structureNameWithUnderscores.begin(), structureNameWithUnderscores.end(), ' ', '_');
-
   int foundColorIndex = -1;
-  if ( (foundColorIndex = colorNode->GetColorIndexByName(structureName)) != -1
-    || (foundColorIndex = colorNode->GetColorIndexByName(structureNameWithUnderscores.c_str())) != -1 )
+  if ( (foundColorIndex = colorNode->GetColorIndexByName(structureName)) != -1 )
     {
     colorIndex = foundColorIndex;
     }
@@ -953,4 +932,17 @@ bool vtkMRMLContourNode::HasBeenCreatedFromIndexedLabelmap()
   return ( this->IndexedLabelmapVolumeNode
     && !SlicerRtCommon::IsStringNullOrEmpty(this->RasterizationReferenceVolumeNodeId)
     && !STRCASECMP(this->IndexedLabelmapVolumeNodeId, this->RasterizationReferenceVolumeNodeId) );
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLContourNode::UpdateRepresenations()
+{
+  this->SetAndObserveRibbonModelNodeId(this->RibbonModelNodeId);
+  this->SetAndObserveIndexedLabelmapVolumeNodeId(this->IndexedLabelmapVolumeNodeId);
+  this->SetAndObserveClosedSurfaceModelNodeId(this->ClosedSurfaceModelNodeId);
+  this->SetAndObserveRasterizationReferenceVolumeNodeId(this->RasterizationReferenceVolumeNodeId);
+  if (this->ActiveRepresentationType != None)
+  {
+    this->SetActiveRepresentationByType(this->ActiveRepresentationType);
+  }
 }

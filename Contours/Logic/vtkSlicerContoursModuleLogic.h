@@ -66,6 +66,7 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndClose();
+  virtual void OnMRMLSceneEndImport();
 
 protected:
   vtkSlicerContoursModuleLogic();
