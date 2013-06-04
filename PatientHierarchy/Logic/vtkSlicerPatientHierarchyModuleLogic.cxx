@@ -462,45 +462,42 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPati
 }
 
 //---------------------------------------------------------------------------
-std::string vtkSlicerPatientHierarchyModuleLogic::GetTooltipForNode(vtkMRMLNode* node)
+std::string vtkSlicerPatientHierarchyModuleLogic::GetTooltipForPatientHierarchyNode(vtkMRMLHierarchyNode* hierarchyNode)
 {
-  if (!node)
+  if (!hierarchyNode)
   {
-    return NULL;
+    return "";
+  }
+  if (!SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode))
+  {
+    vtkErrorWithObjectMacro(hierarchyNode, "GetTooltipForPatientHierarchyNode: Attribute node is not a patient hierarchy node!");
+    return "";
   }
 
-  std::string tooltipString(node->GetNodeTagName());
-
-  vtkMRMLHierarchyNode* phNode = NULL;
-  if (SlicerRtCommon::IsPatientHierarchyNode(node))
+  std::string tooltipString;
+  vtkMRMLNode* associatedNode = hierarchyNode->GetAssociatedNode();
+  if (associatedNode)
   {
-    phNode = vtkMRMLHierarchyNode::SafeDownCast(node);
-  }
-  else
-  {
-    phNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(node->GetScene(), node->GetID());
-  }
-
-  if (SlicerRtCommon::IsPatientHierarchyNode(phNode))
-  {
+    tooltipString.append(associatedNode->GetNodeTagName());
     tooltipString.append(" (");
-    tooltipString.append(phNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME));
-  }
-  else
-  {
-    return tooltipString;
   }
 
-  phNode = phNode->GetParentNode();
-  while (SlicerRtCommon::IsPatientHierarchyNode(phNode))
+  tooltipString.append(hierarchyNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME));
+
+  hierarchyNode = hierarchyNode->GetParentNode();
+  while (SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode))
   {
     tooltipString.append("; ");
-    tooltipString.append(phNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME));
+    tooltipString.append(hierarchyNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME));
     tooltipString.append(":");
-    tooltipString.append(phNode->GetName());
-    phNode = phNode->GetParentNode();
+    tooltipString.append(hierarchyNode->GetName());
+    hierarchyNode = hierarchyNode->GetParentNode();
   }
 
-  tooltipString.append(")");
+  if (associatedNode)
+  {
+    tooltipString.append(")");
+  }
+
   return tooltipString;
 }

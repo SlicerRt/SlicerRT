@@ -198,7 +198,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       vtkWarningWithObjectMacro(this->mrmlScene(),"qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Patient hierarchy node name should end with '" << SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX << "'. It has the name '" << hierarchyNode->GetName() << "'");
     }
     item->setText(nodeText);
-    item->setToolTip(vtkSlicerPatientHierarchyModuleLogic::GetTooltipForNode(node).c_str());
+    item->setToolTip(vtkSlicerPatientHierarchyModuleLogic::GetTooltipForPatientHierarchyNode(hierarchyNode).c_str());
   }
   if (column == this->idColumn())
   {

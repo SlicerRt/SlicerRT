@@ -98,7 +98,7 @@ public:
   static vtkMRMLHierarchyNode* GetAssociatedNonPatientHierarchyNode(vtkMRMLScene *scene, const char *associatedNodeId);
 
   /// Assemble tooltip for node according to the patient hierarchy tree
-  static std::string GetTooltipForNode(vtkMRMLNode* node);
+  static std::string GetTooltipForPatientHierarchyNode(vtkMRMLHierarchyNode* hierarchyNode);
 
 protected:
   vtkSlicerPatientHierarchyModuleLogic();

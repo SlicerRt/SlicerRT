@@ -176,7 +176,7 @@ void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
   // Add color table node and default colors
   vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
   std::string structureSetColorTableNodeName;
-  structureSetColorTableNodeName = SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
+  structureSetColorTableNodeName = SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   structureSetColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(structureSetColorTableNodeName);
   structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
   structureSetColorTableNode->HideFromEditorsOff();
