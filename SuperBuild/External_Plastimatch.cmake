@@ -2,9 +2,9 @@
 # External projects
 #-----------------------------------------------------------------------------
 
-if (PLASTIMATCH_DIR)
+if (Plastimatch_DIR)
   # Plastimatch is built already, so just use that
-  set(SLICERRT_PLASTIMATCH_DIR ${PLASTIMATCH_DIR} CACHE INTERNAL "Path to store Plastimatch binaries.")
+  set(SLICERRT_PLASTIMATCH_DIR ${Plastimatch_DIR} CACHE INTERNAL "Path to store Plastimatch binaries.")
   message(STATUS "Use Plastimatch library at ${SLICERRT_PLASTIMATCH_DIR}")  
   # Define a "empty" project in case an external one is provided
   # Doing so allows to keep the external project dependency system happy.
