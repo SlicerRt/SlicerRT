@@ -666,6 +666,12 @@
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="BlockScaleLabel_2">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="visible">
+            <bool>false</bool>
+           </property>
            <property name="toolTip">
             <string>Creates displacement plot as alternate color array (Warning: Experimental; does not work well with large datasets)</string>
            </property>
@@ -676,8 +682,14 @@
          </item>
          <item row="1" column="1">
           <widget class="ctkCheckBox" name="InputBlockDisplacementCheck">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="visible">
+            <bool>false</bool>
+           </property>
            <property name="toolTip">
-            <string>Creates displacement plot as alternate color array (Warning: Experimental; does not work well with large datasets)</string>
+            <string>Creates displacement plot as alternate color array</string>
            </property>
           </widget>
          </item>
@@ -1008,7 +1020,7 @@
             <item row="0" column="0">
              <widget class="QLabel" name="TipLengthLabel">
               <property name="toolTip">
-               <string>Adjust how much of the arrow the tip will cover</string>
+               <string>Adjust how much of the tip the arrow will consist of as a decimal percentage</string>
               </property>
               <property name="text">
                <string>Tip Length</string>
@@ -1018,7 +1030,10 @@
             <item row="0" column="1">
              <widget class="ctkSliderWidget" name="InputGlyphArrowTipLength">
               <property name="toolTip">
-               <string>Adjust how much of the arrow the tip will cover</string>
+               <string>Adjust how much of the tip the arrow will consist of as a decimal percentage</string>
+              </property>
+              <property name="decimals">
+               <number>2</number>
               </property>
               <property name="singleStep">
                <double>0.010000000000000</double>
@@ -1108,7 +1123,7 @@
                <string>Adjust resolution of arrow (lower is less detailed)</string>
               </property>
               <property name="decimals">
-               <number>0</number>
+               <number>2</number>
               </property>
               <property name="singleStep">
                <double>1.000000000000000</double>
@@ -1239,7 +1254,7 @@
                <double>1.000000000000000</double>
               </property>
               <property name="value">
-               <double>0.600000000000000</double>
+               <double>1.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -1750,7 +1765,7 @@
             <string>Number of glyphs to generate</string>
            </property>
            <property name="decimals">
-            <number>0</number>
+            <number>2</number>
            </property>
            <property name="singleStep">
             <double>1.000000000000000</double>
