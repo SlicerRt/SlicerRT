@@ -177,17 +177,17 @@ void qSlicerContourComparisonModuleWidget::setContourComparisonNode(vtkMRMLNode 
     if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceContourNodeId())
       && d->MRMLNodeComboBox_ReferenceContour->currentNode() )
     {
-      paramNode->SetAndObserveReferenceContourNodeId(d->MRMLNodeComboBox_ReferenceContour->currentNodeId().toLatin1().constData());
+      paramNode->SetAndObserveReferenceContourNodeId(d->MRMLNodeComboBox_ReferenceContour->currentNodeID().toLatin1().constData());
     }
     if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareContourNodeId())
       && d->MRMLNodeComboBox_CompareContour->currentNode() )
     {
-      paramNode->SetAndObserveCompareContourNodeId(d->MRMLNodeComboBox_CompareContour->currentNodeId().toLatin1().constData());
+      paramNode->SetAndObserveCompareContourNodeId(d->MRMLNodeComboBox_CompareContour->currentNodeID().toLatin1().constData());
     }
     if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetRasterizationReferenceVolumeNodeId())
       && d->MRMLNodeComboBox_ReferenceVolume->currentNode() )
     {
-      paramNode->SetAndObserveRasterizationReferenceVolumeNodeId(d->MRMLNodeComboBox_ReferenceVolume->currentNodeId().toLatin1().constData());
+      paramNode->SetAndObserveRasterizationReferenceVolumeNodeId(d->MRMLNodeComboBox_ReferenceVolume->currentNodeID().toLatin1().constData());
     }
     this->updateButtonsState();
   }

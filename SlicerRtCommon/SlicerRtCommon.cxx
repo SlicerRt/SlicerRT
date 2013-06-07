@@ -17,6 +17,9 @@
 // Constant strings
 //----------------------------------------------------------------------------
 
+// SlicerRT constants
+const char* SlicerRtCommon::SLICERRT_EXTENSION_NAME = "SlicerRT";
+
 // Patient hierarchy constants (the python scripts use the raw strings, those need to be updated when these are changed!)
 const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME = "HierarchyType";
 const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE = "PatientHierarchy";
@@ -106,6 +109,9 @@ const std::string SlicerRtCommon::ISODOSE_MODEL_NODE_NAME_PREFIX = "IsodoseLevel
 const std::string SlicerRtCommon::ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX = "_IsodoseColor";
 
 // Dose comparison constants
+const char* SlicerRtCommon::DOSECOMPARISON_GAMMA_VOLUME_ATTRIBUTE_NAME = "DoseComparison.GammaVolume";
+const char* SlicerRtCommon::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_SETTINGS_ENTRY_NAME = "DefaultDoseCompareGammaColorTable"; //TODO: remove?
+const char* SlicerRtCommon::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME = "Gamma_ColorTable.ctbl";
 const std::string SlicerRtCommon::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX = "GammaVolume_";
 
 // Beams constants

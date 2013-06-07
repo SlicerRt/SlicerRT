@@ -9,7 +9,7 @@ from __main__ import vtk, qt, ctk, slicer
 class SlicerRtDemo_RSNA2012_SelfTest:
   def __init__(self, parent):
     parent.title = "SlicerRT Demo RSNA2012 Self Test"
-    parent.categories = ["Testing.TestCases"]
+    parent.categories = ["Testing.SlicerRT Tests"]
     parent.dependencies = ["DicomRtImport", "DoseAccumulation", "DoseVolumeHistogram", "Contours"]
     parent.contributors = ["Csaba Pinter (Queen's)"]
     parent.helpText = """

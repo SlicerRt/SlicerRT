@@ -510,7 +510,7 @@ void qSlicerDeformationFieldVisualizerModuleWidget::visualize()
 {
   Q_D(qSlicerDeformationFieldVisualizerModuleWidget);
 
-  if (d->InputFieldComboBox->currentNodeId() != NULL && d->OutputModelComboBox->currentNodeId() != NULL)
+  if (d->InputFieldComboBox->currentNodeID() != NULL && d->OutputModelComboBox->currentNodeID() != NULL)
   {
   //TODO: Remake progress dialog and add detail (update progress from actual steps occurring in logic)
     QProgressDialog *visualizeProgress =  new QProgressDialog(qSlicerApplication::application()->mainWindow());

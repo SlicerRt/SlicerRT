@@ -49,6 +49,13 @@ public:
   /// Compute gamma metric according to the selected input volumes and parameters (DoseComparison parameter set node content)
   void ComputeGammaDoseDifference();
 
+protected:
+  /// Creates default gamma color table. Should never be called, except when updating the default gamma color table file!
+  void CreateDefaultGammaColorTable();
+
+  /// Loads default gamma color table file specified in the user settings
+  void LoadDefaultGammaColorTable();
+
 public:
   void SetAndObserveDoseComparisonNode(vtkMRMLDoseComparisonNode* node);
   vtkGetObjectMacro(DoseComparisonNode, vtkMRMLDoseComparisonNode);
@@ -56,6 +63,9 @@ public:
   vtkGetMacro(LogSpeedMeasurements, bool);
   vtkSetMacro(LogSpeedMeasurements, bool);
   vtkBooleanMacro(LogSpeedMeasurements, bool);
+
+  vtkSetStringMacro(GammaColorTableNodeId);
+  vtkGetStringMacro(GammaColorTableNodeId);
 
 protected:
   vtkSlicerDoseComparisonModuleLogic();
@@ -75,13 +85,15 @@ protected:
 private:
   vtkSlicerDoseComparisonModuleLogic(const vtkSlicerDoseComparisonModuleLogic&); // Not implemented
   void operator=(const vtkSlicerDoseComparisonModuleLogic&);               // Not implemented
-
 protected:
   /// Parameter set MRML node
   vtkMRMLDoseComparisonNode* DoseComparisonNode;
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
+
+  /// Gamma color table ID. Loaded on Slicer startup.
+  char* GammaColorTableNodeId;
 };
 
 #endif

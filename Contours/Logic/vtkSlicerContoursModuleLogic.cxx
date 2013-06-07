@@ -200,6 +200,7 @@ void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
   structureSetColorTableNodeName = SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   structureSetColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(structureSetColorTableNodeName);
   structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
+  structureSetColorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
   structureSetColorTableNode->HideFromEditorsOff();
   structureSetColorTableNode->SetSaveWithScene(0);
   structureSetColorTableNode->SetTypeToUser();

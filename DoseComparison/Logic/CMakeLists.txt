@@ -29,3 +29,13 @@ SlicerMacroBuildModuleLogic(
   SRCS ${${KIT}_SRCS}
   TARGET_LIBRARIES ${${KIT}_TARGET_LIBRARIES}
   )
+
+#-----------------------------------------------------------------------------
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Resources/Gamma_ColorTable.ctbl
+  ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/Gamma_ColorTable.ctbl
+  COPYONLY)
+
+install(
+  FILES ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/Gamma_ColorTable.ctbl
+  DESTINATION ${Slicer_INSTALL_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME} COMPONENT Runtime)

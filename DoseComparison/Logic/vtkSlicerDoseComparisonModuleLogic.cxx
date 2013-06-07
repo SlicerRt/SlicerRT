@@ -32,16 +32,26 @@
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
-#include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLTransformNode.h>
+#include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLSelectionNode.h>
+
+// MRMLLogic includes
+#include "vtkMRMLColorLogic.h"
+#include "vtkMRMLApplicationLogic.h"
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkImageData.h>
 #include <vtkTimerLog.h>
+#include <vtkLookupTable.h>
+#include "vtksys/SystemTools.hxx"
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
+
+// SlicerBase includes
+#include "vtkSlicerApplicationLogic.h"
 
 // STD includes
 #include <cassert>
@@ -53,6 +63,7 @@ vtkStandardNewMacro(vtkSlicerDoseComparisonModuleLogic);
 vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 {
   this->DoseComparisonNode = NULL;
+  this->GammaColorTableNodeId = NULL;
 
   this->LogSpeedMeasurementsOff();
 }
@@ -60,7 +71,8 @@ vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerDoseComparisonModuleLogic::~vtkSlicerDoseComparisonModuleLogic()
 {
-  this->SetAndObserveDoseComparisonNode(NULL); // release the node object to avoid memory leaks
+  this->SetAndObserveDoseComparisonNode(NULL); // Release the node object to avoid memory leaks
+  this->SetGammaColorTableNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -96,6 +108,10 @@ void vtkSlicerDoseComparisonModuleLogic::RegisterNodes()
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseComparisonNode>::New());
+
+  // Load default gamma color table specified in the user settings
+  // Called here because this function is called when a new scene is set (which is when loading the color table is due)
+  this->LoadDefaultGammaColorTable();
 }
 
 //---------------------------------------------------------------------------
@@ -218,14 +234,15 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   vtkMRMLVolumeNode* gammaVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetGammaVolumeNodeId()));
 
-  if (gammaVolumeNode==NULL)
+  if (gammaVolumeNode == NULL)
   {
-    vtkErrorMacro("gammaVolumeNode is invalid");
+    vtkErrorMacro("ComputeGammaDoseDifference: Invalid gamma volume node in parameter set node!");
     return;
   }
 
   gammaVolumeNode->CopyOrientation(referenceDoseVolumeNode);
   gammaVolumeNode->SetAndObserveImageData(gammaVolume);
+  gammaVolumeNode->SetAttribute(SlicerRtCommon::DOSECOMPARISON_GAMMA_VOLUME_ATTRIBUTE_NAME, "1");
 
   // Assign gamma volume under the transform node of the reference volume node
   if (referenceDoseVolumeNode->GetParentTransformNode())
@@ -234,21 +251,32 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   }
 
   // Set default colormap to red
-  if (gammaVolumeNode->GetVolumeDisplayNode()==NULL)
+  if (gammaVolumeNode->GetVolumeDisplayNode() == NULL)
   {
-    // gammaVolumeNode->CreateDefaultDisplayNodes(); unfortunately this is not implemented for Scalar nodes
-    vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> sdisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-    sdisplayNode->SetScene(this->GetMRMLScene());
-    this->GetMRMLScene()->AddNode(sdisplayNode);
-    gammaVolumeNode->SetAndObserveDisplayNodeID(sdisplayNode->GetID());
+    vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+    displayNode->SetScene(this->GetMRMLScene());
+    this->GetMRMLScene()->AddNode(displayNode);
+    gammaVolumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   }
-  if (gammaVolumeNode->GetVolumeDisplayNode()!=NULL)
+  if (gammaVolumeNode->GetVolumeDisplayNode())
   {
-    gammaVolumeNode->GetVolumeDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    vtkMRMLScalarVolumeDisplayNode* gammaScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(gammaVolumeNode->GetVolumeDisplayNode());
+    gammaScalarVolumeDisplayNode->SetAutoWindowLevel(0);
+    gammaScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, this->DoseComparisonNode->GetMaximumGamma());
+
+    if (this->GammaColorTableNodeId)
+    {
+      gammaScalarVolumeDisplayNode->SetAndObserveColorNodeID(this->GammaColorTableNodeId);
+    }
+    else
+    {
+      vtkWarningMacro("ComputeGammaDoseDifference: Loading gamma color table failed, stock color table is used!");
+      gammaScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    }
   }
   else
   {
-    vtkWarningMacro("Display node is not available for gamma volume node. The default color table will be used.");
+    vtkWarningMacro("ComputeGammaDoseDifference: Display node is not available for gamma volume node. The default color table will be used.");
   }
 
   // Select as active volume
@@ -269,5 +297,43 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
       << "\tConverting from VTK to ITK: " << checkpointGammaStart-checkpointItkConvertStart << " s" << std::endl
       << "\tGamma computation: " << checkpointVtkConvertStart-checkpointGammaStart << " s" << std::endl
       << "\tConverting back from ITK to VTK: " << checkpointEnd-checkpointVtkConvertStart << " s" << std::endl;
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseComparisonModuleLogic::CreateDefaultGammaColorTable()
+{
+  vtkSmartPointer<vtkMRMLColorTableNode> gammaColorTable = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+  gammaColorTable->SetName("Gamma_ColorTable");
+  gammaColorTable->SetTypeToUser();
+  gammaColorTable->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+  gammaColorTable->HideFromEditorsOff();
+  gammaColorTable->SaveWithSceneOff();
+  gammaColorTable->SetNumberOfColors(256);
+  gammaColorTable->GetLookupTable()->SetNumberOfTableValues(256);
+  gammaColorTable->GetLookupTable()->SetHueRange(0.28, 0.0);
+  gammaColorTable->GetLookupTable()->SetSaturationRange(1,1);
+  gammaColorTable->GetLookupTable()->SetValueRange(1,1);
+  gammaColorTable->GetLookupTable()->SetRampToLinear();
+  gammaColorTable->GetLookupTable()->ForceBuild();
+  gammaColorTable->SetNamesFromColors();
+  gammaColorTable->SetDescription("Goes from green to red, passing through the colors of the rainbow in between in reverse. Useful for a colorful display of a difference volume");
+  this->GetMRMLScene()->AddNode(gammaColorTable);
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseComparisonModuleLogic::LoadDefaultGammaColorTable()
+{
+  // Load default color table file
+  std::string moduleShareDirectory = this->GetModuleShareDirectory();
+  std::string colorTableFilePath = moduleShareDirectory + "/" + SlicerRtCommon::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME;
+
+  vtkMRMLColorNode* loadedColorNode = this->GetMRMLApplicationLogic()->GetColorLogic()->LoadColorFile(colorTableFilePath.c_str(), "Gamma_ColorTable");
+
+  vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(loadedColorNode);
+  if (colorTableNode)
+  {
+    colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+    this->SetGammaColorTableNodeId(colorTableNode->GetID());
   }
 }

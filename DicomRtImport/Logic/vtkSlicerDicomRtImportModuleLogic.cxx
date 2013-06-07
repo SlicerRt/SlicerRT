@@ -276,6 +276,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
   structureSetColorTableNode->HideFromEditorsOff();
   structureSetColorTableNode->SetTypeToUser();
+  structureSetColorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
   this->GetMRMLScene()->AddNode(structureSetColorTableNode);
 
   // Add ROIs

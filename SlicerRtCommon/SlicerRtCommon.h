@@ -39,6 +39,9 @@ public:
   // Constant strings (std::string types for easy concatenation)
   //----------------------------------------------------------------------------
 
+  // SlicerRT constants
+  static const char* SLICERRT_EXTENSION_NAME;
+
   // Patient hierarchy constants
   static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME;
   static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE;
@@ -126,6 +129,9 @@ public:
   static const std::string ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX;
 
   // DoseComparison constants
+  static const char* DOSECOMPARISON_GAMMA_VOLUME_ATTRIBUTE_NAME;
+  static const char* DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_SETTINGS_ENTRY_NAME;
+  static const char* DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME;
   static const std::string DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX;
 
   // Beams constants

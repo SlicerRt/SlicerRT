@@ -13,7 +13,7 @@
     <x>0</x>
     <y>0</y>
     <width>368</width>
-    <height>1272</height>
+    <height>789</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -34,6 +34,12 @@
    <string>Deformation Field Visualizer</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="margin">
+    <number>4</number>
+   </property>
    <item>
     <widget class="ctkCollapsibleButton" name="ParameterSetCollapsibleButton">
      <property name="sizePolicy">
@@ -46,6 +52,15 @@
       <string>Parameter Set</string>
      </property>
      <layout class="QFormLayout" name="formLayout_3">
+      <property name="horizontalSpacing">
+       <number>4</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>4</number>
+      </property>
+      <property name="margin">
+       <number>4</number>
+      </property>
       <item row="0" column="1">
        <widget class="qMRMLNodeComboBox" name="ParameterComboBox">
         <property name="enabled">
@@ -88,11 +103,11 @@
       <string>IO</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0">
-      <property name="topMargin">
-       <number>9</number>
+      <property name="spacing">
+       <number>4</number>
       </property>
-      <property name="bottomMargin">
-       <number>9</number>
+      <property name="margin">
+       <number>4</number>
       </property>
       <item>
        <widget class="QGroupBox" name="groupBox">
@@ -108,6 +123,15 @@
         <layout class="QFormLayout" name="formLayout">
          <property name="fieldGrowthPolicy">
           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         </property>
+         <property name="horizontalSpacing">
+          <number>4</number>
+         </property>
+         <property name="verticalSpacing">
+          <number>4</number>
+         </property>
+         <property name="margin">
+          <number>4</number>
          </property>
          <item row="0" column="0">
           <widget class="QLabel" name="InputVolumeLabel">
@@ -226,6 +250,15 @@
          <property name="fieldGrowthPolicy">
           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
          </property>
+         <property name="horizontalSpacing">
+          <number>4</number>
+         </property>
+         <property name="verticalSpacing">
+          <number>4</number>
+         </property>
+         <property name="margin">
+          <number>4</number>
+         </property>
          <item row="0" column="0">
           <widget class="QLabel" name="OutputModelLabel">
            <property name="text">
@@ -299,6 +332,12 @@
       <number>100</number>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <property name="margin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
       <item row="1" column="1">
        <widget class="QPushButton" name="GlyphSliceToggle">
         <property name="sizePolicy">
@@ -590,6 +629,12 @@
       <string>Parameters</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <property name="margin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
       <item row="3" column="0">
        <widget class="ctkCollapsibleGroupBox" name="BlockBox">
         <property name="enabled">
@@ -958,6 +1003,12 @@
          <bool>false</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
+         <property name="margin">
+          <number>4</number>
+         </property>
+         <property name="spacing">
+          <number>4</number>
+         </property>
          <item row="0" column="1">
           <widget class="QLabel" name="InputVolumeLabel_3">
            <property name="toolTip">
@@ -1016,6 +1067,15 @@
            <layout class="QFormLayout" name="formLayout_2">
             <property name="fieldGrowthPolicy">
              <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <property name="horizontalSpacing">
+             <number>4</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>4</number>
+            </property>
+            <property name="margin">
+             <number>4</number>
             </property>
             <item row="0" column="0">
              <widget class="QLabel" name="TipLengthLabel">

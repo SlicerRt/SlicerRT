@@ -178,17 +178,17 @@ void qSlicerDoseComparisonModuleWidget::setDoseComparisonNode(vtkMRMLNode *node)
     if ( (SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceDoseVolumeNodeId()))
       && d->MRMLNodeComboBox_ReferenceDoseVolume->currentNode() )
     {
-      paramNode->SetAndObserveReferenceDoseVolumeNodeId(d->MRMLNodeComboBox_ReferenceDoseVolume->currentNodeId().toLatin1().constData());
+      paramNode->SetAndObserveReferenceDoseVolumeNodeId(d->MRMLNodeComboBox_ReferenceDoseVolume->currentNodeID().toLatin1().constData());
     }
     if ( (SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareDoseVolumeNodeId()))
       && d->MRMLNodeComboBox_CompareDoseVolume->currentNode() )
     {
-      paramNode->SetAndObserveCompareDoseVolumeNodeId(d->MRMLNodeComboBox_CompareDoseVolume->currentNodeId().toLatin1().constData());
+      paramNode->SetAndObserveCompareDoseVolumeNodeId(d->MRMLNodeComboBox_CompareDoseVolume->currentNodeID().toLatin1().constData());
     }
     if ( (SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetGammaVolumeNodeId()))
       && d->MRMLNodeComboBox_GammaVolume->currentNode())
     {
-      paramNode->SetAndObserveGammaVolumeNodeId(d->MRMLNodeComboBox_GammaVolume->currentNodeId().toLatin1().constData());
+      paramNode->SetAndObserveGammaVolumeNodeId(d->MRMLNodeComboBox_GammaVolume->currentNodeID().toLatin1().constData());
     }
 
     this->updateButtonsState();

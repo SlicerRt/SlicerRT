@@ -10,7 +10,7 @@ from __main__ import vtk, qt, ctk, slicer
 class DicomRtImportSelfTest:
   def __init__(self, parent):
     parent.title = "DicomRtImportSelfTest" # TODO make this more human readable by adding spaces
-    parent.categories = ["Testing.TestCases"]
+    parent.categories = ["Testing.SlicerRT Tests"]
     parent.dependencies = ["DicomRtImport", "Contours"]
     parent.contributors = ["Csaba Pinter (Queen's)"]
     parent.helpText = """
