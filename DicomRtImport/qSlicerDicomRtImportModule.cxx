@@ -24,6 +24,9 @@
 #include <qSlicerModuleManager.h>
 #include <vtkSlicerVolumesLogic.h>
 
+// SlicerRT includes
+#include <vtkSlicerIsodoseModuleLogic.h>
+
 // ExtensionTemplate Logic includes
 #include <vtkSlicerDicomRtImportModuleLogic.h>
 
@@ -103,6 +106,12 @@ QStringList qSlicerDicomRtImportModule::categories()const
 }
 
 //-----------------------------------------------------------------------------
+QStringList qSlicerDicomRtImportModule::dependencies()const
+{
+  return QStringList() << "Volumes" << "Isodose";
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerDicomRtImportModule::setup()
 {
   this->Superclass::setup();
@@ -117,7 +126,18 @@ void qSlicerDicomRtImportModule::setup()
   }
   else
   {
-    qWarning() << "Volumes module is not found";
+    qCritical() << "Volumes module is not found";
+  } 
+
+  qSlicerAbstractCoreModule* isodoseModule = qSlicerCoreApplication::application()->moduleManager()->module("Isodose");
+  if (isodoseModule)
+  {
+    vtkSlicerIsodoseModuleLogic* isodoseLogic = vtkSlicerIsodoseModuleLogic::SafeDownCast(isodoseModule->logic());
+    dicomRtImportLogic->SetIsodoseLogic(isodoseLogic);
+  }
+  else
+  {
+    qCritical() << "Isodose module is not found";
   } 
 }
 

@@ -201,7 +201,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
   int numberOfColors = colorNode->GetNumberOfColors();
   colorNode->SetNumberOfColors(numberOfColors+1);
   colorNode->GetLookupTable()->SetTableRange(0, numberOfColors);
-  colorNode->AddColor(colorName.c_str(), color[0], color[1], color[2], color[3]);
+  colorNode->SetColor(numberOfColors, colorName.c_str(), color[0], color[1], color[2], color[3]);
 
   // Paint labelmap foreground value to match the index of the newly added color
   if (nodeToAdd->IsA("vtkMRMLScalarVolumeNode"))
@@ -313,7 +313,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy
   int numberOfColors = newColorNode->GetNumberOfColors();
   newColorNode->SetNumberOfColors(numberOfColors+1);
   newColorNode->GetLookupTable()->SetTableRange(0, numberOfColors);
-  newColorNode->AddColor(colorName.c_str(), color[0], color[1], color[2], color[3]);
+  newColorNode->SetColor(numberOfColors, colorName.c_str(), color[0], color[1], color[2], color[3]);
 
   // Paint labelmap foreground value to match the index of the newly added color
   if (contourNodeToReparent->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap))

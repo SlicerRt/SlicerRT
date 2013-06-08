@@ -10,6 +10,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerPatientHierarchyModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -28,6 +29,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerPatientHierarchyModuleLogic
   vtkSlicerContoursModuleMRML
+  vtkSlicerIsodoseModuleLogic
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   ${DCMTK_LIBRARIES}

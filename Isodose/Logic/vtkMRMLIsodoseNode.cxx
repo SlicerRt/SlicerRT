@@ -42,7 +42,7 @@ vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
 {
   this->DoseVolumeNodeId = NULL;
   this->ColorTableNodeId = NULL;
-  this->OutputHierarchyNodeId = NULL;
+  this->IsodoseSurfaceModelsParentHierarchyNodeId = NULL;
   this->ShowIsodoseLines = true;
   this->ShowIsodoseSurfaces = true;
   this->ShowScalarBar = false;
@@ -55,7 +55,7 @@ vtkMRMLIsodoseNode::~vtkMRMLIsodoseNode()
 {
   this->SetDoseVolumeNodeId(NULL);
   this->SetColorTableNodeId(NULL);
-  this->SetOutputHierarchyNodeId(NULL);
+  this->SetIsodoseSurfaceModelsParentHierarchyNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -86,10 +86,10 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
 
   {
     std::stringstream ss;
-    if ( this->OutputHierarchyNodeId )
+    if ( this->IsodoseSurfaceModelsParentHierarchyNodeId )
       {
-      ss << this->OutputHierarchyNodeId;
-      of << indent << " OutputHierarchyNodeId=\"" << ss.str() << "\"";
+      ss << this->IsodoseSurfaceModelsParentHierarchyNodeId;
+      of << indent << " IsodoseSurfaceModelsParentHierarchyNodeId=\"" << ss.str() << "\"";
       }
   }
 
@@ -124,13 +124,13 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveOutputHierarchyNodeId(ss.str().c_str());
+      this->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(ss.str().c_str());
       }
-    else if (!strcmp(attName, "OutputHierarchyNodeId")) 
+    else if (!strcmp(attName, "IsodoseSurfaceModelsParentHierarchyNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveOutputHierarchyNodeId(ss.str().c_str());
+      this->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "ShowIsodoseLines")) 
       {
@@ -162,7 +162,7 @@ void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
 
   this->SetAndObserveDoseVolumeNodeId(node->DoseVolumeNodeId);
   this->SetAndObserveColorTableNodeId(node->ColorTableNodeId);
-  this->SetAndObserveOutputHierarchyNodeId(node->OutputHierarchyNodeId);
+  this->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(node->IsodoseSurfaceModelsParentHierarchyNodeId);
 
   this->ShowIsodoseLines = node->ShowIsodoseLines;
   this->ShowIsodoseSurfaces = node->ShowIsodoseSurfaces;
@@ -179,7 +179,7 @@ void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "DoseVolumeNodeId:   " << this->DoseVolumeNodeId << "\n";
   os << indent << "ColorTableNodeId:   " << this->ColorTableNodeId << "\n";
-  os << indent << "OutputHierarchyNodeId:   " << this->OutputHierarchyNodeId << "\n";
+  os << indent << "IsodoseSurfaceModelsParentHierarchyNodeId:   " << this->IsodoseSurfaceModelsParentHierarchyNodeId << "\n";
   os << indent << "ShowIsodoseLines:   " << (this->ShowIsodoseLines ? "true" : "false") << "\n";
   os << indent << "ShowIsodoseSurfaces:   " << (this->ShowIsodoseSurfaces ? "true" : "false") << "\n";
   os << indent << "ShowScalarBar:   " << (this->ShowScalarBar ? "true" : "false") << "\n";
@@ -196,9 +196,9 @@ void vtkMRMLIsodoseNode::UpdateReferenceID(const char *oldID, const char *newID)
     {
     this->SetAndObserveColorTableNodeId(newID);
     }
-  if (this->OutputHierarchyNodeId && !strcmp(oldID, this->OutputHierarchyNodeId))
+  if (this->IsodoseSurfaceModelsParentHierarchyNodeId && !strcmp(oldID, this->IsodoseSurfaceModelsParentHierarchyNodeId))
     {
-    this->SetAndObserveOutputHierarchyNodeId(newID);
+    this->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(newID);
     }
 }
 
@@ -235,17 +235,17 @@ void vtkMRMLIsodoseNode::SetAndObserveColorTableNodeId(const char* id)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::SetAndObserveOutputHierarchyNodeId(const char* id)
+void vtkMRMLIsodoseNode::SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(const char* id)
 {
-  if (this->OutputHierarchyNodeId)
+  if (this->IsodoseSurfaceModelsParentHierarchyNodeId)
     {
-    this->Scene->RemoveReferencedNodeID(this->OutputHierarchyNodeId, this);
+    this->Scene->RemoveReferencedNodeID(this->IsodoseSurfaceModelsParentHierarchyNodeId, this);
     }
 
-  this->SetOutputHierarchyNodeId(id);
+  this->SetIsodoseSurfaceModelsParentHierarchyNodeId(id);
 
   if (id)
     {
-    this->Scene->AddReferencedNodeID(this->OutputHierarchyNodeId, this);
+    this->Scene->AddReferencedNodeID(this->IsodoseSurfaceModelsParentHierarchyNodeId, this);
     }
 }

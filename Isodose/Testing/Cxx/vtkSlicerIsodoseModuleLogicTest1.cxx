@@ -207,24 +207,27 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  // Create and set up parameter set MRML node
-  vtkSmartPointer<vtkMRMLIsodoseNode> paramNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
-  paramNode->SetAndObserveDoseVolumeNodeId(doseScalarVolumeNode->GetID());
-  mrmlScene->AddNode(paramNode);
-
   // Create and set up logic
   vtkSmartPointer<vtkSlicerIsodoseModuleLogic> isodoseLogic = vtkSmartPointer<vtkSlicerIsodoseModuleLogic>::New();
   isodoseLogic->SetMRMLScene(mrmlScene);
-  isodoseLogic->SetAndObserveIsodoseNode(paramNode);
+
+  // TODO: Why is the number of colors set to 1 here?
   vtkMRMLColorTableNode* isodoseColorNode = vtkMRMLColorTableNode::SafeDownCast(
-    mrmlScene->GetNodeByID(isodoseLogic->GetDefaultLabelMapColorTableNodeId()));
+    mrmlScene->GetNodeByID(isodoseLogic->GetDefaultIsodoseColorTableNodeId()));
   isodoseColorNode->SetNumberOfColors(1);
 
+  // Create and set up parameter set MRML node
+  vtkSmartPointer<vtkMRMLIsodoseNode> paramNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
+  paramNode->SetAndObserveDoseVolumeNodeId(doseScalarVolumeNode->GetID());
+  paramNode->SetColorTableNodeId(isodoseColorNode->GetID());
+  mrmlScene->AddNode(paramNode);
+  isodoseLogic->SetAndObserveIsodoseNode(paramNode);
+
   // Compute isodose
-  isodoseLogic->ComputeIsodose();
+  isodoseLogic->CreateIsodoseSurfaces();
 
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkMRMLModelHierarchyNode::SafeDownCast(
-    mrmlScene->GetNodeByID(paramNode->GetOutputHierarchyNodeId()));  
+    mrmlScene->GetNodeByID(paramNode->GetIsodoseSurfaceModelsParentHierarchyNodeId()));  
   if (modelHierarchyRootNode == NULL)
   {
     mrmlScene->Commit();

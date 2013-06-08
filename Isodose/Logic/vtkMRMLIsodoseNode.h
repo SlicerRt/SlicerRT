@@ -62,13 +62,15 @@ public:
   void SetAndObserveDoseVolumeNodeId(const char* id);
 
   /// Get output hierarchy node ID
-  vtkGetStringMacro(OutputHierarchyNodeId);
+  vtkGetStringMacro(IsodoseSurfaceModelsParentHierarchyNodeId);
 
-  /// Set and observe output hierarchy node ID
-  void SetAndObserveOutputHierarchyNodeId(const char* id);
+  /// Set and observe isodose surface models parent hierarchy node ID
+  void SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(const char* id);
 
   /// Get color node ID
   vtkGetStringMacro(ColorTableNodeId);
+  /// Set color node ID
+  vtkSetStringMacro(ColorTableNodeId);
 
   /// Set and observe chart node ID
   void SetAndObserveColorTableNodeId(const char* id);
@@ -96,10 +98,7 @@ protected:
   vtkSetStringMacro(DoseVolumeNodeId);
 
   /// Set output hierarchy node ID
-  vtkSetStringMacro(OutputHierarchyNodeId);
-
-  /// Set color node ID
-  vtkSetStringMacro(ColorTableNodeId);
+  vtkSetStringMacro(IsodoseSurfaceModelsParentHierarchyNodeId);
 
 protected:
   vtkMRMLIsodoseNode();
@@ -111,8 +110,8 @@ protected:
   /// Selected dose volume MRML node object ID
   char* DoseVolumeNodeId;
 
-  /// Selected dose volume MRML node object ID
-  char* OutputHierarchyNodeId;
+  /// Output isosurface models' parent hierarchy node
+  char* IsodoseSurfaceModelsParentHierarchyNodeId;
 
   /// Selected chart MRML node object ID
   char* ColorTableNodeId;
@@ -120,10 +119,10 @@ protected:
   /// State of Show isodose lines checkbox
   bool ShowIsodoseLines;
 
-  /// State of Show isodose surface checkbox
+  /// State of Show isodose surfaces checkbox
   bool ShowIsodoseSurfaces;
 
-  /// State of Show scalarbar checkbox
+  /// State of Show scalar bar checkbox
   bool ShowScalarBar;
 };
 

@@ -171,7 +171,7 @@ void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
     this->GetMRMLScene()->GetNodesByClassByName("vtkMRMLHierarchyNode", defaultStructureSetNodeName.c_str()) );
   if (defaultStructureSetNodes->GetNumberOfItems() > 0)
   {
-    vtkWarningMacro("CreateDefaultStructureSetNode: Default structure set node already exists");
+    vtkDebugMacro("CreateDefaultStructureSetNode: Default structure set node already exists");
     return;
   }
 

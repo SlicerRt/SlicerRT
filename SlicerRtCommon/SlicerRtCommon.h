@@ -9,12 +9,14 @@
 #include "itkImage.h"
 
 class vtkMRMLTransformableNode;
-class vtkGeneralTransform;
-class vtkMatrix4x4;
 class vtkMRMLNode;
 class vtkMRMLVolumeNode;
 class vtkMRMLModelNode;
+class vtkMRMLColorTableNode;
+
 class vtkImageData;
+class vtkGeneralTransform;
+class vtkMatrix4x4;
 
 #define EPSILON 0.0001
 
@@ -94,6 +96,8 @@ public:
   static const std::string DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
 
+  static const char* DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME;
+
   // DoseVolumeHistogram constants
   static const std::string DVH_ATTRIBUTE_PREFIX;
   static const std::string DVH_TYPE_ATTRIBUTE_NAME;
@@ -125,12 +129,13 @@ public:
   static const std::string DOSEACCUMULATION_OUTPUT_BASE_NAME_PREFIX;
 
   // Isodose constants
+  static const char* ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
   static const std::string ISODOSE_MODEL_NODE_NAME_PREFIX;
-  static const std::string ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX;
+  static const std::string ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX;
+  static const std::string ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX;
 
   // DoseComparison constants
   static const char* DOSECOMPARISON_GAMMA_VOLUME_ATTRIBUTE_NAME;
-  static const char* DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_SETTINGS_ENTRY_NAME;
   static const char* DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME;
   static const std::string DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX;
 
@@ -169,6 +174,11 @@ public:
 
   /// Determine if a node is a dose volume node
   static bool IsDoseVolumeNode(vtkMRMLNode* node);
+
+  /// Stretch a discrete color table that contains a few values into a full 256-color palette that
+  /// has the first and last colors the same as the input one, the intermediate colors inserted in
+  /// evenly, and the others linearly interpolated.
+  static void StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscreteColorTable, vtkMRMLColorTableNode* output256ValueColorTable, unsigned int numberOfColors=256);
 
 //BTX
   /*!

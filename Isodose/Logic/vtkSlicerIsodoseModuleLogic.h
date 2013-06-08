@@ -36,7 +36,6 @@
 
 // MRML includes
 class vtkMRMLIsodoseNode;
-class vtkMRMLColorTableNode;
 
 /// \ingroup Slicer_QtModules_Isodose
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :
@@ -47,14 +46,11 @@ public:
   vtkTypeMacro(vtkSlicerIsodoseModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Return a default color node id for a label map
-  const char * GetDefaultLabelMapColorTableNodeId();
-
   /// Set number of isodose levels
   void SetNumberOfIsodoseLevels(int number);
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
-  int ComputeIsodose();
+  void CreateIsodoseSurfaces();
 
   /// Return false if the dose volume contains a volume that is really a dose volume
   bool DoseVolumeContainsDose();
@@ -62,15 +58,23 @@ public:
   /// Set and observe isodose parameter set node
   void SetAndObserveIsodoseNode(vtkMRMLIsodoseNode* node);
 
+protected:
+  /// Creates default isodose color table.
+  /// Should not be called, except when updating the default isodose color table file manually, or when the file cannot be found (\sa LoadDefaultIsodoseColorTable)
+  void CreateDefaultIsodoseColorTable();
+
+  /// Loads default isodose color table from the supplied color table file
+  void LoadDefaultIsodoseColorTable();
+
+public:
   /// Get isodose parameter set node
   vtkGetObjectMacro(IsodoseNode, vtkMRMLIsodoseNode);
 
-protected:
-  /// Add default color node
-  void AddDefaultIsodoseColorNode();
+  // Get default isodose color table ID
+  vtkGetStringMacro(DefaultIsodoseColorTableNodeId);
 
-  /// Create color node for isodose levels
-  vtkMRMLColorTableNode* CreateIsodoseColorNode();
+  // Set default isodose color table ID
+  vtkSetStringMacro(DefaultIsodoseColorTableNodeId);
 
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
@@ -90,10 +94,12 @@ protected:
 private:
   vtkSlicerIsodoseModuleLogic(const vtkSlicerIsodoseModuleLogic&); // Not implemented
   void operator=(const vtkSlicerIsodoseModuleLogic&);               // Not implemented
-
 protected:
   /// Parameter set MRML node
   vtkMRMLIsodoseNode* IsodoseNode;
+
+  /// Default isodose color table ID. Loaded on Slicer startup.
+  char* DefaultIsodoseColorTableNodeId;
 };
 
 #endif

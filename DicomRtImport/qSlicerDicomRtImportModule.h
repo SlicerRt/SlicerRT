@@ -58,6 +58,9 @@ public:
   /// Make this module hidden
   virtual bool isHidden()const { return true; };
 
+  /// List dependencies
+  virtual QStringList dependencies()const;
+
 protected:
 
   /// Initialize the module. Register the volumes reader/writer

@@ -6,12 +6,15 @@
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLDisplayNode.h>
+#include <vtkMRMLColorTableNode.h>
 
 // VTK includes
 #include <vtkGeneralTransform.h>
 #include <vtkSmartPointer.h>
 #include <vtkMatrix4x4.h>
 #include <vtkImageData.h>
+#include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkLookupTable.h>
 
 //----------------------------------------------------------------------------
 // Constant strings
@@ -74,6 +77,8 @@ const std::string SlicerRtCommon::DICOMRTIMPORT_NO_DESCRIPTION = "No description
 const std::string SlicerRtCommon::DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTFIX = "_Sources";
 const std::string SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX = "_BeamModels";
 
+const char* SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME = "Dose_ColorTable";
+
 // DoseVolumeHistogram constants
 const std::string SlicerRtCommon::DVH_ATTRIBUTE_PREFIX = "DoseVolumeHistogram.";
 const std::string SlicerRtCommon::DVH_TYPE_ATTRIBUTE_NAME = SlicerRtCommon::DVH_ATTRIBUTE_PREFIX + "Type";
@@ -105,12 +110,13 @@ const std::string SlicerRtCommon::DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBU
 const std::string SlicerRtCommon::DOSEACCUMULATION_OUTPUT_BASE_NAME_PREFIX = "Accumulated_";
 
 // Isodose constants
+const char* SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME = "Isodose_ColorTable.ctbl";
 const std::string SlicerRtCommon::ISODOSE_MODEL_NODE_NAME_PREFIX = "IsodoseLevel_";
-const std::string SlicerRtCommon::ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX = "_IsodoseColor";
+const std::string SlicerRtCommon::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX = "IsodoseParameterSet_";
+const std::string SlicerRtCommon::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX = "_IsodoseSurfaces";
 
 // Dose comparison constants
 const char* SlicerRtCommon::DOSECOMPARISON_GAMMA_VOLUME_ATTRIBUTE_NAME = "DoseComparison.GammaVolume";
-const char* SlicerRtCommon::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_SETTINGS_ENTRY_NAME = "DefaultDoseCompareGammaColorTable"; //TODO: remove?
 const char* SlicerRtCommon::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME = "Gamma_ColorTable.ctbl";
 const std::string SlicerRtCommon::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX = "GammaVolume_";
 
@@ -262,4 +268,43 @@ bool SlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
   }
 
   return false;
+}
+
+//---------------------------------------------------------------------------
+void SlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscreteColorTable, vtkMRMLColorTableNode* outputColorTable, unsigned int numberOfColors/*=256*/)
+{
+  if (!inputDiscreteColorTable || !outputColorTable)
+  {
+    return;
+  }
+
+  if (inputDiscreteColorTable->GetNumberOfColors() >= numberOfColors)
+  {
+    vtkErrorWithObjectMacro(inputDiscreteColorTable, "SlicerRtCommon::StretchDiscreteColorTable: Input discrete color table should have less colors than the specified number of colors (" << inputDiscreteColorTable->GetNumberOfColors() << " < " << numberOfColors << ")");
+    return;
+  }
+
+  vtkSmartPointer<vtkDiscretizableColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkDiscretizableColorTransferFunction>::New();
+  int numberOfIsodoseColors = inputDiscreteColorTable->GetNumberOfColors();
+  double step = 1.0 / (double)(numberOfIsodoseColors-1);
+  double transferFunctionPosition = 0.0;
+  for (int colorIndex=0; colorIndex<numberOfIsodoseColors; ++colorIndex, transferFunctionPosition+=step)
+  {
+    double color[4];
+    inputDiscreteColorTable->GetColor(colorIndex, color);
+    colorTransferFunction->AddRGBPoint(transferFunctionPosition, color[0], color[1], color[2]);
+  }
+  colorTransferFunction->SetNumberOfValues(numberOfColors);
+  colorTransferFunction->Build();
+  outputColorTable->SetNumberOfColors(numberOfColors);
+  outputColorTable->GetLookupTable()->SetTableRange(0,numberOfColors-1);
+
+  step = 1.0 / (double)(numberOfColors-1);
+  transferFunctionPosition = 0.0;
+  for (int colorIndex=0; colorIndex<outputColorTable->GetNumberOfColors(); ++colorIndex, transferFunctionPosition+=step)
+  {
+    double color[3];
+    colorTransferFunction->GetColor(transferFunctionPosition, color);
+    outputColorTable->SetColor(colorIndex, color[0], color[1], color[2]);
+  }
 }

@@ -475,6 +475,20 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     structureSetColorTableNode->AddColor(it->c_str(), 1.0, 0.0, 0.0);
   }
 
+  // Put color table in patient hierarchy
+  vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchyColorTableNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+  std::string phColorTableNodeName;
+  phColorTableNodeName = structureSetColorTableNodeName + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
+  patientHierarchyColorTableNode->SetName(phColorTableNodeName.c_str());
+  patientHierarchyColorTableNode->HideFromEditorsOff();
+  patientHierarchyColorTableNode->SetAssociatedNodeID(structureSetColorTableNode->GetID());
+  patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+    SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+    vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+  patientHierarchyColorTableNode->SetParentNodeID(contourHierarchyRootNode->GetID());
+  mrmlScene->AddNode(patientHierarchyColorTableNode);
+
   // Create chart node
   vtkSmartPointer<vtkMRMLChartNode> chartNode = vtkSmartPointer<vtkMRMLChartNode>::New();
   chartNode->SetProperty("default", "title", "Dose Volume Histogram");

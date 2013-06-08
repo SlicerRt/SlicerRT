@@ -50,10 +50,11 @@ public:
   void ComputeGammaDoseDifference();
 
 protected:
-  /// Creates default gamma color table. Should never be called, except when updating the default gamma color table file!
+  /// Creates default gamma color table.
+  /// Should not be called, except when updating the default gamma color table file manually, or when the file cannot be found (\sa LoadDefaultGammaColorTable)
   void CreateDefaultGammaColorTable();
 
-  /// Loads default gamma color table file specified in the user settings
+  /// Loads default gamma color table from the supplied color table file
   void LoadDefaultGammaColorTable();
 
 public:
@@ -64,8 +65,8 @@ public:
   vtkSetMacro(LogSpeedMeasurements, bool);
   vtkBooleanMacro(LogSpeedMeasurements, bool);
 
-  vtkSetStringMacro(GammaColorTableNodeId);
-  vtkGetStringMacro(GammaColorTableNodeId);
+  vtkSetStringMacro(DefaultGammaColorTableNodeId);
+  vtkGetStringMacro(DefaultGammaColorTableNodeId);
 
 protected:
   vtkSlicerDoseComparisonModuleLogic();
@@ -92,8 +93,8 @@ protected:
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
 
-  /// Gamma color table ID. Loaded on Slicer startup.
-  char* GammaColorTableNodeId;
+  /// Default gamma color table ID. Loaded on Slicer startup.
+  char* DefaultGammaColorTableNodeId;
 };
 
 #endif

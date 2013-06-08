@@ -26,13 +26,14 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
-#include "vtkSlicerVolumesLogic.h"
 
 // STD includes
 #include <vector>
 
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 
+class vtkSlicerVolumesLogic;
+class vtkSlicerIsodoseModuleLogic;
 class vtkMRMLModelNode;
 class vtkMRMLHierarchyNode;
 class vtkMRMLAnnotationFiducialNode;
@@ -59,6 +60,9 @@ public:
   /// Set Volumes module logic
   void SetVolumesLogic(vtkSlicerVolumesLogic* volumesLogic);
 
+  /// Set Isodose module logic
+  void SetIsodoseLogic(vtkSlicerIsodoseModuleLogic* isodoseLogic);
+
   /// Perform steps needed after loading all data from the selected loadables
   void PerformPostLoadSteps();
 
@@ -68,6 +72,9 @@ public:
   vtkSetMacro(AutoContourOpacity, bool);
   vtkGetMacro(AutoContourOpacity, bool);
   vtkBooleanMacro(AutoContourOpacity, bool);
+
+  vtkGetStringMacro(DefaultDoseColorTableNodeId);
+  vtkSetStringMacro(DefaultDoseColorTableNodeId);
 
 protected:
   vtkSlicerDicomRtImportModuleLogic();
@@ -97,12 +104,20 @@ protected:
   /// Insert currently loaded series in the proper place in patient hierarchy
   void InsertSeriesInPatientHierarchy(vtkSlicerDicomRtReader* rtReader);
 
+  /// Creates default dose color table.
+  /// Should not be called, except when updating the default dose color table file manually, or when the file cannot be found (\sa LoadDefaultDoseColorTable)
+  void CreateDefaultDoseColorTable();
+
 private:
   vtkSlicerDicomRtImportModuleLogic(const vtkSlicerDicomRtImportModuleLogic&); // Not implemented
   void operator=(const vtkSlicerDicomRtImportModuleLogic&);              // Not implemented
 
 private:
+  /// Volumes logic instance
   vtkSlicerVolumesLogic* VolumesLogic;
+
+  /// Isodose logic instance
+  vtkSlicerIsodoseModuleLogic* IsodoseLogic;
 
   /// Flag indicating whether opacity values for the loaded contours are automatically determined
   bool AutoContourOpacity;
@@ -111,6 +126,9 @@ private:
   /// These nodes are used in function \sa PerformPostLoadSteps for creating connections between these
   /// nodes and to set up display for the loaded data
   std::vector<vtkMRMLHierarchyNode*> LoadedSeriesPatientHierarchyNodes;
+
+  /// Default dose color table ID. Loaded on Slicer startup.
+  char* DefaultDoseColorTableNodeId;
 };
 
 #endif

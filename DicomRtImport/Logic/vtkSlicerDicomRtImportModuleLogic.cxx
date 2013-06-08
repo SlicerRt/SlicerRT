@@ -27,6 +27,11 @@ limitations under the License.
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 #include "vtkSlicerBeamsModuleLogic.h"
 #include "vtkMRMLBeamsNode.h"
+#include "vtkSlicerIsodoseModuleLogic.h"
+#include "vtkMRMLIsodoseNode.h"
+
+// Slicer Logic includes
+#include "vtkSlicerVolumesLogic.h"
 
 // DCMTK includes
 #include <dcmtk/dcmdata/dcfilefo.h>
@@ -54,34 +59,40 @@ limitations under the License.
 #include <vtkMRMLAnnotationTextDisplayNode.h>
 
 // VTK includes
+#include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkImageData.h>
-#include <vtkSmartPointer.h>
+#include <vtkLookupTable.h>
 #include <vtkImageCast.h>
 #include <vtkStringArray.h>
-#include <vtkLookupTable.h>
 
 // STD includes
 #include <cassert>
+#include <map>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtImportModuleLogic);
 vtkCxxSetObjectMacro(vtkSlicerDicomRtImportModuleLogic, VolumesLogic, vtkSlicerVolumesLogic);
+vtkCxxSetObjectMacro(vtkSlicerDicomRtImportModuleLogic, IsodoseLogic, vtkSlicerIsodoseModuleLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportModuleLogic::vtkSlicerDicomRtImportModuleLogic()
 {
   this->VolumesLogic = NULL;
+  this->IsodoseLogic = NULL;
   this->LoadedSeriesPatientHierarchyNodes.clear();
 
   this->AutoContourOpacityOn();
+  this->DefaultDoseColorTableNodeId = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportModuleLogic::~vtkSlicerDicomRtImportModuleLogic()
 {
-  this->SetVolumesLogic(NULL); // release the volumes logic object
+  this->SetVolumesLogic(NULL); // Release the volumes logic object
+  this->SetIsodoseLogic(NULL); // Release the isodose logic object
   this->LoadedSeriesPatientHierarchyNodes.clear();
+  this->SetDefaultDoseColorTableNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -580,11 +591,56 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
 
     volumeNode->SetAndObserveImageData(floatVolumeData);      
 
-    // Set default colormap to rainbow
+    // Create dose color table from default isodose color table
+    if (!this->DefaultDoseColorTableNodeId)
+    {
+      this->CreateDefaultDoseColorTable();
+      if (!this->DefaultDoseColorTableNodeId)
+      {
+        this->SetDefaultDoseColorTableNodeId("vtkMRMLColorTableNodeRainbow");
+      }
+    }
+
+    // Create isodose parameter set node and set color table to default
+    std::string isodoseParameterSetNodeName;
+    isodoseParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
+      SlicerRtCommon::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX + volumeNodeName );
+    vtkSmartPointer<vtkMRMLIsodoseNode> isodoseParameterSetNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
+    isodoseParameterSetNode->SetName(isodoseParameterSetNodeName.c_str());
+    isodoseParameterSetNode->SetAndObserveDoseVolumeNodeId(volumeNode->GetID());
+    if (this->IsodoseLogic)
+    {
+      isodoseParameterSetNode->SetAndObserveColorTableNodeId(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId());
+    }
+    this->GetMRMLScene()->AddNode(isodoseParameterSetNode);
+
+    //TODO: Generate isodose surfaces if chosen so by the user in the hanging protocol options
+
+    // Set default colormap to the loaded one if found or generated, or to rainbow otherwise
     vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> volumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-    volumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    volumeDisplayNode->SetAndObserveColorNodeID(this->DefaultDoseColorTableNodeId);
     this->GetMRMLScene()->AddNode(volumeDisplayNode);
     volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
+
+    // Set window/level to match the isodose levels
+    if (this->IsodoseLogic)
+    {
+      vtkMRMLColorTableNode* defaultIsodoseColorTable = vtkMRMLColorTableNode::SafeDownCast(
+        this->GetMRMLScene()->GetNodeByID(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId()) );
+      
+      std::stringstream ssMin;
+      ssMin << defaultIsodoseColorTable->GetColorName(0);;
+      int minDoseInDefaultIsodoseLevels;
+      ssMin >> minDoseInDefaultIsodoseLevels;
+
+      std::stringstream ssMax;
+      ssMax << defaultIsodoseColorTable->GetColorName( defaultIsodoseColorTable->GetNumberOfColors()-1 );;
+      int maxDoseInDefaultIsodoseLevels;
+      ssMax >> maxDoseInDefaultIsodoseLevels;
+
+      volumeDisplayNode->AutoWindowLevelOff();
+      volumeDisplayNode->SetWindowLevelMinMax(minDoseInDefaultIsodoseLevels, maxDoseInDefaultIsodoseLevels);
+    }
 
     // Set display threshold
     double doseUnitScaling = 0.0;
@@ -1011,4 +1067,36 @@ void vtkSlicerDicomRtImportModuleLogic::PerformPostLoadSteps()
 
   // Clear the loaded series list so that it only contains the new ones on the next load session
   this->LoadedSeriesPatientHierarchyNodes.clear();
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerDicomRtImportModuleLogic::CreateDefaultDoseColorTable()
+{
+  if (!this->GetMRMLScene() || !this->IsodoseLogic)
+  {
+    vtkErrorMacro("CreateDefaultDoseColorTable: No scene or Isodose logic present!");
+    return;
+  }
+
+  vtkMRMLColorTableNode* defaultIsodoseColorTable = vtkMRMLColorTableNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId()) );
+  if (!defaultIsodoseColorTable)
+  {
+    vtkErrorMacro("CreateDefaultDoseColorTable: Invalid default isodose color table found in isodose logic!");
+    return;
+  }
+
+  vtkSmartPointer<vtkMRMLColorTableNode> defaultDoseColorTable = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+  std::string nodeName = this->GetMRMLScene()->GenerateUniqueName(SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME);
+  defaultDoseColorTable->SetName(nodeName.c_str());
+  defaultDoseColorTable->SetTypeToUser();
+  defaultDoseColorTable->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+  defaultDoseColorTable->HideFromEditorsOff();
+  defaultDoseColorTable->SaveWithSceneOff();
+  defaultDoseColorTable->SetNumberOfColors(256);
+
+  SlicerRtCommon::StretchDiscreteColorTable(defaultIsodoseColorTable, defaultDoseColorTable);
+
+  this->GetMRMLScene()->AddNode(defaultDoseColorTable);
+  this->SetDefaultDoseColorTableNodeId(defaultDoseColorTable->GetID());
 }

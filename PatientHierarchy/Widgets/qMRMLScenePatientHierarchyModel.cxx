@@ -181,7 +181,6 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
   vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(node);
   if (!hierarchyNode || !SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode))
   {
-    vtkErrorWithObjectMacro(this->mrmlScene(),"qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Invalid node in patient hierarchy tree! Nodes must all be patient hierarchy nodes.");
     return;
   }
   vtkMRMLNode* associatedNode = hierarchyNode->GetAssociatedNode();

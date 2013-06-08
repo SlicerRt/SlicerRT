@@ -26,6 +26,7 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
@@ -37,6 +38,10 @@
 #include <vtkMRMLColorNode.h>
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLTransformNode.h>
+
+// MRMLLogic includes
+#include "vtkMRMLColorLogic.h"
+#include "vtkMRMLApplicationLogic.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -54,6 +59,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 #include <vtkTransformPolyDataFilter.h>
+#include "vtksys/SystemTools.hxx"
 
 // STD includes
 #include <cassert>
@@ -65,12 +71,14 @@ vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 vtkSlicerIsodoseModuleLogic::vtkSlicerIsodoseModuleLogic()
 {
   this->IsodoseNode = NULL;
+  this->DefaultIsodoseColorTableNodeId = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerIsodoseModuleLogic::~vtkSlicerIsodoseModuleLogic()
 {
   vtkSetAndObserveMRMLNodeMacro(this->IsodoseNode, NULL);
+  this->SetDefaultIsodoseColorTableNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -112,6 +120,21 @@ void vtkSlicerIsodoseModuleLogic::RegisterNodes()
 void vtkSlicerIsodoseModuleLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
+
+  // Load default isodose color table
+  this->LoadDefaultIsodoseColorTable();
+
+  this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerIsodoseModuleLogic::OnMRMLSceneEndClose()
+{
+  assert(this->GetMRMLScene() != 0);
+
+  // Load default isodose color table
+  this->LoadDefaultIsodoseColorTable();
+
   this->Modified();
 }
 
@@ -169,12 +192,6 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneEndImport()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic::OnMRMLSceneEndClose()
-{
-  this->Modified();
-}
-
-//---------------------------------------------------------------------------
 bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
 {
   if (!this->GetMRMLScene() || !this->IsodoseNode)
@@ -186,50 +203,15 @@ bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
   return SlicerRtCommon::IsDoseVolumeNode(doseVolumeNode);
 }
 
-//----------------------------------------------------------------------------
-const char *vtkSlicerIsodoseModuleLogic::GetDefaultLabelMapColorTableNodeId()
-{
-  if (this->IsodoseNode->GetColorTableNodeId() == NULL)
-  {
-    this->AddDefaultIsodoseColorNode();
-  }
-
-  //this->colorTableNodeID = temp;
-  return this->IsodoseNode->GetColorTableNodeId();
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic::AddDefaultIsodoseColorNode()
-{
-  if (this->GetMRMLScene() == NULL)
-  {
-    vtkWarningMacro("AddDefaultIsodoseColorNode: no scene to which to add nodes\n");
-    return;
-  }
-  
-  // add a random procedural node that covers full integer range
-  vtkMRMLColorTableNode* isodoseColorNode = this->CreateIsodoseColorNode();
-  this->GetMRMLScene()->AddNode(isodoseColorNode);
-
-  char* isodoseColorNodeId = isodoseColorNode->GetID();
-  this->IsodoseNode->SetAndObserveColorTableNodeId(isodoseColorNodeId);
-
-  isodoseColorNode->Delete();
-
-  vtkDebugMacro("Done adding default color nodes");
-}
-
-
 //------------------------------------------------------------------------------
-vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode()
+void vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable()
 {
-  vtkDebugMacro("vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode: making a default mrml colortable node");
-  vtkMRMLColorTableNode *colorTableNode = vtkMRMLColorTableNode::New();
-  std::string nodeName = std::string(this->IsodoseNode->GetName()) + SlicerRtCommon::ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX;
+  vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+  std::string nodeName = vtksys::SystemTools::GetFilenameWithoutExtension(SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME);
   nodeName = this->GetMRMLScene()->GenerateUniqueName(nodeName);
   colorTableNode->SetName(nodeName.c_str());
   colorTableNode->SetTypeToUser();
-  colorTableNode->SetAttribute("Category", "User Generated");
+  colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
   colorTableNode->HideFromEditorsOff();
   colorTableNode->SaveWithSceneOff();
   colorTableNode->SetNumberOfColors(6);
@@ -241,15 +223,16 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateIsodoseColorNode()
   colorTableNode->AddColor("25", 1, 0.33, 0, 0.2);
   colorTableNode->AddColor("30", 1, 0, 0, 0.2);
   
-  return colorTableNode;
+  this->GetMRMLScene()->AddNode(colorTableNode);
+  this->SetDefaultIsodoseColorTableNodeId(colorTableNode->GetID());
 }
 
 //------------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int number)
 {
-  if (this->IsodoseNode->GetColorTableNodeId() == NULL)
+  if (!this->IsodoseNode->GetColorTableNodeId() || number < 1)
   {
-    return ;
+    return;
   }
   vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
@@ -264,53 +247,66 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int number)
 }
 
 //---------------------------------------------------------------------------
-int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
+void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
 {
+  if (!this->GetMRMLScene() || !this->IsodoseNode)
+  {
+    vtkErrorMacro("CreateIsodoseSurfaces: Invalid scene or parameter set node!");
+    return;
+  }
+
   double origin[3] = {0, 0, 0};
   double spacing[3] = {1, 1, 1};
   int dimensions[3] = {0, 0, 0};
 
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
-  // Make sure inputs are initialized
-  if (!this->GetMRMLScene() || !this->IsodoseNode || !doseVolumeNode)
+  if (!doseVolumeNode)
   {
-    vtkErrorMacro("Isodose: inputs are not initialized!");
-    return -1;
+    vtkErrorMacro("CreateIsodoseSurfaces: Invalid dose volume!");
+    return;
   }
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
+  // Get patient hierarchy node for the dose volume
+  vtkMRMLHierarchyNode* doseVolumePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(
+    this->GetMRMLScene(), doseVolumeNode->GetID());
+  if (!doseVolumePatientHierarchyNode)
+  {
+    vtkErrorMacro("CreateIsodoseSurfaces: Failed to get patient hierarchy node for dose volume '" << doseVolumeNode->GetName() << "'");
+  }
+
   // Hierarchy node for the loaded structure sets
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkMRMLModelHierarchyNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(
-    this->GetIsodoseNode()->GetOutputHierarchyNodeId()));
+    this->GetIsodoseNode()->GetIsodoseSurfaceModelsParentHierarchyNodeId()));
 
-  // Create root node, if it has not been created yet
-  if (modelHierarchyRootNode.GetPointer()==NULL)
+  modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  modelHierarchyRootNode->AllowMultipleChildrenOn();
+  modelHierarchyRootNode->HideFromEditorsOff();
+  std::string hierarchyNodeName = std::string(doseVolumeNode->GetName()) + SlicerRtCommon::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX
+    + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
+  hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
+  modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+  modelHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+    SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  modelHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+    vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+  if (doseVolumePatientHierarchyNode)
   {
-    modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    modelHierarchyRootNode->AllowMultipleChildrenOn();
-    modelHierarchyRootNode->HideFromEditorsOff();
-    std::string hierarchyNodeName = std::string(this->IsodoseNode->GetName()) + "_" + std::string(doseVolumeNode->GetName());
-    hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
-    modelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
-    this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
-
-    // A hierarchy node needs a display node
-    vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-    hierarchyNodeName.append("Display");
-    modelDisplayNode->SetName(hierarchyNodeName.c_str());
-    modelDisplayNode->SetVisibility(1);
-    this->GetMRMLScene()->AddNode(modelDisplayNode);
-    modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
+    modelHierarchyRootNode->SetParentNodeID(doseVolumePatientHierarchyNode->GetID());
   }
+  this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
 
-  if (modelHierarchyRootNode->GetChildrenNodes().size() > 0)
-  {
-    modelHierarchyRootNode->RemoveAllChildrenNodes();
-  }
+  // A hierarchy node needs a display node
+  vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  hierarchyNodeName.append("Display");
+  modelDisplayNode->SetName(hierarchyNodeName.c_str());
+  modelDisplayNode->SetVisibility(1);
+  this->GetMRMLScene()->AddNode(modelDisplayNode);
+  modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
 
-  vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
+  vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
   vtkSmartPointer<vtkLookupTable> lookupTable = colorTableNode->GetLookupTable();
   
@@ -418,7 +414,7 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
       displayNode->SetBackfaceCulling(0);
 
       const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
-      if (doseUnitName == NULL)
+      if (!doseUnitName)
       {
         doseUnitName = "";
       }
@@ -433,21 +429,57 @@ int vtkSlicerIsodoseModuleLogic::ComputeIsodose()
       modelNode->SetHideFromEditors(0);
       modelNode->SetSelectable(1);
 
-      // Add new node to the hierarchy node
-      if (modelNode)
-      {
-        // put the new node in the hierarchy
-        vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-        this->GetMRMLScene()->AddNode(modelHierarchyNode);
-        modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
-        modelHierarchyNode->SetModelNodeID( modelNode->GetID() );
-      }
+      // Put the new node in the hierarchy
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      this->GetMRMLScene()->AddNode(modelHierarchyNode);
+      std::string modelHierarchyNodeName = std::string(isodoseModelNodeName) + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
+      modelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
+      modelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
+      modelHierarchyNode->SetModelNodeID( modelNode->GetID() );
+      modelHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+        SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+      modelHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
     }
   }
 
-  this->IsodoseNode->SetAndObserveOutputHierarchyNodeId(modelHierarchyRootNode->GetID());
+  this->IsodoseNode->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(modelHierarchyRootNode->GetID());
     
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
+}
 
-  return 0;
+//---------------------------------------------------------------------------
+void vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable()
+{
+  // Load default color table file
+  std::string moduleShareDirectory = this->GetModuleShareDirectory();
+  std::string colorTableFilePath = moduleShareDirectory + "/" + SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
+  vtkMRMLColorTableNode* colorTableNode = NULL;
+  if (vtksys::SystemTools::FileExists(colorTableFilePath.c_str()) && this->GetMRMLApplicationLogic() && this->GetMRMLApplicationLogic()->GetColorLogic())
+  {
+    vtkMRMLColorNode* loadedColorNode = this->GetMRMLApplicationLogic()->GetColorLogic()->LoadColorFile( colorTableFilePath.c_str(),
+      vtksys::SystemTools::GetFilenameWithoutExtension(SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME).c_str() );
+    colorTableNode = vtkMRMLColorTableNode::SafeDownCast(loadedColorNode);
+  }
+  else
+  {
+    if (!moduleShareDirectory.empty())
+    {
+      // Only log warning if the application exists (no warning when running automatic tests)
+      vtkWarningMacro("LoadDefaultIsodoseColorTable: Default isodose color table file '" << colorTableFilePath << "' cannot be found!");
+    }
+    // If file is not found, then create it programatically
+    this->CreateDefaultIsodoseColorTable();
+    colorTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->DefaultIsodoseColorTableNodeId));
+  }
+
+  if (colorTableNode)
+  {
+    colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+    this->SetDefaultIsodoseColorTableNodeId(colorTableNode->GetID());
+  }
+  else
+  {
+    vtkErrorMacro("LoadDefaultIsodoseColorTable: Failed to load or create default isodose color table!");
+  }
 }
