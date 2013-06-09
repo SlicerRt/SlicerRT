@@ -103,6 +103,9 @@ void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
+
+  // Load default isodose color table
+  this->LoadDefaultIsodoseColorTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -120,9 +123,6 @@ void vtkSlicerIsodoseModuleLogic::RegisterNodes()
 void vtkSlicerIsodoseModuleLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
-
-  // Load default isodose color table
-  this->LoadDefaultIsodoseColorTable();
 
   this->Modified();
 }

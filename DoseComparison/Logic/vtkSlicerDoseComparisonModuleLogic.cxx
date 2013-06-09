@@ -97,6 +97,9 @@ void vtkSlicerDoseComparisonModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * new
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
+
+  // Load default gamma color table
+  this->LoadDefaultGammaColorTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -114,9 +117,6 @@ void vtkSlicerDoseComparisonModuleLogic::RegisterNodes()
 void vtkSlicerDoseComparisonModuleLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
-
-  // Load default gamma color table
-  this->LoadDefaultGammaColorTable();
 
   this->Modified();
 }

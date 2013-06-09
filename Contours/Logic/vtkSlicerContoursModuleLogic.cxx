@@ -72,6 +72,9 @@ void vtkSlicerContoursModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
+
+  // Create default structure set node
+  this->CreateDefaultStructureSetNode();
 }
 
 //-----------------------------------------------------------------------------
@@ -90,7 +93,6 @@ void vtkSlicerContoursModuleLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 
-  this->CreateDefaultStructureSetNode();
   this->Modified();
 }
 
