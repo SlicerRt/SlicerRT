@@ -2061,7 +2061,7 @@ p, li { white-space: pre-wrap; }
       </size>
      </property>
      <property name="text">
-      <string>Visualize</string>
+      <string>Apply</string>
      </property>
     </widget>
    </item>
