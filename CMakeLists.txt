@@ -88,6 +88,8 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 
   add_subdirectory(ProtonBeams)
   add_subdirectory(ProtonDose)
+  
+  add_subdirectory(VffFileReader)
 endif()
 
 if(BUILD_TESTING)
