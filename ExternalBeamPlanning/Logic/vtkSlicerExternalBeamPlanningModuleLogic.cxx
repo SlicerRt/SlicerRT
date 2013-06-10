@@ -32,6 +32,7 @@
 #include "SlicerRtCommon.h"
 
 // Plastimatch includes
+#include "itk_image_save.h"
 #include "rpl_volume.h"
 #include "proton_beam.h"
 #include "proton_scene.h"
@@ -380,6 +381,60 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
   this->Modified();
 }
 
+ //---------------------------------------------------------------------------
+template<class T> 
+static void 
+itk_rectify_volume_hack (T image)
+{
+  typename T::ObjectType::RegionType rg = image->GetLargestPossibleRegion ();
+  typename T::ObjectType::PointType og = image->GetOrigin();
+  typename T::ObjectType::SpacingType sp = image->GetSpacing();
+  typename T::ObjectType::SizeType sz = rg.GetSize();
+  typename T::ObjectType::DirectionType dc = image->GetDirection();
+
+  og[0] = og[0] - (sz[0] - 1) * sp[0];
+  og[1] = og[1] - (sz[1] - 1) * sp[1];
+  dc[0][0] = 1.;
+  dc[1][1] = 1.;
+
+  image->SetOrigin(og);
+  image->SetDirection(dc);
+}
+
+//---------------------------------------------------------------------------
+template<class T>
+static vtkSmartPointer<vtkImageData> 
+itk_to_vtk (T itkImage, int vtkType)
+{
+  typedef typename T::ObjectType::InternalPixelType TPixel;
+  typename T::ObjectType::SizeType imageSize = 
+    itkImage->GetBufferedRegion().GetSize();
+  int extent[6]={0, (int) imageSize[0]-1, 
+                 0, (int) imageSize[1]-1, 
+                 0, (int) imageSize[2]-1};
+
+  vtkSmartPointer<vtkImageData> vtkVolume 
+    = vtkSmartPointer<vtkImageData>::New();
+  vtkVolume->SetExtent(extent);
+  vtkVolume->SetScalarType(vtkType);
+  vtkVolume->SetNumberOfScalarComponents(1);
+  vtkVolume->AllocateScalars();
+
+  TPixel* pixPtr = (TPixel*) vtkVolume->GetScalarPointer();
+
+  itk::ImageRegionIteratorWithIndex< itk::Image<TPixel, 3> > 
+    itPix (itkImage, 
+           itkImage->GetLargestPossibleRegion());
+  for (itPix.GoToBegin(); !itPix.IsAtEnd(); ++itPix)
+  {
+    typename itk::Image<TPixel, 3>::IndexType i = itPix.GetIndex();
+    (*pixPtr) = itkImage->GetPixel(i);
+    pixPtr++;
+  }
+
+  return vtkVolume;
+}
+
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 {
@@ -391,55 +446,72 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   // Convert input images to ITK format for Plastimatch
   vtkMRMLVolumeNode* referenceVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
-  itk::Image<float, 3>::Pointer referenceVolumeItk = itk::Image<float, 3>::New();
+  itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
 
   vtkMRMLContourNode* targetContourNode = vtkMRMLContourNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetProtonTargetVolumeNodeID()));
   vtkMRMLScalarVolumeNode* targetVolumeNode = targetContourNode->GetIndexedLabelmapVolumeNode();
   itk::Image<unsigned char, 3>::Pointer targetVolumeItk = itk::Image<unsigned char, 3>::New();
 
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(referenceVolumeNode, referenceVolumeItk);
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<short>(referenceVolumeNode, referenceVolumeItk);
   SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(targetVolumeNode, targetVolumeItk);
 
-  // Assign inputs to dose calc logic
+  // Ray tracing code expects identity direction cosines.  This is a hack.
+  itk_rectify_volume_hack (referenceVolumeItk);
+  itk_rectify_volume_hack (targetVolumeItk);
+
   Proton_scene scene;
-  scene.set_patient (referenceVolumeItk);
 
-  float src[3] = { -2000, 0, 0 };
-  float isocenter[3] = { 0, 0, 0 };
-  scene.beam->set_source_position (src);
-  scene.beam->set_isocenter_position (isocenter);
+  try {
+    // Assign inputs to dose calc logic
+    printf ("Setting reference volume\n");
+    scene.set_patient (referenceVolumeItk);
+    printf ("Setting target volume\n");
+    scene.set_target (targetVolumeItk);
+    printf ("Done.\n");
 
-  int ap_dim[2] = { 10, 10 };
-  float ap_offset = -1500;
-  float ap_spacing[2] = { 1, 1 };
-  scene.get_aperture()->set_dim (ap_dim);
-  scene.get_aperture()->set_distance (ap_offset);
-  scene.get_aperture()->set_spacing (ap_spacing);
+    float src[3] = { -2000, 0, 0 };
+    float isocenter[3] = { 0, 0, 0 };
+    scene.beam->set_source_position (src);
+    scene.beam->set_isocenter_position (isocenter);
 
-  scene.set_step_length (1);
-  if (!scene.init ()) {
-    /* Failure.  How to notify the user?? */
-    std::cerr << "Sorry, scene.init() failed.\n";
+    float ap_offset = 1500;
+    int ap_dim[2] = { 20, 20 };
+    float ap_spacing[2] = { 2, 2 };
+    scene.get_aperture()->set_dim (ap_dim);
+    scene.get_aperture()->set_distance (ap_offset);
+    scene.get_aperture()->set_spacing (ap_spacing);
+
+    scene.set_step_length (1);
+    if (!scene.init ()) {
+      /* Failure.  How to notify the user?? */
+      std::cerr << "Sorry, scene.init() failed.\n";
+      return;
+    }
+
+    /* A little warm fuzzy for the developers */
+    scene.debug ();
+    printf ("Working...\n");
+    fflush(stdout);
+
+    /* Compute the aperture and range compensator */
+    vtkWarningMacro ("Computing beam modifier\n");
+    scene.compute_beam_modifiers ();
+    vtkWarningMacro ("Computing beam modifier done!\n");
+
+  } catch (std::exception& ex) {
+    vtkWarningMacro ("Plastimatch exception: " << ex.what());
     return;
   }
 
-  /* A little warm fuzzy for the developers */
-  scene.debug ();
-  printf ("Working...\n");
-  fflush(stdout);
-
-  /* Compute the aperture and range compensator */
-  Rpl_volume* rpl_vol = scene.rpl_vol;
-  rpl_vol->compute_segdepth_volume (scene.get_patient_vol(), 0);
-
-  /* Get aperture and range compensator as itk images */
-#if defined (commentout)
+  /* Get aperture as itk image */
+  Rpl_volume *rpl_vol = scene.rpl_vol;
   Plm_image::Pointer& ap 
     = rpl_vol->get_aperture()->get_aperture_image();
   itk::Image<unsigned char, 3>::Pointer apertureVolumeItk 
     = ap->itk_uchar();
-#endif
+
+  /* Get range compensator as itk image */
   Plm_image::Pointer& rc 
     = rpl_vol->get_aperture()->get_range_compensator_image();
   itk::Image<float, 3>::Pointer rangeCompensatorVolumeItk 
@@ -447,24 +519,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 
   /* Convert range compensator image to vtk */
   vtkSmartPointer<vtkImageData> rangeCompensatorVolume 
-    = vtkSmartPointer<vtkImageData>::New();
-  itk::Image<float, 3>::RegionType region = rangeCompensatorVolumeItk->GetBufferedRegion();
-  itk::Image<float, 3>::SizeType imageSize = region.GetSize();
-  int extent[6]={0, (int) imageSize[0]-1, 0, (int) imageSize[1]-1, 0, (int) imageSize[2]-1};
-  rangeCompensatorVolume->SetExtent(extent);
-  rangeCompensatorVolume->SetScalarType(VTK_FLOAT);
-  rangeCompensatorVolume->SetNumberOfScalarComponents(1);
-  rangeCompensatorVolume->AllocateScalars();
-
-  float* rangeCompensatorPtr = (float*)rangeCompensatorVolume->GetScalarPointer();
-  itk::ImageRegionIteratorWithIndex< itk::Image<float, 3> > itRangeCompensatorItk(
-    rangeCompensatorVolumeItk, rangeCompensatorVolumeItk->GetLargestPossibleRegion() );
-  for (itRangeCompensatorItk.GoToBegin(); !itRangeCompensatorItk.IsAtEnd(); ++itRangeCompensatorItk)
-  {
-    itk::Image<float, 3>::IndexType i = itRangeCompensatorItk.GetIndex();
-    (*rangeCompensatorPtr) = rangeCompensatorVolumeItk->GetPixel(i);
-    rangeCompensatorPtr++;
-  }
+    = itk_to_vtk (rangeCompensatorVolumeItk, VTK_FLOAT);
 
   /* Create the MRML node for the volume */
   vtkSmartPointer<vtkMRMLScalarVolumeNode> volumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
@@ -484,4 +539,27 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 
   volumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(volumeNode);
+
+  /* Convert aperture image to vtk */
+  vtkSmartPointer<vtkImageData> apertureVolume 
+    = itk_to_vtk (apertureVolumeItk, VTK_UNSIGNED_CHAR);
+
+  /* Create the MRML node for the volume */
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+
+  apertureVolumeNode->SetAndObserveImageData (apertureVolume);
+  apertureVolumeNode->SetSpacing (
+    apertureVolumeItk->GetSpacing()[0],
+    apertureVolumeItk->GetSpacing()[1],
+    apertureVolumeItk->GetSpacing()[2]);
+  apertureVolumeNode->SetOrigin (
+    apertureVolumeItk->GetOrigin()[0],
+    apertureVolumeItk->GetOrigin()[1],
+    apertureVolumeItk->GetOrigin()[2]);
+
+  std::string apertureVolumeNodeName = this->GetMRMLScene()->GenerateUniqueName(std::string ("aperture_"));
+  apertureVolumeNode->SetName(apertureVolumeNodeName.c_str());
+
+  apertureVolumeNode->SetScene(this->GetMRMLScene());
+  this->GetMRMLScene()->AddNode(apertureVolumeNode);
 }
