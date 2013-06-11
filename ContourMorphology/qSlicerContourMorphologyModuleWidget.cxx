@@ -175,7 +175,7 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
   vtkMRMLContourMorphologyNode::ContourMorphologyOperationType operation = paramNode->GetOperation();
   switch (operation)
   {
-  case vtkMRMLContourMorphologyNode::Expand:
+    case vtkMRMLContourMorphologyNode::Expand:
       d->radioButton_Expand->setChecked(true);
       d->radioButton_Shrink->setChecked(false);
       d->radioButton_Union->setChecked(false);
@@ -239,6 +239,9 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
       d->doubleSpinBox_XSize->setEnabled(false);
       d->doubleSpinBox_YSize->setEnabled(false);
       d->doubleSpinBox_ZSize->setEnabled(false);
+      break;
+    default:
+      vtkErrorWithObjectMacro(this->mrmlScene(), "updateWidgetFromMRML: Invalid morphology operation!");
       break;
   }
 

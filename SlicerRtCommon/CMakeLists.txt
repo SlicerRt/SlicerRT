@@ -20,7 +20,8 @@ SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${Slicer_Libs_INCLU
 
 set(lib_name ${PROJECT_NAME})
 SET (SlicerRtCommon_LIBS ${SlicerRtCommon_LIBS}
-	vtkCommon
+  vtkCommon
+  vtkFiltering
   )
 
 INCLUDE_DIRECTORIES( ${SlicerRtCommon_INCLUDE_DIRS} )
