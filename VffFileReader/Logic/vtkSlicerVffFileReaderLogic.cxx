@@ -25,6 +25,8 @@
 #include <vtkImageData.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
+#include <vtkSlicerApplicationLogic.h>
+#include <vtkMRMLSelectionNode.h>
 
 // STD includes
 #include <vector>
@@ -32,6 +34,7 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerVffFileReaderLogic);
@@ -695,13 +698,23 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
       vffVolumeNode->SetAndObserveImageData(floatVffVolumeData);
       vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> vffVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
       this->GetMRMLScene()->AddNode(vffVolumeDisplayNode);
+
+      if (this->GetApplicationLogic()!=NULL)
+      {
+        if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
+        {
+          this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(vffVolumeNode->GetID());
+          this->GetApplicationLogic()->PropagateVolumeSelection();
+          this->GetApplicationLogic()->FitSliceToAll();
+        }
+      }
+
       if (bands == 1)
       {
         vffVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
       }
       vffVolumeNode->SetAndObserveDisplayNodeID(vffVolumeDisplayNode->GetID());
       
-
     }
 
     else
@@ -717,3 +730,4 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
     
   readFileStream.close();
 }
+
