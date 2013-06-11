@@ -290,7 +290,7 @@ void SlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscr
   double transferFunctionPosition = 0.0;
   for (int colorIndex=0; colorIndex<numberOfIsodoseColors; ++colorIndex, transferFunctionPosition+=step)
   {
-    double color[4];
+    double color[4] = {0.0, 0.0, 0.0, 0.0};
     inputDiscreteColorTable->GetColor(colorIndex, color);
     colorTransferFunction->AddRGBPoint(transferFunctionPosition, color[0], color[1], color[2]);
   }
@@ -303,8 +303,8 @@ void SlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscr
   transferFunctionPosition = 0.0;
   for (int colorIndex=0; colorIndex<outputColorTable->GetNumberOfColors(); ++colorIndex, transferFunctionPosition+=step)
   {
-    double color[3];
+    double color[3] = {0.0, 0.0, 0.0};
     colorTransferFunction->GetColor(transferFunctionPosition, color);
-    outputColorTable->SetColor(colorIndex, color[0], color[1], color[2]);
+    outputColorTable->SetColor(colorIndex, color[0], color[1], color[2], 1.0);
   }
 }

@@ -47,7 +47,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Set number of isodose levels
-  void SetNumberOfIsodoseLevels(int number);
+  void SetNumberOfIsodoseLevels(int newNumberOfColors);
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
   void CreateIsodoseSurfaces();

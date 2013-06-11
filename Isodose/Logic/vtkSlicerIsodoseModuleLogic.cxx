@@ -228,14 +228,16 @@ void vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable()
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int number)
+void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int newNumberOfColors)
 {
-  if (!this->IsodoseNode->GetColorTableNodeId() || number < 1)
+  if (!this->IsodoseNode->GetColorTableNodeId() || newNumberOfColors < 1)
   {
     return;
   }
   vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
+
+  // Set the default colors in case the number of colors was less than that in the default table
   colorTableNode->SetNumberOfColors(6);
   colorTableNode->SetColor(0, "5", 0, 1, 0, 0.2);
   colorTableNode->SetColor(1, "10", 0.5, 1, 0, 0.2);
@@ -243,7 +245,16 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int number)
   colorTableNode->SetColor(3, "20", 1, 0.66, 0, 0.2);
   colorTableNode->SetColor(4, "25", 1, 0.33, 0, 0.2);
   colorTableNode->SetColor(5, "30", 1, 0, 0, 0.2);
-  colorTableNode->SetNumberOfColors(number);
+
+  colorTableNode->SetNumberOfColors(newNumberOfColors);
+  colorTableNode->GetLookupTable()->SetTableRange(0, newNumberOfColors-1);
+  for (int colorIndex=6; colorIndex<newNumberOfColors; ++colorIndex)
+  {
+    colorTableNode->SetColor(colorIndex, SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1], SlicerRtCommon::COLOR_VALUE_INVALID[2], 0.2);
+  }
+
+  // Something messes up the category, it needs to be set back to SlicerRT
+  colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
 }
 
 //---------------------------------------------------------------------------
