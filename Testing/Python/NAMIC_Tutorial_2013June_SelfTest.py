@@ -93,7 +93,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     # reload and test button
     # (use this during development, but remove it when delivering
     #  your module to users)
-    self.reloadAndTestButton = qt.QPushButton("Reload and Test")
+    self.reloadAndTestButton = qt.QPushButton("Reload and Test All")
     self.reloadAndTestButton.toolTip = "Reload this module and then run the self tests."
     self.layout.addWidget(self.reloadAndTestButton)
     self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
@@ -200,21 +200,15 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     globals()[widgetName.lower()].setup()
 
   def onReloadAndTest(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
-    performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    self.deformableCheckbox.setChecked(performDeformableRegistration)
-    tester.performDeformableRegistration = performDeformableRegistration
     tester.runTest()
 
   def onLoadData(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
-    performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    self.deformableCheckbox.setChecked(performDeformableRegistration)
-    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp()
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
@@ -228,12 +222,9 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_02_AddDayDataToPatientHierarchy()
 
   def onGenerateIsodose(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
-    performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    self.deformableCheckbox.setChecked(performDeformableRegistration)
-    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
@@ -242,12 +233,9 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_03B_ShowIsodoseLineSets()
 
   def onRegister(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
-    performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    self.deformableCheckbox.setChecked(performDeformableRegistration)
-    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
@@ -255,12 +243,9 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_04_RegisterDay2CTToDay1CT()
 
   def onResample(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
-    performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    self.deformableCheckbox.setChecked(performDeformableRegistration)
-    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
@@ -269,12 +254,9 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_05B_AddResampledDoseVolumesToPatientHierarchy()
 
   def onComputeGamma(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
-    performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    self.deformableCheckbox.setChecked(performDeformableRegistration)
-    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
@@ -282,12 +264,9 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_06_ComputeGamma()
 
   def onAccumulateDose(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
-    performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    self.deformableCheckbox.setChecked(performDeformableRegistration)
-    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
@@ -295,12 +274,9 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_07_AccumulateDose()
 
   def onComputeDvh(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
-    performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
-    self.deformableCheckbox.setChecked(performDeformableRegistration)
-    tester.performDeformableRegistration = performDeformableRegistration
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
