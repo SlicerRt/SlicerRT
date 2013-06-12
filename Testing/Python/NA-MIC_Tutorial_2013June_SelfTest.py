@@ -3,34 +3,47 @@ import unittest
 from __main__ import vtk, qt, ctk, slicer
 
 #
-# NA-MIC_Tutorial_2013June_SelfTest
+# NAMIC_Tutorial_2013June_SelfTest
 #
-# Performed steps:
-# 1. Load planning DICOM-RT data and day 2 volumes
-# 2. Add day 2 volumes in Patient Hierarchy
-# 3. Compute isodose lines for both dose distributions
-#   3A. Show them one after the other using Patient Hierarchy
-# 4. Register day 2 CT to planning CT
-# 5. Resample day 2 dose volumes using the transform
-#   5A. Add the resampled dose to Patient Hierarchy
-# 6. Compute difference dose using gamma comparison for
-#   6A. Planning dose and unregistered day 2 dose
-#   6B. Planning dose and registered day 2 dose
-# 7. Accumulate
-#   7A. Planning dose and unregistered day 2 dose
-#   7B. Planning dose and registered day 2 dose
-# 8. DVH for accumulated registered and unregistered dose volumes
-#   for targets and some other structures
+# Steps:
+#
+# I. Evaluate isocenter shifting effect on the dose
+#   1. Load planning DICOM-RT data and day 2 volumes
+#   2. Add day 2 volumes in Patient Hierarchy
+#   3. Compute isodose lines for both dose distributions
+#     3A. Show them one after the other using Patient Hierarchy
+#   4. Register day 2 CT to planning CT using rigid registration
+#   5. Resample day 2 dose volumes using the transform
+#     5A. Add the resampled dose to Patient Hierarchy
+#   6. Compute difference dose using gamma comparison for
+#     6A. Planning dose and unregistered day 2 dose
+#     6B. Planning dose and registered day 2 dose
+#   7. Accumulate
+#     7A. Planning dose and unregistered day 2 dose
+#     7B. Planning dose and registered day 2 dose
+#   8. DVH for accumulated registered and unregistered dose volumes
+#     for targets and some other structures
+#
+# II. Evaluate deformable registration
+#   1. Load planning DICOM-RT data and day 2 structures
+#   2. Register day 2 CT to planning CT using deformable registration
+#   3. Visualize the result deformation field
+#   3. Resample day 2 structures using the result transform
+#   4. Compare the planning and the resampled contours
+#
+# III. Add margin to target structure
+#   1. Load planning DICOM-RT data
+#   2. Expand GTV structure
 #
 
-class NA-MIC_Tutorial_2013June_SelfTest:
+class NAMIC_Tutorial_2013June_SelfTest:
   def __init__(self, parent):
-    parent.title = "SlicerRT Demo RSNA2012 Self Test"
+    parent.title = "SlicerRT NA-MIC Tutorial 2013June Self Test"
     parent.categories = ["Testing.SlicerRT Tests"]
-    parent.dependencies = ["DicomRtImport", "PatientHierarchy", "Contours", "Isodose", "BRAINSFit", "BRAINSResample", "DoseComparison", "DoseAccumulation", "DoseVolumeHistogram"]
+    parent.dependencies = ["DicomRtImport", "PatientHierarchy", "Contours", "Isodose", "BRAINSFit", "BRAINSResample", "DoseComparison", "DoseAccumulation", "DoseVolumeHistogram", "DeformationFieldVisualizer", "ContourComparison", "ContourMorphology"]
     parent.contributors = ["Csaba Pinter (Queen's)"]
     parent.helpText = """
-    This is a self test that automatically runs the demo/tutorial prepared for the 2013 Summer NA-MIC week tutorial contest.
+    This is a self test that automatically runs the demo/tutorial prepared for the 2013 Summer NAMIC week tutorial contest.
     """
     parent.acknowledgementText = """This file was originally developed by Csaba Pinter, PerkLab, Queen's University and was supported through the Applied Cancer Research Unit program of Cancer Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care""" # replace with organization, grant and thanks.
     self.parent = parent
@@ -42,17 +55,17 @@ class NA-MIC_Tutorial_2013June_SelfTest:
       slicer.selfTests
     except AttributeError:
       slicer.selfTests = {}
-    slicer.selfTests['NA-MIC_Tutorial_2013June_SelfTest'] = self.runTest
+    slicer.selfTests['NAMIC_Tutorial_2013June_SelfTest'] = self.runTest
 
   def runTest(self):
-    tester = NA-MIC_Tutorial_2013June_SelfTestTest()
+    tester = NAMIC_Tutorial_2013June_SelfTestTest()
     tester.runTest()
 
 #
-# qNA-MIC_Tutorial_2013June_SelfTest_Widget
+# qNAMIC_Tutorial_2013June_SelfTest_Widget
 #
 
-class NA-MIC_Tutorial_2013June_SelfTestWidget:
+class NAMIC_Tutorial_2013June_SelfTestWidget:
   def __init__(self, parent = None):
     if not parent:
       self.parent = slicer.qMRMLWidget()
@@ -73,7 +86,7 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
     #  your module to users)
     self.reloadButton = qt.QPushButton("Reload")
     self.reloadButton.toolTip = "Reload this module."
-    self.reloadButton.name = "NA-MIC_Tutorial_2013June_SelfTest Reload"
+    self.reloadButton.name = "NAMIC_Tutorial_2013June_SelfTest Reload"
     self.layout.addWidget(self.reloadButton)
     self.reloadButton.connect('clicked()', self.onReload)
 
@@ -88,69 +101,66 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
     # Buttons to perform parts of the test
     self.layout.addStretch(1)
 
+    # Create groupbox for workflow I
+    self.workflow1Groupbox = qt.QGroupBox("Evaluate isocenter shifting")
+    self.workflow1GroupboxLayout = qt.QVBoxLayout()
+
     # Load data button
     self.loadDataButton = qt.QPushButton("Load data")
     self.loadDataButton.toolTip = "Download (if necessary), import and load input data."
-    self.loadDataButton.name = "NA-MIC_Tutorial_2013June_SelfTest_LoadData"
-    self.layout.addWidget(self.loadDataButton)
+    self.loadDataButton.name = "NAMIC_Tutorial_2013June_SelfTest_LoadData"
+    self.workflow1GroupboxLayout.addWidget(self.loadDataButton)
     self.loadDataButton.connect('clicked()', self.onLoadData)
 
     # Generate isodose button
     self.generateIsodoseButton = qt.QPushButton("Generate isodose")
     self.generateIsodoseButton.toolTip = "Generate isodose lines for both dose volumes"
-    self.generateIsodoseButton.name = "NA-MIC_Tutorial_2013June_SelfTest_LoadData"
-    self.layout.addWidget(self.generateIsodoseButton)
+    self.generateIsodoseButton.name = "NAMIC_Tutorial_2013June_SelfTest_LoadData"
+    self.workflow1GroupboxLayout.addWidget(self.generateIsodoseButton)
     self.generateIsodoseButton.connect('clicked()', self.onGenerateIsodose)
 
     # Register button and checkbox
-    self.registerLayout = qt.QHBoxLayout()
-
     self.registerButton = qt.QPushButton("Register")
     self.registerButton.toolTip = "Registers Day 2 CT to Day 1 CT. Data needs to be loaded!"
-    self.registerButton.name = "NA-MIC_Tutorial_2013June_SelfTest_Register"
-    self.registerLayout.addWidget(self.registerButton)
+    self.registerButton.name = "NAMIC_Tutorial_2013June_SelfTest_Register"
+    self.workflow1GroupboxLayout.addWidget(self.registerButton)
     self.registerButton.connect('clicked()', self.onRegister)
-
-    self.deformableCheckbox = qt.QCheckBox("Perform deformable registration")
-    self.deformableCheckbox.toolTip = "Perform deformable B-spline registration in addition to the default rigid one if checked"
-    self.deformableCheckbox.name = "NA-MIC_Tutorial_2013June_SelfTest_DeformableCheckbox"
-    self.registerLayout.addWidget(self.deformableCheckbox)
-    self.deformableCheckbox.setChecked(False)
-
-    self.layout.addLayout(self.registerLayout)
 
     # Resample button
     self.resampleButton = qt.QPushButton("Resample")
     self.resampleButton.toolTip = "Resamples Day 2 dose volume using the resulting transformations. All previous steps are needed to be run!"
-    self.resampleButton.name = "NA-MIC_Tutorial_2013June_SelfTest_Resample"
-    self.layout.addWidget(self.resampleButton)
+    self.resampleButton.name = "NAMIC_Tutorial_2013June_SelfTest_Resample"
+    self.workflow1GroupboxLayout.addWidget(self.resampleButton)
     self.resampleButton.connect('clicked()', self.onResample)
 
     # Compute gamma button
     self.computeGammaButton = qt.QPushButton("Compare dose distributions")
     self.computeGammaButton.toolTip = "Computes gamma dose difference for the two dose volumes."
-    self.computeGammaButton.name = "NA-MIC_Tutorial_2013June_SelfTest_ComputeDvh"
-    self.layout.addWidget(self.computeGammaButton)
+    self.computeGammaButton.name = "NAMIC_Tutorial_2013June_SelfTest_ComputeDvh"
+    self.workflow1GroupboxLayout.addWidget(self.computeGammaButton)
     self.computeGammaButton.connect('clicked()', self.onComputeGamma)
 
     # Accumulate dose button
     self.accumulateDoseButton = qt.QPushButton("Accumulate dose")
     self.accumulateDoseButton.toolTip = "Accumulates doses using all the Day 2 variants. All previous steps are needed to be run!"
-    self.accumulateDoseButton.name = "NA-MIC_Tutorial_2013June_SelfTest_AccumulateDose"
-    self.layout.addWidget(self.accumulateDoseButton)
+    self.accumulateDoseButton.name = "NAMIC_Tutorial_2013June_SelfTest_AccumulateDose"
+    self.workflow1GroupboxLayout.addWidget(self.accumulateDoseButton)
     self.accumulateDoseButton.connect('clicked()', self.onAccumulateDose)
     
     # Compute DVH button
     self.computeDvhButton = qt.QPushButton("Compute DVH")
     self.computeDvhButton.toolTip = "Computes DVH on the accumulated doses. All previous steps are needed to be run!"
-    self.computeDvhButton.name = "NA-MIC_Tutorial_2013June_SelfTest_ComputeDvh"
-    self.layout.addWidget(self.computeDvhButton)
+    self.computeDvhButton.name = "NAMIC_Tutorial_2013June_SelfTest_ComputeDvh"
+    self.workflow1GroupboxLayout.addWidget(self.computeDvhButton)
     self.computeDvhButton.connect('clicked()', self.onComputeDvh)
 
+    self.workflow1Groupbox.setLayout(self.workflow1GroupboxLayout)
+    self.layout.addWidget(self.workflow1Groupbox)
+    
     # Add vertical spacer
     self.layout.addStretch(4)
 
-  def onReload(self,moduleName="NA-MIC_Tutorial_2013June_SelfTest"):
+  def onReload(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     """Generic reload method for any scripted module.
     ModuleWizard will subsitute correct default moduleName.
     """
@@ -189,7 +199,7 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
         'globals()["%s"].%s(parent)' % (moduleName, widgetName))
     globals()[widgetName.lower()].setup()
 
-  def onReloadAndTest(self,moduleName="NA-MIC_Tutorial_2013June_SelfTest"):
+  def onReloadAndTest(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -198,7 +208,7 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
     tester.performDeformableRegistration = performDeformableRegistration
     tester.runTest()
 
-  def onLoadData(self,moduleName="NA-MIC_Tutorial_2013June_SelfTest"):
+  def onLoadData(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -208,16 +218,16 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
     tester.setUp()
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.TestSection_00_SetupPathsAndNames()
-    tester.TestSection_01A_OpenTempDatabase()
-    tester.TestSection_01B_DownloadDay1Data()
-    tester.TestSection_01C_ImportDay1Study()
-    tester.TestSection_01D_SelectLoadablesAndLoad()
-    tester.TestSection_01E_LoadDay2Data()
-    tester.TestSection_01F_SetDisplayOptions()
-    tester.TestSection_02_AddDayDataToPatientHierarchy()
+      tester.TestSection_I_00_SetupPathsAndNames()
+    tester.TestSection_I_01A_OpenTempDatabase()
+    tester.TestSection_I_01B_DownloadDay1Data()
+    tester.TestSection_I_01C_ImportDay1Study()
+    tester.TestSection_I_01D_SelectLoadablesAndLoad()
+    tester.TestSection_I_01E_LoadDay2Data()
+    tester.TestSection_I_01F_SetDisplayOptions()
+    tester.TestSection_I_02_AddDayDataToPatientHierarchy()
 
-  def onGenerateIsodose(self,moduleName="NA-MIC_Tutorial_2013June_SelfTest"):
+  def onGenerateIsodose(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -227,11 +237,11 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.TestSection_00_SetupPathsAndNames()
-    tester.TestSection_03A_ComputeIsodose()
-    tester.TestSection_03B_ShowIsodoseLineSets()
+      tester.TestSection_I_00_SetupPathsAndNames()
+    tester.TestSection_I_03A_ComputeIsodose()
+    tester.TestSection_I_03B_ShowIsodoseLineSets()
 
-  def onRegister(self,moduleName="NA-MIC_Tutorial_2013June_SelfTest"):
+  def onRegister(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -241,10 +251,10 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.TestSection_00_SetupPathsAndNames()
-    tester.TestSection_04_RegisterDay2CTToDay1CT()
+      tester.TestSection_I_00_SetupPathsAndNames()
+    tester.TestSection_I_04_RegisterDay2CTToDay1CT()
 
-  def onResample(self,moduleName="NA-MIC_Tutorial_2013June_SelfTest"):
+  def onResample(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -254,11 +264,11 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.TestSection_00_SetupPathsAndNames()
-    tester.TestSection_05A_ResampleDoseVolumes()
-    tester.TestSection_05B_AddResampledDoseVolumesToPatientHierarchy()
+      tester.TestSection_I_00_SetupPathsAndNames()
+    tester.TestSection_I_05A_ResampleDoseVolumes()
+    tester.TestSection_I_05B_AddResampledDoseVolumesToPatientHierarchy()
 
-  def onComputeGamma(self,moduleName="NA-MIC_Tutorial_2013June_SelfTest"):
+  def onComputeGamma(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -268,10 +278,10 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.TestSection_00_SetupPathsAndNames()
-    tester.TestSection_06_ComputeGamma()
+      tester.TestSection_I_00_SetupPathsAndNames()
+    tester.TestSection_I_06_ComputeGamma()
 
-  def onAccumulateDose(self,moduleName="NA-MIC_Tutorial_2013June_SelfTest"):
+  def onAccumulateDose(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -281,10 +291,10 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.TestSection_00_SetupPathsAndNames()
-    tester.TestSection_07_AccumulateDose()
+      tester.TestSection_I_00_SetupPathsAndNames()
+    tester.TestSection_I_07_AccumulateDose()
 
-  def onComputeDvh(self,moduleName="NA-MIC_Tutorial_2013June_SelfTest"):
+  def onComputeDvh(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     performDeformableRegistration = self.deformableCheckbox.checked
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -294,14 +304,14 @@ class NA-MIC_Tutorial_2013June_SelfTestWidget:
     tester.setUp(clearScene=False)
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
-      tester.TestSection_00_SetupPathsAndNames()
-    tester.TestSection_08_ComputeDvh()
+      tester.TestSection_I_00_SetupPathsAndNames()
+    tester.TestSection_I_08_ComputeDvh()
 
 #
-# NA-MIC_Tutorial_2013June_SelfTestLogic
+# NAMIC_Tutorial_2013June_SelfTestLogic
 #
 
-class NA-MIC_Tutorial_2013June_SelfTestLogic:
+class NAMIC_Tutorial_2013June_SelfTestLogic:
   """This class should implement all the actual 
   computation done by your module.  The interface 
   should be such that other python code can import
@@ -325,7 +335,7 @@ class NA-MIC_Tutorial_2013June_SelfTestLogic:
     return True
 
 
-class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
+class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   """
   This is the test case for your scripted module.
   """
@@ -361,12 +371,12 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     #TODO: Comment out
     #logFile = open('d:/pyTestLog.txt', 'w')
     #logFile.write(repr(slicer.modules.models) + '\n')
-    #logFile.write(repr(slicer.modules.NA-MIC_Tutorial_2013June_SelfTest) + '\n')
+    #logFile.write(repr(slicer.modules.NAMIC_Tutorial_2013June_SelfTest) + '\n')
     #logFile.write(repr(slicer.modules.dicomrtimport) + '\n')
     #logFile.write(repr(slicer.modules.models) + '\n')
     #logFile.close()
 
-    self.moduleName = "NA-MIC_Tutorial_2013June_SelfTest"
+    self.moduleName = "NAMIC_Tutorial_2013June_SelfTest"
 
   def clickAndDrag(self,widget,button='Left',start=(10,10),end=(10,40),steps=20,modifiers=[]):
     """Send synthetic mouse events to the specified widget (qMRMLSliceWidget or qMRMLThreeDView)
@@ -412,51 +422,69 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     """
     self.setUp(self.performDeformableRegistration)
 
-    self.test_NA-MIC_Tutorial_2013June_SelfTest_FullTest()
+    self.test_NAMIC_Tutorial_2013June_SelfTest_FullTest()
 
-  def test_NA-MIC_Tutorial_2013June_SelfTest_FullTest(self):
-    # Check for DicomRtImport module
-    self.assertTrue( slicer.modules.dicomrtimport )
-    self.assertTrue( slicer.modules.brainsfit )
-    self.assertTrue( slicer.modules.brainsresample )
-    self.assertTrue( slicer.modules.doseaccumulation )
-    self.assertTrue( slicer.modules.dosevolumehistogram )
+  def test_NAMIC_Tutorial_2013June_SelfTest_FullTest(self):
+    self.TestSection_I_EvaluateIsocenterShifting()
+    self.TestSection_II_EvaluateDeformableRegistration()
+    self.TestSection_III_AddMarginToTargetStructure()
 
-    self.TestSection_00_SetupPathsAndNames()
-    self.TestSection_01A_OpenTempDatabase()
-    self.TestSection_01B_DownloadDay1Data()
-    self.TestSection_01C_ImportDay1Study()
-    self.TestSection_01D_SelectLoadablesAndLoad()
-    self.TestSection_01E_LoadDay2Data()
-    self.TestSection_01F_SetDisplayOptions()
-    self.TestSection_02_AddDayDataToPatientHierarchy()
-    self.TestSection_03A_ComputeIsodose()
-    self.TestSection_03B_ShowIsodoseLineSets()
-    self.TestSection_04_RegisterDay2CTToDay1CT()
-    self.TestSection_05A_ResampleDoseVolumes()
-    self.TestSection_05B_AddResampledDoseVolumesToPatientHierarchy()
-    self.TestSection_06_ComputeGamma()
-    self.TestSection_07_AccumulateDose()
-    self.TestSection_08_ComputeDvh()
-    # self.TestSection_09_ClearDatabase()
+  def TestSection_I_EvaluateIsocenterShifting(self):
+    try:
+      # Check for modules
+      self.assertTrue( slicer.modules.dicomrtimport )
+      self.assertTrue( slicer.modules.patienthierarchy )
+      self.assertTrue( slicer.modules.contours )
+      self.assertTrue( slicer.modules.isodose )
+      self.assertTrue( slicer.modules.brainsfit )
+      self.assertTrue( slicer.modules.brainsresample )
+      self.assertTrue( slicer.modules.dosecomparison )
+      self.assertTrue( slicer.modules.doseaccumulation )
+      self.assertTrue( slicer.modules.dosevolumehistogram )
+      self.assertTrue( slicer.modules.deformationfieldvisualizer )
+      self.assertTrue( slicer.modules.contourcomparison )
+      self.assertTrue( slicer.modules.contourmorphology )
 
-  def TestSection_00_SetupPathsAndNames(self):
-    NA-MIC_Tutorial_2013June_SelfTestDir = slicer.app.temporaryPath + '/NA-MIC_Tutorial_2013June_SelfTest'
-    if not os.access(NA-MIC_Tutorial_2013June_SelfTestDir, os.F_OK):
-      os.mkdir(NA-MIC_Tutorial_2013June_SelfTestDir)
+      self.TestSection_I_00_SetupPathsAndNames()
+      self.TestSection_I_01A_OpenTempDatabase()
+      self.TestSection_I_01B_DownloadDay1Data()
+      self.TestSection_I_01C_ImportDay1Study()
+      self.TestSection_I_01D_SelectLoadablesAndLoad()
+      self.TestSection_I_01E_LoadDay2Data()
+      self.TestSection_I_01F_SetDisplayOptions()
+      self.TestSection_I_02_AddDayDataToPatientHierarchy()
+      self.TestSection_I_03A_ComputeIsodose()
+      self.TestSection_I_03B_ShowIsodoseLineSets()
+      self.TestSection_I_04_RegisterDay2CTToDay1CT()
+      self.TestSection_I_05A_ResampleDoseVolumes()
+      self.TestSection_I_05B_AddResampledDoseVolumesToPatientHierarchy()
+      self.TestSection_I_06_ComputeGamma()
+      self.TestSection_I_07_AccumulateDose()
+      self.TestSection_I_08_ComputeDvh()
+      # self.TestSection_ClearDatabase()
 
-    self.dicomDataDir = NA-MIC_Tutorial_2013June_SelfTestDir + '/EclipseEntPhantomRtData'
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+
+  def TestSection_I_00_SetupPathsAndNames(self):
+    NAMIC_Tutorial_2013June_SelfTestDir = slicer.app.temporaryPath + '/NAMIC_Tutorial_2013June_SelfTest'
+    if not os.access(NAMIC_Tutorial_2013June_SelfTestDir, os.F_OK):
+      os.mkdir(NAMIC_Tutorial_2013June_SelfTestDir)
+
+    self.dicomDataDir = NAMIC_Tutorial_2013June_SelfTestDir + '/EclipseEntPhantomRtData'
     if not os.access(self.dicomDataDir, os.F_OK):
       os.mkdir(self.dicomDataDir)
 
-    self.day2DataDir = NA-MIC_Tutorial_2013June_SelfTestDir + '/EclipseEntComputedDay2Data'
+    self.day2DataDir = NAMIC_Tutorial_2013June_SelfTestDir + '/EclipseEntComputedDay2Data'
     if not os.access(self.day2DataDir, os.F_OK):
       os.mkdir(self.day2DataDir)
 
-    self.dicomDatabaseDir = NA-MIC_Tutorial_2013June_SelfTestDir + '/CtkDicomDatabase'
-    self.dicomZipFilePath = NA-MIC_Tutorial_2013June_SelfTestDir + '/EclipseEntDicomRt.zip'
+    self.dicomDatabaseDir = NAMIC_Tutorial_2013June_SelfTestDir + '/CtkDicomDatabase'
+    self.dicomZipFilePath = NAMIC_Tutorial_2013June_SelfTestDir + '/EclipseEntDicomRt.zip'
     self.expectedNumOfFilesInDicomDataDir = 141
-    self.tempDir = NA-MIC_Tutorial_2013June_SelfTestDir + '/Temp'
+    self.tempDir = NAMIC_Tutorial_2013June_SelfTestDir + '/Temp'
     
     self.day1CTName = '2: ENT IMRT'
     self.day1DoseName = '5: RTDOSE'
@@ -475,7 +503,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     
     self.setupPathsAndNamesDone = True
 
-  def TestSection_01A_OpenTempDatabase(self):
+  def TestSection_I_01A_OpenTempDatabase(self):
     # Open test database and empty it
     try:
       qt.QDir().mkpath(self.dicomDatabaseDir)
@@ -498,7 +526,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_01B_DownloadDay1Data(self):
+  def TestSection_I_01B_DownloadDay1Data(self):
     import urllib
     downloads = (
         ('http://slicer.kitware.com/midas3/download?items=10704', self.dicomZipFilePath),
@@ -525,7 +553,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     numOfFilesInDicomDataDirTest = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
     self.assertTrue( numOfFilesInDicomDataDirTest == self.expectedNumOfFilesInDicomDataDir )
 
-  def TestSection_01C_ImportDay1Study(self):
+  def TestSection_I_01C_ImportDay1Study(self):
     self.delayDisplay("Import Day 1 study",self.delayMs)
 
     try:
@@ -549,7 +577,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_01D_SelectLoadablesAndLoad(self):
+  def TestSection_I_01D_SelectLoadablesAndLoad(self):
     self.delayDisplay("Select loadables and load data",self.delayMs)
 
     try:
@@ -592,7 +620,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_01E_LoadDay2Data(self):
+  def TestSection_I_01E_LoadDay2Data(self):
     import urllib
     downloads = (
         ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/' + self.day2CTName + '.nrrd', slicer.util.loadVolume),
@@ -620,7 +648,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     # Verify that the correct number of objects were loaded
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
 
-  def TestSection_01F_SetDisplayOptions(self):
+  def TestSection_I_01F_SetDisplayOptions(self):
     self.delayDisplay('Setting display options for loaded data',self.delayMs)
 
     layoutManager = slicer.app.layoutManager()
@@ -663,7 +691,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     self.clickAndDrag(threeDView,button='Middle',start=(10,100),end=(10,10))
     self.clickAndDrag(threeDView,start=(10,70),end=(90,10))
 
-  def TestSection_02_AddDayDataToPatientHierarchy(self):
+  def TestSection_I_02_AddDayDataToPatientHierarchy(self):
     try:
       pass #TODO
       
@@ -672,7 +700,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_03A_ComputeIsodose(self):
+  def TestSection_I_03A_ComputeIsodose(self):
     try:
       pass #TODO
       
@@ -681,7 +709,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_03B_ShowIsodoseLineSets(self):
+  def TestSection_I_03B_ShowIsodoseLineSets(self):
     try:
       pass #TODO
       
@@ -690,7 +718,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_04_RegisterDay2CTToDay1CT(self):
+  def TestSection_I_04_RegisterDay2CTToDay1CT(self):
     try:
       scene = slicer.mrmlScene
       mainWindow = slicer.util.mainWindow()
@@ -755,7 +783,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_05A_ResampleDoseVolumes(self):
+  def TestSection_I_05A_ResampleDoseVolumes(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSResample')
@@ -824,7 +852,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_05B_AddResampledDoseVolumesToPatientHierarchy(self):
+  def TestSection_I_05B_AddResampledDoseVolumesToPatientHierarchy(self):
     self.delayDisplay("Setting attributes for resampled dose volumes",self.delayMs)
 
     try:
@@ -856,7 +884,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_06_ComputeGamma(self):
+  def TestSection_I_06_ComputeGamma(self):
     try:
       pass #TODO
       
@@ -878,7 +906,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_07_AccumulateDose(self):
+  def TestSection_I_07_AccumulateDose(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('DoseAccumulation')
@@ -951,7 +979,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_08_ComputeDvh(self):
+  def TestSection_I_08_ComputeDvh(self):
     try:
       scene = slicer.mrmlScene
       mainWindow = slicer.util.mainWindow()
@@ -1006,7 +1034,7 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-  def TestSection_09_ClearDatabase(self):
+  def TestSection_ClearDatabase(self):
     self.delayDisplay("Clear database",self.delayMs)
 
     initialized = slicer.dicomDatabase.initializeDatabase()
@@ -1018,3 +1046,36 @@ class NA-MIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     if self.originalDatabaseDirectory:
       dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
       dicomWidget.onDatabaseDirectoryChanged(self.originalDatabaseDirectory)
+
+  def TestSection_II_EvaluateDeformableRegistration(self):
+    try:
+      # Check for modules
+      self.assertTrue( slicer.modules.dicomrtimport )
+      self.assertTrue( slicer.modules.patienthierarchy )
+      self.assertTrue( slicer.modules.contours )
+      self.assertTrue( slicer.modules.brainsfit )
+      self.assertTrue( slicer.modules.brainsresample )
+      self.assertTrue( slicer.modules.deformationfieldvisualizer )
+      self.assertTrue( slicer.modules.contourcomparison )
+
+      # self.TestSection_II..._00_SetupPathsAndNames()
+
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+
+  def TestSection_III_AddMarginToTargetStructure(self):
+    try:
+      # Check for modules
+      self.assertTrue( slicer.modules.dicomrtimport )
+      self.assertTrue( slicer.modules.patienthierarchy )
+      self.assertTrue( slicer.modules.contours )
+      self.assertTrue( slicer.modules.contourmorphology )
+
+      # self.TestSection_III..._00_SetupPathsAndNames()
+
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
