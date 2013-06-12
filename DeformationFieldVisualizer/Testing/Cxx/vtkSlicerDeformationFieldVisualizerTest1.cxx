@@ -637,17 +637,15 @@ int vtkSlicerDeformationFieldVisualizerTest1(int argc, char *argv[])
   
   propertiesBaseline->SetInput(triangleBaseline->GetOutput());
   propertiesBaseline->Update();
-  std::cout<<"Baseline surface area:"<<propertiesBaseline->GetSurfaceArea()<<std::endl;
   
   triangleCurrent->SetInput(modelNode->GetPolyData());
   triangleCurrent->Update();
   
   propertiesCurrent->SetInput(triangleCurrent->GetOutput());
   propertiesCurrent->Update();
-  std::cout<<"Current surface area:"<<propertiesCurrent->GetSurfaceArea()<<std::endl;
   
   surfaceAreaDifference = abs(propertiesBaseline->GetSurfaceArea() - propertiesCurrent->GetSurfaceArea());
-  std::cout << "Model surface area difference: " << surfaceAreaDifference << std::endl;  
+  //std::cout << "Model surface area difference: " << surfaceAreaDifference << std::endl;  
   
   if (surfaceAreaDifference > surfaceAreaDifferenceThreshold)
   {
@@ -695,17 +693,15 @@ int vtkSlicerDeformationFieldVisualizerTest1(int argc, char *argv[])
   
   propertiesBaseline->SetInput(triangleBaseline->GetOutput());
   propertiesBaseline->Update();
-  std::cout<<"Baseline surface area:"<<propertiesBaseline->GetSurfaceArea()<<std::endl;
   
   triangleCurrent->SetInput(modelNode->GetPolyData());
   triangleCurrent->Update();
   
   propertiesCurrent->SetInput(triangleCurrent->GetOutput());
   propertiesCurrent->Update();
-  std::cout<<"Current surface area:"<<propertiesCurrent->GetSurfaceArea()<<std::endl;
   
   surfaceAreaDifference = abs(propertiesBaseline->GetSurfaceArea() - propertiesCurrent->GetSurfaceArea());
-  std::cout << "Model surface area difference: " << surfaceAreaDifference << std::endl;  
+  //std::cout << "Model surface area difference: " << surfaceAreaDifference << std::endl;  
   
   if (surfaceAreaDifference > surfaceAreaDifferenceThreshold)
   {

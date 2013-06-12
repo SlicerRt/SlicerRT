@@ -12,12 +12,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>368</width>
-    <height>789</height>
+    <width>337</width>
+    <height>763</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -43,7 +43,7 @@
    <item>
     <widget class="ctkCollapsibleButton" name="ParameterSetCollapsibleButton">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -67,7 +67,7 @@
          <bool>false</bool>
         </property>
         <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -91,7 +91,7 @@
    <item>
     <widget class="ctkCollapsibleButton" name="IO">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -303,9 +303,9 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="VisualizationOption">
+    <widget class="ctkCollapsibleButton" name="VisualizationMode">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -326,7 +326,7 @@
       <string>Options for visualization of deformation field</string>
      </property>
      <property name="text">
-      <string>Visualization Option</string>
+      <string>Visualization Mode</string>
      </property>
      <property name="autoRepeatInterval">
       <number>100</number>
@@ -340,8 +340,11 @@
       </property>
       <item row="1" column="1">
        <widget class="QPushButton" name="GlyphSliceToggle">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -385,7 +388,7 @@
       <item row="1" column="2">
        <widget class="QPushButton" name="GridSliceToggle">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -428,8 +431,11 @@
       </item>
       <item row="1" column="0">
        <widget class="QPushButton" name="ContourToggle">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -437,7 +443,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>50</height>
+          <height>60</height>
          </size>
         </property>
         <property name="toolTip">
@@ -466,8 +472,11 @@
       </item>
       <item row="0" column="0">
        <widget class="QPushButton" name="GlyphToggle">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -532,7 +541,7 @@
       <item row="0" column="1">
        <widget class="QPushButton" name="GridToggle">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -540,7 +549,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>50</height>
+          <height>60</height>
          </size>
         </property>
         <property name="maximumSize">
@@ -575,8 +584,11 @@
       </item>
       <item row="0" column="2">
        <widget class="QPushButton" name="BlockToggle">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -584,7 +596,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>50</height>
+          <height>60</height>
          </size>
         </property>
         <property name="toolTip">
@@ -620,7 +632,7 @@
       <bool>true</bool>
      </property>
      <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+      <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -684,7 +696,7 @@
          <item row="0" column="1">
           <widget class="ctkSliderWidget" name="InputBlockScale">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -789,6 +801,12 @@
          </item>
          <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="InputContourNumber">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Number of contours to generate between the selected range values</string>
            </property>
@@ -818,6 +836,12 @@
          </item>
          <item row="1" column="1">
           <widget class="ctkRangeWidget" name="InputContourRange">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Range to create contours</string>
            </property>
@@ -838,7 +862,7 @@
          <item row="2" column="1">
           <widget class="ctkSliderWidget" name="InputContourDecimation">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -925,7 +949,7 @@
          <item row="1" column="1">
           <widget class="ctkSliderWidget" name="InputGridScale">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -962,6 +986,12 @@
          </item>
          <item row="2" column="1">
           <widget class="QDoubleSpinBox" name="InputGridSpacing">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Resample grid (spacing will be the distance between lines)</string>
            </property>
@@ -991,7 +1021,7 @@
       <item row="0" column="0" rowspan="2">
        <widget class="ctkCollapsibleGroupBox" name="GlyphBox">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -1022,7 +1052,7 @@
          <item row="0" column="2" colspan="2">
           <widget class="ctkSliderWidget" name="InputGlyphPointMax">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1208,7 +1238,7 @@
          <item row="6" column="2" colspan="2">
           <widget class="ctkComboBox" name="GlyphSourceComboBox">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1239,7 +1269,7 @@
          <item row="6" column="1">
           <widget class="QLabel" name="label_2">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1443,7 +1473,7 @@
          <item row="4" column="1" colspan="3">
           <widget class="ctkCollapsibleGroupBox" name="GlyphScaleBox">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+            <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1474,7 +1504,7 @@
             <item row="0" column="1">
              <widget class="ctkSliderWidget" name="InputGlyphScale">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -1501,6 +1531,12 @@
             </item>
             <item row="1" column="0">
              <widget class="QRadioButton" name="InputGlyphScaleDirectional">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="toolTip">
                <string>Scale glyph only along direction of vector</string>
               </property>
@@ -1514,6 +1550,12 @@
             </item>
             <item row="2" column="0">
              <widget class="QRadioButton" name="InputGlyphScaleIsotropic">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="toolTip">
                <string>Scale glyph in all directions</string>
               </property>
@@ -1537,6 +1579,12 @@
          </item>
          <item row="14" column="2">
           <widget class="QSpinBox" name="InputGlyphSeed">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Seed used for placement of glyphs</string>
            </property>
@@ -1562,6 +1610,12 @@
          </item>
          <item row="14" column="3">
           <widget class="QPushButton" name="GenerateSeedButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Generate a random seed to use for the glyph visualization</string>
            </property>
@@ -1582,6 +1636,12 @@
          </item>
          <item row="1" column="2" colspan="2">
           <widget class="ctkRangeWidget" name="InputGlyphThreshold">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Only create glyphs within threshold values</string>
            </property>
@@ -1654,7 +1714,7 @@
             <bool>false</bool>
            </property>
            <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1700,7 +1760,7 @@
          <item row="1" column="1">
           <widget class="ctkSliderWidget" name="InputGridSliceScale">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1816,7 +1876,7 @@
          <item row="1" column="1" colspan="2">
           <widget class="ctkSliderWidget" name="InputGlyphSlicePointMax">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1853,6 +1913,12 @@
          </item>
          <item row="2" column="1" colspan="2">
           <widget class="ctkRangeWidget" name="InputGlyphSliceThreshold">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Only create glyphs within threshold values</string>
            </property>
@@ -1883,7 +1949,7 @@
          <item row="3" column="1" colspan="2">
           <widget class="ctkSliderWidget" name="InputGlyphSliceScale">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1920,6 +1986,12 @@
          </item>
          <item row="5" column="1">
           <widget class="QSpinBox" name="InputGlyphSliceSeed">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Seed used for placement of glyphs</string>
            </property>
@@ -1945,6 +2017,12 @@
          </item>
          <item row="5" column="2">
           <widget class="QPushButton" name="GenerateSeedButton2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Generate a random seed to use for the glyph visualization</string>
            </property>
@@ -1959,7 +2037,7 @@
             <bool>false</bool>
            </property>
            <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -2004,7 +2082,7 @@
       <enum>Qt::Vertical</enum>
      </property>
      <property name="sizeType">
-      <enum>QSizePolicy::MinimumExpanding</enum>
+      <enum>QSizePolicy::Expanding</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
@@ -2128,8 +2206,8 @@ p, li { white-space: pre-wrap; }
      <y>6</y>
     </hint>
     <hint type="destinationlabel">
-     <x>315</x>
-     <y>150</y>
+     <x>323</x>
+     <y>123</y>
     </hint>
    </hints>
   </connection>
@@ -2141,11 +2219,11 @@ p, li { white-space: pre-wrap; }
    <hints>
     <hint type="sourcelabel">
      <x>208</x>
-     <y>780</y>
+     <y>772</y>
     </hint>
     <hint type="destinationlabel">
-     <x>332</x>
-     <y>235</y>
+     <x>323</x>
+     <y>194</y>
     </hint>
    </hints>
   </connection>
@@ -2156,8 +2234,8 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>326</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
      <x>164</x>
@@ -2172,8 +2250,8 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>326</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
      <x>201</x>
@@ -2188,12 +2266,12 @@ p, li { white-space: pre-wrap; }
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>326</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2204,12 +2282,12 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>326</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2220,8 +2298,8 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>392</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
      <x>299</x>
@@ -2236,8 +2314,8 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>392</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
      <x>265</x>
@@ -2252,12 +2330,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>392</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2268,12 +2346,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>392</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2284,12 +2362,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>326</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>342</x>
-     <y>841</y>
+     <x>328</x>
+     <y>645</y>
     </hint>
    </hints>
   </connection>
@@ -2300,12 +2378,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>326</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>342</x>
-     <y>841</y>
+     <x>328</x>
+     <y>645</y>
     </hint>
    </hints>
   </connection>
@@ -2316,12 +2394,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>326</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2332,12 +2410,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>326</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2352,8 +2430,8 @@ p, li { white-space: pre-wrap; }
      <y>7</y>
     </hint>
     <hint type="destinationlabel">
-     <x>253</x>
-     <y>60</y>
+     <x>265</x>
+     <y>50</y>
     </hint>
    </hints>
   </connection>
@@ -2364,44 +2442,12 @@ p, li { white-space: pre-wrap; }
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>326</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>VisualizationOption</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>BlockBox</receiver>
-   <slot>setFocus()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>334</x>
-     <y>401</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>VisualizationOption</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>ContourBox</receiver>
-   <slot>show()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>334</x>
-     <y>401</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2412,12 +2458,12 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>392</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2428,12 +2474,12 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>326</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2444,12 +2490,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>326</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2460,12 +2506,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>326</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2476,12 +2522,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>326</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2492,12 +2538,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>326</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2508,12 +2554,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>326</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2524,12 +2570,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>326</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2540,12 +2586,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>392</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2556,12 +2602,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>392</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2572,28 +2618,12 @@ p, li { white-space: pre-wrap; }
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>392</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>VisualizationOption</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>BlockBox</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>334</x>
-     <y>401</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2604,12 +2634,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>316</y>
+     <x>100</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2620,12 +2650,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>316</y>
+     <x>100</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2636,12 +2666,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>316</y>
+     <x>100</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2652,12 +2682,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>316</y>
+     <x>100</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2668,12 +2698,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>316</y>
+     <x>100</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2684,12 +2714,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>316</y>
+     <x>100</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2700,8 +2730,8 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>316</y>
+     <x>100</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
      <x>57</x>
@@ -2716,8 +2746,8 @@ p, li { white-space: pre-wrap; }
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>92</x>
-     <y>316</y>
+     <x>100</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
      <x>46</x>
@@ -2736,8 +2766,8 @@ p, li { white-space: pre-wrap; }
      <y>293</y>
     </hint>
     <hint type="destinationlabel">
-     <x>122</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2748,12 +2778,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>85</x>
-     <y>297</y>
+     <x>93</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2764,12 +2794,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>326</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2780,12 +2810,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>326</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2796,12 +2826,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>326</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2812,12 +2842,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>326</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2828,12 +2858,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>392</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2844,12 +2874,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>392</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2860,12 +2890,12 @@ p, li { white-space: pre-wrap; }
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>392</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2876,12 +2906,12 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>392</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2892,12 +2922,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>363</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>155</x>
-     <y>841</y>
+     <x>163</x>
+     <y>645</y>
     </hint>
    </hints>
   </connection>
@@ -2908,12 +2938,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>375</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>269</x>
-     <y>841</y>
+     <x>277</x>
+     <y>645</y>
     </hint>
    </hints>
   </connection>
@@ -2924,12 +2954,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>392</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2940,12 +2970,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>392</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2956,12 +2986,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>392</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2972,12 +3002,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>392</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>97</x>
-     <y>463</y>
+     <x>101</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -2988,12 +3018,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>392</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>56</x>
-     <y>463</y>
+     <x>60</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3004,12 +3034,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>392</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3020,12 +3050,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>352</y>
+     <x>106</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>119</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3036,12 +3066,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>293</y>
+     <x>106</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3052,12 +3082,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>305</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3068,12 +3098,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>352</y>
+     <x>221</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3084,12 +3114,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
+     <x>376</x>
      <y>293</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3100,12 +3130,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>301</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3116,12 +3146,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>418</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3132,12 +3162,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>418</y>
+     <x>106</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3148,12 +3178,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>342</x>
-     <y>418</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3164,12 +3194,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>359</y>
+     <x>376</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3180,12 +3210,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>342</x>
-     <y>841</y>
+     <x>328</x>
+     <y>645</y>
     </hint>
    </hints>
   </connection>
@@ -3196,12 +3226,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>342</x>
-     <y>841</y>
+     <x>328</x>
+     <y>645</y>
     </hint>
    </hints>
   </connection>
@@ -3212,12 +3242,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3228,12 +3258,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3244,12 +3274,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3260,12 +3290,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3276,12 +3306,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3292,12 +3322,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>108</x>
-     <y>463</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3308,12 +3338,12 @@ p, li { white-space: pre-wrap; }
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3324,12 +3354,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>363</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>144</x>
-     <y>1188</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3340,12 +3370,12 @@ p, li { white-space: pre-wrap; }
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3356,12 +3386,12 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>418</y>
+     <x>221</x>
+     <y>358</y>
     </hint>
     <hint type="destinationlabel">
-     <x>126</x>
-     <y>1052</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3376,8 +3406,8 @@ p, li { white-space: pre-wrap; }
      <y>6</y>
     </hint>
     <hint type="destinationlabel">
-     <x>152</x>
-     <y>172</y>
+     <x>252</x>
+     <y>147</y>
     </hint>
    </hints>
   </connection>
@@ -3388,12 +3418,12 @@ p, li { white-space: pre-wrap; }
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>352</x>
-     <y>1268</y>
+     <x>336</x>
+     <y>772</y>
     </hint>
     <hint type="destinationlabel">
-     <x>202</x>
-     <y>880</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -3404,12 +3434,12 @@ p, li { white-space: pre-wrap; }
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>358</x>
-     <y>1288</y>
+     <x>336</x>
+     <y>772</y>
     </hint>
     <hint type="destinationlabel">
-     <x>217</x>
-     <y>1097</y>
+     <x>103</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>

@@ -776,9 +776,7 @@ void vtkSlicerDeformationFieldVisualizerLogic::GlyphSliceVisualization(vtkImageD
   field->GetPointData()->GetArray(0)->SetName("Projected");  
   field->GetPointData()->AddArray(vectorMagnitude);
   field->GetPointData()->GetArray(1)->SetName("OriginalVectorMagnitude");  
-  
-  ribbon->SetDefaultNormal(sliceNormal[0], sliceNormal[1], sliceNormal[2]);
-  
+    
   vtkSmartPointer<vtkTransform> rotateArrow = vtkSmartPointer<vtkTransform>::New();
   rotateArrow->RotateX(vtkMath::DegreesFromRadians(acos(abs(sliceNormal[2]))));
   
@@ -806,10 +804,10 @@ void vtkSlicerDeformationFieldVisualizerLogic::GlyphSliceVisualization(vtkImageD
   glyphFilter->Update();
   
   ribbon->SetInputConnection(glyphFilter->GetOutputPort());
+  ribbon->SetDefaultNormal(sliceNormal[0], sliceNormal[1], sliceNormal[2]);
   ribbon->SetWidth(width/2 + 0.15);
   ribbon->SetAngle(90.0);
   ribbon->UseDefaultNormalOn();
-  
   ribbon->Update();
   
   output->ShallowCopy(ribbon->GetOutput());
