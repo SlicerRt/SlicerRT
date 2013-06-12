@@ -23,10 +23,14 @@
 
 // VTK includes
 #include <vtkImageData.h>
+
+// MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
-#include <vtkSlicerApplicationLogic.h>
 #include <vtkMRMLSelectionNode.h>
+
+// Slicer logic includes
+#include <vtkSlicerApplicationLogic.h>
 
 // STD includes
 #include <vector>
@@ -77,7 +81,7 @@ std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std
     {
       stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
       int currentNumber = 0;
-     // bool continueParsingFlag = true;
+      // bool continueParsingFlag = true;
 
       // Parses out the specified number of numbers from the string, 
       // assuming that numbers are separated by commas, spaces, or both
@@ -602,7 +606,6 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
     // Checks that the end of the header has been reached and that all of the required parameters have been set
     if (parameterParseSuccess == true && parametersCurrentlySet == parametersToSet)
     {
-
       // Calculates the number of bytes to read based on some of the specified parameters
       long bytesToRead = 1;
       bytesToRead = bands*bits/8;
@@ -674,14 +677,11 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
                 // Sets the point in the image data to the scaled and offset value
                 (*floatPtr) = value;
                 ++floatPtr;
-
               }
               else
               {
                 vtkErrorMacro("LoadVffFile: The end of the file was reached earlier than specified.");
               }
-
-
             }
             else
             {
@@ -714,15 +714,12 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
         vffVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
       }
       vffVolumeNode->SetAndObserveDisplayNodeID(vffVolumeDisplayNode->GetID());
-      
     }
-
     else
     {
       vtkErrorMacro("LoadVffFile: Incorrect parameters or required parameters that were not set, vff file failed to load. The required parameters are: rank, type, format, bits, bands, size, spacing, origin, rawsize, data scale, data offset, and title.");
     }   
   }
-
   else
   {
     vtkErrorMacro("LoadVffFile: The specified file could not be opened.");
@@ -730,4 +727,3 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
     
   readFileStream.close();
 }
-

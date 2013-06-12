@@ -66,6 +66,7 @@ add_subdirectory(DoseComparison)
 add_subdirectory(ContourMorphology)
 add_subdirectory(ContourComparison)
 add_subdirectory(DeformationFieldVisualizer)
+add_subdirectory(VffFileReader)
 
 add_subdirectory(PlmBspline) # requires Plastimatch registration
 add_subdirectory(PlmDicomRtExport)
@@ -74,7 +75,6 @@ add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmXformwarp)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-
   add_subdirectory(PlmDoseComparison)
   add_subdirectory(PlmDvh)
   #add_subdirectory(PlmMabs) # requires Plastimatch segmentation  
@@ -88,8 +88,6 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 
   add_subdirectory(ProtonBeams)
   add_subdirectory(ProtonDose)
-  
-  add_subdirectory(VffFileReader)
 endif()
 
 if(BUILD_TESTING)
