@@ -61,7 +61,7 @@ class NAMIC_Tutorial_2013June_SelfTest:
 
 #
 # -----------------------------------------------------------------------------
-# qNAMIC_Tutorial_2013June_SelfTest_Widget
+# NAMIC_Tutorial_2013June_SelfTest_Widget
 # -----------------------------------------------------------------------------
 #
 
@@ -358,10 +358,6 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   This is the test case for your scripted module.
   """
 
-  def __init__(self):
-    self.performDeformableRegistration = False
-
-  #------------------------------------------------------------------------------
   def delayDisplay(self,message,msec=1000):
     """This utility method displays a small dialog and waits.
     This does two things: 1) it lets the event loop catch up
@@ -388,13 +384,12 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
     self.delayMs = 700
 
-    #TODO: Comment out
-    #logFile = open('d:/pyTestLog.txt', 'w')
-    #logFile.write(repr(slicer.modules.models) + '\n')
-    #logFile.write(repr(slicer.modules.NAMIC_Tutorial_2013June_SelfTest) + '\n')
-    #logFile.write(repr(slicer.modules.dicomrtimport) + '\n')
-    #logFile.write(repr(slicer.modules.models) + '\n')
-    #logFile.close()
+    # TODO: Comment out
+    # logFile = open('d:/pyTestLog.txt', 'w')
+    # logFile.write(repr(slicer.modules.NAMIC_Tutorial_2013June_SelfTest) + '\n')
+    # logFile.write(repr(slicer.modules.dicomrtimport) + '\n')
+    # logFile.write(repr(slicer.modules.contours) + '\n')
+    # logFile.close()
 
     self.moduleName = "NAMIC_Tutorial_2013June_SelfTest"
 
@@ -442,20 +437,20 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   def runTest(self):
     """Run as few or as many tests as needed here.
     """
-    self.setUp(self.performDeformableRegistration)
+    self.setUp()
 
     self.test_NAMIC_Tutorial_2013June_SelfTest_FullTest()
 
   #------------------------------------------------------------------------------
   def test_NAMIC_Tutorial_2013June_SelfTest_FullTest(self):
     self.TestSection_I_EvaluateIsocenterShifting()
-    self.delayDisplay("Workflow 1 done",self.delayMs)
+    # self.delayDisplay("Workflow 1 done",self.delayMs)
 
-    self.TestSection_II_EvaluateDeformableRegistration()
-    self.delayDisplay("Workflow 2 done",self.delayMs)
+    # self.TestSection_II_EvaluateDeformableRegistration()
+    # self.delayDisplay("Workflow 2 done",self.delayMs)
 
-    self.TestSection_III_AddMarginToTargetStructure()
-    self.delayDisplay("Workflow 3 done",self.delayMs)
+    # self.TestSection_III_AddMarginToTargetStructure()
+    # self.delayDisplay("Workflow 3 done",self.delayMs)
 
   #------------------------------------------------------------------------------
   # Utility functions
@@ -1138,9 +1133,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
       # Create output gamma volume
       gammaVolume = gammaVolumeMrmlNodeCombobox.addNode()
-      # gammaVolume.SetName(self.gammaVolumeName)
-      # gammaVolumeMrmlNodeCombobox.setCurrentNodeID(gammaVolume.GetID())
-      self.gammaVolumeName = gammaVolume.GetName() #TODO This or the one above?
+      self.gammaVolumeName = gammaVolume.GetName()
 
       # Compute gamma for day 1 dose and resampled day 2 dose
       day1Dose = slicer.util.getNode(self.day1DoseName)
@@ -1268,7 +1261,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseRigid)
       computeDvhButton.click()
 
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') ) == numOfDoubleArrayNodesBeforeLoad + 2 + self.performDeformableRegistration )
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') ) == numOfDoubleArrayNodesBeforeLoad + 2 )
 
       # Create chart and show plots
       chartNodeCombobox.addNode()
