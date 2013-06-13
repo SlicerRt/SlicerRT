@@ -22,6 +22,7 @@
 // Qt includes
 #include <QHeaderView>
 #include <QMessageBox>
+#include <QAction>
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
@@ -80,6 +81,12 @@ void qMRMLPatientHierarchyTreeViewPrivate::init()
   q->setSortFilterProxyModel(this->SortFilterModel);
 
   q->setShowScene(false);
+  q->setEditMenuActionVisible(false);
+  q->setDeleteMenuActionVisible(false);
+
+  QAction* createChildNodeAction = new QAction(qMRMLPatientHierarchyTreeView::tr("Create child node"),q);
+  q->appendNodeMenuAction(createChildNodeAction);
+  QObject::connect(createChildNodeAction, SIGNAL(triggered()), q, SLOT(createChildNode()));
 
   q->header()->setStretchLastSection(false);
   q->header()->setResizeMode(0, QHeaderView::Stretch);
@@ -183,4 +190,16 @@ void qMRMLPatientHierarchyTreeView::showVolume(vtkMRMLNode* node)
       cnode->SetForegroundOpacity(0.5);
     }
   }
+}
+
+//--------------------------------------------------------------------------
+void qMRMLPatientHierarchyTreeView::createChildNode()
+{
+  if (!this->currentNode())
+  {
+    qCritical() << "qMRMLPatientHierarchyTreeView::createChildNode: No current node!";
+    return;
+  }
+
+  vtkSlicerPatientHierarchyModuleLogic::CreateChildNodeForPatientHierarchyNode(this->currentNode());
 }

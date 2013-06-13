@@ -53,6 +53,10 @@ protected:
   /// background becomes the foreground with 50% transparency.
   void showVolume(vtkMRMLNode* node);
 
+protected slots:
+  /// Handles create child node action in the node context menu
+  void createChildNode();
+
 protected:
   QScopedPointer<qMRMLPatientHierarchyTreeViewPrivate> d_ptr;
 

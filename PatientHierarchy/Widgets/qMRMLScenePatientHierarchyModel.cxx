@@ -510,9 +510,10 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
       associatedPatientHierarchyNode->HideFromEditorsOff();
       associatedPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
         SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-      //TODO: Subseries level is the default for now. This and UID has to be specified before export (need the tag editor widget)
       associatedPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-        vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+        vtkSlicerPatientHierarchyModuleLogic::GetChildDicomLevel(parentPatientHierarchyNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME)));
+      associatedPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
+        "");
       associatedPatientHierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
     }
   }

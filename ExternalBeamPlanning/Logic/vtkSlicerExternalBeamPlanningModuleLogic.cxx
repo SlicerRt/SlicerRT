@@ -22,7 +22,6 @@
 
 // ExternalBeamPlanning includes
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
-#include "vtkMRMLContourNode.h"
 #include "vtkMRMLExternalBeamPlanningNode.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
@@ -30,6 +29,7 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
 
 // Plastimatch includes
 #include "itk_image_save.h"

@@ -20,7 +20,7 @@ set(${KIT}_SRCS
   vtkConvertContourRepresentations.h
   )
 
-SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
  
 # --------------------------------------------------------------------------
 # Build the library

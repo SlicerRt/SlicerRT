@@ -100,6 +100,12 @@ public:
   /// Assemble tooltip for node according to the patient hierarchy tree
   static std::string GetTooltipForPatientHierarchyNode(vtkMRMLHierarchyNode* hierarchyNode);
 
+  /// Get child DICOM level name for a specified level (e.g. "Patient" -> "Study")
+  static const char* GetChildDicomLevel(const char* parentLevel);
+
+  /// Create child node for a patient hierarchy node
+  static void CreateChildNodeForPatientHierarchyNode(vtkMRMLNode* parentNode);
+
 protected:
   vtkSlicerPatientHierarchyModuleLogic();
   virtual ~vtkSlicerPatientHierarchyModuleLogic();
