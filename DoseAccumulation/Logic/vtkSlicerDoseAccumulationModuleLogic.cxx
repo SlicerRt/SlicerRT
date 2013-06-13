@@ -33,6 +33,7 @@
 #include <vtkMRMLScalarVolumeDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLTransformNode.h>
+#include <vtkMRMLColorTableNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -365,7 +366,7 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     }
   }
 
-  // change image info back so it will work for slicer ???
+  // Change image info back so it will work for slicer ???
   vtkSmartPointer<vtkImageChangeInformation> changeInfo3 = vtkSmartPointer<vtkImageChangeInformation>::New();
   changeInfo3->SetInput(baseImageData);
   changeInfo3->SetOutputOrigin(0,0,0);
@@ -375,8 +376,18 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   outputVolumeNode->SetAndObserveImageData(changeInfo3->GetOutput());
   outputVolumeNode->SetAndObserveDisplayNodeID( outputVolumeDisplayNode->GetID() );
 
-  // Set default colormap to rainbow
-  outputVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+  // Set default colormap to the dose color table
+  vtkSmartPointer<vtkCollection> defaultDoseColorTableNodes = vtkSmartPointer<vtkCollection>::Take(
+    this->GetMRMLScene()->GetNodesByName(SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME) );
+  vtkMRMLColorTableNode* defaultDoseColorTable = vtkMRMLColorTableNode::SafeDownCast(defaultDoseColorTableNodes->GetItemAsObject(0));
+  if (defaultDoseColorTable)
+  {
+    outputVolumeDisplayNode->SetAndObserveColorNodeID(defaultDoseColorTable->GetID());
+  }
+  else
+  {
+    outputVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+  }
 
   // Set threshold values so that the background is black
   double doseUnitScaling = 0.0;

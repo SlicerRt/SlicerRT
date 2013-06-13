@@ -11,10 +11,8 @@ from __main__ import vtk, qt, ctk, slicer
 #   1. Load planning DICOM-RT data and day 2 volumes
 #   2. Add day 2 volumes in Patient Hierarchy
 #   3. Compute isodose lines for both dose distributions
-#     3A. Show them one after the other using Patient Hierarchy
 #   4. Register day 2 CT to planning CT using rigid registration
 #   5. Resample day 2 dose volumes using the transform
-#     5A. Add the resampled dose to Patient Hierarchy
 #   6. Compute difference dose using gamma comparison for
 #     6A. Planning dose and unregistered day 2 dose
 #     6B. Planning dose and registered day 2 dose
@@ -107,9 +105,18 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     # Create groupbox for workflow I
     self.workflow1Groupbox = qt.QGroupBox("Evaluate isocenter shifting")
     self.workflow1GroupboxLayout = qt.QVBoxLayout()
+    # self.workflow1GroupboxLayout.setAlignment(qt.Qt.AlignRight)
 
+    # Perform workflow button
+    self.performWorkflow1Button = qt.QPushButton("Perform workflow")
+    self.performWorkflow1Button.toolTip = "Performs whole workflow (Evaluate isocenter shifting)"
+    self.performWorkflow1Button.name = "NAMIC_Tutorial_2013June_SelfTest_LoadData"
+    self.workflow1GroupboxLayout.addWidget(self.performWorkflow1Button)
+    self.performWorkflow1Button.connect('clicked()', self.onPerformWorkflow1)
+    
     # Load data button
     self.loadDataButton = qt.QPushButton("Load data")
+    self.loadDataButton.setMaximumWidth(200)
     self.loadDataButton.toolTip = "Download (if necessary), import and load input data."
     self.loadDataButton.name = "NAMIC_Tutorial_2013June_SelfTest_LoadData"
     self.workflow1GroupboxLayout.addWidget(self.loadDataButton)
@@ -117,6 +124,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
 
     # Generate isodose button
     self.generateIsodoseButton = qt.QPushButton("Generate isodose")
+    self.generateIsodoseButton.setMaximumWidth(200)
     self.generateIsodoseButton.toolTip = "Generate isodose lines for both dose volumes"
     self.generateIsodoseButton.name = "NAMIC_Tutorial_2013June_SelfTest_LoadData"
     self.workflow1GroupboxLayout.addWidget(self.generateIsodoseButton)
@@ -124,6 +132,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
 
     # Register button and checkbox
     self.registerButton = qt.QPushButton("Register")
+    self.registerButton.setMaximumWidth(200)
     self.registerButton.toolTip = "Registers Day 2 CT to Day 1 CT. Data needs to be loaded!"
     self.registerButton.name = "NAMIC_Tutorial_2013June_SelfTest_Register"
     self.workflow1GroupboxLayout.addWidget(self.registerButton)
@@ -131,6 +140,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
 
     # Resample button
     self.resampleButton = qt.QPushButton("Resample")
+    self.resampleButton.setMaximumWidth(200)
     self.resampleButton.toolTip = "Resamples Day 2 dose volume using the resulting transformations. All previous steps are needed to be run!"
     self.resampleButton.name = "NAMIC_Tutorial_2013June_SelfTest_Resample"
     self.workflow1GroupboxLayout.addWidget(self.resampleButton)
@@ -138,13 +148,15 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
 
     # Compute gamma button
     self.computeGammaButton = qt.QPushButton("Compare dose distributions")
-    self.computeGammaButton.toolTip = "Computes gamma dose difference for the two dose volumes."
+    self.computeGammaButton.setMaximumWidth(200)
+    self.computeGammaButton.toolTip = "Computes gamma dose difference for the day 1 dose and the resampled day 2 dose."
     self.computeGammaButton.name = "NAMIC_Tutorial_2013June_SelfTest_ComputeDvh"
     self.workflow1GroupboxLayout.addWidget(self.computeGammaButton)
     self.computeGammaButton.connect('clicked()', self.onComputeGamma)
 
     # Accumulate dose button
     self.accumulateDoseButton = qt.QPushButton("Accumulate dose")
+    self.accumulateDoseButton.setMaximumWidth(200)
     self.accumulateDoseButton.toolTip = "Accumulates doses using all the Day 2 variants. All previous steps are needed to be run!"
     self.accumulateDoseButton.name = "NAMIC_Tutorial_2013June_SelfTest_AccumulateDose"
     self.workflow1GroupboxLayout.addWidget(self.accumulateDoseButton)
@@ -152,6 +164,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     
     # Compute DVH button
     self.computeDvhButton = qt.QPushButton("Compute DVH")
+    self.computeDvhButton.setMaximumWidth(200)
     self.computeDvhButton.toolTip = "Computes DVH on the accumulated doses. All previous steps are needed to be run!"
     self.computeDvhButton.name = "NAMIC_Tutorial_2013June_SelfTest_ComputeDvh"
     self.workflow1GroupboxLayout.addWidget(self.computeDvhButton)
@@ -211,6 +224,17 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.runTest()
 
   #------------------------------------------------------------------------------
+  def onPerformWorkflow1(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
+    self.onReload()
+    evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
+    tester = eval(evalString)
+    tester.setUp()
+
+    if not hasattr(tester,'setupPathsAndNamesDone'):
+      tester.TestSection_I_00_SetupPathsAndNames()
+    tester.TestSection_I_EvaluateIsocenterShifting()
+    
+  #------------------------------------------------------------------------------
   def onLoadData(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -226,8 +250,6 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_01E_LoadDay2Data()
     tester.TestSection_I_01F_SetDisplayOptions()
     tester.TestSection_I_02_AddDay2DataToPatientHierarchy()
-    tester.TestSection_I_03A_ComputeIsodose()
-    tester.TestSection_I_03B_ShowIsodoseLineSets()
 
   #------------------------------------------------------------------------------
   def onGenerateIsodose(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
@@ -238,8 +260,8 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_I_00_SetupPathsAndNames()
-    tester.TestSection_I_03A_ComputeIsodose()
-    tester.TestSection_I_03B_ShowIsodoseLineSets()
+    tester.TestSection_I_03A_ComputeIsodoseForDay1()
+    tester.TestSection_I_03B_ComputeIsodoseForDay2()
 
   #------------------------------------------------------------------------------
   def onRegister(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
@@ -261,8 +283,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_I_00_SetupPathsAndNames()
-    tester.TestSection_I_05A_ResampleDoseVolumes()
-    tester.TestSection_I_05B_AddResampledDoseVolumesToPatientHierarchy()
+    tester.TestSection_I_05_ResampleDay2DoseVolume()
 
   #------------------------------------------------------------------------------
   def onComputeGamma(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
@@ -456,7 +477,6 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   def TestUtility_ShowVolumes(self, back=None, fore=None):
     try:
       self.assertTrue( back != None )
-      self.delayDisplay("Show volumes",self.delayMs)
 
       layoutManager = slicer.app.layoutManager()
       layoutManager.setLayout(3)
@@ -503,11 +523,10 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.TestSection_I_01E_LoadDay2Data()
       self.TestSection_I_01F_SetDisplayOptions()
       self.TestSection_I_02_AddDay2DataToPatientHierarchy()
-      self.TestSection_I_03A_ComputeIsodose()
-      self.TestSection_I_03B_ShowIsodoseLineSets()
+      self.TestSection_I_03A_ComputeIsodoseForDay1()
+      self.TestSection_I_03B_ComputeIsodoseForDay2()
       self.TestSection_I_04_RegisterDay2CTToDay1CT()
-      self.TestSection_I_05A_ResampleDoseVolumes()
-      self.TestSection_I_05B_AddResampledDoseVolumesToPatientHierarchy()
+      self.TestSection_I_05_ResampleDay2DoseVolume()
       self.TestSection_I_06_ComputeGamma()
       self.TestSection_I_07_AccumulateDose()
       self.TestSection_I_08_ComputeDvh()
@@ -546,6 +565,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     self.transformDay2ToDay1BSplineName = 'Transform_Day2ToDay1_BSpline'
     self.day2DoseRigidName = '5_RTDOSE_Day2Registered_Rigid'
     self.day2DoseBSplineName = '5_RTDOSE_Day2Registered_BSpline'
+    self.gammaVolumeName = 'Gamma_Day1_Day2Rigid'
     self.doseUnitNameAttributeName = 'DicomRtImport.DoseUnitName'
     self.doseUnitValueAttributeName = 'DicomRtImport.DoseUnitValue'
     self.doseAccumulationDoseVolumeNameProperty = 'DoseAccumulation.DoseVolumeNodeName'
@@ -728,12 +748,12 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     self.delayDisplay('Setting display options for loaded data',self.delayMs)
 
     try:
-      # Set Day 2 dose color map and W/L
+      # Set default dose color map and W/L
       defaultDoseColorTable = slicer.util.getNode('Dose_ColorTable')
-      day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
+      day2Dose = slicer.util.getNode(self.day2DoseName)
       day2Dose.GetDisplayNode().SetAndObserveColorNodeID(defaultDoseColorTable.GetID())
 
-      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      day1Dose = slicer.util.getNode(self.day1DoseName)
       doseUnitValue = day1Dose.GetAttribute(self.doseUnitValueAttributeName)
       day2Dose.GetDisplayNode().SetAutoWindowLevel(0)
       day2Dose.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
@@ -742,11 +762,11 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       day2Dose.GetDisplayNode().SetApplyThreshold(1);    
       
       # Set CT windows
-      day1CT = slicer.util.getNode(pattern=self.day1CTName)
+      day1CT = slicer.util.getNode(self.day1CTName)
       day1CT.GetDisplayNode().SetAutoWindowLevel(0)
       day1CT.GetDisplayNode().SetWindowLevel(250,80)
 
-      day2CT = slicer.util.getNode(pattern=self.day2CTName)
+      day2CT = slicer.util.getNode(self.day2CTName)
       day2CT.GetDisplayNode().SetAutoWindowLevel(0)
       day2CT.GetDisplayNode().SetWindowLevel(250,80)
 
@@ -759,9 +779,9 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       layoutManager.sliceWidget(sliceWidgetNames[1]).sliceController().setSliceOffsetValue(-18)
       
       # Set structure visibilities/transparencies
-      optBrain = slicer.util.getNode(pattern='optBRAIN_Contour_RibbonModel')
+      optBrain = slicer.util.getNode('optBRAIN_Contour_RibbonModel')
       optBrain.GetDisplayNode().SetVisibility(0)
-      optOptic = slicer.util.getNode(pattern='optOptic_Contour_RibbonModel')
+      optOptic = slicer.util.getNode('optOptic_Contour_RibbonModel')
       optOptic.GetDisplayNode().SetVisibility(0)
 
       threeDView = layoutManager.threeDWidget(0).threeDView()
@@ -779,7 +799,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   def TestSection_I_02_AddDay2DataToPatientHierarchy(self):
     try:
       # Get patient node
-      day1CT = slicer.util.getNode(pattern=self.day1CTName)
+      day1CT = slicer.util.getNode(self.day1CTName)
       ct1HierarchyNode = slicer.vtkMRMLHierarchyNode.GetAssociatedHierarchyNode(slicer.mrmlScene, day1CT.GetID())
       patientNode = ct1HierarchyNode.GetParentNode().GetParentNode()
       self.assertTrue( patientNode != None )
@@ -796,7 +816,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       slicer.mrmlScene.AddNode(studyNode);
 
       # Add day 2 CT series
-      day2CT = slicer.util.getNode(pattern=self.day2CTName)
+      day2CT = slicer.util.getNode(self.day2CTName)
       seriesNodeCT = slicer.vtkMRMLHierarchyNode()
       seriesNodeCT.HideFromEditorsOff()
       seriesNodeCT.SetName('Day2CT_PatientHierarchy')
@@ -808,10 +828,10 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       slicer.mrmlScene.AddNode(seriesNodeCT)
 
       # Set dose attributes for day 2 dose
-      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      day1Dose = slicer.util.getNode(self.day1DoseName)
       doseUnitName = day1Dose.GetAttribute(self.doseUnitNameAttributeName)
       doseUnitValue = day1Dose.GetAttribute(self.doseUnitValueAttributeName)
-      day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
+      day2Dose = slicer.util.getNode(self.day2DoseName)
       day2Dose.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
       day2Dose.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
 
@@ -833,10 +853,16 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       raise Exception("Exception occurred, handled, thrown further to workflow level")
 
   #------------------------------------------------------------------------------
-  def TestSection_I_03A_ComputeIsodose(self):
-    self.delayDisplay('Computing isodose',self.delayMs)
+  def TestSection_I_03A_ComputeIsodoseForDay1(self):
+    self.delayDisplay('Computing isodose for day 1',self.delayMs)
 
     try:
+      from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
+
+      # Hide beams
+      beams = slicer.util.getNode(self.day1BeamsName)
+      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(beams, 0)
+
       scene = slicer.mrmlScene
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('Isodose')
@@ -847,19 +873,20 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       applyButton = slicer.util.findChildren(widget=isodoseWidget, className='qPushButton', name='Apply')[0]
       
       # Compute isodose for day 1 dose
-      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      day1Dose = slicer.util.getNode(self.day1DoseName)
       doseVolumeMrmlNodeCombobox.setCurrentNodeID(day1Dose.GetID())
       applyButton.click()
 
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelNode*') ) == numOfModelNodesBeforeLoad + 6 )
 
-      # Compute isodose for day 2 dose
-      self.delayDisplay('Computing isodose for day 2',self.delayMs)
-      day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
-      doseVolumeMrmlNodeCombobox.setCurrentNodeID(day2Dose.GetID())
-      applyButton.click()
+      # Show day 1 isodose
+      day1CT = slicer.util.getNode(self.day1CTName)
+      self.TestUtility_ShowVolumes(day1CT)
 
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelNode*') ) == numOfModelNodesBeforeLoad + 12 )
+      day1Isodose = slicer.util.getNode(self.day1IsodosesName)
+      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day1Isodose, 1)
+
+      self.delayDisplay('Show day 1 isodose lines',self.delayMs)
 
     except Exception, e:
       import traceback
@@ -868,26 +895,33 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       raise Exception("Exception occurred, handled, thrown further to workflow level")
 
   #------------------------------------------------------------------------------
-  def TestSection_I_03B_ShowIsodoseLineSets(self):
+  def TestSection_I_03B_ComputeIsodoseForDay2(self):
+    self.delayDisplay('Computing isodose for day 2',self.delayMs)
+
     try:
       from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
 
-      # Hide beams, show day 1 isodose
-      day1CT = slicer.util.getNode(pattern=self.day1CTName)
-      self.TestUtility_ShowVolumes(day1CT)
+      scene = slicer.mrmlScene
+      mainWindow = slicer.util.mainWindow()
+      mainWindow.moduleSelector().selectModule('Isodose')
+      numOfModelNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLModelNode*') )
 
-      beams = slicer.util.getNode(self.day1BeamsName)
-      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(beams, 0)
+      isodoseWidget = slicer.modules.isodose.widgetRepresentation()
+      doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]      
+      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='qPushButton', name='Apply')[0]
 
-      day1Isodose = slicer.util.getNode(self.day1IsodosesName)
-      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day1Isodose, 1)
+      # Compute isodose for day 2 dose
+      day2Dose = slicer.util.getNode(self.day2DoseName)
+      doseVolumeMrmlNodeCombobox.setCurrentNodeID(day2Dose.GetID())
+      applyButton.click()
 
-      self.delayDisplay('Show day 2 isodose lines',self.delayMs*2)
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelNode*') ) == numOfModelNodesBeforeLoad + 6 )
 
       # Show day 2 isodose
+      day1Isodose = slicer.util.getNode(self.day1IsodosesName)
       vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day1Isodose, 0)
 
-      day2CT = slicer.util.getNode(pattern=self.day2CTName)
+      day2CT = slicer.util.getNode(self.day2CTName)
       self.TestUtility_ShowVolumes(day2CT)
 
       day2Isodose = slicer.util.getNode(self.day2IsodosesName)
@@ -902,19 +936,25 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   #------------------------------------------------------------------------------
   def TestSection_I_04_RegisterDay2CTToDay1CT(self):
     try:
+      from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
+
       scene = slicer.mrmlScene
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSFit')
       brainsFit = slicer.modules.brainsfit
 
+      # Hide isodose
+      day2Isodose = slicer.util.getNode(self.day2IsodosesName)
+      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day2Isodose, 0)
+
       # Register Day 2 CT to Day 1 CT using rigid registration
       self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration.\n  It may take a few minutes...",self.delayMs)
 
       parametersRigid = {}
-      day1CT = slicer.util.getNode(pattern=self.day1CTName)
+      day1CT = slicer.util.getNode(self.day1CTName)
       parametersRigid["fixedVolume"] = day1CT.GetID()
 
-      day2CT = slicer.util.getNode(pattern=self.day2CTName)
+      day2CT = slicer.util.getNode(self.day2CTName)
       parametersRigid["movingVolume"] = day2CT.GetID()
       
       linearTransform = slicer.vtkMRMLLinearTransformNode()
@@ -968,14 +1008,14 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       raise Exception("Exception occurred, handled, thrown further to workflow level")
 
   #------------------------------------------------------------------------------
-  def TestSection_I_05A_ResampleDoseVolumes(self):
+  def TestSection_I_05_ResampleDay2DoseVolume(self):
     try:
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSResample')
       brainsResample = slicer.modules.brainsresample
 
-      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
-      day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
+      day1Dose = slicer.util.getNode(self.day1DoseName)
+      day2Dose = slicer.util.getNode(self.day2DoseName)
 
       # Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform
       self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform",self.delayMs)
@@ -991,7 +1031,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
       parametersRigid["pixelType"] = 'float'
 
-      transformDay2ToDay1Rigid = slicer.util.getNode(pattern=self.transformDay2ToDay1RigidName)
+      transformDay2ToDay1Rigid = slicer.util.getNode(self.transformDay2ToDay1RigidName)
       parametersRigid["warpTransform"] = transformDay2ToDay1Rigid.GetID()
 
       self.cliBrainsResampleRigidNode = None
@@ -1020,7 +1060,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
         # parametersBSpline["pixelType"] = 'float'
 
-        # transformDay2ToDay1BSpline = slicer.util.getNode(pattern=self.transformDay2ToDay1BSplineName)
+        # transformDay2ToDay1BSpline = slicer.util.getNode(self.transformDay2ToDay1BSplineName)
         # parametersBSpline["warpTransform"] = transformDay2ToDay1BSpline.GetID()
 
         # self.cliBrainsResampleBSplineNode = None
@@ -1033,34 +1073,41 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
         # self.assertTrue( self.cliBrainsResampleBSplineNode.GetStatusString() == 'Completed' )
 
-    except Exception, e:
-      import traceback
-      traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
-      raise Exception("Exception occurred, handled, thrown further to workflow level")
-
-  #------------------------------------------------------------------------------
-  def TestSection_I_05B_AddResampledDoseVolumesToPatientHierarchy(self):
-    self.delayDisplay("Setting attributes for resampled dose volumes",self.delayMs)
-
-    try:
-      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      # Set attributes and display for resampled dose volume
       doseUnitName = day1Dose.GetAttribute(self.doseUnitNameAttributeName)
       doseUnitValue = day1Dose.GetAttribute(self.doseUnitValueAttributeName)
 
-      day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
-      day2Dose.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
-      day2Dose.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
-
-      day2DoseRigid = slicer.util.getNode(pattern=self.day2DoseRigidName)
-      self.assertTrue(day2DoseRigid)
       day2DoseRigid.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
       day2DoseRigid.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
       self.assertTrue(day2DoseRigid.GetDisplayNode())
-      day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
+
+      # Set default dose color map and W/L
+      defaultDoseColorTable = slicer.util.getNode('Dose_ColorTable')
+      day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID(defaultDoseColorTable.GetID())
+
+      day2DoseRigid.GetDisplayNode().SetAutoWindowLevel(0)
+      day2DoseRigid.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
+      day2DoseRigid.GetDisplayNode().AutoThresholdOff();
+      day2DoseRigid.GetDisplayNode().SetLowerThreshold(0.5 * float(doseUnitValue));
+      day2DoseRigid.GetDisplayNode().SetApplyThreshold(1);    
+
+      # Add resampled dose to patient hierarchy
+      day2DoseHierarchyNode = slicer.vtkMRMLHierarchyNode.GetAssociatedHierarchyNode(slicer.mrmlScene, day2Dose.GetID())
+      day2StudyNode = day2DoseHierarchyNode.GetParentNode()
+      self.assertTrue( day2StudyNode != None )
+
+      seriesNodeResampledDose = slicer.vtkMRMLHierarchyNode()
+      seriesNodeResampledDose.HideFromEditorsOff()
+      seriesNodeResampledDose.SetName('Day2Dose_RigidResampled_PatientHierarchy')
+      seriesNodeResampledDose.SetAssociatedNodeID(day2DoseRigid.GetID())
+      seriesNodeResampledDose.SetAttribute('HierarchyType','PatientHierarchy')
+      seriesNodeResampledDose.SetAttribute('DicomLevel','Series')
+      seriesNodeResampledDose.SetAttribute('DicomUid','Day2Dose_RigidResampled_UID')
+      seriesNodeResampledDose.SetParentNodeID(day2StudyNode.GetID());
+      slicer.mrmlScene.AddNode(seriesNodeResampledDose)
 
       # if self.performDeformableRegistration:
-        # day2DoseBSplineName = slicer.util.getNode(pattern=self.day2DoseBSplineName)
+        # day2DoseBSplineName = slicer.util.getNode(self.day2DoseBSplineName)
         # self.assertTrue(day2DoseBSplineName)
         # day2DoseBSplineName.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
         # day2DoseBSplineName.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
@@ -1075,8 +1122,36 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
   #------------------------------------------------------------------------------
   def TestSection_I_06_ComputeGamma(self):
+    self.delayDisplay('Computing gamma difference for day 1 does and resampled day 2 dose',self.delayMs)
+
     try:
-      pass #TODO
+      scene = slicer.mrmlScene
+      mainWindow = slicer.util.mainWindow()
+      mainWindow.moduleSelector().selectModule('DoseComparison')
+      numOfVolumeNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') )
+      
+      gammaWidget = slicer.modules.dosecomparison.widgetRepresentation()
+      referenceDoseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_ReferenceDoseVolume')[0]
+      compareDoseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_CompareDoseVolume')[0]
+      gammaVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_GammaVolume')[0]
+      applyButton = slicer.util.findChildren(widget=gammaWidget, className='qPushButton', name='Apply')[0]
+
+      # Create output gamma volume
+      gammaVolume = gammaVolumeMrmlNodeCombobox.addNode()
+      # gammaVolume.SetName(self.gammaVolumeName)
+      # gammaVolumeMrmlNodeCombobox.setCurrentNodeID(gammaVolume.GetID())
+      self.gammaVolumeName = gammaVolume.GetName() #TODO This or the one above?
+
+      # Compute gamma for day 1 dose and resampled day 2 dose
+      day1Dose = slicer.util.getNode(self.day1DoseName)
+      referenceDoseVolumeMrmlNodeCombobox.setCurrentNodeID(day1Dose.GetID())
+      day2DoseRigid = slicer.util.getNode(self.day2DoseRigidName)
+      compareDoseVolumeMrmlNodeCombobox.setCurrentNodeID(day2DoseRigid.GetID())
+      applyButton.click()
+
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfVolumeNodesBeforeLoad + 1 )
+      
+      self.TestUtility_ShowVolumes(gammaVolume)
       
     except Exception, e:
       import traceback
@@ -1085,7 +1160,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       raise Exception("Exception occurred, handled, thrown further to workflow level")
 
   #------------------------------------------------------------------------------
-  def DoseAccumulation_CheckDoseVolume(self, widget, doseVolumeName, checked):
+  def DoseAccumulationUtility_CheckDoseVolume(self, widget, doseVolumeName, checked):
     try:
       checkboxes = slicer.util.findChildren(widget=widget, className='QCheckBox')
       for checkbox in checkboxes:
@@ -1106,7 +1181,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       mainWindow.moduleSelector().selectModule('DoseAccumulation')
       doseAccumulationWidget = slicer.modules.doseaccumulation.widgetRepresentation()
 
-      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      day1Dose = slicer.util.getNode(self.day1DoseName)
       inputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Input')[0]
       referenceVolumeCombobox = slicer.util.findChildren(widget=inputFrame, className='qMRMLNodeComboBox')[0]
       referenceVolumeCombobox.setCurrentNode(day1Dose)
@@ -1119,7 +1194,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.assertTrue( applyButton != None )
       self.assertTrue( outputMrmlNodeCombobox != None )
 
-      self.DoseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day1DoseName, 1)
+      self.DoseAccumulationUtility_CheckDoseVolume(doseAccumulationWidget, self.day1DoseName, 1)
       
       # Create output volumes
       accumulatedDoseUnregistered = slicer.vtkMRMLScalarVolumeNode()
@@ -1132,25 +1207,25 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
       # Accumulate Day 1 dose and untransformed Day 2 dose
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose",self.delayMs)
-      self.DoseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 1)
+      self.DoseAccumulationUtility_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 1)
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)
       applyButton.click()
       
       self.assertTrue( accumulatedDoseUnregistered.GetImageData() )
 
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose finished",self.delayMs)
-      self.DoseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 0)
+      self.DoseAccumulationUtility_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 0)
 
       # Accumulate Day 1 dose and Day 2 dose transformed using the rigid transform
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration",self.delayMs)
-      self.DoseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 1)
+      self.DoseAccumulationUtility_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 1)
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseRigid)
       applyButton.click()
       
       self.assertTrue( accumulatedDoseRigid.GetImageData() )
 
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration finished",self.delayMs)
-      self.DoseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 0)
+      self.DoseAccumulationUtility_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 0)
 
     except Exception, e:
       import traceback
@@ -1178,18 +1253,18 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
         elif 'vtkMRMLChartNode' in mrmlNodeCombobox.nodeTypes:
           chartNodeCombobox = mrmlNodeCombobox
 
-      ptvContour = slicer.util.getNode(pattern='PTV1_Contour')
+      ptvContour = slicer.util.getNode('PTV1_Contour')
       contourNodeCombobox.setCurrentNode(ptvContour)
 
       # Compute DVH using untransformed accumulated dose
       self.delayDisplay("Compute DVH of accumulated dose (unregistered)",self.delayMs)
-      accumulatedDoseUnregistered = slicer.util.getNode(pattern=self.accumulatedDoseUnregisteredName)
+      accumulatedDoseUnregistered = slicer.util.getNode(self.accumulatedDoseUnregisteredName)
       doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)
       computeDvhButton.click()
       
       # Compute DVH using accumulated dose volume that used Day 2 dose after rigid transform
       self.delayDisplay("Compute DVH of accumulated dose (rigid registration)",self.delayMs)
-      accumulatedDoseRigid = slicer.util.getNode(pattern=self.accumulatedDoseRigidName)
+      accumulatedDoseRigid = slicer.util.getNode(self.accumulatedDoseRigidName)
       doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseRigid)
       computeDvhButton.click()
 
@@ -1242,3 +1317,5 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
     except Exception, e:
       pass
+
+      
