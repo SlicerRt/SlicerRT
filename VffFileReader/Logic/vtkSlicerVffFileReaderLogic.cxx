@@ -698,6 +698,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
       vffVolumeNode->SetAndObserveImageData(floatVffVolumeData);
       vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> vffVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
       this->GetMRMLScene()->AddNode(vffVolumeDisplayNode);
+      vffVolumeNode->SetAndObserveDisplayNodeID(vffVolumeDisplayNode->GetID());
 
       if (this->GetApplicationLogic()!=NULL)
       {
