@@ -62,7 +62,9 @@ class NAMIC_Tutorial_2013June_SelfTest:
     tester.runTest()
 
 #
+# -----------------------------------------------------------------------------
 # qNAMIC_Tutorial_2013June_SelfTest_Widget
+# -----------------------------------------------------------------------------
 #
 
 class NAMIC_Tutorial_2013June_SelfTestWidget:
@@ -78,6 +80,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
       self.setup()
       self.parent.show()
 
+  #------------------------------------------------------------------------------
   def setup(self):
     # Instantiate and connect widgets ...
 
@@ -160,6 +163,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     # Add vertical spacer
     self.layout.addStretch(4)
 
+  #------------------------------------------------------------------------------
   def onReload(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     """Generic reload method for any scripted module.
     ModuleWizard will subsitute correct default moduleName.
@@ -199,12 +203,14 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
         'globals()["%s"].%s(parent)' % (moduleName, widgetName))
     globals()[widgetName.lower()].setup()
 
+  #------------------------------------------------------------------------------
   def onReloadAndTest(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
     tester = eval(evalString)
     tester.runTest()
 
+  #------------------------------------------------------------------------------
   def onLoadData(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -219,8 +225,11 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_01D_SelectLoadablesAndLoad()
     tester.TestSection_I_01E_LoadDay2Data()
     tester.TestSection_I_01F_SetDisplayOptions()
-    tester.TestSection_I_02_AddDayDataToPatientHierarchy()
+    tester.TestSection_I_02_AddDay2DataToPatientHierarchy()
+    tester.TestSection_I_03A_ComputeIsodose()
+    tester.TestSection_I_03B_ShowIsodoseLineSets()
 
+  #------------------------------------------------------------------------------
   def onGenerateIsodose(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -232,6 +241,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_03A_ComputeIsodose()
     tester.TestSection_I_03B_ShowIsodoseLineSets()
 
+  #------------------------------------------------------------------------------
   def onRegister(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -242,6 +252,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
       tester.TestSection_I_00_SetupPathsAndNames()
     tester.TestSection_I_04_RegisterDay2CTToDay1CT()
 
+  #------------------------------------------------------------------------------
   def onResample(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -253,6 +264,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_05A_ResampleDoseVolumes()
     tester.TestSection_I_05B_AddResampledDoseVolumesToPatientHierarchy()
 
+  #------------------------------------------------------------------------------
   def onComputeGamma(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -263,6 +275,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
       tester.TestSection_I_00_SetupPathsAndNames()
     tester.TestSection_I_06_ComputeGamma()
 
+  #------------------------------------------------------------------------------
   def onAccumulateDose(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -273,6 +286,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
       tester.TestSection_I_00_SetupPathsAndNames()
     tester.TestSection_I_07_AccumulateDose()
 
+  #------------------------------------------------------------------------------
   def onComputeDvh(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):
     self.onReload()
     evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -284,7 +298,9 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_08_ComputeDvh()
 
 #
+# -----------------------------------------------------------------------------
 # NAMIC_Tutorial_2013June_SelfTestLogic
+# -----------------------------------------------------------------------------
 #
 
 class NAMIC_Tutorial_2013June_SelfTestLogic:
@@ -310,6 +326,11 @@ class NAMIC_Tutorial_2013June_SelfTestLogic:
       return False
     return True
 
+#
+# -----------------------------------------------------------------------------
+# NAMIC_Tutorial_2013June_SelfTestTest
+# -----------------------------------------------------------------------------
+#
 
 class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   """
@@ -319,6 +340,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   def __init__(self):
     self.performDeformableRegistration = False
 
+  #------------------------------------------------------------------------------
   def delayDisplay(self,message,msec=1000):
     """This utility method displays a small dialog and waits.
     This does two things: 1) it lets the event loop catch up
@@ -336,6 +358,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     qt.QTimer.singleShot(msec, self.info.close)
     self.info.exec_()
 
+  #------------------------------------------------------------------------------
   def setUp(self, clearScene=True):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
@@ -354,6 +377,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
     self.moduleName = "NAMIC_Tutorial_2013June_SelfTest"
 
+  #------------------------------------------------------------------------------
   def clickAndDrag(self,widget,button='Left',start=(10,10),end=(10,40),steps=20,modifiers=[]):
     """Send synthetic mouse events to the specified widget (qMRMLSliceWidget or qMRMLThreeDView)
     button : "Left", "Middle", "Right", or "None"
@@ -393,6 +417,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     interator.SetShiftKey(0)
     interator.SetControlKey(0)
 
+  #------------------------------------------------------------------------------
   def runTest(self):
     """Run as few or as many tests as needed here.
     """
@@ -400,11 +425,63 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
     self.test_NAMIC_Tutorial_2013June_SelfTest_FullTest()
 
+  #------------------------------------------------------------------------------
   def test_NAMIC_Tutorial_2013June_SelfTest_FullTest(self):
     self.TestSection_I_EvaluateIsocenterShifting()
-    self.TestSection_II_EvaluateDeformableRegistration()
-    self.TestSection_III_AddMarginToTargetStructure()
+    self.delayDisplay("Workflow 1 done",self.delayMs)
 
+    self.TestSection_II_EvaluateDeformableRegistration()
+    self.delayDisplay("Workflow 2 done",self.delayMs)
+
+    self.TestSection_III_AddMarginToTargetStructure()
+    self.delayDisplay("Workflow 3 done",self.delayMs)
+
+  #------------------------------------------------------------------------------
+  # Utility functions
+  #------------------------------------------------------------------------------
+  def TestUtility_ClearDatabase(self):
+    self.delayDisplay("Clear database",self.delayMs)
+
+    initialized = slicer.dicomDatabase.initializeDatabase()
+
+    slicer.dicomDatabase.closeDatabase()
+    self.assertFalse( slicer.dicomDatabase.isOpen )
+
+    self.delayDisplay("Restoring original database directory",self.delayMs)
+    if self.originalDatabaseDirectory:
+      dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
+      dicomWidget.onDatabaseDirectoryChanged(self.originalDatabaseDirectory)
+
+  #------------------------------------------------------------------------------
+  def TestUtility_ShowVolumes(self, back=None, fore=None):
+    try:
+      self.assertTrue( back != None )
+      self.delayDisplay("Show volumes",self.delayMs)
+
+      layoutManager = slicer.app.layoutManager()
+      layoutManager.setLayout(3)
+      
+      sliceWidgetNames = ['Red', 'Green', 'Yellow']
+      for sliceWidgetName in sliceWidgetNames:
+        slice = layoutManager.sliceWidget(sliceWidgetName)
+        sliceLogic = slice.sliceLogic()
+        compositeNode = sliceLogic.GetSliceCompositeNode()
+        compositeNode.SetBackgroundVolumeID(back.GetID())
+        if fore != None:
+          compositeNode.SetForegroundVolumeID(fore.GetID())
+          compositeNode.SetForegroundOpacity(0.5)
+        else:
+          compositeNode.SetForegroundVolumeID(None)
+
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further")
+
+  #------------------------------------------------------------------------------
+  # Workflow 1
+  #------------------------------------------------------------------------------
   def TestSection_I_EvaluateIsocenterShifting(self):
     try:
       # Check for modules
@@ -417,9 +494,6 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.assertTrue( slicer.modules.dosecomparison )
       self.assertTrue( slicer.modules.doseaccumulation )
       self.assertTrue( slicer.modules.dosevolumehistogram )
-      self.assertTrue( slicer.modules.deformationfieldvisualizer )
-      self.assertTrue( slicer.modules.contourcomparison )
-      self.assertTrue( slicer.modules.contourmorphology )
 
       self.TestSection_I_00_SetupPathsAndNames()
       self.TestSection_I_01A_OpenTempDatabase()
@@ -428,7 +502,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.TestSection_I_01D_SelectLoadablesAndLoad()
       self.TestSection_I_01E_LoadDay2Data()
       self.TestSection_I_01F_SetDisplayOptions()
-      self.TestSection_I_02_AddDayDataToPatientHierarchy()
+      self.TestSection_I_02_AddDay2DataToPatientHierarchy()
       self.TestSection_I_03A_ComputeIsodose()
       self.TestSection_I_03B_ShowIsodoseLineSets()
       self.TestSection_I_04_RegisterDay2CTToDay1CT()
@@ -437,13 +511,12 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.TestSection_I_06_ComputeGamma()
       self.TestSection_I_07_AccumulateDose()
       self.TestSection_I_08_ComputeDvh()
-      # self.TestSection_ClearDatabase()
+      # self.TestUtility_ClearDatabase()
 
     except Exception, e:
-      import traceback
-      traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      pass
 
+  #------------------------------------------------------------------------------
   def TestSection_I_00_SetupPathsAndNames(self):
     NAMIC_Tutorial_2013June_SelfTestDir = slicer.app.temporaryPath + '/NAMIC_Tutorial_2013June_SelfTest'
     if not os.access(NAMIC_Tutorial_2013June_SelfTestDir, os.F_OK):
@@ -459,13 +532,16 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
     self.dicomDatabaseDir = NAMIC_Tutorial_2013June_SelfTestDir + '/CtkDicomDatabase'
     self.dicomZipFilePath = NAMIC_Tutorial_2013June_SelfTestDir + '/EclipseEntDicomRt.zip'
-    self.expectedNumOfFilesInDicomDataDir = 141
+    self.expectedNumOfFilesInDicomDataDir = 142
     self.tempDir = NAMIC_Tutorial_2013June_SelfTestDir + '/Temp'
     
     self.day1CTName = '2: ENT IMRT'
-    self.day1DoseName = '5: RTDOSE'
+    self.day1DoseName = '5: RTDOSE: BRAI1'
+    self.day1BeamsName = '4: RTPLAN: BRAI1_BeamModels'
+    self.day1IsodosesName = '5: RTDOSE: BRAI1_IsodoseSurfaces_PatientHierarchy'
     self.day2CTName = '2_ENT_IMRT_Day2'
     self.day2DoseName = '5_RTDOSE_Day2'
+    self.day2IsodosesName = '5_RTDOSE_Day2_IsodoseSurfaces_PatientHierarchy'
     self.transformDay2ToDay1RigidName = 'Transform_Day2ToDay1_Rigid'
     self.transformDay2ToDay1BSplineName = 'Transform_Day2ToDay1_BSpline'
     self.day2DoseRigidName = '5_RTDOSE_Day2Registered_Rigid'
@@ -475,10 +551,11 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     self.doseAccumulationDoseVolumeNameProperty = 'DoseAccumulation.DoseVolumeNodeName'
     self.accumulatedDoseUnregisteredName = '5_RTDOSE Accumulated Unregistered'
     self.accumulatedDoseRigidName = '5_RTDOSE Accumulated Rigid'
-    self.accumulatedDoseBSplineName = '5_RTDOSE Accumulated BSpline'
+    # self.accumulatedDoseBSplineName = '5_RTDOSE Accumulated BSpline'
     
     self.setupPathsAndNamesDone = True
 
+  #------------------------------------------------------------------------------
   def TestSection_I_01A_OpenTempDatabase(self):
     # Open test database and empty it
     try:
@@ -501,34 +578,44 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def TestSection_I_01B_DownloadDay1Data(self):
-    import urllib
-    downloads = (
-        ('http://slicer.kitware.com/midas3/download?items=10704', self.dicomZipFilePath),
-        )
+    try:
+      import urllib
+      downloads = (
+          ('http://slicer.kitware.com/midas3/download/item/101019/EclipseEntPhantomRtData.zip', self.dicomZipFilePath),
+          )
 
-    downloaded = 0
-    for url,filePath in downloads:
-      if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-        if downloaded == 0:
-          self.delayDisplay('Downloading Day 1 input data to folder\n' + self.dicomZipFilePath + '.\n\n  It may take a few minutes...',self.delayMs)
-        print('Requesting download from %s...' % (url))
-        urllib.urlretrieve(url, filePath)
-        downloaded += 1
-      else:
-        self.delayDisplay('Day 1 input data has been found in folder ' + self.dicomZipFilePath, self.delayMs)
-    if downloaded > 0:
-      self.delayDisplay('Downloading Day 1 input data finished',self.delayMs)
+      downloaded = 0
+      for url,filePath in downloads:
+        if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
+          if downloaded == 0:
+            self.delayDisplay('Downloading Day 1 input data to folder\n' + self.dicomZipFilePath + '.\n\n  It may take a few minutes...',self.delayMs)
+          print('Requesting download from %s...' % (url))
+          urllib.urlretrieve(url, filePath)
+          downloaded += 1
+        else:
+          self.delayDisplay('Day 1 input data has been found in folder ' + self.dicomZipFilePath, self.delayMs)
+      if downloaded > 0:
+        self.delayDisplay('Downloading Day 1 input data finished',self.delayMs)
 
-    numOfFilesInDicomDataDir = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
-    if (numOfFilesInDicomDataDir != self.expectedNumOfFilesInDicomDataDir):
-      slicer.app.applicationLogic().Unzip(self.dicomZipFilePath, self.dicomDataDir)
-      self.delayDisplay("Unzipping done",self.delayMs)
+      numOfFilesInDicomDataDir = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
+      if (numOfFilesInDicomDataDir != self.expectedNumOfFilesInDicomDataDir):
+        slicer.app.applicationLogic().Unzip(self.dicomZipFilePath, self.dicomDataDir)
+        self.delayDisplay("Unzipping done",self.delayMs)
 
-    numOfFilesInDicomDataDirTest = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
-    self.assertTrue( numOfFilesInDicomDataDirTest == self.expectedNumOfFilesInDicomDataDir )
+      numOfFilesInDicomDataDirTest = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
+      self.assertTrue( numOfFilesInDicomDataDirTest == self.expectedNumOfFilesInDicomDataDir )
 
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
+
+  #------------------------------------------------------------------------------
   def TestSection_I_01C_ImportDay1Study(self):
     self.delayDisplay("Import Day 1 study",self.delayMs)
 
@@ -552,7 +639,9 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def TestSection_I_01D_SelectLoadablesAndLoad(self):
     self.delayDisplay("Select loadables and load data",self.delayMs)
 
@@ -581,119 +670,236 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
           self.assertTrue( loadable.selected )
 
       self.assertTrue( rtFound )
-      self.assertTrue( loadablesForRt == 2 )
+      self.assertTrue( loadablesForRt == 3 )
 
       dicomWidget.detailsPopup.loadCheckedLoadables()
 
       # Verify that the correct number of objects were loaded
       scene = slicer.mrmlScene
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == numOfModelHierarchyNodesBeforeLoad + 17 )
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == numOfModelHierarchyNodesBeforeLoad + 24 )
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == numOfContourNodesBeforeLoad + 16 )
-      
+
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def TestSection_I_01E_LoadDay2Data(self):
-    import urllib
-    downloads = (
-        ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/' + self.day2CTName + '.nrrd', slicer.util.loadVolume),
-        ('http://slicer.kitware.com/midas3/download?items=10703', self.day2DataDir + '/' + self.day2DoseName + '.nrrd', slicer.util.loadVolume),
-        )
+    try:
+      import urllib
+      downloads = (
+          ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/' + self.day2CTName + '.nrrd', slicer.util.loadVolume),
+          ('http://slicer.kitware.com/midas3/download?items=10703', self.day2DataDir + '/' + self.day2DoseName + '.nrrd', slicer.util.loadVolume),
+          )
 
-    numOfScalarVolumeNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') )
+      numOfScalarVolumeNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') )
 
-    downloaded = 0
-    for url,filePath,loader in downloads:
-      if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-        if downloaded == 0:
-          self.delayDisplay('Downloading Day 2 input data to folder\n' + self.day2DataDir + '\n\n  It may take a few minutes...',self.delayMs)
-        print('Requesting download from %s...\n' % (url))
-        urllib.urlretrieve(url, filePath)
-        downloaded += 1
-      else:
-        self.delayDisplay('Day 2 input data has been found in folder ' + self.day2DataDir, self.delayMs)
-      if loader:
-        print('Loading %s...' % (os.path.split(filePath)[1]))
-        loader(filePath)
-    if downloaded > 0:
-      self.delayDisplay('Downloading Day 2 input data finished',self.delayMs)
+      downloaded = 0
+      for url,filePath,loader in downloads:
+        if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
+          if downloaded == 0:
+            self.delayDisplay('Downloading Day 2 input data to folder\n' + self.day2DataDir + '\n\n  It may take a few minutes...',self.delayMs)
+          print('Requesting download from %s...\n' % (url))
+          urllib.urlretrieve(url, filePath)
+          # TODO Check file sizes if possible (sometimes one of them does not fully download)
+          downloaded += 1
+        else:
+          self.delayDisplay('Day 2 input data has been found in folder ' + self.day2DataDir, self.delayMs)
+        if loader:
+          print('Loading %s...' % (os.path.split(filePath)[1]))
+          loader(filePath)
+      if downloaded > 0:
+        self.delayDisplay('Downloading Day 2 input data finished',self.delayMs)
 
-    # Verify that the correct number of objects were loaded
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
+      # Verify that the correct number of objects were loaded
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
 
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
+
+  #------------------------------------------------------------------------------
   def TestSection_I_01F_SetDisplayOptions(self):
     self.delayDisplay('Setting display options for loaded data',self.delayMs)
 
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(3)
-
-    # Set Day 2 dose color map
-    day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
-    day2Dose.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
-
-    # Set CT windows
-    day1CT = slicer.util.getNode(pattern=self.day1CTName)
-    day1CT.GetDisplayNode().SetAutoWindowLevel(0)
-    day1CT.GetDisplayNode().SetWindowLevel(250,80)
-
-    day2CT = slicer.util.getNode(pattern=self.day2CTName)
-    day2CT.GetDisplayNode().SetAutoWindowLevel(0)
-    day2CT.GetDisplayNode().SetWindowLevel(250,80)
-
-    # Set volumes to show
-    sliceWidgetNames = ['Red', 'Green', 'Yellow']
-    for sliceWidgetName in sliceWidgetNames:
-      slice = layoutManager.sliceWidget(sliceWidgetName)
-      sliceLogic = slice.sliceLogic()
-      compositeNode = sliceLogic.GetSliceCompositeNode()
-      compositeNode.SetBackgroundVolumeID(day1CT.GetID())
-      compositeNode.SetForegroundVolumeID(day2CT.GetID())
-      sliceLogic.SetForegroundOpacity(0.5)
-
-    layoutManager.sliceWidget(sliceWidgetNames[0]).sliceController().setSliceOffsetValue(138)
-    layoutManager.sliceWidget(sliceWidgetNames[1]).sliceController().setSliceOffsetValue(-18)
-    
-    # Set structure visibilities/transparencies
-    optBrain = slicer.util.getNode(pattern='optBRAIN_Contour_RibbonModel')
-    optBrain.GetDisplayNode().SetVisibility(0)
-    optOptic = slicer.util.getNode(pattern='optOptic_Contour_RibbonModel')
-    optOptic.GetDisplayNode().SetVisibility(0)
-
-    threeDView = layoutManager.threeDWidget(0).threeDView()
-    self.clickAndDrag(threeDView,button='Middle',start=(10,110),end=(10,10))
-    self.clickAndDrag(threeDView,button='Middle',start=(10,100),end=(10,10))
-    self.clickAndDrag(threeDView,start=(10,70),end=(90,10))
-
-  def TestSection_I_02_AddDayDataToPatientHierarchy(self):
     try:
-      pass #TODO
+      # Set Day 2 dose color map and W/L
+      defaultDoseColorTable = slicer.util.getNode('Dose_ColorTable')
+      day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
+      day2Dose.GetDisplayNode().SetAndObserveColorNodeID(defaultDoseColorTable.GetID())
+
+      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      doseUnitValue = day1Dose.GetAttribute(self.doseUnitValueAttributeName)
+      day2Dose.GetDisplayNode().SetAutoWindowLevel(0)
+      day2Dose.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
+      day2Dose.GetDisplayNode().AutoThresholdOff();
+      day2Dose.GetDisplayNode().SetLowerThreshold(0.5 * float(doseUnitValue));
+      day2Dose.GetDisplayNode().SetApplyThreshold(1);    
       
+      # Set CT windows
+      day1CT = slicer.util.getNode(pattern=self.day1CTName)
+      day1CT.GetDisplayNode().SetAutoWindowLevel(0)
+      day1CT.GetDisplayNode().SetWindowLevel(250,80)
+
+      day2CT = slicer.util.getNode(pattern=self.day2CTName)
+      day2CT.GetDisplayNode().SetAutoWindowLevel(0)
+      day2CT.GetDisplayNode().SetWindowLevel(250,80)
+
+      # Set volumes to show
+      self.TestUtility_ShowVolumes(day1CT,day1Dose)
+
+      layoutManager = slicer.app.layoutManager()
+      sliceWidgetNames = ['Red', 'Green', 'Yellow']
+      layoutManager.sliceWidget(sliceWidgetNames[0]).sliceController().setSliceOffsetValue(138)
+      layoutManager.sliceWidget(sliceWidgetNames[1]).sliceController().setSliceOffsetValue(-18)
+      
+      # Set structure visibilities/transparencies
+      optBrain = slicer.util.getNode(pattern='optBRAIN_Contour_RibbonModel')
+      optBrain.GetDisplayNode().SetVisibility(0)
+      optOptic = slicer.util.getNode(pattern='optOptic_Contour_RibbonModel')
+      optOptic.GetDisplayNode().SetVisibility(0)
+
+      threeDView = layoutManager.threeDWidget(0).threeDView()
+      self.clickAndDrag(threeDView,button='Middle',start=(10,110),end=(10,10))
+      self.clickAndDrag(threeDView,button='Middle',start=(10,100),end=(10,10))
+      self.clickAndDrag(threeDView,start=(10,70),end=(90,20))
+
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
+  def TestSection_I_02_AddDay2DataToPatientHierarchy(self):
+    try:
+      # Get patient node
+      day1CT = slicer.util.getNode(pattern=self.day1CTName)
+      ct1HierarchyNode = slicer.vtkMRMLHierarchyNode.GetAssociatedHierarchyNode(slicer.mrmlScene, day1CT.GetID())
+      patientNode = ct1HierarchyNode.GetParentNode().GetParentNode()
+      self.assertTrue( patientNode != None )
+      
+      # Add new study for the day 2 data
+      studyNode = slicer.vtkMRMLHierarchyNode()
+      studyNode.AllowMultipleChildrenOn()
+      studyNode.HideFromEditorsOff()
+      studyNode.SetName('Day2')
+      studyNode.SetAttribute('HierarchyType','PatientHierarchy')
+      studyNode.SetAttribute('DicomLevel','Study')
+      studyNode.SetAttribute('DicomUid','Day2Study_UID')
+      studyNode.SetParentNodeID(patientNode.GetID());
+      slicer.mrmlScene.AddNode(studyNode);
+
+      # Add day 2 CT series
+      day2CT = slicer.util.getNode(pattern=self.day2CTName)
+      seriesNodeCT = slicer.vtkMRMLHierarchyNode()
+      seriesNodeCT.HideFromEditorsOff()
+      seriesNodeCT.SetName('Day2CT_PatientHierarchy')
+      seriesNodeCT.SetAssociatedNodeID(day2CT.GetID())
+      seriesNodeCT.SetAttribute('HierarchyType','PatientHierarchy')
+      seriesNodeCT.SetAttribute('DicomLevel','Series')
+      seriesNodeCT.SetAttribute('DicomUid','Day2CT_UID')
+      seriesNodeCT.SetParentNodeID(studyNode.GetID());
+      slicer.mrmlScene.AddNode(seriesNodeCT)
+
+      # Set dose attributes for day 2 dose
+      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      doseUnitName = day1Dose.GetAttribute(self.doseUnitNameAttributeName)
+      doseUnitValue = day1Dose.GetAttribute(self.doseUnitValueAttributeName)
+      day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
+      day2Dose.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
+      day2Dose.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
+
+      # Add day 2 dose series
+      seriesNodeDose = slicer.vtkMRMLHierarchyNode()
+      seriesNodeDose.HideFromEditorsOff()
+      seriesNodeDose.SetName('Day2Dose_PatientHierarchy')
+      seriesNodeDose.SetAssociatedNodeID(day2Dose.GetID())
+      seriesNodeDose.SetAttribute('HierarchyType','PatientHierarchy')
+      seriesNodeDose.SetAttribute('DicomLevel','Series')
+      seriesNodeDose.SetAttribute('DicomUid','Day2Dose_UID')
+      seriesNodeDose.SetParentNodeID(studyNode.GetID());
+      slicer.mrmlScene.AddNode(seriesNodeDose)
+
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
+
+  #------------------------------------------------------------------------------
   def TestSection_I_03A_ComputeIsodose(self):
+    self.delayDisplay('Computing isodose',self.delayMs)
+
     try:
-      pass #TODO
+      scene = slicer.mrmlScene
+      mainWindow = slicer.util.mainWindow()
+      mainWindow.moduleSelector().selectModule('Isodose')
+      numOfModelNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLModelNode*') )
+
+      isodoseWidget = slicer.modules.isodose.widgetRepresentation()
+      doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]      
+      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='qPushButton', name='Apply')[0]
       
+      # Compute isodose for day 1 dose
+      day1Dose = slicer.util.getNode(pattern=self.day1DoseName)
+      doseVolumeMrmlNodeCombobox.setCurrentNodeID(day1Dose.GetID())
+      applyButton.click()
+
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelNode*') ) == numOfModelNodesBeforeLoad + 6 )
+
+      # Compute isodose for day 2 dose
+      self.delayDisplay('Computing isodose for day 2',self.delayMs)
+      day2Dose = slicer.util.getNode(pattern=self.day2DoseName)
+      doseVolumeMrmlNodeCombobox.setCurrentNodeID(day2Dose.GetID())
+      applyButton.click()
+
+      self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelNode*') ) == numOfModelNodesBeforeLoad + 12 )
+
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def TestSection_I_03B_ShowIsodoseLineSets(self):
     try:
-      pass #TODO
+      from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
+
+      # Hide beams, show day 1 isodose
+      day1CT = slicer.util.getNode(pattern=self.day1CTName)
+      self.TestUtility_ShowVolumes(day1CT)
+
+      beams = slicer.util.getNode(self.day1BeamsName)
+      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(beams, 0)
+
+      day1Isodose = slicer.util.getNode(self.day1IsodosesName)
+      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day1Isodose, 1)
+
+      self.delayDisplay('Show day 2 isodose lines',self.delayMs*2)
+
+      # Show day 2 isodose
+      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day1Isodose, 0)
+
+      day2CT = slicer.util.getNode(pattern=self.day2CTName)
+      self.TestUtility_ShowVolumes(day2CT)
+
+      day2Isodose = slicer.util.getNode(self.day2IsodosesName)
+      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day2Isodose, 1)
       
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def TestSection_I_04_RegisterDay2CTToDay1CT(self):
     try:
       scene = slicer.mrmlScene
@@ -729,36 +935,39 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.assertTrue( self.cliBrainsFitRigidNode.GetStatusString() == 'Completed' )
 
       # Register Day 2 CT to Day 1 CT using BSpline registration
-      if self.performDeformableRegistration:
-        self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration.\n  It may take a few minutes...",self.delayMs)
+      # TODO: Move this to workflow 2
+      # if self.performDeformableRegistration:
+        # self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration.\n  It may take a few minutes...",self.delayMs)
 
-        parametersBSpline = {}
-        parametersBSpline["fixedVolume"] = day1CT.GetID()
-        parametersBSpline["movingVolume"] = day2CT.GetID()
-        parametersBSpline["initialTransform"] = linearTransform.GetID()
+        # parametersBSpline = {}
+        # parametersBSpline["fixedVolume"] = day1CT.GetID()
+        # parametersBSpline["movingVolume"] = day2CT.GetID()
+        # parametersBSpline["initialTransform"] = linearTransform.GetID()
 
-        bsplineTransform = slicer.vtkMRMLBSplineTransformNode()
-        bsplineTransform.SetName(self.transformDay2ToDay1BSplineName)
-        slicer.mrmlScene.AddNode( bsplineTransform )
-        parametersBSpline["bsplineTransform"] = bsplineTransform.GetID()
+        # bsplineTransform = slicer.vtkMRMLBSplineTransformNode()
+        # bsplineTransform.SetName(self.transformDay2ToDay1BSplineName)
+        # slicer.mrmlScene.AddNode( bsplineTransform )
+        # parametersBSpline["bsplineTransform"] = bsplineTransform.GetID()
 
-        parametersBSpline["useBSpline"] = True
+        # parametersBSpline["useBSpline"] = True
 
-        self.cliBrainsFitBSplineNode = None
-        self.cliBrainsFitBSplineNode = slicer.cli.run(brainsFit, None, parametersBSpline)
-        waitCount = 0
-        while self.cliBrainsFitBSplineNode.GetStatusString() != 'Completed' and waitCount < 600:
-          self.delayDisplay( "Register Day 2 CT to Day 1 CT using BSpline registration... %d" % waitCount )
-          waitCount += 1
-        self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration finished",self.delayMs)
+        # self.cliBrainsFitBSplineNode = None
+        # self.cliBrainsFitBSplineNode = slicer.cli.run(brainsFit, None, parametersBSpline)
+        # waitCount = 0
+        # while self.cliBrainsFitBSplineNode.GetStatusString() != 'Completed' and waitCount < 600:
+          # self.delayDisplay( "Register Day 2 CT to Day 1 CT using BSpline registration... %d" % waitCount )
+          # waitCount += 1
+        # self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration finished",self.delayMs)
 
-        self.assertTrue( self.cliBrainsFitBSplineNode.GetStatusString() == 'Completed' )
+        # self.assertTrue( self.cliBrainsFitBSplineNode.GetStatusString() == 'Completed' )
 
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def TestSection_I_05A_ResampleDoseVolumes(self):
     try:
       mainWindow = slicer.util.mainWindow()
@@ -796,38 +1005,41 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.assertTrue( self.cliBrainsResampleRigidNode.GetStatusString() == 'Completed' )
 
       # Resample Day 2 Dose using Day 2 CT to Day 1 CT rigid transform
-      if self.performDeformableRegistration:
-        self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform",self.delayMs)
+      # TODO: Move this to workflow 2 (resample structures, not dose there)
+      # if self.performDeformableRegistration:
+        # self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform",self.delayMs)
 
-        parametersBSpline = {}
-        parametersBSpline["inputVolume"] = day2Dose.GetID()
-        parametersBSpline["referenceVolume"] = day1Dose.GetID()
+        # parametersBSpline = {}
+        # parametersBSpline["inputVolume"] = day2Dose.GetID()
+        # parametersBSpline["referenceVolume"] = day1Dose.GetID()
 
-        day2DoseBSplineName = slicer.vtkMRMLScalarVolumeNode()
-        day2DoseBSplineName.SetName(self.day2DoseBSplineName)
-        slicer.mrmlScene.AddNode( day2DoseBSplineName )
-        parametersBSpline["outputVolume"] = day2DoseBSplineName.GetID()
+        # day2DoseBSplineName = slicer.vtkMRMLScalarVolumeNode()
+        # day2DoseBSplineName.SetName(self.day2DoseBSplineName)
+        # slicer.mrmlScene.AddNode( day2DoseBSplineName )
+        # parametersBSpline["outputVolume"] = day2DoseBSplineName.GetID()
 
-        parametersBSpline["pixelType"] = 'float'
+        # parametersBSpline["pixelType"] = 'float'
 
-        transformDay2ToDay1BSpline = slicer.util.getNode(pattern=self.transformDay2ToDay1BSplineName)
-        parametersBSpline["warpTransform"] = transformDay2ToDay1BSpline.GetID()
+        # transformDay2ToDay1BSpline = slicer.util.getNode(pattern=self.transformDay2ToDay1BSplineName)
+        # parametersBSpline["warpTransform"] = transformDay2ToDay1BSpline.GetID()
 
-        self.cliBrainsResampleBSplineNode = None
-        self.cliBrainsResampleBSplineNode = slicer.cli.run(brainsResample, None, parametersBSpline)
-        waitCount = 0
-        while self.cliBrainsResampleBSplineNode.GetStatusString() != 'Completed' and waitCount < 100:
-          self.delayDisplay( "Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform... %d" % waitCount )
-          waitCount += 1
-        self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform finished",self.delayMs)
+        # self.cliBrainsResampleBSplineNode = None
+        # self.cliBrainsResampleBSplineNode = slicer.cli.run(brainsResample, None, parametersBSpline)
+        # waitCount = 0
+        # while self.cliBrainsResampleBSplineNode.GetStatusString() != 'Completed' and waitCount < 100:
+          # self.delayDisplay( "Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform... %d" % waitCount )
+          # waitCount += 1
+        # self.delayDisplay("Resample Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform finished",self.delayMs)
 
-        self.assertTrue( self.cliBrainsResampleBSplineNode.GetStatusString() == 'Completed' )
+        # self.assertTrue( self.cliBrainsResampleBSplineNode.GetStatusString() == 'Completed' )
 
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def TestSection_I_05B_AddResampledDoseVolumesToPatientHierarchy(self):
     self.delayDisplay("Setting attributes for resampled dose volumes",self.delayMs)
 
@@ -847,19 +1059,21 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.assertTrue(day2DoseRigid.GetDisplayNode())
       day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 
-      if self.performDeformableRegistration:
-        day2DoseBSplineName = slicer.util.getNode(pattern=self.day2DoseBSplineName)
-        self.assertTrue(day2DoseBSplineName)
-        day2DoseBSplineName.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
-        day2DoseBSplineName.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
-        self.assertTrue(day2DoseBSplineName.GetDisplayNode())
-        day2DoseBSplineName.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
+      # if self.performDeformableRegistration:
+        # day2DoseBSplineName = slicer.util.getNode(pattern=self.day2DoseBSplineName)
+        # self.assertTrue(day2DoseBSplineName)
+        # day2DoseBSplineName.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
+        # day2DoseBSplineName.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
+        # self.assertTrue(day2DoseBSplineName.GetDisplayNode())
+        # day2DoseBSplineName.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def TestSection_I_06_ComputeGamma(self):
     try:
       pass #TODO
@@ -868,7 +1082,9 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def DoseAccumulation_CheckDoseVolume(self, widget, doseVolumeName, checked):
     try:
       checkboxes = slicer.util.findChildren(widget=widget, className='QCheckBox')
@@ -881,7 +1097,9 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def TestSection_I_07_AccumulateDose(self):
     try:
       mainWindow = slicer.util.mainWindow()
@@ -912,11 +1130,6 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       accumulatedDoseRigid.SetName(self.accumulatedDoseRigidName)
       slicer.mrmlScene.AddNode( accumulatedDoseRigid )
 
-      if self.performDeformableRegistration:
-        accumulatedDoseBSpline = slicer.vtkMRMLScalarVolumeNode()
-        accumulatedDoseBSpline.SetName(self.accumulatedDoseBSplineName)
-        slicer.mrmlScene.AddNode( accumulatedDoseBSpline )
-
       # Accumulate Day 1 dose and untransformed Day 2 dose
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose",self.delayMs)
       self.DoseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 1)
@@ -939,22 +1152,13 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration finished",self.delayMs)
       self.DoseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 0)
 
-      # Accumulate Day 1 dose and Day 2 dose transformed using the BSpline transform
-      if self.performDeformableRegistration:
-        self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration",self.delayMs)
-        self.DoseAccumulation_CheckDoseVolume(doseAccumulationWidget, self.day2DoseBSplineName, 1)
-        outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseBSpline)
-        applyButton.click()
-        
-        self.assertTrue( accumulatedDoseBSpline.GetImageData() )
-
-        self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with BSpline registration finished",self.delayMs)
-
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
+  #------------------------------------------------------------------------------
   def TestSection_I_08_ComputeDvh(self):
     try:
       scene = slicer.mrmlScene
@@ -989,13 +1193,6 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseRigid)
       computeDvhButton.click()
 
-      # Compute DVH using accumulated dose volume that used Day 2 dose after BSpline transform
-      if self.performDeformableRegistration:
-        self.delayDisplay("Compute DVH of accumulated dose (BSpline registration)",self.delayMs)
-        accumulatedDoseBSpline = slicer.util.getNode(pattern=self.accumulatedDoseBSplineName)
-        doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseBSpline)
-        computeDvhButton.click()
-
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') ) == numOfDoubleArrayNodesBeforeLoad + 2 + self.performDeformableRegistration )
 
       # Create chart and show plots
@@ -1009,20 +1206,11 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
-  def TestSection_ClearDatabase(self):
-    self.delayDisplay("Clear database",self.delayMs)
-
-    initialized = slicer.dicomDatabase.initializeDatabase()
-
-    slicer.dicomDatabase.closeDatabase()
-    self.assertFalse( slicer.dicomDatabase.isOpen )
-
-    self.delayDisplay("Restoring original database directory",self.delayMs)
-    if self.originalDatabaseDirectory:
-      dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-      dicomWidget.onDatabaseDirectoryChanged(self.originalDatabaseDirectory)
-
+  #------------------------------------------------------------------------------
+  # Workflow 2
+  #------------------------------------------------------------------------------
   def TestSection_II_EvaluateDeformableRegistration(self):
     try:
       # Check for modules
@@ -1037,10 +1225,11 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       # self.TestSection_II..._00_SetupPathsAndNames()
 
     except Exception, e:
-      import traceback
-      traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      pass
 
+  #------------------------------------------------------------------------------
+  # Workflow 3
+  #------------------------------------------------------------------------------
   def TestSection_III_AddMarginToTargetStructure(self):
     try:
       # Check for modules
@@ -1052,6 +1241,4 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       # self.TestSection_III..._00_SetupPathsAndNames()
 
     except Exception, e:
-      import traceback
-      traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      pass

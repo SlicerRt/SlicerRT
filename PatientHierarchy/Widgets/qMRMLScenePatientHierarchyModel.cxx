@@ -48,6 +48,7 @@ qMRMLScenePatientHierarchyModelPrivate::qMRMLScenePatientHierarchyModelPrivate(q
   this->ContourIcon = QIcon(":Icons/Contour.png");
   this->DoseVolumeIcon = QIcon(":Icons/DoseVolume.png");
   this->IsocenterIcon = QIcon(":Icons/Isocenter.png");
+  this->IsodoseIcon = QIcon(":Icons/Isodose.png");
   this->PatientIcon = QIcon(":Icons/Patient.png");
   this->PlanIcon = QIcon(":Icons/Plan.png");
   this->ShowInViewersIcon = QIcon(":Icons/ShowInViewers.png");
@@ -281,13 +282,31 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
         }
         else if (associatedNode->IsA("vtkMRMLAnnotationFiducialNode"))
         {
-          // TODO: add check to make sure it is an actual isocenter
-          item->setIcon(d->IsocenterIcon);
+          QString parentHierarchyNodeName(hierarchyNode->GetParentNode()->GetName());
+          if (parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()))
+          {
+            item->setIcon(d->IsocenterIcon);
+          }
+          else
+          {
+            vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Unrecognized annotation object '" << associatedNode->GetName() << "'");
+          }
         }
         else if (associatedNode->IsA("vtkMRMLModelNode"))
         {
-          // TODO: add check to make sure it is an actual beam
-          item->setIcon(d->BeamIcon);
+          QString parentHierarchyNodeName(hierarchyNode->GetParentNode()->GetName());
+          if (parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX.c_str()))
+          {
+            item->setIcon(d->BeamIcon);
+          }
+          else if (parentHierarchyNodeName.contains(SlicerRtCommon::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX.c_str()))
+          {
+            item->setIcon(d->IsodoseIcon);
+          }
+          else
+          {
+            vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Unrecognized model object '" << associatedNode->GetName() << "'");
+          }
         }
       }
     }
