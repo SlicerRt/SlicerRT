@@ -47,6 +47,7 @@ public:
   virtual QString helpText()const;
   virtual QString acknowledgementText()const;
   virtual QStringList contributors()const;
+  virtual QStringList categories()const;
   qSlicerGetTitleMacro(QTMODULE_TITLE);
 
   // Makes the module hidden

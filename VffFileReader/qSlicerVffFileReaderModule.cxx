@@ -92,6 +92,12 @@ QStringList qSlicerVffFileReaderModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
+QStringList qSlicerVffFileReaderModule::categories()const
+{
+  return QStringList() << "";
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerVffFileReaderModule::setup()
 {
   this->Superclass::setup();
