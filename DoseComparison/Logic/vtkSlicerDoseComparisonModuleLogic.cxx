@@ -126,9 +126,6 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneEndClose()
 {
   assert(this->GetMRMLScene() != 0);
 
-  // Load default gamma color table
-  this->LoadDefaultGammaColorTable();
-
   this->Modified();
 }
 

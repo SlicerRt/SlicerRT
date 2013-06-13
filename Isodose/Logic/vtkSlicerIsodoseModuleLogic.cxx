@@ -132,9 +132,6 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneEndClose()
 {
   assert(this->GetMRMLScene() != 0);
 
-  // Load default isodose color table
-  this->LoadDefaultIsodoseColorTable();
-
   this->Modified();
 }
 
