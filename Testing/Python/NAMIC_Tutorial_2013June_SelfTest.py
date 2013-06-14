@@ -940,7 +940,8 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
       # Hide isodose
       day2Isodose = slicer.util.getNode(self.day2IsodosesName)
-      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day2Isodose, 0)
+      if (day2Isodose != None):
+        vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day2Isodose, 0)
 
       # Register Day 2 CT to Day 1 CT using rigid registration
       self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration.\n  It may take a few minutes...",self.delayMs)
