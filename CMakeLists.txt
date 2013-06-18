@@ -75,19 +75,25 @@ add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmXformwarp)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-  add_subdirectory(PlmDoseComparison)
-  add_subdirectory(PlmDvh)
-  #add_subdirectory(PlmMabs) # requires Plastimatch segmentation  
-  add_subdirectory(PlmSlicerBspline) # disable for now, loadable
-  add_subdirectory(PlmSynth)
-  add_subdirectory(PlmThreshbox)
-  
-  add_subdirectory(MatlabCommander)
-  add_subdirectory(DicomRtExport)
-  add_subdirectory(ExternalBeamPlanning)
 
-  add_subdirectory(ProtonBeams)
-  add_subdirectory(ProtonDose)
+  # Obsolete
+  #add_subdirectory(PlmDoseComparison)
+  #add_subdirectory(PlmDvh)
+  add_subdirectory(DicomRtExport)
+  #add_subdirectory(ProtonBeams)
+  #add_subdirectory(ProtonDose)
+
+  # Requires Plastimatch segmentation 
+  #add_subdirectory(PlmMabs)
+
+  # Registration validation routines
+  add_subdirectory(PlmSynth)
+
+  # In development
+  add_subdirectory(PlmSlicerBspline)
+  add_subdirectory(PlmThreshbox)
+  add_subdirectory(MatlabCommander)
+  add_subdirectory(ExternalBeamPlanning)
 endif()
 
 if(BUILD_TESTING)
