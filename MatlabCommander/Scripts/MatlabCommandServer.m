@@ -41,8 +41,7 @@ function exitValue=MatlabCommandServer(port)
 
         % Wait for client connection
         drawNowCounter=0;
-        while(true),
-            
+        while(true),            
             try 
               clientSocketInfo.socket = serverSocketInfo.socket.accept;  
               break; 
@@ -51,7 +50,7 @@ function exitValue=MatlabCommandServer(port)
             if (drawNowCounter>10)
               drawnow
               drawNowCounter=0;
-              end;
+            end;
             drawNowCounter=drawNowCounter+1;
             pause(0.5);
         end
@@ -66,34 +65,33 @@ function exitValue=MatlabCommandServer(port)
 
         % Read command
         receivedMsg=ReadOpenIGTLinkStringMessage(clientSocketInfo);
-        if(isempty(receivedMsg))
-            break;
-        end
-        disp(['Data type: [',char(receivedMsg.dataTypeName),']']);
-        disp(['Device name: [',char(receivedMsg.deviceName),']']);
-        disp(['Message string: [',char(receivedMsg.string),']']);
+        if(~isempty(receivedMsg) && length(receivedMsg.string)>0)
+            disp(['Data type: [',char(receivedMsg.dataTypeName),']']);
+            disp(['Device name: [',char(receivedMsg.deviceName),']']);
+            disp(['Message string: [',char(receivedMsg.string),']']);
 
-        cmd=char(receivedMsg.string);
-        try
-          % try running the command and capture the output
-          response=eval(cmd);
-        catch
-          % failed, so the command is either invalid or does not provide output          
-          try
-            % retry without expecting an output
-            eval(cmd);
-            response='OK';
-          catch ME
-            % failed with and without an output, the command must be invalid
-            response=ME.message;
-          end          
+            cmd=char(receivedMsg.string);
+            try
+              % try running the command and capture the output
+              response=eval(cmd);
+            catch
+              % failed, so the command is either invalid or does not provide output          
+              try
+                % retry without expecting an output
+                eval(cmd);
+                response='OK';
+              catch ME
+                % failed with and without an output, the command must be invalid
+                response=ME.message;
+              end          
+            end
+        else
+            response='Failed to receive command';            
         end
-        response
-        %disp(['Response: ', response]);
+        disp(response);
         
         % Send reply
-        WriteOpenIGTLinkStringMessage(clientSocketInfo, num2str(response));
-        %WriteOpenIGTLinkStringMessage(clientSocketInfo, 'something');
+        WriteOpenIGTLinkStringMessage(clientSocketInfo, num2str(response), strcat(char(receivedMsg.deviceName),'Reply'));
 
         % Close connection
         clientSocketInfo.socket.close;
@@ -110,7 +108,15 @@ end
 
 function msg=ReadOpenIGTLinkStringMessage(clientSocket)
     msg=ReadOpenIGTLinkMessage(clientSocket);
+    if (length(msg.body)<5)
+        disp('Error: STRING message received with incomplete contents')
+        msg.string='';
+        return
+    end        
     strMsgEncoding=convertFromUint8VectorToUint16(msg.body(1:2));
+    if (strMsgEncoding~=3)
+        disp(['Warning: STRING message received with unknown encoding ',num2str(strMsgEncoding)])
+    end
     strMsgLength=convertFromUint8VectorToUint16(msg.body(3:4));
     msg.string=char(msg.body(5:4+strMsgLength));
 end    
@@ -126,11 +132,12 @@ function msg=ReadOpenIGTLinkMessage(clientSocket)
     end
 end    
         
-function result=WriteOpenIGTLinkStringMessage(clientSocket, msgString)
+function result=WriteOpenIGTLinkStringMessage(clientSocket, msgString, deviceName)
     msg.dataTypeName='STRING';
-    msg.deviceName='Matlab';
+    msg.deviceName=deviceName;
     msg.timestamp=0;
     msg.body=[convertFromUint16ToUint8Vector(3),convertFromUint16ToUint8Vector(length(msgString)),uint8(msgString)];
+    disp(['Send reply as device ',msg.deviceName,': ',msgString])
     result=WriteOpenIGTLinkMessage(clientSocket, msg);
 end
 
@@ -177,6 +184,7 @@ function data=ReadWithTimeout(clientSocket, requestedDataLength, timeoutSec)
 
     % preallocate to improve performance
     data=zeros(1,requestedDataLength,'uint8');
+    signedDataByte=int8(0);
     bytesRead=0;
     while(bytesRead<requestedDataLength)
         bytesToRead=min(clientSocket.inputStream.available, requestedDataLength-bytesRead);
@@ -185,7 +193,12 @@ function data=ReadWithTimeout(clientSocket, requestedDataLength, timeoutSec)
             tstart=tic;
         end
         for i = bytesRead+1:bytesRead+bytesToRead
-            data(i) = DataInputStream(clientSocket.inputStream).readByte;
+            signedDataByte = DataInputStream(clientSocket.inputStream).readByte;
+            if signedDataByte>=0
+                data(i) = signedDataByte;
+            else
+                data(i) = bitcmp(-signedDataByte,'uint8')+1;
+            end
         end            
         bytesRead=bytesRead+bytesToRead;
         if (bytesRead>0 && bytesRead<requestedDataLength)
