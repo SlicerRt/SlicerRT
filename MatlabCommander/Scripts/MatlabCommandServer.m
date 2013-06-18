@@ -57,6 +57,7 @@ function exitValue=MatlabCommandServer(port)
 
         % Client connected
         disp('Client connected')
+        rehash        
         clientSocketInfo.remoteHost = char(clientSocketInfo.socket.getInetAddress);
         clientSocketInfo.outputStream = clientSocketInfo.socket.getOutputStream;
         clientSocketInfo.inputStream = clientSocketInfo.socket.getInputStream;       
