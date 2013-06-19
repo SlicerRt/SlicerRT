@@ -48,7 +48,7 @@ qMRMLScenePatientHierarchyModelPrivate::qMRMLScenePatientHierarchyModelPrivate(q
   this->ContourIcon = QIcon(":Icons/Contour.png");
   this->DoseVolumeIcon = QIcon(":Icons/DoseVolume.png");
   this->IsocenterIcon = QIcon(":Icons/Isocenter.png");
-  this->IsodoseIcon = QIcon(":Icons/Isodose.png");
+  this->IsodoseLinesIcon = QIcon(":Icons/IsodoseLines.png");
   this->PatientIcon = QIcon(":Icons/Patient.png");
   this->PlanIcon = QIcon(":Icons/Plan.png");
   this->ShowInViewersIcon = QIcon(":Icons/ShowInViewers.png");
@@ -301,7 +301,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
           }
           else if (parentHierarchyNodeName.contains(SlicerRtCommon::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX.c_str()))
           {
-            item->setIcon(d->IsodoseIcon);
+            item->setIcon(d->IsodoseLinesIcon);
           }
           else
           {

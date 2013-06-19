@@ -49,7 +49,7 @@ public:
   QIcon ContourIcon;
   QIcon DoseVolumeIcon;
   QIcon IsocenterIcon;
-  QIcon IsodoseIcon;
+  QIcon IsodoseLinesIcon;
   QIcon PatientIcon;
   QIcon PlanIcon;
   QIcon ShowInViewersIcon;
