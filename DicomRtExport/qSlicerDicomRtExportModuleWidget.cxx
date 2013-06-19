@@ -37,31 +37,6 @@ public:
   ~qSlicerDicomRtExportModuleWidgetPrivate();
 
   vtkSlicerDicomRtExportModuleLogic* logic() const;
-
-public:
-  // Description:
-  void SetImageVolumeNodeID(char* id)
-  {
-    this->ImageVolumeNodeID = id;
-  }
-  void SetDoseVolumeNodeID(char* id)
-  {
-    this->DoseVolumeNodeID = id;
-  }
-  void SetContourHierarchyNodeID(char* id)
-  {
-    this->ContourHierarchyNodeID = id;
-  }
-  void SetCurrentOutputPath(const char* path)
-  {
-    this->CurrentOutputPath = const_cast<char*>(path);
-  }
-
-protected:
-  char *ImageVolumeNodeID;
-  char *DoseVolumeNodeID;
-  char *ContourHierarchyNodeID;
-  char *CurrentOutputPath;
 };
 
 //-----------------------------------------------------------------------------
@@ -71,10 +46,6 @@ protected:
 qSlicerDicomRtExportModuleWidgetPrivate::qSlicerDicomRtExportModuleWidgetPrivate(qSlicerDicomRtExportModuleWidget& object)
   : q_ptr(&object)
 {
-  this->ImageVolumeNodeID = NULL;
-  this->DoseVolumeNodeID = NULL;
-  this->ContourHierarchyNodeID = NULL;
-  this->CurrentOutputPath = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -118,91 +89,6 @@ void qSlicerDicomRtExportModuleWidget::setup()
   Q_D(qSlicerDicomRtExportModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
-
-  // Make connections
-  this->connect( d->MRMLNodeComboBox_ImageVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), 
-           this, SLOT( onImageVolumeNodeChanged(vtkMRMLNode*) ) );
-  this->connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), 
-           this, SLOT( onDoseVolumeNodeChanged(vtkMRMLNode*) ) );
-  this->connect( d->MRMLNodeComboBox_ContourHierarchy, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), 
-           this, SLOT( onContourHierarchyNodeChanged(vtkMRMLNode*) ) );
-  this->connect( d->DirectoryButton_OutputDirectory, SIGNAL( directoryChanged(const QString &) ), 
-           this, SLOT( onCurrentPathChanged(const QString &) ) );
-
-  this->connect( d->pushButton_SaveDicomRT, SIGNAL(clicked()), this, SLOT(onSaveClicked()) );
-
-  // Handle scene change event if occurs
-  //qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
-
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDicomRtExportModuleWidget::onImageVolumeNodeChanged(vtkMRMLNode* node)
-{
-  Q_D(qSlicerDicomRtExportModuleWidget);
-
-  if (!this->mrmlScene() || !node)
-  {
-    return;
-  }
-  d->SetImageVolumeNodeID(node->GetID());
-
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDicomRtExportModuleWidget::onDoseVolumeNodeChanged(vtkMRMLNode* node)
-{
-  Q_D(qSlicerDicomRtExportModuleWidget);
-
-  if (!this->mrmlScene() || !node)
-  {
-    return;
-  }
-
-  d->SetDoseVolumeNodeID(node->GetID());
-
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDicomRtExportModuleWidget::onContourHierarchyNodeChanged(vtkMRMLNode* node)
-{
-  Q_D(qSlicerDicomRtExportModuleWidget);
-
-  if (!this->mrmlScene() || !node)
-  {
-    return;
-  }
-
-  d->SetContourHierarchyNodeID(node->GetID());
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDicomRtExportModuleWidget::onCurrentPathChanged(const QString &path)
-{
-  Q_D(qSlicerDicomRtExportModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    return;
-  }
-  // try to use unix style escape charactor but does not work
-  QString myUnixPath = QDir::fromNativeSeparators(path);
-  std::string current_locale_text = myUnixPath.toLocal8Bit().constData();
-  d->SetCurrentOutputPath(current_locale_text.c_str());
-
-  // use windows style and does not work
-  //std::string current_locale_text = path.toLocal8Bit().constData();
-  //d->SetCurrentOutputPath(current_locale_text.c_str());
-
-  // this does not work
-  //QByteArray byteArray = path.toUtf8();
-  //d->SetCu rrentOutputPath(byteArray.constData());
-  
-  // this works
-  d->SetCurrentOutputPath("c:\\wangk\\tmp\\testexport2");
-
-  // this works
-  //d->SetCurrentOutputPath("c:/wangk/tmp/testexport2");
 }
 
 //-----------------------------------------------------------------------------
@@ -212,8 +98,11 @@ void qSlicerDicomRtExportModuleWidget::onSaveClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  // Compute the isodose surface for the selected dose volume
-  d->logic()->SaveDicomRTStudy(d->ImageVolumeNodeID, d->DoseVolumeNodeID, d->ContourHierarchyNodeID, d->CurrentOutputPath);
+  d->logic()->SaveDicomRTStudy(
+    d->MRMLNodeComboBox_ImageVolume->currentNodeID().toLatin1().constData(),
+    d->MRMLNodeComboBox_DoseVolume->currentNodeID().toLatin1().constData(),
+    d->MRMLNodeComboBox_ContourHierarchy->currentNodeID().toLatin1().constData(),
+    d->DirectoryButton_OutputDirectory->directory().toLatin1().constData() );
 
   QApplication::restoreOverrideCursor();
 }

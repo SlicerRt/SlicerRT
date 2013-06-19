@@ -54,19 +54,19 @@ public:
   vtkTypeMacro(vtkSlicerDicomRtWriter, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  //
+  /// TODO: Description, argument names and descriptions
   void SetFileName(const char *);
 
-  //
+  /// TODO: Description, argument names and descriptions
   void SetImage(ShortImageType::Pointer);
 
-  //
+  /// TODO: Description, argument names and descriptions
   void SetDose(FloatImageType::Pointer);
 
-  //
+  /// TODO: Description, argument names and descriptions
   void AddContour(UCharImageType::Pointer, const char*, double*);
 
-  //
+  /// TODO: Description, argument names and descriptions
   void Write();
 
 protected:
@@ -74,7 +74,7 @@ protected:
   virtual ~vtkSlicerDicomRtWriter();
   
   char *FileName;
-  Rt_study rt_study;
+  Rt_study RtStudy;
 
 private:
   vtkSlicerDicomRtWriter(const vtkSlicerDicomRtWriter&); // Not implemented

@@ -57,21 +57,21 @@ void vtkSlicerDicomRtExportModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-int vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(char *imageNodeID, char *doseNodeID, char *contourHierarchyNodeID, char *currentOutputPath)
+void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID, const char* doseNodeID, const char* contourHierarchyNodeID, const char* currentOutputPath)
 {
-  // to do ...
+  // TODO:
   if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("Dicom RT Export: MRMLScene not valid!")
-    return -1;
+    vtkErrorMacro("SaveDicomRTStudy: MRMLScene not valid!")
+    return;
   }
 
   vtkMRMLScalarVolumeNode* imageNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(imageNodeID));
   if (!imageNode)
   {
-    vtkErrorMacro("Dicom RT Export: Must set the primary CT/MR image!")
-    return -1;
+    vtkErrorMacro("SaveDicomRTStudy: Must set the primary CT/MR image!")
+    return;
   }
 
   vtkMRMLScalarVolumeNode* doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(
@@ -80,28 +80,28 @@ int vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(char *imageNodeID, char 
     this->GetMRMLScene()->GetNodeByID(contourHierarchyNodeID));
   if (!doseNode && !contourHierarchyNode)
   {
-    vtkErrorMacro("Dicom RT Export: Must set at least the dose or contours!")
-    return -1;
+    vtkErrorMacro("SaveDicomRTStudy: Must set at least the dose or contours!")
+    return;
   }
 
   vtkSmartPointer<vtkSlicerDicomRtWriter> rtWriter = vtkSmartPointer<vtkSlicerDicomRtWriter>::New();
 
   // Convert input images to the format Plastimatch can use
   itk::Image<short, 3>::Pointer itkImage = itk::Image<short, 3>::New();
-  if (SlicerRtCommon::ConvertVolumeNodeToItkImage2<short>(imageNode, itkImage, false) == false)
+  if (SlicerRtCommon::ConvertVolumeNodeToItkImage<short>(imageNode, itkImage) == false)
   {
-    vtkErrorMacro(<<"Dicom RT Export: Failed to convert image volumeNode to ITK volume!");
-    return -1;
+    vtkErrorMacro("SaveDicomRTStudy: Failed to convert image volumeNode to ITK volume!");
+    return;
   }
   rtWriter->SetImage(itkImage);
 
   if (doseNode)
   {
     itk::Image<float, 3>::Pointer itkDose = itk::Image<float, 3>::New();
-    if (SlicerRtCommon::ConvertVolumeNodeToItkImage2<float>(doseNode, itkDose, false) == false)
+    if (SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(doseNode, itkDose) == false)
     {
-      vtkErrorMacro(<<"Dicom RT Export: Failed to convert dose volumeNode to ITK volume!");
-      return -1;
+      vtkErrorMacro("SaveDicomRTStudy: Failed to convert dose volumeNode to ITK volume!");
+      return;
     }
     rtWriter->SetDose(itkDose);
   }
@@ -113,8 +113,8 @@ int vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(char *imageNodeID, char 
     childContourNodes->InitTraversal();
     if (childContourNodes->GetNumberOfItems() < 1)
     {
-      vtkDebugWithObjectMacro(contourHierarchyNode, "Dicom RT Export: Selected contour hierarchy node has no children contour nodes!");
-      return -1;
+      vtkDebugMacro("SaveDicomRTStudy: Selected contour hierarchy node has no children contour nodes!");
+      return;
     }
 
     // Collect contour nodes in the hierarchy and determine whether their active representation types are the same
@@ -126,10 +126,10 @@ int vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(char *imageNodeID, char 
       double labelmapColor[4] = {0.0,0.0,0.0,1.0};
       labelmapNode->GetDisplayNode()->GetColor(labelmapColor);
       itk::Image<unsigned char, 3>::Pointer itkStructure = itk::Image<unsigned char, 3>::New();
-      if (SlicerRtCommon::ConvertVolumeNodeToItkImage2<unsigned char>(labelmapNode, itkStructure, false) == false)
+      if (SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(labelmapNode, itkStructure) == false)
       {
-        vtkErrorMacro(<<"Dicom RT Export: Failed to convert contour labelmap volumeNode to ITK volume!");
-        return -1;
+        vtkErrorMacro("SaveDicomRTStudy: Failed to convert contour labelmap volumeNode to ITK volume!");
+        return;
       }
       rtWriter->AddContour(itkStructure, labelmapName, labelmapColor);
     }

@@ -75,23 +75,23 @@ void vtkSlicerDicomRtWriter::PrintSelf(ostream& os, vtkIndent indent)
 void vtkSlicerDicomRtWriter::SetFileName(const char * name)
 {
   if ( this->FileName && name && (!strcmp(this->FileName,name)))
-    {
+  {
     return;
-    }
+  }
   if (!name && !this->FileName)
-    {
+  {
     return;
-    }
+  }
   if (this->FileName)
-    {
+  {
     delete [] this->FileName;
     this->FileName = NULL;
-    }
+  }
   if (name)
-    {
+  {
     this->FileName = new char[strlen(name) + 1];
     strcpy(this->FileName, name);
-    }
+  }
 
   this->Modified();
 }
@@ -99,13 +99,13 @@ void vtkSlicerDicomRtWriter::SetFileName(const char * name)
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtWriter::SetImage(ShortImageType::Pointer itk_image)
 {
-  rt_study.set_image (itk_image);
+  RtStudy.set_image(itk_image);
 }
   
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtWriter::SetDose(FloatImageType::Pointer itk_dose)
 {
-  rt_study.set_dose (itk_dose);
+  RtStudy.set_dose(itk_dose);
 }
   
 //----------------------------------------------------------------------------
@@ -114,6 +114,7 @@ void vtkSlicerDicomRtWriter::AddContour(UCharImageType::Pointer itk_structure, c
   std::string colorString("");
   std::ostringstream strs;
   strs << contourColor[0];
+  // TODO: rename variable str, strs
   std::string str = strs.str();
   colorString = colorString + str;
   strs << contourColor[1];
@@ -123,14 +124,13 @@ void vtkSlicerDicomRtWriter::AddContour(UCharImageType::Pointer itk_structure, c
   str = strs.str();
   colorString = colorString + "\\" + str;
 
-  rt_study.add_structure (itk_structure, contourName, colorString.c_str());
+  RtStudy.add_structure(itk_structure, contourName, colorString.c_str());
 }
   
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtWriter::Write()
 {
-  
-  rt_study.save_dicom (this->FileName);
+  RtStudy.save_dicom(this->FileName);
 }
   
 

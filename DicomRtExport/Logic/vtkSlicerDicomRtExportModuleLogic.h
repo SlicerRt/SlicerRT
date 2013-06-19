@@ -45,7 +45,8 @@ public:
   vtkTypeMacro(vtkSlicerDicomRtExportModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  int SaveDicomRTStudy(char*, char*, char*, char*);
+  /// TODO: Description, argument names and descriptions
+  void SaveDicomRTStudy(const char*, const char*, const char*, const char*);
 
 protected:
   vtkSlicerDicomRtExportModuleLogic();
