@@ -124,7 +124,7 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(ss.str().c_str());
+      this->SetAndObserveColorTableNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "IsodoseSurfaceModelsParentHierarchyNodeId")) 
       {
