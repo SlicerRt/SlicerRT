@@ -190,6 +190,7 @@ public:
     \return Success
   */
   template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
+  template<typename T> static bool ConvertVolumeNodeToItkImage2(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
 //ETX
 };
 
