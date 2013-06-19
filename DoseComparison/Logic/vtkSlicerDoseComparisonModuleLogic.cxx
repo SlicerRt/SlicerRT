@@ -205,13 +205,13 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   {
     gamma.set_reference_dose(this->DoseComparisonNode->GetReferenceDoseGy());
   }
-  gamma.set_analysis_threshold(this->DoseComparisonNode->GetAnalysisThresholdPercent());
+  gamma.set_analysis_threshold(this->DoseComparisonNode->GetAnalysisThresholdPercent() / 100.0 );
   gamma.set_gamma_max(this->DoseComparisonNode->GetMaximumGamma());
 
   gamma.run();
 
   itk::Image<float, 3>::Pointer gammaVolumeItk = gamma.get_gamma_image_itk();
-  this->DoseComparisonNode->SetPassFraction( gamma.get_pass_fraction() );
+  this->DoseComparisonNode->SetPassFractionPercent( gamma.get_pass_fraction() * 100.0 );
   this->DoseComparisonNode->ResultsValidOn();
 
   // Convert output to VTK

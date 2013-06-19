@@ -104,8 +104,8 @@ public:
   vtkBooleanMacro(ResultsValid, bool);
 
   /// Get/Set pass fraction
-  vtkGetMacro(PassFraction, double);
-  vtkSetMacro(PassFraction, double);
+  vtkGetMacro(PassFractionPercent, double);
+  vtkSetMacro(PassFractionPercent, double);
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
@@ -161,7 +161,7 @@ protected:
   bool UseMaximumDose;
   
   /// Percentage of voxels that passed (output)
-  double PassFraction;
+  double PassFractionPercent;
 
   /// Flag indicating if the results are valid
   bool ResultsValid;

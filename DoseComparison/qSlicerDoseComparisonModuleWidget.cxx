@@ -499,7 +499,7 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
   if (paramNode->GetResultsValid())
   {
     d->lineEdit_PassFraction->setText(
-      QString("%1 %").arg(paramNode->GetPassFraction(),0,'f',2) );
+      QString("%1 %").arg(paramNode->GetPassFractionPercent(),0,'f',2) );
   }
 
   QApplication::restoreOverrideCursor();
