@@ -82,6 +82,9 @@ protected:
   /// Assemble new output volume base name from the selected input volume names
   void refreshOutputBaseName();
 
+  /// Invalidate results (change the output values with 'N/A')
+  void invalidateResults();
+
 protected:
   QScopedPointer<qSlicerDoseComparisonModuleWidgetPrivate> d_ptr;
   

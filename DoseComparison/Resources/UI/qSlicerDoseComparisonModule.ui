@@ -155,9 +155,6 @@
       </item>
       <item row="10" column="2">
        <widget class="QDoubleSpinBox" name="doubleSpinBox_AnalysisThreshold">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
         <property name="toolTip">
          <string>Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 0.10. The threshold is applied to the reference image</string>
         </property>
@@ -165,14 +162,11 @@
       </item>
       <item row="10" column="0">
        <widget class="QLabel" name="label_7">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
         <property name="toolTip">
          <string>Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 0.10. The threshold is applied to the reference image</string>
         </property>
         <property name="text">
-         <string>Analysis threshold (Gy):</string>
+         <string>Analysis threshold (%):</string>
         </property>
        </widget>
       </item>
@@ -327,11 +321,11 @@
           <string>vtkMRMLScalarVolumeNode</string>
          </stringlist>
         </property>
-        <property name="renameEnabled">
-         <bool>true</bool>
-        </property>
         <property name="baseName">
          <string>GammaVolume</string>
+        </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -339,6 +333,23 @@
        <widget class="QLabel" name="label_9">
         <property name="text">
          <string>Gamma volume:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>Pass fraction:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="lineEdit_PassFraction">
+        <property name="text">
+         <string>N/A</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

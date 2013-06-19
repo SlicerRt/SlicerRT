@@ -49,6 +49,8 @@ vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
   this->AnalysisThresholdPercent = 0.0;
   this->MaximumGamma = 2.0;
   this->UseMaximumDose = true;
+  this->PassFraction = -1.0;
+  this->ResultsValidOff();
 
   this->HideFromEditors = false;
 }
@@ -90,6 +92,8 @@ void vtkMRMLDoseComparisonNode::WriteXML(ostream& of, int nIndent)
   of << indent << " AnalysisThresholdPercent=\"" << this->AnalysisThresholdPercent << "\"";
   of << indent << " MaximumGamma=\"" << this->MaximumGamma << "\"";
   of << indent << " UseMaximumDose=\"" << (this->UseMaximumDose ? "true" : "false") << "\"";
+  of << indent << " PassFraction=\"" << this->PassFraction << "\"";
+  of << indent << " ResultsValid=\"" << (this->ResultsValid ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -169,6 +173,19 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
       this->UseMaximumDose = 
         (strcmp(attValue,"true") ? false : true);
       }
+    else if (!strcmp(attName, "PassFraction")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      double doubleAttValue;
+      ss >> doubleAttValue;
+      this->PassFraction = doubleAttValue;
+      }
+    else if (!strcmp(attName, "ResultsValid")) 
+      {
+      this->ResultsValid = 
+        (strcmp(attValue,"true") ? false : true);
+      }
     }
 }
 
@@ -191,7 +208,9 @@ void vtkMRMLDoseComparisonNode::Copy(vtkMRMLNode *anode)
   this->ReferenceDoseGy = node->ReferenceDoseGy;
   this->AnalysisThresholdPercent = node->AnalysisThresholdPercent;
   this->MaximumGamma = node->MaximumGamma;
+  this->PassFraction = node->PassFraction;
   this->UseMaximumDose = node->UseMaximumDose;
+  this->ResultsValid = node->ResultsValid;
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -211,7 +230,9 @@ void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ReferenceDoseGy:   " << this->ReferenceDoseGy << "\n";
   os << indent << "AnalysisThresholdPercent:   " << this->AnalysisThresholdPercent << "\n";
   os << indent << "MaximumGamma:   " << this->MaximumGamma << "\n";
+  os << indent << "PassFraction:   " << this->PassFraction << "\n";
   os << indent << "UseMaximumDose:   " << (this->UseMaximumDose ? "true" : "false") << "\n";
+  os << indent << "ResultsValid:   " << (this->ResultsValid ? "true" : "false") << "\n";
 }
 
 //----------------------------------------------------------------------------

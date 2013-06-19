@@ -178,6 +178,8 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
 
+  this->DoseComparisonNode->ResultsValidOff();
+
   // Convert input images to the format Plastimatch can use
   vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetReferenceDoseVolumeNodeId()));
@@ -203,12 +205,14 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   {
     gamma.set_reference_dose(this->DoseComparisonNode->GetReferenceDoseGy());
   }
-  //gamma.set_analysis_threshold(this->DoseComparisonNode->GetAnalysisThresholdPercent()); //TODO: uncomment when Plastimatch supports it
+  gamma.set_analysis_threshold(this->DoseComparisonNode->GetAnalysisThresholdPercent());
   gamma.set_gamma_max(this->DoseComparisonNode->GetMaximumGamma());
 
   gamma.run();
 
   itk::Image<float, 3>::Pointer gammaVolumeItk = gamma.get_gamma_image_itk();
+  this->DoseComparisonNode->SetPassFraction( gamma.get_pass_fraction() );
+  this->DoseComparisonNode->ResultsValidOn();
 
   // Convert output to VTK
   double checkpointVtkConvertStart = timer->GetUniversalTime();

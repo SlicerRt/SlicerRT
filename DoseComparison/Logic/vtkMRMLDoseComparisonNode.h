@@ -98,6 +98,15 @@ public:
   vtkSetMacro(UseMaximumDose, bool);
   vtkBooleanMacro(UseMaximumDose, bool);
 
+  /// Get/Set valid flag
+  vtkGetMacro(ResultsValid, bool);
+  vtkSetMacro(ResultsValid, bool);
+  vtkBooleanMacro(ResultsValid, bool);
+
+  /// Get/Set pass fraction
+  vtkGetMacro(PassFraction, double);
+  vtkSetMacro(PassFraction, double);
+
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
@@ -150,6 +159,12 @@ protected:
 
   /// Flag indicating whether the Use maximum dose option is selected (else the Use custom value is selected)
   bool UseMaximumDose;
+  
+  /// Percentage of voxels that passed (output)
+  double PassFraction;
+
+  /// Flag indicating if the results are valid
+  bool ResultsValid;
 };
 
 #endif
