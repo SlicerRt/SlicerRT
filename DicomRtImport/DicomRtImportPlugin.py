@@ -58,11 +58,12 @@ class DicomRtImportPluginClass(DICOMPlugin):
         if seriesType == "RTDOSE":
           slicer.dicomDatabase.loadFileHeader(loadable.files[0])
           referencedSOPInstanceFullString = slicer.dicomDatabase.headerValue(self.tags['ReferencedSOPInstanceUID'])
-          referenceRTPlanInstanceUID = referencedSOPInstanceFullString.split("[")[1].split("]")[0]
-          if len(referenceRTPlanInstanceUID) > 0:
-            rtPlanFileName = slicer.dicomDatabase.fileForInstance(referenceRTPlanInstanceUID)
-            if len(rtPlanFileName) > 0:
-              name = name + ": " + slicer.dicomDatabase.fileValue(rtPlanFileName,self.tags['RTPlanLabel'])
+          if len(referencedSOPInstanceFullString) > 0:
+            referenceRTPlanInstanceUID = referencedSOPInstanceFullString.split("[")[1].split("]")[0]
+            if len(referenceRTPlanInstanceUID) > 0:
+              rtPlanFileName = slicer.dicomDatabase.fileForInstance(referenceRTPlanInstanceUID)
+              if len(rtPlanFileName) > 0:
+                name = name + ": " + slicer.dicomDatabase.fileValue(rtPlanFileName,self.tags['RTPlanLabel'])
         else:
           pass
       loadable.name = name
