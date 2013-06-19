@@ -218,7 +218,7 @@ void vtkMRMLContourNode::UpdateReferences()
 
   if (this->RibbonModelNodeId != NULL && this->Scene->GetNodeByID(this->RibbonModelNodeId) == NULL)
     {
-    this->SetRibbonModelNodeId(NULL);
+    this->SetAndObserveRibbonModelNodeId(NULL);
     }
   if (this->IndexedLabelmapVolumeNodeId != NULL && this->Scene->GetNodeByID(this->IndexedLabelmapVolumeNodeId) == NULL)
     {
@@ -682,15 +682,15 @@ void vtkMRMLContourNode::ShowRepresentation(vtkMRMLDisplayableNode* representati
   
   vtkMRMLDisplayNode* displayNode = representation->GetDisplayNode();
   if (displayNode)
-  {
+    {
     displayNode->SetSliceIntersectionVisibility(show?1:0);
-  }
+    }
 
   vtkMRMLHierarchyNode* associatedHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->Scene, representation->GetID());
   if (associatedHierarchyNode)
-  {
+    {
     associatedHierarchyNode->SetHideFromEditors((!show)?1:0);
-  }
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -717,10 +717,10 @@ const char* vtkMRMLContourNode::GetStructureName()
   // Get associated patient hierarchy node
   vtkMRMLDisplayableHierarchyNode* contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->ID);
   if (!contourPatientHierarchyNode)
-  {
+    {
     vtkErrorMacro("GetStructureName: No patient hierarchy node found for contour '" << this->Name << "'");
     return NULL;
-  }
+    }
 
   return contourPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
 }
@@ -942,7 +942,7 @@ void vtkMRMLContourNode::UpdateRepresenations()
   this->SetAndObserveClosedSurfaceModelNodeId(this->ClosedSurfaceModelNodeId);
   this->SetAndObserveRasterizationReferenceVolumeNodeId(this->RasterizationReferenceVolumeNodeId);
   if (this->ActiveRepresentationType != None)
-  {
+    {
     this->SetActiveRepresentationByType(this->ActiveRepresentationType);
-  }
+    }
 }

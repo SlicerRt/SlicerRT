@@ -670,10 +670,7 @@ void vtkSlicerDeformationFieldVisualizerLogic::ContourVisualization(vtkImageData
   vtkSmartPointer<vtkVectorNorm> norm = vtkSmartPointer<vtkVectorNorm>::New();
   norm->SetInputConnection(field->GetProducerPort());
   norm->Update();
-  
-  const double* origin = field->GetOrigin();
-  const int* dimensions = field->GetDimensions();
-  
+    
   vtkSmartPointer<vtkMarchingCubes> iso = vtkSmartPointer<vtkMarchingCubes>::New();
 	iso->SetInputConnection(norm->GetOutputPort());
   iso->ComputeScalarsOn();
@@ -721,9 +718,7 @@ void vtkSlicerDeformationFieldVisualizerLogic::GlyphSliceVisualization(vtkImageD
   sliceNormal[2] = sliceToIjk->GetElement(2,2);
   
   const double* spacing = field->GetSpacing();
-  const int* dimensions = field->GetDimensions();
-  
-  char* orientation = sliceNode->GetOrientationString();
+
   if (abs(sliceNormal[0]) > EPSILON)
   {
     width = spacing[0];

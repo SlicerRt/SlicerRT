@@ -287,7 +287,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   // Make sure inputs are initialized
   if (!this->GetMRMLScene() || !inputContourANode || !referenceVolumeNode || !outputContourNode)
   {
-    vtkErrorMacro("ContourMorphology: Inputs are not initialized!")
+    vtkErrorMacro("MorphContour: Inputs are not initialized!")
     return -1;
   }
 
@@ -346,7 +346,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   {
     if (!inputContourBNode)
     {
-      vtkErrorMacro("ContourMorphology: Inputs are not initialized!")
+      vtkErrorMacro("MorphContour: Inputs are not initialized!")
       return -1;
     }
     if (this->SetContourBRepresentationToLabelmap() != 0)
@@ -437,6 +437,9 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
       logicFilter2->SetOutputTrueValue(valueMax);
       logicFilter2->Update();
       tempImageOutput = logicFilter2->GetOutput();
+      break;
+    default:
+      vtkErrorMacro("MorphContour: Invalid operation!")
       break;
   }
 
