@@ -36,25 +36,25 @@
 
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_DICOMRTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtExportLogic :
+class VTK_SLICER_DICOMRTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtExportModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
 
-  static vtkSlicerDicomRtExportLogic *New();
-  vtkTypeMacro(vtkSlicerDicomRtExportLogic, vtkSlicerModuleLogic);
+  static vtkSlicerDicomRtExportModuleLogic *New();
+  vtkTypeMacro(vtkSlicerDicomRtExportModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  void SaveDicomRT(char* name);
+  int SaveDicomRTStudy(char*, char*, char*, char*);
 
 protected:
-  vtkSlicerDicomRtExportLogic();
-  virtual ~vtkSlicerDicomRtExportLogic();
+  vtkSlicerDicomRtExportModuleLogic();
+  virtual ~vtkSlicerDicomRtExportModuleLogic();
 
 private:
 
-  vtkSlicerDicomRtExportLogic(const vtkSlicerDicomRtExportLogic&); // Not implemented
-  void operator=(const vtkSlicerDicomRtExportLogic&);               // Not implemented
+  vtkSlicerDicomRtExportModuleLogic(const vtkSlicerDicomRtExportModuleLogic&); // Not implemented
+  void operator=(const vtkSlicerDicomRtExportModuleLogic&);               // Not implemented
 };
 
 #endif

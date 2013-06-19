@@ -39,12 +39,21 @@ public:
   virtual ~qSlicerDicomRtExportModuleWidget();
 
 public slots:
-  void SaveDicomRt();
 
 protected:
   QScopedPointer<qSlicerDicomRtExportModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
+  //virtual void enter();
+  virtual void setMRMLScene(vtkMRMLScene*);
+
+protected slots:
+  void onImageVolumeNodeChanged(vtkMRMLNode*);
+  void onDoseVolumeNodeChanged(vtkMRMLNode*);
+  void onContourHierarchyNodeChanged(vtkMRMLNode*);
+  void onCurrentPathChanged(const QString &path);
+  void onSaveClicked();
+  //void updateWidget();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDicomRtExportModuleWidget);

@@ -77,7 +77,8 @@ QString qSlicerDicomRtExportModule::helpText()const
 //-----------------------------------------------------------------------------
 QString qSlicerDicomRtExportModule::acknowledgementText()const
 {
-  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
+  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program "
+         "and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
 }
 
 //-----------------------------------------------------------------------------
@@ -107,7 +108,7 @@ void qSlicerDicomRtExportModule::setup()
 {
   this->Superclass::setup();
 
-  vtkSlicerDicomRtExportLogic* DicomRtExportLogic = vtkSlicerDicomRtExportLogic::SafeDownCast(this->logic());
+  vtkSlicerDicomRtExportModuleLogic* DicomRtExportLogic = vtkSlicerDicomRtExportModuleLogic::SafeDownCast(this->logic());
 
   qSlicerAbstractCoreModule* volumesModule = qSlicerCoreApplication::application()->moduleManager()->module("Volumes");
   if (volumesModule)
@@ -130,5 +131,5 @@ qSlicerAbstractModuleRepresentation * qSlicerDicomRtExportModule::createWidgetRe
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerDicomRtExportModule::createLogic()
 {
-  return vtkSlicerDicomRtExportLogic::New();
+  return vtkSlicerDicomRtExportModuleLogic::New();
 }

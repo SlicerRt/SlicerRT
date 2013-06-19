@@ -47,7 +47,7 @@ public:
   virtual QString acknowledgementText()const;
   
   /// Return the authors of the module
-  virtual QStringList  contributors()const; 
+  virtual QStringList contributors()const; 
   
   /// Return a custom icon for the module
   virtual QIcon icon()const;
@@ -55,8 +55,6 @@ public:
   /// Return the categories for the module
   virtual QStringList categories()const; 
   
-  virtual bool isHidden()const { return true; };
-
 protected:
 
   /// Initialize the module. Register the volumes reader/writer

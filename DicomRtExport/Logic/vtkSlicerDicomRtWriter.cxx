@@ -27,6 +27,9 @@
 #include "vtkPoints.h"
 #include "vtkCellArray.h"
 
+// ITK includes
+#include "itkImage.h"
+
 // STD includes
 #include <cassert>
 #include <vector>
@@ -44,6 +47,9 @@
 #include "dcmtk/dcmrt/drttreat.h"
 #include "dcmtk/dcmrt/drtionpl.h"
 #include "dcmtk/dcmrt/drtiontr.h"
+
+// plastimatch includes
+#include "rt_study.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtWriter);
@@ -89,4 +95,42 @@ void vtkSlicerDicomRtWriter::SetFileName(const char * name)
 
   this->Modified();
 }
+
+//----------------------------------------------------------------------------
+void vtkSlicerDicomRtWriter::SetImage(ShortImageType::Pointer itk_image)
+{
+  rt_study.set_image (itk_image);
+}
+  
+//----------------------------------------------------------------------------
+void vtkSlicerDicomRtWriter::SetDose(FloatImageType::Pointer itk_dose)
+{
+  rt_study.set_dose (itk_dose);
+}
+  
+//----------------------------------------------------------------------------
+void vtkSlicerDicomRtWriter::AddContour(UCharImageType::Pointer itk_structure, const char *contourName, double *contourColor)
+{
+  std::string colorString("");
+  std::ostringstream strs;
+  strs << contourColor[0];
+  std::string str = strs.str();
+  colorString = colorString + str;
+  strs << contourColor[1];
+  str = strs.str();
+  colorString = colorString + "\\" + str;
+  strs << contourColor[2];
+  str = strs.str();
+  colorString = colorString + "\\" + str;
+
+  rt_study.add_structure (itk_structure, contourName, colorString.c_str());
+}
+  
+//----------------------------------------------------------------------------
+void vtkSlicerDicomRtWriter::Write()
+{
+  
+  rt_study.save_dicom (this->FileName);
+}
+  
 

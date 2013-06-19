@@ -38,9 +38,11 @@
 
 #include "vtkObject.h"
 
+#include "rt_study.h"
+
 class vtkPolyData;
 class DcmDataset;
-
+class RT_study;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_DICOMRTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtWriter :
@@ -55,14 +57,26 @@ public:
   //
   void SetFileName(const char *);
 
+  //
+  void SetImage(ShortImageType::Pointer);
+
+  //
+  void SetDose(FloatImageType::Pointer);
+
+  //
+  void AddContour(UCharImageType::Pointer, const char*, double*);
+
+  //
+  void Write();
+
 protected:
   vtkSlicerDicomRtWriter();
   virtual ~vtkSlicerDicomRtWriter();
   
   char *FileName;
+  Rt_study rt_study;
 
 private:
-
   vtkSlicerDicomRtWriter(const vtkSlicerDicomRtWriter&); // Not implemented
   void operator=(const vtkSlicerDicomRtWriter&);               // Not implemented
 };

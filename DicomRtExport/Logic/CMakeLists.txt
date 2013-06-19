@@ -5,9 +5,9 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_LOGIC_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
-  ${QT_QTSQL_INCLUDE_DIR}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
+  ${PLASTIMATCH_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -17,14 +17,15 @@ set(${KIT}_SRCS
   vtkSlicerDicomRtWriter.h
   )
  
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+ 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerContoursModuleMRML
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   ${DCMTK_LIBRARIES}
-  vtkSlicerVolumesModuleLogic
-  vtkSlicerAnnotationsModuleMRML
+  ${PLASTIMATCH_LIBRARIES}
   )
 
 #-----------------------------------------------------------------------------

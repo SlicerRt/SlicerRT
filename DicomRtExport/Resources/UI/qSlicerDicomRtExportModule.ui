@@ -6,26 +6,107 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>525</width>
-    <height>319</height>
+    <width>421</width>
+    <height>447</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" colspan="2">
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton" native="true">
-     <property name="text" stdset="0">
-      <string>Display</string>
+   <item row="2" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_SaveDicomRT">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Save Dicom Study</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0">
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
+     <property name="text">
+      <string>Input/Output</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <widget class="QPushButton" name="pushButton_SaveDicomRT">
+     <layout class="QFormLayout" name="formLayout">
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
         <property name="text">
-         <string>Save Dicom RT</string>
+         <string>Image Volume:</string>
         </property>
        </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ImageVolume">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Dose Volume:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Contour Hierarchy:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ContourHierarchy">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLDisplayableHierarchyNode</string>
+         </stringlist>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Output directory:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="ctkDirectoryButton" name="DirectoryButton_OutputDirectory"/>
       </item>
      </layout>
     </widget>
@@ -34,10 +115,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ctkCollapsibleButton</class>
+   <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
+   <header>qMRMLNodeComboBox.h</header>
   </customwidget>
   <customwidget>
    <class>qSlicerWidget</class>
@@ -45,7 +125,67 @@
    <header>qSlicerWidget.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkDirectoryButton</class>
+   <extends>QWidget</extends>
+   <header>ctkDirectoryButton.h</header>
+  </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>qSlicerDicomRtExportModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_ImageVolume</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>157</x>
+     <y>444</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>131</x>
+     <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDicomRtExportModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_DoseVolume</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>185</x>
+     <y>440</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>208</x>
+     <y>92</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDicomRtExportModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_ContourHierarchy</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>253</x>
+     <y>442</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>258</x>
+     <y>121</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
