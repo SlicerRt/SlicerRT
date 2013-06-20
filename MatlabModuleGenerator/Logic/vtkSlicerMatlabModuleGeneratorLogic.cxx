@@ -123,26 +123,41 @@ vtkStdString vtkSlicerMatlabModuleGeneratorLogic
   vtkStdString overallResult;
 
   vtkStdString result;
+  bool success=true;
 
-  CreateFileFromTemplate(this->GetModuleShareDirectory()+"/"+TEMPLATE_NAME+MODULE_PROXY_TEMPLATE_EXTENSION,
-    std::string(this->GetMatlabScriptDirectory())+"/"+moduleName+MODULE_PROXY_TEMPLATE_EXTENSION, TEMPLATE_NAME, moduleName, result);
+  if (!CreateFileFromTemplate(this->GetModuleShareDirectory()+"/"+TEMPLATE_NAME+MODULE_PROXY_TEMPLATE_EXTENSION,
+    std::string(this->GetMatlabScriptDirectory())+"/"+moduleName+MODULE_PROXY_TEMPLATE_EXTENSION, TEMPLATE_NAME, moduleName, result))
+  {
+    success=false;
+  }
   overallResult+=result+"\n";
   
-  CreateFileFromTemplate(this->GetModuleShareDirectory()+"/"+TEMPLATE_NAME+MODULE_SCRIPT_TEMPLATE_EXTENSION,
-    std::string(this->GetMatlabScriptDirectory())+"/"+moduleName+MODULE_SCRIPT_TEMPLATE_EXTENSION, TEMPLATE_NAME, moduleName, result);
+  if (!CreateFileFromTemplate(this->GetModuleShareDirectory()+"/"+TEMPLATE_NAME+MODULE_SCRIPT_TEMPLATE_EXTENSION,
+    std::string(this->GetMatlabScriptDirectory())+"/"+moduleName+MODULE_SCRIPT_TEMPLATE_EXTENSION, TEMPLATE_NAME, moduleName, result))
+  {
+    success=false;
+  }
   overallResult+=result+"\n";
 
-  CreateFileFromTemplate(this->GetModuleShareDirectory()+"/"+TEMPLATE_NAME+MODULE_DEFINITION_TEMPLATE_EXTENSION,
-    std::string(this->GetMatlabScriptDirectory())+"/"+moduleName+MODULE_DEFINITION_TEMPLATE_EXTENSION, TEMPLATE_NAME, moduleName, result);
+  if (!CreateFileFromTemplate(this->GetModuleShareDirectory()+"/"+TEMPLATE_NAME+MODULE_DEFINITION_TEMPLATE_EXTENSION,
+    std::string(this->GetMatlabScriptDirectory())+"/"+moduleName+MODULE_DEFINITION_TEMPLATE_EXTENSION, TEMPLATE_NAME, moduleName, result))
+  {
+    success=false;
+  }
   overallResult+=result+"\n";
 
+  if (success)
+  {
+    overallResult+="Module generation was successful. Edit the module descriptor .xml and the .m file then restart Slicer.";
+  }
+  else
+  {
+    overallResult+="Module generation failed";
+  }
   return overallResult;
 }
 
-//#include <iostream>
-//#include <fstream>
-
-void vtkSlicerMatlabModuleGeneratorLogic
+bool vtkSlicerMatlabModuleGeneratorLogic
 ::CreateFileFromTemplate(const vtkStdString& templateFilename, const vtkStdString& targetFilename, const vtkStdString& originalString, const vtkStdString& modifiedString, vtkStdString &result)
 {
   result.clear();
@@ -153,7 +168,7 @@ void vtkSlicerMatlabModuleGeneratorLogic
   if (!templateFile.is_open())
   {
     result="Template file not found:\n "+templateFilename;
-    return;
+    return false;
   }
 
   // Open output file
@@ -163,7 +178,7 @@ void vtkSlicerMatlabModuleGeneratorLogic
   {
     result="Target file cannot be opened for writing:\n "+targetFilename;
     templateFile.close(); 
-    return;
+    return false;
   }  
 
   // Copy line-by-line while replacing the original string with the modified string
@@ -189,4 +204,5 @@ void vtkSlicerMatlabModuleGeneratorLogic
   targetFile.close(); 
 
   result="File created:\n "+targetFilename;
+  return true;
 }

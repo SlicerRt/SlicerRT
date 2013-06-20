@@ -93,20 +93,6 @@
       <item>
        <widget class="QTextEdit" name="textEdit_GeneratorResults"/>
       </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_EditModuleDefinitionXml">
-        <property name="text">
-         <string>Edit module definition XML file</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_EditMatlabScript">
-        <property name="text">
-         <string>Edit module Matlab script</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>

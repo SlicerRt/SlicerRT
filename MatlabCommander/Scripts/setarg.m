@@ -1,7 +1,7 @@
 function setarg(args,argName,argValue)
 % Set a return value
 
-outputFilename=getarg(args,'returnparameterfile')
+outputFilename=getarg(args,'returnparameterfile');
 
 % open file for appended writing
 
