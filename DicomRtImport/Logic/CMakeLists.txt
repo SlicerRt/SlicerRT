@@ -23,6 +23,7 @@ set(${KIT}_SRCS
   vtkSlicerDicomRtReader.txx
   vtkTopologicalHierarchy.cxx
   vtkTopologicalHierarchy.h
+ #vtkMRMLPathPlannerTrajectoryNode.cxx 
   )
 
 set(${KIT}_TARGET_LIBRARIES

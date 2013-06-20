@@ -1,5 +1,5 @@
 % OpenIGTLink server that executes the received string commands
-function exitValue=MatlabCommandServer(port)
+function exitValue=commandserver(port)
 
     global OPENIGTLINK_SERVER_SOCKET
     
@@ -227,7 +227,7 @@ function parsedMsg=ParseOpenIGTLinkMessageHeader(rawMsg)
 end
 
 function result=convertFromUint8VectorToUint16(uint8Vector)
-  result=uint8Vector(1)*256+uint8Vector(2);
+  result=int32(uint8Vector(1))*256+int32(uint8Vector(2));
 end 
 
 function result=convertFromUint16ToUint8Vector(uint16Value)

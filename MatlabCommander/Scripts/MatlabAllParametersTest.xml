@@ -44,4 +44,22 @@
       <description><![CDATA[Output filtered]]></description>
     </image>
   </parameters>
+  <parameters>
+    <label>Output</label>
+    <description>Matlab command output</description>
+    <double>
+      <name>min</name>
+      <label>Minimum</label>
+      <channel>output</channel>
+      <default></default>
+      <description><![CDATA[Image mininum]]></description>
+    </double>    
+    <double>
+      <name>max</name>
+      <label>Maximum</label>
+      <channel>output</channel>
+      <default></default>
+      <description><![CDATA[Image maximum]]></description>
+    </double>    
+  </parameters>
 </executable>

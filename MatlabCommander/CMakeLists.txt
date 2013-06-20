@@ -38,3 +38,27 @@ SEMMacroBuildCLI(
 if(BUILD_TESTING)
   #add_subdirectory(Testing)
 endif()
+
+#-----------------------------------------------------------------------------
+
+set(SCRIPT_FILES
+  commandserver.m 
+  getarg.m 
+  setarg.m
+  nrrdread.m 
+  nrrdwrite.m 
+  )
+
+foreach(SCRIPT_FILE ${SCRIPT_FILES})
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Scripts/${SCRIPT_FILE}
+    ${CMAKE_BINARY_DIR}/${Slicer_CLIMODULES_BIN_DIR}/Debug/${SCRIPT_FILE}    
+    COPYONLY)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Scripts/${SCRIPT_FILE}
+    ${CMAKE_BINARY_DIR}/${Slicer_CLIMODULES_BIN_DIR}/Release/${SCRIPT_FILE}    
+    COPYONLY)    
+  install(
+    FILES ${CMAKE_BINARY_DIR}/${Slicer_CLIMODULES_BIN_DIR}/Release/${SCRIPT_FILE}
+    DESTINATION ${Slicer_INSTALL_CLIMODULES_BIN_DIR} COMPONENT Runtime)
+endforeach()

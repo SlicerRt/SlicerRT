@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>Radiotherapy</category>
+  <category>Matlab</category>
   <title>Matlab Commander</title>
   <description>This module allows running Matlab commands from Slicer.</description>
   <version>0.0</version>

@@ -93,6 +93,8 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(PlmSlicerBspline)
   add_subdirectory(PlmThreshbox)
   add_subdirectory(MatlabCommander)
+  add_subdirectory(MatlabModuleGenerator)
+  add_subdirectory(DicomRtExport)
   add_subdirectory(ExternalBeamPlanning)
 endif()
 
