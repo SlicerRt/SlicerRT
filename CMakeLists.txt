@@ -79,7 +79,6 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # Obsolete
   #add_subdirectory(PlmDoseComparison)
   #add_subdirectory(PlmDvh)
-  add_subdirectory(DicomRtExport)
   #add_subdirectory(ProtonBeams)
   #add_subdirectory(ProtonDose)
 
