@@ -30,6 +30,8 @@
 #include "qSlicerMatlabModuleGeneratorModule.h"
 #include "qSlicerMatlabModuleGeneratorModuleWidget.h"
 
+const std::string MATLAB_COMMAND_SERVER_SCRIPT_NAME="commandserver.m";
+
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerMatlabModuleGeneratorModule, qSlicerMatlabModuleGeneratorModule);
 
@@ -127,6 +129,9 @@ void qSlicerMatlabModuleGeneratorModule::setup()
 
   moduleGeneratorLogic->SetMatlabExecutablePath(matlabExecutablePath.toLatin1());
 
+  app->setEnvironmentVariable("SLICER_MATLAB_EXECUTABLE_PATH",matlabExecutablePath);
+  std::string commandServerScriptMath=std::string(moduleGeneratorLogic->GetMatlabScriptDirectory())+"/"+MATLAB_COMMAND_SERVER_SCRIPT_NAME;
+  app->setEnvironmentVariable("SLICER_MATLAB_COMMAND_SERVER_SCRIPT_PATH",commandServerScriptMath.c_str());
 }
 
 //-----------------------------------------------------------------------------

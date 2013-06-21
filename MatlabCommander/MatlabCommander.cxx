@@ -9,9 +9,15 @@
 #include "igtlStringMessage.h"
 #include "igtlClientSocket.h"
 
+#include "vtksys/SystemTools.hxx"
+#include "vtksys/Process.h"
+
 const std::string CALL_MATLAB_FUNCTION_ARG="--call-matlab-function";
 const std::string MATLAB_DEFAULT_HOST="127.0.0.1";
 const int MATLAB_DEFAULT_PORT=4100;
+
+const int MAX_MATLAB_STARTUP_TIME_SEC=60; // maximum time allowed for Matlab to start
+const int MAX_MATLAB_LAUNCHER_STARTUP_TIME_SEC=30; // maximum time allowed for Matlab launcher to start
 
 enum ExecuteMatlabCommandStatus
 {
@@ -53,13 +59,196 @@ void SetReturnValues(const std::string &returnParameterFile,const char* reply, b
   rts.close(); 
 }
 
+// Returns true if execution is successful. Matlab start may take an additional minute after this function returns.
+bool StartMatlabServer()
+{
+  const char* matlabExecutablePath=getenv("SLICER_MATLAB_EXECUTABLE_PATH");
+  const char* matlabCommandServerScriptPath=getenv("SLICER_MATLAB_COMMAND_SERVER_SCRIPT_PATH");
+  
+  if ( matlabExecutablePath == NULL )
+  {
+    std::cerr << "ERROR: The SLICER_MATLAB_EXECUTABLE_PATH environment variable is not set. Cannot start the Matlab command server." << std::endl;
+    return false; 
+  }
+  if ( matlabCommandServerScriptPath == NULL )
+  {
+    std::cerr << "ERROR: The SLICER_MATLAB_COMMAND_SERVER_SCRIPT_PATH environment variable is not set. Cannot start the Matlab command server." << std::endl;
+    return false; 
+  }
+
+  if ( !vtksys::SystemTools::FileExists( matlabExecutablePath, true) )
+  {
+    std::cerr << "ERROR: Unable to find Matlab executable defined in the SLICER_MATLAB_EXECUTABLE_PATH environment variable: " 
+      << matlabExecutablePath << std::endl;
+    return false; 
+  }
+
+  bool success = true; 
+  try 
+  {
+    std::vector<const char*> command;
+    command.clear();
+
+    // Add gnuplot command 
+    std::cout << "Starting Matlab server: " << matlabExecutablePath; 
+    command.push_back(matlabExecutablePath);
+
+    // start in minimized, with text console only
+    std::cout << " -automation"; 
+    command.push_back("-automation");
+
+    // script directory (-sd) option does not work with the automation option, so need to use the run command to specify full script path
+
+    // run script after startup
+    std::cout << " -r"; 
+    command.push_back("-r");    
+    std::string startupCommand=std::string("run('")+matlabCommandServerScriptPath+"');";
+    std::cout << " " << startupCommand; 
+    command.push_back(startupCommand.c_str());
+
+    // The array must end with a NULL pointer.
+    std::cout << std::endl;
+    command.push_back(0); 
+
+    // Create new process 
+    vtksysProcess* gp = vtksysProcess_New();
+
+    // Set command
+    vtksysProcess_SetCommand(gp, &*command.begin());
+
+    // Hide window
+    vtksysProcess_SetOption(gp,vtksysProcess_Option_HideWindow, 1);
+
+    // Run the application
+    //std::cout << "Start Matlab process ..." << std::endl; 
+    vtksysProcess_Execute(gp); 
+
+    double allowedTimeoutSec=MAX_MATLAB_LAUNCHER_STARTUP_TIME_SEC;
+    //std::cout << "Wait for exit (Timeout: " << allowedTimeoutSec << "s) ..." << std::endl; 
+    std::string buffer;     
+    double timeoutSec = allowedTimeoutSec; 
+    char* data = NULL;
+    int length=0;
+
+    int waitStatus=vtksysProcess_Pipe_None;
+    do
+    {
+      waitStatus=vtksysProcess_WaitForData(gp,&data,&length,&timeoutSec);
+      if (waitStatus==vtksysProcess_Pipe_Timeout)
+      {
+        std::cerr << "ERROR: Timeout (execution time>"<<allowedTimeoutSec<<"sec) while trying to execute the process. Kill the process." << std::endl;
+        vtksysProcess_Kill(gp);
+      }
+      //std::cerr << "Process start timeout remaining: "<<timeoutSec<<" length="<<length<<std::endl;
+      for(int i=0;i<length;i++)
+      {
+        buffer += data[i];
+      }
+      length=0;
+    }
+    while (waitStatus!=vtksysProcess_Pipe_None);         
+
+    if (vtksysProcess_WaitForExit(gp, 0)==0)
+    {
+      // 0 = Child did not terminate 
+      std::cerr << "Process did not terminate within the specified timeout"<<std::endl;
+    }
+    //std::cout << "Execution time was: " << allowedTimeoutSec - timeoutSec << "sec" << std::endl; 
+
+    int result(0); 
+    switch ( vtksysProcess_GetState(gp) )
+    {
+    case vtksysProcess_State_Exited: 
+      {
+        result = vtksysProcess_GetExitValue(gp); 
+        //std::cout << "Process exited: " << result << std::endl;
+        //std::cout << "Program output: " << buffer << std::endl;
+      }
+      break; 
+    case vtksysProcess_State_Error: 
+      {
+        std::cerr << "ERROR: Error during execution: " << vtksysProcess_GetErrorString(gp) << std::endl;
+        std::cout << "Program output: " << buffer << std::endl;
+        success=false;
+      }
+      break;
+    case vtksysProcess_State_Exception: 
+      {
+        std::cerr << "ERROR: Exception during execution: " << vtksysProcess_GetExceptionString(gp) << std::endl;
+        std::cout << "Program output: " << buffer << std::endl;
+        success=false;
+      }
+      break;
+    case vtksysProcess_State_Starting: 
+    case vtksysProcess_State_Executing:
+    case vtksysProcess_State_Expired: 
+      {
+        std::cerr << "ERROR: Unexpected ending state after running execution" << std::endl;
+        std::cout << "Program output: " << buffer << std::endl;
+        success=false;
+      }
+      break;
+    case vtksysProcess_State_Killed: 
+      {
+        std::cerr << "ERROR: Program killed" << std::endl;
+        std::cout << "Program output: " << buffer << std::endl;
+        success=false;
+      }
+      break;
+    }
+    
+    vtksysProcess_Delete(gp); 
+  }
+  catch (...)
+  {
+    std::cerr << "ERROR: Unknown exception while trying to execute command" << std::endl; 
+    success=false;; 
+  }
+
+  if (success)
+  {
+    std::cout << "Matlab process start requested successfully" << std::endl;
+  }
+  else
+  {
+    std::cerr << "ERROR: Failed to execute Matlab" << std::endl; 
+  }
+
+  return success;
+}
+
 ExecuteMatlabCommandStatus ExecuteMatlabCommand(const std::string& hostname, int port, const std::string &cmd, std::string &reply)
 {
   //------------------------------------------------------------
   // Establish Connection
   igtl::ClientSocket::Pointer socket;
   socket = igtl::ClientSocket::New();
+
   int connectErrorCode = socket->ConnectToServer(hostname.c_str(), port);
+  if (connectErrorCode!=0)
+  {
+    // Maybe Matlab server has not been started, try to start it
+    if (StartMatlabServer())
+    {
+      // process start requested, try to connect
+      for (int retryAttempts=0; retryAttempts<MAX_MATLAB_STARTUP_TIME_SEC; retryAttempts++)
+      {
+        connectErrorCode = socket->ConnectToServer(hostname.c_str(), port);
+        if (connectErrorCode==0)
+        {
+          // success
+          break;
+        }
+        // Failed to connect, wait some more and retry
+        vtksys::SystemTools::Delay(1000); // msec
+        std::cerr << "Waiting for Matlab startup ... " << retryAttempts << "sec" << std::endl;
+      }
+    }
+  }
+  else
+  {
+    std::cerr << "Failed to start Matlab process" << std::endl;
+  }
   if (connectErrorCode != 0)
   {        
     reply="ERROR: Cannot connect to the server";
@@ -74,7 +263,14 @@ ExecuteMatlabCommandStatus ExecuteMatlabCommand(const std::string& hostname, int
   std::cout << "Sending string: " << cmd << std::endl;
   stringMsg->SetString(cmd.c_str());
   stringMsg->Pack();
-  socket->Send(stringMsg->GetPackPointer(), stringMsg->GetPackSize());
+  socket->SetSendTimeout(5000); // timeout in msec
+  if (!socket->Send(stringMsg->GetPackPointer(), stringMsg->GetPackSize()))
+  {
+    // Failed to send the message
+    std::cerr << "Failed to send message to Matlab process" << std::endl;
+    socket->CloseSocket();
+    return COMMAND_STATUS_FAILED;
+  }
 
   //------------------------------------------------------------
   // Receive reply
@@ -165,7 +361,7 @@ int CallStandardCli(int argc, char * argv [])
   }
   else
   {
-    std::cerr << "ERROR: " << reply << std::endl;
+    std::cerr << reply << std::endl;
     completed=false;
   }
   SetReturnValues(returnParameterFile,reply.c_str(),completed);    

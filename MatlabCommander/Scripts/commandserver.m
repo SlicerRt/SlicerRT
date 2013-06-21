@@ -1,5 +1,5 @@
 % OpenIGTLink server that executes the received string commands
-function exitValue=commandserver(port)
+function commandserver(port)
 
     global OPENIGTLINK_SERVER_SOCKET
     
@@ -17,7 +17,7 @@ function exitValue=commandserver(port)
     disp(['Starting OpenIGTLink command server at port ' num2str(serverSocketInfo.port)]);    
 
     % Open a TCP Server Port
-    if (exist('OPENIGTLINK_SERVER_SOCKET'))
+    if (exist('OPENIGTLINK_SERVER_SOCKET','var'))
         if (not(isempty(OPENIGTLINK_SERVER_SOCKET)))
           % Socket has not been closed last time
           disp('Socket has not been closed properly last time. Closing it now.');
@@ -57,7 +57,9 @@ function exitValue=commandserver(port)
 
         % Client connected
         disp('Client connected')
+        % Rehash forces re-reading of all Matlab functions from files
         rehash        
+        
         clientSocketInfo.remoteHost = char(clientSocketInfo.socket.getInetAddress);
         clientSocketInfo.outputStream = clientSocketInfo.socket.getOutputStream;
         clientSocketInfo.inputStream = clientSocketInfo.socket.getInputStream;       
@@ -66,33 +68,50 @@ function exitValue=commandserver(port)
 
         % Read command
         receivedMsg=ReadOpenIGTLinkStringMessage(clientSocketInfo);
-        if(~isempty(receivedMsg) && length(receivedMsg.string)>0)
-            disp(['Data type: [',char(receivedMsg.dataTypeName),']']);
-            disp(['Device name: [',char(receivedMsg.deviceName),']']);
-            disp(['Message string: [',char(receivedMsg.string),']']);
-
-            cmd=char(receivedMsg.string);
-            try
-              % try running the command and capture the output
-              response=eval(cmd);
-            catch
-              % failed, so the command is either invalid or does not provide output          
+        if(~isempty(receivedMsg) && ~isempty(receivedMsg.string))
+            dataType=deblank(char(receivedMsg.dataTypeName));
+            deviceName=deblank(char(receivedMsg.deviceName));
+            cmd=deblank(char(receivedMsg.string));
+            replyDeviceName='ACK';
+            if (~strcmp(dataType,'STRING'))
+              response=['ERROR: Expected STRING data type, received data type: [',dataType,']'];
+            elseif (length(deviceName)<3 || ~strcmp(deviceName(1:3),'CMD'))
+              response=['ERROR: Expected device name starting with CMD. Received device name: [',deviceName,']'];
+            elseif (isempty(cmd))
+              response='ERROR: Received empty command string';
+            else
+              % Reply device name for CMD is ACQ, for CMD_someuid is ACK_someuid
+              replyDeviceName=deviceName;
+              replyDeviceName(1:3)='ACK';
               try
-                % retry without expecting an output
-                eval(cmd);
-                response='OK';
-              catch ME
-                % failed with and without an output, the command must be invalid
-                response=ME.message;
-              end          
+                % try running the command and capture the output, if there
+                % is no function found that returns a value then the
+                % function will not executed and we will retry running it
+                % without expecting a return value
+                disp([' Execute command: ',cmd]);
+                response=eval(cmd);
+                disp(' Command execution completed successfully');
+              catch
+                % failed, so the command is either invalid or does not provide output          
+                try
+                  % retry without expecting an output
+                  eval(cmd);
+                  disp(' Command execution completed successfully');
+                  response='OK';
+                catch ME
+                  % failed with and without an output, the command must be invalid
+                  response=['ERROR: Command execution failed. ',ME.message];
+                end          
+              end
             end
         else
-            response='Failed to receive command';            
-        end
-        disp(response);
+            response='ERROR: Error while receiving the command';            
+        end        
         
         % Send reply
-        WriteOpenIGTLinkStringMessage(clientSocketInfo, num2str(response), strcat(char(receivedMsg.deviceName),'Reply'));
+        responseStr=num2str(response);
+        disp([' Response (sent to device ',replyDeviceName,'): ', responseStr]);
+        WriteOpenIGTLinkStringMessage(clientSocketInfo, responseStr, replyDeviceName);
 
         % Close connection
         clientSocketInfo.socket.close;
@@ -138,7 +157,6 @@ function result=WriteOpenIGTLinkStringMessage(clientSocket, msgString, deviceNam
     msg.deviceName=deviceName;
     msg.timestamp=0;
     msg.body=[convertFromUint16ToUint8Vector(3),convertFromUint16ToUint8Vector(length(msgString)),uint8(msgString)];
-    disp(['Send reply as device ',msg.deviceName,': ',msgString])
     result=WriteOpenIGTLinkMessage(clientSocket, msg);
 end
 
