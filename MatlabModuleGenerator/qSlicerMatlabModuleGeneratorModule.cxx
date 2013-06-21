@@ -20,6 +20,9 @@
 #include <QtPlugin>
 #include <QSettings> 
 
+// VTK includes
+#include "vtksys/SystemTools.hxx"
+
 // SlicerQt includes
 #include <qSlicerApplication.h>
 
@@ -124,14 +127,19 @@ void qSlicerMatlabModuleGeneratorModule::setup()
     return;
   }
 
+  // Get Matlab executable path from application settings and store in the logic
   QSettings settings;
   QString matlabExecutablePath = settings.value("Matlab/MatlabExecutablePath",QString("Matlab.exe")).toString(); 
-
   moduleGeneratorLogic->SetMatlabExecutablePath(matlabExecutablePath.toLatin1());
 
-  app->setEnvironmentVariable("SLICER_MATLAB_EXECUTABLE_PATH",matlabExecutablePath);
-  std::string commandServerScriptMath=std::string(moduleGeneratorLogic->GetMatlabScriptDirectory())+"/"+MATLAB_COMMAND_SERVER_SCRIPT_NAME;
-  app->setEnvironmentVariable("SLICER_MATLAB_COMMAND_SERVER_SCRIPT_PATH",commandServerScriptMath.c_str());
+  // Set Matlab executable and commandserver script paths in environment variables
+  // for MatlabCommander CLI module
+  // Ideally, the app->setEnvironmentVariable method should be used, but somehow app->setEnvironmentVariable 
+  // causes failure in the sample data volume (and probably in other modules, too, as Python cannot find the "os" symbol)    
+  std::string matlabEnvVar=std::string("SLICER_MATLAB_EXECUTABLE_PATH=")+std::string(matlabExecutablePath.toLatin1());
+  vtksys::SystemTools::PutEnv(matlabEnvVar.c_str());
+  std::string scriptEnvVar=std::string("SLICER_MATLAB_COMMAND_SERVER_SCRIPT_PATH=")+moduleGeneratorLogic->GetMatlabScriptDirectory()+"/"+MATLAB_COMMAND_SERVER_SCRIPT_NAME;
+  vtksys::SystemTools::PutEnv(scriptEnvVar.c_str());
 }
 
 //-----------------------------------------------------------------------------

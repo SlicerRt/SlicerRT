@@ -74,6 +74,9 @@ add_subdirectory(PlmDicomRtImport)
 add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmXformwarp)
 
+add_subdirectory(MatlabCommander)
+add_subdirectory(MatlabModuleGenerator)
+
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 
   # Obsolete
@@ -91,8 +94,6 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # In development
   add_subdirectory(PlmSlicerBspline)
   add_subdirectory(PlmThreshbox)
-  add_subdirectory(MatlabCommander)
-  add_subdirectory(MatlabModuleGenerator)
   add_subdirectory(DicomRtExport)
   add_subdirectory(ExternalBeamPlanning)
 endif()
