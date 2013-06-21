@@ -246,15 +246,15 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage2(vtkMRMLVo
 
   int inputExtent[6]={0,0,0,0,0,0}; 
   inVolume->GetExtent(inputExtent); 
-  itk::Image<T, 3>::SizeType inputSize;
+  typename itk::Image<T, 3>::SizeType inputSize;
   inputSize[0] = inputExtent[1] - inputExtent[0] + 1;
   inputSize[1] = inputExtent[3] - inputExtent[2] + 1;
   inputSize[2] = inputExtent[5] - inputExtent[4] + 1;
 
-  itk::Image<T, 3>::IndexType start;
+  typename itk::Image<T, 3>::IndexType start;
   start[0]=start[1]=start[2]=0.0;
 
-  itk::Image<T, 3>::RegionType region;
+  typename itk::Image<T, 3>::RegionType region;
   region.SetSize(inputSize);
   region.SetIndex(start);
   outItkVolume->SetRegions(region);
