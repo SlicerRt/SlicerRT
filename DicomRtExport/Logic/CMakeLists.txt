@@ -37,3 +37,8 @@ SlicerMacroBuildModuleLogic(
   TARGET_LIBRARIES ${${KIT}_TARGET_LIBRARIES}
   )
   
+# Set linker flags, needed for OpenMP
+if (NOT ${PLASTIMATCH_LDFLAGS} STREQUAL "")
+  set_target_properties (${KIT}
+    PROPERTIES LINK_FLAGS ${PLASTIMATCH_LDFLAGS})
+endif ()
