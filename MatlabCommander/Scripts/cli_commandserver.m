@@ -1,5 +1,5 @@
 % OpenIGTLink server that executes the received string commands
-function commandserver(port)
+function cli_commandserver(port)
 
     global OPENIGTLINK_SERVER_SOCKET
     
@@ -100,7 +100,7 @@ function commandserver(port)
                   response='OK';
                 catch ME
                   % failed with and without an output, the command must be invalid
-                  response=['ERROR: Command execution failed. ',ME.message];
+                  response=['ERROR: Command execution failed. ',ME.getReport('extended','hyperlinks','off')];
                 end          
               end
             end

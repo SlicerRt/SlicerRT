@@ -17,6 +17,11 @@
       <description><![CDATA[All voxels below this value will be set to zero]]></description>
       <label>Threshold</label>
       <default>50</default>
+      <constraints>
+        <minimum>0</minimum>
+        <maximum>500</maximum>
+        <step>5</step>
+      </constraints>      
     </integer>
     <integer-vector>
       <name>neighborhood</name>

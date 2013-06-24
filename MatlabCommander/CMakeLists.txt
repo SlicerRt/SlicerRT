@@ -43,11 +43,11 @@ endif()
 #-----------------------------------------------------------------------------
 
 set(SCRIPT_FILES
-  commandserver.m 
-  getarg.m 
-  setarg.m
-  nrrdread.m 
-  nrrdwrite.m 
+  cli_commandserver.m 
+  cli_argsread.m 
+  cli_argswrite.m
+  cli_imageread.m 
+  cli_imagewrite.m 
   )
 
 foreach(SCRIPT_FILE ${SCRIPT_FILES})

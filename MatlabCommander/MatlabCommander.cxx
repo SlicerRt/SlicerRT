@@ -314,9 +314,44 @@ ExecuteMatlabCommandStatus ExecuteMatlabCommand(const std::string& hostname, int
 
 int CallMatlabFunction(int argc, char * argv [])
 {
+  // Search for the --returnparameterfile argument. If it is present then arguments shall be returned.
+  const std::string returnParameterFileArgName="--returnparameterfile";
+  std::string returnParameterFileArgValue;
+  for (int argvIndex=3; argvIndex<argc; argvIndex++)
+  {
+    if (returnParameterFileArgName.compare(argv[argvIndex])==0)
+    {
+      // found the return parameter file name
+      if (argvIndex+1>=argc)
+      {
+        std::cerr << "ERROR: --returnparameterfile value is not defined" << std::endl;
+        break;
+      }
+      returnParameterFileArgValue=argv[argvIndex+1];
+      if ( returnParameterFileArgValue.at(0) == '"' ) 
+      {
+        // this is a quoted string => remove the quotes (Matlab uses different quotes anyway)
+        returnParameterFileArgValue.erase( 0, 1 ); // erase the first character
+        returnParameterFileArgValue.erase( returnParameterFileArgValue.size() - 1 ); // erase the last character
+      }
+      break;
+    }
+  }
+  
+  // No return value:
+  //   myfunction( cli_argsread({"--paramName1","paramValue1",...}) );
+  // With return value:
+  //   cli_argswrite( myfunction( cli_argsread({"--paramName1","paramValue1",...}) ) );
+
   std::string functionName=argv[2];
   std::string cmd;
-  cmd+=functionName+"({";
+  if (!returnParameterFileArgValue.empty())
+  {
+    // with return value
+    cmd+="cli_argswrite('"+returnParameterFileArgValue+"',";
+  }
+  cmd+=functionName+"(cli_argsread({";
+
   for (int argvIndex=3; argvIndex<argc; argvIndex++)
   {
     std::string arg=argv[argvIndex];
@@ -333,7 +368,13 @@ int CallMatlabFunction(int argc, char * argv [])
       cmd+=",";
     }
   }
-  cmd+="})";
+  cmd+="}))";
+  if (!returnParameterFileArgValue.empty())
+  {
+    // with return value
+    cmd+=")";
+  }
+  cmd+=";";
 
   std::cout << "Command: " << cmd << std::endl;
 

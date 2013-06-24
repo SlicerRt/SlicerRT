@@ -1,26 +1,19 @@
-function [X, meta] = nrrdread(filename)
-%NRRDREAD  Import NRRD imagery and metadata.
-%   [X, META] = NRRDREAD(FILENAME) reads the image volume and associated
-%   metadata from the NRRD-format file specified by FILENAME.
-%
+function img = cli_imageread(filename)
+%cli_imageread  Read images for the command-line interface module from file (in NRRD format, see http://teem.sourceforge.net/nrrd/format.html)
+%   img = cli_imageread(filename) reads the image volume and associated
 %   Current limitations/caveats:
 %   * "Block" datatype is not supported.
 %   * Only tested with "gzip" and "raw" file encodings.
 %   * Very limited testing on actual files.
 %   * I only spent a couple minutes reading the NRRD spec.
 %
-%   See the format specification online:
-%   http://teem.sourceforge.net/nrrd/format.html
+% Partly based on the nrrdread.m function with copyright 2012 The MathWorks, Inc.
 
-% Copyright 2012 The MathWorks, Inc.
-
-
-% Open file.
 fid = fopen(filename, 'rb');
 assert(fid > 0, 'Could not open file.');
 cleaner = onCleanup(@() fclose(fid));
 
-% Magic line.
+% NRRD files must start with the NRRD word and a version number
 theLine = fgetl(fid);
 assert(numel(theLine) >= 4, 'Bad signature in file.')
 assert(isequal(theLine(1:4), 'NRRD'), 'Bad signature in file.')
@@ -40,7 +33,7 @@ assert(isequal(theLine(1:4), 'NRRD'), 'Bad signature in file.')
 % 
 %     <data><data><data><data><data><data>...
 
-meta = struct([]);
+img.metaData = struct([]);
 
 % Parse the file a line at a time.
 while (true)
@@ -68,29 +61,29 @@ while (true)
   % Cannot use spaces in field names, so replace them by underscore
   field=strrep(field,' ','_');
   
-  meta(1).(field) = value;
+  img.metaData(1).(field) = value;
   
 end
 
-datatype = getDatatype(meta.type);
+datatype = getDatatype(img.metaData.type);
 
 % Get the size of the data.
-assert(isfield(meta, 'sizes') && ...
-       isfield(meta, 'dimension') && ...
-       isfield(meta, 'encoding') && ...
-       isfield(meta, 'endian'), ...
+assert(isfield(img.metaData, 'sizes') && ...
+       isfield(img.metaData, 'dimension') && ...
+       isfield(img.metaData, 'encoding') && ...
+       isfield(img.metaData, 'endian'), ...
        'Missing required metadata fields.')
 
-dims = sscanf(meta.sizes, '%d');
-ndims = sscanf(meta.dimension, '%d');
+dims = sscanf(img.metaData.sizes, '%d');
+ndims = sscanf(img.metaData.dimension, '%d');
 assert(numel(dims) == ndims);
 
-data = readData(fid, meta, datatype);
-data = adjustEndian(data, meta);
+data = readData(fid, img.metaData, datatype);
+data = adjustEndian(data, img.metaData);
 
 % Reshape and get into MATLAB's order.
-X = reshape(data, dims');
-X = permute(X, [2 1 3]);
+img.pixelData = reshape(data, dims');
+img.pixelData = permute(img.pixelData, [2 1 3]);
 
 
 

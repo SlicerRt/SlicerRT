@@ -1,13 +1,13 @@
-function argVal=getarg(args,argName,argIndex)
-% Retrieve the value of a command-line argument
-% argName: name of the named argument (e.g., if command-line argument is '--threshold' then the argName should be 'threshold')
-% argIndex: used only for retrieving unnamed arguments (argName must be set to ''), index of the first argument is 1
+function params=cli_argsread(args)
+% Retrieve parameters in a structure from a list of command-line arguments
+% The output structure contains all the named arguments (field name is the command-line argument name)
+% and an "unnamed" argument containing the list of unnamed arguments in a cell.
 
 % Add an empty argument at the end to make sure we flush all the partially processed arguments
 args{length(args)+1}='--';
 
-parsedArgs={};
-unnamedArgs={};
+params={};
+params.unnamed={};
 
 curArgName='';
 curArgValue='';
@@ -16,14 +16,14 @@ for curArgIndex=1:length(args)
         % This is an argument name
         if (~isempty(curArgName))
             % There is an argument already, so store it
-            parsedArgs.(curArgName)=curArgValue;
+            params.(curArgName)=curArgValue;
             curArgName='';
             curArgValue='';            
         else
             % There is no argument name, only argument value, so it's an
             % unnamed argument
             if (~isempty(curArgValue))
-                unnamedArgs{length(unnamedArgs)+1}=curArgValue;
+                params.unnamed{length(params.unnamed)+1}=curArgValue;
                 curArgValue='';
             end
         end
@@ -38,20 +38,24 @@ for curArgIndex=1:length(args)
         continue;
     else
         % this is an argument value
-        curArgValue=args{curArgIndex};
+        curArgValue=getValueFromString(args{curArgIndex});
         if (isempty(curArgName))
-            unnamedArgs{length(unnamedArgs)+1}=curArgValue;
+            params.unnamed{length(params.unnamed)+1}=curArgValue;
             curArgValue='';
         else
-            parsedArgs.(curArgName)=curArgValue;
+            params.(curArgName)=curArgValue;
             curArgName='';
             curArgValue='';
         end
     end
 end
 
-if (isempty(argName))
-    argVal=unnamedArgs{argIndex};
-else
-    argVal=parsedArgs.(argName);
-end
+function paramValue=getValueFromString(paramString)
+% Store numerical values as numbers (to don't require the user to call str2num to get a numerical parameter from a string)
+  [paramValue paramCount paramError]=sscanf(paramString,'%f,'); % reads one or more comma-separated floating point values
+  if (isempty(paramError))
+    % No error, so it was a number or vector of numbers
+    return;
+  end
+  % There was an error, so we interpret this value as a string
+  paramValue=paramString;
