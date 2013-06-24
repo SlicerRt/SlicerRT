@@ -74,9 +74,6 @@ add_subdirectory(PlmDicomRtImport)
 add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmXformwarp)
 
-add_subdirectory(MatlabCommander)
-add_subdirectory(MatlabModuleGenerator)
-
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 
   # Obsolete
