@@ -200,7 +200,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   gamma.set_reference_image(referenceDoseVolumeItk);
   gamma.set_compare_image(compareDoseVolumeItk);
   gamma.set_spatial_tolerance(this->DoseComparisonNode->GetDtaDistanceToleranceMm());
-  gamma.set_dose_difference_tolerance(this->DoseComparisonNode->GetDoseDifferenceTolerancePercent());
+  gamma.set_dose_difference_tolerance(this->DoseComparisonNode->GetDoseDifferenceTolerancePercent() / 100.0);
   if (!this->DoseComparisonNode->GetUseMaximumDose())
   {
     gamma.set_reference_dose(this->DoseComparisonNode->GetReferenceDoseGy());
