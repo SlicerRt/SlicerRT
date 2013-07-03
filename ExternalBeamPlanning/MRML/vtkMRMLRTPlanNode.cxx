@@ -143,6 +143,10 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
     {
     return;
     }
+  if (this->Scene->IsBatchProcessing())
+    {
+    return;
+    }
 
   // Representation internal data changed
   if (eventID == vtkMRMLModelNode::PolyDataModifiedEvent || eventID == vtkMRMLVolumeNode::ImageDataModifiedEvent)
@@ -153,6 +157,7 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
       {
       return;
       }
+      //TODO: Implement or delete
     }
 }
 

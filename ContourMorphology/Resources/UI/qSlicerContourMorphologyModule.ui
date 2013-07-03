@@ -477,7 +477,7 @@
          </stringlist>
         </property>
         <property name="noneEnabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="renameEnabled">
          <bool>true</bool>
@@ -549,14 +549,6 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../qSlicerContourMorphologyModule.qrc"/>
-  <include location="../qSlicerContourMorphologyModule.qrc"/>
-  <include location="../qSlicerContourMorphologyModule.qrc"/>
-  <include location="../qSlicerContourMorphologyModule.qrc"/>
-  <include location="../qSlicerContourMorphologyModule.qrc"/>
-  <include location="../qSlicerContourMorphologyModule.qrc"/>
-  <include location="../qSlicerContourMorphologyModule.qrc"/>
-  <include location="../qSlicerContourMorphologyModule.qrc"/>
   <include location="../qSlicerContourMorphologyModule.qrc"/>
  </resources>
  <connections>

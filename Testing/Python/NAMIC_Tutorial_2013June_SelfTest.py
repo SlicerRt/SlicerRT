@@ -130,7 +130,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     self.workflow1GroupboxLayout.addWidget(self.generateIsodoseButton)
     self.generateIsodoseButton.connect('clicked()', self.onGenerateIsodose)
 
-    # Register button and checkbox
+    # Register button
     self.registerButton = qt.QPushButton("Register")
     self.registerButton.setMaximumWidth(200)
     self.registerButton.toolTip = "Registers Day 2 CT to Day 1 CT. Data needs to be loaded!"

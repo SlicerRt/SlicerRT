@@ -295,6 +295,10 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
     vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene!");
     return;
     }
+  if (this->Scene->IsBatchProcessing())
+    {
+    return;
+    }
 
   // Representation internal data changed
   if (eventID == vtkMRMLModelNode::PolyDataModifiedEvent || eventID == vtkMRMLVolumeNode::ImageDataModifiedEvent)

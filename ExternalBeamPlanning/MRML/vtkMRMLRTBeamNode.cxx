@@ -203,6 +203,10 @@ void vtkMRMLRTBeamNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
     {
     return;
     }
+  if (this->Scene->IsBatchProcessing())
+    {
+    return;
+    }
 }
 
 //----------------------------------------------------------------------------
