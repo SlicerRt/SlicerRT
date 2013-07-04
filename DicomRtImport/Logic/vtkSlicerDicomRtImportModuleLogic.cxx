@@ -792,7 +792,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       vtkMRMLAnnotationHierarchyNode* isocenterHierarchyNode =
         vtkMRMLAnnotationHierarchyNode::SafeDownCast( vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->GetMRMLScene(), addedDisplayableNode->GetID()) );
       isocenterHierarchyNode->SetParentNodeID( isocenterSeriesHierarchyRootNode->GetID() );
-      isocenterHierarchyNode->SetIndexInParent(dicomBeamIndex);
+      isocenterHierarchyNode->SetIndexInParent(dicomBeamIndex-1);
 
       // Create patient hierarchy entry for the isocenter fiducial
       vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> patientHierarchyFiducialNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
@@ -846,7 +846,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       vtkMRMLAnnotationHierarchyNode* sourceHierarchyNode =
         vtkMRMLAnnotationHierarchyNode::SafeDownCast( vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->GetMRMLScene(), sourceFiducialNode->GetID()) );
       sourceHierarchyNode->SetParentNodeID( sourceHierarchyRootNode->GetID() );
-      sourceHierarchyNode->SetIndexInParent(dicomBeamIndex);
+      sourceHierarchyNode->SetIndexInParent(dicomBeamIndex-1);
 
       // Add beam model node to the scene
       std::string beamModelName;
@@ -888,9 +888,9 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
       beamModelHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
         vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
-      beamModelHierarchyNode->SetParentNodeID(beamModelHierarchyRootNode->GetID());
-      beamModelHierarchyNode->SetIndexInParent(dicomBeamIndex);
       this->GetMRMLScene()->AddNode(beamModelHierarchyNode);
+      beamModelHierarchyNode->SetParentNodeID(beamModelHierarchyRootNode->GetID());
+      beamModelHierarchyNode->SetIndexInParent(dicomBeamIndex-1);
 
     } //endif addedDisplayableNode
   }

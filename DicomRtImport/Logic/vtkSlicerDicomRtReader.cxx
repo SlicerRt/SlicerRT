@@ -328,12 +328,6 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
               {
                 do 
                 {
-                  if (++numberOfFoundCollimatorPositionItems > 2)
-                  {
-                    vtkErrorMacro("LoadRTPlan: Unexpected number of collimator position items (we expect exactly 2)");
-                    break;
-                  }
-
                   DRTBeamLimitingDevicePositionSequence::Item &collimatorPositionItem
                     = currentCollimatorPositionSequenceObject.getCurrentItem();
                   if (collimatorPositionItem.isValid())
@@ -342,17 +336,35 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
                     collimatorPositionItem.getRTBeamLimitingDeviceType(rtBeamLimitingDeviceType);
 
                     OFVector<Float64> leafJawPositions;
-                    collimatorPositionItem.getLeafJawPositions(leafJawPositions);
+                    OFCondition getJawPositionsCondition = collimatorPositionItem.getLeafJawPositions(leafJawPositions);
 
                     if ( !rtBeamLimitingDeviceType.compare("ASYMX") || !rtBeamLimitingDeviceType.compare("X") )
                     {
-                      beamEntry.LeafJawPositions[0][0] = leafJawPositions[0];
-                      beamEntry.LeafJawPositions[0][1] = leafJawPositions[1];
+                      if (getJawPositionsCondition.good())
+                      {
+                        beamEntry.LeafJawPositions[0][0] = leafJawPositions[0];
+                        beamEntry.LeafJawPositions[0][1] = leafJawPositions[1];
+                      }
+                      else
+                      {
+                        vtkDebugMacro("LoadRTPlan: No jaw position found in collimator entry");
+                      }
                     }
                     else if ( !rtBeamLimitingDeviceType.compare("ASYMY") || !rtBeamLimitingDeviceType.compare("Y") )
                     {
-                      beamEntry.LeafJawPositions[1][0] = leafJawPositions[0];
-                      beamEntry.LeafJawPositions[1][1] = leafJawPositions[1];
+                      if (getJawPositionsCondition.good())
+                      {
+                        beamEntry.LeafJawPositions[1][0] = leafJawPositions[0];
+                        beamEntry.LeafJawPositions[1][1] = leafJawPositions[1];
+                      }
+                      else
+                      {
+                        vtkDebugMacro("LoadRTPlan: No jaw position found in collimator entry");
+                      }
+                    }
+                    else if ( !rtBeamLimitingDeviceType.compare("MLCX") || !rtBeamLimitingDeviceType.compare("MLCY") )
+                    {
+                      vtkWarningMacro("LoadRTPlan: Multi-leaf collimator entry found. This collimator type is not yet supported!");
                     }
                     else
                     {
