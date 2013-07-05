@@ -303,12 +303,18 @@ void vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(vtkMRMLHierarchyN
     vtkDebugWithObjectMacro(node, "SetBranchVisibility: Invalid visibility value to set: " << visible);
     return;
   }
+  if (node->GetScene()->IsBatchProcessing())
+  {
+    vtkDebugWithObjectMacro(node, "SetBranchVisibility: Batch processing is on, returning");
+    return;
+  }
 
   node->GetScene()->StartState(vtkMRMLScene::BatchProcessState);
 
   vtkSmartPointer<vtkCollection> childDisplayableNodes = vtkSmartPointer<vtkCollection>::New();
   node->GetAssociatedChildrendNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
   childDisplayableNodes->InitTraversal();
+  std::set<vtkMRMLHierarchyNode*> parentNodes;
   for (int i=0; i<childDisplayableNodes->GetNumberOfItems(); ++i)
   {
     vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(childDisplayableNodes->GetItemAsObject(i));
@@ -323,29 +329,24 @@ void vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(vtkMRMLHierarchyN
       }
 
       displayableNode->Modified();
-      // Set Modified flag for all parent nodes so that their icons are refreshed in the tree view
-      vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(displayableNode);
+
+      // Collect all parents
+      vtkMRMLHierarchyNode* parentNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode( node->GetScene(), displayableNode->GetID() );
+      do 
+      {
+        parentNodes.insert(parentNode);
+      }
+      while ((parentNode = parentNode->GetParentNode()) != NULL); // The double parentheses avoids a Linux build warning
     }
   }
 
-  node->GetScene()->EndState(vtkMRMLScene::BatchProcessState);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerPatientHierarchyModuleLogic::SetModifiedToAllAncestors(vtkMRMLNode* node)
-{
-  std::set<vtkMRMLHierarchyNode*> parentNodes;
-  vtkMRMLHierarchyNode* parentNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode( node->GetScene(), node->GetID() );
-  do 
-  {
-    parentNodes.insert(parentNode);
-  }
-  while ((parentNode = parentNode->GetParentNode())); // The double parentheses avoids a Linux build warning
-
+  // Set Modified flag for all parent nodes so that their icons are refreshed in the tree view
   for (std::set<vtkMRMLHierarchyNode*>::iterator parentsIt = parentNodes.begin(); parentsIt != parentNodes.end(); ++ parentsIt)
   {
     (*parentsIt)->Modified();
   }
+
+  node->GetScene()->EndState(vtkMRMLScene::BatchProcessState);
 }
 
 //---------------------------------------------------------------------------

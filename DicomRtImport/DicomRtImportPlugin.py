@@ -94,12 +94,6 @@ class DicomRtImportPluginClass(DICOMPlugin):
 
     return success
 
-  def onLoadFinished(self):
-    """Perform steps needed after all selected loadables have
-    been loaded
-    """
-    slicer.modules.dicomrtimport.logic().PerformPostLoadSteps()
-    
 #
 # DicomRtImportPlugin
 #
@@ -164,7 +158,12 @@ class DicomRtImportPlugin:
 
     firstFile = loadable.files[0]
 
-    seriesNode = slicer.vtkMRMLHierarchyNode()
+    seriesInstanceUid = slicer.dicomDatabase.fileValue(firstFile,tags['seriesInstanceUID'])
+    seriesNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUID(slicer.mrmlScene, seriesInstanceUid)
+    if seriesNode == None:
+      seriesNode = slicer.vtkMRMLHierarchyNode()
+      slicer.mrmlScene.AddNode(seriesNode)
+
     seriesNode.HideFromEditorsOff()
     seriesNode.SetAssociatedNodeID(volumeNode.GetID())
     seriesNode.SetAttribute('HierarchyType','PatientHierarchy')
@@ -174,16 +173,12 @@ class DicomRtImportPlugin:
       seriesDescription = 'No description'
     seriesDescription = seriesDescription + '_PatientHierarchy'
     seriesNode.SetName(seriesDescription)
-    seriesInstanceUid = slicer.dicomDatabase.fileValue(firstFile,tags['seriesInstanceUID'])
     seriesNode.SetAttribute('DicomUid',seriesInstanceUid)
     seriesNode.SetAttribute('PatientHierarchy.SeriesModality',slicer.dicomDatabase.fileValue(firstFile, tags['seriesModality']))
     seriesNode.SetAttribute('PatientHierarchy.StudyDate',slicer.dicomDatabase.fileValue(firstFile, tags['studyDate']))
     seriesNode.SetAttribute('PatientHierarchy.StudyTime',slicer.dicomDatabase.fileValue(firstFile, tags['studyTime']))
     seriesNode.SetAttribute('PatientHierarchy.PatientSex',slicer.dicomDatabase.fileValue(firstFile, tags['patientSex']))
     seriesNode.SetAttribute('PatientHierarchy.PatientBirthDate',slicer.dicomDatabase.fileValue(firstFile, tags['patientBirthDate']))
-    slicer.mrmlScene.AddNode(seriesNode)
-    
-    slicer.modules.dicomrtimport.logic().AddNodeToLoadedSeriesPatientHierarchyNodes(seriesNode)
 
     patientId = slicer.dicomDatabase.fileValue(firstFile,tags['patientID'])
     patientNode = vtkSlicerPatientHierarchyModuleLogic.GetPatientHierarchyNodeByUID(slicer.mrmlScene, patientId)

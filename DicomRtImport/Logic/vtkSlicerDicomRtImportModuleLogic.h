@@ -63,11 +63,6 @@ public:
   /// Set Isodose module logic
   void SetIsodoseLogic(vtkSlicerIsodoseModuleLogic* isodoseLogic);
 
-  /// Perform steps needed after loading all data from the selected loadables
-  void PerformPostLoadSteps();
-
-  void AddNodeToLoadedSeriesPatientHierarchyNodes(vtkMRMLHierarchyNode* seriesNode);
-
 public:
   vtkSetMacro(AutoContourOpacity, bool);
   vtkGetMacro(AutoContourOpacity, bool);
@@ -121,11 +116,6 @@ private:
 
   /// Flag indicating whether opacity values for the loaded contours are automatically determined
   bool AutoContourOpacity;
-
-  /// Patient hierarchy nodes created in the last loading session
-  /// These nodes are used in function \sa PerformPostLoadSteps for creating connections between these
-  /// nodes and to set up display for the loaded data
-  std::vector<vtkMRMLHierarchyNode*> LoadedSeriesPatientHierarchyNodes;
 
   /// Default dose color table ID. Loaded on Slicer startup.
   char* DefaultDoseColorTableNodeId;
