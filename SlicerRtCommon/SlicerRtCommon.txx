@@ -136,7 +136,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLVol
 }
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage2(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1/*=false*/)
+template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1/*=false*/)
 {
   if ( inVolumeNode == NULL )
   {

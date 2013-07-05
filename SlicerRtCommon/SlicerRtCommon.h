@@ -190,7 +190,14 @@ public:
     \return Success
   */
   template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
-  template<typename T> static bool ConvertVolumeNodeToItkImage2(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
+  /*!
+    Convert VTK image to ITK image in LPS coordinate system (DICOM and ITK space)
+    \param inVolumeNode Input volume node
+    \param outItkVolume Output ITK image
+    \param paintForegroundTo1 Paint non-zero values to 1 (Optional)
+    \return Success
+  */
+  template<typename T> static bool ConvertVolumeNodeToItkImageInLPS(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
 //ETX
 };
 

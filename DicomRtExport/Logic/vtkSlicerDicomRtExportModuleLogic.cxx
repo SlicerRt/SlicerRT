@@ -28,11 +28,12 @@
 
 // VTK includes
 #include <vtkNew.h>
-#include "vtkPolyData.h"
+#include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
+#include <vtkImageShiftScale.h>
 
 // ITK includes
-#include "itkImage.h"
+#include <itkImage.h>
 
 // STD includes
 #include <cassert>
@@ -74,6 +75,19 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
     return;
   }
 
+  // Cast the input CT/MR image to Short in case it is read in as Int
+  vtkImageData* imageData = imageNode->GetImageData();
+  vtkSmartPointer<vtkImageShiftScale> caster = vtkSmartPointer<vtkImageShiftScale>::New();
+  caster->SetInput(imageData);
+  caster->SetShift(0);
+  caster->SetScale(1);
+  caster->SetOutputScalarTypeToShort();
+  caster->Update();
+
+  vtkSmartPointer<vtkImageData> newImageData = caster->GetOutput();
+  imageNode->SetAndObserveImageData(newImageData);
+
+  // check if there is at least one RTDose or RTSTRUCT is included
   vtkMRMLScalarVolumeNode* doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(doseNodeID));
   vtkMRMLDisplayableHierarchyNode* contourHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(
@@ -86,19 +100,20 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
 
   vtkSmartPointer<vtkSlicerDicomRtWriter> rtWriter = vtkSmartPointer<vtkSlicerDicomRtWriter>::New();
 
-  // Convert input images to the format Plastimatch can use
+  // Convert input CT/MR image to the format Plastimatch can use
   itk::Image<short, 3>::Pointer itkImage = itk::Image<short, 3>::New();
-  if (SlicerRtCommon::ConvertVolumeNodeToItkImage<short>(imageNode, itkImage) == false)
+  if (SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<short>(imageNode, itkImage) == false)
   {
     vtkErrorMacro("SaveDicomRTStudy: Failed to convert image volumeNode to ITK volume!");
     return;
   }
   rtWriter->SetImage(itkImage);
 
+  // Convert input RTDose to the format Plastimatch can use
   if (doseNode)
   {
     itk::Image<float, 3>::Pointer itkDose = itk::Image<float, 3>::New();
-    if (SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(doseNode, itkDose) == false)
+    if (SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(doseNode, itkDose) == false)
     {
       vtkErrorMacro("SaveDicomRTStudy: Failed to convert dose volumeNode to ITK volume!");
       return;
@@ -106,6 +121,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
     rtWriter->SetDose(itkDose);
   }
 
+  // Convert input contours to the format Plastimatch can use
   if (contourHierarchyNode)
   {
     vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
@@ -121,12 +137,22 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
     for (int i=0; i<childContourNodes->GetNumberOfItems(); ++i)
     {
       vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(childContourNodes->GetItemAsObject(i));
+      if (contourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
+      {
+        contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(imageNodeID);
+        contourNode->SetRasterizationOversamplingFactor(1.0);
+      }
       vtkMRMLScalarVolumeNode* labelmapNode = contourNode->GetIndexedLabelmapVolumeNode();
+      if (!labelmapNode)
+      {
+        vtkErrorMacro(<<"Failed to get indexed labelmap representation from contours");
+        return;
+      }
       char *labelmapName = labelmapNode->GetName();
       double labelmapColor[4] = {0.0,0.0,0.0,1.0};
       labelmapNode->GetDisplayNode()->GetColor(labelmapColor);
       itk::Image<unsigned char, 3>::Pointer itkStructure = itk::Image<unsigned char, 3>::New();
-      if (SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(labelmapNode, itkStructure) == false)
+      if (SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<unsigned char>(labelmapNode, itkStructure) == false)
       {
         vtkErrorMacro("SaveDicomRTStudy: Failed to convert contour labelmap volumeNode to ITK volume!");
         return;

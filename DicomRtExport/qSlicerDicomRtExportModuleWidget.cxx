@@ -89,6 +89,8 @@ void qSlicerDicomRtExportModuleWidget::setup()
   Q_D(qSlicerDicomRtExportModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
+
+  this->connect( d->pushButton_SaveDicomRT, SIGNAL(clicked()), this, SLOT(onSaveClicked()) );
 }
 
 //-----------------------------------------------------------------------------
@@ -99,9 +101,9 @@ void qSlicerDicomRtExportModuleWidget::onSaveClicked()
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   d->logic()->SaveDicomRTStudy(
-    d->MRMLNodeComboBox_ImageVolume->currentNodeID().toLatin1().constData(),
-    d->MRMLNodeComboBox_DoseVolume->currentNodeID().toLatin1().constData(),
-    d->MRMLNodeComboBox_ContourHierarchy->currentNodeID().toLatin1().constData(),
+    d->MRMLNodeComboBox_ImageVolume->currentNodeId().toLatin1().constData(),
+    d->MRMLNodeComboBox_DoseVolume->currentNodeId().toLatin1().constData(),
+    d->MRMLNodeComboBox_ContourHierarchy->currentNodeId().toLatin1().constData(),
     d->DirectoryButton_OutputDirectory->directory().toLatin1().constData() );
 
   QApplication::restoreOverrideCursor();
