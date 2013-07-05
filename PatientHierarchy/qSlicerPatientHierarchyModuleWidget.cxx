@@ -87,6 +87,15 @@ void qSlicerPatientHierarchyModuleWidget::enter()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerPatientHierarchyModuleWidget::exit()
+{
+  this->Superclass::exit();
+
+  Q_D(qSlicerPatientHierarchyModuleWidget);
+  d->PatientHierarchyTreeView->setMRMLScene(NULL);
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerPatientHierarchyModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
@@ -97,6 +106,7 @@ void qSlicerPatientHierarchyModuleWidget::onEnter()
   Q_D(qSlicerPatientHierarchyModuleWidget);
 
   d->ModuleWindowInitialized = true;
+  d->PatientHierarchyTreeView->setMRMLScene(this->mrmlScene());
 
   this->updateWidgetFromMRML();
 }

@@ -42,6 +42,7 @@ public:
   virtual ~qSlicerPatientHierarchyModuleWidget();
 
   virtual void enter();
+  virtual void exit();
 
 public slots:
   /// Update widget GUI from parameter node
