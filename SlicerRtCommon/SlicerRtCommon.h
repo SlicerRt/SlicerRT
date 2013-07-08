@@ -60,6 +60,7 @@ public:
   static const std::string PATIENTHIERARCHY_STUDY_TIME_ATTRIBUTE_NAME;
   static const std::string PATIENTHIERARCHY_SERIES_MODALITY_ATTRIBUTE_NAME;
   static const std::string PATIENTHIERARCHY_NEW_NODE_NAME_PREFIX;
+  static const std::string PATIENTHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX;
 
   // Contour (vtkMRMLContourNode) constants
   static const std::string CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;

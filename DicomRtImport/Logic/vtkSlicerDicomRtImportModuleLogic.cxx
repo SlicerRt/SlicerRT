@@ -1036,7 +1036,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
       }
       else
       {
-        // Create dummy anatomy volume node to put the structure set under. When the actual volume is loaded, it occupies the node
+        // Create dummy anatomical volume node to put the structure set under. When the actual volume is loaded, it occupies the node
         referencedSeriesNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
         referencedSeriesNode->HideFromEditorsOff();
         referencedSeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
@@ -1045,7 +1045,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInPatientHierarchy( vtkSlice
           vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
         referencedSeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
           referencedSeriesUid);
-        std::string referencedSeriesNodeName = SlicerRtCommon::PATIENTHIERARCHY_NEW_NODE_NAME_PREFIX + vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES;
+        std::string referencedSeriesNodeName = SlicerRtCommon::PATIENTHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX + vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
         referencedSeriesNode->SetName(referencedSeriesNodeName.c_str());
         this->GetMRMLScene()->AddNode(referencedSeriesNode);
 

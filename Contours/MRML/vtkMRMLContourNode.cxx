@@ -740,12 +740,14 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
   if (!contourPatientHierarchyNode)
     {
     vtkErrorMacro("GetColorIndex: No patient hierarchy node found for contour '" << this->Name << "'");
+    colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
     }
   vtkMRMLDisplayableHierarchyNode* parentContourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(contourPatientHierarchyNode->GetParentNode());
-  if (!contourPatientHierarchyNode)
+  if (!parentContourPatientHierarchyNode)
     {
     vtkErrorMacro("GetColorIndex: No structure set patient hierarchy node found for contour '" << this->Name << "'");
+    colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
     }
 
@@ -756,6 +758,7 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
     {
     vtkErrorMacro("GetColorIndex: Invalid number (" << colorNodes->GetNumberOfItems() << ") of color table nodes found for contour '"
       << this->Name << "' in structure set '" << parentContourPatientHierarchyNode->GetName() << "'");
+    colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
     }
 

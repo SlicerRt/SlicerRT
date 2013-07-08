@@ -251,7 +251,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy
 
   if (! (parentNode->IsA("vtkMRMLDisplayableHierarchyNode") && parentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str())) )
   {
-    vtkDebugMacro("ReparentInsidePatientHierarchy: Parent node must be a contour hierarchy node!");
+    vtkErrorMacro("ReparentInsidePatientHierarchy: New parent is not a contour hierarchy node! Cancelling reparenting.");
     return false;
   }
 
@@ -259,7 +259,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy
   vtkMRMLContourNode* contourNodeToReparent = vtkMRMLContourNode::SafeDownCast(associatedNode);
   if (!contourNodeToReparent)
   {
-    vtkDebugMacro("ReparentInsidePatientHierarchy: Only contour nodes can be reparented using the Contours PatientHierarchy plugin.");
+    vtkErrorMacro("ReparentInsidePatientHierarchy: Only contour nodes can be reparented using the Contours PatientHierarchy plugin.");
     return false;
   }
 

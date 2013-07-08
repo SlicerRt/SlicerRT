@@ -39,6 +39,7 @@ const std::string SlicerRtCommon::PATIENTHIERARCHY_STUDY_DATE_ATTRIBUTE_NAME = S
 const std::string SlicerRtCommon::PATIENTHIERARCHY_STUDY_TIME_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "StudyTime";
 const std::string SlicerRtCommon::PATIENTHIERARCHY_SERIES_MODALITY_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "SeriesModality";
 const std::string SlicerRtCommon::PATIENTHIERARCHY_NEW_NODE_NAME_PREFIX = "NewPatientHierarchyNode_";
+const std::string SlicerRtCommon::PATIENTHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX = "DummyAnatomicalVolume_";
 
 // Contour (vtkMRMLContourNode) constants
 const std::string SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX = "_RibbonModel";

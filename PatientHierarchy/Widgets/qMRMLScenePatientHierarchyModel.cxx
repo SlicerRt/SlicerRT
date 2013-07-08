@@ -193,7 +193,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
     {
       nodeText = nodeText.left( nodeText.size() - SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX.size() );
     }
-    else
+    else if (!node->IsA("vtkMRMLModelHierarchyNode") && !node->IsA("vtkMRMLAnnotationHierarchyNode")) // Do not expect postfix for "multi-functional" hierarchies (that are to be used also in other modules)
     {
       vtkWarningWithObjectMacro(this->mrmlScene(),"qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Patient hierarchy node name should end with '" << SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX << "'. It has the name '" << hierarchyNode->GetName() << "'");
     }
@@ -459,12 +459,14 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
       successfullyReadByPlugin = foundPlugin->ReparentNodeInsidePatientHierarchy(hierarchyNode, parentPatientHierarchyNode);
       if (!successfullyReadByPlugin)
       {
+        // Put back to its original place
+        hierarchyNode->SetParentNodeID( hierarchyNode->GetParentNodeID() );
+
         vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Failed to reparent node "
           << hierarchyNode->GetName() << " through plugin " << (foundPlugin->GetName()?foundPlugin->GetName():"Unnamed") << "!");
       }
     }
-
-    if (!foundPlugin || !successfullyReadByPlugin)
+    else
     {
       hierarchyNode->SetParentNodeID(parentPatientHierarchyNode->GetID());
     }
