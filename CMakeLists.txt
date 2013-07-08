@@ -68,6 +68,7 @@ add_subdirectory(ContourComparison)
 add_subdirectory(DeformationFieldVisualizer)
 add_subdirectory(VffFileReader)
 
+add_subdirectory(Plastimatch)
 add_subdirectory(PlmBspline) # requires Plastimatch registration
 add_subdirectory(PlmDicomRtExport)
 add_subdirectory(PlmDicomRtImport)
