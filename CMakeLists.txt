@@ -68,7 +68,6 @@ add_subdirectory(ContourComparison)
 add_subdirectory(DeformationFieldVisualizer)
 add_subdirectory(VffFileReader)
 
-add_subdirectory(Plastimatch)
 add_subdirectory(PlmBspline) # requires Plastimatch registration
 add_subdirectory(PlmDicomRtExport)
 add_subdirectory(PlmDicomRtImport)
@@ -90,6 +89,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(PlmSynth)
 
   # In development
+  add_subdirectory(Plastimatch)
   add_subdirectory(PlmSlicerBspline)
   add_subdirectory(PlmThreshbox)
   add_subdirectory(DicomRtExport)
