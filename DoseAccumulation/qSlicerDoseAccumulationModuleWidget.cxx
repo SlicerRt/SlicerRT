@@ -26,8 +26,9 @@
 #include "qSlicerDoseAccumulationModuleWidget.h"
 #include "ui_qSlicerDoseAccumulationModule.h"
 
-// SlicerRtCommon includes
+// SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // DoseAccumulation includes
 #include "vtkSlicerDoseAccumulationModuleLogic.h"
@@ -335,7 +336,8 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
       continue;
     }
 
-    const char* doseUnitName = volumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+    // Get dose unit name
+    const char* doseUnitName = vtkSlicerPatientHierarchyModuleLogic::GetAttributeFromAncestor(volumeNode, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY);
     std::string doseUnitStr = ( doseUnitName ? doseUnitName : "N/A" );
 
     // Create checkbox
@@ -499,7 +501,7 @@ void qSlicerDoseAccumulationModuleWidget::checkDoseUnitsInSelectedVolumes()
   {
     if (it->first->isChecked())
     {
-      doseUnits.insert( QString(it->second.second.c_str()) );
+      doseUnits.insert( QString(it->second.second.c_str()).trimmed().toLower() );
     }
   }
 

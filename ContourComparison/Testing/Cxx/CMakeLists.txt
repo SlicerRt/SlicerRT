@@ -71,7 +71,7 @@ TEST_WITH_DATA(
   0.195603
   0.0
 )
-set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -91,7 +91,7 @@ TEST_WITH_DATA(
   0.0
   0.0
 )
-set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -111,4 +111,4 @@ TEST_WITH_DATA(
   0.0560625
   0.0560625
 )
-set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )

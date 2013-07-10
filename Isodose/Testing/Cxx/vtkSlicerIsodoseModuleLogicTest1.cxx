@@ -46,6 +46,9 @@
 #include <vtkLookupTable.h>
 #include <vtkCollection.h>
 #include <vtkMassProperties.h>
+#ifdef WIN32
+  #include <vtkWin32OutputWindow.h>
+#endif
 
 // ITK includes
 #if ITK_VERSION_MAJOR > 3
@@ -60,44 +63,27 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
 {
   int argIndex = 1;
 
-  const char *dataDirectoryPath = NULL;
+  // TestSceneFile
+  const char *testSceneFileName  = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-DataDirectoryPath") == 0)
+    if (STRCASECMP(argv[argIndex], "-TestSceneFile") == 0)
     {
-      dataDirectoryPath = argv[argIndex+1];
-      std::cout << "Data directory path: " << dataDirectoryPath << std::endl;
+      testSceneFileName = argv[argIndex+1];
+      std::cout << "Test MRML scene file name: " << testSceneFileName << std::endl;
       argIndex += 2;
     }
     else
     {
-      dataDirectoryPath = "";
+      testSceneFileName = "";
     }
   }
   else
   {
-    std::cerr << "No arguments!" << std::endl;
+    std::cerr << "Invalid arguments!" << std::endl;
     return EXIT_FAILURE;
   }
-  const char *baselineIsodoseSurfaceFileName = NULL;
-  if (argc > argIndex+1)
-  {
-    if (STRCASECMP(argv[argIndex], "-BaselineIsodoseSurfaceFile") == 0)
-    {
-      baselineIsodoseSurfaceFileName = argv[argIndex+1];
-      std::cout << "Baseline isodose surface file name: " << baselineIsodoseSurfaceFileName << std::endl;
-      argIndex += 2;
-    }
-    else
-    {
-      baselineIsodoseSurfaceFileName = "";
-    }
-  }
-  else
-  {
-    std::cerr << "No arguments!" << std::endl;
-    return EXIT_FAILURE;
-  }
+  // TemporarySceneFile
   const char *temporarySceneFileName = NULL;
   if (argc > argIndex+1)
   {
@@ -114,10 +100,30 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "No arguments!" << std::endl;
+    std::cerr << "Invalid arguments!" << std::endl;
     return EXIT_FAILURE;
   }
-
+  // BaselineIsodoseSurfaceFile
+  const char *baselineIsodoseSurfaceFileName = NULL;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-BaselineIsodoseSurfaceFile") == 0)
+    {
+      baselineIsodoseSurfaceFileName = argv[argIndex+1];
+      std::cout << "Baseline isodose surface file name: " << baselineIsodoseSurfaceFileName << std::endl;
+      argIndex += 2;
+    }
+    else
+    {
+      baselineIsodoseSurfaceFileName = "";
+    }
+  }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // VolumeDifferenceToleranceCc
   double volumeDifferenceToleranceCc = 0.0;
   if (argc > argIndex+1)
   {
@@ -132,6 +138,11 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   // Constraint the criteria to be greater than zero
   if (volumeDifferenceToleranceCc == 0.0)
@@ -144,68 +155,39 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   itk::itkFactoryRegistration();
 #endif
 
+  // Direct vtk messages on standard output
+  //TODO: Remove when supported by the test driver (http://www.na-mic.org/Bug/view.php?id=3221)
+#ifdef WIN32
+  vtkWin32OutputWindow* outputWindow = vtkWin32OutputWindow::SafeDownCast(vtkOutputWindow::GetInstance());
+  if (outputWindow)
+  {
+    outputWindow->SendToStdErrOn();
+  }
+#endif
+
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
+  // Load test scene into temporary scene
+  mrmlScene->SetURL(testSceneFileName);
+  mrmlScene->Import();
+
+  // Save it to the temporary directory
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);
   mrmlScene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
   mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
-  // Create dose volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  doseScalarVolumeNode->SetName("Dose");
-
-  // Load and set attributes from file
-  std::string doseAttributesFileName = std::string(dataDirectoryPath) + "/Dose.attributes";
-  if (!vtksys::SystemTools::FileExists(doseAttributesFileName.c_str()))
-  {
-    std::cerr << "Loading dose attributes from file '" << doseAttributesFileName << "' failed - the file does not exist!" << std::endl;
-  }
-
-  std::string doseUnitName = "";
-  std::ifstream attributesStream;
-  attributesStream.open(doseAttributesFileName.c_str(), std::ifstream::in);
-  char attribute[512];
-  while (attributesStream.getline(attribute, 512, ';'))
-  {
-    std::string attributeStr(attribute);
-    int colonIndex = attributeStr.find(':');
-    std::string name = attributeStr.substr(0, colonIndex);
-    std::string value = attributeStr.substr(colonIndex + 1);
-    doseScalarVolumeNode->SetAttribute(name.c_str(), value.c_str());
-
-    if (SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.compare(name) == 0)
-    {
-      doseUnitName = value;
-    }
-  }
-  attributesStream.close();
-
-  mrmlScene->AddNode(doseScalarVolumeNode);
-  //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
-
-  // Load dose volume
-  std::string doseVolumeFileName = std::string(dataDirectoryPath) + "/Dose.nrrd";
-  if (!vtksys::SystemTools::FileExists(doseVolumeFileName.c_str()))
-  {
-    std::cerr << "Loading dose volume from file '" << doseVolumeFileName << "' failed - the file does not exist!" << std::endl;
-  }
-
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> doseVolumeArchetypeStorageNode =
-    vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  doseVolumeArchetypeStorageNode->SetFileName(doseVolumeFileName.c_str());
-  mrmlScene->AddNode(doseVolumeArchetypeStorageNode);
-  //EXERCISE_BASIC_STORAGE_MRML_METHODS(vtkMRMLVolumeArchetypeStorageNode, doseVolumeArchetypeStorageNode);
-
-  doseScalarVolumeNode->SetAndObserveStorageNodeID(doseVolumeArchetypeStorageNode->GetID());
-
-  if (! doseVolumeArchetypeStorageNode->ReadData(doseScalarVolumeNode))
+  // Get dose volume
+  vtkSmartPointer<vtkCollection> doseVolumeNodes = vtkSmartPointer<vtkCollection>::Take(
+    mrmlScene->GetNodesByName("Dose") );
+  if (doseVolumeNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
-    std::cerr << "Reading dose volume from file '" << doseVolumeFileName << "' failed!" << std::endl;
+    std::cerr << "ERROR: Failed to get dose volume!" << std::endl;
     return EXIT_FAILURE;
   }
+  vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerIsodoseModuleLogic> isodoseLogic = vtkSmartPointer<vtkSlicerIsodoseModuleLogic>::New();

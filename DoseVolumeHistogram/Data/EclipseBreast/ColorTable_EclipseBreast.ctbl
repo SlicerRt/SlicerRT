@@ -1,0 +1,11 @@
+# Color table file ColorTable_EclipseBreast.ctbl
+# 9 values
+0 Background 0 0 0 0
+1 Invalid 128 128 128 255
+2 BODY 0 255 0 255
+3 BREL 10 10 250 255
+4 CTV 0 0 220 255
+5 Cavity 255 0 0 255
+6 Field 255 255 128 255
+7 Matchplane 255 0 0 255
+8 X1 255 0 0 255

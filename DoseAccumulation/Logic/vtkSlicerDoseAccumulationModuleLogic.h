@@ -46,7 +46,8 @@ public:
   vtkTypeMacro(vtkSlicerDoseAccumulationModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Collect and return volume nodes (if in DoseAccumulationNode ShowDoseVolumesOnly is set to true, then only return dose volumes)
+  /// Collect and return volume nodes from the scene
+  /// If in DoseAccumulationNode::ShowDoseVolumesOnly is set to true, then only return dose volumes
   vtkCollection* GetVolumeNodesFromScene();
 
   /// Determine if reference volume is a dose volume

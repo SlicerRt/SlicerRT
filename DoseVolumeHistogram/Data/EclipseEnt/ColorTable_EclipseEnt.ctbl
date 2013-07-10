@@ -1,0 +1,22 @@
+# Color table file ColorTable_EclipseEnt.ctbl
+# 20 values
+0 Background 0 0 0 0
+1 Invalid 128 128 128 255
+2 BODY 0 255 0 255
+3 BRAI 10 10 250 255
+4 BRAIN 0 255 0 255
+5 BRSTEM 192 0 192 255
+6 CTV 128 255 255 255
+7 Dose_5200[cGy] 255 128 0 255
+8 GTV 255 0 0 255
+9 LensLeft 255 255 128 255
+10 LensRight 255 128 0 255
+11 OpticChiasm 255 128 128 255
+12 OpticNerveRt 255 128 0 255
+13 OpticNerveLt 255 255 128 255
+14 OrbitLeft 255 0 0 255
+15 OrbitRight 128 255 255 255
+16 PTV1 0 0 220 255
+17 Spinal_Canal 255 0 0 255
+18 optBRAIN 0 64 128 255
+19 optOptic 255 0 0 255

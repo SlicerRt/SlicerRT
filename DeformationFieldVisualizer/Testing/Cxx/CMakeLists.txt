@@ -62,7 +62,7 @@ TEST_WITH_DATA(
   1.0
   1.0
 )
-set_tests_properties(vtkSlicerDeformationFieldVisualizerModuleLogicTest_LinearTransform PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerDeformationFieldVisualizerModuleLogicTest_LinearTransform PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -80,4 +80,4 @@ TEST_WITH_DATA(
   1.0
   1.0
 )
-set_tests_properties(vtkSlicerDeformationFieldVisualizerModuleLogicTest_BSplineTransform PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerDeformationFieldVisualizerModuleLogicTest_BSplineTransform PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )

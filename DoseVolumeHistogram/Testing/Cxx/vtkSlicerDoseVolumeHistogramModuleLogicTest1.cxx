@@ -27,6 +27,7 @@
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
+#include "vtkSlicerContoursModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -41,12 +42,14 @@
 
 // VTK includes
 #include <vtkDoubleArray.h>
-#include <vtkPolyDataReader.h>
 #include <vtkPolyData.h>
 #include <vtkNew.h>
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 #include <vtkLookupTable.h>
+#ifdef WIN32
+  #include <vtkWin32OutputWindow.h>
+#endif
 
 // ITK includes
 #if ITK_VERSION_MAJOR > 3
@@ -75,25 +78,27 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 {
   int argIndex = 1;
 
-  const char *dataDirectoryPath = NULL;
+  // TestSceneFile
+  const char *testSceneFileName  = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-DataDirectoryPath") == 0)
+    if (STRCASECMP(argv[argIndex], "-TestSceneFile") == 0)
     {
-      dataDirectoryPath = argv[argIndex+1];
-      std::cout << "Data directory path: " << dataDirectoryPath << std::endl;
+      testSceneFileName = argv[argIndex+1];
+      std::cout << "Test MRML scene file name: " << testSceneFileName << std::endl;
       argIndex += 2;
     }
     else
     {
-      dataDirectoryPath = "";
+      testSceneFileName = "";
     }
   }
   else
   {
-    std::cerr << "No arguments!" << std::endl;
+    std::cerr << "Invalid arguments!" << std::endl;
     return EXIT_FAILURE;
   }
+  // BaselineDvhTableCsvFile
   const char *baselineDvhTableCsvFileName = NULL;
   if (argc > argIndex+1)
   {
@@ -108,6 +113,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       baselineDvhTableCsvFileName = "";
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // BaselineDvhMetricCsvFile
   const char *baselineDvhMetricCsvFileName = NULL;
   if (argc > argIndex+1)
   {
@@ -122,6 +133,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       baselineDvhMetricCsvFileName = "";
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // TemporarySceneFile
   const char *temporarySceneFileName = NULL;
   if (argc > argIndex+1)
   {
@@ -138,9 +155,10 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "No arguments!" << std::endl;
+    std::cerr << "Invalid arguments!" << std::endl;
     return EXIT_FAILURE;
   }
+  // TemporaryDvhTableCsvFile
   const char *temporaryDvhTableCsvFileName = NULL;
   if (argc > argIndex+1)
   {
@@ -157,9 +175,10 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "No arguments!" << std::endl;
+    std::cerr << "Invalid arguments!" << std::endl;
     return EXIT_FAILURE;
   }
+  // TemporaryDvhMetricCsvFile
   const char *temporaryDvhMetricCsvFileName = NULL;
   if (argc > argIndex+1)
   {
@@ -174,6 +193,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       temporaryDvhMetricCsvFileName = "";
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // VolumeDifferenceCriterion
   double volumeDifferenceCriterion = 0.0;
   if (argc > argIndex+1)
   {
@@ -188,6 +213,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // DoseToAgreementCriterion
   double doseToAgreementCriterion = 0.0;
   if (argc > argIndex+1)
   {
@@ -202,6 +233,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // AgreementAcceptancePercentageThreshold
   double agreementAcceptancePercentageThreshold = 0.0;
   if (argc > argIndex+1)
   {
@@ -216,6 +253,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // MetricDifferenceThreshold
   double metricDifferenceThreshold = 0.0;
   if (argc > argIndex+1)
   {
@@ -230,6 +273,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // DvhStartValue
   double dvhStartValue = 0.0;
   if (argc > argIndex+1)
   {
@@ -244,6 +293,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // DvhStepSize
   double dvhStepSize = 0.0;
   if (argc > argIndex+1)
   {
@@ -258,6 +313,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // RasterizationOversamplingFactor
   double rasterizationOversamplingFactor = 2.0;
   if (argc > argIndex+1)
   {
@@ -292,202 +353,60 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   itk::itkFactoryRegistration();
 #endif
 
+  // Direct vtk messages on standard output
+#ifdef WIN32
+  vtkWin32OutputWindow* outputWindow = vtkWin32OutputWindow::SafeDownCast(vtkOutputWindow::GetInstance());
+  if (outputWindow)
+  {
+    outputWindow->SendToStdErrOn();
+  }
+#endif
+
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
-  mrmlScene->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
+  // Create Contours logic
+  vtkSmartPointer<vtkSlicerContoursModuleLogic> contoursLogic = vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
+  contoursLogic->SetMRMLScene(mrmlScene);
 
+  // Load test scene into temporary scene
+  //mrmlScene->GetCacheManager()->ClearCache();
+  mrmlScene->SetURL(testSceneFileName);
+  mrmlScene->Import();
+
+  // Save it to the temporary directory
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);
   mrmlScene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
   mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
-  // Create dose volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  doseScalarVolumeNode->SetName("Dose");
-
-  // Load and set attributes from file
-  std::string doseAttributesFileName = std::string(dataDirectoryPath) + "/Dose.attributes";
-  if (!vtksys::SystemTools::FileExists(doseAttributesFileName.c_str()))
-  {
-    std::cerr << "Loading dose attributes from file '" << doseAttributesFileName << "' failed - the file does not exist!" << std::endl;
-  }
-
-  std::string doseUnitName = "";
-  std::ifstream attributesStream;
-  attributesStream.open(doseAttributesFileName.c_str(), std::ifstream::in);
-  char attribute[512];
-  while (attributesStream.getline(attribute, 512, ';'))
-  {
-    std::string attributeStr(attribute);
-    int colonIndex = attributeStr.find(':');
-    std::string name = attributeStr.substr(0, colonIndex);
-    std::string value = attributeStr.substr(colonIndex + 1);
-    doseScalarVolumeNode->SetAttribute(name.c_str(), value.c_str());
-
-    if (SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.compare(name) == 0)
-    {
-      doseUnitName = value;
-    }
-  }
-  attributesStream.close();
-
-  mrmlScene->AddNode(doseScalarVolumeNode);
-  //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
-
-  // Create patient hierarchy node for dose volume
-  std::string doseVolumeUid("DoseID");
-  vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchySeriesNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
-  patientHierarchySeriesNode->SetAssociatedNodeID(doseScalarVolumeNode->GetID());
-  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME, doseVolumeUid.c_str());
-  patientHierarchySeriesNode->SetName("Dose");
-  mrmlScene->AddNode(patientHierarchySeriesNode);
-
-  vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy(mrmlScene, "PatientID", "StudyID", doseVolumeUid.c_str());
-
-  // Load dose volume
-  std::string doseVolumeFileName = std::string(dataDirectoryPath) + "/Dose.nrrd";
-  if (!vtksys::SystemTools::FileExists(doseVolumeFileName.c_str()))
-  {
-    std::cerr << "Loading dose volume from file '" << doseVolumeFileName << "' failed - the file does not exist!" << std::endl;
-  }
-
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> doseVolumeArchetypeStorageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  doseVolumeArchetypeStorageNode->SetFileName(doseVolumeFileName.c_str());
-  mrmlScene->AddNode(doseVolumeArchetypeStorageNode);
-  //EXERCISE_BASIC_STORAGE_MRML_METHODS(vtkMRMLVolumeArchetypeStorageNode, doseVolumeArchetypeStorageNode);
-
-  doseScalarVolumeNode->SetAndObserveStorageNodeID(doseVolumeArchetypeStorageNode->GetID());
-
-  if (! doseVolumeArchetypeStorageNode->ReadData(doseScalarVolumeNode))
+  // Get dose volume
+  vtkSmartPointer<vtkCollection> doseVolumeNodes = vtkSmartPointer<vtkCollection>::Take(
+    mrmlScene->GetNodesByName("Dose") );
+  if (doseVolumeNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
-    std::cerr << "Reading dose volume from file '" << doseVolumeFileName << "' failed!" << std::endl;
+    std::cerr << "ERROR: Failed to get dose volume!" << std::endl;
     return EXIT_FAILURE;
   }
+  vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
+
+  // Get contour hierarchy node
+  vtkSmartPointer<vtkCollection> contourHierarchyNodes = vtkSmartPointer<vtkCollection>::Take(
+    mrmlScene->GetNodesByName("ContourHierarchy") );
+  if (contourHierarchyNodes->GetNumberOfItems() != 1)
+  {
+    mrmlScene->Commit();
+    std::cerr << "ERROR: Failed to get dose volume!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  vtkMRMLDisplayableHierarchyNode* contourHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(contourHierarchyNodes->GetItemAsObject(0));
 
   // Determine maximum dose
   vtkNew<vtkImageAccumulate> doseStat;
   doseStat->SetInput(doseScalarVolumeNode->GetImageData());
   doseStat->Update();
   double maxDose = doseStat->GetMax()[0];
-
-  // Create contour hierarchy root node
-  std::string structureSetSeriesName("StructureSetSeries");
-  vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyRootNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
-  std::string hierarchyNodeName = structureSetSeriesName + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
-  contourHierarchyRootNode->SetName(hierarchyNodeName.c_str());
-  contourHierarchyRootNode->AllowMultipleChildrenOn();
-  contourHierarchyRootNode->HideFromEditorsOff();
-  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-  contourHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str(), "1");
-  mrmlScene->AddNode(contourHierarchyRootNode);
-  //EXERCISE_BASIC_MRML_METHODS(vtkMRMLModelHierarchyNode, modelHierarchyNode)
-
-  // Load models and create nodes
-  std::string structureNamesFileName = std::string(dataDirectoryPath) + "/Structure.names";
-  if (!vtksys::SystemTools::FileExists(structureNamesFileName.c_str()))
-  {
-    std::cerr << "Loading structure names from file '" << structureNamesFileName << "' failed - the file does not exist!" << std::endl;
-  }
-
-  std::vector<std::string> structureNames;
-  std::ifstream structureNamesStream;
-  structureNamesStream.open(structureNamesFileName.c_str(), std::ifstream::in);
-  char structureName[512];
-  while (structureNamesStream.getline(structureName, 512, ';'))
-  {
-    structureNames.push_back(structureName);
-  }
-  structureNamesStream.close();
-
-  // Add color table node
-  vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
-  std::string structureSetColorTableNodeName;
-  structureSetColorTableNodeName = structureSetSeriesName + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
-  structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
-  structureSetColorTableNode->HideFromEditorsOff();
-  structureSetColorTableNode->SetTypeToUser();
-  structureSetColorTableNode->SetNumberOfColors(structureNames.size()+2);
-  structureSetColorTableNode->GetLookupTable()->SetTableRange(0,structureNames.size()+1);
-  structureSetColorTableNode->AddColor("Background", 0.0, 0.0, 0.0, 0.0); // Black background
-  structureSetColorTableNode->AddColor("Invalid", 0.5, 0.5, 0.5, 1.0); // Color indicating invalid index
-  mrmlScene->AddNode(structureSetColorTableNode);
-  //EXERCISE_BASIC_MRML_METHODS(vtkMRMLColorTableNode, structureSetColorTableNode)
-
-  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
-  std::vector<std::string>::iterator it;
-
-  for (it = structureNames.begin(); it != structureNames.end(); ++it)
-  {
-    // Read polydata
-    vtkSmartPointer<vtkPolyDataReader> modelPolyDataReader = vtkSmartPointer<vtkPolyDataReader>::New();
-    std::string modelFileName = std::string(dataDirectoryPath) + "/" + (*it) + ".vtk";
-    modelPolyDataReader->SetFileName(modelFileName.c_str());
-
-    if (!vtksys::SystemTools::FileExists(modelFileName.c_str()))
-    {
-      std::cerr << "Loading structure model from file '" << modelFileName << "' failed - the file does not exist!" << std::endl;
-    }
-
-    // Create display node
-    vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
-    //EXERCISE_BASIC_DISPLAY_MRML_METHODS(vtkMRMLModelDisplayNode, displayNode)
-    displayNode->SliceIntersectionVisibilityOn();
-    displayNode->VisibilityOn();
-    displayNode->SetColor(1.0, 0.0, 0.0);
-
-    // Create model node
-    vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-    modelNode = vtkMRMLModelNode::SafeDownCast(mrmlScene->AddNode(modelNode));
-    //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLModelNode, modelNode)
-    modelNode->SetName(it->c_str());
-    modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-    modelNode->SetAndObservePolyData( modelPolyDataReader->GetOutput() );
-    modelNode->SetHideFromEditors(0);
-    modelNode->SetSelectable(1);
-
-    // Create contour node
-    vtkSmartPointer<vtkMRMLContourNode> contourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-    contourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->AddNode(contourNode));
-    //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLContourNode, contourNode)
-    std::string contourNodeName = (*it) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
-    contourNode->SetName(contourNodeName.c_str());
-    contourNode->SetAndObserveRibbonModelNodeId(modelNode->GetID());
-    contourNode->SetRasterizationOversamplingFactor(rasterizationOversamplingFactor);
-    contourNode->HideFromEditorsOff();
-
-    // Put the contour node in the hierarchy
-    vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
-    contourHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(mrmlScene->AddNode(contourHierarchyNode));
-    contourHierarchyNode->SetParentNodeID( contourHierarchyRootNode->GetID() );
-    contourHierarchyNode->SetAssociatedNodeID( contourNode->GetID() );
-    contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-    contourHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
-    contourHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(), doseVolumeUid.c_str());
-    contourHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), (*it).c_str());
-
-    // Add color into the color table
-    structureSetColorTableNode->AddColor(it->c_str(), 1.0, 0.0, 0.0);
-  }
-
-  // Put color table in patient hierarchy
-  vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchyColorTableNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
-  std::string phColorTableNodeName;
-  phColorTableNodeName = structureSetColorTableNodeName + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
-  patientHierarchyColorTableNode->SetName(phColorTableNodeName.c_str());
-  patientHierarchyColorTableNode->HideFromEditorsOff();
-  patientHierarchyColorTableNode->SetAssociatedNodeID(structureSetColorTableNode->GetID());
-  patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-    SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-  patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-    vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
-  patientHierarchyColorTableNode->SetParentNodeID(contourHierarchyRootNode->GetID());
-  mrmlScene->AddNode(patientHierarchyColorTableNode);
 
   // Create chart node
   vtkSmartPointer<vtkMRMLChartNode> chartNode = vtkSmartPointer<vtkMRMLChartNode>::New();
@@ -504,7 +423,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode = vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
   paramNode->SetAndObserveDoseVolumeNodeId(doseScalarVolumeNode->GetID());
-  paramNode->SetAndObserveStructureSetContourNodeId(contourHierarchyRootNode->GetID());
+  paramNode->SetAndObserveStructureSetContourNodeId(contourHierarchyNode->GetID());
   paramNode->SetAndObserveChartNodeId(chartNode->GetID());
   mrmlScene->AddNode(paramNode);
   dvhLogic->SetAndObserveDoseVolumeHistogramNode(paramNode);
@@ -529,12 +448,6 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
 
   std::vector<std::string>* dvhNodeIDs = paramNode->GetDvhDoubleArrayNodeIds();
-  if (dvhNodeIDs->size() != structureNames.size())
-  {
-    mrmlScene->Commit();
-    std::cerr << "Invalid DVH node list!" << std::endl;
-    return EXIT_FAILURE;
-  }
 
   // Add DVH arrays to chart node
   std::vector<std::string>::iterator dvhIt;
@@ -551,7 +464,6 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     chartNode->AddArray( dvhNode->GetName(), dvhNode->GetID() );    
   }
 
-  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
   mrmlScene->Commit();
 
   // Export DVH to CSV

@@ -26,28 +26,23 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
-#include <vtkMRMLModelHierarchyNode.h>
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLVolumeNode.h>
-#include <vtkMRMLColorTableNode.h>
 
 // VTK includes
-#include <vtkDoubleArray.h>
-#include <vtkPolyDataReader.h>
-#include <vtkPolyData.h>
 #include <vtkNew.h>
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
-#include <vtkLookupTable.h>
-#include <vtkNRRDWriter.h>
 #include <vtkMatrix4x4.h>
 #include <vtkImageMathematics.h>
+#ifdef WIN32
+  #include <vtkWin32OutputWindow.h>
+#endif
 
 // ITK includes
 #if ITK_VERSION_MAJOR > 3
@@ -62,44 +57,27 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
 {
   int argIndex = 1;
 
-  const char *dataDirectoryPath = NULL;
+  // TestSceneFile
+  const char *testSceneFileName  = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-DataDirectoryPath") == 0)
+    if (STRCASECMP(argv[argIndex], "-TestSceneFile") == 0)
     {
-      dataDirectoryPath = argv[argIndex+1];
-      std::cout << "Data directory path: " << dataDirectoryPath << std::endl;
+      testSceneFileName = argv[argIndex+1];
+      std::cout << "Test MRML scene file name: " << testSceneFileName << std::endl;
       argIndex += 2;
     }
     else
     {
-      dataDirectoryPath = "";
+      testSceneFileName = "";
     }
   }
   else
   {
-    std::cerr << "No arguments!" << std::endl;
+    std::cerr << "Invalid arguments!" << std::endl;
     return EXIT_FAILURE;
   }
-  const char *baselineDoseAccumulationDoseFileName  = NULL;
-  if (argc > argIndex+1)
-  {
-    if (STRCASECMP(argv[argIndex], "-BaselineDoseAccumulationDoseFile") == 0)
-    {
-      baselineDoseAccumulationDoseFileName = argv[argIndex+1];
-      std::cout << "Baseline DoseAccumulation dose file name: " << baselineDoseAccumulationDoseFileName << std::endl;
-      argIndex += 2;
-    }
-    else
-    {
-      baselineDoseAccumulationDoseFileName = "";
-    }
-  }
-  else
-  {
-    std::cerr << "No arguments!" << std::endl;
-    return EXIT_FAILURE;
-  }
+  // TemporarySceneFile
   const char *temporarySceneFileName = NULL;
   if (argc > argIndex+1)
   {
@@ -116,10 +94,10 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "No arguments!" << std::endl;
+    std::cerr << "Invalid arguments!" << std::endl;
     return EXIT_FAILURE;
   }
-
+  // DoseDifferenceCriterion
   double doseDifferenceCriterion = 0.0;
   if (argc > argIndex+1)
   {
@@ -134,6 +112,11 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
       argIndex += 2;
     }
   }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   // Constraint the criteria to be greater than zero
   if (doseDifferenceCriterion == 0.0)
@@ -146,85 +129,51 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   itk::itkFactoryRegistration();
 #endif
 
+  // Direct vtk messages on standard output
+  //TODO: Remove when supported by the test driver (http://www.na-mic.org/Bug/view.php?id=3221)
+#ifdef WIN32
+  vtkWin32OutputWindow* outputWindow = vtkWin32OutputWindow::SafeDownCast(vtkOutputWindow::GetInstance());
+  if (outputWindow)
+  {
+    outputWindow->SendToStdErrOn();
+  }
+#endif
+
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
+  // Load test scene into temporary scene
+  mrmlScene->SetURL(testSceneFileName);
+  mrmlScene->Import();
+
+  // Save it to the temporary directory
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);
   mrmlScene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
   mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
-  // Create dose volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  doseScalarVolumeNode->SetName("Dose");
-
-  // Load and set attributes from file
-  std::string doseAttributesFileName = std::string(dataDirectoryPath) + "/Dose.attributes";
-  if (!vtksys::SystemTools::FileExists(doseAttributesFileName.c_str()))
-  {
-    std::cerr << "Loading dose attributes from file '" << doseAttributesFileName << "' failed - the file does not exist!" << std::endl;
-  }
-
-  std::string doseUnitName = "";
-  std::ifstream attributesStream;
-  attributesStream.open(doseAttributesFileName.c_str(), std::ifstream::in);
-  char attribute[512];
-  while (attributesStream.getline(attribute, 512, ';'))
-  {
-    std::string attributeStr(attribute);
-    int colonIndex = attributeStr.find(':');
-    std::string name = attributeStr.substr(0, colonIndex);
-    std::string value = attributeStr.substr(colonIndex + 1);
-    doseScalarVolumeNode->SetAttribute(name.c_str(), value.c_str());
-
-    if (SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.compare(name) == 0)
-    {
-      doseUnitName = value;
-    }
-  }
-  attributesStream.close();
-
-  mrmlScene->AddNode(doseScalarVolumeNode);
-  //EXERCISE_BASIC_DISPLAYABLE_MRML_METHODS(vtkMRMLScalarVolumeNode, doseScalarVolumeNode);
-
-  // Load dose volume
-  std::string doseVolumeFileName = std::string(dataDirectoryPath) + "/Dose.nrrd";
-  if (!vtksys::SystemTools::FileExists(doseVolumeFileName.c_str()))
-  {
-    std::cerr << "Loading dose volume from file '" << doseVolumeFileName << "' failed - the file does not exist!" << std::endl;
-  }
-
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> doseVolumeArchetypeStorageNode =
-    vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  doseVolumeArchetypeStorageNode->SetFileName(doseVolumeFileName.c_str());
-  mrmlScene->AddNode(doseVolumeArchetypeStorageNode);
-  //EXERCISE_BASIC_STORAGE_MRML_METHODS(vtkMRMLVolumeArchetypeStorageNode, doseVolumeArchetypeStorageNode);
-
-  doseScalarVolumeNode->SetAndObserveStorageNodeID(doseVolumeArchetypeStorageNode->GetID());
-
-  if (! doseVolumeArchetypeStorageNode->ReadData(doseScalarVolumeNode))
+  // Get dose volume
+  vtkSmartPointer<vtkCollection> doseVolumeNodes = vtkSmartPointer<vtkCollection>::Take(
+    mrmlScene->GetNodesByName("Dose") );
+  if (doseVolumeNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
-    std::cerr << "Reading dose volume from file '" << doseVolumeFileName << "' failed!" << std::endl;
+    std::cerr << "ERROR: Failed to get dose volume!" << std::endl;
     return EXIT_FAILURE;
   }
+  vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
 
-  // Create dose volume node
+  // Create second dose volume node
   vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode2 = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   doseScalarVolumeNode2->SetName("Dose2");
-
-  doseScalarVolumeNode2->SetAndObserveStorageNodeID(doseVolumeArchetypeStorageNode->GetID());
   doseScalarVolumeNode2->Copy(doseScalarVolumeNode);
   mrmlScene->AddNode(doseScalarVolumeNode2);
 
   // Create output dose volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> OutputVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  OutputVolumeNode->SetName("OutputDose");
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> outputVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  outputVolumeNode->SetName("OutputDose");
 
-  //OutputVolumeNode->SetAndObserveStorageNodeID(doseVolumeArchetypeStorageNode->GetID());
-  //OutputVolumeNode->Copy(doseScalarVolumeNode);
-  mrmlScene->AddNode(OutputVolumeNode);
-  mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
+  mrmlScene->AddNode(outputVolumeNode);
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLDoseAccumulationNode> paramNode = vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New();
@@ -236,7 +185,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   std::string doseVolumeId(doseScalarVolumeNode->GetID());
   (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode->GetID()] = 0.5;
   (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode2->GetID()] = 0.5;
-  paramNode->SetAndObserveAccumulatedDoseVolumeNodeId(OutputVolumeNode->GetID());
+  paramNode->SetAndObserveAccumulatedDoseVolumeNodeId(outputVolumeNode->GetID());
   paramNode->SetAndObserveReferenceDoseVolumeNodeId(doseScalarVolumeNode->GetID());
 
   // Create and set up logic
@@ -250,31 +199,31 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
 
   if (!errorMessage.empty())
   {
-    std::cerr << errorMessage << std::endl;
+    std::cerr << "ERROR: " << errorMessage << std::endl;
     return EXIT_FAILURE;
   }
 
+  // Get output volume
   vtkSmartPointer<vtkMRMLVolumeNode> accumulatedDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     mrmlScene->GetNodeByID(paramNode->GetAccumulatedDoseVolumeNodeId()));  
   if (accumulatedDoseVolumeNode == NULL)
   { 
     mrmlScene->Commit();
-    std::cerr << "Invalid model hierarchy node!" << std::endl;
+    std::cerr << "ERROR: Unable to get accumulated volume!" << std::endl;
     return EXIT_FAILURE;
   }
 
-  mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
   mrmlScene->Commit();
 
-  //std::string accumulatedDoseFileName = vtksys::SystemTools::GetParentDirectory(temporarySceneFileName) + "/AccumulatedDose.nrrd";
-  //vtkSmartPointer<vtkNRRDWriter> writer = vtkSmartPointer<vtkNRRDWriter>::New();
-  //writer->SetFileName(accumulatedDoseFileName.c_str());
-  //writer->SetInput(accumulatedDoseVolumeNode->GetImageData());
-  //vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
-  //accumulatedDoseVolumeNode->GetIJKToRASMatrix(mat);
-  //writer->SetIJKToRASMatrix(mat);
-  //writer->Write();
+  // Check if the output volume is in the study of the reference dose volume
+  if (!vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(doseScalarVolumeNode, accumulatedDoseVolumeNode, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY))
+  {
+    std::cerr << "ERROR: Accumulated volume is not under the same study as the reference dose volume!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
+  // Subtract the dose volume from the accumulated volume and check if we get back the original dose volume
+  // TODO: Add test that dose the same thing using different weights
   vtkSmartPointer<vtkImageMathematics> math = vtkSmartPointer<vtkImageMathematics>::New();
   math->SetInput1(doseScalarVolumeNode->GetImageData());
   math->SetInput2(accumulatedDoseVolumeNode->GetImageData());
@@ -289,7 +238,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
 
   if (maxDiff > doseDifferenceCriterion || minDiff < -doseDifferenceCriterion)
   {
-    std::cerr << "Difference between baseline and accumulated dose exceeds threshold" << std::endl;
+    std::cerr << "ERROR: Difference between baseline and accumulated dose exceeds threshold" << std::endl;
     return EXIT_FAILURE;
   }
 

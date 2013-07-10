@@ -188,100 +188,81 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInH
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLScene *scene,
-                                                                const char* nodeId1, const char* nodeId2,
-                                                                const char* lowestCommonLevel/*=NULL*/)
+bool vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLNode* node1, vtkMRMLNode* node2,
+                                                                const char* lowestCommonLevel)
 {
-  if ( !scene || !nodeId1 || !nodeId2 )
+  if ( !node1 || !node2 || node1->GetScene() != node2->GetScene() )
   {
-    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch: NULL arguments given!" << std::endl;
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch: Invalid input nodes or they are not in the same scene!" << std::endl;
     return false;
   }
 
-  if (lowestCommonLevel < 0)
+  if (!lowestCommonLevel)
   {
-    vtkErrorWithObjectMacro(scene,
-      "vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch: Invalid lowest common level!");
+    vtkErrorWithObjectMacro(node1, "vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch: Invalid lowest common level!");
     return false;
   }
 
-  // Get input nodes
-  vtkMRMLHierarchyNode* node1 = vtkMRMLHierarchyNode::SafeDownCast(scene->GetNodeByID(nodeId1));
-  vtkMRMLHierarchyNode* node2 = vtkMRMLHierarchyNode::SafeDownCast(scene->GetNodeByID(nodeId2));
-
-  // If not hierarchy nodes, check if they have an associated patient hierarchy node
-  if (!node1)
-  {
-    node1 = vtkMRMLHierarchyNode::SafeDownCast(
-      vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, nodeId1) );
-  }
-  if (!node2)
-  {
-    node2 = vtkMRMLHierarchyNode::SafeDownCast(
-      vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, nodeId2) );
-  }
+  // If not hierarchy nodes, get the associated patient hierarchy node
+  vtkMRMLHierarchyNode* hierarchyNode1 = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(node1);
+  vtkMRMLHierarchyNode* hierarchyNode2 = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(node2);
 
   // Check if valid nodes are found
-  if ( !node1 || SlicerRtCommon::IsPatientHierarchyNode(node1)
-    || !node2 || SlicerRtCommon::IsPatientHierarchyNode(node2) )
+  if (!hierarchyNode1 || !hierarchyNode2)
   {
     return false;
   }
 
   // Walk the hierarchy up until we reach the lowest common level
-  if (lowestCommonLevel)
+  while (true)
   {
-    while (true)
+    hierarchyNode1 = vtkMRMLHierarchyNode::SafeDownCast(hierarchyNode1->GetParentNode());
+    if (!SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode1))
     {
-      node1 = vtkMRMLHierarchyNode::SafeDownCast(node1->GetParentNode());
-      if (!SlicerRtCommon::IsPatientHierarchyNode(node1))
-      {
-        node1 = NULL;
-        vtkWarningWithObjectMacro(scene, "Patient hierarchy node (ID='" << nodeId1 << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
-        break;
-      }
-      const char* node1Level = node1->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME);
-      if (!node1Level)
-      {
-        node1 = NULL;
-        vtkWarningWithObjectMacro(scene, "Patient hierarchy node (ID='" << nodeId1 << "') has no DICOM level '" << lowestCommonLevel << "'");
-        break;
-      }
-      if (!STRCASECMP(node1Level, lowestCommonLevel))
-      {
-        break;
-      }
+      hierarchyNode1 = NULL;
+      vtkWarningWithObjectMacro(node1, "Patient hierarchy node ('" << hierarchyNode1->GetName() << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
+      break;
     }
-
-    while (true)
+    const char* node1Level = hierarchyNode1->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME);
+    if (!node1Level)
     {
-      node2 = vtkMRMLHierarchyNode::SafeDownCast(node2->GetParentNode());
-      if (!SlicerRtCommon::IsPatientHierarchyNode(node2))
-      {
-        node2 = NULL;
-        vtkWarningWithObjectMacro(scene, "Patient hierarchy node (ID='" << nodeId2 << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
-        break;
-      }
-      const char* node2Level = node1->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME);
-      if (!node2Level)
-      {
-        node2 = NULL;
-        vtkWarningWithObjectMacro(scene, "Patient hierarchy node (ID='" << nodeId2 << "') has no DICOM level '" << lowestCommonLevel << "'");
-        break;
-      }
-      if (!STRCASECMP(node2Level, lowestCommonLevel))
-      {
-        break;
-      }
+      hierarchyNode1 = NULL;
+      vtkWarningWithObjectMacro(node1, "Patient hierarchy node ('" << hierarchyNode1->GetName() << "') has no DICOM level '" << lowestCommonLevel << "'");
+      break;
+    }
+    if (!STRCASECMP(node1Level, lowestCommonLevel))
+    {
+      break;
     }
   }
 
-  const char* node1UID = node1->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
-  const char* node2UID = node2->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
+  while (true)
+  {
+    hierarchyNode2 = vtkMRMLHierarchyNode::SafeDownCast(hierarchyNode2->GetParentNode());
+    if (!SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode2))
+    {
+      hierarchyNode2 = NULL;
+      vtkWarningWithObjectMacro(node1, "Patient hierarchy node ('" << hierarchyNode2->GetName() << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
+      break;
+    }
+    const char* node2Level = hierarchyNode2->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME);
+    if (!node2Level)
+    {
+      hierarchyNode2 = NULL;
+      vtkWarningWithObjectMacro(node1, "Patient hierarchy node ('" << hierarchyNode2->GetName() << "') has no DICOM level '" << lowestCommonLevel << "'");
+      break;
+    }
+    if (!STRCASECMP(node2Level, lowestCommonLevel))
+    {
+      break;
+    }
+  }
+
+  const char* node1UID = hierarchyNode1->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
+  const char* node2UID = hierarchyNode2->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
   if ( !node1UID || !node2UID )
   {
-    vtkErrorWithObjectMacro(scene,
-      "vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch: Found ancestor node contains empty UID!");
+    vtkErrorWithObjectMacro(node1, "vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch: Found ancestor node contains empty UID!");
     return false;
   }
 
@@ -417,27 +398,20 @@ bool vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( vtkMRMLNode* node, cons
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(vtkMRMLScene *scene, const char *associatedNodeId, bool reverseCriterion/*=false*/)
+vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(vtkMRMLNode *associatedNode, bool reverseCriterion/*=false*/)
 {
-  if (scene == 0)
+  if (!associatedNode)
   {
-    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode: scene is null" << std::endl;
-    return NULL;
-  }
-  if (associatedNodeId == 0)
-  {
-    vtkErrorWithObjectMacro(scene, "GetAssociatedPatientHierarchyNode: associated node id is null");
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode: associated node is null" << std::endl;
     return NULL;
   }
 
-  vtkMRMLNode* associatedNode = scene->GetNodeByID(associatedNodeId);
   if (SlicerRtCommon::IsPatientHierarchyNode(associatedNode))
   {
-    vtkDebugWithObjectMacro(scene, "GetAssociatedPatientHierarchyNode: Node is already a patient hierarchy node, returning it");
     return vtkMRMLHierarchyNode::SafeDownCast(associatedNode);
   }
 
-  vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLHierarchyNode") );
+  vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take( associatedNode->GetScene()->GetNodesByClass("vtkMRMLHierarchyNode") );
   vtkObject* nextObject = NULL;
   for (hierarchyNodes->InitTraversal(); (nextObject = hierarchyNodes->GetNextItemAsObject()); )
   {
@@ -445,7 +419,7 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatient
     if (hierarchyNode)
     {
       const char* currentAssociatedNodeId = hierarchyNode->GetAssociatedNodeID();
-      if ( currentAssociatedNodeId && !STRCASECMP(currentAssociatedNodeId, associatedNodeId)
+      if ( currentAssociatedNodeId && !STRCASECMP(currentAssociatedNodeId, associatedNode->GetID())
         && (SlicerRtCommon::IsPatientHierarchyNode(hierarchyNode) & !reverseCriterion) )
       {
         return hierarchyNode;
@@ -457,9 +431,9 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatient
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode( vtkMRMLScene *scene, const char *associatedNodeId )
+vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode(vtkMRMLNode *associatedNode)
 {
-  return vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(scene, associatedNodeId, true);
+  return vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(associatedNode, true);
 }
 
 //---------------------------------------------------------------------------
@@ -571,4 +545,68 @@ void vtkSlicerPatientHierarchyModuleLogic::CreateChildNodeForPatientHierarchyNod
   childPatientHierarchyNode->SetName(childNodeName.c_str());
   childPatientHierarchyNode->SetParentNodeID(parentNode->GetID());
   parentNode->GetScene()->AddNode(childPatientHierarchyNode);
+}
+
+//---------------------------------------------------------------------------
+const char* vtkSlicerPatientHierarchyModuleLogic::GetAttributeFromAncestor(vtkMRMLNode* sourceNode, const char* attributeName, const char* dicomLevel/*=NULL*/)
+{
+  if (!sourceNode)
+  {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::GetAttributeFromAncestor: source node is null" << std::endl;
+    return NULL;
+  }
+  if (!attributeName)
+  {
+    vtkErrorWithObjectMacro(sourceNode, "GetAttributeFromAncestor: Empty attribute name!");
+    return NULL;
+  }
+
+  const char* attributeValue = NULL;
+  vtkMRMLHierarchyNode* hierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(sourceNode);
+
+  while (hierarchyNode && hierarchyNode->GetParentNodeID())
+  {
+    hierarchyNode = hierarchyNode->GetParentNode();
+    if (dicomLevel && STRCASECMP(dicomLevel, hierarchyNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME)))
+    {
+      continue;
+    }
+
+    attributeValue = hierarchyNode->GetAttribute(attributeName);
+    if (attributeValue)
+    {
+      return attributeValue;
+    }
+  }
+
+  return attributeValue;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAncestorAtLevel(vtkMRMLNode* sourceNode, const char* dicomLevel)
+{
+  if (!sourceNode)
+  {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::GetAttributeFromAncestor: source node is null" << std::endl;
+    return NULL;
+  }
+  if (!dicomLevel)
+  {
+    vtkErrorWithObjectMacro(sourceNode, "GetAttributeFromAncestor: Empty DICOM level!");
+    return NULL;
+  }
+
+  vtkMRMLHierarchyNode* hierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(sourceNode);
+  while (hierarchyNode && hierarchyNode->GetParentNodeID()) // We do not return source node even if it is at the requested level, we only look in the ancestors
+  {
+    hierarchyNode = hierarchyNode->GetParentNode();
+    if (!STRCASECMP(dicomLevel, hierarchyNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME)))
+    {
+      // Level found
+      return hierarchyNode;
+    }
+  }
+
+  vtkWarningWithObjectMacro(sourceNode, "GetAttributeFromAncestor: No ancestor found for node '" << sourceNode->GetName() << "' at level '" << dicomLevel << "'!");
+  return NULL;
 }

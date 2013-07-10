@@ -250,7 +250,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
     else if ( vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( hierarchyNode,
       vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES) )
     {
-      if (hierarchyNode->IsA("vtkMRMLDisplayableHierarchyNode") && hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str()))
+      if (hierarchyNode->IsA("vtkMRMLDisplayableHierarchyNode") && hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
       {
         item->setIcon(d->StructureSetIcon);
       }
@@ -476,7 +476,7 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   {
     // Get possible associated non-patient hierarchy node for reparented node
     vtkMRMLHierarchyNode* associatedNonPatientHierarchyNode
-      = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode(this->mrmlScene(), node->GetID());
+      = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode(node);
 
     // Delete associated hierarchy node if it's not a patient hierarchy node. Should not occur unless it is an annotation hierarchy node
     // (they are an exception as they are needed for the Annotations module; TODO: review when Annotations module ha been improved)

@@ -366,7 +366,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
           SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
         contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
           vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-        contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str(), "1");
+        contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
         //TODO: If both point and contour can be found in the series, then 2 PH nodes will be created with the same Series Instance UID!
         contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
           rtReader->GetSeriesInstanceUid());
@@ -560,8 +560,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
     double* initialSpacing = volumeNode->GetSpacing();
     double* correctSpacing = rtReader->GetPixelSpacing();
     volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
-    volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseUnits());
-    volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseGridScaling());
+    volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
     // Apply dose grid scaling
     vtkSmartPointer<vtkImageData> floatVolumeData = vtkSmartPointer<vtkImageData>::New();
@@ -664,6 +663,58 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
 
     // Insert series in patient hierarchy
     this->InsertSeriesInPatientHierarchy(rtReader);
+
+    // Set dose unit attributes to patient hierarchy study node
+    vtkMRMLHierarchyNode* studyHierarchyNode = patientHierarchySeriesNode->GetParentNode();
+    if (!studyHierarchyNode || !SlicerRtCommon::IsPatientHierarchyNode(studyHierarchyNode))
+    {
+      vtkErrorMacro("LoadRtDose: Unable to get parent study hierarchy node for dose volume '" << volumeNode->GetName() << "'");
+    }
+    else
+    {
+      const char* existingDoseUnitName = studyHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+      if (!rtReader->GetDoseUnits())
+      {
+        vtkErrorMacro("LoadRtDose: Empty dose unit name found for dose volume " << volumeNode->GetName());
+      }
+      else if (existingDoseUnitName && STRCASECMP(existingDoseUnitName, rtReader->GetDoseUnits()))
+      {
+        vtkErrorMacro("LoadRtDose: Dose unit name already exists (" << existingDoseUnitName << ") for study and differs from current one (" << rtReader->GetDoseUnits() << ")!");
+      }
+      else
+      {
+        studyHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseUnits());
+      }
+
+      const char* existingDoseUnitValueChars = studyHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
+      if (!rtReader->GetDoseGridScaling())
+      {
+        vtkErrorMacro("LoadRtDose: Empty dose unit value found for dose volume " << volumeNode->GetName());
+      }
+      else if (existingDoseUnitValueChars)
+      {
+        double existingDoseUnitValue = 0.0;
+        {
+          std::stringstream ss;
+          ss << existingDoseUnitValueChars;
+          ss >> existingDoseUnitValue;
+        }
+        double currentDoseUnitValue = 0.0;
+        {
+          std::stringstream ss;
+          ss << rtReader->GetDoseGridScaling();
+          ss >> currentDoseUnitValue;
+        }
+        if (fabs(existingDoseUnitValue - currentDoseUnitValue) > EPSILON)
+        {
+          vtkErrorMacro("LoadRtDose: Dose unit value already exists (" << existingDoseUnitValue << ") for study and differs from current one (" << currentDoseUnitValue << ")!");
+        }
+      }
+      else
+      {
+        studyHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseGridScaling());
+      }
+    }
 
     // Select as active volume
     if (this->GetApplicationLogic()!=NULL)

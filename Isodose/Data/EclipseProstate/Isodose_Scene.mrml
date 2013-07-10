@@ -1,0 +1,12 @@
+<MRML  version="Slicer4" userTags="">
+ <Volume
+  id="vtkMRMLScalarVolumeNode1"  name="Dose"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomRtImport.DoseVolume:1;LabelMap:0"  displayNodeRef="vtkMRMLScalarVolumeDisplayNode1"  storageNodeRef="vtkMRMLVolumeArchetypeStorageNode1"  userTags=""  ijkToRASDirections="-1   -0   0 -0   -1   -0 0 -0 1 "  spacing="2.5 2.5 2.5"  origin="162.826 105.017 -122.5"  labelMap="0" ></Volume>
+ <Hierarchy
+  id="vtkMRMLHierarchyNode2"  name="5: RTDOSE: PROS_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Series;DicomUid:1.2.246.352.71.2.2088656855.723252.20110920153632;HierarchyType:PatientHierarchy;PatientHierarchy.PatientBirthDate:;PatientHierarchy.PatientSex:;PatientHierarchy.SeriesModality:RTDOSE;PatientHierarchy.StudyDate:20110920;PatientHierarchy.StudyTime:091908"  parentNodeRef="vtkMRMLHierarchyNode4"  associatedNodeRef="vtkMRMLScalarVolumeNode1"  sortingValue="3"  allowMultipleChildren="true" ></Hierarchy>
+ <Hierarchy
+  id="vtkMRMLHierarchyNode3"  name="RANDO^PROSTATE_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Patient;DicomUid:TEST PHYS PROSTATE;HierarchyType:PatientHierarchy"  sortingValue="0"  allowMultipleChildren="true" ></Hierarchy>
+ <Hierarchy
+  id="vtkMRMLHierarchyNode4"  name="No description_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Study;DicomRtImport.DoseUnitName:GY;DicomRtImport.DoseUnitValue:4.4812099e-5;DicomUid:1.2.840.113619.2.55.3.671756986.106.1316467036.460;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLHierarchyNode3"  sortingValue="2"  allowMultipleChildren="true" ></Hierarchy>
+ <VolumeArchetypeStorage
+  id="vtkMRMLVolumeArchetypeStorageNode1"  name="VolumeArchetypeStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="Dose.nrrd"  fileListMember0="Dose.nrrd"  useCompression="1"  readState="0"  writeState="4"  centerImage="0"  singleFile="0"  UseOrientationFromFile="1" ></VolumeArchetypeStorage>
+</MRML> 

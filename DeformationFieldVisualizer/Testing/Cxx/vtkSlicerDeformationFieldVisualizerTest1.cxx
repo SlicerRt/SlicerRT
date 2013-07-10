@@ -45,6 +45,9 @@
 #include <vtkPointData.h>
 #include <vtkMassProperties.h>
 #include <vtkTriangleFilter.h>
+#ifdef WIN32
+  #include <vtkWin32OutputWindow.h>
+#endif
 
 // ITK includes
 #if ITK_VERSION_MAJOR > 3
@@ -287,6 +290,15 @@ int vtkSlicerDeformationFieldVisualizerTest1(int argc, char *argv[])
   itk::itkFactoryRegistration();
 #endif
 
+  // Direct vtk messages on standard output
+  //TODO: Remove when supported by the test driver (http://www.na-mic.org/Bug/view.php?id=3221)
+#ifdef WIN32
+  vtkWin32OutputWindow* outputWindow = vtkWin32OutputWindow::SafeDownCast(vtkOutputWindow::GetInstance());
+  if (outputWindow)
+  {
+    outputWindow->SendToStdErrOn();
+  }
+#endif
 
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();

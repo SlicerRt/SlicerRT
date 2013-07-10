@@ -247,7 +247,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   gammaVolumeNode->CopyOrientation(referenceDoseVolumeNode);
   gammaVolumeNode->SetAndObserveImageData(gammaVolume);
-  gammaVolumeNode->SetAttribute(SlicerRtCommon::DOSECOMPARISON_GAMMA_VOLUME_ATTRIBUTE_NAME, "1");
+  gammaVolumeNode->SetAttribute(SlicerRtCommon::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME, "1");
 
   // Assign gamma volume under the transform node of the reference volume node
   if (referenceDoseVolumeNode->GetParentTransformNode())

@@ -186,7 +186,7 @@ void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
   structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
   std::string defaultStructureSetDicomUid = SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME + SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME;
   structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME, defaultStructureSetDicomUid.c_str());
-  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str(), "1");
+  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
   this->GetMRMLScene()->AddNode(structureSetPatientHierarchyNode);
 
   // A hierarchy node needs a display node

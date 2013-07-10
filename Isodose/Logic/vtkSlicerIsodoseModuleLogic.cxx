@@ -278,8 +278,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
   // Get patient hierarchy node for the dose volume
-  vtkMRMLHierarchyNode* doseVolumePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(
-    this->GetMRMLScene(), doseVolumeNode->GetID());
+  vtkMRMLHierarchyNode* doseVolumePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(doseVolumeNode);
   if (!doseVolumePatientHierarchyNode)
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Failed to get patient hierarchy node for dose volume '" << doseVolumeNode->GetName() << "'");

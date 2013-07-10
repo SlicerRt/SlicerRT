@@ -66,7 +66,7 @@ TEST_WITH_DATA(
   0
   100.0
 )
-set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Expand PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Expand PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -83,7 +83,7 @@ TEST_WITH_DATA(
   0
   100.0
 )
-set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Shrink PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Shrink PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -100,7 +100,7 @@ TEST_WITH_DATA(
   0
   100.0
 )
-set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Union PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Union PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -117,7 +117,7 @@ TEST_WITH_DATA(
   0
   100.0
 )
-set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -134,7 +134,7 @@ TEST_WITH_DATA(
   0
   100.0
 )
-set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Subtract PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Subtract PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -151,4 +151,4 @@ TEST_WITH_DATA(
   1
   100.0
 )
-set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect_ApplyTransform PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect_ApplyTransform PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )

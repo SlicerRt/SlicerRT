@@ -61,14 +61,13 @@ public:
     vtkMRMLScene* scene, const char* patientId, const char* studyInstanceUID, const char* seriesInstanceUID );
 
   /// Determine if two patient hierarchy nodes are in the same branch (share the same parent)
-  /// \param nodeId1 ID of the first node to check. Can be patient hierarchy node or a node
-  ///   associated with one
-  /// \param nodeId2 ID of the second node to check
+  /// \param node1 First node to check. Can be patient hierarchy node or a node associated with one
+  /// \param node2 Second node to check
   /// \param lowestCommonLevel Lowest level on which they have to share an ancestor
   /// \return True if the two nodes or their associated hierarchy nodes share a parent on the
   ///   specified level, false otherwise
-  static bool AreNodesInSameBranch( vtkMRMLScene* scene,
-    const char* nodeId1, const char* nodeId2, const char* lowestCommonLevel=NULL );
+  static bool AreNodesInSameBranch(
+    vtkMRMLNode* node1, vtkMRMLNode* node2, const char* lowestCommonLevel );
 
   /// Set patient hierarchy branch visibility
   static void SetBranchVisibility(vtkMRMLHierarchyNode* node, int visible);
@@ -84,15 +83,14 @@ public:
   static bool IsDicomLevel(vtkMRMLNode* node, const char* level);
 
   /// Get associated patient hierarchy node for a MRML node
-  /// \param scene MRML scene to search in
-  /// \param associatedNodeId ID of the node for which we want the associated hierarchy node
+  /// \param associatedNode The node for which we want the associated hierarchy node
   /// \param reverseCriterion If set to true, the function returns non patient hierarchy node.
   ///        Function \sa GetAssociatedNonPatientHierarchyNode should be used instead
-  /// \return The first hierarchy node found that fulfills the conditions
-  static vtkMRMLHierarchyNode* GetAssociatedPatientHierarchyNode(vtkMRMLScene *scene, const char *associatedNodeId, bool reverseCriterion=false);
+  /// \return If associatedNode is a patient hierarchy node, then return that. Otherwise the first hierarchy node found in the scene that fulfills the conditions.
+  static vtkMRMLHierarchyNode* GetAssociatedPatientHierarchyNode(vtkMRMLNode *associatedNode, bool reverseCriterion=false);
 
   /// Utility function to get a non patient hierarchy node associated with a MRML node
-  static vtkMRMLHierarchyNode* GetAssociatedNonPatientHierarchyNode(vtkMRMLScene *scene, const char *associatedNodeId);
+  static vtkMRMLHierarchyNode* GetAssociatedNonPatientHierarchyNode(vtkMRMLNode *associatedNode);
 
   /// Assemble tooltip for node according to the patient hierarchy tree
   static std::string GetTooltipForPatientHierarchyNode(vtkMRMLHierarchyNode* hierarchyNode);
@@ -102,6 +100,17 @@ public:
 
   /// Create child node for a patient hierarchy node
   static void CreateChildNodeForPatientHierarchyNode(vtkMRMLNode* parentNode);
+
+  /// Get attribute value for a node from an upper level in the patient hierarchy
+  /// \param node Node we want to have the attribute for (can be patient hierarchy node or associated node)
+  /// \attributeName Name of the requested attribute
+  /// \dicomLevel Level of the ancestor node we look for the attribute in (e.g. PATIENTHIERARCHY_LEVEL_STUDY). If NULL, then look all the way up to the patient
+  /// \return Attribute value from the lowest level ancestor where the attribute can be found
+  static const char* GetAttributeFromAncestor(vtkMRMLNode* sourceNode, const char* attributeName, const char* dicomLevel=NULL);
+
+  /// Get ancestor patient hierarchy node at a certain level
+  /// \param sourceNode Node where we start searching. Can be patient hierarchy or associated node
+  static vtkMRMLHierarchyNode* GetAncestorAtLevel(vtkMRMLNode* sourceNode, const char* dicomLevel);
 
 protected:
   vtkSlicerPatientHierarchyModuleLogic();

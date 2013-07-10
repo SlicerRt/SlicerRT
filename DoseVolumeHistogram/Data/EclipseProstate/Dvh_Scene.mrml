@@ -1,0 +1,72 @@
+<MRML  version="Slicer4" userTags="">
+ <Volume
+  id="vtkMRMLScalarVolumeNode1"  name="Dose"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomRtImport.DoseVolume:1;LabelMap:0"  displayNodeRef="vtkMRMLScalarVolumeDisplayNode1"  storageNodeRef="vtkMRMLVolumeArchetypeStorageNode1"  userTags=""  ijkToRASDirections="-1   -0   0 -0   -1   -0 0 -0 1 "  spacing="2.5 2.5 2.5"  origin="162.826 105.017 -122.5"  labelMap="0" ></Volume>
+ <Hierarchy
+  id="vtkMRMLHierarchyNode2"  name="5: RTDOSE: PROS_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Series;DicomUid:1.2.246.352.71.2.2088656855.723252.20110920153632;HierarchyType:PatientHierarchy;PatientHierarchy.PatientBirthDate:;PatientHierarchy.PatientSex:;PatientHierarchy.SeriesModality:RTDOSE;PatientHierarchy.StudyDate:20110920;PatientHierarchy.StudyTime:091908"  parentNodeRef="vtkMRMLHierarchyNode4"  associatedNodeRef="vtkMRMLScalarVolumeNode1"  sortingValue="3"  allowMultipleChildren="true" ></Hierarchy>
+ <Hierarchy
+  id="vtkMRMLHierarchyNode3"  name="RANDO^PROSTATE_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Patient;DicomUid:TEST PHYS PROSTATE;HierarchyType:PatientHierarchy"  sortingValue="0"  allowMultipleChildren="true" ></Hierarchy>
+ <Hierarchy
+  id="vtkMRMLHierarchyNode4"  name="No description_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Study;DicomRtImport.DoseUnitName:GY;DicomRtImport.DoseUnitValue:4.4812099e-5;DicomUid:1.2.840.113619.2.55.3.671756986.106.1316467036.460;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLHierarchyNode3"  sortingValue="2"  allowMultipleChildren="true" ></Hierarchy>
+ <ColorTable
+  id="vtkMRMLColorTableNode3"  name="3: RTSTRUCT: PROS_ColorTable"  description="A user defined colour table, use the editor to specify it"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="Category:SlicerRT"  storageNodeRef="vtkMRMLColorTableStorageNode21"  userTags="" type="13" numcolors="18" colors="0 Background 0 0 0 0 1 Invalid 0.501961 0.501961 0.501961 1 2 BODY 0 1 0 1 3 Bladder 0.752941 0.752941 0.996078 1 4 CTV 0 0 0.862745 1 5 Femoral_Head_Lt 0.501961 1 1 1 6 Femoral_Head_RT 0.733333 1 0.733333 1 7 PROS 0.0392157 0.0392157 0.980392 1 8 PTV 0 0 0.862745 1 9 Rectum 0.501961 0.25098 0.25098 1 10 Vessels_-_left 1 0 0 1 11 Vessels_-_right 1 0 0 1 12 X1 1 0 0 1 13 X2 1 0 0 1 14 X3 1 0 0 1 15 XApprox 1 1 0.501961 1 16 optBladder 0.752941 0.752941 1 1 17 optRectum 0.501961 0.25098 0.25098 1 " ></ColorTable>
+ <Model
+  id="vtkMRMLModelNode4"  name="BODY_Contour_RibbonModel"  hideFromEditors="false"  selectable="true"  selected="false"  displayNodeRef="vtkMRMLModelDisplayNode5"  storageNodeRef="vtkMRMLModelStorageNode1"  userTags="" ></Model>
+ <DisplayableHierarchy
+  id="vtkMRMLDisplayableHierarchyNode2"  name="ContourHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Series;DicomRtImport.ContourHierarchy:1;DicomRtImport.RoiReferencedSeriesUid:1.2.840.113619.2.55.3.671756986.106.1316467036.465;DicomUid:1.2.246.352.71.2.2088656855.723250.20110920153449;HierarchyType:PatientHierarchy;PatientHierarchy.PatientBirthDate:;PatientHierarchy.PatientSex:;PatientHierarchy.SeriesModality:RTSTRUCT;PatientHierarchy.StudyDate:20110920;PatientHierarchy.StudyTime:091908"  parentNodeRef="vtkMRMLHierarchyNode6"  sortingValue="19"  allowMultipleChildren="true"  displayNodeID="vtkMRMLModelDisplayNode6"  expanded="true" ></DisplayableHierarchy>
+ <Contour
+  id="vtkMRMLContourNode1"  name="BODY_Contour"  hideFromEditors="false"  selectable="true"  selected="false"  userTags=""  RibbonModelNodeId="vtkMRMLModelNode4"  ActiveRepresentationType="0"  RasterizationOversamplingFactor="-1"  DecimationTargetReductionFactor="-1" ></Contour>
+ <DisplayableHierarchy
+  id="vtkMRMLDisplayableHierarchyNode3"  name="BODY_Contour_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Subseries;DicomRtImport.RoiReferencedSeriesUid:1.2.840.113619.2.55.3.671756986.106.1316467036.465;DicomRtImport.StructureName:BODY;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLContourNode1"  sortingValue="4"  allowMultipleChildren="true"  expanded="true" ></DisplayableHierarchy>
+ <Model
+  id="vtkMRMLModelNode6"  name="Bladder_Contour_RibbonModel"  hideFromEditors="false"  selectable="true"  selected="false"  displayNodeRef="vtkMRMLModelDisplayNode9"  storageNodeRef="vtkMRMLModelStorageNode2"  userTags="" ></Model>
+ <Contour
+  id="vtkMRMLContourNode2"  name="Bladder_Contour"  hideFromEditors="false"  selectable="true"  selected="false"  userTags=""  RibbonModelNodeId="vtkMRMLModelNode6"  ActiveRepresentationType="0"  RasterizationOversamplingFactor="-1"  DecimationTargetReductionFactor="-1" ></Contour>
+ <DisplayableHierarchy
+  id="vtkMRMLDisplayableHierarchyNode4"  name="Bladder_Contour_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Subseries;DicomRtImport.RoiReferencedSeriesUid:1.2.840.113619.2.55.3.671756986.106.1316467036.465;DicomRtImport.StructureName:Bladder;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLContourNode2"  sortingValue="6"  allowMultipleChildren="true"  expanded="true" ></DisplayableHierarchy>
+ <Model
+  id="vtkMRMLModelNode8"  name="Femoral Head Lt_Contour_RibbonModel"  hideFromEditors="false"  selectable="true"  selected="false"  displayNodeRef="vtkMRMLModelDisplayNode11"  storageNodeRef="vtkMRMLModelStorageNode3"  userTags="" ></Model>
+ <Contour
+  id="vtkMRMLContourNode3"  name="Femoral Head Lt_Contour"  hideFromEditors="false"  selectable="true"  selected="false"  userTags=""  RibbonModelNodeId="vtkMRMLModelNode8"  ActiveRepresentationType="0"  RasterizationOversamplingFactor="-1"  DecimationTargetReductionFactor="-1" ></Contour>
+ <DisplayableHierarchy
+  id="vtkMRMLDisplayableHierarchyNode5"  name="Femoral Head Lt_Contour_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Subseries;DicomRtImport.RoiReferencedSeriesUid:1.2.840.113619.2.55.3.671756986.106.1316467036.465;DicomRtImport.StructureName:Femoral Head Lt;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLContourNode3"  sortingValue="8"  allowMultipleChildren="true"  expanded="true" ></DisplayableHierarchy>
+ <Model
+  id="vtkMRMLModelNode10"  name="Femoral Head RT_Contour_RibbonModel"  hideFromEditors="false"  selectable="true"  selected="false"  displayNodeRef="vtkMRMLModelDisplayNode13"  storageNodeRef="vtkMRMLModelStorageNode4"  userTags="" ></Model>
+ <Contour
+  id="vtkMRMLContourNode4"  name="Femoral Head RT_Contour"  hideFromEditors="false"  selectable="true"  selected="false"  userTags=""  RibbonModelNodeId="vtkMRMLModelNode10"  ActiveRepresentationType="0"  RasterizationOversamplingFactor="-1"  DecimationTargetReductionFactor="-1" ></Contour>
+ <DisplayableHierarchy
+  id="vtkMRMLDisplayableHierarchyNode6"  name="Femoral Head RT_Contour_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Subseries;DicomRtImport.RoiReferencedSeriesUid:1.2.840.113619.2.55.3.671756986.106.1316467036.465;DicomRtImport.StructureName:Femoral Head RT;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLContourNode4"  sortingValue="10"  allowMultipleChildren="true"  expanded="true" ></DisplayableHierarchy>
+ <Model
+  id="vtkMRMLModelNode12"  name="PTV_Contour_RibbonModel"  hideFromEditors="false"  selectable="true"  selected="false"  displayNodeRef="vtkMRMLModelDisplayNode15"  storageNodeRef="vtkMRMLModelStorageNode5"  userTags="" ></Model>
+ <Contour
+  id="vtkMRMLContourNode5"  name="PTV_Contour"  hideFromEditors="false"  selectable="true"  selected="false"  userTags=""  RibbonModelNodeId="vtkMRMLModelNode12"  ActiveRepresentationType="0"  RasterizationOversamplingFactor="-1"  DecimationTargetReductionFactor="-1" ></Contour>
+ <DisplayableHierarchy
+  id="vtkMRMLDisplayableHierarchyNode7"  name="PTV_Contour_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Subseries;DicomRtImport.RoiReferencedSeriesUid:1.2.840.113619.2.55.3.671756986.106.1316467036.465;DicomRtImport.StructureName:PTV;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLContourNode5"  sortingValue="12"  allowMultipleChildren="true"  expanded="true" ></DisplayableHierarchy>
+ <Model
+  id="vtkMRMLModelNode14"  name="Rectum_Contour_RibbonModel"  hideFromEditors="false"  selectable="true"  selected="false"  displayNodeRef="vtkMRMLModelDisplayNode17"  storageNodeRef="vtkMRMLModelStorageNode6"  userTags="" ></Model>
+ <Contour
+  id="vtkMRMLContourNode6"  name="Rectum_Contour"  hideFromEditors="false"  selectable="true"  selected="false"  userTags=""  RibbonModelNodeId="vtkMRMLModelNode14"  ActiveRepresentationType="0"  RasterizationOversamplingFactor="-1"  DecimationTargetReductionFactor="-1" ></Contour>
+ <DisplayableHierarchy
+  id="vtkMRMLDisplayableHierarchyNode8"  name="Rectum_Contour_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Subseries;DicomRtImport.RoiReferencedSeriesUid:1.2.840.113619.2.55.3.671756986.106.1316467036.465;DicomRtImport.StructureName:Rectum;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLContourNode6"  sortingValue="14"  allowMultipleChildren="true"  expanded="true" ></DisplayableHierarchy>
+ <ModelHierarchy
+  id="vtkMRMLModelHierarchyNode7"  name="ModelHierarchy_5"  hideFromEditors="false"  selectable="true"  selected="false"  parentNodeRef="vtkMRMLModelHierarchyNode1"  associatedNodeRef="vtkMRMLModelNode14"  sortingValue="15"  allowMultipleChildren="true"  expanded="true" ></ModelHierarchy>
+ <Hierarchy
+  id="vtkMRMLHierarchyNode5"  name="3: RTSTRUCT: PROS_ColorTable_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Subseries;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLColorTableNode3"  sortingValue="16"  allowMultipleChildren="true" ></Hierarchy>
+ <Hierarchy
+  id="vtkMRMLHierarchyNode6"  name="DummyAnatomicalVolume_Series_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Series;DicomUid:1.2.840.113619.2.55.3.671756986.106.1316467036.465;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLHierarchyNode4"  sortingValue="18"  allowMultipleChildren="true" ></Hierarchy>
+ <VolumeArchetypeStorage
+  id="vtkMRMLVolumeArchetypeStorageNode1"  name="VolumeArchetypeStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="Dose.nrrd"  useCompression="1"  readState="0"  writeState="0"  centerImage="0"  singleFile="0"  UseOrientationFromFile="1" ></VolumeArchetypeStorage>
+ <ColorTableStorage
+  id="vtkMRMLColorTableStorageNode21"  name="ColorTableStorage_20"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="ColorTable_EclipseProstate.ctbl"  useCompression="1"  readState="0"  writeState="0" ></ColorTableStorage>
+ <ModelStorage
+  id="vtkMRMLModelStorageNode1"  name="ModelStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="BODY.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+ <ModelStorage
+  id="vtkMRMLModelStorageNode2"  name="ModelStorage_1"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="Bladder.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+ <ModelStorage
+  id="vtkMRMLModelStorageNode3"  name="ModelStorage_2"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="FemoralHeadLt.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+ <ModelStorage
+  id="vtkMRMLModelStorageNode4"  name="ModelStorage_3"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="FemoralHeadRT.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+ <ModelStorage
+  id="vtkMRMLModelStorageNode5"  name="ModelStorage_4"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="PTV.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+ <ModelStorage
+  id="vtkMRMLModelStorageNode6"  name="ModelStorage_5"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="Rectum.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+</MRML>

@@ -736,7 +736,7 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
 
   // Get associated patient hierarchy node and its parent
   vtkMRMLDisplayableHierarchyNode* contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(
-    vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(this->Scene, this->ID) );
+    vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(this) );
   if (!contourPatientHierarchyNode)
     {
     vtkErrorMacro("GetColorIndex: No patient hierarchy node found for contour '" << this->Name << "'");

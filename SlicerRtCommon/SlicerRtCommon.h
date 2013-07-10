@@ -68,6 +68,7 @@ public:
   static const std::string CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
   static const double DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR;
   static const double DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR;
+  static const char* CONTOUR_ORPHAN_CONTOURS_COLOR_TABLE_NODE_NAME;
   static const char* COLOR_NAME_BACKGROUND;
   static const char* COLOR_NAME_INVALID;
   static const char* COLOR_NAME_REMOVED;
@@ -77,6 +78,7 @@ public:
 
   // DicomRtImport constants
   static const std::string DICOMRTIMPORT_ATTRIBUTE_PREFIX;
+  static const std::string DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME;
@@ -85,7 +87,7 @@ public:
   static const std::string DICOMRTIMPORT_BEAM_COLLIMATOR_ANGLE_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME;
-  static const std::string DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME;
+  static const std::string DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME;
 
   static const std::string DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
@@ -102,7 +104,7 @@ public:
 
   // DoseVolumeHistogram constants
   static const std::string DVH_ATTRIBUTE_PREFIX;
-  static const std::string DVH_TYPE_ATTRIBUTE_NAME;
+  static const std::string DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME;
   static const std::string DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_NAME_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_CONTOUR_NODE_ID_ATTRIBUTE_NAME;
@@ -112,7 +114,6 @@ public:
   static const std::string DVH_METRIC_ATTRIBUTE_NAME_PREFIX;
   static const std::string DVH_METRIC_LIST_ATTRIBUTE_NAME;
 
-  static const std::string DVH_TYPE_ATTRIBUTE_VALUE;
   static const char        DVH_METRIC_LIST_SEPARATOR_CHARACTER;
   static const std::string DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
   static const std::string DVH_METRIC_MEAN_ATTRIBUTE_NAME_PREFIX;
@@ -137,7 +138,7 @@ public:
   static const std::string ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX;
 
   // DoseComparison constants
-  static const char* DOSECOMPARISON_GAMMA_VOLUME_ATTRIBUTE_NAME;
+  static const char* DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME;
   static const char* DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME;
   static const std::string DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX;
 

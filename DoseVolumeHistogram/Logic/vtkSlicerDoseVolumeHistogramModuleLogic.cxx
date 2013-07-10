@@ -149,8 +149,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RefreshDvhDoubleArrayNodesFromScen
     vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
     if (doubleArrayNode)
     {
-      const char* type = doubleArrayNode->GetAttribute(SlicerRtCommon::DVH_TYPE_ATTRIBUTE_NAME.c_str());
-      if (type != NULL && strcmp(type, SlicerRtCommon::DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
+      const char* type = doubleArrayNode->GetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+      if (type)
       {
         this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->push_back(doubleArrayNode->GetID());
       }
@@ -189,8 +189,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* 
     vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
     if (doubleArrayNode)
     {
-      const char* type = doubleArrayNode->GetAttribute(SlicerRtCommon::DVH_TYPE_ATTRIBUTE_NAME.c_str());
-      if (type != NULL && strcmp(type, SlicerRtCommon::DVH_TYPE_ATTRIBUTE_VALUE.c_str()) == 0)
+      const char* type = doubleArrayNode->GetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+      if (type)
       {
         this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->push_back(doubleArrayNode->GetID());
       }
@@ -354,7 +354,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetSelectedContourNodes(std::vecto
       contourNodes.push_back(contourNode);
     }
   }
-  else if (structureSetContourNode->IsA("vtkMRMLDisplayableHierarchyNode") && structureSetContourNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str()))
+  else if (structureSetContourNode->IsA("vtkMRMLDisplayableHierarchyNode") && structureSetContourNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
   {
     vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
     vtkMRMLDisplayableHierarchyNode::SafeDownCast(structureSetContourNode)->GetChildrenDisplayableNodes(childContourNodes);
@@ -505,12 +505,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   arrayNode->SetName(dvhArrayNodeName.c_str());
   //arrayNode->HideFromEditorsOff();
 
-  arrayNode->SetAttribute(SlicerRtCommon::DVH_TYPE_ATTRIBUTE_NAME.c_str(), SlicerRtCommon::DVH_TYPE_ATTRIBUTE_VALUE.c_str());
+  arrayNode->SetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
   arrayNode->SetAttribute(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), doseVolumeNode->GetID());
   arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureName.c_str());
   arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_CONTOUR_NODE_ID_ATTRIBUTE_NAME.c_str(), structureContourNode->GetID());
 
-  if (structureContourNode->GetRibbonModelNodeId())
+  if (structureContourNode->GetRibbonModelNode() && structureContourNode->GetRibbonModelNode()->GetDisplayNode())
   {
     std::ostringstream attributeValueStream;
     attributeValueStream.setf( ios::hex, ios::basefield );

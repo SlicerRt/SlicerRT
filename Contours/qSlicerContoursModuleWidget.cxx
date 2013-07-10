@@ -135,7 +135,7 @@ void qSlicerContoursModuleWidget::setup()
   this->Superclass::setup();
 
   // Filter out hierarchy nodes that are not contour hierarchy nodes
-  d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str()) );
+  d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
 
   // Make connections
   connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );
@@ -390,7 +390,7 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
     }
   }
   else if ( node->IsA("vtkMRMLDisplayableHierarchyNode")
-    && SlicerRtCommon::IsPatientHierarchyNode(node) && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str()) )
+    && SlicerRtCommon::IsPatientHierarchyNode(node) && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
     vtkMRMLDisplayableHierarchyNode::SafeDownCast(node)->GetChildrenDisplayableNodes(childContourNodes);

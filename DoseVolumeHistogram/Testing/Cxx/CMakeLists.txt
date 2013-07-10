@@ -17,7 +17,7 @@ list(APPEND Tests ${KIT_TEST_SRCS})
 
 add_executable(${KIT}CxxTests ${Tests})
 set_target_properties(${KIT}CxxTests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${Slicer_BIN_DIR})
-target_link_libraries(${KIT}CxxTests ${KIT})
+target_link_libraries(${KIT}CxxTests vtkSlicerContoursModuleLogic ${KIT})
 
 foreach(testname ${KIT_TEST_NAMES})
   SIMPLE_TEST( ${testname} )
@@ -27,14 +27,14 @@ endforeach()
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
-      DataDirectoryPath BaselineDvhTableCsvFile BaselineDvhMetricCsvFile
+      TestSceneFile BaselineDvhTableCsvFile BaselineDvhMetricCsvFile
       TemporarySceneFile TemporaryDvhTableCsvFile TemporaryDvhMetricCsvFile
       VolumeDifferenceCriterion DoseToAgreementCriterion AgreementAcceptancePercentageThreshold MetricDifferenceThreshold
       DvhStartValue DvhStepSize RasterizationOversamplingFactor)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
-    -DataDirectoryPath ${DataDirectoryPath}
+    -TestSceneFile ${TestSceneFile}
     -BaselineDvhTableCsvFile ${BaselineDvhTableCsvFile}
     -BaselineDvhMetricCsvFile ${BaselineDvhMetricCsvFile}
     -TemporarySceneFile ${TemporarySceneFile}
@@ -54,7 +54,7 @@ endmacro()
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/DvhTable_SlicerRT.csv
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/DvhMetrics_SlicerRT.csv
   ${TEMP}/TestScene_EclipseProstate.mrml
@@ -68,13 +68,13 @@ TEST_WITH_DATA(
   0.0
   2.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_CERR
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/DvhTable_CERR.csv
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/NoMetricComparison
   ${TEMP}/TestScene_EclipseProstate_CERR.mrml
@@ -88,13 +88,13 @@ TEST_WITH_DATA(
   0.01
   2.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_CERR
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/DvhTable_CERR.csv
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/NoMetricComparison
   ${TEMP}/TestScene_EclipseEnt_CERR.mrml
@@ -108,13 +108,13 @@ TEST_WITH_DATA(
   0.01
   2.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_CERR
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/DvhTable_CERR.csv
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/NoMetricComparison
   ${TEMP}/TestScene_EclipseBreast_CERR.mrml
@@ -128,13 +128,13 @@ TEST_WITH_DATA(
   0.01
   2.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Eclipse
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/DvhTable_Eclipse.csv
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/NoMetricComparison
   ${TEMP}/TestScene_EclipseProstate_Eclipse.mrml
@@ -148,13 +148,13 @@ TEST_WITH_DATA(
   0.01
   2.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Eclipse
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/DvhTable_Eclipse.csv
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/NoMetricComparison
   ${TEMP}/TestScene_EclipseEnt_Eclipse.mrml
@@ -168,13 +168,13 @@ TEST_WITH_DATA(
   0.01
   2.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_Eclipse
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/DvhTable_Eclipse.csv
   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/NoMetricComparison
   ${TEMP}/TestScene_EclipseBreast_Eclipse.mrml
@@ -188,4 +188,4 @@ TEST_WITH_DATA(
   0.01
   2.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;Warning" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )

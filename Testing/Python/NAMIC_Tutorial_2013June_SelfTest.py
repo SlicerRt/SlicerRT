@@ -561,7 +561,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     self.day2DoseRigidName = '5_RTDOSE_Day2Registered_Rigid'
     self.day2DoseBSplineName = '5_RTDOSE_Day2Registered_BSpline'
     self.gammaVolumeName = 'Gamma_Day1_Day2Rigid'
-    self.doseUnitNameAttributeName = 'DicomRtImport.DoseUnitName'
+    self.doseVolumeIdentifierAttributeName = 'DicomRtImport.DoseVolume'
     self.doseUnitValueAttributeName = 'DicomRtImport.DoseUnitValue'
     self.doseAccumulationDoseVolumeNameProperty = 'DoseAccumulation.DoseVolumeNodeName'
     self.accumulatedDoseUnregisteredName = '5_RTDOSE Accumulated Unregistered'
@@ -743,13 +743,15 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     self.delayDisplay('Setting display options for loaded data',self.delayMs)
 
     try:
+      from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
+
       # Set default dose color map and W/L
       defaultDoseColorTable = slicer.util.getNode('Dose_ColorTable')
       day2Dose = slicer.util.getNode(self.day2DoseName)
       day2Dose.GetDisplayNode().SetAndObserveColorNodeID(defaultDoseColorTable.GetID())
 
       day1Dose = slicer.util.getNode(self.day1DoseName)
-      doseUnitValue = day1Dose.GetAttribute(self.doseUnitValueAttributeName)
+      doseUnitValue = vtkSlicerPatientHierarchyModuleLogic.GetAttributeFromAncestor(day1Dose, self.doseUnitValueAttributeName, 'Study')
       day2Dose.GetDisplayNode().SetAutoWindowLevel(0)
       day2Dose.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
       day2Dose.GetDisplayNode().AutoThresholdOff();
@@ -823,14 +825,11 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       slicer.mrmlScene.AddNode(seriesNodeCT)
 
       # Set dose attributes for day 2 dose
-      day1Dose = slicer.util.getNode(self.day1DoseName)
-      doseUnitName = day1Dose.GetAttribute(self.doseUnitNameAttributeName)
-      doseUnitValue = day1Dose.GetAttribute(self.doseUnitValueAttributeName)
       day2Dose = slicer.util.getNode(self.day2DoseName)
-      day2Dose.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
-      day2Dose.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
+      day2Dose.SetAttribute(self.doseVolumeIdentifierAttributeName,'1')
 
       # Add day 2 dose series
+      day2Dose = slicer.util.getNode(self.day2DoseName)
       seriesNodeDose = slicer.vtkMRMLHierarchyNode()
       seriesNodeDose.HideFromEditorsOff()
       seriesNodeDose.SetName('Day2Dose_PatientHierarchy')
@@ -1006,6 +1005,8 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   #------------------------------------------------------------------------------
   def TestSection_I_05_ResampleDay2DoseVolume(self):
     try:
+      from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
+
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSResample')
       brainsResample = slicer.modules.brainsresample
@@ -1070,17 +1071,15 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
         # self.assertTrue( self.cliBrainsResampleBSplineNode.GetStatusString() == 'Completed' )
 
       # Set attributes and display for resampled dose volume
-      doseUnitName = day1Dose.GetAttribute(self.doseUnitNameAttributeName)
-      doseUnitValue = day1Dose.GetAttribute(self.doseUnitValueAttributeName)
+      day2DoseRigid.SetAttribute(self.doseVolumeIdentifierAttributeName,'1')
 
-      day2DoseRigid.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
-      day2DoseRigid.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
       self.assertTrue(day2DoseRigid.GetDisplayNode())
 
       # Set default dose color map and W/L
       defaultDoseColorTable = slicer.util.getNode('Dose_ColorTable')
       day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID(defaultDoseColorTable.GetID())
 
+      doseUnitValue = vtkSlicerPatientHierarchyModuleLogic.GetAttributeFromAncestor(day1Dose, self.doseUnitValueAttributeName, 'Study')
       day2DoseRigid.GetDisplayNode().SetAutoWindowLevel(0)
       day2DoseRigid.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
       day2DoseRigid.GetDisplayNode().AutoThresholdOff();
@@ -1105,8 +1104,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       # if self.performDeformableRegistration:
         # day2DoseBSplineName = slicer.util.getNode(self.day2DoseBSplineName)
         # self.assertTrue(day2DoseBSplineName)
-        # day2DoseBSplineName.SetAttribute(self.doseUnitNameAttributeName,doseUnitName)
-        # day2DoseBSplineName.SetAttribute(self.doseUnitValueAttributeName,doseUnitValue)
+        # day2DoseBSplineName.SetAttribute(self.doseVolumeIdentifierAttributeName,'1')
         # self.assertTrue(day2DoseBSplineName.GetDisplayNode())
         # day2DoseBSplineName.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow")
 

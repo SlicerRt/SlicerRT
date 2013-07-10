@@ -101,7 +101,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
     return false;
   }
 
-  if (! (parentNode->IsA("vtkMRMLDisplayableHierarchyNode") && parentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str())) )
+  if (! (parentNode->IsA("vtkMRMLDisplayableHierarchyNode") && parentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str())) )
   {
     vtkDebugMacro("AddNodeToPatientHierarchy: Parent node must be a contour hierarchy node!");
     return false;
@@ -249,7 +249,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy
     return false;
   }
 
-  if (! (parentNode->IsA("vtkMRMLDisplayableHierarchyNode") && parentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_ATTRIBUTE_NAME.c_str())) )
+  if (! (parentNode->IsA("vtkMRMLDisplayableHierarchyNode") && parentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str())) )
   {
     vtkErrorMacro("ReparentInsidePatientHierarchy: New parent is not a contour hierarchy node! Cancelling reparenting.");
     return false;
@@ -270,7 +270,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy
 
   // Do the reparenting
   vtkMRMLDisplayableHierarchyNode* associatedPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(
-    vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(mrmlScene, contourNodeToReparent->GetID()) );
+    vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(contourNodeToReparent) );
   if (associatedPatientHierarchyNode)
   {
     associatedPatientHierarchyNode->SetParentNodeID(parentNode->GetID());
