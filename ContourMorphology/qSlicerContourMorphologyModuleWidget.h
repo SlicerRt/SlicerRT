@@ -39,7 +39,6 @@ class Q_SLICER_QTMODULES_CONTOURMORPHOLOGY_EXPORT qSlicerContourMorphologyModule
   QVTK_OBJECT
 
 public:
-
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerContourMorphologyModuleWidget(QWidget *parent=0);
   virtual ~qSlicerContourMorphologyModuleWidget();
@@ -109,7 +108,7 @@ protected:
   ///
   virtual void setup();
 
-  // Generates a new isodose level name
+  ///
   void onEnter();
 
   ///
