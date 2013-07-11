@@ -68,6 +68,10 @@ public:
   vtkGetMacro(AutoContourOpacity, bool);
   vtkBooleanMacro(AutoContourOpacity, bool);
 
+  vtkSetMacro(BeamModelsInSeparateBranch, bool);
+  vtkGetMacro(BeamModelsInSeparateBranch, bool);
+  vtkBooleanMacro(BeamModelsInSeparateBranch, bool);
+
   vtkGetStringMacro(DefaultDoseColorTableNodeId);
   vtkSetStringMacro(DefaultDoseColorTableNodeId);
 
@@ -116,6 +120,10 @@ private:
 
   /// Flag indicating whether opacity values for the loaded contours are automatically determined
   bool AutoContourOpacity;
+
+  /// Flag determining whether the generated beam models are arranged in a separate patient hierarchy
+  /// branch, or each beam model is added under its corresponding isocenter fiducial
+  bool BeamModelsInSeparateBranch;
 
   /// Default dose color table ID. Loaded on Slicer startup.
   char* DefaultDoseColorTableNodeId;

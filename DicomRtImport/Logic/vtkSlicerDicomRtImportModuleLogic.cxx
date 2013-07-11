@@ -66,10 +66,6 @@ limitations under the License.
 #include <vtkImageCast.h>
 #include <vtkStringArray.h>
 
-// STD includes
-#include <cassert>
-#include <map>
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtImportModuleLogic);
 vtkCxxSetObjectMacro(vtkSlicerDicomRtImportModuleLogic, VolumesLogic, vtkSlicerVolumesLogic);
@@ -82,6 +78,7 @@ vtkSlicerDicomRtImportModuleLogic::vtkSlicerDicomRtImportModuleLogic()
   this->IsodoseLogic = NULL;
 
   this->AutoContourOpacityOn();
+  this->BeamModelsInSeparateBranchOn();
   this->DefaultDoseColorTableNodeId = NULL;
 }
 
@@ -815,10 +812,14 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         beamsHierarchyNodeName = std::string(seriesName)
           + SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
         beamsHierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(beamsHierarchyNodeName);
-        beamModelHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-          SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-        beamModelHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-          vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+        // Only make it a patient hierarchy node if the separate branch flag is on
+        if (this->BeamModelsInSeparateBranch)
+        {
+          beamModelHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+            SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+          beamModelHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+            vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+        }
         beamModelHierarchyRootNode->SetName(beamsHierarchyNodeName.c_str());
         beamModelHierarchyRootNode->AllowMultipleChildrenOn();
         beamModelHierarchyRootNode->HideFromEditorsOff();
@@ -933,7 +934,14 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
       beamModelHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
         vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
-      beamModelHierarchyNode->SetParentNodeID(beamModelHierarchyRootNode->GetID());
+      if (this->BeamModelsInSeparateBranch)
+      {
+        beamModelHierarchyNode->SetParentNodeID(beamModelHierarchyRootNode->GetID());
+      }
+      else
+      {
+        beamModelHierarchyNode->SetParentNodeID(patientHierarchyFiducialNode->GetID());
+      }
       this->GetMRMLScene()->AddNode(beamModelHierarchyNode);
       beamModelHierarchyNode->SetIndexInParent(dicomBeamIndex-1);
 
@@ -943,9 +951,9 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
   // Insert plan isocenter series in patient hierarchy
   this->InsertSeriesInPatientHierarchy(rtReader);
 
-  // Insert beam model subseries under the study
+  // Insert beam model subseries under the study if the separate branch flag is on
   vtkMRMLHierarchyNode* studyNode = isocenterSeriesHierarchyRootNode->GetParentNode();
-  if (studyNode && SlicerRtCommon::IsPatientHierarchyNode(studyNode))
+  if (studyNode && SlicerRtCommon::IsPatientHierarchyNode(studyNode) && this->BeamModelsInSeparateBranch)
   {
     beamModelHierarchyRootNode->SetParentNodeID(studyNode->GetID());
   }

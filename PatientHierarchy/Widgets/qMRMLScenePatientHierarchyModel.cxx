@@ -294,8 +294,10 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
         }
         else if (associatedNode->IsA("vtkMRMLModelNode"))
         {
+          QString hierarchyNodeName(hierarchyNode->GetName());
           QString parentHierarchyNodeName(hierarchyNode->GetParentNode()->GetName());
-          if (parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX.c_str()))
+          if ( parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX.c_str())
+            || hierarchyNodeName.startsWith(SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX.c_str()) )
           {
             item->setIcon(d->BeamIcon);
           }
