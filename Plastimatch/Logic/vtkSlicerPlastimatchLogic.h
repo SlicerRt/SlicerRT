@@ -82,7 +82,7 @@ private:
   void ApplyWarp(Plm_image *WarpedImg,   /* Output: Output image */
     Xform * XfIn,          /* Input:  Input image warped by this xform */
     Plm_image * FixedImg,   /* Input:  Size of output image */
-    Plm_image * InImg,       /* Input:  Input image */
+    Plm_image * InputImg,       /* Input:  Input image */
     float DefaultVal,     /* Input:  Value for pixels without match */
     int UseItk,           /* Input:  Force use of itk (1) or not (0) */
     int InterpLin);

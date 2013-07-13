@@ -46,35 +46,33 @@ vtkStandardNewMacro(vtkSlicerPlastimatchLogic);
 //----------------------------------------------------------------------------
 vtkSlicerPlastimatchLogic::vtkSlicerPlastimatchLogic()
 {
-regp = new Registration_parms();
-regd = new Registration_data();
-XfOut = 0;
-FixedId = new char [256];
-MovingId = new char [256];
-WarpedImg = new Plm_image();
-FixedLandmarksFn = new char [256];
-strcpy(FixedLandmarksFn, "");
-FixedLandmarks = 0;
-MovingLandmarksFn = new char [256];
-strcpy(MovingLandmarksFn, "");
-MovingLandmarks = 0;
-OutputImageName = new char [256];
+  this->regp=new Registration_parms();
+  this->regd=new Registration_data();
+  this->XfOut=NULL;
+  this->FixedId=NULL;
+  this->MovingId=NULL;
+  this->WarpedImg=new Plm_image();
+  this->FixedLandmarksFn=NULL;
+  this->FixedLandmarks=NULL;
+  this->MovingLandmarksFn=NULL;
+  this->MovingLandmarks=NULL;
+  this->OutputImageName=NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerPlastimatchLogic::~vtkSlicerPlastimatchLogic()
 {
-delete regp;
-delete regd;
-if (XfOut) delete XfOut;
-delete &FixedId;
-delete &MovingId;
-delete WarpedImg;
-delete FixedLandmarksFn;
-if (FixedLandmarks) delete FixedLandmarks;
-delete MovingLandmarksFn;
-if (MovingLandmarks) delete MovingLandmarks;
-delete OutputImageName;
+  this->regp=NULL;
+  this->regd=NULL;
+  this->XfOut=NULL;
+  this->SetFixedId(NULL);
+  this->SetMovingId(NULL);
+  this->WarpedImg=NULL;
+  this->SetFixedLandmarksFn(NULL);
+  this->FixedLandmarks=NULL;
+  this->SetMovingLandmarksFn(NULL);
+  this->MovingLandmarks=NULL;
+  this->SetOutputImageName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -151,7 +149,7 @@ void vtkSlicerPlastimatchLogic
   this->regd->moving_image = new Plm_image (MovingItkImg);
 
   // Set landmarks
-  if (strcmp(GetFixedLandmarksFn(), "") && strcmp(GetFixedLandmarksFn(),"")) {
+  if (GetFixedLandmarksFn() && GetFixedLandmarksFn()) {
     FixedLandmarks = new Labeled_pointset();
     FixedLandmarks->load(GetFixedLandmarksFn());
     regd->fixed_landmarks = this->FixedLandmarks;
@@ -159,7 +157,7 @@ void vtkSlicerPlastimatchLogic
     MovingLandmarks = new Labeled_pointset();
     MovingLandmarks->load(GetMovingLandmarksFn());
     regd->moving_landmarks = this->MovingLandmarks;
-  }
+  } 
   
   // Run registration and warp image
   do_registration_pure (&this->XfOut, this->regd ,this->regp);
@@ -170,12 +168,11 @@ void vtkSlicerPlastimatchLogic
 
 //---------------------------------------------------------------------------
 void vtkSlicerPlastimatchLogic
-::ApplyWarp(Plm_image* WarpedImg, Xform* XfIn, Plm_image* FixedImg, Plm_image* InImg,
-
+::ApplyWarp(Plm_image* WarpedImg, Xform* XfIn, Plm_image* FixedImg, Plm_image* InputImg,
     float DefaultVal, int UseItk, int InterpLin )
 {
   Plm_image_header* pih = new Plm_image_header(FixedImg);
-  plm_warp(WarpedImg, 0, XfIn, pih, InImg, DefaultVal, UseItk, InterpLin);
+  plm_warp(WarpedImg, 0, XfIn, pih, InputImg, DefaultVal, UseItk, InterpLin);
 }
 
 //---------------------------------------------------------------------------
