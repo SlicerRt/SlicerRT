@@ -32,10 +32,10 @@
 #include "vtkMRMLContourNode.h"
 
 // Plastimatch includes
+#include "ion_beam.h"
+#include "ion_plan.h"
 #include "itk_image_save.h"
 #include "rpl_volume.h"
-#include "proton_beam.h"
-#include "proton_scene.h"
 
 // MRML includes
 #include <vtkMRMLModelNode.h>
@@ -460,7 +460,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   itk_rectify_volume_hack (referenceVolumeItk);
   itk_rectify_volume_hack (targetVolumeItk);
 
-  Proton_scene scene;
+  Ion_plan scene;
 
   try {
     // Assign inputs to dose calc logic
