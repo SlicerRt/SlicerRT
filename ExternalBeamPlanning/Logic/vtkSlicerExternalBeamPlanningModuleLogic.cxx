@@ -43,6 +43,7 @@
 #include <vtkMRMLAnnotationFiducialNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLScalarVolumeDisplayNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -514,38 +515,41 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   /* Get range compensator as itk image */
   Plm_image::Pointer& rc 
     = rpl_vol->get_aperture()->get_range_compensator_image();
-  itk::Image<float, 3>::Pointer rangeCompensatorVolumeItk 
+  itk::Image<float, 3>::Pointer rcVolumeItk 
     = rc->itk_float();
 
   /* Convert range compensator image to vtk */
-  vtkSmartPointer<vtkImageData> rangeCompensatorVolume 
-    = itk_to_vtk (rangeCompensatorVolumeItk, VTK_FLOAT);
+  vtkSmartPointer<vtkImageData> rcVolume 
+    = itk_to_vtk (rcVolumeItk, VTK_FLOAT);
 
   /* Create the MRML node for the volume */
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> volumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> rcVolumeNode 
+    = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
-  volumeNode->SetAndObserveImageData (rangeCompensatorVolume);
-  volumeNode->SetSpacing (
-    rangeCompensatorVolumeItk->GetSpacing()[0],
-    rangeCompensatorVolumeItk->GetSpacing()[1],
-    rangeCompensatorVolumeItk->GetSpacing()[2]);
-  volumeNode->SetOrigin (
-    rangeCompensatorVolumeItk->GetOrigin()[0],
-    rangeCompensatorVolumeItk->GetOrigin()[1],
-    rangeCompensatorVolumeItk->GetOrigin()[2]);
+  rcVolumeNode->SetAndObserveImageData (rcVolume);
+  rcVolumeNode->SetSpacing (
+    rcVolumeItk->GetSpacing()[0],
+    rcVolumeItk->GetSpacing()[1],
+    rcVolumeItk->GetSpacing()[2]);
+  rcVolumeNode->SetOrigin (
+    rcVolumeItk->GetOrigin()[0],
+    rcVolumeItk->GetOrigin()[1],
+    rcVolumeItk->GetOrigin()[2]);
 
-  std::string volumeNodeName = this->GetMRMLScene()->GenerateUniqueName(std::string ("range_compensator_"));
-  volumeNode->SetName(volumeNodeName.c_str());
+  std::string rcVolumeNodeName = this->GetMRMLScene()
+    ->GenerateUniqueName(std::string ("range_compensator_"));
+  rcVolumeNode->SetName(rcVolumeNodeName.c_str());
 
-  volumeNode->SetScene(this->GetMRMLScene());
-  this->GetMRMLScene()->AddNode(volumeNode);
+  rcVolumeNode->SetScene(this->GetMRMLScene());
+  this->GetMRMLScene()->AddNode(rcVolumeNode);
 
   /* Convert aperture image to vtk */
   vtkSmartPointer<vtkImageData> apertureVolume 
     = itk_to_vtk (apertureVolumeItk, VTK_UNSIGNED_CHAR);
 
   /* Create the MRML node for the volume */
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode 
+    = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
   apertureVolumeNode->SetAndObserveImageData (apertureVolume);
   apertureVolumeNode->SetSpacing (
@@ -562,4 +566,88 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 
   apertureVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(apertureVolumeNode);
+
+  /* Compute the dose */
+  try {
+    vtkWarningMacro ("Optimizing SOBP\n");
+    scene.beam->set_sobp_prescription_min_max (
+      rpl_vol->get_min_wed(), rpl_vol->get_max_wed());
+    scene.beam->optimize_sobp ();
+
+    vtkWarningMacro ("Computing dose\n");
+    scene.compute_dose ();
+    vtkWarningMacro ("Computing dose -- complete.\n");
+  } catch (std::exception& ex) {
+    vtkWarningMacro ("Plastimatch exception: " << ex.what());
+    return;
+  }
+
+  /* Get dose as itk image */
+  itk::Image<float, 3>::Pointer doseVolumeItk 
+    = scene.get_dose_itk();
+
+  /* Convert dose image to vtk */
+  vtkSmartPointer<vtkImageData> doseVolume 
+    = itk_to_vtk (doseVolumeItk, VTK_FLOAT);
+
+  /* Create the MRML node for the volume */
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseVolumeNode 
+    = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+
+  doseVolumeNode->SetAndObserveImageData (doseVolume);
+  doseVolumeNode->SetSpacing (
+    doseVolumeItk->GetSpacing()[0],
+    doseVolumeItk->GetSpacing()[1],
+    doseVolumeItk->GetSpacing()[2]);
+  doseVolumeNode->SetOrigin (
+    doseVolumeItk->GetOrigin()[0],
+    doseVolumeItk->GetOrigin()[1],
+    doseVolumeItk->GetOrigin()[2]);
+
+  std::string doseVolumeNodeName = this->GetMRMLScene()
+    ->GenerateUniqueName(std::string ("proton_dose_"));
+  doseVolumeNode->SetName(doseVolumeNodeName.c_str());
+
+  doseVolumeNode->SetScene(this->GetMRMLScene());
+  this->GetMRMLScene()->AddNode(doseVolumeNode);
+
+  /* Testing .. */
+  doseVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+
+  /* More testing .. */
+  if (doseVolumeNode->GetVolumeDisplayNode() == NULL)
+  {
+    vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+    displayNode->SetScene(this->GetMRMLScene());
+    this->GetMRMLScene()->AddNode(displayNode);
+    doseVolumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  }
+  if (doseVolumeNode->GetVolumeDisplayNode())
+  {
+    vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(doseVolumeNode->GetVolumeDisplayNode());
+    doseScalarVolumeDisplayNode->SetAutoWindowLevel(0);
+    doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, 16.0);
+
+#if defined (commentout)
+    if (this->DefaultGammaColorTableNodeId)
+    {
+      gammaScalarVolumeDisplayNode->SetAndObserveColorNodeID(this->DefaultGammaColorTableNodeId);
+    }
+    else
+    {
+      vtkWarningMacro("ComputeGammaDoseDifference: Loading gamma color table failed, stock color table is used!");
+      gammaScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    }
+#endif
+
+    /* Just do this... */
+    doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+  }
+  else
+  {
+    vtkWarningMacro("ComputeGammaDoseDifference: Display node is not available for gamma volume node. The default color table will be used.");
+  }
+
+#if defined (commentout)
+#endif
 }
