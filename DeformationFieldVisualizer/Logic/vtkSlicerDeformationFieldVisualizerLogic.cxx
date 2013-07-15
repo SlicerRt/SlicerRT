@@ -441,7 +441,7 @@ void vtkSlicerDeformationFieldVisualizerLogic::CreateVisualization(int visualiza
     colorTableNode->SetTypeToUser();
     colorTableNode->SetNumberOfColors(4);
     colorTableNode->GetLookupTable();
-    colorTableNode->AddColor("negligible", 0.7, 0.7, 0.7, 1.0);
+    colorTableNode->AddColor("negligible", 0.0, 0.0, 0.5, 1.0);
     colorTableNode->AddColor(       "low", 0.0, 1.0, 0.0, 1.0);
     colorTableNode->AddColor(    "medium", 1.0, 1.0, 0.0, 1.0);
     colorTableNode->AddColor(      "high", 1.0, 0.0, 0.0, 1.0);
