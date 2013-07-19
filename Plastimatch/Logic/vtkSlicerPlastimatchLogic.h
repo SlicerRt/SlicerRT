@@ -48,6 +48,7 @@ public:
   vtkTypeMacro(vtkSlicerPlastimatchLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   void AddStage();
+  void AddLandmark(char* landmarkId, char* landmarkType);
   void SetPar(char* key, char* val);
   void RunRegistration();
 
@@ -61,6 +62,9 @@ public:
   vtkGetStringMacro(FixedLandmarksFn);
   vtkSetStringMacro(MovingLandmarksFn);
   vtkGetStringMacro(MovingLandmarksFn);
+
+  vtkSetStringMacro(InputXfId);
+  vtkGetStringMacro(InputXfId);
 
   vtkSetStringMacro(OutputImageName);
   vtkGetStringMacro(OutputImageName);
@@ -78,8 +82,12 @@ protected:
 
 private:
   vtkSlicerPlastimatchLogic(const vtkSlicerPlastimatchLogic&); // Not implemented
-  void operator=(const vtkSlicerPlastimatchLogic&);               // Not implemented
-  void ApplyWarp(Plm_image *WarpedImg,   /* Output: Output image */
+  void operator=(const vtkSlicerPlastimatchLogic&);              // Not implemented
+  void SetLandmarksFromSlicer();
+  void SetLandmarksFromFiles();
+  void ApplyInitialLinearTransformation();
+  void ApplyWarp(
+    Plm_image *WarpedImg,   /* Output: Output image */
     Xform * XfIn,          /* Input:  Input image warped by this xform */
     Plm_image * FixedImg,   /* Input:  Size of output image */
     Plm_image * InputImg,       /* Input:  Input image */
@@ -89,16 +97,19 @@ private:
   void GetOutputImg(char* PublicOutputImageName);
 
 private:
-  Registration_parms *regp;
-  Registration_data *regd;
-  Xform* XfOut;
   char* FixedId;
   char* MovingId;
-  Plm_image * WarpedImg;
+  struct Point3d { double coord[3]; }; 
+  std::list<Point3d> FixedLandmarks;
+  std::list<Point3d> MovingLandmarks;
   char* FixedLandmarksFn;
-  Labeled_pointset* FixedLandmarks;
   char* MovingLandmarksFn;
-  Labeled_pointset* MovingLandmarks;
+  Registration_parms *regp;
+  Registration_data *regd;
+  char* InputXfId;
+  Xform* XfIn;
+  Xform* XfOut;
+  Plm_image * WarpedImg;
   char* OutputImageName;
 };
 

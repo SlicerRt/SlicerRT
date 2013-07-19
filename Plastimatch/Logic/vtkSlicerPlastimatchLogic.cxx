@@ -21,23 +21,29 @@
 #include "vtkSlicerPlastimatchLogic.h"
 
 // MRML includes
+#include <vtkMRMLAnnotationFiducialNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLLinearTransformNode.h>
 
 //STD includes
 #include <string.h>
 
 // ITK includes
+#include <itkAffineTransform.h>
+#include <itkArray.h>
 #include <itkImageRegionIteratorWithIndex.h>
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
+#include <vtkMatrix4x4.h>
 
 // Plastimatch includes
 #include "plm_config.h"
 #include "plm_image_header.h"
 #include "plm_warp.h"
 #include "plmregister.h"
+#include "pointset.h"
 #include "xform.h"
 
 //----------------------------------------------------------------------------
@@ -46,32 +52,32 @@ vtkStandardNewMacro(vtkSlicerPlastimatchLogic);
 //----------------------------------------------------------------------------
 vtkSlicerPlastimatchLogic::vtkSlicerPlastimatchLogic()
 {
-  this->regp=new Registration_parms();
-  this->regd=new Registration_data();
-  this->XfOut=NULL;
   this->FixedId=NULL;
   this->MovingId=NULL;
-  this->WarpedImg=new Plm_image();
   this->FixedLandmarksFn=NULL;
-  this->FixedLandmarks=NULL;
   this->MovingLandmarksFn=NULL;
-  this->MovingLandmarks=NULL;
+  this->regp=new Registration_parms();
+  this->regd=new Registration_data();
+  this->InputXfId=NULL;
+  this->XfIn=NULL;
+  this->XfOut=NULL;
+  this->WarpedImg=new Plm_image();
   this->OutputImageName=NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerPlastimatchLogic::~vtkSlicerPlastimatchLogic()
 {
-  this->regp=NULL;
-  this->regd=NULL;
-  this->XfOut=NULL;
   this->SetFixedId(NULL);
   this->SetMovingId(NULL);
-  this->WarpedImg=NULL;
   this->SetFixedLandmarksFn(NULL);
-  this->FixedLandmarks=NULL;
   this->SetMovingLandmarksFn(NULL);
-  this->MovingLandmarks=NULL;
+  this->regp=NULL;
+  this->regd=NULL;
+  this->SetInputXfId(NULL);
+  this->XfIn=NULL;
+  this->XfOut=NULL;
+  this->WarpedImg=NULL;
   this->SetOutputImageName(NULL);
 }
 
@@ -117,6 +123,41 @@ void vtkSlicerPlastimatchLogic
 
 //---------------------------------------------------------------------------
 void vtkSlicerPlastimatchLogic
+:: AddLandmark(char* landmarkId, char* landmarkType)
+{
+  vtkMRMLAnnotationFiducialNode* slicerLandmark = vtkMRMLAnnotationFiducialNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(landmarkId));
+  
+  double points[3] = {0.0};
+  slicerLandmark->GetFiducialCoordinates(points);
+  
+  Point3d landmark;
+  landmark.coord[0]=points[0];
+  landmark.coord[1]=points[1];
+  landmark.coord[2]=points[2];
+  
+  if (!strcmp(landmarkType, "fixed") ||
+      !strcmp(landmarkType, "FIXED") ||
+      !strcmp(landmarkType, "Fixed"))
+  {
+    this->FixedLandmarks.push_front(landmark);
+  }
+
+  else if (!strcmp(landmarkType, "moving") ||
+           !strcmp(landmarkType, "MOVING") ||
+           !strcmp(landmarkType, "Moving"))
+  {
+    this->MovingLandmarks.push_front(landmark);
+  }
+  else {
+    printf("Unknow landmark type!\n");
+  }
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkSlicerPlastimatchLogic
 :: AddStage()
 {
   this->regp->append_stage();
@@ -133,7 +174,6 @@ void vtkSlicerPlastimatchLogic
 void vtkSlicerPlastimatchLogic
 ::RunRegistration()
 {
-  
   // Set input images
   vtkMRMLVolumeNode* FixedVtkImg = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(GetFixedId()));
@@ -147,16 +187,24 @@ void vtkSlicerPlastimatchLogic
 
   this->regd->fixed_image = new Plm_image (FixedItkImg);
   this->regd->moving_image = new Plm_image (MovingItkImg);
-
-  // Set landmarks
-  if (GetFixedLandmarksFn() && GetFixedLandmarksFn()) {
-    FixedLandmarks = new Labeled_pointset();
-    FixedLandmarks->load(GetFixedLandmarksFn());
-    regd->fixed_landmarks = this->FixedLandmarks;
-    
-    MovingLandmarks = new Labeled_pointset();
-    MovingLandmarks->load(GetMovingLandmarksFn());
-    regd->moving_landmarks = this->MovingLandmarks;
+  
+  // Set landmarks 
+  if (!this->FixedLandmarks.empty() && !this->MovingLandmarks.empty() &&
+           this->FixedLandmarks.size() == this->MovingLandmarks.size())
+  {
+    // From Slicer
+    SetLandmarksFromSlicer(); 
+  }
+  else if (GetFixedLandmarksFn() != NULL && GetFixedLandmarksFn() != NULL)
+  {
+    // From Files
+    SetLandmarksFromFiles(); 
+  }
+  
+  // Set initial affine transformation
+  if (GetInputXfId() != NULL)
+  {
+    ApplyInitialLinearTransformation(); 
   } 
   
   // Run registration and warp image
@@ -164,6 +212,107 @@ void vtkSlicerPlastimatchLogic
   ApplyWarp(this->WarpedImg, this->XfOut, this->regd->fixed_image, this->regd->moving_image,
     -1200, 0, 1);
   GetOutputImg(GetOutputImageName());
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPlastimatchLogic
+::SetLandmarksFromSlicer()
+{
+    Labeled_pointset* fixedLandmarksSet = new Labeled_pointset();
+    Labeled_pointset* movingLandmarksSet = new Labeled_pointset();
+
+    std::list<Point3d>::iterator fixedLandmarkIt;
+    std::list<Point3d>::iterator movingLandmarkIt;
+
+    // Set all the fixed landmarks
+    for (fixedLandmarkIt = this->FixedLandmarks.begin();
+         fixedLandmarkIt != this->FixedLandmarks.end(); fixedLandmarkIt++) {
+
+      Labeled_point* fixedLandmark = new Labeled_point("point",
+                                       - fixedLandmarkIt->coord[0],
+                                       - fixedLandmarkIt->coord[1],
+                                       fixedLandmarkIt->coord[2]);
+
+      fixedLandmarksSet->point_list.push_back(*fixedLandmark);
+    }
+
+    // Set all the moving landmarks
+    for (movingLandmarkIt = this->MovingLandmarks.begin();
+         movingLandmarkIt != this->MovingLandmarks.end(); movingLandmarkIt++) {
+
+      Labeled_point* movingLandmark = new Labeled_point("point",
+                                       - movingLandmarkIt->coord[0],
+                                       - movingLandmarkIt->coord[1],
+                                       movingLandmarkIt->coord[2]);
+
+      movingLandmarksSet->point_list.push_back(*movingLandmark);
+    }
+
+    regd->fixed_landmarks = fixedLandmarksSet;
+    regd->moving_landmarks = movingLandmarksSet;
+}
+
+
+//---------------------------------------------------------------------------
+void vtkSlicerPlastimatchLogic
+::SetLandmarksFromFiles()
+{
+    Labeled_pointset* FixedLandmarksFromFile = new Labeled_pointset();
+    FixedLandmarksFromFile->load(GetFixedLandmarksFn());
+    regd->fixed_landmarks = FixedLandmarksFromFile;
+
+    Labeled_pointset* MovingLandmarksFromFile = new Labeled_pointset();
+    MovingLandmarksFromFile->load(GetMovingLandmarksFn());
+    regd->moving_landmarks = MovingLandmarksFromFile;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPlastimatchLogic
+::ApplyInitialLinearTransformation()
+{
+    // Get transformation as 4x4 matrix
+    vtkMRMLLinearTransformNode* inputTransformation = vtkMRMLLinearTransformNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID(GetInputXfId()));
+    vtkMatrix4x4* inputVtkTransformation = inputTransformation->GetMatrixTransformToParent();
+
+    // Create ITK array to store the parameters
+    itk::Array<double> affineParameters;
+    affineParameters.SetSize(12);
+
+    // Set rotations
+    printf("TRANSFORMATION: ");
+    int index=0;
+    for (int i=0; i < 3; i++) {
+      for (int j=0; j < 3; j++) {
+        affineParameters.SetElement(index, inputVtkTransformation->GetElement(j,i));
+        printf("%g ", affineParameters.GetElement(index));
+        index++;
+      }
+    }
+
+    // Set translations
+    affineParameters.SetElement(9, inputVtkTransformation->GetElement(0,3));
+    affineParameters.SetElement(10, inputVtkTransformation->GetElement(1,3));
+    affineParameters.SetElement(11, inputVtkTransformation->GetElement(2,3));
+    printf("%g ", affineParameters.GetElement(9));
+    printf("%g ", affineParameters.GetElement(10));
+    printf("%g \n", affineParameters.GetElement(11));
+
+    // Create ITK affine transformation
+    itk::AffineTransform<double, 3>::Pointer inputItkTransformation = itk::AffineTransform<double, 3>::New();
+    inputItkTransformation->SetParameters(affineParameters);
+
+    // Set transformation
+    this->XfIn = new Xform;
+    this->XfIn->set_aff(inputItkTransformation);
+
+    // Warp image using the input transformation
+    Plm_image* outputImageFromInputXf = new Plm_image;
+    ApplyWarp(outputImageFromInputXf, this->XfIn, this->regd->fixed_image, this->regd->moving_image,
+      -1200, 0, 1);
+
+    // Update moving image
+    this->regd->moving_image=outputImageFromInputXf;
 }
 
 //---------------------------------------------------------------------------
