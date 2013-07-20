@@ -24,6 +24,9 @@
 #include "ui_qMRMLContourSelectorWidget.h"
 #include "qMRMLNodeCombobox.h"
 
+// MRML includes
+#include "vtkMRMLScalarVolumeNode.h"
+
 // SlicerRt includes
 #include "SlicerRtCommon.h"
 #include "vtkSlicerContoursModuleLogic.h"
@@ -162,7 +165,7 @@ void qMRMLContourSelectorWidget::contourNodeChanged(vtkMRMLNode* node)
 
     for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
     {
-      (*contourIt)->SetRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
+      (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
       (*contourIt)->SetRasterizationOversamplingFactor(1.0);
     }
   }
@@ -175,12 +178,12 @@ void qMRMLContourSelectorWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 
   if (!node->IsA("vtkMRMLScalarVolumeNode"))
   {
-    error
+    //TODO Log error
   }
 
   for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
   {
-    (*contourIt)->SetRasterizationReferenceVolumeNodeId(node->GetID());
+    (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(node->GetID());
   }
 }
 
