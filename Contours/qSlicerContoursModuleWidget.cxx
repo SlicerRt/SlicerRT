@@ -172,7 +172,7 @@ void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 
   d->label_NoReferenceWarning->setVisible(false);
 
-  this->updateWidgetsFromChangeActiveRepresentationGroup();
+  this->updateWidgetsInChangeActiveRepresentationGroup();
 }
 
 //-----------------------------------------------------------------------------
@@ -183,7 +183,7 @@ void qSlicerContoursModuleWidget::oversamplingFactorChanged(int value)
 
   d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
 
-  this->updateWidgetsFromChangeActiveRepresentationGroup();
+  this->updateWidgetsInChangeActiveRepresentationGroup();
 }
 //-----------------------------------------------------------------------------
 
@@ -199,41 +199,7 @@ void qSlicerContoursModuleWidget::targetReductionFactorPercentChanged(double val
 {
   UNUSED_VARIABLE(value);
 
-  this->updateWidgetsFromChangeActiveRepresentationGroup();
-}
-
-//-----------------------------------------------------------------------------
-vtkMRMLContourNode::ContourRepresentationType qSlicerContoursModuleWidget::getRepresentationTypeOfSelectedContours()
-{
-  Q_D(qSlicerContoursModuleWidget);
-
-  bool sameRepresentationTypes = true;
-  vtkMRMLContourNode::ContourRepresentationType representationType = vtkMRMLContourNode::None;
-
-  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
-  {
-    if (representationType == vtkMRMLContourNode::None)
-    {
-      representationType = (*it)->GetActiveRepresentationType();
-    }
-    else if ((*it)->GetActiveRepresentationType() == vtkMRMLContourNode::None) // Sanity check
-    {
-      vtkWarningWithObjectMacro((*it), "getRepresentationTypeOfSelectedContours: Invalid representation type (None) found for the contour node '" << (*it)->GetName() << "'!")
-    }
-    else if (representationType != (*it)->GetActiveRepresentationType())
-    {
-      sameRepresentationTypes = false;
-    }
-  }
-
-  if (sameRepresentationTypes)
-  {
-    return representationType;
-  }
-  else
-  {
-    return vtkMRMLContourNode::None;
-  }
+  this->updateWidgetsInChangeActiveRepresentationGroup();
 }
 
 //-----------------------------------------------------------------------------
@@ -380,42 +346,8 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
     return;
   }
 
-  // Create list of selected contour nodes
-  if (node->IsA("vtkMRMLContourNode"))
-  {
-    vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
-    if (contourNode)
-    {
-      d->SelectedContourNodes.push_back(contourNode);
-    }
-  }
-  else if ( node->IsA("vtkMRMLDisplayableHierarchyNode")
-    && SlicerRtCommon::IsPatientHierarchyNode(node) && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
-  {
-    vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
-    vtkMRMLDisplayableHierarchyNode::SafeDownCast(node)->GetChildrenDisplayableNodes(childContourNodes);
-    childContourNodes->InitTraversal();
-    if (childContourNodes->GetNumberOfItems() < 1)
-    {
-      vtkDebugWithObjectMacro(node, "contourNodeChanged: Selected contour hierarchy node has no children contour nodes!");
-      return;
-    }
-
-    // Collect contour nodes in the hierarchy and determine whether their active representation types are the same
-    for (int i=0; i<childContourNodes->GetNumberOfItems(); ++i)
-    {
-      vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(childContourNodes->GetItemAsObject(i));
-      if (contourNode)
-      {
-        d->SelectedContourNodes.push_back(contourNode);
-      }
-    }
-  }
-  else
-  {
-    vtkErrorWithObjectMacro(node, "contourNodeChanged: Invalid node type for ContourNode!");
-    return;
-  }
+  // Get contour nodes from selection
+  vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(node, d->SelectedContourNodes);
 
   // Update UI from selected contours nodes list
   this->updateWidgetFromMRML();
@@ -446,7 +378,7 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
   d->comboBox_ChangeActiveRepresentation->setEnabled(true);
 
   // Select the representation type shared by all the children contour nodes
-  vtkMRMLContourNode::ContourRepresentationType representationType = this->getRepresentationTypeOfSelectedContours();
+  vtkMRMLContourNode::ContourRepresentationType representationType = vtkSlicerContoursModuleLogic::GetRepresentationTypeOfContours(d->SelectedContourNodes);
   if (representationType != vtkMRMLContourNode::None)
   {
     d->label_ActiveRepresentation->setText(d->comboBox_ChangeActiveRepresentation->itemText((int)representationType));
@@ -516,7 +448,7 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
   }
 
   // Update apply button state, warning labels, etc.
-  this->updateWidgetsFromChangeActiveRepresentationGroup();
+  this->updateWidgetsInChangeActiveRepresentationGroup();
 }
 
 //-----------------------------------------------------------------------------
@@ -524,7 +456,7 @@ void qSlicerContoursModuleWidget::activeRepresentationComboboxSelectionChanged(i
 {
   UNUSED_VARIABLE(index);
 
-  this->updateWidgetsFromChangeActiveRepresentationGroup();
+  this->updateWidgetsInChangeActiveRepresentationGroup();
 }
 
 //-----------------------------------------------------------------------------
@@ -690,7 +622,7 @@ bool qSlicerContoursModuleWidget::isReferenceVolumeSelectionValidForAllSelectedC
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGroup()
+void qSlicerContoursModuleWidget::updateWidgetsInChangeActiveRepresentationGroup()
 {
   Q_D(qSlicerContoursModuleWidget);
 
@@ -700,7 +632,7 @@ void qSlicerContoursModuleWidget::updateWidgetsFromChangeActiveRepresentationGro
   d->label_NoReferenceWarning->setVisible(false);
 
   // Get representation type for the selected contour nodes and the target type
-  vtkMRMLContourNode::ContourRepresentationType representationTypeInSelectedNodes = this->getRepresentationTypeOfSelectedContours();
+  vtkMRMLContourNode::ContourRepresentationType representationTypeInSelectedNodes = vtkSlicerContoursModuleLogic::GetRepresentationTypeOfContours(d->SelectedContourNodes);
   vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->getTargetRepresentationType();
 
   // If target representation type matches all active representations
@@ -824,7 +756,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
   d->label_ActiveRepresentation->setText(d->comboBox_ChangeActiveRepresentation->currentText());
   d->label_ActiveRepresentation->setToolTip(tr(""));
 
-  this->updateWidgetsFromChangeActiveRepresentationGroup();
+  this->updateWidgetsInChangeActiveRepresentationGroup();
 
   delete convertProgress;
   this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);

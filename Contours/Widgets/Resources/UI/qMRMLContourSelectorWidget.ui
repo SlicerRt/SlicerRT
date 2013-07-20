@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>249</width>
-    <height>46</height>
+    <width>276</width>
+    <height>63</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>qMRMLNodeAttributeTableWidget</string>
+   <string>qMRMLContourSelectorWidget</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -22,14 +22,24 @@
    </property>
    <item>
     <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Contour">
-     <property name="nodeTypes">
-      <stringlist>
-       <string>vtkMRMLContourNode</string>
-       <string>vtkMRMLDisplayableHierarchyNode</string>
-      </stringlist>
-     </property>
      <property name="renameEnabled">
       <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_ValidLabelmap">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="toolTip">
+      <string>For changing conversion parameters and re-convert, please use the Contours module</string>
+     </property>
+     <property name="text">
+      <string>Selection contains valid labelmap representation</string>
      </property>
     </widget>
    </item>

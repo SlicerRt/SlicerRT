@@ -30,9 +30,12 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
-
 #include "vtkSlicerContoursModuleLogicExport.h"
 
+// SlicerRt includes
+#include "vtkMRMLContourNode.h"
+
+// MRML includes
 class vtkMRMLScalarVolumeNode;
 
 /// \ingroup Slicer_QtModules_Contours
@@ -47,6 +50,21 @@ public:
   /// Paint the foreground of a specified labelmap to a certain label.
   /// This makes sure that a labelmap whose color table has changed has the same color afterwards
   static void PaintLabelmapForeground(vtkMRMLScalarVolumeNode* volumeNode, unsigned char newColor);
+
+  /// Collect contour nodes from selected nodes
+  /// \param node Selected node that contains either a vtkMRMLContourNode or a vtkMRMLDisplayableHierarchyNode
+  ///        being a parent of multiple contour nodes in patient hierarchy
+  /// \param contours Output list of collected contour nodes
+  static void GetContourNodesFromSelectedNode(vtkMRMLNode* node, std::vector<vtkMRMLContourNode*>& contours);
+
+  /// Get the common representation in contour list.
+  /// \param contours Input list of collected contour nodes
+  /// \return The common representation in the input contours or 'None' when they are not the same (in case of hierarchy)
+  static vtkMRMLContourNode::ContourRepresentationType GetRepresentationTypeOfContours(std::vector<vtkMRMLContourNode*>& contours);
+
+  /// Get referenced volume for list of contours according to patient hierarchy attributes
+  /// \return The common reference volume for the contours if any, NULL otherwise
+  static vtkMRMLScalarVolumeNode* GetReferencedVolumeForContours(std::vector<vtkMRMLContourNode*>& contours);
 
 protected:
   /// Create a default structure set node so that contours can be created from potential representations without having

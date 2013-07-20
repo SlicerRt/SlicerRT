@@ -47,10 +47,6 @@ public:
   virtual void enter();
 
 protected:
-  /// Get the active representation in the selected contours.
-  /// Returns 'None' when they are not the same (in case of hierarchy)
-  vtkMRMLContourNode::ContourRepresentationType getRepresentationTypeOfSelectedContours();
-
   /// Get reference volume node ID from the selected contours.
   /// \param referenceVolumeNodeId Output parameter for the reference volume node ID (is empty if they are not the same, or all have been created from labelmap)
   /// \return True if the reference volume node IDs are the same or all of them have been created from labelmap, false otherwise
@@ -78,7 +74,7 @@ protected:
   /// Set state according to change active representation widget group changes
   /// This function makes sure that all the conditions are good for the proposed representation change
   /// The Apply button is enabled only if those conditions are met. Otherwise, the appropriate messages are displayed 
-  void updateWidgetsFromChangeActiveRepresentationGroup();
+  void updateWidgetsInChangeActiveRepresentationGroup();
 
   /// Get oversampling factor based on the value set on the slider
   /// (The factor is two on the power set on the slider, e.g. -1 -> 2^-1 = 0.5)

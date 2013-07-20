@@ -305,3 +305,136 @@ void vtkSlicerContoursModuleLogic::PaintLabelmapForeground(vtkMRMLScalarVolumeNo
   }
   imageData->Modified();
 }
+
+//-----------------------------------------------------------------------------
+void vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(vtkMRMLNode* node, std::vector<vtkMRMLContourNode*>& contours)
+{
+  if (!node)
+  {
+    std::cerr << "vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode: node argument is null!" << std::endl;
+    return;
+  }
+
+  contours.clear();
+
+  // Create list of selected contour nodes
+  if (node->IsA("vtkMRMLContourNode"))
+  {
+    vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
+    if (contourNode)
+    {
+      contours.push_back(contourNode);
+    }
+  }
+  else if ( node->IsA("vtkMRMLDisplayableHierarchyNode")
+    && SlicerRtCommon::IsPatientHierarchyNode(node) && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
+  {
+    vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
+    vtkMRMLDisplayableHierarchyNode::SafeDownCast(node)->GetChildrenDisplayableNodes(childContourNodes);
+    childContourNodes->InitTraversal();
+    if (childContourNodes->GetNumberOfItems() < 1)
+    {
+      vtkWarningWithObjectMacro(node, "GetContourNodesFromSelectedNode: Selected contour hierarchy node has no children contour nodes!");
+      return;
+    }
+
+    // Collect contour nodes in the hierarchy and determine whether their active representation types are the same
+    for (int i=0; i<childContourNodes->GetNumberOfItems(); ++i)
+    {
+      vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(childContourNodes->GetItemAsObject(i));
+      if (contourNode)
+      {
+        contours.push_back(contourNode);
+      }
+    }
+  }
+  else
+  {
+    vtkErrorWithObjectMacro(node, "GetContourNodesFromSelectedNode: Invalid node type for contour!");
+  }
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLContourNode::ContourRepresentationType vtkSlicerContoursModuleLogic::GetRepresentationTypeOfContours(std::vector<vtkMRMLContourNode*>& contours)
+{
+  bool sameRepresentationTypes = true;
+  vtkMRMLContourNode::ContourRepresentationType representationType = vtkMRMLContourNode::None;
+
+  for (std::vector<vtkMRMLContourNode*>::iterator it = contours.begin(); it != contours.end(); ++it)
+  {
+    if (representationType == vtkMRMLContourNode::None)
+    {
+      representationType = (*it)->GetActiveRepresentationType();
+    }
+    else if ((*it)->GetActiveRepresentationType() == vtkMRMLContourNode::None) // Sanity check
+    {
+      vtkWarningWithObjectMacro((*it), "getRepresentationTypeOfSelectedContours: Invalid representation type (None) found for the contour node '" << (*it)->GetName() << "'!")
+    }
+    else if (representationType != (*it)->GetActiveRepresentationType())
+    {
+      sameRepresentationTypes = false;
+    }
+  }
+
+  if (sameRepresentationTypes)
+  {
+    return representationType;
+  }
+  else
+  {
+    return vtkMRMLContourNode::None;
+  }
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeForContours(std::vector<vtkMRMLContourNode*>& contours)
+{
+  if (contours.empty())
+  {
+    return NULL;
+  }
+
+  // Get series hierarchy node from first contour
+  vtkMRMLHierarchyNode* contourHierarchySeriesNode = vtkSlicerPatientHierarchyModuleLogic::GetAncestorAtLevel(
+    *contours.begin(), vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+  if (!contourHierarchySeriesNode)
+  {
+    std::cerr << "vtkSlicerContoursModuleLogic::GetReferencedSeriesForContours: Failed to find series hierarchy node for contour '"
+      << ((*contours.begin())==NULL ? "NULL" : (*contours.begin())->GetName()) << "'!" << std::endl;
+    return NULL;
+  }
+
+  // Traverse contour nodes from parent
+  std::string commonReferencedSeriesUid("");
+  std::vector<vtkMRMLHierarchyNode*> contourPatientHierarchyNodes = contourHierarchySeriesNode->GetChildrenNodes();
+  for (std::vector<vtkMRMLHierarchyNode*>::iterator contourIt=contourPatientHierarchyNodes.begin(); contourIt!=contourPatientHierarchyNodes.end(); ++contourIt)
+  {
+    vtkMRMLHierarchyNode* contourPatientHierarchyNode = (*contourIt);
+
+    // Get referenced series UID for contour
+    const char* referencedSeriesUid = contourPatientHierarchyNode->GetAttribute(
+      SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str() );
+
+    if (!referencedSeriesUid)
+    {
+      vtkErrorWithObjectMacro(contourHierarchySeriesNode, "No referenced series UID found for contour '" << contourPatientHierarchyNode->GetName() << "'");
+    }
+    // Set a candidate common reference UID in the first loop
+    else if (commonReferencedSeriesUid.empty())
+    {
+      commonReferencedSeriesUid = std::string(referencedSeriesUid);
+    }
+    // Return NULL if referenced UIDs are different
+    else if (STRCASECMP(referencedSeriesUid, commonReferencedSeriesUid.c_str()))
+    {
+      return NULL;
+    }
+  }
+
+  // Common referenced series UID found, get corresponding patient hierarchy node
+  vtkMRMLHierarchyNode* referencedSeriesNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(
+    contourHierarchySeriesNode->GetScene(), commonReferencedSeriesUid.c_str());
+
+  // Get and return referenced volume
+  return vtkMRMLScalarVolumeNode::SafeDownCast(referencedSeriesNode->GetAssociatedNode());
+}

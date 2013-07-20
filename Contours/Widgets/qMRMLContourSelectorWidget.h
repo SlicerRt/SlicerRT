@@ -40,12 +40,22 @@ public:
   qMRMLContourSelectorWidget(QWidget *parent=0);
   virtual ~qMRMLContourSelectorWidget();
 
-  /// Set representation type required from this contour (e.g. if the used algorithm requires a
-  /// labelmap, then IndexedLabelmap has to be set here)
+  /// Set representation type required from the selected contour (e.g. if the used
+  /// algorithm requires a labelmap, then IndexedLabelmap has to be set here)
   void setRequiredRepresentation(vtkMRMLContourNode::ContourRepresentationType representationType);
 
   /// Get required representation type
   vtkMRMLContourNode::ContourRepresentationType requiredRepresentation();
+
+  /// Set flag determining whether contour hierarchies are accepted or only individual contours
+  void setAcceptContourHierarchies(bool acceptContourHierarchies);
+
+  /// Get flag determining whether contour hierarchies are accepted or only individual contours
+  bool acceptContourHierarchies();
+
+  /// Get selected contour node. If this gives a valid contour node, then it is sure that
+  /// the required representation can be got without having to do anything else
+  vtkMRMLContourNode* selectedContourNode();
 
 protected slots:
   /// Handle change of selected contour node

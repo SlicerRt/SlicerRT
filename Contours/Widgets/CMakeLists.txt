@@ -27,6 +27,7 @@ set(${KIT}_RESOURCES
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerPatientHierarchyModuleLogic
+  vtkSlicerContoursModuleLogic
   )
 
 #-----------------------------------------------------------------------------
