@@ -38,11 +38,8 @@
 
 #include "vtkObject.h"
 
+//BTX // comment out since it is giving python wrapping errors
 #include "rt_study.h"
-
-class vtkPolyData;
-class DcmDataset;
-class RT_study;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_DICOMRTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtWriter :
@@ -56,7 +53,7 @@ public:
 
   /// TODO: Description, argument names and descriptions
   void SetFileName(const char *);
-
+  
   /// TODO: Description, argument names and descriptions
   void SetImage(ShortImageType::Pointer);
 
@@ -65,7 +62,7 @@ public:
 
   /// TODO: Description, argument names and descriptions
   void AddContour(UCharImageType::Pointer, const char*, double*);
-
+  
   /// TODO: Description, argument names and descriptions
   void Write();
 
@@ -74,11 +71,13 @@ protected:
   virtual ~vtkSlicerDicomRtWriter();
   
   char *FileName;
+
   Rt_study RtStudy;
 
 private:
   vtkSlicerDicomRtWriter(const vtkSlicerDicomRtWriter&); // Not implemented
   void operator=(const vtkSlicerDicomRtWriter&);               // Not implemented
 };
+//ETX
 
 #endif
