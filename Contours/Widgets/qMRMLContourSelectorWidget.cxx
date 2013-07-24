@@ -22,7 +22,7 @@
 // qMRML includes
 #include "qMRMLContourSelectorWidget.h"
 #include "ui_qMRMLContourSelectorWidget.h"
-#include "qMRMLNodeCombobox.h"
+#include "qMRMLNodeComboBox.h"
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
