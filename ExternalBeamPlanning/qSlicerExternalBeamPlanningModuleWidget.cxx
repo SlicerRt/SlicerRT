@@ -239,9 +239,22 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->pushButton_AddBeam, SIGNAL(clicked()), this, SLOT(addBeamClicked()) );
   this->connect( d->pushButton_RemoveBeam, SIGNAL(clicked()), this, SLOT(removeBeamClicked()) );
 
+  /* Beam global parameters */
   this->connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
-  this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
   this->connect( d->comboBox_RadiationType, SIGNAL(currentIndexChanged(int)), this, SLOT(radiationTypeChanged(int)) );
+
+  /* Task buttons */
+  this->connect( d->pushButton_BeamPrescription, SIGNAL(clicked()), this, SLOT(beamPrescriptionButtonClicked()) );
+  this->connect( d->pushButton_BeamGeometry, SIGNAL(clicked()), this, SLOT(beamGeometryButtonClicked()) );
+
+  /* Make prescription the default task */
+  this->beamPrescriptionButtonClicked();
+
+  /* Prescription page */
+  this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
+
+  /* Geometry page */
+  this->connect( d->MRMLNodeComboBox_ProtonTargetVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(protonTargetVolumeNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_Isocenter, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(IsocenterNodeChanged(vtkMRMLNode*)) );
   this->connect( d->SliderWidget_GantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
   this->connect( d->comboBox_CollimatorType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(collimatorTypeChanged(const QString &)) );
@@ -250,10 +263,11 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   //this->connect( d->lineEdit_RxDose, SIGNAL(textChanged(const QString &)), this, SLOT(RxDoseChanged(const QString &)) );
   //this->connect( d->lineEdit_BeamOnTime, SIGNAL(textChanged(const QString &)), this, SLOT(beamOnTimeChanged(const QString &)) );
 
-  // Proton widgets
-  this->connect( d->MRMLNodeComboBox_ProtonTargetVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(protonTargetVolumeNodeChanged(vtkMRMLNode*)) );
-
+  /* Calculation buttons */
   this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
+
+  /* Disable unused buttons in prescription task */
+  this->radiationTypeChanged (0);
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -542,13 +556,6 @@ void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString & te
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString & text)
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
@@ -560,13 +567,54 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
 
   QString text = d->comboBox_RadiationType->currentText();
 
-  qDebug() << "Text is " << text;
-  if (text == "Proton") {
-    d->stackedWidget->setCurrentIndex (1);
+  if (text == "Photon") {
+    d->label_NominalEnergy->setEnabled (true);
+    d->comboBox_NominalEnergy->setEnabled (true);
+    d->label_BeamOnTime->setEnabled (true);
+    d->lineEdit_BeamOnTime->setEnabled (true);
+    d->label_NominalmA->setEnabled (true);
+    d->lineEdit_NominalmA->setEnabled (true);
+    d->label_CollimatorType->setEnabled (true);
+    d->comboBox_CollimatorType->setEnabled (true);
+  } else {
+    d->label_NominalEnergy->setEnabled (false);
+    d->comboBox_NominalEnergy->setEnabled (false);
+    d->label_BeamOnTime->setEnabled (false);
+    d->lineEdit_BeamOnTime->setEnabled (false);
+    d->label_NominalmA->setEnabled (false);
+    d->lineEdit_NominalmA->setEnabled (false);
+    d->label_CollimatorType->setEnabled (false);
+    d->comboBox_CollimatorType->setEnabled (false);
   }
-  else {
-    d->stackedWidget->setCurrentIndex (0);
-  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::beamPrescriptionButtonClicked()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  d->pushButton_BeamPrescription->setChecked (true);
+  d->pushButton_BeamGeometry->setChecked (false);
+
+  d->stackedWidget->setCurrentIndex (0);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::beamGeometryButtonClicked()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  d->pushButton_BeamPrescription->setChecked (false);
+  d->pushButton_BeamGeometry->setChecked (true);
+
+  d->stackedWidget->setCurrentIndex (1);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString & text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
 }
 
 //-----------------------------------------------------------------------------

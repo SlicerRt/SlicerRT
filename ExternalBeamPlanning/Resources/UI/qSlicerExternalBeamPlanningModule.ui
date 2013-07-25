@@ -206,75 +206,57 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="0" column="2">
        <widget class="QLineEdit" name="lineEdit_BeamName"/>
       </item>
+      <item row="3" column="0" colspan="3">
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QPushButton" name="pushButton_BeamPrescription">
+          <property name="text">
+           <string>Prescription</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_BeamGeometry">
+          <property name="text">
+           <string>Geometry</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_BeamModel">
+          <property name="text">
+           <string>Beam Model</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Beam Type:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="comboBox_BeamType">
-        <item>
-         <property name="text">
-          <string>Static</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Dynamic</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="2" column="0">
        <widget class="QLabel" name="label_9">
         <property name="text">
          <string>Radiation Type:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_12">
-        <property name="text">
-         <string>Rx Dose (Gy):</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QLineEdit" name="lineEdit_RxDose"/>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Gantry Angle:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="ctkSliderWidget" name="SliderWidget_GantryAngle">
-        <property name="decimals">
-         <number>0</number>
-        </property>
-        <property name="singleStep">
-         <double>5.000000000000000</double>
-        </property>
-        <property name="pageStep">
-         <double>30.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>359.000000000000000</double>
-        </property>
-        <property name="tickInterval">
-         <double>90.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
+      <item row="1" column="2">
        <widget class="QComboBox" name="comboBox_RadiationType">
+        <item>
+         <property name="text">
+          <string>Proton</string>
+         </property>
+        </item>
         <item>
          <property name="text">
           <string>Photon</string>
@@ -285,56 +267,14 @@
           <string>Electron</string>
          </property>
         </item>
-        <item>
-         <property name="text">
-          <string>Proton</string>
-         </property>
-        </item>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Isocenter">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLAnnotationFiducialNode</string>
-         </stringlist>
-        </property>
-        <property name="showChildNodeTypes">
-         <bool>true</bool>
-        </property>
-        <property name="addEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="removeEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="renameEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="selectNodeUponCreation">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label">
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
-        <property name="text">
-         <string>ISO Center:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0" colspan="2">
+      <item row="4" column="0" colspan="3">
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
          <number>1</number>
         </property>
-        <widget class="QWidget" name="photon_page">
+        <widget class="QWidget" name="photonPrescriptionPage">
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <property name="margin">
            <number>0</number>
@@ -345,13 +285,44 @@
              <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
             </property>
             <item row="1" column="0">
-             <widget class="QLabel" name="label_5">
+             <widget class="QLabel" name="label_8">
+              <property name="text">
+               <string>Beam Type:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="comboBox_BeamType">
+              <item>
+               <property name="text">
+                <string>Static</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Dynamic</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_12">
+              <property name="text">
+               <string>Rx Dose (Gy):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="lineEdit_RxDose"/>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_NominalEnergy">
               <property name="text">
                <string>Nominal Energy (kVp):</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="3" column="1">
              <widget class="QComboBox" name="comboBox_NominalEnergy">
               <item>
                <property name="text">
@@ -365,35 +336,56 @@
               </item>
              </widget>
             </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_6">
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_BeamOnTime">
               <property name="text">
                <string>Beam On Time (S):</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
+            <item row="4" column="1">
              <widget class="QLineEdit" name="lineEdit_BeamOnTime">
               <property name="text">
                <string>0</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_11">
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_NominalmA">
               <property name="text">
                <string>Nominal mA:</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
+            <item row="5" column="1">
              <widget class="QLineEdit" name="lineEdit_NominalmA"/>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_CollimatorType">
+              <property name="text">
+               <string>Collimator:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QComboBox" name="comboBox_CollimatorType">
+              <item>
+               <property name="text">
+                <string>Square 0.5x0.5</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Square 1.0x1.0</string>
+               </property>
+              </item>
+             </widget>
             </item>
            </layout>
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="proton_page">
+        <widget class="QWidget" name="protonGeometryPage">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <property name="margin">
            <number>0</number>
@@ -410,6 +402,37 @@
               </property>
              </widget>
             </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_14">
+              <property name="text">
+               <string>Range min</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QLineEdit" name="lineEdit_RangeMin">
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>Range max</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QLineEdit" name="lineEdit_RangeMax">
+              <property name="text">
+               <string/>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
             <item row="0" column="1">
              <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ProtonTargetVolume">
               <property name="enabled">
@@ -423,26 +446,82 @@
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QLabel" name="label_14">
+             <widget class="QLabel" name="label">
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
+              </property>
               <property name="text">
-               <string>Range min</string>
+               <string>Isocenter</string>
               </property>
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QLineEdit" name="lineEdit_RangeMin"/>
+             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Isocenter">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="nodeTypes">
+               <stringlist>
+                <string>vtkMRMLAnnotationFiducialNode</string>
+               </stringlist>
+              </property>
+              <property name="showChildNodeTypes">
+               <bool>true</bool>
+              </property>
+              <property name="addEnabled">
+               <bool>false</bool>
+              </property>
+              <property name="removeEnabled">
+               <bool>false</bool>
+              </property>
+              <property name="renameEnabled">
+               <bool>false</bool>
+              </property>
+              <property name="selectNodeUponCreation">
+               <bool>true</bool>
+              </property>
+             </widget>
             </item>
             <item row="2" column="0">
-             <widget class="QLabel" name="label_10">
+             <widget class="QLabel" name="label_3">
               <property name="text">
-               <string>Range max</string>
+               <string>Gantry Angle:</string>
               </property>
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="QLineEdit" name="lineEdit_RangeMax">
+             <widget class="ctkSliderWidget" name="SliderWidget_GantryAngle">
+              <property name="decimals">
+               <number>0</number>
+              </property>
+              <property name="singleStep">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>10.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>359.000000000000000</double>
+              </property>
+              <property name="tickInterval">
+               <double>18.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="ctkSliderWidget" name="SliderWidget_CouchAngle">
+              <property name="decimals">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <double>359.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_4">
               <property name="text">
-               <string>0</string>
+               <string>Couch Angle</string>
               </property>
              </widget>
             </item>
@@ -452,32 +531,11 @@
         </widget>
        </widget>
       </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Collimator:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QComboBox" name="comboBox_CollimatorType">
-        <item>
-         <property name="text">
-          <string>Square 0.5x0.5</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Square 1.0x1.0</string>
-         </property>
-        </item>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>
    <item row="4" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0">
+    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0,0">
      <property name="sizeConstraint">
       <enum>QLayout::SetFixedSize</enum>
      </property>
@@ -500,6 +558,13 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_CalculateWED">
+       <property name="text">
+        <string>Calculate WED</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_CalculateDose">

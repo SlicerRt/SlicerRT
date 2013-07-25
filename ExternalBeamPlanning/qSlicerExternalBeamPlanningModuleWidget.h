@@ -72,21 +72,24 @@ protected slots:
   void removeBeamClicked();
 
   void beamNameChanged(const QString &);
-
-  void beamTypeChanged(const QString &);
-
   void radiationTypeChanged(int);
 
+  /* Task buttons */
+  void beamPrescriptionButtonClicked();
+  void beamGeometryButtonClicked();
+
+  /* Prescription page */
+  void beamTypeChanged(const QString &);
+
+  /* Geometry page */
   void gantryAngleChanged(double);
-
   void collimatorTypeChanged(const QString &);
-
   void IsocenterNodeChanged(vtkMRMLNode*);
+  void protonTargetVolumeNodeChanged(vtkMRMLNode* node);
 
   void tableWidgetItemClicked(QTableWidgetItem *item);
 
-  void protonTargetVolumeNodeChanged(vtkMRMLNode* node);
-
+  /* Calculation buttons */
   void calculateDoseClicked();
 
 protected:
