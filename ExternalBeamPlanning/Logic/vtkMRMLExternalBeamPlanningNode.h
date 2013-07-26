@@ -82,6 +82,9 @@ public:
   /// Set TODO
   void SetAndObserveProtonTargetVolumeNodeID(const char* id);
 
+  vtkGetMacro(GantryAngle,double);
+  vtkSetMacro(GantryAngle,double);
+
 protected:
   /// Set TODO
   vtkSetStringMacro(ReferenceVolumeNodeID);
@@ -94,6 +97,7 @@ protected:
  
   /// Set TODO
   vtkSetStringMacro(ProtonTargetVolumeNodeID);
+
  
 protected:
   vtkMRMLExternalBeamPlanningNode();
@@ -113,6 +117,8 @@ protected:
   /// TODO
   char* ProtonTargetVolumeNodeID;
 
+  /// TODO
+  double GantryAngle;
 };
 
 #endif

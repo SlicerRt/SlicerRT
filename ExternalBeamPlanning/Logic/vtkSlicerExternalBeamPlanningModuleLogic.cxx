@@ -471,19 +471,33 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     scene.set_target (targetVolumeItk);
     printf ("Done.\n");
 
-    float src[3] = { -2000, 0, 0 };
+    printf ("Gantry angle is: %g\n",
+            this->ExternalBeamPlanningNode->GetGantryAngle());
+
+    float src_dist = 2000;
+    float src[3];
     float isocenter[3] = { 0, 0, 0 };
+
+    /* Adjust src according to gantry angle */
+    float ga_radians = 
+      this->ExternalBeamPlanningNode->GetGantryAngle() * M_PI / 180.;
+    src[0] = - src_dist * sin(ga_radians);
+    src[1] = src_dist * cos(ga_radians);
+    src[2] = 0.f;
+
     scene.beam->set_source_position (src);
     scene.beam->set_isocenter_position (isocenter);
 
     float ap_offset = 1500;
     int ap_dim[2] = { 20, 20 };
+    float ap_origin[2] = { -19, -19 };
     float ap_spacing[2] = { 2, 2 };
-    scene.get_aperture()->set_dim (ap_dim);
     scene.get_aperture()->set_distance (ap_offset);
+    scene.get_aperture()->set_dim (ap_dim);
+//    scene.get_aperture()->set_origin (ap_origin);
     scene.get_aperture()->set_spacing (ap_spacing);
-
     scene.set_step_length (1);
+
     if (!scene.init ()) {
       /* Failure.  How to notify the user?? */
       std::cerr << "Sorry, scene.init() failed.\n";
@@ -569,6 +583,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 
   /* Compute the dose */
   try {
+    vtkWarningMacro ("Applying beam modifiers...\n");
+    scene.apply_beam_modifiers ();
+
     vtkWarningMacro ("Optimizing SOBP\n");
     scene.beam->set_sobp_prescription_min_max (
       rpl_vol->get_min_wed(), rpl_vol->get_max_wed());
@@ -642,6 +659,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 
     /* Just do this... */
     doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    doseScalarVolumeDisplayNode->SetLowerThreshold (1.0);
+    doseScalarVolumeDisplayNode->ApplyThresholdOn ();
   }
   else
   {

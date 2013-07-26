@@ -267,7 +267,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
 
   /* Disable unused buttons in prescription task */
-  this->radiationTypeChanged (0);
+  this->radiationTypeChanged(0);
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -527,6 +527,10 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     d->label_CalculateDoseStatus->setText("Proton target must be labelmap");
     return;
   }
+
+  /* Is this the right place for this? */
+  d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle(
+    d->SliderWidget_GantryAngle->value());
 
   /* OK, we're good to go (well, not really, but let's pretend). 
      Do the actual computation in the logic object */
