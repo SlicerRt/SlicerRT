@@ -489,15 +489,15 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     scene.beam->set_isocenter_position (isocenter);
 
     float ap_offset = 1500;
-    int ap_dim[2] = { 20, 20 };
-    float ap_origin[2] = { -19, -19 };
+    int ap_dim[2] = { 30, 30 };
+//    float ap_origin[2] = { -19, -19 };
     float ap_spacing[2] = { 2, 2 };
     scene.get_aperture()->set_distance (ap_offset);
     scene.get_aperture()->set_dim (ap_dim);
 //    scene.get_aperture()->set_origin (ap_origin);
     scene.get_aperture()->set_spacing (ap_spacing);
     scene.set_step_length (1);
-
+    scene.set_smearing (this->ExternalBeamPlanningNode->GetSmearing());
     if (!scene.init ()) {
       /* Failure.  How to notify the user?? */
       std::cerr << "Sorry, scene.init() failed.\n";

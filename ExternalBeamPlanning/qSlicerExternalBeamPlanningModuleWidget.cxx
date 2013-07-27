@@ -528,9 +528,18 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     return;
   }
 
+  /* Copy pertinent variable values from GUI to logic */
   /* Is this the right place for this? */
-  d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle(
+  bool ok;
+  d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle (
     d->SliderWidget_GantryAngle->value());
+
+  float smearing = d->lineEdit_Smearing->text().toFloat(&ok);
+  if (!ok) {
+    d->label_CalculateDoseStatus->setText("Proton target must be labelmap");
+    return;
+  }
+  d->logic()->GetExternalBeamPlanningNode()->SetSmearing (smearing);
 
   /* OK, we're good to go (well, not really, but let's pretend). 
      Do the actual computation in the logic object */

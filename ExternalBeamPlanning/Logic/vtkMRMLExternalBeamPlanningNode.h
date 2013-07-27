@@ -82,8 +82,10 @@ public:
   /// Set TODO
   void SetAndObserveProtonTargetVolumeNodeID(const char* id);
 
-  vtkGetMacro(GantryAngle,double);
-  vtkSetMacro(GantryAngle,double);
+  vtkGetMacro(GantryAngle, double);
+  vtkSetMacro(GantryAngle, double);
+  vtkGetMacro(Smearing, double);
+  vtkSetMacro(Smearing, double);
 
 protected:
   /// Set TODO
@@ -117,8 +119,8 @@ protected:
   /// TODO
   char* ProtonTargetVolumeNodeID;
 
-  /// TODO
   double GantryAngle;
+  double Smearing;
 };
 
 #endif
