@@ -536,10 +536,24 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 
   float smearing = d->lineEdit_Smearing->text().toFloat(&ok);
   if (!ok) {
-    d->label_CalculateDoseStatus->setText("Proton target must be labelmap");
+    d->label_CalculateDoseStatus->setText("Smearing radius must be a float");
     return;
   }
   d->logic()->GetExternalBeamPlanningNode()->SetSmearing (smearing);
+
+  float proximal_margin = d->lineEdit_ProximalMargin->text().toFloat(&ok);
+  if (!ok) {
+    d->label_CalculateDoseStatus->setText("Proximal margin must be a float");
+    return;
+  }
+  d->logic()->GetExternalBeamPlanningNode()->SetProximalMargin (proximal_margin);
+
+  float distal_margin = d->lineEdit_DistalMargin->text().toFloat(&ok);
+  if (!ok) {
+    d->label_CalculateDoseStatus->setText("Distal margin must be a float");
+    return;
+  }
+  d->logic()->GetExternalBeamPlanningNode()->SetDistalMargin (distal_margin);
 
   /* OK, we're good to go (well, not really, but let's pretend). 
      Do the actual computation in the logic object */

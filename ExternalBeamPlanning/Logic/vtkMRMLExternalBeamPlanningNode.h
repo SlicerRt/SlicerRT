@@ -86,6 +86,10 @@ public:
   vtkSetMacro(GantryAngle, double);
   vtkGetMacro(Smearing, double);
   vtkSetMacro(Smearing, double);
+  vtkGetMacro(ProximalMargin, double);
+  vtkSetMacro(ProximalMargin, double);
+  vtkGetMacro(DistalMargin, double);
+  vtkSetMacro(DistalMargin, double);
 
 protected:
   /// Set TODO
@@ -121,6 +125,8 @@ protected:
 
   double GantryAngle;
   double Smearing;
+  double ProximalMargin;
+  double DistalMargin;
 };
 
 #endif

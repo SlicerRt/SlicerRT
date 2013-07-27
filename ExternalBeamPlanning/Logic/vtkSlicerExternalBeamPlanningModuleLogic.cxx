@@ -461,14 +461,14 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   itk_rectify_volume_hack (referenceVolumeItk);
   itk_rectify_volume_hack (targetVolumeItk);
 
-  Ion_plan scene;
+  Ion_plan ion_plan;
 
   try {
     // Assign inputs to dose calc logic
     printf ("Setting reference volume\n");
-    scene.set_patient (referenceVolumeItk);
+    ion_plan.set_patient (referenceVolumeItk);
     printf ("Setting target volume\n");
-    scene.set_target (targetVolumeItk);
+    ion_plan.set_target (targetVolumeItk);
     printf ("Done.\n");
 
     printf ("Gantry angle is: %g\n",
@@ -485,33 +485,33 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     src[1] = src_dist * cos(ga_radians);
     src[2] = 0.f;
 
-    scene.beam->set_source_position (src);
-    scene.beam->set_isocenter_position (isocenter);
+    ion_plan.beam->set_source_position (src);
+    ion_plan.beam->set_isocenter_position (isocenter);
 
     float ap_offset = 1500;
     int ap_dim[2] = { 30, 30 };
 //    float ap_origin[2] = { -19, -19 };
     float ap_spacing[2] = { 2, 2 };
-    scene.get_aperture()->set_distance (ap_offset);
-    scene.get_aperture()->set_dim (ap_dim);
-//    scene.get_aperture()->set_origin (ap_origin);
-    scene.get_aperture()->set_spacing (ap_spacing);
-    scene.set_step_length (1);
-    scene.set_smearing (this->ExternalBeamPlanningNode->GetSmearing());
-    if (!scene.init ()) {
+    ion_plan.get_aperture()->set_distance (ap_offset);
+    ion_plan.get_aperture()->set_dim (ap_dim);
+//    ion_plan.get_aperture()->set_origin (ap_origin);
+    ion_plan.get_aperture()->set_spacing (ap_spacing);
+    ion_plan.set_step_length (1);
+    ion_plan.set_smearing (this->ExternalBeamPlanningNode->GetSmearing());
+    if (!ion_plan.init ()) {
       /* Failure.  How to notify the user?? */
-      std::cerr << "Sorry, scene.init() failed.\n";
+      std::cerr << "Sorry, ion_plan.init() failed.\n";
       return;
     }
 
     /* A little warm fuzzy for the developers */
-    scene.debug ();
+    ion_plan.debug ();
     printf ("Working...\n");
     fflush(stdout);
 
     /* Compute the aperture and range compensator */
     vtkWarningMacro ("Computing beam modifier\n");
-    scene.compute_beam_modifiers ();
+    ion_plan.compute_beam_modifiers ();
     vtkWarningMacro ("Computing beam modifier done!\n");
 
   } catch (std::exception& ex) {
@@ -520,7 +520,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   }
 
   /* Get aperture as itk image */
-  Rpl_volume *rpl_vol = scene.rpl_vol;
+  Rpl_volume *rpl_vol = ion_plan.rpl_vol;
   Plm_image::Pointer& ap 
     = rpl_vol->get_aperture()->get_aperture_image();
   itk::Image<unsigned char, 3>::Pointer apertureVolumeItk 
@@ -584,15 +584,19 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   /* Compute the dose */
   try {
     vtkWarningMacro ("Applying beam modifiers...\n");
-    scene.apply_beam_modifiers ();
+    ion_plan.apply_beam_modifiers ();
 
     vtkWarningMacro ("Optimizing SOBP\n");
-    scene.beam->set_sobp_prescription_min_max (
+    ion_plan.beam->set_proximal_margin (
+      this->ExternalBeamPlanningNode->GetProximalMargin());
+    ion_plan.beam->set_distal_margin (
+      this->ExternalBeamPlanningNode->GetDistalMargin());
+    ion_plan.beam->set_sobp_prescription_min_max (
       rpl_vol->get_min_wed(), rpl_vol->get_max_wed());
-    scene.beam->optimize_sobp ();
+    ion_plan.beam->optimize_sobp ();
 
     vtkWarningMacro ("Computing dose\n");
-    scene.compute_dose ();
+    ion_plan.compute_dose ();
     vtkWarningMacro ("Computing dose -- complete.\n");
   } catch (std::exception& ex) {
     vtkWarningMacro ("Plastimatch exception: " << ex.what());
@@ -601,7 +605,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 
   /* Get dose as itk image */
   itk::Image<float, 3>::Pointer doseVolumeItk 
-    = scene.get_dose_itk();
+    = ion_plan.get_dose_itk();
 
   /* Convert dose image to vtk */
   vtkSmartPointer<vtkImageData> doseVolume 
