@@ -77,6 +77,7 @@ protected slots:
   /* Task buttons */
   void beamPrescriptionButtonClicked();
   void beamGeometryButtonClicked();
+  void beamModelButtonClicked();
 
   /* Prescription page */
   void beamTypeChanged(const QString &);

@@ -246,6 +246,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   /* Task buttons */
   this->connect( d->pushButton_BeamPrescription, SIGNAL(clicked()), this, SLOT(beamPrescriptionButtonClicked()) );
   this->connect( d->pushButton_BeamGeometry, SIGNAL(clicked()), this, SLOT(beamGeometryButtonClicked()) );
+  this->connect( d->pushButton_BeamModel, SIGNAL(clicked()), this, SLOT(beamModelButtonClicked()) );
 
   /* Make prescription the default task */
   this->beamPrescriptionButtonClicked();
@@ -622,6 +623,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamPrescriptionButtonClicked()
 
   d->pushButton_BeamPrescription->setChecked (true);
   d->pushButton_BeamGeometry->setChecked (false);
+  d->pushButton_BeamModel->setChecked (false);
 
   d->stackedWidget->setCurrentIndex (0);
 }
@@ -633,8 +635,21 @@ void qSlicerExternalBeamPlanningModuleWidget::beamGeometryButtonClicked()
 
   d->pushButton_BeamPrescription->setChecked (false);
   d->pushButton_BeamGeometry->setChecked (true);
+  d->pushButton_BeamModel->setChecked (false);
 
   d->stackedWidget->setCurrentIndex (1);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::beamModelButtonClicked()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  d->pushButton_BeamPrescription->setChecked (false);
+  d->pushButton_BeamGeometry->setChecked (false);
+  d->pushButton_BeamModel->setChecked (true);
+
+  d->stackedWidget->setCurrentIndex (2);
 }
 
 //-----------------------------------------------------------------------------
