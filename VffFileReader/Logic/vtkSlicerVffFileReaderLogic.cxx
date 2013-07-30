@@ -23,6 +23,7 @@
 
 // VTK includes
 #include <vtkImageData.h>
+#include <vtkMatrix4x4.h>
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -696,6 +697,13 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
         vtkWarningMacro("LoadVffFile: The end of the file was not reached.");
       }
       vffVolumeNode->SetAndObserveImageData(floatVffVolumeData);
+
+      vtkSmartPointer<vtkMatrix4x4> vffVolumeTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      vffVolumeNode->GetIJKToRASMatrix(vffVolumeTransformMatrix);
+      vffVolumeTransformMatrix->SetElement(0, 0, (-1*(vffVolumeTransformMatrix->GetElement(0, 0))));
+      vffVolumeTransformMatrix->SetElement(2, 2, (-1*(vffVolumeTransformMatrix->GetElement(2, 2))));
+      vffVolumeNode->SetIJKToRASMatrix(vffVolumeTransformMatrix);
+
       vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> vffVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
       this->GetMRMLScene()->AddNode(vffVolumeDisplayNode);
       vffVolumeNode->SetAndObserveDisplayNodeID(vffVolumeDisplayNode->GetID());
