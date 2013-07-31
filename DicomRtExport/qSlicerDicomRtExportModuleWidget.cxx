@@ -25,6 +25,9 @@
 
 #include "vtkMRMLNode.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_DicomRtExport
 class qSlicerDicomRtExportModuleWidgetPrivate: public Ui_qSlicerDicomRtExportModule
@@ -90,6 +93,10 @@ void qSlicerDicomRtExportModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
+  // Filter out hierarchy nodes that are not contour hierarchy nodes
+  d->MRMLNodeComboBox_ContourHierarchy->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
+
+  // Make connections
   this->connect( d->pushButton_SaveDicomRT, SIGNAL(clicked()), this, SLOT(onSaveClicked()) );
 }
 
