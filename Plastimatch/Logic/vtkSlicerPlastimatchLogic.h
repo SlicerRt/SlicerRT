@@ -26,12 +26,20 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
+// Plastimatch Module Logic
+#include "vtkSlicerPlastimatchModuleLogicExport.h"
+
 // STD includes
 #include <cstdlib>
 
-#include "vtkSlicerPlastimatchModuleLogicExport.h"
+// ITK includes
+#include "itkImage.h"
 
-// Plastimatch includes 
+// VTK includes
+#include <vtkPoints.h>
+
+// Plastimatch includes
+#include "landmark_warp.h"
 #include "plm_config.h"
 #include "plm_image.h"
 #include "plm_stages.h"
@@ -39,35 +47,99 @@
 #include "registration_data.h"
 #include "registration_parms.h"
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// Class to wrap Plastimatch registration capability into the embedded Python shell in Slicer
 class VTK_SLICER_PLASTIMATCH_MODULE_LOGIC_EXPORT vtkSlicerPlastimatchLogic :
   public vtkSlicerModuleLogic
 {
+  typedef itk::Vector< float, 3 >  VectorType;
+  typedef itk::Image< VectorType, 3 >  DeformationFieldType;
+
 public:
-  static vtkSlicerPlastimatchLogic *New();
+  /// Create a new object
+  static vtkSlicerPlastimatchLogic* New();
+
+  //
   vtkTypeMacro(vtkSlicerPlastimatchLogic, vtkSlicerModuleLogic);
+  
+  //
   void PrintSelf(ostream& os, vtkIndent indent);
+  
+  /// Add a registration stage in the Plastimatch workflow
   void AddStage();
-  void AddLandmark(char* landmarkId, char* landmarkType);
-  void SetPar(char* key, char* val);
+
+  /// Set parameter in stage
+  void SetPar(char* key, char* value);
+
+  /// Execute registration
   void RunRegistration();
 
 public:
-  vtkSetStringMacro(FixedId);
-  vtkGetStringMacro(FixedId);
-  vtkSetStringMacro(MovingId);
-  vtkGetStringMacro(MovingId);
+  // Description:
+  // Set/get the ID of the fixed image (image data type must be "float").
+  // This value is a required parameter to execute a registration.
+  vtkSetStringMacro(FixedID);
+  vtkGetStringMacro(FixedID);
 
-  vtkSetStringMacro(FixedLandmarksFn);
-  vtkGetStringMacro(FixedLandmarksFn);
-  vtkSetStringMacro(MovingLandmarksFn);
-  vtkGetStringMacro(MovingLandmarksFn);
+  // Description:
+  // Set/get the ID of the moving image (image data type must be "float").
+  // This value is a required parameter to execute a registration.
+  vtkSetStringMacro(MovingID);
+  vtkGetStringMacro(MovingID);
+  
+  // Description:
+  // Set/get the fixed landmarks using a vtkPoints object.
+  // The number of the fixed landmarks must be the same of the number of the moving landmarks.
+  // Landmarks passing as vtkPoints have the priority over landmarks passing by files.
+  // Is not possible mix landmarks from vtkPoints and from files.
+  // If no fcsv files are passing this value is a required parameter to execute a landmark based registration.
+  vtkSetMacro(FixedLandmarks, vtkPoints*);
+  vtkGetMacro(FixedLandmarks, vtkPoints*);
 
-  vtkSetStringMacro(InputXfId);
-  vtkGetStringMacro(InputXfId);
+  // Description:
+  // Set/get the moving landmarks using a vtkPoints object.
+  // The number of the moving landmarks must be the same of the number of fixed landmarks.
+  // Landmarks passing as vtkPoints have the priority over landmarks passing by files.
+  // Is not possible mix landmarks from vtkPoints and from files.
+  // If no fcsv files are passing this value is a required parameter to execute a landmark based registration.
+  vtkSetMacro(MovingLandmarks, vtkPoints*);
+  vtkGetMacro(MovingLandmarks, vtkPoints*);
 
-  vtkSetStringMacro(OutputImageName);
-  vtkGetStringMacro(OutputImageName);
+  // Description:
+  // Set/get the fcsv file name containing the fixed landmarks.
+  // The number of the fixed landmarks must be the same of the number of the moving landmarks.
+  // Landmarks passing as vtkPoints have the priority over landmarks passing by files.
+  // Is not possible mix landmarks from vtkPoints and from files.
+  // If no vtkPoints objects are passing this value is a required parameter to execute a landmark based registration.
+  vtkSetStringMacro(FixedLandmarksFileName);
+  vtkGetStringMacro(FixedLandmarksFileName);
+
+  // Description:
+  // Set/get the fcsv file name containing the moving landmarks.
+  // The number of the moving landmarks must be the same of the number of the fixed landmarks.
+  // Landmarks passing as vtkPoints have the priority over landmarks passing by files.
+  // Is not possible mix landmarks from vtkPoints and from files.
+  // If no vtkPoints objects are passing this value is a required parameter to execute a landmark based registration.
+  vtkSetStringMacro(MovingLandmarksFileName);
+  vtkGetStringMacro(MovingLandmarksFileName);
+
+  // Description:
+  // Set/Get the warped landmarks using a vtkPoints object.
+  // This value is a required parameter to execute a landmark based registration.
+  vtkGetMacro(WarpedLandmarks, vtkPoints*);
+  vtkSetMacro(WarpedLandmarks, vtkPoints*);
+  
+  // Description:
+  // Set/get the ID of a precomputed rigid/affine transformation.
+  // This transformation will be used as initialization for the Plastimatch registration.
+  // This value is an optional parameter to execute a registration.
+  vtkSetStringMacro(InputTransformationID);
+  vtkGetStringMacro(InputTransformationID);
+
+  // Description:
+  // Set/Get the ID of the output image.
+  // This value is a required parameter to execute a registration.
+  vtkSetStringMacro(OutputVolumeID);
+  vtkGetStringMacro(OutputVolumeID);
  
 protected:
   vtkSlicerPlastimatchLogic();
@@ -81,36 +153,83 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
 private:
+  //
   vtkSlicerPlastimatchLogic(const vtkSlicerPlastimatchLogic&); // Not implemented
+  
+  //
   void operator=(const vtkSlicerPlastimatchLogic&);              // Not implemented
+
+  /// This function sets the vtkPoints as input landmarks for Plastimatch registration
   void SetLandmarksFromSlicer();
+
+  /// This function reads the fcsv files containing the landmarks and sets them as input landmarks for Plastimatch registration
   void SetLandmarksFromFiles();
+
+  /// This function applies an initial affine trasformation modifing the moving image before the Plastimatch registration
   void ApplyInitialLinearTransformation();
+
+  /// This function applies a linear/deformable transformation at an image.
+  /// It is used from ApplyInitialLinearTransformation() and RunRegistration().
   void ApplyWarp(
-    Plm_image *WarpedImg,   /* Output: Output image */
-    Xform * XfIn,          /* Input:  Input image warped by this xform */
-    Plm_image * FixedImg,   /* Input:  Size of output image */
-    Plm_image * InputImg,       /* Input:  Input image */
-    float DefaultVal,     /* Input:  Value for pixels without match */
-    int UseItk,           /* Input:  Force use of itk (1) or not (0) */
-    int InterpLin);
-  void GetOutputImg(char* PublicOutputImageName);
+    Plm_image* warpedImage,                        /*!< Output image as Plm_image pointer */
+    DeformationFieldType::Pointer* vectorFieldOut, /*!< Output vector field (optional) as DeformationFieldType::Pointer */
+    Xform* inputTransformation,                    /*!< Input transformation as Xform pointer */
+    Plm_image* fixedImage,                         /*!< Fixed image as Plm_image pointer */
+    Plm_image* inputImage,                         /*!< Input image to warp as Plm_image pointer */
+    float defaultValue,                            /*!< Value (float) for pixels without match */
+    int useItk,                                    /*!< Int to choose between itk (1) or Plastimatch (0) algorithm for the warp task */
+    int interpolationLinear                        /*!< Int to choose between trilinear interpolation (1) on nearest neighbor (0) */
+    );
+
+  /// This function shows the output image into the Slicer scene
+  void GetOutputImage();
+
+  /// This function warps the landmarks according to OutputTransformation
+  void WarpLandmarks();
 
 private:
-  char* FixedId;
-  char* MovingId;
-  struct Point3d { double coord[3]; }; 
-  std::list<Point3d> FixedLandmarks;
-  std::list<Point3d> MovingLandmarks;
-  char* FixedLandmarksFn;
-  char* MovingLandmarksFn;
-  Registration_parms *regp;
-  Registration_data *regd;
-  char* InputXfId;
-  Xform* XfIn;
-  Xform* XfOut;
-  Plm_image * WarpedImg;
-  char* OutputImageName;
+  
+  /// ID of the fixed image
+  char* FixedID;
+
+  /// ID of the moving image
+  char* MovingID;
+
+  /// vtkPoints object containing the fixed landmarks
+  vtkPoints* FixedLandmarks;
+  
+  /// vtkPoints object containing the moving landmarks
+  vtkPoints* MovingLandmarks;
+  
+  /// Name of the fcsv containing the fixed landmarks
+  char* FixedLandmarksFileName;
+  
+  /// Name of the fcsv containing the moving landmarks
+  char* MovingLandmarksFileName;
+  
+  /// vtkPoints object containing the warped landmarks
+  vtkPoints* WarpedLandmarks;
+  
+  /// Plastimatch registration parameters
+  Registration_parms* RegistrationParameters;
+
+  /// Plastimatch registration data
+  Registration_data* RegistrationData;
+  
+  /// ID of the affine registration used as initialization for the Plastimatch registration
+  char* InputTransformationID;
+
+  /// Initial affine transformation
+  Xform* InputTransformation;
+
+  /// Transformation (linear or deformable) computed by Plastimatch
+  Xform* OutputTransformation;
+
+  /// Image deformed by Plastimatch
+  Plm_image* WarpedImage;
+  
+  /// ID of the registered image
+  char* OutputVolumeID;
 };
 
 #endif
