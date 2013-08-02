@@ -172,7 +172,7 @@ private:
   /// It is used from ApplyInitialLinearTransformation() and RunRegistration().
   void ApplyWarp(
     Plm_image* warpedImage,                        /*!< Output image as Plm_image pointer */
-    DeformationFieldType::Pointer* vectorFieldOut, /*!< Output vector field (optional) as DeformationFieldType::Pointer */
+    DeformationFieldType::Pointer vectorFieldOut, /*!< Output vector field (optional) as DeformationFieldType::Pointer */
     Xform* inputTransformation,                    /*!< Input transformation as Xform pointer */
     Plm_image* fixedImage,                         /*!< Fixed image as Plm_image pointer */
     Plm_image* inputImage,                         /*!< Input image to warp as Plm_image pointer */
@@ -224,6 +224,9 @@ private:
 
   /// Transformation (linear or deformable) computed by Plastimatch
   Xform* OutputTransformation;
+
+  /// Vector filed computed by Plastimatch
+  DeformationFieldType::Pointer OutputVectorField;
 
   /// Image deformed by Plastimatch
   Plm_image* WarpedImage;
