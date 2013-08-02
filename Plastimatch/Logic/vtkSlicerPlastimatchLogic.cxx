@@ -207,14 +207,14 @@ void vtkSlicerPlastimatchLogic
   for (int i = 0; i < this->FixedLandmarks->GetNumberOfPoints(); i++)
     {
     Labeled_point* fixedLandmark = new Labeled_point("point",
-      this->FixedLandmarks->GetPoint(i)[0],
+      - this->FixedLandmarks->GetPoint(i)[0],
       - this->FixedLandmarks->GetPoint(i)[1],
-      - this->FixedLandmarks->GetPoint(i)[2]);
+      this->FixedLandmarks->GetPoint(i)[2]);
 
     Labeled_point* movingLandmark = new Labeled_point("point",
-      this->MovingLandmarks->GetPoint(i)[0],
+      - this->MovingLandmarks->GetPoint(i)[0],
       - this->MovingLandmarks->GetPoint(i)[1],
-      - this->MovingLandmarks->GetPoint(i)[2]);
+      this->MovingLandmarks->GetPoint(i)[2]);
    
     fixedLandmarksSet->point_list.push_back(*fixedLandmark);
     movingLandmarksSet->point_list.push_back(*movingLandmark);
@@ -338,6 +338,7 @@ void vtkSlicerPlastimatchLogic
 void vtkSlicerPlastimatchLogic
 ::WarpLandmarks()
 {
+#if defined (commentout)
   Volume *vector_field;
   vector_field = new Volume (this->RegistrationData->fixed_image->get_volume_float()->dim,
     this->RegistrationData->fixed_image->get_volume_float()->offset,
@@ -406,5 +407,6 @@ void vtkSlicerPlastimatchLogic
       landmarksWarp->m_warped_landmarks->points[i*3+1],
       landmarksWarp->m_warped_landmarks->points[i*3+2]);
     }
+#endif
 }
 
