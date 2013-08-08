@@ -65,7 +65,6 @@ add_subdirectory(DoseVolumeHistogram)
 add_subdirectory(DoseComparison)
 add_subdirectory(ContourMorphology)
 add_subdirectory(ContourComparison)
-add_subdirectory(DeformationFieldVisualizer)
 add_subdirectory(VffFileReader)
 
 add_subdirectory(PlmBspline) # requires Plastimatch registration
