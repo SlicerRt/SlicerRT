@@ -19,6 +19,7 @@ set(EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/8/8b/Slice
 set(EXTENSION_STATUS "Beta")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
+message("Subversion_SVN_EXECUTABLE: ${Subversion_SVN_EXECUTABLE}")
 
 #-----------------------------------------------------------------------------
 project(SlicerRT)
@@ -74,7 +75,6 @@ add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmXformwarp)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-
   # Obsolete
   #add_subdirectory(PlmDoseComparison)
   #add_subdirectory(PlmDvh)
