@@ -32,7 +32,14 @@
 class qMRMLContourSelectorWidgetPrivate;
 class vtkMRMLScene;
 
+/// \brief Widget for selecting contours as inputs. Automatically handles conversion to labelmap.
 /// \ingroup Slicer_QtModules_Contours
+/// 
+/// This widget consolidates the way contours are selected in modules as inputs. As in most cases
+/// the indexed labelmap representation is requested, a reference volume selector is included
+/// with the referenced volume (from DICOM) selected by default.
+/// Note: The oversampling factor is 1 when using the default selection (the referenced volume)
+///       Otherwise, the oversampling factor is 2, which means every voxel is divided to 8 voxels
 class Q_SLICER_MODULE_CONTOURS_WIDGETS_EXPORT qMRMLContourSelectorWidget : public qMRMLWidget
 {
   Q_OBJECT
