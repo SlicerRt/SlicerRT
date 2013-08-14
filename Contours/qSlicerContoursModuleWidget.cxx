@@ -377,6 +377,17 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
     d->CTKCollapsibleButton_ChangeActiveRepresentation->setEnabled(true);
   }
 
+  // Look for referenced volume for contours and set it as default if found
+  vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeForContours(d->SelectedContourNodes);
+  if (referencedVolume)
+  {
+    for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
+    {
+      (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
+      (*contourIt)->SetRasterizationOversamplingFactor(1.0);
+    }
+  }
+
   // Get reference volume node ID for the selected contour nodes
   QString referenceVolumeNodeId;
   bool sameReferenceVolumeNodeId = this->getReferenceVolumeNodeIdOfSelectedContours(referenceVolumeNodeId);
