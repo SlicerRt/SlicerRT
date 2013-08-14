@@ -42,6 +42,7 @@ class qMRMLContourSelectorWidgetPrivate;
 class Q_SLICER_MODULE_CONTOURS_WIDGETS_EXPORT qMRMLContourSelectorWidget : public qMRMLWidget
 {
   Q_OBJECT
+
 public:
   qMRMLContourSelectorWidget(QWidget *parent=0);
   virtual ~qMRMLContourSelectorWidget();
@@ -68,6 +69,16 @@ public:
   /// Get selected contour node list. If this gives a non-empty list, then it is sure that
   /// the required representation can be got from all contours without problems
   std::vector<vtkMRMLContourNode*> selectedContourNodes();
+
+  /// Returns currently selected contour or contour hierarchy node
+  vtkMRMLNode* currentNode();
+
+  /// Set currently selected contour or contour hierarchy node
+  void setCurrentNodeID(const QString& nodeID);
+
+signals:
+  /// Emitted if the currently selected contour or contour hierarchy node changed
+  void currentNodeChanged();
 
 protected:
   /// Update widget state according to selection and set widget properties

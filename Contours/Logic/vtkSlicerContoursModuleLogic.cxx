@@ -442,6 +442,11 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeForCon
 //-----------------------------------------------------------------------------
 bool vtkSlicerContoursModuleLogic::ContoursContainRepresentation(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain/*=true*/)
 {
+  if (contours.size() == 0)
+  {
+    return false;
+  }
+
   for (std::vector<vtkMRMLContourNode*>::iterator contourIt = contours.begin(); contourIt != contours.end(); ++contourIt)
   {
     if (allMustContain && !(*contourIt)->RepresentationExists(representationType))

@@ -73,16 +73,19 @@ void qMRMLContourSelectorWidgetPrivate::init()
 
   QObject::connect( this->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
     q, SLOT(contourNodeChanged(vtkMRMLNode*)) );
+  QObject::connect( this->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+    q, SIGNAL(currentNodeChanged(vtkMRMLNode*)) );
   QObject::connect( this->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
     q, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
 
-  // Disable contour combobox until representation type is not explicitly set
+  // Disable contour combobox until required representation type is not explicitly set
   this->MRMLNodeComboBox_Contour->setEnabled(false);
 
   // Hide reference related widgets by default
   this->frame_ReferenceVolumeSelection->setVisible(false);
   this->label_ValidRequiredRepresentation->setVisible(false);
   this->label_ClosedSurfaceModelConversion->setVisible(false);
+  this->label_NoContoursInSelection->setVisible(false);
 }
 
 //------------------------------------------------------------------------------
@@ -107,6 +110,13 @@ void qMRMLContourSelectorWidget::updateWidgetState()
   d->frame_ReferenceVolumeSelection->setVisible(false);
   d->label_ValidRequiredRepresentation->setVisible(false);
   d->label_ClosedSurfaceModelConversion->setVisible(false);
+  d->label_NoContoursInSelection->setVisible(false);
+
+  if (d->SelectedContourNodes.size() == 0)
+  {
+    d->label_NoContoursInSelection->setVisible(true);
+    return;
+  }
 
   // If the required representation is labelmap or surface, and there is no labelmap representation
   // in the selected contour yet, then show the reference volume selector widget and select the default reference
@@ -160,6 +170,12 @@ void qMRMLContourSelectorWidget::setRequiredRepresentation(vtkMRMLContourNode::C
   Q_D(qMRMLContourSelectorWidget);
   d->RequiredRepresentation = representationType;
 
+  if (d->RequiredRepresentation != vtkMRMLContourNode::None)
+  {
+    // Enable contour combobox now that required representation type is explicitly set
+    d->MRMLNodeComboBox_Contour->setEnabled(true);
+  }
+
   this->updateWidgetState();
 }
 
@@ -197,6 +213,20 @@ bool qMRMLContourSelectorWidget::acceptContourHierarchies()
 {
   Q_D(qMRMLContourSelectorWidget);
   return d->AcceptContourHierarchies;
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLNode* qMRMLContourSelectorWidget::currentNode()
+{
+  Q_D(qMRMLContourSelectorWidget);
+  return d->MRMLNodeComboBox_Contour->currentNode();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::setCurrentNodeID(const QString& nodeID)
+{
+  Q_D(qMRMLContourSelectorWidget);
+  d->MRMLNodeComboBox_Contour->setCurrentNodeID(nodeID);
 }
 
 //------------------------------------------------------------------------------
