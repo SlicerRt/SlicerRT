@@ -259,6 +259,12 @@ bool qSlicerContoursModuleWidget::getOversamplingFactorOfSelectedContours(double
 {
   Q_D(qSlicerContoursModuleWidget);
 
+  if (d->SelectedContourNodes.size() == 0)
+  {
+    oversamplingFactor = -1.0;
+    return true;
+  }
+
   oversamplingFactor = 0.0;
   bool sameOversamplingFactor = true;
   for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
@@ -378,16 +384,28 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
   d->comboBox_ChangeActiveRepresentation->setEnabled(true);
 
   // Select the representation type shared by all the children contour nodes
-  vtkMRMLContourNode::ContourRepresentationType representationType = vtkSlicerContoursModuleLogic::GetRepresentationTypeOfContours(d->SelectedContourNodes);
-  if (representationType != vtkMRMLContourNode::None)
+  if (d->SelectedContourNodes.size() == 0)
   {
-    d->label_ActiveRepresentation->setText(d->comboBox_ChangeActiveRepresentation->itemText((int)representationType));
-    d->label_ActiveRepresentation->setToolTip(tr(""));
+    d->label_ActiveRepresentation->setText(tr("No contours in selection"));
+    d->label_ActiveRepresentation->setToolTip(tr("The selected hierarchy node contains no contours in the structure set"));
+
+    d->CTKCollapsibleButton_ChangeActiveRepresentation->setEnabled(false);
   }
   else
   {
-    d->label_ActiveRepresentation->setText(tr("Various"));
-    d->label_ActiveRepresentation->setToolTip(tr("The selected hierarchy node contains contours with different active representation types"));
+    vtkMRMLContourNode::ContourRepresentationType representationType = vtkSlicerContoursModuleLogic::GetRepresentationTypeOfContours(d->SelectedContourNodes);
+    if (representationType != vtkMRMLContourNode::None)
+    {
+      d->label_ActiveRepresentation->setText(d->comboBox_ChangeActiveRepresentation->itemText((int)representationType));
+      d->label_ActiveRepresentation->setToolTip(tr(""));
+    }
+    else
+    {
+      d->label_ActiveRepresentation->setText(tr("Various"));
+      d->label_ActiveRepresentation->setToolTip(tr("The selected hierarchy node contains contours with different active representation types"));
+    }
+
+    d->CTKCollapsibleButton_ChangeActiveRepresentation->setEnabled(true);
   }
 
   // Get reference volume node ID for the selected contour nodes
