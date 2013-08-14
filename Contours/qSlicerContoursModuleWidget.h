@@ -65,12 +65,6 @@ protected:
   /// Determines if all selected contours have been created from labelmap
   bool haveSelectedContoursBeenCreatedFromLabelmap();
 
-  /// Determine if the selected modules contain a certain representation
-  /// \param allMustContain If set to true, this function returns true only if all the selected
-  ///        contours contain the representation. Otherwise it returns true even if only one contains it
-  /// \return True if every selected node has the given type of representation, false otherwise
-  bool selectedContoursContainRepresentation(vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain=true);
-
   /// Set state according to change active representation widget group changes
   /// This function makes sure that all the conditions are good for the proposed representation change
   /// The Apply button is enabled only if those conditions are met. Otherwise, the appropriate messages are displayed 
@@ -92,10 +86,6 @@ protected:
   bool isSuitableSourceAvailableForConversion(vtkMRMLContourNode* contourNode);
   /// Determines if a suitable source representation is ready for the current conversion for all selected nodes
   bool isSuitableSourceAvailableForConversionForAllSelectedContours();
-
-  /// Determines if reference volume selection is valid for the current conversion for all selected contours
-  /// \return False if any selected contour needs reference volume, but is not selected in the combobox, true otherwise
-  bool isReferenceVolumeSelectionValidForAllSelectedContours();
 
   /// Determines if conversion parameters have changed for a certain contour.
   /// \return False if the current conversion needs a representation that have changed conversion parameters, true otherwise

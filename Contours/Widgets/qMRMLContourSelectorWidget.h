@@ -30,7 +30,6 @@
 #include "qSlicerContoursModuleWidgetsExport.h"
 
 class qMRMLContourSelectorWidgetPrivate;
-class vtkMRMLScene;
 
 /// \brief Widget for selecting contours as inputs. Automatically handles conversion to labelmap.
 /// \ingroup Slicer_QtModules_Contours
@@ -61,8 +60,18 @@ public:
   bool acceptContourHierarchies();
 
   /// Get selected contour node. If this gives a valid contour node, then it is sure that
-  /// the required representation can be got without having to do anything else
+  /// the required representation can be got without problems
+  /// \return The selected contour node if valid, NULL otherwise. Also returns NULL if 
+  ///         hierarchies are accepted, in this case a warning is logged too.
   vtkMRMLContourNode* selectedContourNode();
+
+  /// Get selected contour node list. If this gives a non-empty list, then it is sure that
+  /// the required representation can be got from all contours without problems
+  std::vector<vtkMRMLContourNode*> selectedContourNodes();
+
+protected:
+  /// Update widget state according to selection and set widget properties
+  void updateWidgetState();
 
 protected slots:
   /// Handle change of selected contour node

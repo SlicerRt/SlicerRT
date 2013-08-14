@@ -31,6 +31,9 @@
 #include "SlicerRtCommon.h"
 #include "vtkSlicerContoursModuleLogic.h"
 
+// Qt includes
+#include <QDebug>
+
 //------------------------------------------------------------------------------
 class qMRMLContourSelectorWidgetPrivate: public Ui_qMRMLContourSelectorWidget
 {
@@ -77,8 +80,9 @@ void qMRMLContourSelectorWidgetPrivate::init()
   this->MRMLNodeComboBox_Contour->setEnabled(false);
 
   // Hide reference related widgets by default
-  this->MRMLNodeComboBox_ReferenceVolume->setVisible(false);
-  this->label_Reference->setVisible(false);
+  this->frame_ReferenceVolumeSelection->setVisible(false);
+  this->label_ValidRequiredRepresentation->setVisible(false);
+  this->label_ClosedSurfaceModelConversion->setVisible(false);
 }
 
 //------------------------------------------------------------------------------
@@ -96,20 +100,67 @@ qMRMLContourSelectorWidget::~qMRMLContourSelectorWidget()
 }
 
 //------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::updateWidgetState()
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  d->frame_ReferenceVolumeSelection->setVisible(false);
+  d->label_ValidRequiredRepresentation->setVisible(false);
+  d->label_ClosedSurfaceModelConversion->setVisible(false);
+
+  // If the required representation is labelmap or surface, and there is no labelmap representation
+  // in the selected contour yet, then show the reference volume selector widget and select the default reference
+  if ( d->RequiredRepresentation == vtkMRMLContourNode::IndexedLabelmap
+    || d->RequiredRepresentation == vtkMRMLContourNode::ClosedSurfaceModel )
+  {
+    if (vtkSlicerContoursModuleLogic::ContoursContainRepresentation(d->SelectedContourNodes, d->RequiredRepresentation))
+    {
+      d->label_ValidRequiredRepresentation->setVisible(true);
+    }
+    else if ( d->RequiredRepresentation == vtkMRMLContourNode::ClosedSurfaceModel
+           && vtkSlicerContoursModuleLogic::ContoursContainRepresentation(d->SelectedContourNodes, vtkMRMLContourNode::IndexedLabelmap) )
+    {
+      d->label_ClosedSurfaceModelConversion->setVisible(true);
+    }
+    else
+    {
+      d->frame_ReferenceVolumeSelection->setVisible(true);
+
+      // Look for referenced volume for contours and set it as default if found
+      vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeForContours(d->SelectedContourNodes);
+      if (referencedVolume)
+      {
+        // Set referenced volume and turn off oversampling in selected contours
+        d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(referencedVolume->GetID());
+        d->label_OversamplingFactorValue->setText("1");
+
+        for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
+        {
+          (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
+          (*contourIt)->SetRasterizationOversamplingFactor(1.0);
+        }
+      }
+      else
+      {
+        d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(NULL);
+        d->label_OversamplingFactorValue->setText("2");
+
+        for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
+        {
+          (*contourIt)->SetRasterizationOversamplingFactor(2.0);
+        }
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 void qMRMLContourSelectorWidget::setRequiredRepresentation(vtkMRMLContourNode::ContourRepresentationType representationType)
 {
   Q_D(qMRMLContourSelectorWidget);
   d->RequiredRepresentation = representationType;
 
-  // If the required representation is labelmap or surface, and there is no labelmap representation
-  // in the selected contour yet, then show the reference volume selector widget and select the default reference
-  if ( d->RequiredRepresentation == vtkMRMLContourNode::IndexedLabelmap)
-  {
-    d->MRMLNodeComboBox_ReferenceVolume->setVisible(true);
-    d->label_Reference->setVisible(true);
-
-    //TODO: select the default reference
-  }
+  this->updateWidgetState();
 }
 
 //------------------------------------------------------------------------------
@@ -156,19 +207,7 @@ void qMRMLContourSelectorWidget::contourNodeChanged(vtkMRMLNode* node)
   // Get contour nodes from selection
   vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(node, d->SelectedContourNodes);
 
-  // Set reference volume
-  vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeForContours(d->SelectedContourNodes);
-  if (referencedVolume)
-  {
-    // Set referenced volume and turn off oversampling in selected contours
-    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(referencedVolume->GetID());
-
-    for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
-    {
-      (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
-      (*contourIt)->SetRasterizationOversamplingFactor(1.0);
-    }
-  }
+  this->updateWidgetState();
 }
 
 //------------------------------------------------------------------------------
@@ -176,21 +215,46 @@ void qMRMLContourSelectorWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qMRMLContourSelectorWidget);
 
-  if (!node->IsA("vtkMRMLScalarVolumeNode"))
+  if (!node || !node->IsA("vtkMRMLScalarVolumeNode"))
   {
-    //TODO Log error
+    qCritical() << "qMRMLContourSelectorWidget::referenceVolumeNodeChanged: Input node is not a scalar volume!";
+    return;
   }
 
   for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
   {
     (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(node->GetID());
+    (*contourIt)->SetRasterizationOversamplingFactor(2.0);
   }
+
+  d->label_OversamplingFactorValue->setText("2");
 }
 
 //------------------------------------------------------------------------------
 vtkMRMLContourNode* qMRMLContourSelectorWidget::selectedContourNode()
 {
   Q_D(qMRMLContourSelectorWidget);
-  return NULL; //TODO
+
+  if (d->AcceptContourHierarchies)
+  {
+    qWarning() << "qMRMLContourSelectorWidget::selectedContourNode: Cannot request one selected contour node if hierarchies are accepted (see setAcceptContourHierarchies method)";
+    return NULL;
+  }
+
+  if (d->SelectedContourNodes.size() != 1)
+  {
+    qCritical() << "qMRMLContourSelectorWidget::selectedContourNode: Invalid number of selected contour nodes: " << d->SelectedContourNodes.size();
+    return NULL;
+  }
+
+  return *(d->SelectedContourNodes.begin());
+}
+
+//------------------------------------------------------------------------------
+std::vector<vtkMRMLContourNode*> qMRMLContourSelectorWidget::selectedContourNodes()
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  return d->SelectedContourNodes;
 }
 

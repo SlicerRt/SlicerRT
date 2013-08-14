@@ -438,3 +438,52 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeForCon
   // Get and return referenced volume
   return vtkMRMLScalarVolumeNode::SafeDownCast(referencedSeriesNode->GetAssociatedNode());
 }
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerContoursModuleLogic::ContoursContainRepresentation(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain/*=true*/)
+{
+  for (std::vector<vtkMRMLContourNode*>::iterator contourIt = contours.begin(); contourIt != contours.end(); ++contourIt)
+  {
+    if (allMustContain && !(*contourIt)->RepresentationExists(representationType))
+    {
+      // At least one misses the requested representation
+      return false;
+    }
+    else if (!allMustContain && (*contourIt)->RepresentationExists(representationType))
+    {
+      // At least one has the requested representation
+      return true;
+    }
+  }
+
+  if (allMustContain)
+  {
+    // All contours have the requested representation
+    return true;
+  }
+  else
+  {
+    // None of the contours have the requested representation
+    return false;
+  }
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerContoursModuleLogic::IsReferenceVolumeValidForAllContours(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType)
+{
+  for (std::vector<vtkMRMLContourNode*>::iterator contourIt = contours.begin(); contourIt != contours.end(); ++contourIt)
+  {
+    // If (target is indexed labelmap OR an intermediate labelmap is needed for closed surface conversion BUT missing)
+    // AND (the selected reference node is empty AND was not created from labelmap), then reference volume selection is invalid
+    if ( ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap
+      || ( targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel
+      && !(*contourIt)->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap) ) )
+      && ( !(*contourIt)->GetRasterizationReferenceVolumeNodeId()
+      && !(*contourIt)->HasBeenCreatedFromIndexedLabelmap() ) )
+    {
+      return false;
+    }
+  }
+
+  return true;
+}

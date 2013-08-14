@@ -66,6 +66,18 @@ public:
   /// \return The common reference volume for the contours if any, NULL otherwise
   static vtkMRMLScalarVolumeNode* GetReferencedVolumeForContours(std::vector<vtkMRMLContourNode*>& contours);
 
+  /// Determine if the selected contours contain a certain representation
+  /// \param contours List of contours to examine
+  /// \param representationType The required representation type
+  /// \param allMustContain If set to true, this function returns true only if all the selected
+  ///        contours contain the representation. Otherwise it returns true even if only one contains it
+  /// \return True if every selected node has the given type of representation, false otherwise
+  static bool ContoursContainRepresentation(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain=true);
+
+  /// Determines if reference volume selection is valid for conversion for all contours in a list
+  /// \return False if any contour needs reference volume, but is not set, true otherwise
+  static bool IsReferenceVolumeValidForAllContours(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+
 protected:
   /// Create a default structure set node so that contours can be created from potential representations without having
   /// loaded a DICOM-RT study. This method becomes obsolete when creating new patient hierarchy nodes feature is implemented.

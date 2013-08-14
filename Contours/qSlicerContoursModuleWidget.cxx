@@ -307,37 +307,6 @@ bool qSlicerContoursModuleWidget::getTargetReductionFactorOfSelectedContours(dou
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::selectedContoursContainRepresentation(vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain/*=true*/)
-{
-  Q_D(qSlicerContoursModuleWidget);
-
-  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
-  {
-    if (allMustContain && !(*it)->RepresentationExists(representationType))
-    {
-      // At least one misses the requested representation
-      return false;
-    }
-    else if (!allMustContain && (*it)->RepresentationExists(representationType))
-    {
-      // At least one has the requested representation
-      return true;
-    }
-  }
-
-  if (allMustContain)
-  {
-    // All contours have the requested representation
-    return true;
-  }
-  else
-  {
-    // None of the contours have the requested representation
-    return false;
-  }
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContoursModuleWidget);
@@ -616,30 +585,6 @@ bool qSlicerContoursModuleWidget::isSuitableSourceAvailableForConversionForAllSe
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::isReferenceVolumeSelectionValidForAllSelectedContours()
-{
-  Q_D(qSlicerContoursModuleWidget);
-
-  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->getTargetRepresentationType();
-
-  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
-  {
-    // If (target is indexed labelmap OR an intermediate labelmap is needed for closed surface conversion BUT missing)
-    // AND (the selected reference node is empty AND was not created from labelmap), then reference volume selection is invalid
-    if ( ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap
-        || ( targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel
-          && !(*it)->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap) ) )
-      && ( !d->MRMLNodeComboBox_ReferenceVolume->currentNode()
-        && !(*it)->HasBeenCreatedFromIndexedLabelmap() ) )
-    {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::updateWidgetsInChangeActiveRepresentationGroup()
 {
   Q_D(qSlicerContoursModuleWidget);
@@ -695,7 +640,7 @@ void qSlicerContoursModuleWidget::updateWidgetsInChangeActiveRepresentationGroup
   this->showConversionParameterControlsForTargetRepresentation(targetRepresentationType);
 
   // If there is no reference volume selected but should be, then show warning and disable the apply button
-  if (!this->isReferenceVolumeSelectionValidForAllSelectedContours())
+  if (!vtkSlicerContoursModuleLogic::IsReferenceVolumeValidForAllContours(d->SelectedContourNodes, this->getTargetRepresentationType()))
   {
     d->label_NoReferenceWarning->setVisible(true);
     d->pushButton_ApplyChangeRepresentation->setEnabled(false);
