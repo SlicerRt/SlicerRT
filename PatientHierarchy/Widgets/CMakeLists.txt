@@ -42,6 +42,7 @@ set(${KIT}_RESOURCES
   )
 
 set(${KIT}_TARGET_LIBRARIES
+  vtkSlicerRtCommon
   vtkSlicerPatientHierarchyModuleLogic
   vtkSlicerPatientHierarchyModulePlugins
   vtkSlicerAnnotationsModuleMRML

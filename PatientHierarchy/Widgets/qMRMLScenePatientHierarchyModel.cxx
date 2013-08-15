@@ -328,7 +328,6 @@ void qMRMLScenePatientHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
     vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::updateNodeFromItemData: Invalid node in patient hierarchy tree! Nodes must all be patient hierarchy nodes.");
     return;
   }
-  vtkMRMLNode* associatedNode = hierarchyNode->GetAssociatedNode();
 
   if ( item->column() == this->nameColumn() )
   {
