@@ -374,12 +374,12 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
 //----------------------------------------------------------------------------
 void vtkMRMLContourNode::SetAndObserveRibbonModelNodeIdOnly(const char *nodeID)
 {
+  vtkSetAndObserveMRMLObjectMacro(this->RibbonModelNode, NULL);
+  this->SetRibbonModelNodeId(nodeID);
   if (this->RibbonModelContainsEmptyPolydata() && this->Scene)
     {
     this->Scene->RemoveNode(this->RibbonModelNode);
     }
-  vtkSetAndObserveMRMLObjectMacro(this->RibbonModelNode, NULL);
-  this->SetRibbonModelNodeId(nodeID);
   if (!nodeID)
     {
     return;
