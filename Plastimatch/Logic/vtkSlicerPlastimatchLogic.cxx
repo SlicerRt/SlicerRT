@@ -195,18 +195,15 @@ void vtkSlicerPlastimatchLogic
   this->RegistrationData->moving_image = new Plm_image (MovingItkImage);
   
   // Set landmarks 
-  bool landmarksSetted = false;
   if (GetFixedLandmarks() != NULL && GetMovingLandmarks() != NULL)
     {
     // From Slicer
     SetLandmarksFromSlicer();
-    landmarksSetted = true;
     }
   else if (this->GetFixedLandmarksFileName() != NULL && this->GetFixedLandmarksFileName() != NULL)
     {
     // From Files
     SetLandmarksFromFiles();
-    landmarksSetted = true;
     }
   
   // Set initial affine transformation
@@ -221,11 +218,31 @@ void vtkSlicerPlastimatchLogic
   ApplyWarp(this->WarpedImage, this->OutputVectorField, this->OutputTransformation,
     this->RegistrationData->fixed_image, this->RegistrationData->moving_image, -1200, 0, 1);
   GetOutputImage();
+}
 
-  // Warp landmarks
-  if (landmarksSetted)
-    {
-    WarpLandmarks();
+//---------------------------------------------------------------------------
+void vtkSlicerPlastimatchLogic
+::WarpLandmarks()
+{
+  Labeled_pointset warpedPointset;
+  pointset_warp (&warpedPointset, this->RegistrationData->moving_landmarks, this->OutputVectorField);
+  
+  this->WarpedLandmarks = vtkPoints::New();
+
+
+  for (int i=0; i < (int) warpedPointset.count(); i++)
+  {
+    printf ("[RTN] %g %g %g -> %g %g %g\n",
+            warpedPointset.point_list[i].p[0],
+            warpedPointset.point_list[i].p[1],
+            warpedPointset.point_list[i].p[2],
+            - warpedPointset.point_list[i].p[0],
+            - warpedPointset.point_list[i].p[1],
+            warpedPointset.point_list[i].p[2]);
+    this->WarpedLandmarks->InsertPoint(i,
+      - warpedPointset.point_list[i].p[0],
+      - warpedPointset.point_list[i].p[1],
+      warpedPointset.point_list[i].p[2]);
     }
 }
 
@@ -365,31 +382,5 @@ void vtkSlicerPlastimatchLogic
   // Set warped image to a Slicer node
   WarpedImageNode->CopyOrientation(FixedVtkImage);
   WarpedImageNode->SetAndObserveImageData(OutputImageVtk);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::WarpLandmarks()
-{
-  Labeled_pointset warpedPointset;
-  pointset_warp (&warpedPointset, this->RegistrationData->moving_landmarks, this->OutputVectorField);
-  
-  this->WarpedLandmarks = vtkPoints::New();
-
-
-  for (int i=0; i < (int) warpedPointset.count(); i++)
-  {
-    printf ("[RTN] %g %g %g -> %g %g %g\n",
-            warpedPointset.point_list[i].p[0],
-            warpedPointset.point_list[i].p[1],
-            warpedPointset.point_list[i].p[2],
-            - warpedPointset.point_list[i].p[0],
-            - warpedPointset.point_list[i].p[1],
-            warpedPointset.point_list[i].p[2]);
-    this->WarpedLandmarks->InsertPoint(i,
-      - warpedPointset.point_list[i].p[0],
-      - warpedPointset.point_list[i].p[1],
-      warpedPointset.point_list[i].p[2]);
-    }
 }
 

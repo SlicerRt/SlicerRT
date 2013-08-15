@@ -73,6 +73,9 @@ public:
   /// Execute registration
   void RunRegistration();
 
+  /// This function warps the landmarks according to OutputTransformation
+  void WarpLandmarks();
+
 public:
   // Description:
   // Set/get the ID of the fixed image (image data type must be "float").
@@ -183,9 +186,6 @@ private:
 
   /// This function shows the output image into the Slicer scene
   void GetOutputImage();
-
-  /// This function warps the landmarks according to OutputTransformation
-  void WarpLandmarks();
 
 private:
   
