@@ -1,4 +1,3 @@
-
 #-----------------------------------------------------------------------------
 set(MODULE_NAME Plastimatch)
 set(MODULE_TITLE ${MODULE_NAME})
@@ -75,7 +74,6 @@ slicerMacroBuildQtModule(
   )
 
 #-----------------------------------------------------------------------------
-if(BUILD_TESTING)
-  add_subdirectory(Testing)
-endif()
-
+#if(BUILD_TESTING)
+#  add_subdirectory(Testing)
+#endif()

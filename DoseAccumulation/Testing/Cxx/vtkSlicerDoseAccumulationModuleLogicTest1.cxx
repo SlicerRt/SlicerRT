@@ -40,9 +40,6 @@
 #include <vtkImageAccumulate.h>
 #include <vtkMatrix4x4.h>
 #include <vtkImageMathematics.h>
-#ifdef WIN32
-  #include <vtkWin32OutputWindow.h>
-#endif
 
 // ITK includes
 #if ITK_VERSION_MAJOR > 3
@@ -127,16 +124,6 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   // Make sure NRRD reading works
 #if ITK_VERSION_MAJOR > 3
   itk::itkFactoryRegistration();
-#endif
-
-  // Direct vtk messages on standard output
-  //TODO: Remove when supported by the test driver (http://www.na-mic.org/Bug/view.php?id=3221)
-#ifdef WIN32
-  vtkWin32OutputWindow* outputWindow = vtkWin32OutputWindow::SafeDownCast(vtkOutputWindow::GetInstance());
-  if (outputWindow)
-  {
-    outputWindow->SendToStdErrOn();
-  }
 #endif
 
   // Create scene
