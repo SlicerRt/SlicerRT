@@ -76,9 +76,13 @@ public:
   /// Set currently selected contour or contour hierarchy node
   void setCurrentNodeID(const QString& nodeID);
 
+  /// Set forced reference volume node by ID.
+  /// Forced means that there will be no search for a default (DICOM-based) referenced volume, this will be used instead
+  void setForcedReferenceVolumeNodeID(const QString& nodeID);
+
 signals:
   /// Emitted if the currently selected contour or contour hierarchy node changed
-  void currentNodeChanged();
+  void currentNodeChanged(vtkMRMLNode*);
 
 protected:
   /// Update widget state according to selection and set widget properties

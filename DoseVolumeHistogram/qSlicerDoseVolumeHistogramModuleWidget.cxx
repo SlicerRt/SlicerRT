@@ -215,11 +215,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     }
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetStructureSetContourNodeId()))
     {
-      d->MRMLNodeComboBox_StructureSet->setCurrentNodeID(paramNode->GetStructureSetContourNodeId());
+      d->ContourSelectorWidget->setCurrentNodeID(paramNode->GetStructureSetContourNodeId());
     }
     else
     {
-      this->structureSetNodeChanged(d->MRMLNodeComboBox_StructureSet->currentNode());
+      this->structureSetNodeChanged(d->ContourSelectorWidget->currentNode());
     }
     if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetChartNodeId()))
     {
@@ -263,13 +263,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   // Show only dose volumes in the dose volume combobox by default
   d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
 
-  // Filter out hierarchy nodes that are not contour hierarchy nodes
-  d->MRMLNodeComboBox_StructureSet->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
+  // Set up contour selector widget
+  d->ContourSelectorWidget->setAcceptContourHierarchies(true);
+  d->ContourSelectorWidget->setRequiredRepresentation(vtkMRMLContourNode::IndexedLabelmap);
 
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( setDoseVolumeHistogramNode(vtkMRMLNode*) ) );
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
-  connect( d->MRMLNodeComboBox_StructureSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( structureSetNodeChanged(vtkMRMLNode*) ) );
+  connect( d->ContourSelectorWidget, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( structureSetNodeChanged(vtkMRMLNode*) ) );
   connect( d->MRMLNodeComboBox_Chart, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( chartNodeChanged(vtkMRMLNode*) ) );
 
   connect( d->pushButton_ComputeDVH, SIGNAL( clicked() ), this, SLOT( computeDvhClicked() ) );
@@ -443,6 +444,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
   this->updateButtonsState();
 
   d->label_NotDoseVolumeWarning->setVisible(!d->logic()->DoseVolumeContainsDose());
+
+  // Set forced reference volume in contour selector widget to ensure this dose volume is selected as reference
+  d->ContourSelectorWidget->setForcedReferenceVolumeNodeID(node->GetID());
 }
 
 //-----------------------------------------------------------------------------
@@ -750,7 +754,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
 
   // Compute the DVH for the selected structure set using the selected dose volume
   std::string errorMessage;
-  d->logic()->ComputeDvh(errorMessage);
+  d->logic()->ComputeDvh(d->ContourSelectorWidget->selectedContourNodes(), errorMessage);
 
   d->label_Error->setVisible( !errorMessage.empty() );
   d->label_Error->setText( QString(errorMessage.c_str()) );

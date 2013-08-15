@@ -334,61 +334,10 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::GetSelectedContourNodes(std::vector<vtkMRMLContourNode*> &contourNodes)
-{
-  contourNodes.clear();
-
-  if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
-  {
-    return;
-  }
-
-  vtkMRMLNode* structureSetContourNode = this->GetMRMLScene()->GetNodeByID(
-    this->DoseVolumeHistogramNode->GetStructureSetContourNodeId());
-
-  if (structureSetContourNode->IsA("vtkMRMLContourNode"))
-  {
-    vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(structureSetContourNode);
-    if (contourNode)
-    {
-      contourNodes.push_back(contourNode);
-    }
-  }
-  else if (structureSetContourNode->IsA("vtkMRMLDisplayableHierarchyNode") && structureSetContourNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
-  {
-    vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
-    vtkMRMLDisplayableHierarchyNode::SafeDownCast(structureSetContourNode)->GetChildrenDisplayableNodes(childContourNodes);
-    childContourNodes->InitTraversal();
-    if (childContourNodes->GetNumberOfItems() < 1)
-    {
-      vtkErrorMacro("Error: Selected Structure Set hierarchy node has no children contour nodes!");
-      return;
-    }
-    
-    for (int i=0; i<childContourNodes->GetNumberOfItems(); ++i)
-    {
-      vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(childContourNodes->GetItemAsObject(i));
-      if (contourNode)
-      {
-        contourNodes.push_back(contourNode);
-      }
-    }
-  }
-  else
-  {
-    vtkErrorMacro("Error: Invalid node type for ContourNode!");
-    return;
-  }
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(std::string &errorMessage)
+void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(std::vector<vtkMRMLContourNode*> structureContourNodes, std::string &errorMessage)
 {
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
-
-  std::vector<vtkMRMLContourNode*> structureContourNodes;
-  this->GetSelectedContourNodes(structureContourNodes);
 
   if (structureContourNodes.size() == 0)
   {

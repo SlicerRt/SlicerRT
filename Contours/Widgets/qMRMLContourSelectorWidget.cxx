@@ -53,6 +53,10 @@ public:
   /// List of currently selected contour nodes. Contains the selected
   /// contour node or the children of the selected contour hierarchy node
   std::vector<vtkMRMLContourNode*> SelectedContourNodes;
+
+  /// Forced reference volume node by ID.
+  /// Forced means that there will be no search for a default (DICOM-based) referenced volume, this will be used instead
+  QString ForcedReferenceVolumeNodeID;
 };
 
 //------------------------------------------------------------------------------
@@ -61,6 +65,7 @@ qMRMLContourSelectorWidgetPrivate::qMRMLContourSelectorWidgetPrivate(qMRMLContou
 {
   this->RequiredRepresentation = vtkMRMLContourNode::None;
   this->AcceptContourHierarchies = false;
+  this->ForcedReferenceVolumeNodeID.clear();
 }
 
 //------------------------------------------------------------------------------
@@ -136,23 +141,38 @@ void qMRMLContourSelectorWidget::updateWidgetState()
     {
       d->frame_ReferenceVolumeSelection->setVisible(true);
 
-      // Look for referenced volume for contours and set it as default if found
-      vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeForContours(d->SelectedContourNodes);
-      if (referencedVolume)
+      if (d->ForcedReferenceVolumeNodeID.isEmpty())
       {
-        // Set referenced volume and turn off oversampling in selected contours
-        d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(referencedVolume->GetID());
-        d->label_OversamplingFactorValue->setText("1");
-
-        for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
+        // Look for referenced volume for contours and set it as default if found
+        vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeForContours(d->SelectedContourNodes);
+        if (referencedVolume)
         {
-          (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
-          (*contourIt)->SetRasterizationOversamplingFactor(1.0);
+          // Set referenced volume and turn off oversampling in selected contours
+          d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(referencedVolume->GetID());
+          d->label_OversamplingFactorValue->setText("1");
+
+          for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
+          {
+            (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
+            (*contourIt)->SetRasterizationOversamplingFactor(1.0);
+          }
+        }
+        else
+        {
+          // Set forced reference volume and turn on oversampling in selected contours
+          d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(d->ForcedReferenceVolumeNodeID);
+          d->label_OversamplingFactorValue->setText("2");
+
+          for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
+          {
+            (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(d->ForcedReferenceVolumeNodeID.toLatin1().constData());
+            (*contourIt)->SetRasterizationOversamplingFactor(2.0);
+          }
         }
       }
       else
       {
-        d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(NULL);
+        d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(d->ForcedReferenceVolumeNodeID);
         d->label_OversamplingFactorValue->setText("2");
 
         for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
@@ -288,3 +308,12 @@ std::vector<vtkMRMLContourNode*> qMRMLContourSelectorWidget::selectedContourNode
   return d->SelectedContourNodes;
 }
 
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::setForcedReferenceVolumeNodeID(const QString& nodeID)
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  d->ForcedReferenceVolumeNodeID = nodeID;
+
+  this->updateWidgetState();
+}

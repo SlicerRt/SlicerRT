@@ -11,8 +11,9 @@ add_subdirectory(Logic)
 set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 
 set(MODULE_INCLUDE_DIRECTORIES
-  ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
+  ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
+  ${qSlicerContoursModuleWidgets_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -33,6 +34,8 @@ set(MODULE_UI_SRCS
 
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
+  vtkSlicerContoursModuleMRML
+  qSlicerContoursModuleWidgets
   )
 
 set(MODULE_RESOURCES

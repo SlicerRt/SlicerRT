@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>376</width>
-    <height>513</height>
+    <height>543</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -115,29 +115,6 @@
           <property name="nodeTypes">
            <stringlist>
             <string>vtkMRMLScalarVolumeNode</string>
-           </stringlist>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_StructureSet">
-          <property name="text">
-           <string>Structure set:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_StructureSet">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>23</height>
-           </size>
-          </property>
-          <property name="nodeTypes">
-           <stringlist>
-            <string>vtkMRMLContourNode</string>
-            <string>vtkMRMLDisplayableHierarchyNode</string>
            </stringlist>
           </property>
          </widget>
@@ -324,6 +301,16 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item row="1" column="1">
+         <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_StructureSet">
+          <property name="text">
+           <string>Structure set:</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -860,10 +847,21 @@
    <header>qMRMLNodeComboBox.h</header>
   </customwidget>
   <customwidget>
+   <class>qMRMLWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLContourSelectorWidget</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLContourSelectorWidget.h</header>
   </customwidget>
   <customwidget>
    <class>ctkCollapsibleButton</class>
@@ -887,24 +885,8 @@
      <y>60</y>
     </hint>
     <hint type="destinationlabel">
-     <x>388</x>
-     <y>238</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerDoseVolumeHistogramModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_StructureSet</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>351</x>
-     <y>2</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>424</x>
-     <y>93</y>
+     <x>228</x>
+     <y>270</y>
     </hint>
    </hints>
   </connection>
@@ -919,8 +901,8 @@
      <y>3</y>
     </hint>
     <hint type="destinationlabel">
-     <x>456</x>
-     <y>67</y>
+     <x>368</x>
+     <y>80</y>
     </hint>
    </hints>
   </connection>
@@ -937,6 +919,22 @@
     <hint type="destinationlabel">
      <x>166</x>
      <y>11</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDoseVolumeHistogramModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ContourSelectorWidget</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>306</x>
+     <y>4</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>304</x>
+     <y>92</y>
     </hint>
    </hints>
   </connection>
