@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>292</width>
-    <height>104</height>
+    <height>116</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,6 +31,9 @@
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <property name="spacing">
       <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>4</number>
      </property>
      <item>
       <widget class="QFrame" name="frame_ReferenceVolumeSelection">
@@ -136,7 +139,7 @@ p, li { white-space: pre-wrap; }
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>20</height>
+         <height>18</height>
         </size>
        </property>
        <property name="font">
@@ -158,7 +161,7 @@ p, li { white-space: pre-wrap; }
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>20</height>
+         <height>18</height>
         </size>
        </property>
        <property name="font">
@@ -181,7 +184,7 @@ Different parameters can be applied in the Contours module</string>
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>20</height>
+         <height>18</height>
         </size>
        </property>
        <property name="font">
@@ -192,6 +195,29 @@ Different parameters can be applied in the Contours module</string>
        </property>
        <property name="text">
         <string>No contours in selection</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_NewConversion">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>18</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>The selected reference volume is different than the one used for creating the
+indexed labelmap of this selection. New conversion will take place when performing the action.</string>
+       </property>
+       <property name="text">
+        <string>New conversion will take place</string>
        </property>
       </widget>
      </item>

@@ -216,11 +216,11 @@ void vtkMRMLContourMorphologyNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "ContourANodeId:   " << this->ContourANodeId << "\n";
-  os << indent << "ContourBNodeId:   " << this->ContourBNodeId << "\n";
-  os << indent << "ReferenceVolumeNodeId:   " << this->ReferenceVolumeNodeId << "\n";
-  os << indent << "OutputContourNodeId:   " << this->OutputContourNodeId << "\n";
-  os << indent << "Operation:   " << (this->Operation) << "\n";
+  os << indent << "ContourANodeId:   " << (this->ContourANodeId ? this->ContourANodeId : "NULL") << "\n";
+  os << indent << "ContourBNodeId:   " << (this->ContourBNodeId ? this->ContourBNodeId : "NULL") << "\n";
+  os << indent << "ReferenceVolumeNodeId:   " << (this->ReferenceVolumeNodeId ? this->ReferenceVolumeNodeId : "NULL") << "\n";
+  os << indent << "OutputContourNodeId:   " << (this->OutputContourNodeId ? this->OutputContourNodeId : "NULL") << "\n";
+  os << indent << "Operation:   " << (int)(this->Operation) << "\n";
   os << indent << "XSize:   " << (this->XSize) << "\n";
   os << indent << "YSize:   " << (this->YSize) << "\n";
   os << indent << "ZSize:   " << (this->ZSize) << "\n";

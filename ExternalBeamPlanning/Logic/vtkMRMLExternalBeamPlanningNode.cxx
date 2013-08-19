@@ -165,10 +165,10 @@ void vtkMRMLExternalBeamPlanningNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "ReferenceVolumeNodeID:   " << this->ReferenceVolumeNodeID << "\n";
-  os << indent << "RTPlanNodeID:   " << this->RTPlanNodeID << "\n";
-  os << indent << "IsocenterNodeID:   " << this->IsocenterNodeID << "\n";
-  os << indent << "ProtonTargetVolumeNodeID:   " << this->ProtonTargetVolumeNodeID << "\n";
+  os << indent << "ReferenceVolumeNodeID:   " << (this->ReferenceVolumeNodeID ? this->ReferenceVolumeNodeID : "NULL") << "\n";
+  os << indent << "RTPlanNodeID:   " << (this->RTPlanNodeID ? this->RTPlanNodeID : "NULL") << "\n";
+  os << indent << "IsocenterNodeID:   " << (this->IsocenterNodeID ? this->IsocenterNodeID : "NULL") << "\n";
+  os << indent << "ProtonTargetVolumeNodeID:   " << (this->ProtonTargetVolumeNodeID ? this->ProtonTargetVolumeNodeID : "NULL") << "\n";
 }
 
 //----------------------------------------------------------------------------

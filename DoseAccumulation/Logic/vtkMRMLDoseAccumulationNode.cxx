@@ -247,8 +247,8 @@ void vtkMRMLDoseAccumulationNode::PrintSelf(ostream& os, vtkIndent indent)
     os << "\n";
   }
 
-  os << indent << "ReferenceDoseVolumeNodeId:   " << this->ReferenceDoseVolumeNodeId << "\n";
-  os << indent << "AccumulatedDoseVolumeNodeId:   " << this->AccumulatedDoseVolumeNodeId << "\n";
+  os << indent << "ReferenceDoseVolumeNodeId:   " << (this->ReferenceDoseVolumeNodeId ? this->ReferenceDoseVolumeNodeId : "NULL") << "\n";
+  os << indent << "AccumulatedDoseVolumeNodeId:   " << (this->AccumulatedDoseVolumeNodeId ? this->AccumulatedDoseVolumeNodeId : "NULL") << "\n";
 }
 
 //----------------------------------------------------------------------------

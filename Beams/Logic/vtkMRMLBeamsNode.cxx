@@ -164,9 +164,9 @@ void vtkMRMLBeamsNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "IsocenterFiducialNodeId:   " << this->IsocenterFiducialNodeId << "\n";
-  os << indent << "SourceFiducialNodeId:   " << this->SourceFiducialNodeId << "\n";
-  os << indent << "BeamModelNodeId:   " << this->BeamModelNodeId << "\n";
+  os << indent << "IsocenterFiducialNodeId:   " << (this->IsocenterFiducialNodeId ? this->IsocenterFiducialNodeId : "NULL") << "\n";
+  os << indent << "SourceFiducialNodeId:   " << (this->SourceFiducialNodeId ? this->SourceFiducialNodeId : "NULL") << "\n";
+  os << indent << "BeamModelNodeId:   " << (this->BeamModelNodeId ? this->BeamModelNodeId : "NULL") << "\n";
   os << indent << "BeamModelOpacity:   " << this->BeamModelOpacity << "\n";
 }
 

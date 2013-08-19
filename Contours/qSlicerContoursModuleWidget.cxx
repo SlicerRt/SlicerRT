@@ -378,7 +378,7 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
   }
 
   // Look for referenced volume for contours and set it as default if found
-  vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeForContours(d->SelectedContourNodes);
+  vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContours(d->SelectedContourNodes);
   if (referencedVolume)
   {
     for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)

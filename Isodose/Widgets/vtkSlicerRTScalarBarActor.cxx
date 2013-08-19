@@ -57,7 +57,7 @@ void vtkSlicerRTScalarBarActor::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "UseColorNameAsLabel: " << this->UseColorNameAsLabel << "\n";
+  os << indent << "UseColorNameAsLabel:   " << this->UseColorNameAsLabel << "\n";
 }
 
 //---------------------------------------------------------------------------

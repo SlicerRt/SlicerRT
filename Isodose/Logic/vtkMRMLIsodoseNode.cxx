@@ -177,9 +177,9 @@ void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "DoseVolumeNodeId:   " << this->DoseVolumeNodeId << "\n";
-  os << indent << "ColorTableNodeId:   " << this->ColorTableNodeId << "\n";
-  os << indent << "IsodoseSurfaceModelsParentHierarchyNodeId:   " << this->IsodoseSurfaceModelsParentHierarchyNodeId << "\n";
+  os << indent << "DoseVolumeNodeId:   " << (this->DoseVolumeNodeId ? this->DoseVolumeNodeId : "NULL") << "\n";
+  os << indent << "ColorTableNodeId:   " << (this->ColorTableNodeId ? this->ColorTableNodeId : "NULL") << "\n";
+  os << indent << "IsodoseSurfaceModelsParentHierarchyNodeId:   " << (this->IsodoseSurfaceModelsParentHierarchyNodeId ? this->IsodoseSurfaceModelsParentHierarchyNodeId : "NULL") << "\n";
   os << indent << "ShowIsodoseLines:   " << (this->ShowIsodoseLines ? "true" : "false") << "\n";
   os << indent << "ShowIsodoseSurfaces:   " << (this->ShowIsodoseSurfaces ? "true" : "false") << "\n";
   os << indent << "ShowScalarBar:   " << (this->ShowScalarBar ? "true" : "false") << "\n";

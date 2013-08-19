@@ -221,9 +221,9 @@ void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "ReferenceDoseVolumeNodeId:   " << this->ReferenceDoseVolumeNodeId << "\n";
-  os << indent << "CompareDoseVolumeNodeId:   " << this->CompareDoseVolumeNodeId << "\n";
-  os << indent << "GammaVolumeNodeId:   " << this->GammaVolumeNodeId << "\n";
+  os << indent << "ReferenceDoseVolumeNodeId:   " << (this->ReferenceDoseVolumeNodeId ? this->ReferenceDoseVolumeNodeId : "NULL") << "\n";
+  os << indent << "CompareDoseVolumeNodeId:   " << (this->CompareDoseVolumeNodeId ? this->CompareDoseVolumeNodeId : "NULL") << "\n";
+  os << indent << "GammaVolumeNodeId:   " << (this->GammaVolumeNodeId ? this->GammaVolumeNodeId : "NULL") << "\n";
 
   os << indent << "DtaDistanceToleranceMm:   " << this->DtaDistanceToleranceMm << "\n";
   os << indent << "DoseDifferenceTolerancePercent:   " << this->DoseDifferenceTolerancePercent << "\n";

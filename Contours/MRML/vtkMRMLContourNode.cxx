@@ -276,11 +276,11 @@ void vtkMRMLContourNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "RibbonModelNodeId:   " << this->RibbonModelNodeId << "\n";
-  os << indent << "IndexedLabelmapVolumeNodeId:   " << this->IndexedLabelmapVolumeNodeId << "\n";
-  os << indent << "ClosedSurfaceModelNodeId:   " << this->ClosedSurfaceModelNodeId << "\n";
-  os << indent << "RasterizationReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
-  os << indent << "ActiveRepresentationType:   " << this->ActiveRepresentationType << "\n";
+  os << indent << "RibbonModelNodeId:   " << (this->RibbonModelNodeId ? this->RibbonModelNodeId : "NULL") << "\n";
+  os << indent << "IndexedLabelmapVolumeNodeId:   " << (this->IndexedLabelmapVolumeNodeId ? this->IndexedLabelmapVolumeNodeId : "NULL") << "\n";
+  os << indent << "ClosedSurfaceModelNodeId:   " << (this->ClosedSurfaceModelNodeId ? this->ClosedSurfaceModelNodeId : "NULL") << "\n";
+  os << indent << "RasterizationReferenceVolumeNodeId:   " << (this->RasterizationReferenceVolumeNodeId ? this->RasterizationReferenceVolumeNodeId : "NULL") << "\n";
+  os << indent << "ActiveRepresentationType:   " << (int)this->ActiveRepresentationType << "\n";
   os << indent << "RasterizationOversamplingFactor:   " << this->RasterizationOversamplingFactor << "\n";
   os << indent << "DecimationTargetReductionFactor:   " << this->DecimationTargetReductionFactor << "\n";
 }
@@ -374,11 +374,16 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
 //----------------------------------------------------------------------------
 void vtkMRMLContourNode::SetAndObserveRibbonModelNodeIdOnly(const char *nodeID)
 {
-  vtkSetAndObserveMRMLObjectMacro(this->RibbonModelNode, NULL);
-  this->SetRibbonModelNodeId(nodeID);
+  vtkMRMLNode* emptyRibbonModelNode = NULL;
   if (this->RibbonModelContainsEmptyPolydata() && this->Scene)
     {
-    this->Scene->RemoveNode(this->RibbonModelNode);
+    emptyRibbonModelNode = this->RibbonModelNode;
+    }
+  vtkSetAndObserveMRMLObjectMacro(this->RibbonModelNode, NULL);
+  this->SetRibbonModelNodeId(nodeID);
+  if (emptyRibbonModelNode)
+    {
+    this->Scene->RemoveNode(emptyRibbonModelNode);
     }
   if (!nodeID)
     {
@@ -563,19 +568,119 @@ vtkMRMLModelNode* vtkMRMLContourNode::GetClosedSurfaceModelNode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const char* id)
 {
+  if ( this->RasterizationReferenceVolumeNodeId && id
+    && !STRCASECMP(this->RasterizationReferenceVolumeNodeId, id) )
+    {
+    // The same reference volume is to be set as the current one - no action necessary
+    return;
+    }
+  if (this->HasBeenCreatedFromIndexedLabelmap())
+    {
+    // If the contour has been created from a labelmap, then another reference volume cannot be set
+    // (especially that the reference being the labelmap itself indicates the fact that it has been created from labelmap)
+    vtkWarningMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Cannot set rasterization reference volume to a contour that has been created from an indexed labelmap");
+    return;
+    }
+
   if (this->RasterizationReferenceVolumeNodeId && this->Scene)
     {
     this->Scene->RemoveReferencedNodeID(this->RasterizationReferenceVolumeNodeId, this);
     }
 
-  this->SetRasterizationReferenceVolumeNodeId(id);
+  // Invalidate indexed labelmap representation if it exists and rasterization reference volume has changed (from a value other than the default invalid value),
+  // because it is assumed that the current reference volume was used when creating the indexed labelmap, and allowing a reference volume change without
+  // invalidating the labelmap would introduce inconsistency.
+  if (this->IndexedLabelmapVolumeNodeId && this->RasterizationReferenceVolumeNodeId != NULL)
+    {
+    vtkWarningMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Invalidating current indexed labelmap as the rasterization reference volume has been explicitly changed!");
+
+    this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
+
+    if (this->IndexedLabelmapVolumeNode && this->Scene->IsNodePresent(this->IndexedLabelmapVolumeNode))
+      {
+      this->Scene->RemoveNode(this->IndexedLabelmapVolumeNode);
+      }
+    else
+      {
+      vtkErrorMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Representation cannot be removed from scene because the node is not present there!");
+      }
+    }
 
   if (id && this->Scene)
     {
     this->Scene->AddReferencedNodeID(this->RasterizationReferenceVolumeNodeId, this);
     }
+
+  this->SetRasterizationReferenceVolumeNodeId(id);
 }
 
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetRasterizationOversamplingFactor(double oversamplingFactor)
+{
+  if (this->RasterizationOversamplingFactor == oversamplingFactor)
+    {
+    // The oversampling factor is to be set as the current one - no action necessary
+    return;
+    }
+  if (this->HasBeenCreatedFromIndexedLabelmap())
+    {
+    // If the contour has been created from a labelmap, then another oversampling factor cannot be set
+    vtkWarningMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Cannot set rasterization oversampling factor to a contour that has been created from an indexed labelmap");
+    return;
+    }
+
+  // Invalidate indexed labelmap representation if it exists and rasterization oversampling factor has changed (from a value other than the default invalid value),
+  // because it is assumed that the current oversampling factor was used when creating the indexed labelmap, and allowing an oversampling factor change without
+  // invalidating the labelmap would introduce inconsistency.
+  if (this->IndexedLabelmapVolumeNodeId && this->RasterizationOversamplingFactor != -1)
+    {
+    vtkWarningMacro("SetRasterizationOversamplingFactor: Invalidating current indexed labelmap as the rasterization oversampling factor has been explicitly changed!");
+
+    this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
+
+    if (this->IndexedLabelmapVolumeNode && this->Scene->IsNodePresent(this->IndexedLabelmapVolumeNode))
+      {
+      this->Scene->RemoveNode(this->IndexedLabelmapVolumeNode);
+      }
+    else
+      {
+      vtkErrorMacro("SetRasterizationOversamplingFactor: Representation cannot be removed from scene because the node is not present there!");
+      }
+    }
+
+  this->RasterizationOversamplingFactor = oversamplingFactor;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetDecimationTargetReductionFactor(double targetReductionFactor)
+{
+  if (this->DecimationTargetReductionFactor == targetReductionFactor)
+    {
+    // The target reduction factor is to be set as the current one - no action necessary
+    return;
+    }
+
+  // Invalidate closed surface model representation if it exists and decimation target reduction factor has changed (from a value other than the default invalid value),
+  // because it is assumed that the current target reduction factor was used when creating the closed surface model, and allowing a target reduction factor change
+  // without invalidating the surface model would introduce inconsistency.
+  if (this->ClosedSurfaceModelNodeId && this->DecimationTargetReductionFactor != -1)
+    {
+    vtkWarningMacro("SetDecimationTargetReductionFactor: Invalidating current closed surface model as the decimation target reduction factor has been explicitly changed!");
+
+    this->SetAndObserveClosedSurfaceModelNodeId(NULL);
+
+    if (this->ClosedSurfaceModelNode && this->Scene->IsNodePresent(this->ClosedSurfaceModelNode))
+      {
+      this->Scene->RemoveNode(this->ClosedSurfaceModelNode);
+      }
+    else
+      {
+      vtkErrorMacro("SetDecimationTargetReductionFactor: Representation cannot be removed from scene because the node is not present there!");
+      }
+    }
+
+  this->DecimationTargetReductionFactor = targetReductionFactor;
+}
 
 //----------------------------------------------------------------------------
 std::vector<vtkMRMLDisplayableNode*> vtkMRMLContourNode::CreateTemporaryRepresentationsVector()

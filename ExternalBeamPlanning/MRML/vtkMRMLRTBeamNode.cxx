@@ -191,7 +191,7 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "BeamModelNodeId:   " << this->BeamModelNodeId << "\n";
+  os << indent << "BeamModelNodeId:   " << (this->BeamModelNodeId ? this->BeamModelNodeId : "NULL") << "\n";
 }
 
 //----------------------------------------------------------------------------

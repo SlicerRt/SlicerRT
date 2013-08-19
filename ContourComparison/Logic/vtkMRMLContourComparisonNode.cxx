@@ -394,9 +394,9 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "ReferenceContourNodeId:   " << this->ReferenceContourNodeId << "\n";
-  os << indent << "CompareContourNodeId:   " << this->CompareContourNodeId << "\n";
-  os << indent << "RasterizationReferenceVolumeNodeId:   " << this->RasterizationReferenceVolumeNodeId << "\n";
+  os << indent << "ReferenceContourNodeId: " << (this->ReferenceContourNodeId ? this->ReferenceContourNodeId : "NULL") << "\n";
+  os << indent << "CompareContourNodeId: " << (this->CompareContourNodeId ? this->CompareContourNodeId : "NULL") << "\n";
+  os << indent << "RasterizationReferenceVolumeNodeId: " << (this->RasterizationReferenceVolumeNodeId ? this->RasterizationReferenceVolumeNodeId : "NULL") << "\n";
 
   os << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
   os << indent << " TruePositivesPercent=\"" << this->TruePositivesPercent << "\"";

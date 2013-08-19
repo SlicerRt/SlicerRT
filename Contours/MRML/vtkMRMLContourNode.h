@@ -150,12 +150,12 @@ public:
   /// Get rasterization oversampling factor
   vtkGetMacro(RasterizationOversamplingFactor, double);
   /// Set rasterization oversampling factor
-  vtkSetMacro(RasterizationOversamplingFactor, double);
+  void SetRasterizationOversamplingFactor(double oversamplingFactor);
 
   /// Get target reduction factor
   vtkGetMacro(DecimationTargetReductionFactor, double);
   /// Set target reduction factor
-  vtkSetMacro(DecimationTargetReductionFactor, double);
+  void SetDecimationTargetReductionFactor(double targetReductionFactor);
 
 protected:
   /// Create a temporary vector for easier batch handling of representations

@@ -309,9 +309,9 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "DoseVolumeNodeId:   " << this->DoseVolumeNodeId << "\n";
-  os << indent << "StructureSetContourNodeId:   " << this->StructureSetContourNodeId << "\n";
-  os << indent << "ChartNodeId:   " << this->ChartNodeId << "\n";
+  os << indent << "DoseVolumeNodeId:   " << (this->DoseVolumeNodeId ? this->DoseVolumeNodeId : "NULL") << "\n";
+  os << indent << "StructureSetContourNodeId:   " << (this->StructureSetContourNodeId ? this->StructureSetContourNodeId : "NULL") << "\n";
+  os << indent << "ChartNodeId:   " << (this->ChartNodeId ? this->ChartNodeId : "NULL") << "\n";
 
   {
     os << indent << "DvhDoubleArrayNodeIds:   ";

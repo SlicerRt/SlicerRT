@@ -59,12 +59,18 @@ public:
 
   /// Get the common representation in contour list.
   /// \param contours Input list of collected contour nodes
-  /// \return The common representation in the input contours or 'None' when they are not the same (in case of hierarchy)
+  /// \return The common representation in the input contours or 'None' when they are not the same
   static vtkMRMLContourNode::ContourRepresentationType GetRepresentationTypeOfContours(std::vector<vtkMRMLContourNode*>& contours);
+
+  /// Get the common rasterization reference volume in contour list.
+  /// \param contours Input list of collected contour nodes
+  /// \param sameReferenceVolumeInContours Output parameter: True if the reference volumes in the contours are the same, false otherwise
+  /// \return The common rasterization reference volume in the input contours or NULL when they are not the same
+  static const char* GetRasterizationReferenceVolumeOfContours(std::vector<vtkMRMLContourNode*>& contours, bool &sameReferenceVolumeInContours);
 
   /// Get referenced volume for list of contours according to patient hierarchy attributes
   /// \return The common reference volume for the contours if any, NULL otherwise
-  static vtkMRMLScalarVolumeNode* GetReferencedVolumeForContours(std::vector<vtkMRMLContourNode*>& contours);
+  static vtkMRMLScalarVolumeNode* GetReferencedVolumeByDicomForContours(std::vector<vtkMRMLContourNode*>& contours);
 
   /// Determine if the selected contours contain a certain representation
   /// \param contours List of contours to examine

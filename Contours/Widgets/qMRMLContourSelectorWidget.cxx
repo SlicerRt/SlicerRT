@@ -144,7 +144,7 @@ void qMRMLContourSelectorWidget::updateWidgetState()
       if (d->ForcedReferenceVolumeNodeID.isEmpty())
       {
         // Look for referenced volume for contours and set it as default if found
-        vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeForContours(d->SelectedContourNodes);
+        vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContours(d->SelectedContourNodes);
         if (referencedVolume)
         {
           // Set referenced volume and turn off oversampling in selected contours

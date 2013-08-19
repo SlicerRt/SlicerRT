@@ -387,7 +387,36 @@ vtkMRMLContourNode::ContourRepresentationType vtkSlicerContoursModuleLogic::GetR
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeForContours(std::vector<vtkMRMLContourNode*>& contours)
+const char* vtkSlicerContoursModuleLogic::GetRasterizationReferenceVolumeOfContours(std::vector<vtkMRMLContourNode*>& contours, bool &sameReferenceVolumeInContours)
+{
+  sameReferenceVolumeInContours = true;
+  std::string rasterizationReferenceVolumeNodeId("");
+
+  for (std::vector<vtkMRMLContourNode*>::iterator it = contours.begin(); it != contours.end(); ++it)
+  {
+    if (rasterizationReferenceVolumeNodeId.empty())
+    {
+      rasterizationReferenceVolumeNodeId = std::string((*it)->GetRasterizationReferenceVolumeNodeId());
+    }
+    else if ( ((*it)->GetRasterizationReferenceVolumeNodeId() == NULL && !rasterizationReferenceVolumeNodeId.empty())
+           || ((*it)->GetRasterizationReferenceVolumeNodeId() != NULL && STRCASECMP(rasterizationReferenceVolumeNodeId.c_str(), (*it)->GetRasterizationReferenceVolumeNodeId())) )
+    {
+      sameReferenceVolumeInContours = false;
+    }
+  }
+
+  if (sameReferenceVolumeInContours)
+  {
+    return rasterizationReferenceVolumeNodeId.c_str();
+  }
+  else
+  {
+    return NULL;
+  }
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContours(std::vector<vtkMRMLContourNode*>& contours)
 {
   if (contours.empty())
   {
@@ -417,7 +446,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeForCon
 
     if (!referencedSeriesUid)
     {
-      vtkErrorWithObjectMacro(contourHierarchySeriesNode, "No referenced series UID found for contour '" << contourPatientHierarchyNode->GetName() << "'");
+      vtkWarningWithObjectMacro(contourHierarchySeriesNode, "No referenced series UID found for contour '" << contourPatientHierarchyNode->GetName() << "'");
     }
     // Set a candidate common reference UID in the first loop
     else if (commonReferencedSeriesUid.empty())
@@ -429,6 +458,12 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeForCon
     {
       return NULL;
     }
+  }
+
+  // Return NULL if no referenced UID has been found for any of the contours
+  if (commonReferencedSeriesUid.empty())
+  {
+    return NULL;
   }
 
   // Common referenced series UID found, get corresponding patient hierarchy node
