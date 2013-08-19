@@ -28,17 +28,21 @@ set(MODULE_SRCS
   qSlicer${MODULE_NAME}PluginWidget.h
   qSlicer${MODULE_NAME}Module.cxx
   qSlicer${MODULE_NAME}Module.h
+  qSlicer${MODULE_NAME}OptionsWidget.cxx
+  qSlicer${MODULE_NAME}OptionsWidget.h
 
   )
 
 set(MODULE_MOC_SRCS
   qSlicer${MODULE_NAME}Plugin.h
   qSlicer${MODULE_NAME}PluginWidget.h
+  qSlicer${MODULE_NAME}OptionsWidget.h
   qSlicer${MODULE_NAME}Module.h
   )
 
 set(MODULE_UI_SRCS
   Resources/UI/qSlicer${MODULE_NAME}PluginWidget.ui
+  Resources/UI/qSlicer${MODULE_NAME}OptionsWidget.ui
   )
 
 set(MODULE_TARGET_LIBRARIES

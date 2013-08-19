@@ -41,12 +41,14 @@ public:
   qSlicerVffFileReaderPlugin(QObject* parent = 0);
   qSlicerVffFileReaderPlugin(vtkSlicerVffFileReaderLogic* logic, QObject* parent = 0);
   virtual ~qSlicerVffFileReaderPlugin();
+
   vtkSlicerVffFileReaderLogic* logic()const;
   void setLogic(vtkSlicerVffFileReaderLogic* logic);
 
   virtual QString description()const;
   virtual IOFileType fileType()const;
   virtual QStringList extensions()const;
+  virtual qSlicerIOOptions* options()const;
   virtual bool load(const IOProperties& properties);
 
 protected:

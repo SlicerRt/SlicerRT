@@ -46,7 +46,7 @@ public:
 
   /// Load VFF volume from file
   /// \param filename Path and filename of the VFF file
-  void LoadVffFile(char* filename);
+  void LoadVffFile(char* filename, bool useDataScale, bool useDataOffset);
 
 protected:
   /// A helper function which removes all spaces from the beginning and end of a string, and returns the modified string.

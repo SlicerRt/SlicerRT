@@ -186,7 +186,7 @@ void vtkSlicerVffFileReaderLogic::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
+void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useDataScale, bool useDataOffset)
 {
   ifstream readFileStream;
   readFileStream.open(filename, std::ios::binary);
@@ -621,7 +621,20 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
       vffVolumeNode->SetScene(this->GetMRMLScene());
       vffVolumeNode->SetName(name.c_str());
       vffVolumeNode->SetSpacing(spacing[0], spacing[1], spacing[2]);
-      vffVolumeNode->SetOrigin(origin[0], origin[1], origin[2]);
+      vffVolumeNode->SetOrigin(origin[0], origin[1], origin[2]);          
+      vtkSmartPointer<vtkMatrix4x4> vffInitialIJKToRASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      vffVolumeNode->GetIJKToRASMatrix(vffInitialIJKToRASMatrix);
+      vtkSmartPointer<vtkMatrix4x4> vffFlippedIJKToRASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      vffFlippedIJKToRASMatrix->DeepCopy(vffInitialIJKToRASMatrix);
+      for (int rowCounter = 0; rowCounter < 3; rowCounter++)
+      {
+        for (int columnCounter = 0; columnCounter < 3; columnCounter+=2)
+        {
+          vffFlippedIJKToRASMatrix->SetElement(rowCounter, columnCounter, (-1*(vffInitialIJKToRASMatrix->GetElement(rowCounter, columnCounter))));
+        }
+      }
+      vffVolumeNode->SetIJKToRASMatrix(vffFlippedIJKToRASMatrix);
+
       vffVolumeNode->SetSlicerDataType(type.c_str());
       this->GetMRMLScene()->AddNode(vffVolumeNode);
 
@@ -673,7 +686,22 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
                 float value = 0.0;
 
                 // Applies scaling and offset to the value read from the file
-                value = (*valueFromFile)*data_scale+data_offset;
+                if (useDataOffset == false && useDataScale == false)
+                {
+                  value = (*valueFromFile);
+                }
+                else if (useDataOffset == true && useDataScale == true)
+                {
+                  value = (*valueFromFile)*data_scale+data_offset;
+                }
+                else if (useDataOffset == false && useDataScale == true)
+                {
+                  value = (*valueFromFile)*data_scale;
+                }
+                else
+                {
+                  value = (*valueFromFile)+data_offset;
+                }
 
                 // Sets the point in the image data to the scaled and offset value
                 (*floatPtr) = value;
@@ -698,11 +726,6 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename)
       }
       vffVolumeNode->SetAndObserveImageData(floatVffVolumeData);
 
-      vtkSmartPointer<vtkMatrix4x4> vffVolumeTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      vffVolumeNode->GetIJKToRASMatrix(vffVolumeTransformMatrix);
-      vffVolumeTransformMatrix->SetElement(0, 0, (-1*(vffVolumeTransformMatrix->GetElement(0, 0))));
-      vffVolumeTransformMatrix->SetElement(2, 2, (-1*(vffVolumeTransformMatrix->GetElement(2, 2))));
-      vffVolumeNode->SetIJKToRASMatrix(vffVolumeTransformMatrix);
 
       vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> vffVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
       this->GetMRMLScene()->AddNode(vffVolumeDisplayNode);

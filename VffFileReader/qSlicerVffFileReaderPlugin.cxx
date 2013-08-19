@@ -22,7 +22,8 @@
 
 // SlicerQt includes
 #include "qSlicerVffFileReaderPlugin.h"
-#include "qSlicerVffFileReaderPluginWidget.h"
+//#include "qSlicerVffFileReaderPluginWidget.h"
+#include "qSlicerVffFileReaderOptionsWidget.h"
 
 // Logic includes
 #include "vtkSlicerVffFileReaderLogic.h"
@@ -91,6 +92,12 @@ QStringList qSlicerVffFileReaderPlugin::extensions()const
 }
 
 //-----------------------------------------------------------------------------
+qSlicerIOOptions* qSlicerVffFileReaderPlugin::options()const
+{
+  return new qSlicerVffFileReaderOptionsWidget;
+}
+
+//-----------------------------------------------------------------------------
 bool qSlicerVffFileReaderPlugin::load(const IOProperties& properties) 
 {
   Q_D(qSlicerVffFileReaderPlugin);
@@ -99,7 +106,12 @@ bool qSlicerVffFileReaderPlugin::load(const IOProperties& properties)
   QString fileName = properties["fileName"].toString();
   Q_ASSERT(d->Logic);
 
-  d->Logic->LoadVffFile(fileName.toLatin1().data());
+  bool useDataScaleSetting = properties["dataScale"].toBool();
+  bool useDataOffsetSetting = properties["dataOffset"].toBool();
+
+
+  // Add in here (in the LoadVffFile call) the values of the useDataScale and useDataOffset options, which will be passed to the LoadVffFile function in the logic and will be used to parse the file
+  d->Logic->LoadVffFile(fileName.toLatin1().data(), useDataScaleSetting, useDataOffsetSetting);
 
   this->setLoadedNodes(QStringList());
 
