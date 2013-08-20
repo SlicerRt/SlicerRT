@@ -26,6 +26,7 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkVolumesOrientedResampleUtility.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 #include "vtkSlicerPatientHierarchyPluginHandler.h"
 
@@ -526,4 +527,31 @@ bool vtkSlicerContoursModuleLogic::IsReferenceVolumeValidForAllContours(std::vec
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerContoursModuleLogic::GetIndexedLabelmapWithGivenGeometry(vtkMRMLContourNode* contour, vtkMRMLScalarVolumeNode* referenceVolumeNode, vtkMRMLScalarVolumeNode* outputIndexedLabelmap)
+{
+  if (!contour)
+  {
+    std::cerr << "vtkSlicerContoursModuleLogic::GetIndexedLabelmapWithGivenGeometry: Invalid contour argument!" << std::endl;
+    return;
+  }
+  if (!referenceVolumeNode || !outputIndexedLabelmap)
+  {
+    vtkErrorWithObjectMacro(contour, "GetIndexedLabelmapWithGivenGeometry: Invalid reference volume or output labelmap argument!");
+    return;
+  }
+
+  // Return the contained indexed labelmap representation directly if its lattice matches the reference volume
+  vtkMRMLScalarVolumeNode* inputIndexedLabelmap = contour->GetIndexedLabelmapVolumeNode(); // Also does conversion if necessary
+  if (SlicerRtCommon::DoVolumeLatticesMatch(inputIndexedLabelmap, referenceVolumeNode))
+  {
+    outputIndexedLabelmap->Copy(inputIndexedLabelmap);
+    outputIndexedLabelmap->CopyOrientation(inputIndexedLabelmap); // Make sure the IJK to RAS matrix is copied too (the Copy function does not do this in some cases)
+    return;
+  }
+
+  // Resampling is needed
+  vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode(inputIndexedLabelmap, referenceVolumeNode, outputIndexedLabelmap);
 }

@@ -183,6 +183,9 @@ public:
   /// evenly, and the others linearly interpolated.
   static void StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscreteColorTable, vtkMRMLColorTableNode* output256ValueColorTable, unsigned int numberOfColors=256);
 
+  /// Check if the lattice (grid, geometry) of two volumes are the same
+  static bool DoVolumeLatticesMatch(vtkMRMLVolumeNode* volume1, vtkMRMLVolumeNode* volume2);
+
 //BTX
   /*!
     Convert VTK image to ITK image

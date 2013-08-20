@@ -36,6 +36,8 @@
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLVolumeDisplayNode.h>
+#include <vtkMRMLLabelMapVolumeDisplayNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -143,9 +145,6 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
     {
       newContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(nodeToAdd->GetID());
 
-      // Make sure the volume is treated as a labelmap
-      nodeToAdd->SetAttribute("LabelMap", "1");
-
       // Set the labelmap itself as reference thus indicating there was no conversion from model representation
       newContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(nodeToAdd->GetID());
       newContourNode->SetRasterizationOversamplingFactor(1.0);
@@ -207,14 +206,23 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
   if (nodeToAdd->IsA("vtkMRMLScalarVolumeNode"))
   {
     vtkMRMLScalarVolumeNode* scalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(nodeToAdd);
-    if (scalarVolumeNode->GetDisplayNode())
+
+    // Make sure there is a display node with the right type
+    vtkMRMLDisplayNode* oldDisplayNode = scalarVolumeNode->GetDisplayNode();
+
+    vtkMRMLVolumeDisplayNode* scalarVolumeDisplayNode = vtkMRMLLabelMapVolumeDisplayNode::New();
+    scalarVolumeDisplayNode->SetAndObserveColorNodeID(colorNode->GetID());
+    mrmlScene->AddNode(scalarVolumeDisplayNode);
+    scalarVolumeNode->SetLabelMap(1);
+    scalarVolumeNode->SetAndObserveDisplayNodeID( scalarVolumeDisplayNode->GetID() );
+    scalarVolumeDisplayNode->Delete();
+
+    if (oldDisplayNode)
     {
-      scalarVolumeNode->GetDisplayNode()->SetAndObserveColorNodeID(colorNode->GetID());
+      mrmlScene->RemoveNode(oldDisplayNode);
     }
-    else
-    {
-      vtkErrorMacro("ReparentInsidePatientHierarchy: Scalar volume node '" << scalarVolumeNode->GetName() << "' does not have a display node!");
-    }
+
+    // Do the painting
     vtkSlicerContoursModuleLogic::PaintLabelmapForeground(scalarVolumeNode, numberOfColors);
   }
 

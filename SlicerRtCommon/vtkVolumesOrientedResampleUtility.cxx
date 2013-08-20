@@ -14,10 +14,6 @@
 
 #include "vtkVolumesOrientedResampleUtility.h"
 
-// STD includes
-
-// MRML logic includes
-
 // MRML nodes includes
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLTransformNode.h"
@@ -62,6 +58,7 @@ bool vtkVolumesOrientedResampleUtility
   // Make sure inputs are initialized
   if (!inputVolumeNode || !referenceVolumeNode || !outputVolumeNode)
   {
+    // TODO: error message
     return false;
   }
   referenceVolumeNode->GetImageData()->GetDimensions(dimensions);

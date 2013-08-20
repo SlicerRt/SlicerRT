@@ -84,6 +84,13 @@ public:
   /// \return False if any contour needs reference volume, but is not set, true otherwise
   static bool IsReferenceVolumeValidForAllContours(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
 
+  /// Get the indexed labelmap representation of a contour with a certain geometry (grid, lattice)
+  /// Note: The contour node will not be changed. If the result indexed labelmap needs to be set to the contour, it has to be done manually
+  /// \param Input contour object
+  /// \param referenceVolumeNode Input volume node object that has the desired geometry
+  /// \param outputIndexedLabelmap Output volume node in which the result is copied
+  static void GetIndexedLabelmapWithGivenGeometry(vtkMRMLContourNode* contour, vtkMRMLScalarVolumeNode* referenceVolumeNode, vtkMRMLScalarVolumeNode* outputIndexedLabelmap);
+
 protected:
   /// Create a default structure set node so that contours can be created from potential representations without having
   /// loaded a DICOM-RT study. This method becomes obsolete when creating new patient hierarchy nodes feature is implemented.

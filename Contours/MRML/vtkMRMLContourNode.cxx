@@ -870,6 +870,7 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
   colorNode = vtkMRMLColorTableNode::SafeDownCast( colorNodes->GetItemAsObject(0) );
 
   // Do not continue to look for the color index if it was invalid
+  // It is a feature of the function, that if the colorIndex was initialized as invalid, then only the color node is acquired
   if (colorIndex == SlicerRtCommon::COLOR_INDEX_INVALID)
   {
     vtkDebugMacro("GetColorIndex: Input color index was set to invalid, so the color index is not acquired.")

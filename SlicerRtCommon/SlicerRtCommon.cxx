@@ -311,3 +311,67 @@ void SlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscr
     outputColorTable->SetColor(colorIndex, color[0], color[1], color[2], 1.0);
   }
 }
+
+//---------------------------------------------------------------------------
+bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLVolumeNode* volume1, vtkMRMLVolumeNode* volume2)
+{
+  if (!volume1 || !volume2)
+  {
+    std::cerr << "SlicerRtCommon::DoVolumeLatticesMatch: Invalid (NULL) argument!" << std::endl;
+    return false;
+  }
+
+  // Get VTK image data objects
+  vtkImageData* imageData1 = volume1->GetImageData();
+  vtkImageData* imageData2 = volume2->GetImageData();
+  if (!imageData1 || !imageData2)
+  {
+    vtkErrorWithObjectMacro(volume1, "DoVolumeLatticesMatch: At least one of the input volume nodes does not have a valid image data!");
+    return false;
+  }
+
+  // Compare IJK to RAS matrices (involves checking the spacing and origin too)
+  vtkSmartPointer<vtkMatrix4x4> ijkToRasMatrix1 = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer<vtkMatrix4x4> ijkToRasMatrix2 = vtkSmartPointer<vtkMatrix4x4>::New();
+  volume1->GetIJKToRASMatrix(ijkToRasMatrix1);
+  volume2->GetIJKToRASMatrix(ijkToRasMatrix2);
+  for (int row=0; row<3; ++row)
+  {
+    for (int col=0; col<3; ++col)
+    {
+      if ( fabs(ijkToRasMatrix1->GetElement(row, col) - ijkToRasMatrix2->GetElement(row, col)) > EPSILON )
+      {
+        vtkDebugWithObjectMacro(volume1, "DoVolumeLatticesMatch: IJK to RAS matrices differ!");
+        return false;
+      }
+    }
+  }
+
+  // Check image data properties
+  int dimensions1[3] = {0,0,0};
+  int dimensions2[3] = {0,0,0};
+  imageData1->GetDimensions(dimensions1);
+  imageData2->GetDimensions(dimensions2);
+  if ( dimensions1[0] != dimensions2[0]
+    || dimensions1[1] != dimensions2[1]
+    || dimensions1[2] != dimensions2[2] )
+  {
+    vtkDebugWithObjectMacro(volume1, "DoVolumeLatticesMatch: VTK image data dimensions differ!!");
+    return false;
+  }
+
+  int extent1[6] = {0,0,0,0,0,0};
+  int extent2[6] = {0,0,0,0,0,0};
+  imageData1->GetExtent(extent1);
+  imageData2->GetExtent(extent2);
+  if ( extent1[0] != extent2[0] || extent1[1] != extent2[1]
+    || extent1[2] != extent2[2] || extent1[3] != extent2[3]
+    || extent1[4] != extent2[4] || extent1[5] != extent2[5] )
+  {
+    vtkDebugWithObjectMacro(volume1, "DoVolumeLatticesMatch: VTK image data extents differ!!");
+    return false;
+  }
+
+  // All of the tests passed, declare the lattices the same
+  return true;
+}

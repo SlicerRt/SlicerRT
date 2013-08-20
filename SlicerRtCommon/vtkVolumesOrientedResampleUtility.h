@@ -32,9 +32,6 @@
 // ITK includes
 #include "itkImage.h"
 
-// STD includes
-#include <cstdlib>
-
 /// \ingroup SlicerRt_SlicerRtCommon
 class vtkVolumesOrientedResampleUtility : public vtkObject
 {
@@ -45,13 +42,13 @@ public:
   vtkTypeMacro(vtkVolumesOrientedResampleUtility, vtkObject );
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Perform MRML volume --> ITK image conversion
-  /// Note: Supports only 3-dimensional ITK images
-  /// \param inVolumeNode Input MRML volume node that needs to be converted
-  /// \param outItkVolume Output ITK image that contains the same data with the same lattice as the input MRML volume
-  static bool ResampleInputVolumeNodeToReferenceVolumeNode(vtkMRMLVolumeNode*, 
-                                                           vtkMRMLVolumeNode*,
-                                                           vtkMRMLVolumeNode*);
+  /// TODO:
+  /// Note: Interpolation mode is the default one: nearest neighbor
+  /// \param TODO:
+  /// \param TODO:
+  static bool ResampleInputVolumeNodeToReferenceVolumeNode(vtkMRMLVolumeNode* inVolumeNode, 
+                                                           vtkMRMLVolumeNode* refVolumeNode,
+                                                           vtkMRMLVolumeNode* outVolumeNode);
 
 protected:
   vtkVolumesOrientedResampleUtility();
