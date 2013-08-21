@@ -61,7 +61,13 @@ bool vtkVolumesOrientedResampleUtility
     // TODO: error message
     return false;
   }
-  referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
+
+  // Make sure input volume node is in the scene
+  if (!inputVolumeNode->GetScene())
+  {
+    vtkErrorWithObjectMacro(inputVolumeNode, "vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode: Input volume node is not in a MRML scene!");
+    return false;
+  }
 
   vtkSmartPointer<vtkMatrix4x4> inputVolumeIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   inputVolumeNode->GetIJKToRASMatrix(inputVolumeIJK2RASMatrix);
@@ -74,7 +80,7 @@ bool vtkVolumesOrientedResampleUtility
   outputResliceTransform->SetMatrix(inputVolumeIJK2RASMatrix);
 
   vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
-    referenceVolumeNode->GetScene()->GetNodeByID(inputVolumeNode->GetTransformNodeID()));
+    inputVolumeNode->GetScene()->GetNodeByID(inputVolumeNode->GetTransformNodeID()));
   vtkSmartPointer<vtkMatrix4x4> inputVolumeRAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   if (inputVolumeNodeTransformNode!=NULL)
   {
@@ -88,6 +94,7 @@ bool vtkVolumesOrientedResampleUtility
   reslice->SetInput(inputVolumeNode->GetImageData());
   reslice->SetOutputOrigin(0, 0, 0);
   reslice->SetOutputSpacing(1, 1, 1);
+  referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
   reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
   reslice->SetResliceTransform(outputResliceTransform);
   reslice->Update();

@@ -326,7 +326,14 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLVolumeNode* volume1, vtkMRMLVo
   vtkImageData* imageData2 = volume2->GetImageData();
   if (!imageData1 || !imageData2)
   {
-    vtkErrorWithObjectMacro(volume1, "DoVolumeLatticesMatch: At least one of the input volume nodes does not have a valid image data!");
+    vtkErrorWithObjectMacro(volume1, "SlicerRtCommon::DoVolumeLatticesMatch: At least one of the input volume nodes does not have a valid image data!");
+    return false;
+  }
+
+  // Check parent transforms (they have to be in the same branch)
+  if (volume1->GetParentTransformNode() != volume2->GetParentTransformNode())
+  {
+    vtkDebugWithObjectMacro(volume1, "SlicerRtCommon::DoVolumeLatticesMatch: Parent transform nodes are not the same for the two input volumes");
     return false;
   }
 
@@ -341,7 +348,7 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLVolumeNode* volume1, vtkMRMLVo
     {
       if ( fabs(ijkToRasMatrix1->GetElement(row, col) - ijkToRasMatrix2->GetElement(row, col)) > EPSILON )
       {
-        vtkDebugWithObjectMacro(volume1, "DoVolumeLatticesMatch: IJK to RAS matrices differ!");
+        vtkDebugWithObjectMacro(volume1, "SlicerRtCommon::DoVolumeLatticesMatch: IJK to RAS matrices differ");
         return false;
       }
     }
@@ -356,7 +363,7 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLVolumeNode* volume1, vtkMRMLVo
     || dimensions1[1] != dimensions2[1]
     || dimensions1[2] != dimensions2[2] )
   {
-    vtkDebugWithObjectMacro(volume1, "DoVolumeLatticesMatch: VTK image data dimensions differ!!");
+    vtkDebugWithObjectMacro(volume1, "SlicerRtCommon::DoVolumeLatticesMatch: VTK image data dimensions differ!!");
     return false;
   }
 
@@ -368,7 +375,7 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLVolumeNode* volume1, vtkMRMLVo
     || extent1[2] != extent2[2] || extent1[3] != extent2[3]
     || extent1[4] != extent2[4] || extent1[5] != extent2[5] )
   {
-    vtkDebugWithObjectMacro(volume1, "DoVolumeLatticesMatch: VTK image data extents differ!!");
+    vtkDebugWithObjectMacro(volume1, "SlicerRtCommon::DoVolumeLatticesMatch: VTK image data extents differ!!");
     return false;
   }
 

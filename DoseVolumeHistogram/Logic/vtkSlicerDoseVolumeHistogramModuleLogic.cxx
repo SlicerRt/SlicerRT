@@ -21,13 +21,14 @@
 
 // DoseVolumeHistogram includes
 #include "vtkSlicerDoseVolumeHistogramModuleLogic.h"
-#include "vtkPolyDataToLabelmapFilter.h"
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
-#include <vtkMRMLContourNode.h>
+#include "vtkMRMLContourNode.h"
 #include "vtkConvertContourRepresentations.h"
+#include "vtkSlicerContoursModuleLogic.h"
+#include "vtkVolumesOrientedResampleUtility.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -54,12 +55,12 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkImageReslice.h>
 #include <vtkTimerLog.h>
+#include <vtkPolyDataToLabelmapFilter.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 
 // STD includes
-#include <cassert>
 #include <set>
 
 //----------------------------------------------------------------------------
@@ -72,6 +73,7 @@ vtkSlicerDoseVolumeHistogramModuleLogic::vtkSlicerDoseVolumeHistogramModuleLogic
   this->StartValue = 0.1;
   this->StepSize = 0.2;
   this->NumberOfSamplesForNonDoseVolumes = 100;
+  this->DoseVolumeOversamplingFactor = 2.0;
 
   this->LogSpeedMeasurementsOff();
 }
@@ -163,7 +165,11 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RefreshDvhDoubleArrayNodesFromScen
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML Scene!");
+    return;
+  }
 
   this->RefreshDvhDoubleArrayNodesFromScene();
 
@@ -261,11 +267,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLContourNode* structureContourNode, vtkImageData* resampledDoseVolume, vtkImageStencilData* structureStencil )
+void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour( vtkMRMLContourNode* structureContourNode, vtkMRMLScalarVolumeNode* resampledDoseVolumeNode, vtkMRMLScalarVolumeNode* consolidatedStructureLabelmapNode )
 {
   if ( !this->GetMRMLScene() || !this->DoseVolumeHistogramNode
-    || !structureContourNode || !structureStencil || !resampledDoseVolume )
+    || !structureContourNode || !consolidatedStructureLabelmapNode || !resampledDoseVolumeNode )
   {
+    vtkErrorMacro("GetStencilForContour: Invalid input arguments or scene!");
     return;
   }
 
@@ -273,27 +280,40 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
   vtkMRMLScalarVolumeNode* indexedLabelmapNode = structureContourNode->GetIndexedLabelmapVolumeNode();
   if (!indexedLabelmapNode)
   {
-    vtkErrorMacro("Failed to get indexed labelmap representation from contour node '" << structureContourNode->GetName() << "' !");
+    vtkErrorMacro("GetStencilForContour: Failed to get indexed labelmap representation from contour node '" << structureContourNode->GetName() << "' !");
     return;
   }
-
-  vtkImageData* indexedLabelmap = indexedLabelmapNode->GetImageData();
 
   // Resample the dose volume to match the indexed labelmap so that we can compute the stencil
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
   if (!doseVolumeNode)
   {
-    vtkErrorMacro("Unable to get dose volume node!");
+    vtkErrorMacro("GetStencilForContour: Unable to get dose volume node!");
+    return;
+  }
+  if (!doseVolumeNode->GetImageData())
+  {
+    vtkErrorMacro("GetStencilForContour: Dose volume contains no image data!");
     return;
   }
 
-  double rasterizationOversamplingFactor = structureContourNode->GetRasterizationOversamplingFactor();
-  if (rasterizationOversamplingFactor != 1.0)
+  // Copy dose volume node to the output resampled dose volume node object
+  resampledDoseVolumeNode->Copy(doseVolumeNode);
+
+  // Set the proper spacing to the resampled dose volume node
+  double doseVolumeSpacing[3] = {0.0, 0.0, 0.0};
+  doseVolumeNode->GetSpacing(doseVolumeSpacing);
+  resampledDoseVolumeNode->SetSpacing( doseVolumeSpacing[0] / this->DoseVolumeOversamplingFactor,
+                                   doseVolumeSpacing[1] / this->DoseVolumeOversamplingFactor,
+                                   doseVolumeSpacing[2] / this->DoseVolumeOversamplingFactor );
+
+  // Resample the dose volume if is required based on the oversampling factor
+  if (this->DoseVolumeOversamplingFactor != 1.0)
   {
     int outputExtent[6] = {0, 0, 0, 0, 0, 0};
     double outputSpacing[3] = {0.0, 0.0, 0.0};
-    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(doseVolumeNode, rasterizationOversamplingFactor, outputExtent, outputSpacing);
+    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(doseVolumeNode, this->DoseVolumeOversamplingFactor, outputExtent, outputSpacing);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
     reslicer->SetInput(doseVolumeNode->GetImageData());
@@ -302,35 +322,34 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetStencilForContour( vtkMRMLConto
     reslicer->SetOutputSpacing(outputSpacing);
     reslicer->Update();
 
+    vtkSmartPointer<vtkImageData> resampledDoseVolume = vtkSmartPointer<vtkImageData>::New();
     resampledDoseVolume->DeepCopy(reslicer->GetOutput());
     resampledDoseVolume->SetSpacing(1.0, 1.0, 1.0);
     resampledDoseVolume->SetOrigin(0.0, 0.0, 0.0);
+    resampledDoseVolumeNode->SetAndObserveImageData(resampledDoseVolume);
+  }
+
+  // The lattices of the resampled dose volume and the structure labelmap volume should match.
+  // Resample indexed labelmap representation temporarily if it has a lattice different from the resampled dose volume.
+  if (SlicerRtCommon::DoVolumeLatticesMatch(indexedLabelmapNode, resampledDoseVolumeNode))
+  {
+    consolidatedStructureLabelmapNode->Copy(indexedLabelmapNode);
   }
   else
   {
-    resampledDoseVolume->DeepCopy(doseVolumeNode->GetImageData());
+    vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode(indexedLabelmapNode, resampledDoseVolumeNode, consolidatedStructureLabelmapNode);
   }
 
-  // Sanity check
-  int resampledDoseDimensions[3] = {0, 0, 0};
-  resampledDoseVolume->GetDimensions(resampledDoseDimensions);
-  int indexedLabelmapDimensions[3] = {0, 0, 0};
-  indexedLabelmap->GetDimensions(indexedLabelmapDimensions);
+  // Set proper names to the temporary volumes for easier debugging
+  std::string resampledDoseVolumeNodeName(doseVolumeNode->GetName());
+  resampledDoseVolumeNodeName.append("_Temporary_Resampled");
+  resampledDoseVolumeNodeName = this->GetMRMLScene()->GenerateUniqueName(resampledDoseVolumeNodeName);
+  resampledDoseVolumeNode->SetName(resampledDoseVolumeNodeName.c_str());
 
-  if ( resampledDoseDimensions[0] != indexedLabelmapDimensions[0]
-    || resampledDoseDimensions[1] != indexedLabelmapDimensions[1]
-    || resampledDoseDimensions[2] != indexedLabelmapDimensions[2] )
-  {
-    vtkErrorMacro("Resampled dose volume has different dimensions than the indexed labelmap (probably oversampling factor has been changed)!");
-    return;
-  }
-
-  // Create stencil for structure  
-  vtkNew<vtkImageToImageStencil> stencil;
-  stencil->SetInput(indexedLabelmap);
-  stencil->ThresholdByUpper(0.5); // Thresholds only the labelmap, so the point is to keep the ones bigger than 0
-  stencil->Update();
-  structureStencil->DeepCopy(stencil->GetOutput());
+  std::string consolidatedStructureLabelmapNodeName(indexedLabelmapNode->GetName());
+  consolidatedStructureLabelmapNodeName.append("_Temporary_Consolidated");
+  consolidatedStructureLabelmapNodeName = this->GetMRMLScene()->GenerateUniqueName(consolidatedStructureLabelmapNodeName);
+  consolidatedStructureLabelmapNode->SetName(consolidatedStructureLabelmapNodeName.c_str());
 }
 
 //---------------------------------------------------------------------------
@@ -391,41 +410,24 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   doseStat->Update();
   double maxDose = doseStat->GetMax()[0];
 
-  // Reconvert indexed labelmap if the reference volume changed
-  std::string currentReferenceVolumeId( structureContourNode->GetRasterizationReferenceVolumeNodeId() ? structureContourNode->GetRasterizationReferenceVolumeNodeId() : "" );
-  structureContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId());
+  // Get resampled dose volume and matching structure labelmap (the function makes sure their lattices are the same)
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> resampledDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> consolidatedStructureLabelmap = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  this->GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour(structureContourNode, resampledDoseVolume, consolidatedStructureLabelmap);
 
-  if ( structureContourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap)
-    && STRCASECMP(currentReferenceVolumeId.c_str(), this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()) )
-  {
-    vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
-    converter->SetContourNode(structureContourNode);
-    converter->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
-  }
 
-  // Get indexed labelmap representation
-  vtkMRMLScalarVolumeNode* indexedLabelmapNode = structureContourNode->GetIndexedLabelmapVolumeNode();
-  if (!indexedLabelmapNode)
-  {
-    errorMessage = "Unable to get indexed labelmap representation";
-    vtkErrorMacro(<<errorMessage << " from structure contour node '" << structureContourNode->GetName() << "'!");
-    return;
-  }
+  // Create stencil for structure
+  vtkNew<vtkImageToImageStencil> stencil;
+  stencil->SetInput(consolidatedStructureLabelmap->GetImageData());
+  stencil->ThresholdByUpper(0.5); // Thresholds only the labelmap, so the point is to keep the ones bigger than 0
+  stencil->Update();
 
-  // Get spacing and voxel volume
-  double* indexedLabelmapSpacing = indexedLabelmapNode->GetSpacing();
-
-  double cubicMMPerVoxel = indexedLabelmapSpacing[0] * indexedLabelmapSpacing[1] * indexedLabelmapSpacing[2];
-  double ccPerCubicMM = 0.001;
-
-  // Get stenciled dose volume
-  vtkSmartPointer<vtkImageData> resampledDoseVolume = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkImageStencilData> structureStencil = vtkSmartPointer<vtkImageStencilData>::New();
+  structureStencil->DeepCopy(stencil->GetOutput());
 
-  this->GetStencilForContour(structureContourNode, resampledDoseVolume, structureStencil);
   int stencilExtent[6] = {0, 0, 0, 0, 0, 0};
   structureStencil->GetExtent(stencilExtent);
-  if (stencilExtent[1]-stencilExtent[0] == 0 || stencilExtent[3]-stencilExtent[2] == 0 || stencilExtent[5]-stencilExtent[4] == 0)
+  if (stencilExtent[1]-stencilExtent[0] <= 0 || stencilExtent[3]-stencilExtent[2] <= 0 || stencilExtent[5]-stencilExtent[4] <= 0)
   {
     errorMessage = "Invalid stenciled dose volume";
     vtkErrorMacro(<<errorMessage);
@@ -434,17 +436,19 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   // Compute statistics
   vtkNew<vtkImageAccumulate> structureStat;
-  structureStat->SetInput(resampledDoseVolume);
+  structureStat->SetInput(resampledDoseVolume->GetImageData());
   structureStat->SetStencil(structureStencil);
   structureStat->Update();
 
+  // Report error if there are no voxels in the stenciled dose volume (no non-zero voxels in the resampled labelmap)
   if (structureStat->GetVoxelCount() < 1)
   {
-    errorMessage = "No voxels in the stenciled dose volume";
+    errorMessage = "Dose volume and the structure do not overlap"; // User-friendly error to help troubleshooting
     vtkErrorMacro(<<errorMessage);
     return;
   }
 
+  // Get structure name
   std::string structureName(structureContourNode->GetStructureName());
 
   // Create node and fill statistics
@@ -459,20 +463,49 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureName.c_str());
   arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_CONTOUR_NODE_ID_ATTRIBUTE_NAME.c_str(), structureContourNode->GetID());
 
-  if (structureContourNode->GetRibbonModelNode() && structureContourNode->GetRibbonModelNode()->GetDisplayNode())
+  // Retrieve color from the contour and set it as a DVH attribute
   {
     std::ostringstream attributeValueStream;
     attributeValueStream.setf( ios::hex, ios::basefield );
-    double* color = structureContourNode->GetRibbonModelNode()->GetDisplayNode()->GetColor();
+    double color[4] = {SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1], SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3]};
+
+    if ( structureContourNode->GetRibbonModelNodeId() || structureContourNode->GetClosedSurfaceModelNodeId() ) // If there is a model representation
+    {
+      vtkMRMLDisplayNode* modelDisplayNode = (structureContourNode->GetRibbonModelNode() ? structureContourNode->GetRibbonModelNode()->GetDisplayNode() : structureContourNode->GetClosedSurfaceModelNode()->GetDisplayNode() );
+      if (modelDisplayNode)
+      {
+        // Get color from the model itself
+        structureContourNode->GetRibbonModelNode()->GetDisplayNode()->GetColor(color[0], color[1], color[2]);
+      }
+      else
+      {
+        vtkErrorMacro("ComputeDvh: No display node for model representation of structure '" << structureContourNode->GetStructureName() << "'");
+      }
+    }
+    else // Created from labelmap
+    {
+      vtkMRMLColorTableNode* colorNode = NULL;
+      int structureColorIndex = -1;
+      structureContourNode->GetColor(structureColorIndex, colorNode);
+      colorNode->GetColor(structureColorIndex, color);
+    }
+
     attributeValueStream << "#" << std::setw(2) << std::setfill('0') << (int)(color[0]*255.0+0.5)
-                                << std::setw(2) << std::setfill('0') << (int)(color[1]*255.0+0.5)
-                                << std::setw(2) << std::setfill('0') << (int)(color[2]*255.0+0.5);
+      << std::setw(2) << std::setfill('0') << (int)(color[1]*255.0+0.5)
+      << std::setw(2) << std::setfill('0') << (int)(color[2]*255.0+0.5);
+
     arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str(), attributeValueStream.str().c_str());
   }
 
+  // Get spacing and voxel volume
+  double* structureLabelmapSpacing = structureContourNode->GetIndexedLabelmapVolumeNode()->GetSpacing();
+  double cubicMMPerVoxel = structureLabelmapSpacing[0] * structureLabelmapSpacing[1] * structureLabelmapSpacing[2];
+  double ccPerCubicMM = 0.001;
+
+  // Compute and store DVH metrics
   std::ostringstream metricList;
 
-  {
+  { // Voxel count
     std::ostringstream attributeNameStream;
     std::ostringstream attributeValueStream;
     attributeNameStream << SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << SlicerRtCommon::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
@@ -481,7 +514,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
     arrayNode->SetAttribute(attributeNameStream.str().c_str(), attributeValueStream.str().c_str());
   }
 
-  {
+  { // Mean dose
     std::string attributeName;
     std::ostringstream attributeValueStream;
     this->AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MEAN_ATTRIBUTE_NAME_PREFIX, doseUnitName, attributeName);
@@ -490,7 +523,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
     arrayNode->SetAttribute(attributeName.c_str(), attributeValueStream.str().c_str());
   }
 
-  {
+  { // Max dose
     std::string attributeName;
     std::ostringstream attributeValueStream;
     this->AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MAX_ATTRIBUTE_NAME_PREFIX, doseUnitName, attributeName);
@@ -499,7 +532,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
     arrayNode->SetAttribute(attributeName.c_str(), attributeValueStream.str().c_str());
   }
 
-  {
+  { // Min dose
     std::string attributeName;
     std::ostringstream attributeValueStream;
     this->AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MIN_ATTRIBUTE_NAME_PREFIX, doseUnitName, attributeName);
@@ -508,7 +541,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
     arrayNode->SetAttribute(attributeName.c_str(), attributeValueStream.str().c_str());
   }
 
-  {
+  { // String containing all metrics (for easier ordered bulk retrtieval of the metrics from the DVH node without knowing about the metric types)
     std::ostringstream attributeNameStream;
     attributeNameStream << SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << SlicerRtCommon::DVH_METRIC_LIST_ATTRIBUTE_NAME;
     arrayNode->SetAttribute(attributeNameStream.str().c_str(), metricList.str().c_str());

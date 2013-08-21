@@ -40,8 +40,8 @@
 
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
-class vtkImageData;
 class vtkImageStencilData;
+class vtkMRMLScalarVolumeNode;
 class vtkMRMLDoubleArrayNode;
 class vtkMRMLContourNode;
 class vtkMRMLModelNode;
@@ -124,6 +124,9 @@ public:
   vtkGetMacro(NumberOfSamplesForNonDoseVolumes, int);
   vtkSetMacro(NumberOfSamplesForNonDoseVolumes, int);
 
+  vtkGetMacro(DoseVolumeOversamplingFactor, double);
+  vtkSetMacro(DoseVolumeOversamplingFactor, double);
+
   vtkGetMacro(LogSpeedMeasurements, bool);
   vtkSetMacro(LogSpeedMeasurements, bool);
   vtkBooleanMacro(LogSpeedMeasurements, bool);
@@ -147,7 +150,10 @@ protected:
   void ComputeDvh(vtkMRMLContourNode* structureContourNodes, std::string &errorMessage);
 
   /// Get the resampled dose volume and the stencil for a structure on the resampled dose volume
-  virtual void GetStencilForContour(vtkMRMLContourNode* structureContourNode, vtkImageData* resampledDoseVolume, vtkImageStencilData* structureStencil);
+  /// \param structureContourNode Input contour node containing the structure to stencil
+  /// \param resampledDoseVolumeNode Output volume node that will contain the resampled dose volume
+  /// \param consolidatedStructureLabelmap Output labelmap containing the structure indexed labelmap if its lattice matches the resampled dose volume, or a temporarily resampled copy otherwise
+  virtual void GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour(vtkMRMLContourNode* structureContourNode, vtkMRMLScalarVolumeNode* resampledDoseVolumeNode, vtkMRMLScalarVolumeNode* consolidatedStructureLabelmapNode);
 
   /// Return the chart view node object from the layout
   vtkMRMLChartViewNode* GetChartViewNode();
@@ -171,6 +177,10 @@ protected:
 
   /// Number of bins to sample when input is non-dose volumes
   int NumberOfSamplesForNonDoseVolumes;
+
+  /// Forced oversampling factor for the dose volume.
+  /// The structure labelmap is resampled temporarily to the same lattice as the oversampled dose volume if needed.
+  double DoseVolumeOversamplingFactor;
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
