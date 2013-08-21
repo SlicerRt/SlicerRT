@@ -272,7 +272,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
   if ( !this->GetMRMLScene() || !this->DoseVolumeHistogramNode
     || !structureContourNode || !consolidatedStructureLabelmapNode || !resampledDoseVolumeNode )
   {
-    vtkErrorMacro("GetStencilForContour: Invalid input arguments or scene!");
+    vtkErrorMacro("GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour: Invalid input arguments or scene!");
     return;
   }
 
@@ -280,7 +280,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
   vtkMRMLScalarVolumeNode* indexedLabelmapNode = structureContourNode->GetIndexedLabelmapVolumeNode();
   if (!indexedLabelmapNode)
   {
-    vtkErrorMacro("GetStencilForContour: Failed to get indexed labelmap representation from contour node '" << structureContourNode->GetName() << "' !");
+    vtkErrorMacro("GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour: Failed to get indexed labelmap representation from contour node '" << structureContourNode->GetName() << "' !");
     return;
   }
 
@@ -289,12 +289,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
     this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
   if (!doseVolumeNode)
   {
-    vtkErrorMacro("GetStencilForContour: Unable to get dose volume node!");
+    vtkErrorMacro("GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour: Unable to get dose volume node!");
     return;
   }
   if (!doseVolumeNode->GetImageData())
   {
-    vtkErrorMacro("GetStencilForContour: Dose volume contains no image data!");
+    vtkErrorMacro("GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour: Dose volume contains no image data!");
     return;
   }
 
