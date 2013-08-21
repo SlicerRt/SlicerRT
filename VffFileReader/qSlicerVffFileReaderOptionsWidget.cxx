@@ -69,14 +69,11 @@ qSlicerVffFileReaderOptionsWidget::qSlicerVffFileReaderOptionsWidget(QWidget* pa
   this->setLayout(flowLayout);
   */
 
-  connect(d->UseDataScaleCheckBox, SIGNAL(toggled(bool)),
-          this, SLOT(updateProperties()));
-  connect(d->UseDataOffsetCheckBox, SIGNAL(toggled(bool)),
+  connect(d->UseImageIntensityScaleAndOffsetCheckBox, SIGNAL(toggled(bool)),
           this, SLOT(updateProperties()));
 
-  // Data scale and data offset turned off by default
-  d->UseDataScaleCheckBox->setChecked(false);
-  d->UseDataOffsetCheckBox->setChecked(false);
+  // Image intensity scale and offset turned off by default
+  d->UseImageIntensityScaleAndOffsetCheckBox->setChecked(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -89,48 +86,5 @@ void qSlicerVffFileReaderOptionsWidget::updateProperties()
 {
   Q_D(qSlicerVffFileReaderOptionsWidget);
 
-  d->Properties["dataScale"] = d->UseDataScaleCheckBox->isChecked();
-  d->Properties["dataOffset"] = d->UseDataOffsetCheckBox->isChecked();
+  d->Properties["imageIntensityScaleAndOffset"] = d->UseImageIntensityScaleAndOffsetCheckBox->isChecked();
 }
-
-////-----------------------------------------------------------------------------
-//void qSlicerVffFileReaderOptionsWidget::setFileName(const QString& fileName)
-//{
-//  this->setFileNames(QStringList(fileName));
-//}
-
-//-----------------------------------------------------------------------------
-//void qSlicerVffFileReaderOptionsWidget::setFileNames(const QStringList& fileNames)
-//{
-//  Q_D(qSlicerVffFileReaderOptionsWidget);
-//  QStringList names;
-//  bool onlyNumberInName = false;
-//  bool onlyNumberInExtension = false;
-//  bool hasLabelMapName = false;
-//  foreach(const QString& fileName, fileNames)
-//    {
-//    QFileInfo fileInfo(fileName);
-//    if (fileInfo.isFile())
-//      {
-//      names << fileInfo.completeBaseName();
-//      // Single file
-//      // If the name (or the extension) is just a number, then it must be a 2D
-//      // slice from a 3D volume, so uncheck Single File.
-//      onlyNumberInName = QRegExp("[0-9\\.\\-\\_\\@\\(\\)\\~]+").exactMatch(fileInfo.baseName());
-//      fileInfo.suffix().toInt(&onlyNumberInExtension);
-//      }
-//    // Because '_' is considered as a word character (\w), \b
-//    // doesn't consider '_' as a word boundary.
-//    QRegExp labelMapName("(\\b|_)([Ll]abel(s)?)(\\b|_)");
-//    QRegExp segName("(\\b|_)([Ss]eg)(\\b|_)");
-//    if (fileInfo.baseName().contains(labelMapName) ||
-//        fileInfo.baseName().contains(segName))
-//      {
-//      hasLabelMapName = true;
-//      }
-//    }
-//  //d->NameLineEdit->setText( names.join("; ") );
-//  //d->SingleFileCheckBox->setChecked(!onlyNumberInName && !onlyNumberInExtension);
-//  //d->LabelMapCheckBox->setChecked(hasLabelMapName);
-//  this->qSlicerIOOptionsWidget::setFileNames(fileNames);
-//}

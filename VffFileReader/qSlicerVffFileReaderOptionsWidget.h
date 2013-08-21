@@ -41,17 +41,13 @@ public:
   qSlicerVffFileReaderOptionsWidget(QWidget *parent=0);
   virtual ~qSlicerVffFileReaderOptionsWidget();
 
-//public slots:
-//  virtual void setFileName(const QString& fileName);
-//  virtual void setFileNames(const QStringList& fileNames);
 
 protected slots:
- //QScopedPointer<qSlicerVffFileReaderOptionsWidgetPrivate> d_ptr;
   void updateProperties();
 
 private:
-  //Q_DECLARE_PRIVATE_D(qGetPtrHelper(qSlicerIOOptions::d_ptr), qSlicerVffFileReaderOptionsWidget);
-  Q_DECLARE_PRIVATE(qSlicerVffFileReaderOptionsWidget);
+  Q_DECLARE_PRIVATE_D(qGetPtrHelper(qSlicerIOOptions::d_ptr), qSlicerVffFileReaderOptionsWidget);
+  //Q_DECLARE_PRIVATE(qSlicerVffFileReaderOptionsWidget);
   Q_DISABLE_COPY(qSlicerVffFileReaderOptionsWidget);
 };
 

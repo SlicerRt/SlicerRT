@@ -46,7 +46,8 @@ public:
 
   /// Load VFF volume from file
   /// \param filename Path and filename of the VFF file
-  void LoadVffFile(char* filename, bool useDataScale, bool useDataOffset);
+  /// \param useImageIntensityScaleAndOffsetFromFile Boolean flag which is set to false by default, but is set to true to use the intensity scale and offset provided in the file to load the image
+  void LoadVffFile(char* filename, bool useImageIntensityScaleAndOffsetFromFile = false); //, bool useDataOffset);
 
 protected:
   /// A helper function which removes all spaces from the beginning and end of a string, and returns the modified string.
@@ -56,16 +57,9 @@ protected:
 
   /// A helper function which extracts a user-specified number of numbers from a string, which can be of any numerical type, and returns them as a vector.
   /// \param stringToParse String from which the numbers are to be extracted
-  /// \param successFlag Boolean flag which is set to true if the extraction of numbers is successful, and is set to false otherwise
   /// \param numberOfNumbers Integer specifying the number of numbers to be extracted from the string and returned in the vector
   /// \return Vector containing the extracted numbers
-  template <class Num> std::vector<Num> ParseNumberOfNumbersFromString(std::string stringToParse, bool &successFlag, int numberOfNumbers);
-
-  /// A helper function which extracts the string following the first "=" in the original string, removes spaces from the beginning and end of the extracted string, and returns the modified string.
-  /// \param stringToParse String from the returned string is extracted
-  /// \param successFlag Boolean flag which is set to true if the extraction of the string following the "=" is successful, and is set to false otherwise
-  /// \return String which has been extracted from the provided string
-  std::string GetValueForHeaderItem(std::string stringToParse, bool &successFlag);
+  template <class Num> std::vector<Num> ParseNumberOfNumbersFromString(std::string stringToParse, int numberOfNumbers);
 
 protected:
   vtkSlicerVffFileReaderLogic();

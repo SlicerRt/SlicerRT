@@ -24,6 +24,7 @@
 // VTK includes
 #include <vtkImageData.h>
 #include <vtkMatrix4x4.h>
+#include <vtkImageShiftScale.h>
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -68,28 +69,30 @@ std::string vtkSlicerVffFileReaderLogic::TrimSpacesFromEndsOfString(std::string 
 
 //----------------------------------------------------------------------------
 template <class Num> 
-std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std::string stringToParse, bool &successFlag, int numberOfNumbers)
+std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std::string stringToParse, int numberOfNumbers)
 {
-  successFlag = false;
+
   if (numberOfNumbers > 0)
   {
     std::vector<Num> vectorOfNumberOfNumbers (numberOfNumbers, 0);
-    bool parseStringSuccessFlag;
 
-    // Parse out the part of the string that follows the "="
-    stringToParse = this->GetValueForHeaderItem(stringToParse, parseStringSuccessFlag);
-    if (parseStringSuccessFlag == true)
+    stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
+    int currentNumber = 0;
+
+    // Parses out the specified number of numbers from the string, 
+    // assuming that numbers are separated by commas, spaces, or both
+    while (currentNumber < numberOfNumbers)
     {
-      stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
-      int currentNumber = 0;
-      // bool continueParsingFlag = true;
-
-      // Parses out the specified number of numbers from the string, 
-      // assuming that numbers are separated by commas, spaces, or both
-      while (currentNumber < numberOfNumbers)
+      size_t locationToSplitString = stringToParse.find_first_of(",", 0);
+      std::string stringContainingNumber;
+      if (locationToSplitString != std::string::npos)
       {
-        size_t locationToSplitString = stringToParse.find_first_of(",", 0);
-        std::string stringContainingNumber;
+        stringContainingNumber = stringToParse.substr(0,locationToSplitString);
+        stringToParse = stringToParse.substr(locationToSplitString+1);
+      }
+      else
+      {
+        size_t locationToSplitString = stringToParse.find_first_of(" ", 0);
         if (locationToSplitString != std::string::npos)
         {
           stringContainingNumber = stringToParse.substr(0,locationToSplitString);
@@ -97,53 +100,38 @@ std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std
         }
         else
         {
-          size_t locationToSplitString = stringToParse.find_first_of(" ", 0);
-          if (locationToSplitString != std::string::npos)
-          {
-            stringContainingNumber = stringToParse.substr(0,locationToSplitString);
-            stringToParse = stringToParse.substr(locationToSplitString+1);
-          }
-          else
-          {
-            stringContainingNumber = stringToParse;
-          }
+          stringContainingNumber = stringToParse;
         }
-        stringContainingNumber = this->TrimSpacesFromEndsOfString(stringContainingNumber);
-        if (stringContainingNumber.size() > 0)
-        {
-          std::stringstream convertStringToNumber(stringContainingNumber);
-          Num parsedNumber;
+      }
+      stringContainingNumber = this->TrimSpacesFromEndsOfString(stringContainingNumber);
+      if (stringContainingNumber.size() > 0)
+      {
+        std::stringstream convertStringToNumber(stringContainingNumber);
+        Num parsedNumber;
 
-          // Converts the parsed string into the number
-          convertStringToNumber >> parsedNumber;
-          std::string checkForConversionSuccess;
+        // Converts the parsed string into the number
+        convertStringToNumber >> parsedNumber;
+        std::string checkForConversionSuccess;
 
-          // Checks that the string was correctly converted into the number,
-          // which would result in nothing left in the stream
-          if (convertStringToNumber >> checkForConversionSuccess)
-          {
-            return vectorOfNumberOfNumbers;
-          }
-          else
-          {
-            vectorOfNumberOfNumbers[currentNumber] = parsedNumber;
-          }
-        }
-        else
+        // Checks that the string was correctly converted into the number,
+        // which would result in nothing left in the stream
+        if (convertStringToNumber >> checkForConversionSuccess)
         {
           return vectorOfNumberOfNumbers;
         }
-        currentNumber++;
-        stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
+        else
+        {
+          vectorOfNumberOfNumbers[currentNumber] = parsedNumber;
+        }
       }
-
-      successFlag = true;
-      return vectorOfNumberOfNumbers;
+      else
+      {
+        return vectorOfNumberOfNumbers;
+      }
+      currentNumber++;
+      stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
     }
-    else
-    {
-      return vectorOfNumberOfNumbers;
-    }
+    return vectorOfNumberOfNumbers;
   }
   else
   {
@@ -153,40 +141,13 @@ std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std
 }
 
 //----------------------------------------------------------------------------
-std::string vtkSlicerVffFileReaderLogic::GetValueForHeaderItem(std::string stringToParse, bool &successFlag)
-{
-  successFlag = false;
-  size_t locationToSplitString = stringToParse.find("=", 0);
-  if (locationToSplitString != std::string::npos)
-  {
-    stringToParse = stringToParse.substr(locationToSplitString+1);
-    stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
-    if (stringToParse.size() > 0)
-    {
-      successFlag = true;
-      return stringToParse;
-    }
-    else
-    {
-      vtkErrorMacro("GetValueForHeaderItem: Nothing follows the equal sign in header item");
-      return stringToParse;
-    }
-  }
-  else
-  {
-    vtkErrorMacro("GetValueForHeaderItem: No equal sign in header item '" << stringToParse << "'");
-    return stringToParse;
-  }
-}
-
-//----------------------------------------------------------------------------
 void vtkSlicerVffFileReaderLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useDataScale, bool useDataOffset)
+void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageIntensityScaleAndOffsetFromFile)
 {
   ifstream readFileStream;
   readFileStream.open(filename, std::ios::binary);
@@ -217,9 +178,13 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useDataScale,
     std::vector<bool> parametersCurrentlySet(12, false);
     std::vector<bool> parametersToSet(12, true);
     bool isDateCurrentlySet = false;
+    std::map<std::string, std::string> parameterList;
+    bool parameterMissing = false;
+    bool parameterInvalidValue = false;
 
     while(readFileStream.good() && !stopReadingFlag)
     {
+      
       char nextCharacter;
       nextCharacter = readFileStream.get();
 
@@ -232,380 +197,311 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useDataScale,
       // Parameters are separated from each other using semicolons and line feeds
       else if (nextCharacter == ';')
       {
-
-        // Checks for one of the known parameters, and if found, parses out the parameter value and sets the correct variable
-        if (currentStringFromFile.find("rank", 0) != -1)
+        if (currentStringFromFile.compare("ncaa") != 0)
         {
-          bool parseStringSuccessFlag = false;
-          std::vector<int> numberFromParsedString(1,0);
-          numberFromParsedString = this->ParseNumberOfNumbersFromString<int>(currentStringFromFile, parseStringSuccessFlag, 1);
-          if (parseStringSuccessFlag == false) 
+          std::string parameterType;
+          std::string parameterValue;
+          size_t locationToSplitString = currentStringFromFile.find("=", 0);
+          if (locationToSplitString != std::string::npos)
           {
-            vtkErrorMacro("LoadVffFile: An integer was not entered for the rank. The value entered for the rank must be 3.");
-            parameterParseSuccess = false;
-          }
-          else if (parseStringSuccessFlag == true && numberFromParsedString[0] != 3)
-          {
-            vtkErrorMacro("LoadVffFile: The value entered for the rank must be 3.");
-            parameterParseSuccess  = false;
-          }
-          else 
-          {
-            rank = numberFromParsedString[0];
-            parametersCurrentlySet[0] = true;
-          }
-        }
-
-        else if (currentStringFromFile.find("type", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::string parsedString;
-          parsedString = this->GetValueForHeaderItem(currentStringFromFile, parseStringSuccessFlag);
-          if (parseStringSuccessFlag == false)
-          {
-            vtkErrorMacro("LoadVffFile: A string was not entered for the type. The value must be separated from the parameter with an '='. The value entered for the type must be raster.");
-            parameterParseSuccess = false;
-          }
-          else if (parseStringSuccessFlag == true && parsedString.compare("raster") != 0)
-          {
-            vtkErrorMacro("LoadVffFile: The value entered for the type must be raster.");
-            parameterParseSuccess = false;
-          }
-          else
-          {
-            type = parsedString;
-            parametersCurrentlySet[1] = true;
-          }
-        }
-
-        else if (currentStringFromFile.find("format", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::string parsedString;
-          parsedString = this->GetValueForHeaderItem(currentStringFromFile, parseStringSuccessFlag);
-          if (parseStringSuccessFlag == false)
-          {
-            vtkErrorMacro("LoadVffFile: A string was not entered for the format. The value must be separated from the parameter with an '='. The value entered for the format must be slice.");
-            parameterParseSuccess = false;
-          }
-          else if (parseStringSuccessFlag == true && parsedString.compare("slice") != 0)
-          {
-            vtkErrorMacro("LoadVffFile: The value entered for the format must be slice.");
-            parameterParseSuccess = false;
-          }
-          else
-          {
-            format = parsedString;
-            parametersCurrentlySet[2] = true;
-          }
-        }
-
-        else if (currentStringFromFile.find("bits", 0) != std::string::npos)
-         {
-          bool parseStringSuccessFlag = false;
-          std::vector<int> numberFromParsedString(1,0);
-          numberFromParsedString = this->ParseNumberOfNumbersFromString<int>(currentStringFromFile, parseStringSuccessFlag, 1);
-          if (parseStringSuccessFlag == false) 
-          {
-            vtkErrorMacro("LoadVffFile: An integer was not entered for the bits. The value must be divisible by 8.");
-            parameterParseSuccess = false;
-          }
-          else if (parseStringSuccessFlag == true && numberFromParsedString[0] % 8 != 0)
-          {
-            vtkErrorMacro("LoadVffFile: The value entered for the bits must be divisible by 8.");
-            parameterParseSuccess = false;
-          }
-          else 
-          {
-            bits = numberFromParsedString[0];
-            parametersCurrentlySet[3] = true;
-          }
-        }
-
-        else if (currentStringFromFile.find("bands", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::vector<int> numberFromParsedString(1,0);
-          numberFromParsedString = this->ParseNumberOfNumbersFromString<int>(currentStringFromFile, parseStringSuccessFlag, 1);
-          if (parseStringSuccessFlag == false) 
-          {
-            vtkErrorMacro("LoadVffFile: An integer was not entered for the bands. The value entered for the bands must be 1.");
-            parameterParseSuccess = false;
-          }
-          else if (parseStringSuccessFlag == true && numberFromParsedString[0] != 1)
-          {
-            vtkErrorMacro("LoadVffFile: The value entered for the bands must be 1.");
-            parameterParseSuccess  = false;
-          }
-          else 
-          {
-            bands = numberFromParsedString[0];
-            parametersCurrentlySet[4] = true;
-          }
-
-        }
-
-        else if (currentStringFromFile.find("size", 0) != std::string::npos && currentStringFromFile.find("rawsize", 0) == std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::vector<int> numbersFromParsedString (3, 0);
-          numbersFromParsedString = this->ParseNumberOfNumbersFromString<int>(currentStringFromFile, parseStringSuccessFlag, 3);
-          if (parseStringSuccessFlag == true)
-          {
-            size[0] = numbersFromParsedString[0];
-            size[1] = numbersFromParsedString[1];
-            size[2] = numbersFromParsedString[2];
-            parametersCurrentlySet[5] = true;
-          }
-          else
-          {
-            vtkErrorMacro("LoadVffFile: 3 integers were not entered for the size.");
-          }
-        }
-
-        else if (currentStringFromFile.find("spacing", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::vector<double> numbersFromParsedString (3, 0);
-          numbersFromParsedString = this->ParseNumberOfNumbersFromString<double>(currentStringFromFile, parseStringSuccessFlag, 3);
-          if (parseStringSuccessFlag == true)
-          {
-            spacing[0] = numbersFromParsedString[0];
-            spacing[1] = numbersFromParsedString[1];
-            spacing[2] = numbersFromParsedString[2];
-            parametersCurrentlySet[6] = true;
-          }
-          else
-          {
-            vtkErrorMacro("LoadVffFile: 3 doubles were not entered for the spacing.");
-          }
-        }
-
-        else if (currentStringFromFile.find("origin", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::vector<double> numbersFromParsedString (3, 0);
-          numbersFromParsedString = this->ParseNumberOfNumbersFromString<double>(currentStringFromFile, parseStringSuccessFlag, 3);
-          if (parseStringSuccessFlag == true)
-          {
-            origin[0] = numbersFromParsedString[0];
-            origin[1] = numbersFromParsedString[1];
-            origin[2] = numbersFromParsedString[2];
-            parametersCurrentlySet[7] = true;
-          }
-          else
-          {
-            vtkErrorMacro("LoadVffFile: 3 doubles were not entered for the origin.");
-          }          
-        }
-
-        else if (currentStringFromFile.find("rawsize", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::vector<int> numberFromParsedString(1,0);
-          numberFromParsedString = this->ParseNumberOfNumbersFromString<int>(currentStringFromFile, parseStringSuccessFlag, 1);
-          if (parseStringSuccessFlag == false) 
-          {
-            vtkErrorMacro("LoadVffFile: An integer was not entered for the rawsize.");
-            parameterParseSuccess = false;
-          }
-          else 
-          {
-            rawsize = numberFromParsedString[0];
-            parametersCurrentlySet[8] = true;
-          }
-        }
-
-        else if (currentStringFromFile.find("data_scale", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::vector<double> numberFromParsedString(1,0);
-          numberFromParsedString = this->ParseNumberOfNumbersFromString<double>(currentStringFromFile, parseStringSuccessFlag, 1);
-          if (parseStringSuccessFlag == false)
-          {
-            vtkErrorMacro("LoadVffFile: A double was not entered for the data_scale.");
-            parameterParseSuccess = false;
-          }
-          else
-          {
-            data_scale = numberFromParsedString[0];
-            parametersCurrentlySet[9] = true;
-          }
-        }
-
-        else if (currentStringFromFile.find("data_offset", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::vector<double> numberFromParsedString(1,0);
-          numberFromParsedString = this->ParseNumberOfNumbersFromString<double>(currentStringFromFile, parseStringSuccessFlag, 1);
-          if (parseStringSuccessFlag == false)
-          {
-            vtkErrorMacro("LoadVffFile: A double was not entered for the data_offset. The value entered must be 0.");
-            parameterParseSuccess = false;
-          }
-          else if (parseStringSuccessFlag == true && numberFromParsedString[0] != 0)
-          {
-            vtkErrorMacro("LoadVffFile: The value entered for the data_offset must be 0.");
-            parameterParseSuccess = false;
-          }
-          else
-          {
-            data_offset = numberFromParsedString[0];
-            parametersCurrentlySet[10] = true;
-          }
-        }
-
-        else if (currentStringFromFile.find("handlescatter", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::string parsedString;
-          parsedString = this->GetValueForHeaderItem(currentStringFromFile, parseStringSuccessFlag);
-          if (parseStringSuccessFlag == false)
-          {
-            vtkErrorMacro("LoadVffFile: A string was not entered for Handle Scatter. The value must be separated from the parameter with an '='. The value entered for Handle Scatter must be factor.");
-            parameterParseSuccess = false;
-          }
-          else if (parseStringSuccessFlag == true && parsedString.compare("factor") != 0)
-          {
-            vtkErrorMacro("LoadVffFile: The value entered for Handle Scatter must be factor.");
-            parameterParseSuccess = false;
-          }
-          else
-          {
-            handleScatter = parsedString; 
-          }
-        }
-
-        else if (currentStringFromFile.find("referencescatterfactor", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::vector<double> numberFromParsedString(1,0);
-          numberFromParsedString = this->ParseNumberOfNumbersFromString<double>(currentStringFromFile, parseStringSuccessFlag, 1);
-          if (parseStringSuccessFlag == false)
-          {
-            vtkErrorMacro("LoadVffFile: A double was not entered for the Reference Scatter Factor. The value entered must be 1.");
-            parameterParseSuccess = false;
-          }
-          else if (parseStringSuccessFlag == true && numberFromParsedString[0] != 1)
-          {
-            vtkErrorMacro("LoadVffFile: The value entered for the Reference Scatter Factor must be 1.");
-            parameterParseSuccess = false;
-          }
-          else
-          {
-            referenceScatterFactor = numberFromParsedString[0];
-          }
-        }
-
-        else if (currentStringFromFile.find("datascatterfactor", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::vector<double> numberFromParsedString(1,0);
-          numberFromParsedString = this->ParseNumberOfNumbersFromString<double>(currentStringFromFile, parseStringSuccessFlag, 1);
-          if (parseStringSuccessFlag == false)
-          {
-            vtkErrorMacro("LoadVffFile: A double was not entered for the Data Scatter Factor. The value entered must be 1.");
-            parameterParseSuccess = false;
-          }
-          else if (parseStringSuccessFlag == true && numberFromParsedString[0] != 1)
-          {
-            vtkErrorMacro("LoadVffFile: The value entered for the Data Scatter Factor must be 1.");
-            parameterParseSuccess = false;
-          }
-          else
-          {
-            dataScatterFactor = numberFromParsedString[0];
-          }
-        }
-
-        else if (currentStringFromFile.find("filter", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::string parsedString;
-          parsedString = this->GetValueForHeaderItem(currentStringFromFile, parseStringSuccessFlag);
-          if (parseStringSuccessFlag == false)
-          {
-            vtkErrorMacro("LoadVffFile: A string was not entered for the filter. The value must be separated from the parameter with an '='. The value entered for the filter must be Ram-Lak.");
-            parameterParseSuccess = false;
-          }
-          else if (parseStringSuccessFlag == true && parsedString.compare("ram-lak") != 0)
-          {
-            vtkErrorMacro("LoadVffFile: The value entered for filter must be Ram-Lak.");
-          }
-          else
-          {
-            filter = parsedString; 
-          }
-        }
-
-        else if (currentStringFromFile.find("title", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          currentStringFromFile = this->GetValueForHeaderItem(currentStringFromFile, parseStringSuccessFlag);
-          if (parseStringSuccessFlag == true)
-          {
-            currentStringFromFile = this->TrimSpacesFromEndsOfString(currentStringFromFile);
-            if (currentStringFromFile.size() > 0)
+            parameterType = currentStringFromFile.substr(0, locationToSplitString);
+            parameterType = this->TrimSpacesFromEndsOfString(parameterType);
+            parameterValue = currentStringFromFile.substr(locationToSplitString+1);
+            parameterValue = this->TrimSpacesFromEndsOfString(parameterValue);
+            if (parameterValue.size() <= 0)
             {
-              title = currentStringFromFile; 
-
-              // Parse out the name of the file from the file path given as the parameter title
-              int locationToSplitString = currentStringFromFile.find_last_of("/\\");
-              if (locationToSplitString != std::string::npos)
-              {
-                currentStringFromFile = currentStringFromFile.substr(locationToSplitString+1);
-                currentStringFromFile = this->TrimSpacesFromEndsOfString(currentStringFromFile);
-                name = currentStringFromFile;
-                parametersCurrentlySet[11] = true;
-              }
-              else 
-              {
-                name = currentStringFromFile;
-                parametersCurrentlySet[11] = true;
-              }
+              vtkErrorMacro("GetValueForHeaderItem: Nothing follows the equal sign in header item: '" << parameterType << "'");
+              parameterParseSuccess  = false;
             }
             else
             {
-              parameterParseSuccess = false;
-              vtkErrorMacro("LoadVffFile: A string was not entered for the title.");
+              parameterList[parameterType] = parameterValue;
             }
           }
           else
           {
-            parameterParseSuccess = false;
-            vtkErrorMacro("LoadVffFile: The value must be separated from the parameter with an '='.");
-          }          
-        }
-
-        else if (currentStringFromFile.find("date", 0) != std::string::npos)
-        {
-          bool parseStringSuccessFlag = false;
-          std::string parsedString = this->GetValueForHeaderItem(currentStringFromFile, parseStringSuccessFlag);
-          if (parseStringSuccessFlag == true)
-          {
-            date = parsedString;
-            isDateCurrentlySet = true;
-          }
-          else
-          {
-            parameterParseSuccess = false;
-            vtkErrorMacro("LoadVffFile: A string was not entered for the date. The value must be separated from the parameter with an '='.");
+            vtkErrorMacro("GetValueForHeaderItem: No equal sign in header item '" << parameterType << "'");
+            parameterParseSuccess  = false;
           }
         }
-       
         currentStringFromFile = "";
-
       }
 
-      else
+      else if (nextCharacter != '\n')
       {
         nextCharacter = ::tolower(nextCharacter);
         currentStringFromFile += nextCharacter;
       }
     }
 
+    // For each of the known parameters, interprets the string associated with the parameter into the correct format and sets the corresponding variable, as well as checking the correctness of the value
+    std::vector<int> numberFromParsedStringRank = this->ParseNumberOfNumbersFromString<int>(parameterList["rank"], 1);
+    if (numberFromParsedStringRank.empty()) 
+    {
+      vtkErrorMacro("LoadVffFile: An integer was not entered for the rank. The value entered for the rank must be 3.");
+      parameterMissing = true;
+    }
+    else 
+    {
+      rank = numberFromParsedStringRank[0];
+      if (rank != 3)
+      {
+        vtkErrorMacro("LoadVffFile: The value entered for the rank must be 3.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    if (parameterList["type"].size() <= 0)
+    {
+      vtkErrorMacro("LoadVffFile: A string was not entered for the type. The value must be separated from the parameter with an '='. The value entered for the type must be raster.");
+      parameterMissing = true;
+    }
+    else
+    {
+      type = parameterList["type"];
+      if (type.compare("raster") != 0)
+      {
+        vtkErrorMacro("LoadVffFile: The value entered for the type must be raster.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    if (parameterList["format"].size() <= 0)
+    {
+      vtkErrorMacro("LoadVffFile: A string was not entered for the format. The value must be separated from the parameter with an '='. The value entered for the format must be slice.");
+      parameterMissing = true;
+    }
+    else
+    {
+      format = parameterList["format"];
+      if (format.compare("slice") != 0)
+      {
+        vtkErrorMacro("LoadVffFile: The value entered for the format must be slice.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    std::vector<int> numberFromParsedStringBits = this->ParseNumberOfNumbersFromString<int>(parameterList["bits"], 1);
+    if (numberFromParsedStringBits.empty()) 
+    {
+      vtkErrorMacro("LoadVffFile: An integer was not entered for the bits. The value must be divisible by 8.");
+      parameterMissing = true;
+    }
+    else
+    {
+      bits = numberFromParsedStringBits[0];
+      if (bits % 8 != 0)
+      {
+        vtkErrorMacro("LoadVffFile: The value entered for the bits must be divisible by 8.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    std::vector<int> numberFromParsedStringBands = this->ParseNumberOfNumbersFromString<int>(parameterList["bands"], 1);
+    if (numberFromParsedStringBands.empty()) 
+    {
+      vtkErrorMacro("LoadVffFile: An integer was not entered for the bands. The value entered for the bands must be 1.");
+      parameterMissing = true;
+    }
+    else
+    {
+      bands = numberFromParsedStringBands[0];
+      if (bands != 1)
+      {
+        vtkErrorMacro("LoadVffFile: The value entered for the bands must be 1.");
+        parameterInvalidValue  = true;
+      }
+    }
+
+    std::vector<int> numbersFromParsedStringSize = this->ParseNumberOfNumbersFromString<int>(parameterList["size"], 3);
+    if (numbersFromParsedStringSize.empty())
+    {
+      vtkErrorMacro("LoadVffFile: 3 integers were not entered for the size.");
+      parameterMissing = true;
+    }
+    else
+    {
+      size[0] = numbersFromParsedStringSize[0];
+      size[1] = numbersFromParsedStringSize[1];
+      size[2] = numbersFromParsedStringSize[2];
+      if (size[0] <= 0 || size[1] <=0 || size[2] <= 0)
+      {
+        vtkErrorMacro("LoadVffFile: The values for the size must each be greater than 0.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    std::vector<double> numbersFromParsedStringSpacing = this->ParseNumberOfNumbersFromString<double>(parameterList["spacing"], 3);
+    if (numbersFromParsedStringSpacing.empty())
+    {
+      vtkErrorMacro("LoadVffFile: 3 doubles were not entered for the spacing.");
+      parameterMissing = true;
+    }
+    else
+    {
+      spacing[0] = numbersFromParsedStringSpacing[0];
+      spacing[1] = numbersFromParsedStringSpacing[1];
+      spacing[2] = numbersFromParsedStringSpacing[2];
+      if (spacing[0] < 0 || spacing[1] <0 || spacing[2] < 0)
+      {
+        vtkErrorMacro("LoadVffFile: The values for the spacing must each be greater than or equal to 0.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    std::vector<double> numbersFromParsedStringOrigin = this->ParseNumberOfNumbersFromString<double>(parameterList["origin"], 3);
+    if (numbersFromParsedStringOrigin.empty())
+    {
+      vtkErrorMacro("LoadVffFile: 3 doubles were not entered for the origin.");
+      parameterMissing = true;
+    }
+    else
+    {
+      origin[0] = numbersFromParsedStringOrigin[0];
+      origin[1] = numbersFromParsedStringOrigin[1];
+      origin[2] = numbersFromParsedStringOrigin[2];
+      if (origin[0] < 0 || origin[1] <0 || origin[2] < 0)
+      {
+        vtkErrorMacro("LoadVffFile: The values for the origin must each be greater than or equal to 0.");
+        parameterInvalidValue = true;
+      }
+    }          
+
+    std::vector<int> numberFromParsedStringRawsize = this->ParseNumberOfNumbersFromString<int>(parameterList["rawsize"], 1);
+    if (numberFromParsedStringRawsize.empty()) 
+    {
+      vtkErrorMacro("LoadVffFile: An integer was not entered for the rawsize.");
+      parameterMissing = true;
+    }
+    else 
+    {
+      rawsize = numberFromParsedStringRawsize[0];
+      if (rawsize <= 0)
+      {
+        vtkErrorMacro("LoadVffFile: The value entered for the rawsize must be greater than or equal to 0.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    std::vector<double> numberFromParsedStringDataScale = this->ParseNumberOfNumbersFromString<double>(parameterList["data_scale"], 1);
+    if (numberFromParsedStringDataScale.empty())
+    {
+      vtkErrorMacro("LoadVffFile: A double was not entered for the data_scale.");
+      parameterMissing = true;
+    }
+    else
+    {
+      data_scale = numberFromParsedStringDataScale[0];
+    }
+
+    std::vector<double> numberFromParsedStringDataOffset = this->ParseNumberOfNumbersFromString<double>(parameterList["data_offset"], 1);
+    if (numberFromParsedStringDataOffset.empty())
+    {
+      vtkErrorMacro("LoadVffFile: A double was not entered for the data_offset. The value entered must be 0.");
+      parameterMissing = true;
+    }
+    else
+    {
+      data_offset = numberFromParsedStringDataOffset[0];
+    }
+
+    if (parameterList["handlescatter"].size() <= 0)
+    {
+      vtkErrorMacro("LoadVffFile: A string was not entered for Handle Scatter. The value must be separated from the parameter with an '='. The value entered for Handle Scatter must be factor.");
+      parameterMissing = true;
+    }
+    else
+    {
+      handleScatter = parameterList["handlescatter"]; 
+      if (handleScatter.compare("factor") != 0)
+      {
+        vtkErrorMacro("LoadVffFile: The value entered for Handle Scatter must be factor.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    std::vector<double> numberFromParsedStringReferenceScatterFactor = this->ParseNumberOfNumbersFromString<double>(parameterList["referencescatterfactor"], 1);
+    if (numberFromParsedStringReferenceScatterFactor.empty())
+    {
+      vtkErrorMacro("LoadVffFile: A double was not entered for the Reference Scatter Factor. The value entered must be 1.");
+      parameterMissing = true;
+    }
+    else
+    {
+      referenceScatterFactor = numberFromParsedStringReferenceScatterFactor[0];
+      if (referenceScatterFactor != 1)
+      {
+        vtkErrorMacro("LoadVffFile: The value entered for the Reference Scatter Factor must be 1.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    std::vector<double> numberFromParsedStringDataScatterFactor = this->ParseNumberOfNumbersFromString<double>(parameterList["datascatterfactor"], 1);
+    if (numberFromParsedStringDataScatterFactor.empty())
+    {
+      vtkErrorMacro("LoadVffFile: A double was not entered for the Data Scatter Factor. The value entered must be 1.");
+      parameterMissing = true;
+    }
+    else 
+    {
+      dataScatterFactor = numberFromParsedStringDataScatterFactor[0];
+      if (dataScatterFactor != 1)
+      {
+        vtkErrorMacro("LoadVffFile: The value entered for the Data Scatter Factor must be 1.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    if (parameterList["filter"].size() <= 0)
+    {
+      vtkErrorMacro("LoadVffFile: A string was not entered for the filter. The value must be separated from the parameter with an '='. The value entered for the filter must be Ram-Lak.");
+      parameterMissing = true;
+    }
+    else
+    {
+      filter = parameterList["filter"];
+      if (filter.compare("ram-lak") != 0)
+      {
+        vtkErrorMacro("LoadVffFile: The value entered for filter must be Ram-Lak.");
+        parameterInvalidValue = true;
+      }
+    }
+
+    if (parameterList["title"].size() > 0)
+    {
+      title = parameterList["title"];
+      // Parse out the name of the file from the file path given as the parameter title
+      std::string titleStringToParse = title;
+      int locationToSplitString = titleStringToParse.find_last_of("/\\");
+      if (locationToSplitString != std::string::npos)
+      {
+        titleStringToParse = titleStringToParse.substr(locationToSplitString+1);
+        titleStringToParse = this->TrimSpacesFromEndsOfString(titleStringToParse);
+        name = titleStringToParse;
+      }
+      else 
+      {
+        name = titleStringToParse;
+      }
+    }
+    else
+    {
+      parameterMissing = true;
+      vtkErrorMacro("LoadVffFile: A string was not entered for the title.");
+    }
+
+    if (parameterList["date"].size() <= 0)
+    {
+      vtkErrorMacro("LoadVffFile: A string was not entered for the date. The value must be separated from the parameter with an '='.");
+    }
+    else
+    {
+      date = parameterList["date"];
+      isDateCurrentlySet = true; 
+    }
+
     // Checks that the end of the header has been reached and that all of the required parameters have been set
-    if (parameterParseSuccess == true && parametersCurrentlySet == parametersToSet)
+    if (parameterMissing == false && parameterInvalidValue == false)
     {
       // Calculates the number of bytes to read based on some of the specified parameters
       long bytesToRead = 1;
@@ -622,18 +518,18 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useDataScale,
       vffVolumeNode->SetName(name.c_str());
       vffVolumeNode->SetSpacing(spacing[0], spacing[1], spacing[2]);
       vffVolumeNode->SetOrigin(origin[0], origin[1], origin[2]);          
-      vtkSmartPointer<vtkMatrix4x4> vffInitialIJKToRASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      vffVolumeNode->GetIJKToRASMatrix(vffInitialIJKToRASMatrix);
-      vtkSmartPointer<vtkMatrix4x4> vffFlippedIJKToRASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      vffFlippedIJKToRASMatrix->DeepCopy(vffInitialIJKToRASMatrix);
+      vtkSmartPointer<vtkMatrix4x4> vffIjkToLpsMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      vffVolumeNode->GetIJKToRASMatrix(vffIjkToLpsMatrix);
+      vtkSmartPointer<vtkMatrix4x4> vffIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      vffIjkToRasMatrix->DeepCopy(vffIjkToLpsMatrix);
       for (int rowCounter = 0; rowCounter < 3; rowCounter++)
       {
-        for (int columnCounter = 0; columnCounter < 3; columnCounter+=2)
+        for (int columnCounter = 0; columnCounter < 2; columnCounter++)
         {
-          vffFlippedIJKToRASMatrix->SetElement(rowCounter, columnCounter, (-1*(vffInitialIJKToRASMatrix->GetElement(rowCounter, columnCounter))));
+          vffIjkToRasMatrix->SetElement(rowCounter, columnCounter, (-1*(vffIjkToLpsMatrix->GetElement(rowCounter, columnCounter))));
         }
       }
-      vffVolumeNode->SetIJKToRASMatrix(vffFlippedIJKToRASMatrix);
+      vffVolumeNode->SetIJKToRASMatrix(vffIjkToRasMatrix);
 
       vffVolumeNode->SetSlicerDataType(type.c_str());
       this->GetMRMLScene()->AddNode(vffVolumeNode);
@@ -683,28 +579,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useDataScale,
                 {
                   newBuffer[byte] = buffer[bytesToRead-byte-1];
                 }
-                float value = 0.0;
-
-                // Applies scaling and offset to the value read from the file
-                if (useDataOffset == false && useDataScale == false)
-                {
-                  value = (*valueFromFile);
-                }
-                else if (useDataOffset == true && useDataScale == true)
-                {
-                  value = (*valueFromFile)*data_scale+data_offset;
-                }
-                else if (useDataOffset == false && useDataScale == true)
-                {
-                  value = (*valueFromFile)*data_scale;
-                }
-                else
-                {
-                  value = (*valueFromFile)+data_offset;
-                }
-
-                // Sets the point in the image data to the scaled and offset value
-                (*floatPtr) = value;
+                (*floatPtr) = (*valueFromFile);
                 ++floatPtr;
               }
               else
@@ -724,8 +599,19 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useDataScale,
       {
         vtkWarningMacro("LoadVffFile: The end of the file was not reached.");
       }
-      vffVolumeNode->SetAndObserveImageData(floatVffVolumeData);
+      
+      
+      if (useImageIntensityScaleAndOffsetFromFile == true)
+      {
+        vtkSmartPointer<vtkImageShiftScale> imageIntensityShiftScale = vtkSmartPointer<vtkImageShiftScale>::New();
+        imageIntensityShiftScale->SetScale(data_scale);
+        imageIntensityShiftScale->SetShift(data_offset);
+        imageIntensityShiftScale->SetInput(floatVffVolumeData);
+        imageIntensityShiftScale->Update();
+        floatVffVolumeData = imageIntensityShiftScale->GetOutput();
+      }
 
+      vffVolumeNode->SetAndObserveImageData(floatVffVolumeData);
 
       vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> vffVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
       this->GetMRMLScene()->AddNode(vffVolumeDisplayNode);

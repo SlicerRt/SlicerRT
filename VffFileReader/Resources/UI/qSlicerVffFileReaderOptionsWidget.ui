@@ -18,16 +18,9 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QCheckBox" name="UseDataScaleCheckBox">
+    <widget class="QCheckBox" name="UseImageIntensityScaleAndOffsetCheckBox">
      <property name="text">
-      <string>Use Data Scale</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="UseDataOffsetCheckBox">
-     <property name="text">
-      <string>Use Data Offset</string>
+      <string>Use Image Intensity Scale and Image Intensity Offset</string>
      </property>
     </widget>
    </item>
