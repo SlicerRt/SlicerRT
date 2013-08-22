@@ -415,7 +415,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   vtkSmartPointer<vtkMRMLScalarVolumeNode> consolidatedStructureLabelmap = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   this->GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour(structureContourNode, resampledDoseVolume, consolidatedStructureLabelmap);
 
-
   // Create stencil for structure
   vtkNew<vtkImageToImageStencil> stencil;
   stencil->SetInput(consolidatedStructureLabelmap->GetImageData());

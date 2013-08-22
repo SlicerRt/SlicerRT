@@ -98,11 +98,13 @@ void qMRMLContourSelectorWidgetPrivate::init()
     q, SIGNAL(currentNodeChanged(vtkMRMLNode*)) );
   QObject::connect( this->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
     q, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
+  QObject::connect( this->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+    q, SIGNAL(currentReferenceVolumeNodeChanged(vtkMRMLNode*)) );
 
   // Disable contour combobox until required representation type is not explicitly set
   this->MRMLNodeComboBox_Contour->setEnabled(false);
 
-  // Hide reference related widgets by default
+  // Hide reference related widgets and all message labels by default
   this->frame_ReferenceVolumeSelection->setVisible(false);
   this->label_ValidRequiredRepresentation->setVisible(false);
   this->label_ClosedSurfaceModelConversion->setVisible(false);
@@ -207,7 +209,11 @@ bool qMRMLContourSelectorWidget::validateSelection(std::vector<vtkMRMLContourNod
   // If there are no contours in selection
   if (contours.size() == 0)
   {
-    d->label_NoContoursInSelection->setVisible(true);
+    // Only display no contours warning if there is a (contour hierarchy) node selected
+    if (d->MRMLNodeComboBox_Contour->currentNode())
+    {
+      d->label_NoContoursInSelection->setVisible(true);
+    }
     validSelection = false;
   }
   // If selected contours all contain the required representation
@@ -403,6 +409,13 @@ vtkMRMLNode* qMRMLContourSelectorWidget::currentNode()
 }
 
 //------------------------------------------------------------------------------
+QString qMRMLContourSelectorWidget::currentNodeID()
+{
+  Q_D(qMRMLContourSelectorWidget);
+  return d->MRMLNodeComboBox_Contour->currentNodeID();
+}
+
+//------------------------------------------------------------------------------
 void qMRMLContourSelectorWidget::setCurrentNodeID(const QString& nodeID)
 {
   Q_D(qMRMLContourSelectorWidget);
@@ -498,6 +511,59 @@ void qMRMLContourSelectorWidget::setForcedReferenceVolumeNodeID(const QString& n
 }
 
 //------------------------------------------------------------------------------
+QString qMRMLContourSelectorWidget::forcedReferenceVolumeNodeID()
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  return d->ForcedReferenceVolumeNodeID;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::setCurrentReferenceVolumeNodeID(const QString& nodeID)
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  if (!d->frame_ReferenceVolumeSelection->isVisible())
+  {
+    qWarning() << "qMRMLContourSelectorWidget::setCurrentReferenceVolumeNodeID: Unable to set currently selected reference volume because the reference selector is not active";
+    return;
+  }
+
+  // If this is the master of a group or if this is the only widget
+  if (!d->MasterContourSelectorWidget)
+  {
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(nodeID);
+  }
+  else
+  {
+    // Set the reference volume to the master widget
+    d->MasterContourSelectorWidget->setCurrentReferenceVolumeNodeID(nodeID);
+  }
+}
+
+//------------------------------------------------------------------------------
+QString qMRMLContourSelectorWidget::currentReferenceVolumeNodeID()
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  if (!d->frame_ReferenceVolumeSelection->isVisible())
+  {
+    return QString();
+  }
+
+  // If this is the master of a group or if this is the only widget
+  if (!d->MasterContourSelectorWidget)
+  {
+    return d->MRMLNodeComboBox_ReferenceVolume->currentNodeID();
+  }
+  else
+  {
+    // Return the selected reference volume of the master widget
+    return d->MasterContourSelectorWidget->currentReferenceVolumeNodeID();
+  }
+}
+
+//------------------------------------------------------------------------------
 void qMRMLContourSelectorWidget::addSlaveContourSelectorWidget(qMRMLContourSelectorWidget* newSlaveInstance)
 {
   Q_D(qMRMLContourSelectorWidget);
@@ -514,10 +580,11 @@ void qMRMLContourSelectorWidget::setMasterContourSelectorWidget(qMRMLContourSele
 
   d->MasterContourSelectorWidget = masterInstance;
 
-  if (masterInstance->requiredRepresentation() != d->RequiredRepresentation)
+  this->setRequiredRepresentation(masterInstance->requiredRepresentation());
+  this->setAcceptContourHierarchies(masterInstance->acceptContourHierarchies());
+  if (!d->ForcedReferenceVolumeNodeID.isEmpty())
   {
-    qWarning() << "qMRMLContourSelectorWidget::setMasterContourSelectorWidget: Required representation mismatch between master and slave contour selector widget. Setting the required representation of the master instance to the slave one.";
-    this->setRequiredRepresentation(masterInstance->requiredRepresentation());
+    this->setForcedReferenceVolumeNodeID(masterInstance->forcedReferenceVolumeNodeID());
   }
 }
 
@@ -527,4 +594,22 @@ bool qMRMLContourSelectorWidget::isSelectionValid()
   Q_D(qMRMLContourSelectorWidget);
 
   return d->IsSelectionValid;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::setMRMLScene(vtkMRMLScene* newScene)
+{
+  Q_D(qMRMLContourSelectorWidget);
+  if (newScene == this->mrmlScene())
+  {
+    return;
+  }
+
+  Superclass::setMRMLScene(newScene);
+
+  d->ForcedReferenceVolumeNodeID.clear();
+  d->IsSelectionValid = false;
+
+  d->MRMLNodeComboBox_Contour->setCurrentNodeID("");
+  d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID("");
 }

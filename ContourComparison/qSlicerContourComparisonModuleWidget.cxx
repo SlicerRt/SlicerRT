@@ -19,8 +19,6 @@
 
 ==============================================================================*/
 
-// Qt includes
-
 // SlicerQt includes
 #include "qSlicerContourComparisonModuleWidget.h"
 #include "ui_qSlicerContourComparisonModule.h"
@@ -31,6 +29,7 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "qMRMLContourSelectorWidget.h"
 
 // MRML includes
 #include <vtkMRMLVolumeNode.h>
@@ -175,19 +174,19 @@ void qSlicerContourComparisonModuleWidget::setContourComparisonNode(vtkMRMLNode 
   if (paramNode)
   {
     if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceContourNodeId())
-      && d->MRMLNodeComboBox_ReferenceContour->currentNode() )
+      && d->ContourSelectorWidget_Compare->currentNode() )
     {
-      paramNode->SetAndObserveReferenceContourNodeId(d->MRMLNodeComboBox_ReferenceContour->currentNodeID().toLatin1().constData());
+      paramNode->SetAndObserveReferenceContourNodeId(d->ContourSelectorWidget_Compare->currentNodeID().toLatin1().constData());
     }
     if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareContourNodeId())
-      && d->MRMLNodeComboBox_CompareContour->currentNode() )
+      && d->ContourSelectorWidget_Compare->currentNode() )
     {
-      paramNode->SetAndObserveCompareContourNodeId(d->MRMLNodeComboBox_CompareContour->currentNodeID().toLatin1().constData());
+      paramNode->SetAndObserveCompareContourNodeId(d->ContourSelectorWidget_Compare->currentNodeID().toLatin1().constData());
     }
     if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetRasterizationReferenceVolumeNodeId())
-      && d->MRMLNodeComboBox_ReferenceVolume->currentNode() )
+      && !d->ContourSelectorWidget_Reference->currentReferenceVolumeNodeID().isEmpty() )
     {
-      paramNode->SetAndObserveRasterizationReferenceVolumeNodeId(d->MRMLNodeComboBox_ReferenceVolume->currentNodeID().toLatin1().constData());
+      paramNode->SetAndObserveRasterizationReferenceVolumeNodeId(d->ContourSelectorWidget_Reference->currentReferenceVolumeNodeID().toLatin1().constData());
     }
     this->updateButtonsState();
   }
@@ -209,19 +208,16 @@ void qSlicerContourComparisonModuleWidget::updateWidgetFromMRML()
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetContourComparisonNode());
   if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceContourNodeId()))
   {
-    d->MRMLNodeComboBox_ReferenceContour->setCurrentNodeID(paramNode->GetReferenceContourNodeId());
+    d->ContourSelectorWidget_Reference->setCurrentNodeID(paramNode->GetReferenceContourNodeId());
   }
   if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareContourNodeId()))
   {
-    d->MRMLNodeComboBox_CompareContour->setCurrentNodeID(paramNode->GetCompareContourNodeId());
+    d->ContourSelectorWidget_Compare->setCurrentNodeID(paramNode->GetCompareContourNodeId());
   }
-
-  bool referenceVolumeNeeded = d->logic()->IsReferenceVolumeNeeded();
-
-  bool referenceVolumeSelected = ( !SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetRasterizationReferenceVolumeNodeId()) );
-  d->label_NoReferenceVolumeIsSelected->setVisible( referenceVolumeNeeded && !referenceVolumeSelected );
-  d->label_NoReferenceVolumeIsNeeded->setVisible( !referenceVolumeNeeded );
-  d->MRMLNodeComboBox_ReferenceVolume->setVisible( referenceVolumeNeeded );
+  if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetRasterizationReferenceVolumeNodeId()))
+  {
+    d->ContourSelectorWidget_Compare->setCurrentReferenceVolumeNodeID(paramNode->GetRasterizationReferenceVolumeNodeId());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -231,14 +227,18 @@ void qSlicerContourComparisonModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  d->label_NoReferenceVolumeIsSelected->setVisible(false);
-  d->label_NoReferenceVolumeIsNeeded->setVisible(false);
   d->label_Error->setText("");
 
+  // Set up contour selector widgets (Compare will be the master as it is the bottom one)
+  d->ContourSelectorWidget_Compare->setAcceptContourHierarchies(false);
+  d->ContourSelectorWidget_Compare->setRequiredRepresentation(vtkMRMLContourNode::IndexedLabelmap);
+  d->ContourSelectorWidget_Compare->addSlaveContourSelectorWidget(d->ContourSelectorWidget_Reference);
+
   // Make connections
-  connect( d->MRMLNodeComboBox_ReferenceContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceContourNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_CompareContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareContourNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
+  connect( d->ContourSelectorWidget_Reference, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceContourNodeChanged(vtkMRMLNode*)) );
+  connect( d->ContourSelectorWidget_Compare, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareContourNodeChanged(vtkMRMLNode*)) );
+  connect( d->ContourSelectorWidget_Compare, SIGNAL(selectionValidityChanged()), this, SLOT(updateButtonsState()) );
+  connect( d->ContourSelectorWidget_Compare, SIGNAL(currentReferenceVolumeNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
 
   connect( d->pushButton_ComputeDice, SIGNAL(clicked()), this, SLOT(computeDiceClicked()) );
   connect( d->pushButton_ComputeHausdorff, SIGNAL(clicked()), this, SLOT(computeHausdorffClicked()) );
@@ -259,8 +259,7 @@ void qSlicerContourComparisonModuleWidget::updateButtonsState()
   bool computeEnabled = d->logic()->GetContourComparisonNode()
                    && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetReferenceContourNodeId())
                    && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetCompareContourNodeId())
-                   && ( ! d->logic()->IsReferenceVolumeNeeded()
-                     || ( !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId()) ) );
+                   && d->ContourSelectorWidget_Compare->isSelectionValid();
   d->pushButton_ComputeDice->setEnabled(computeEnabled);
   d->pushButton_ComputeHausdorff->setEnabled(computeEnabled);
 

@@ -57,10 +57,6 @@ public:
   /// Perform selected morphological operation
   int MorphContour();
 
-  /// Determines if a reference volume node is needed
-  /// (at least one of the input contours lack indexed labelmap representation)
-  bool IsReferenceVolumeNeeded();
-
 public:
   /// Get parameter set node
   vtkGetObjectMacro(ContourMorphologyNode, vtkMRMLContourMorphologyNode);

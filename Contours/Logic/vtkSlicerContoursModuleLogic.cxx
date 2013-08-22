@@ -510,26 +510,6 @@ bool vtkSlicerContoursModuleLogic::ContoursContainRepresentation(std::vector<vtk
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerContoursModuleLogic::IsReferenceVolumeValidForAllContours(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType)
-{
-  for (std::vector<vtkMRMLContourNode*>::iterator contourIt = contours.begin(); contourIt != contours.end(); ++contourIt)
-  {
-    // If (target is indexed labelmap OR an intermediate labelmap is needed for closed surface conversion BUT missing)
-    // AND (the selected reference node is empty AND was not created from labelmap), then reference volume selection is invalid
-    if ( ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap
-      || ( targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel
-      && !(*contourIt)->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap) ) )
-      && ( !(*contourIt)->GetRasterizationReferenceVolumeNodeId()
-      && !(*contourIt)->HasBeenCreatedFromIndexedLabelmap() ) )
-    {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-//-----------------------------------------------------------------------------
 void vtkSlicerContoursModuleLogic::GetIndexedLabelmapWithGivenGeometry(vtkMRMLContourNode* contour, vtkMRMLScalarVolumeNode* referenceVolumeNode, vtkMRMLScalarVolumeNode* outputIndexedLabelmap)
 {
   if (!contour)

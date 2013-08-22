@@ -80,10 +80,6 @@ public:
   /// \return True if every selected node has the given type of representation, false otherwise
   static bool ContoursContainRepresentation(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain=true);
 
-  /// Determines if reference volume selection is valid for conversion for all contours in a list
-  /// \return False if any contour needs reference volume, but is not set, true otherwise
-  static bool IsReferenceVolumeValidForAllContours(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
-
   /// Get the indexed labelmap representation of a contour with a certain geometry (grid, lattice)
   /// Note: The contour node will not be changed. If the result indexed labelmap needs to be set to the contour, it has to be done manually
   /// \param Input contour object

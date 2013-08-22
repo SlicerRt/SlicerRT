@@ -66,25 +66,7 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceContour">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLContourNode</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_CompareContour">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLContourNode</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0" colspan="3">
+      <item row="3" column="0" colspan="3">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
          <spacer name="horizontalSpacer_2">
@@ -149,108 +131,13 @@
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QLabel" name="label_NoReferenceVolumeIsSelected">
-          <property name="palette">
-           <palette>
-            <active>
-             <colorrole role="WindowText">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>255</red>
-                <green>128</green>
-                <blue>0</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </active>
-            <inactive>
-             <colorrole role="WindowText">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>255</red>
-                <green>128</green>
-                <blue>0</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </inactive>
-            <disabled>
-             <colorrole role="WindowText">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>106</red>
-                <green>104</green>
-                <blue>100</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </disabled>
-           </palette>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Reference volume is needed for conversion</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_ReferenceVolume">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string>Reference volume:</string>
-        </property>
-       </widget>
+      <item row="0" column="2">
+       <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_Reference"/>
       </item>
-      <item row="3" column="2">
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <property name="spacing">
-         <number>4</number>
-        </property>
-        <item>
-         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
-          <property name="nodeTypes">
-           <stringlist>
-            <string>vtkMRMLScalarVolumeNode</string>
-           </stringlist>
-          </property>
-          <property name="selectNodeUponCreation">
-           <bool>false</bool>
-          </property>
-          <property name="addEnabled">
-           <bool>false</bool>
-          </property>
-          <property name="removeEnabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_NoReferenceVolumeIsNeeded">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Both input contours have indexed labelmap representations, no reference volume is needed</string>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
+      <item row="2" column="2">
+       <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_Compare"/>
       </item>
      </layout>
     </widget>
@@ -863,10 +750,21 @@
    <header>qMRMLNodeComboBox.h</header>
   </customwidget>
   <customwidget>
+   <class>qMRMLWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLContourSelectorWidget</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLContourSelectorWidget.h</header>
   </customwidget>
   <customwidget>
    <class>ctkCollapsibleButton</class>
@@ -896,48 +794,32 @@
   <connection>
    <sender>qSlicerContourComparisonModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ReferenceContour</receiver>
+   <receiver>ContourSelectorWidget_Reference</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>267</x>
-     <y>3</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>264</x>
-     <y>64</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerContourComparisonModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_CompareContour</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>220</x>
-     <y>2</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>216</x>
-     <y>83</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerContourComparisonModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ReferenceVolume</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>404</x>
+     <x>314</x>
      <y>1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>402</x>
-     <y>115</y>
+     <x>314</x>
+     <y>61</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerContourComparisonModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ContourSelectorWidget_Compare</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>227</x>
+     <y>3</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>230</x>
+     <y>85</y>
     </hint>
    </hints>
   </connection>

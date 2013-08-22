@@ -22,6 +22,9 @@
    </property>
    <item>
     <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Contour">
+     <property name="noneEnabled">
+      <bool>true</bool>
+     </property>
      <property name="renameEnabled">
       <bool>true</bool>
      </property>

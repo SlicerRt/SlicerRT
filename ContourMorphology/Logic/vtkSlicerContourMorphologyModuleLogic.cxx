@@ -177,31 +177,6 @@ void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneEndClose()
   this->Modified();
 }
 
-//-----------------------------------------------------------------------------
-bool vtkSlicerContourMorphologyModuleLogic::IsReferenceVolumeNeeded()
-{
-  if (!this->ContourMorphologyNode || !this->GetMRMLScene())
-  {
-    return false;
-  }
-
-  vtkMRMLContourMorphologyNode::ContourMorphologyOperationType operation = this->ContourMorphologyNode->GetOperation();
-  bool binaryOperation = (operation != vtkMRMLContourMorphologyNode::Expand && operation != vtkMRMLContourMorphologyNode::Shrink);
-
-  vtkMRMLContourNode* contourANode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetContourANodeId()));
-  vtkMRMLContourNode* contourBNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetContourBNodeId()));
-
-  if (!contourANode || !contourBNode)
-  {
-    return false;
-  }
-
-  return ( contourANode->GetIndexedLabelmapVolumeNodeId() == NULL
-         || ( contourBNode->GetIndexedLabelmapVolumeNodeId() == NULL && binaryOperation) );
-}
-
 //---------------------------------------------------------------------------
 int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
 {

@@ -195,6 +195,12 @@ double qSlicerContoursModuleWidget::getOversamplingFactor()
 }
 
 //-----------------------------------------------------------------------------
+int qSlicerContoursModuleWidget::getOversamplingFactorSliderValueFromOversamplingFactor(double oversamplingFactor)
+{
+  return (int)(log(oversamplingFactor)/log(2.0));
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::targetReductionFactorPercentChanged(double value)
 {
   UNUSED_VARIABLE(value);
@@ -377,58 +383,62 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
     d->CTKCollapsibleButton_ChangeActiveRepresentation->setEnabled(true);
   }
 
-  // Look for referenced volume for contours and set it as default if found
+  // Look for referenced volume by DICOM for contours and set it as default if found
   vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContours(d->SelectedContourNodes);
   if (referencedVolume)
   {
-    for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
-    {
-      (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
-      (*contourIt)->SetRasterizationOversamplingFactor(1.0);
-    }
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(referencedVolume);
+    
+    d->horizontalSlider_OversamplingFactor->blockSignals(true);
+    d->horizontalSlider_OversamplingFactor->setValue( this->getOversamplingFactorSliderValueFromOversamplingFactor(1.0) );
+    d->horizontalSlider_OversamplingFactor->blockSignals(false);
+    d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
   }
-
-  // Get reference volume node ID for the selected contour nodes
-  QString referenceVolumeNodeId;
-  bool sameReferenceVolumeNodeId = this->getReferenceVolumeNodeIdOfSelectedContours(referenceVolumeNodeId);
-
-  // Set reference volume on the GUI
-  if (!referenceVolumeNodeId.isEmpty())
-  {
-    if (sameReferenceVolumeNodeId)
-    {
-      d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
-    }
-    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(referenceVolumeNodeId);
-    d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
-  }
-  // If all selected contours have the same reference, then leave it as empty
+  // If no referenced volume was found by DICOM, then set the reference and oversampling factor specified in the nodes
   else
   {
-    if (this->haveSelectedContoursBeenCreatedFromLabelmap())
-    {
-      d->label_CreatedFromLabelmap->setVisible(true);
-    }
-    d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
-    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
-    d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
-  }
+    // Get reference volume node ID for the selected contour nodes
+    QString referenceVolumeNodeId;
+    bool sameReferenceVolumeNodeId = this->getReferenceVolumeNodeIdOfSelectedContours(referenceVolumeNodeId);
 
-  // Get the oversampling factor of the selected contour nodes
-  double oversamplingFactor = 0.0;
-  bool sameOversamplingFactor = this->getOversamplingFactorOfSelectedContours(oversamplingFactor);
-
-  // Set the oversampling factor on the GUI
-  if (oversamplingFactor != -1.0)
-  {
-    if (sameOversamplingFactor)
+    // Set reference volume on the GUI
+    if (!referenceVolumeNodeId.isEmpty())
     {
-      d->horizontalSlider_OversamplingFactor->blockSignals(true);
+      if (sameReferenceVolumeNodeId)
+      {
+        d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
+      }
+      d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(referenceVolumeNodeId);
+      d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
     }
-    d->horizontalSlider_OversamplingFactor->setValue( (int)(log(oversamplingFactor)/log(2.0)) );
-    d->horizontalSlider_OversamplingFactor->blockSignals(false);
+    // If all selected contours have the same reference, then leave it as empty
+    else
+    {
+      if (this->haveSelectedContoursBeenCreatedFromLabelmap())
+      {
+        d->label_CreatedFromLabelmap->setVisible(true);
+      }
+      d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
+      d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(NULL);
+      d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
+    }
+
+    // Get the oversampling factor of the selected contour nodes
+    double oversamplingFactor = 0.0;
+    bool sameOversamplingFactor = this->getOversamplingFactorOfSelectedContours(oversamplingFactor);
+
+    // Set the oversampling factor on the GUI
+    if (oversamplingFactor != -1.0)
+    {
+      if (sameOversamplingFactor)
+      {
+        d->horizontalSlider_OversamplingFactor->blockSignals(true);
+      }
+      d->horizontalSlider_OversamplingFactor->setValue( this->getOversamplingFactorSliderValueFromOversamplingFactor(oversamplingFactor) );
+      d->horizontalSlider_OversamplingFactor->blockSignals(false);
+    }
+    d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
   }
-  d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
 
   // Get target reduction factor for the selected contour nodes
   double targetReductionFactor;
@@ -596,6 +606,30 @@ bool qSlicerContoursModuleWidget::isSuitableSourceAvailableForConversionForAllSe
 }
 
 //-----------------------------------------------------------------------------
+bool qSlicerContoursModuleWidget::isReferenceVolumeValidForAllContours()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  vtkMRMLContourNode::ContourRepresentationType targetRepresentationType = this->getTargetRepresentationType();
+
+  for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
+  {
+    // If (target is indexed labelmap OR an intermediate labelmap is needed for closed surface conversion BUT missing)
+    // AND (the selected reference node is empty AND was not created from labelmap), then reference volume selection is invalid
+    if ( ( targetRepresentationType == vtkMRMLContourNode::IndexedLabelmap
+      || ( targetRepresentationType == vtkMRMLContourNode::ClosedSurfaceModel
+      && !(*contourIt)->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap) ) )
+      && ( !d->MRMLNodeComboBox_ReferenceVolume->currentNode()
+        && !(*contourIt)->HasBeenCreatedFromIndexedLabelmap() ) )
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::updateWidgetsInChangeActiveRepresentationGroup()
 {
   Q_D(qSlicerContoursModuleWidget);
@@ -651,7 +685,7 @@ void qSlicerContoursModuleWidget::updateWidgetsInChangeActiveRepresentationGroup
   this->showConversionParameterControlsForTargetRepresentation(targetRepresentationType);
 
   // If there is no reference volume selected but should be, then show warning and disable the apply button
-  if (!vtkSlicerContoursModuleLogic::IsReferenceVolumeValidForAllContours(d->SelectedContourNodes, this->getTargetRepresentationType()))
+  if (!this->isReferenceVolumeValidForAllContours())
   {
     d->label_NoReferenceWarning->setVisible(true);
     d->pushButton_ApplyChangeRepresentation->setEnabled(false);

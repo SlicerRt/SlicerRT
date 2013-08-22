@@ -31,9 +31,8 @@
 #include "dice_statistics.h"
 #include "hausdorff_distance.h"
 #if OPENMP_FOUND
-#include <omp.h>
+  #include <omp.h>
 #endif
-
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -258,28 +257,6 @@ void vtkSlicerContourComparisonModuleLogic::OnMRMLSceneEndImport()
 void vtkSlicerContourComparisonModuleLogic::OnMRMLSceneEndClose()
 {
   this->Modified();
-}
-
-//-----------------------------------------------------------------------------
-bool vtkSlicerContourComparisonModuleLogic::IsReferenceVolumeNeeded()
-{
-  if (!this->ContourComparisonNode || !this->GetMRMLScene())
-  {
-    return false;
-  }
-
-  vtkMRMLContourNode* referenceContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetReferenceContourNodeId()));
-  vtkMRMLContourNode* compareContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourComparisonNode->GetCompareContourNodeId()));
-
-  if (!referenceContourNode || !compareContourNode)
-  {
-    return false;
-  }
-
-  return !( referenceContourNode->GetIndexedLabelmapVolumeNodeId()
-        && compareContourNode->GetIndexedLabelmapVolumeNodeId() );
 }
 
 //---------------------------------------------------------------------------

@@ -21,6 +21,7 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
   ${SlicerRtCommon_INCLUDE_DIRS}
+  ${qSlicerContoursModuleWidgets_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -41,6 +42,7 @@ set(MODULE_UI_SRCS
 
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
+  qSlicerContoursModuleWidgets
   )
 
 set(MODULE_RESOURCES

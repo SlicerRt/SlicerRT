@@ -52,55 +52,10 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ContourA">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLContourNode</string>
-         </stringlist>
-        </property>
-        <property name="noneEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="addEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="removeEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="renameEnabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>Contour A:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ContourB">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLContourNode</string>
-         </stringlist>
-        </property>
-        <property name="noneEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="addEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="removeEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="renameEnabled">
-         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -111,117 +66,11 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0" rowspan="2">
-       <widget class="QLabel" name="label_14">
-        <property name="text">
-         <string>Reference volume:</string>
-        </property>
-       </widget>
+      <item row="1" column="1">
+       <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_ContourA"/>
       </item>
-      <item row="3" column="1" rowspan="2">
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <property name="spacing">
-         <number>4</number>
-        </property>
-        <item>
-         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
-          <property name="nodeTypes">
-           <stringlist>
-            <string>vtkMRMLScalarVolumeNode</string>
-           </stringlist>
-          </property>
-          <property name="addEnabled">
-           <bool>false</bool>
-          </property>
-          <property name="removeEnabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_NoReferenceVolumeIsNeeded">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Both input contours have indexed labelmap representations, no reference volume is needed</string>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="5" column="0" colspan="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_NoReferenceVolumeIsSelected">
-          <property name="palette">
-           <palette>
-            <active>
-             <colorrole role="WindowText">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>255</red>
-                <green>128</green>
-                <blue>0</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </active>
-            <inactive>
-             <colorrole role="WindowText">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>255</red>
-                <green>128</green>
-                <blue>0</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </inactive>
-            <disabled>
-             <colorrole role="WindowText">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>106</red>
-                <green>104</green>
-                <blue>100</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </disabled>
-           </palette>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Reference volume is needed for conversion</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+      <item row="2" column="1">
+       <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_ContourB"/>
       </item>
      </layout>
     </widget>
@@ -536,10 +385,21 @@
    <header>qMRMLNodeComboBox.h</header>
   </customwidget>
   <customwidget>
+   <class>qMRMLWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLContourSelectorWidget</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLContourSelectorWidget.h</header>
   </customwidget>
   <customwidget>
    <class>ctkCollapsibleButton</class>
@@ -550,24 +410,9 @@
  </customwidgets>
  <resources>
   <include location="../qSlicerContourMorphologyModule.qrc"/>
+  <include location="../qSlicerContourMorphologyModule.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>qSlicerContourMorphologyModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ContourA</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>127</x>
-     <y>232</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>124</x>
-     <y>74</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>qSlicerContourMorphologyModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
@@ -579,8 +424,8 @@
      <y>230</y>
     </hint>
     <hint type="destinationlabel">
-     <x>192</x>
-     <y>26</y>
+     <x>275</x>
+     <y>24</y>
     </hint>
    </hints>
   </connection>
@@ -596,39 +441,39 @@
     </hint>
     <hint type="destinationlabel">
      <x>350</x>
-     <y>547</y>
+     <y>478</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>qSlicerContourMorphologyModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ContourB</receiver>
+   <receiver>ContourSelectorWidget_ContourA</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>47</x>
-     <y>519</y>
+     <x>226</x>
+     <y>2</y>
     </hint>
     <hint type="destinationlabel">
-     <x>149</x>
-     <y>106</y>
+     <x>238</x>
+     <y>65</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>qSlicerContourMorphologyModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ReferenceVolume</receiver>
+   <receiver>ContourSelectorWidget_ContourB</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>237</x>
-     <y>601</y>
+     <x>184</x>
+     <y>2</y>
     </hint>
     <hint type="destinationlabel">
-     <x>250</x>
-     <y>133</y>
+     <x>191</x>
+     <y>86</y>
     </hint>
    </hints>
   </connection>

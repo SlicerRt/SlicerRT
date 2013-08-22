@@ -44,6 +44,7 @@ class Q_SLICER_MODULE_CONTOURS_WIDGETS_EXPORT qMRMLContourSelectorWidget : publi
   Q_OBJECT
 
 public:
+  typedef qMRMLWidget Superclass;
   qMRMLContourSelectorWidget(QWidget *parent=0);
   virtual ~qMRMLContourSelectorWidget();
 
@@ -73,6 +74,9 @@ public:
   /// Returns currently selected contour or contour hierarchy node
   vtkMRMLNode* currentNode();
 
+  /// Returns currently selected contour or contour hierarchy node's ID
+  QString currentNodeID();
+
   /// Set currently selected contour or contour hierarchy node
   void setCurrentNodeID(const QString& nodeID);
 
@@ -81,6 +85,9 @@ public:
   /// Furthermore if an indexed labelmap has been created from a model representation using a different reference
   /// volume, it will be invalidated (the contour dose this when overriding the reference volume)
   void setForcedReferenceVolumeNodeID(const QString& nodeID);
+
+  /// Get forced reference volume node by ID \sa setForcedReferenceVolumeNodeID
+  QString forcedReferenceVolumeNodeID();
 
   /// Add slave contour selector widget. This operation makes this instance a master instance and sets this instance's
   /// pointer as the master instance in the new slave object.
@@ -100,9 +107,18 @@ public:
   /// Takes occasional slave instances into account
   bool isSelectionValid();
 
+  /// Programatically set the currently selected reference volume
+  void setCurrentReferenceVolumeNodeID(const QString& nodeID);
+
+  /// Get the currently selected reference volume node ID
+  QString currentReferenceVolumeNodeID();
+
 signals:
   /// Emitted if the currently selected contour or contour hierarchy node changed
   void currentNodeChanged(vtkMRMLNode*);
+
+  /// Emitted if the currently selected reference volume node changed
+  void currentReferenceVolumeNodeChanged(vtkMRMLNode*);
 
   /// Emitted if validity of the selection changed, to notify the parent widgets so that they can enable/disable their related widgets (such as the Apply button)
   void selectionValidityChanged();
@@ -116,6 +132,10 @@ protected:
   /// is the same throughout the group).
   /// \param contours List of contours to search in. It should be either the only instance's selection or the unified selection of the group
   void setReferenceInSelection(std::vector<vtkMRMLContourNode*>& contours);
+
+public slots:
+  /// Set the MRML \a scene associated with the widget (overridden method that cleans up widget content)
+  virtual void setMRMLScene(vtkMRMLScene* newScene);
 
 protected slots:
   /// Handle change of selected contour node

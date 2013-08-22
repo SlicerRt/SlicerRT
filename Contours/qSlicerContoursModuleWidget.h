@@ -103,6 +103,10 @@ protected:
   /// \sa haveConversionParametersChanged
   bool haveConversionParametersChangedInAnySelectedContour();
 
+  /// Determines if reference volume selection is valid for conversion for all contours in the selected contours
+  /// \return False if any contour needs reference volume, but is not set, true otherwise
+  bool isReferenceVolumeValidForAllContours();
+
   /// Perform conversion to indexed labelmap representation in a certain contour.
   /// NOTE: The active representation is not changed, only the parameters are set and the conversion is done.
   /// Used by \sa applyChangeRepresentationClicked
@@ -111,6 +115,9 @@ protected:
   /// NOTE: The active representation is not changed, only the parameters are set and the conversion is done.
   /// Used by \sa applyChangeRepresentationClicked
   bool convertToClosedSurfaceModel(vtkMRMLContourNode* contourNode);
+
+  /// Utility function that returns the corresponding slider widget value for an oversampling factor (the slider is exponential)
+  int getOversamplingFactorSliderValueFromOversamplingFactor(double oversamplingFactor);
 
 public slots:
   /// Update widget GUI from parameter node

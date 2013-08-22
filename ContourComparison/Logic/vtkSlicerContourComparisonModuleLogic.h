@@ -46,10 +46,6 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
-  /// Determines if a reference volume node is needed
-  /// (at least one of the input contours lack indexed labelmap representation)
-  bool IsReferenceVolumeNeeded();
-
   /// Compute Dice statistics from the selected input contour labelmaps
   void ComputeDiceStatistics(std::string &errorMessage);
 
