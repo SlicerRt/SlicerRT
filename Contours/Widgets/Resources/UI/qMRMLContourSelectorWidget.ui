@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>292</width>
-    <height>116</height>
+    <width>244</width>
+    <height>129</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -135,57 +135,43 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_ValidRequiredRepresentation">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>18</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string>For changing conversion parameters and re-convert, please use the Contours module</string>
-       </property>
-       <property name="text">
-        <string>Selection contains valid required representation</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_ClosedSurfaceModelConversion">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>18</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string>Default closed surface model conversion parameters will be used.
-Different parameters can be applied in the Contours module</string>
-       </property>
-       <property name="text">
-        <string>Conversion to surface model will be performed</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QLabel" name="label_NoContoursInSelection">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>18</height>
-        </size>
+       <property name="palette">
+        <palette>
+         <active>
+          <colorrole role="WindowText">
+           <brush brushstyle="SolidPattern">
+            <color alpha="255">
+             <red>255</red>
+             <green>128</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
+         </active>
+         <inactive>
+          <colorrole role="WindowText">
+           <brush brushstyle="SolidPattern">
+            <color alpha="255">
+             <red>255</red>
+             <green>128</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
+         </inactive>
+         <disabled>
+          <colorrole role="WindowText">
+           <brush brushstyle="SolidPattern">
+            <color alpha="255">
+             <red>120</red>
+             <green>120</green>
+             <blue>120</blue>
+            </color>
+           </brush>
+          </colorrole>
+         </disabled>
+        </palette>
        </property>
        <property name="font">
         <font>
@@ -199,12 +185,43 @@ Different parameters can be applied in the Contours module</string>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_NewConversion">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>18</height>
-        </size>
+      <widget class="QLabel" name="label_NoSource">
+       <property name="palette">
+        <palette>
+         <active>
+          <colorrole role="WindowText">
+           <brush brushstyle="SolidPattern">
+            <color alpha="255">
+             <red>255</red>
+             <green>128</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
+         </active>
+         <inactive>
+          <colorrole role="WindowText">
+           <brush brushstyle="SolidPattern">
+            <color alpha="255">
+             <red>255</red>
+             <green>128</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
+         </inactive>
+         <disabled>
+          <colorrole role="WindowText">
+           <brush brushstyle="SolidPattern">
+            <color alpha="255">
+             <red>120</red>
+             <green>120</green>
+             <blue>120</blue>
+            </color>
+           </brush>
+          </colorrole>
+         </disabled>
+        </palette>
        </property>
        <property name="font">
         <font>
@@ -212,12 +229,58 @@ Different parameters can be applied in the Contours module</string>
          <bold>true</bold>
         </font>
        </property>
+       <property name="text">
+        <string>There is no suitable source representation</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_ReConversion">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="toolTip">
-        <string>The selected reference volume is different than the one used for creating the
-indexed labelmap of this selection. New conversion will take place when performing the action.</string>
+        <string>The selected reference volume is different than the one used for creating the indexed labelmap of this selection.
+Re-conversion will take place when performing the action.</string>
        </property>
        <property name="text">
-        <string>New conversion will take place</string>
+        <string>Re-conversion will take place</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_ClosedSurfaceModelConversion">
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>Default closed surface model conversion parameters will be used.
+Different parameters can be applied in the Contours module</string>
+       </property>
+       <property name="text">
+        <string>Conversion to surface model will be performed</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_ValidRequiredRepresentation">
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>For changing conversion parameters and re-convert, please use the Contours module</string>
+       </property>
+       <property name="text">
+        <string>Selection contains valid required representation</string>
        </property>
       </widget>
      </item>

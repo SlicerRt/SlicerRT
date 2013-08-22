@@ -271,6 +271,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( setDoseVolumeHistogramNode(vtkMRMLNode*) ) );
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
   connect( d->ContourSelectorWidget, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( structureSetNodeChanged(vtkMRMLNode*) ) );
+  connect( d->ContourSelectorWidget, SIGNAL( selectionValidityChanged() ), this, SLOT( updateButtonsState() ) );
   connect( d->MRMLNodeComboBox_Chart, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( chartNodeChanged(vtkMRMLNode*) ) );
 
   connect( d->pushButton_ComputeDVH, SIGNAL( clicked() ), this, SLOT( computeDvhClicked() ) );
@@ -303,7 +304,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   {
     // Enable/disable ComputeDVH button
     bool dvhCanBeComputed = !SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetDoseVolumeNodeId())
-                     && !SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetStructureSetContourNodeId());
+                     && !SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetStructureSetContourNodeId())
+                     && d->ContourSelectorWidget->isSelectionValid();
     d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
 
     // Enable/disable Export DVH to file button

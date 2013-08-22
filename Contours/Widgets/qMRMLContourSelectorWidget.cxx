@@ -55,8 +55,21 @@ public:
   std::vector<vtkMRMLContourNode*> SelectedContourNodes;
 
   /// Forced reference volume node by ID.
-  /// Forced means that there will be no search for a default (DICOM-based) referenced volume, this will be used instead
+  /// This means that there will be no search for a forced (DICOM-based) referenced volume, this will be used instead
   QString ForcedReferenceVolumeNodeID;
+
+  /// List of all contour selector widgets that are grouped under this widget instance as slave widgets.
+  /// The instances in this list should have their \sa MasterContourSelectorWidget member set.
+  /// Having items in this list makes this instance the master
+  QList<qMRMLContourSelectorWidget*> SlaveContourSelectorWidgets;
+
+  /// Pointer to the master contour selector widget if this instance is grouped under another instance
+  /// NULL if not grouped
+  qMRMLContourSelectorWidget* MasterContourSelectorWidget;
+
+  /// Flag determining if the current selection is valid. Takes the occasional slave instances into account
+  /// Updated automatically in the /sa updateWidgetState method
+  bool IsSelectionValid;
 };
 
 //------------------------------------------------------------------------------
@@ -66,6 +79,9 @@ qMRMLContourSelectorWidgetPrivate::qMRMLContourSelectorWidgetPrivate(qMRMLContou
   this->RequiredRepresentation = vtkMRMLContourNode::None;
   this->AcceptContourHierarchies = false;
   this->ForcedReferenceVolumeNodeID.clear();
+  this->SlaveContourSelectorWidgets.clear();
+  this->MasterContourSelectorWidget = NULL;
+  this->IsSelectionValid = false;
 }
 
 //------------------------------------------------------------------------------
@@ -91,6 +107,8 @@ void qMRMLContourSelectorWidgetPrivate::init()
   this->label_ValidRequiredRepresentation->setVisible(false);
   this->label_ClosedSurfaceModelConversion->setVisible(false);
   this->label_NoContoursInSelection->setVisible(false);
+  this->label_ReConversion->setVisible(false);
+  this->label_NoSource->setVisible(false);
 }
 
 //------------------------------------------------------------------------------
@@ -112,73 +130,196 @@ void qMRMLContourSelectorWidget::updateWidgetState()
 {
   Q_D(qMRMLContourSelectorWidget);
 
+  bool isSelectionValid = false;
+
+  // If this is the only widget (no grouping), then validate it as master
+  if (d->SlaveContourSelectorWidgets.empty() && !d->MasterContourSelectorWidget)
+  {
+    // Update this widget
+    isSelectionValid = this->validateSelection(d->SelectedContourNodes, false);
+  }
+  // If widgets are grouped and this is the master, then validate them separately as slaves (to show critical messages locally)
+  // and then validate the unified selection as master (to show selection widgets and other messages)
+  else if (!d->MasterContourSelectorWidget)
+  {
+    // Validate this instance's (the master's) selection and display messages that show invalid selection
+    isSelectionValid = this->validateSelection(d->SelectedContourNodes, true);
+
+    // Gather all selected contours from the widget group
+    std::vector<vtkMRMLContourNode*> selectedContoursInGroup;
+    for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
+    {
+      selectedContoursInGroup.push_back(*contourIt);
+    }
+
+    for (int slaveIndex = 0; slaveIndex < d->SlaveContourSelectorWidgets.size(); ++slaveIndex)
+    {
+      qMRMLContourSelectorWidget* currentSlave = d->SlaveContourSelectorWidgets.at(slaveIndex);
+      std::vector<vtkMRMLContourNode*> selectedContoursInCurrentSlave = currentSlave->selectedContourNodes();
+
+      // Add slave's selection to the unified selected contour list
+      for (std::vector<vtkMRMLContourNode*>::iterator contourIt = selectedContoursInCurrentSlave.begin(); contourIt != selectedContoursInCurrentSlave.end(); ++contourIt)
+      {
+        selectedContoursInGroup.push_back(*contourIt);
+      }
+
+      // Validate slave's selection and display messages locally that show invalid selection
+      isSelectionValid &= currentSlave->validateSelection(selectedContoursInCurrentSlave, true);
+    }
+
+    // If selection is valid in each widget in the group then display controls and other messages for only this instance (the master)
+    if (isSelectionValid)
+    {
+      this->validateSelection(selectedContoursInGroup, false);
+    }
+  }
+
+  // If validity changed, then set it and emit a signal about it
+  if (isSelectionValid != d->IsSelectionValid)
+  {
+    d->IsSelectionValid = isSelectionValid;
+    emit selectionValidityChanged();
+  }
+}
+
+//------------------------------------------------------------------------------
+bool qMRMLContourSelectorWidget::validateSelection(std::vector<vtkMRMLContourNode*>& contours, bool slave)
+{
+  Q_D(qMRMLContourSelectorWidget);
+
   d->frame_ReferenceVolumeSelection->setVisible(false);
   d->label_ValidRequiredRepresentation->setVisible(false);
   d->label_ClosedSurfaceModelConversion->setVisible(false);
   d->label_NoContoursInSelection->setVisible(false);
+  d->label_ReConversion->setVisible(false);
+  d->label_NoSource->setVisible(false);
 
-  if (d->SelectedContourNodes.size() == 0)
+  bool validSelection = true;
+
+  // If required representation is indexed labelmap or closed surface model, then set reference
+  // Forced reference will be set if available (and the contour has not been created from labelmap), otherwise DICOM reference will be used if available
+  // When setting a reference, the indexed labelmap is invalidated, and this fact influences the validation process below.
+  if ( (d->RequiredRepresentation == vtkMRMLContourNode::IndexedLabelmap || d->RequiredRepresentation == vtkMRMLContourNode::ClosedSurfaceModel) )
   {
-    d->label_NoContoursInSelection->setVisible(true);
-    return;
+    this->setReferenceInSelection(contours);
   }
 
-  // If the required representation is labelmap or surface, and there is no labelmap representation
-  // in the selected contour yet, then show the reference volume selector widget and select the default reference
-  if ( d->RequiredRepresentation == vtkMRMLContourNode::IndexedLabelmap
-    || d->RequiredRepresentation == vtkMRMLContourNode::ClosedSurfaceModel )
+  // If there are no contours in selection
+  if (contours.size() == 0)
   {
-    if (vtkSlicerContoursModuleLogic::ContoursContainRepresentation(d->SelectedContourNodes, d->RequiredRepresentation))
+    d->label_NoContoursInSelection->setVisible(true);
+    validSelection = false;
+  }
+  // If selected contours all contain the required representation
+  else if (vtkSlicerContoursModuleLogic::ContoursContainRepresentation(contours, d->RequiredRepresentation))
+  {
+    if (!slave) // Only display this message for the master
     {
+      // There is a valid required representation in every selected contour
       d->label_ValidRequiredRepresentation->setVisible(true);
     }
-    else if ( d->RequiredRepresentation == vtkMRMLContourNode::ClosedSurfaceModel
-           && vtkSlicerContoursModuleLogic::ContoursContainRepresentation(d->SelectedContourNodes, vtkMRMLContourNode::IndexedLabelmap) )
+  }
+  else if (d->RequiredRepresentation == vtkMRMLContourNode::RibbonModel)
+  {
+    // There is no conversion implemented to ribbon model yet
+    d->label_NoSource->setVisible(true);
+    validSelection = false;
+  }
+  // If selection does not contain the required representation (which is indexed labelmap or closed surface model)
+  //   and the selected contours also do not contain indexed labelmap representations
+  else if (!vtkSlicerContoursModuleLogic::ContoursContainRepresentation(contours, vtkMRMLContourNode::IndexedLabelmap))
+  {
+    // If there are no possible sources for conversion to indexed labelmap
+    // Note: The case where some contours contain only ribbon, while others contain only closed surface is not handled.
+    //   It is a quite exotic case, and the user can solve this case using the Contours module
+    if ( !vtkSlicerContoursModuleLogic::ContoursContainRepresentation(contours, vtkMRMLContourNode::RibbonModel)
+      && !vtkSlicerContoursModuleLogic::ContoursContainRepresentation(contours, vtkMRMLContourNode::ClosedSurfaceModel) )
+    {
+      d->label_NoSource->setVisible(true);
+      validSelection = false;
+    }
+    else if (!slave) // Only display this message for the master
+    {
+      // Show reference selector for the master if every condition is given for conversion to indexed labelmap
+      d->frame_ReferenceVolumeSelection->setVisible(true);
+
+      // If there is at least one contour in the selection that contains indexed labelmap already, and then show re-conversion message
+      // TODO: Decide if we need such a warning. It is quite hard to determine whether an actual re-conversion will take place,
+      //   and it is not a crucial information (as there are model sources, the labelmap can be re-converted using any reference any time)
+      //if (vtkSlicerContoursModuleLogic::ContoursContainRepresentation(contours, vtkMRMLContourNode::IndexedLabelmap, false))
+      //{
+      //  d->label_ReConversion->setVisible(true);
+      //}
+      // Show closed surface conversion message if required representation is closed surface
+      if (d->RequiredRepresentation == vtkMRMLContourNode::ClosedSurfaceModel)
+      {
+        d->label_ClosedSurfaceModelConversion->setVisible(true);
+      }
+    }
+  }
+  // If selection contains indexed labelmap and the required representation is closed surface model, but it's not present in selection
+  else if (d->RequiredRepresentation == vtkMRMLContourNode::ClosedSurfaceModel)
+  {
+    if (!slave)
     {
       d->label_ClosedSurfaceModelConversion->setVisible(true);
     }
-    else
+  }
+  else
+  {
+    // This control branch should never be hit
+    qCritical() << "qMRMLContourSelectorWidget::validateSelection: Unexpected state! This is probably a bug, please save the scene and report this";
+    return false;
+  }
+
+  return validSelection;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::setReferenceInSelection(std::vector<vtkMRMLContourNode*>& contours)
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  if (contours.empty())
+  {
+    return;
+  }
+
+  // If there is no forced reference set
+  // Note: The forced reference of this instance is used, because this is called only from the master (moreover the forced reference is the same throughout the group)
+  if (d->ForcedReferenceVolumeNodeID.isEmpty())
+  {
+    // Look for referenced volume for contours in DICOM and set it as forced if found
+    vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContours(contours);
+    if (referencedVolume)
     {
-      d->frame_ReferenceVolumeSelection->setVisible(true);
+      // Set referenced volume and turn off oversampling in selected contours
+      d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(referencedVolume->GetID());
+      d->label_OversamplingFactorValue->setText("1");
 
-      if (d->ForcedReferenceVolumeNodeID.isEmpty())
+      for (std::vector<vtkMRMLContourNode*>::iterator contourIt = contours.begin(); contourIt != contours.end(); ++contourIt)
       {
-        // Look for referenced volume for contours and set it as default if found
-        vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContours(d->SelectedContourNodes);
-        if (referencedVolume)
-        {
-          // Set referenced volume and turn off oversampling in selected contours
-          d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(referencedVolume->GetID());
-          d->label_OversamplingFactorValue->setText("1");
-
-          for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
-          {
-            (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
-            (*contourIt)->SetRasterizationOversamplingFactor(1.0);
-          }
-        }
-        else
-        {
-          // Set forced reference volume and turn on oversampling in selected contours
-          d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(d->ForcedReferenceVolumeNodeID);
-          d->label_OversamplingFactorValue->setText("2");
-
-          for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
-          {
-            (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(d->ForcedReferenceVolumeNodeID.toLatin1().constData());
-            (*contourIt)->SetRasterizationOversamplingFactor(2.0);
-          }
-        }
+        // This call invalidates (deletes) the occasionally existing indexed labelmap representation if the new reference differs from the original one
+        (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
+        (*contourIt)->SetRasterizationOversamplingFactor(1.0);
       }
-      else
-      {
-        d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(d->ForcedReferenceVolumeNodeID);
-        d->label_OversamplingFactorValue->setText("2");
+    }
+  }
+  // If there is a forced reference set
+  else
+  {
+    d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(d->ForcedReferenceVolumeNodeID);
+    d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
+    d->label_OversamplingFactorValue->setText("2");
 
-        for (std::vector<vtkMRMLContourNode*>::iterator contourIt = d->SelectedContourNodes.begin(); contourIt != d->SelectedContourNodes.end(); ++contourIt)
-        {
-          (*contourIt)->SetRasterizationOversamplingFactor(2.0);
-        }
+    for (std::vector<vtkMRMLContourNode*>::iterator contourIt = contours.begin(); contourIt != contours.end(); ++contourIt)
+    {
+      if (!(*contourIt)->HasBeenCreatedFromIndexedLabelmap())
+      {
+        // This call invalidates (deletes) the occasionally existing indexed labelmap representation if the new reference differs from the original one
+        (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(d->ForcedReferenceVolumeNodeID.toLatin1().constData());
+        (*contourIt)->SetRasterizationOversamplingFactor(2.0);
       }
     }
   }
@@ -196,7 +337,16 @@ void qMRMLContourSelectorWidget::setRequiredRepresentation(vtkMRMLContourNode::C
     d->MRMLNodeComboBox_Contour->setEnabled(true);
   }
 
-  this->updateWidgetState();
+  if (!d->MasterContourSelectorWidget)
+  {
+    // Update widget if this is the master of a group or if this is the only widget
+    this->updateWidgetState();
+  }
+  else
+  {
+    // Call master's update function if this is a slave
+    d->MasterContourSelectorWidget->updateWidgetState();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -225,6 +375,16 @@ void qMRMLContourSelectorWidget::setAcceptContourHierarchies(bool acceptContourH
     // Show only displayable hierarchies that are contour hierarchies
     d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"),
       QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
+  }
+
+  // Propagate setting to slaves if this is a master instance
+  if (!d->SlaveContourSelectorWidgets.empty())
+  {
+    // Set the same forced reference in all slaves
+    for (int slaveIndex = 0; slaveIndex < d->SlaveContourSelectorWidgets.size(); ++slaveIndex)
+    {
+      d->SlaveContourSelectorWidgets.at(slaveIndex)->setAcceptContourHierarchies(acceptContourHierarchies);
+    }
   }
 }
 
@@ -257,7 +417,16 @@ void qMRMLContourSelectorWidget::contourNodeChanged(vtkMRMLNode* node)
   // Get contour nodes from selection
   vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(node, d->SelectedContourNodes);
 
-  this->updateWidgetState();
+  if (!d->MasterContourSelectorWidget)
+  {
+    // Update widget if this is the master of a group or if this is the only widget
+    this->updateWidgetState();
+  }
+  else
+  {
+    // Call master's update function if this is a slave
+    d->MasterContourSelectorWidget->updateWidgetState();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -315,5 +484,47 @@ void qMRMLContourSelectorWidget::setForcedReferenceVolumeNodeID(const QString& n
 
   d->ForcedReferenceVolumeNodeID = nodeID;
 
-  this->updateWidgetState();
+  // If this is a master instance
+  if (!d->SlaveContourSelectorWidgets.empty())
+  {
+    // Set the same forced reference in all slaves
+    for (int slaveIndex = 0; slaveIndex < d->SlaveContourSelectorWidgets.size(); ++slaveIndex)
+    {
+      d->SlaveContourSelectorWidgets.at(slaveIndex)->setForcedReferenceVolumeNodeID(nodeID);
+    }
+
+    this->updateWidgetState();
+  }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::addSlaveContourSelectorWidget(qMRMLContourSelectorWidget* newSlaveInstance)
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  d->SlaveContourSelectorWidgets.push_back(newSlaveInstance);
+
+  newSlaveInstance->setMasterContourSelectorWidget(this);
+}
+
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::setMasterContourSelectorWidget(qMRMLContourSelectorWidget* masterInstance)
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  d->MasterContourSelectorWidget = masterInstance;
+
+  if (masterInstance->requiredRepresentation() != d->RequiredRepresentation)
+  {
+    qWarning() << "qMRMLContourSelectorWidget::setMasterContourSelectorWidget: Required representation mismatch between master and slave contour selector widget. Setting the required representation of the master instance to the slave one.";
+    this->setRequiredRepresentation(masterInstance->requiredRepresentation());
+  }
+}
+
+//------------------------------------------------------------------------------
+bool qMRMLContourSelectorWidget::isSelectionValid()
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  return d->IsSelectionValid;
 }
