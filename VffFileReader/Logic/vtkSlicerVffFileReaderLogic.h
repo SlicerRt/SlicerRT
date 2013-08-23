@@ -59,7 +59,9 @@ protected:
   /// \param stringToParse String from which the numbers are to be extracted
   /// \param numberOfNumbers Integer specifying the number of numbers to be extracted from the string and returned in the vector
   /// \return Vector containing the extracted numbers
-  template <class Num> std::vector<Num> ParseNumberOfNumbersFromString(std::string stringToParse, int numberOfNumbers);
+  template <class Num> std::vector<Num> ParseNumberOfNumbersFromString(std::string stringToParse, unsigned int numberOfNumbers);
+
+  bool ReadVffFileHeader(ifstream &readFileStream, std::map<std::string, std::string> &parameterList);
 
 protected:
   vtkSlicerVffFileReaderLogic();

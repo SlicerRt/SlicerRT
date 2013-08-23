@@ -68,23 +68,88 @@ std::string vtkSlicerVffFileReaderLogic::TrimSpacesFromEndsOfString(std::string 
 }
 
 //----------------------------------------------------------------------------
-template <class Num> 
-std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std::string stringToParse, int numberOfNumbers)
+bool vtkSlicerVffFileReaderLogic::ReadVffFileHeader(ifstream &readFileStream, std::map<std::string, std::string> &parameterList)
 {
-
-  if (numberOfNumbers > 0)
+  std::string currentStringFromFile = "";
+  while(readFileStream.good())
   {
-    std::vector<Num> vectorOfNumberOfNumbers (numberOfNumbers, 0);
+    
+    char nextCharacter;
+    nextCharacter = readFileStream.get();
 
-    stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
-    int currentNumber = 0;
-
-    // Parses out the specified number of numbers from the string, 
-    // assuming that numbers are separated by commas, spaces, or both
-    while (currentNumber < numberOfNumbers)
+    // The form feed character and the following line feed indicate the beginning of the image data
+    if (nextCharacter == '\f')
     {
-      size_t locationToSplitString = stringToParse.find_first_of(",", 0);
-      std::string stringContainingNumber;
+      break;
+    }
+
+    // Parameters are separated from each other using semicolons and line feeds
+    else if (nextCharacter == ';')
+    {
+      if (currentStringFromFile.compare("ncaa") != 0)
+      {
+        std::string parameterType;
+        std::string parameterValue;
+        size_t locationToSplitString = currentStringFromFile.find("=", 0);
+        if (locationToSplitString != std::string::npos)
+        {
+          parameterType = currentStringFromFile.substr(0, locationToSplitString);
+          parameterType = this->TrimSpacesFromEndsOfString(parameterType);
+          parameterValue = currentStringFromFile.substr(locationToSplitString+1);
+          parameterValue = this->TrimSpacesFromEndsOfString(parameterValue);
+          if (parameterValue.size() <= 0)
+          {
+            vtkErrorMacro("ReadVffFileHeader: Nothing follows the equal sign in header item: '" << parameterType << "'");
+            return false;
+          }
+          else
+          {
+            parameterList[parameterType] = parameterValue;
+          }
+        }
+        else
+        {
+          vtkErrorMacro("ReadVffFileHeader: No equal sign in header item '" << parameterType << "'");
+          return false;
+        }
+      }
+      currentStringFromFile = "";
+    }
+
+    else if (nextCharacter != '\n')
+    {
+      nextCharacter = ::tolower(nextCharacter);
+      currentStringFromFile += nextCharacter;
+    }
+  }
+  return true;
+}
+
+//----------------------------------------------------------------------------
+template <class Num> 
+std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std::string stringToParse, unsigned int numberOfNumbers)
+{
+  std::vector<Num> vectorOfNumberOfNumbers (numberOfNumbers, 0);
+  if (numberOfNumbers == 0)
+  {
+    return vectorOfNumberOfNumbers;
+  } 
+  stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
+  int currentNumber = 0;
+  // Parses out the specified number of numbers from the string, 
+  // assuming that numbers are separated by commas, spaces, or both
+  while (currentNumber < numberOfNumbers)
+  {
+    size_t locationToSplitString = stringToParse.find_first_of(",", 0);
+    std::string stringContainingNumber;
+    if (locationToSplitString != std::string::npos)
+    {
+      stringContainingNumber = stringToParse.substr(0,locationToSplitString);
+      stringToParse = stringToParse.substr(locationToSplitString+1);
+    }
+    else
+    {
+      size_t locationToSplitString = stringToParse.find_first_of(" ", 0);
       if (locationToSplitString != std::string::npos)
       {
         stringContainingNumber = stringToParse.substr(0,locationToSplitString);
@@ -92,52 +157,35 @@ std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std
       }
       else
       {
-        size_t locationToSplitString = stringToParse.find_first_of(" ", 0);
-        if (locationToSplitString != std::string::npos)
-        {
-          stringContainingNumber = stringToParse.substr(0,locationToSplitString);
-          stringToParse = stringToParse.substr(locationToSplitString+1);
-        }
-        else
-        {
-          stringContainingNumber = stringToParse;
-        }
+        stringContainingNumber = stringToParse;
       }
-      stringContainingNumber = this->TrimSpacesFromEndsOfString(stringContainingNumber);
-      if (stringContainingNumber.size() > 0)
-      {
-        std::stringstream convertStringToNumber(stringContainingNumber);
-        Num parsedNumber;
-
-        // Converts the parsed string into the number
-        convertStringToNumber >> parsedNumber;
-        std::string checkForConversionSuccess;
-
-        // Checks that the string was correctly converted into the number,
-        // which would result in nothing left in the stream
-        if (convertStringToNumber >> checkForConversionSuccess)
-        {
-          return vectorOfNumberOfNumbers;
-        }
-        else
-        {
-          vectorOfNumberOfNumbers[currentNumber] = parsedNumber;
-        }
-      }
-      else
-      {
-        return vectorOfNumberOfNumbers;
-      }
-      currentNumber++;
-      stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
     }
-    return vectorOfNumberOfNumbers;
+    stringContainingNumber = this->TrimSpacesFromEndsOfString(stringContainingNumber);
+    if (stringContainingNumber.empty())
+    {
+      return vectorOfNumberOfNumbers;
+    }
+    std::stringstream convertStringToNumber(stringContainingNumber);
+    Num parsedNumber;
+    // Converts the parsed string into the number
+    convertStringToNumber >> parsedNumber;
+    std::string checkForConversionSuccess;
+
+    // Checks that the string was correctly converted into the number,
+    // which would result in nothing left in the stream
+    if (convertStringToNumber >> checkForConversionSuccess)
+    {
+      return vectorOfNumberOfNumbers;
+    }
+    else
+    {
+      vectorOfNumberOfNumbers[currentNumber] = parsedNumber;
+    }
+    currentNumber++;
+    stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
   }
-  else
-  {
-    std::vector<Num> vectorOfNumberOfNumbers(1, 0);
-    return vectorOfNumberOfNumbers;
-  } 
+  return vectorOfNumberOfNumbers;
+
 }
 
 //----------------------------------------------------------------------------
@@ -153,85 +201,33 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
   readFileStream.open(filename, std::ios::binary);
   if (!(readFileStream.fail()))
   {
-    int rank;
-    std::string type;
-    std::string format;
-    int bits;
-    int bands;
-    int size[3];
-    double spacing[3];
-    double origin[3];
-    int rawsize;
-    double data_scale;
-    double data_offset;
+    int rank = 0;
+    std::string type = "";
+    std::string format = "";
+    int bits = 0;
+    int bands = 0;
+    int size[3] = {0, 0, 0};
+    double spacing[3] = {0, 0 ,0};
+    double origin[3] = {0, 0, 0};
+    int rawsize = 0;
+    double data_scale = 0;
+    double data_offset = 0;
     std::string handleScatter;
-    double referenceScatterFactor;
-    double dataScatterFactor;
-    std::string filter;
-    std::string title;
-    std::string name;
-    std::string date;
-
-    bool parameterParseSuccess = true;
-    bool stopReadingFlag = false;
-    std::string currentStringFromFile = "";
-    std::vector<bool> parametersCurrentlySet(12, false);
-    std::vector<bool> parametersToSet(12, true);
+    double referenceScatterFactor = 0;
+    double dataScatterFactor = 0;
+    std::string filter = "";
+    std::string title = "";
+    std::string name = "";
+    std::string date = "";
     bool isDateCurrentlySet = false;
     std::map<std::string, std::string> parameterList;
     bool parameterMissing = false;
     bool parameterInvalidValue = false;
 
-    while(readFileStream.good() && !stopReadingFlag)
+    bool headerParseSuccess = this->ReadVffFileHeader(readFileStream, parameterList);
+    if (headerParseSuccess == false)
     {
-      
-      char nextCharacter;
-      nextCharacter = readFileStream.get();
-
-      // The form feed character and the following line feed indicate the beginning of the image data
-      if (nextCharacter == '\f')
-      {
-        stopReadingFlag = true;
-      }
-
-      // Parameters are separated from each other using semicolons and line feeds
-      else if (nextCharacter == ';')
-      {
-        if (currentStringFromFile.compare("ncaa") != 0)
-        {
-          std::string parameterType;
-          std::string parameterValue;
-          size_t locationToSplitString = currentStringFromFile.find("=", 0);
-          if (locationToSplitString != std::string::npos)
-          {
-            parameterType = currentStringFromFile.substr(0, locationToSplitString);
-            parameterType = this->TrimSpacesFromEndsOfString(parameterType);
-            parameterValue = currentStringFromFile.substr(locationToSplitString+1);
-            parameterValue = this->TrimSpacesFromEndsOfString(parameterValue);
-            if (parameterValue.size() <= 0)
-            {
-              vtkErrorMacro("GetValueForHeaderItem: Nothing follows the equal sign in header item: '" << parameterType << "'");
-              parameterParseSuccess  = false;
-            }
-            else
-            {
-              parameterList[parameterType] = parameterValue;
-            }
-          }
-          else
-          {
-            vtkErrorMacro("GetValueForHeaderItem: No equal sign in header item '" << parameterType << "'");
-            parameterParseSuccess  = false;
-          }
-        }
-        currentStringFromFile = "";
-      }
-
-      else if (nextCharacter != '\n')
-      {
-        nextCharacter = ::tolower(nextCharacter);
-        currentStringFromFile += nextCharacter;
-      }
+      vtkErrorMacro("LoadVffFile: The header did not parse correctly.");
     }
 
     // For each of the known parameters, interprets the string associated with the parameter into the correct format and sets the corresponding variable, as well as checking the correctness of the value
@@ -251,7 +247,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       }
     }
 
-    if (parameterList["type"].size() <= 0)
+    if (parameterList["type"].empty())
     {
       vtkErrorMacro("LoadVffFile: A string was not entered for the type. The value must be separated from the parameter with an '='. The value entered for the type must be raster.");
       parameterMissing = true;
@@ -266,7 +262,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       }
     }
 
-    if (parameterList["format"].size() <= 0)
+    if (parameterList["format"].empty())
     {
       vtkErrorMacro("LoadVffFile: A string was not entered for the format. The value must be separated from the parameter with an '='. The value entered for the format must be slice.");
       parameterMissing = true;
@@ -405,7 +401,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       data_offset = numberFromParsedStringDataOffset[0];
     }
 
-    if (parameterList["handlescatter"].size() <= 0)
+    if (parameterList["handlescatter"].empty())
     {
       vtkErrorMacro("LoadVffFile: A string was not entered for Handle Scatter. The value must be separated from the parameter with an '='. The value entered for Handle Scatter must be factor.");
       parameterMissing = true;
@@ -452,7 +448,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       }
     }
 
-    if (parameterList["filter"].size() <= 0)
+    if (parameterList["filter"].empty())
     {
       vtkErrorMacro("LoadVffFile: A string was not entered for the filter. The value must be separated from the parameter with an '='. The value entered for the filter must be Ram-Lak.");
       parameterMissing = true;
@@ -467,7 +463,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       }
     }
 
-    if (parameterList["title"].size() > 0)
+    if (parameterList["title"].empty() == false)
     {
       title = parameterList["title"];
       // Parse out the name of the file from the file path given as the parameter title
@@ -517,20 +513,15 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       vffVolumeNode->SetScene(this->GetMRMLScene());
       vffVolumeNode->SetName(name.c_str());
       vffVolumeNode->SetSpacing(spacing[0], spacing[1], spacing[2]);
-      vffVolumeNode->SetOrigin(origin[0], origin[1], origin[2]);          
+      vffVolumeNode->SetOrigin(origin[0], origin[1], origin[2]);
+      vtkSmartPointer<vtkMatrix4x4> lpsToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      lpsToRasMatrix->SetElement(0,0,-1);
+      lpsToRasMatrix->SetElement(1,1,-1);
       vtkSmartPointer<vtkMatrix4x4> vffIjkToLpsMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
       vffVolumeNode->GetIJKToRASMatrix(vffIjkToLpsMatrix);
       vtkSmartPointer<vtkMatrix4x4> vffIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      vffIjkToRasMatrix->DeepCopy(vffIjkToLpsMatrix);
-      for (int rowCounter = 0; rowCounter < 3; rowCounter++)
-      {
-        for (int columnCounter = 0; columnCounter < 2; columnCounter++)
-        {
-          vffIjkToRasMatrix->SetElement(rowCounter, columnCounter, (-1*(vffIjkToLpsMatrix->GetElement(rowCounter, columnCounter))));
-        }
-      }
+      vtkMatrix4x4::Multiply4x4(vffIjkToLpsMatrix, lpsToRasMatrix, vffIjkToRasMatrix);
       vffVolumeNode->SetIJKToRASMatrix(vffIjkToRasMatrix);
-
       vffVolumeNode->SetSlicerDataType(type.c_str());
       this->GetMRMLScene()->AddNode(vffVolumeNode);
 
@@ -554,6 +545,9 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
 
       float* floatPtr = (float*)floatVffVolumeData->GetScalarPointer();
       std::stringstream ss;
+
+      //unsigned int numberOfTotalBytesToReadFromFile=size[0]*size[1]*size[2]*bytesToRead;
+      //readFileStream.read(floatPtr, numberOfTotalBytesToReadFromFile);
 
       // The size of the image data read is specified in the header by the parameter size
       for (long x = 0; x < size[0]; x++)
