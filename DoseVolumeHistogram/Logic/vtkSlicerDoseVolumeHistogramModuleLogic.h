@@ -66,8 +66,8 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
-  /// Compute DVH for the selected structure set based on the selected dose volume
-  void ComputeDvh(std::vector<vtkMRMLContourNode*> selectedContourNodes, std::string &errorMessage);
+  /// Compute DVH for the given structure contour node volume with the stenciled dose volume (the indexed labelmap representation but with dose values instead of the labels)
+  void ComputeDvh(vtkMRMLContourNode* structureContourNodes, std::string &errorMessage);
 
   /// Add dose volume histogram of a structure (ROI) to the selected chart given its plot name (including table row number) and the corresponding DVH double array node ID
   void AddDvhToSelectedChart(const char* structurePlotName, const char* dvhArrayNodeId);
@@ -145,9 +145,6 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
-
-  /// Compute DVH for the given structure contour node volume with the stenciled dose volume (the indexed labelmap representation but with dose values instead of the labels)
-  void ComputeDvh(vtkMRMLContourNode* structureContourNodes, std::string &errorMessage);
 
   /// Get the resampled dose volume and the stencil for a structure on the resampled dose volume
   /// \param structureContourNode Input contour node containing the structure to stencil

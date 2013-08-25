@@ -428,13 +428,16 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(contourHierarchyNode, selectedContourNodes);
 
   // Compute DVH and get result nodes
-  std::string errorMessage;
-  dvhLogic->ComputeDvh(selectedContourNodes, errorMessage);
-
-  if (!errorMessage.empty())
+  for (std::vector<vtkMRMLContourNode*>::iterator contourIt = selectedContourNodes.begin(); contourIt != selectedContourNodes.end(); ++contourIt)
   {
-    std::cerr << errorMessage << std::endl;
-    return EXIT_FAILURE;
+    std::string errorMessage;
+    dvhLogic->ComputeDvh((*contourIt), errorMessage);
+
+    if (!errorMessage.empty())
+    {
+      std::cerr << errorMessage << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();

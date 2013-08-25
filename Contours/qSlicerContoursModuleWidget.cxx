@@ -718,6 +718,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
   // TODO: Workaround for update issues
   this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
 
+  // Initialize progress bar
   QProgressDialog *convertProgress = new QProgressDialog(qSlicerApplication::application()->mainWindow());
   convertProgress->setModal(true);
   convertProgress->setMinimumDuration(150);

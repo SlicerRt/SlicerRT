@@ -353,50 +353,15 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(std::vector<vtkMRMLContourNode*> structureContourNodes, std::string &errorMessage)
-{
-  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
-  double checkpointStart = timer->GetUniversalTime();
-
-  if (structureContourNodes.size() == 0)
-  {
-    errorMessage = "Empty structure list";
-    vtkErrorMacro(<<errorMessage);
-    return;
-  }
-
-  // Compute DVH for each structure
-  for (std::vector<vtkMRMLContourNode*>::iterator it = structureContourNodes.begin(); it != structureContourNodes.end(); ++it)
-  {
-    double checkpointStructureStart = timer->GetUniversalTime();
-    this->ComputeDvh(*it, errorMessage);
-    if (!errorMessage.empty())
-    {
-      vtkErrorMacro("ComputeDvh: DVH computation failed for contour '" << ((*it)->GetStructureName() ? (*it)->GetStructureName() : "Invalid") << "' - aborting");
-      return;
-    }
-    double checkpointStructureEnd = timer->GetUniversalTime();
-
-    if (this->LogSpeedMeasurements)
-    {
-      vtkDebugMacro("\tStructure '" << ((*it)->GetStructureName() ? (*it)->GetStructureName() : "Invalid") << "':\n\t\tTotal: " << checkpointStructureEnd-checkpointStructureStart);
-    }
-  } // for all contours
-
-  double checkpointEnd = timer->GetUniversalTime();
-  if (this->LogSpeedMeasurements)
-  {
-    vtkDebugMacro("ComputeDvh: Sum DVH computation time: " << checkpointEnd-checkpointStart << " s");
-  }
-}
-
-//---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* structureContourNode, std::string &errorMessage)
 {
   if ( !this->GetMRMLScene() || !this->DoseVolumeHistogramNode || !structureContourNode )
   {
     return;
   }
+
+  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
+  double checkpointStart = timer->GetUniversalTime();
 
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
@@ -429,7 +394,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   if (stencilExtent[1]-stencilExtent[0] <= 0 || stencilExtent[3]-stencilExtent[2] <= 0 || stencilExtent[5]-stencilExtent[4] <= 0)
   {
     errorMessage = "Invalid stenciled dose volume";
-    vtkErrorMacro(<<errorMessage);
+    vtkErrorMacro("ComputeDvh: " << errorMessage);
     return;
   }
 
@@ -443,7 +408,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   if (structureStat->GetVoxelCount() < 1)
   {
     errorMessage = "Dose volume and the structure do not overlap"; // User-friendly error to help troubleshooting
-    vtkErrorMacro(<<errorMessage);
+    vtkErrorMacro("ComputeDvh: " << errorMessage);
     return;
   }
 
@@ -559,7 +524,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
     if (rangeMin<0)
     {
       errorMessage = "The dose volume contains negative dose values";
-      vtkErrorMacro(<<errorMessage);
+      vtkErrorMacro("ComputeDvh: " << errorMessage);
       return;
     }
 
@@ -628,6 +593,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   }
 
   this->GetMRMLScene()->AddNode(arrayNode);
+
+  // Log measured time
+  double checkpointEnd = timer->GetUniversalTime();
+  if (this->LogSpeedMeasurements)
+  {
+    vtkDebugMacro("ComputeDvh: DVH computation time for structure '" << (structureContourNode->GetStructureName() ? structureContourNode->GetStructureName() : "Invalid") << "': " << checkpointEnd-checkpointStart << " s");
+  }
 }
 
 //---------------------------------------------------------------------------

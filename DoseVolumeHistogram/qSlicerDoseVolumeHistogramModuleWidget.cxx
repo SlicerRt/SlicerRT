@@ -23,6 +23,8 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QCheckBox>
+#include <QProgressDialog>
+#include <QMainWindow>
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
@@ -754,13 +756,38 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  // Compute the DVH for the selected structure set using the selected dose volume
-  std::string errorMessage;
-  d->logic()->ComputeDvh(d->ContourSelectorWidget->selectedContourNodes(), errorMessage);
+  // Get selected contours
+  std::vector<vtkMRMLContourNode*> structureContourNodes = d->ContourSelectorWidget->selectedContourNodes();
 
-  d->label_Error->setVisible( !errorMessage.empty() );
-  d->label_Error->setText( QString(errorMessage.c_str()) );
+  // Initialize progress bar
+  QProgressDialog *convertProgress = new QProgressDialog(qSlicerApplication::application()->mainWindow());
+  convertProgress->setModal(true);
+  convertProgress->setMinimumDuration(150);
+  convertProgress->setLabelText("Computing DVH for all selected contours...");
+  convertProgress->show();
+  QApplication::processEvents();
+  unsigned int numberOfContours = structureContourNodes.size();
+  unsigned int currentContour = 0;
 
+  // Compute the DVH for each structure in the selected structure set using the selected dose volume
+  for (std::vector<vtkMRMLContourNode*>::iterator contourIt = structureContourNodes.begin(); contourIt != structureContourNodes.end(); ++contourIt)
+  {
+    std::string errorMessage;
+    d->logic()->ComputeDvh((*contourIt), errorMessage);
+
+    if (!errorMessage.empty())
+    {
+      d->label_Error->setVisible(true);
+      d->label_Error->setText( QString(errorMessage.c_str()) );
+      break;
+    }
+
+    // Set progress
+    ++currentContour;
+    convertProgress->setValue(currentContour/(double)numberOfContours * 100.0);
+  }
+
+  delete convertProgress;
   QApplication::restoreOverrideCursor();
 }
 
