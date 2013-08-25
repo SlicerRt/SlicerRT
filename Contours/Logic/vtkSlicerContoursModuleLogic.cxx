@@ -310,13 +310,12 @@ void vtkSlicerContoursModuleLogic::PaintLabelmapForeground(vtkMRMLScalarVolumeNo
 //-----------------------------------------------------------------------------
 void vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(vtkMRMLNode* node, std::vector<vtkMRMLContourNode*>& contours)
 {
+  contours.clear();
+
   if (!node)
   {
-    std::cerr << "vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode: node argument is null!" << std::endl;
     return;
   }
-
-  contours.clear();
 
   // Create list of selected contour nodes
   if (node->IsA("vtkMRMLContourNode"))
@@ -439,6 +438,11 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
   std::vector<vtkMRMLHierarchyNode*> contourPatientHierarchyNodes = contourHierarchySeriesNode->GetChildrenNodes();
   for (std::vector<vtkMRMLHierarchyNode*>::iterator contourIt=contourPatientHierarchyNodes.begin(); contourIt!=contourPatientHierarchyNodes.end(); ++contourIt)
   {
+    if ((*contourIt)->GetAssociatedNode()->IsA("vtkMRMLColorTableNode"))
+    {
+      continue;
+    }
+
     vtkMRMLHierarchyNode* contourPatientHierarchyNode = (*contourIt);
 
     // Get referenced series UID for contour

@@ -262,7 +262,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   // Make sure inputs are initialized
   if (!this->GetMRMLScene() || !inputContourANode || !referenceVolumeNode || !outputContourNode)
   {
-    vtkErrorMacro("MorphContour: Inputs are not initialized!")
+    vtkErrorMacro("MorphContour: Inputs are not specified!")
     return -1;
   }
 

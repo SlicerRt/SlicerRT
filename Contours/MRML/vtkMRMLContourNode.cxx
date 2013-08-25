@@ -594,8 +594,7 @@ void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const c
     {
     vtkWarningMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Invalidating current indexed labelmap as the rasterization reference volume has been explicitly changed!");
 
-    this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
-
+    // Remove indexed labelmap representation from the scene
     if (this->IndexedLabelmapVolumeNode && this->Scene->IsNodePresent(this->IndexedLabelmapVolumeNode))
       {
       this->Scene->RemoveNode(this->IndexedLabelmapVolumeNode);
@@ -603,6 +602,24 @@ void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const c
     else
       {
       vtkErrorMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Representation cannot be removed from scene because the node is not present there!");
+      }
+
+    // Invalidate representation
+    this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
+
+    // Set an existing representation as active
+    if (this->RibbonModelNode)
+      {
+      this->SetActiveRepresentationByType(RibbonModel);
+      }
+    else if (this->ClosedSurfaceModelNode)
+      {
+      this->SetActiveRepresentationByType(ClosedSurfaceModel);
+      }
+    else
+      {
+      vtkErrorMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Indexed labelmap representation was invalidated because of change in conversion parameters, but there is no representation to replace it! This should not happen, please report it as a bug.");
+      this->ActiveRepresentationType = None;
       }
     }
 
@@ -636,8 +653,7 @@ void vtkMRMLContourNode::SetRasterizationOversamplingFactor(double oversamplingF
     {
     vtkWarningMacro("SetRasterizationOversamplingFactor: Invalidating current indexed labelmap as the rasterization oversampling factor has been explicitly changed!");
 
-    this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
-
+    // Remove indexed labelmap representation from the scene
     if (this->IndexedLabelmapVolumeNode && this->Scene->IsNodePresent(this->IndexedLabelmapVolumeNode))
       {
       this->Scene->RemoveNode(this->IndexedLabelmapVolumeNode);
@@ -645,6 +661,24 @@ void vtkMRMLContourNode::SetRasterizationOversamplingFactor(double oversamplingF
     else
       {
       vtkErrorMacro("SetRasterizationOversamplingFactor: Representation cannot be removed from scene because the node is not present there!");
+      }
+
+    // Invalidate representation
+    this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
+
+    // Set an existing representation as active
+    if (this->RibbonModelNode)
+      {
+      this->SetActiveRepresentationByType(RibbonModel);
+      }
+    else if (this->ClosedSurfaceModelNode)
+      {
+      this->SetActiveRepresentationByType(ClosedSurfaceModel);
+      }
+    else
+      {
+      vtkErrorMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Indexed labelmap representation was invalidated because of change in conversion parameters, but there is no representation to replace it! This should not happen, please report it as a bug.");
+      this->ActiveRepresentationType = None;
       }
     }
 
@@ -667,8 +701,7 @@ void vtkMRMLContourNode::SetDecimationTargetReductionFactor(double targetReducti
     {
     vtkWarningMacro("SetDecimationTargetReductionFactor: Invalidating current closed surface model as the decimation target reduction factor has been explicitly changed!");
 
-    this->SetAndObserveClosedSurfaceModelNodeId(NULL);
-
+    // Remove closed surface model representation from the scene
     if (this->ClosedSurfaceModelNode && this->Scene->IsNodePresent(this->ClosedSurfaceModelNode))
       {
       this->Scene->RemoveNode(this->ClosedSurfaceModelNode);
@@ -676,6 +709,23 @@ void vtkMRMLContourNode::SetDecimationTargetReductionFactor(double targetReducti
     else
       {
       vtkErrorMacro("SetDecimationTargetReductionFactor: Representation cannot be removed from scene because the node is not present there!");
+      }
+
+    // Invalidate representation
+    this->SetAndObserveClosedSurfaceModelNodeId(NULL);
+
+    if (this->RibbonModelNode)
+      {
+      this->SetActiveRepresentationByType(RibbonModel);
+      }
+    else if (this->IndexedLabelmapVolumeNode)
+      {
+      this->SetActiveRepresentationByType(IndexedLabelmap);
+      }
+    else
+      {
+      vtkErrorMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Closed surface representation was invalidated because of change in conversion parameters, but there is no representation to replace it! This should not happen, please report it as a bug.");
+      this->ActiveRepresentationType = None;
       }
     }
 

@@ -530,8 +530,7 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
   paramNode->SetShowIsodoseLines(visible);
   paramNode->DisableModifiedEventOff();
 
-  vtkMRMLModelHierarchyNode* modelHierarchyNode = NULL;
-  modelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
+  vtkMRMLModelHierarchyNode* modelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetIsodoseSurfaceModelsParentHierarchyNodeId()));
   if(!modelHierarchyNode)
   {
@@ -561,8 +560,7 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
   paramNode->SetShowIsodoseSurfaces(visible);
   paramNode->DisableModifiedEventOff();
 
-  vtkMRMLModelHierarchyNode* modelHierarchyNode = NULL;
-  modelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
+  vtkMRMLModelHierarchyNode* modelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetIsodoseSurfaceModelsParentHierarchyNodeId()));
   if(!modelHierarchyNode)
   {

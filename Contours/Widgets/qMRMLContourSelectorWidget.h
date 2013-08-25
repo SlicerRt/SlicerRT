@@ -80,6 +80,9 @@ public:
   /// Set currently selected contour or contour hierarchy node
   void setCurrentNodeID(const QString& nodeID);
 
+  /// Update widget state according to selection and set widget properties
+  void updateWidgetState();
+
   /// Set forced reference volume node by ID.
   /// This means that there will be no search for a DICOM-based referenced volume, this will be used instead.
   /// Furthermore if an indexed labelmap has been created from a model representation using a different reference
@@ -93,12 +96,8 @@ public:
   /// pointer as the master instance in the new slave object.
   void addSlaveContourSelectorWidget(qMRMLContourSelectorWidget* newSlaveInstance);
 
-  /// Set master instance pointer to indicate that this instance is a slave to that one
-  /// This function is only called by the master instance (through friend class declaration)
-  void setMasterContourSelectorWidget(qMRMLContourSelectorWidget* masterInstance);
-
-  /// Set slave flag (only addSlaveContourSelectorWidget should call this on the argument slave instance)
-  void setSlaveFlagOn();
+  /// Ungroup the grouped widget instances (empties the slave widget list for master and removes master widget pointers from slaves)
+  void ungroup();
 
   /// Validate selection (sets IsSelectionValid flag) and update widgets
   bool validateSelection(std::vector<vtkMRMLContourNode*>& contours, bool slave);
@@ -124,14 +123,15 @@ signals:
   void selectionValidityChanged();
 
 protected:
-  /// Update widget state according to selection and set widget properties
-  void updateWidgetState();
-
   /// Find reference volume (if there is a forced reference, or otherwise if it is defined in DICOM) and set it to the given contours
   /// The forced reference of this instance is used, because this is called only from the master (moreover the forced reference
   /// is the same throughout the group).
   /// \param contours List of contours to search in. It should be either the only instance's selection or the unified selection of the group
   void setReferenceInSelection(std::vector<vtkMRMLContourNode*>& contours);
+
+  /// Set master instance pointer to indicate that this instance is a slave to that one
+  /// This function is only called by the master instance (through friend class declaration)
+  void setMasterContourSelectorWidget(qMRMLContourSelectorWidget* masterInstance);
 
 public slots:
   /// Set the MRML \a scene associated with the widget (overridden method that cleans up widget content)

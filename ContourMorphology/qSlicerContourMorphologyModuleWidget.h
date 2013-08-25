@@ -59,61 +59,64 @@ public slots:
   void updateWidgetFromMRML();
 
 protected slots:
-
-  ///
+  /// TODO
   void setContourANode(vtkMRMLNode* node);
 
-  ///
+  /// TODO
   void setContourBNode(vtkMRMLNode* node);
 
-  ///
+  /// TODO
   void setReferenceVolumeNode(vtkMRMLNode* node);
 
-  ///
+  /// TODO
   void setOutputContourNode(vtkMRMLNode* node);
 
-  ///
+  /// TODO
   void radioButtonExpandClicked();
 
-  ///
+  /// TODO
   void radioButtonShrinkClicked();
 
-  ///
+  /// TODO
   void radioButtonUnionClicked();
 
-  ///
+  /// TODO
   void radioButtonIntersectClicked();
 
-  ///
+  /// TODO
   void radioButtonSubtractClicked();
 
-  ///
+  /// TODO
   void doubleSpinBoxXSizeChanged(double value);
 
-  ///
+  /// TODO
   void doubleSpinBoxYSizeChanged(double value);
 
-  ///
+  /// TODO
   void doubleSpinBoxZSizeChanged(double value);
 
-  ///
+  /// TODO
   void applyClicked();
 
-  ///
+  /// TODO
   void onLogicModified();
+
+protected:
+  /// TODO
+  virtual void setup();
+
+  /// TODO
+  void onEnter();
+
+  /// TODO
+  void updateButtonsState();
+
+  /// Group/ungroup contour selector widgets according to currently selected operation (unary/binary)
+  void groupContourSelectorWidgets(bool group);
 
 protected:
   QScopedPointer<qSlicerContourMorphologyModuleWidgetPrivate> d_ptr;
   
-  ///
-  virtual void setup();
-
-  ///
-  void onEnter();
-
-  ///
-  void updateButtonsState();
-
 private:
   Q_DECLARE_PRIVATE(qSlicerContourMorphologyModuleWidget);
   Q_DISABLE_COPY(qSlicerContourMorphologyModuleWidget);

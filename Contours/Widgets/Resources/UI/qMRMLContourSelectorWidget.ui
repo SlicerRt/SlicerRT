@@ -232,6 +232,10 @@ p, li { white-space: pre-wrap; }
          <bold>true</bold>
         </font>
        </property>
+       <property name="toolTip">
+        <string>The representation types and/or the selected reference volumes do not match.
+Please switch to the Contours module and make sure the input contours have the same representation types and reference volumes if needed!</string>
+       </property>
        <property name="text">
         <string>There is no suitable source representation</string>
        </property>

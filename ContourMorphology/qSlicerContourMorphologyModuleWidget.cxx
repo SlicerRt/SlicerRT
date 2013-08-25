@@ -116,6 +116,44 @@ void qSlicerContourMorphologyModuleWidget::onSceneImportedEvent()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerContourMorphologyModuleWidget::setup()
+{
+  Q_D(qSlicerContourMorphologyModuleWidget);
+  d->setupUi(this);
+  this->Superclass::setup();
+
+  // Set up contour selector widgets
+  d->ContourSelectorWidget_ContourA->setAcceptContourHierarchies(false);
+  d->ContourSelectorWidget_ContourA->setRequiredRepresentation(vtkMRMLContourNode::IndexedLabelmap);
+  d->ContourSelectorWidget_ContourB->setAcceptContourHierarchies(false);
+  d->ContourSelectorWidget_ContourB->setRequiredRepresentation(vtkMRMLContourNode::IndexedLabelmap);
+
+  // Make connections
+  this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourMorphologyNode(vtkMRMLNode*)) );
+
+  this->connect( d->ContourSelectorWidget_ContourA, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourANode(vtkMRMLNode*)) );
+  this->connect( d->ContourSelectorWidget_ContourB, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourBNode(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_OutputContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setOutputContourNode(vtkMRMLNode*)) );
+
+  this->connect( d->radioButton_Expand, SIGNAL(clicked()), this, SLOT(radioButtonExpandClicked()) );
+  this->connect( d->radioButton_Shrink, SIGNAL(clicked()), this, SLOT(radioButtonShrinkClicked()) );
+  this->connect( d->radioButton_Union, SIGNAL(clicked()), this, SLOT(radioButtonUnionClicked()) );
+  this->connect( d->radioButton_Intersect, SIGNAL(clicked()), this, SLOT(radioButtonIntersectClicked()) );
+  this->connect( d->radioButton_Subtract, SIGNAL(clicked()), this, SLOT(radioButtonSubtractClicked()) );
+
+  this->connect( d->doubleSpinBox_XSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxXSizeChanged(double)) );
+  this->connect( d->doubleSpinBox_YSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxYSizeChanged(double)) );
+  this->connect( d->doubleSpinBox_ZSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxZSizeChanged(double)) );
+
+  this->connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
+
+  // Handle scene change event if occurs
+  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
+
+  this->updateWidgetFromMRML();
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerContourMorphologyModuleWidget::enter()
 {
   this->onEnter();
@@ -179,30 +217,46 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
 
   bool sizeSpinboxesEnabled = false;
 
+  // Set widget states according to type of operation
   vtkMRMLContourMorphologyNode::ContourMorphologyOperationType operation = paramNode->GetOperation();
   switch (operation)
   {
     case vtkMRMLContourMorphologyNode::Expand:
       d->radioButton_Expand->setChecked(true);
-      d->ContourSelectorWidget_ContourB->setEnabled(false);
       sizeSpinboxesEnabled = true;
+      if (d->ContourSelectorWidget_ContourB->isEnabled()) // Only group/ungroup if it actually changed
+      {
+        this->groupContourSelectorWidgets(false);
+      }
       break;
     case vtkMRMLContourMorphologyNode::Shrink:
       d->radioButton_Shrink->setChecked(true);
-      d->ContourSelectorWidget_ContourB->setEnabled(false);
       sizeSpinboxesEnabled = true;
+      if (d->ContourSelectorWidget_ContourB->isEnabled())
+      {
+        this->groupContourSelectorWidgets(false);
+      }
       break;
     case vtkMRMLContourMorphologyNode::Union:
       d->radioButton_Union->setChecked(true);
-      d->ContourSelectorWidget_ContourB->setEnabled(true);
+      if (!d->ContourSelectorWidget_ContourB->isEnabled())
+      {
+        this->groupContourSelectorWidgets(true);
+      }
       break;
     case vtkMRMLContourMorphologyNode::Intersect:
       d->radioButton_Intersect->setChecked(true);
-      d->ContourSelectorWidget_ContourB->setEnabled(true);
+      if (!d->ContourSelectorWidget_ContourB->isEnabled())
+      {
+        this->groupContourSelectorWidgets(true);
+      }
       break;
     case vtkMRMLContourMorphologyNode::Subtract:
       d->radioButton_Subtract->setChecked(true);
-      d->ContourSelectorWidget_ContourB->setEnabled(true);
+      if (!d->ContourSelectorWidget_ContourB->isEnabled())
+      {
+        this->groupContourSelectorWidgets(true);
+      }
       break;
     default:
       vtkErrorWithObjectMacro(this->mrmlScene(), "updateWidgetFromMRML: Invalid morphology operation!");
@@ -213,6 +267,7 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
   d->doubleSpinBox_YSize->setEnabled(sizeSpinboxesEnabled);
   d->doubleSpinBox_ZSize->setEnabled(sizeSpinboxesEnabled);
 
+  // Apply parameter node parameters to the widgets
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
   if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetContourANodeId()))
   {
@@ -234,51 +289,70 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
   d->doubleSpinBox_XSize->setValue(paramNode->GetXSize());
   d->doubleSpinBox_YSize->setValue(paramNode->GetYSize());
   d->doubleSpinBox_ZSize->setValue(paramNode->GetZSize());
+
+  // Update buttons state according to other widgets states
+  this->updateButtonsState();
 }
+
+//-----------------------------------------------------------------------------
+void qSlicerContourMorphologyModuleWidget::updateButtonsState()
+{
+  Q_D(qSlicerContourMorphologyModuleWidget);
+  if (!this->mrmlScene())
+  {
+    return;
+  }
+
+  bool applyEnabled = d->logic()->GetContourMorphologyNode()
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetContourANodeId())
+                   && (d->ContourSelectorWidget_ContourB->isEnabled() ? !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetContourBNodeId()) : true)
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetOutputContourNodeId())
+                   //&& !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetReferenceVolumeNodeId())
+                   && (d->ContourSelectorWidget_ContourB->isEnabled() ? d->ContourSelectorWidget_ContourB->isSelectionValid() : d->ContourSelectorWidget_ContourA->isSelectionValid());
+  d->pushButton_Apply->setEnabled(applyEnabled);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContourMorphologyModuleWidget::groupContourSelectorWidgets(bool group)
+{
+  Q_D(qSlicerContourMorphologyModuleWidget);
+
+  if (group)
+  {
+    // This call propagates the attributes set to the widget to the slave
+    d->ContourSelectorWidget_ContourB->addSlaveContourSelectorWidget(d->ContourSelectorWidget_ContourA);
+
+    // Connections are made to the master contour selector node
+    this->disconnect( d->ContourSelectorWidget_ContourA, SIGNAL(selectionValidityChanged(vtkMRMLNode*)), this, SLOT(updateButtonsState(vtkMRMLNode*)) );
+    this->disconnect( d->ContourSelectorWidget_ContourA, SIGNAL(currentReferenceVolumeNodeChanged(vtkMRMLNode*)), this, SLOT(setReferenceVolumeNode(vtkMRMLNode*)) );
+    this->connect( d->ContourSelectorWidget_ContourB, SIGNAL(selectionValidityChanged(vtkMRMLNode*)), this, SLOT(updateButtonsState(vtkMRMLNode*)) );
+    this->connect( d->ContourSelectorWidget_ContourB, SIGNAL(currentReferenceVolumeNodeChanged(vtkMRMLNode*)), this, SLOT(setReferenceVolumeNode(vtkMRMLNode*)) );
+
+    d->ContourSelectorWidget_ContourB->updateWidgetState();
+  }
+  else
+  {
+    // Ungroup contour selector widgets
+    d->ContourSelectorWidget_ContourB->ungroup();
+    d->ContourSelectorWidget_ContourB->setCurrentNodeID(QString());
+
+    // Connections are made to the only active contour selector node
+    this->disconnect( d->ContourSelectorWidget_ContourB, SIGNAL(selectionValidityChanged(vtkMRMLNode*)), this, SLOT(updateButtonsState(vtkMRMLNode*)) );
+    this->disconnect( d->ContourSelectorWidget_ContourB, SIGNAL(currentReferenceVolumeNodeChanged(vtkMRMLNode*)), this, SLOT(setReferenceVolumeNode(vtkMRMLNode*)) );
+    this->connect( d->ContourSelectorWidget_ContourA, SIGNAL(selectionValidityChanged(vtkMRMLNode*)), this, SLOT(updateButtonsState(vtkMRMLNode*)) );
+    this->connect( d->ContourSelectorWidget_ContourA, SIGNAL(currentReferenceVolumeNodeChanged(vtkMRMLNode*)), this, SLOT(setReferenceVolumeNode(vtkMRMLNode*)) );
+
+    d->ContourSelectorWidget_ContourA->updateWidgetState();
+  }
+
+  d->ContourSelectorWidget_ContourB->setEnabled(group);
+}
+
 
 //-----------------------------------------------------------------------------
 void qSlicerContourMorphologyModuleWidget::onLogicModified()
 {
   this->updateWidgetFromMRML();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerContourMorphologyModuleWidget::setup()
-{
-  Q_D(qSlicerContourMorphologyModuleWidget);
-  d->setupUi(this);
-  this->Superclass::setup();
-
-  // Set up contour selector widgets (Compare will be the master as it is the bottom one)
-  d->ContourSelectorWidget_ContourB->setAcceptContourHierarchies(false);
-  d->ContourSelectorWidget_ContourB->setRequiredRepresentation(vtkMRMLContourNode::IndexedLabelmap);
-  d->ContourSelectorWidget_ContourB->addSlaveContourSelectorWidget(d->ContourSelectorWidget_ContourA);
-
-  // Make connections
-  this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourMorphologyNode(vtkMRMLNode*)) );
-
-  this->connect( d->ContourSelectorWidget_ContourA, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourANode(vtkMRMLNode*)) );
-  this->connect( d->ContourSelectorWidget_ContourB, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourBNode(vtkMRMLNode*)) );
-  this->connect( d->ContourSelectorWidget_ContourB, SIGNAL(selectionValidityChanged(vtkMRMLNode*)), this, SLOT(updateButtonsState(vtkMRMLNode*)) );
-  this->connect( d->ContourSelectorWidget_ContourB, SIGNAL(currentReferenceVolumeNodeChanged(vtkMRMLNode*)), this, SLOT(setReferenceVolumeNode(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_OutputContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setOutputContourNode(vtkMRMLNode*)) );
-
-  this->connect( d->radioButton_Expand, SIGNAL(clicked()), this, SLOT(radioButtonExpandClicked()) );
-  this->connect( d->radioButton_Shrink, SIGNAL(clicked()), this, SLOT(radioButtonShrinkClicked()) );
-  this->connect( d->radioButton_Union, SIGNAL(clicked()), this, SLOT(radioButtonUnionClicked()) );
-  this->connect( d->radioButton_Intersect, SIGNAL(clicked()), this, SLOT(radioButtonIntersectClicked()) );
-  this->connect( d->radioButton_Subtract, SIGNAL(clicked()), this, SLOT(radioButtonSubtractClicked()) );
-
-  this->connect( d->doubleSpinBox_XSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxXSizeChanged(double)) );
-  this->connect( d->doubleSpinBox_YSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxYSizeChanged(double)) );
-  this->connect( d->doubleSpinBox_ZSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxZSizeChanged(double)) );
-
-  this->connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
-
-  // Handle scene change event if occurs
-  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
-
-  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -307,10 +381,23 @@ void qSlicerContourMorphologyModuleWidget::setContourMorphologyNode(vtkMRMLNode 
     {
       paramNode->SetAndObserveContourBNodeId(d->ContourSelectorWidget_ContourB->currentNodeID().toLatin1().constData());
     }
-    if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceVolumeNodeId())
-      && !d->ContourSelectorWidget_ContourB->currentReferenceVolumeNodeID().isEmpty() )
+    if (SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceVolumeNodeId()))
     {
-      paramNode->SetAndObserveReferenceVolumeNodeId(d->ContourSelectorWidget_ContourB->currentReferenceVolumeNodeID().toLatin1().constData());
+      // If binary operator es selected, then contour selector B is the one in charge
+      if (d->ContourSelectorWidget_ContourB->isEnabled())
+      {
+        if (!d->ContourSelectorWidget_ContourB->currentReferenceVolumeNodeID().isEmpty())
+        {
+          paramNode->SetAndObserveReferenceVolumeNodeId(d->ContourSelectorWidget_ContourB->currentReferenceVolumeNodeID().toLatin1().constData());
+        }
+      }
+      else
+      {
+        if (!d->ContourSelectorWidget_ContourA->currentReferenceVolumeNodeID().isEmpty())
+        {
+          paramNode->SetAndObserveReferenceVolumeNodeId(d->ContourSelectorWidget_ContourA->currentReferenceVolumeNodeID().toLatin1().constData());
+        }
+      }
     }
     this->updateButtonsState();
   }
@@ -334,7 +421,6 @@ void qSlicerContourMorphologyModuleWidget::setContourANode(vtkMRMLNode* node)
   paramNode->DisableModifiedEventOff();
 
   this->updateWidgetFromMRML();
-  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -353,7 +439,6 @@ void qSlicerContourMorphologyModuleWidget::setContourBNode(vtkMRMLNode* node)
   paramNode->DisableModifiedEventOff();
 
   this->updateWidgetFromMRML();
-  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -372,7 +457,6 @@ void qSlicerContourMorphologyModuleWidget::setReferenceVolumeNode(vtkMRMLNode* n
   paramNode->DisableModifiedEventOff();
 
   this->updateWidgetFromMRML();
-  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -391,7 +475,6 @@ void qSlicerContourMorphologyModuleWidget::setOutputContourNode(vtkMRMLNode* nod
   paramNode->DisableModifiedEventOff();
 
   this->updateWidgetFromMRML();
-  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -525,24 +608,6 @@ void qSlicerContourMorphologyModuleWidget::doubleSpinBoxZSizeChanged(double valu
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContourMorphologyModuleWidget::updateButtonsState()
-{
-  Q_D(qSlicerContourMorphologyModuleWidget);
-  if (!this->mrmlScene())
-  {
-    return;
-  }
-
-  bool applyEnabled = d->logic()->GetContourMorphologyNode()
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetContourANodeId())
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetContourBNodeId())
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetOutputContourNodeId())
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetReferenceVolumeNodeId())
-                   && d->ContourSelectorWidget_ContourB->isSelectionValid();
-  d->pushButton_Apply->setEnabled(applyEnabled);
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerContourMorphologyModuleWidget::applyClicked()
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
@@ -554,4 +619,3 @@ void qSlicerContourMorphologyModuleWidget::applyClicked()
 
   QApplication::restoreOverrideCursor();
 }
-

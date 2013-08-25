@@ -300,7 +300,11 @@ void qMRMLContourSelectorWidget::setReferenceInSelection(std::vector<vtkMRMLCont
     if (referencedVolume)
     {
       // Set referenced volume and turn off oversampling in selected contours
+      d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
       d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(referencedVolume->GetID());
+      d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
+      emit currentReferenceVolumeNodeChanged(referencedVolume);
+
       d->label_OversamplingFactorValue->setText("1");
 
       for (std::vector<vtkMRMLContourNode*>::iterator contourIt = contours.begin(); contourIt != contours.end(); ++contourIt)
@@ -317,6 +321,9 @@ void qMRMLContourSelectorWidget::setReferenceInSelection(std::vector<vtkMRMLCont
     d->MRMLNodeComboBox_ReferenceVolume->blockSignals(true);
     d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(d->ForcedReferenceVolumeNodeID);
     d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
+    vtkMRMLScalarVolumeNode* forcedReferenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->mrmlScene()->GetNodeByID(d->ForcedReferenceVolumeNodeID.toLatin1().constData()));
+    emit currentReferenceVolumeNodeChanged(forcedReferenceVolumeNode);
+
     d->label_OversamplingFactorValue->setText("2");
 
     for (std::vector<vtkMRMLContourNode*>::iterator contourIt = contours.begin(); contourIt != contours.end(); ++contourIt)
@@ -447,7 +454,11 @@ void qMRMLContourSelectorWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qMRMLContourSelectorWidget);
 
-  if (!node || !node->IsA("vtkMRMLScalarVolumeNode"))
+  if (!node)
+  {
+    return;
+  }
+  if (!node->IsA("vtkMRMLScalarVolumeNode"))
   {
     qCritical() << "qMRMLContourSelectorWidget::referenceVolumeNodeChanged: Input node is not a scalar volume!";
     return;
@@ -580,11 +591,11 @@ void qMRMLContourSelectorWidget::setMasterContourSelectorWidget(qMRMLContourSele
 
   d->MasterContourSelectorWidget = masterInstance;
 
-  this->setRequiredRepresentation(masterInstance->requiredRepresentation());
-  this->setAcceptContourHierarchies(masterInstance->acceptContourHierarchies());
-  if (!d->ForcedReferenceVolumeNodeID.isEmpty())
+  if (masterInstance)
   {
-    this->setForcedReferenceVolumeNodeID(masterInstance->forcedReferenceVolumeNodeID());
+    this->setAcceptContourHierarchies(masterInstance->acceptContourHierarchies());
+    d->RequiredRepresentation = masterInstance->requiredRepresentation();
+    d->ForcedReferenceVolumeNodeID = masterInstance->forcedReferenceVolumeNodeID();
   }
 }
 
@@ -612,4 +623,26 @@ void qMRMLContourSelectorWidget::setMRMLScene(vtkMRMLScene* newScene)
 
   d->MRMLNodeComboBox_Contour->setCurrentNodeID("");
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID("");
+}
+
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::ungroup()
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  // If this is the master of a group or if this is the only widget
+  if (!d->MasterContourSelectorWidget)
+  {
+    // Set the same forced reference in all slaves
+    for (int slaveIndex = 0; slaveIndex < d->SlaveContourSelectorWidgets.size(); ++slaveIndex)
+    {
+      d->SlaveContourSelectorWidgets.at(slaveIndex)->setMasterContourSelectorWidget(NULL);
+    }
+
+    d->SlaveContourSelectorWidgets.clear();
+  }
+  else
+  {
+    d->MasterContourSelectorWidget->ungroup();
+  }
 }
