@@ -539,3 +539,56 @@ void vtkSlicerContoursModuleLogic::GetIndexedLabelmapWithGivenGeometry(vtkMRMLCo
   // Resampling is needed
   vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode(inputIndexedLabelmap, referenceVolumeNode, outputIndexedLabelmap);
 }
+
+//-----------------------------------------------------------------------------
+vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(vtkMRMLDisplayableNode* representationNode)
+{
+  if (!representationNode)
+  {
+    std::cerr << "vtkSlicerContoursModuleLogic::CreateContourFromRepresentation: Input node is NULL" << std::endl;
+    return NULL;
+  }
+
+  vtkMRMLScene* mrmlScene = representationNode->GetScene();
+  if (!mrmlScene)
+  {
+    vtkErrorWithObjectMacro(representationNode, "CreateContourFromRepresentation: Input node is not in a MRML scene!");
+    return NULL;
+  }
+
+  // Create contour node if dropped node is volume or model
+  if ( (representationNode->IsA("vtkMRMLModelNode") && !representationNode->IsA("vtkMRMLAnnotationNode"))
+    || representationNode->IsA("vtkMRMLScalarVolumeNode") )
+  {
+    vtkSmartPointer<vtkMRMLContourNode> newContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+    newContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->AddNode(newContourNode));
+    std::string contourName = std::string(representationNode->GetName()) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
+    contourName = mrmlScene->GenerateUniqueName(contourName);
+    newContourNode->SetName(contourName.c_str());
+
+    if (representationNode->IsA("vtkMRMLScalarVolumeNode"))
+    {
+      newContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(representationNode->GetID());
+
+      // Set the labelmap itself as reference thus indicating there was no conversion from model representation
+      newContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(representationNode->GetID());
+      newContourNode->SetRasterizationOversamplingFactor(1.0);
+    }
+    else
+    {
+      newContourNode->SetAndObserveClosedSurfaceModelNodeId(representationNode->GetID());
+      newContourNode->SetDecimationTargetReductionFactor(0.0);
+    }
+    newContourNode->HideFromEditorsOff();
+    newContourNode->Modified();
+
+    return newContourNode.GetPointer();
+  }
+  else
+  {
+    vtkErrorWithObjectMacro(representationNode, "CreateContourFromRepresentation: Invalid node type to add!");
+    return NULL;
+  }
+
+  return NULL;
+}

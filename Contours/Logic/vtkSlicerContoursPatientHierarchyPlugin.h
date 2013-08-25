@@ -71,6 +71,10 @@ protected:
   /// \return The found contour node whose representation the argument node is, NULL if node is not a representation
   vtkMRMLContourNode* IsNodeAContourRepresentation(vtkMRMLNode* node);
 
+  /// Adds the color of a contour to the corresponding color table (in the same structure set)
+  /// Also repaint the occasional labelmap representation to the new color index
+  bool AddContourColorToCorrespondingColorTable(vtkMRMLContourNode* contourNode, std::string colorName);
+
 protected:
   vtkSlicerContoursPatientHierarchyPlugin();
   virtual ~vtkSlicerContoursPatientHierarchyPlugin();

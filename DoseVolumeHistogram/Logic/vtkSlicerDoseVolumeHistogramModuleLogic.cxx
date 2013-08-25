@@ -474,7 +474,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
       if (modelDisplayNode)
       {
         // Get color from the model itself
-        structureContourNode->GetRibbonModelNode()->GetDisplayNode()->GetColor(color[0], color[1], color[2]);
+        modelDisplayNode->GetColor(color[0], color[1], color[2]);
       }
       else
       {

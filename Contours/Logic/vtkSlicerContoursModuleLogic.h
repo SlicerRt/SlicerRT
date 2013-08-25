@@ -87,6 +87,10 @@ public:
   /// \param outputIndexedLabelmap Output volume node in which the result is copied
   static void GetIndexedLabelmapWithGivenGeometry(vtkMRMLContourNode* contour, vtkMRMLScalarVolumeNode* referenceVolumeNode, vtkMRMLScalarVolumeNode* outputIndexedLabelmap);
 
+  /// Create a contour node from a representation. Does not handle color tables
+  /// \param representationNode Representation to create the contour from. Can be labelmap or model (not annotation)
+  static vtkMRMLContourNode* CreateContourFromRepresentation(vtkMRMLDisplayableNode* representationNode);
+
 protected:
   /// Create a default structure set node so that contours can be created from potential representations without having
   /// loaded a DICOM-RT study. This method becomes obsolete when creating new patient hierarchy nodes feature is implemented.
