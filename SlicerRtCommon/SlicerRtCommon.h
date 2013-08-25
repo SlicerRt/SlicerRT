@@ -106,6 +106,8 @@ public:
   static const std::string DVH_ATTRIBUTE_PREFIX;
   static const std::string DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME;
   static const std::string DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME;
+  static const std::string DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME;
+  static const std::string DVH_CREATED_DVH_NODE_ID_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_NAME_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_CONTOUR_NODE_ID_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME;

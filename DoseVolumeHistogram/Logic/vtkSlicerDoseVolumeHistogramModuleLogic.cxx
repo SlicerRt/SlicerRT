@@ -29,6 +29,7 @@
 #include "vtkConvertContourRepresentations.h"
 #include "vtkSlicerContoursModuleLogic.h"
 #include "vtkVolumesOrientedResampleUtility.h"
+#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -415,17 +416,23 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   // Get structure name
   std::string structureName(structureContourNode->GetStructureName());
 
-  // Create node and fill statistics
+  // Create DVH array node
   vtkMRMLDoubleArrayNode* arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLDoubleArrayNode") );
   std::string dvhArrayNodeName = structureName + SlicerRtCommon::DVH_ARRAY_NODE_NAME_POSTFIX;
   dvhArrayNodeName = this->GetMRMLScene()->GenerateUniqueName(dvhArrayNodeName);
   arrayNode->SetName(dvhArrayNodeName.c_str());
   //arrayNode->HideFromEditorsOff();
 
+  // Set array node attributes
   arrayNode->SetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
   arrayNode->SetAttribute(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), doseVolumeNode->GetID());
   arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureName.c_str());
   arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_CONTOUR_NODE_ID_ATTRIBUTE_NAME.c_str(), structureContourNode->GetID());
+  {
+    std::ostringstream attributeValueStream;
+    attributeValueStream << this->DoseVolumeOversamplingFactor;
+    arrayNode->SetAttribute(SlicerRtCommon::DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME.c_str(), attributeValueStream.str().c_str());
+  }
 
   // Retrieve color from the contour and set it as a DVH attribute
   {
@@ -592,7 +599,15 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
     doubleArray->SetComponent(0,0,0);
   }
 
+  // Add DVH array node to the MRML scene
   this->GetMRMLScene()->AddNode(arrayNode);
+
+  // Add connection attribute to input contour node
+  vtkMRMLHierarchyNode* structurePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(structureContourNode);
+  if (structurePatientHierarchyNode)
+  {
+    structurePatientHierarchyNode->SetAttribute(SlicerRtCommon::DVH_CREATED_DVH_NODE_ID_ATTRIBUTE_NAME.c_str(), arrayNode->GetID());
+  }
 
   // Log measured time
   double checkpointEnd = timer->GetUniversalTime();

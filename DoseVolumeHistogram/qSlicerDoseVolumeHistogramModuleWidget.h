@@ -63,6 +63,9 @@ protected slots:
   void structureSetNodeChanged(vtkMRMLNode*);
   void chartNodeChanged(vtkMRMLNode*);
 
+  /// Updates button states
+  void updateButtonsState();
+
   void computeDvhClicked();
   void showInChartCheckStateChanged(int aState);
   void exportDvhToCsvClicked();
@@ -87,9 +90,6 @@ protected:
   void onEnter();
 
 protected:
-  /// Updates button states
-  void updateButtonsState();
-
   /// Updates state of show/hide chart checkboxes according to the currently selected chart
   void updateChartCheckboxesState();
 
