@@ -86,7 +86,8 @@ QString qSlicerDoseVolumeHistogramModule::acknowledgementText()const
 //-----------------------------------------------------------------------------
 QIcon qSlicerDoseVolumeHistogramModule::icon()const
 {
-  return QIcon(":/Icons/DoseVolumeHistogram.png");
+  return this->Superclass::icon();
+  //return QIcon(":/Icons/DoseVolumeHistogram.png");
 }
 
 //-----------------------------------------------------------------------------

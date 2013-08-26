@@ -97,7 +97,8 @@ QStringList qSlicerDoseAccumulationModule::contributors()const
 //-----------------------------------------------------------------------------
 QIcon qSlicerDoseAccumulationModule::icon()const
 {
-  return QIcon(":/Icons/DoseAccumulation.png");
+  return this->Superclass::icon();
+  //return QIcon(":/Icons/DoseAccumulation.png");
 }
 
 //-----------------------------------------------------------------------------

@@ -48,9 +48,6 @@ public:
   
   /// Return the authors of the module
   virtual QStringList  contributors()const; 
-  
-  /// Return a custom icon for the module
-  virtual QIcon icon()const;
 
   /// Return the categories for the module
   virtual QStringList categories()const; 

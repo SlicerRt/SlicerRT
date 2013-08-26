@@ -97,7 +97,8 @@ QStringList qSlicerContourComparisonModule::contributors() const
 //-----------------------------------------------------------------------------
 QIcon qSlicerContourComparisonModule::icon()const
 {
-  return QIcon(":/Icons/ContourComparison.png");
+  return this->Superclass::icon();
+  //return QIcon(":/Icons/ContourComparison.png");
 }
 
 //-----------------------------------------------------------------------------

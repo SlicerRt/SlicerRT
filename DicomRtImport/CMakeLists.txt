@@ -41,10 +41,6 @@ set(MODULE_TARGET_LIBRARIES
   vtkSlicerIsodoseModuleLogic
   )
 
-set(MODULE_RESOURCES
-  Resources/qSlicer${MODULE_NAME}Module.qrc
-  )
-
 #-----------------------------------------------------------------------------
 # Plugin python script
 set(KIT_PYTHON_SCRIPTS
@@ -73,7 +69,6 @@ slicerMacroBuildQtModule(
   MOC_SRCS ${MODULE_MOC_SRCS}
   UI_SRCS ${MODULE_UI_SRCS}
   TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
-  RESOURCES ${MODULE_RESOURCES}
   WITH_GENERIC_TESTS
   )
 

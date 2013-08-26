@@ -92,7 +92,8 @@ QStringList qSlicerContourMorphologyModule::contributors()const
 //-----------------------------------------------------------------------------
 QIcon qSlicerContourMorphologyModule::icon()const
 {
-  return QIcon(":/Icons/ContourMorphology.png");
+  return this->Superclass::icon();
+  //return QIcon(":/Icons/ContourMorphology.png");
 }
 
 //-----------------------------------------------------------------------------

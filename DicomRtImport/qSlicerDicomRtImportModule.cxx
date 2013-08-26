@@ -94,12 +94,6 @@ QStringList qSlicerDicomRtImportModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerDicomRtImportModule::icon()const
-{
-  return QIcon(":/Icons/DicomRtImport.png");
-}
-
-//-----------------------------------------------------------------------------
 QStringList qSlicerDicomRtImportModule::categories()const
 {
   return QStringList() << "Radiotherapy";

@@ -82,12 +82,6 @@ QStringList qSlicerPlastimatchPyModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerPlastimatchPyModule::icon()const
-{
-  return QIcon(":/Icons/PlastimatchPy.png");
-}
-
-//-----------------------------------------------------------------------------
 QStringList qSlicerPlastimatchPyModule::categories() const
 {
   return QStringList() << "Plastimatch.Utilities";

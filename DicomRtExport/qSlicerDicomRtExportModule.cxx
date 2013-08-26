@@ -94,7 +94,8 @@ QStringList qSlicerDicomRtExportModule::contributors()const
 //-----------------------------------------------------------------------------
 QIcon qSlicerDicomRtExportModule::icon()const
 {
-  return QIcon(":/Icons/DicomRtExport.png");
+  return this->Superclass::icon();
+  //return QIcon(":/Icons/DicomRtExport.png");
 }
 
 //-----------------------------------------------------------------------------

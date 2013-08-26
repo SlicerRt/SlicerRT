@@ -101,7 +101,8 @@ QStringList qSlicerPatientHierarchyModule::contributors() const
 //-----------------------------------------------------------------------------
 QIcon qSlicerPatientHierarchyModule::icon()const
 {
-  return QIcon(":/Icons/PatientHierarchy.png");
+  return this->Superclass::icon();
+  //return QIcon(":/Icons/PatientHierarchy.png");
 }
 
 //-----------------------------------------------------------------------------

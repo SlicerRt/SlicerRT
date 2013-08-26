@@ -93,12 +93,6 @@ QStringList qSlicerBeamsModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerBeamsModule::icon()const
-{
-  return QIcon(":/Icons/Beams.png");
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerBeamsModule::setup()
 {
   this->Superclass::setup();

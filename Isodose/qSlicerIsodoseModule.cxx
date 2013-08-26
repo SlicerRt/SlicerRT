@@ -98,7 +98,8 @@ QStringList qSlicerIsodoseModule::contributors()const
 //-----------------------------------------------------------------------------
 QIcon qSlicerIsodoseModule::icon()const
 {
-  return QIcon(":/Icons/Isodose.png");
+  return this->Superclass::icon();
+  //return QIcon(":/Icons/Isodose.png");
 }
 
 //-----------------------------------------------------------------------------

@@ -96,7 +96,8 @@ QStringList qSlicerExternalBeamPlanningModule::contributors() const
 //-----------------------------------------------------------------------------
 QIcon qSlicerExternalBeamPlanningModule::icon()const
 {
-  return QIcon(":/Icons/ExternalBeamPlanning.png");
+  return this->Superclass::icon();
+  //return QIcon(":/Icons/ExternalBeamPlanning.png");
 }
 
 //-----------------------------------------------------------------------------

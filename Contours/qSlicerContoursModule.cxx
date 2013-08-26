@@ -95,7 +95,8 @@ QStringList qSlicerContoursModule::contributors() const
 //-----------------------------------------------------------------------------
 QIcon qSlicerContoursModule::icon()const
 {
-  return QIcon(":/Icons/Contours.png");
+  return this->Superclass::icon();
+  //return QIcon(":/Icons/Contours.png");
 }
 
 //-----------------------------------------------------------------------------
