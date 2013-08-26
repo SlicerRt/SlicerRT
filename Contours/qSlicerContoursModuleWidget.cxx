@@ -385,7 +385,7 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
 
   // Look for referenced volume by DICOM for contours and set it as default if found
   vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContours(d->SelectedContourNodes);
-  if (referencedVolume)
+  if (referencedVolume && !this->haveSelectedContoursBeenCreatedFromLabelmap())
   {
     d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(referencedVolume);
     
