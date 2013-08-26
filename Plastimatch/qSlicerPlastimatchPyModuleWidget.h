@@ -15,19 +15,19 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerPlastimatchModuleWidget_h
-#define __qSlicerPlastimatchModuleWidget_h
+#ifndef __qSlicerPlastimatchPyModuleWidget_h
+#define __qSlicerPlastimatchPyModuleWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerPlastimatchModuleExport.h"
+#include "qSlicerPlastimatchPyModuleExport.h"
 
-class qSlicerPlastimatchModuleWidgetPrivate;
+class qSlicerPlastimatchPyModuleWidgetPrivate;
 class vtkMRMLNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class Q_SLICER_QTMODULES_PLASTIMATCH_EXPORT qSlicerPlastimatchModuleWidget :
+class Q_SLICER_QTMODULES_PLASTIMATCHPY_EXPORT qSlicerPlastimatchPyModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
@@ -35,20 +35,20 @@ class Q_SLICER_QTMODULES_PLASTIMATCH_EXPORT qSlicerPlastimatchModuleWidget :
 public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerPlastimatchModuleWidget(QWidget *parent=0);
-  virtual ~qSlicerPlastimatchModuleWidget();
+  qSlicerPlastimatchPyModuleWidget(QWidget *parent=0);
+  virtual ~qSlicerPlastimatchPyModuleWidget();
 
 public slots:
 
 
 protected:
-  QScopedPointer<qSlicerPlastimatchModuleWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerPlastimatchPyModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerPlastimatchModuleWidget);
-  Q_DISABLE_COPY(qSlicerPlastimatchModuleWidget);
+  Q_DECLARE_PRIVATE(qSlicerPlastimatchPyModuleWidget);
+  Q_DISABLE_COPY(qSlicerPlastimatchPyModuleWidget);
 };
 
 #endif

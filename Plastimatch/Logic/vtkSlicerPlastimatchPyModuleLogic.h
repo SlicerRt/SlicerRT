@@ -15,19 +15,19 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerPlastimatchLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerPlastimatchPyModuleLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
-#ifndef __vtkSlicerPlastimatchLogic_h
-#define __vtkSlicerPlastimatchLogic_h
+#ifndef __vtkSlicerPlastimatchPyModuleLogic_h
+#define __vtkSlicerPlastimatchPyModuleLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// Plastimatch Module Logic
-#include "vtkSlicerPlastimatchModuleLogicExport.h"
+// PlastimatchPy Module Logic
+#include "vtkSlicerPlastimatchPyModuleLogicExport.h"
 
 // ITK includes
 #include "itkImage.h"
@@ -45,7 +45,7 @@
 #include "registration_parms.h"
 
 /// Class to wrap Plastimatch registration capability into the embedded Python shell in Slicer
-class VTK_SLICER_PLASTIMATCH_MODULE_LOGIC_EXPORT vtkSlicerPlastimatchLogic :
+class VTK_SLICER_PLASTIMATCHPY_MODULE_LOGIC_EXPORT vtkSlicerPlastimatchPyModuleLogic :
   public vtkSlicerModuleLogic
 {
   typedef itk::Vector< float, 3 >  VectorType;
@@ -53,8 +53,8 @@ class VTK_SLICER_PLASTIMATCH_MODULE_LOGIC_EXPORT vtkSlicerPlastimatchLogic :
 
 public:
   /// Constructor
-  static vtkSlicerPlastimatchLogic* New();
-  vtkTypeMacro(vtkSlicerPlastimatchLogic, vtkSlicerModuleLogic);
+  static vtkSlicerPlastimatchPyModuleLogic* New();
+  vtkTypeMacro(vtkSlicerPlastimatchPyModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
   /// Add a registration stage in the Plastimatch workflow
@@ -144,8 +144,8 @@ protected:
   void GetOutputImage(Plm_image* warpedImage);
 
 protected:
-  vtkSlicerPlastimatchLogic();
-  virtual ~vtkSlicerPlastimatchLogic();
+  vtkSlicerPlastimatchPyModuleLogic();
+  virtual ~vtkSlicerPlastimatchPyModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
@@ -214,8 +214,8 @@ protected:
   DeformationFieldType::Pointer OutputVectorField;
   
 private:
-  vtkSlicerPlastimatchLogic(const vtkSlicerPlastimatchLogic&); // Not implemented
-  void operator=(const vtkSlicerPlastimatchLogic&);            // Not implemented
+  vtkSlicerPlastimatchPyModuleLogic(const vtkSlicerPlastimatchPyModuleLogic&); // Not implemented
+  void operator=(const vtkSlicerPlastimatchPyModuleLogic&);            // Not implemented
 };
 
 #endif

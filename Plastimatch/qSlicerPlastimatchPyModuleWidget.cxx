@@ -19,44 +19,44 @@
 #include <QDebug>
 
 // SlicerQt includes
-#include "qSlicerPlastimatchModuleWidget.h"
-#include "ui_qSlicerPlastimatchModuleWidget.h"
+#include "qSlicerPlastimatchPyModuleWidget.h"
+#include "ui_qSlicerPlastimatchPyModuleWidget.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class qSlicerPlastimatchModuleWidgetPrivate: public Ui_qSlicerPlastimatchModuleWidget
+class qSlicerPlastimatchPyModuleWidgetPrivate: public Ui_qSlicerPlastimatchPyModuleWidget
 {
 public:
-  qSlicerPlastimatchModuleWidgetPrivate();
+  qSlicerPlastimatchPyModuleWidgetPrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerPlastimatchModuleWidgetPrivate methods
+// qSlicerPlastimatchPyModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchModuleWidgetPrivate::qSlicerPlastimatchModuleWidgetPrivate()
+qSlicerPlastimatchPyModuleWidgetPrivate::qSlicerPlastimatchPyModuleWidgetPrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerPlastimatchModuleWidget methods
+// qSlicerPlastimatchPyModuleWidget methods
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchModuleWidget::qSlicerPlastimatchModuleWidget(QWidget* _parent)
+qSlicerPlastimatchPyModuleWidget::qSlicerPlastimatchPyModuleWidget(QWidget* _parent)
   : Superclass( _parent )
-  , d_ptr( new qSlicerPlastimatchModuleWidgetPrivate )
+  , d_ptr( new qSlicerPlastimatchPyModuleWidgetPrivate )
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchModuleWidget::~qSlicerPlastimatchModuleWidget()
+qSlicerPlastimatchPyModuleWidget::~qSlicerPlastimatchPyModuleWidget()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerPlastimatchModuleWidget::setup()
+void qSlicerPlastimatchPyModuleWidget::setup()
 {
-  Q_D(qSlicerPlastimatchModuleWidget);
+  Q_D(qSlicerPlastimatchPyModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
 }

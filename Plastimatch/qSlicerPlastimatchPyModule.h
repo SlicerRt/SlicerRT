@@ -15,29 +15,26 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerPlastimatchModule_h
-#define __qSlicerPlastimatchModule_h
+#ifndef __qSlicerPlastimatchPyModule_h
+#define __qSlicerPlastimatchPyModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-#include "qSlicerPlastimatchModuleExport.h"
+#include "qSlicerPlastimatchPyModuleExport.h"
 
-class qSlicerPlastimatchModulePrivate;
+class qSlicerPlastimatchPyModulePrivate;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class Q_SLICER_QTMODULES_PLASTIMATCH_EXPORT
-qSlicerPlastimatchModule
-  : public qSlicerLoadableModule
+class Q_SLICER_QTMODULES_PLASTIMATCHPY_EXPORT qSlicerPlastimatchPyModule : public qSlicerLoadableModule
 {
   Q_OBJECT
   Q_INTERFACES(qSlicerLoadableModule);
 
 public:
-
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerPlastimatchModule(QObject *parent=0);
-  virtual ~qSlicerPlastimatchModule();
+  explicit qSlicerPlastimatchPyModule(QObject *parent=0);
+  virtual ~qSlicerPlastimatchPyModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
 
@@ -54,7 +51,6 @@ public:
   virtual bool isHidden()const { return true; };
 
 protected:
-
   /// Initialize the module. Register the volumes reader/writer
   virtual void setup();
 
@@ -65,12 +61,11 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
 protected:
-  QScopedPointer<qSlicerPlastimatchModulePrivate> d_ptr;
+  QScopedPointer<qSlicerPlastimatchPyModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerPlastimatchModule);
-  Q_DISABLE_COPY(qSlicerPlastimatchModule);
-
+  Q_DECLARE_PRIVATE(qSlicerPlastimatchPyModule);
+  Q_DISABLE_COPY(qSlicerPlastimatchPyModule);
 };
 
 #endif

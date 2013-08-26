@@ -18,63 +18,63 @@
 // Qt includes
 #include <QtPlugin>
 
-// Plastimatch Logic includes
-#include <vtkSlicerPlastimatchLogic.h>
+// PlastimatchPy Logic includes
+#include <vtkSlicerPlastimatchPyModuleLogic.h>
 
-// Plastimatch includes
-#include "qSlicerPlastimatchModule.h"
-#include "qSlicerPlastimatchModuleWidget.h"
+// PlastimatchPy includes
+#include "qSlicerPlastimatchPyModule.h"
+#include "qSlicerPlastimatchPyModuleWidget.h"
 
 //-----------------------------------------------------------------------------
-Q_EXPORT_PLUGIN2(qSlicerPlastimatchModule, qSlicerPlastimatchModule);
+Q_EXPORT_PLUGIN2(qSlicerPlastimatchPyModule, qSlicerPlastimatchPyModule);
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class qSlicerPlastimatchModulePrivate
+class qSlicerPlastimatchPyModulePrivate
 {
 public:
-  qSlicerPlastimatchModulePrivate();
+  qSlicerPlastimatchPyModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerPlastimatchModulePrivate methods
+// qSlicerPlastimatchPyModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchModulePrivate
-::qSlicerPlastimatchModulePrivate()
+qSlicerPlastimatchPyModulePrivate
+::qSlicerPlastimatchPyModulePrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerPlastimatchModule methods
+// qSlicerPlastimatchPyModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchModule
-::qSlicerPlastimatchModule(QObject* _parent)
+qSlicerPlastimatchPyModule
+::qSlicerPlastimatchPyModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerPlastimatchModulePrivate)
+  , d_ptr(new qSlicerPlastimatchPyModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchModule::~qSlicerPlastimatchModule()
+qSlicerPlastimatchPyModule::~qSlicerPlastimatchPyModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerPlastimatchModule::helpText()const
+QString qSlicerPlastimatchPyModule::helpText()const
 {
   return "This module facilitates python access of numerous Plastimatch functions.";
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerPlastimatchModule::acknowledgementText()const
+QString qSlicerPlastimatchPyModule::acknowledgementText()const
 {
   return "This work was was partially funded by NIH grant 3P41RR013218-12S1";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerPlastimatchModule::contributors()const
+QStringList qSlicerPlastimatchPyModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Paolo Zaffino (University 'Magna Graecia' of Catanzaro)");
@@ -82,38 +82,38 @@ QStringList qSlicerPlastimatchModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerPlastimatchModule::icon()const
+QIcon qSlicerPlastimatchPyModule::icon()const
 {
   return QIcon(":/Icons/PlastimatchPy.png");
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerPlastimatchModule::categories() const
+QStringList qSlicerPlastimatchPyModule::categories() const
 {
   return QStringList() << "Plastimatch.Utilities";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerPlastimatchModule::dependencies() const
+QStringList qSlicerPlastimatchPyModule::dependencies() const
 {
   return QStringList();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerPlastimatchModule::setup()
+void qSlicerPlastimatchPyModule::setup()
 {
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerPlastimatchModule
+qSlicerAbstractModuleRepresentation * qSlicerPlastimatchPyModule
 ::createWidgetRepresentation()
 {
-  return new qSlicerPlastimatchModuleWidget;
+  return new qSlicerPlastimatchPyModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerPlastimatchModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerPlastimatchPyModule::createLogic()
 {
-  return vtkSlicerPlastimatchLogic::New();
+  return vtkSlicerPlastimatchPyModuleLogic::New();
 }
