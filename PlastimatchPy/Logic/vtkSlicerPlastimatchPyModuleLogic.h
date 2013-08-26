@@ -111,9 +111,9 @@ public:
   vtkGetObjectMacro(MovingLandmarks, vtkPoints);
 
   /// Set the warped landmarks (\sa WarpedLandmarks) using a vtkPoints object.
-  vtkGetObjectMacro(WarpedLandmarks, vtkPoints);
-  /// Get the warped landmarks (\sa WarpedLandmarks) using a vtkPoints object.
   vtkSetObjectMacro(WarpedLandmarks, vtkPoints);
+  /// Get the warped landmarks (\sa WarpedLandmarks) using a vtkPoints object.
+  vtkGetObjectMacro(WarpedLandmarks, vtkPoints);
 
 protected:
   /// This function sets the vtkPoints as input landmarks for Plastimatch registration

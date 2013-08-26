@@ -63,6 +63,7 @@ vtkSlicerPlastimatchPyModuleLogic::vtkSlicerPlastimatchPyModuleLogic()
   this->FixedLandmarks = NULL;
   this->MovingLandmarks = NULL;
 
+  this->WarpedLandmarks = NULL;
   vtkSmartPointer<vtkPoints> warpedLandmarks = vtkSmartPointer<vtkPoints>::New();
   this->SetWarpedLandmarks(warpedLandmarks);
 
