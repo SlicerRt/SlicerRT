@@ -140,7 +140,8 @@ protected:
 
   /// This function shows the output image into the Slicer scene
   /// TODO: function name is quite bad as it does not actually return anything. Please rename
-  void GetOutputImage();
+  /// \param warpedImage TODO:
+  void GetOutputImage(Plm_image* warpedImage);
 
 protected:
   vtkSlicerPlastimatchLogic();
@@ -208,18 +209,9 @@ protected:
 
   /// Plastimatch registration data
   Registration_data* RegistrationData;
-  
-  /// Initial affine transformation
-  Xform* InputTransformation;
-
-  /// Transformation (linear or deformable) computed by Plastimatch
-  Xform* OutputTransformation;
 
   /// Vector filed computed by Plastimatch
   DeformationFieldType::Pointer OutputVectorField;
-
-  /// Image deformed by Plastimatch
-  Plm_image* WarpedImage;
   
 private:
   vtkSlicerPlastimatchLogic(const vtkSlicerPlastimatchLogic&); // Not implemented

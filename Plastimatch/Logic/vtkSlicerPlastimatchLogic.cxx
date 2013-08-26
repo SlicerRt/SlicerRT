@@ -66,10 +66,7 @@ vtkSlicerPlastimatchLogic::vtkSlicerPlastimatchLogic()
   vtkSmartPointer<vtkPoints> warpedLandmarks = vtkSmartPointer<vtkPoints>::New();
   this->SetWarpedLandmarks(warpedLandmarks);
 
-  this->InputTransformation = NULL;
-  this->OutputTransformation = NULL;
   this->OutputVectorField = NULL;
-  this->WarpedImage = NULL;
 
   this->RegistrationParameters = new Registration_parms();
   this->RegistrationData = new Registration_data();
@@ -89,10 +86,7 @@ vtkSlicerPlastimatchLogic::~vtkSlicerPlastimatchLogic()
   this->SetMovingLandmarks(NULL);
   this->SetWarpedLandmarks(NULL);
 
-  this->InputTransformation = NULL;
-  this->OutputTransformation = NULL;
   this->OutputVectorField = NULL;
-  this->WarpedImage = NULL;
 
   this->RegistrationParameters = NULL;
   this->RegistrationData = NULL;
@@ -116,20 +110,20 @@ void vtkSlicerPlastimatchLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 void vtkSlicerPlastimatchLogic::RegisterNodes()
 {
   if (!this->GetMRMLScene())
-  {
+    {
     vtkErrorMacro("RegisterNodes: Invalid MRML Scene!");
     return;
-  }
+    }
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerPlastimatchLogic::UpdateFromMRMLScene()
 {
   if (!this->GetMRMLScene())
-  {
+    {
     vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML Scene!");
     return;
-  }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -170,19 +164,29 @@ void vtkSlicerPlastimatchLogic::RunRegistration()
     // From Files
     this->SetLandmarksFromFiles();
     }
+  else
+    {
+    vtkErrorMacro("RunRegistration: Unable to retrieve fixed and moving landmarks!");
+    return;
+    }
   
   // Set initial affine transformation
   if (this->InputTransformationID)
     {
     this->ApplyInitialLinearTransformation(); 
     } 
-  
+
   // Run registration and warp image
-  do_registration_pure(&this->OutputTransformation, this->RegistrationData ,this->RegistrationParameters);
-  this->WarpedImage = new Plm_image();
-  this->ApplyWarp(this->WarpedImage, this->OutputVectorField, this->OutputTransformation,
+  Xform* outputTransformation = NULL; // Transformation (linear or deformable) computed by Plastimatch
+  do_registration_pure(&outputTransformation, this->RegistrationData ,this->RegistrationParameters);
+
+  Plm_image* warpedImage = new Plm_image();
+  this->ApplyWarp(warpedImage, this->OutputVectorField, outputTransformation,
     this->RegistrationData->fixed_image, this->RegistrationData->moving_image, -1200, 0, 1);
-  this->GetOutputImage();
+
+  this->GetOutputImage(warpedImage);
+
+  delete warpedImage;
 }
 
 //---------------------------------------------------------------------------
@@ -214,10 +218,10 @@ void vtkSlicerPlastimatchLogic::WarpLandmarks()
 void vtkSlicerPlastimatchLogic::SetLandmarksFromSlicer()
 {
   if (!this->FixedLandmarks || !this->MovingLandmarks)
-  {
+    {
     vtkErrorMacro("SetLandmarksFromSlicer: Landmark point lists are not valid!");
     return;
-  }
+    }
 
   Labeled_pointset* fixedLandmarksSet = new Labeled_pointset();
   Labeled_pointset* movingLandmarksSet = new Labeled_pointset();
@@ -245,6 +249,12 @@ void vtkSlicerPlastimatchLogic::SetLandmarksFromSlicer()
 //---------------------------------------------------------------------------
 void vtkSlicerPlastimatchLogic::SetLandmarksFromFiles()
 {
+  if (!this->FixedLandmarksFileName || !this->MovingLandmarksFileName)
+    {
+    vtkErrorMacro("SetLandmarksFromFiles: Unable to read landmarks from files as at least one of the filenames is invalid!");
+    return;
+    }
+
   Labeled_pointset* fixedLandmarksFromFile = new Labeled_pointset();
   fixedLandmarksFromFile->load(this->FixedLandmarksFileName);
   this->RegistrationData->fixed_landmarks = fixedLandmarksFromFile;
@@ -257,15 +267,21 @@ void vtkSlicerPlastimatchLogic::SetLandmarksFromFiles()
 //---------------------------------------------------------------------------
 void vtkSlicerPlastimatchLogic::ApplyInitialLinearTransformation()
 {
+  if (!this->InputTransformationID)
+    {
+    vtkErrorMacro("ApplyInitialLinearTransformation: Invalid input transformation ID!");
+    return;
+    }
+
   // Get transformation as 4x4 matrix
-  vtkMRMLLinearTransformNode* inputTransformation =
+  vtkMRMLLinearTransformNode* inputTransformationNode =
     vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->InputTransformationID));
-  if (!InputTransformation)
-  {
+  if (!inputTransformationNode)
+    {
     vtkErrorMacro("ApplyInitialLinearTransformation: Failed to retrieve input transformation!");
     return;
-  }
-  vtkMatrix4x4* inputVtkTransformationMatrix = inputTransformation->GetMatrixTransformToParent();
+    }
+  vtkMatrix4x4* inputVtkTransformationMatrix = inputTransformationNode->GetMatrixTransformToParent();
 
   // Create ITK array to store the parameters
   itk::Array<double> affineParameters;
@@ -292,16 +308,18 @@ void vtkSlicerPlastimatchLogic::ApplyInitialLinearTransformation()
   inputItkTransformation->SetParameters(affineParameters);
 
   // Set transformation
-  this->InputTransformation = new Xform();
-  this->InputTransformation->set_aff(inputItkTransformation);
+  Xform* inputTransformation = new Xform();
+  inputTransformation->set_aff(inputItkTransformation);
 
   // Warp image using the input transformation
   Plm_image* outputImageFromInputTransformation = new Plm_image();
-  this->ApplyWarp(outputImageFromInputTransformation, NULL, this->InputTransformation,
+  this->ApplyWarp(outputImageFromInputTransformation, NULL, inputTransformation,
     this->RegistrationData->fixed_image, this->RegistrationData->moving_image, -1200, 0, 1);
 
   // Update moving image
   this->RegistrationData->moving_image = outputImageFromInputTransformation;
+
+  delete inputTransformation;
 }
 
 //---------------------------------------------------------------------------
@@ -316,9 +334,15 @@ void vtkSlicerPlastimatchLogic::ApplyWarp(Plm_image* warpedImage, DeformationFie
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic::GetOutputImage()
+void vtkSlicerPlastimatchLogic::GetOutputImage(Plm_image* warpedImage)
 {
-  itk::Image<float, 3>::Pointer outputImageItk = this->WarpedImage->itk_float();    
+  if (!warpedImage || !warpedImage->itk_float())
+    {
+    vtkErrorMacro("GetOutputImage: Invalid warped image!");
+    return;
+    }
+
+  itk::Image<float, 3>::Pointer outputImageItk = warpedImage->itk_float();    
 
   vtkSmartPointer<vtkImageData> outputImageVtk = vtkSmartPointer<vtkImageData>::New();
   itk::Image<float, 3>::RegionType region = outputImageItk->GetBufferedRegion();
@@ -341,14 +365,24 @@ void vtkSlicerPlastimatchLogic::GetOutputImage()
     }
   
   // Read fixed image to get the geometrical information
-  vtkMRMLVolumeNode* fixedVtkImage =
+  vtkMRMLVolumeNode* fixedVolumeNode =
     vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
-  
+  if (!fixedVolumeNode)
+    {
+    vtkErrorMacro("GetOutputImage: Node containing the fixed image cannot be retrieved!");
+    return;
+    }
+
   // Create new image node
   vtkMRMLVolumeNode* warpedImageNode =
     vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->OutputVolumeID));
-  
+  if (!warpedImageNode)
+    {
+    vtkErrorMacro("GetOutputImage: Node containing the warped image cannot be retrieved!");
+    return;
+    }
+
   // Set warped image to a Slicer node
-  warpedImageNode->CopyOrientation(fixedVtkImage);
+  warpedImageNode->CopyOrientation(fixedVolumeNode);
   warpedImageNode->SetAndObserveImageData(outputImageVtk);
 }
