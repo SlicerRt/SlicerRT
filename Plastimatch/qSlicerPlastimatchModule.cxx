@@ -64,7 +64,7 @@ qSlicerPlastimatchModule::~qSlicerPlastimatchModule()
 //-----------------------------------------------------------------------------
 QString qSlicerPlastimatchModule::helpText()const
 {
-  return "This is a loadable module bundled in an extension";
+  return "This module facilitates python access of numerous Plastimatch functions.";
 }
 
 //-----------------------------------------------------------------------------
@@ -77,20 +77,20 @@ QString qSlicerPlastimatchModule::acknowledgementText()const
 QStringList qSlicerPlastimatchModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Jean-Christophe Fillion-Robin (Kitware)");
+  moduleContributors << QString("Paolo Zaffino (University 'Magna Graecia' of Catanzaro)");
   return moduleContributors;
 }
 
 //-----------------------------------------------------------------------------
 QIcon qSlicerPlastimatchModule::icon()const
 {
-  return QIcon(":/Icons/Plastimatch.png");
+  return QIcon(":/Icons/PlastimatchPy.png");
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerPlastimatchModule::categories() const
 {
-  return QStringList() << "Examples";
+  return QStringList() << "Plastimatch.Utilities";
 }
 
 //-----------------------------------------------------------------------------

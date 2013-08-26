@@ -63,7 +63,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
   // TODO:
   if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("SaveDicomRTStudy: MRMLScene not valid!")
+    vtkErrorMacro("SaveDicomRTStudy: MRML scene not valid!")
     return;
   }
 

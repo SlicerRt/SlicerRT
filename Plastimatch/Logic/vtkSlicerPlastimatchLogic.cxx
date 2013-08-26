@@ -25,9 +25,6 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 
-// STD includes
-#include <string.h>
-
 // ITK includes
 #include <itkAffineTransform.h>
 #include <itkArray.h>
@@ -56,41 +53,49 @@ vtkStandardNewMacro(vtkSlicerPlastimatchLogic);
 //----------------------------------------------------------------------------
 vtkSlicerPlastimatchLogic::vtkSlicerPlastimatchLogic()
 {
-  this->FixedID=NULL;
-  this->MovingID=NULL;
-  this->FixedLandmarks=NULL;
-  this->MovingLandmarks=NULL;
-  this->FixedLandmarksFileName=NULL;
-  this->MovingLandmarksFileName=NULL;
-  this->WarpedLandmarks=NULL;
-  this->RegistrationParameters=new Registration_parms();
-  this->RegistrationData=new Registration_data();
-  this->InputTransformationID=NULL;
-  this->InputTransformation=NULL;
-  this->OutputTransformation=NULL;
-  this->OutputVectorField=NULL;
-  this->WarpedImage=NULL;
-  this->OutputVolumeID=NULL;
+  this->FixedImageID = NULL;
+  this->MovingImageID = NULL;
+  this->FixedLandmarksFileName = NULL;
+  this->MovingLandmarksFileName = NULL;
+  this->InputTransformationID = NULL;
+  this->OutputVolumeID = NULL;
+
+  this->FixedLandmarks = NULL;
+  this->MovingLandmarks = NULL;
+
+  vtkSmartPointer<vtkPoints> warpedLandmarks = vtkSmartPointer<vtkPoints>::New();
+  this->SetWarpedLandmarks(warpedLandmarks);
+
+  this->InputTransformation = NULL;
+  this->OutputTransformation = NULL;
+  this->OutputVectorField = NULL;
+  this->WarpedImage = NULL;
+
+  this->RegistrationParameters = new Registration_parms();
+  this->RegistrationData = new Registration_data();
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerPlastimatchLogic::~vtkSlicerPlastimatchLogic()
 {
-  this->SetFixedID(NULL);
-  this->SetMovingID(NULL);
-  this->SetFixedLandmarks(NULL);
-  this->SetMovingLandmarks(NULL);
+  this->SetFixedImageID(NULL);
+  this->SetMovingImageID(NULL);
   this->SetFixedLandmarksFileName(NULL);
   this->SetMovingLandmarksFileName(NULL);
-  this->SetWarpedLandmarks(NULL);
-  this->RegistrationParameters=NULL;
-  this->RegistrationData=NULL;
   this->SetInputTransformationID(NULL);
-  this->InputTransformation=NULL;
-  this->OutputTransformation=NULL;
-  this->OutputVectorField=NULL;
-  this->WarpedImage=NULL;
   this->SetOutputVolumeID(NULL);
+
+  this->SetFixedLandmarks(NULL);
+  this->SetMovingLandmarks(NULL);
+  this->SetWarpedLandmarks(NULL);
+
+  this->InputTransformation = NULL;
+  this->OutputTransformation = NULL;
+  this->OutputVectorField = NULL;
+  this->WarpedImage = NULL;
+
+  this->RegistrationParameters = NULL;
+  this->RegistrationData = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -103,8 +108,6 @@ void vtkSlicerPlastimatchLogic::PrintSelf(ostream& os, vtkIndent indent)
 void vtkSlicerPlastimatchLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
-  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
@@ -112,133 +115,94 @@ void vtkSlicerPlastimatchLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 //-----------------------------------------------------------------------------
 void vtkSlicerPlastimatchLogic::RegisterNodes()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("RegisterNodes: Invalid MRML Scene!");
+    return;
+  }
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerPlastimatchLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML Scene!");
+    return;
+  }
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
-{
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
-{
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-:: AddStage()
+void vtkSlicerPlastimatchLogic::AddStage()
 {
   this->RegistrationParameters->append_stage();
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::SetPar(char* key, char* value)
+void vtkSlicerPlastimatchLogic::SetPar(char* key, char* value)
 {        
   this->RegistrationParameters->set_key_val(key, value, 1);
 }
 
 //---------------------------------------------------------------------------
-template<class T> 
-static void 
-itk_rectify_volume_hack (T image)
-{
-  typename T::ObjectType::RegionType rg = image->GetLargestPossibleRegion ();
-  typename T::ObjectType::PointType og = image->GetOrigin();
-  typename T::ObjectType::SpacingType sp = image->GetSpacing();
-  typename T::ObjectType::SizeType sz = rg.GetSize();
-  typename T::ObjectType::DirectionType dc = image->GetDirection();
-
-  printf ("Pre-hack\nog= %g %g %g\nsp= %g %g %g\ndc= %g %g %g...\n", 
-          og[0], og[1], og[2],
-          sp[0], sp[1], sp[2],
-          dc[0][0], dc[0][1], dc[0][2]
-  );
-
-  og[0] = og[0] - (sz[0] - 1) * sp[0];
-  og[1] = og[1] - (sz[1] - 1) * sp[1];
-  dc[0][0] = 1.;
-  dc[1][1] = 1.;
-
-  image->SetOrigin(og);
-  image->SetDirection(dc);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::RunRegistration()
+void vtkSlicerPlastimatchLogic::RunRegistration()
 {
   // Set input images
-  vtkMRMLVolumeNode* FixedVtkImage =
-    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(GetFixedID()));
-  itk::Image<float, 3>::Pointer FixedItkImage = itk::Image<float, 3>::New();
-  SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(FixedVtkImage, FixedItkImage);
+  vtkMRMLVolumeNode* fixedVtkImage = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
+  itk::Image<float, 3>::Pointer fixedItkImage = itk::Image<float, 3>::New();
+  SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(fixedVtkImage, fixedItkImage);
 
-  vtkMRMLVolumeNode* MovingVtkImage =
-    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(GetMovingID()));
-  itk::Image<float, 3>::Pointer MovingItkImage = itk::Image<float, 3>::New();
-  SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(MovingVtkImage, MovingItkImage);
+  vtkMRMLVolumeNode* movingVtkImage = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
+  itk::Image<float, 3>::Pointer movingItkImage = itk::Image<float, 3>::New();
+  SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(movingVtkImage, movingItkImage);
 
-//  itk_rectify_volume_hack (FixedItkImage);
-//  itk_rectify_volume_hack (MovingItkImage);
-
-  this->RegistrationData->fixed_image = new Plm_image (FixedItkImage);
-  this->RegistrationData->moving_image = new Plm_image (MovingItkImage);
+  this->RegistrationData->fixed_image = new Plm_image(fixedItkImage);
+  this->RegistrationData->moving_image = new Plm_image(movingItkImage);
   
   // Set landmarks 
-  if (GetFixedLandmarks() != NULL && GetMovingLandmarks() != NULL)
+  if (this->FixedLandmarks && this->MovingLandmarks)
     {
     // From Slicer
-    SetLandmarksFromSlicer();
+    this->SetLandmarksFromSlicer();
     }
-  else if (this->GetFixedLandmarksFileName() != NULL && this->GetFixedLandmarksFileName() != NULL)
+  else if (this->FixedLandmarksFileName && this->FixedLandmarksFileName)
     {
     // From Files
-    SetLandmarksFromFiles();
+    this->SetLandmarksFromFiles();
     }
   
   // Set initial affine transformation
-  if (GetInputTransformationID() != NULL)
+  if (this->InputTransformationID)
     {
-    ApplyInitialLinearTransformation(); 
+    this->ApplyInitialLinearTransformation(); 
     } 
   
   // Run registration and warp image
-  do_registration_pure (&this->OutputTransformation, this->RegistrationData ,this->RegistrationParameters);
-  this->WarpedImage=new Plm_image();
-  ApplyWarp(this->WarpedImage, this->OutputVectorField, this->OutputTransformation,
+  do_registration_pure(&this->OutputTransformation, this->RegistrationData ,this->RegistrationParameters);
+  this->WarpedImage = new Plm_image();
+  this->ApplyWarp(this->WarpedImage, this->OutputVectorField, this->OutputTransformation,
     this->RegistrationData->fixed_image, this->RegistrationData->moving_image, -1200, 0, 1);
-  GetOutputImage();
+  this->GetOutputImage();
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::WarpLandmarks()
+void vtkSlicerPlastimatchLogic::WarpLandmarks()
 {
   Labeled_pointset warpedPointset;
-  pointset_warp (&warpedPointset, this->RegistrationData->moving_landmarks, this->OutputVectorField);
+  pointset_warp(&warpedPointset, this->RegistrationData->moving_landmarks, this->OutputVectorField);
   
-  this->WarpedLandmarks = vtkPoints::New();
+  // Clear warped landmarks
+  this->WarpedLandmarks->Initialize();
 
-
-  for (int i=0; i < (int) warpedPointset.count(); i++)
+  for (int i=0; i < (int)warpedPointset.count(); ++i)
   {
-    printf ("[RTN] %g %g %g -> %g %g %g\n",
-            warpedPointset.point_list[i].p[0],
-            warpedPointset.point_list[i].p[1],
-            warpedPointset.point_list[i].p[2],
-            - warpedPointset.point_list[i].p[0],
-            - warpedPointset.point_list[i].p[1],
-            warpedPointset.point_list[i].p[2]);
+    vtkDebugMacro("[RTN] "
+            << warpedPointset.point_list[i].p[0] << " "
+            << warpedPointset.point_list[i].p[1] << " "
+            << warpedPointset.point_list[i].p[2] << " -> "
+            << -warpedPointset.point_list[i].p[0] << " "
+            << -warpedPointset.point_list[i].p[1] << " "
+            << warpedPointset.point_list[i].p[2]);
     this->WarpedLandmarks->InsertPoint(i,
       - warpedPointset.point_list[i].p[0],
       - warpedPointset.point_list[i].p[1],
@@ -247,9 +211,14 @@ void vtkSlicerPlastimatchLogic
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::SetLandmarksFromSlicer()
+void vtkSlicerPlastimatchLogic::SetLandmarksFromSlicer()
 {
+  if (!this->FixedLandmarks || !this->MovingLandmarks)
+  {
+    vtkErrorMacro("SetLandmarksFromSlicer: Landmark point lists are not valid!");
+    return;
+  }
+
   Labeled_pointset* fixedLandmarksSet = new Labeled_pointset();
   Labeled_pointset* movingLandmarksSet = new Labeled_pointset();
   
@@ -274,68 +243,69 @@ void vtkSlicerPlastimatchLogic
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::SetLandmarksFromFiles()
+void vtkSlicerPlastimatchLogic::SetLandmarksFromFiles()
 {
-  Labeled_pointset* FixedLandmarksFromFile = new Labeled_pointset();
-  FixedLandmarksFromFile->load(GetFixedLandmarksFileName());
-  this->RegistrationData->fixed_landmarks = FixedLandmarksFromFile;
+  Labeled_pointset* fixedLandmarksFromFile = new Labeled_pointset();
+  fixedLandmarksFromFile->load(this->FixedLandmarksFileName);
+  this->RegistrationData->fixed_landmarks = fixedLandmarksFromFile;
 
-  Labeled_pointset* MovingLandmarksFromFile = new Labeled_pointset();
-  MovingLandmarksFromFile->load(GetMovingLandmarksFileName());
-  this->RegistrationData->moving_landmarks = MovingLandmarksFromFile;
+  Labeled_pointset* movingLandmarksFromFile = new Labeled_pointset();
+  movingLandmarksFromFile->load(this->MovingLandmarksFileName);
+  this->RegistrationData->moving_landmarks = movingLandmarksFromFile;
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::ApplyInitialLinearTransformation()
+void vtkSlicerPlastimatchLogic::ApplyInitialLinearTransformation()
 {
   // Get transformation as 4x4 matrix
   vtkMRMLLinearTransformNode* inputTransformation =
-    vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(GetInputTransformationID()));
-  vtkMatrix4x4* inputVtkTransformation = inputTransformation->GetMatrixTransformToParent();
+    vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->InputTransformationID));
+  if (!InputTransformation)
+  {
+    vtkErrorMacro("ApplyInitialLinearTransformation: Failed to retrieve input transformation!");
+    return;
+  }
+  vtkMatrix4x4* inputVtkTransformationMatrix = inputTransformation->GetMatrixTransformToParent();
 
   // Create ITK array to store the parameters
   itk::Array<double> affineParameters;
   affineParameters.SetSize(12);
 
   // Set rotations
-  int index=0;
-  for (int i=0; i < 3; i++)
+  int affineParameterIndex=0;
+  for (int column=0; column < 3; column++)
     {
-    for (int j=0; j < 3; j++)
+    for (int row=0; row < 3; row++)
       {
-      affineParameters.SetElement(index, inputVtkTransformation->GetElement(j,i));
-      index++;
+      affineParameters.SetElement(affineParameterIndex, inputVtkTransformationMatrix->GetElement(row,column));
+      affineParameterIndex++;
       }
     }
 
   // Set translations
-  affineParameters.SetElement(9, inputVtkTransformation->GetElement(0,3));
-  affineParameters.SetElement(10, inputVtkTransformation->GetElement(1,3));
-  affineParameters.SetElement(11, inputVtkTransformation->GetElement(2,3));
+  affineParameters.SetElement(9, inputVtkTransformationMatrix->GetElement(0,3));
+  affineParameters.SetElement(10, inputVtkTransformationMatrix->GetElement(1,3));
+  affineParameters.SetElement(11, inputVtkTransformationMatrix->GetElement(2,3));
 
   // Create ITK affine transformation
-  itk::AffineTransform<double, 3>::Pointer inputItkTransformation =
-    itk::AffineTransform<double, 3>::New();
+  itk::AffineTransform<double, 3>::Pointer inputItkTransformation = itk::AffineTransform<double, 3>::New();
   inputItkTransformation->SetParameters(affineParameters);
 
   // Set transformation
-  this->InputTransformation = new Xform;
+  this->InputTransformation = new Xform();
   this->InputTransformation->set_aff(inputItkTransformation);
 
   // Warp image using the input transformation
-  Plm_image* outputImageFromInputTransformation = new Plm_image;
-  ApplyWarp(outputImageFromInputTransformation, NULL, this->InputTransformation,
+  Plm_image* outputImageFromInputTransformation = new Plm_image();
+  this->ApplyWarp(outputImageFromInputTransformation, NULL, this->InputTransformation,
     this->RegistrationData->fixed_image, this->RegistrationData->moving_image, -1200, 0, 1);
 
   // Update moving image
-  this->RegistrationData->moving_image=outputImageFromInputTransformation;
+  this->RegistrationData->moving_image = outputImageFromInputTransformation;
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::ApplyWarp(Plm_image* warpedImage, DeformationFieldType::Pointer vectorFieldOut,
+void vtkSlicerPlastimatchLogic::ApplyWarp(Plm_image* warpedImage, DeformationFieldType::Pointer vectorFieldOut,
   Xform* inputTransformation, Plm_image* fixedImage, Plm_image* inputImage,
   float defaultValue, int useItk, int interpolationLinear)
 {
@@ -346,41 +316,39 @@ void vtkSlicerPlastimatchLogic
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchLogic
-::GetOutputImage ()
+void vtkSlicerPlastimatchLogic::GetOutputImage()
 {
-  itk::Image<float, 3>::Pointer OutputImageItk = this->WarpedImage->itk_float();    
-  
-  vtkSmartPointer<vtkImageData> OutputImageVtk = vtkSmartPointer<vtkImageData>::New();
-  itk::Image<float, 3>::RegionType region = OutputImageItk->GetBufferedRegion();
+  itk::Image<float, 3>::Pointer outputImageItk = this->WarpedImage->itk_float();    
+
+  vtkSmartPointer<vtkImageData> outputImageVtk = vtkSmartPointer<vtkImageData>::New();
+  itk::Image<float, 3>::RegionType region = outputImageItk->GetBufferedRegion();
   itk::Image<float, 3>::SizeType imageSize = region.GetSize();
   int extent[6]={0, (int) imageSize[0]-1, 0, (int) imageSize[1]-1, 0, (int) imageSize[2]-1};
-  OutputImageVtk->SetExtent(extent);
-  OutputImageVtk->SetScalarType(VTK_FLOAT);
-  OutputImageVtk->SetNumberOfScalarComponents(1);
-  OutputImageVtk->AllocateScalars();
+  outputImageVtk->SetExtent(extent);
+  outputImageVtk->SetScalarType(VTK_FLOAT);
+  outputImageVtk->SetNumberOfScalarComponents(1);
+  outputImageVtk->AllocateScalars();
   
-  float* OutputImagePtr = (float*)OutputImageVtk->GetScalarPointer();
-  itk::ImageRegionIteratorWithIndex< itk::Image<float, 3> > ItOutputImageItk(
-  OutputImageItk, OutputImageItk->GetLargestPossibleRegion() );
+  float* outputImagePtr = (float*)outputImageVtk->GetScalarPointer();
+  itk::ImageRegionIteratorWithIndex< itk::Image<float, 3> > outputImageItkIterator(
+    outputImageItk, outputImageItk->GetLargestPossibleRegion() );
   
-  for ( ItOutputImageItk.GoToBegin(); !ItOutputImageItk.IsAtEnd(); ++ItOutputImageItk)
+  for ( outputImageItkIterator.GoToBegin(); !outputImageItkIterator.IsAtEnd(); ++outputImageItkIterator)
     {
-    itk::Image<float, 3>::IndexType i = ItOutputImageItk.GetIndex();
-    (*OutputImagePtr) = OutputImageItk->GetPixel(i);
-    OutputImagePtr++;
+    itk::Image<float, 3>::IndexType i = outputImageItkIterator.GetIndex();
+    (*outputImagePtr) = outputImageItk->GetPixel(i);
+    outputImagePtr++;
     }
   
   // Read fixed image to get the geometrical information
-  vtkMRMLVolumeNode* FixedVtkImage =
-    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(GetFixedID()));
+  vtkMRMLVolumeNode* fixedVtkImage =
+    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
   
   // Create new image node
-  vtkMRMLVolumeNode* WarpedImageNode =
-    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(GetOutputVolumeID()));
+  vtkMRMLVolumeNode* warpedImageNode =
+    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->OutputVolumeID));
   
   // Set warped image to a Slicer node
-  WarpedImageNode->CopyOrientation(FixedVtkImage);
-  WarpedImageNode->SetAndObserveImageData(OutputImageVtk);
+  warpedImageNode->CopyOrientation(fixedVtkImage);
+  warpedImageNode->SetAndObserveImageData(outputImageVtk);
 }
-
