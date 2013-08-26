@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerPlastimatchModuleWidget</class>
- <widget class="qSlicerWidget" name="qSlicerPlastimatchModuleWidget">
+ <class>qSlicerPlastimatchPyModuleWidget</class>
+ <widget class="qSlicerWidget" name="qSlicerPlastimatchPyModuleWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
