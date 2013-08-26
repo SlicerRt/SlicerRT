@@ -5,8 +5,8 @@ set(EXTENSION_NAME SlicerRT)
 
 # ------------------------------------------------------------------------
 set(SLICERRT_VERSION_MAJOR "0")
-set(SLICERRT_VERSION_MINOR "10")
-set(SLICERRT_VERSION_PATCH "4")
+set(SLICERRT_VERSION_MINOR "11")
+set(SLICERRT_VERSION_PATCH "0")
 set(SLICERRT_VERSION ${SLICERRT_VERSION_MAJOR}.${SLICERRT_VERSION_MINOR}.${SLICERRT_VERSION_PATCH})
 
 #-----------------------------------------------------------------------------
@@ -67,6 +67,7 @@ add_subdirectory(ContourMorphology)
 add_subdirectory(ContourComparison)
 add_subdirectory(VffFileReader)
 
+add_subdirectory(PlastimatchPy)
 add_subdirectory(PlmBspline) # requires Plastimatch registration
 add_subdirectory(PlmDicomRtExport)
 add_subdirectory(PlmDicomRtImport)
@@ -74,18 +75,16 @@ add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmXformwarp)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-
-  # Requires Plastimatch segmentation 
-  #add_subdirectory(PlmMabs)
+  # In development
+  add_subdirectory(PlmThreshbox)
+  add_subdirectory(DicomRtExport)
+  add_subdirectory(ExternalBeamPlanning)
 
   # Registration validation routines
   add_subdirectory(PlmSynth)
 
-  # In development
-  add_subdirectory(Plastimatch)
-  add_subdirectory(PlmThreshbox)
-  add_subdirectory(DicomRtExport)
-  add_subdirectory(ExternalBeamPlanning)
+  # Requires Plastimatch segmentation 
+  #add_subdirectory(PlmMabs)
 endif()
 
 if(BUILD_TESTING)
