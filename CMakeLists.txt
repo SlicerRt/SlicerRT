@@ -74,11 +74,6 @@ add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmXformwarp)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
-  # Obsolete
-  #add_subdirectory(PlmDoseComparison)
-  #add_subdirectory(PlmDvh)
-  #add_subdirectory(ProtonBeams)
-  #add_subdirectory(ProtonDose)
 
   # Requires Plastimatch segmentation 
   #add_subdirectory(PlmMabs)
@@ -88,7 +83,6 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 
   # In development
   add_subdirectory(Plastimatch)
-  add_subdirectory(PlmSlicerBspline)
   add_subdirectory(PlmThreshbox)
   add_subdirectory(DicomRtExport)
   add_subdirectory(ExternalBeamPlanning)
