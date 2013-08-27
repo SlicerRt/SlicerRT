@@ -130,7 +130,7 @@ protected:
   void setReferenceInSelection(std::vector<vtkMRMLContourNode*>& contours);
 
   /// Set master instance pointer to indicate that this instance is a slave to that one
-  /// This function is only called by the master instance (through friend class declaration)
+  /// This function is only called by the master instance
   void setMasterContourSelectorWidget(qMRMLContourSelectorWidget* masterInstance);
 
 public slots:
@@ -146,7 +146,6 @@ protected slots:
 
 protected:
   QScopedPointer<qMRMLContourSelectorWidgetPrivate> d_ptr;
-  friend class qMRMLContourSelectorWidget;
 
 private:
   Q_DECLARE_PRIVATE(qMRMLContourSelectorWidget);
