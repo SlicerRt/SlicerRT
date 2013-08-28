@@ -57,7 +57,7 @@ vtkSlicerPlastimatchPyModuleLogic::vtkSlicerPlastimatchPyModuleLogic()
   this->MovingImageID = NULL;
   this->FixedLandmarksFileName = NULL;
   this->MovingLandmarksFileName = NULL;
-  this->InputTransformationID = NULL;
+  this->InitializationLinearTransformationID = NULL;
   this->OutputVolumeID = NULL;
 
   this->FixedLandmarks = NULL;
@@ -67,7 +67,7 @@ vtkSlicerPlastimatchPyModuleLogic::vtkSlicerPlastimatchPyModuleLogic()
   vtkSmartPointer<vtkPoints> warpedLandmarks = vtkSmartPointer<vtkPoints>::New();
   this->SetWarpedLandmarks(warpedLandmarks);
 
-  this->OutputVectorField = NULL;
+  this->MovingImageToFixedImageVectorField = NULL;
 
   this->RegistrationParameters = new Registration_parms();
   this->RegistrationData = new Registration_data();
@@ -80,14 +80,14 @@ vtkSlicerPlastimatchPyModuleLogic::~vtkSlicerPlastimatchPyModuleLogic()
   this->SetMovingImageID(NULL);
   this->SetFixedLandmarksFileName(NULL);
   this->SetMovingLandmarksFileName(NULL);
-  this->SetInputTransformationID(NULL);
+  this->SetInitializationLinearTransformationID(NULL);
   this->SetOutputVolumeID(NULL);
 
   this->SetFixedLandmarks(NULL);
   this->SetMovingLandmarks(NULL);
   this->SetWarpedLandmarks(NULL);
 
-  this->OutputVectorField = NULL;
+  this->MovingImageToFixedImageVectorField = NULL;
 
   this->RegistrationParameters = NULL;
   this->RegistrationData = NULL;
@@ -172,20 +172,20 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
     }
   
   // Set initial affine transformation
-  if (this->InputTransformationID)
+  if (this->InitializationLinearTransformationID)
     {
     this->ApplyInitialLinearTransformation(); 
     } 
 
   // Run registration and warp image
-  Xform* outputTransformation = NULL; // Transformation (linear or deformable) computed by Plastimatch
-  do_registration_pure(&outputTransformation, this->RegistrationData ,this->RegistrationParameters);
+  Xform* movingImageToFixedImageTransformation = NULL; // Transformation (linear or deformable) computed by Plastimatch
+  do_registration_pure(&movingImageToFixedImageTransformation, this->RegistrationData ,this->RegistrationParameters);
 
   Plm_image* warpedImage = new Plm_image();
-  this->ApplyWarp(warpedImage, this->OutputVectorField, outputTransformation,
+  this->ApplyWarp(warpedImage, this->MovingImageToFixedImageVectorField, movingImageToFixedImageTransformation,
     this->RegistrationData->fixed_image, this->RegistrationData->moving_image, -1200, 0, 1);
 
-  this->GetOutputImage(warpedImage);
+  this->SetWarpedImageInVolumeNode(warpedImage);
 
   delete warpedImage;
 }
@@ -194,7 +194,7 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
 void vtkSlicerPlastimatchPyModuleLogic::WarpLandmarks()
 {
   Labeled_pointset warpedPointset;
-  pointset_warp(&warpedPointset, this->RegistrationData->moving_landmarks, this->OutputVectorField);
+  pointset_warp(&warpedPointset, this->RegistrationData->moving_landmarks, this->MovingImageToFixedImageVectorField);
   
   // Clear warped landmarks
   this->WarpedLandmarks->Initialize();
@@ -268,25 +268,26 @@ void vtkSlicerPlastimatchPyModuleLogic::SetLandmarksFromFiles()
 //---------------------------------------------------------------------------
 void vtkSlicerPlastimatchPyModuleLogic::ApplyInitialLinearTransformation()
 {
-  if (!this->InputTransformationID)
+  if (!this->InitializationLinearTransformationID)
     {
     vtkErrorMacro("ApplyInitialLinearTransformation: Invalid input transformation ID!");
     return;
     }
 
   // Get transformation as 4x4 matrix
-  vtkMRMLLinearTransformNode* inputTransformationNode =
-    vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->InputTransformationID));
-  if (!inputTransformationNode)
+  vtkMRMLLinearTransformNode* initializationLinearTransformationNode =
+    vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->InitializationLinearTransformationID));
+  if (!initializationLinearTransformationNode)
     {
     vtkErrorMacro("ApplyInitialLinearTransformation: Failed to retrieve input transformation!");
     return;
     }
-  vtkMatrix4x4* inputVtkTransformationMatrix = inputTransformationNode->GetMatrixTransformToParent();
+  vtkMatrix4x4* initializationTransformationAsVtkTransformationMatrix = 
+    initializationLinearTransformationNode->GetMatrixTransformToParent();
 
   // Create ITK array to store the parameters
-  itk::Array<double> affineParameters;
-  affineParameters.SetSize(12);
+  itk::Array<double> initializationTransformationAsAffineParameters;
+  initializationTransformationAsAffineParameters.SetSize(12);
 
   // Set rotations
   int affineParameterIndex=0;
@@ -294,56 +295,61 @@ void vtkSlicerPlastimatchPyModuleLogic::ApplyInitialLinearTransformation()
     {
     for (int row=0; row < 3; row++)
       {
-      affineParameters.SetElement(affineParameterIndex, inputVtkTransformationMatrix->GetElement(row,column));
+      initializationTransformationAsAffineParameters.SetElement(
+        affineParameterIndex, initializationTransformationAsVtkTransformationMatrix->GetElement(row,column));
       affineParameterIndex++;
       }
     }
 
   // Set translations
-  affineParameters.SetElement(9, inputVtkTransformationMatrix->GetElement(0,3));
-  affineParameters.SetElement(10, inputVtkTransformationMatrix->GetElement(1,3));
-  affineParameters.SetElement(11, inputVtkTransformationMatrix->GetElement(2,3));
+  initializationTransformationAsAffineParameters.SetElement(
+    9, initializationTransformationAsVtkTransformationMatrix->GetElement(0,3));
+  initializationTransformationAsAffineParameters.SetElement(
+    10, initializationTransformationAsVtkTransformationMatrix->GetElement(1,3));
+  initializationTransformationAsAffineParameters.SetElement(
+    11, initializationTransformationAsVtkTransformationMatrix->GetElement(2,3));
 
   // Create ITK affine transformation
-  itk::AffineTransform<double, 3>::Pointer inputItkTransformation = itk::AffineTransform<double, 3>::New();
-  inputItkTransformation->SetParameters(affineParameters);
+  itk::AffineTransform<double, 3>::Pointer initializationTransformationAsItkTransformation = 
+    itk::AffineTransform<double, 3>::New();
+  initializationTransformationAsItkTransformation->SetParameters(initializationTransformationAsAffineParameters);
 
   // Set transformation
-  Xform* inputTransformation = new Xform();
-  inputTransformation->set_aff(inputItkTransformation);
+  Xform* initializationTransformationAsPlastimatchTransformation = new Xform();
+  initializationTransformationAsPlastimatchTransformation->set_aff(initializationTransformationAsItkTransformation);
 
   // Warp image using the input transformation
-  Plm_image* outputImageFromInputTransformation = new Plm_image();
-  this->ApplyWarp(outputImageFromInputTransformation, NULL, inputTransformation,
+  Plm_image* prealignedImage = new Plm_image();
+  this->ApplyWarp(prealignedImage, NULL, initializationTransformationAsPlastimatchTransformation,
     this->RegistrationData->fixed_image, this->RegistrationData->moving_image, -1200, 0, 1);
 
   // Update moving image
-  this->RegistrationData->moving_image = outputImageFromInputTransformation;
+  this->RegistrationData->moving_image = prealignedImage;
 
-  delete inputTransformation;
+  delete initializationTransformationAsPlastimatchTransformation;
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::ApplyWarp(Plm_image* warpedImage, DeformationFieldType::Pointer vectorFieldOut,
-  Xform* inputTransformation, Plm_image* fixedImage, Plm_image* inputImage,
-  float defaultValue, int useItk, int interpolationLinear)
+void vtkSlicerPlastimatchPyModuleLogic::ApplyWarp(Plm_image* warpedImage,
+  DeformationFieldType::Pointer vectorFieldFromTransformation, Xform* inputTransformation, 
+  Plm_image* fixedImage, Plm_image* imageToWarp, float defaultValue, int useItk, int interpolationLinear)
 {
-  Plm_image_header* pih = new Plm_image_header(fixedImage);
-  plm_warp(warpedImage, &vectorFieldOut, inputTransformation, pih, inputImage, defaultValue,
-    useItk, interpolationLinear);
-  this->OutputVectorField = vectorFieldOut;
+  Plm_image_header* plastimatchImageHeader = new Plm_image_header(fixedImage);
+  plm_warp(warpedImage, &vectorFieldFromTransformation, inputTransformation, plastimatchImageHeader,
+    imageToWarp, defaultValue, useItk, interpolationLinear);
+  this->MovingImageToFixedImageVectorField = vectorFieldFromTransformation;
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::GetOutputImage(Plm_image* warpedImage)
+void vtkSlicerPlastimatchPyModuleLogic::SetWarpedImageInVolumeNode(Plm_image* warpedPlastimatchImage)
 {
-  if (!warpedImage || !warpedImage->itk_float())
+  if (!warpedPlastimatchImage || !warpedPlastimatchImage->itk_float())
     {
-    vtkErrorMacro("GetOutputImage: Invalid warped image!");
+    vtkErrorMacro("SetWarpedImageInVolumeNode: Invalid warped image!");
     return;
     }
 
-  itk::Image<float, 3>::Pointer outputImageItk = warpedImage->itk_float();    
+  itk::Image<float, 3>::Pointer outputImageItk = warpedPlastimatchImage->itk_float();    
 
   vtkSmartPointer<vtkImageData> outputImageVtk = vtkSmartPointer<vtkImageData>::New();
   itk::Image<float, 3>::RegionType region = outputImageItk->GetBufferedRegion();
@@ -370,7 +376,7 @@ void vtkSlicerPlastimatchPyModuleLogic::GetOutputImage(Plm_image* warpedImage)
     vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
   if (!fixedVolumeNode)
     {
-    vtkErrorMacro("GetOutputImage: Node containing the fixed image cannot be retrieved!");
+    vtkErrorMacro("SetWarpedImageInVolumeNode: Node containing the fixed image cannot be retrieved!");
     return;
     }
 
@@ -379,7 +385,7 @@ void vtkSlicerPlastimatchPyModuleLogic::GetOutputImage(Plm_image* warpedImage)
     vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->OutputVolumeID));
   if (!warpedImageNode)
     {
-    vtkErrorMacro("GetOutputImage: Node containing the warped image cannot be retrieved!");
+    vtkErrorMacro("SetWarpedImageInVolumeNode: Node containing the warped image cannot be retrieved!");
     return;
     }
 

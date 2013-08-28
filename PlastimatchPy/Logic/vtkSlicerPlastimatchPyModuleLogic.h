@@ -91,9 +91,9 @@ public:
   vtkGetStringMacro(MovingLandmarksFileName);
 
   /// Set the ID of a precomputed rigid/affine transformation (\sa InputTransformationID).
-  vtkSetStringMacro(InputTransformationID);
+  vtkSetStringMacro(InitializationLinearTransformationID);
   /// Get the ID of a precomputed rigid/affine transformation (\sa InputTransformationID).
-  vtkGetStringMacro(InputTransformationID);
+  vtkGetStringMacro(InitializationLinearTransformationID);
 
   /// Set the ID of the output image (\sa OutputVolumeID).
   vtkSetStringMacro(OutputVolumeID);
@@ -129,19 +129,17 @@ protected:
   /// It is used from ApplyInitialLinearTransformation() and RunRegistration().
   void ApplyWarp(
     Plm_image* warpedImage,                        /*!< Output image as Plm_image pointer */
-    DeformationFieldType::Pointer vectorFieldOut, /*!< Output vector field (optional) as DeformationFieldType::Pointer */
+    DeformationFieldType::Pointer vectorFieldFromTransformation, /*!< Output vector field (optional) as DeformationFieldType::Pointer */
     Xform* inputTransformation,                    /*!< Input transformation as Xform pointer */
     Plm_image* fixedImage,                         /*!< Fixed image as Plm_image pointer */
-    Plm_image* inputImage,                         /*!< Input image to warp as Plm_image pointer */
+    Plm_image* imageToWarp,                         /*!< Input image to warp as Plm_image pointer */
     float defaultValue,                            /*!< Value (float) for pixels without match */
     int useItk,                                    /*!< Int to choose between itk (1) or Plastimatch (0) algorithm for the warp task */
     int interpolationLinear                        /*!< Int to choose between trilinear interpolation (1) on nearest neighbor (0) */
     );
 
-  /// This function shows the output image into the Slicer scene
-  /// TODO: function name is quite bad as it does not actually return anything. Please rename
-  /// \param warpedImage TODO:
-  void GetOutputImage(Plm_image* warpedImage);
+  /// This function shows the deformed image into the Slicer scene
+  void SetWarpedImageInVolumeNode(Plm_image* warpedPlastimatchImage);
 
 protected:
   vtkSlicerPlastimatchPyModuleLogic();
@@ -180,7 +178,7 @@ protected:
   /// ID of the affine registration used as initialization for the Plastimatch registration
   /// This transformation will be used as initialization for the Plastimatch registration.
   /// This value is an optional parameter to execute a registration.
-  char* InputTransformationID;
+  char* InitializationLinearTransformationID;
 
   /// ID of the registered image
   /// This value is a required parameter to execute a registration.
@@ -211,7 +209,7 @@ protected:
   Registration_data* RegistrationData;
 
   /// Vector filed computed by Plastimatch
-  DeformationFieldType::Pointer OutputVectorField;
+  DeformationFieldType::Pointer MovingImageToFixedImageVectorField;
   
 private:
   vtkSlicerPlastimatchPyModuleLogic(const vtkSlicerPlastimatchPyModuleLogic&); // Not implemented
