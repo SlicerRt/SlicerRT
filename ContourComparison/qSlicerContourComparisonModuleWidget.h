@@ -62,6 +62,9 @@ protected slots:
   void compareContourNodeChanged(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode*);
 
+  /// Updates button states
+  void updateButtonsState();
+
   /// Compute Dice similarity metrics and display results
   void computeDiceClicked();
 
@@ -71,9 +74,6 @@ protected slots:
   void onLogicModified();
 
 protected:
-  /// Updates button states
-  void updateButtonsState();
-
   /// Invalidate the Dice similarity results (change the values with 'N/A')
   void invalidateDiceResults();
 

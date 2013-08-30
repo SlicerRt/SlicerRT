@@ -132,6 +132,26 @@ public:
   /// Set dose grid scaling
   vtkSetStringMacro(DoseGridScaling);
 
+  /// Get image type
+  vtkGetStringMacro(ImageType);
+  /// Set image type
+  vtkSetStringMacro(ImageType);
+
+  /// Get RT image label
+  vtkGetStringMacro(RtImageLabel);
+  /// Set RT image label
+  vtkSetStringMacro(RtImageLabel);
+
+  /// Get referenced RT Plan SOP instance UID
+  vtkGetStringMacro(ReferencedRTPlanSOPInstanceUID);
+  /// Set referenced RT Plan SOP instance UID
+  vtkSetStringMacro(ReferencedRTPlanSOPInstanceUID);
+
+  /// Get referenced beam number
+  vtkGetMacro(ReferencedBeamNumber, int);
+  /// Get referenced beam number
+  vtkSetMacro(ReferencedBeamNumber, int);
+
   /// Get patient name
   vtkGetStringMacro(PatientName);
   /// Get patient ID
@@ -235,6 +255,9 @@ protected:
   /// Load RT Dose
   void LoadRTDose(DcmDataset*);
 
+  /// Load RT Image
+  void LoadRTImage(DcmDataset* dataset);
+
 protected:
   /// Set pixel spacing
   vtkSetVector2Macro(PixelSpacing, double);
@@ -315,6 +338,18 @@ protected:
   /// Store it as a string, because it will be passed as a MRML node attribute.
   char* DoseGridScaling;
 
+  /// Image type for RT images (DRR / PORTAL / SIMULATOR / RADIOGRAPH / BLANK / FLUENCE)
+  char* ImageType;
+
+  /// User-defined label for RT image
+  char* RtImageLabel;
+
+  /// Referenced RT Plan instance UID of an RT Image
+  char* ReferencedRTPlanSOPInstanceUID;
+
+  /// Referenced beam number (in the referenced RT Plan, \sa ReferencedRTPlanSOPInstanceUID)
+  int ReferencedBeamNumber;
+
   /// Patient name
   char* PatientName;
 
@@ -359,6 +394,9 @@ protected:
 
   /// Flag indicating if RT Plan has been successfully read from the input dataset
   bool LoadRTPlanSuccessful;
+
+  /// Flag indicating if RT Image has been successfully read from the input dataset
+  bool LoadRTImageSuccessful;
 
 protected:
   vtkSlicerDicomRtReader();

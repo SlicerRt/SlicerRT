@@ -65,10 +65,10 @@ limitations under the License.
 vtkSlicerDicomRtReader::RoiEntry::RoiEntry()
 {
   this->Number=0;
-  this->DisplayColor[0]=1.0;
-  this->DisplayColor[1]=0.0;
-  this->DisplayColor[2]=0.0;
-  this->PolyData=NULL;
+  this->DisplayColor[0] = 1.0;
+  this->DisplayColor[1] = 0.0;
+  this->DisplayColor[2] = 0.0;
+  this->PolyData = NULL;
 }
 
 vtkSlicerDicomRtReader::RoiEntry::~RoiEntry()
@@ -78,27 +78,27 @@ vtkSlicerDicomRtReader::RoiEntry::~RoiEntry()
 
 vtkSlicerDicomRtReader::RoiEntry::RoiEntry(const RoiEntry& src)
 {
-  this->Number=src.Number;
-  this->Name=src.Name;
-  this->Description=src.Description;
-  this->DisplayColor[0]=src.DisplayColor[0];
-  this->DisplayColor[1]=src.DisplayColor[1];
-  this->DisplayColor[2]=src.DisplayColor[2];
-  this->PolyData=NULL;
+  this->Number = src.Number;
+  this->Name = src.Name;
+  this->Description = src.Description;
+  this->DisplayColor[0] = src.DisplayColor[0];
+  this->DisplayColor[1] = src.DisplayColor[1];
+  this->DisplayColor[2] = src.DisplayColor[2];
+  this->PolyData = NULL;
   this->SetPolyData(src.PolyData);
-  this->ReferencedSeriesUid=src.ReferencedSeriesUid;
+  this->ReferencedSeriesUid = src.ReferencedSeriesUid;
 }
 
 vtkSlicerDicomRtReader::RoiEntry& vtkSlicerDicomRtReader::RoiEntry::operator=(const RoiEntry &src)
 {
-  this->Number=src.Number;
-  this->Name=src.Name;
-  this->Description=src.Description;
-  this->DisplayColor[0]=src.DisplayColor[0];
-  this->DisplayColor[1]=src.DisplayColor[1];
-  this->DisplayColor[2]=src.DisplayColor[2];
+  this->Number = src.Number;
+  this->Name = src.Name;
+  this->Description = src.Description;
+  this->DisplayColor[0] = src.DisplayColor[0];
+  this->DisplayColor[1] = src.DisplayColor[1];
+  this->DisplayColor[2] = src.DisplayColor[2];
   this->SetPolyData(src.PolyData);
-  this->ReferencedSeriesUid=src.ReferencedSeriesUid;
+  this->ReferencedSeriesUid = src.ReferencedSeriesUid;
 
   return (*this);
 }
@@ -142,6 +142,11 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->DoseUnits = NULL;
   this->DoseGridScaling = NULL;
 
+  this->ImageType = NULL;
+  this->RtImageLabel = NULL;
+  this->ReferencedRTPlanSOPInstanceUID = NULL;
+  this->ReferencedBeamNumber = -1;
+
   this->PatientName = NULL;
   this->PatientId = NULL;
   this->PatientSex = NULL;
@@ -159,6 +164,7 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->LoadRTStructureSetSuccessful = false;
   this->LoadRTDoseSuccessful = false;
   this->LoadRTPlanSuccessful = false;
+  this->LoadRTImageSuccessful = false;
 }
 
 //----------------------------------------------------------------------------
@@ -187,14 +193,14 @@ void vtkSlicerDicomRtReader::Update()
     // Load DICOM file or dataset
     DcmFileFormat fileformat;
 
-    OFCondition result;
+    OFCondition result = EC_TagNotFound;
     result = fileformat.loadFile(this->FileName, EXS_Unknown);
     if (result.good())
     {
       DcmDataset *dataset = fileformat.getDataset();
 
       // Check SOP Class UID for one of the supported RT objects
-      OFString sopClass;
+      OFString sopClass("");
       if (dataset->findAndGetOFString(DCM_SOPClassUID, sopClass).good() && !sopClass.empty())
       {
         if (sopClass == UID_RTDoseStorage)
@@ -247,142 +253,262 @@ void vtkSlicerDicomRtReader::Update()
 }
 
 //----------------------------------------------------------------------------
+void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
+{
+  this->LoadRTImageSuccessful = false;
+
+  DRTImageIOD rtImageObject;
+  if (rtImageObject.read(*dataset).bad())
+  {
+    vtkErrorMacro("LoadRTImage: Failed to read RT Image object!");
+    return;
+  }
+
+  vtkDebugMacro("LoadRTImage: Load RT Image object");
+
+  // ImageType
+  OFString imageType("");
+  if (rtImageObject.getImageType(imageType).bad())
+  {
+    vtkErrorMacro("LoadRTImage: Failed to get Image Type for RT Image object");
+    return; // mandatory DICOM value
+  }
+  this->SetImageType(imageType.c_str());
+
+  // RTImageLabel
+  OFString rtImagelabel("");
+  if (rtImageObject.getRTImageLabel(rtImagelabel).bad())
+  {
+    vtkErrorMacro("LoadRTImage: Failed to get RT Image Label for RT Image object");
+    return; // mandatory DICOM value
+  }
+  this->SetRtImageLabel(imageType.c_str());
+
+  // RTImagePlane (confirm it is NORMAL)
+  OFString rtImagePlane("");
+  if (rtImageObject.getRTImagePlane(rtImagePlane).bad())
+  {
+    vtkErrorMacro("LoadRTImage: Failed to get RT Image Plane for RT Image object");
+    return; // mandatory DICOM value
+  }
+  if (rtImagePlane.compare("NORMAL"))
+  {
+    vtkErrorMacro("LoadRTImage: Only value 'NORMAL' is supported for RTImagePlane tag for RT Image objects!");
+    return;
+  }
+
+  // ReferencedRTPlanSequence
+  DRTReferencedRTPlanSequenceInRTImageModule &rtReferencedRtPlanSequenceObject = rtImageObject.getReferencedRTPlanSequence();
+  if (rtReferencedRtPlanSequenceObject.gotoFirstItem().good())
+  {
+    DRTReferencedRTPlanSequenceInRTImageModule::Item &currentReferencedRtPlanSequenceObject = rtReferencedRtPlanSequenceObject.getCurrentItem();
+
+    OFString referencedSOPClassUID("");
+    currentReferencedRtPlanSequenceObject.getReferencedSOPClassUID(referencedSOPClassUID);
+    if (referencedSOPClassUID.compare(UID_RTPlanStorage))
+    {
+      vtkErrorMacro("LoadRTImage: Referenced RT Plan SOP class has to be RTPlanStorage!");
+    }
+    else
+    {
+      // Read Referenced RT Plan SOP instance UID
+      OFString referencedSOPInstanceUID("");
+      currentReferencedRtPlanSequenceObject.getReferencedSOPInstanceUID(referencedSOPInstanceUID);
+      this->SetReferencedRTPlanSOPInstanceUID(referencedSOPInstanceUID.c_str());
+    }
+
+    if (rtReferencedRtPlanSequenceObject.getNumberOfItems() > 1)
+    {
+      vtkErrorMacro("LoadRTImage: Referenced RT Plan sequence object can contain one item! It contains " << rtReferencedRtPlanSequenceObject.getNumberOfItems());
+    }
+  }
+
+  // ReferencedBeamNumber
+  Sint32 referencedBeamNumber = -1;
+  if (rtImageObject.getReferencedBeamNumber(referencedBeamNumber).good())
+  {
+    this->ReferencedBeamNumber = (int)referencedBeamNumber;
+  }
+  else if (rtReferencedRtPlanSequenceObject.getNumberOfItems() == 1)
+  {
+    vtkErrorMacro("LoadRTImage: Unable to get referenced beam number in referenced RT Plan for RT image!");
+  }
+
+  // XRayImageReceptorTranslation
+  OFVector<Float64> xRayImageReceptorTranslation;
+  if (rtImageObject.getXRayImageReceptorTranslation(xRayImageReceptorTranslation).good())
+  {
+    if (xRayImageReceptorTranslation.size() == 3)
+    {
+      if ( xRayImageReceptorTranslation[0] != 0.0
+        || xRayImageReceptorTranslation[1] != 0.0
+        || xRayImageReceptorTranslation[2] != 0.0 )
+      {
+        vtkErrorMacro("LoadRTImage: Non-zero XRayImageReceptorTranslation vectors are not supported!");
+        return;
+      }
+    }
+    else
+    {
+      vtkErrorMacro("LoadRTImage: XRayImageReceptorTranslation tag should contain a vector of 3 elements (it has " << xRayImageReceptorTranslation.size() << "!");
+    }
+  }
+
+  // XRayImageReceptorAngle
+  Float64 xRayImageReceptorAngle = 0.0;
+  if (rtImageObject.getXRayImageReceptorAngle(xRayImageReceptorAngle).good())
+  {
+    if (xRayImageReceptorAngle != 0.0)
+    {
+      vtkErrorMacro("LoadRTImage: Non-zero XRayImageReceptorAngle values are not supported!");
+      return;
+    }
+  }
+
+  // Get and store patient, study and series information
+  this->GetAndStoreHierarchyInformation(&rtImageObject);
+
+  this->LoadRTImageSuccessful = true;
+}
+
+//----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
 {
   this->LoadRTPlanSuccessful = false; 
 
   DRTPlanIOD rtPlanObject;
-  OFCondition result = rtPlanObject.read(*dataset);
-  if (result.good())
+  if (rtPlanObject.read(*dataset).bad())
   {
-    OFString tmpString, dummyString;
-    vtkDebugMacro("LoadRTPlan: Load RT Plan object");
+    vtkErrorMacro("LoadRTPlan: Failed to read RT Plan object!");
+    return;
+  }
 
-    DRTBeamSequence &rtPlaneBeamSequenceObject = rtPlanObject.getBeamSequence();
-    if (rtPlaneBeamSequenceObject.gotoFirstItem().good())
+  vtkDebugMacro("LoadRTPlan: Load RT Plan object");
+
+  DRTBeamSequence &rtPlaneBeamSequenceObject = rtPlanObject.getBeamSequence();
+  if (rtPlaneBeamSequenceObject.gotoFirstItem().good())
+  {
+    do
     {
-      do
+      DRTBeamSequence::Item &currentBeamSequenceObject = rtPlaneBeamSequenceObject.getCurrentItem();  
+      if (!currentBeamSequenceObject.isValid())
       {
-        DRTBeamSequence::Item &currentBeamSequenceObject = rtPlaneBeamSequenceObject.getCurrentItem();  
-        if (!currentBeamSequenceObject.isValid())
+        vtkDebugMacro("LoadRTPlan: Found an invalid beam sequence in dataset");
+        continue;
+      }
+
+      // Read item into the BeamSequenceVector
+      BeamEntry beamEntry;
+
+      OFString beamName("");
+      currentBeamSequenceObject.getBeamName(beamName);
+      beamEntry.Name=beamName.c_str();
+
+      OFString beamDescription("");
+      currentBeamSequenceObject.getBeamDescription(beamDescription);
+      beamEntry.Description=beamDescription.c_str();
+
+      OFString beamType("");
+      currentBeamSequenceObject.getBeamType(beamType);
+      beamEntry.Type=beamType.c_str();
+
+      Sint32 beamNumber = -1;
+      currentBeamSequenceObject.getBeamNumber(beamNumber);        
+      beamEntry.Number = beamNumber;
+
+      Float64 sourceAxisDistance = 0.0;
+      currentBeamSequenceObject.getSourceAxisDistance(sourceAxisDistance);
+      beamEntry.SourceAxisDistance = sourceAxisDistance;
+
+      DRTControlPointSequence &rtControlPointSequenceObject = currentBeamSequenceObject.getControlPointSequence();
+      if (rtControlPointSequenceObject.gotoFirstItem().good())
+      {
+        // do // TODO: comment out for now since only first control point is loaded (as isocenter)
         {
-          vtkDebugMacro("LoadRTPlan: Found an invalid beam sequence in dataset");
-          continue;
-        }
-
-        // Read item into the BeamSequenceVector
-        BeamEntry beamEntry;
-
-        OFString beamName;
-        currentBeamSequenceObject.getBeamName(beamName);
-        beamEntry.Name=beamName.c_str();
-
-        OFString beamDescription;
-        currentBeamSequenceObject.getBeamDescription(beamDescription);
-        beamEntry.Description=beamDescription.c_str();
-
-        OFString beamType;
-        currentBeamSequenceObject.getBeamType(beamType);
-        beamEntry.Type=beamType.c_str();
-
-        Sint32 beamNumber;
-        currentBeamSequenceObject.getBeamNumber(beamNumber);        
-        beamEntry.Number = beamNumber;
-
-        Float64 sourceAxisDistance;
-        currentBeamSequenceObject.getSourceAxisDistance(sourceAxisDistance);
-        beamEntry.SourceAxisDistance = sourceAxisDistance;
-
-        DRTControlPointSequence &rtControlPointSequenceObject = currentBeamSequenceObject.getControlPointSequence();
-        if (rtControlPointSequenceObject.gotoFirstItem().good())
-        {
-          // do // TODO: comment out for now since only first control point is loaded (as isocenter)
+          DRTControlPointSequence::Item &controlPointItem = rtControlPointSequenceObject.getCurrentItem();
+          if (controlPointItem.isValid())
           {
-            DRTControlPointSequence::Item &controlPointItem = rtControlPointSequenceObject.getCurrentItem();
-            if (controlPointItem.isValid())
+            OFVector<Float64> isocenterPositionDataLps;
+            controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
+
+            // Convert from DICOM LPS -> Slicer RAS
+            beamEntry.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
+            beamEntry.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
+            beamEntry.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
+
+            Float64 gantryAngle = 0.0;
+            controlPointItem.getGantryAngle(gantryAngle);
+            beamEntry.GantryAngle = gantryAngle;
+
+            Float64 patientSupportAngle = 0.0;
+            controlPointItem.getPatientSupportAngle(patientSupportAngle);
+            beamEntry.PatientSupportAngle = patientSupportAngle;
+
+            Float64 beamLimitingDeviceAngle = 0.0;
+            controlPointItem.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
+            beamEntry.BeamLimitingDeviceAngle = beamLimitingDeviceAngle;
+
+            unsigned int numberOfFoundCollimatorPositionItems = 0;
+            DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequenceObject
+              = controlPointItem.getBeamLimitingDevicePositionSequence();
+            if (currentCollimatorPositionSequenceObject.gotoFirstItem().good())
             {
-              OFVector<Float64> isocenterPositionDataLps;
-              controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
-
-              // Convert from DICOM LPS -> Slicer RAS
-              beamEntry.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
-              beamEntry.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
-              beamEntry.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
-
-              Float64 gantryAngle;
-              controlPointItem.getGantryAngle(gantryAngle);
-              beamEntry.GantryAngle = gantryAngle;
-
-              Float64 patientSupportAngle;
-              controlPointItem.getPatientSupportAngle(patientSupportAngle);
-              beamEntry.PatientSupportAngle = patientSupportAngle;
-
-              Float64 beamLimitingDeviceAngle;
-              controlPointItem.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
-              beamEntry.BeamLimitingDeviceAngle = beamLimitingDeviceAngle;
-
-              unsigned int numberOfFoundCollimatorPositionItems = 0;
-              DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequenceObject
-                = controlPointItem.getBeamLimitingDevicePositionSequence();
-              if (currentCollimatorPositionSequenceObject.gotoFirstItem().good())
+              do 
               {
-                do 
+                DRTBeamLimitingDevicePositionSequence::Item &collimatorPositionItem
+                  = currentCollimatorPositionSequenceObject.getCurrentItem();
+                if (collimatorPositionItem.isValid())
                 {
-                  DRTBeamLimitingDevicePositionSequence::Item &collimatorPositionItem
-                    = currentCollimatorPositionSequenceObject.getCurrentItem();
-                  if (collimatorPositionItem.isValid())
+                  OFString rtBeamLimitingDeviceType("");
+                  collimatorPositionItem.getRTBeamLimitingDeviceType(rtBeamLimitingDeviceType);
+
+                  OFVector<Float64> leafJawPositions;
+                  OFCondition getJawPositionsCondition = collimatorPositionItem.getLeafJawPositions(leafJawPositions);
+
+                  if ( !rtBeamLimitingDeviceType.compare("ASYMX") || !rtBeamLimitingDeviceType.compare("X") )
                   {
-                    OFString rtBeamLimitingDeviceType;
-                    collimatorPositionItem.getRTBeamLimitingDeviceType(rtBeamLimitingDeviceType);
-
-                    OFVector<Float64> leafJawPositions;
-                    OFCondition getJawPositionsCondition = collimatorPositionItem.getLeafJawPositions(leafJawPositions);
-
-                    if ( !rtBeamLimitingDeviceType.compare("ASYMX") || !rtBeamLimitingDeviceType.compare("X") )
+                    if (getJawPositionsCondition.good())
                     {
-                      if (getJawPositionsCondition.good())
-                      {
-                        beamEntry.LeafJawPositions[0][0] = leafJawPositions[0];
-                        beamEntry.LeafJawPositions[0][1] = leafJawPositions[1];
-                      }
-                      else
-                      {
-                        vtkDebugMacro("LoadRTPlan: No jaw position found in collimator entry");
-                      }
-                    }
-                    else if ( !rtBeamLimitingDeviceType.compare("ASYMY") || !rtBeamLimitingDeviceType.compare("Y") )
-                    {
-                      if (getJawPositionsCondition.good())
-                      {
-                        beamEntry.LeafJawPositions[1][0] = leafJawPositions[0];
-                        beamEntry.LeafJawPositions[1][1] = leafJawPositions[1];
-                      }
-                      else
-                      {
-                        vtkDebugMacro("LoadRTPlan: No jaw position found in collimator entry");
-                      }
-                    }
-                    else if ( !rtBeamLimitingDeviceType.compare("MLCX") || !rtBeamLimitingDeviceType.compare("MLCY") )
-                    {
-                      vtkWarningMacro("LoadRTPlan: Multi-leaf collimator entry found. This collimator type is not yet supported!");
+                      beamEntry.LeafJawPositions[0][0] = leafJawPositions[0];
+                      beamEntry.LeafJawPositions[0][1] = leafJawPositions[1];
                     }
                     else
                     {
-                      vtkErrorMacro("LoadRTPlan: Unsupported collimator type: " << rtBeamLimitingDeviceType);
+                      vtkDebugMacro("LoadRTPlan: No jaw position found in collimator entry");
                     }
                   }
+                  else if ( !rtBeamLimitingDeviceType.compare("ASYMY") || !rtBeamLimitingDeviceType.compare("Y") )
+                  {
+                    if (getJawPositionsCondition.good())
+                    {
+                      beamEntry.LeafJawPositions[1][0] = leafJawPositions[0];
+                      beamEntry.LeafJawPositions[1][1] = leafJawPositions[1];
+                    }
+                    else
+                    {
+                      vtkDebugMacro("LoadRTPlan: No jaw position found in collimator entry");
+                    }
+                  }
+                  else if ( !rtBeamLimitingDeviceType.compare("MLCX") || !rtBeamLimitingDeviceType.compare("MLCY") )
+                  {
+                    vtkWarningMacro("LoadRTPlan: Multi-leaf collimator entry found. This collimator type is not yet supported!");
+                  }
+                  else
+                  {
+                    vtkErrorMacro("LoadRTPlan: Unsupported collimator type: " << rtBeamLimitingDeviceType);
+                  }
                 }
-                while (currentCollimatorPositionSequenceObject.gotoNextItem().good());
               }
-            } // endif controlPointItem.isValid()
-          }
-          // while (rtControlPointSequenceObject.gotoNextItem().good());
+              while (currentCollimatorPositionSequenceObject.gotoNextItem().good());
+            }
+          } // endif controlPointItem.isValid()
         }
-
-        this->BeamSequenceVector.push_back(beamEntry);
+        // while (rtControlPointSequenceObject.gotoNextItem().good());
       }
-      while (rtPlaneBeamSequenceObject.gotoNextItem().good());
+
+      this->BeamSequenceVector.push_back(beamEntry);
     }
+    while (rtPlaneBeamSequenceObject.gotoNextItem().good());
   }
 
   // Get and store patient, study and series information
@@ -435,7 +561,7 @@ DRTRTReferencedSeriesSequence* vtkSlicerDicomRtReader::GetReferencedSeriesSequen
 //----------------------------------------------------------------------------
 OFString vtkSlicerDicomRtReader::GetReferencedSeriesInstanceUID(DRTStructureSetIOD rtStructureSetObject)
 {
-  OFString invalidUid;
+  OFString invalidUid("");
   DRTRTReferencedSeriesSequence* rtReferencedSeriesSequenceObject = this->GetReferencedSeriesSequence(rtStructureSetObject);
   if (!rtReferencedSeriesSequenceObject || !rtReferencedSeriesSequenceObject->gotoFirstItem().good())
   {
@@ -450,7 +576,7 @@ OFString vtkSlicerDicomRtReader::GetReferencedSeriesInstanceUID(DRTStructureSetI
     return invalidUid;
   }
 
-  OFString referencedSeriesInstanceUID;
+  OFString referencedSeriesInstanceUID("");
   rtReferencedSeriesSequenceItem.getSeriesInstanceUID(referencedSeriesInstanceUID);
   return referencedSeriesInstanceUID;
 }
@@ -458,7 +584,7 @@ OFString vtkSlicerDicomRtReader::GetReferencedSeriesInstanceUID(DRTStructureSetI
 //----------------------------------------------------------------------------
 OFString vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStructureSetObject)
 {
-  OFString invalidUid;
+  OFString invalidUid("");
   DRTRTReferencedSeriesSequence* rtReferencedSeriesSequenceObject = this->GetReferencedSeriesSequence(rtStructureSetObject);
   if (!rtReferencedSeriesSequenceObject || !rtReferencedSeriesSequenceObject->gotoFirstItem().good())
   {
@@ -487,7 +613,7 @@ OFString vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceSOPInstanceUID(DRT
     return invalidUid;
   }
 
-  OFString resultUid;
+  OFString resultUid("");
   rtContourImageSequenceItem.getReferencedSOPInstanceUID(resultUid);
   return resultUid;
 }
@@ -500,7 +626,7 @@ double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceU
   // Get DICOM image filename from SOP instance UID
   ctkDICOMDatabase dicomDatabase;
   dicomDatabase.openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
-  QString referencedFilename=dicomDatabase.fileForInstance(referencedSOPInstanceUID.c_str());
+  QString referencedFilename = dicomDatabase.fileForInstance(referencedSOPInstanceUID.c_str());
   dicomDatabase.closeDatabase();
   if ( referencedFilename.isEmpty() ) //TODO: isNull?
   {
@@ -510,9 +636,7 @@ double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceU
 
   // Load DICOM file
   DcmFileFormat fileformat;
-  OFCondition result;
-  result = fileformat.loadFile(referencedFilename.toStdString().c_str(), EXS_Unknown);
-  if (!result.good())
+  if (fileformat.loadFile(referencedFilename.toStdString().c_str(), EXS_Unknown).bad())
   {
     vtkErrorMacro("GetSliceThickness: Could not load image file");
     return defaultSliceThickness;
@@ -520,7 +644,7 @@ double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceU
   DcmDataset *dataset = fileformat.getDataset();
 
   // Use the slice thickness defined in the DICOM file
-  OFString sliceThicknessString;
+  OFString sliceThicknessString("");
   if (!dataset->findAndGetOFString(DCM_SliceThickness, sliceThicknessString).good())
   {
     vtkErrorMacro("GetSliceThickness: Could not find slice thickness tag in image file");
@@ -547,16 +671,16 @@ double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceU
 // the distance between all planes are equal.
 double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTContourSequence &rtContourSequenceObject)
 {
-  double invalidResult=-1.0;
+  double invalidResult = -1.0;
   if (!rtContourSequenceObject.gotoFirstItem().good())
   {
     vtkErrorMacro("GetDistanceBetweenContourPlanes: Contour sequence object is invalid");
     return invalidResult;
   }
 
-  double firstContourPlanePosition=0.0;
-  double secondContourPlanePosition=0.0;
-  int contourPlaneIndex=0;
+  double firstContourPlanePosition = 0.0;
+  double secondContourPlanePosition = 0.0;
+  int contourPlaneIndex = 0;
   do
   {
     DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
@@ -565,7 +689,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTContourSequenc
       continue;
     }
 
-    OFString numberofpoints;
+    OFString numberofpoints("");
     contourItem.getNumberOfContourPoints(numberofpoints);    
 
     std::stringstream ss;
@@ -580,7 +704,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTContourSequenc
     OFVector<Float64>  contourData_LPS;
     contourItem.getContourData(contourData_LPS);
 
-    double firstContourPointZcoordinate=contourData_LPS[2];
+    double firstContourPointZcoordinate = contourData_LPS[2];
     switch (contourPlaneIndex)
     {
     case 0:
@@ -608,7 +732,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTContourSequenc
   }
 
   // There were at least contour planes, therefore we have a valid distance estimation
-  double distanceBetweenContourPlanes=fabs(firstContourPlanePosition-secondContourPlanePosition);
+  double distanceBetweenContourPlanes = fabs(firstContourPlanePosition-secondContourPlanePosition);
   return distanceBetweenContourPlanes;
 }
 
@@ -618,8 +742,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   this->LoadRTStructureSetSuccessful = false;
 
   DRTStructureSetIOD rtStructureSetObject;
-  OFCondition result = rtStructureSetObject.read(*dataset);
-  if (!result.good())
+  if (rtStructureSetObject.read(*dataset).bad())
   {
     vtkErrorMacro("LoadRTStructureSet: Could not load strucure set object from dataset");
     return;
@@ -643,15 +766,15 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     }
     RoiEntry roiEntry;
 
-    OFString roiName;
+    OFString roiName("");
     currentROISequenceObject.getROIName(roiName);
     roiEntry.Name=roiName.c_str();
 
-    OFString roiDescription;
+    OFString roiDescription("");
     currentROISequenceObject.getROIDescription(roiDescription);
     roiEntry.Description=roiDescription.c_str();                   
 
-    Sint32 roiNumber;
+    Sint32 roiNumber = -1;
     currentROISequenceObject.getROINumber(roiNumber);
     roiEntry.Number=roiNumber;
 
@@ -667,7 +790,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   OFString referencedSOPInstanceUID = this->GetReferencedFrameOfReferenceSOPInstanceUID(rtStructureSetObject);
   double sliceThickness = this->GetSliceThickness(referencedSOPInstanceUID);
 
-  Sint32 referenceRoiNumber;
+  Sint32 referenceRoiNumber = -1;
   DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
   if (!rtROIContourSequenceObject.gotoFirstItem().good())
   {
@@ -700,10 +823,10 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
         {
           continue;
         }
-        OFString contourNumber;
+        OFString contourNumber("");
         contourItem.getContourNumber(contourNumber);
 
-        OFString numberofpoints;
+        OFString numberofpoints("");
         contourItem.getNumberOfContourPoints(numberofpoints);
         std::stringstream ss;
         ss << numberofpoints;
@@ -732,7 +855,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
     // Save it into ROI vector
     RoiEntry* referenceROI = this->FindRoiByNumber(referenceRoiNumber);
-    if (referenceROI==NULL)
+    if (referenceROI == NULL)
     {
       vtkErrorMacro("LoadRTStructureSet: Reference ROI is not found");      
       continue;
@@ -775,7 +898,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     }
 
     // Get structure color
-    Sint32 roiDisplayColor;
+    Sint32 roiDisplayColor = -1;
     for (int j=0; j<3; j++)
     {
       currentRoiObject.getROIDisplayColor(roiDisplayColor,j);
@@ -973,14 +1096,15 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   this->LoadRTDoseSuccessful = false;
 
   DRTDoseIOD rtDoseObject;
-  OFCondition result = rtDoseObject.read(*dataset);
-  if (result.bad())
+  if (rtDoseObject.read(*dataset).bad())
   {
     vtkErrorMacro("LoadRTDose: Failed to read RT Dose dataset!");
+    return;
   }
 
-  cout << "RT Dose object" << OFendl << OFendl;
-  OFString doseGridScaling;
+  vtkDebugMacro("LoadRTDose: Load RT Dose object");
+
+  OFString doseGridScaling("");
   if (rtDoseObject.getDoseGridScaling(doseGridScaling).bad())
   {
     vtkErrorMacro("LoadRTDose: Failed to get Dose Grid Scaling for dose object");
@@ -988,7 +1112,7 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   }
   this->SetDoseGridScaling(doseGridScaling.c_str());
 
-  OFString doseUnits;
+  OFString doseUnits("");
   if (rtDoseObject.getDoseUnits(doseUnits).bad())
   {
     vtkErrorMacro("LoadRTDose: Failed to get Dose Units for dose object");
