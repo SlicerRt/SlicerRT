@@ -138,9 +138,9 @@ public:
   vtkSetStringMacro(ImageType);
 
   /// Get RT image label
-  vtkGetStringMacro(RtImageLabel);
+  vtkGetStringMacro(RTImageLabel);
   /// Set RT image label
-  vtkSetStringMacro(RtImageLabel);
+  vtkSetStringMacro(RTImageLabel);
 
   /// Get referenced RT Plan SOP instance UID
   vtkGetStringMacro(ReferencedRTPlanSOPInstanceUID);
@@ -149,8 +149,53 @@ public:
 
   /// Get referenced beam number
   vtkGetMacro(ReferencedBeamNumber, int);
-  /// Get referenced beam number
+  /// Set referenced beam number
   vtkSetMacro(ReferencedBeamNumber, int);
+
+  /// Get image plane pixel spacing
+  vtkGetVector2Macro(ImagePlanePixelSpacing, double);
+  /// Set image plane pixel spacing
+  vtkSetVector2Macro(ImagePlanePixelSpacing, double);
+
+  /// Get RT image position
+  vtkGetVector2Macro(RTImagePosition, double);
+  /// Set RT image position
+  vtkSetVector2Macro(RTImagePosition, double);
+
+  /// Get gantry angle
+  vtkGetMacro(GantryAngle, double);
+  /// Set gantry angle
+  vtkSetMacro(GantryAngle, double);
+
+  /// Get beam limiting device (collimator) angle
+  vtkGetMacro(BeamLimitingDeviceAngle, double);
+  /// Set beam limiting device (collimator) angle
+  vtkSetMacro(BeamLimitingDeviceAngle, double);
+
+  /// Get patient support angle
+  vtkGetMacro(PatientSupportAngle, double);
+  /// Set patient support angle
+  vtkSetMacro(PatientSupportAngle, double);
+
+  /// Get radiation machine SAD
+  vtkGetMacro(RadiationMachineSAD, double);
+  /// Set radiation machine SAD
+  vtkSetMacro(RadiationMachineSAD, double);
+
+  /// Get radiation machine SSD
+  vtkGetMacro(RadiationMachineSSD, double);
+  /// Set radiation machine SSD
+  vtkSetMacro(RadiationMachineSSD, double);
+
+  /// Get RT Image SID
+  vtkGetMacro(RTImageSID, double);
+  /// Set RT Image SID
+  vtkSetMacro(RTImageSID, double);
+
+  /// Get source to reference object distance
+  vtkGetMacro(SourceToReferenceObjectDistance, double);
+  /// Set source to reference object distance
+  vtkSetMacro(SourceToReferenceObjectDistance, double);
 
   /// Get patient name
   vtkGetStringMacro(PatientName);
@@ -342,13 +387,40 @@ protected:
   char* ImageType;
 
   /// User-defined label for RT image
-  char* RtImageLabel;
+  char* RTImageLabel;
 
   /// Referenced RT Plan instance UID of an RT Image
   char* ReferencedRTPlanSOPInstanceUID;
 
   /// Referenced beam number (in the referenced RT Plan, \sa ReferencedRTPlanSOPInstanceUID)
   int ReferencedBeamNumber;
+
+  /// Image plane pixel spacing of an RT Image
+  double ImagePlanePixelSpacing[2];
+
+  /// RT image position (center of the upper left hand corner of an RT image)
+  double RTImagePosition[2];
+
+  /// Gantry angle of an RT Image
+  double GantryAngle;
+
+  /// Beam limiting device (collimator) angle for an RT Image
+  double BeamLimitingDeviceAngle;
+
+  /// Patient support (bed) angle for an RT Image
+  double PatientSupportAngle;
+
+  /// Radiation machine SAD (Radiation source to Gantry rotation axis distance of radiation machine used in acquiring or computing image (mm))
+  double RadiationMachineSAD;
+
+  /// Radiation machine SSD (Source to patient surface distance (in mm) of radiation machine used in acquiring or computing image)
+  double RadiationMachineSSD;
+
+  /// RT Image SID (Distance from radiation machine source to image plane (in mm) along radiation beam axis)
+  double RTImageSID;
+
+  /// Source to reference object distance
+  double SourceToReferenceObjectDistance;
 
   /// Patient name
   char* PatientName;

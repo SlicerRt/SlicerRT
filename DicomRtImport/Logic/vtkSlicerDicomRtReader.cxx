@@ -138,14 +138,23 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 
   this->RoiSequenceVector.clear();
 
-  this->SetPixelSpacing(0,0);
+  this->SetPixelSpacing(0.0,0.0);
   this->DoseUnits = NULL;
   this->DoseGridScaling = NULL;
 
   this->ImageType = NULL;
-  this->RtImageLabel = NULL;
+  this->RTImageLabel = NULL;
   this->ReferencedRTPlanSOPInstanceUID = NULL;
   this->ReferencedBeamNumber = -1;
+  this->SetImagePlanePixelSpacing(0.0,0.0);
+  this->SetRTImagePosition(0.0,0.0);
+  this->GantryAngle = 0.0;
+  this->BeamLimitingDeviceAngle = 0.0;
+  this->PatientSupportAngle = 0.0;
+  this->RadiationMachineSAD = 0.0;
+  this->RadiationMachineSSD = 0.0;
+  this->RTImageSID = 0.0;
+  this->SourceToReferenceObjectDistance = 0.0;
 
   this->PatientName = NULL;
   this->PatientId = NULL;
@@ -282,7 +291,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
     vtkErrorMacro("LoadRTImage: Failed to get RT Image Label for RT Image object");
     return; // mandatory DICOM value
   }
-  this->SetRtImageLabel(imageType.c_str());
+  this->SetRTImageLabel(imageType.c_str());
 
   // RTImagePlane (confirm it is NORMAL)
   OFString rtImagePlane("");
@@ -363,6 +372,101 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
       vtkErrorMacro("LoadRTImage: Non-zero XRayImageReceptorAngle values are not supported!");
       return;
     }
+  }
+
+  // ImagePlanePixelSpacing
+  OFVector<Float64> imagePlanePixelSpacing;
+  if (rtImageObject.getImagePlanePixelSpacing(imagePlanePixelSpacing).good())
+  {
+    if (imagePlanePixelSpacing.size() == 2)
+    {
+      this->SetImagePlanePixelSpacing(imagePlanePixelSpacing[0], imagePlanePixelSpacing[1]);
+    }
+    else
+    {
+      vtkErrorMacro("LoadRTImage: ImagePlanePixelSpacing tag should contain a vector of 2 elements (it has " << imagePlanePixelSpacing.size() << "!");
+    }
+  }
+
+  // RTImagePosition
+  OFVector<Float64> rtImagePosition;
+  if (rtImageObject.getRTImagePosition(rtImagePosition).good())
+  {
+    if (rtImagePosition.size() == 2)
+    {
+      this->SetRTImagePosition(rtImagePosition[0], rtImagePosition[1]);
+    }
+    else
+    {
+      vtkErrorMacro("LoadRTImage: RTImagePosition tag should contain a vector of 2 elements (it has " << rtImagePosition.size() << "!");
+    }
+  }
+
+  // RTImageOrientation
+  OFVector<Float64> rtImageOrientation;
+  if (rtImageObject.getRTImageOrientation(rtImageOrientation).good())
+  {
+    vtkErrorMacro("LoadRTImage: RTImageOrientation is specified but not supported yet!");
+  }
+
+  // GantryAngle
+  Float64 gantryAngle = 0.0;
+  if (rtImageObject.getGantryAngle(gantryAngle).good())
+  {
+    this->SetGantryAngle(gantryAngle);
+  }
+
+  // GantryPitchAngle
+  Float32 gantryPitchAngle = 0.0;
+  if (rtImageObject.getGantryPitchAngle(gantryPitchAngle).good())
+  {
+    if (gantryPitchAngle != 0.0);
+    {
+      vtkErrorMacro("LoadRTImage: Non-zero GantryPitchAngle tag values are not supported yet!");
+      return;
+    }
+  }
+
+  // BeamLimitingDeviceAngle
+  Float64 beamLimitingDeviceAngle = 0.0;
+  if (rtImageObject.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle).good())
+  {
+    this->SetBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
+  }
+
+  // PatientSupportAngle
+  Float64 patientSupportAngle = 0.0;
+  if (rtImageObject.getPatientSupportAngle(patientSupportAngle).good())
+  {
+    this->SetPatientSupportAngle(patientSupportAngle);
+  }
+
+  // RadiationMachineSAD
+  Float64 radiationMachineSAD = 0.0;
+  if (rtImageObject.getRadiationMachineSAD(radiationMachineSAD).good())
+  {
+    this->SetRadiationMachineSAD(radiationMachineSAD);
+  }
+
+  // RadiationMachineSSD
+  Float64 radiationMachineSSD = 0.0;
+  if (rtImageObject.getRadiationMachineSSD(radiationMachineSSD).good())
+  {
+    this->SetRadiationMachineSSD(radiationMachineSSD);
+  }
+
+  // RTImageSID
+  Float64 rtImageSID = 0.0;
+  if (rtImageObject.getRTImageSID(rtImageSID).good())
+  {
+    this->SetRTImageSID(rtImageSID);
+  }
+
+  // SourceToReferenceObjectDistance
+  Float64 sourceToReferenceObjectDistance = 0.0;
+  if (rtImageObject.getSourceToReferenceObjectDistance(sourceToReferenceObjectDistance).good())
+  {
+    this->SetSourceToReferenceObjectDistance(sourceToReferenceObjectDistance);
   }
 
   // Get and store patient, study and series information
