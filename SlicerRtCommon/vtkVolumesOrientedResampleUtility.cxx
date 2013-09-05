@@ -58,7 +58,7 @@ bool vtkVolumesOrientedResampleUtility
   // Make sure inputs are initialized
   if (!inputVolumeNode || !referenceVolumeNode || !outputVolumeNode)
   {
-    // TODO: error message
+    vtkGenericWarningMacro(<< "vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode: Inputs are not specified!");
     return false;
   }
 
@@ -73,11 +73,12 @@ bool vtkVolumesOrientedResampleUtility
   inputVolumeNode->GetIJKToRASMatrix(inputVolumeIJK2RASMatrix);
   vtkSmartPointer<vtkMatrix4x4> referenceVolumeRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   referenceVolumeNode->GetRASToIJKMatrix(referenceVolumeRAS2IJKMatrix);
+  referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
 
-  vtkSmartPointer<vtkTransform> outputResliceTransform = vtkSmartPointer<vtkTransform>::New();
-  outputResliceTransform->Identity();
-  outputResliceTransform->PostMultiply();
-  outputResliceTransform->SetMatrix(inputVolumeIJK2RASMatrix);
+  vtkSmartPointer<vtkTransform> outputIJK2IJKResliceTransform = vtkSmartPointer<vtkTransform>::New();
+  outputIJK2IJKResliceTransform->Identity();
+  outputIJK2IJKResliceTransform->PostMultiply();
+  outputIJK2IJKResliceTransform->SetMatrix(inputVolumeIJK2RASMatrix);
 
   vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
     inputVolumeNode->GetScene()->GetNodeByID(inputVolumeNode->GetTransformNodeID()));
@@ -85,22 +86,21 @@ bool vtkVolumesOrientedResampleUtility
   if (inputVolumeNodeTransformNode!=NULL)
   {
     inputVolumeNodeTransformNode->GetMatrixTransformToWorld(inputVolumeRAS2RASMatrix);  
-    outputResliceTransform->Concatenate(inputVolumeRAS2RASMatrix);
+    outputIJK2IJKResliceTransform->Concatenate(inputVolumeRAS2RASMatrix);
   }
-  outputResliceTransform->Concatenate(referenceVolumeRAS2IJKMatrix);
-  outputResliceTransform->Inverse();
+  outputIJK2IJKResliceTransform->Concatenate(referenceVolumeRAS2IJKMatrix);
+  outputIJK2IJKResliceTransform->Inverse();
 
-  vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
-  reslice->SetInput(inputVolumeNode->GetImageData());
-  reslice->SetOutputOrigin(0, 0, 0);
-  reslice->SetOutputSpacing(1, 1, 1);
-  referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
-  reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
-  reslice->SetResliceTransform(outputResliceTransform);
-  reslice->Update();
+  vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
+  resliceFilter->SetInput(inputVolumeNode->GetImageData());
+  resliceFilter->SetOutputOrigin(0, 0, 0);
+  resliceFilter->SetOutputSpacing(1, 1, 1);
+  resliceFilter->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
+  resliceFilter->SetResliceTransform(outputIJK2IJKResliceTransform);
+  resliceFilter->Update();
 
   outputVolumeNode->CopyOrientation(referenceVolumeNode);
-  outputVolumeNode->SetAndObserveImageData(reslice->GetOutput());
+  outputVolumeNode->SetAndObserveImageData(resliceFilter->GetOutput());
   
   return true;
 }
