@@ -305,15 +305,13 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int newNumberOfColors
 //---------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
 {
+  int dimensions[3] = {0, 0, 0};
+
   if (!this->GetMRMLScene() || !this->IsodoseNode)
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Invalid scene or parameter set node!");
     return;
   }
-
-  double origin[3] = {0, 0, 0};
-  double spacing[3] = {1, 1, 1};
-  int dimensions[3] = {0, 0, 0};
 
   vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
@@ -369,36 +367,34 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   // Reslice dose volume
   vtkSmartPointer<vtkMatrix4x4> inputIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   doseVolumeNode->GetIJKToRASMatrix(inputIJK2RASMatrix);
-  vtkSmartPointer<vtkMatrix4x4> referenceRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  doseVolumeNode->GetRASToIJKMatrix(referenceRAS2IJKMatrix); //TODO: confusing matrix names: input <-> reference ?
+  vtkSmartPointer<vtkMatrix4x4> inputRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  doseVolumeNode->GetRASToIJKMatrix(inputRAS2IJKMatrix); 
 
-  vtkSmartPointer<vtkTransform> outputResliceTransform = vtkSmartPointer<vtkTransform>::New(); //TODO: bad transform name. From which coordinate system to which one?
-  outputResliceTransform->Identity();
-  outputResliceTransform->PostMultiply();
-  outputResliceTransform->SetMatrix(inputIJK2RASMatrix);
+  vtkSmartPointer<vtkTransform> outputIJK2IJKResliceTransform = vtkSmartPointer<vtkTransform>::New(); 
+  outputIJK2IJKResliceTransform->Identity();
+  outputIJK2IJKResliceTransform->PostMultiply();
+  outputIJK2IJKResliceTransform->SetMatrix(inputIJK2RASMatrix);
 
   vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = doseVolumeNode->GetParentTransformNode();
   vtkSmartPointer<vtkMatrix4x4> inputRAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   if (inputVolumeNodeTransformNode!=NULL)
   {
     inputVolumeNodeTransformNode->GetMatrixTransformToWorld(inputRAS2RASMatrix);  
-    outputResliceTransform->Concatenate(inputRAS2RASMatrix);
+    outputIJK2IJKResliceTransform->Concatenate(inputRAS2RASMatrix);
   }
   
-  outputResliceTransform->Concatenate(referenceRAS2IJKMatrix);
-  outputResliceTransform->Inverse();
+  outputIJK2IJKResliceTransform->Concatenate(inputRAS2IJKMatrix);
+  outputIJK2IJKResliceTransform->Inverse();
 
-  doseVolumeNode->GetOrigin(origin); 
-  doseVolumeNode->GetSpacing(spacing);
   doseVolumeNode->GetImageData()->GetDimensions(dimensions);
   vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
   reslice->SetInput(doseVolumeNode->GetImageData());
   reslice->SetOutputOrigin(0, 0, 0);
   reslice->SetOutputSpacing(1, 1, 1);
   reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
-  reslice->SetResliceTransform(outputResliceTransform);
+  reslice->SetResliceTransform(outputIJK2IJKResliceTransform);
   reslice->Update();
-  vtkSmartPointer<vtkImageData> tempImage = reslice->GetOutput(); //TODO: bad variable name
+  vtkSmartPointer<vtkImageData> reslicedDoseVolumeImage = reslice->GetOutput(); 
 
   // Create isodose surfaces
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
@@ -414,7 +410,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     colorTableNode->GetColor(i, val);
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
-    marchingCubes->SetInput(tempImage);
+    marchingCubes->SetInput(reslicedDoseVolumeImage);
     marchingCubes->SetNumberOfContours(1); 
     marchingCubes->SetValue(0, isoLevel);
     marchingCubes->ComputeScalarsOff();
