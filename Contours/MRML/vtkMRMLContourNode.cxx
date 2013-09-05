@@ -45,9 +45,6 @@
 #include <vtkIntArray.h>
 #include <vtkCollection.h>
 
-// STD includes
-#include <algorithm> //TODO: workaround for issue #179
-
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourNode);
 

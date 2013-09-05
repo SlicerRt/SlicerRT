@@ -209,6 +209,7 @@ void vtkSlicerDicomRtReader::Update()
       DcmDataset *dataset = fileformat.getDataset();
 
       // Check SOP Class UID for one of the supported RT objects
+      //   TODO: One series can contain composite information, e.g, an RTPLAN series can contain structure sets and plans as well
       OFString sopClass("");
       if (dataset->findAndGetOFString(DCM_SOPClassUID, sopClass).good() && !sopClass.empty())
       {

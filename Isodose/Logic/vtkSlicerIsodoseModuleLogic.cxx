@@ -224,6 +224,54 @@ void vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable()
   this->SetDefaultIsodoseColorTableNodeId(colorTableNode->GetID());
 }
 
+//---------------------------------------------------------------------------
+void vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable()
+{
+  // Load default color table file
+  std::string moduleShareDirectory = this->GetModuleShareDirectory();
+  std::string colorTableFilePath = moduleShareDirectory + "/" + SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
+  vtkMRMLColorTableNode* colorTableNode = NULL;
+  if (vtksys::SystemTools::FileExists(colorTableFilePath.c_str()) && this->GetMRMLApplicationLogic() && this->GetMRMLApplicationLogic()->GetColorLogic())
+  {
+    vtkMRMLColorNode* loadedColorNode = this->GetMRMLApplicationLogic()->GetColorLogic()->LoadColorFile( colorTableFilePath.c_str(),
+      vtksys::SystemTools::GetFilenameWithoutExtension(SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME).c_str() );
+
+    // Create temporary lookup table storing the color data while the type of the loaded color table is set to user
+    // (workaround for bug #409)
+    vtkSmartPointer<vtkLookupTable> tempLookupTable = vtkSmartPointer<vtkLookupTable>::New();
+    tempLookupTable->DeepCopy(loadedColorNode->GetLookupTable());
+
+    colorTableNode = vtkMRMLColorTableNode::SafeDownCast(loadedColorNode);
+    colorTableNode->SetTypeToUser();
+    colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+    colorTableNode->HideFromEditorsOff();
+    colorTableNode->SaveWithSceneOff();
+    colorTableNode->SetNumberOfColors(tempLookupTable->GetNumberOfColors());
+    colorTableNode->SetLookupTable(tempLookupTable);
+  }
+  else
+  {
+    if (!moduleShareDirectory.empty())
+    {
+      // Only log warning if the application exists (no warning when running automatic tests)
+      vtkWarningMacro("LoadDefaultIsodoseColorTable: Default isodose color table file '" << colorTableFilePath << "' cannot be found!");
+    }
+    // If file is not found, then create it programatically
+    this->CreateDefaultIsodoseColorTable();
+    colorTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->DefaultIsodoseColorTableNodeId));
+  }
+
+  if (colorTableNode)
+  {
+    colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+    this->SetDefaultIsodoseColorTableNodeId(colorTableNode->GetID());
+  }
+  else
+  {
+    vtkErrorMacro("LoadDefaultIsodoseColorTable: Failed to load or create default isodose color table!");
+  }
+}
+
 //------------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int newNumberOfColors)
 {
@@ -313,16 +361,18 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   this->GetMRMLScene()->AddNode(modelDisplayNode);
   modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
 
+  // Get color table
   vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
   vtkSmartPointer<vtkLookupTable> lookupTable = colorTableNode->GetLookupTable();
-  
+
+  // Reslice dose volume
   vtkSmartPointer<vtkMatrix4x4> inputIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   doseVolumeNode->GetIJKToRASMatrix(inputIJK2RASMatrix);
   vtkSmartPointer<vtkMatrix4x4> referenceRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  doseVolumeNode->GetRASToIJKMatrix(referenceRAS2IJKMatrix);
+  doseVolumeNode->GetRASToIJKMatrix(referenceRAS2IJKMatrix); //TODO: confusing matrix names: input <-> reference ?
 
-  vtkSmartPointer<vtkTransform> outputResliceTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkTransform> outputResliceTransform = vtkSmartPointer<vtkTransform>::New(); //TODO: bad transform name. From which coordinate system to which one?
   outputResliceTransform->Identity();
   outputResliceTransform->PostMultiply();
   outputResliceTransform->SetMatrix(inputIJK2RASMatrix);
@@ -348,8 +398,9 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
   reslice->SetResliceTransform(outputResliceTransform);
   reslice->Update();
-  vtkSmartPointer<vtkImageData> tempImage = reslice->GetOutput();
+  vtkSmartPointer<vtkImageData> tempImage = reslice->GetOutput(); //TODO: bad variable name
 
+  // Create isodose surfaces
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
   {
     double val[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -453,40 +504,4 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   this->IsodoseNode->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(modelHierarchyRootNode->GetID());
     
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable()
-{
-  // Load default color table file
-  std::string moduleShareDirectory = this->GetModuleShareDirectory();
-  std::string colorTableFilePath = moduleShareDirectory + "/" + SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
-  vtkMRMLColorTableNode* colorTableNode = NULL;
-  if (vtksys::SystemTools::FileExists(colorTableFilePath.c_str()) && this->GetMRMLApplicationLogic() && this->GetMRMLApplicationLogic()->GetColorLogic())
-  {
-    vtkMRMLColorNode* loadedColorNode = this->GetMRMLApplicationLogic()->GetColorLogic()->LoadColorFile( colorTableFilePath.c_str(),
-      vtksys::SystemTools::GetFilenameWithoutExtension(SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME).c_str() );
-    colorTableNode = vtkMRMLColorTableNode::SafeDownCast(loadedColorNode);
-  }
-  else
-  {
-    if (!moduleShareDirectory.empty())
-    {
-      // Only log warning if the application exists (no warning when running automatic tests)
-      vtkWarningMacro("LoadDefaultIsodoseColorTable: Default isodose color table file '" << colorTableFilePath << "' cannot be found!");
-    }
-    // If file is not found, then create it programatically
-    this->CreateDefaultIsodoseColorTable();
-    colorTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->DefaultIsodoseColorTableNodeId));
-  }
-
-  if (colorTableNode)
-  {
-    colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
-    this->SetDefaultIsodoseColorTableNodeId(colorTableNode->GetID());
-  }
-  else
-  {
-    vtkErrorMacro("LoadDefaultIsodoseColorTable: Failed to load or create default isodose color table!");
-  }
 }
