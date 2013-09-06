@@ -748,16 +748,19 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
     return;
   }
 
-  //   Get wed as itk image 
+  // Get wed as itk image 
   Rpl_volume *rpl_vol = ion_plan.rpl_vol;
 
   Plm_image::Pointer patient = Plm_image::New();
   patient->set_itk (referenceVolumeItk);
   Volume* patient_vol = patient->get_vol_float();
-  Volume* wed = rpl_vol->create_wed_volume (&ion_plan);
-  //  Volume* wed = create_wed_volume (0,&ion_plan);
+  // Volume* wed = rpl_vol->create_wed_volume (&ion_plan); //TODO: this line broke the build, needs to be fixed
+  Volume* wed = NULL; // Creating dummy variable to ensure compilation
+  return; // TODO: remove this return statement once the 
 
-  //Feed in reference volume, as wed output is the warped reference image.
+  // Volume* wed = create_wed_volume (0,&ion_plan);
+
+  // Feed in reference volume, as wed output is the warped reference image.
   rpl_vol->compute_wed_volume(wed,patient_vol,-1000);
 
   Plm_image::Pointer wed_image = Plm_image::New (new Plm_image (wed));
