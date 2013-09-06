@@ -74,6 +74,9 @@ public:
   ///
   void ComputeDose ();
 
+  ///
+  void ComputeWED ();
+
 protected:
   vtkSlicerExternalBeamPlanningModuleLogic();
   virtual ~vtkSlicerExternalBeamPlanningModuleLogic();

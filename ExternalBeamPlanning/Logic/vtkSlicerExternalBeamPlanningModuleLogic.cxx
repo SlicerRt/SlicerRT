@@ -674,3 +674,121 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 #if defined (commentout)
 #endif
 }
+
+void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
+{
+
+
+
+  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
+  {
+    return;
+  }
+
+  // Convert input images to ITK format for Plastimatch
+  vtkMRMLVolumeNode* referenceVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
+  //  itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
+  itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
+
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<short>(referenceVolumeNode, referenceVolumeItk);
+
+  // Ray tracing code expects identity direction cosines.  This is a hack.
+  itk_rectify_volume_hack (referenceVolumeItk);
+ 
+
+  Ion_plan ion_plan;
+
+
+  try {
+    // Assign inputs to dose calc logic
+    printf ("Setting reference volume\n");
+    ion_plan.set_patient (referenceVolumeItk);
+    printf ("Done.\n");
+
+    printf ("Gantry angle is: %g\n",
+            this->ExternalBeamPlanningNode->GetGantryAngle());
+
+    float src_dist = 2000;
+    float src[3];
+    float isocenter[3] = { 0, 0, 0 };
+
+    /* Adjust src according to gantry angle */
+    float ga_radians = 
+      this->ExternalBeamPlanningNode->GetGantryAngle() * M_PI / 180.;
+    src[0] = - src_dist * sin(ga_radians);
+    src[1] = src_dist * cos(ga_radians);
+    src[2] = 0.f;
+
+    ion_plan.beam->set_source_position (src);
+    ion_plan.beam->set_isocenter_position (isocenter);
+
+    float ap_offset = 1500;
+    int ap_dim[2] = { 30, 30 };
+//    float ap_origin[2] = { -19, -19 };
+    float ap_spacing[2] = { 2, 2 };
+    ion_plan.get_aperture()->set_distance (ap_offset);
+    ion_plan.get_aperture()->set_dim (ap_dim);
+//    ion_plan.get_aperture()->set_origin (ap_origin);
+    ion_plan.get_aperture()->set_spacing (ap_spacing);
+    ion_plan.set_step_length (1);
+    if (!ion_plan.init ()) {
+      /* Failure.  How to notify the user?? */
+      std::cerr << "Sorry, ion_plan.init() failed.\n";
+      return;
+    }
+
+    /* A little warm fuzzy for the developers */
+    ion_plan.debug ();
+    printf ("Working...\n");
+    fflush(stdout);
+
+  } catch (std::exception& ex) {
+    vtkWarningMacro ("Plastimatch exception: " << ex.what());
+    return;
+  }
+
+  //   Get wed as itk image 
+  Rpl_volume *rpl_vol = ion_plan.rpl_vol;
+
+  Plm_image::Pointer patient = Plm_image::New();
+  patient->set_itk (referenceVolumeItk);
+  Volume* patient_vol = patient->get_vol_float();
+  Volume* wed = rpl_vol->create_wed_volume (&ion_plan);
+  //  Volume* wed = create_wed_volume (0,&ion_plan);
+
+  //Feed in reference volume, as wed output is the warped reference image.
+  rpl_vol->compute_wed_volume(wed,patient_vol,-1000);
+
+  Plm_image::Pointer wed_image = Plm_image::New (new Plm_image (wed));
+
+  itk::Image<float, 3>::Pointer wedVolumeItk 
+    = wed_image->itk_float();
+
+  /* Convert aperture image to vtk */
+  vtkSmartPointer<vtkImageData> wedVolume 
+    = itk_to_vtk (wedVolumeItk, VTK_FLOAT);
+
+  /* Create the MRML node for the volume */
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> wedVolumeNode 
+    = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+
+  wedVolumeNode->SetAndObserveImageData (wedVolume);
+  wedVolumeNode->SetSpacing (
+    wedVolumeItk->GetSpacing()[0],
+    wedVolumeItk->GetSpacing()[1],
+    wedVolumeItk->GetSpacing()[2]);
+  wedVolumeNode->SetOrigin (
+    wedVolumeItk->GetOrigin()[0],
+    wedVolumeItk->GetOrigin()[1],
+    wedVolumeItk->GetOrigin()[2]);
+
+  std::string wedVolumeNodeName = this->GetMRMLScene()->GenerateUniqueName(std::string ("wed_"));
+  wedVolumeNode->SetName(wedVolumeNodeName.c_str());
+
+  wedVolumeNode->SetScene(this->GetMRMLScene());
+  this->GetMRMLScene()->AddNode(wedVolumeNode);
+
+#if defined (commentout)
+#endif
+}

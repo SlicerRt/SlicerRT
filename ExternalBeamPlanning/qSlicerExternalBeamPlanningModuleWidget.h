@@ -92,6 +92,7 @@ protected slots:
 
   /* Calculation buttons */
   void calculateDoseClicked();
+  void calculateWEDClicked();
 
 protected:
   QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;

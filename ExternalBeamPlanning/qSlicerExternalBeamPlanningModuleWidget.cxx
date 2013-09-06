@@ -266,6 +266,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   /* Calculation buttons */
   this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
+  this->connect( d->pushButton_CalculateWED, SIGNAL(clicked()), this, SLOT(calculateWEDClicked()) );
 
   /* Disable unused buttons in prescription task */
   this->radiationTypeChanged(0);
@@ -561,6 +562,36 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   d->logic()->ComputeDose();
 
   d->label_CalculateDoseStatus->setText("Dose calculation done.");
+}
+
+void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  d->label_CalculateDoseStatus->setText("Starting WED calculation...");
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+
+  /* Make sure inputs were specified - only CT needed*/
+  const char *refVolID = paramNode->GetReferenceVolumeNodeID();
+
+  if (SlicerRtCommon::IsStringNullOrEmpty(refVolID))
+  {
+    d->label_CalculateDoseStatus->setText("No reference image");
+    return;
+  }
+
+  /* Copy pertinent variable values from GUI to logic */
+  /* Is this the right place for this? */
+  bool ok;
+  d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle (
+    d->SliderWidget_GantryAngle->value());
+
+  /* OK, we're good to go (well, not really, but let's pretend). 
+     Do the actual computation in the logic object */
+  d->logic()->ComputeWED();
+
+  d->label_CalculateDoseStatus->setText("WED calculation done.");
 }
 
 //-----------------------------------------------------------------------------
