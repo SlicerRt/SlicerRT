@@ -211,7 +211,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS(vtkMR
   inVolumeToWorldTransform->Concatenate(RAS2LPSMatrix);
 
   // Set ITK image properties
-  double outputSpacing[3] = {0.0, 0.0, 0.0};
+  double outputSpacing[3] = {1.0, 1.0, 1.0};
   inVolumeToWorldTransform->GetScale(outputSpacing);
   outputSpacing[0] = outputSpacing[0] < 0 ? -outputSpacing[0] : outputSpacing[0];
   outputSpacing[1] = outputSpacing[1] < 0 ? -outputSpacing[1] : outputSpacing[1];
@@ -222,7 +222,6 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS(vtkMR
   inVolumeToWorldTransform->GetPosition(outputOrigin);
   outItkVolume->SetOrigin(outputOrigin);
 
-  /*
   double outputOrienationAngles[3] = {0.0, 0.0, 0.0};
   inVolumeToWorldTransform->GetOrientation(outputOrienationAngles);
   vtkSmartPointer<vtkTransform> inVolumeToWorldOrientationTransform = vtkSmartPointer<vtkTransform>::New();
@@ -230,16 +229,15 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS(vtkMR
   inVolumeToWorldOrientationTransform->RotateX(outputOrienationAngles[0]);
   inVolumeToWorldOrientationTransform->RotateY(outputOrienationAngles[1]);
   inVolumeToWorldOrientationTransform->RotateZ(outputOrienationAngles[2]);
-  */
   
-  vtkSmartPointer<vtkMatrix4x4> inVolumeToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  inVolumeToWorldTransform->GetMatrix(inVolumeToWorldTransformMatrix);
+  vtkSmartPointer<vtkMatrix4x4> inVolumeToWorldOrientationTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  inVolumeToWorldOrientationTransform->GetMatrix(inVolumeToWorldOrientationTransformMatrix);
   itk::Matrix<double,3,3> outputDirectionMatrix;
   for(int i=0; i<3; i++)
   {
     for(int j=0; j<3; j++)
     {
-      outputDirectionMatrix[i][j] = inVolumeToWorldTransformMatrix->GetElement(i,j);
+      outputDirectionMatrix[i][j] = inVolumeToWorldOrientationTransformMatrix->GetElement(i,j);
     }
   }
   outItkVolume->SetDirection(outputDirectionMatrix);
