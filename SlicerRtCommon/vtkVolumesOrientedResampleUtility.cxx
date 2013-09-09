@@ -75,10 +75,10 @@ bool vtkVolumesOrientedResampleUtility
   referenceVolumeNode->GetRASToIJKMatrix(referenceVolumeRAS2IJKMatrix);
   referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
 
-  vtkSmartPointer<vtkTransform> outputIJK2IJKResliceTransform = vtkSmartPointer<vtkTransform>::New();
-  outputIJK2IJKResliceTransform->Identity();
-  outputIJK2IJKResliceTransform->PostMultiply();
-  outputIJK2IJKResliceTransform->SetMatrix(inputVolumeIJK2RASMatrix);
+  vtkSmartPointer<vtkTransform> outputVolumeResliceTransform = vtkSmartPointer<vtkTransform>::New();
+  outputVolumeResliceTransform->Identity();
+  outputVolumeResliceTransform->PostMultiply();
+  outputVolumeResliceTransform->SetMatrix(inputVolumeIJK2RASMatrix);
 
   vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
     inputVolumeNode->GetScene()->GetNodeByID(inputVolumeNode->GetTransformNodeID()));
@@ -86,17 +86,17 @@ bool vtkVolumesOrientedResampleUtility
   if (inputVolumeNodeTransformNode!=NULL)
   {
     inputVolumeNodeTransformNode->GetMatrixTransformToWorld(inputVolumeRAS2RASMatrix);  
-    outputIJK2IJKResliceTransform->Concatenate(inputVolumeRAS2RASMatrix);
+    outputVolumeResliceTransform->Concatenate(inputVolumeRAS2RASMatrix);
   }
-  outputIJK2IJKResliceTransform->Concatenate(referenceVolumeRAS2IJKMatrix);
-  outputIJK2IJKResliceTransform->Inverse();
+  outputVolumeResliceTransform->Concatenate(referenceVolumeRAS2IJKMatrix);
+  outputVolumeResliceTransform->Inverse();
 
   vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
   resliceFilter->SetInput(inputVolumeNode->GetImageData());
   resliceFilter->SetOutputOrigin(0, 0, 0);
   resliceFilter->SetOutputSpacing(1, 1, 1);
   resliceFilter->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
-  resliceFilter->SetResliceTransform(outputIJK2IJKResliceTransform);
+  resliceFilter->SetResliceTransform(outputVolumeResliceTransform);
   resliceFilter->Update();
 
   outputVolumeNode->CopyOrientation(referenceVolumeNode);
