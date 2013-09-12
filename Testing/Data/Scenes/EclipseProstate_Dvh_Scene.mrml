@@ -58,7 +58,7 @@
  <VolumeArchetypeStorage
   id="vtkMRMLVolumeArchetypeStorageNode1"  name="VolumeArchetypeStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_Dose.nrrd"  useCompression="1"  readState="0"  writeState="0"  centerImage="0"  singleFile="0"  UseOrientationFromFile="1" ></VolumeArchetypeStorage>
  <ColorTableStorage
-  id="vtkMRMLColorTableStorageNode21"  name="ColorTableStorage_20"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_ColorTable_EclipseProstate.ctbl"  useCompression="1"  readState="0"  writeState="0" ></ColorTableStorage>
+  id="vtkMRMLColorTableStorageNode21"  name="ColorTableStorage_20"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_ColorTable.ctbl"  useCompression="1"  readState="0"  writeState="0" ></ColorTableStorage>
  <ModelStorage
   id="vtkMRMLModelStorageNode1"  name="ModelStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_BODY.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage

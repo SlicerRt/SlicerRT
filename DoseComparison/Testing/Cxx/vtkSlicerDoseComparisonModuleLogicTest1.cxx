@@ -96,39 +96,12 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
     errorStream << "Invalid arguments!" << std::endl;
     return EXIT_FAILURE;
   }
-  // DoseDifferenceCriterion
-  double doseDifferenceCriterion = 0.0;
-  if (argc > argIndex+1)
-  {
-    if (STRCASECMP(argv[argIndex], "-DoseDifferenceCriterion") == 0)
-    {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      doseDifferenceCriterion = doubleValue;
-      outputStream << "Dose difference criterion: " << doseDifferenceCriterion << std::endl;
-      argIndex += 2;
-    }
-  }
-  else
-  {
-    errorStream << "Invalid arguments!" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // Constraint the criteria to be greater than zero
-  if (doseDifferenceCriterion == 0.0)
-  {
-    doseDifferenceCriterion = EPSILON;
-  }
 
   // Make sure NRRD reading works
 #if ITK_VERSION_MAJOR > 3
   itk::itkFactoryRegistration();
 #endif
 
-  /*
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
@@ -142,96 +115,75 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
-  // Get dose volume
-  vtkSmartPointer<vtkCollection> doseVolumeNodes = vtkSmartPointer<vtkCollection>::Take(
-    mrmlScene->GetNodesByName("Dose") );
+  // Get day 1 dose volume
+  vtkSmartPointer<vtkCollection> doseVolumeNodes = 
+    vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("EclipseEnt_Dose") );
   if (doseVolumeNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
-    errorStream << "ERROR: Failed to get dose volume!" << std::endl;
+    errorStream << "ERROR: Failed to get day 1 dose volume!" << std::endl;
     return EXIT_FAILURE;
   }
-  vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
+  vtkMRMLScalarVolumeNode* day1DoseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
 
-  // Create second dose volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseScalarVolumeNode2 = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  doseScalarVolumeNode2->SetName("Dose2");
-  doseScalarVolumeNode2->Copy(doseScalarVolumeNode);
-  mrmlScene->AddNode(doseScalarVolumeNode2);
+  // Get day 2 dose volume
+  doseVolumeNodes = vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("EclipseEnt_Dose_Day2") );
+  if (doseVolumeNodes->GetNumberOfItems() != 1)
+  {
+    mrmlScene->Commit();
+    errorStream << "ERROR: Failed to get day 2 dose volume!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  vtkMRMLScalarVolumeNode* day2DoseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
 
   // Create output dose volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> outputVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  outputVolumeNode->SetName("OutputDose");
-
-  mrmlScene->AddNode(outputVolumeNode);
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> outputGammaVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  outputGammaVolumeNode->SetName("OutputDose");
+  mrmlScene->AddNode(outputGammaVolumeNode);
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLDoseComparisonNode> paramNode = vtkSmartPointer<vtkMRMLDoseComparisonNode>::New();
   mrmlScene->AddNode(paramNode);
-  
-  paramNode->GetSelectedInputVolumeIds()->insert(doseScalarVolumeNode->GetID());
-  paramNode->GetSelectedInputVolumeIds()->insert(doseScalarVolumeNode2->GetID());
-  std::map<std::string,double>* volumeNodeIdsToWeightsMap = paramNode->GetVolumeNodeIdsToWeightsMap();
-  std::string doseVolumeId(doseScalarVolumeNode->GetID());
-  (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode->GetID()] = 0.5;
-  (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode2->GetID()] = 0.5;
-  paramNode->SetAndObserveAccumulatedDoseVolumeNodeId(outputVolumeNode->GetID());
-  paramNode->SetAndObserveReferenceDoseVolumeNodeId(doseScalarVolumeNode->GetID());
+
+  paramNode->SetAndObserveReferenceDoseVolumeNodeId(day1DoseScalarVolumeNode->GetID());
+  paramNode->SetAndObserveCompareDoseVolumeNodeId(day2DoseScalarVolumeNode->GetID());
+  paramNode->SetAndObserveGammaVolumeNodeId(outputGammaVolumeNode->GetID());
 
   // Create and set up logic
-  vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic> doseAccumulationLogic = vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic>::New();
-  doseAccumulationLogic->SetMRMLScene(mrmlScene);
-  doseAccumulationLogic->SetAndObserveDoseAccumulationNode(paramNode);
+  vtkSmartPointer<vtkSlicerDoseComparisonModuleLogic> doseComparisonLogic = vtkSmartPointer<vtkSlicerDoseComparisonModuleLogic>::New();
+  doseComparisonLogic->SetMRMLScene(mrmlScene);
+  doseComparisonLogic->SetAndObserveDoseComparisonNode(paramNode);
 
   // Compute DoseAccumulation
-  std::string errorMessage;
-  doseAccumulationLogic->AccumulateDoseVolumes(errorMessage);
+  doseComparisonLogic->ComputeGammaDoseDifference();
 
-  if (!errorMessage.empty())
+  // Get saved volume
+  vtkSmartPointer<vtkCollection> gammaVolumeNodes = vtkSmartPointer<vtkCollection>::Take(
+    mrmlScene->GetNodesByName("GammaVolume_EclipseEnt_Day1Day2_Baseline") );
+  if (doseVolumeNodes->GetNumberOfItems() != 1)
   {
-    errorStream << "ERROR: " << errorMessage << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // Get output volume
-  vtkSmartPointer<vtkMRMLVolumeNode> accumulatedDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-    mrmlScene->GetNodeByID(paramNode->GetAccumulatedDoseVolumeNodeId()));  
-  if (accumulatedDoseVolumeNode == NULL)
-  { 
     mrmlScene->Commit();
-    errorStream << "ERROR: Unable to get accumulated volume!" << std::endl;
+    errorStream << "ERROR: Failed to get baseline gamma volume!" << std::endl;
     return EXIT_FAILURE;
   }
+  vtkMRMLScalarVolumeNode* baselineGammaVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(gammaVolumeNodes->GetItemAsObject(0));
 
   mrmlScene->Commit();
 
-  // Check if the output volume is in the study of the reference dose volume
-  if (!vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(doseScalarVolumeNode, accumulatedDoseVolumeNode, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY))
-  {
-    errorStream << "ERROR: Accumulated volume is not under the same study as the reference dose volume!" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // Subtract the dose volume from the accumulated volume and check if we get back the original dose volume
-  // TODO: Add test that dose the same thing using different weights
+  // Subtract the baseline gamma volume from the resultant gamma volume to see if we end up with a zero result. If not, dose comparison has changed (bad!)
   vtkSmartPointer<vtkImageMathematics> math = vtkSmartPointer<vtkImageMathematics>::New();
-  math->SetInput1(doseScalarVolumeNode->GetImageData());
-  math->SetInput2(accumulatedDoseVolumeNode->GetImageData());
+  math->SetInput1(outputGammaVolumeNode->GetImageData());
+  math->SetInput2(baselineGammaVolumeNode->GetImageData());
   math->SetOperationToSubtract();
   math->Update();
 
-  vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
-  histogram->SetInput(math->GetOutput());
-  histogram->Update();
-  double maxDiff = histogram->GetMax()[0];
-  double minDiff = histogram->GetMin()[0];
-
-  if (maxDiff > doseDifferenceCriterion || minDiff < -doseDifferenceCriterion)
+  vtkImageData* comparison = math->GetOutput();
+  double range[2];
+  comparison->GetScalarRange(range);
+  if( range[0] != 0.0 || range[1] != 0.0 )
   {
-    errorStream << "ERROR: Difference between baseline and accumulated dose exceeds threshold" << std::endl;
     return EXIT_FAILURE;
   }
-  */
 
   return EXIT_SUCCESS;
 }
