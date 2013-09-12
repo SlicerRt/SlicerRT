@@ -43,9 +43,9 @@ endmacro()
 TEST_WITH_DATA(
   vtkSlicerContourComparisonModuleLogicTest_EclipseProstate
   vtkSlicerContourComparisonModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
-  Rectum_Contour_Labelmap.nrrd
-  Rectum_Dilated_Contour_Labelmap.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data
+  EclipseProstate_Rectum_Contour_Labelmap.nrrd
+  EclipseProstate_Rectum_Dilated_Contour_Labelmap.nrrd
   ${TEMP}/TestScene_ContourComparison_EclipseProstate.mrml
   0
   4.67707
@@ -63,9 +63,9 @@ set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate P
 TEST_WITH_DATA(
   vtkSlicerContourComparisonModuleLogicTest_EclipseProstate_SameInput
   vtkSlicerContourComparisonModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
-  Rectum_Contour_Labelmap.nrrd
-  Rectum_Contour_Labelmap.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data
+  EclipseProstate_Rectum_Contour_Labelmap.nrrd
+  EclipseProstate_Rectum_Contour_Labelmap.nrrd
   ${TEMP}/TestScene_ContourComparison_EclipseProstate_SameInput.mrml
   0
   0.0
@@ -83,9 +83,9 @@ set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate P
 TEST_WITH_DATA(
   vtkSlicerContourComparisonModuleLogicTest_EclipseProstate_Transformed
   vtkSlicerContourComparisonModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate
-  Rectum_Contour_Labelmap.nrrd
-  Rectum_Contour_Labelmap.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data
+  EclipseProstate_Rectum_Contour_Labelmap.nrrd
+  EclipseProstate_Rectum_Contour_Labelmap.nrrd
   ${TEMP}/TestScene_ContourComparison_EclipseProstate_Transformed.mrml
   1
   5.00

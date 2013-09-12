@@ -56,19 +56,19 @@
  <Hierarchy
   id="vtkMRMLHierarchyNode6"  name="DummyAnatomicalVolume_Series_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Series;DicomUid:1.2.840.113619.2.55.3.671756986.106.1316467036.465;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLHierarchyNode4"  sortingValue="18"  allowMultipleChildren="true" ></Hierarchy>
  <VolumeArchetypeStorage
-  id="vtkMRMLVolumeArchetypeStorageNode1"  name="VolumeArchetypeStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="Dose.nrrd"  useCompression="1"  readState="0"  writeState="0"  centerImage="0"  singleFile="0"  UseOrientationFromFile="1" ></VolumeArchetypeStorage>
+  id="vtkMRMLVolumeArchetypeStorageNode1"  name="VolumeArchetypeStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_Dose.nrrd"  useCompression="1"  readState="0"  writeState="0"  centerImage="0"  singleFile="0"  UseOrientationFromFile="1" ></VolumeArchetypeStorage>
  <ColorTableStorage
-  id="vtkMRMLColorTableStorageNode21"  name="ColorTableStorage_20"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="ColorTable_EclipseProstate.ctbl"  useCompression="1"  readState="0"  writeState="0" ></ColorTableStorage>
+  id="vtkMRMLColorTableStorageNode21"  name="ColorTableStorage_20"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_ColorTable_EclipseProstate.ctbl"  useCompression="1"  readState="0"  writeState="0" ></ColorTableStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode1"  name="ModelStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="BODY.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode1"  name="ModelStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_BODY.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode2"  name="ModelStorage_1"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="Bladder.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode2"  name="ModelStorage_1"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_Bladder.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode3"  name="ModelStorage_2"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="FemoralHeadLt.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode3"  name="ModelStorage_2"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_FemoralHeadLt.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode4"  name="ModelStorage_3"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="FemoralHeadRT.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode4"  name="ModelStorage_3"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_FemoralHeadRT.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode5"  name="ModelStorage_4"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="PTV.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode5"  name="ModelStorage_4"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_PTV.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode6"  name="ModelStorage_5"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="Rectum.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode6"  name="ModelStorage_5"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_Rectum.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
 </MRML>

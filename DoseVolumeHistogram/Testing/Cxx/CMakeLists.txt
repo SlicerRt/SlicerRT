@@ -42,9 +42,9 @@ endmacro()
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dvh_Scene.mrml
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/DvhTable_SlicerRT.csv
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/DvhMetrics_SlicerRT.csv
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseProstate_Dvh_Scene.mrml
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseProstate_DvhTable_SlicerRT.csv
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseProstate_DvhMetrics_SlicerRT.csv
   ${TEMP}/TestScene_EclipseProstate.mrml
   ${TEMP}/TestDvhTable_EclipseProstate_SlicerRT.csv
   ${TEMP}/TestDvhMetrics_EclipseProstate_SlicerRT.csv
@@ -62,9 +62,9 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_CERR
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dvh_Scene.mrml
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/DvhTable_CERR.csv
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/NoMetricComparison
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseProstate_Dvh_Scene.mrml
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseProstate_DvhTable_CERR.csv
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/NoMetricComparison
   ${TEMP}/TestScene_EclipseProstate_CERR.mrml
   ${TEMP}/TestDvhTable_EclipseProstate_CERR_SlicerRT.csv
   ${TEMP}/TestDvhMetrics_EclipseProstate_CERR_SlicerRT.csv
@@ -82,9 +82,9 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_CERR
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/Dvh_Scene.mrml
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/DvhTable_CERR.csv
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/NoMetricComparison
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseEnt_Dvh_Scene.mrml
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseEnt_DvhTable_CERR.csv
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/NoMetricComparison
   ${TEMP}/TestScene_EclipseEnt_CERR.mrml
   ${TEMP}/TestDvhTable_EclipseEnt_CERR_SlicerRT.csv
   ${TEMP}/TestDvhMetrics_EclipseEnt_CERR_SlicerRT.csv
@@ -100,31 +100,11 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_CERR
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
-  vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_CERR
-  vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/Dvh_Scene.mrml
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/DvhTable_CERR.csv
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/NoMetricComparison
-  ${TEMP}/TestScene_EclipseBreast_CERR.mrml
-  ${TEMP}/TestDvhTable_EclipseBreast_CERR_SlicerRT.csv
-  ${TEMP}/TestDvhMetrics_EclipseBreast_CERR_SlicerRT.csv
-  1.0
-  1.0
-  95.0
-  3.0
-  0.01
-  0.01
-  2.0
-)
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
-
-#-----------------------------------------------------------------------------
-TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Eclipse
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dvh_Scene.mrml
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/DvhTable_Eclipse.csv
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/NoMetricComparison
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseProstate_Dvh_Scene.mrml
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseProstate_DvhTable_Eclipse.csv
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/NoMetricComparison
   ${TEMP}/TestScene_EclipseProstate_Eclipse.mrml
   ${TEMP}/TestDvhTable_EclipseProstate_Eclipse_SlicerRT.csv
   ${TEMP}/TestDvhMetrics_EclipseProstate_Eclipse_SlicerRT.csv
@@ -142,9 +122,9 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate
 TEST_WITH_DATA(
   vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Eclipse
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/Dvh_Scene.mrml
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/DvhTable_Eclipse.csv
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseEnt/NoMetricComparison
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseEnt_Dvh_Scene.mrml
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseEnt_DvhTable_Eclipse.csv
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/NoMetricComparison
   ${TEMP}/TestScene_EclipseEnt_Eclipse.mrml
   ${TEMP}/TestDvhTable_EclipseEnt_Eclipse_SlicerRT.csv
   ${TEMP}/TestDvhMetrics_EclipseEnt_Eclipse_SlicerRT.csv
@@ -157,23 +137,3 @@ TEST_WITH_DATA(
   2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
-
-#-----------------------------------------------------------------------------
-TEST_WITH_DATA(
-  vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_Eclipse
-  vtkSlicerDoseVolumeHistogramModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/Dvh_Scene.mrml
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/DvhTable_Eclipse.csv
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseBreast/NoMetricComparison
-  ${TEMP}/TestScene_EclipseBreast_Eclipse.mrml
-  ${TEMP}/TestDvhTable_EclipseBreast_Eclipse_SlicerRT.csv
-  ${TEMP}/TestDvhMetrics_EclipseBreast_Eclipse_SlicerRT.csv
-  1.0
-  1.0
-  95.0
-  3.0
-  0.01
-  0.01
-  2.0
-)
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseBreast_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )

@@ -108,37 +108,37 @@
  <Hierarchy
   id="vtkMRMLHierarchyNode6"  name="DummyAnatomicalVolume_Series_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Series;DicomUid:1.2.840.113619.2.55.3.671756986.106.1316467036.212;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLHierarchyNode4"  sortingValue="38"  allowMultipleChildren="true" ></Hierarchy>
  <VolumeArchetypeStorage
-  id="vtkMRMLVolumeArchetypeStorageNode1"  name="VolumeArchetypeStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="Dose.nrrd"  useCompression="1"  readState="0"  writeState="0"  centerImage="0"  singleFile="0"  UseOrientationFromFile="1" ></VolumeArchetypeStorage>
+  id="vtkMRMLVolumeArchetypeStorageNode1"  name="VolumeArchetypeStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_Dose.nrrd"  useCompression="1"  readState="0"  writeState="0"  centerImage="0"  singleFile="0"  UseOrientationFromFile="1" ></VolumeArchetypeStorage>
  <ColorTableStorage
-  id="vtkMRMLColorTableStorageNode21"  name="ColorTableStorage_20"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="ColorTable_EclipseEnt.ctbl"  useCompression="1"  readState="0"  writeState="4" ></ColorTableStorage>
+  id="vtkMRMLColorTableStorageNode21"  name="ColorTableStorage_20"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_ColorTable_EclipseEnt.ctbl"  useCompression="1"  readState="0"  writeState="4" ></ColorTableStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode1"  name="ModelStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="BODY.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode1"  name="ModelStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_BODY.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode2"  name="ModelStorage_1"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="BRAIN.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode2"  name="ModelStorage_1"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_BRAIN.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode3"  name="ModelStorage_2"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="BRSTEM.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode3"  name="ModelStorage_2"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_BRSTEM.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode4"  name="ModelStorage_3"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="CTV.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode4"  name="ModelStorage_3"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_CTV.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode6"  name="ModelStorage_5"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="GTV.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode6"  name="ModelStorage_5"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_GTV.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode7"  name="ModelStorage_6"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="LensLeft.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode7"  name="ModelStorage_6"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_LensLeft.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode8"  name="ModelStorage_7"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="LensRight.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode8"  name="ModelStorage_7"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_LensRight.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode9"  name="ModelStorage_8"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="OpticChiasm.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode9"  name="ModelStorage_8"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_OpticChiasm.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode10"  name="ModelStorage_9"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="OpticNerveRt.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode10"  name="ModelStorage_9"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_OpticNerveRt.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode11"  name="ModelStorage_10"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="OpticNerveLt.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode11"  name="ModelStorage_10"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_OpticNerveLt.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode12"  name="ModelStorage_11"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="OrbitLeft.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode12"  name="ModelStorage_11"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_OrbitLeft.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode13"  name="ModelStorage_12"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="OrbitRight.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode13"  name="ModelStorage_12"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_OrbitRight.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode14"  name="ModelStorage_13"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="PTV1.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode14"  name="ModelStorage_13"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_PTV1.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode15"  name="ModelStorage_14"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="optBRAIN.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode15"  name="ModelStorage_14"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_optBRAIN.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
  <ModelStorage
-  id="vtkMRMLModelStorageNode16"  name="ModelStorage_15"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="optOptic.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
+  id="vtkMRMLModelStorageNode16"  name="ModelStorage_15"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseEnt_optOptic.vtk"  useCompression="1"  readState="0"  writeState="0" ></ModelStorage>
 </MRML>

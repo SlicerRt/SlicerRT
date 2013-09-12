@@ -39,11 +39,11 @@ endmacro()
 TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Expand
   vtkSlicerContourMorphologyModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
-  PTV_Contour_Labelmap.nrrd
-  PTV_Contour_Labelmap.nrrd
-  RTDOSE.nrrd
-  ContourMorphology_Expand_Baseline.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
+  EclipseProstate_PTV_Contour_Labelmap.nrrd
+  EclipseProstate_PTV_Contour_Labelmap.nrrd
+  EclipseProstate_RTDOSE.nrrd
+  EclipseProstate_ContourMorphology_Expand_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Expand
   5.0
@@ -56,11 +56,11 @@ set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_E
 TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Shrink
   vtkSlicerContourMorphologyModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
-  PTV_Contour_Labelmap.nrrd
-  PTV_Contour_Labelmap.nrrd
-  RTDOSE.nrrd
-  ContourMorphology_Shrink_Baseline.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
+  EclipseProstate_PTV_Contour_Labelmap.nrrd
+  EclipseProstate_PTV_Contour_Labelmap.nrrd
+  EclipseProstate_RTDOSE.nrrd
+  EclipseProstate_ContourMorphology_Shrink_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Shrink
   5.0
@@ -73,11 +73,11 @@ set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_S
 TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Union
   vtkSlicerContourMorphologyModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
-  PTV_Contour_Labelmap.nrrd
-  Bladder_Contour_Labelmap.nrrd
-  RTDOSE.nrrd
-  ContourMorphology_Union_Baseline.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
+  EclipseProstate_PTV_Contour_Labelmap.nrrd
+  EclipseProstate_Bladder_Contour_Labelmap.nrrd
+  EclipseProstate_RTDOSE.nrrd
+  EclipseProstate_ContourMorphology_Union_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Union
   0.0
@@ -90,11 +90,11 @@ set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_U
 TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect
   vtkSlicerContourMorphologyModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
-  PTV_Contour_Labelmap.nrrd
-  Bladder_Contour_Labelmap.nrrd
-  RTDOSE.nrrd
-  ContourMorphology_Intersect_Baseline.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
+  EclipseProstate_PTV_Contour_Labelmap.nrrd
+  EclipseProstate_Bladder_Contour_Labelmap.nrrd
+  EclipseProstate_RTDOSE.nrrd
+  EclipseProstate_ContourMorphology_Intersect_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Intersect
   0.0
@@ -107,11 +107,11 @@ set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_I
 TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Subtract
   vtkSlicerContourMorphologyModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
-  PTV_Contour_Labelmap.nrrd
-  Bladder_Contour_Labelmap.nrrd
-  RTDose.nrrd
-  ContourMorphology_Subtract_Baseline.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
+  EclipseProstate_PTV_Contour_Labelmap.nrrd
+  EclipseProstate_Bladder_Contour_Labelmap.nrrd
+  EclipseProstate_RTDOSE.nrrd
+  EclipseProstate_ContourMorphology_Subtract_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Subtract
   0.0
@@ -124,11 +124,11 @@ set_tests_properties(vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_S
 TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect_ApplyTransform
   vtkSlicerContourMorphologyModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/
-  PTV_Contour_Labelmap.nrrd
-  Bladder_Contour_Labelmap.nrrd
-  RTDOSE.nrrd
-  ContourMorphology_Intersect_ApplyTransform_Baseline.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
+  EclipseProstate_PTV_Contour_Labelmap.nrrd
+  EclipseProstate_Bladder_Contour_Labelmap.nrrd
+  EclipseProstate_RTDOSE.nrrd
+  EclipseProstate_ContourMorphology_Intersect_ApplyTransform_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Intersect
   0.0

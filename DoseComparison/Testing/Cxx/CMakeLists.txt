@@ -1,13 +1,13 @@
 set(KIT qSlicer${MODULE_NAME}Module)
 
 set(KIT_TEST_SRCS
-  vtkSlicerDoseAccumulationModuleLogicTest1.cxx
+  vtkSlicerDoseComparisonModuleLogicTest1.cxx
   )
 
 slicerMacroConfigureModuleCxxTestDriver(
   NAME ${KIT}
   SOURCES ${KIT_TEST_SRCS}
-  TARGET_LIBRARIES vtkSlicerDoseAccumulationModuleLogic
+  TARGET_LIBRARIES vtkSlicerDoseComparisonModuleLogic
   WITH_VTK_DEBUG_LEAKS_CHECK
   )
 
@@ -27,13 +27,13 @@ endmacro()
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
-  vtkSliceDoseAccumulationModuleLogicTest_EclipseProstate
-  vtkSlicerDoseAccumulationModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseProstate_DoseAccumulation_Scene.mrml
-  ${TEMP}/TestScene_DoseAccumulation_EclipseProstate.mrml
+  vtkSlicerDoseComparisonModuleLogicTest_EclipseProstate
+  vtkSlicerDoseComparisonModuleLogicTest1
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/DataScenes/EclipseProstate_DoseComparison_Scene.mrml
+  ${TEMP}/TestScene_DoseComparison_EclipseProstate.mrml
   1.0
 )
-set_tests_properties(vtkSliceDoseAccumulationModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
+set_tests_properties(vtkSlicerDoseComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #ADD_TEST(vtkSlicerDoseAccumulationModuleCompareToBaselineTest
 #   ${CMAKE_COMMAND} -E compare_files 

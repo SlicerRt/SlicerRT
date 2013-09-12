@@ -8,5 +8,5 @@
  <Hierarchy
   id="vtkMRMLHierarchyNode4"  name="No description_PatientHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomLevel:Study;DicomRtImport.DoseUnitName:GY;DicomRtImport.DoseUnitValue:4.4812099e-5;DicomUid:1.2.840.113619.2.55.3.671756986.106.1316467036.460;HierarchyType:PatientHierarchy"  parentNodeRef="vtkMRMLHierarchyNode3"  sortingValue="2"  allowMultipleChildren="true" ></Hierarchy>
  <VolumeArchetypeStorage
-  id="vtkMRMLVolumeArchetypeStorageNode1"  name="VolumeArchetypeStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="Dose.nrrd"  fileListMember0="Dose.nrrd"  useCompression="1"  readState="0"  writeState="4"  centerImage="0"  singleFile="0"  UseOrientationFromFile="1" ></VolumeArchetypeStorage>
+  id="vtkMRMLVolumeArchetypeStorageNode1"  name="VolumeArchetypeStorage"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_Dose.nrrd"  fileListMember0="../EclipseProstate_Dose.nrrd"  useCompression="1"  readState="0"  writeState="4"  centerImage="0"  singleFile="0"  UseOrientationFromFile="1" ></VolumeArchetypeStorage>
 </MRML> 
