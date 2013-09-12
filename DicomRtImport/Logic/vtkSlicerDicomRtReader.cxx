@@ -219,7 +219,7 @@ void vtkSlicerDicomRtReader::Update()
         }
         else if (sopClass == UID_RTImageStorage)
         {
-          //result = dumpRTImage(out, *dataset);
+          this->LoadRTImage(dataset);
         }
         else if (sopClass == UID_RTPlanStorage)
         {
@@ -733,9 +733,9 @@ double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceU
   dicomDatabase.openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
   QString referencedFilename = dicomDatabase.fileForInstance(referencedSOPInstanceUID.c_str());
   dicomDatabase.closeDatabase();
-  if ( referencedFilename.isEmpty() ) //TODO: isNull?
+  if ( referencedFilename.isEmpty() )
   {
-    vtkErrorMacro("GetSliceThickness: No referenced image file is found, default slice thickness is used for contour import");
+    vtkErrorMacro("GetSliceThickness: No referenced image file is found, default slice thickness (" << defaultSliceThickness << ") is used for contour import");
     return defaultSliceThickness;
   }
 

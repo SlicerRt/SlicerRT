@@ -454,7 +454,7 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   {
     bool successfullyReadByPlugin = false;
     vtkSlicerPatientHierarchyPlugin* foundPlugin
-      = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForReparentInsidePatientHierarchyForNode(hierarchyNode);
+      = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForReparentInsidePatientHierarchyForNode(hierarchyNode, parentPatientHierarchyNode);
     if (foundPlugin)
     {
       successfullyReadByPlugin = foundPlugin->ReparentNodeInsidePatientHierarchy(hierarchyNode, parentPatientHierarchyNode);
@@ -489,7 +489,7 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
 
     // If there is a plugin that can handle the dropped node then let it take care of it
     bool successfullyReadByPlugin = false;
-    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForAddToPatientHierarchyForNode(node);
+    vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForAddToPatientHierarchyForNode(node, parentPatientHierarchyNode);
     if (foundPlugin)
     {
       successfullyReadByPlugin = foundPlugin->AddNodeToPatientHierarchy(node, parentPatientHierarchyNode);

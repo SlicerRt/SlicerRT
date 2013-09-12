@@ -100,6 +100,10 @@ protected:
   /// \return Success flag
   bool LoadRtPlan(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo* loadInfo);
 
+  /// Load RT Image and related objects into the MRML scene
+  /// \return Success flag
+  bool LoadRtImage(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo* loadInfo);
+
   /// Insert currently loaded series in the proper place in patient hierarchy
   void InsertSeriesInPatientHierarchy(vtkSlicerDicomRtReader* rtReader);
 

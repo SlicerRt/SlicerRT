@@ -196,8 +196,17 @@ void vtkSlicerDicomRtImportModuleLogic::Examine(vtkDICOMImportInfo *importInfo)
           name+=std::string(": ")+structLabel.c_str();
         }
       }
-      /* not yet supported
       else if (sopClass == UID_RTImageStorage)
+      {
+        name+="RTIMAGE";
+        OFString imageLabel;
+        dataset->findAndGetOFString(DCM_RTImageLabel, imageLabel);
+        if (!imageLabel.empty())
+        {
+          name+=std::string(": ")+imageLabel.c_str();
+        }
+      }
+      /* not yet supported
       else if (sopClass == UID_RTTreatmentSummaryRecordStorage)
       else if (sopClass == UID_RTIonPlanStorage)
       else if (sopClass == UID_RTIonBeamsTreatmentRecordStorage)
@@ -235,6 +244,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
   rtReader->Update();
 
   // One series can contain composite information, e.g, an RTPLAN series can contain structure sets and plans as well
+  // TODO: vtkSlicerDicomRtReader class does not support this yet
 
   // RTSTRUCT
   if (rtReader->GetLoadRTStructureSetSuccessful())
@@ -252,6 +262,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadDicomRT(vtkDICOMImportInfo *loadInfo
   if (rtReader->GetLoadRTPlanSuccessful())
   {
     loadSuccessful = this->LoadRtPlan(rtReader, loadInfo);
+  }
+
+  // RTIMAGE
+  if (rtReader->GetLoadRTImageSuccessful())
+  {
+    loadSuccessful = this->LoadRtImage(rtReader, loadInfo);
   }
 
   return loadSuccessful;
@@ -961,6 +977,72 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 
   return true;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo* loadInfo)
+{
+  vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchySeriesNode;
+
+  vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
+  const char* seriesName = loadInfo->GetLoadableName(0);
+
+  if (loadInfo->GetNumberOfLoadables() > 1 || loadInfo->GetLoadableFiles(0)->GetNumberOfValues() > 1)
+  {
+    vtkErrorMacro("LoadRtImage: Only one loadable and one file name is allowed for RT Image series '" << seriesName << "')");
+    return false;
+  }
+
+  std::string phSeriesNodeName(seriesName);
+  phSeriesNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
+  phSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(phSeriesNodeName);
+
+  // Load Volume
+  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> volumeStorageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> volumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  volumeStorageNode->SetFileName(firstFileNameStr.c_str());
+  volumeStorageNode->ResetFileNameList();
+  volumeStorageNode->SetSingleFile(1);
+
+  if (volumeStorageNode->ReadData(volumeNode))
+  {
+    volumeNode->SetScene(this->GetMRMLScene());
+    std::string volumeNodeName = this->GetMRMLScene()->GenerateUniqueName(seriesName);
+    volumeNode->SetName(volumeNodeName.c_str());
+    this->GetMRMLScene()->AddNode(volumeNode);
+
+    //TODO: Connect with the corresponding isocenter and beam object (#411)
+
+    // Create display node for the volume
+    vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> volumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+    this->GetMRMLScene()->AddNode(volumeDisplayNode);
+    volumeDisplayNode->SetDefaultColorMap();
+    volumeDisplayNode->AutoWindowLevelOn();
+    volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
+
+    // Create patient hierarchy entry
+    patientHierarchySeriesNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+    patientHierarchySeriesNode->HideFromEditorsOff();
+    patientHierarchySeriesNode->SetAssociatedNodeID(volumeNode->GetID());
+    patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+      SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+    patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+      vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+    patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
+      rtReader->GetSeriesInstanceUid());
+    patientHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
+    this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
+
+    // Insert series in patient hierarchy
+    this->InsertSeriesInPatientHierarchy(rtReader);
+
+    return true;
+  }
+  else
+  {
+    vtkErrorMacro("LoadRtImage: Failed to load RT image file '" << firstFileNameStr << "' (series name '" << seriesName << "')");
+    return false;
+  }
 }
 
 //---------------------------------------------------------------------------

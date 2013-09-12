@@ -62,13 +62,19 @@ public:
 
   /// Returns the registered plugin that can handle a node the best
   /// for adding it from outside the patient hierarchy to inside it
+  /// \param node Node to be added to the hierarchy
+  /// \param parent Prospective parent of the node to add.
+  ///        Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
   /// \return The plugin object if found, NULL otherwise
-  vtkSlicerPatientHierarchyPlugin* GetPluginForAddToPatientHierarchyForNode(vtkMRMLNode*);
+  vtkSlicerPatientHierarchyPlugin* GetPluginForAddToPatientHierarchyForNode(vtkMRMLNode* node, vtkMRMLHierarchyNode* parent=NULL);
 
   /// Returns the registered plugin that can handle a node the best
   /// for reparenting it inside the patient hierarchy
+  /// \param node Node to be reparented in the hierarchy
+  /// \param parent Prospective parent of the node to reparent.
+  ///        Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
   /// \return The plugin object if found, NULL otherwise
-  vtkSlicerPatientHierarchyPlugin* GetPluginForReparentInsidePatientHierarchyForNode(vtkMRMLHierarchyNode*);
+  vtkSlicerPatientHierarchyPlugin* GetPluginForReparentInsidePatientHierarchyForNode(vtkMRMLHierarchyNode* node, vtkMRMLHierarchyNode* parent=NULL);
 
 protected:
   /// TODO

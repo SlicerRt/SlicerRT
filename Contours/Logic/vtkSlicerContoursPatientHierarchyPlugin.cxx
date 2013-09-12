@@ -67,12 +67,19 @@ void vtkSlicerContoursPatientHierarchyPlugin::PrintSelf(ostream& os, vtkIndent i
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerContoursPatientHierarchyPlugin::CanPluginAddNodeToPatientHierarchy(vtkMRMLNode* node)
+double vtkSlicerContoursPatientHierarchyPlugin::CanPluginAddNodeToPatientHierarchy(vtkMRMLNode* node, vtkMRMLHierarchyNode* parent/*=NULL*/)
 {
   if (node->IsA("vtkMRMLContourNode"))
   {
     // Node is a contour
     return 1.0;
+  }
+
+  // Cannot add if new parent is not a structure set node
+  // Do not examine parent if the pointer is NULL. In that case the parent is ignored, the confidence numbers are got based on the to-be child node alone.
+  if (parent && !parent->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
+  {
+    return 0.0;
   }
 
   if ( ( node->IsA("vtkMRMLModelNode") && !node->IsA("vtkMRMLAnnotationNode") )
@@ -172,10 +179,17 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerContoursPatientHierarchyPlugin::CanPluginReparentNodeInsidePatientHierarchy(vtkMRMLHierarchyNode* node)
+double vtkSlicerContoursPatientHierarchyPlugin::CanPluginReparentNodeInsidePatientHierarchy(vtkMRMLHierarchyNode* node, vtkMRMLHierarchyNode* parent/*=NULL*/)
 {
   vtkMRMLNode* associatedNode = node->GetAssociatedNode();
   if (!associatedNode)
+  {
+    return 0.0;
+  }
+  
+  // Cannot reparent if new parent is not a structure set node
+  // Do not examine parent if the pointer is NULL. In that case the parent is ignored, the confidence numbers are got based on the to-be child node alone.
+  if (parent && !parent->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
   {
     return 0.0;
   }

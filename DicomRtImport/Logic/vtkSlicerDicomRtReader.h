@@ -229,6 +229,8 @@ public:
   vtkGetMacro(LoadRTDoseSuccessful, bool);
   /// Get load plan successful flag
   vtkGetMacro(LoadRTPlanSuccessful, bool);
+  /// Get load image successful flag
+  vtkGetMacro(LoadRTImageSuccessful, bool);
 
 protected:
   /// Structure storing an RT structure set

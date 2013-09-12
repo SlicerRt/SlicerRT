@@ -165,14 +165,14 @@ bool vtkSlicerPatientHierarchyPluginHandler::RegisterPlugin(vtkSlicerPatientHier
 }
 
 //---------------------------------------------------------------------------
-vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPluginForAddToPatientHierarchyForNode(vtkMRMLNode* node)
+vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPluginForAddToPatientHierarchyForNode(vtkMRMLNode* node, vtkMRMLHierarchyNode* parent/*=NULL*/)
 {
   PatientHierarchyPluginListType::iterator pluginIt;
   vtkSlicerPatientHierarchyPlugin* mostSuitablePlugin = NULL;
   double bestConfidence = 0.0;
   for (pluginIt = this->PluginList.begin(); pluginIt != this->PluginList.end(); ++pluginIt)
   {
-    double currentConfidence = (*pluginIt)->CanPluginAddNodeToPatientHierarchy(node);
+    double currentConfidence = (*pluginIt)->CanPluginAddNodeToPatientHierarchy(node, parent);
     if (currentConfidence > bestConfidence)
     {
       bestConfidence = currentConfidence;
@@ -184,14 +184,14 @@ vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPlug
 }
 
 //---------------------------------------------------------------------------
-vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPluginForReparentInsidePatientHierarchyForNode(vtkMRMLHierarchyNode* node)
+vtkSlicerPatientHierarchyPlugin* vtkSlicerPatientHierarchyPluginHandler::GetPluginForReparentInsidePatientHierarchyForNode(vtkMRMLHierarchyNode* node, vtkMRMLHierarchyNode* parent/*=NULL*/)
 {
   PatientHierarchyPluginListType::iterator pluginIt;
   vtkSlicerPatientHierarchyPlugin* mostSuitablePlugin = NULL;
   double bestConfidence = 0.0;
   for (pluginIt = this->PluginList.begin(); pluginIt != this->PluginList.end(); ++pluginIt)
   {
-    double currentConfidence = (*pluginIt)->CanPluginReparentNodeInsidePatientHierarchy(node);
+    double currentConfidence = (*pluginIt)->CanPluginReparentNodeInsidePatientHierarchy(node, parent);
     if (currentConfidence > bestConfidence)
     {
       bestConfidence = currentConfidence;
