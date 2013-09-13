@@ -197,6 +197,16 @@ public:
   /// Set source to reference object distance
   vtkSetMacro(SourceToReferenceObjectDistance, double);
 
+  /// Get window center
+  vtkGetMacro(WindowCenter, double);
+  /// Set window center
+  vtkSetMacro(WindowCenter, double);
+
+  /// Get window width
+  vtkGetMacro(WindowWidth, double);
+  /// Set window width
+  vtkSetMacro(WindowWidth, double);
+
   /// Get patient name
   vtkGetStringMacro(PatientName);
   /// Get patient ID
@@ -423,6 +433,12 @@ protected:
 
   /// Source to reference object distance
   double SourceToReferenceObjectDistance;
+
+  /// Center of window for an RT Image
+  double WindowCenter;
+
+  /// Width of window for an RT Image
+  double WindowWidth;
 
   /// Patient name
   char* PatientName;

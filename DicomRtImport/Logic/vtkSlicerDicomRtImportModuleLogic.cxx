@@ -1017,7 +1017,16 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtRe
     vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> volumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
     this->GetMRMLScene()->AddNode(volumeDisplayNode);
     volumeDisplayNode->SetDefaultColorMap();
-    volumeDisplayNode->AutoWindowLevelOn();
+    if (rtReader->GetWindowCenter() == 0.0 && rtReader->GetWindowWidth() == 0.0)
+    {
+      volumeDisplayNode->AutoWindowLevelOn();
+    }
+    else
+    {
+      // Apply given window level if available
+      volumeDisplayNode->AutoWindowLevelOff();
+      volumeDisplayNode->SetWindowLevel(rtReader->GetWindowWidth(), rtReader->GetWindowCenter());
+    }
     volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
 
     // Create patient hierarchy entry

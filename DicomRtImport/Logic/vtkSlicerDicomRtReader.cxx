@@ -155,6 +155,8 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->RadiationMachineSSD = 0.0;
   this->RTImageSID = 0.0;
   this->SourceToReferenceObjectDistance = 0.0;
+  this->WindowCenter = 0.0;
+  this->WindowWidth = 0.0;
 
   this->PatientName = NULL;
   this->PatientId = NULL;
@@ -407,7 +409,10 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   OFVector<Float64> rtImageOrientation;
   if (rtImageObject.getRTImageOrientation(rtImageOrientation).good())
   {
-    vtkErrorMacro("LoadRTImage: RTImageOrientation is specified but not supported yet!");
+    if (rtImageOrientation.size() > 0)
+    {
+      vtkErrorMacro("LoadRTImage: RTImageOrientation is specified but not supported yet!");
+    }
   }
 
   // GantryAngle
@@ -468,6 +473,20 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   if (rtImageObject.getSourceToReferenceObjectDistance(sourceToReferenceObjectDistance).good())
   {
     this->SetSourceToReferenceObjectDistance(sourceToReferenceObjectDistance);
+  }
+
+  // WindowCenter
+  Float64 windowCenter = 0.0;
+  if (rtImageObject.getWindowCenter(windowCenter).good())
+  {
+    this->SetWindowCenter(windowCenter);
+  }
+
+  // WindowWidth
+  Float64 windowWidth = 0.0;
+  if (rtImageObject.getWindowWidth(windowWidth).good())
+  {
+    this->SetWindowWidth(windowWidth);
   }
 
   // Get and store patient, study and series information
