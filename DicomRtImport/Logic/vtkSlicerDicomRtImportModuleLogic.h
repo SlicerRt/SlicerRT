@@ -111,6 +111,11 @@ protected:
   /// Should not be called, except when updating the default dose color table file manually, or when the file cannot be found (\sa LoadDefaultDoseColorTable)
   void CreateDefaultDoseColorTable();
 
+  /// Compute and set geometry of an RT image
+  /// \param node Either the volume node of the loaded RT image, or the isocenter fiducial node (corresponding to an RT image). This function is called both when
+  ///    loading an RT image and when loading a beam. Sets up the RT image geometry only if both information (the image itself and the isocenter data) are available
+  void SetupRtImageGeometry(vtkMRMLNode* node);
+
 private:
   vtkSlicerDicomRtImportModuleLogic(const vtkSlicerDicomRtImportModuleLogic&); // Not implemented
   void operator=(const vtkSlicerDicomRtImportModuleLogic&);              // Not implemented

@@ -146,11 +146,7 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->RTImageLabel = NULL;
   this->ReferencedRTPlanSOPInstanceUID = NULL;
   this->ReferencedBeamNumber = -1;
-  this->SetImagePlanePixelSpacing(0.0,0.0);
   this->SetRTImagePosition(0.0,0.0);
-  this->GantryAngle = 0.0;
-  this->BeamLimitingDeviceAngle = 0.0;
-  this->PatientSupportAngle = 0.0;
   this->RadiationMachineSAD = 0.0;
   this->RadiationMachineSSD = 0.0;
   this->RTImageSID = 0.0;
@@ -383,7 +379,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   {
     if (imagePlanePixelSpacing.size() == 2)
     {
-      this->SetImagePlanePixelSpacing(imagePlanePixelSpacing[0], imagePlanePixelSpacing[1]);
+      //this->SetImagePlanePixelSpacing(imagePlanePixelSpacing[0], imagePlanePixelSpacing[1]);
     }
     else
     {
@@ -419,7 +415,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   Float64 gantryAngle = 0.0;
   if (rtImageObject.getGantryAngle(gantryAngle).good())
   {
-    this->SetGantryAngle(gantryAngle);
+    //this->SetGantryAngle(gantryAngle);
   }
 
   // GantryPitchAngle
@@ -437,14 +433,14 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   Float64 beamLimitingDeviceAngle = 0.0;
   if (rtImageObject.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle).good())
   {
-    this->SetBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
+    //this->SetBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
   }
 
   // PatientSupportAngle
   Float64 patientSupportAngle = 0.0;
   if (rtImageObject.getPatientSupportAngle(patientSupportAngle).good())
   {
-    this->SetPatientSupportAngle(patientSupportAngle);
+    //this->SetPatientSupportAngle(patientSupportAngle);
   }
 
   // RadiationMachineSAD

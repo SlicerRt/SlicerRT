@@ -38,9 +38,6 @@
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
 
-// STD includes
-#include <cassert>
-
 //----------------------------------------------------------------------------
 const char* vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_PATIENT = "Patient";
 const char* vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY = "Study";

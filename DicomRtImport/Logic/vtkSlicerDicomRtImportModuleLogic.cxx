@@ -51,6 +51,7 @@ limitations under the License.
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLLinearTransformNode.h>
 
 // Annotations includes
 #include <vtkMRMLAnnotationHierarchyNode.h>
@@ -562,189 +563,188 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
   }
   volumeStorageNode->SetSingleFile(0);
 
-  if (volumeStorageNode->ReadData(volumeNode))
-  {
-    volumeNode->SetScene(this->GetMRMLScene());
-    std::string volumeNodeName = this->GetMRMLScene()->GenerateUniqueName(seriesName);
-    volumeNode->SetName(volumeNodeName.c_str());
-    this->GetMRMLScene()->AddNode(volumeNode);
-
-    // Set new spacing
-    double* initialSpacing = volumeNode->GetSpacing();
-    double* correctSpacing = rtReader->GetPixelSpacing();
-    volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
-    volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-
-    // Apply dose grid scaling
-    vtkSmartPointer<vtkImageData> floatVolumeData = vtkSmartPointer<vtkImageData>::New();
-
-    vtkSmartPointer<vtkImageCast> imageCast = vtkSmartPointer<vtkImageCast>::New();
-    imageCast->SetInput(volumeNode->GetImageData());
-    imageCast->SetOutputScalarTypeToFloat();
-    imageCast->Update();
-    floatVolumeData->DeepCopy(imageCast->GetOutput());
-
-    std::stringstream ss;
-    ss << rtReader->GetDoseGridScaling();
-    double doubleValue;
-    ss >> doubleValue;
-    double doseGridScaling = doubleValue;
-
-    float value = 0.0;
-    float* floatPtr = (float*)floatVolumeData->GetScalarPointer();
-    for (long i=0; i<floatVolumeData->GetNumberOfPoints(); ++i)
-    {
-      value = (*floatPtr) * doseGridScaling;
-      (*floatPtr) = value;
-      ++floatPtr;
-    }
-
-    volumeNode->SetAndObserveImageData(floatVolumeData);      
-
-    // Create dose color table from default isodose color table
-    if (!this->DefaultDoseColorTableNodeId)
-    {
-      this->CreateDefaultDoseColorTable();
-      if (!this->DefaultDoseColorTableNodeId)
-      {
-        this->SetDefaultDoseColorTableNodeId("vtkMRMLColorTableNodeRainbow");
-      }
-    }
-
-    // Create isodose parameter set node and set color table to default
-    std::string isodoseParameterSetNodeName;
-    isodoseParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
-      SlicerRtCommon::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX + volumeNodeName );
-    vtkSmartPointer<vtkMRMLIsodoseNode> isodoseParameterSetNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
-    isodoseParameterSetNode->SetName(isodoseParameterSetNodeName.c_str());
-    isodoseParameterSetNode->SetAndObserveDoseVolumeNodeId(volumeNode->GetID());
-    if (this->IsodoseLogic)
-    {
-      isodoseParameterSetNode->SetAndObserveColorTableNodeId(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId());
-    }
-    this->GetMRMLScene()->AddNode(isodoseParameterSetNode);
-
-    //TODO: Generate isodose surfaces if chosen so by the user in the hanging protocol options
-
-    // Set default colormap to the loaded one if found or generated, or to rainbow otherwise
-    vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> volumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-    volumeDisplayNode->SetAndObserveColorNodeID(this->DefaultDoseColorTableNodeId);
-    this->GetMRMLScene()->AddNode(volumeDisplayNode);
-    volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
-
-    // Set window/level to match the isodose levels
-    if (this->IsodoseLogic)
-    {
-      vtkMRMLColorTableNode* defaultIsodoseColorTable = vtkMRMLColorTableNode::SafeDownCast(
-        this->GetMRMLScene()->GetNodeByID(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId()) );
-      
-      std::stringstream ssMin;
-      ssMin << defaultIsodoseColorTable->GetColorName(0);;
-      int minDoseInDefaultIsodoseLevels;
-      ssMin >> minDoseInDefaultIsodoseLevels;
-
-      std::stringstream ssMax;
-      ssMax << defaultIsodoseColorTable->GetColorName( defaultIsodoseColorTable->GetNumberOfColors()-1 );;
-      int maxDoseInDefaultIsodoseLevels;
-      ssMax >> maxDoseInDefaultIsodoseLevels;
-
-      volumeDisplayNode->AutoWindowLevelOff();
-      volumeDisplayNode->SetWindowLevelMinMax(minDoseInDefaultIsodoseLevels, maxDoseInDefaultIsodoseLevels);
-    }
-
-    // Set display threshold
-    double doseUnitScaling = 0.0;
-    std::stringstream doseUnitScalingSs;
-    doseUnitScalingSs << rtReader->GetDoseGridScaling();
-    doseUnitScalingSs >> doseUnitScaling;
-    volumeDisplayNode->AutoThresholdOff();
-    volumeDisplayNode->SetLowerThreshold(0.5 * doseUnitScaling);
-    volumeDisplayNode->SetApplyThreshold(1);
-
-    // Create patient hierarchy entry
-    patientHierarchySeriesNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
-    patientHierarchySeriesNode->HideFromEditorsOff();
-    patientHierarchySeriesNode->SetAssociatedNodeID(volumeNode->GetID());
-    patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-      SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-    patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-      vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-    patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
-      rtReader->GetSeriesInstanceUid());
-    patientHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
-    this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
-
-    // Insert series in patient hierarchy
-    this->InsertSeriesInPatientHierarchy(rtReader);
-
-    // Set dose unit attributes to patient hierarchy study node
-    vtkMRMLHierarchyNode* studyHierarchyNode = patientHierarchySeriesNode->GetParentNode();
-    if (!studyHierarchyNode || !SlicerRtCommon::IsPatientHierarchyNode(studyHierarchyNode))
-    {
-      vtkErrorMacro("LoadRtDose: Unable to get parent study hierarchy node for dose volume '" << volumeNode->GetName() << "'");
-    }
-    else
-    {
-      const char* existingDoseUnitName = studyHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
-      if (!rtReader->GetDoseUnits())
-      {
-        vtkErrorMacro("LoadRtDose: Empty dose unit name found for dose volume " << volumeNode->GetName());
-      }
-      else if (existingDoseUnitName && STRCASECMP(existingDoseUnitName, rtReader->GetDoseUnits()))
-      {
-        vtkErrorMacro("LoadRtDose: Dose unit name already exists (" << existingDoseUnitName << ") for study and differs from current one (" << rtReader->GetDoseUnits() << ")!");
-      }
-      else
-      {
-        studyHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseUnits());
-      }
-
-      const char* existingDoseUnitValueChars = studyHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
-      if (!rtReader->GetDoseGridScaling())
-      {
-        vtkErrorMacro("LoadRtDose: Empty dose unit value found for dose volume " << volumeNode->GetName());
-      }
-      else if (existingDoseUnitValueChars)
-      {
-        double existingDoseUnitValue = 0.0;
-        {
-          std::stringstream ss;
-          ss << existingDoseUnitValueChars;
-          ss >> existingDoseUnitValue;
-        }
-        double currentDoseUnitValue = 0.0;
-        {
-          std::stringstream ss;
-          ss << rtReader->GetDoseGridScaling();
-          ss >> currentDoseUnitValue;
-        }
-        if (fabs(existingDoseUnitValue - currentDoseUnitValue) > EPSILON)
-        {
-          vtkErrorMacro("LoadRtDose: Dose unit value already exists (" << existingDoseUnitValue << ") for study and differs from current one (" << currentDoseUnitValue << ")!");
-        }
-      }
-      else
-      {
-        studyHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseGridScaling());
-      }
-    }
-
-    // Select as active volume
-    if (this->GetApplicationLogic()!=NULL)
-    {
-      if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
-      {
-        this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(volumeNode->GetID());
-        this->GetApplicationLogic()->PropagateVolumeSelection();
-      }
-    }
-     return true;
-  }
-  else
+  // Read volume from disk
+  if (!volumeStorageNode->ReadData(volumeNode))
   {
     vtkErrorMacro("LoadRtDose: Failed to load dose volume file '" << firstFileNameStr << "' (series name '" << seriesName << "')");
     return false;
   }
+
+  volumeNode->SetScene(this->GetMRMLScene());
+  std::string volumeNodeName = this->GetMRMLScene()->GenerateUniqueName(seriesName);
+  volumeNode->SetName(volumeNodeName.c_str());
+  this->GetMRMLScene()->AddNode(volumeNode);
+
+  // Set new spacing
+  double* initialSpacing = volumeNode->GetSpacing();
+  double* correctSpacing = rtReader->GetPixelSpacing();
+  volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
+  volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+
+  // Apply dose grid scaling
+  vtkSmartPointer<vtkImageData> floatVolumeData = vtkSmartPointer<vtkImageData>::New();
+
+  vtkSmartPointer<vtkImageCast> imageCast = vtkSmartPointer<vtkImageCast>::New();
+  imageCast->SetInput(volumeNode->GetImageData());
+  imageCast->SetOutputScalarTypeToFloat();
+  imageCast->Update();
+  floatVolumeData->DeepCopy(imageCast->GetOutput());
+
+  std::stringstream ss;
+  ss << rtReader->GetDoseGridScaling();
+  double doubleValue;
+  ss >> doubleValue;
+  double doseGridScaling = doubleValue;
+
+  float value = 0.0;
+  float* floatPtr = (float*)floatVolumeData->GetScalarPointer();
+  for (long i=0; i<floatVolumeData->GetNumberOfPoints(); ++i)
+  {
+    value = (*floatPtr) * doseGridScaling;
+    (*floatPtr) = value;
+    ++floatPtr;
+  }
+
+  volumeNode->SetAndObserveImageData(floatVolumeData);      
+
+  // Create dose color table from default isodose color table
+  if (!this->DefaultDoseColorTableNodeId)
+  {
+    this->CreateDefaultDoseColorTable();
+    if (!this->DefaultDoseColorTableNodeId)
+    {
+      this->SetDefaultDoseColorTableNodeId("vtkMRMLColorTableNodeRainbow");
+    }
+  }
+
+  // Create isodose parameter set node and set color table to default
+  std::string isodoseParameterSetNodeName;
+  isodoseParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
+    SlicerRtCommon::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX + volumeNodeName );
+  vtkSmartPointer<vtkMRMLIsodoseNode> isodoseParameterSetNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
+  isodoseParameterSetNode->SetName(isodoseParameterSetNodeName.c_str());
+  isodoseParameterSetNode->SetAndObserveDoseVolumeNodeId(volumeNode->GetID());
+  if (this->IsodoseLogic)
+  {
+    isodoseParameterSetNode->SetAndObserveColorTableNodeId(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId());
+  }
+  this->GetMRMLScene()->AddNode(isodoseParameterSetNode);
+
+  //TODO: Generate isodose surfaces if chosen so by the user in the hanging protocol options
+
+  // Set default colormap to the loaded one if found or generated, or to rainbow otherwise
+  vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> volumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+  volumeDisplayNode->SetAndObserveColorNodeID(this->DefaultDoseColorTableNodeId);
+  this->GetMRMLScene()->AddNode(volumeDisplayNode);
+  volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
+
+  // Set window/level to match the isodose levels
+  if (this->IsodoseLogic)
+  {
+    vtkMRMLColorTableNode* defaultIsodoseColorTable = vtkMRMLColorTableNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId()) );
+    
+    std::stringstream ssMin;
+    ssMin << defaultIsodoseColorTable->GetColorName(0);;
+    int minDoseInDefaultIsodoseLevels;
+    ssMin >> minDoseInDefaultIsodoseLevels;
+
+    std::stringstream ssMax;
+    ssMax << defaultIsodoseColorTable->GetColorName( defaultIsodoseColorTable->GetNumberOfColors()-1 );;
+    int maxDoseInDefaultIsodoseLevels;
+    ssMax >> maxDoseInDefaultIsodoseLevels;
+
+    volumeDisplayNode->AutoWindowLevelOff();
+    volumeDisplayNode->SetWindowLevelMinMax(minDoseInDefaultIsodoseLevels, maxDoseInDefaultIsodoseLevels);
+  }
+
+  // Set display threshold
+  double doseUnitScaling = 0.0;
+  std::stringstream doseUnitScalingSs;
+  doseUnitScalingSs << rtReader->GetDoseGridScaling();
+  doseUnitScalingSs >> doseUnitScaling;
+  volumeDisplayNode->AutoThresholdOff();
+  volumeDisplayNode->SetLowerThreshold(0.5 * doseUnitScaling);
+  volumeDisplayNode->SetApplyThreshold(1);
+
+  // Create patient hierarchy entry
+  patientHierarchySeriesNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+  patientHierarchySeriesNode->HideFromEditorsOff();
+  patientHierarchySeriesNode->SetAssociatedNodeID(volumeNode->GetID());
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+    SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+    vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
+    rtReader->GetSeriesInstanceUid());
+  patientHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
+  this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
+
+  // Insert series in patient hierarchy
+  this->InsertSeriesInPatientHierarchy(rtReader);
+
+  // Set dose unit attributes to patient hierarchy study node
+  vtkMRMLHierarchyNode* studyHierarchyNode = patientHierarchySeriesNode->GetParentNode();
+  if (!studyHierarchyNode || !SlicerRtCommon::IsPatientHierarchyNode(studyHierarchyNode))
+  {
+    vtkErrorMacro("LoadRtDose: Unable to get parent study hierarchy node for dose volume '" << volumeNode->GetName() << "'");
+  }
+  else
+  {
+    const char* existingDoseUnitName = studyHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+    if (!rtReader->GetDoseUnits())
+    {
+      vtkErrorMacro("LoadRtDose: Empty dose unit name found for dose volume " << volumeNode->GetName());
+    }
+    else if (existingDoseUnitName && STRCASECMP(existingDoseUnitName, rtReader->GetDoseUnits()))
+    {
+      vtkErrorMacro("LoadRtDose: Dose unit name already exists (" << existingDoseUnitName << ") for study and differs from current one (" << rtReader->GetDoseUnits() << ")!");
+    }
+    else
+    {
+      studyHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseUnits());
+    }
+
+    const char* existingDoseUnitValueChars = studyHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
+    if (!rtReader->GetDoseGridScaling())
+    {
+      vtkErrorMacro("LoadRtDose: Empty dose unit value found for dose volume " << volumeNode->GetName());
+    }
+    else if (existingDoseUnitValueChars)
+    {
+      double existingDoseUnitValue = 0.0;
+      {
+        std::stringstream ss;
+        ss << existingDoseUnitValueChars;
+        ss >> existingDoseUnitValue;
+      }
+      double currentDoseUnitValue = 0.0;
+      {
+        std::stringstream ss;
+        ss << rtReader->GetDoseGridScaling();
+        ss >> currentDoseUnitValue;
+      }
+      if (fabs(existingDoseUnitValue - currentDoseUnitValue) > EPSILON)
+      {
+        vtkErrorMacro("LoadRtDose: Dose unit value already exists (" << existingDoseUnitValue << ") for study and differs from current one (" << currentDoseUnitValue << ")!");
+      }
+    }
+    else
+    {
+      studyHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseGridScaling());
+    }
+  }
+
+  // Select as active volume
+  if (this->GetApplicationLogic()!=NULL)
+  {
+    if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
+    {
+      this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(volumeNode->GetID());
+      this->GetApplicationLogic()->PropagateVolumeSelection();
+    }
+  }
+   return true;
 }
 
 //---------------------------------------------------------------------------
@@ -762,16 +762,16 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
-  vtkMRMLDisplayableNode* addedDisplayableNode = NULL;
+  vtkMRMLAnnotationFiducialNode* addedFiducialNode = NULL;
   int numberOfBeams = rtReader->GetNumberOfBeams();
   for (int dicomBeamIndex = 1; dicomBeamIndex < numberOfBeams+1; dicomBeamIndex++) // DICOM starts indexing from 1
   {
     // Isocenter fiducial
     double isoColor[3] = { 1.0, 1.0, 1.0 };
-    addedDisplayableNode= this->AddRoiPoint(rtReader->GetBeamIsocenterPositionRas(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
+    addedFiducialNode = this->AddRoiPoint(rtReader->GetBeamIsocenterPositionRas(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
 
     // Add new node to the hierarchy node
-    if (addedDisplayableNode)
+    if (addedFiducialNode)
     {
       // Create root isocenter annotation hierarchy node for the plan series, if it has not been created yet
       if (isocenterSeriesHierarchyRootNode.GetPointer()==NULL)
@@ -852,7 +852,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
 
       // Set up automatically created isocenter fiducial node properly
       vtkMRMLAnnotationHierarchyNode* isocenterHierarchyNode =
-        vtkMRMLAnnotationHierarchyNode::SafeDownCast( vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->GetMRMLScene(), addedDisplayableNode->GetID()) );
+        vtkMRMLAnnotationHierarchyNode::SafeDownCast( vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->GetMRMLScene(), addedFiducialNode->GetID()) );
       isocenterHierarchyNode->SetParentNodeID( isocenterSeriesHierarchyRootNode->GetID() );
       isocenterHierarchyNode->SetIndexInParent(dicomBeamIndex-1);
 
@@ -862,11 +862,15 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       phFiducialNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
       patientHierarchyFiducialNode->SetName(phFiducialNodeName.c_str());
       patientHierarchyFiducialNode->HideFromEditorsOff();
-      patientHierarchyFiducialNode->SetAssociatedNodeID(addedDisplayableNode->GetID());
+      patientHierarchyFiducialNode->SetAssociatedNodeID(addedFiducialNode->GetID());
       patientHierarchyFiducialNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
         SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
       patientHierarchyFiducialNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
         vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+      std::stringstream beamNumberStream;
+      beamNumberStream << dicomBeamIndex;
+      patientHierarchyFiducialNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str(),
+        beamNumberStream.str().c_str());
       patientHierarchyFiducialNode->SetParentNodeID(isocenterSeriesHierarchyRootNode->GetID());
       this->GetMRMLScene()->AddNode(patientHierarchyFiducialNode);
 
@@ -874,32 +878,32 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       // TODO: Add these in the PatientHierarchy node when available
       std::stringstream sourceAxisDistanceStream;
       sourceAxisDistanceStream << rtReader->GetBeamSourceAxisDistance(dicomBeamIndex);
-      addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str(),
+      addedFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str(),
         sourceAxisDistanceStream.str().c_str() );
       std::stringstream gantryAngleStream;
       gantryAngleStream << rtReader->GetBeamGantryAngle(dicomBeamIndex);
-      addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str(),
+      addedFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str(),
         gantryAngleStream.str().c_str() );
       std::stringstream couchAngleStream;
       couchAngleStream << rtReader->GetBeamPatientSupportAngle(dicomBeamIndex);
-      addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COUCH_ANGLE_ATTRIBUTE_NAME.c_str(),
+      addedFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COUCH_ANGLE_ATTRIBUTE_NAME.c_str(),
         couchAngleStream.str().c_str() );
       std::stringstream collimatorAngleStream;
       collimatorAngleStream << rtReader->GetBeamBeamLimitingDeviceAngle(dicomBeamIndex);
-      addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
+      addedFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
         collimatorAngleStream.str().c_str() );
       std::stringstream jawPositionsStream;
       double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};
       rtReader->GetBeamLeafJawPositions(dicomBeamIndex, jawPositions);
       jawPositionsStream << jawPositions[0][0] << " " << jawPositions[0][1] << " "
         << jawPositions[1][0] << " " << jawPositions[1][1];
-      addedDisplayableNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str(),
+      addedFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str(),
         jawPositionsStream.str().c_str() );
 
-      // Create source fiducial and beam model nodes
+      // Create source fiducial node
       std::string sourceFiducialName;
       sourceFiducialName = this->GetMRMLScene()->GenerateUniqueName(
-        SlicerRtCommon::BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX + std::string(addedDisplayableNode->GetName()) );
+        SlicerRtCommon::BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX + std::string(addedFiducialNode->GetName()) );
       vtkSmartPointer<vtkMRMLAnnotationFiducialNode> sourceFiducialNode = vtkSmartPointer<vtkMRMLAnnotationFiducialNode>::New();
       sourceFiducialNode->SetName(sourceFiducialName.c_str());
       this->GetMRMLScene()->AddNode(sourceFiducialNode);
@@ -910,23 +914,32 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       sourceHierarchyNode->SetParentNodeID( sourceHierarchyRootNode->GetID() );
       sourceHierarchyNode->SetIndexInParent(dicomBeamIndex-1);
 
-      // Add beam model node to the scene
+      // Create beam model node and add it to the scene
       std::string beamModelName;
       beamModelName = this->GetMRMLScene()->GenerateUniqueName(
-        SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX + std::string(addedDisplayableNode->GetName()) );
+        SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX + std::string(addedFiducialNode->GetName()) );
       vtkSmartPointer<vtkMRMLModelNode> beamModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
       beamModelNode->SetName(beamModelName.c_str());
       this->GetMRMLScene()->AddNode(beamModelNode);
 
+      // Create isocenter to source transform node for this specific isocenter and add it to the scene
+      std::string isocenterToSourceTransformName;
+      isocenterToSourceTransformName = this->GetMRMLScene()->GenerateUniqueName(
+        SlicerRtCommon::BEAMS_OUTPUT_ISOCENTER_TO_SOURCE_TRANSFORM_PREFIX + std::string(addedFiducialNode->GetName()) );
+      vtkSmartPointer<vtkMRMLLinearTransformNode> isocenterToSourceTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+      isocenterToSourceTransformNode->SetName(isocenterToSourceTransformName.c_str());
+      this->GetMRMLScene()->AddNode(isocenterToSourceTransformNode);
+
       // Create Beams parameter set node
       std::string beamParameterSetNodeName;
       beamParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
-        SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX + std::string(addedDisplayableNode->GetName()) );
+        SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX + std::string(addedFiducialNode->GetName()) );
       vtkSmartPointer<vtkMRMLBeamsNode> beamParameterSetNode = vtkSmartPointer<vtkMRMLBeamsNode>::New();
       beamParameterSetNode->SetName(beamParameterSetNodeName.c_str());
-      beamParameterSetNode->SetAndObserveIsocenterFiducialNodeId(addedDisplayableNode->GetID());
+      beamParameterSetNode->SetAndObserveIsocenterFiducialNodeId(addedFiducialNode->GetID());
       beamParameterSetNode->SetAndObserveSourceFiducialNodeId(sourceFiducialNode->GetID());
       beamParameterSetNode->SetAndObserveBeamModelNodeId(beamModelNode->GetID());
+      beamParameterSetNode->SetAndObserveIsocenterToSourceTransformNodeId(isocenterToSourceTransformNode->GetID());
       this->GetMRMLScene()->AddNode(beamParameterSetNode);
 
       // Create beam geometry
@@ -937,7 +950,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       beamsLogic->CreateBeamModel(errorMessage);
       if (!errorMessage.empty())
       {
-        vtkWarningMacro("LoadRtPlan: Failed to create beam geometry for isocenter: " << addedDisplayableNode->GetName());
+        vtkWarningMacro("LoadRtPlan: Failed to create beam geometry for isocenter: " << addedFiducialNode->GetName());
       }
 
       // Put new beam model in the patient hierarchy
@@ -960,6 +973,10 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       }
       this->GetMRMLScene()->AddNode(beamModelHierarchyNode);
       beamModelHierarchyNode->SetIndexInParent(dicomBeamIndex-1);
+
+      // Compute and set geometry of possible RT image that references the loaded beam.
+      // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
+      this->SetupRtImageGeometry(addedFiducialNode);
 
     } //endif addedDisplayableNode
   }
@@ -1004,54 +1021,60 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtRe
   volumeStorageNode->ResetFileNameList();
   volumeStorageNode->SetSingleFile(1);
 
-  if (volumeStorageNode->ReadData(volumeNode))
-  {
-    volumeNode->SetScene(this->GetMRMLScene());
-    std::string volumeNodeName = this->GetMRMLScene()->GenerateUniqueName(seriesName);
-    volumeNode->SetName(volumeNodeName.c_str());
-    this->GetMRMLScene()->AddNode(volumeNode);
-
-    //TODO: Connect with the corresponding isocenter and beam object (#411)
-
-    // Create display node for the volume
-    vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> volumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-    this->GetMRMLScene()->AddNode(volumeDisplayNode);
-    volumeDisplayNode->SetDefaultColorMap();
-    if (rtReader->GetWindowCenter() == 0.0 && rtReader->GetWindowWidth() == 0.0)
-    {
-      volumeDisplayNode->AutoWindowLevelOn();
-    }
-    else
-    {
-      // Apply given window level if available
-      volumeDisplayNode->AutoWindowLevelOff();
-      volumeDisplayNode->SetWindowLevel(rtReader->GetWindowWidth(), rtReader->GetWindowCenter());
-    }
-    volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
-
-    // Create patient hierarchy entry
-    patientHierarchySeriesNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
-    patientHierarchySeriesNode->HideFromEditorsOff();
-    patientHierarchySeriesNode->SetAssociatedNodeID(volumeNode->GetID());
-    patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-      SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-    patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-      vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-    patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
-      rtReader->GetSeriesInstanceUid());
-    patientHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
-    this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
-
-    // Insert series in patient hierarchy
-    this->InsertSeriesInPatientHierarchy(rtReader);
-
-    return true;
-  }
-  else
+  // Read image from disk
+  if (!volumeStorageNode->ReadData(volumeNode))
   {
     vtkErrorMacro("LoadRtImage: Failed to load RT image file '" << firstFileNameStr << "' (series name '" << seriesName << "')");
     return false;
   }
+
+  volumeNode->SetScene(this->GetMRMLScene());
+  std::string volumeNodeName = this->GetMRMLScene()->GenerateUniqueName(seriesName);
+  volumeNode->SetName(volumeNodeName.c_str());
+  this->GetMRMLScene()->AddNode(volumeNode);
+
+  // Create display node for the volume
+  vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> volumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+  this->GetMRMLScene()->AddNode(volumeDisplayNode);
+  volumeDisplayNode->SetDefaultColorMap();
+  if (rtReader->GetWindowCenter() == 0.0 && rtReader->GetWindowWidth() == 0.0)
+  {
+    volumeDisplayNode->AutoWindowLevelOn();
+  }
+  else
+  {
+    // Apply given window level if available
+    volumeDisplayNode->AutoWindowLevelOff();
+    volumeDisplayNode->SetWindowLevel(rtReader->GetWindowWidth(), rtReader->GetWindowCenter());
+  }
+  volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
+
+  // Create patient hierarchy entry
+  patientHierarchySeriesNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+  patientHierarchySeriesNode->HideFromEditorsOff();
+  patientHierarchySeriesNode->SetAssociatedNodeID(volumeNode->GetID());
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
+    SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
+    vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
+    rtReader->GetSeriesInstanceUid());
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_UID_ATTRIBUTE_NAME.c_str(),
+    rtReader->GetReferencedRTPlanSOPInstanceUID());
+  std::stringstream referencedBeamNumberStream;
+  referencedBeamNumberStream << rtReader->GetReferencedBeamNumber();
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str(),
+    referencedBeamNumberStream.str().c_str());
+  patientHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
+  this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
+
+  // Insert series in patient hierarchy
+  this->InsertSeriesInPatientHierarchy(rtReader);
+
+  // Compute and set RT image geometry. Uses the referenced beam if available, otherwise the geometry will be set up when loading the referenced beam
+  this->SetupRtImageGeometry(volumeNode);
+
+  return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1250,4 +1273,121 @@ void vtkSlicerDicomRtImportModuleLogic::CreateDefaultDoseColorTable()
 
   this->GetMRMLScene()->AddNode(defaultDoseColorTable);
   this->SetDefaultDoseColorTableNodeId(defaultDoseColorTable->GetID());
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
+{
+  vtkMRMLVolumeNode* rtImageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
+  vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(node);
+
+  if (rtImageVolumeNode)
+  {
+    // Get patient hierarchy node for RT images
+    vtkMRMLHierarchyNode* rtImagePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(rtImageVolumeNode);
+    if (!rtImagePatientHierarchyNode)
+    {
+      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid patient hierarchy node for RT image '" << rtImageVolumeNode->GetName() << "'!");
+      return;
+    }
+    // Get referenced RT plan node
+    vtkMRMLHierarchyNode* rtPlanPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(this->GetMRMLScene(),
+      rtImagePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_UID_ATTRIBUTE_NAME.c_str()));
+    //TODO: Search for SOP instance UID NOT series instance UID !!!
+    if (!rtPlanPatientHierarchyNode)
+    {
+      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve referenced RT plan patient hierarchy node for RT image '" << rtImageVolumeNode->GetName() << "'!");
+      return;
+    }
+
+    // Get referenced beam number (string)
+    const char* referencedBeamNumberChars = rtImageVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+
+    // Get isocenter according to referenced beam number
+    std::vector<vtkMRMLHierarchyNode*> isocenterPatientHierarchyNodes = rtPlanPatientHierarchyNode->GetChildrenNodes();
+    for (std::vector<vtkMRMLHierarchyNode*>::iterator isocenterPhIt = isocenterPatientHierarchyNodes.begin(); isocenterPhIt != isocenterPatientHierarchyNodes.end(); ++isocenterPhIt)
+    {
+      const char* isocenterBeamNumberChars = (*isocenterPhIt)->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+      if (!STRCASECMP(isocenterBeamNumberChars, referencedBeamNumberChars))
+      {
+        isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast((*isocenterPhIt)->GetAssociatedNode());
+        break;
+      }
+    }
+
+    if (!isocenterNode)
+    {
+      vtkDebugMacro("SetupRtImageGeometry: Cannot set up geometry of RT image '" << rtImageVolumeNode->GetName()
+        << "' without a corresponding isocenter fiducial. Will be set up upon loading the related plan");
+      return;
+    }
+  }
+  else if (isocenterNode)
+  {
+    // Get RT plan DICOM UID for isocenter
+    vtkMRMLHierarchyNode* isocenterPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(isocenterNode);
+    if (!isocenterPatientHierarchyNode || !isocenterPatientHierarchyNode->GetParentNode())
+    {
+      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid patient hierarchy node for isocenter '" << isocenterNode->GetName() << "'!");
+      return;
+    }
+    const char* rtPlanDicomUid = isocenterPatientHierarchyNode->GetParentNode()->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
+    if (!rtPlanDicomUid)
+    {
+      vtkErrorMacro("SetupRtImageGeometry: Failed to get RT Plan DICOM UID for isocenter '" << isocenterNode->GetName() << "'!");
+      return;
+    }
+
+    // Get isocenter beam number
+    const char* isocenterBeamNumberChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+
+    // Find corresponding RT image according to beam (isocenter) UID
+    vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLHierarchyNode") );
+    vtkObject* nextObject = NULL;
+    for (hierarchyNodes->InitTraversal(); (nextObject = hierarchyNodes->GetNextItemAsObject()); )
+    {
+      vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(nextObject);
+      if (hierarchyNode && hierarchyNode->GetAssociatedNode() && hierarchyNode->GetAssociatedNode()->IsA("vtkMRMLVolumeNode"))
+      {
+        // If this volume node has a referenced plan UID and it matches the isocenter UID then this may be the corresponding RT image
+        const char* referencedPlanUid = hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_UID_ATTRIBUTE_NAME.c_str());
+        if (referencedPlanUid && !STRCASECMP(referencedPlanUid, rtPlanDicomUid))
+        {
+          // Get RT image referenced beam number and compare it to the isocenter beam number
+          const char* referencedBeamNumberChars = hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+          if (!STRCASECMP(referencedBeamNumberChars, isocenterBeamNumberChars))
+          {
+            rtImageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(hierarchyNode->GetAssociatedNode());
+            break;
+          }
+        }
+      }
+    }
+
+    if (!rtImageVolumeNode)
+    {
+      vtkDebugMacro("SetupRtImageGeometry: Cannot set up geometry of RT image corresponding to isocenter fiducial '" << isocenterNode->GetName()
+        << "' because the RT image is not loaded yet. Will be set up upon loading the related RT image");
+      return;
+    }
+  }
+  else
+  {
+    vtkErrorMacro("SetupRtImageGeometry: Input node is neither a volume node nor a beams parameter set node!");
+    return;
+  }
+
+  // We have both the RT image and the isocenter, we can set up the geometry
+
+  // Get isocenter to source transform node
+  vtkMRMLLinearTransformNode* isocenterToSourceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(isocenterNode->GetAttribute(SlicerRtCommon::BEAMS_ISOCENTER_TO_SOURCE_TRANSFORM_NODE_ID_ATTRIBUTE_NAME.c_str())) );
+  if (!isocenterToSourceTransformNode)
+  {
+    vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve isocenter to source transform node for isocenter '" << isocenterNode->GetName() << "'!");
+    return;
+  }
+
+  // Keep only the orientation component of the transform
+  //TODO:
 }

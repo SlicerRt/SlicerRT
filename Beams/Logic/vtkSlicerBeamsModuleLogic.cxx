@@ -32,6 +32,7 @@
 #include <vtkMRMLAnnotationPointDisplayNode.h>
 #include <vtkMRMLAnnotationTextDisplayNode.h>
 #include <vtkMRMLModelDisplayNode.h>
+#include <vtkMRMLLinearTransformNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -242,6 +243,8 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
   sourceNode->GetAnnotationTextDisplayNode()->SetColor(
     isocenterNode->GetAnnotationTextDisplayNode()->GetColor() );
 
+  // Create connection from isocenter fiducial node to the output source fiducial node
+  isocenterNode->SetAttribute(SlicerRtCommon::BEAMS_SOURCE_FIDUCIAL_NODE_ID_ATTRIBUTE_NAME.c_str(), sourceNode->GetID());
 
   // Compute isocenter to source transformation
   //TODO: It is assumed that the center of rotation for the couch is the isocenter. Is it true?
@@ -331,6 +334,20 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
     errorMessage = "Unable to retrieve source fiducial node according its ID!";
     vtkErrorMacro(<<errorMessage); 
     return;
+  }
+  // Get isocenter to source transform node and set result transform if node found
+  vtkMRMLLinearTransformNode* isocenterToSourceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetIsocenterToSourceTransformNodeId()) );
+  if (isocenterToSourceTransformNode)
+  {
+    isocenterToSourceTransformNode->SetAndObserveMatrixTransformToParent(isocenterToSourceTransform->GetMatrix());
+
+    // Connect the transform to the isocenter node
+    isocenterNode->SetAttribute(SlicerRtCommon::BEAMS_ISOCENTER_TO_SOURCE_TRANSFORM_NODE_ID_ATTRIBUTE_NAME.c_str(), isocenterToSourceTransformNode->GetID());
+  }
+  else
+  {
+    vtkWarningMacro("CreateBeamModel: Isocenter to source transform cannot be set, because the transform node in parameter set node does not exist");
   }
 
   // Extract beam-related parameters needed to compute source position

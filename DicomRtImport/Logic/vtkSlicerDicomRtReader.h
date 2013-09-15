@@ -152,30 +152,10 @@ public:
   /// Set referenced beam number
   vtkSetMacro(ReferencedBeamNumber, int);
 
-  /// Get image plane pixel spacing
-  vtkGetVector2Macro(ImagePlanePixelSpacing, double);
-  /// Set image plane pixel spacing
-  vtkSetVector2Macro(ImagePlanePixelSpacing, double);
-
   /// Get RT image position
   vtkGetVector2Macro(RTImagePosition, double);
   /// Set RT image position
   vtkSetVector2Macro(RTImagePosition, double);
-
-  /// Get gantry angle
-  vtkGetMacro(GantryAngle, double);
-  /// Set gantry angle
-  vtkSetMacro(GantryAngle, double);
-
-  /// Get beam limiting device (collimator) angle
-  vtkGetMacro(BeamLimitingDeviceAngle, double);
-  /// Set beam limiting device (collimator) angle
-  vtkSetMacro(BeamLimitingDeviceAngle, double);
-
-  /// Get patient support angle
-  vtkGetMacro(PatientSupportAngle, double);
-  /// Set patient support angle
-  vtkSetMacro(PatientSupportAngle, double);
 
   /// Get radiation machine SAD
   vtkGetMacro(RadiationMachineSAD, double);
@@ -407,20 +387,8 @@ protected:
   /// Referenced beam number (in the referenced RT Plan, \sa ReferencedRTPlanSOPInstanceUID)
   int ReferencedBeamNumber;
 
-  /// Image plane pixel spacing of an RT Image
-  double ImagePlanePixelSpacing[2];
-
   /// RT image position (center of the upper left hand corner of an RT image)
   double RTImagePosition[2];
-
-  /// Gantry angle of an RT Image
-  double GantryAngle;
-
-  /// Beam limiting device (collimator) angle for an RT Image
-  double BeamLimitingDeviceAngle;
-
-  /// Patient support (bed) angle for an RT Image
-  double PatientSupportAngle;
 
   /// Radiation machine SAD (Radiation source to Gantry rotation axis distance of radiation machine used in acquiring or computing image (mm))
   double RadiationMachineSAD;

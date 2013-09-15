@@ -56,6 +56,7 @@ public:
   void ComputeSourceFiducialPosition(std::string &errorMessage, vtkTransform* isocenterToSourceTransform=NULL);
 
   /// Create beam geometry model from isocenter and source fiducials
+  /// \param errorMessage Error message if any. If empty, then there have been no errors in course of the computation
   void CreateBeamModel(std::string &errorMessage);
 
 public:

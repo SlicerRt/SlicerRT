@@ -43,6 +43,7 @@ vtkMRMLBeamsNode::vtkMRMLBeamsNode()
   this->IsocenterFiducialNodeId = NULL;
   this->SourceFiducialNodeId = NULL;
   this->BeamModelNodeId = NULL;
+  this->IsocenterToSourceTransformNodeId = NULL;
 
   this->BeamModelOpacity = 0.08;
 
@@ -55,6 +56,7 @@ vtkMRMLBeamsNode::~vtkMRMLBeamsNode()
   this->SetIsocenterFiducialNodeId(NULL);
   this->SetSourceFiducialNodeId(NULL);
   this->SetBeamModelNodeId(NULL);
+  this->SetIsocenterToSourceTransformNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -71,7 +73,7 @@ void vtkMRMLBeamsNode::WriteXML(ostream& of, int nIndent)
       {
       ss << this->IsocenterFiducialNodeId;
       of << indent << " IsocenterFiducialNodeId=\"" << ss.str() << "\"";
-     }
+      }
   }
   {
     std::stringstream ss;
@@ -87,15 +89,23 @@ void vtkMRMLBeamsNode::WriteXML(ostream& of, int nIndent)
       {
       ss << this->BeamModelNodeId;
       of << indent << " BeamModelNodeId=\"" << ss.str() << "\"";
-     }
+      }
+  }
+  {
+    std::stringstream ss;
+    if ( this->IsocenterToSourceTransformNodeId )
+      {
+      ss << this->IsocenterToSourceTransformNodeId;
+      of << indent << " IsocenterToSourceTransformNodeId=\"" << ss.str() << "\"";
+      }
   }
   {
     std::stringstream ss;
     if ( this->BeamModelOpacity )
-    {
+      {
       ss << this->BeamModelOpacity;
       of << indent << " BeamModelOpacity=\"" << ss.str() << "\"";
-    }
+      }
   }
 }
 
@@ -129,6 +139,12 @@ void vtkMRMLBeamsNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       this->SetAndObserveBeamModelNodeId(ss.str().c_str());
       }
+    else if (!strcmp(attName, "IsocenterToSourceTransformNodeId")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetAndObserveIsocenterToSourceTransformNodeId(ss.str().c_str());
+      }
     else if (!strcmp(attName, "BeamModelOpacity")) 
       {
       std::stringstream ss;
@@ -153,6 +169,7 @@ void vtkMRMLBeamsNode::Copy(vtkMRMLNode *anode)
   this->SetAndObserveIsocenterFiducialNodeId(node->IsocenterFiducialNodeId);
   this->SetAndObserveSourceFiducialNodeId(node->SourceFiducialNodeId);
   this->SetAndObserveBeamModelNodeId(node->BeamModelNodeId);
+  this->SetAndObserveIsocenterToSourceTransformNodeId(node->IsocenterToSourceTransformNodeId);
   this->SetBeamModelOpacity(node->GetBeamModelOpacity());
 
   this->DisableModifiedEventOff();
@@ -167,6 +184,7 @@ void vtkMRMLBeamsNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "IsocenterFiducialNodeId:   " << (this->IsocenterFiducialNodeId ? this->IsocenterFiducialNodeId : "NULL") << "\n";
   os << indent << "SourceFiducialNodeId:   " << (this->SourceFiducialNodeId ? this->SourceFiducialNodeId : "NULL") << "\n";
   os << indent << "BeamModelNodeId:   " << (this->BeamModelNodeId ? this->BeamModelNodeId : "NULL") << "\n";
+  os << indent << "IsocenterToSourceTransformNodeId:   " << (this->IsocenterToSourceTransformNodeId ? this->IsocenterToSourceTransformNodeId : "NULL") << "\n";
   os << indent << "BeamModelOpacity:   " << this->BeamModelOpacity << "\n";
 }
 
@@ -219,6 +237,22 @@ void vtkMRMLBeamsNode::SetAndObserveBeamModelNodeId(const char* id)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLBeamsNode::SetAndObserveIsocenterToSourceTransformNodeId(const char* id)
+{
+  if (this->IsocenterToSourceTransformNodeId)
+  {
+    this->Scene->RemoveReferencedNodeID(this->IsocenterToSourceTransformNodeId, this);
+  }
+
+  this->SetIsocenterToSourceTransformNodeId(id);
+
+  if (id)
+  {
+    this->Scene->AddReferencedNodeID(this->IsocenterToSourceTransformNodeId, this);
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLBeamsNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   if (this->IsocenterFiducialNodeId && !strcmp(oldID, this->IsocenterFiducialNodeId))
@@ -232,5 +266,9 @@ void vtkMRMLBeamsNode::UpdateReferenceID(const char *oldID, const char *newID)
   if (this->BeamModelNodeId && !strcmp(oldID, this->BeamModelNodeId))
     {
     this->SetAndObserveBeamModelNodeId(newID);
+    }
+  if (this->IsocenterToSourceTransformNodeId && !strcmp(oldID, this->IsocenterToSourceTransformNodeId))
+    {
+    this->SetAndObserveIsocenterToSourceTransformNodeId(newID);
     }
 }
