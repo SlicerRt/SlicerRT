@@ -75,9 +75,9 @@ vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(vtkMRMLScene*
   std::vector<vtkMRMLNode *> patientHierarchyNodes;
   unsigned int numberOfNodes = scene->GetNodesByClass("vtkMRMLHierarchyNode", patientHierarchyNodes);
 
-  for (unsigned int i=0; i<numberOfNodes; i++)
+  for (unsigned int phNodeIndex=0; phNodeIndex<numberOfNodes; phNodeIndex++)
   {
-    vtkMRMLHierarchyNode* node = vtkMRMLHierarchyNode::SafeDownCast(patientHierarchyNodes[i]);
+    vtkMRMLHierarchyNode* node = vtkMRMLHierarchyNode::SafeDownCast(patientHierarchyNodes[phNodeIndex]);
     if (node && SlicerRtCommon::IsPatientHierarchyNode(node))
     {
       const char* nodeUID = node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);

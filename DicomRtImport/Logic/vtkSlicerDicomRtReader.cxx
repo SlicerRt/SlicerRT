@@ -142,6 +142,8 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->DoseUnits = NULL;
   this->DoseGridScaling = NULL;
 
+  this->SOPInstanceUID = NULL;
+
   this->ImageType = NULL;
   this->RTImageLabel = NULL;
   this->ReferencedRTPlanSOPInstanceUID = NULL;
@@ -630,6 +632,15 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
     }
     while (rtPlaneBeamSequenceObject.gotoNextItem().good());
   }
+
+  // SOP instance UID
+  OFString sopInstanceUid("");
+  if (rtPlanObject.getSOPInstanceUID(sopInstanceUid).bad())
+  {
+    vtkErrorMacro("LoadRTPlan: Failed to get SOP instance UID for RT plan!");
+    return; // mandatory DICOM value
+  }
+  this->SetSOPInstanceUID(sopInstanceUid.c_str());
 
   // Get and store patient, study and series information
   this->GetAndStoreHierarchyInformation(&rtPlanObject);

@@ -784,6 +784,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
           vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
         isocenterSeriesHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
           rtReader->GetSeriesInstanceUid());
+        isocenterSeriesHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str(),
+          rtReader->GetSOPInstanceUID());
         std::string isocenterHierarchyRootNodeName;
         isocenterHierarchyRootNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX;
         isocenterHierarchyRootNodeName = this->GetMRMLScene()->GenerateUniqueName(isocenterHierarchyRootNodeName);
@@ -1059,7 +1061,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtRe
     vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
   patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
     rtReader->GetSeriesInstanceUid());
-  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_UID_ATTRIBUTE_NAME.c_str(),
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str(),
     rtReader->GetReferencedRTPlanSOPInstanceUID());
   std::stringstream referencedBeamNumberStream;
   referencedBeamNumberStream << rtReader->GetReferencedBeamNumber();
@@ -1290,35 +1292,63 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid patient hierarchy node for RT image '" << rtImageVolumeNode->GetName() << "'!");
       return;
     }
-    // Get referenced RT plan node
-    vtkMRMLHierarchyNode* rtPlanPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(this->GetMRMLScene(),
-      rtImagePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_UID_ATTRIBUTE_NAME.c_str()));
-    //TODO: Search for SOP instance UID NOT series instance UID !!!
+    // Find referenced RT plan node
+    const char* referencedPlanSopInstanceUid = rtImagePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
+    if (!referencedPlanSopInstanceUid)
+    {
+      vtkErrorMacro("SetupRtImageGeometry: Unable to find referenced plan SOP instance UID for RT image '" << rtImageVolumeNode->GetName() << "'!");
+      return;
+    }
+    vtkMRMLHierarchyNode* rtPlanPatientHierarchyNode = NULL;
+    std::vector<vtkMRMLNode *> patientHierarchyNodes;
+    unsigned int numberOfNodes = this->GetMRMLScene()->GetNodesByClass("vtkMRMLHierarchyNode", patientHierarchyNodes);
+    for (unsigned int phNodeIndex=0; phNodeIndex<numberOfNodes; phNodeIndex++)
+    {
+      vtkMRMLHierarchyNode* currentPhNode = vtkMRMLHierarchyNode::SafeDownCast(patientHierarchyNodes[phNodeIndex]);
+      if (currentPhNode && SlicerRtCommon::IsPatientHierarchyNode(currentPhNode))
+      {
+        const char* sopInstanceUid = currentPhNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
+        if (sopInstanceUid && !STRCASECMP(referencedPlanSopInstanceUid, sopInstanceUid))
+        {
+          rtPlanPatientHierarchyNode = currentPhNode;
+        }
+      }
+    }
     if (!rtPlanPatientHierarchyNode)
     {
-      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve referenced RT plan patient hierarchy node for RT image '" << rtImageVolumeNode->GetName() << "'!");
+      vtkDebugMacro("SetupRtImageGeometry: Cannot set up geometry of RT image '" << rtImageVolumeNode->GetName()
+        << "' without the referenced RT plan. Will be set up upon loading the related plan");
       return;
     }
 
     // Get referenced beam number (string)
-    const char* referencedBeamNumberChars = rtImageVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+    const char* referencedBeamNumberChars = rtImagePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+    if (!referencedBeamNumberChars)
+    {
+      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve referenced beam number for RT image '" << rtImageVolumeNode->GetName() << "'!");
+      return;
+    }
 
     // Get isocenter according to referenced beam number
     std::vector<vtkMRMLHierarchyNode*> isocenterPatientHierarchyNodes = rtPlanPatientHierarchyNode->GetChildrenNodes();
     for (std::vector<vtkMRMLHierarchyNode*>::iterator isocenterPhIt = isocenterPatientHierarchyNodes.begin(); isocenterPhIt != isocenterPatientHierarchyNodes.end(); ++isocenterPhIt)
     {
       const char* isocenterBeamNumberChars = (*isocenterPhIt)->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+      if (!isocenterBeamNumberChars)
+      {
+        // Plan series patient hierarchy node has two hierarchy nodes for each annotation: an annotation hierarchy node and the PH node
+        // TODO: review when utilizing the Markups module instead of Annotations (#385) 
+        continue;
+      }
       if (!STRCASECMP(isocenterBeamNumberChars, referencedBeamNumberChars))
       {
         isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast((*isocenterPhIt)->GetAssociatedNode());
         break;
       }
     }
-
     if (!isocenterNode)
     {
-      vtkDebugMacro("SetupRtImageGeometry: Cannot set up geometry of RT image '" << rtImageVolumeNode->GetName()
-        << "' without a corresponding isocenter fiducial. Will be set up upon loading the related plan");
+      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve isocenter node for RT image '" << rtImageVolumeNode->GetName() << "' in RT plan '" << rtPlanPatientHierarchyNode->GetName() << "'!");
       return;
     }
   }
@@ -1331,8 +1361,8 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid patient hierarchy node for isocenter '" << isocenterNode->GetName() << "'!");
       return;
     }
-    const char* rtPlanDicomUid = isocenterPatientHierarchyNode->GetParentNode()->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME);
-    if (!rtPlanDicomUid)
+    const char* rtPlanSopInstanceUid = isocenterPatientHierarchyNode->GetParentNode()->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
+    if (!rtPlanSopInstanceUid)
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to get RT Plan DICOM UID for isocenter '" << isocenterNode->GetName() << "'!");
       return;
@@ -1350,8 +1380,8 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
       if (hierarchyNode && hierarchyNode->GetAssociatedNode() && hierarchyNode->GetAssociatedNode()->IsA("vtkMRMLVolumeNode"))
       {
         // If this volume node has a referenced plan UID and it matches the isocenter UID then this may be the corresponding RT image
-        const char* referencedPlanUid = hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_UID_ATTRIBUTE_NAME.c_str());
-        if (referencedPlanUid && !STRCASECMP(referencedPlanUid, rtPlanDicomUid))
+        const char* referencedPlanSopInstanceUid = hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
+        if (referencedPlanSopInstanceUid && !STRCASECMP(referencedPlanSopInstanceUid, rtPlanSopInstanceUid))
         {
           // Get RT image referenced beam number and compare it to the isocenter beam number
           const char* referencedBeamNumberChars = hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());

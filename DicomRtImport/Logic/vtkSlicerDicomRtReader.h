@@ -132,6 +132,11 @@ public:
   /// Set dose grid scaling
   vtkSetStringMacro(DoseGridScaling);
 
+  /// Get SOP instance UID
+  vtkGetStringMacro(SOPInstanceUID);
+  /// Set SOP instance UID
+  vtkSetStringMacro(SOPInstanceUID);
+
   /// Get image type
   vtkGetStringMacro(ImageType);
   /// Set image type
@@ -374,6 +379,9 @@ protected:
   /// yields grid doses in the dose units as specified by Dose Units.
   /// Store it as a string, because it will be passed as a MRML node attribute.
   char* DoseGridScaling;
+
+  /// SOP instance UID
+  char* SOPInstanceUID;
 
   /// Image type for RT images (DRR / PORTAL / SIMULATOR / RADIOGRAPH / BLANK / FLUENCE)
   char* ImageType;
