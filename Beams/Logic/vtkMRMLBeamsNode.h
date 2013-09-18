@@ -59,9 +59,6 @@ public:
   /// Set and observe output beam model MRML node ID
   void SetAndObserveBeamModelNodeId(const char* id);
 
-  /// Set and observe isocenter to source transform node ID
-  void SetAndObserveIsocenterToSourceTransformNodeId(const char* id);
-
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
@@ -74,9 +71,6 @@ public:
 
   /// Get output beam model MRML node ID
   vtkGetStringMacro(BeamModelNodeId);
-
-  /// Get isocenter to source transform node ID
-  vtkGetStringMacro(IsocenterToSourceTransformNodeId);
 
   /// Set beams model opacity
   vtkSetMacro(BeamModelOpacity, double);
@@ -92,9 +86,6 @@ protected:
 
   /// Set output beam model MRML Id 
   vtkSetStringMacro(BeamModelNodeId);
-
-  /// Set isocenter to source transform node ID
-  vtkSetStringMacro(IsocenterToSourceTransformNodeId);
 
 protected:
   vtkMRMLBeamsNode();
@@ -114,9 +105,6 @@ protected:
 
   /// Opacity of the created beam model
   double BeamModelOpacity;
-
-  /// Isocenter to source transform node ID
-  char* IsocenterToSourceTransformNodeId;
 };
 
 #endif

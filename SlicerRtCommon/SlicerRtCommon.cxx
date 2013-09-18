@@ -73,6 +73,8 @@ const std::string SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIB
 const std::string SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "ContourHierarchy"; // Identifier
 const std::string SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "StructureName";
 const std::string SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImageReferencedPlanUid"; // Connection
+const std::string SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImageSid";
+const std::string SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImagePosition";
 
 const std::string SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX = "_ColorTable";
 const std::string SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX = "_AllStructures";
@@ -132,10 +134,8 @@ const std::string SlicerRtCommon::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX = "Gamm
 const std::string SlicerRtCommon::BEAMS_ATTRIBUTE_PREFIX = "Beams.";
 const std::string SlicerRtCommon::BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX = "Source_";
 const std::string SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX = "BeamModel_";
-const std::string SlicerRtCommon::BEAMS_OUTPUT_ISOCENTER_TO_SOURCE_TRANSFORM_PREFIX = "IsocenterToSourceTransform_";
 const std::string SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX = "BeamParameterSet_";
 const std::string SlicerRtCommon::BEAMS_SOURCE_FIDUCIAL_NODE_ID_ATTRIBUTE_NAME = SlicerRtCommon::BEAMS_ATTRIBUTE_PREFIX + "SourceFiducialNodeId"; // Connection
-const std::string SlicerRtCommon::BEAMS_ISOCENTER_TO_SOURCE_TRANSFORM_NODE_ID_ATTRIBUTE_NAME = SlicerRtCommon::BEAMS_ATTRIBUTE_PREFIX + "IsocenterToSourceTransformNodeId"; // Connection
 
 //----------------------------------------------------------------------------
 // Utility functions

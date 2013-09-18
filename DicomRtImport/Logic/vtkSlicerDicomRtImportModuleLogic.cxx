@@ -924,14 +924,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       beamModelNode->SetName(beamModelName.c_str());
       this->GetMRMLScene()->AddNode(beamModelNode);
 
-      // Create isocenter to source transform node for this specific isocenter and add it to the scene
-      std::string isocenterToSourceTransformName;
-      isocenterToSourceTransformName = this->GetMRMLScene()->GenerateUniqueName(
-        SlicerRtCommon::BEAMS_OUTPUT_ISOCENTER_TO_SOURCE_TRANSFORM_PREFIX + std::string(addedFiducialNode->GetName()) );
-      vtkSmartPointer<vtkMRMLLinearTransformNode> isocenterToSourceTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
-      isocenterToSourceTransformNode->SetName(isocenterToSourceTransformName.c_str());
-      this->GetMRMLScene()->AddNode(isocenterToSourceTransformNode);
-
       // Create Beams parameter set node
       std::string beamParameterSetNodeName;
       beamParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
@@ -941,7 +933,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       beamParameterSetNode->SetAndObserveIsocenterFiducialNodeId(addedFiducialNode->GetID());
       beamParameterSetNode->SetAndObserveSourceFiducialNodeId(sourceFiducialNode->GetID());
       beamParameterSetNode->SetAndObserveBeamModelNodeId(beamModelNode->GetID());
-      beamParameterSetNode->SetAndObserveIsocenterToSourceTransformNodeId(isocenterToSourceTransformNode->GetID());
       this->GetMRMLScene()->AddNode(beamParameterSetNode);
 
       // Create beam geometry
@@ -1067,6 +1058,16 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtRe
   referencedBeamNumberStream << rtReader->GetReferencedBeamNumber();
   patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str(),
     referencedBeamNumberStream.str().c_str());
+  std::stringstream rtImageSidStream;
+  rtImageSidStream << rtReader->GetRTImageSID();
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME.c_str(),
+    rtImageSidStream.str().c_str());
+  std::stringstream rtImagePositionStream;
+  double rtImagePosition[2] = {0.0, 0.0};
+  rtReader->GetRTImagePosition(rtImagePosition);
+  rtImagePositionStream << rtImagePosition[0] << " " << rtImagePosition[1];
+  patientHierarchySeriesNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME.c_str(),
+    rtImagePositionStream.str().c_str() );
   patientHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
   this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
 
@@ -1281,12 +1282,14 @@ void vtkSlicerDicomRtImportModuleLogic::CreateDefaultDoseColorTable()
 void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
 {
   vtkMRMLVolumeNode* rtImageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
+  vtkMRMLHierarchyNode* rtImagePatientHierarchyNode = NULL;
   vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(node);
+  vtkMRMLHierarchyNode* isocenterPatientHierarchyNode = NULL;
 
   if (rtImageVolumeNode)
   {
     // Get patient hierarchy node for RT images
-    vtkMRMLHierarchyNode* rtImagePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(rtImageVolumeNode);
+    rtImagePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(rtImageVolumeNode);
     if (!rtImagePatientHierarchyNode)
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid patient hierarchy node for RT image '" << rtImageVolumeNode->GetName() << "'!");
@@ -1343,6 +1346,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
       if (!STRCASECMP(isocenterBeamNumberChars, referencedBeamNumberChars))
       {
         isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast((*isocenterPhIt)->GetAssociatedNode());
+        isocenterPatientHierarchyNode = (*isocenterPhIt);
         break;
       }
     }
@@ -1355,7 +1359,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
   else if (isocenterNode)
   {
     // Get RT plan DICOM UID for isocenter
-    vtkMRMLHierarchyNode* isocenterPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(isocenterNode);
+    isocenterPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(isocenterNode);
     if (!isocenterPatientHierarchyNode || !isocenterPatientHierarchyNode->GetParentNode())
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid patient hierarchy node for isocenter '" << isocenterNode->GetName() << "'!");
@@ -1388,6 +1392,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
           if (!STRCASECMP(referencedBeamNumberChars, isocenterBeamNumberChars))
           {
             rtImageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(hierarchyNode->GetAssociatedNode());
+            rtImagePatientHierarchyNode = hierarchyNode;
             break;
           }
         }
@@ -1409,15 +1414,105 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
 
   // We have both the RT image and the isocenter, we can set up the geometry
 
-  // Get isocenter to source transform node
-  vtkMRMLLinearTransformNode* isocenterToSourceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(isocenterNode->GetAttribute(SlicerRtCommon::BEAMS_ISOCENTER_TO_SOURCE_TRANSFORM_NODE_ID_ATTRIBUTE_NAME.c_str())) );
-  if (!isocenterToSourceTransformNode)
+  // Get source to RT image plane distance (along beam axis)
+  double rtImageSid = 0.0;
+  const char* rtImageSidChars = rtImagePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME.c_str());
+  if (rtImageSidChars != NULL)
   {
-    vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve isocenter to source transform node for isocenter '" << isocenterNode->GetName() << "'!");
-    return;
+    std::stringstream ss;
+    ss << rtImageSidChars;
+    ss >> rtImageSid;
+  }
+  // Get RT image position (the x and y coordinates (in mm) of the upper left hand corner of the image, in the IEC X-RAY IMAGE RECEPTOR coordinate system)
+  double rtImagePosition[2] = {0.0, 0.0};
+  const char* rtImagePositionChars = rtImagePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME.c_str());
+  if (rtImagePositionChars != NULL)
+  {
+    std::stringstream ss;
+    ss << rtImagePositionChars;
+    ss >> rtImagePosition[0] >> rtImagePosition[1];
   }
 
-  // Keep only the orientation component of the transform
-  //TODO:
+  // Extract beam-related parameters needed to compute RT image coordinate system
+  double sourceAxisDistance = 0.0;
+  const char* sourceAxisDistanceChars = isocenterNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
+  if (sourceAxisDistanceChars != NULL)
+  {
+    std::stringstream ss;
+    ss << sourceAxisDistanceChars;
+    ss >> sourceAxisDistance;
+  }
+  double gantryAngle = 0.0;
+  const char* gantryAngleChars = isocenterNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str());
+  if (gantryAngleChars != NULL)
+  {
+    std::stringstream ss;
+    ss << gantryAngleChars;
+    ss >> gantryAngle;
+  }
+  double couchAngle = 0.0;
+  const char* couchAngleChars = isocenterNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_COUCH_ANGLE_ATTRIBUTE_NAME.c_str());
+  if (couchAngleChars != NULL)
+  {
+    std::stringstream ss;
+    ss << couchAngleChars;
+    ss >> couchAngle;
+  }
+
+  // Assemble transform from isocenter IEC to RT image RAS
+  vtkSmartPointer<vtkTransform> couchToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();
+  couchToIsocenterTransform->Identity();
+  couchToIsocenterTransform->RotateWXYZ((-1.0)*couchAngle, 0.0, 1.0, 0.0);
+
+  vtkSmartPointer<vtkTransform> gantryToCouchTransform = vtkSmartPointer<vtkTransform>::New();
+  gantryToCouchTransform->Identity();
+  gantryToCouchTransform->RotateWXYZ(gantryAngle, 0.0, 0.0, 1.0);
+
+  vtkSmartPointer<vtkTransform> sourceToGantryTransform = vtkSmartPointer<vtkTransform>::New();
+  sourceToGantryTransform->Identity();
+  sourceToGantryTransform->Translate(0.0, sourceAxisDistance, 0.0);
+
+  vtkSmartPointer<vtkTransform> rtImageToSourceTransform = vtkSmartPointer<vtkTransform>::New();
+  rtImageToSourceTransform->Identity();
+  rtImageToSourceTransform->Translate(0.0, -rtImageSid, 0.0);
+
+  vtkSmartPointer<vtkTransform> rtImageCenterToCornerTransform = vtkSmartPointer<vtkTransform>::New();
+  rtImageCenterToCornerTransform->Identity();
+  rtImageCenterToCornerTransform->Translate(-rtImagePosition[0], 0.0, rtImagePosition[1]);
+
+  // Create isocenter (~fixed) to RAS transform
+  // The transformation below is based section C.8.8 in DICOM standard volume 3:
+  // "Note: IEC document 62C/269/CDV 'Amendment to IEC 61217: Radiotherapy Equipment -
+  //  Coordinates, movements and scales' also defines a patient-based coordinate system, and
+  //  specifies the relationship between the DICOM Patient Coordinate System (see Section
+  //  C.7.6.2.1.1) and the IEC PATIENT Coordinate System. Rotating the IEC PATIENT Coordinate
+  //  System described in IEC 62C/269/CDV (1999) by 90 degrees counter-clockwise (in the negative
+  //  direction) about the x-axis yields the DICOM Patient Coordinate System, i.e. (XDICOM, YDICOM,
+  //  ZDICOM) = (XIEC, -ZIEC, YIEC). Refer to the latest IEC documentation for the current definition of the
+  //  IEC PATIENT Coordinate System."
+  // The IJK to RAS transform already contains the LPS to RAS conversion, so we only need to consider this rotation
+  vtkSmartPointer<vtkTransform> iecToLpsTransform = vtkSmartPointer<vtkTransform>::New();
+  iecToLpsTransform->Identity();
+  iecToLpsTransform->RotateX(90.0);
+
+  // Get RT image IJK to RAS matrix (containing the spacing and the LPS-RAS conversion)
+  vtkSmartPointer<vtkMatrix4x4> rtImageIjkToRtImageRasTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  rtImageVolumeNode->GetIJKToRASMatrix(rtImageIjkToRtImageRasTransformMatrix);
+  vtkSmartPointer<vtkTransform> rtImageIjkToRtImageRasTransform = vtkSmartPointer<vtkTransform>::New();
+  rtImageIjkToRtImageRasTransform->SetMatrix(rtImageIjkToRtImageRasTransformMatrix);
+
+  // Concatenate the transform components
+  vtkSmartPointer<vtkTransform> isocenterToRtImageRas = vtkSmartPointer<vtkTransform>::New();
+  isocenterToRtImageRas->Identity();
+  isocenterToRtImageRas->PreMultiply();
+  isocenterToRtImageRas->Concatenate(couchToIsocenterTransform);
+  isocenterToRtImageRas->Concatenate(gantryToCouchTransform);
+  isocenterToRtImageRas->Concatenate(sourceToGantryTransform);
+  isocenterToRtImageRas->Concatenate(rtImageToSourceTransform);
+  isocenterToRtImageRas->Concatenate(rtImageCenterToCornerTransform);
+  isocenterToRtImageRas->Concatenate(iecToLpsTransform); // LPS = IJK
+  isocenterToRtImageRas->Concatenate(rtImageIjkToRtImageRasTransformMatrix);
+
+  // Transform RT image to proper position and orientation
+  rtImageVolumeNode->SetIJKToRASMatrix(isocenterToRtImageRas->GetMatrix());
 }

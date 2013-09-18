@@ -92,6 +92,8 @@ public:
   static const std::string DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME;
+  static const std::string DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME;
+  static const std::string DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME;
 
   static const std::string DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
@@ -151,10 +153,8 @@ public:
   static const std::string BEAMS_ATTRIBUTE_PREFIX;
   static const std::string BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX;
   static const std::string BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX;
-  static const std::string BEAMS_OUTPUT_ISOCENTER_TO_SOURCE_TRANSFORM_PREFIX;
   static const std::string BEAMS_PARAMETER_SET_BASE_NAME_PREFIX;
   static const std::string BEAMS_SOURCE_FIDUCIAL_NODE_ID_ATTRIBUTE_NAME;
-  static const std::string BEAMS_ISOCENTER_TO_SOURCE_TRANSFORM_NODE_ID_ATTRIBUTE_NAME;
 
   //----------------------------------------------------------------------------
   // Utility functions

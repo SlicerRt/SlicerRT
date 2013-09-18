@@ -964,7 +964,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
         int number;
         ss >> number;
 
-        OFVector<Float64>  contourData_LPS;
+        OFVector<Float64> contourData_LPS;
         contourItem.getContourData(contourData_LPS);
 
         tempCellArray->InsertNextCell(number+1);

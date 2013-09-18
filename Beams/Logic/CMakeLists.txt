@@ -6,6 +6,7 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_LOGIC_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
+  ${vtkSlicerPatientHierarchyModuleLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -19,6 +20,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   ${ITK_LIBRARIES}
   vtkSlicerAnnotationsModuleMRML
+  vtkSlicerPatientHierarchyModuleLogic
   )
 
 #-----------------------------------------------------------------------------
