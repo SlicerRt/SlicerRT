@@ -32,8 +32,10 @@
 #include "qMRMLScenePatientHierarchyModel.h"
 #include "qMRMLSortFilterPatientHierarchyProxyModel.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
+#include "vtkPlanarImageDisplay.h"
 
 // MRML includes
+#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLHierarchyNode.h>
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
@@ -169,13 +171,22 @@ void qMRMLPatientHierarchyTreeView::showVolume(vtkMRMLNode* node)
     return;
   }
 
-  vtkMRMLVolumeNode* volumeNode = NULL;
-  if ((volumeNode = vtkMRMLVolumeNode::SafeDownCast(node)) == NULL)
+  vtkMRMLScalarVolumeNode* volumeNode = NULL;
+  if ((volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node)) == NULL)
   {
     vtkErrorWithObjectMacro(node, "ShowVolume: Attribute node is not a volume node: " << node->GetName());
     return;
   }
 
+  // Display RT image volumes in a different way (create a textured model)
+  vtkMRMLHierarchyNode* volumePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(volumeNode);
+  if (volumePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
+  {
+    vtkPlanarImageDisplay::DisplayPlanarImage(volumeNode);
+    return;
+  }
+
+  // Set input volume as background volume, set the original background to foreground with opacity of 0.5
   selectionNode->SetSecondaryVolumeID(selectionNode->GetActiveVolumeID());
   selectionNode->SetActiveVolumeID(volumeNode->GetID());
   d->Logic->GetApplicationLogic()->PropagateVolumeSelection();

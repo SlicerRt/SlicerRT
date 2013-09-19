@@ -51,7 +51,7 @@ qMRMLScenePatientHierarchyModelPrivate::qMRMLScenePatientHierarchyModelPrivate(q
   this->IsodoseLinesIcon = QIcon(":Icons/IsodoseLines.png");
   this->PatientIcon = QIcon(":Icons/Patient.png");
   this->PlanIcon = QIcon(":Icons/Plan.png");
-  this->ShowInViewersIcon = QIcon(":Icons/ShowInViewers.png");
+  this->ShowInViewersIcon = QIcon(":Icons/ShowInViewers2.png");
   this->StructureSetIcon = QIcon(":Icons/StructureSet.png");
   this->StudyIcon = QIcon(":Icons/Study.png");
   this->VolumeIcon = QIcon(":Icons/Volume.png");

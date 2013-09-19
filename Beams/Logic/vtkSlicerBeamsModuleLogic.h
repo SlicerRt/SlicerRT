@@ -32,11 +32,7 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// MRML includes
-
 // STD includes
-#include <cstdlib>
-
 #include "vtkSlicerBeamsModuleLogicExport.h"
 
 class vtkTransform;
