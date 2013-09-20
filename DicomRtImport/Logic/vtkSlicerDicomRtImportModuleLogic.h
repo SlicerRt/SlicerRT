@@ -27,13 +27,11 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// STD includes
-#include <vector>
-
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 
 class vtkSlicerVolumesLogic;
 class vtkSlicerIsodoseModuleLogic;
+class vtkSlicerPlanarImageModuleLogic;
 class vtkMRMLModelNode;
 class vtkMRMLHierarchyNode;
 class vtkMRMLAnnotationFiducialNode;
@@ -62,6 +60,9 @@ public:
 
   /// Set Isodose module logic
   void SetIsodoseLogic(vtkSlicerIsodoseModuleLogic* isodoseLogic);
+
+  /// Set Planar Image module logic
+  void SetPlanarImageLogic(vtkSlicerPlanarImageModuleLogic* planarImage);
 
 public:
   vtkSetMacro(AutoContourOpacity, bool);
@@ -126,6 +127,9 @@ private:
 
   /// Isodose logic instance
   vtkSlicerIsodoseModuleLogic* IsodoseLogic;
+
+  /// Planar Image logic instance
+  vtkSlicerPlanarImageModuleLogic* PlanarImageLogic;
 
   /// Flag indicating whether opacity values for the loaded contours are automatically determined
   bool AutoContourOpacity;

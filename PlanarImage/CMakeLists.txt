@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "DicomRtImport")
-set(MODULE_TITLE "DICOM RT Import")
+set(MODULE_NAME "PlanarImage")
+set(MODULE_TITLE "Planar Image")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
@@ -13,10 +13,7 @@ set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
-  ${vtkSlicerVolumesModuleLogic_INCLUDE_DIRS}
-  ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
-  ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
-  ${vtkSlicerPlanarImageModuleLogic_INCLUDE_DIRS}
+  ${SlicerRtCommon_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -37,28 +34,6 @@ set(MODULE_UI_SRCS
 
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
-  vtkSlicerVolumesModuleLogic
-  vtkSlicerBeamsModuleLogic
-  vtkSlicerIsodoseModuleLogic
-  vtkSlicerPlanarImageModuleLogic
-  )
-
-#-----------------------------------------------------------------------------
-# Plugin python script
-set(KIT_PYTHON_SCRIPTS
-  DicomRtImportPlugin.py
-  )
-
-set(KIT_PYTHON_RESOURCES
-  )
-
-ctkMacroCompilePythonScript(
-  TARGET_NAME SlicerDICOMPluginModules
-  SCRIPTS "${KIT_PYTHON_SCRIPTS}"
-  RESOURCES "${KIT_PYTHON_RESOURCES}"
-  DESTINATION_DIR ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}
-  INSTALL_DIR ${Slicer_INSTALL_QTSCRIPTEDMODULES_LIB_DIR}
-  NO_INSTALL_SUBDIR
   )
 
 #-----------------------------------------------------------------------------
@@ -75,6 +50,6 @@ slicerMacroBuildQtModule(
   )
 
 #-----------------------------------------------------------------------------
-if(BUILD_TESTING)
-  add_subdirectory(Testing)
-endif()
+#if(BUILD_TESTING)
+#  add_subdirectory(Testing)
+#endif()

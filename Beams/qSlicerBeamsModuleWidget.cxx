@@ -19,9 +19,6 @@
 
 ==============================================================================*/
 
-// Qt includes
-#include <QCheckBox>
-
 // SlicerQt includes
 #include "qSlicerBeamsModuleWidget.h"
 #include "ui_qSlicerBeamsModule.h"
@@ -297,7 +294,8 @@ void qSlicerBeamsModuleWidget::updateButtonsState()
 
   bool applyEnabled = d->logic()->GetBeamsNode()
                    && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetBeamsNode()->GetIsocenterFiducialNodeId())
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetBeamsNode()->GetSourceFiducialNodeId());
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetBeamsNode()->GetSourceFiducialNodeId())
+                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetBeamsNode()->GetBeamModelNodeId());
   d->pushButton_Apply->setEnabled(applyEnabled);
 
   d->label_Error->setVisible(false);

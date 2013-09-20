@@ -31,6 +31,7 @@ const char* SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME = "DicomUid
 const std::string SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX = "PatientHierarchy.";
 const std::string SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX = "_PatientHierarchy";
 const std::string SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME = "DefaultStructureSet";
+const std::string SlicerRtCommon::PATIENTHIERARCHY_EXCLUDE_FROM_POTENTIAL_NODES_LIST_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "ExcludeFromPotentialNodesList"; // Identifier
 const std::string SlicerRtCommon::PATIENTHIERARCHY_PATIENT_NAME_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "PatientName";
 const std::string SlicerRtCommon::PATIENTHIERARCHY_PATIENT_ID_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "PatientId";
 const std::string SlicerRtCommon::PATIENTHIERARCHY_PATIENT_SEX_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "PatientSex";
@@ -137,6 +138,13 @@ const std::string SlicerRtCommon::BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX = "Source_
 const std::string SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX = "BeamModel_";
 const std::string SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX = "BeamParameterSet_";
 const std::string SlicerRtCommon::BEAMS_SOURCE_FIDUCIAL_NODE_ID_ATTRIBUTE_NAME = SlicerRtCommon::BEAMS_ATTRIBUTE_PREFIX + "SourceFiducialNodeId"; // Connection
+
+// PlanarImage constants
+const std::string SlicerRtCommon::PLANARIMAGE_MODEL_NODE_NAME_PREFIX = "PlanarImageDisplayedModel_";
+const std::string SlicerRtCommon::PLANARIMAGE_TEXTURE_NODE_NAME_PREFIX = "PlanarImageDisplayedModelTexture_";
+const std::string SlicerRtCommon::PLANARIMAGE_PARAMETER_SET_BASE_NAME_PREFIX = "PlanarImageParameterSet_";
+const char* SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE = "planarImageDisplayedModel";
+const char* SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE = "planarImageTexture";
 
 //----------------------------------------------------------------------------
 // Utility functions

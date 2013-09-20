@@ -33,6 +33,7 @@
 // MRML includes
 #include <vtkMRMLDisplayableHierarchyNode.h>
 #include <vtkMRMLDisplayNode.h>
+#include <vtkMRMLModelNode.h>
 
 // Qt includes
 #include <QMimeData>
@@ -51,6 +52,7 @@ qMRMLScenePatientHierarchyModelPrivate::qMRMLScenePatientHierarchyModelPrivate(q
   this->IsodoseLinesIcon = QIcon(":Icons/IsodoseLines.png");
   this->PatientIcon = QIcon(":Icons/Patient.png");
   this->PlanIcon = QIcon(":Icons/Plan.png");
+  this->PlanarImageIcon = QIcon(":Icons/PlanarImage.png");
   this->ShowInViewersIcon = QIcon(":Icons/ShowInViewers2.png");
   this->StructureSetIcon = QIcon(":Icons/StructureSet.png");
   this->StudyIcon = QIcon(":Icons/Study.png");
@@ -211,7 +213,30 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
     // Always set a different icon to volumes. If not a volume then set the appropriate eye icon
     if (associatedNode && associatedNode->IsA("vtkMRMLVolumeNode"))
     {
-      item->setIcon(d->ShowInViewersIcon);
+      // If case of RT image show regular eye icon (because it can be shown and hidden)
+      if (hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
+      {
+        vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
+          associatedNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) );
+        if (!modelNode)
+        {
+          vtkErrorWithObjectMacro(this->mrmlScene(),"qMRMLPatientHierarchyTreeView::toggleVisibility: No displayed model found for planar image '" << associatedNode->GetName() << "'!");
+          return;
+        }
+        if (modelNode->GetDisplayVisibility())
+        {
+          item->setIcon(d->VisibleIcon);
+        }
+        else
+        {
+          item->setIcon(d->HiddenIcon);
+        }
+      }
+      else
+      {
+        // Regular volume, it can be only shown and hidden
+        item->setIcon(d->ShowInViewersIcon);
+      }
     }
     // It should be fine to set the icon even if it is the same, but due
     // to a bug in Qt (http://bugreports.qt.nokia.com/browse/QTBUG-20248),
@@ -259,6 +284,10 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
         if (SlicerRtCommon::IsDoseVolumeNode(associatedNode))
         {
           item->setIcon(d->DoseVolumeIcon);
+        }
+        else if (hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
+        {
+          item->setIcon(d->PlanarImageIcon);
         }
         else
         {

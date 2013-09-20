@@ -29,6 +29,8 @@ limitations under the License.
 #include "vtkMRMLBeamsNode.h"
 #include "vtkSlicerIsodoseModuleLogic.h"
 #include "vtkMRMLIsodoseNode.h"
+#include "vtkSlicerPlanarImageModuleLogic.h"
+#include "vtkMRMLPlanarImageNode.h"
 
 // Slicer Logic includes
 #include "vtkSlicerVolumesLogic.h"
@@ -71,12 +73,14 @@ limitations under the License.
 vtkStandardNewMacro(vtkSlicerDicomRtImportModuleLogic);
 vtkCxxSetObjectMacro(vtkSlicerDicomRtImportModuleLogic, VolumesLogic, vtkSlicerVolumesLogic);
 vtkCxxSetObjectMacro(vtkSlicerDicomRtImportModuleLogic, IsodoseLogic, vtkSlicerIsodoseModuleLogic);
+vtkCxxSetObjectMacro(vtkSlicerDicomRtImportModuleLogic, PlanarImageLogic, vtkSlicerPlanarImageModuleLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportModuleLogic::vtkSlicerDicomRtImportModuleLogic()
 {
   this->VolumesLogic = NULL;
   this->IsodoseLogic = NULL;
+  this->PlanarImageLogic = NULL;
 
   this->AutoContourOpacityOn();
   this->BeamModelsInSeparateBranchOn();
@@ -86,8 +90,9 @@ vtkSlicerDicomRtImportModuleLogic::vtkSlicerDicomRtImportModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportModuleLogic::~vtkSlicerDicomRtImportModuleLogic()
 {
-  this->SetVolumesLogic(NULL); // Release the volumes logic object
-  this->SetIsodoseLogic(NULL); // Release the isodose logic object
+  this->SetVolumesLogic(NULL);
+  this->SetIsodoseLogic(NULL);
+  this->SetPlanarImageLogic(NULL);
   this->SetDefaultDoseColorTableNodeId(NULL);
 }
 
@@ -1097,6 +1102,7 @@ vtkMRMLAnnotationFiducialNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(do
   fiducialNode->GetAnnotationPointDisplayNode()->SetColor(roiColor);
   fiducialNode->GetAnnotationTextDisplayNode()->SetColor(roiColor);
 
+  // Hide the fiducial by default
   fiducialNode->SetDisplayVisibility(0);
 
   return fiducialNode;
@@ -1516,4 +1522,34 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
 
   // Transform RT image to proper position and orientation
   rtImageVolumeNode->SetIJKToRASMatrix(isocenterToRtImageRas->GetMatrix());
+
+  // Set up outputs for the planar image display
+  vtkSmartPointer<vtkMRMLModelNode> displayedModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  this->GetMRMLScene()->AddNode(displayedModelNode);
+  std::string displayedModelNodeName = SlicerRtCommon::PLANARIMAGE_MODEL_NODE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName());
+  displayedModelNode->SetName(displayedModelNodeName.c_str());
+  displayedModelNode->HideFromEditorsOn();
+
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> textureVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  this->GetMRMLScene()->AddNode(textureVolumeNode);
+  std::string textureVolumeNodeName = SlicerRtCommon::PLANARIMAGE_TEXTURE_NODE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName());
+  textureVolumeNode->SetName(textureVolumeNodeName.c_str());
+  textureVolumeNode->HideFromEditorsOn();
+
+  // Create PlanarImage parameter set node
+  std::string planarImageParameterSetNodeName;
+  planarImageParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
+    SlicerRtCommon::PLANARIMAGE_PARAMETER_SET_BASE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName()) );
+  vtkSmartPointer<vtkMRMLPlanarImageNode> planarImageParameterSetNode = vtkSmartPointer<vtkMRMLPlanarImageNode>::New();
+  planarImageParameterSetNode->SetName(planarImageParameterSetNodeName.c_str());
+  this->GetMRMLScene()->AddNode(planarImageParameterSetNode);
+  planarImageParameterSetNode->SetNodeReferenceID(vtkMRMLPlanarImageNode::PlanarImageVolumeNodeReferenceRole, rtImageVolumeNode->GetID());
+  planarImageParameterSetNode->SetNodeReferenceID(vtkMRMLPlanarImageNode::DisplayedModelNodeReferenceRole, displayedModelNode->GetID());
+  planarImageParameterSetNode->SetNodeReferenceID(vtkMRMLPlanarImageNode::TextureVolumeNodeReferenceRole, textureVolumeNode->GetID());
+
+  // Create planar image model for the RT image
+  this->PlanarImageLogic->CreateModelForPlanarImage(planarImageParameterSetNode);
+
+  // Hide the displayed planar image model by default
+  displayedModelNode->SetDisplayVisibility(0);
 }

@@ -22,70 +22,70 @@
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
-// Beams Logic includes
-#include <vtkSlicerBeamsModuleLogic.h>
+// PlanarImage Logic includes
+#include <vtkSlicerPlanarImageModuleLogic.h>
 
-// Beams includes
-#include "qSlicerBeamsModule.h"
-#include "qSlicerBeamsModuleWidget.h"
-
-//-----------------------------------------------------------------------------
-Q_EXPORT_PLUGIN2(qSlicerBeamsModule, qSlicerBeamsModule);
+// PlanarImage includes
+#include "qSlicerPlanarImageModule.h"
+#include "qSlicerPlanarImageModuleWidget.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_Beams
-class qSlicerBeamsModulePrivate
+Q_EXPORT_PLUGIN2(qSlicerPlanarImageModule, qSlicerPlanarImageModule);
+
+//-----------------------------------------------------------------------------
+/// \ingroup Slicer_QtModules_PlanarImage
+class qSlicerPlanarImageModulePrivate
 {
 public:
-  qSlicerBeamsModulePrivate();
+  qSlicerPlanarImageModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerBeamsModulePrivate methods
+// qSlicerPlanarImageModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerBeamsModulePrivate::qSlicerBeamsModulePrivate()
+qSlicerPlanarImageModulePrivate::qSlicerPlanarImageModulePrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerBeamsModule methods
+// qSlicerPlanarImageModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerBeamsModule::qSlicerBeamsModule(QObject* _parent)
+qSlicerPlanarImageModule::qSlicerPlanarImageModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerBeamsModulePrivate)
+  , d_ptr(new qSlicerPlanarImageModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerBeamsModule::categories()const
+QStringList qSlicerPlanarImageModule::categories()const
 {
   return QStringList() << "Radiotherapy";
 }
 
 //-----------------------------------------------------------------------------
-qSlicerBeamsModule::~qSlicerBeamsModule()
+qSlicerPlanarImageModule::~qSlicerPlanarImageModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerBeamsModule::helpText()const
+QString qSlicerPlanarImageModule::helpText()const
 {
   QString help = 
-    "This module displays and handles beam geometry models created from the loaded isocenter and source fiducials. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/Beams\">%1/Documentation/%2.%3/Modules/Beams</a><br>";
+    "This module displays and handles planar images (single-slice volumes) as textured models. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/PlanarImage\">%1/Documentation/%2.%3/Modules/PlanarImage</a><br>";
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerBeamsModule::acknowledgementText()const
+QString qSlicerPlanarImageModule::acknowledgementText()const
 {
   return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerBeamsModule::contributors()const
+QStringList qSlicerPlanarImageModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Csaba Pinter (Queen's)");
@@ -93,19 +93,19 @@ QStringList qSlicerBeamsModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamsModule::setup()
+void qSlicerPlanarImageModule::setup()
 {
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerBeamsModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation * qSlicerPlanarImageModule::createWidgetRepresentation()
 {
-  return new qSlicerBeamsModuleWidget;
+  return new qSlicerPlanarImageModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerBeamsModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerPlanarImageModule::createLogic()
 {
-  return vtkSlicerBeamsModuleLogic::New();
+  return vtkSlicerPlanarImageModuleLogic::New();
 }

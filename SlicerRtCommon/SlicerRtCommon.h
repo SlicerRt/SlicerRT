@@ -50,8 +50,9 @@ public:
   static const char* PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME;
   static const char* PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME;
   static const std::string PATIENTHIERARCHY_ATTRIBUTE_PREFIX;
-  static const std::string PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME;
   static const std::string PATIENTHIERARCHY_NODE_NAME_POSTFIX;
+  static const std::string PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME;
+  static const std::string PATIENTHIERARCHY_EXCLUDE_FROM_POTENTIAL_NODES_LIST_ATTRIBUTE_NAME;
   static const std::string PATIENTHIERARCHY_PATIENT_NAME_ATTRIBUTE_NAME;
   static const std::string PATIENTHIERARCHY_PATIENT_ID_ATTRIBUTE_NAME;
   static const std::string PATIENTHIERARCHY_PATIENT_SEX_ATTRIBUTE_NAME;
@@ -157,6 +158,13 @@ public:
   static const std::string BEAMS_PARAMETER_SET_BASE_NAME_PREFIX;
   static const std::string BEAMS_SOURCE_FIDUCIAL_NODE_ID_ATTRIBUTE_NAME;
 
+  // PlanarImage constants
+  static const std::string PLANARIMAGE_MODEL_NODE_NAME_PREFIX;
+  static const std::string PLANARIMAGE_TEXTURE_NODE_NAME_PREFIX;
+  static const std::string PLANARIMAGE_PARAMETER_SET_BASE_NAME_PREFIX;
+  static const char* PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE;
+  static const char* PLANARIMAGE_TEXTURE_REFERENCE_ROLE;
+
   //----------------------------------------------------------------------------
   // Utility functions
   //----------------------------------------------------------------------------
@@ -213,7 +221,7 @@ public:
     \return Success
   */
   template<typename T> static bool ConvertVolumeNodeToItkImageInLPS(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
-//ETX
+  //ETX
 };
 
 #include "SlicerRtCommon.txx"

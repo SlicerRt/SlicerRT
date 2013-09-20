@@ -19,19 +19,19 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerBeamsModuleWidget_h
-#define __qSlicerBeamsModuleWidget_h
+#ifndef __qSlicerPlanarImageModuleWidget_h
+#define __qSlicerPlanarImageModuleWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerBeamsModuleExport.h"
+#include "qSlicerPlanarImageModuleExport.h"
 
-class qSlicerBeamsModuleWidgetPrivate;
+class qSlicerPlanarImageModuleWidgetPrivate;
 class vtkMRMLNode;
 
-/// \ingroup Slicer_QtModules_Beams
-class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModuleWidget :
+/// \ingroup Slicer_QtModules_PlanarImage
+class Q_SLICER_QTMODULES_PLANARIMAGE_EXPORT qSlicerPlanarImageModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
@@ -39,8 +39,8 @@ class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModuleWidget :
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerBeamsModuleWidget(QWidget *parent=0);
-  virtual ~qSlicerBeamsModuleWidget();
+  qSlicerPlanarImageModuleWidget(QWidget *parent=0);
+  virtual ~qSlicerPlanarImageModuleWidget();
 
   virtual void enter();
 
@@ -52,23 +52,23 @@ public slots:
   void onSceneImportedEvent();
 
   /// Set current parameter node
-  void setBeamsNode(vtkMRMLNode *node);
+  void setPlanarImageNode(vtkMRMLNode *node);
 
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
 
 protected slots:
-  void isocenterFiducialNodeChanged(vtkMRMLNode*);
-  void sourceFiducialNodeChanged(vtkMRMLNode*);
+  void planarImageVolumeNodeChanged(vtkMRMLNode*);
 
-  void beamModelNodeChanged(vtkMRMLNode*);
+  void displayedModelNodeChanged(vtkMRMLNode*);
+  void textureVolumeNodeChanged(vtkMRMLNode*);
 
   void applyClicked();
 
   void onLogicModified();
 
 protected:
-  QScopedPointer<qSlicerBeamsModuleWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerPlanarImageModuleWidgetPrivate> d_ptr;
 
 protected:
   virtual void setup();
@@ -82,8 +82,8 @@ protected:
   void refreshOutputBaseName();
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerBeamsModuleWidget);
-  Q_DISABLE_COPY(qSlicerBeamsModuleWidget);
+  Q_DECLARE_PRIVATE(qSlicerPlanarImageModuleWidget);
+  Q_DISABLE_COPY(qSlicerPlanarImageModuleWidget);
 };
 
 #endif

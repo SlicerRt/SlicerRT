@@ -32,10 +32,10 @@
 #include "qMRMLScenePatientHierarchyModel.h"
 #include "qMRMLSortFilterPatientHierarchyProxyModel.h"
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
-#include "vtkPlanarImageDisplay.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLModelNode.h>
 #include <vtkMRMLHierarchyNode.h>
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
@@ -130,8 +130,24 @@ void qMRMLPatientHierarchyTreeView::toggleVisibility(const QModelIndex& index)
 
   if (associatedNode && associatedNode->IsA("vtkMRMLVolumeNode"))
   {
-    // Showing volume node does not trigger visibility change on the possible children
-    this->showVolume(associatedNode);
+    // Show/hide is available in case of RT images. Not propagated to possible children
+    if (hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
+    {
+      vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
+        associatedNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) );
+      if (!modelNode)
+      {
+        vtkErrorWithObjectMacro(this->mrmlScene(),"qMRMLPatientHierarchyTreeView::toggleVisibility: No displayed model found for planar image '" << associatedNode->GetName() << "'!");
+        return;
+      }
+      modelNode->SetDisplayVisibility( !modelNode->GetDisplayVisibility() );
+      hierarchyNode->Modified(); // Triggers icon refresh in patient hierarchy tree
+    }
+    else
+    {
+      // Showing volume node does not trigger visibility change on the possible children
+      this->showVolume(associatedNode);
+    }
   }
   else
   {
@@ -175,14 +191,6 @@ void qMRMLPatientHierarchyTreeView::showVolume(vtkMRMLNode* node)
   if ((volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node)) == NULL)
   {
     vtkErrorWithObjectMacro(node, "ShowVolume: Attribute node is not a volume node: " << node->GetName());
-    return;
-  }
-
-  // Display RT image volumes in a different way (create a textured model)
-  vtkMRMLHierarchyNode* volumePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(volumeNode);
-  if (volumePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
-  {
-    vtkPlanarImageDisplay::DisplayPlanarImage(volumeNode);
     return;
   }
 

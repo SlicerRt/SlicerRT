@@ -11,6 +11,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerPatientHierarchyModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerPlanarImageModuleLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -23,7 +24,6 @@ set(${KIT}_SRCS
   vtkSlicerDicomRtReader.txx
   vtkTopologicalHierarchy.cxx
   vtkTopologicalHierarchy.h
- #vtkMRMLPathPlannerTrajectoryNode.cxx 
   )
 
 set(${KIT}_TARGET_LIBRARIES
@@ -36,6 +36,7 @@ set(${KIT}_TARGET_LIBRARIES
   ${DCMTK_LIBRARIES}
   vtkSlicerVolumesModuleLogic
   vtkSlicerBeamsModuleLogic
+  vtkSlicerPlanarImageModuleLogic
   vtkSlicerAnnotationsModuleMRML
   )
 

@@ -52,6 +52,7 @@ public:
   QIcon IsodoseLinesIcon;
   QIcon PatientIcon;
   QIcon PlanIcon;
+  QIcon PlanarImageIcon;
   QIcon ShowInViewersIcon;
   QIcon StructureSetIcon;
   QIcon StudyIcon;

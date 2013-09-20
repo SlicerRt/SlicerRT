@@ -25,7 +25,8 @@
 #include <vtkSlicerVolumesLogic.h>
 
 // SlicerRT includes
-#include <vtkSlicerIsodoseModuleLogic.h>
+#include "vtkSlicerIsodoseModuleLogic.h"
+#include "vtkSlicerPlanarImageModuleLogic.h"
 
 // ExtensionTemplate Logic includes
 #include <vtkSlicerDicomRtImportModuleLogic.h>
@@ -102,7 +103,7 @@ QStringList qSlicerDicomRtImportModule::categories()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerDicomRtImportModule::dependencies()const
 {
-  return QStringList() << "Volumes" << "Isodose";
+  return QStringList() << "Volumes" << "Isodose" << "PlanarImage";
 }
 
 //-----------------------------------------------------------------------------
@@ -112,6 +113,7 @@ void qSlicerDicomRtImportModule::setup()
 
   vtkSlicerDicomRtImportModuleLogic* dicomRtImportLogic = vtkSlicerDicomRtImportModuleLogic::SafeDownCast(this->logic());
 
+  // Set volumes logic to the logic
   qSlicerAbstractCoreModule* volumesModule = qSlicerCoreApplication::application()->moduleManager()->module("Volumes");
   if (volumesModule)
   {
@@ -123,6 +125,7 @@ void qSlicerDicomRtImportModule::setup()
     qCritical() << "Volumes module is not found";
   } 
 
+  // Set isodose logic to the logic
   qSlicerAbstractCoreModule* isodoseModule = qSlicerCoreApplication::application()->moduleManager()->module("Isodose");
   if (isodoseModule)
   {
@@ -132,6 +135,18 @@ void qSlicerDicomRtImportModule::setup()
   else
   {
     qCritical() << "Isodose module is not found";
+  } 
+
+  // Set planar image logic to the logic
+  qSlicerAbstractCoreModule* planarImageModule = qSlicerCoreApplication::application()->moduleManager()->module("PlanarImage");
+  if (planarImageModule)
+  {
+    vtkSlicerPlanarImageModuleLogic* planarImageLogic = vtkSlicerPlanarImageModuleLogic::SafeDownCast(planarImageModule->logic());
+    dicomRtImportLogic->SetPlanarImageLogic(planarImageLogic);
+  }
+  else
+  {
+    qCritical() << "Planar Image module is not found";
   } 
 }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerBeamsModule</class>
- <widget class="qSlicerWidget" name="qSlicerBeamsModule">
+ <class>qSlicerPlanarImageModule</class>
+ <widget class="qSlicerWidget" name="qSlicerPlanarImageModule">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Beam Visualizer</string>
+   <string>Planar Image Visualizer</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="margin">
@@ -36,7 +36,7 @@
       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
        <property name="nodeTypes">
         <stringlist>
-         <string>vtkMRMLBeamsNode</string>
+         <string>vtkMRMLPlanarImageNode</string>
         </stringlist>
        </property>
       </widget>
@@ -66,17 +66,23 @@
       </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label_3">
+        <property name="toolTip">
+         <string>Volume that contains a single slice</string>
+        </property>
         <property name="text">
-         <string>Isocenter fiducial:</string>
+         <string>Planar image:</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_IsocenterFiducial">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanarImageVolume">
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLAnnotationFiducialNode</string>
+          <string>vtkMRMLScalarVolumeNode</string>
          </stringlist>
+        </property>
+        <property name="noneEnabled">
+         <bool>true</bool>
         </property>
         <property name="addEnabled">
          <bool>false</bool>
@@ -110,12 +116,43 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_BeamModel">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Displayed model:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DisplayedModel">
         <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLModelNode</string>
          </stringlist>
+        </property>
+        <property name="showHidden">
+         <bool>true</bool>
+        </property>
+        <property name="noneEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_TextureVolume">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+        <property name="showHidden">
+         <bool>true</bool>
+        </property>
+        <property name="noneEnabled">
+         <bool>true</bool>
         </property>
         <property name="renameEnabled">
          <bool>true</bool>
@@ -125,26 +162,7 @@
       <item row="1" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Beam model:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Source fiducial:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_SourceFiducial">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLAnnotationFiducialNode</string>
-         </stringlist>
-        </property>
-        <property name="renameEnabled">
-         <bool>true</bool>
+         <string>Texture volume:</string>
         </property>
        </widget>
       </item>
@@ -283,23 +301,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>qSlicerBeamsModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_BeamModel</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>271</x>
-     <y>2</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>395</x>
-     <y>155</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerBeamsModule</sender>
+   <sender>qSlicerPlanarImageModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MRMLNodeComboBox_ParameterSet</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -315,9 +317,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerBeamsModule</sender>
+   <sender>qSlicerPlanarImageModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_IsocenterFiducial</receiver>
+   <receiver>MRMLNodeComboBox_PlanarImageVolume</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -331,9 +333,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerBeamsModule</sender>
+   <sender>qSlicerPlanarImageModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_SourceFiducial</receiver>
+   <receiver>MRMLNodeComboBox_DisplayedModel</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -343,6 +345,22 @@
     <hint type="destinationlabel">
      <x>315</x>
      <y>86</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerPlanarImageModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_TextureVolume</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>271</x>
+     <y>2</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>395</x>
+     <y>155</y>
     </hint>
    </hints>
   </connection>
