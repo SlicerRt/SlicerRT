@@ -36,6 +36,7 @@
 class vtkMRMLPlanarImageNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
+class vtkPoints;
 
 /// \ingroup Slicer_QtModules_PatientHierarchy
 class VTK_SLICER_PLANARIMAGE_LOGIC_EXPORT vtkSlicerPlanarImageModuleLogic : public vtkSlicerModuleLogic
@@ -50,6 +51,9 @@ public:
   void CreateModelForPlanarImage(vtkMRMLPlanarImageNode* planarImageNode);
 
 protected:
+  /// Compute image plane corners in the world coordinate system based on the transforms related to the planar image
+  void ComputeImagePlaneCorners(vtkMRMLScalarVolumeNode* planarImageVolume, vtkPoints* sliceCornerPoints);
+
   /// Set texture to the planar image model node according to the current display state of the volume to display.
   /// Creates the texture if does not exist, update otherwise
   void SetTextureForPlanarImage(vtkMRMLScalarVolumeNode* planarImageVolumeNode, vtkMRMLModelNode* displayedModelNode, vtkMRMLScalarVolumeNode* textureVolumeNode);

@@ -100,8 +100,8 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInH
     return NULL;
   }
 
-  vtkSmartPointer<vtkMRMLHierarchyNode> patientNode;
-  vtkSmartPointer<vtkMRMLHierarchyNode> studyNode;
+  vtkMRMLHierarchyNode* patientNode = NULL;
+  vtkMRMLHierarchyNode* studyNode = NULL;
   vtkMRMLHierarchyNode* seriesNode = NULL;
 
   std::vector<vtkMRMLNode*> patientHierarchyNodes;
@@ -126,13 +126,11 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInH
       }
       if (!STRCASECMP(patientId, nodeUID))
       {
-        patientNode = vtkSmartPointer<vtkMRMLHierarchyNode>::Take(node);
-        patientNode->Register(NULL);
+        patientNode = node;
       }
       else if (!STRCASECMP(studyInstanceUID, nodeUID))
       {
-        studyNode = vtkSmartPointer<vtkMRMLHierarchyNode>::Take(node);
-        studyNode->Register(NULL);
+        studyNode = node;
       }
       else if (!STRCASECMP(seriesInstanceUID, nodeUID))
       {
@@ -152,7 +150,9 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInH
   // Create patient and study nodes if they do not exist yet
   if (!patientNode)
   {
-    patientNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+    patientNode = vtkMRMLHierarchyNode::New();
+    scene->AddNode(patientNode);
+    patientNode->Delete(); // Return ownership to the scene only
     patientNode->AllowMultipleChildrenOn();
     patientNode->HideFromEditorsOff();
     patientNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
@@ -161,12 +161,13 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInH
       vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_PATIENT);
     patientNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
       patientId);
-    scene->AddNode(patientNode);
   }
 
   if (!studyNode)
   {
-    studyNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+    studyNode = vtkMRMLHierarchyNode::New();
+    scene->AddNode(studyNode);
+    studyNode->Delete(); // Return ownership to the scene only
     studyNode->AllowMultipleChildrenOn();
     studyNode->HideFromEditorsOff();
     studyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
@@ -176,7 +177,6 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInH
     studyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
       studyInstanceUID);
     studyNode->SetParentNodeID(patientNode->GetID());
-    scene->AddNode(studyNode);
   }
 
   seriesNode->SetParentNodeID(studyNode->GetID());

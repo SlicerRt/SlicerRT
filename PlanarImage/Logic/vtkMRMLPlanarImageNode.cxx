@@ -40,6 +40,13 @@ vtkMRMLNodeNewMacro(vtkMRMLPlanarImageNode);
 vtkMRMLPlanarImageNode::vtkMRMLPlanarImageNode()
 {
   this->HideFromEditors = false;
+
+  std::string planarImageVolumeNodeReferenceRoleAttributeName = std::string(PlanarImageVolumeNodeReferenceRole) + "Ref";
+  this->AddNodeReferenceRole(PlanarImageVolumeNodeReferenceRole, planarImageVolumeNodeReferenceRoleAttributeName.c_str());
+  std::string displayedModelNodeReferenceRoleAttributeName = std::string(DisplayedModelNodeReferenceRole) + "Ref";
+  this->AddNodeReferenceRole(DisplayedModelNodeReferenceRole, displayedModelNodeReferenceRoleAttributeName.c_str());
+  std::string textureVolumeNodeReferenceRoleAttributeName = std::string(TextureVolumeNodeReferenceRole) + "Ref";
+  this->AddNodeReferenceRole(TextureVolumeNodeReferenceRole, textureVolumeNodeReferenceRoleAttributeName.c_str());
 }
 
 //----------------------------------------------------------------------------

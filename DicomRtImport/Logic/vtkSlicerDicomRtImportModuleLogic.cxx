@@ -1467,9 +1467,13 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
   }
 
   // Assemble transform from isocenter IEC to RT image RAS
-  vtkSmartPointer<vtkTransform> couchToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();
-  couchToIsocenterTransform->Identity();
-  couchToIsocenterTransform->RotateWXYZ((-1.0)*couchAngle, 0.0, 1.0, 0.0);
+  vtkSmartPointer<vtkTransform> fixedToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();
+  fixedToIsocenterTransform->Identity();
+  //TODO: find out this transform
+
+  vtkSmartPointer<vtkTransform> couchToFixedTransform = vtkSmartPointer<vtkTransform>::New();
+  couchToFixedTransform->Identity();
+  couchToFixedTransform->RotateWXYZ((-1.0)*couchAngle, 0.0, 1.0, 0.0);
 
   vtkSmartPointer<vtkTransform> gantryToCouchTransform = vtkSmartPointer<vtkTransform>::New();
   gantryToCouchTransform->Identity();
@@ -1487,7 +1491,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
   rtImageCenterToCornerTransform->Identity();
   rtImageCenterToCornerTransform->Translate(-rtImagePosition[0], 0.0, rtImagePosition[1]);
 
-  // Create isocenter (~fixed) to RAS transform
+  // Create isocenter to RAS transform
   // The transformation below is based section C.8.8 in DICOM standard volume 3:
   // "Note: IEC document 62C/269/CDV 'Amendment to IEC 61217: Radiotherapy Equipment -
   //  Coordinates, movements and scales' also defines a patient-based coordinate system, and
@@ -1512,7 +1516,8 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
   vtkSmartPointer<vtkTransform> isocenterToRtImageRas = vtkSmartPointer<vtkTransform>::New();
   isocenterToRtImageRas->Identity();
   isocenterToRtImageRas->PreMultiply();
-  isocenterToRtImageRas->Concatenate(couchToIsocenterTransform);
+  isocenterToRtImageRas->Concatenate(fixedToIsocenterTransform);
+  isocenterToRtImageRas->Concatenate(couchToFixedTransform);
   isocenterToRtImageRas->Concatenate(gantryToCouchTransform);
   isocenterToRtImageRas->Concatenate(sourceToGantryTransform);
   isocenterToRtImageRas->Concatenate(rtImageToSourceTransform);

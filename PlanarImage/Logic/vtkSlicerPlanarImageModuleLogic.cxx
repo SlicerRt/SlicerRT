@@ -81,12 +81,13 @@ void vtkSlicerPlanarImageModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, 
   if (caller->IsA("vtkMRMLScalarVolumeNode"))
   {
     vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(caller);
-    if (event == vtkMRMLDisplayableNode::DisplayModifiedEvent)
+    // If the volume has this type of reference, then there is a texture to update
+    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
+      volumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) );
+    if (modelNode)
     {
-      // If the volume has this type of reference, then there is a texture to update
-      vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-        volumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) );
-      if (modelNode)
+      // Handle window/level changes
+      if (event == vtkMRMLDisplayableNode::DisplayModifiedEvent)
       {
         vtkMRMLScalarVolumeNode* textureNode = vtkMRMLScalarVolumeNode::SafeDownCast(
           modelNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE) );
@@ -96,12 +97,83 @@ void vtkSlicerPlanarImageModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, 
           this->SetTextureForPlanarImage(volumeNode, modelNode, textureNode);
         }
       }
-    }
-    else if (event == vtkMRMLTransformableNode::TransformModifiedEvent)
-    {
-      //TODO: update model geometry
+      // Handle transform changes
+      else if (event == vtkMRMLTransformableNode::TransformModifiedEvent)
+      {
+        // Update model geometry
+        this->ComputeImagePlaneCorners(volumeNode, modelNode->GetPolyData()->GetPoints());
+      }
     }
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerPlanarImageModuleLogic::ComputeImagePlaneCorners(vtkMRMLScalarVolumeNode* planarImageVolumeNode, vtkPoints* sliceCornerPoints)
+{
+  if (!planarImageVolumeNode || !sliceCornerPoints)
+  {
+    vtkErrorMacro("GetTextureForPlanarImage: Invalid input nodes!");
+    return;
+  }
+  vtkMRMLScene* mrmlScene = planarImageVolumeNode->GetScene();
+  if (!mrmlScene)
+  {
+    vtkErrorMacro("GetTextureForPlanarImage: Invalid MRML scene!");
+    return;
+  }
+
+  // Check if the volume to display is really a planar image
+  int dims[3] = {0, 0, 0};
+  planarImageVolumeNode->GetImageData()->GetDimensions(dims);
+  if (dims[2] > 1)
+  {
+    vtkErrorMacro("GetTextureForPlanarImage: Image to display ('" << planarImageVolumeNode->GetName() << "') is not single-slice!");
+    return;
+  }
+
+  // Assemble image plane to world transform
+  vtkSmartPointer<vtkTransform> planarImageParentTransform = vtkSmartPointer<vtkTransform>::New();
+  planarImageParentTransform->Identity();
+  if (planarImageVolumeNode->GetParentTransformNode())
+  {
+    vtkSmartPointer<vtkMatrix4x4> planarImageParentTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    planarImageVolumeNode->GetParentTransformNode()->GetMatrixTransformToWorld(planarImageParentTransformMatrix);
+    planarImageParentTransform->SetMatrix(planarImageParentTransformMatrix);
+  }
+
+  vtkSmartPointer<vtkTransform> planarImageIjkToRasTransform = vtkSmartPointer<vtkTransform>::New();
+  planarImageIjkToRasTransform->Identity();
+  planarImageVolumeNode->GetIJKToRASMatrix( planarImageIjkToRasTransform->GetMatrix() );
+
+  vtkSmartPointer<vtkTransform> planarImageIjkToWorldTransform = vtkSmartPointer<vtkTransform>::New();
+  planarImageIjkToWorldTransform->Identity();
+  planarImageIjkToWorldTransform->PostMultiply();
+  planarImageIjkToWorldTransform->Concatenate(planarImageParentTransform);
+  planarImageIjkToWorldTransform->Concatenate(planarImageIjkToRasTransform);
+  planarImageIjkToWorldTransform->Update();
+
+  // Four corners of the image in volume IJK coordinate system.
+  double point1Image[4] = { 0.0,     0.0,     0.0, 1.0 };
+  double point2Image[4] = { dims[0], 0.0,     0.0, 1.0 };
+  double point3Image[4] = { 0.0,     dims[1], 0.0, 1.0 };
+  double point4Image[4] = { dims[0], dims[1], 0.0, 1.0 };
+
+  // Compute the four corners of the image in world coordinate system.
+  double point1RAS[4] = { 0, 0, 0, 0 };
+  double point2RAS[4] = { 0, 0, 0, 0 }; 
+  double point3RAS[4] = { 0, 0, 0, 0 }; 
+  double point4RAS[4] = { 0, 0, 0, 0 };
+  planarImageIjkToWorldTransform->MultiplyPoint(point1Image, point1RAS);
+  planarImageIjkToWorldTransform->MultiplyPoint(point2Image, point2RAS);
+  planarImageIjkToWorldTransform->MultiplyPoint(point3Image, point3RAS);
+  planarImageIjkToWorldTransform->MultiplyPoint(point4Image, point4RAS);
+
+  // Set position of the model
+  sliceCornerPoints->SetPoint(0, point1RAS);
+  sliceCornerPoints->SetPoint(1, point2RAS);
+  sliceCornerPoints->SetPoint(2, point3RAS);
+  sliceCornerPoints->SetPoint(3, point4RAS);
+  sliceCornerPoints->Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -132,8 +204,14 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
   // These are needed so that the model can be loaded back with a scene
   textureVolumeNode->CopyOrientation(planarImageVolumeNode);
 
-  vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> textureVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-  mrmlScene->AddNode(textureVolumeDisplayNode);
+  vtkMRMLScalarVolumeDisplayNode* textureVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(textureVolumeNode->GetDisplayNode());
+  if (!textureVolumeDisplayNode)
+  {
+    textureVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::New();
+    mrmlScene->AddNode(textureVolumeDisplayNode);
+    textureVolumeDisplayNode->Delete(); // Return the ownership to the scene only
+    textureVolumeNode->AddAndObserveDisplayNodeID( textureVolumeDisplayNode->GetID() );   
+  }
   std::string planarImageTextureDisplayNodeName = std::string(textureVolumeNode->GetName()) + "_Display";
   textureVolumeDisplayNode->SetName(planarImageTextureDisplayNodeName.c_str());
   textureVolumeDisplayNode->SetAutoWindowLevel(0);
@@ -141,10 +219,10 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
   textureVolumeDisplayNode->SetLevel(128);
   textureVolumeDisplayNode->SetDefaultColorMap();
 
-  textureVolumeNode->AddAndObserveDisplayNodeID( textureVolumeDisplayNode->GetID() );   
-
   // Add reference from displayed model node to texture volume node
-  displayedModelNode->AddNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE, textureVolumeNode->GetID());
+  std::string textureReferenceRoleAttributeName = std::string(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE) + "Ref";
+  displayedModelNode->AddNodeReferenceRole(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE, textureReferenceRoleAttributeName.c_str());
+  displayedModelNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE, 0, textureVolumeNode->GetID());
 
   // Observe the planar image volume node so that the texture can be updated
   vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
@@ -231,8 +309,14 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
   }
 
   // Create display node for the model
-  vtkSmartPointer<vtkMRMLModelDisplayNode> displayedModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  mrmlScene->AddNode(displayedModelDisplayNode);
+  vtkMRMLModelDisplayNode* displayedModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(displayedModelNode->GetDisplayNode());
+  if (!displayedModelDisplayNode)
+  {
+    displayedModelDisplayNode = vtkMRMLModelDisplayNode::New();
+    mrmlScene->AddNode(displayedModelDisplayNode);
+    displayedModelDisplayNode->Delete(); // Return the ownership to the scene only
+    displayedModelNode->SetAndObserveDisplayNodeID(displayedModelDisplayNode->GetID());
+  }
   std::string displayedModelDisplayNodeName = std::string(displayedModelNode->GetName()) + "_Display";
   displayedModelDisplayNode->SetName(displayedModelDisplayNodeName.c_str());
   displayedModelDisplayNode->SetOpacity(1.0);
@@ -240,60 +324,18 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
   displayedModelDisplayNode->SetAmbient(1.0);
   displayedModelDisplayNode->SetBackfaceCulling(0);
   displayedModelDisplayNode->SetDiffuse(0.0);
-  displayedModelDisplayNode->SetSaveWithScene(0);
-
-  displayedModelNode->SetAndObserveDisplayNodeID(displayedModelDisplayNode->GetID());
 
   // Add reference from the planar image to the model
-  planarImageVolume->AddNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE, displayedModelNode->GetID());
+  std::string displayedModelReferenceRoleAttributeName = std::string(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) + "Ref";
+  planarImageVolume->AddNodeReferenceRole(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE, displayedModelReferenceRoleAttributeName.c_str());
+  planarImageVolume->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE, 0, displayedModelNode->GetID());
 
   // Create plane
   vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
   displayedModelNode->SetAndObservePolyData(plane->GetOutput());
 
-  // Assemble image plane to world transform
-  vtkSmartPointer<vtkTransform> volumeToDisplayParentTransform = vtkSmartPointer<vtkTransform>::New();
-  volumeToDisplayParentTransform->Identity();
-  if (planarImageVolume->GetParentTransformNode())
-  {
-    vtkSmartPointer<vtkMatrix4x4> volumeToDisplayParentTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    planarImageVolume->GetParentTransformNode()->GetMatrixTransformToWorld(volumeToDisplayParentTransformMatrix);
-    volumeToDisplayParentTransform->SetMatrix(volumeToDisplayParentTransformMatrix);
-  }
-
-  vtkSmartPointer<vtkTransform> volumeToDisplayIjkToRasTransform = vtkSmartPointer<vtkTransform>::New();
-  volumeToDisplayIjkToRasTransform->Identity();
-  planarImageVolume->GetIJKToRASMatrix( volumeToDisplayIjkToRasTransform->GetMatrix() );
-
-  vtkSmartPointer<vtkTransform> volumeToDisplayIjkToWorldTransform = vtkSmartPointer<vtkTransform>::New();
-  volumeToDisplayIjkToWorldTransform->Identity();
-  volumeToDisplayIjkToWorldTransform->PostMultiply();
-  volumeToDisplayIjkToWorldTransform->Concatenate(volumeToDisplayParentTransform);
-  volumeToDisplayIjkToWorldTransform->Concatenate(volumeToDisplayIjkToRasTransform);
-  volumeToDisplayIjkToWorldTransform->Update();
-
-  // Four corners of the image in volume IJK coordinate system.
-  double point1Image[4] = { 0.0,     0.0,     0.0, 1.0 };
-  double point2Image[4] = { dims[0], 0.0,     0.0, 1.0 };
-  double point3Image[4] = { 0.0,     dims[1], 0.0, 1.0 };
-  double point4Image[4] = { dims[0], dims[1], 0.0, 1.0 };
-
-  // Compute the four corners of the image in world coordinate system.
-  double point1RAS[4] = { 0, 0, 0, 0 };
-  double point2RAS[4] = { 0, 0, 0, 0 }; 
-  double point3RAS[4] = { 0, 0, 0, 0 }; 
-  double point4RAS[4] = { 0, 0, 0, 0 };
-  volumeToDisplayIjkToWorldTransform->MultiplyPoint(point1Image, point1RAS);
-  volumeToDisplayIjkToWorldTransform->MultiplyPoint(point2Image, point2RAS);
-  volumeToDisplayIjkToWorldTransform->MultiplyPoint(point3Image, point3RAS);
-  volumeToDisplayIjkToWorldTransform->MultiplyPoint(point4Image, point4RAS);
-
-  // Set position of the model
-  vtkPoints* slicePoints = displayedModelNode->GetPolyData()->GetPoints();
-  slicePoints->SetPoint(0, point1RAS);
-  slicePoints->SetPoint(1, point2RAS);
-  slicePoints->SetPoint(2, point3RAS);
-  slicePoints->SetPoint(3, point4RAS);
+  // Compute the image plane corners in world coordinate system
+  this->ComputeImagePlaneCorners(planarImageVolume, displayedModelNode->GetPolyData()->GetPoints());
 
   // Create and set image texture
   this->SetTextureForPlanarImage(planarImageVolume, displayedModelNode, textureVolume);
