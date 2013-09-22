@@ -41,11 +41,11 @@ vtkMRMLPlanarImageNode::vtkMRMLPlanarImageNode()
 {
   this->HideFromEditors = false;
 
-  std::string planarImageVolumeNodeReferenceRoleAttributeName = std::string(PlanarImageVolumeNodeReferenceRole) + "Ref";
+  std::string planarImageVolumeNodeReferenceRoleAttributeName = std::string(PlanarImageVolumeNodeReferenceRole) + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
   this->AddNodeReferenceRole(PlanarImageVolumeNodeReferenceRole, planarImageVolumeNodeReferenceRoleAttributeName.c_str());
-  std::string displayedModelNodeReferenceRoleAttributeName = std::string(DisplayedModelNodeReferenceRole) + "Ref";
+  std::string displayedModelNodeReferenceRoleAttributeName = std::string(DisplayedModelNodeReferenceRole) + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
   this->AddNodeReferenceRole(DisplayedModelNodeReferenceRole, displayedModelNodeReferenceRoleAttributeName.c_str());
-  std::string textureVolumeNodeReferenceRoleAttributeName = std::string(TextureVolumeNodeReferenceRole) + "Ref";
+  std::string textureVolumeNodeReferenceRoleAttributeName = std::string(TextureVolumeNodeReferenceRole) + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
   this->AddNodeReferenceRole(TextureVolumeNodeReferenceRole, textureVolumeNodeReferenceRoleAttributeName.c_str());
 }
 

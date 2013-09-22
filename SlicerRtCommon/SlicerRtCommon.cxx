@@ -22,6 +22,7 @@
 
 // SlicerRT constants
 const char* SlicerRtCommon::SLICERRT_EXTENSION_NAME = "SlicerRT";
+const std::string SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX = "Ref";
 
 // Patient hierarchy constants (the python scripts use the raw strings, those need to be updated when these are changed!)
 const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME = "HierarchyType";

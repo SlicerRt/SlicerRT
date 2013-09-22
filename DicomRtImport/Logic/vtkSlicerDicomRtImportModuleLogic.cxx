@@ -1533,13 +1533,13 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
   this->GetMRMLScene()->AddNode(displayedModelNode);
   std::string displayedModelNodeName = SlicerRtCommon::PLANARIMAGE_MODEL_NODE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName());
   displayedModelNode->SetName(displayedModelNodeName.c_str());
-  displayedModelNode->HideFromEditorsOn();
+  displayedModelNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_EXCLUDE_FROM_POTENTIAL_NODES_LIST_ATTRIBUTE_NAME.c_str(), "1");
 
   vtkSmartPointer<vtkMRMLScalarVolumeNode> textureVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   this->GetMRMLScene()->AddNode(textureVolumeNode);
   std::string textureVolumeNodeName = SlicerRtCommon::PLANARIMAGE_TEXTURE_NODE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName());
   textureVolumeNode->SetName(textureVolumeNodeName.c_str());
-  textureVolumeNode->HideFromEditorsOn();
+  textureVolumeNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_EXCLUDE_FROM_POTENTIAL_NODES_LIST_ATTRIBUTE_NAME.c_str(), "1");
 
   // Create PlanarImage parameter set node
   std::string planarImageParameterSetNodeName;

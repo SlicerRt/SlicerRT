@@ -43,6 +43,7 @@ public:
 
   // SlicerRT constants
   static const char* SLICERRT_EXTENSION_NAME;
+  static const std::string SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
 
   // Patient hierarchy constants
   static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME;

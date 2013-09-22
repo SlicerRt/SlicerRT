@@ -44,9 +44,6 @@
 #include <vtkConeSource.h>
 #include <vtkTransformPolyDataFilter.h>
 
-// STD includes
-#include <cassert>
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerBeamsModuleLogic);
 
@@ -100,7 +97,10 @@ void vtkSlicerBeamsModuleLogic::RegisterNodes()
 //---------------------------------------------------------------------------
 void vtkSlicerBeamsModuleLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    return;
+  }
 
   this->Modified();
 }

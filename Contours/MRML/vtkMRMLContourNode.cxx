@@ -1095,8 +1095,9 @@ bool vtkMRMLContourNode::HasBeenCreatedFromIndexedLabelmap()
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLContourNode::UpdateRepresenations()
+void vtkMRMLContourNode::UpdateRepresentations()
 {
+  // TODO: Add event observers
   this->SetAndObserveRibbonModelNodeId(this->RibbonModelNodeId);
   this->SetAndObserveIndexedLabelmapVolumeNodeId(this->IndexedLabelmapVolumeNodeId);
   this->SetAndObserveClosedSurfaceModelNodeId(this->ClosedSurfaceModelNodeId);

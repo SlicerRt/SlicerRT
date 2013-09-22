@@ -62,6 +62,10 @@ protected:
   vtkSlicerPlanarImageModuleLogic();
   virtual ~vtkSlicerPlanarImageModuleLogic();
 
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
+  virtual void RegisterNodes();
+  virtual void OnMRMLSceneEndImport();
+
   /// Update texture if display properties change in an observed planar image volume node
   virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
 

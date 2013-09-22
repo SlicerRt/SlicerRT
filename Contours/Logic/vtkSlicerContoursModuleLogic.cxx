@@ -156,7 +156,7 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
     vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(nextObject);
     if (contourNode)
     {
-      contourNode->UpdateRepresenations();
+      contourNode->UpdateRepresentations();
     }
   }
   

@@ -61,6 +61,25 @@ void vtkSlicerPlanarImageModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
+//---------------------------------------------------------------------------
+void vtkSlicerPlanarImageModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+{
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
+  this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerPlanarImageModuleLogic::RegisterNodes()
+{
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    return;
+  }
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLPlanarImageNode>::New());
+}
+
 //----------------------------------------------------------------------------
 void vtkSlicerPlanarImageModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData)
 {
@@ -102,6 +121,37 @@ void vtkSlicerPlanarImageModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, 
       {
         // Update model geometry
         this->ComputeImagePlaneCorners(volumeNode, modelNode->GetPolyData()->GetPoints());
+      }
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPlanarImageModuleLogic::OnMRMLSceneEndImport()
+{
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndImport: Invalid MRML scene!");
+    return;
+  }
+
+  vtkObject* nextObject = NULL;
+  vtkSmartPointer<vtkCollection> modelNodes = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLModelNode") );
+  for (modelNodes->InitTraversal(); (nextObject = modelNodes->GetNextItemAsObject()); )
+  {
+    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(nextObject);
+    if (modelNode)
+    {
+      // Apply the texture if it has a reference to it
+      // TODO: This should work like this (#411):
+      //vtkMRMLScalarVolumeNode* textureNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+      //  modelNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE) );
+      std::string textureReferenceRoleAttributeName = std::string(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE) + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+      vtkMRMLScalarVolumeNode* textureNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+        this->GetMRMLScene()->GetNodeByID( modelNode->GetAttribute(textureReferenceRoleAttributeName.c_str()) ) );
+      if (textureNode)
+      {
+        modelNode->GetModelDisplayNode()->SetAndObserveTextureImageData(textureNode->GetImageData());
       }
     }
   }
@@ -220,9 +270,11 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
   textureVolumeDisplayNode->SetDefaultColorMap();
 
   // Add reference from displayed model node to texture volume node
-  std::string textureReferenceRoleAttributeName = std::string(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE) + "Ref";
+  std::string textureReferenceRoleAttributeName = std::string(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE) + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
   displayedModelNode->AddNodeReferenceRole(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE, textureReferenceRoleAttributeName.c_str());
   displayedModelNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE, 0, textureVolumeNode->GetID());
+  //TODO: Remove this when loading custom reference roles becomes possible (#411)
+  displayedModelNode->SetAttribute(textureReferenceRoleAttributeName.c_str(), textureVolumeNode->GetID());
 
   // Observe the planar image volume node so that the texture can be updated
   vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
@@ -326,9 +378,11 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
   displayedModelDisplayNode->SetDiffuse(0.0);
 
   // Add reference from the planar image to the model
-  std::string displayedModelReferenceRoleAttributeName = std::string(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) + "Ref";
+  std::string displayedModelReferenceRoleAttributeName = std::string(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
   planarImageVolume->AddNodeReferenceRole(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE, displayedModelReferenceRoleAttributeName.c_str());
   planarImageVolume->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE, 0, displayedModelNode->GetID());
+  //TODO: Remove this when loading custom reference roles becomes possible (#411)
+  planarImageVolume->SetAttribute(displayedModelReferenceRoleAttributeName.c_str(), displayedModelNode->GetID());
 
   // Create plane
   vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();

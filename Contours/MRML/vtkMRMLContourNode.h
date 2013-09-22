@@ -107,7 +107,7 @@ public:
   const char* GetStructureName();
 
   /// Update representation objects: observe nodes, update pointers
-  void UpdateRepresenations();
+  void UpdateRepresentations();
 
   /*!
     Get the color table and color index for the contour
