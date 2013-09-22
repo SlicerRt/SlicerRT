@@ -216,12 +216,8 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       // If case of RT image show regular eye icon (because it can be shown and hidden)
       if (hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
       {
-        // TODO: This should work like this (#411):
-        //vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-        //  associatedNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) );
-        std::string displayedModelReferenceRoleAttributeName = std::string(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
         vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-          this->mrmlScene()->GetNodeByID( associatedNode->GetAttribute(displayedModelReferenceRoleAttributeName.c_str()) ) );
+          associatedNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) );
         if (!modelNode)
         {
           vtkErrorWithObjectMacro(this->mrmlScene(),"qMRMLPatientHierarchyTreeView::toggleVisibility: No displayed model found for planar image '" << associatedNode->GetName() << "'!");

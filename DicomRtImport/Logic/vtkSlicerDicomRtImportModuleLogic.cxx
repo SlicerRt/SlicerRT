@@ -1466,10 +1466,14 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
     ss >> couchAngle;
   }
 
+  // Get isocenter coordinates
+  double isocenterWorldCoordinates[3] = {0.0, 0.0, 0.0};
+  isocenterNode->GetFiducialCoordinates(isocenterWorldCoordinates);
+
   // Assemble transform from isocenter IEC to RT image RAS
   vtkSmartPointer<vtkTransform> fixedToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();
   fixedToIsocenterTransform->Identity();
-  //TODO: find out this transform
+  fixedToIsocenterTransform->Translate(isocenterWorldCoordinates);
 
   vtkSmartPointer<vtkTransform> couchToFixedTransform = vtkSmartPointer<vtkTransform>::New();
   couchToFixedTransform->Identity();

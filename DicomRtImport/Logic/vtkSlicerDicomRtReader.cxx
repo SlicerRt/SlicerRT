@@ -149,10 +149,7 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->ReferencedRTPlanSOPInstanceUID = NULL;
   this->ReferencedBeamNumber = -1;
   this->SetRTImagePosition(0.0,0.0);
-  this->RadiationMachineSAD = 0.0;
-  this->RadiationMachineSSD = 0.0;
   this->RTImageSID = 0.0;
-  this->SourceToReferenceObjectDistance = 0.0;
   this->WindowCenter = 0.0;
   this->WindowWidth = 0.0;
 
@@ -449,14 +446,14 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   Float64 radiationMachineSAD = 0.0;
   if (rtImageObject.getRadiationMachineSAD(radiationMachineSAD).good())
   {
-    this->SetRadiationMachineSAD(radiationMachineSAD);
+    //this->SetRadiationMachineSAD(radiationMachineSAD);
   }
 
   // RadiationMachineSSD
   Float64 radiationMachineSSD = 0.0;
   if (rtImageObject.getRadiationMachineSSD(radiationMachineSSD).good())
   {
-    this->SetRadiationMachineSSD(radiationMachineSSD);
+    //this->SetRadiationMachineSSD(radiationMachineSSD);
   }
 
   // RTImageSID
@@ -470,7 +467,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   Float64 sourceToReferenceObjectDistance = 0.0;
   if (rtImageObject.getSourceToReferenceObjectDistance(sourceToReferenceObjectDistance).good())
   {
-    this->SetSourceToReferenceObjectDistance(sourceToReferenceObjectDistance);
+    //this->SetSourceToReferenceObjectDistance(sourceToReferenceObjectDistance);
   }
 
   // WindowCenter

@@ -162,25 +162,10 @@ public:
   /// Set RT image position
   vtkSetVector2Macro(RTImagePosition, double);
 
-  /// Get radiation machine SAD
-  vtkGetMacro(RadiationMachineSAD, double);
-  /// Set radiation machine SAD
-  vtkSetMacro(RadiationMachineSAD, double);
-
-  /// Get radiation machine SSD
-  vtkGetMacro(RadiationMachineSSD, double);
-  /// Set radiation machine SSD
-  vtkSetMacro(RadiationMachineSSD, double);
-
   /// Get RT Image SID
   vtkGetMacro(RTImageSID, double);
   /// Set RT Image SID
   vtkSetMacro(RTImageSID, double);
-
-  /// Get source to reference object distance
-  vtkGetMacro(SourceToReferenceObjectDistance, double);
-  /// Set source to reference object distance
-  vtkSetMacro(SourceToReferenceObjectDistance, double);
 
   /// Get window center
   vtkGetMacro(WindowCenter, double);
@@ -398,17 +383,8 @@ protected:
   /// RT image position (center of the upper left hand corner of an RT image)
   double RTImagePosition[2];
 
-  /// Radiation machine SAD (Radiation source to Gantry rotation axis distance of radiation machine used in acquiring or computing image (mm))
-  double RadiationMachineSAD;
-
-  /// Radiation machine SSD (Source to patient surface distance (in mm) of radiation machine used in acquiring or computing image)
-  double RadiationMachineSSD;
-
   /// RT Image SID (Distance from radiation machine source to image plane (in mm) along radiation beam axis)
   double RTImageSID;
-
-  /// Source to reference object distance
-  double SourceToReferenceObjectDistance;
 
   /// Center of window for an RT Image
   double WindowCenter;
