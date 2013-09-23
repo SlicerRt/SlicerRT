@@ -92,7 +92,10 @@ public:
   const char* GetRoiReferencedSeriesUid(unsigned int internalIndex);
 
   /// Get number of beams
-  int GetNumberOfBeams();  
+  int GetNumberOfBeams();
+
+  /// Get beam number (as defined in DICOM) for a beam index (that is between 0 and numberOfBeams-1)
+  unsigned int GetBeamNumberForIndex(unsigned int index);
 
   /// Get name of beam
   const char* GetBeamName(unsigned int beamNumber);
@@ -161,6 +164,26 @@ public:
   vtkGetVector2Macro(RTImagePosition, double);
   /// Set RT image position
   vtkSetVector2Macro(RTImagePosition, double);
+
+  /// Get gantry angle
+  vtkGetMacro(GantryAngle, double);
+  /// Set gantry angle
+  vtkSetMacro(GantryAngle, double);
+
+  /// Get beam limiting device (collimator) angle
+  vtkGetMacro(BeamLimitingDeviceAngle, double);
+  /// Set beam limiting device (collimator) angle
+  vtkSetMacro(BeamLimitingDeviceAngle, double);
+
+  /// Get patient support angle
+  vtkGetMacro(PatientSupportAngle, double);
+  /// Set patient support angle
+  vtkSetMacro(PatientSupportAngle, double);
+
+  /// Get radiation machine SAD
+  vtkGetMacro(RadiationMachineSAD, double);
+  /// Set radiation machine SAD
+  vtkSetMacro(RadiationMachineSAD, double);
 
   /// Get RT Image SID
   vtkGetMacro(RTImageSID, double);
@@ -382,6 +405,18 @@ protected:
 
   /// RT image position (center of the upper left hand corner of an RT image)
   double RTImagePosition[2];
+
+  /// Gantry angle of an RT Image
+  double GantryAngle;
+
+  /// Beam limiting device (collimator) angle for an RT Image
+  double BeamLimitingDeviceAngle;
+
+  /// Patient support (bed) angle for an RT Image
+  double PatientSupportAngle;
+
+  /// Radiation machine SAD (Radiation source to Gantry rotation axis distance of radiation machine used in acquiring or computing image (mm))
+  double RadiationMachineSAD;
 
   /// RT Image SID (Distance from radiation machine source to image plane (in mm) along radiation beam axis)
   double RTImageSID;

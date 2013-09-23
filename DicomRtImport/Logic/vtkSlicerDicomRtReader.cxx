@@ -338,7 +338,8 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   }
   else if (rtReferencedRtPlanSequenceObject.getNumberOfItems() == 1)
   {
-    vtkErrorMacro("LoadRTImage: Unable to get referenced beam number in referenced RT Plan for RT image!");
+    // Type 3
+    vtkDebugMacro("LoadRTImage: Unable to get referenced beam number in referenced RT Plan for RT image!");
   }
 
   // XRayImageReceptorTranslation
@@ -396,7 +397,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
     }
     else
     {
-      vtkErrorMacro("LoadRTImage: RTImagePosition tag should contain a vector of 2 elements (it has " << rtImagePosition.size() << "!");
+      vtkErrorMacro("LoadRTImage: RTImagePosition tag should contain a vector of 2 elements (it has " << rtImagePosition.size() << ")!");
     }
   }
 
@@ -414,7 +415,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   Float64 gantryAngle = 0.0;
   if (rtImageObject.getGantryAngle(gantryAngle).good())
   {
-    //this->SetGantryAngle(gantryAngle);
+    this->SetGantryAngle(gantryAngle);
   }
 
   // GantryPitchAngle
@@ -432,21 +433,21 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   Float64 beamLimitingDeviceAngle = 0.0;
   if (rtImageObject.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle).good())
   {
-    //this->SetBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
+    this->SetBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
   }
 
   // PatientSupportAngle
   Float64 patientSupportAngle = 0.0;
   if (rtImageObject.getPatientSupportAngle(patientSupportAngle).good())
   {
-    //this->SetPatientSupportAngle(patientSupportAngle);
+    this->SetPatientSupportAngle(patientSupportAngle);
   }
 
   // RadiationMachineSAD
   Float64 radiationMachineSAD = 0.0;
   if (rtImageObject.getRadiationMachineSAD(radiationMachineSAD).good())
   {
-    //this->SetRadiationMachineSAD(radiationMachineSAD);
+    this->SetRadiationMachineSAD(radiationMachineSAD);
   }
 
   // RadiationMachineSSD
@@ -1131,6 +1132,12 @@ const char* vtkSlicerDicomRtReader::GetRoiReferencedSeriesUid(unsigned int inter
 int vtkSlicerDicomRtReader::GetNumberOfBeams()
 {
   return this->BeamSequenceVector.size();
+}
+
+//----------------------------------------------------------------------------
+unsigned int vtkSlicerDicomRtReader::GetBeamNumberForIndex(unsigned int index)
+{
+  return this->BeamSequenceVector[index].Number;
 }
 
 //----------------------------------------------------------------------------

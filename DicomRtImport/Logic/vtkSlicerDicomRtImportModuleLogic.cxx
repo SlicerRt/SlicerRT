@@ -769,11 +769,13 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
 
   vtkMRMLAnnotationFiducialNode* addedFiducialNode = NULL;
   int numberOfBeams = rtReader->GetNumberOfBeams();
-  for (int dicomBeamIndex = 1; dicomBeamIndex < numberOfBeams+1; dicomBeamIndex++) // DICOM starts indexing from 1
+  for (int beamIndex = 0; beamIndex < numberOfBeams; beamIndex++) // DICOM starts indexing from 1
   {
+    unsigned int dicomBeamNumber = rtReader->GetBeamNumberForIndex(beamIndex);
+
     // Isocenter fiducial
     double isoColor[3] = { 1.0, 1.0, 1.0 };
-    addedFiducialNode = this->AddRoiPoint(rtReader->GetBeamIsocenterPositionRas(dicomBeamIndex), rtReader->GetBeamName(dicomBeamIndex), isoColor);
+    addedFiducialNode = this->AddRoiPoint(rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber), rtReader->GetBeamName(dicomBeamNumber), isoColor);
 
     // Add new node to the hierarchy node
     if (addedFiducialNode)
@@ -861,11 +863,11 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       vtkMRMLAnnotationHierarchyNode* isocenterHierarchyNode =
         vtkMRMLAnnotationHierarchyNode::SafeDownCast( vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->GetMRMLScene(), addedFiducialNode->GetID()) );
       isocenterHierarchyNode->SetParentNodeID( isocenterSeriesHierarchyRootNode->GetID() );
-      isocenterHierarchyNode->SetIndexInParent(dicomBeamIndex-1);
+      isocenterHierarchyNode->SetIndexInParent(beamIndex);
 
       // Create patient hierarchy entry for the isocenter fiducial
       vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> patientHierarchyFiducialNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
-      std::string phFiducialNodeName(rtReader->GetBeamName(dicomBeamIndex));
+      std::string phFiducialNodeName(rtReader->GetBeamName(dicomBeamNumber));
       phFiducialNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
       patientHierarchyFiducialNode->SetName(phFiducialNodeName.c_str());
       patientHierarchyFiducialNode->HideFromEditorsOff();
@@ -874,37 +876,42 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
       patientHierarchyFiducialNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
         vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+
+      // Set beam related attributes
       std::stringstream beamNumberStream;
-      beamNumberStream << dicomBeamIndex;
+      beamNumberStream << dicomBeamNumber;
       patientHierarchyFiducialNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str(),
         beamNumberStream.str().c_str());
       patientHierarchyFiducialNode->SetParentNodeID(isocenterSeriesHierarchyRootNode->GetID());
       this->GetMRMLScene()->AddNode(patientHierarchyFiducialNode);
 
       // Add attributes containing beam information to the isocenter fiducial node
-      // TODO: Add these in the PatientHierarchy node when available
       std::stringstream sourceAxisDistanceStream;
-      sourceAxisDistanceStream << rtReader->GetBeamSourceAxisDistance(dicomBeamIndex);
-      addedFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str(),
+      sourceAxisDistanceStream << rtReader->GetBeamSourceAxisDistance(dicomBeamNumber);
+      patientHierarchyFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str(),
         sourceAxisDistanceStream.str().c_str() );
+
       std::stringstream gantryAngleStream;
-      gantryAngleStream << rtReader->GetBeamGantryAngle(dicomBeamIndex);
-      addedFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str(),
+      gantryAngleStream << rtReader->GetBeamGantryAngle(dicomBeamNumber);
+      patientHierarchyFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str(),
         gantryAngleStream.str().c_str() );
+
       std::stringstream couchAngleStream;
-      couchAngleStream << rtReader->GetBeamPatientSupportAngle(dicomBeamIndex);
-      addedFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COUCH_ANGLE_ATTRIBUTE_NAME.c_str(),
+      couchAngleStream << rtReader->GetBeamPatientSupportAngle(dicomBeamNumber);
+      patientHierarchyFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str(),
         couchAngleStream.str().c_str() );
+
       std::stringstream collimatorAngleStream;
-      collimatorAngleStream << rtReader->GetBeamBeamLimitingDeviceAngle(dicomBeamIndex);
-      addedFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
+      collimatorAngleStream << rtReader->GetBeamBeamLimitingDeviceAngle(dicomBeamNumber);
+      patientHierarchyFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
         collimatorAngleStream.str().c_str() );
+
       std::stringstream jawPositionsStream;
       double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};
-      rtReader->GetBeamLeafJawPositions(dicomBeamIndex, jawPositions);
+      rtReader->GetBeamLeafJawPositions(dicomBeamNumber, jawPositions);
       jawPositionsStream << jawPositions[0][0] << " " << jawPositions[0][1] << " "
         << jawPositions[1][0] << " " << jawPositions[1][1];
-      addedFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str(),
+      patientHierarchyFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str(),
         jawPositionsStream.str().c_str() );
 
       // Create source fiducial node
@@ -919,7 +926,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       vtkMRMLAnnotationHierarchyNode* sourceHierarchyNode =
         vtkMRMLAnnotationHierarchyNode::SafeDownCast( vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->GetMRMLScene(), sourceFiducialNode->GetID()) );
       sourceHierarchyNode->SetParentNodeID( sourceHierarchyRootNode->GetID() );
-      sourceHierarchyNode->SetIndexInParent(dicomBeamIndex-1);
+      sourceHierarchyNode->SetIndexInParent(beamIndex);
 
       // Create beam model node and add it to the scene
       std::string beamModelName;
@@ -970,7 +977,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         beamModelHierarchyNode->SetParentNodeID(patientHierarchyFiducialNode->GetID());
       }
       this->GetMRMLScene()->AddNode(beamModelHierarchyNode);
-      beamModelHierarchyNode->SetIndexInParent(dicomBeamIndex-1);
+      beamModelHierarchyNode->SetIndexInParent(beamIndex);
 
       // Compute and set geometry of possible RT image that references the loaded beam.
       // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
@@ -1057,23 +1064,49 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtRe
     vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
   patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
     rtReader->GetSeriesInstanceUid());
+
+  // Set RT image specific attributes
   patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
   patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str(),
     rtReader->GetReferencedRTPlanSOPInstanceUID());
+
+  std::stringstream radiationMachineSadStream;
+  radiationMachineSadStream << rtReader->GetRadiationMachineSAD();
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str(),
+    radiationMachineSadStream.str().c_str());
+
+  std::stringstream gantryAngleStream;
+  gantryAngleStream << rtReader->GetGantryAngle();
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str(),
+    gantryAngleStream.str().c_str());
+
+  std::stringstream couchAngleStream;
+  couchAngleStream << rtReader->GetPatientSupportAngle();
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str(),
+    couchAngleStream.str().c_str());
+
+  std::stringstream collimatorAngleStream;
+  collimatorAngleStream << rtReader->GetBeamLimitingDeviceAngle();
+  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
+    collimatorAngleStream.str().c_str());
+
   std::stringstream referencedBeamNumberStream;
   referencedBeamNumberStream << rtReader->GetReferencedBeamNumber();
   patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str(),
     referencedBeamNumberStream.str().c_str());
+
   std::stringstream rtImageSidStream;
   rtImageSidStream << rtReader->GetRTImageSID();
   patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME.c_str(),
     rtImageSidStream.str().c_str());
+
   std::stringstream rtImagePositionStream;
   double rtImagePosition[2] = {0.0, 0.0};
   rtReader->GetRTImagePosition(rtImagePosition);
   rtImagePositionStream << rtImagePosition[0] << " " << rtImagePosition[1];
   patientHierarchySeriesNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME.c_str(),
     rtImagePositionStream.str().c_str() );
+
   patientHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
   this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
 
@@ -1293,15 +1326,17 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
   vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(node);
   vtkMRMLHierarchyNode* isocenterPatientHierarchyNode = NULL;
 
+  // If the function is called from the LoadRtImage function with an RT image volume
   if (rtImageVolumeNode)
   {
-    // Get patient hierarchy node for RT images
+    // Get patient hierarchy node for RT image
     rtImagePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(rtImageVolumeNode);
     if (!rtImagePatientHierarchyNode)
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid patient hierarchy node for RT image '" << rtImageVolumeNode->GetName() << "'!");
       return;
     }
+
     // Find referenced RT plan node
     const char* referencedPlanSopInstanceUid = rtImagePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
     if (!referencedPlanSopInstanceUid)
@@ -1331,30 +1366,38 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
       return;
     }
 
-    // Get referenced beam number (string)
-    const char* referencedBeamNumberChars = rtImagePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
-    if (!referencedBeamNumberChars)
-    {
-      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve referenced beam number for RT image '" << rtImageVolumeNode->GetName() << "'!");
-      return;
-    }
+    // Get isocenters contained by the plan
+    std::vector<vtkMRMLHierarchyNode*> isocenterPatientHierarchyNodes = rtPlanPatientHierarchyNode->GetChildrenNodes();
 
     // Get isocenter according to referenced beam number
-    std::vector<vtkMRMLHierarchyNode*> isocenterPatientHierarchyNodes = rtPlanPatientHierarchyNode->GetChildrenNodes();
-    for (std::vector<vtkMRMLHierarchyNode*>::iterator isocenterPhIt = isocenterPatientHierarchyNodes.begin(); isocenterPhIt != isocenterPatientHierarchyNodes.end(); ++isocenterPhIt)
+    if (isocenterPatientHierarchyNodes.size() == 2) //TODO: #385: Number of children nodes will be 1 when utilizing markups (right now every isocenter has an annotation and a PH child)
     {
-      const char* isocenterBeamNumberChars = (*isocenterPhIt)->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
-      if (!isocenterBeamNumberChars)
+      // If there is only one beam in the plan, then we don't need to search in the list
+      isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast((*(isocenterPatientHierarchyNodes.begin()))->GetAssociatedNode());
+      isocenterPatientHierarchyNode = (*(isocenterPatientHierarchyNodes.begin()));
+    }
+    else
+    {
+      // Get referenced beam number (string)
+      const char* referencedBeamNumberChars = rtImagePatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+      if (referencedBeamNumberChars)
       {
-        // Plan series patient hierarchy node has two hierarchy nodes for each annotation: an annotation hierarchy node and the PH node
-        // TODO: review when utilizing the Markups module instead of Annotations (#385) 
-        continue;
-      }
-      if (!STRCASECMP(isocenterBeamNumberChars, referencedBeamNumberChars))
-      {
-        isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast((*isocenterPhIt)->GetAssociatedNode());
-        isocenterPatientHierarchyNode = (*isocenterPhIt);
-        break;
+        for (std::vector<vtkMRMLHierarchyNode*>::iterator isocenterPhIt = isocenterPatientHierarchyNodes.begin(); isocenterPhIt != isocenterPatientHierarchyNodes.end(); ++isocenterPhIt)
+        {
+          const char* isocenterBeamNumberChars = (*isocenterPhIt)->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+          if (!isocenterBeamNumberChars)
+          {
+            // Plan series patient hierarchy node has two hierarchy nodes for each annotation: an annotation hierarchy node and the PH node
+            // TODO: review when utilizing the Markups module instead of Annotations (#385) 
+            continue;
+          }
+          if (!STRCASECMP(isocenterBeamNumberChars, referencedBeamNumberChars))
+          {
+            isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast((*isocenterPhIt)->GetAssociatedNode());
+            isocenterPatientHierarchyNode = (*isocenterPhIt);
+            break;
+          }
+        }
       }
     }
     if (!isocenterNode)
@@ -1363,6 +1406,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
       return;
     }
   }
+  // If the function is called from the LoadRtPlan function with an isocenter
   else if (isocenterNode)
   {
     // Get RT plan DICOM UID for isocenter
@@ -1382,6 +1426,13 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
     // Get isocenter beam number
     const char* isocenterBeamNumberChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
 
+    // Get number of beams in the plan (if there is only one, then the beam number may nor be correctly referenced, so we cannot find it that way
+    bool oneBeamInPlan = false;
+    if (isocenterPatientHierarchyNode->GetParentNode() && isocenterPatientHierarchyNode->GetParentNode()->GetNumberOfChildrenNodes() == 2) //TODO: #385: Number of children nodes will be 1 when utilizing markups (right now every isocenter has an annotation and a PH child)
+    {
+      oneBeamInPlan = true;
+    }
+
     // Find corresponding RT image according to beam (isocenter) UID
     vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLHierarchyNode") );
     vtkObject* nextObject = NULL;
@@ -1394,9 +1445,10 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
         const char* referencedPlanSopInstanceUid = hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
         if (referencedPlanSopInstanceUid && !STRCASECMP(referencedPlanSopInstanceUid, rtPlanSopInstanceUid))
         {
-          // Get RT image referenced beam number and compare it to the isocenter beam number
+          // Get RT image referenced beam number
           const char* referencedBeamNumberChars = hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
-          if (!STRCASECMP(referencedBeamNumberChars, isocenterBeamNumberChars))
+          // If the referenced beam number matches the isocenter beam number, or if there is one beam in the plan, then we found the RT image
+          if (!STRCASECMP(referencedBeamNumberChars, isocenterBeamNumberChars) || oneBeamInPlan)
           {
             rtImageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(hierarchyNode->GetAssociatedNode());
             rtImagePatientHierarchyNode = hierarchyNode;
@@ -1404,18 +1456,29 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
           }
         }
       }
+
+      // Return if a referenced displayed model is present for the RT image, because it means that the geometry has been set up successfully before
+      if (rtImageVolumeNode)
+      {
+        vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
+          rtImageVolumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) );
+        if (modelNode)
+        {
+          vtkDebugMacro("SetupRtImageGeometry: RT image '" << rtImageVolumeNode->GetName() << "' belonging to isocenter '" << isocenterNode->GetName() << "' seems to have been set up already.");
+          return;
+        }
+      }
     }
 
     if (!rtImageVolumeNode)
     {
-      vtkDebugMacro("SetupRtImageGeometry: Cannot set up geometry of RT image corresponding to isocenter fiducial '" << isocenterNode->GetName()
-        << "' because the RT image is not loaded yet. Will be set up upon loading the related RT image");
+      // RT image for the isocenter is not loaded yet. Geometry will be set up upon loading the related RT image
       return;
     }
   }
   else
   {
-    vtkErrorMacro("SetupRtImageGeometry: Input node is neither a volume node nor a beams parameter set node!");
+    vtkErrorMacro("SetupRtImageGeometry: Input node is neither a volume node nor an isocenter fiducial node!");
     return;
   }
 
@@ -1442,23 +1505,23 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
 
   // Extract beam-related parameters needed to compute RT image coordinate system
   double sourceAxisDistance = 0.0;
-  const char* sourceAxisDistanceChars = isocenterNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
-  if (sourceAxisDistanceChars != NULL)
+  const char* sourceAxisDistanceChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
+  if (sourceAxisDistanceChars)
   {
     std::stringstream ss;
     ss << sourceAxisDistanceChars;
     ss >> sourceAxisDistance;
   }
   double gantryAngle = 0.0;
-  const char* gantryAngleChars = isocenterNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str());
-  if (gantryAngleChars != NULL)
+  const char* gantryAngleChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str());
+  if (gantryAngleChars)
   {
     std::stringstream ss;
     ss << gantryAngleChars;
     ss >> gantryAngle;
   }
   double couchAngle = 0.0;
-  const char* couchAngleChars = isocenterNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_COUCH_ANGLE_ATTRIBUTE_NAME.c_str());
+  const char* couchAngleChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str());
   if (couchAngleChars != NULL)
   {
     std::stringstream ss;
