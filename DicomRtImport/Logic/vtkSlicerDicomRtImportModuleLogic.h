@@ -80,9 +80,11 @@ protected:
   vtkSlicerDicomRtImportModuleLogic();
   virtual ~vtkSlicerDicomRtImportModuleLogic();
 
-  /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
   virtual void RegisterNodes();
+  virtual void OnMRMLSceneEndClose();
 
+protected:
   /// Load RT Structure Set and related objects into the MRML scene
   /// \return Success flag
   bool LoadRtStructureSet(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo* loadInfo);

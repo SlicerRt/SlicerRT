@@ -102,9 +102,29 @@ void vtkSlicerDicomRtImportModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
+//---------------------------------------------------------------------------
+void vtkSlicerDicomRtImportModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+{
+  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+  events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
+  this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
+}
+
 //-----------------------------------------------------------------------------
 void vtkSlicerDicomRtImportModuleLogic::RegisterNodes()
 {
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDicomRtImportModuleLogic::OnMRMLSceneEndClose()
+{
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene!");
+    return;
+  }
+
+  this->SetDefaultDoseColorTableNodeId(NULL);
 }
 
 //---------------------------------------------------------------------------
@@ -1473,6 +1493,8 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
     if (!rtImageVolumeNode)
     {
       // RT image for the isocenter is not loaded yet. Geometry will be set up upon loading the related RT image
+      vtkDebugMacro("SetupRtImageGeometry: Cannot set up geometry of RT image corresponding to isocenter fiducial '" << isocenterNode->GetName()
+        << "' because the RT image is not loaded yet. Will be set up upon loading the related RT image");
       return;
     }
   }
