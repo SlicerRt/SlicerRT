@@ -287,8 +287,6 @@ void vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(vtkMRMLHierarchyN
     return;
   }
 
-  node->GetScene()->StartState(vtkMRMLScene::BatchProcessState);
-
   vtkSmartPointer<vtkCollection> childDisplayableNodes = vtkSmartPointer<vtkCollection>::New();
   node->GetAssociatedChildrendNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
   childDisplayableNodes->InitTraversal();
@@ -323,8 +321,6 @@ void vtkSlicerPatientHierarchyModuleLogic::SetBranchVisibility(vtkMRMLHierarchyN
   {
     (*parentsIt)->Modified();
   }
-
-  node->GetScene()->EndState(vtkMRMLScene::BatchProcessState);
 }
 
 //---------------------------------------------------------------------------

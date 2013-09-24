@@ -1005,7 +1005,7 @@ void vtkMRMLContourNode::SetDisplayVisibility(int visible)
   vtkMRMLDisplayNode* displayNode = activeRepresentation->GetDisplayNode();
   if (displayNode)
     {
-    displayNode->SetSliceIntersectionVisibility(visible);
+      displayNode->SetSliceIntersectionVisibility(visible);
     }
 }
 

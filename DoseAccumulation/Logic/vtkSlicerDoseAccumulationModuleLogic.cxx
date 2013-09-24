@@ -250,6 +250,7 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   vtkSmartPointer<vtkMatrix4x4> referenceDoseVolumeRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   referenceDoseVolumeNode->GetRASToIJKMatrix(referenceDoseVolumeRAS2IJKMatrix);
 
+  // TODO: Rename this variable to match the conventions ([fromCoordinateSystem]To[toCoordinateSystem]Transform)
   vtkSmartPointer<vtkTransform> outputVolumeResliceTransform = vtkSmartPointer<vtkTransform>::New();
   outputVolumeResliceTransform->Identity();
   outputVolumeResliceTransform->PostMultiply();
