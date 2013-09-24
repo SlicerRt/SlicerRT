@@ -195,7 +195,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
     {
       nodeText = nodeText.left( nodeText.size() - SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX.size() );
     }
-    else if (!node->IsA("vtkMRMLModelHierarchyNode") && !node->IsA("vtkMRMLAnnotationHierarchyNode")) // Do not expect postfix for "multi-functional" hierarchies (that are to be used also in other modules)
+    else if (!node->IsA("vtkMRMLModelHierarchyNode")) // Do not expect postfix for "multi-functional" hierarchies (that are to be used also in other modules)
     {
       vtkWarningWithObjectMacro(this->mrmlScene(),"qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Patient hierarchy node name should end with '" << SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX << "'. It has the name '" << hierarchyNode->GetName() << "'");
     }
@@ -309,7 +309,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
         {
           item->setIcon(d->ContourIcon);
         }
-        else if (associatedNode->IsA("vtkMRMLAnnotationFiducialNode"))
+        else if (associatedNode->IsA("vtkMRMLMarkupsFiducialNode"))
         {
           QString parentHierarchyNodeName(hierarchyNode->GetParentNode()->GetName());
           if (parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()))
@@ -318,7 +318,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
           }
           else
           {
-            vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Unrecognized annotation object '" << associatedNode->GetName() << "'");
+            vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::updateItemDataFromNode: Unrecognized markups object '" << associatedNode->GetName() << "'");
           }
         }
         else if (associatedNode->IsA("vtkMRMLModelNode"))
@@ -504,18 +504,6 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   // If dropped from the potential patient hierarchy nodes list
   else
   {
-    // Get possible associated non-patient hierarchy node for reparented node
-    vtkMRMLHierarchyNode* associatedNonPatientHierarchyNode
-      = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode(node);
-
-    // Delete associated hierarchy node if it's not a patient hierarchy node. Should not occur unless it is an annotation hierarchy node
-    // (they are an exception as they are needed for the Annotations module; TODO: review when Annotations module ha been improved)
-    if (associatedNonPatientHierarchyNode && !associatedNonPatientHierarchyNode->IsA("vtkMRMLAnnotationHierarchyNode"))
-    {
-      vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::reparent: Reparented node had a non-patient hierarchy node associated!");
-      this->mrmlScene()->RemoveNode(associatedNonPatientHierarchyNode);
-    }
-
     // If there is a plugin that can handle the dropped node then let it take care of it
     bool successfullyReadByPlugin = false;
     vtkSlicerPatientHierarchyPlugin* foundPlugin = vtkSlicerPatientHierarchyPluginHandler::GetInstance()->GetPluginForAddToPatientHierarchyForNode(node, parentPatientHierarchyNode);

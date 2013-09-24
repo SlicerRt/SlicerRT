@@ -200,23 +200,22 @@ void vtkSlicerPlanarImageModuleLogic::ComputeImagePlaneCorners(vtkMRMLScalarVolu
   planarImageIjkToWorldTransform->PostMultiply();
   planarImageIjkToWorldTransform->Concatenate(planarImageParentTransform);
   planarImageIjkToWorldTransform->Concatenate(planarImageIjkToRasTransform);
-  planarImageIjkToWorldTransform->Update();
 
   // Four corners of the image in volume IJK coordinate system.
-  double point1Image[4] = { 0.0,     0.0,     0.0, 1.0 };
-  double point2Image[4] = { dims[0], 0.0,     0.0, 1.0 };
-  double point3Image[4] = { 0.0,     dims[1], 0.0, 1.0 };
-  double point4Image[4] = { dims[0], dims[1], 0.0, 1.0 };
+  double point1Image[4] = { 0.0,     0.0,     0.0 };
+  double point2Image[4] = { dims[0], 0.0,     0.0 };
+  double point3Image[4] = { 0.0,     dims[1], 0.0 };
+  double point4Image[4] = { dims[0], dims[1], 0.0 };
 
   // Compute the four corners of the image in world coordinate system.
-  double point1RAS[4] = { 0, 0, 0, 0 };
-  double point2RAS[4] = { 0, 0, 0, 0 }; 
-  double point3RAS[4] = { 0, 0, 0, 0 }; 
-  double point4RAS[4] = { 0, 0, 0, 0 };
-  planarImageIjkToWorldTransform->MultiplyPoint(point1Image, point1RAS);
-  planarImageIjkToWorldTransform->MultiplyPoint(point2Image, point2RAS);
-  planarImageIjkToWorldTransform->MultiplyPoint(point3Image, point3RAS);
-  planarImageIjkToWorldTransform->MultiplyPoint(point4Image, point4RAS);
+  double point1RAS[4] = { 0.0, 0.0, 0.0 };
+  double point2RAS[4] = { 0.0, 0.0, 0.0 }; 
+  double point3RAS[4] = { 0.0, 0.0, 0.0 }; 
+  double point4RAS[4] = { 0.0, 0.0, 0.0 };
+  planarImageIjkToWorldTransform->TransformPoint(point1Image, point1RAS);
+  planarImageIjkToWorldTransform->TransformPoint(point2Image, point2RAS);
+  planarImageIjkToWorldTransform->TransformPoint(point3Image, point3RAS);
+  planarImageIjkToWorldTransform->TransformPoint(point4Image, point4RAS);
 
   // Set position of the model
   sliceCornerPoints->SetPoint(0, point1RAS);

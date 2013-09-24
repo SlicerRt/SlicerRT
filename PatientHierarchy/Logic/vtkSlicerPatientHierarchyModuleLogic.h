@@ -85,12 +85,8 @@ public:
   /// Get associated patient hierarchy node for a MRML node
   /// \param associatedNode The node for which we want the associated hierarchy node
   /// \param reverseCriterion If set to true, the function returns non patient hierarchy node.
-  ///        Function \sa GetAssociatedNonPatientHierarchyNode should be used instead
   /// \return If associatedNode is a patient hierarchy node, then return that. Otherwise the first hierarchy node found in the scene that fulfills the conditions.
   static vtkMRMLHierarchyNode* GetAssociatedPatientHierarchyNode(vtkMRMLNode *associatedNode, bool reverseCriterion=false);
-
-  /// Utility function to get a non patient hierarchy node associated with a MRML node
-  static vtkMRMLHierarchyNode* GetAssociatedNonPatientHierarchyNode(vtkMRMLNode *associatedNode);
 
   /// Assemble tooltip for node according to the patient hierarchy tree
   static std::string GetTooltipForPatientHierarchyNode(vtkMRMLHierarchyNode* hierarchyNode);

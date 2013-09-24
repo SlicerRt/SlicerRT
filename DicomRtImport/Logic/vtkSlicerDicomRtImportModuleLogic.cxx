@@ -55,11 +55,9 @@ limitations under the License.
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 
-// Annotations includes
-#include <vtkMRMLAnnotationHierarchyNode.h>
-#include <vtkMRMLAnnotationPointDisplayNode.h>
-#include <vtkMRMLAnnotationFiducialNode.h>
-#include <vtkMRMLAnnotationTextDisplayNode.h>
+// Markups includes
+#include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLMarkupsDisplayNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -423,7 +421,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
       if (roiPoly->GetNumberOfPoints() == 1)
       {
         // Create patient hierarchy entry for the ROI
-        vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> patientHierarchyRoiNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
+        vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> patientHierarchyRoiNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
         std::string phNodeName;
         phNodeName = std::string(roiLabel) + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
         phNodeName = this->GetMRMLScene()->GenerateUniqueName(phNodeName);
@@ -775,8 +773,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
 //---------------------------------------------------------------------------
 bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo)
 {
-  vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> isocenterSeriesHierarchyRootNode;
-  vtkSmartPointer<vtkMRMLAnnotationHierarchyNode> sourceHierarchyRootNode;
+  vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> isocenterSeriesHierarchyRootNode;
   vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyRootNode;
 
   const char* seriesName = loadInfo->GetLoadableName(0);
@@ -787,7 +784,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
-  vtkMRMLAnnotationFiducialNode* addedFiducialNode = NULL;
+  vtkMRMLMarkupsFiducialNode* addedMarkupsNode = NULL;
   int numberOfBeams = rtReader->GetNumberOfBeams();
   for (int beamIndex = 0; beamIndex < numberOfBeams; beamIndex++) // DICOM starts indexing from 1
   {
@@ -795,15 +792,15 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
 
     // Isocenter fiducial
     double isoColor[3] = { 1.0, 1.0, 1.0 };
-    addedFiducialNode = this->AddRoiPoint(rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber), rtReader->GetBeamName(dicomBeamNumber), isoColor);
+    addedMarkupsNode = this->AddRoiPoint(rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber), rtReader->GetBeamName(dicomBeamNumber), isoColor);
 
     // Add new node to the hierarchy node
-    if (addedFiducialNode)
+    if (addedMarkupsNode)
     {
-      // Create root isocenter annotation hierarchy node for the plan series, if it has not been created yet
+      // Create root isocenter hierarchy node for the plan series, if it has not been created yet
       if (isocenterSeriesHierarchyRootNode.GetPointer()==NULL)
       {
-        isocenterSeriesHierarchyRootNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
+        isocenterSeriesHierarchyRootNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
         isocenterSeriesHierarchyRootNode->HideFromEditorsOff();
         isocenterSeriesHierarchyRootNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
           SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
@@ -814,39 +811,10 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         isocenterSeriesHierarchyRootNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str(),
           rtReader->GetSOPInstanceUID());
         std::string isocenterHierarchyRootNodeName;
-        isocenterHierarchyRootNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX;
+        isocenterHierarchyRootNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
         isocenterHierarchyRootNodeName = this->GetMRMLScene()->GenerateUniqueName(isocenterHierarchyRootNodeName);
         isocenterSeriesHierarchyRootNode->SetName(isocenterHierarchyRootNodeName.c_str());
         this->GetMRMLScene()->AddNode(isocenterSeriesHierarchyRootNode);
-
-        // A hierarchy node needs a display node
-        vtkSmartPointer<vtkMRMLAnnotationDisplayNode> isocenterSeriesHierarchyRootDisplayNode = vtkSmartPointer<vtkMRMLAnnotationDisplayNode>::New();
-        isocenterHierarchyRootNodeName.append("Display");
-        isocenterSeriesHierarchyRootDisplayNode->SetName(isocenterHierarchyRootNodeName.c_str());
-        isocenterSeriesHierarchyRootDisplayNode->SetVisibility(1);
-        this->GetMRMLScene()->AddNode(isocenterSeriesHierarchyRootDisplayNode);
-        isocenterSeriesHierarchyRootNode->SetAndObserveDisplayNodeID( isocenterSeriesHierarchyRootDisplayNode->GetID() );
-      }
-
-      // Create root source annotation hierarchy node, if it has not been created yet
-      if (sourceHierarchyRootNode.GetPointer()==NULL)
-      {
-        sourceHierarchyRootNode = vtkSmartPointer<vtkMRMLAnnotationHierarchyNode>::New();
-        std::string sourceHierarchyRootNodeName;
-        sourceHierarchyRootNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTFIX;
-        sourceHierarchyRootNodeName = this->GetMRMLScene()->GenerateUniqueName(sourceHierarchyRootNodeName);
-        sourceHierarchyRootNode->SetName(sourceHierarchyRootNodeName.c_str());
-        sourceHierarchyRootNode->AllowMultipleChildrenOn();
-        sourceHierarchyRootNode->HideFromEditorsOff();
-        this->GetMRMLScene()->AddNode(sourceHierarchyRootNode);
-
-        // A hierarchy node needs a display node
-        vtkSmartPointer<vtkMRMLAnnotationDisplayNode> sourceHierarchyRootDisplayNode = vtkSmartPointer<vtkMRMLAnnotationDisplayNode>::New();
-        sourceHierarchyRootNodeName.append("Display");
-        sourceHierarchyRootDisplayNode->SetName(sourceHierarchyRootNodeName.c_str());
-        sourceHierarchyRootDisplayNode->SetVisibility(1);
-        this->GetMRMLScene()->AddNode(sourceHierarchyRootDisplayNode);
-        sourceHierarchyRootNode->SetAndObserveDisplayNodeID( sourceHierarchyRootDisplayNode->GetID() );
       }
 
       // Create beam model patient hierarchy node if has not been created yet
@@ -879,19 +847,13 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         beamModelHierarchyRootNode->SetAndObserveDisplayNodeID( beamModelHierarchyRootDisplayNode->GetID() );
       }
 
-      // Set up automatically created isocenter fiducial node properly
-      vtkMRMLAnnotationHierarchyNode* isocenterHierarchyNode =
-        vtkMRMLAnnotationHierarchyNode::SafeDownCast( vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->GetMRMLScene(), addedFiducialNode->GetID()) );
-      isocenterHierarchyNode->SetParentNodeID( isocenterSeriesHierarchyRootNode->GetID() );
-      isocenterHierarchyNode->SetIndexInParent(beamIndex);
-
       // Create patient hierarchy entry for the isocenter fiducial
       vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> patientHierarchyFiducialNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
       std::string phFiducialNodeName(rtReader->GetBeamName(dicomBeamNumber));
       phFiducialNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
       patientHierarchyFiducialNode->SetName(phFiducialNodeName.c_str());
       patientHierarchyFiducialNode->HideFromEditorsOff();
-      patientHierarchyFiducialNode->SetAssociatedNodeID(addedFiducialNode->GetID());
+      patientHierarchyFiducialNode->SetAssociatedNodeID(addedMarkupsNode->GetID());
       patientHierarchyFiducialNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
         SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
       patientHierarchyFiducialNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
@@ -934,24 +896,19 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       patientHierarchyFiducialNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str(),
         jawPositionsStream.str().c_str() );
 
-      // Create source fiducial node
-      std::string sourceFiducialName;
-      sourceFiducialName = this->GetMRMLScene()->GenerateUniqueName(
-        SlicerRtCommon::BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX + std::string(addedFiducialNode->GetName()) );
-      vtkSmartPointer<vtkMRMLAnnotationFiducialNode> sourceFiducialNode = vtkSmartPointer<vtkMRMLAnnotationFiducialNode>::New();
-      sourceFiducialNode->SetName(sourceFiducialName.c_str());
-      this->GetMRMLScene()->AddNode(sourceFiducialNode);
+      // Set isocenter fiducial name
+      std::string isocenterFiducialName = std::string(rtReader->GetBeamName(dicomBeamNumber)) + SlicerRtCommon::BEAMS_OUTPUT_ISOCENTER_FIDUCIAL_POSTFIX;
+      addedMarkupsNode->SetNthFiducialLabel(0, isocenterFiducialName);
 
-      // Set up automatically created source fiducial node properly
-      vtkMRMLAnnotationHierarchyNode* sourceHierarchyNode =
-        vtkMRMLAnnotationHierarchyNode::SafeDownCast( vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(this->GetMRMLScene(), sourceFiducialNode->GetID()) );
-      sourceHierarchyNode->SetParentNodeID( sourceHierarchyRootNode->GetID() );
-      sourceHierarchyNode->SetIndexInParent(beamIndex);
+      // Add source fiducial in the isocenter markups node
+      std::string sourceFiducialName = std::string(rtReader->GetBeamName(dicomBeamNumber)) + SlicerRtCommon::BEAMS_OUTPUT_SOURCE_FIDUCIAL_POSTFIX;
+      addedMarkupsNode->AddFiducial(0.0, 0.0, 0.0);
+      addedMarkupsNode->SetNthFiducialLabel(1, sourceFiducialName);
 
       // Create beam model node and add it to the scene
       std::string beamModelName;
       beamModelName = this->GetMRMLScene()->GenerateUniqueName(
-        SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX + std::string(addedFiducialNode->GetName()) );
+        SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX + std::string(addedMarkupsNode->GetName()) );
       vtkSmartPointer<vtkMRMLModelNode> beamModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
       beamModelNode->SetName(beamModelName.c_str());
       this->GetMRMLScene()->AddNode(beamModelNode);
@@ -959,11 +916,10 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       // Create Beams parameter set node
       std::string beamParameterSetNodeName;
       beamParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
-        SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX + std::string(addedFiducialNode->GetName()) );
+        SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX + std::string(addedMarkupsNode->GetName()) );
       vtkSmartPointer<vtkMRMLBeamsNode> beamParameterSetNode = vtkSmartPointer<vtkMRMLBeamsNode>::New();
       beamParameterSetNode->SetName(beamParameterSetNodeName.c_str());
-      beamParameterSetNode->SetAndObserveIsocenterFiducialNodeId(addedFiducialNode->GetID());
-      beamParameterSetNode->SetAndObserveSourceFiducialNodeId(sourceFiducialNode->GetID());
+      beamParameterSetNode->SetAndObserveIsocenterMarkupsNodeId(addedMarkupsNode->GetID());
       beamParameterSetNode->SetAndObserveBeamModelNodeId(beamModelNode->GetID());
       this->GetMRMLScene()->AddNode(beamParameterSetNode);
 
@@ -975,7 +931,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       beamsLogic->CreateBeamModel(errorMessage);
       if (!errorMessage.empty())
       {
-        vtkWarningMacro("LoadRtPlan: Failed to create beam geometry for isocenter: " << addedFiducialNode->GetName());
+        vtkWarningMacro("LoadRtPlan: Failed to create beam geometry for isocenter: " << addedMarkupsNode->GetName());
       }
 
       // Put new beam model in the patient hierarchy
@@ -1001,7 +957,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
 
       // Compute and set geometry of possible RT image that references the loaded beam.
       // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
-      this->SetupRtImageGeometry(addedFiducialNode);
+      this->SetupRtImageGeometry(addedMarkupsNode);
 
     } //endif addedDisplayableNode
   }
@@ -1140,25 +1096,25 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtRe
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLAnnotationFiducialNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor)
+vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportModuleLogic::AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor)
 {
   std::string fiducialNodeName = this->GetMRMLScene()->GenerateUniqueName(baseName);
-  vtkSmartPointer<vtkMRMLAnnotationFiducialNode> fiducialNode = vtkSmartPointer<vtkMRMLAnnotationFiducialNode>::New();
-  fiducialNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(this->GetMRMLScene()->AddNode(fiducialNode));
-  fiducialNode->SetName(baseName.c_str());
-  fiducialNode->AddControlPoint(roiPosition, 0, 1);
-  fiducialNode->SetLocked(1);
+  vtkSmartPointer<vtkMRMLMarkupsFiducialNode> markupsNode = vtkSmartPointer<vtkMRMLMarkupsFiducialNode>::New();
+  this->GetMRMLScene()->AddNode(markupsNode);
+  markupsNode->SetName(baseName.c_str());
+  markupsNode->AddFiducialFromArray(roiPosition);
+  markupsNode->SetLocked(1);
 
-  fiducialNode->CreateAnnotationTextDisplayNode();
-  fiducialNode->CreateAnnotationPointDisplayNode();
-  fiducialNode->GetAnnotationPointDisplayNode()->SetGlyphType(vtkMRMLAnnotationPointDisplayNode::Sphere3D);
-  fiducialNode->GetAnnotationPointDisplayNode()->SetColor(roiColor);
-  fiducialNode->GetAnnotationTextDisplayNode()->SetColor(roiColor);
+  vtkSmartPointer<vtkMRMLMarkupsDisplayNode> markupsDisplayNode = vtkSmartPointer<vtkMRMLMarkupsDisplayNode>::New();
+  this->GetMRMLScene()->AddNode(markupsDisplayNode);
+  markupsDisplayNode->SetGlyphType(vtkMRMLMarkupsDisplayNode::Sphere3D);
+  markupsDisplayNode->SetColor(roiColor);
+  markupsNode->SetAndObserveDisplayNodeID(markupsDisplayNode->GetID());
 
   // Hide the fiducial by default
-  fiducialNode->SetDisplayVisibility(0);
+  markupsNode->SetDisplayVisibility(0);
 
-  return fiducialNode;
+  return markupsNode;
 }
 
 //---------------------------------------------------------------------------
@@ -1343,7 +1299,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
 {
   vtkMRMLVolumeNode* rtImageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
   vtkMRMLHierarchyNode* rtImagePatientHierarchyNode = NULL;
-  vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(node);
+  vtkMRMLMarkupsFiducialNode* isocenterNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(node);
   vtkMRMLHierarchyNode* isocenterPatientHierarchyNode = NULL;
 
   // If the function is called from the LoadRtImage function with an RT image volume
@@ -1390,10 +1346,10 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
     std::vector<vtkMRMLHierarchyNode*> isocenterPatientHierarchyNodes = rtPlanPatientHierarchyNode->GetChildrenNodes();
 
     // Get isocenter according to referenced beam number
-    if (isocenterPatientHierarchyNodes.size() == 2) //TODO: #385: Number of children nodes will be 1 when utilizing markups (right now every isocenter has an annotation and a PH child)
+    if (isocenterPatientHierarchyNodes.size() == 1)
     {
       // If there is only one beam in the plan, then we don't need to search in the list
-      isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast((*(isocenterPatientHierarchyNodes.begin()))->GetAssociatedNode());
+      isocenterNode = vtkMRMLMarkupsFiducialNode::SafeDownCast((*(isocenterPatientHierarchyNodes.begin()))->GetAssociatedNode());
       isocenterPatientHierarchyNode = (*(isocenterPatientHierarchyNodes.begin()));
     }
     else
@@ -1407,13 +1363,11 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
           const char* isocenterBeamNumberChars = (*isocenterPhIt)->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
           if (!isocenterBeamNumberChars)
           {
-            // Plan series patient hierarchy node has two hierarchy nodes for each annotation: an annotation hierarchy node and the PH node
-            // TODO: review when utilizing the Markups module instead of Annotations (#385) 
             continue;
           }
           if (!STRCASECMP(isocenterBeamNumberChars, referencedBeamNumberChars))
           {
-            isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast((*isocenterPhIt)->GetAssociatedNode());
+            isocenterNode = vtkMRMLMarkupsFiducialNode::SafeDownCast((*isocenterPhIt)->GetAssociatedNode());
             isocenterPatientHierarchyNode = (*isocenterPhIt);
             break;
           }
@@ -1448,7 +1402,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
 
     // Get number of beams in the plan (if there is only one, then the beam number may nor be correctly referenced, so we cannot find it that way
     bool oneBeamInPlan = false;
-    if (isocenterPatientHierarchyNode->GetParentNode() && isocenterPatientHierarchyNode->GetParentNode()->GetNumberOfChildrenNodes() == 2) //TODO: #385: Number of children nodes will be 1 when utilizing markups (right now every isocenter has an annotation and a PH child)
+    if (isocenterPatientHierarchyNode->GetParentNode() && isocenterPatientHierarchyNode->GetParentNode()->GetNumberOfChildrenNodes() == 1)
     {
       oneBeamInPlan = true;
     }
@@ -1553,7 +1507,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
 
   // Get isocenter coordinates
   double isocenterWorldCoordinates[3] = {0.0, 0.0, 0.0};
-  isocenterNode->GetFiducialCoordinates(isocenterWorldCoordinates);
+  isocenterNode->GetNthFiducialPosition(0, isocenterWorldCoordinates);
 
   // Assemble transform from isocenter IEC to RT image RAS
   vtkSmartPointer<vtkTransform> fixedToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();

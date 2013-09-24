@@ -50,11 +50,8 @@ public:
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "Beams";};
 
-  /// Set and observe isocenter fiducial MRML Id 
-  void SetAndObserveIsocenterFiducialNodeId(const char* id);
-
-  /// Set and observe source fiducial MRML node ID
-  void SetAndObserveSourceFiducialNodeId(const char* id);
+  /// Set and observe isocenter fiducial MRML ID
+  void SetAndObserveIsocenterMarkupsNodeId(const char* id);
 
   /// Set and observe output beam model MRML node ID
   void SetAndObserveBeamModelNodeId(const char* id);
@@ -63,11 +60,8 @@ public:
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
 public:
-  /// Get isocenter fiducial MRML node ID
-  vtkGetStringMacro(IsocenterFiducialNodeId);
-
-  /// Get source fiducial MRML node ID 
-  vtkGetStringMacro(SourceFiducialNodeId);
+  /// Get isocenter markups MRML node ID
+  vtkGetStringMacro(IsocenterMarkupsNodeId);
 
   /// Get output beam model MRML node ID
   vtkGetStringMacro(BeamModelNodeId);
@@ -78,11 +72,8 @@ public:
   vtkGetMacro(BeamModelOpacity, double);
 
 protected:
-  /// Set isocenter fiducial MRML Id 
-  vtkSetStringMacro(IsocenterFiducialNodeId);
-
-  /// Set source fiducial MRML Id 
-  vtkSetStringMacro(SourceFiducialNodeId);
+  /// Set isocenter markups MRML Id 
+  vtkSetStringMacro(IsocenterMarkupsNodeId);
 
   /// Set output beam model MRML Id 
   vtkSetStringMacro(BeamModelNodeId);
@@ -94,11 +85,8 @@ protected:
   void operator=(const vtkMRMLBeamsNode&);
 
 protected:
-  /// ID of the input isocenter fiducial node
-  char* IsocenterFiducialNodeId;
-
-  /// ID of the input source fiducial node
-  char* SourceFiducialNodeId;
+  /// ID of the input isocenter markups node. The source fiducial is set as the second fiducial in this markups node.
+  char* IsocenterMarkupsNodeId;
 
   /// ID of the output beam model node
   char* BeamModelNodeId;

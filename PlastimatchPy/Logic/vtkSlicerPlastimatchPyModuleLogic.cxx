@@ -21,7 +21,6 @@
 #include "vtkSlicerPlastimatchPyModuleLogic.h"
 
 // MRML includes
-#include <vtkMRMLAnnotationFiducialNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 

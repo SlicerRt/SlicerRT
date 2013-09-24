@@ -275,7 +275,7 @@
       <item row="4" column="0" colspan="3">
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>2</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="photonPrescriptionPage">
          <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -468,7 +468,7 @@
               </property>
               <property name="nodeTypes">
                <stringlist>
-                <string>vtkMRMLAnnotationFiducialNode</string>
+                <string>vtkMRMLMarkupsFiducialNode</string>
                </stringlist>
               </property>
               <property name="showChildNodeTypes">

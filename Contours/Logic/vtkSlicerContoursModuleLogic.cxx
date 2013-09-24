@@ -557,8 +557,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
   }
 
   // Create contour node if dropped node is volume or model
-  if ( (representationNode->IsA("vtkMRMLModelNode") && !representationNode->IsA("vtkMRMLAnnotationNode"))
-    || representationNode->IsA("vtkMRMLScalarVolumeNode") )
+  if (representationNode->IsA("vtkMRMLModelNode") || representationNode->IsA("vtkMRMLScalarVolumeNode"))
   {
     vtkSmartPointer<vtkMRMLContourNode> newContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
     newContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->AddNode(newContourNode));

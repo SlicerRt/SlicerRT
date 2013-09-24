@@ -428,12 +428,6 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatient
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::GetAssociatedNonPatientHierarchyNode(vtkMRMLNode *associatedNode)
-{
-  return vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(associatedNode, true);
-}
-
-//---------------------------------------------------------------------------
 std::string vtkSlicerPatientHierarchyModuleLogic::GetTooltipForPatientHierarchyNode(vtkMRMLHierarchyNode* hierarchyNode)
 {
   if (!hierarchyNode)

@@ -155,9 +155,9 @@ public:
   // Beams constants
   static const std::string BEAMS_ATTRIBUTE_PREFIX;
   static const std::string BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX;
-  static const std::string BEAMS_OUTPUT_SOURCE_FIDUCIAL_PREFIX;
+  static const std::string BEAMS_OUTPUT_ISOCENTER_FIDUCIAL_POSTFIX;
+  static const std::string BEAMS_OUTPUT_SOURCE_FIDUCIAL_POSTFIX;
   static const std::string BEAMS_PARAMETER_SET_BASE_NAME_PREFIX;
-  static const std::string BEAMS_SOURCE_FIDUCIAL_NODE_ID_ATTRIBUTE_NAME;
 
   // PlanarImage constants
   static const std::string PLANARIMAGE_MODEL_NODE_NAME_PREFIX;

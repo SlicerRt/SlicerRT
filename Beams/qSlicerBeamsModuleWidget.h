@@ -58,8 +58,7 @@ public slots:
   void updateWidgetFromMRML();
 
 protected slots:
-  void isocenterFiducialNodeChanged(vtkMRMLNode*);
-  void sourceFiducialNodeChanged(vtkMRMLNode*);
+  void isocenterMarkupsNodeChanged(vtkMRMLNode*);
 
   void beamModelNodeChanged(vtkMRMLNode*);
 
@@ -78,7 +77,7 @@ protected:
   /// Updates button states
   void updateButtonsState();
 
-  /// Assemble new output volume base name from the selected input fiducial names
+  /// Assemble new output volume base name from the selected input name
   void refreshOutputBaseName();
 
 private:

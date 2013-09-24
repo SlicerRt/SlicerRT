@@ -37,7 +37,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerVolumesModuleLogic
   vtkSlicerBeamsModuleLogic
   vtkSlicerPlanarImageModuleLogic
-  vtkSlicerAnnotationsModuleMRML
+  vtkSlicerMarkupsModuleMRML
   )
 
 #-----------------------------------------------------------------------------

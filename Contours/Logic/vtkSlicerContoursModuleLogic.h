@@ -88,7 +88,7 @@ public:
   static void GetIndexedLabelmapWithGivenGeometry(vtkMRMLContourNode* contour, vtkMRMLScalarVolumeNode* referenceVolumeNode, vtkMRMLScalarVolumeNode* outputIndexedLabelmap);
 
   /// Create a contour node from a representation. Does not handle color tables
-  /// \param representationNode Representation to create the contour from. Can be labelmap or model (not annotation)
+  /// \param representationNode Representation to create the contour from. Can be labelmap or model
   static vtkMRMLContourNode* CreateContourFromRepresentation(vtkMRMLDisplayableNode* representationNode);
 
 protected:

@@ -82,8 +82,7 @@ double vtkSlicerContoursPatientHierarchyPlugin::CanPluginAddNodeToPatientHierarc
     return 0.0;
   }
 
-  if ( ( node->IsA("vtkMRMLModelNode") && !node->IsA("vtkMRMLAnnotationNode") )
-    || node->IsA("vtkMRMLVolumeNode") )
+  if (node->IsA("vtkMRMLModelNode") || node->IsA("vtkMRMLVolumeNode"))
   {
     if (this->IsNodeAContourRepresentation(node))
     {
@@ -142,8 +141,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
 
   // Get added contour node and associate it with the new patient hierarchy node
   vtkMRMLContourNode* contourNodeAddedToPatientHierarchy = NULL;
-  if ( (nodeToAdd->IsA("vtkMRMLModelNode") && !nodeToAdd->IsA("vtkMRMLAnnotationNode"))
-    || nodeToAdd->IsA("vtkMRMLScalarVolumeNode") )
+  if (nodeToAdd->IsA("vtkMRMLModelNode") || nodeToAdd->IsA("vtkMRMLScalarVolumeNode"))
   {
     // Create contour from the dropped representation
     contourNodeAddedToPatientHierarchy = vtkSlicerContoursModuleLogic::CreateContourFromRepresentation( vtkMRMLDisplayableNode::SafeDownCast(nodeToAdd) );
@@ -200,8 +198,7 @@ double vtkSlicerContoursPatientHierarchyPlugin::CanPluginReparentNodeInsidePatie
     return 1.0;
   }
 
-  if ( ( associatedNode->IsA("vtkMRMLModelNode") && !associatedNode->IsA("vtkMRMLAnnotationNode") )
-    || associatedNode->IsA("vtkMRMLVolumeNode") )
+  if (associatedNode->IsA("vtkMRMLModelNode") || associatedNode->IsA("vtkMRMLVolumeNode"))
   {
     // Node is a potential contour node representation. On reparenting under a structure set node in Patient Hierarchy, a contour node will be created
     return 0.7;
@@ -236,8 +233,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy
   std::string colorName;
 
   // Get added contour node and associate it with the new patient hierarchy node
-  if ( (associatedNode->IsA("vtkMRMLModelNode") && !associatedNode->IsA("vtkMRMLAnnotationNode"))
-    || associatedNode->IsA("vtkMRMLScalarVolumeNode") )
+  if (associatedNode->IsA("vtkMRMLModelNode") || associatedNode->IsA("vtkMRMLScalarVolumeNode"))
   {
     // Create contour from the dropped representation
     reparentedContourNode = vtkSlicerContoursModuleLogic::CreateContourFromRepresentation( vtkMRMLDisplayableNode::SafeDownCast(associatedNode) );

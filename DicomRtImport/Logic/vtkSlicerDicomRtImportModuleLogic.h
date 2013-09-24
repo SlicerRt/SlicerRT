@@ -34,7 +34,7 @@ class vtkSlicerIsodoseModuleLogic;
 class vtkSlicerPlanarImageModuleLogic;
 class vtkMRMLModelNode;
 class vtkMRMLHierarchyNode;
-class vtkMRMLAnnotationFiducialNode;
+class vtkMRMLMarkupsFiducialNode;
 class vtkDICOMImportInfo;
 class vtkPolyData;
 class vtkSlicerDicomRtReader;
@@ -90,7 +90,7 @@ protected:
   bool LoadRtStructureSet(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo* loadInfo);
 
   /// Add an ROI point to the scene
-  vtkMRMLAnnotationFiducialNode* AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor);
+  vtkMRMLMarkupsFiducialNode* AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor);
 
   /// Add an ROI contour to the scene
   vtkMRMLModelNode* AddRoiContour(vtkPolyData* roiPoly, std::string baseName, double* roiColor);

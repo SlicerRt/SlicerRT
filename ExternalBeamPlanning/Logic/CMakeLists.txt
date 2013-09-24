@@ -19,7 +19,7 @@ set(${KIT}_SRCS
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
-  vtkSlicerAnnotationsModuleMRML
+  vtkSlicerMarkupsModuleMRML
   vtkSlicerContoursModuleMRML
   vtkSlicer${MODULE_NAME}ModuleMRML
   )

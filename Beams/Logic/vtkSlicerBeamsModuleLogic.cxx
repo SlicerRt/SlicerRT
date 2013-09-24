@@ -28,10 +28,9 @@
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
-#include <vtkMRMLAnnotationFiducialNode.h>
+#include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLAnnotationPointDisplayNode.h>
-#include <vtkMRMLAnnotationTextDisplayNode.h>
+#include <vtkMRMLMarkupsDisplayNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLHierarchyNode.h>
@@ -113,7 +112,7 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     return;
   }
 
-  if (node->IsA("vtkMRMLAnnotationFiducialNode") || node->IsA("vtkMRMLBeamsNode"))
+  if (node->IsA("vtkMRMLMarkupsFiducialNode") || node->IsA("vtkMRMLBeamsNode"))
   {
     this->Modified();
   }
@@ -127,7 +126,7 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
     return;
   }
 
-  if (node->IsA("vtkMRMLAnnotationFiducialNode") || node->IsA("vtkMRMLBeamsNode"))
+  if (node->IsA("vtkMRMLMarkupsFiducialNode") || node->IsA("vtkMRMLBeamsNode"))
   {
     this->Modified();
   }
@@ -159,32 +158,27 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
   {
     return;
   }
-  if ( !this->BeamsNode->GetIsocenterFiducialNodeId()
-    || !strcmp(this->BeamsNode->GetIsocenterFiducialNodeId(), "") )
+  if ( !this->BeamsNode->GetIsocenterMarkupsNodeId()
+    || !strcmp(this->BeamsNode->GetIsocenterMarkupsNodeId(), "") )
   {
-    errorMessage = "Empty isocenter fiducial node ID!";
+    errorMessage = "Empty isocenter markups node ID!";
     vtkErrorMacro(<<errorMessage); 
     return;
   }
 
-  // Get isocenter fiducial node
-  vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetIsocenterFiducialNodeId()) );
+  // Get isocenter markups node
+  vtkMRMLMarkupsFiducialNode* isocenterNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetIsocenterMarkupsNodeId()) );
   if (!isocenterNode)
   {
-    errorMessage = "Unable to retrieve isocenter fiducial node according its ID!";
+    errorMessage = "Unable to retrieve isocenter markups node according its ID!";
     vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage); 
     return;
   }
 
   // Get isocenter coordinates
-  if (isocenterNode->GetNumberOfControlPoints() != 1)
-  {
-    errorMessage = "Invalid isocenter fiducial control point count! It is supposed to be 1.";
-    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage); 
-    return;
-  }
-  double* isocenterCoordinates = isocenterNode->GetControlPointCoordinates(0);
+  double isocenterCoordinates[3] = {0.0, 0.0, 0.0};
+  isocenterNode->GetNthFiducialPosition(0, isocenterCoordinates);
 
   // Get patient hierarchy node for the isocenter
   vtkMRMLHierarchyNode* isocenterPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(isocenterNode);
@@ -223,40 +217,6 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
     ss >> couchAngle;
   }
 
-  // Get source fiducial node
-  if (SlicerRtCommon::IsStringNullOrEmpty(this->BeamsNode->GetSourceFiducialNodeId()))
-  {
-    errorMessage = "Empty source fiducial node ID!";
-    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage); 
-    return;
-  }
-  if (!strcmp(this->BeamsNode->GetSourceFiducialNodeId(), this->BeamsNode->GetIsocenterFiducialNodeId()))
-  {
-    errorMessage = "Source and Isocenter fiducial nodes are set to be the same! They have to be different.";
-    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage); 
-    return;
-  }
-  vtkMRMLAnnotationFiducialNode* sourceNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetSourceFiducialNodeId()) );
-  if (!sourceNode)
-  {
-    errorMessage = "Unable to retrieve source fiducial node according its ID!";
-    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage);
-    return;
-  }
-
-  sourceNode->SetLocked(1);
-  sourceNode->CreateAnnotationTextDisplayNode();
-  sourceNode->CreateAnnotationPointDisplayNode();
-  sourceNode->GetAnnotationPointDisplayNode()->SetGlyphType(vtkMRMLAnnotationPointDisplayNode::Sphere3D);
-  sourceNode->GetAnnotationPointDisplayNode()->SetColor(
-    isocenterNode->GetAnnotationPointDisplayNode()->GetColor() );
-  sourceNode->GetAnnotationTextDisplayNode()->SetColor(
-    isocenterNode->GetAnnotationTextDisplayNode()->GetColor() );
-
-  // Create connection from isocenter patient hierarchy node to the output source fiducial node
-  isocenterPatientHierarchyNode->SetAttribute(SlicerRtCommon::BEAMS_SOURCE_FIDUCIAL_NODE_ID_ATTRIBUTE_NAME.c_str(), sourceNode->GetID());
-
   // Compute isocenter to source transformation
   //TODO: It is assumed that the center of rotation for the couch is the isocenter. Is it true?
   vtkSmartPointer<vtkTransform> couchToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();
@@ -280,15 +240,12 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
   sourceToIsocenterTransform->Concatenate(sourceToGantryTransform);
 
   // Get source position
-  double* sourceCoordinates = sourceToIsocenterTransform->TransformPoint(isocenterCoordinates);
-  if (sourceNode->GetNumberOfControlPoints() == 0)
-  {
-    sourceNode->AddControlPoint(sourceCoordinates, 0, 1);
-  }
-  else
-  {
-    sourceNode->SetControlPoint(0, sourceCoordinates);
-  }
+  double sourceCoordinates[3] = {0.0, 0.0, 0.0};
+  sourceToIsocenterTransform->TransformPoint(isocenterCoordinates, sourceCoordinates);
+
+  // Add source fiducial to the isocenter markups node
+  isocenterNode->SetNthFiducialPositionFromArray(1, sourceCoordinates);
+  isocenterNode->SetNthMarkupOrientationFromPointer(1, sourceToIsocenterTransform->GetOrientationWXYZ());
 
   vtkDebugMacro("Source coordinates computed to be ("
     << sourceCoordinates[0] << ", " << sourceCoordinates[1] << ", " << sourceCoordinates[2] << ")");
@@ -308,10 +265,9 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
     return;
   }
 
-  if ( SlicerRtCommon::IsStringNullOrEmpty(this->BeamsNode->GetIsocenterFiducialNodeId())
-    || SlicerRtCommon::IsStringNullOrEmpty(this->BeamsNode->GetSourceFiducialNodeId()) )
+  if (SlicerRtCommon::IsStringNullOrEmpty(this->BeamsNode->GetIsocenterMarkupsNodeId()))
   {
-    errorMessage = "Insufficient input (isocenter and/or source fiducial is empty)!";
+    errorMessage = "Isocenter markups is empty!";
     vtkErrorMacro(<<errorMessage);
     return;
   }
@@ -327,21 +283,12 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
     return;
   }
 
-  // Get isocenter and source fiducial nodes
-  vtkMRMLAnnotationFiducialNode* isocenterNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetIsocenterFiducialNodeId()) );
+  // Get isocenter and source markups node
+  vtkMRMLMarkupsFiducialNode* isocenterNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetIsocenterMarkupsNodeId()) );
   if (!isocenterNode)
   {
-    errorMessage = "Unable to retrieve isocenter fiducial node according its ID!";
-    vtkErrorMacro(<<errorMessage); 
-    return;
-  }
-  // Get source fiducial node
-  vtkMRMLAnnotationFiducialNode* sourceNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->BeamsNode->GetSourceFiducialNodeId()) );
-  if (!sourceNode)
-  {
-    errorMessage = "Unable to retrieve source fiducial node according its ID!";
+    errorMessage = "Unable to retrieve isocenter markups node according its ID!";
     vtkErrorMacro(<<errorMessage); 
     return;
   }
@@ -399,27 +346,16 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
     vtkErrorMacro(<<errorMessage); 
     return;
   }
-  if (beamModelNode->IsA("vtkMRMLAnnotationFiducialNode"))
-  {
-    errorMessage = "Beam model node is not supposed to be an annotation fiducial node!";
-    vtkErrorMacro(<<errorMessage); 
-    return;
-  }
 
-  // Get isocenter and source positions
-  if (isocenterNode->GetNumberOfControlPoints() != 1)
+  // Get isocenter position
+  if (isocenterNode->GetNumberOfFiducials() != 2)
   {
-    errorMessage = "Invalid isocenter fiducial control point count! It is supposed to be 1.";
+    errorMessage = "Invalid isocenter markups fiducial count! It is supposed to be 2.";
     vtkErrorMacro(<<errorMessage); 
     return;
   }
-  double* isocenterCoordinates = isocenterNode->GetControlPointCoordinates(0);
-  if (sourceNode->GetNumberOfControlPoints() != 1)
-  {
-    errorMessage = "Invalid source fiducial control point count! It is supposed to be 1.";
-    vtkErrorMacro(<<errorMessage); 
-    return;
-  }
+  double isocenterCoordinates[4] = {0.0, 0.0, 0.0};
+  isocenterNode->GetNthFiducialPosition(0, isocenterCoordinates);
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 

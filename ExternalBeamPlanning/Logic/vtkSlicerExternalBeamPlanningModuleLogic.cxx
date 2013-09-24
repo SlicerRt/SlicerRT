@@ -40,7 +40,7 @@
 // MRML includes
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLAnnotationFiducialNode.h>
+#include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
@@ -191,10 +191,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeam(char *beamname, double
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetRTPlanNodeID()));
   vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
-  vtkMRMLAnnotationFiducialNode* IsocenterFiducialNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
+  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetIsocenterNodeID()));
   // Make sure inputs are initialized
-  if (!RTPlanNode || !IsocenterFiducialNode )
+  if (!RTPlanNode || !isocenterMarkupsNode )
   {
     vtkErrorMacro("RTPlan: inputs are not initialized!")
     return ;
@@ -225,7 +225,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeam(char *beamname, double
   vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
   transform2->Identity();
   double isoCenterPosition[3] = {0.0,0.0,0.0};
-  IsocenterFiducialNode->GetFiducialCoordinates(isoCenterPosition);
+  isocenterMarkupsNode->GetNthFiducialPosition(0,isoCenterPosition);
   transform2->Translate(isoCenterPosition[0], isoCenterPosition[1], isoCenterPosition[2]);
 
   transform->PostMultiply();
@@ -253,10 +253,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetRTPlanNodeID()));
   vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
-  vtkMRMLAnnotationFiducialNode* IsocenterFiducialNode = vtkMRMLAnnotationFiducialNode::SafeDownCast(
+  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetIsocenterNodeID()));
   // Make sure inputs are initialized
-  if (!RTPlanNode || !IsocenterFiducialNode )
+  if (!RTPlanNode || !isocenterMarkupsNode )
   {
     vtkErrorMacro("RTPlan: inputs are not initialized!")
     return ;
@@ -283,7 +283,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
   transform2->Identity();
   double isoCenterPosition[3] = {0.0,0.0,0.0};
-  IsocenterFiducialNode->GetFiducialCoordinates(isoCenterPosition);
+  isocenterMarkupsNode->GetNthFiducialPosition(0,isoCenterPosition);
   transform2->Translate(isoCenterPosition[0], isoCenterPosition[1], isoCenterPosition[2]);
 
   transform->PostMultiply();
@@ -382,7 +382,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
   this->Modified();
 }
 
- //---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 template<class T> 
 static void 
 itk_rectify_volume_hack (T image)

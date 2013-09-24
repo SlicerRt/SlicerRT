@@ -24,7 +24,7 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
-#include <vtkMRMLAnnotationFiducialNode.h>
+#include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLModelNode.h>
 
 // VTK includes
@@ -40,8 +40,7 @@ vtkMRMLNodeNewMacro(vtkMRMLBeamsNode);
 //----------------------------------------------------------------------------
 vtkMRMLBeamsNode::vtkMRMLBeamsNode()
 {
-  this->IsocenterFiducialNodeId = NULL;
-  this->SourceFiducialNodeId = NULL;
+  this->IsocenterMarkupsNodeId = NULL;
   this->BeamModelNodeId = NULL;
 
   this->BeamModelOpacity = 0.08;
@@ -52,8 +51,7 @@ vtkMRMLBeamsNode::vtkMRMLBeamsNode()
 //----------------------------------------------------------------------------
 vtkMRMLBeamsNode::~vtkMRMLBeamsNode()
 {
-  this->SetIsocenterFiducialNodeId(NULL);
-  this->SetSourceFiducialNodeId(NULL);
+  this->SetIsocenterMarkupsNodeId(NULL);
   this->SetBeamModelNodeId(NULL);
 }
 
@@ -67,19 +65,11 @@ void vtkMRMLBeamsNode::WriteXML(ostream& of, int nIndent)
 
   {
     std::stringstream ss;
-    if ( this->IsocenterFiducialNodeId )
+    if ( this->IsocenterMarkupsNodeId )
       {
-      ss << this->IsocenterFiducialNodeId;
-      of << indent << " IsocenterFiducialNodeId=\"" << ss.str() << "\"";
+      ss << this->IsocenterMarkupsNodeId;
+      of << indent << " IsocenterMarkupsNodeId=\"" << ss.str() << "\"";
       }
-  }
-  {
-    std::stringstream ss;
-    if ( this->SourceFiducialNodeId )
-    {
-      ss << this->SourceFiducialNodeId;
-      of << indent << " SourceFiducialNodeId=\"" << ss.str() << "\"";
-    }
   }
   {
     std::stringstream ss;
@@ -111,17 +101,11 @@ void vtkMRMLBeamsNode::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
-    if (!strcmp(attName, "IsocenterFiducialNodeId")) 
+    if (!strcmp(attName, "IsocenterMarkupsNodeId")) 
       {
       std::stringstream ss;
       ss << attValue;
-      this->SetAndObserveIsocenterFiducialNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "SourceFiducialNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveSourceFiducialNodeId(ss.str().c_str());
+      this->SetAndObserveIsocenterMarkupsNodeId(ss.str().c_str());
       }
     else if (!strcmp(attName, "BeamModelNodeId")) 
       {
@@ -150,8 +134,7 @@ void vtkMRMLBeamsNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLBeamsNode *node = (vtkMRMLBeamsNode *) anode;
 
-  this->SetAndObserveIsocenterFiducialNodeId(node->IsocenterFiducialNodeId);
-  this->SetAndObserveSourceFiducialNodeId(node->SourceFiducialNodeId);
+  this->SetAndObserveIsocenterMarkupsNodeId(node->IsocenterMarkupsNodeId);
   this->SetAndObserveBeamModelNodeId(node->BeamModelNodeId);
   this->SetBeamModelOpacity(node->GetBeamModelOpacity());
 
@@ -164,41 +147,24 @@ void vtkMRMLBeamsNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "IsocenterFiducialNodeId:   " << (this->IsocenterFiducialNodeId ? this->IsocenterFiducialNodeId : "NULL") << "\n";
-  os << indent << "SourceFiducialNodeId:   " << (this->SourceFiducialNodeId ? this->SourceFiducialNodeId : "NULL") << "\n";
+  os << indent << "IsocenterMarkupsNodeId:   " << (this->IsocenterMarkupsNodeId ? this->IsocenterMarkupsNodeId : "NULL") << "\n";
   os << indent << "BeamModelNodeId:   " << (this->BeamModelNodeId ? this->BeamModelNodeId : "NULL") << "\n";
   os << indent << "BeamModelOpacity:   " << this->BeamModelOpacity << "\n";
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamsNode::SetAndObserveIsocenterFiducialNodeId(const char* id)
+void vtkMRMLBeamsNode::SetAndObserveIsocenterMarkupsNodeId(const char* id)
 {
-  if (this->IsocenterFiducialNodeId)
+  if (this->IsocenterMarkupsNodeId)
   {
-    this->Scene->RemoveReferencedNodeID(this->IsocenterFiducialNodeId, this);
+    this->Scene->RemoveReferencedNodeID(this->IsocenterMarkupsNodeId, this);
   }
 
-  this->SetIsocenterFiducialNodeId(id);
+  this->SetIsocenterMarkupsNodeId(id);
 
   if (id)
   {
-    this->Scene->AddReferencedNodeID(this->IsocenterFiducialNodeId, this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLBeamsNode::SetAndObserveSourceFiducialNodeId(const char* id)
-{
-  if (this->SourceFiducialNodeId)
-  {
-    this->Scene->RemoveReferencedNodeID(this->SourceFiducialNodeId, this);
-  }
-
-  this->SetSourceFiducialNodeId(id);
-
-  if (id)
-  {
-    this->Scene->AddReferencedNodeID(this->SourceFiducialNodeId, this);
+    this->Scene->AddReferencedNodeID(this->IsocenterMarkupsNodeId, this);
   }
 }
 
@@ -221,13 +187,9 @@ void vtkMRMLBeamsNode::SetAndObserveBeamModelNodeId(const char* id)
 //----------------------------------------------------------------------------
 void vtkMRMLBeamsNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
-  if (this->IsocenterFiducialNodeId && !strcmp(oldID, this->IsocenterFiducialNodeId))
+  if (this->IsocenterMarkupsNodeId && !strcmp(oldID, this->IsocenterMarkupsNodeId))
     {
-    this->SetAndObserveIsocenterFiducialNodeId(newID);
-    }
-  if (this->SourceFiducialNodeId && !strcmp(oldID, this->SourceFiducialNodeId))
-    {
-    this->SetAndObserveSourceFiducialNodeId(newID);
+    this->SetAndObserveIsocenterMarkupsNodeId(newID);
     }
   if (this->BeamModelNodeId && !strcmp(oldID, this->BeamModelNodeId))
     {
