@@ -451,7 +451,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
       doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]      
-      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='qPushButton', name='Apply')[0]
+      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', name='Apply')[0]
       
       # Compute isodose for day 1 dose
       day1Dose = slicer.util.getNode(self.day1DoseName)
@@ -489,7 +489,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
       doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]      
-      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='qPushButton', name='Apply')[0]
+      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', name='Apply')[0]
 
       # Compute isodose for day 2 dose
       day2Dose = slicer.util.getNode(self.day2DoseName)
@@ -549,7 +549,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.cliBrainsFitRigidNode = None
       self.cliBrainsFitRigidNode = slicer.cli.run(brainsFit, None, parametersRigid)
       waitCount = 0
-      while self.cliBrainsFitRigidNode.GetStatusString() != 'Completed' and waitCount < 100:
+      while self.cliBrainsFitRigidNode.GetStatusString() != 'Completed' and waitCount < 200:
         self.delayDisplay( "Register Day 2 CT to Day 1 CT using rigid registration... %d" % waitCount )
         waitCount += 1
       self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration finished",self.delayMs)
@@ -715,7 +715,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       referenceDoseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_ReferenceDoseVolume')[0]
       compareDoseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_CompareDoseVolume')[0]
       gammaVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_GammaVolume')[0]
-      applyButton = slicer.util.findChildren(widget=gammaWidget, className='qPushButton', name='Apply')[0]
+      applyButton = slicer.util.findChildren(widget=gammaWidget, className='QPushButton', name='Apply')[0]
 
       # Create output gamma volume
       gammaVolume = gammaVolumeMrmlNodeCombobox.addNode()
