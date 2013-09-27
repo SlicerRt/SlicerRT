@@ -61,9 +61,6 @@
 #include <vtkTransformPolyDataFilter.h>
 #include "vtksys/SystemTools.hxx"
 
-// STD includes
-#include <cassert>
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 
@@ -114,6 +111,7 @@ void vtkSlicerIsodoseModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLIsodoseNode>::New());
@@ -122,7 +120,11 @@ void vtkSlicerIsodoseModuleLogic::RegisterNodes()
 //---------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML scene!");
+    return;
+  }
 
   this->Modified();
 }
@@ -130,7 +132,11 @@ void vtkSlicerIsodoseModuleLogic::UpdateFromMRMLScene()
 //---------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::OnMRMLSceneEndClose()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene!");
+    return;
+  }
 
   this->Modified();
 }
@@ -138,8 +144,9 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneEndClose()
 //---------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
-  if (!node || !this->GetMRMLScene() || !this->IsodoseNode)
+  if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
     return;
   }
 
@@ -158,8 +165,9 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 //---------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
-  if (!node || !this->GetMRMLScene() || !this->IsodoseNode)
+  if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node!");
     return;
   }
 
@@ -193,6 +201,7 @@ bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
 {
   if (!this->GetMRMLScene() || !this->IsodoseNode)
   {
+    vtkErrorMacro("DoseVolumeContainsDose: Invalid MRML scene or parameter set node!");
     return false;
   }
 
@@ -305,8 +314,6 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int newNumberOfColors
 //---------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
 {
-  int dimensions[3] = {0, 0, 0};
-
   if (!this->GetMRMLScene() || !this->IsodoseNode)
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Invalid scene or parameter set node!");
@@ -386,6 +393,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   outputIJK2IJKResliceTransform->Concatenate(inputRAS2IJKMatrix);
   outputIJK2IJKResliceTransform->Inverse();
 
+  int dimensions[3] = {0, 0, 0};
   doseVolumeNode->GetImageData()->GetDimensions(dimensions);
   vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
   reslice->SetInput(doseVolumeNode->GetImageData());
@@ -419,7 +427,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     marchingCubes->Update();
 
     vtkSmartPointer<vtkPolyData> isoPolyData= marchingCubes->GetOutput();
-    if(isoPolyData->GetNumberOfPoints() >= 1)
+    if (isoPolyData->GetNumberOfPoints() >= 1)
     {
       vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
       triangleFilter->SetInput(marchingCubes->GetOutput());

@@ -86,8 +86,7 @@ qSlicerIO::IOFileType qSlicerVffFileReaderPlugin::fileType()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerVffFileReaderPlugin::extensions()const
 {
-  return QStringList()
-	<< "Vff (*.vff)";
+  return QStringList() << "Vff (*.vff)";
 }
 
 //-----------------------------------------------------------------------------

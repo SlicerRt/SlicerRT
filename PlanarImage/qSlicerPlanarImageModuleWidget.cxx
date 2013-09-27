@@ -19,6 +19,9 @@
 
 ==============================================================================*/
 
+// Qt includes
+#include <QDebug>
+
 // SlicerQt includes
 #include "qSlicerPlanarImageModuleWidget.h"
 #include "ui_qSlicerPlanarImageModule.h"
@@ -116,16 +119,18 @@ void qSlicerPlanarImageModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerPlanarImageModuleWidget::onEnter()
 {
-  if (this->mrmlScene() == 0)
+  if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerPlanarImageModuleWidget::onEnter: Invalid scene!";
     return;
   }
 
   Q_D(qSlicerPlanarImageModuleWidget);
 
   // First check the logic if it has a parameter node
-  if (d->logic() == NULL)
+  if (!d->logic())
   {
+    qCritical() << "qSlicerPlanarImageModuleWidget::onEnter: Invalid logic!";
     return;
   }
   vtkMRMLPlanarImageNode* paramNode = vtkMRMLPlanarImageNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
@@ -238,8 +243,14 @@ void qSlicerPlanarImageModuleWidget::planarImageVolumeNodeChanged(vtkMRMLNode* n
 {
   Q_D(qSlicerPlanarImageModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerPlanarImageModuleWidget::planarImageVolumeNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -257,8 +268,14 @@ void qSlicerPlanarImageModuleWidget::displayedModelNodeChanged(vtkMRMLNode* node
 {
   Q_D(qSlicerPlanarImageModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerPlanarImageModuleWidget::displayedModelNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -275,8 +292,14 @@ void qSlicerPlanarImageModuleWidget::textureVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerPlanarImageModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerPlanarImageModuleWidget::textureVolumeNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -292,6 +315,12 @@ void qSlicerPlanarImageModuleWidget::textureVolumeNodeChanged(vtkMRMLNode* node)
 void qSlicerPlanarImageModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerPlanarImageModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerPlanarImageModuleWidget::updateButtonsState: Invalid scene!";
+    return;
+  }
 
   vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
   bool applyEnabled = paramNode
@@ -327,8 +356,14 @@ void qSlicerPlanarImageModuleWidget::refreshOutputBaseName()
 {
   Q_D(qSlicerPlanarImageModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerPlanarImageModuleWidget::refreshOutputBaseName: Invalid scene!";
+    return;
+  }
+
   vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }

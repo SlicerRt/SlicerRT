@@ -25,7 +25,6 @@ limitations under the License.
 #include <vtkStringArray.h>
 
 // STD includes
-#include <cassert>
 #include <deque>
 
 //----------------------------------------------------------------------------
@@ -53,7 +52,7 @@ vtkStandardNewMacro(vtkDICOMImportInfo);
 //---------------------------------------------------------------------------
 vtkDICOMImportInfo::vtkDICOMImportInfo()
 {
-  this->PrivateData=new DicomImportInfoPrivate;
+  this->PrivateData = new DicomImportInfoPrivate;
 }
 
 //---------------------------------------------------------------------------
@@ -62,7 +61,7 @@ vtkDICOMImportInfo::~vtkDICOMImportInfo()
   RemoveAllFileLists();
   RemoveAllLoadables();  
   delete this->PrivateData;
-  this->PrivateData=NULL;
+  this->PrivateData = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -74,9 +73,9 @@ void vtkDICOMImportInfo::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkStringArray* vtkDICOMImportInfo::GetLoadableFiles(unsigned int loadableIndex)
 {
-  if (loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex >= this->PrivateData->Loadables.size())
   {
-    vtkErrorMacro("Invalid loadable index" << loadableIndex);
+    vtkErrorMacro("GetLoadableFiles: Invalid loadable index" << loadableIndex);
     return NULL;
   }
   return this->PrivateData->Loadables[loadableIndex].files;
@@ -85,9 +84,9 @@ vtkStringArray* vtkDICOMImportInfo::GetLoadableFiles(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 const char* vtkDICOMImportInfo::GetLoadableName(unsigned int loadableIndex)
 {
-  if (loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex >= this->PrivateData->Loadables.size())
   {
-    vtkErrorMacro("Invalid loadable index" << loadableIndex);
+    vtkErrorMacro("GetLoadableName: Invalid loadable index" << loadableIndex);
     return NULL;
   }
   return this->PrivateData->Loadables[loadableIndex].name.c_str();
@@ -96,9 +95,9 @@ const char* vtkDICOMImportInfo::GetLoadableName(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 const char* vtkDICOMImportInfo::GetLoadableTooltip(unsigned int loadableIndex)
 {
-  if (loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex >= this->PrivateData->Loadables.size())
   {
-    vtkErrorMacro("Invalid loadable index" << loadableIndex);
+    vtkErrorMacro("GetLoadableTooltip: Invalid loadable index" << loadableIndex);
     return NULL;
   }
   return this->PrivateData->Loadables[loadableIndex].tooltip.c_str();
@@ -107,9 +106,9 @@ const char* vtkDICOMImportInfo::GetLoadableTooltip(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 const char* vtkDICOMImportInfo::GetLoadableWarning(unsigned int loadableIndex)
 {
-  if (loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex >= this->PrivateData->Loadables.size())
   {
-    vtkErrorMacro("Invalid loadable index" << loadableIndex);
+    vtkErrorMacro("GetLoadableWarning: Invalid loadable index" << loadableIndex);
     return NULL;
   }
   return this->PrivateData->Loadables[loadableIndex].warning.c_str();
@@ -118,9 +117,9 @@ const char* vtkDICOMImportInfo::GetLoadableWarning(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 bool vtkDICOMImportInfo::GetLoadableSelected(unsigned int loadableIndex)
 {
-  if (loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex >= this->PrivateData->Loadables.size())
   {
-    vtkErrorMacro("Invalid loadable index" << loadableIndex);
+    vtkErrorMacro("GetLoadableSelected: Invalid loadable index" << loadableIndex);
     return false;
   }
   return this->PrivateData->Loadables[loadableIndex].selected;
@@ -129,9 +128,9 @@ bool vtkDICOMImportInfo::GetLoadableSelected(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 bool vtkDICOMImportInfo::GetLoadableConfidence(unsigned int loadableIndex)
 {
-  if (loadableIndex>=this->PrivateData->Loadables.size())
+  if (loadableIndex >= this->PrivateData->Loadables.size())
   {
-    vtkErrorMacro("Invalid loadable index" << loadableIndex);
+    vtkErrorMacro("GetLoadableConfidence: Invalid loadable index" << loadableIndex);
     return false;
   }
   return this->PrivateData->Loadables[loadableIndex].confidence;
@@ -140,7 +139,7 @@ bool vtkDICOMImportInfo::GetLoadableConfidence(unsigned int loadableIndex)
 //----------------------------------------------------------------------------
 int vtkDICOMImportInfo::InsertNextFileList()
 {
-  vtkStringArray* fileList=vtkStringArray::New();
+  vtkStringArray* fileList = vtkStringArray::New();
   this->PrivateData->FileLists.push_back(fileList);
   return this->PrivateData->FileLists.size()-1;
 }
@@ -148,9 +147,9 @@ int vtkDICOMImportInfo::InsertNextFileList()
 //----------------------------------------------------------------------------
 vtkStringArray* vtkDICOMImportInfo::GetFileList(unsigned int fileListIndex)
 {
-  if (fileListIndex>=this->PrivateData->FileLists.size())
+  if (fileListIndex >= this->PrivateData->FileLists.size())
   {
-    vtkErrorMacro("Invalid file lists index" << fileListIndex);
+    vtkErrorMacro("GetFileList: Invalid file lists index" << fileListIndex);
     return NULL;
   }
   return this->PrivateData->FileLists[fileListIndex];

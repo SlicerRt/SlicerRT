@@ -69,6 +69,7 @@ vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(vtkMRMLScene*
 {
   if (!scene || !uid)
   {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID: Invalid scene or searched UID!" << std::endl;
     return NULL;
   }
 
@@ -97,6 +98,7 @@ vtkMRMLHierarchyNode* vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInH
 {
   if ( !scene || !patientId || !studyInstanceUID || !seriesInstanceUID )
   {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::InsertDicomSeriesInHierarchy: Invalid input arguments!" << std::endl;
     return NULL;
   }
 
@@ -363,6 +365,7 @@ bool vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel( vtkMRMLNode* node, cons
 {
   if (!node || !level)
   {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::IsDicomLevel: Invalid input arguments!" << std::endl;
     return false;
   }
 
@@ -469,6 +472,7 @@ const char* vtkSlicerPatientHierarchyModuleLogic::GetChildDicomLevel(const char*
 {
   if (!parentLevel)
   {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::GetChildDicomLevel: Invalid parent level!" << std::endl;
     return NULL;
   }
 
@@ -503,6 +507,7 @@ void vtkSlicerPatientHierarchyModuleLogic::CreateChildNodeForPatientHierarchyNod
 {
   if (!parentNode)
   {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::CreateChildNodeForPatientHierarchyNode: Invalid parent node!" << std::endl;
     return;
   }
   if (!SlicerRtCommon::IsPatientHierarchyNode(parentNode))

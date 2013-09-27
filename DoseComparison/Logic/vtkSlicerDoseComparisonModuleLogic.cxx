@@ -53,9 +53,6 @@
 // SlicerBase includes
 #include "vtkSlicerApplicationLogic.h"
 
-// STD includes
-#include <cassert>
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseComparisonModuleLogic);
 
@@ -108,6 +105,7 @@ void vtkSlicerDoseComparisonModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseComparisonNode>::New());
@@ -116,7 +114,11 @@ void vtkSlicerDoseComparisonModuleLogic::RegisterNodes()
 //---------------------------------------------------------------------------
 void vtkSlicerDoseComparisonModuleLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML scene!");
+    return;
+  }
 
   this->Modified();
 }
@@ -124,7 +126,11 @@ void vtkSlicerDoseComparisonModuleLogic::UpdateFromMRMLScene()
 //---------------------------------------------------------------------------
 void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneEndClose()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene!");
+    return;
+  }
 
   this->Modified();
 }
@@ -134,6 +140,7 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
     return;
   }
 
@@ -148,6 +155,7 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* nod
 {
   if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node!");
     return;
   }
 

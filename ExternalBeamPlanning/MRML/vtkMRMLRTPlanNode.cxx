@@ -106,27 +106,6 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::UpdateReferences()
-{
-  Superclass::UpdateReferences();
-
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::UpdateReferenceID(const char *oldID, const char *newID)
-{
-  Superclass::UpdateReferenceID(oldID, newID);
-
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::UpdateScene(vtkMRMLScene *scene)
-{
-  Superclass::UpdateScene(scene);
-
-}
-
-//----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
@@ -139,8 +118,9 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
 {
   Superclass::ProcessMRMLEvents(caller, eventID, callData);
 
-  if (this->Scene == NULL)
+  if (!this->Scene)
     {
+    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene!");
     return;
     }
   if (this->Scene->IsBatchProcessing())
@@ -164,8 +144,9 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
 //---------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::GetRTBeamNodes(vtkCollection *beams)
 {
-  if (beams == NULL)
+  if (!beams)
     {
+    vtkErrorMacro("GetRTBeamNodes: Invalid input collection!");
     return;
     }
   vtkMRMLScene *scene = this->GetScene();

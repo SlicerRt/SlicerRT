@@ -87,11 +87,6 @@ public:
   /// when the node is deleted in the scene
   void UpdateReferences();
 
-  /// Handles events registered in the observer manager
-  /// - Invalidates (deletes) all non-active representations when the active is modified
-  /// - Follows parent transform changes
-  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
-
 public:
   /// Set/Get structure name
   vtkGetStringMacro(BeamName);
@@ -150,9 +145,9 @@ protected:
 
 protected:
   /// Name of the structure that corresponds to this contour
-  char *BeamName;
+  char* BeamName;
   int   BeamNumber;
-  char *BeamDescription;
+  char* BeamDescription;
   RTBeamType  BeamType;
   RTRadiationType RadiationType;
   double SAD;
@@ -160,10 +155,11 @@ protected:
   double GantryAngle;
   RTCollimatorType CollimatorType;
 
-  /// beam model representation
+  /// Beam model representation
   vtkMRMLModelNode* BeamModelNode;
+  
   /// Ribbon model representation model node ID
-  char *BeamModelNodeId;
+  char* BeamModelNodeId;
 
   double NominalEnergy;
   double NominalmA;

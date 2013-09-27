@@ -55,9 +55,6 @@
 #include "itk_resample.h"
 #include "plm_image_header.h"
 
-// STD includes
-#include <cassert>
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkConvertContourRepresentations);
 
@@ -205,7 +202,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     }
     else
     {
-      vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No referenced series UID found for contour '" << this->ContourNode->Name << "'!");
+      vtkDebugMacro("ConvertFromModelToIndexedLabelmap: No referenced series UID found for contour '" << this->ContourNode->Name << "'!");
     }
   }
   else

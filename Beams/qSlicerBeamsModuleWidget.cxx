@@ -19,6 +19,9 @@
 
 ==============================================================================*/
 
+// Qt includes
+#include <QDebug>
+
 // SlicerQt includes
 #include "qSlicerBeamsModuleWidget.h"
 #include "ui_qSlicerBeamsModule.h"
@@ -119,16 +122,18 @@ void qSlicerBeamsModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerBeamsModuleWidget::onEnter()
 {
-  if (this->mrmlScene() == 0)
+  if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerBeamsModuleWidget::onEnter: Invalid MRML scene!";
     return;
   }
 
   Q_D(qSlicerBeamsModuleWidget);
 
   // First check the logic if it has a parameter node
-  if (d->logic() == NULL)
+  if (!d->logic())
   {
+    qCritical() << "qSlicerBeamsModuleWidget::onEnter: Invalid logic!";
     return;
   }
   vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
@@ -231,6 +236,7 @@ void qSlicerBeamsModuleWidget::isocenterMarkupsNodeChanged(vtkMRMLNode* node)
   vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
+    qCritical() << "qSlicerBeamsModuleWidget::isocenterMarkupsNodeChanged: Invalid MRML scene, parameter set node or input node!";
     return;
   }
 
@@ -250,6 +256,7 @@ void qSlicerBeamsModuleWidget::beamModelNodeChanged(vtkMRMLNode* node)
   vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
   if (!paramNode || !this->mrmlScene() || !node)
   {
+    qCritical() << "qSlicerBeamsModuleWidget::beamModelNodeChanged: Invalid MRML scene, parameter set node or input node!";
     return;
   }
 
@@ -303,6 +310,7 @@ void qSlicerBeamsModuleWidget::refreshOutputBaseName()
   vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
   if (!paramNode || !this->mrmlScene())
   {
+    qCritical() << "qSlicerBeamsModuleWidget::refreshOutputBaseName: Invalid MRML scene or parameter set node!";
     return;
   }
 

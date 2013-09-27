@@ -32,7 +32,6 @@ limitations under the License.
 #include <vtkCleanPolyData.h>
 
 // STD includes
-#include <cassert>
 #include <vector>
 
 // DCMTK includes

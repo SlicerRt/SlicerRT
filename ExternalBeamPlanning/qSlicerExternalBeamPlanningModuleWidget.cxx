@@ -124,13 +124,13 @@ void qSlicerExternalBeamPlanningModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 
   // Find parameters node or create it if there is no one in the scene
   if (scene &&  d->logic()->GetExternalBeamPlanningNode() == 0)
-    {
+  {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLExternalBeamPlanningNode");
     if (node)
-      {
+    {
       this->setExternalBeamPlanningNode( vtkMRMLExternalBeamPlanningNode::SafeDownCast(node) );
-      }
     }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -148,16 +148,18 @@ void qSlicerExternalBeamPlanningModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 {
-  if (this->mrmlScene() == 0)
+  if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::onEnter: Invalid scene!";
     return;
   }
 
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   // First check the logic if it has a parameter node
-  if (d->logic() == NULL)
+  if (d->logic())
   {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::onEnter: Invalid logic!";
     return;
   }
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
@@ -300,8 +302,14 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget: Invalid scene!";
+    return;
+  }
+
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -327,7 +335,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
   beams->InitTraversal();
   if (beams->GetNumberOfItems() < 1)
   {
-    std::cerr << "Warning: Selected ExternalBeamPlanning node has no children contour nodes!" << std::endl;
+    qWarning() << "qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget: Selected ExternalBeamPlanning node has no children contour nodes!";
     return;
   }
 
@@ -360,10 +368,14 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  qDebug ("EBP:: rvnode changed %p, %p, %p",
-          paramNode, this->mrmlScene(), node);
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -371,9 +383,6 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveReferenceVolumeNodeID(node->GetID());
   paramNode->DisableModifiedEventOff();
-
-  //this->updateButtonsState();
-  //this->updateChartCheckboxesState();
 }
 
 //-----------------------------------------------------------------------------
@@ -381,8 +390,14 @@ void qSlicerExternalBeamPlanningModuleWidget::RTPlanNodeChanged(vtkMRMLNode* nod
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::RTPlanNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -390,9 +405,6 @@ void qSlicerExternalBeamPlanningModuleWidget::RTPlanNodeChanged(vtkMRMLNode* nod
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveRTPlanNodeID(node->GetID());
   paramNode->DisableModifiedEventOff();
-
-  //this->updateButtonsState();
-  //this->updateChartCheckboxesState();
 }
 
 //-----------------------------------------------------------------------------
@@ -400,8 +412,14 @@ void qSlicerExternalBeamPlanningModuleWidget::IsocenterNodeChanged(vtkMRMLNode* 
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::IsocenterNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -409,9 +427,6 @@ void qSlicerExternalBeamPlanningModuleWidget::IsocenterNodeChanged(vtkMRMLNode* 
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveIsocenterNodeID(node->GetID());
   paramNode->DisableModifiedEventOff();
-
-  //this->updateButtonsState();
-  //this->updateChartCheckboxesState();
 }
 
 //-----------------------------------------------------------------------------
@@ -453,7 +468,7 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetItemClicked(QTableWidge
   if (row != d->currentBeamRow)  
   {
     d->currentBeamRow = row;
-    // need to update beam parameters panel
+    //TODO: need to update beam parameters panel
   } 
 }
 
@@ -462,11 +477,14 @@ void qSlicerExternalBeamPlanningModuleWidget::protonTargetVolumeNodeChanged(vtkM
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  qDebug ("EBP:: ptvnode changed %p, %p, %p",
-          paramNode, this->mrmlScene(), node);
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::protonTargetVolumeNodeChanged: Invalid scene!";
+    return;
+  }
 
-  if (!paramNode || !this->mrmlScene() || !node)
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode || !node)
   {
     return;
   }
@@ -498,7 +516,17 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 
   d->label_CalculateDoseStatus->setText("Starting dose calculation...");
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked: Invalid scene!";
+    return;
+  }
+
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
 
   /* Make sure inputs were specified */
   const char *refVolID = paramNode->GetReferenceVolumeNodeID();
@@ -564,13 +592,24 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   d->label_CalculateDoseStatus->setText("Dose calculation done.");
 }
 
+//-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   d->label_CalculateDoseStatus->setText("Starting WED calculation...");
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked: Invalid scene!";
+    return;
+  }
+
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
 
   /* Make sure inputs were specified - only CT needed*/
   const char *refVolID = paramNode->GetReferenceVolumeNodeID();
@@ -610,8 +649,20 @@ void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString & te
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  //d->GantryAngle = text;
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamNameChanged: Invalid scene!";
+    return;
+  }
 
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
+  // TODO:
+  //d->GantryAngle = text;
 }
 
 //-----------------------------------------------------------------------------
@@ -619,14 +670,27 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  qDebug ("Radiation type changed (%d)\n", index);
-  if (index == -1) {
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
+  if (index == -1)
+  {
     return;
   }
 
   QString text = d->comboBox_RadiationType->currentText();
 
-  if (text == "Photon") {
+  if (text == "Photon")
+  {
     d->label_NominalEnergy->setEnabled (true);
     d->comboBox_NominalEnergy->setEnabled (true);
     d->label_BeamOnTime->setEnabled (true);
@@ -635,7 +699,9 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
     d->lineEdit_NominalmA->setEnabled (true);
     d->label_CollimatorType->setEnabled (true);
     d->comboBox_CollimatorType->setEnabled (true);
-  } else {
+  }
+  else
+  {
     d->label_NominalEnergy->setEnabled (false);
     d->comboBox_NominalEnergy->setEnabled (false);
     d->label_BeamOnTime->setEnabled (false);
@@ -656,7 +722,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamPrescriptionButtonClicked()
   d->pushButton_BeamGeometry->setChecked (false);
   d->pushButton_BeamModel->setChecked (false);
 
-  d->stackedWidget->setCurrentIndex (0);
+  d->stackedWidget->setCurrentIndex(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -668,7 +734,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamGeometryButtonClicked()
   d->pushButton_BeamGeometry->setChecked (true);
   d->pushButton_BeamModel->setChecked (false);
 
-  d->stackedWidget->setCurrentIndex (1);
+  d->stackedWidget->setCurrentIndex(1);
 }
 
 //-----------------------------------------------------------------------------
@@ -680,7 +746,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamModelButtonClicked()
   d->pushButton_BeamGeometry->setChecked (false);
   d->pushButton_BeamModel->setChecked (true);
 
-  d->stackedWidget->setCurrentIndex (2);
+  d->stackedWidget->setCurrentIndex(2);
 }
 
 //-----------------------------------------------------------------------------
@@ -688,12 +754,25 @@ void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString & te
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  //TODO:
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
 
   QTableWidgetItem *item = NULL;
   char beamName[100];
@@ -704,7 +783,6 @@ void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
     strcpy(beamName, item->text().toStdString().c_str());
     d->logic()->UpdateBeam(beamName, value);
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -712,4 +790,17 @@ void qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged(const QStrin
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+  
+  //TODO:
 }

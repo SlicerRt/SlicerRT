@@ -35,9 +35,6 @@
 // ITK includes
 #include <itkImage.h>
 
-// STD includes
-#include <cassert>
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtExportModuleLogic);
 
@@ -60,7 +57,6 @@ void vtkSlicerDicomRtExportModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID, const char* doseNodeID, const char* contourHierarchyNodeID, const char* currentOutputPath)
 {
-  // TODO:
   if (!this->GetMRMLScene())
   {
     vtkErrorMacro("SaveDicomRTStudy: MRML scene not valid!")
@@ -145,7 +141,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
       vtkMRMLScalarVolumeNode* labelmapNode = contourNode->GetIndexedLabelmapVolumeNode();
       if (!labelmapNode)
       {
-        vtkErrorMacro(<<"Failed to get indexed labelmap representation from contours");
+        vtkErrorMacro("SaveDicomRTStudy: Failed to get indexed labelmap representation from contours");
         return;
       }
       char *labelmapName = labelmapNode->GetName();

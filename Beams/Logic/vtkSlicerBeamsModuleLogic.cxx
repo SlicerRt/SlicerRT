@@ -88,6 +88,7 @@ void vtkSlicerBeamsModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLBeamsNode>::New());
@@ -98,6 +99,7 @@ void vtkSlicerBeamsModuleLogic::UpdateFromMRMLScene()
 {
   if (!this->GetMRMLScene())
   {
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML scene!");
     return;
   }
 
@@ -109,6 +111,7 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
     return;
   }
 
@@ -123,6 +126,7 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node!");
     return;
   }
 
@@ -148,6 +152,12 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndImport()
 //---------------------------------------------------------------------------
 void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndClose()
 {
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene or input node!");
+    return;
+  }
+
   this->Modified();
 }
 
@@ -156,13 +166,14 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
 {
   if (!this->BeamsNode || !this->GetMRMLScene())
   {
+    vtkErrorMacro("ComputeSourceFiducialPosition: Invalid MRML scene or parameter set node!");
     return;
   }
   if ( !this->BeamsNode->GetIsocenterMarkupsNodeId()
     || !strcmp(this->BeamsNode->GetIsocenterMarkupsNodeId(), "") )
   {
     errorMessage = "Empty isocenter markups node ID!";
-    vtkErrorMacro(<<errorMessage); 
+    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage); 
     return;
   }
 
@@ -262,13 +273,14 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
 {
   if (!this->BeamsNode || !this->GetMRMLScene())
   {
+    vtkErrorMacro("CreateBeamModel: Invalid MRML scene or parameter set node!");
     return;
   }
 
   if (SlicerRtCommon::IsStringNullOrEmpty(this->BeamsNode->GetIsocenterMarkupsNodeId()))
   {
     errorMessage = "Isocenter markups is empty!";
-    vtkErrorMacro(<<errorMessage);
+    vtkErrorMacro("CreateBeamModel: " << errorMessage);
     return;
   }
 
@@ -279,7 +291,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   if (!errorMessageSource.empty())
   {
     errorMessage = "Failed to compute source position:\n" + errorMessageSource;
-    vtkErrorMacro(<<errorMessage);
+    vtkErrorMacro("CreateBeamModel: " << errorMessage);
     return;
   }
 
@@ -289,7 +301,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   if (!isocenterNode)
   {
     errorMessage = "Unable to retrieve isocenter markups node according its ID!";
-    vtkErrorMacro(<<errorMessage); 
+    vtkErrorMacro("CreateBeamModel: " << errorMessage);
     return;
   }
 
@@ -298,7 +310,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   if (!isocenterPatientHierarchyNode)
   {
     errorMessage = "Unable to retrieve isocenter patient hierarchy node!";
-    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage); 
+    vtkErrorMacro("CreateBeamModel: " << errorMessage);
     return;
   }
 
@@ -343,7 +355,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   if (!beamModelNode)
   {
     errorMessage = "Unable to retrieve beam model node according its ID!";
-    vtkErrorMacro(<<errorMessage); 
+    vtkErrorMacro("CreateBeamModel: " << errorMessage);
     return;
   }
 

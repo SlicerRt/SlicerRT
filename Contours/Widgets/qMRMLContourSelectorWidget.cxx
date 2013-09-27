@@ -611,6 +611,7 @@ bool qMRMLContourSelectorWidget::isSelectionValid()
 void qMRMLContourSelectorWidget::setMRMLScene(vtkMRMLScene* newScene)
 {
   Q_D(qMRMLContourSelectorWidget);
+
   if (newScene == this->mrmlScene())
   {
     return;

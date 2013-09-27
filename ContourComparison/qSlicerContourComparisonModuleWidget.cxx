@@ -23,6 +23,9 @@
 #include "qSlicerContourComparisonModuleWidget.h"
 #include "ui_qSlicerContourComparisonModule.h"
 
+// Qt includes
+#include <QDebug>
+
 // ContourComparison includes
 #include "vtkSlicerContourComparisonModuleLogic.h"
 #include "vtkMRMLContourComparisonNode.h"
@@ -120,16 +123,18 @@ void qSlicerContourComparisonModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerContourComparisonModuleWidget::onEnter()
 {
-  if (this->mrmlScene() == 0)
+  if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerContourComparisonModuleWidget::onEnter: Invalid scene!";
     return;
   }
 
   Q_D(qSlicerContourComparisonModuleWidget);
 
   // First check the logic if it has a parameter node
-  if (d->logic() == NULL)
+  if (!d->logic())
   {
+    qCritical() << "qSlicerContourComparisonModuleWidget::onEnter: Invalid logic!";
     return;
   }
   vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
@@ -199,8 +204,14 @@ void qSlicerContourComparisonModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourComparisonModuleWidget::updateWidgetFromMRML: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -277,8 +288,14 @@ void qSlicerContourComparisonModuleWidget::referenceContourNodeChanged(vtkMRMLNo
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourComparisonModuleWidget::referenceContourNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene() || !node || !d->ModuleWindowInitialized)
+  if (!paramNode || !node || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -297,8 +314,14 @@ void qSlicerContourComparisonModuleWidget::compareContourNodeChanged(vtkMRMLNode
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourComparisonModuleWidget::compareContourNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene() || !node || !d->ModuleWindowInitialized)
+  if (!paramNode || !node || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -317,8 +340,14 @@ void qSlicerContourComparisonModuleWidget::referenceVolumeNodeChanged(vtkMRMLNod
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourComparisonModuleWidget::referenceVolumeNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene() || !node || !d->ModuleWindowInitialized)
+  if (!paramNode || !node || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -337,8 +366,14 @@ void qSlicerContourComparisonModuleWidget::computeHausdorffClicked()
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourComparisonModuleWidget::computeHausdorffClicked: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -373,8 +408,14 @@ void qSlicerContourComparisonModuleWidget::computeDiceClicked()
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourComparisonModuleWidget::computeDiceClicked: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -427,8 +468,14 @@ void qSlicerContourComparisonModuleWidget::invalidateDiceResults()
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourComparisonModuleWidget::invalidateDiceResults: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -451,8 +498,14 @@ void qSlicerContourComparisonModuleWidget::invalidateHausdorffResults()
 {
   Q_D(qSlicerContourComparisonModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourComparisonModuleWidget::invalidateHausdorffResults: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourComparisonNode* paramNode = d->logic()->GetContourComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }

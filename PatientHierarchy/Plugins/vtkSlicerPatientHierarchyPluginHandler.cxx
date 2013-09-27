@@ -135,6 +135,7 @@ bool vtkSlicerPatientHierarchyPluginHandler::RegisterPlugin(vtkSlicerPatientHier
 {
   if (plugin == NULL)
   {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::RegisterPlugin: Invalid plugin to register!" << std::endl;
     return false;
   }
 

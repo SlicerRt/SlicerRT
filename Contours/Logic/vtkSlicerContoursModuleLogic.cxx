@@ -42,9 +42,6 @@
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 
-// STD includes
-#include <cassert>
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerContoursModuleLogic);
 
@@ -81,7 +78,11 @@ void vtkSlicerContoursModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
 //-----------------------------------------------------------------------------
 void vtkSlicerContoursModuleLogic::RegisterNodes()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
+    return;
+  }
 
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
 
@@ -92,7 +93,11 @@ void vtkSlicerContoursModuleLogic::RegisterNodes()
 //---------------------------------------------------------------------------
 void vtkSlicerContoursModuleLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML scene!");
+    return;
+  }
 
   this->Modified();
 }
@@ -102,6 +107,7 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
     return;
   }
 
@@ -119,6 +125,7 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node!");
     return;
   }
 
@@ -138,7 +145,11 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 //---------------------------------------------------------------------------
 void vtkSlicerContoursModuleLogic::OnMRMLSceneEndClose()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene!");
+    return;
+  }
 
   this->CreateDefaultStructureSetNode();
   this->Modified();
@@ -147,7 +158,11 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndClose()
 //---------------------------------------------------------------------------
 void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndImport: Invalid MRML scene!");
+    return;
+  }
 
   vtkSmartPointer<vtkCollection> contourNodes = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLContourNode") );
   vtkObject* nextObject = NULL;
@@ -166,7 +181,11 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
 //---------------------------------------------------------------------------
 void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("CreateDefaultStructureSetNode: Invalid MRML scene!");
+    return;
+  }
 
   std::string defaultStructureSetNodeName;
   defaultStructureSetNodeName = SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
@@ -314,6 +333,7 @@ void vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(vtkMRMLNode* 
 
   if (!node)
   {
+    std::cerr << "vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode: Invalid input node!" << std::endl;
     return;
   }
 

@@ -31,7 +31,7 @@
 #include "dice_statistics.h"
 #include "hausdorff_distance.h"
 #if OPENMP_FOUND
-  #include <omp.h>
+  #include <omp.h> //TODO: #227
 #endif
 
 // MRML includes
@@ -45,9 +45,6 @@
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
-
-// STD includes
-#include <cassert>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ContourComparison
@@ -96,6 +93,7 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsItkVolumes(
 {
   if (!this->Logic->GetContourComparisonNode() || !this->Logic->GetMRMLScene())
   {
+    vtkErrorMacro("GetInputContoursAsItkVolumes: Invalid MRML scene or parameter set node!");
     return;
   }
 
@@ -122,7 +120,7 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsItkVolumes(
   if (!referenceContourLabelmapVolumeNode || !compareContourLabelmapVolumeNode)
   {
     errorMessage = "Failed to get indexed labelmap representation from selected contours";
-    vtkErrorMacro(<<errorMessage);
+    vtkErrorMacro("GetInputContoursAsItkVolumes: " << errorMessage);
     return;
   }
 
@@ -134,7 +132,7 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsItkVolumes(
     || SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk, true) == false )
   {
     errorMessage = "Failed to convert contour labelmaps to ITK volumes!";
-    vtkErrorMacro(<<errorMessage);
+    vtkErrorMacro("GetInputContoursAsItkVolumes: " << errorMessage);
     return;
   }
 }
@@ -197,6 +195,7 @@ void vtkSlicerContourComparisonModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourComparisonNode>::New());
@@ -205,7 +204,11 @@ void vtkSlicerContourComparisonModuleLogic::RegisterNodes()
 //---------------------------------------------------------------------------
 void vtkSlicerContourComparisonModuleLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML scene!");
+    return;
+  }
 
   this->Modified();
 }
@@ -215,6 +218,7 @@ void vtkSlicerContourComparisonModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* no
 {
   if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
     return;
   }
 
@@ -229,6 +233,7 @@ void vtkSlicerContourComparisonModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* 
 {
   if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node!");
     return;
   }
 
@@ -256,6 +261,12 @@ void vtkSlicerContourComparisonModuleLogic::OnMRMLSceneEndImport()
 //---------------------------------------------------------------------------
 void vtkSlicerContourComparisonModuleLogic::OnMRMLSceneEndClose()
 {
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene!");
+    return;
+  }
+
   this->Modified();
 }
 
@@ -264,6 +275,7 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
 {
   if (!this->ContourComparisonNode || !this->GetMRMLScene())
   {
+    vtkErrorMacro("ComputeDiceStatistics: Invalid MRML scene or parameter set node!");
     return;
   }
 
@@ -281,6 +293,7 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
   this->LogicPrivate->GetInputContoursAsItkVolumes(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk, checkpointItkConvertStart, errorMessage);
   if (!errorMessage.empty())
   {
+    vtkErrorMacro("ComputeDiceStatistics: Error occurred during ITK conversion!");
     return;
   }
 
@@ -333,6 +346,7 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
 {
   if (!this->ContourComparisonNode || !this->GetMRMLScene())
   {
+    vtkErrorMacro("ComputeHausdorffDistances: Invalid MRML scene or parameter set node!");
     return;
   }
 
@@ -350,6 +364,7 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
   this->LogicPrivate->GetInputContoursAsItkVolumes(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk, checkpointItkConvertStart, errorMessage);
   if (!errorMessage.empty())
   {
+    vtkErrorMacro("ComputeHausdorffDistances: Error occurred during ITK conversion!");
     return;
   }
 

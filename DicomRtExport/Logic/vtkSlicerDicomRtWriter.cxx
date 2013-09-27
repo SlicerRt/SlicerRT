@@ -15,10 +15,8 @@
 
 ==============================================================================*/
 
-// ModuleTemplate includes
+// DicomRtExport includes
 #include "vtkSlicerDicomRtWriter.h"
-
-// MRML includes
 
 // VTK includes
 #include <vtkNew.h>
@@ -30,16 +28,9 @@
 // ITK includes
 #include "itkImage.h"
 
-// STD includes
-#include <cassert>
-#include <vector>
-
 // DCMTK includes
-
 #include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
-
 #include "dcmtk/ofstd/ofconapp.h"
-
 #include "dcmtk/dcmrt/drtdose.h"
 #include "dcmtk/dcmrt/drtimage.h"
 #include "dcmtk/dcmrt/drtplan.h"
@@ -48,7 +39,7 @@
 #include "dcmtk/dcmrt/drtionpl.h"
 #include "dcmtk/dcmrt/drtiontr.h"
 
-// plastimatch includes
+// Plastimatch includes
 #include "rt_study.h"
 
 //----------------------------------------------------------------------------
@@ -69,31 +60,6 @@ vtkSlicerDicomRtWriter::~vtkSlicerDicomRtWriter()
 void vtkSlicerDicomRtWriter::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerDicomRtWriter::SetFileName(const char * name)
-{
-  if ( this->FileName && name && (!strcmp(this->FileName,name)))
-  {
-    return;
-  }
-  if (!name && !this->FileName)
-  {
-    return;
-  }
-  if (this->FileName)
-  {
-    delete [] this->FileName;
-    this->FileName = NULL;
-  }
-  if (name)
-  {
-    this->FileName = new char[strlen(name) + 1];
-    strcpy(this->FileName, name);
-  }
-
-  this->Modified();
 }
 
 //----------------------------------------------------------------------------

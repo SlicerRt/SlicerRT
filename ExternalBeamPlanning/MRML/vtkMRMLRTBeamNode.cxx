@@ -46,9 +46,6 @@
 #include <vtkGeneralTransform.h>
 #include <vtkCollection.h>
 
-// STD includes
-#include <algorithm> //TODO: workaround for issue #179
-
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTBeamNode);
 
@@ -192,21 +189,6 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLNode::PrintSelf(os,indent);
 
   os << indent << "BeamModelNodeId:   " << (this->BeamModelNodeId ? this->BeamModelNodeId : "NULL") << "\n";
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData)
-{
-  Superclass::ProcessMRMLEvents(caller, eventID, callData);
-
-  if (this->Scene == NULL)
-    {
-    return;
-    }
-  if (this->Scene->IsBatchProcessing())
-    {
-    return;
-    }
 }
 
 //----------------------------------------------------------------------------

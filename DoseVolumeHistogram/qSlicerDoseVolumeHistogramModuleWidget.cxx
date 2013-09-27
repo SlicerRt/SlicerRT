@@ -151,6 +151,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
+    qCritical() << "onEnter::compareDoseVolumeNodeChanged: Invalid scene!";
     return;
   }
 
@@ -159,6 +160,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (d->logic() == NULL)
   {
+    qCritical() << "onEnter::compareDoseVolumeNodeChanged: Invalid logic!";
     return;
   }
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
@@ -354,8 +356,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateChartCheckboxesState()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::updateChartCheckboxesState: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -435,8 +443,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -458,8 +472,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::structureSetNodeChanged(vtkMRMLNode
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::structureSetNodeChanged: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -476,8 +496,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -796,8 +822,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aS
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -875,8 +907,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::showHideAllCheckedStateChanged(int 
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::showHideAllCheckedStateChanged: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -1044,8 +1082,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -1062,8 +1106,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsCcCheckedStateChanged(i
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::showVMetricsCcCheckedStateChanged: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -1080,8 +1130,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChan
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChanged: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -1098,8 +1154,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aTe
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -1116,8 +1178,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QStrin
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -1134,8 +1202,14 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -1151,8 +1225,15 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
 void qSlicerDoseVolumeHistogramModuleWidget::showDoseVolumesOnlyCheckboxChanged(int aState)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+  
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::showDoseVolumesOnlyCheckboxChanged: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }

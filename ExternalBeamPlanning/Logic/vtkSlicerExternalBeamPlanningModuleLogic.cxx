@@ -53,9 +53,6 @@
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
 
-// STD includes
-#include <cassert>
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerExternalBeamPlanningModuleLogic);
 
@@ -101,6 +98,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLExternalBeamPlanningNode>::New());
@@ -112,15 +110,21 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterNodes()
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML scene!");
+    return;
+  }
+
   this->Modified();
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
-  if (!node || !this->GetMRMLScene() || !this->ExternalBeamPlanningNode)
+  if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
     return;
   }
 
@@ -139,10 +143,11 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode*
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
-  if (!node || !this->GetMRMLScene() || !this->ExternalBeamPlanningNode)
-    {
+  if (!node || !this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node!");
     return;
-    }
+  }
 
   // if the scene is still updating, jump out
   if (this->GetMRMLScene()->IsBatchProcessing())
@@ -151,9 +156,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNod
   }
 
   if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLExternalBeamPlanningNode"))
-    {
+  {
     this->Modified();
-    }
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -163,10 +168,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndImport()
   vtkMRMLExternalBeamPlanningNode *paramNode = NULL;
   vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLExternalBeamPlanningNode");
   if (node)
-    {
+  {
     paramNode = vtkMRMLExternalBeamPlanningNode::SafeDownCast(node);
     vtkSetAndObserveMRMLNodeMacro(this->ExternalBeamPlanningNode, paramNode);
-    }
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -185,8 +190,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeam(char *beamname, double
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
   {
+    vtkErrorMacro("UpdateBeam: Invalid MRML scene or parameter set node!");
     return;
   }
+
   vtkMRMLRTPlanNode* RTPlanNode = vtkMRMLRTPlanNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetRTPlanNodeID()));
   vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
@@ -196,8 +203,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeam(char *beamname, double
   // Make sure inputs are initialized
   if (!RTPlanNode || !isocenterMarkupsNode )
   {
-    vtkErrorMacro("RTPlan: inputs are not initialized!")
-    return ;
+    vtkErrorMacro("UpdateBeam: Inputs are not initialized!")
+    return;
   }
 
   vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
@@ -246,6 +253,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
   {
+    vtkErrorMacro("AddBeam: Invalid MRML scene or parameter set node!");
     return;
   }
 
@@ -258,8 +266,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   // Make sure inputs are initialized
   if (!RTPlanNode || !isocenterMarkupsNode )
   {
-    vtkErrorMacro("RTPlan: inputs are not initialized!")
-    return ;
+    vtkErrorMacro("AddBeam: Inputs are not initialized!")
+    return;
   }
 
   // Get rtplan hierarchy node
@@ -333,6 +341,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
   {
+    vtkErrorMacro("RemoveBeam: Invalid MRML scene or parameter set node!");
     return;
   }
 
@@ -343,8 +352,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
   // Make sure inputs are initialized
   if (!RTPlanNode)
   {
-    vtkErrorMacro("RTPlan: inputs are not initialized!")
-    return ;
+    vtkErrorMacro("RemoveBeam: Inputs are not initialized!")
+    return;
   }
 
   // Get rtplan hierarchy node
@@ -357,7 +366,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
   beams->InitTraversal();
   if (beams->GetNumberOfItems() < 1)
   {
-    std::cerr << "Warning: Selected RTPlan node has no children contour nodes!" << std::endl;
+    vtkWarningMacro("RemoveBeam: Selected RTPlan node has no children contour nodes!");
     return;
   }
 
@@ -441,6 +450,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
   {
+    vtkErrorMacro("ComputeDose: Invalid MRML scene or parameter set node!");
     return;
   }
 
@@ -463,7 +473,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 
   Ion_plan ion_plan;
 
-  try {
+  try
+  {
     // Assign inputs to dose calc logic
     printf ("Setting reference volume\n");
     ion_plan.set_patient (referenceVolumeItk);
@@ -514,8 +525,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     ion_plan.compute_beam_modifiers ();
     vtkWarningMacro ("Computing beam modifier done!\n");
 
-  } catch (std::exception& ex) {
-    vtkWarningMacro ("Plastimatch exception: " << ex.what());
+  }
+  catch (std::exception& ex)
+  {
+    vtkErrorMacro("ComputeDose: Plastimatch exception: " << ex.what());
     return;
   }
 
@@ -582,8 +595,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   this->GetMRMLScene()->AddNode(apertureVolumeNode);
 
   /* Compute the dose */
-  try {
-    vtkWarningMacro ("Applying beam modifiers...\n");
+  try
+  {
+    vtkWarningMacro("ComputeDose: Applying beam modifiers");
     ion_plan.apply_beam_modifiers ();
 
     vtkWarningMacro ("Optimizing SOBP\n");
@@ -595,21 +609,19 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
       rpl_vol->get_min_wed(), rpl_vol->get_max_wed());
     ion_plan.beam->optimize_sobp ();
 
-    vtkWarningMacro ("Computing dose\n");
     ion_plan.compute_dose ();
-    vtkWarningMacro ("Computing dose -- complete.\n");
-  } catch (std::exception& ex) {
-    vtkWarningMacro ("Plastimatch exception: " << ex.what());
+  }
+  catch (std::exception& ex)
+  {
+    vtkErrorMacro("ComputeDose: Plastimatch exception: " << ex.what());
     return;
   }
 
   /* Get dose as itk image */
-  itk::Image<float, 3>::Pointer doseVolumeItk 
-    = ion_plan.get_dose_itk();
+  itk::Image<float, 3>::Pointer doseVolumeItk = ion_plan.get_dose_itk();
 
   /* Convert dose image to vtk */
-  vtkSmartPointer<vtkImageData> doseVolume 
-    = itk_to_vtk (doseVolumeItk, VTK_FLOAT);
+  vtkSmartPointer<vtkImageData> doseVolume = itk_to_vtk (doseVolumeItk, VTK_FLOAT);
 
   /* Create the MRML node for the volume */
   vtkSmartPointer<vtkMRMLScalarVolumeNode> doseVolumeNode 
@@ -625,8 +637,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     doseVolumeItk->GetOrigin()[1],
     doseVolumeItk->GetOrigin()[2]);
 
-  std::string doseVolumeNodeName = this->GetMRMLScene()
-    ->GenerateUniqueName(std::string ("proton_dose_"));
+  std::string doseVolumeNodeName = this->GetMRMLScene()->GenerateUniqueName(std::string("proton_dose_"));
   doseVolumeNode->SetName(doseVolumeNodeName.c_str());
 
   doseVolumeNode->SetScene(this->GetMRMLScene());
@@ -656,7 +667,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     }
     else
     {
-      vtkWarningMacro("ComputeGammaDoseDifference: Loading gamma color table failed, stock color table is used!");
+      vtkWarningMacro("ComputeDose: Loading gamma color table failed, stock color table is used!");
       gammaScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
     }
 #endif
@@ -668,20 +679,16 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   }
   else
   {
-    vtkWarningMacro("ComputeGammaDoseDifference: Display node is not available for gamma volume node. The default color table will be used.");
+    vtkWarningMacro("ComputeDose: Display node is not available for gamma volume node. The default color table will be used.");
   }
-
-#if defined (commentout)
-#endif
 }
 
+//---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 {
-
-
-
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
   {
+    vtkErrorMacro("ComputeWED: Invalid MRML scene or parameter set node!");
     return;
   }
 
@@ -695,19 +702,15 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 
   // Ray tracing code expects identity direction cosines.  This is a hack.
   itk_rectify_volume_hack (referenceVolumeItk);
- 
 
   Ion_plan ion_plan;
 
-
-  try {
+  try
+  {
     // Assign inputs to dose calc logic
-    printf ("Setting reference volume\n");
     ion_plan.set_patient (referenceVolumeItk);
-    printf ("Done.\n");
 
-    printf ("Gantry angle is: %g\n",
-            this->ExternalBeamPlanningNode->GetGantryAngle());
+    vtkDebugMacro("ComputeWED: Gantry angle is: " << this->ExternalBeamPlanningNode->GetGantryAngle());
 
     float src_dist = 2000;
     float src[3];
@@ -732,9 +735,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 //    ion_plan.get_aperture()->set_origin (ap_origin);
     ion_plan.get_aperture()->set_spacing (ap_spacing);
     ion_plan.set_step_length (1);
-    if (!ion_plan.init ()) {
-      /* Failure.  How to notify the user?? */
-      std::cerr << "Sorry, ion_plan.init() failed.\n";
+    if (!ion_plan.init ())
+    {
+      vtkErrorMacro("SComputeWED: ion_plan.init() failed!");
       return;
     }
 
@@ -742,9 +745,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
     ion_plan.debug ();
     printf ("Working...\n");
     fflush(stdout);
-
-  } catch (std::exception& ex) {
-    vtkWarningMacro ("Plastimatch exception: " << ex.what());
+  }
+  catch (std::exception& ex)
+  {
+    vtkErrorMacro("ComputeWED: Plastimatch exception: " << ex.what());
     return;
   }
 
@@ -791,7 +795,4 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 
   wedVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(wedVolumeNode);
-
-#if defined (commentout)
-#endif
 }

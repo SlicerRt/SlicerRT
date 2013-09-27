@@ -153,12 +153,9 @@ const char* SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE = "planarImageTex
 
 void SlicerRtCommon::GetTransformBetweenTransformables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform)
 {
-  if (!fromNodeToToNodeTransform)
+  if (!fromNodeToToNodeTransform|| !fromNode || !toNode)
   {
-    return;
-  }
-  if (!fromNode || !toNode)
-  {
+    std::cerr << "SlicerRtCommon::GetTransformBetweenTransformables: Invalid input arguments!" << std::endl;
     return;
   }
 
@@ -218,6 +215,7 @@ void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode
 {
   if (!inputVolumeNode || !inputVolumeNode->GetImageData())
   {
+    std::cerr << "SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor: Invalid input arguments!" << std::endl;
     return;
   }
 
@@ -225,6 +223,7 @@ void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode
   if ( oversamplingFactor < 0.01
     || oversamplingFactor > 100.0 )
   {
+    std::cerr << "SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor: Oversampling factor" << oversamplingFactor << "seems unreasonable!" << std::endl;
     return;
   }
 
@@ -253,6 +252,7 @@ bool SlicerRtCommon::IsPatientHierarchyNode(vtkMRMLNode *node)
 {
   if (!node)
   {
+    std::cerr << "SlicerRtCommon::IsPatientHierarchyNode: Invalid input arguments!" << std::endl;
     return false;
   }
 
@@ -277,6 +277,7 @@ bool SlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
 {
   if (!node)
   {
+    std::cerr << "SlicerRtCommon::IsDoseVolumeNode: Invalid input arguments!" << std::endl;
     return false;
   }
 
@@ -297,6 +298,7 @@ void SlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscr
 {
   if (!inputDiscreteColorTable || !outputColorTable)
   {
+    std::cerr << "SlicerRtCommon::StretchDiscreteColorTable: Invalid input arguments!" << std::endl;
     return;
   }
 

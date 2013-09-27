@@ -41,7 +41,6 @@
 #include <algorithm>
 #include <cctype>
 
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerVffFileReaderLogic);
 
@@ -133,7 +132,8 @@ std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std
   if (numberOfNumbers == 0)
   {
     return vectorOfNumberOfNumbers;
-  } 
+  }
+
   stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
   int currentNumber = 0;
   // Parses out the specified number of numbers from the string, 

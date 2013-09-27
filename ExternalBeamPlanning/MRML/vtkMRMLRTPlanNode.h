@@ -55,18 +55,8 @@ public:
   /// Copy the node's attributes to this object 
   virtual void Copy(vtkMRMLNode *node);
 
-  /// Updates the referenced nodes from the updated scene
-  virtual void UpdateScene(vtkMRMLScene *scene);
-
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "RTPlan";};
-
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
-  /// Updates this node if it depends on other nodes 
-  /// when the node is deleted in the scene
-  void UpdateReferences();
 
   /// Handles events registered in the observer manager
   /// - Invalidates (deletes) all non-active representations when the active is modified

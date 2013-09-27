@@ -71,7 +71,7 @@ bool vtkTopologicalHierarchy::Contains(vtkPolyData* polyOut, vtkPolyData* polyIn
 {
   if (!polyOut || !polyOut)
   {
-    vtkErrorMacro("Empty input parameters!");
+    vtkErrorMacro("Contains: Empty input parameters!");
     return false;
   }
 
@@ -99,7 +99,7 @@ void vtkTopologicalHierarchy::Update()
 {
   if (!this->InputPolyDataCollection || !this->OutputLevels)
   {
-    vtkErrorMacro("Input poly data collection and output int array have to be initialized!");
+    vtkErrorMacro("Update: Input poly data collection and output int array have to be initialized!");
     return;
   }
 
@@ -112,7 +112,7 @@ void vtkTopologicalHierarchy::Update()
     vtkPolyData* polyOut = vtkPolyData::SafeDownCast(this->InputPolyDataCollection->GetItemAsObject(polyOutIndex));
     if (!polyOut)
     {
-      vtkErrorMacro("Input collection contains invalid object at item " << polyOutIndex);
+      vtkErrorMacro("Update: Input collection contains invalid object at item " << polyOutIndex);
       return;
     }
   }

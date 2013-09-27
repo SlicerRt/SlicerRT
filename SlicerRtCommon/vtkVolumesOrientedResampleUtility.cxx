@@ -58,7 +58,7 @@ bool vtkVolumesOrientedResampleUtility
   // Make sure inputs are initialized
   if (!inputVolumeNode || !referenceVolumeNode || !outputVolumeNode)
   {
-    vtkGenericWarningMacro(<< "vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode: Inputs are not specified!");
+    vtkGenericWarningMacro("vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode: Inputs are not specified!");
     return false;
   }
 

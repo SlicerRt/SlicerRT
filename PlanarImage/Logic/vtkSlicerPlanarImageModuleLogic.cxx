@@ -75,6 +75,7 @@ void vtkSlicerPlanarImageModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLPlanarImageNode>::New());
@@ -305,16 +306,15 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
 //----------------------------------------------------------------------------
 void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarImageNode* planarImageNode)
 {
-
   if (!planarImageNode)
   {
-    vtkErrorMacro("DisplayPlanarImage: Invalid input node!");
+    vtkErrorMacro("CreateModelForPlanarImage: Invalid input node!");
     return;
   }
   vtkMRMLScene* mrmlScene = planarImageNode->GetScene();
   if (!mrmlScene)
   {
-    vtkErrorMacro("DisplayPlanarImage: Invalid MRML scene!");
+    vtkErrorMacro("CreateModelForPlanarImage: Invalid MRML scene!");
     return;
   }
 
@@ -323,7 +323,7 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
     planarImageNode->GetNodeReference(vtkMRMLPlanarImageNode::PlanarImageVolumeNodeReferenceRole) );
   if (!planarImageVolume)
   {
-    vtkErrorMacro("DisplayPlanarImage: Invalid input planar image volume node!");
+    vtkErrorMacro("CreateModelForPlanarImage: Invalid input planar image volume node!");
     return;
   }
   // Sanity checks for the planar image volume
@@ -331,12 +331,12 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
   planarImageVolume->GetImageData()->GetDimensions(dims);
   if (dims[0] == 0 && dims[1] == 0 && dims[2] == 0)
   {
-    vtkErrorMacro("DisplayPlanarImage: Image to display is empty!");
+    vtkErrorMacro("CreateModelForPlanarImage: Image to display is empty!");
     return;
   }
   else if (dims[2] > 1)
   {
-    vtkErrorMacro("DisplayPlanarImage: Image to display ('" << planarImageVolume->GetName() << "') is not single-slice!");
+    vtkErrorMacro("CreateModelForPlanarImage: Image to display ('" << planarImageVolume->GetName() << "') is not single-slice!");
     return;
   }
 
@@ -345,7 +345,7 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
     planarImageNode->GetNodeReference(vtkMRMLPlanarImageNode::DisplayedModelNodeReferenceRole) );
   if (!displayedModelNode)
   {
-    vtkErrorMacro("DisplayPlanarImage: Missing displayed model reference in parameter set node for planar image '" << planarImageVolume->GetName() << "'!");
+    vtkErrorMacro("CreateModelForPlanarImage: Missing displayed model reference in parameter set node for planar image '" << planarImageVolume->GetName() << "'!");
     return;
   }
   displayedModelNode->SetDescription("Model displaying a planar image");
@@ -355,7 +355,7 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
     planarImageNode->GetNodeReference(vtkMRMLPlanarImageNode::TextureVolumeNodeReferenceRole) );
   if (!textureVolume)
   {
-    vtkErrorMacro("DisplayPlanarImage: Missing texture volume reference in parameter set node for planar image '" << planarImageVolume->GetName() << "'!");
+    vtkErrorMacro("CreateModelForPlanarImage: Missing texture volume reference in parameter set node for planar image '" << planarImageVolume->GetName() << "'!");
     return;
   }
 

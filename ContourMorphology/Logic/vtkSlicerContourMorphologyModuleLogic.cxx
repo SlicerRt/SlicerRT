@@ -57,11 +57,6 @@
 #include <vtkImageReslice.h>
 #include <vtkGeneralTransform.h>
 
-// STD includes
-#include <cassert>
-
-#define THRESHOLD 0.001
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerContourMorphologyModuleLogic);
 
@@ -107,6 +102,7 @@ void vtkSlicerContourMorphologyModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourMorphologyNode>::New());
@@ -115,14 +111,25 @@ void vtkSlicerContourMorphologyModuleLogic::RegisterNodes()
 //---------------------------------------------------------------------------
 void vtkSlicerContourMorphologyModuleLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML scene!");
+    return;
+  }
+
   this->Modified();
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
-  if (!node || !this->GetMRMLScene() || !this->ContourMorphologyNode)
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene!");
+    return;
+  }
+
+  if (!node || !this->ContourMorphologyNode)
   {
     return;
   }
@@ -142,7 +149,13 @@ void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* no
 //---------------------------------------------------------------------------
 void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
-  if (!node || !this->GetMRMLScene() || !this->ContourMorphologyNode)
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene!");
+    return;
+  }
+
+  if (!node || !this->ContourMorphologyNode)
   {
     return;
   }
@@ -175,6 +188,12 @@ void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneEndImport()
 //---------------------------------------------------------------------------
 void vtkSlicerContourMorphologyModuleLogic::OnMRMLSceneEndClose()
 {
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene or input node!");
+    return;
+  }
+
   this->Modified();
 }
 
@@ -183,6 +202,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
 {
   if (!this->GetMRMLScene() || !this->ContourMorphologyNode)
   {
+    vtkErrorMacro("SetContourARepresentationToLabelmap: Invalid MRML scene or parameter set node!");
     return -1;
   }
 
@@ -195,7 +215,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
       this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetReferenceVolumeNodeId()));
     if (!referenceVolumeNode)
     {
-      vtkErrorMacro("ContourMorphology: Reference Volume is not initialized!")
+      vtkErrorMacro("SetContourARepresentationToLabelmap: Reference Volume is not initialized!")
       return -1;
     }
     inputContourANode->SetAndObserveRasterizationReferenceVolumeNodeId(
@@ -207,9 +227,10 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
     = inputContourANode->GetIndexedLabelmapVolumeNode();
   if (!inputContourALabelmapVolumeNode)
   {
-    vtkErrorMacro("Failed to get indexed labelmap representation from selected contours");
+    vtkErrorMacro("SetContourARepresentationToLabelmap: Failed to get indexed labelmap representation from selected contours");
     return -1;
   }
+
   return 0;
 }
 
@@ -218,6 +239,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
 {
   if (!this->GetMRMLScene() || !this->ContourMorphologyNode)
   {
+    vtkErrorMacro("SetContourBRepresentationToLabelmap: Invalid MRML scene or parameter set node!");
     return -1;
   }
 
@@ -230,7 +252,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
       this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetReferenceVolumeNodeId()));
     if (!referenceVolumeNode)
     {
-      vtkErrorMacro("ContourMorphology: Reference Volume is not initialized!")
+      vtkErrorMacro("SetContourBRepresentationToLabelmap: Reference Volume is not initialized!")
       return -1;
     }
     inputContourBNode->SetAndObserveRasterizationReferenceVolumeNodeId(
@@ -242,9 +264,10 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
     = inputContourBNode->GetIndexedLabelmapVolumeNode();
   if (!inputContourBLabelmapVolumeNode)
   {
-    vtkErrorMacro("Failed to get indexed labelmap representation from selected contours");
+    vtkErrorMacro("SetContourBRepresentationToLabelmap: Failed to get indexed labelmap representation from selected contours");
     return -1;
   }
+
   return 0;
 }
 
@@ -269,6 +292,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
 
   if (this->SetContourARepresentationToLabelmap() != 0)
   {
+    vtkErrorMacro("MorphContour: Failed to set contour A representation to labelmap!")
     return -1;
   }
 
@@ -302,7 +326,8 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     }
     if (this->SetContourBRepresentationToLabelmap() != 0)
     {
-      return -1;
+     vtkErrorMacro("MorphContour: Failed to set contour B representation to labelmap!")
+     return -1;
     }
     inputLabelmapBNode = inputContourBNode->GetIndexedLabelmapVolumeNode();
 

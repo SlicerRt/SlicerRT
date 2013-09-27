@@ -126,6 +126,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New());
@@ -134,13 +135,15 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RegisterNodes()
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::RefreshDvhDoubleArrayNodesFromScene()
 {
-  if (!this->DoseVolumeHistogramNode)
+  if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
+    vtkErrorMacro("RefreshDvhDoubleArrayNodesFromScene: Invalid MRML scene or parameter set node!");
     return;
   }
+
   this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->clear();
 
-  if (this->GetMRMLScene() == NULL || this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLDoubleArrayNode") < 1)
+  if (this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLDoubleArrayNode") < 1)
   {
     return;
   }
@@ -172,7 +175,10 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::UpdateFromMRMLScene()
     return;
   }
 
-  this->RefreshDvhDoubleArrayNodesFromScene();
+  if (this->DoseVolumeHistogramNode)
+  {
+    this->RefreshDvhDoubleArrayNodesFromScene();
+  }
 
   this->Modified();
 }
@@ -180,8 +186,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::UpdateFromMRMLScene()
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
-  if (!node || !this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
+  if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene, input node, or parameter set node!");
     return;
   }
 
@@ -191,7 +198,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* 
     return;
   }
 
-  if (node->IsA("vtkMRMLDoubleArrayNode"))
+  if (node->IsA("vtkMRMLDoubleArrayNode") && this->DoseVolumeHistogramNode)
   {
     vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
     if (doubleArrayNode)
@@ -217,6 +224,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode
 {
   if (!node || !this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
+    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene, input node, or parameter set node!");
     return;
   }
 
@@ -264,16 +272,26 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneEndImport()
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneEndClose()
 {
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene!");
+    return;
+  }
+
   this->Modified();
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour( vtkMRMLContourNode* structureContourNode, vtkMRMLScalarVolumeNode* resampledDoseVolumeNode, vtkMRMLScalarVolumeNode* consolidatedStructureLabelmapNode )
 {
-  if ( !this->GetMRMLScene() || !this->DoseVolumeHistogramNode
-    || !structureContourNode || !consolidatedStructureLabelmapNode || !resampledDoseVolumeNode )
+  if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
-    vtkErrorMacro("GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour: Invalid input arguments or scene!");
+    vtkErrorMacro("GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour: Invalid MRML scene or parameter set node!");
+    return;
+  }
+  if ( !structureContourNode || !consolidatedStructureLabelmapNode || !resampledDoseVolumeNode )
+  {
+    vtkErrorMacro("GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour: Invalid input arguments!");
     return;
   }
 
@@ -356,8 +374,14 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* structureContourNode, std::string &errorMessage)
 {
-  if ( !this->GetMRMLScene() || !this->DoseVolumeHistogramNode || !structureContourNode )
+  if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
+    vtkErrorMacro("ComputeDvh: Invalid MRML scene or parameter set node!");
+    return;
+  }
+  if (!structureContourNode)
+  {
+    vtkWarningMacro("ComputeDvh: Invalid structure contour node");
     return;
   }
 
@@ -622,6 +646,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
 {
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
+    vtkErrorMacro("AddDvhToSelectedChart: Invalid MRML scene or parameter set node!");
     return;
   }
 
@@ -632,13 +657,14 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
 
   if (!chartNode || !doseVolumeNode)
   {
+    vtkErrorMacro("AddDvhToSelectedChart: Invalid chart or dose volume node!");
     return;
   }
 
   vtkMRMLChartViewNode* chartViewNode = GetChartViewNode();
   if (chartViewNode == NULL)
   {
-    vtkErrorMacro("Error: unable to get chart view node!");
+    vtkErrorMacro("AddDvhToSelectedChart: Unable to get chart view node!");
     return;
   }
 
@@ -667,7 +693,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
   vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID(dvhArrayNodeId) );
   if (dvhArrayNode == NULL)
   {
-    vtkErrorMacro("Error: unable to get double array node!");
+    vtkErrorMacro("AddDvhToSelectedChart: Unable to get double array node!");
     return;
   }
 
@@ -689,6 +715,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromSelectedChart(const c
 {
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
+    vtkErrorMacro("RemoveDvhFromSelectedChart: Invalid MRML scene or parameter set node!");
     return;
   }
 
@@ -697,13 +724,14 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromSelectedChart(const c
 
   if (!chartNode)
   {
+    vtkErrorMacro("RemoveDvhFromSelectedChart: Invalid chart node!");
     return;
   }
 
   vtkMRMLChartViewNode* chartViewNode = GetChartViewNode();
   if (chartViewNode == NULL)
   {
-    vtkErrorMacro("Error: unable to get chart view node!");
+    vtkErrorMacro("RemoveDvhFromSelectedChart: Unable to get chart view node!");
     return;
   }
 
@@ -719,9 +747,9 @@ vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode(
   layoutNodes->InitTraversal();
   vtkObject* layoutNodeVtkObject = layoutNodes->GetNextItemAsObject();
   vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(layoutNodeVtkObject);
-  if (layoutNode == NULL)
+  if (!layoutNode)
   {
-    vtkErrorMacro("Error: unable to get layout node!");
+    vtkErrorMacro("GetChartViewNode: Unable to get layout node!");
     return NULL;
   }
   layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView );
@@ -730,9 +758,9 @@ vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode(
     = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLChartViewNode") );
   chartViewNodes->InitTraversal();
   vtkMRMLChartViewNode* chartViewNode = vtkMRMLChartViewNode::SafeDownCast( chartViewNodes->GetNextItemAsObject() );
-  if (chartViewNode == NULL)
+  if (!chartViewNode)
   {
-    vtkErrorMacro("Error: unable to get chart view node!");
+    vtkErrorMacro("GetChartViewNode: Unable to get chart view node!");
     return NULL;
   }
 
@@ -752,7 +780,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   const char* structureVolumeStr = dvhArrayNode->GetAttribute(attributeNameStream.str().c_str());
   if (!structureVolumeStr)
   {
-    vtkErrorMacro("Error: Failed to get total volume attribute from DVH double array MRML node!");
+    vtkErrorMacro("ComputeVMetrics: Failed to get total volume attribute from DVH double array MRML node!");
     return;
   }
 
@@ -763,7 +791,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   double structureVolume = doubleValue;
   if (structureVolume == 0.0)
   {
-    vtkErrorMacro("Error: Failed to parse structure total volume attribute value!");
+    vtkErrorMacro("ComputeVMetrics: Failed to parse structure total volume attribute value!");
     return;
   }
 
@@ -805,7 +833,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   const char* structureVolumeStr = dvhArrayNode->GetAttribute(attributeNameStream.str().c_str());
   if (!structureVolumeStr)
   {
-    vtkErrorMacro("Error: Failed to get total volume attribute from DVH double array MRML node!");
+    vtkErrorMacro("ComputeDMetrics: Failed to get total volume attribute from DVH double array MRML node!");
     return;
   }
 
@@ -816,7 +844,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic
   double structureVolume = doubleValue;
   if (structureVolume == 0.0)
   {
-    vtkErrorMacro("Error: Failed to parse structure total volume attribute value!");
+    vtkErrorMacro("ComputeDMetrics: Failed to parse structure total volume attribute value!");
     return;
   }
 
@@ -875,6 +903,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::DoseVolumeContainsDose()
 {
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
+    vtkErrorMacro("DoseVolumeContainsDose: Invalid MRML scene or parameter set node!");
     return false;
   }
 
@@ -887,7 +916,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::CollectMetricsForDvhNodes(std::vec
 {
   metricList.clear();
 
-  if (dvhNodeIds->size() < 1 || !this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
+  if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
+  {
+    vtkErrorMacro("CollectMetricsForDvhNodes: Invalid MRML scene or parameter set node!");
+    return;
+  }
+
+  if (dvhNodeIds->size() < 1)
   {
     return;
   }
@@ -958,14 +993,15 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(const char* fileNam
 {
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
+    vtkErrorMacro("ExportDvhToCsv: Invalid MRML scene or parameter set node!");
     return false;
   }
 
   vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetChartNodeId()));
-
-  if (chartNode == NULL)
+  if (!chartNode)
   {
+    vtkErrorMacro("ExportDvhToCsv: Unable to get chart node");
 		return false;
   }
 
@@ -975,7 +1011,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(const char* fileNam
 
 	if ( !outfile )
 	{
-    vtkErrorMacro("Error: Output file '" << fileName << "' cannot be opened!");
+    vtkErrorMacro("ExportDvhToCsv: Output file '" << fileName << "' cannot be opened!");
 		return false;
 	}
 
@@ -997,7 +1033,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(const char* fileNam
     }
     else
     {
-      vtkErrorMacro("Invalid double array node in selected chart!");
+      vtkErrorMacro("ExportDvhToCsv: Invalid double array node in selected chart!");
       return false;
     }
   }
@@ -1084,6 +1120,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(const char* 
 {
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
+    vtkErrorMacro("ExportDvhMetricsToCsv: Invalid MRML scene or parameter set node!");
     return false;
   }
 
@@ -1093,7 +1130,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(const char* 
 
 	if ( !outfile )
 	{
-    vtkErrorMacro("Error: Output file '" << fileName << "' cannot be opened!");
+    vtkErrorMacro("ExportDvhMetricsToCsv: Output file '" << fileName << "' cannot be opened!");
 		return false;
 	}
 

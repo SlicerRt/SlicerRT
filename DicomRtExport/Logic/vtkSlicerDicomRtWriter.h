@@ -24,16 +24,6 @@
 #ifndef __vtkSlicerDicomRtExportReader_h
 #define __vtkSlicerDicomRtExportReader_h
 
-// Slicer includes
-//#include "vtkSlicerModuleReader.h"
-
-// MRML includes
-
-// STD includes
-#include <cstdlib>
-#include <vector>
-
-
 #include "vtkSlicerDicomRtExportModuleLogicExport.h"
 
 #include "vtkObject.h"
@@ -42,18 +32,13 @@
 #include "rt_study.h"
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_DICOMRTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtWriter :
-  public vtkObject
+class VTK_SLICER_DICOMRTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtWriter :  public vtkObject
 {
 public:
-
   static vtkSlicerDicomRtWriter *New();
   vtkTypeMacro(vtkSlicerDicomRtWriter, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// TODO: Description, argument names and descriptions
-  void SetFileName(const char *);
-  
   /// TODO: Description, argument names and descriptions
   void SetImage(ShortImageType::Pointer);
 
@@ -66,12 +51,20 @@ public:
   /// TODO: Description, argument names and descriptions
   void Write();
 
+public:
+  /// Get file name
+  vtkGetStringMacro(FileName);
+  /// Set file name
+  vtkSetStringMacro(FileName);
+  
 protected:
   vtkSlicerDicomRtWriter();
   virtual ~vtkSlicerDicomRtWriter();
-  
-  char *FileName;
 
+  /// TODO:
+  char* FileName;
+
+  /// TODO:
   Rt_study RtStudy;
 
 private:

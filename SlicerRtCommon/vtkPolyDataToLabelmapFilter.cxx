@@ -87,7 +87,7 @@ void vtkPolyDataToLabelmapFilter::Update()
 {
   if (!this->InputPolyData || !this->ReferenceImageData || !this->OutputLabelmap)
   {
-    vtkErrorMacro("Input poly data, reference image and output labelmap have to be initialized!");
+    vtkErrorMacro("Update: Input poly data, reference image and output labelmap have to be initialized!");
     return;
   }
 

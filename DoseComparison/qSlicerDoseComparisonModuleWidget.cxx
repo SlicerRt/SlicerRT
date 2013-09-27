@@ -125,8 +125,8 @@ void qSlicerDoseComparisonModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    return;
     qCritical() << "qSlicerDoseComparisonModuleWidget::onEnter: Invalid scene!";
+    return;
   }
 
   Q_D(qSlicerDoseComparisonModuleWidget);
@@ -294,13 +294,14 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged: Invalid scene!";
     return;
   }
-  if (!node || !d->ModuleWindowInitialized)
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !node || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -320,13 +321,14 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged: Invalid scene!";
     return;
   }
-  if (!node || !d->ModuleWindowInitialized)
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !node || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -346,13 +348,14 @@ void qSlicerDoseComparisonModuleWidget::gammaVolumeNodeChanged(vtkMRMLNode* node
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::gammaVolumeNodeChanged: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged: Invalid scene!";
     return;
   }
-  if (!node || !d->ModuleWindowInitialized)
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !node || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -369,10 +372,15 @@ void qSlicerDoseComparisonModuleWidget::dtaDistanceToleranceChanged(double value
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::dtaDistanceToleranceChanged: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::dtaDistanceToleranceChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
     return;
   }
 
@@ -388,10 +396,15 @@ void qSlicerDoseComparisonModuleWidget::doseDifferenceToleranceChanged(double va
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::doseDifferenceToleranceChanged: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::doseDifferenceToleranceChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
     return;
   }
 
@@ -407,10 +420,15 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseUseMaximumDoseChanged(bool 
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseUseMaximumDoseChanged: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseUseMaximumDoseChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
     return;
   }
 
@@ -428,10 +446,15 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseChanged(double value)
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseChanged: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
     return;
   }
 
@@ -447,10 +470,15 @@ void qSlicerDoseComparisonModuleWidget::analysisThresholdChanged(double value)
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::analysisThresholdChanged: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::analysisThresholdChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
     return;
   }
 
@@ -466,10 +494,15 @@ void qSlicerDoseComparisonModuleWidget::maximumGammaChanged(double value)
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::maximumGammaChanged: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::maximumGammaChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
     return;
   }
 
@@ -485,10 +518,15 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::applyClicked: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::applyClicked: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
     return;
   }
 
@@ -510,13 +548,14 @@ void qSlicerDoseComparisonModuleWidget::checkDoseVolumeAttributes()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::checkDoseVolumeAttributes: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::checkDoseVolumeAttributes: Invalid scene!";
     return;
   }
-  if (!d->ModuleWindowInitialized)
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -545,10 +584,15 @@ void qSlicerDoseComparisonModuleWidget::refreshOutputBaseName()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::refreshOutputBaseName: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::refreshOutputBaseName: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
     return;
   }
 
@@ -576,10 +620,15 @@ void qSlicerDoseComparisonModuleWidget::invalidateResults()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::invalidateResults: Invalid parameter node or scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::invalidateResults: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
     return;
   }
 

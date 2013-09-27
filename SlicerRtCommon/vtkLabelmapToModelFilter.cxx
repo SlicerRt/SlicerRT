@@ -70,7 +70,7 @@ void vtkLabelmapToModelFilter::Update()
 {
   if (!this->InputLabelmap || !this->OutputModel)
   {
-    vtkErrorMacro("Input labelmap and output poly data have to be initialized!");
+    vtkErrorMacro("Update: Input labelmap and output poly data have to be initialized!");
     return;
   }
 

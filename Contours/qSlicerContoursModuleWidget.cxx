@@ -43,6 +43,7 @@
 // Qt includes
 #include <QProgressDialog>
 #include <QMainWindow>
+#include <QDebug>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Contours
@@ -115,8 +116,9 @@ void qSlicerContoursModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::onEnter()
 {
-  if (this->mrmlScene() == 0)
+  if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerContoursModuleWidget::onEnter: Invalid scene!";
     return;
   }
 
@@ -160,7 +162,12 @@ void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 
   d->pushButton_ApplyChangeRepresentation->setEnabled(false);
 
-  if (!this->mrmlScene() || !d->ModuleWindowInitialized)
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContoursModuleWidget::referenceVolumeNodeChanged: Invalid scene!";
+    return;
+  }
+  if (!d->ModuleWindowInitialized)
   {
     return;
   }
@@ -319,7 +326,16 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 
   d->SelectedContourNodes.clear();
 
-  if (!this->mrmlScene() || !node || !d->ModuleWindowInitialized)
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContoursModuleWidget::contourNodeChanged: Invalid scene!";
+    return;
+  }
+  if (!d->ModuleWindowInitialized)
+  {
+    return;
+  }
+  if (!node)
   {
     d->comboBox_ChangeActiveRepresentation->setEnabled(false);
     d->label_ActiveRepresentation->setText(tr("[No node is selected]"));
@@ -347,8 +363,17 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
 
   d->pushButton_ApplyChangeRepresentation->setEnabled(false);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContoursModuleWidget::updateWidgetFromMRML: Invalid scene!";
+    return;
+  }
+  if (!d->ModuleWindowInitialized)
+  {
+    return;
+  }
   vtkMRMLNode* selectedNode = d->MRMLNodeComboBox_Contour->currentNode();
-  if (!this->mrmlScene() || !selectedNode || !d->ModuleWindowInitialized)
+  if (!selectedNode)
   {
     d->comboBox_ChangeActiveRepresentation->setEnabled(false);
     d->label_ActiveRepresentation->setText(tr("[No node is selected]"));
@@ -488,9 +513,18 @@ void qSlicerContoursModuleWidget::showConversionParameterControlsForTargetRepres
   d->label_TargetReductionFactor->setVisible(true);
   d->SliderWidget_TargetReductionFactorPercent->setVisible(true);
 
-  if ((targetRepresentationType != (int)vtkMRMLContourNode::IndexedLabelmap
-    && targetRepresentationType != (int)vtkMRMLContourNode::ClosedSurfaceModel)
-    || !this->mrmlScene() )
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContoursModuleWidget::contourNodeChanged: Invalid scene!";
+    return;
+  }
+  if (!d->ModuleWindowInitialized)
+  {
+    return;
+  }
+  
+  if ( (targetRepresentationType != (int)vtkMRMLContourNode::IndexedLabelmap
+    && targetRepresentationType != (int)vtkMRMLContourNode::ClosedSurfaceModel) )
   {
     d->MRMLNodeComboBox_ReferenceVolume->setVisible(false);
     d->label_ReferenceVolume->setVisible(false);
@@ -710,6 +744,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
 
   if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerContoursModuleWidget::applyChangeRepresentationClicked: Invalid scene!";
     return;
   }
 

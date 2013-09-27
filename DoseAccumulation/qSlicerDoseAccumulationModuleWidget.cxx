@@ -21,6 +21,7 @@
 
 // Qt includes
 #include <QCheckBox>
+#include <QDebug>
 
 // SlicerQt includes
 #include "qSlicerDoseAccumulationModuleWidget.h"
@@ -132,8 +133,9 @@ void qSlicerDoseAccumulationModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerDoseAccumulationModuleWidget::onEnter()
 {
-  if (this->mrmlScene() == 0)
+  if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerDoseAccumulationModuleWidget::onEnter: Invalid scene!";
     return;
   }
 
@@ -142,6 +144,7 @@ void qSlicerDoseAccumulationModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (d->logic() == NULL)
   {
+    qCritical() << "qSlicerDoseAccumulationModuleWidget::onEnter: Invalid logic!";
     return;
   }
   vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
@@ -247,8 +250,14 @@ void qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged(vtkMRML
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -268,12 +277,17 @@ void qSlicerDoseAccumulationModuleWidget::accumulatedDoseVolumeNodeChanged(vtkMR
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged: Invalid scene!";
     return;
   }
 
+  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+  if (!paramNode || !node)
+  {
+    return;
+  }
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveAccumulatedDoseVolumeNodeId(node->GetID());
   paramNode->DisableModifiedEventOff();
@@ -442,8 +456,14 @@ void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aSt
 
   d->label_Error->setVisible(false);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -451,7 +471,7 @@ void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aSt
   QCheckBox* senderCheckbox = dynamic_cast<QCheckBox*>(sender());
   if (!senderCheckbox)
   {
-    std::cerr << "Error: Invalid sender checkbox for show/hide in chart checkbox state change" << std::endl;
+    qCritical() << "qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged: Invalid sender checkbox for show/hide in chart checkbox state change";
     return;
   }
 
@@ -477,8 +497,14 @@ void qSlicerDoseAccumulationModuleWidget::showDoseOnlyChanged(int aState)
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseAccumulationModuleWidget::showDoseOnlyChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -516,6 +542,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshOutputBaseName()
 
   if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerDoseAccumulationModuleWidget::refreshOutputBaseName: Invalid scene!";
     return;
   }
 

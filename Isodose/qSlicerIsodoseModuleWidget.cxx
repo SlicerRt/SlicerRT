@@ -60,10 +60,6 @@
 #include <vtkRenderWindow.h>
 #include <vtkScalarBarWidget.h>
 
-// STD includes
-#include <sstream>
-#include <string>
-
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Isodose
 class qSlicerIsodoseModuleWidgetPrivate: public Ui_qSlicerIsodoseModule
@@ -256,6 +252,7 @@ void qSlicerIsodoseModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerIsodoseModuleWidget::onEnter: Invalid scene!";
     return;
   }
 
@@ -264,6 +261,7 @@ void qSlicerIsodoseModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (!d->logic())
   {
+    qCritical() << "qSlicerIsodoseModuleWidget::onEnter: Invalid logic!";
     return;
   }
   vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
@@ -297,8 +295,14 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerIsodoseModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::updateWidgetFromMRML: Invalid scene!";
+    return;
+  }
+
   vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -332,7 +336,15 @@ void qSlicerIsodoseModuleWidget::onLogicModified()
 void qSlicerIsodoseModuleWidgetPrivate::updateScalarBarsFromSelectedColorTable()
 {
   Q_Q(qSlicerIsodoseModuleWidget);
-  if (!q->mrmlScene() || !this->logic()->GetIsodoseNode())
+  
+  if (!q->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::updateWidgetFromMRML: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLIsodoseNode* paramNode = this->logic()->GetIsodoseNode();
+  if (!paramNode)
   {
     return;
   }
@@ -421,6 +433,12 @@ void qSlicerIsodoseModuleWidget::setIsodoseNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerIsodoseModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::setIsodoseNode: Invalid scene!";
+    return;
+  }
+  
   vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(node);
 
   // Each time the node is modified, the qt widgets are updated
@@ -445,8 +463,14 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerIsodoseModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::doseVolumeNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -498,8 +522,14 @@ void qSlicerIsodoseModuleWidget::outputHierarchyNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerIsodoseModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::outputHierarchyNodeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -521,11 +551,19 @@ QString qSlicerIsodoseModuleWidget::generateNewIsodoseLevel() const
 void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
 {
   Q_D(qSlicerIsodoseModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::setIsolineVisibility: Invalid scene!";
+    return;
+  }
+
   vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetShowIsodoseLines(visible);
   paramNode->DisableModifiedEventOff();
@@ -551,11 +589,19 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
 void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
 {
   Q_D(qSlicerIsodoseModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::setIsosurfaceVisibility: Invalid scene!";
+    return;
+  }
+
   vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetShowIsodoseSurfaces(visible);
   paramNode->DisableModifiedEventOff();
@@ -581,6 +627,13 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
 void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
 {
   Q_D(qSlicerIsodoseModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::setScalarBarVisibility: Invalid scene!";
+    return;
+  }
+
   if (d->ScalarBarWidget == 0)
   {
     return;
@@ -604,6 +657,13 @@ void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
 void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
 {
   Q_D(qSlicerIsodoseModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::setScalarBar2DVisibility: Invalid scene!";
+    return;
+  }
+
   if (d->ScalarBarWidget2DRed == 0 || d->ScalarBarWidget2DYellow == 0 || d->ScalarBarWidget2DGreen == 0)
   {
     return;
@@ -634,6 +694,12 @@ void qSlicerIsodoseModuleWidget::applyClicked()
 {
   Q_D(qSlicerIsodoseModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::applyClicked: Invalid scene!";
+    return;
+  }
+
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // Compute the isodose surface for the selected dose volume
@@ -646,8 +712,10 @@ void qSlicerIsodoseModuleWidget::applyClicked()
 void qSlicerIsodoseModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerIsodoseModuleWidget);
+
   if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerIsodoseModuleWidget::updateButtonsState: Invalid scene!";
     return;
   }
 

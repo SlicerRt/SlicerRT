@@ -91,6 +91,7 @@ void vtkSlicerDoseAccumulationModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New());
@@ -101,6 +102,7 @@ void vtkSlicerDoseAccumulationModuleLogic::UpdateFromMRMLScene()
 {
   if (!this->GetMRMLScene())
   {
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML scene!");
     return;
   }
 
@@ -112,6 +114,7 @@ void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* nod
 {
   if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
     return;
   }
 
@@ -126,6 +129,7 @@ void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* n
 {
   if (!node || !this->GetMRMLScene())
   {
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
     return;
   }
 
@@ -157,6 +161,12 @@ void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneEndImport()
 //---------------------------------------------------------------------------
 void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneEndClose()
 {
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene!");
+    return;
+  }
+
   this->Modified();
 }
 
@@ -197,6 +207,7 @@ bool vtkSlicerDoseAccumulationModuleLogic::ReferenceDoseVolumeContainsDose()
 {
   if (!this->GetMRMLScene() || !this->DoseAccumulationNode)
   {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene or parameter set node!");
     return false;
   }
 

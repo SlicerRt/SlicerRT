@@ -165,6 +165,7 @@ void qSlicerContourMorphologyModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::onEnter: Invalid scene!";
     return;
   }
 
@@ -173,6 +174,7 @@ void qSlicerContourMorphologyModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (d->logic() == NULL)
   {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::onEnter: Invalid logic!";
     return;
   }
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
@@ -203,8 +205,14 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
@@ -300,6 +308,7 @@ void qSlicerContourMorphologyModuleWidget::updateButtonsState()
   Q_D(qSlicerContourMorphologyModuleWidget);
   if (!this->mrmlScene())
   {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::updateButtonsState: Invalid scene!";
     return;
   }
 
@@ -360,6 +369,12 @@ void qSlicerContourMorphologyModuleWidget::setContourMorphologyNode(vtkMRMLNode 
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::setContourMorphologyNode: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = vtkMRMLContourMorphologyNode::SafeDownCast(node);
 
   // Each time the node is modified, the qt widgets are updated
@@ -410,8 +425,14 @@ void qSlicerContourMorphologyModuleWidget::setContourANode(vtkMRMLNode* node)
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::setContourANode: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -428,8 +449,14 @@ void qSlicerContourMorphologyModuleWidget::setContourBNode(vtkMRMLNode* node)
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::setContourBNode: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -446,8 +473,14 @@ void qSlicerContourMorphologyModuleWidget::setReferenceVolumeNode(vtkMRMLNode* n
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::setReferenceVolumeNode: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -464,8 +497,14 @@ void qSlicerContourMorphologyModuleWidget::setOutputContourNode(vtkMRMLNode* nod
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::setOutputContourNode: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene() || !node)
+  if (!paramNode || !node)
   {
     return;
   }
@@ -482,11 +521,18 @@ void qSlicerContourMorphologyModuleWidget::radioButtonExpandClicked()
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::radioButtonExpandClicked: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetOperation(vtkMRMLContourMorphologyNode::Expand);
   paramNode->DisableModifiedEventOff();
@@ -499,11 +545,18 @@ void qSlicerContourMorphologyModuleWidget::radioButtonShrinkClicked()
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::radioButtonShrinkClicked: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetOperation(vtkMRMLContourMorphologyNode::Shrink);
   paramNode->DisableModifiedEventOff();
@@ -516,11 +569,18 @@ void qSlicerContourMorphologyModuleWidget::radioButtonUnionClicked()
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::radioButtonUnionClicked: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetOperation(vtkMRMLContourMorphologyNode::Union);
   paramNode->DisableModifiedEventOff();
@@ -533,11 +593,18 @@ void qSlicerContourMorphologyModuleWidget::radioButtonIntersectClicked()
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::radioButtonIntersectClicked: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetOperation(vtkMRMLContourMorphologyNode::Intersect);
   paramNode->DisableModifiedEventOff();
@@ -550,11 +617,18 @@ void qSlicerContourMorphologyModuleWidget::radioButtonSubtractClicked()
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::radioButtonSubtractClicked: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetOperation(vtkMRMLContourMorphologyNode::Subtract);
   paramNode->DisableModifiedEventOff();
@@ -567,11 +641,18 @@ void qSlicerContourMorphologyModuleWidget::doubleSpinBoxXSizeChanged(double valu
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
   
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::doubleSpinBoxXSizeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetXSize(value);
   paramNode->DisableModifiedEventOff();
@@ -582,11 +663,18 @@ void qSlicerContourMorphologyModuleWidget::doubleSpinBoxYSizeChanged(double valu
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
   
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::doubleSpinBoxYSizeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetYSize(value);
   paramNode->DisableModifiedEventOff();
@@ -597,11 +685,18 @@ void qSlicerContourMorphologyModuleWidget::doubleSpinBoxZSizeChanged(double valu
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
   
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::doubleSpinBoxZSizeChanged: Invalid scene!";
+    return;
+  }
+
   vtkMRMLContourMorphologyNode* paramNode = d->logic()->GetContourMorphologyNode();
-  if (!paramNode || !this->mrmlScene())
+  if (!paramNode)
   {
     return;
   }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetZSize(value);
   paramNode->DisableModifiedEventOff();
@@ -611,6 +706,12 @@ void qSlicerContourMorphologyModuleWidget::doubleSpinBoxZSizeChanged(double valu
 void qSlicerContourMorphologyModuleWidget::applyClicked()
 {
   Q_D(qSlicerContourMorphologyModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContourMorphologyModuleWidget::applyClicked: Invalid scene!";
+    return;
+  }
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
