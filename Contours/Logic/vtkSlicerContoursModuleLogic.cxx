@@ -70,9 +70,6 @@ void vtkSlicerContoursModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
-
-  // Create default structure set node
-  this->CreateDefaultStructureSetNode();
 }
 
 //-----------------------------------------------------------------------------
@@ -151,7 +148,6 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndClose()
     return;
   }
 
-  this->CreateDefaultStructureSetNode();
   this->Modified();
 }
 
@@ -176,80 +172,6 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
   }
   
   this->Modified();
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerContoursModuleLogic::CreateDefaultStructureSetNode()
-{
-  if (!this->GetMRMLScene())
-  {
-    vtkErrorMacro("CreateDefaultStructureSetNode: Invalid MRML scene!");
-    return;
-  }
-
-  std::string defaultStructureSetNodeName;
-  defaultStructureSetNodeName = SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
-  vtkSmartPointer<vtkCollection> defaultStructureSetNodes = vtkSmartPointer<vtkCollection>::Take(
-    this->GetMRMLScene()->GetNodesByClassByName("vtkMRMLHierarchyNode", defaultStructureSetNodeName.c_str()) );
-  if (defaultStructureSetNodes->GetNumberOfItems() > 0)
-  {
-    vtkDebugMacro("CreateDefaultStructureSetNode: Default structure set node already exists");
-    return;
-  }
-
-  vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> structureSetPatientHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
-  structureSetPatientHierarchyNode->SetName(defaultStructureSetNodeName.c_str());
-  structureSetPatientHierarchyNode->AllowMultipleChildrenOn();
-  structureSetPatientHierarchyNode->HideFromEditorsOff();
-  structureSetPatientHierarchyNode->SetSaveWithScene(0);
-  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-  std::string defaultStructureSetDicomUid = SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME + SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME;
-  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME, defaultStructureSetDicomUid.c_str());
-  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-  this->GetMRMLScene()->AddNode(structureSetPatientHierarchyNode);
-
-  // A hierarchy node needs a display node
-  vtkSmartPointer<vtkMRMLModelDisplayNode> structureSetPatientHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  std::string contourHierarchyDisplayNodeName = defaultStructureSetNodeName + "_Display";
-  structureSetPatientHierarchyDisplayNode->SetName(contourHierarchyDisplayNodeName.c_str());
-  structureSetPatientHierarchyDisplayNode->SetVisibility(1);
-
-  this->GetMRMLScene()->AddNode(structureSetPatientHierarchyDisplayNode);
-  structureSetPatientHierarchyNode->SetAndObserveDisplayNodeID(structureSetPatientHierarchyDisplayNode->GetID());
-
-  // Add color table node and default colors
-  vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
-  std::string structureSetColorTableNodeName;
-  structureSetColorTableNodeName = SlicerRtCommon::PATIENTHIERARCHY_DEFAULT_STRUCTURE_SET_NAME + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
-  structureSetColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(structureSetColorTableNodeName);
-  structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
-  structureSetColorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
-  structureSetColorTableNode->HideFromEditorsOff();
-  structureSetColorTableNode->SetSaveWithScene(0);
-  structureSetColorTableNode->SetTypeToUser();
-  this->GetMRMLScene()->AddNode(structureSetColorTableNode);
-
-  structureSetColorTableNode->SetNumberOfColors(2);
-  structureSetColorTableNode->GetLookupTable()->SetTableRange(0,1);
-  structureSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_BACKGROUND, 0.0, 0.0, 0.0, 0.0); // Black background
-  structureSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_INVALID,
-    SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1],
-    SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3] ); // Color indicating invalid index
-
-  // Add color table in patient hierarchy
-  vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchyColorTableNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
-  std::string phColorTableNodeName;
-  phColorTableNodeName = structureSetColorTableNodeName + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
-  phColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(phColorTableNodeName);
-  patientHierarchyColorTableNode->SetName(phColorTableNodeName.c_str());
-  patientHierarchyColorTableNode->HideFromEditorsOff();
-  patientHierarchyColorTableNode->SetSaveWithScene(0);
-  patientHierarchyColorTableNode->SetAssociatedNodeID(structureSetColorTableNode->GetID());
-  patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-  patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
-  patientHierarchyColorTableNode->SetParentNodeID(structureSetPatientHierarchyNode->GetID());
-  this->GetMRMLScene()->AddNode(patientHierarchyColorTableNode);
 }
 
 //---------------------------------------------------------------------------

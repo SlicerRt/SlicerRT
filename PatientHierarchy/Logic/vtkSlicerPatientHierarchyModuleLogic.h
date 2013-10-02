@@ -94,8 +94,11 @@ public:
   /// Get child DICOM level name for a specified level (e.g. "Patient" -> "Study")
   static const char* GetChildDicomLevel(const char* parentLevel);
 
-  /// Create child node for a patient hierarchy node
-  static void CreateChildNodeForPatientHierarchyNode(vtkMRMLNode* parentNode);
+  /// Create generic child node for a patient hierarchy node
+  static void CreateGenericChildNodeForPatientHierarchyNode(vtkMRMLNode* parentNode, vtkMRMLScene* scene);
+
+  /// Create child structure set node for a patient hierarchy node
+  static void CreateChildStructureSetNodeForPatientHierarchyNode(vtkMRMLNode* parentNode);
 
   /// Get attribute value for a node from an upper level in the patient hierarchy
   /// \param node Node we want to have the attribute for (can be patient hierarchy node or associated node)

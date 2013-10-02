@@ -29,11 +29,14 @@
 #include <vtkMRMLHierarchyNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
+#include <vtkMRMLDisplayableHierarchyNode.h>
+#include <vtkMRMLColorTableNode.h>
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkStringArray.h>
 #include <vtkSmartPointer.h>
+#include <vtkLookupTable.h>
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
@@ -503,25 +506,37 @@ const char* vtkSlicerPatientHierarchyModuleLogic::GetChildDicomLevel(const char*
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPatientHierarchyModuleLogic::CreateChildNodeForPatientHierarchyNode(vtkMRMLNode* parentNode)
+void vtkSlicerPatientHierarchyModuleLogic::CreateGenericChildNodeForPatientHierarchyNode(vtkMRMLNode* parentNode, vtkMRMLScene* scene)
 {
+  if (!scene)
+  {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::CreateGenericChildNodeForPatientHierarchyNode: Invalid scene!" << std::endl;
+    return;
+  }
+
+  std::string childLevel("");
+
+  // Create new patient if there is no current node (the user right-clicked on the scene)
   if (!parentNode)
   {
-    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::CreateChildNodeForPatientHierarchyNode: Invalid parent node!" << std::endl;
-    return;
+    childLevel = std::string(vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_PATIENT);
   }
-  if (!SlicerRtCommon::IsPatientHierarchyNode(parentNode))
+  // Otherwise determine the level of the current (parent) node and its child level
+  else
   {
-    vtkErrorWithObjectMacro(parentNode, "CreateChildNodeForPatientHierarchyNode: Attribute node is not a patient hierarchy node!");
-    return;
-  }
-  vtkMRMLHierarchyNode* parentHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(parentNode);
-  const char* parentLevel = parentHierarchyNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME);
-  std::string childLevel = vtkSlicerPatientHierarchyModuleLogic::GetChildDicomLevel(parentLevel);
-  if (childLevel.empty())
-  {
-    vtkErrorWithObjectMacro(parentNode, "CreateChildNodeForPatientHierarchyNode: Invalid DICOM level for specified parent node '" << (parentLevel?parentLevel:"") << "'");
-    return;
+    if (!SlicerRtCommon::IsPatientHierarchyNode(parentNode))
+    {
+      vtkErrorWithObjectMacro(parentNode, "CreateChildNodeForPatientHierarchyNode: Attribute node is not a patient hierarchy node!");
+      return;
+    }
+    vtkMRMLHierarchyNode* parentHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(parentNode);
+    const char* parentLevel = parentHierarchyNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME);
+    childLevel = vtkSlicerPatientHierarchyModuleLogic::GetChildDicomLevel(parentLevel);
+    if (childLevel.empty())
+    {
+      vtkErrorWithObjectMacro(parentNode, "CreateChildNodeForPatientHierarchyNode: Invalid DICOM level for specified parent node '" << (parentLevel?parentLevel:"") << "'");
+      return;
+    }
   }
 
   // Create patient hierarchy entry
@@ -533,10 +548,97 @@ void vtkSlicerPatientHierarchyModuleLogic::CreateChildNodeForPatientHierarchyNod
     childLevel.c_str());
   childPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
     "");
-  std::string childNodeName = SlicerRtCommon::PATIENTHIERARCHY_NEW_NODE_NAME_PREFIX + childLevel;
+  std::string childNodeName = SlicerRtCommon::PATIENTHIERARCHY_NEW_NODE_NAME_PREFIX + childLevel + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
   childPatientHierarchyNode->SetName(childNodeName.c_str());
-  childPatientHierarchyNode->SetParentNodeID(parentNode->GetID());
-  parentNode->GetScene()->AddNode(childPatientHierarchyNode);
+  if (parentNode)
+  {
+    childPatientHierarchyNode->SetParentNodeID(parentNode->GetID());
+  }
+  scene->AddNode(childPatientHierarchyNode);
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPatientHierarchyModuleLogic::CreateChildStructureSetNodeForPatientHierarchyNode(vtkMRMLNode* parentNode)
+{
+  if (!parentNode)
+  {
+    std::cerr << "vtkSlicerPatientHierarchyModuleLogic::CreateChildStructureSetNodeForPatientHierarchyNode: Invalid parent node!" << std::endl;
+    return;
+  }
+  if (!parentNode->GetScene())
+  {
+    vtkErrorWithObjectMacro(parentNode, "CreateChildStructureSetNodeForPatientHierarchyNode: Invalid MRML scene!");
+    return;
+  }
+  if (!SlicerRtCommon::IsPatientHierarchyNode(parentNode))
+  {
+    vtkErrorWithObjectMacro(parentNode, "CreateChildStructureSetNodeForPatientHierarchyNode: Attribute node is not a patient hierarchy node!");
+    return;
+  }
+  vtkMRMLHierarchyNode* parentHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(parentNode);
+  const char* parentLevel = parentHierarchyNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME);
+  if (!parentLevel || STRCASECMP(parentLevel, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY))
+  {
+    vtkErrorWithObjectMacro(parentNode, "CreateChildStructureSetNodeForPatientHierarchyNode: Structure set can only be child of a study node, but parent node's level is '" << (parentLevel?parentLevel:"") << "'");
+    return;
+  }
+
+  // Create structure set node
+  vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> structureSetPatientHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
+  std::string structureSetPatientHierarchyNodeName = SlicerRtCommon::PATIENTHIERARCHY_NEW_STRUCTURE_SET_NAME + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
+  structureSetPatientHierarchyNode->SetName(structureSetPatientHierarchyNodeName.c_str());
+  structureSetPatientHierarchyNode->AllowMultipleChildrenOn();
+  structureSetPatientHierarchyNode->HideFromEditorsOff();
+  structureSetPatientHierarchyNode->SetSaveWithScene(0);
+  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+  std::string defaultStructureSetDicomUid = SlicerRtCommon::PATIENTHIERARCHY_NEW_STRUCTURE_SET_NAME + SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME;
+  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME, defaultStructureSetDicomUid.c_str());
+  structureSetPatientHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+  structureSetPatientHierarchyNode->SetParentNodeID(parentNode->GetID());
+  parentNode->GetScene()->AddNode(structureSetPatientHierarchyNode);
+
+  // A hierarchy node needs a display node
+  vtkSmartPointer<vtkMRMLModelDisplayNode> structureSetPatientHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  std::string contourHierarchyDisplayNodeName = std::string(SlicerRtCommon::PATIENTHIERARCHY_NEW_STRUCTURE_SET_NAME) + "_Display";
+  structureSetPatientHierarchyDisplayNode->SetName(contourHierarchyDisplayNodeName.c_str());
+  structureSetPatientHierarchyDisplayNode->SetVisibility(1);
+
+  parentNode->GetScene()->AddNode(structureSetPatientHierarchyDisplayNode);
+  structureSetPatientHierarchyNode->SetAndObserveDisplayNodeID(structureSetPatientHierarchyDisplayNode->GetID());
+
+  // Add color table node and default colors
+  vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+  std::string structureSetColorTableNodeName;
+  structureSetColorTableNodeName = SlicerRtCommon::PATIENTHIERARCHY_NEW_STRUCTURE_SET_NAME + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+  structureSetColorTableNodeName = parentNode->GetScene()->GenerateUniqueName(structureSetColorTableNodeName);
+  structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
+  structureSetColorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+  structureSetColorTableNode->HideFromEditorsOff();
+  structureSetColorTableNode->SetSaveWithScene(0);
+  structureSetColorTableNode->SetTypeToUser();
+  parentNode->GetScene()->AddNode(structureSetColorTableNode);
+
+  structureSetColorTableNode->SetNumberOfColors(2);
+  structureSetColorTableNode->GetLookupTable()->SetTableRange(0,1);
+  structureSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_BACKGROUND, 0.0, 0.0, 0.0, 0.0); // Black background
+  structureSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_INVALID,
+    SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1],
+    SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3] ); // Color indicating invalid index
+
+  // Add color table in patient hierarchy
+  vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchyColorTableNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
+  std::string phColorTableNodeName;
+  phColorTableNodeName = structureSetColorTableNodeName + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
+  phColorTableNodeName = parentNode->GetScene()->GenerateUniqueName(phColorTableNodeName);
+  patientHierarchyColorTableNode->SetName(phColorTableNodeName.c_str());
+  patientHierarchyColorTableNode->HideFromEditorsOff();
+  patientHierarchyColorTableNode->SetSaveWithScene(0);
+  patientHierarchyColorTableNode->SetAssociatedNodeID(structureSetColorTableNode->GetID());
+  patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
+  patientHierarchyColorTableNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SUBSERIES);
+  patientHierarchyColorTableNode->SetParentNodeID(structureSetPatientHierarchyNode->GetID());
+  parentNode->GetScene()->AddNode(patientHierarchyColorTableNode);
 }
 
 //---------------------------------------------------------------------------

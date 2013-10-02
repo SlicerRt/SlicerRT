@@ -58,6 +58,8 @@ public:
   qMRMLScenePatientHierarchyModel* SceneModel;
   qMRMLSortFilterPatientHierarchyProxyModel* SortFilterModel;
   vtkSlicerPatientHierarchyModuleLogic* Logic;
+  QAction* CreateGenericNodeAction;
+  QAction* CreateStructureSetNodeAction;
 };
 
 //------------------------------------------------------------------------------
@@ -67,6 +69,8 @@ qMRMLPatientHierarchyTreeViewPrivate::qMRMLPatientHierarchyTreeViewPrivate(qMRML
   this->SceneModel = NULL;
   this->SortFilterModel = NULL;
   this->Logic = NULL;
+  this->CreateGenericNodeAction = NULL;
+  this->CreateStructureSetNodeAction = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -74,6 +78,7 @@ void qMRMLPatientHierarchyTreeViewPrivate::init()
 {
   Q_Q(qMRMLPatientHierarchyTreeView);
 
+  // Set up scene model and sort and proxy model
   this->SceneModel = new qMRMLScenePatientHierarchyModel(q);
   QObject::connect( this->SceneModel, SIGNAL(saveTreeExpandState()), q, SLOT(saveTreeExpandState()) );
   QObject::connect( this->SceneModel, SIGNAL(loadTreeExpandState()), q, SLOT(loadTreeExpandState()) );
@@ -82,18 +87,34 @@ void qMRMLPatientHierarchyTreeViewPrivate::init()
   this->SortFilterModel = new qMRMLSortFilterPatientHierarchyProxyModel(q);
   q->setSortFilterProxyModel(this->SortFilterModel);
 
-  q->setShowScene(false);
+  // Change item visibility
+  q->setShowScene(true);
+  q->setUniformRowHeights(false);
   q->setEditMenuActionVisible(false);
   q->setDeleteMenuActionVisible(false);
 
-  QAction* createChildNodeAction = new QAction(qMRMLPatientHierarchyTreeView::tr("Create child node"),q);
-  q->appendNodeMenuAction(createChildNodeAction);
-  QObject::connect(createChildNodeAction, SIGNAL(triggered()), q, SLOT(createChildNode()));
+  // Add scene context menu actions
+  QAction* createPatientAction = new QAction(qMRMLPatientHierarchyTreeView::tr("Create new patient"),q);
+  q->appendSceneMenuAction(createPatientAction);
+  QObject::connect(createPatientAction, SIGNAL(triggered()), q, SLOT(createChildNode()));
 
+  // Add special node context menu actions
+  this->CreateGenericNodeAction = new QAction(qMRMLPatientHierarchyTreeView::tr("Create generic child node"),q);
+  q->appendNodeMenuAction(this->CreateGenericNodeAction);
+  QObject::connect(this->CreateGenericNodeAction, SIGNAL(triggered()), q, SLOT(createChildNode()));
+
+  this->CreateStructureSetNodeAction = new QAction(qMRMLPatientHierarchyTreeView::tr("Create child structure set"),q);
+  q->appendNodeMenuAction(this->CreateStructureSetNodeAction);
+  QObject::connect(this->CreateStructureSetNodeAction, SIGNAL(triggered()), q, SLOT(createStructureSetNode()));
+
+  // Set up headers
   q->header()->setStretchLastSection(false);
   q->header()->setResizeMode(0, QHeaderView::Stretch);
   q->header()->setResizeMode(1, QHeaderView::ResizeToContents);
   q->header()->setResizeMode(2, QHeaderView::ResizeToContents);
+
+  // Set connection to handle current node change
+  QObject::connect( q, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(onCurrentNodeChanged(vtkMRMLNode*)) );
 }
 
 //------------------------------------------------------------------------------
@@ -214,11 +235,42 @@ void qMRMLPatientHierarchyTreeView::showVolume(vtkMRMLNode* node)
 //--------------------------------------------------------------------------
 void qMRMLPatientHierarchyTreeView::createChildNode()
 {
+  vtkSlicerPatientHierarchyModuleLogic::CreateGenericChildNodeForPatientHierarchyNode(this->currentNode(), this->mrmlScene());
+}
+
+//--------------------------------------------------------------------------
+void qMRMLPatientHierarchyTreeView::createStructureSetNode()
+{
   if (!this->currentNode())
   {
     qCritical() << "qMRMLPatientHierarchyTreeView::createChildNode: No current node!";
     return;
   }
 
-  vtkSlicerPatientHierarchyModuleLogic::CreateChildNodeForPatientHierarchyNode(this->currentNode());
+  vtkSlicerPatientHierarchyModuleLogic::CreateChildStructureSetNodeForPatientHierarchyNode(this->currentNode());
+}
+
+//--------------------------------------------------------------------------
+void qMRMLPatientHierarchyTreeView::onCurrentNodeChanged(vtkMRMLNode* newCurrentNode)
+{
+  if (!newCurrentNode)
+  {
+    // Scene is selected
+    return;
+  }
+
+  Q_D(qMRMLPatientHierarchyTreeView);
+
+  const char* nodeLevel = newCurrentNode->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME);
+  // Disable create structure set action if node level is not study
+  if (!nodeLevel || STRCASECMP(nodeLevel, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY))
+  {
+    d->CreateStructureSetNodeAction->setVisible(false);
+    //d->CreateStructureSetNodeAction->setEnabled(false);
+  }
+  else
+  {
+    d->CreateStructureSetNodeAction->setVisible(true);
+    //d->CreateStructureSetNodeAction->setEnabled(true);
+  }
 }

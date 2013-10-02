@@ -53,8 +53,15 @@ protected:
   /// background becomes the foreground with 50% transparency.
   void showVolume(vtkMRMLNode* node);
 
+public slots:
+  /// Handle current node change (apply changes in the context menus)
+  void onCurrentNodeChanged(vtkMRMLNode* newCurrentNode);
+
+  /// Handle create structure set node action in the node context menu
+  void createStructureSetNode();
+
 protected slots:
-  /// Handles create child node action in the node context menu
+  /// Handle create generic child node action in the node context menu
   void createChildNode();
 
 protected:

@@ -395,7 +395,7 @@ bool qMRMLScenePatientHierarchyModel::dropMimeData(const QMimeData* data, Qt::Dr
     return false;
   }
 
-  // Nothing can be dropped to the top level (patients can only be loaded at the moment from the DICOM browser)
+  // Nothing can be dropped to the top level (patients can only be loaded at from the DICOM browser or created manually)
   if (!parent.isValid())
   {
     vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLScenePatientHierarchyModel::dropMimeData: Items cannot be dropped on top level!");
