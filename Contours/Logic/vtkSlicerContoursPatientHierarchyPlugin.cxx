@@ -123,8 +123,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
   // Create hierarchy node for contour node
   vtkSmartPointer<vtkMRMLDisplayableHierarchyNode> contourPatientHierarchyNode = vtkSmartPointer<vtkMRMLDisplayableHierarchyNode>::New();
   contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(mrmlScene->AddNode(contourPatientHierarchyNode));
-  std::string phNodeName;
-  phNodeName = std::string(nodeToAdd->GetName()) + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
+  std::string phNodeName = std::string(nodeToAdd->GetName()) + SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX;
   phNodeName = mrmlScene->GenerateUniqueName(phNodeName);
   contourPatientHierarchyNode->SetName(phNodeName.c_str());
   contourPatientHierarchyNode->HideFromEditorsOff();
@@ -137,7 +136,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::AddNodeToPatientHierarchy(vtkMRMLN
     nodeToAdd->GetName() );
   contourPatientHierarchyNode->SetParentNodeID(parentNode->GetID());
 
-  std::string colorName;
+  std::string colorName("");
 
   // Get added contour node and associate it with the new patient hierarchy node
   vtkMRMLContourNode* contourNodeAddedToPatientHierarchy = NULL;
@@ -230,7 +229,7 @@ bool vtkSlicerContoursPatientHierarchyPlugin::ReparentNodeInsidePatientHierarchy
 
   vtkMRMLNode* associatedNode = nodeToReparent->GetAssociatedNode();
   vtkMRMLContourNode* reparentedContourNode = NULL;
-  std::string colorName;
+  std::string colorName("");
 
   // Get added contour node and associate it with the new patient hierarchy node
   if (associatedNode->IsA("vtkMRMLModelNode") || associatedNode->IsA("vtkMRMLScalarVolumeNode"))

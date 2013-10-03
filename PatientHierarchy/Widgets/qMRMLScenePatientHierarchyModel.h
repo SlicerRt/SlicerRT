@@ -71,6 +71,7 @@ public:
 signals:
   void saveTreeExpandState();
   void loadTreeExpandState();
+  void updateRelatedWidgets();
 
 protected:
   /// Get the largest column ID

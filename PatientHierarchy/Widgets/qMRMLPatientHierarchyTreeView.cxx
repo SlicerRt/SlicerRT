@@ -235,7 +235,14 @@ void qMRMLPatientHierarchyTreeView::showVolume(vtkMRMLNode* node)
 //--------------------------------------------------------------------------
 void qMRMLPatientHierarchyTreeView::createChildNode()
 {
-  vtkSlicerPatientHierarchyModuleLogic::CreateGenericChildNodeForPatientHierarchyNode(this->currentNode(), this->mrmlScene());
+  Q_D(qMRMLPatientHierarchyTreeView);
+
+  vtkMRMLHierarchyNode* newNode = vtkSlicerPatientHierarchyModuleLogic::CreateGenericChildNodeForPatientHierarchyNode(this->currentNode(), this->mrmlScene());
+  if (newNode)
+  {
+    QModelIndex nodeIndex = d->SortFilterModel->indexFromMRMLNode(newNode);
+    this->expand(nodeIndex);
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -247,7 +254,14 @@ void qMRMLPatientHierarchyTreeView::createStructureSetNode()
     return;
   }
 
-  vtkSlicerPatientHierarchyModuleLogic::CreateChildStructureSetNodeForPatientHierarchyNode(this->currentNode());
+  Q_D(qMRMLPatientHierarchyTreeView);
+
+  vtkMRMLHierarchyNode* newNode = vtkSlicerPatientHierarchyModuleLogic::CreateChildStructureSetNodeForPatientHierarchyNode(this->currentNode());
+  if (newNode)
+  {
+    QModelIndex nodeIndex = d->SortFilterModel->indexFromMRMLNode(newNode);
+    this->expand(nodeIndex);
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -266,11 +280,9 @@ void qMRMLPatientHierarchyTreeView::onCurrentNodeChanged(vtkMRMLNode* newCurrent
   if (!nodeLevel || STRCASECMP(nodeLevel, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY))
   {
     d->CreateStructureSetNodeAction->setVisible(false);
-    //d->CreateStructureSetNodeAction->setEnabled(false);
   }
   else
   {
     d->CreateStructureSetNodeAction->setVisible(true);
-    //d->CreateStructureSetNodeAction->setEnabled(true);
   }
 }

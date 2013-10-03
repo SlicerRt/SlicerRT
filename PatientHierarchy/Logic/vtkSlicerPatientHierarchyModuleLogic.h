@@ -95,10 +95,12 @@ public:
   static const char* GetChildDicomLevel(const char* parentLevel);
 
   /// Create generic child node for a patient hierarchy node
-  static void CreateGenericChildNodeForPatientHierarchyNode(vtkMRMLNode* parentNode, vtkMRMLScene* scene);
+  /// \return The created patient hierarchy node
+  static vtkMRMLHierarchyNode* CreateGenericChildNodeForPatientHierarchyNode(vtkMRMLNode* parentNode, vtkMRMLScene* scene);
 
   /// Create child structure set node for a patient hierarchy node
-  static void CreateChildStructureSetNodeForPatientHierarchyNode(vtkMRMLNode* parentNode);
+  /// \return The created contour hierarchy node
+  static vtkMRMLHierarchyNode* CreateChildStructureSetNodeForPatientHierarchyNode(vtkMRMLNode* parentNode);
 
   /// Get attribute value for a node from an upper level in the patient hierarchy
   /// \param node Node we want to have the attribute for (can be patient hierarchy node or associated node)

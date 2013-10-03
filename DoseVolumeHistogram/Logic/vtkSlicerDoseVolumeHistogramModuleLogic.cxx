@@ -222,9 +222,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
-  if (!node || !this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
+  if (!node || !this->GetMRMLScene())
   {
-    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene, input node, or parameter set node!");
+    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node!");
     return;
   }
 
@@ -234,7 +234,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode
     return;
   }
 
-  if (node->IsA("vtkMRMLDoubleArrayNode"))
+  if (node->IsA("vtkMRMLDoubleArrayNode") && this->DoseVolumeHistogramNode)
   {
     const char* removedNodeId = vtkMRMLDoubleArrayNode::SafeDownCast(node)->GetID();
     for (std::vector<std::string>::iterator it = this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->begin();

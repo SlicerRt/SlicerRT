@@ -513,7 +513,6 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
 
       // Set the labelmap itself as reference thus indicating there was no conversion from model representation
       newContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(representationNode->GetID());
-      newContourNode->SetRasterizationOversamplingFactor(1.0);
     }
     else
     {

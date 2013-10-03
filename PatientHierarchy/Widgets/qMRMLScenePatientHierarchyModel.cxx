@@ -538,6 +538,8 @@ bool qMRMLScenePatientHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
     }
   }
 
+  // Update scene in related widgets (such as potential nodes list)
+  emit updateRelatedWidgets();
 
   // Force updating the whole scene (TODO: this should not be needed)
   this->updateScene();

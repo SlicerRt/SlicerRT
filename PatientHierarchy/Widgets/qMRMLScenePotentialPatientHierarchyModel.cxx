@@ -149,14 +149,5 @@ void qMRMLScenePotentialPatientHierarchyModel::onRowsRemoved(const QModelIndex p
   if (d->DraggedNodes.count())
   {
     d->DraggedNodes.clear();
-
-    // Force updating the whole scene (TODO: this should not be needed)
-    QTimer::singleShot(200, this, SLOT(delayedUpdateScene()));
   }
-}
-
-//------------------------------------------------------------------------------
-void qMRMLScenePotentialPatientHierarchyModel::delayedUpdateScene()
-{
-  this->updateScene();
 }

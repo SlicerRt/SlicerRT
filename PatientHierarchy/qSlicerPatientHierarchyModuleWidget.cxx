@@ -126,6 +126,9 @@ void qSlicerPatientHierarchyModuleWidget::setup()
   d->PatientHierarchyTreeView->expandToDepth(4);
   connect( d->PatientHierarchyTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)), d->MRMLNodeAttributeTableWidget, SLOT(setMRMLNode(vtkMRMLNode*)) );
 
+  // Connect patient hierarchy tree with potential nodes list
+  connect( d->PatientHierarchyTreeView->sceneModel(), SIGNAL(updateRelatedWidgets()), d->PotentialPatientHierarchyListView->model(), SLOT(invalidate()) );
+
   this->setMRMLIDsVisible(d->DisplayMRMLIDsCheckBox->isChecked());
 }
 
