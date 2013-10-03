@@ -272,7 +272,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( modelNode->GetPolyData() );
   transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform( modelToReferenceVolumeIjkTransform.GetPointer() );
 
-  // Initialize polydata do labelmap filter for conversion
+  // Initialize polydata to labelmap filter for conversion
   double checkpointLabelmapConversionStart = timer->GetUniversalTime();
   vtkSmartPointer<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter = vtkSmartPointer<vtkPolyDataToLabelmapFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
@@ -568,7 +568,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
 }
 
 //----------------------------------------------------------------------------
-bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNode::ContourRepresentationType type)
+bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNode::ContourRepresentationType desiredType)
 {
   if (!this->ContourNode)
   {
@@ -576,16 +576,16 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
     return false;
   }
 
-  if (type == this->ContourNode->GetActiveRepresentationType())
+  if (desiredType == this->ContourNode->GetActiveRepresentationType())
   {
     return true;
   }
 
   // Set default parameters if none specified
-  this->ContourNode->SetDefaultConversionParametersForRepresentation(type);
+  this->ContourNode->SetDefaultConversionParametersForRepresentation(desiredType);
 
   // Active representation is a model of any kind and we want an indexed labelmap
-  if ( type == vtkMRMLContourNode::IndexedLabelmap
+  if ( desiredType == vtkMRMLContourNode::IndexedLabelmap
     && ( this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::RibbonModel
       || this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::ClosedSurfaceModel ) )
   {
@@ -601,14 +601,14 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
     return (indexedLabelmapVolumeNode != NULL);
   }
   // Active representation is an indexed labelmap and we want a closed surface model
-  else if ( this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::IndexedLabelmap && type == vtkMRMLContourNode::ClosedSurfaceModel )
+  else if ( this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::IndexedLabelmap && desiredType == vtkMRMLContourNode::ClosedSurfaceModel )
   {
     vtkMRMLModelNode* closedSurfaceVolumeNode = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
 
     return (closedSurfaceVolumeNode != NULL);
   }
   // Active representation is a ribbon model and we want a closed surface model
-  else if ( type == vtkMRMLContourNode::ClosedSurfaceModel
+  else if ( desiredType == vtkMRMLContourNode::ClosedSurfaceModel
          && this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::RibbonModel )
   {
     // If the indexed labelmap is not created yet then we convert to it first
