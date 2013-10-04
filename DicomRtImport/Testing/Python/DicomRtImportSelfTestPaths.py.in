@@ -1,6 +1,6 @@
 import os
 
-dataDir = '@CMAKE_CURRENT_SOURCE_DIR@/../../Data'
+dataDir = '@CMAKE_CURRENT_SOURCE_DIR@/../../../Testing/Data/DICOM'
 dataDir = os.path.abspath(dataDir)
 
 tempDir = '@CMAKE_CURRENT_BINARY_DIR@/Temp'

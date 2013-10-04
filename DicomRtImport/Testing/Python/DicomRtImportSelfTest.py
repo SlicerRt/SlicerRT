@@ -203,12 +203,11 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
 
 
   def TestSection_0RetrieveInputData(self):
-    if 'util' in globals() and hasattr(util, 'DicomRtImportSelfTestPaths'):
-      if os.access(util.DicomRtImportSelfTestPaths.dataDir, os.F_OK):
+    if 'util' in globals() and hasattr(util, 'DicomRtImportSelfTestPaths') and os.access(util.DicomRtImportSelfTestPaths.dataDir, os.F_OK):
         self.dataDir = util.DicomRtImportSelfTestPaths.dataDir
         self.dicomDatabaseDir = util.DicomRtImportSelfTestPaths.dicomDatabaseDir
         self.tempDir = util.DicomRtImportSelfTestPaths.tempDir
-        self.delayDisplay('Test data found locally',self.delayMs)
+        self.delayDisplay('Test data found locally: %s' % (util.DicomRtImportSelfTestPaths.dataDir),self.delayMs)
     else:
       import urllib
 
@@ -224,7 +223,8 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
       downloads = (
           ('http://slicer.kitware.com/midas3/download?items=10613', 'RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm'),
           ('http://slicer.kitware.com/midas3/download?items=10614', 'RP.1.2.246.352.71.5.2088656855.377401.20110920153647.dcm'),
-          ('http://slicer.kitware.com/midas3/download?items=10615', 'RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm')
+          ('http://slicer.kitware.com/midas3/download?items=10615', 'RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm'),
+          ('http://slicer.kitware.com/midas3/download/item/119940', 'RI.1.2.246.352.71.3.2088656855.2381134.20110921150951.dcm')
           )
 
       for url,name in downloads:
@@ -269,9 +269,9 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     detailsPopup.offerLoadables( slicer.dicomDatabase.patients()[0], "Patient" )
 
     loadables = detailsPopup.loadableTable.loadables
-    self.assertTrue( len(loadables) == 6 )
+    self.assertTrue( len(loadables) == 8 )
 
-    # Make sure the loadables are good (RT is assigned to 3 out of 6 and they are selected)
+    # Make sure the loadables are good (RT is assigned to 4 out of 8 and they are selected)
     loadablesByPlugin = detailsPopup.loadablesByPlugin
     rtFound = False
     loadablesForRt = 0
@@ -285,7 +285,7 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
         self.assertTrue( loadable.selected )
 
     self.assertTrue( rtFound )
-    self.assertTrue( loadablesForRt == 3 )
+    self.assertTrue( loadablesForRt == 4 )
 
   def TestSection_4LoadIntoSlicer(self):
     self.delayDisplay("4: Load into Slicer",self.delayMs)
@@ -295,10 +295,16 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
 
     # Verify that the correct number of objects were loaded
     scene = slicer.mrmlScene
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == 1 )
+    # Volumes: Dose, RT image, RT image texture
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == 3 )
+    # Model hierarchies: Beam models (parent + individual beams) and Contour ribbon models (parent + individual ribbons)
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 13 )
+    # Generic hierarchies (patient hierarchy nodes): Patient, Study, Dose, Color table, RT image, Dummy anatomical volume to reference to from the structure set
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLHierarchyNode*') ) == 6 )
+    # Contours: The loaded structures
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == 6 )
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLAnnotationFiducialNode*') ) == 10 )
+    # Markups: the isocenters and their derived sources (in the same markup node as the isocenter)
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ) == 5 )
 
   def TestSection_5SaveScene(self):
     self.delayDisplay("5: Save scene",self.delayMs)
