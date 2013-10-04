@@ -252,7 +252,7 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     return;
   }
 
-  // get reference image info
+  // Get reference image info
   int dimensions[3] = {0, 0, 0};
   referenceDoseVolumeNode->GetImageData()->GetDimensions(dimensions);
 
@@ -261,11 +261,11 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   vtkSmartPointer<vtkMatrix4x4> referenceDoseVolumeRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   referenceDoseVolumeNode->GetRASToIJKMatrix(referenceDoseVolumeRAS2IJKMatrix);
 
-  // TODO: Rename this variable to match the conventions ([fromCoordinateSystem]To[toCoordinateSystem]Transform)
-  vtkSmartPointer<vtkTransform> outputVolumeResliceTransform = vtkSmartPointer<vtkTransform>::New();
-  outputVolumeResliceTransform->Identity();
-  outputVolumeResliceTransform->PostMultiply();
-  outputVolumeResliceTransform->SetMatrix(inputDoseVolumeIJK2RASMatrix);
+  // Create transform from referenc IJK to input IJK for resampling
+  vtkSmartPointer<vtkTransform> referenceVolumeIJK2InputVolumeIJKTransform = vtkSmartPointer<vtkTransform>::New();
+  referenceVolumeIJK2InputVolumeIJKTransform->Identity();
+  referenceVolumeIJK2InputVolumeIJKTransform->PostMultiply();
+  referenceVolumeIJK2InputVolumeIJKTransform->SetMatrix(inputDoseVolumeIJK2RASMatrix);
 
   vtkMRMLTransformNode *inputDoseVolumeNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(inputDoseVolumeNode->GetTransformNodeID()));
@@ -273,17 +273,17 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   if (inputDoseVolumeNodeTransformNode != NULL)
   {
     inputDoseVolumeNodeTransformNode->GetMatrixTransformToWorld(inputDoseVolumeRAS2RASMatrix);  
-    outputVolumeResliceTransform->Concatenate(inputDoseVolumeRAS2RASMatrix);
+    referenceVolumeIJK2InputVolumeIJKTransform->Concatenate(inputDoseVolumeRAS2RASMatrix);
   }
-  outputVolumeResliceTransform->Concatenate(referenceDoseVolumeRAS2IJKMatrix);
-  outputVolumeResliceTransform->Inverse();
+  referenceVolumeIJK2InputVolumeIJKTransform->Concatenate(referenceDoseVolumeRAS2IJKMatrix);
+  referenceVolumeIJK2InputVolumeIJKTransform->Inverse();
 
   vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
   resliceFilter->SetInput(inputDoseVolumeNode->GetImageData());
   resliceFilter->SetOutputOrigin(0, 0, 0);
   resliceFilter->SetOutputSpacing(1, 1, 1);
   resliceFilter->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
-  resliceFilter->SetResliceTransform(outputVolumeResliceTransform);
+  resliceFilter->SetResliceTransform(referenceVolumeIJK2InputVolumeIJKTransform);
   resliceFilter->Update();
 
   vtkSmartPointer<vtkImageData> reslicedDoseVolumeImage = NULL;
@@ -317,9 +317,9 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
       vtkSmartPointer<vtkMatrix4x4> inputDoseVolumeIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
       inputDoseVolumeNode->GetIJKToRASMatrix(inputDoseVolumeIJK2RASMatrix);
 
-      outputVolumeResliceTransform->Identity();
-      outputVolumeResliceTransform->PostMultiply();
-      outputVolumeResliceTransform->SetMatrix(inputDoseVolumeIJK2RASMatrix);
+      referenceVolumeIJK2InputVolumeIJKTransform->Identity();
+      referenceVolumeIJK2InputVolumeIJKTransform->PostMultiply();
+      referenceVolumeIJK2InputVolumeIJKTransform->SetMatrix(inputDoseVolumeIJK2RASMatrix);
 
       inputDoseVolumeNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
         this->GetMRMLScene()->GetNodeByID(inputDoseVolumeNode->GetTransformNodeID()));
@@ -327,16 +327,16 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
       if (inputDoseVolumeNodeTransformNode != NULL)
       {
         inputDoseVolumeNodeTransformNode->GetMatrixTransformToWorld(inputDoseVolumeRAS2RASMatrix);  
-        outputVolumeResliceTransform->Concatenate(inputDoseVolumeRAS2RASMatrix);
+        referenceVolumeIJK2InputVolumeIJKTransform->Concatenate(inputDoseVolumeRAS2RASMatrix);
       }
-      outputVolumeResliceTransform->Concatenate(referenceDoseVolumeRAS2IJKMatrix);
-      outputVolumeResliceTransform->Inverse();
+      referenceVolumeIJK2InputVolumeIJKTransform->Concatenate(referenceDoseVolumeRAS2IJKMatrix);
+      referenceVolumeIJK2InputVolumeIJKTransform->Inverse();
 
       resliceFilter->SetInput(inputDoseVolumeNode->GetImageData());
       resliceFilter->SetOutputOrigin(0, 0, 0);
       resliceFilter->SetOutputSpacing(1, 1, 1);
       resliceFilter->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
-      resliceFilter->SetResliceTransform(outputVolumeResliceTransform);
+      resliceFilter->SetResliceTransform(referenceVolumeIJK2InputVolumeIJKTransform);
       resliceFilter->Update();
 
       multiplyFilter->SetInput(resliceFilter->GetOutput());
