@@ -372,6 +372,10 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
   {
     return;
   }
+  if (this->mrmlScene()->IsClosing())
+  {
+    return; // Skip UI update if the scene is closing
+  }
   vtkMRMLNode* selectedNode = d->MRMLNodeComboBox_Contour->currentNode();
   if (!selectedNode)
   {
