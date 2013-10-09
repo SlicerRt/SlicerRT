@@ -25,7 +25,9 @@
 #include <vtkCollection.h>
 #include <vtkMRMLContourNode.h>
 #include <vtkMRMLCoreTestingMacros.h>
+#include <vtkMRMLModelNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkPolyData.h>
 #include <vtksys/SystemTools.hxx>
 
 // ITK includes
@@ -83,6 +85,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
+  // Labelmap metrics
   int nonZeroVoxelCount(-1);
   if (argc > argIndex+1)
   {
@@ -102,13 +105,14 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
+  // Labelmap extents
   int expectedExtents[6];
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-XMinExtent") == 0)
+    if (STRCASECMP(argv[argIndex], "-LabelMapXMinExtent") == 0)
     {
       char* arg = argv[argIndex+1];
-      outputStream << "Expected XMinExtent: " << arg << std::endl;
+      outputStream << "Expected LabelMapXMinExtent: " << arg << std::endl;
       argIndex += 2;
       std::stringstream ss;
       ss << arg;
@@ -123,10 +127,10 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
 
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-XMaxExtent") == 0)
+    if (STRCASECMP(argv[argIndex], "-LabelMapXMaxExtent") == 0)
     {
       char* arg = argv[argIndex+1];
-      outputStream << "Expected XMaxExtent: " << arg << std::endl;
+      outputStream << "Expected LabelMapXMaxExtent: " << arg << std::endl;
       argIndex += 2;
       std::stringstream ss;
       ss << arg;
@@ -141,10 +145,10 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
 
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-YMinExtent") == 0)
+    if (STRCASECMP(argv[argIndex], "-LabelMapYMinExtent") == 0)
     {
       char* arg = argv[argIndex+1];
-      outputStream << "Expected YMinExtent: " << arg << std::endl;
+      outputStream << "Expected LabelMapYMinExtent: " << arg << std::endl;
       argIndex += 2;
       std::stringstream ss;
       ss << arg;
@@ -159,10 +163,10 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
 
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-YMaxExtent") == 0)
+    if (STRCASECMP(argv[argIndex], "-LabelMapYMaxExtent") == 0)
     {
       char* arg = argv[argIndex+1];
-      outputStream << "Expected YMaxExtent: " << arg << std::endl;
+      outputStream << "Expected LabelMapYMaxExtent: " << arg << std::endl;
       argIndex += 2;
       std::stringstream ss;
       ss << arg;
@@ -177,10 +181,10 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
 
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-ZMinExtent") == 0)
+    if (STRCASECMP(argv[argIndex], "-LabelMapZMinExtent") == 0)
     {
       char* arg = argv[argIndex+1];
-      outputStream << "Expected ZMinExtent: " << arg << std::endl;
+      outputStream << "Expected LabelMapZMinExtent: " << arg << std::endl;
       argIndex += 2;
       std::stringstream ss;
       ss << arg;
@@ -195,14 +199,182 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
 
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-ZMaxExtent") == 0)
+    if (STRCASECMP(argv[argIndex], "-LabelMapZMaxExtent") == 0)
     {
       char* arg = argv[argIndex+1];
-      outputStream << "Expected ZMaxExtent: " << arg << std::endl;
+      outputStream << "Expected LabelMapZMaxExtent: " << arg << std::endl;
       argIndex += 2;
       std::stringstream ss;
       ss << arg;
       ss >> expectedExtents[5];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  // Closed surface metrics
+  int expectedNumberOfPoints;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ExpectedNumberOfPoints") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected number of points: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedNumberOfPoints;
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  int expectedNumberOfCells;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ExpectedNumberOfCells") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected number of cells: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedNumberOfCells;
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  int expectedNumberOfPolys;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ExpectedNumberOfPolys") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected number of cells: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedNumberOfPolys;
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  // Closed surface bounds
+  double expectedBounds[6];
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ClosedSurfaceXMinExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected ClosedSurfaceXMinExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedBounds[0];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ClosedSurfaceXMaxExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected ClosedSurfaceXMaxExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedBounds[1];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ClosedSurfaceYMinExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected ClosedSurfaceYMinExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedBounds[2];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ClosedSurfaceYMaxExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected ClosedSurfaceYMaxExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedBounds[3];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ClosedSurfaceZMinExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected ClosedSurfaceZMinExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedBounds[4];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ClosedSurfaceZMaxExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected ClosedSurfaceZMaxExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedBounds[5];
     }
   }
   else
@@ -305,22 +477,50 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     // Set closed surface model conversion parameters
     bodyContourNode->SetDecimationTargetReductionFactor(0.0);
 
-    // Delete occurrent existing representation and re-convert
+    // Delete current existing representation and re-convert
     vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
     converter->SetContourNode(bodyContourNode);
     converter->ReconvertRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
 
     closedSurfaceModelNode = bodyContourNode->GetClosedSurfaceModelNode();
   }
+  double bounds[6];
+  closedSurfaceModelNode->GetRASBounds(bounds);
 
-  /*
-  double resultFalseNegativesPercent = paramNode->GetFalseNegativesPercent();
-  if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultFalseNegativesPercent, falseNegativesPercent))
+  if( !CheckIfResultIsWithinOneTenthPercentFromBaseline(bounds[0], expectedBounds[0]) || 
+    !CheckIfResultIsWithinOneTenthPercentFromBaseline(bounds[1], expectedBounds[1]) || 
+    !CheckIfResultIsWithinOneTenthPercentFromBaseline(bounds[2], expectedBounds[2]) || 
+    !CheckIfResultIsWithinOneTenthPercentFromBaseline(bounds[3], expectedBounds[3]) || 
+    !CheckIfResultIsWithinOneTenthPercentFromBaseline(bounds[4], expectedBounds[4]) || 
+    !CheckIfResultIsWithinOneTenthPercentFromBaseline(bounds[5], expectedBounds[5]) )
   {
-    std::cerr << "False negatives (%) mismatch: " << resultFalseNegativesPercent << " instead of " << falseNegativesPercent << std::endl;
+    errorStream << "Closed surface bounds don't match." << std::endl;
+    errorStream << "bounds[0]: " << bounds[0] << std::endl;
+    errorStream << "bounds[1]: " << bounds[1] << std::endl;
+    errorStream << "bounds[2]: " << bounds[2] << std::endl;
+    errorStream << "bounds[3]: " << bounds[3] << std::endl;
+    errorStream << "bounds[4]: " << bounds[4] << std::endl;
+    errorStream << "bounds[5]: " << bounds[5] << std::endl;
     return EXIT_FAILURE;
   }
-  */
+
+  if(closedSurfaceModelNode->GetPolyData()->GetNumberOfPoints() != expectedNumberOfPoints)
+  {
+    errorStream << "Number of points mismatch in closed surface model. Expected: " << expectedNumberOfPoints << ". Got: " << closedSurfaceModelNode->GetPolyData()->GetNumberOfPoints() << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if(closedSurfaceModelNode->GetPolyData()->GetNumberOfCells() != expectedNumberOfCells)
+  {
+    errorStream << "Number of cells mismatch in closed surface model. Expected: " << expectedNumberOfCells << ". Got: " << closedSurfaceModelNode->GetPolyData()->GetNumberOfCells() << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if(closedSurfaceModelNode->GetPolyData()->GetNumberOfPolys() != expectedNumberOfPolys)
+  {
+    errorStream << "Number of polys mismatch in closed surface model. Expected: " << expectedNumberOfPolys << ". Got: " << closedSurfaceModelNode->GetPolyData()->GetNumberOfPolys() << std::endl;
+    return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }

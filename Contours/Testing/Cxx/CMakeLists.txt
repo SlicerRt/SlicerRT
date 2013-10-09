@@ -16,20 +16,32 @@ set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
       TestSceneFile TemporarySceneFile NonZeroVoxelCount
-      XMinExtent XMaxExtent YMinExtent
-      YMaxExtent ZMinExtent ZMaxExtent)
+      LabelMapXMinExtent LabelMapXMaxExtent LabelMapYMinExtent
+      LabelMapYMaxExtent LabelMapZMinExtent LabelMapZMaxExtent
+      ExpectedNumberOfPoints ExpectedNumberOfCells ExpectedNumberOfPolys
+      ClosedSurfaceXMinExtent ClosedSurfaceXMaxExtent ClosedSurfaceYMinExtent
+      ClosedSurfaceYMaxExtent ClosedSurfaceZMinExtent ClosedSurfaceZMaxExtent )
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -TestSceneFile ${TestSceneFile}
     -TemporarySceneFile ${TemporarySceneFile}
     -NonZeroVoxelCount ${NonZeroVoxelCount}
-    -XMinExtent ${XMinExtent}
-    -XMaxExtent ${XMaxExtent}
-    -YMinExtent ${YMinExtent}
-    -YMaxExtent ${YMaxExtent}
-    -ZMinExtent ${ZMinExtent}
-    -ZMaxExtent ${ZMaxExtent}
+    -LabelMapXMinExtent ${LabelMapXMinExtent}
+    -LabelMapXMaxExtent ${LabelMapXMaxExtent}
+    -LabelMapYMinExtent ${LabelMapYMinExtent}
+    -LabelMapYMaxExtent ${LabelMapYMaxExtent}
+    -LabelMapZMinExtent ${LabelMapZMinExtent}
+    -LabelMapZMaxExtent ${LabelMapZMaxExtent}
+    -ExpectedNumberOfPoints ${ExpectedNumberOfPoints}
+    -ExpectedNumberOfCells ${ExpectedNumberOfCells}
+    -ExpectedNumberOfPolys ${ExpectedNumberOfPolys}
+    -ClosedSurfaceXMinExtent ${ClosedSurfaceXMinExtent}
+    -ClosedSurfaceXMaxExtent ${ClosedSurfaceXMaxExtent}
+    -ClosedSurfaceYMinExtent ${ClosedSurfaceYMinExtent}
+    -ClosedSurfaceYMaxExtent ${ClosedSurfaceYMaxExtent}
+    -ClosedSurfaceZMinExtent ${ClosedSurfaceZMinExtent}
+    -ClosedSurfaceZMaxExtent ${ClosedSurfaceZMaxExtent}
   )
 endmacro()
 
@@ -46,5 +58,14 @@ TEST_WITH_DATA(
   85
   -1
   92
+  27554
+  54513
+  54513
+  14.701
+  164.076
+  1.89186
+  106.267
+  -123.75
+  -8.125
 )
 set_tests_properties(vtkSlicerContoursModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )

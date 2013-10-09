@@ -32,5 +32,9 @@
   id="vtkMRMLColorTableStorageNode21"  name="ColorTableStorage_20"  hideFromEditors="true"  selectable="true"  selected="false"  fileName="../EclipseProstate_ColorTable.ctbl"  useCompression="1"  readState="0"  writeState="0" ></ColorTableStorage>
   
   <ModelHierarchy
-    id="vtkMRMLModelHierarchyNode8"    name="ModelHierarchy"    hideFromEditors="false"    selectable="true"    selected="false"    parentNodeRef="vtkMRMLDisplayableHierarchyNode2"    associatedNodeRef="vtkMRMLModelNode4"    sortingValue="20"    allowMultipleChildren="true"    expanded="true"  ></ModelHierarchy>
+  id="vtkMRMLModelHierarchyNode7"  name="3: RTSTRUCT: PROS_AllStructures"  hideFromEditors="false"  selectable="true"  selected="false"  sortingValue="0"  allowMultipleChildren="true"  displayNodeID="vtkMRMLModelDisplayNode17"  expanded="true" ></ModelHierarchy>
+  <ModelHierarchy
+    id="vtkMRMLModelHierarchyNode8"    name="ModelHierarchy"    hideFromEditors="false"    selectable="true"    selected="false"    parentNodeRef="vtkMRMLModelHierarchyNode7"    associatedNodeRef="vtkMRMLModelNode4"    sortingValue="20"    allowMultipleChildren="true"    expanded="true"  ></ModelHierarchy>
+  <ModelDisplay
+  id="vtkMRMLModelDisplayNode17"  name="3: RTSTRUCT: PROS_AllStructuresDisplay"  hideFromEditors="true"  selectable="true"  selected="false"  color="0.5 0.5 0.5"  edgeColor="0 0 0"  selectedColor="1 0 0"  selectedAmbient="0.4"  ambient="0"  diffuse="1"  selectedSpecular="0.5"  specular="0"  power="1"  opacity="1"  pointSize="1"  lineWidth="1"  representation="2"  lighting="true"  interpolation="1"  shading="true"  visibility="true"  edgeVisibility="false"  clipping="false"  sliceIntersectionVisibility="false"  sliceIntersectionThickness="1"  frontfaceCulling="false"  backfaceCulling="true"  scalarVisibility="false"  vectorVisibility="false"  tensorVisibility="false"  interpolateTexture="false"  autoScalarRange="true"  scalarRange="0 100"  ></ModelDisplay>
 </MRML>
