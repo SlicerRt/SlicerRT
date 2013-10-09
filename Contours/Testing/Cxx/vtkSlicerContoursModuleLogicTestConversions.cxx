@@ -83,6 +83,133 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
+  int nonZeroVoxelCount(-1);
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-NonZeroVoxelCount") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected non-zero voxel count: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> nonZeroVoxelCount;
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  int expectedExtents[6];
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-XMinExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected XMinExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedExtents[0];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-XMaxExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected XMaxExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedExtents[1];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-YMinExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected YMinExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedExtents[2];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-YMaxExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected YMaxExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedExtents[3];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ZMinExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected ZMinExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedExtents[4];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-ZMaxExtent") == 0)
+    {
+      char* arg = argv[argIndex+1];
+      outputStream << "Expected ZMaxExtent: " << arg << std::endl;
+      argIndex += 2;
+      std::stringstream ss;
+      ss << arg;
+      ss >> expectedExtents[5];
+    }
+  }
+  else
+  {
+    errorStream << "No arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   // Make sure NRRD reading works
 #if ITK_VERSION_MAJOR > 3
@@ -134,6 +261,43 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     converter->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
 
     indexedLabelmapNode = bodyContourNode->GetIndexedLabelmapVolumeNode();
+  }
+
+  vtkImageData* image = indexedLabelmapNode->GetImageData();
+  int extents[6];
+  image->GetExtent(extents);
+
+  if( extents[0] != expectedExtents[0] || 
+    extents[1] != expectedExtents[1] || 
+    extents[2] != expectedExtents[2] || 
+    extents[3] != expectedExtents[3] || 
+    extents[4] != expectedExtents[4] || 
+    extents[5] != expectedExtents[5] )
+  {
+    errorStream << "Extents don't match." << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  int voxelCount(0);
+  for (int z = extents[4]; z < extents[5]; z++)
+  {
+    for (int y = extents[2]; y < extents[3]; y++)
+    {
+      for (int x = extents[0]; x < extents[1]; x++)
+      {
+        unsigned char* pixel = static_cast<unsigned char*>(image->GetScalarPointer(x,y,z));
+        if( *pixel != 0 )
+        {
+          voxelCount++;
+        }
+      }
+    }
+  }
+
+  if( voxelCount != nonZeroVoxelCount )
+  {
+    errorStream << "Non-zero voxel count does not match expected result. Got: " << voxelCount << ". Expected: " << nonZeroVoxelCount << std::endl;
+    return EXIT_FAILURE;
   }
 
   vtkMRMLModelNode* closedSurfaceModelNode(NULL);
