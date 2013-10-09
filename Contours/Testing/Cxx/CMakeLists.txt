@@ -7,7 +7,7 @@ set(KIT_TEST_SRCS
 slicerMacroConfigureModuleCxxTestDriver(
   NAME ${KIT}
   SOURCES ${KIT_TEST_SRCS}
-  TARGET_LIBRARIES vtkSlicerContoursModuleLogic
+  TARGET_LIBRARIES vtkSlicer${MODULE_NAME}ModuleLogic vtkSlicer${MODULE_NAME}ModuleMRML
   WITH_VTK_DEBUG_LEAKS_CHECK
   )
 

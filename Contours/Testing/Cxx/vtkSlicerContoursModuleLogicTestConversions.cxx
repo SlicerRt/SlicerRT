@@ -13,15 +13,15 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
-  with funds provided by the Ontario Ministry of Health and Long-Term Care
-  and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
+  This file was originally developed by Adam Rankin, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
 #include "SlicerRtCommon.h"
 #include "vtkConvertContourRepresentations.h"
+#include "vtkSlicerContoursModuleLogic.h"
 #include <vtkCollection.h>
 #include <vtkMRMLContourNode.h>
 #include <vtkMRMLCoreTestingMacros.h>
@@ -92,6 +92,9 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
+  vtkSmartPointer<vtkSlicerContoursModuleLogic> logic = vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
+  logic->SetMRMLScene(mrmlScene);
+
   // Load test scene into temporary scene
   mrmlScene->SetURL(testSceneFileName);
   mrmlScene->Import();
@@ -103,7 +106,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
 
   // Get CT volume
   vtkSmartPointer<vtkCollection> doseVolumeNodes = 
-    vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("5: RTDOSE: PROS") );
+    vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("Dose") );
   if (doseVolumeNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
@@ -112,16 +115,14 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
   }
   vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
 
-  // Get the body contour
-  vtkSmartPointer<vtkCollection> bodyContourNodes = 
-    vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("BODY_Contour") );
-  if (bodyContourNodes->GetNumberOfItems() != 1)
+  // Get the body contour  
+  vtkMRMLContourNode* bodyContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->GetNodeByID("vtkMRMLContourNode1"));
+  if (bodyContourNode == NULL)
   {
     mrmlScene->Commit();
     errorStream << "ERROR: Failed to get body contour!" << std::endl;
     return EXIT_FAILURE;
   }
-  vtkMRMLContourNode* bodyContourNode = vtkMRMLContourNode::SafeDownCast(bodyContourNodes->GetItemAsObject(0));
 
   bodyContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(doseScalarVolumeNode->GetID());
   bodyContourNode->SetRasterizationOversamplingFactor(2.0);
