@@ -44,7 +44,6 @@ protected:
   QScopedPointer<qSlicerDicomRtExportModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
-  virtual void setMRMLScene(vtkMRMLScene*);
 
 protected slots:
   /// TODO:

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>DicomRtExport</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="margin">
@@ -20,39 +20,6 @@
    <property name="spacing">
     <number>4</number>
    </property>
-   <item row="2" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_SaveDicomRT">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>120</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Save Dicom Study</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
    <item row="1" column="0">
     <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
      <property name="text">
@@ -74,7 +41,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Image Volume:</string>
+         <string>Image volume:</string>
         </property>
        </widget>
       </item>
@@ -90,7 +57,7 @@
       <item row="2" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Dose Volume:</string>
+         <string>Dose volume:</string>
         </property>
        </widget>
       </item>
@@ -106,7 +73,7 @@
       <item row="4" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Contour Hierarchy:</string>
+         <string>Structure set:</string>
         </property>
        </widget>
       </item>
@@ -116,6 +83,12 @@
          <stringlist>
           <string>vtkMRMLDisplayableHierarchyNode</string>
          </stringlist>
+        </property>
+        <property name="addEnabled">
+         <bool>false</bool>
+        </property>
+        <property name="removeEnabled">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -128,6 +101,65 @@
       </item>
       <item row="5" column="1">
        <widget class="ctkDirectoryButton" name="DirectoryButton_OutputDirectory"/>
+      </item>
+      <item row="6" column="0" colspan="2">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>12</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="7" column="0" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_SaveDicomRT">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>140</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Save DICOM study</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -171,8 +203,8 @@
      <y>444</y>
     </hint>
     <hint type="destinationlabel">
-     <x>131</x>
-     <y>55</y>
+     <x>227</x>
+     <y>50</y>
     </hint>
    </hints>
   </connection>
@@ -187,8 +219,8 @@
      <y>440</y>
     </hint>
     <hint type="destinationlabel">
-     <x>208</x>
-     <y>92</y>
+     <x>304</x>
+     <y>78</y>
     </hint>
    </hints>
   </connection>
@@ -199,12 +231,12 @@
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>253</x>
-     <y>442</y>
+     <x>176</x>
+     <y>2</y>
     </hint>
     <hint type="destinationlabel">
-     <x>258</x>
-     <y>121</y>
+     <x>171</x>
+     <y>92</y>
     </hint>
    </hints>
   </connection>

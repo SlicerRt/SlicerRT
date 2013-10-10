@@ -109,19 +109,6 @@ QStringList qSlicerDicomRtExportModule::categories()const
 void qSlicerDicomRtExportModule::setup()
 {
   this->Superclass::setup();
-
-  vtkSlicerDicomRtExportModuleLogic* DicomRtExportLogic = vtkSlicerDicomRtExportModuleLogic::SafeDownCast(this->logic());
-
-  qSlicerAbstractCoreModule* volumesModule = qSlicerCoreApplication::application()->moduleManager()->module("Volumes");
-  if (volumesModule)
-  {
-    vtkSlicerVolumesLogic* volumesLogic = vtkSlicerVolumesLogic::SafeDownCast(volumesModule->logic());
-    //DicomRtExportLogic->SetVolumesLogic(volumesLogic);
-  }
-  else
-  {
-    qWarning() << "Volumes module is not found";
-  } 
 }
 
 //-----------------------------------------------------------------------------
