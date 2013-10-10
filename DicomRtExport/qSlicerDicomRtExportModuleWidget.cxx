@@ -86,7 +86,6 @@ void qSlicerDicomRtExportModuleWidget::setup()
   this->Superclass::setup();
 
   // Filter out hierarchy nodes that are not contour hierarchy nodes
-  qCritical() << QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str());
   d->MRMLNodeComboBox_ContourHierarchy->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
 
   // Make connections
