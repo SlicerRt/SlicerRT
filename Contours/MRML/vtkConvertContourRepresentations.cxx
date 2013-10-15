@@ -40,13 +40,15 @@
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
+#include <vtkCollection.h>
+#include <vtkGeneralTransform.h>
+#include <vtkImageChangeInformation.h>
+#include <vtkImageConstantPad.h>
+#include <vtkImageReslice.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkImageReslice.h>
-#include <vtkGeneralTransform.h>
-#include <vtkCollection.h>
 #include <vtkTimerLog.h>
+#include <vtkTransformPolyDataFilter.h>
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
@@ -57,6 +59,21 @@
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkConvertContourRepresentations);
+
+//----------------------------------------------------------------------------
+namespace
+{
+  bool areBoundsEqual(int boundsA[6], int boundsB[6])
+  {
+    return 
+      boundsA[0] == boundsB [0] &&
+      boundsA[1] == boundsB [1] &&
+      boundsA[2] == boundsB [2] &&
+      boundsA[3] == boundsB [3] &&
+      boundsA[4] == boundsB [4] &&
+      boundsA[5] == boundsB [5];
+  }
+}
 
 //----------------------------------------------------------------------------
 vtkConvertContourRepresentations::vtkConvertContourRepresentations()
@@ -456,9 +473,53 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   int structureColorIndex = -1;
   this->ContourNode->GetColor(structureColorIndex, colorNode);
 
+  // Determine here if we need to pad the labelmap to create a completely closed surface
+  vtkSmartPointer<vtkImageConstantPad> padder;
+  bool pad(false);
+  vtkMRMLScalarVolumeNode* refVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(mrmlScene->GetNodeByID(this->ContourNode->GetRasterizationReferenceVolumeNodeId()));
+  if( refVolumeNode != NULL )
+  {
+    int refExtents[6];
+    refVolumeNode->GetImageData()->GetExtent(refExtents);
+    int labelmapExtents[6];
+    this->ContourNode->IndexedLabelmapVolumeNode->GetImageData()->GetExtent(labelmapExtents);
+
+    if( areBoundsEqual(refExtents, labelmapExtents) )
+    {
+      pad = true;
+      vtkDebugMacro("Adding 1 pixel padding around the image, shifting origin.");
+      padder = vtkSmartPointer<vtkImageConstantPad>::New();
+      vtkSmartPointer<vtkImageChangeInformation> translator = vtkSmartPointer<vtkImageChangeInformation>::New();
+      translator->SetInput(this->ContourNode->IndexedLabelmapVolumeNode->GetImageData());
+      // translate the extent by 1 pixel
+      translator->SetExtentTranslation(1, 1, 1);
+      // args are: -padx*xspacing, -pady*yspacing, -padz*zspacing
+      // but padding and spacing are both 1
+      translator->SetOriginTranslation(-1.0, -1.0, -1.0);
+      padder->SetInput(translator->GetOutput());
+      padder->SetConstant(0);
+
+      translator->Update();
+      int extent[6];
+      this->ContourNode->IndexedLabelmapVolumeNode->GetImageData()->GetWholeExtent(extent);
+      // now set the output extent to the new size, padded by 2 on the
+      // positive side
+      padder->SetOutputWholeExtent(extent[0], extent[1] + 2,
+        extent[2], extent[3] + 2,
+        extent[4], extent[5] + 2);
+    }
+  }
+
   // Convert labelmap to model
   vtkSmartPointer<vtkLabelmapToModelFilter> labelmapToModelFilter = vtkSmartPointer<vtkLabelmapToModelFilter>::New();
-  labelmapToModelFilter->SetInputLabelmap( this->ContourNode->IndexedLabelmapVolumeNode->GetImageData() );
+  if( pad )
+  {
+    labelmapToModelFilter->SetInputLabelmap( padder->GetOutput() );
+  }
+  else
+  {
+    labelmapToModelFilter->SetInputLabelmap( this->ContourNode->IndexedLabelmapVolumeNode->GetImageData() );
+  }
   labelmapToModelFilter->SetDecimateTargetReduction( this->ContourNode->DecimationTargetReductionFactor );
   labelmapToModelFilter->SetLabelValue( structureColorIndex );
   labelmapToModelFilter->Update();    

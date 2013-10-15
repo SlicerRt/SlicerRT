@@ -413,6 +413,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
+  doseScalarVolumeNode->GetImageData()->SetWholeExtent(doseScalarVolumeNode->GetImageData()->GetExtent());
 
   // Get the body contour  
   vtkMRMLContourNode* bodyContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->GetNodeByID("vtkMRMLContourNode1"));
@@ -447,6 +448,12 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     extents[5] != expectedExtents[5] )
   {
     errorStream << "Extents don't match." << std::endl;
+    errorStream << "extents[0]: " << extents[0] << std::endl;
+    errorStream << "extents[1]: " << extents[1] << std::endl;
+    errorStream << "extents[2]: " << extents[2] << std::endl;
+    errorStream << "extents[3]: " << extents[3] << std::endl;
+    errorStream << "extents[4]: " << extents[4] << std::endl;
+    errorStream << "extents[5]: " << extents[5] << std::endl;
     return EXIT_FAILURE;
   }
 

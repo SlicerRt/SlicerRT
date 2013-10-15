@@ -51,21 +51,21 @@ TEST_WITH_DATA(
   vtkSlicerContoursModuleLogicTestConversions
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseProstate_Contours_Scene.mrml
   ${TEMP}/TestScene_Contours_EclipseProstate.mrml 
-  699679
-  -1
-  135
-  -1
-  85
-  -1
-  92
-  27554
-  54513
-  54513
-  14.701
-  164.076
-  1.89186
-  106.267
-  -123.75
-  -8.125
+  5448764
+  0
+  271
+  0
+  171
+  0
+  183
+  171701
+  341666
+  341666
+  -172.799
+  162.201
+  -106.858
+  105.017
+  -122.5
+  106.25
 )
 set_tests_properties(vtkSlicerContoursModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
