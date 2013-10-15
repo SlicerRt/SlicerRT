@@ -1,2 +1,2 @@
-add_subdirectory(Cxx)
-add_subdirectory(UI)
+#add_subdirectory(Cxx)
+#add_subdirectory(UI)
