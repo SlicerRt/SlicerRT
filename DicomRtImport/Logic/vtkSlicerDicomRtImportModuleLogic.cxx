@@ -1435,7 +1435,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
       if (rtImageVolumeNode)
       {
         vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-          rtImageVolumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) );
+          rtImageVolumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
         if (modelNode)
         {
           vtkDebugMacro("SetupRtImageGeometry: RT image '" << rtImageVolumeNode->GetName() << "' belonging to isocenter '" << isocenterNode->GetName() << "' seems to have been set up already.");
@@ -1591,9 +1591,9 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
   vtkSmartPointer<vtkMRMLPlanarImageNode> planarImageParameterSetNode = vtkSmartPointer<vtkMRMLPlanarImageNode>::New();
   planarImageParameterSetNode->SetName(planarImageParameterSetNodeName.c_str());
   this->GetMRMLScene()->AddNode(planarImageParameterSetNode);
-  planarImageParameterSetNode->SetNodeReferenceID(vtkMRMLPlanarImageNode::PlanarImageVolumeNodeReferenceRole, rtImageVolumeNode->GetID());
-  planarImageParameterSetNode->SetNodeReferenceID(vtkMRMLPlanarImageNode::DisplayedModelNodeReferenceRole, displayedModelNode->GetID());
-  planarImageParameterSetNode->SetNodeReferenceID(vtkMRMLPlanarImageNode::TextureVolumeNodeReferenceRole, textureVolumeNode->GetID());
+  planarImageParameterSetNode->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str(), rtImageVolumeNode->GetID());
+  planarImageParameterSetNode->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), displayedModelNode->GetID());
+  planarImageParameterSetNode->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str(), textureVolumeNode->GetID());
 
   // Create planar image model for the RT image
   this->PlanarImageLogic->CreateModelForPlanarImage(planarImageParameterSetNode);

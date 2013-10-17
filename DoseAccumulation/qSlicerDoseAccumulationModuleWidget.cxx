@@ -357,7 +357,6 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_Volumes);
     checkbox->setToolTip(tr("Include this volume in accumulated dose volume"));
-    checkbox->setProperty(SlicerRtCommon::DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME.c_str(), QString(volumeNode->GetName()));
     d->CheckboxToVolumeIdMap[checkbox] = std::pair<std::string, std::string>(volumeNode->GetID(), doseUnitStr);
 
     // Set previous checked state of the checkbox

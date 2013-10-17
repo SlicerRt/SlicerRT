@@ -447,11 +447,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   arrayNode->SetName(dvhArrayNodeName.c_str());
   //arrayNode->HideFromEditorsOff();
 
+  // Set array node references
+  arrayNode->SetNthNodeReferenceID(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str(), 0, doseVolumeNode->GetID());
+  arrayNode->SetNthNodeReferenceID(SlicerRtCommon::DVH_STRUCTURE_CONTOUR_NODE_REFERENCE_ROLE.c_str(), 0, structureContourNode->GetID());
+
   // Set array node attributes
   arrayNode->SetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-  arrayNode->SetAttribute(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str(), doseVolumeNode->GetID());
   arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureName.c_str());
-  arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_CONTOUR_NODE_ID_ATTRIBUTE_NAME.c_str(), structureContourNode->GetID());
   {
     std::ostringstream attributeValueStream;
     attributeValueStream << this->DoseVolumeOversamplingFactor;
@@ -630,7 +632,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   vtkMRMLHierarchyNode* structurePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(structureContourNode);
   if (structurePatientHierarchyNode)
   {
-    structurePatientHierarchyNode->SetAttribute(SlicerRtCommon::DVH_CREATED_DVH_NODE_ID_ATTRIBUTE_NAME.c_str(), arrayNode->GetID());
+    structurePatientHierarchyNode->AddNodeReferenceID(SlicerRtCommon::DVH_CREATED_DVH_NODE_REFERENCE_ROLE.c_str(), arrayNode->GetID());
   }
 
   // Log measured time

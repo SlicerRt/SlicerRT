@@ -113,11 +113,11 @@ public:
   // DoseVolumeHistogram constants
   static const std::string DVH_ATTRIBUTE_PREFIX;
   static const std::string DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME;
-  static const std::string DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME;
+  static const std::string DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE;
+  static const std::string DVH_CREATED_DVH_NODE_REFERENCE_ROLE;
+  static const std::string DVH_STRUCTURE_CONTOUR_NODE_REFERENCE_ROLE;
   static const std::string DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME;
-  static const std::string DVH_CREATED_DVH_NODE_ID_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_NAME_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_CONTOUR_NODE_ID_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME;
@@ -138,7 +138,6 @@ public:
 
   // DoseAccumulation constants
   static const std::string DOSEACCUMULATION_ATTRIBUTE_PREFIX;
-  static const std::string DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME;
   static const std::string DOSEACCUMULATION_OUTPUT_BASE_NAME_PREFIX;
 
   // Isodose constants
@@ -163,8 +162,9 @@ public:
   static const std::string PLANARIMAGE_MODEL_NODE_NAME_PREFIX;
   static const std::string PLANARIMAGE_TEXTURE_NODE_NAME_PREFIX;
   static const std::string PLANARIMAGE_PARAMETER_SET_BASE_NAME_PREFIX;
-  static const char* PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE;
-  static const char* PLANARIMAGE_TEXTURE_REFERENCE_ROLE;
+  static const std::string PLANARIMAGE_VOLUME_REFERENCE_ROLE;
+  static const std::string PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE;
+  static const std::string PLANARIMAGE_TEXTURE_REFERENCE_ROLE;
 
   //----------------------------------------------------------------------------
   // Utility functions

@@ -677,8 +677,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     d->tableWidget_ChartStatistics->setItem(i, 1, new QTableWidgetItem(
       QString(dvhNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));    
 
-    vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast( this->mrmlScene()->GetNodeByID(
-      dvhNode->GetAttribute(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_ID_ATTRIBUTE_NAME.c_str()) ) );
+    vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(
+      dvhNode->GetNodeReference(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str()) );
     if (volumeNode)
     {
       d->tableWidget_ChartStatistics->setItem(i, 2, new QTableWidgetItem( QString(volumeNode->GetName()) ));    

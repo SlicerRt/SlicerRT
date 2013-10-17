@@ -217,7 +217,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       if (hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
       {
         vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-          associatedNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE) );
+          associatedNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
         if (!modelNode)
         {
           vtkErrorWithObjectMacro(this->mrmlScene(),"qMRMLPatientHierarchyTreeView::toggleVisibility: No displayed model found for planar image '" << associatedNode->GetName() << "'!");

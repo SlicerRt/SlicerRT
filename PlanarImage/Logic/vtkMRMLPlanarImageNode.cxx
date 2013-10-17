@@ -29,9 +29,10 @@
 #include <vtkObjectFactory.h>
 
 //------------------------------------------------------------------------------
-const char* vtkMRMLPlanarImageNode::PlanarImageVolumeNodeReferenceRole = "planarImage";
-const char* vtkMRMLPlanarImageNode::DisplayedModelNodeReferenceRole = SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE;
-const char* vtkMRMLPlanarImageNode::TextureVolumeNodeReferenceRole = SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE;
+// List the reference roles used by this node
+// SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE
+// SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE
+// SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLPlanarImageNode);
@@ -40,13 +41,6 @@ vtkMRMLNodeNewMacro(vtkMRMLPlanarImageNode);
 vtkMRMLPlanarImageNode::vtkMRMLPlanarImageNode()
 {
   this->HideFromEditors = false;
-
-  std::string planarImageVolumeNodeReferenceRoleAttributeName = std::string(PlanarImageVolumeNodeReferenceRole) + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-  this->AddNodeReferenceRole(PlanarImageVolumeNodeReferenceRole, planarImageVolumeNodeReferenceRoleAttributeName.c_str());
-  std::string displayedModelNodeReferenceRoleAttributeName = std::string(DisplayedModelNodeReferenceRole) + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-  this->AddNodeReferenceRole(DisplayedModelNodeReferenceRole, displayedModelNodeReferenceRoleAttributeName.c_str());
-  std::string textureVolumeNodeReferenceRoleAttributeName = std::string(TextureVolumeNodeReferenceRole) + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-  this->AddNodeReferenceRole(TextureVolumeNodeReferenceRole, textureVolumeNodeReferenceRoleAttributeName.c_str());
 }
 
 //----------------------------------------------------------------------------

@@ -34,11 +34,7 @@ public:
   static vtkMRMLPlanarImageNode *New();
   vtkTypeMacro(vtkMRMLPlanarImageNode,vtkMRMLNode);
 
-  static const char* PlanarImageVolumeNodeReferenceRole;
-  static const char* DisplayedModelNodeReferenceRole;
-  static const char* TextureVolumeNodeReferenceRole;
-
-  /// Create instance of a GAD node. 
+  /// Create instance of a node
   virtual vtkMRMLNode* CreateNodeInstance();
 
   /// Get unique node XML tag name (like Volume, Model) 

@@ -181,28 +181,28 @@ void qSlicerPlanarImageModuleWidget::updateWidgetFromMRML()
   vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
   if (paramNode && this->mrmlScene())
   {
-    if (paramNode->GetNodeReference(vtkMRMLPlanarImageNode::PlanarImageVolumeNodeReferenceRole))
+    if (paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str()))
     {
       d->MRMLNodeComboBox_PlanarImageVolume->setCurrentNodeID(
-        paramNode->GetNodeReferenceID(vtkMRMLPlanarImageNode::PlanarImageVolumeNodeReferenceRole) );
+        paramNode->GetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str()) );
     }
     else
     {
       this->planarImageVolumeNodeChanged(d->MRMLNodeComboBox_PlanarImageVolume->currentNode());
     }
-    if (paramNode->GetNodeReference(vtkMRMLPlanarImageNode::DisplayedModelNodeReferenceRole))
+    if (paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()))
     {
       d->MRMLNodeComboBox_DisplayedModel->setCurrentNodeID(
-        paramNode->GetNodeReferenceID(vtkMRMLPlanarImageNode::DisplayedModelNodeReferenceRole) );
+        paramNode->GetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
     }
     else
     {
       this->displayedModelNodeChanged(d->MRMLNodeComboBox_DisplayedModel->currentNode());
     }
-    if (paramNode->GetNodeReference(vtkMRMLPlanarImageNode::TextureVolumeNodeReferenceRole))
+    if (paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str()))
     {
       d->MRMLNodeComboBox_TextureVolume->setCurrentNodeID(
-        paramNode->GetNodeReferenceID(vtkMRMLPlanarImageNode::TextureVolumeNodeReferenceRole) );
+        paramNode->GetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str()) );
     }
     else
     {
@@ -256,7 +256,7 @@ void qSlicerPlanarImageModuleWidget::planarImageVolumeNodeChanged(vtkMRMLNode* n
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetNthNodeReferenceID(vtkMRMLPlanarImageNode::PlanarImageVolumeNodeReferenceRole, 0, node->GetID());
+  paramNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str(), 0, node->GetID());
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -281,7 +281,7 @@ void qSlicerPlanarImageModuleWidget::displayedModelNodeChanged(vtkMRMLNode* node
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetNthNodeReferenceID(vtkMRMLPlanarImageNode::DisplayedModelNodeReferenceRole, 0, node->GetID());
+  paramNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), 0, node->GetID());
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -305,7 +305,7 @@ void qSlicerPlanarImageModuleWidget::textureVolumeNodeChanged(vtkMRMLNode* node)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetNthNodeReferenceID(vtkMRMLPlanarImageNode::TextureVolumeNodeReferenceRole, 0, node->GetID());
+  paramNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str(), 0, node->GetID());
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -324,9 +324,9 @@ void qSlicerPlanarImageModuleWidget::updateButtonsState()
 
   vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
   bool applyEnabled = paramNode
-                   && paramNode->GetNodeReference(vtkMRMLPlanarImageNode::PlanarImageVolumeNodeReferenceRole)
-                   && paramNode->GetNodeReference(vtkMRMLPlanarImageNode::DisplayedModelNodeReferenceRole)
-                   && paramNode->GetNodeReference(vtkMRMLPlanarImageNode::TextureVolumeNodeReferenceRole);
+                   && paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str())
+                   && paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str())
+                   && paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str());
   d->pushButton_Apply->setEnabled(applyEnabled);
 
   d->label_Error->setVisible(false);
@@ -371,7 +371,7 @@ void qSlicerPlanarImageModuleWidget::refreshOutputBaseName()
   QString newDisplayedModelBaseName(SlicerRtCommon::PLANARIMAGE_MODEL_NODE_NAME_PREFIX.c_str());
   QString newTextureVolumeBaseName(SlicerRtCommon::PLANARIMAGE_TEXTURE_NODE_NAME_PREFIX.c_str());
 
-  vtkMRMLNode* planarImageVolumeNode = paramNode->GetNodeReference(vtkMRMLPlanarImageNode::PlanarImageVolumeNodeReferenceRole);
+  vtkMRMLNode* planarImageVolumeNode = paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str());
   if (planarImageVolumeNode)
   {
     newDisplayedModelBaseName.append(planarImageVolumeNode->GetName());
