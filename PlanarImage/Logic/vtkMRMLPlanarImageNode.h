@@ -28,6 +28,9 @@
 
 #include "vtkSlicerPlanarImageModuleLogicExport.h"
 
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLModelNode;
+
 class VTK_SLICER_PLANARIMAGE_LOGIC_EXPORT vtkMRMLPlanarImageNode : public vtkMRMLNode
 {
 public:
@@ -39,6 +42,25 @@ public:
 
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "PlanarImage";};
+
+public:
+  /// Get RT image volume node
+  vtkMRMLScalarVolumeNode* GetRtImageVolumeNode();
+
+  /// Set and observe RT image volume node
+  void SetAndObserveRtImageVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  /// Get displayed model node
+  vtkMRMLModelNode* GetDisplayedModelNode();
+
+  /// Set and observe displayed model node
+  void SetAndObserveDisplayedModelNode(vtkMRMLModelNode* node);
+
+  /// Get texture volume node
+  vtkMRMLScalarVolumeNode* GetTextureVolumeNode();
+
+  /// Set and observe texture volume node
+  void SetAndObserveTextureVolumeNode(vtkMRMLScalarVolumeNode* node);
 
 protected:
   vtkMRMLPlanarImageNode();

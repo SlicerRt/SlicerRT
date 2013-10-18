@@ -28,7 +28,6 @@
 
 // STD includes
 #include <vector>
-#include <set>
 
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 

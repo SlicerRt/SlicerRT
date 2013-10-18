@@ -110,7 +110,7 @@ void vtkSlicerPlanarImageModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, 
       if (event == vtkMRMLDisplayableNode::DisplayModifiedEvent)
       {
         vtkMRMLScalarVolumeNode* textureNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-          modelNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str()) );
+          modelNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str()) );
         if (textureNode)
         {
           // Update texture for the planar image model
@@ -145,7 +145,7 @@ void vtkSlicerPlanarImageModuleLogic::OnMRMLSceneEndImport()
     {
       // Apply the texture if it has a reference to it
       vtkMRMLScalarVolumeNode* textureNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-        modelNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str()) );
+        modelNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str()) );
       if (textureNode)
       {
         modelNode->GetModelDisplayNode()->SetAndObserveTextureImageData(textureNode->GetImageData());
@@ -266,7 +266,7 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
   textureVolumeDisplayNode->SetDefaultColorMap();
 
   // Add reference from displayed model node to texture volume node
-  displayedModelNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str(), 0, textureVolumeNode->GetID());
+  displayedModelNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str(), 0, textureVolumeNode->GetID());
 
   // Observe the planar image volume node so that the texture can be updated
   vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
@@ -311,8 +311,7 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
   }
 
   // Get planar image volume
-  vtkMRMLScalarVolumeNode* planarImageVolume = vtkMRMLScalarVolumeNode::SafeDownCast(
-    planarImageNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str()) );
+  vtkMRMLScalarVolumeNode* planarImageVolume = planarImageNode->GetRtImageVolumeNode();
   if (!planarImageVolume)
   {
     vtkErrorMacro("CreateModelForPlanarImage: Invalid input planar image volume node!");
@@ -344,7 +343,7 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
 
   // Get texture volume for the displayed model
   vtkMRMLScalarVolumeNode* textureVolume = vtkMRMLScalarVolumeNode::SafeDownCast(
-    planarImageNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str()) );
+    planarImageNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str()) );
   if (!textureVolume)
   {
     vtkErrorMacro("CreateModelForPlanarImage: Missing texture volume reference in parameter set node for planar image '" << planarImageVolume->GetName() << "'!");

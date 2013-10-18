@@ -33,6 +33,10 @@
 #include "vtkSlicerPlanarImageModuleLogic.h"
 #include "vtkMRMLPlanarImageNode.h"
 
+// MRML includes
+#include "vtkMRMLScalarVolumeNode.h"
+#include "vtkMRMLModelNode.h"
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_PlanarImage
 class qSlicerPlanarImageModuleWidgetPrivate: public Ui_qSlicerPlanarImageModule
@@ -178,31 +182,28 @@ void qSlicerPlanarImageModuleWidget::updateWidgetFromMRML()
   // Update MRML node combobox selections with the nodes referenced by the parameter set node
   // Note: The comboboxes need to have noneEnabled=True in order not to select the first node in the scene
   //       automatically, but to allow this function to select it properly
-  vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
+  vtkMRMLPlanarImageNode* paramNode = vtkMRMLPlanarImageNode::SafeDownCast( d->MRMLNodeComboBox_ParameterSet->currentNode() );
   if (paramNode && this->mrmlScene())
   {
-    if (paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str()))
+    if (paramNode->GetRtImageVolumeNode())
     {
-      d->MRMLNodeComboBox_PlanarImageVolume->setCurrentNodeID(
-        paramNode->GetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str()) );
+      d->MRMLNodeComboBox_PlanarImageVolume->setCurrentNode(paramNode->GetRtImageVolumeNode());
     }
     else
     {
       this->planarImageVolumeNodeChanged(d->MRMLNodeComboBox_PlanarImageVolume->currentNode());
     }
-    if (paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()))
+    if (paramNode->GetDisplayedModelNode())
     {
-      d->MRMLNodeComboBox_DisplayedModel->setCurrentNodeID(
-        paramNode->GetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
+      d->MRMLNodeComboBox_DisplayedModel->setCurrentNode(paramNode->GetDisplayedModelNode());
     }
     else
     {
       this->displayedModelNodeChanged(d->MRMLNodeComboBox_DisplayedModel->currentNode());
     }
-    if (paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str()))
+    if (paramNode->GetTextureVolumeNode())
     {
-      d->MRMLNodeComboBox_TextureVolume->setCurrentNodeID(
-        paramNode->GetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str()) );
+      d->MRMLNodeComboBox_TextureVolume->setCurrentNode(paramNode->GetTextureVolumeNode());
     }
     else
     {
@@ -249,14 +250,14 @@ void qSlicerPlanarImageModuleWidget::planarImageVolumeNodeChanged(vtkMRMLNode* n
     return;
   }
 
-  vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
+  vtkMRMLPlanarImageNode* paramNode = vtkMRMLPlanarImageNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str(), 0, node->GetID());
+  paramNode->SetAndObserveRtImageVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -274,14 +275,14 @@ void qSlicerPlanarImageModuleWidget::displayedModelNodeChanged(vtkMRMLNode* node
     return;
   }
 
-  vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
+  vtkMRMLPlanarImageNode* paramNode = vtkMRMLPlanarImageNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), 0, node->GetID());
+  paramNode->SetAndObserveDisplayedModelNode(vtkMRMLModelNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -298,14 +299,14 @@ void qSlicerPlanarImageModuleWidget::textureVolumeNodeChanged(vtkMRMLNode* node)
     return;
   }
 
-  vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
+  vtkMRMLPlanarImageNode* paramNode = vtkMRMLPlanarImageNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str(), 0, node->GetID());
+  paramNode->SetAndObserveTextureVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -322,11 +323,11 @@ void qSlicerPlanarImageModuleWidget::updateButtonsState()
     return;
   }
 
-  vtkMRMLNode* paramNode = d->MRMLNodeComboBox_ParameterSet->currentNode();
+  vtkMRMLPlanarImageNode* paramNode = vtkMRMLPlanarImageNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   bool applyEnabled = paramNode
-                   && paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str())
-                   && paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str())
-                   && paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str());
+                   && paramNode->GetRtImageVolumeNode()
+                   && paramNode->GetDisplayedModelNode()
+                   && paramNode->GetTextureVolumeNode();
   d->pushButton_Apply->setEnabled(applyEnabled);
 
   d->label_Error->setVisible(false);
@@ -371,7 +372,7 @@ void qSlicerPlanarImageModuleWidget::refreshOutputBaseName()
   QString newDisplayedModelBaseName(SlicerRtCommon::PLANARIMAGE_MODEL_NODE_NAME_PREFIX.c_str());
   QString newTextureVolumeBaseName(SlicerRtCommon::PLANARIMAGE_TEXTURE_NODE_NAME_PREFIX.c_str());
 
-  vtkMRMLNode* planarImageVolumeNode = paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str());
+  vtkMRMLNode* planarImageVolumeNode = paramNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE.c_str());
   if (planarImageVolumeNode)
   {
     newDisplayedModelBaseName.append(planarImageVolumeNode->GetName());

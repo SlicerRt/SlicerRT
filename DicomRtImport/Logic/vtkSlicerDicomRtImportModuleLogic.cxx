@@ -1297,7 +1297,7 @@ void vtkSlicerDicomRtImportModuleLogic::CreateDefaultDoseColorTable()
 //------------------------------------------------------------------------------
 void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
 {
-  vtkMRMLVolumeNode* rtImageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(node);
+  vtkMRMLScalarVolumeNode* rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
   vtkMRMLHierarchyNode* rtImagePatientHierarchyNode = NULL;
   vtkMRMLMarkupsFiducialNode* isocenterNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(node);
   vtkMRMLHierarchyNode* isocenterPatientHierarchyNode = NULL;
@@ -1424,7 +1424,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
           // If the referenced beam number matches the isocenter beam number, or if there is one beam in the plan, then we found the RT image
           if (!STRCASECMP(referencedBeamNumberChars, isocenterBeamNumberChars) || oneBeamInPlan)
           {
-            rtImageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(hierarchyNode->GetAssociatedNode());
+            rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(hierarchyNode->GetAssociatedNode());
             rtImagePatientHierarchyNode = hierarchyNode;
             break;
           }
@@ -1591,9 +1591,9 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
   vtkSmartPointer<vtkMRMLPlanarImageNode> planarImageParameterSetNode = vtkSmartPointer<vtkMRMLPlanarImageNode>::New();
   planarImageParameterSetNode->SetName(planarImageParameterSetNodeName.c_str());
   this->GetMRMLScene()->AddNode(planarImageParameterSetNode);
-  planarImageParameterSetNode->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_VOLUME_REFERENCE_ROLE.c_str(), rtImageVolumeNode->GetID());
-  planarImageParameterSetNode->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), displayedModelNode->GetID());
-  planarImageParameterSetNode->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_REFERENCE_ROLE.c_str(), textureVolumeNode->GetID());
+  planarImageParameterSetNode->SetAndObserveRtImageVolumeNode(rtImageVolumeNode);
+  planarImageParameterSetNode->SetAndObserveDisplayedModelNode(displayedModelNode);
+  planarImageParameterSetNode->SetAndObserveTextureVolumeNode(textureVolumeNode);
 
   // Create planar image model for the RT image
   this->PlanarImageLogic->CreateModelForPlanarImage(planarImageParameterSetNode);
