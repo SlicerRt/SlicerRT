@@ -64,19 +64,16 @@ public:
 public:
   /// Get dose volume node
   vtkMRMLScalarVolumeNode* GetDoseVolumeNode();
-
   /// Set and observe dose volume node
   void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
   /// Get structure set node (can be model node or model hierarchy node)
   vtkMRMLNode* GetStructureSetContourNode();
-
   /// Set and observe structure set node (can be model node or model hierarchy node)
   void SetAndObserveStructureSetContourNode(vtkMRMLNode* node);
 
   /// Get chart node
   vtkMRMLChartNode* GetChartNode();
-
   /// Set and observe chart node
   void SetAndObserveChartNode(vtkMRMLChartNode* node);
 
@@ -88,7 +85,6 @@ public:
   {
     checkboxStates = this->ShowInChartCheckStates;
   }
-
   /// Set show in chart check states
   void SetShowInChartCheckStates(std::vector<bool> checkboxStates)
   {

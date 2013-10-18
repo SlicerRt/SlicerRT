@@ -46,19 +46,16 @@ public:
 public:
   /// Get RT image volume node
   vtkMRMLScalarVolumeNode* GetRtImageVolumeNode();
-
   /// Set and observe RT image volume node
   void SetAndObserveRtImageVolumeNode(vtkMRMLScalarVolumeNode* node);
 
   /// Get displayed model node
   vtkMRMLModelNode* GetDisplayedModelNode();
-
   /// Set and observe displayed model node
   void SetAndObserveDisplayedModelNode(vtkMRMLModelNode* node);
 
   /// Get texture volume node
   vtkMRMLScalarVolumeNode* GetTextureVolumeNode();
-
   /// Set and observe texture volume node
   void SetAndObserveTextureVolumeNode(vtkMRMLScalarVolumeNode* node);
 

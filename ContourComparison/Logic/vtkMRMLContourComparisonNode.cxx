@@ -22,9 +22,13 @@
 // MRMLDoseAccumulation includes
 #include "vtkMRMLContourComparisonNode.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -34,15 +38,16 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
+std::string vtkMRMLContourComparisonNode::ReferenceContourReferenceRole = std::string("referenceContour") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLContourComparisonNode::CompareContourReferenceRole = std::string("compareContour") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLContourComparisonNode::RasterizationReferenceVolumeReferenceRole = std::string("rasterizationReferenceVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+
+//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourComparisonNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLContourComparisonNode::vtkMRMLContourComparisonNode()
 {
-  this->ReferenceContourNodeId = NULL;
-  this->CompareContourNodeId = NULL;
-  this->RasterizationReferenceVolumeNodeId = NULL;
-
   this->DiceCoefficient = -1.0;
   this->TruePositivesPercent = -1.0;
   this->TrueNegativesPercent = -1.0;
@@ -68,9 +73,6 @@ vtkMRMLContourComparisonNode::vtkMRMLContourComparisonNode()
 //----------------------------------------------------------------------------
 vtkMRMLContourComparisonNode::~vtkMRMLContourComparisonNode()
 {
-  this->SetReferenceContourNodeId(NULL);
-  this->SetCompareContourNodeId(NULL);
-  this->SetRasterizationReferenceVolumeNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -80,19 +82,6 @@ void vtkMRMLContourComparisonNode::WriteXML(ostream& of, int nIndent)
 
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
-
-  if ( this->ReferenceContourNodeId )
-    {
-    of << indent << " ReferenceContourNodeId=\"" << this->ReferenceContourNodeId << "\"";
-    }
-  if ( this->CompareContourNodeId )
-    {
-    of << indent << " CompareContourNodeId=\"" << this->CompareContourNodeId << "\"";
-    }
-  if ( this->RasterizationReferenceVolumeNodeId )
-    {
-    of << indent << " RasterizationReferenceVolumeNodeId=\"" << this->RasterizationReferenceVolumeNodeId << "\"";
-    }
 
   of << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
   of << indent << " TruePositivesPercent=\"" << this->TruePositivesPercent << "\"";
@@ -150,25 +139,7 @@ void vtkMRMLContourComparisonNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "ReferenceContourNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveReferenceContourNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "CompareContourNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveCompareContourNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "RasterizationReferenceVolumeNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveRasterizationReferenceVolumeNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "DiceCoefficient")) 
+    if (!strcmp(attName, "DiceCoefficient")) 
       {
       std::stringstream ss;
       ss << attValue;
@@ -363,10 +334,6 @@ void vtkMRMLContourComparisonNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLContourComparisonNode *node = (vtkMRMLContourComparisonNode *) anode;
 
-  this->SetAndObserveReferenceContourNodeId(node->ReferenceContourNodeId);
-  this->SetAndObserveCompareContourNodeId(node->CompareContourNodeId);
-  this->SetAndObserveRasterizationReferenceVolumeNodeId(node->RasterizationReferenceVolumeNodeId);
-
   this->DiceCoefficient = node->DiceCoefficient;
   this->TruePositivesPercent = node->TruePositivesPercent;
   this->TrueNegativesPercent = node->TrueNegativesPercent;
@@ -393,10 +360,6 @@ void vtkMRMLContourComparisonNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
-
-  os << indent << "ReferenceContourNodeId: " << (this->ReferenceContourNodeId ? this->ReferenceContourNodeId : "NULL") << "\n";
-  os << indent << "CompareContourNodeId: " << (this->CompareContourNodeId ? this->CompareContourNodeId : "NULL") << "\n";
-  os << indent << "RasterizationReferenceVolumeNodeId: " << (this->RasterizationReferenceVolumeNodeId ? this->RasterizationReferenceVolumeNodeId : "NULL") << "\n";
 
   os << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
   os << indent << " TruePositivesPercent=\"" << this->TruePositivesPercent << "\"";
@@ -441,66 +404,40 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourComparisonNode::SetAndObserveReferenceContourNodeId(const char* id)
+vtkMRMLContourNode* vtkMRMLContourComparisonNode::GetReferenceContourNode()
 {
-  if (this->ReferenceContourNodeId)
-    {
-    this->Scene->RemoveReferencedNodeID(this->ReferenceContourNodeId, this);
-    }
-
-  this->SetReferenceContourNodeId(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->ReferenceContourNodeId, this);
-    }
+  return vtkMRMLContourNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLContourComparisonNode::ReferenceContourReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourComparisonNode::SetAndObserveCompareContourNodeId(const char* id)
+void vtkMRMLContourComparisonNode::SetAndObserveReferenceContourNode(vtkMRMLContourNode* node)
 {
-  if (this->CompareContourNodeId)
-    {
-    this->Scene->RemoveReferencedNodeID(this->CompareContourNodeId, this);
-    }
-
-  this->SetCompareContourNodeId(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->CompareContourNodeId, this);
-    }
+  this->SetNthNodeReferenceID(vtkMRMLContourComparisonNode::ReferenceContourReferenceRole.c_str(), 0, node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourComparisonNode::SetAndObserveRasterizationReferenceVolumeNodeId(const char* id)
+vtkMRMLContourNode* vtkMRMLContourComparisonNode::GetCompareContourNode()
 {
-  if (this->RasterizationReferenceVolumeNodeId)
-    {
-    this->Scene->RemoveReferencedNodeID(this->RasterizationReferenceVolumeNodeId, this);
-    }
-
-  this->SetRasterizationReferenceVolumeNodeId(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->RasterizationReferenceVolumeNodeId, this);
-    }
+  return vtkMRMLContourNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLContourComparisonNode::CompareContourReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourComparisonNode::UpdateReferenceID(const char *oldID, const char *newID)
+void vtkMRMLContourComparisonNode::SetAndObserveCompareContourNode(vtkMRMLContourNode* node)
 {
-  if (this->ReferenceContourNodeId && !strcmp(oldID, this->ReferenceContourNodeId))
-    {
-    this->SetAndObserveReferenceContourNodeId(newID);
-    }
-  if (this->CompareContourNodeId && !strcmp(oldID, this->CompareContourNodeId))
-    {
-    this->SetAndObserveCompareContourNodeId(newID);
-    }
-  if (this->RasterizationReferenceVolumeNodeId && !strcmp(oldID, this->RasterizationReferenceVolumeNodeId))
-    {
-    this->SetAndObserveRasterizationReferenceVolumeNodeId(newID);
-    }
+  this->SetNthNodeReferenceID(vtkMRMLContourComparisonNode::CompareContourReferenceRole.c_str(), 0, node->GetID());
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkMRMLContourComparisonNode::GetRasterizationReferenceVolumeNode()
+{
+  return vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLContourComparisonNode::RasterizationReferenceVolumeReferenceRole.c_str()) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourComparisonNode::SetAndObserveRasterizationReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
+{
+  this->SetNthNodeReferenceID(vtkMRMLContourComparisonNode::RasterizationReferenceVolumeReferenceRole.c_str(), 0, node->GetID());
 }

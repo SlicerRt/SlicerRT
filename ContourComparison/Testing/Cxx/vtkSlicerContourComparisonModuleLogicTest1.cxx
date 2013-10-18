@@ -415,8 +415,8 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLContourComparisonNode> paramNode = vtkSmartPointer<vtkMRMLContourComparisonNode>::New();
   mrmlScene->AddNode(paramNode);
-  paramNode->SetAndObserveReferenceContourNodeId(referenceContourNode->GetID());
-  paramNode->SetAndObserveCompareContourNodeId(compareContourNode->GetID());
+  paramNode->SetAndObserveReferenceContourNode(referenceContourNode);
+  paramNode->SetAndObserveCompareContourNode(compareContourNode);
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerContourComparisonModuleLogic> contourComparisonLogic = vtkSmartPointer<vtkSlicerContourComparisonModuleLogic>::New();

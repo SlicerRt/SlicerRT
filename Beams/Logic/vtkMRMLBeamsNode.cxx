@@ -22,6 +22,9 @@
 // MRMLBeams includes
 #include "vtkMRMLBeamsNode.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
@@ -35,14 +38,15 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
+std::string vtkMRMLBeamsNode::IsocenterMarkupsReferenceRole = std::string("isocenterMarkups") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLBeamsNode::BeamModelReferenceRole = std::string("beamModel") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+
+//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLBeamsNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLBeamsNode::vtkMRMLBeamsNode()
 {
-  this->IsocenterMarkupsNodeId = NULL;
-  this->BeamModelNodeId = NULL;
-
   this->BeamModelOpacity = 0.08;
 
   this->HideFromEditors = false;
@@ -51,8 +55,6 @@ vtkMRMLBeamsNode::vtkMRMLBeamsNode()
 //----------------------------------------------------------------------------
 vtkMRMLBeamsNode::~vtkMRMLBeamsNode()
 {
-  this->SetIsocenterMarkupsNodeId(NULL);
-  this->SetBeamModelNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -63,22 +65,6 @@ void vtkMRMLBeamsNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  {
-    std::stringstream ss;
-    if ( this->IsocenterMarkupsNodeId )
-      {
-      ss << this->IsocenterMarkupsNodeId;
-      of << indent << " IsocenterMarkupsNodeId=\"" << ss.str() << "\"";
-      }
-  }
-  {
-    std::stringstream ss;
-    if ( this->BeamModelNodeId )
-      {
-      ss << this->BeamModelNodeId;
-      of << indent << " BeamModelNodeId=\"" << ss.str() << "\"";
-      }
-  }
   {
     std::stringstream ss;
     if ( this->BeamModelOpacity )
@@ -101,19 +87,7 @@ void vtkMRMLBeamsNode::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
-    if (!strcmp(attName, "IsocenterMarkupsNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveIsocenterMarkupsNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "BeamModelNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveBeamModelNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "BeamModelOpacity")) 
+    if (!strcmp(attName, "BeamModelOpacity")) 
       {
       std::stringstream ss;
       ss << attValue;
@@ -134,8 +108,6 @@ void vtkMRMLBeamsNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLBeamsNode *node = (vtkMRMLBeamsNode *) anode;
 
-  this->SetAndObserveIsocenterMarkupsNodeId(node->IsocenterMarkupsNodeId);
-  this->SetAndObserveBeamModelNodeId(node->BeamModelNodeId);
   this->SetBeamModelOpacity(node->GetBeamModelOpacity());
 
   this->DisableModifiedEventOff();
@@ -147,52 +119,31 @@ void vtkMRMLBeamsNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "IsocenterMarkupsNodeId:   " << (this->IsocenterMarkupsNodeId ? this->IsocenterMarkupsNodeId : "NULL") << "\n";
-  os << indent << "BeamModelNodeId:   " << (this->BeamModelNodeId ? this->BeamModelNodeId : "NULL") << "\n";
   os << indent << "BeamModelOpacity:   " << this->BeamModelOpacity << "\n";
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamsNode::SetAndObserveIsocenterMarkupsNodeId(const char* id)
+vtkMRMLMarkupsFiducialNode* vtkMRMLBeamsNode::GetIsocenterMarkupsNode()
 {
-  if (this->IsocenterMarkupsNodeId)
-  {
-    this->Scene->RemoveReferencedNodeID(this->IsocenterMarkupsNodeId, this);
-  }
-
-  this->SetIsocenterMarkupsNodeId(id);
-
-  if (id)
-  {
-    this->Scene->AddReferencedNodeID(this->IsocenterMarkupsNodeId, this);
-  }
+  return vtkMRMLMarkupsFiducialNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLBeamsNode::IsocenterMarkupsReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamsNode::SetAndObserveBeamModelNodeId(const char* id)
+void vtkMRMLBeamsNode::SetAndObserveIsocenterMarkupsNode(vtkMRMLMarkupsFiducialNode* node)
 {
-  if (this->BeamModelNodeId)
-  {
-    this->Scene->RemoveReferencedNodeID(this->BeamModelNodeId, this);
-  }
-
-  this->SetBeamModelNodeId(id);
-
-  if (id)
-  {
-    this->Scene->AddReferencedNodeID(this->BeamModelNodeId, this);
-  }
+  this->SetNthNodeReferenceID(vtkMRMLBeamsNode::IsocenterMarkupsReferenceRole.c_str(), 0, node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLBeamsNode::UpdateReferenceID(const char *oldID, const char *newID)
+vtkMRMLModelNode* vtkMRMLBeamsNode::GetBeamModelNode()
 {
-  if (this->IsocenterMarkupsNodeId && !strcmp(oldID, this->IsocenterMarkupsNodeId))
-    {
-    this->SetAndObserveIsocenterMarkupsNodeId(newID);
-    }
-  if (this->BeamModelNodeId && !strcmp(oldID, this->BeamModelNodeId))
-    {
-    this->SetAndObserveBeamModelNodeId(newID);
-    }
+  return vtkMRMLModelNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLBeamsNode::BeamModelReferenceRole.c_str()) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLBeamsNode::SetAndObserveBeamModelNode(vtkMRMLModelNode* node)
+{
+  this->SetNthNodeReferenceID(vtkMRMLBeamsNode::BeamModelReferenceRole.c_str(), 0, node->GetID());
 }

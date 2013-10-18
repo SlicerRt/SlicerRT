@@ -73,7 +73,6 @@ public:
 
   /// Returns currently selected contour or contour hierarchy node
   vtkMRMLNode* currentNode();
-
   /// Returns currently selected contour or contour hierarchy node's ID
   QString currentNodeID();
 
@@ -112,7 +111,9 @@ public:
   /// Programatically set the currently selected reference volume
   void setCurrentReferenceVolumeNodeID(const QString& nodeID);
 
-  /// Get the currently selected reference volume node ID
+  /// Get the currently selected reference volume node
+  vtkMRMLNode* currentReferenceVolumeNode();
+  /// Get the currently selected reference volume node's ID
   QString currentReferenceVolumeNodeID();
 
 signals:

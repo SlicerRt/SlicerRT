@@ -28,12 +28,18 @@
 
 #include "vtkSlicerBeamsModuleLogicExport.h"
 
+class vtkMRMLMarkupsFiducialNode;
+class vtkMRMLModelNode;
+
 class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkMRMLBeamsNode : public vtkMRMLNode
 {
 public:
   static vtkMRMLBeamsNode *New();
   vtkTypeMacro(vtkMRMLBeamsNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  static std::string IsocenterMarkupsReferenceRole;
+  static std::string BeamModelReferenceRole;
 
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -50,33 +56,22 @@ public:
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "Beams";};
 
-  /// Set and observe isocenter fiducial MRML ID
-  void SetAndObserveIsocenterMarkupsNodeId(const char* id);
-
-  /// Set and observe output beam model MRML node ID
-  void SetAndObserveBeamModelNodeId(const char* id);
-
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
 public:
-  /// Get isocenter markups MRML node ID
-  vtkGetStringMacro(IsocenterMarkupsNodeId);
+  /// Get isocenter markups MRML node.
+  /// The source fiducial is set as the second fiducial in this markups node.
+  vtkMRMLMarkupsFiducialNode* GetIsocenterMarkupsNode();
+  /// Set isocenter markups MRML node.
+  void SetAndObserveIsocenterMarkupsNode(vtkMRMLMarkupsFiducialNode* node);
 
-  /// Get output beam model MRML node ID
-  vtkGetStringMacro(BeamModelNodeId);
+  /// Get output beam model MRML node
+  vtkMRMLModelNode* GetBeamModelNode();
+  /// Set output beam model MRML node ID
+  void SetAndObserveBeamModelNode(vtkMRMLModelNode* node);
 
   /// Set beams model opacity
   vtkSetMacro(BeamModelOpacity, double);
   /// Get beams model opacity
   vtkGetMacro(BeamModelOpacity, double);
-
-protected:
-  /// Set isocenter markups MRML Id 
-  vtkSetStringMacro(IsocenterMarkupsNodeId);
-
-  /// Set output beam model MRML Id 
-  vtkSetStringMacro(BeamModelNodeId);
 
 protected:
   vtkMRMLBeamsNode();
@@ -85,12 +80,6 @@ protected:
   void operator=(const vtkMRMLBeamsNode&);
 
 protected:
-  /// ID of the input isocenter markups node. The source fiducial is set as the second fiducial in this markups node.
-  char* IsocenterMarkupsNodeId;
-
-  /// ID of the output beam model node
-  char* BeamModelNodeId;
-
   /// Opacity of the created beam model
   double BeamModelOpacity;
 };

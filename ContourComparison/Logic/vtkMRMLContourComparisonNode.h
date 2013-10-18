@@ -28,12 +28,19 @@
 
 #include "vtkSlicerContourComparisonModuleLogicExport.h"
 
+class vtkMRMLContourNode;
+class vtkMRMLScalarVolumeNode;
+
 class VTK_SLICER_CONTOURCOMPARISON_MODULE_LOGIC_EXPORT vtkMRMLContourComparisonNode : public vtkMRMLNode
 {
 public:
   static vtkMRMLContourComparisonNode *New();
   vtkTypeMacro(vtkMRMLContourComparisonNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  static std::string ReferenceContourReferenceRole;
+  static std::string CompareContourReferenceRole;
+  static std::string RasterizationReferenceVolumeReferenceRole;
 
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -50,24 +57,21 @@ public:
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "ContourComparison";};
 
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
 public:
-  /// Get reference contour labelmap volume node ID
-  vtkGetStringMacro(ReferenceContourNodeId);
-  /// Set and observe reference contour labelmap volume node ID
-  void SetAndObserveReferenceContourNodeId(const char* id);
+  /// Get reference contour node
+  vtkMRMLContourNode* GetReferenceContourNode();
+  /// Set reference contour node
+  void SetAndObserveReferenceContourNode(vtkMRMLContourNode* node);
 
-  /// Get compare contour labelmap volume node ID
-  vtkGetStringMacro(CompareContourNodeId);
-  /// Set and observe reference contour labelmap volume node ID
-  void SetAndObserveCompareContourNodeId(const char* id);
+  /// Get compare contour node
+  vtkMRMLContourNode* GetCompareContourNode();
+  /// Set compare contour node
+  void SetAndObserveCompareContourNode(vtkMRMLContourNode* node);
 
-  /// Get reference volume node ID
-  vtkGetStringMacro(RasterizationReferenceVolumeNodeId);
-  /// Set and observe reference volume node ID
-  void SetAndObserveRasterizationReferenceVolumeNodeId(const char* id);
+  /// Get rasterization reference volume node
+  vtkMRMLScalarVolumeNode* GetRasterizationReferenceVolumeNode();
+  /// Set rasterization reference volume node
+  void SetAndObserveRasterizationReferenceVolumeNode(vtkMRMLScalarVolumeNode* node);
 
   /// Get result dice coefficient
   vtkGetMacro(DiceCoefficient, float);
@@ -155,31 +159,12 @@ public:
   vtkBooleanMacro(HausdorffResultsValid, bool);
 
 protected:
-  /// Set reference contour labelmap volume node ID
-  vtkSetStringMacro(ReferenceContourNodeId);
-
-  /// Set compare contour labelmap volume node ID
-  vtkSetStringMacro(CompareContourNodeId);
-
-  /// Set reference volume node ID
-  vtkSetStringMacro(RasterizationReferenceVolumeNodeId);
-
-protected:
   vtkMRMLContourComparisonNode();
   ~vtkMRMLContourComparisonNode();
   vtkMRMLContourComparisonNode(const vtkMRMLContourComparisonNode&);
   void operator=(const vtkMRMLContourComparisonNode&);
 
 protected:
-  /// Selected reference contour labelmap volume MRML node object ID
-  char* ReferenceContourNodeId;
-
-  /// Selected compare contour labelmap volume MRML node object ID
-  char* CompareContourNodeId;
-
-  /// Selected reference volume MRML node object ID (needed for rasterization)
-  char* RasterizationReferenceVolumeNodeId;
-
   /// Result dice coefficient
   float DiceCoefficient;
 

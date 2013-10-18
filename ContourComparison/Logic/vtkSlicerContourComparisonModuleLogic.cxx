@@ -97,26 +97,22 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsItkVolumes(
     return;
   }
 
-  vtkMRMLContourNode* referenceContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->Logic->GetMRMLScene()->GetNodeByID(this->Logic->GetContourComparisonNode()->GetReferenceContourNodeId()));
-  vtkMRMLContourNode* compareContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->Logic->GetMRMLScene()->GetNodeByID(this->Logic->GetContourComparisonNode()->GetCompareContourNodeId()));
+  vtkMRMLContourNode* referenceContourNode = this->Logic->GetContourComparisonNode()->GetReferenceContourNode();
+  vtkMRMLContourNode* compareContourNode = this->Logic->GetContourComparisonNode()->GetCompareContourNode();
 
   if (referenceContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
   {
     referenceContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
-      this->Logic->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId() );
+      this->Logic->GetContourComparisonNode()->GetRasterizationReferenceVolumeNode()->GetID() );
   }
   if (compareContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
   {
     compareContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
-      this->Logic->GetContourComparisonNode()->GetRasterizationReferenceVolumeNodeId() );
+      this->Logic->GetContourComparisonNode()->GetRasterizationReferenceVolumeNode()->GetID() );
   }
 
-  vtkMRMLScalarVolumeNode* referenceContourLabelmapVolumeNode
-    = referenceContourNode->GetIndexedLabelmapVolumeNode();
-  vtkMRMLScalarVolumeNode* compareContourLabelmapVolumeNode
-    = compareContourNode->GetIndexedLabelmapVolumeNode();
+  vtkMRMLScalarVolumeNode* referenceContourLabelmapVolumeNode = referenceContourNode->GetIndexedLabelmapVolumeNode();
+  vtkMRMLScalarVolumeNode* compareContourLabelmapVolumeNode = compareContourNode->GetIndexedLabelmapVolumeNode();
   if (!referenceContourLabelmapVolumeNode || !compareContourLabelmapVolumeNode)
   {
     errorMessage = "Failed to get indexed labelmap representation from selected contours";

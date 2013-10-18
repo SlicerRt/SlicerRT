@@ -232,22 +232,11 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode
     return;
   }
 
-  //if (node->IsA("vtkMRMLDoubleArrayNode") && this->DoseVolumeHistogramNode)
-  //{
-  //  std::vector<vtkMRMLNode*> dvhNodes;
-  //  this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodes(dvhNodes);
-  //  std::vector<vtkMRMLNode*>::iterator dvhIt;
-  //  int dvhIndex = 0;
-  //  for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt, ++dvhIndex)
-  //  {
-  //    if ((*dvhIt) == node)
-  //    {
-  //      this->DoseVolumeHistogramNode->RemoveNthNodeReferenceID(
-  //        vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole.c_str(), dvhIndex );
-  //      break;
-  //    }
-  //  }
-  //}
+  // Release removed double array node to prevent memory leak
+  if (node->IsA("vtkMRMLDoubleArrayNode"))
+  {
+    node->Delete();
+  }
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
     || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLDisplayableHierarchyNode")

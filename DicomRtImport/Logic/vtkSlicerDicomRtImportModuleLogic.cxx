@@ -919,8 +919,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX + std::string(addedMarkupsNode->GetName()) );
       vtkSmartPointer<vtkMRMLBeamsNode> beamParameterSetNode = vtkSmartPointer<vtkMRMLBeamsNode>::New();
       beamParameterSetNode->SetName(beamParameterSetNodeName.c_str());
-      beamParameterSetNode->SetAndObserveIsocenterMarkupsNodeId(addedMarkupsNode->GetID());
-      beamParameterSetNode->SetAndObserveBeamModelNodeId(beamModelNode->GetID());
+      beamParameterSetNode->SetAndObserveIsocenterMarkupsNode(addedMarkupsNode);
+      beamParameterSetNode->SetAndObserveBeamModelNode(beamModelNode);
       this->GetMRMLScene()->AddNode(beamParameterSetNode);
 
       // Create beam geometry

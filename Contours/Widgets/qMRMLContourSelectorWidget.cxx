@@ -559,25 +559,31 @@ void qMRMLContourSelectorWidget::setCurrentReferenceVolumeNodeID(const QString& 
 }
 
 //------------------------------------------------------------------------------
-QString qMRMLContourSelectorWidget::currentReferenceVolumeNodeID()
+vtkMRMLNode* qMRMLContourSelectorWidget::currentReferenceVolumeNode()
 {
   Q_D(qMRMLContourSelectorWidget);
 
   if (!d->frame_ReferenceVolumeSelection->isVisible())
   {
-    return QString();
+    return NULL;
   }
 
   // If this is the master of a group or if this is the only widget
   if (!d->MasterContourSelectorWidget)
   {
-    return d->MRMLNodeComboBox_ReferenceVolume->currentNodeID();
+    return d->MRMLNodeComboBox_ReferenceVolume->currentNode();
   }
   else
   {
     // Return the selected reference volume of the master widget
-    return d->MasterContourSelectorWidget->currentReferenceVolumeNodeID();
+    return d->MasterContourSelectorWidget->currentReferenceVolumeNode();
   }
+}
+
+//------------------------------------------------------------------------------
+QString qMRMLContourSelectorWidget::currentReferenceVolumeNodeID()
+{
+  return QString(this->currentReferenceVolumeNode() ? this->currentReferenceVolumeNode()->GetID() : "");
 }
 
 //------------------------------------------------------------------------------

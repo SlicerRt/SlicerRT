@@ -35,6 +35,7 @@
 
 // MRML includes
 #include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLModelNode.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Beams
@@ -183,17 +184,17 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetBeamsNode());
-    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetIsocenterMarkupsNodeId()))
+    if (paramNode->GetIsocenterMarkupsNode())
     {
-      d->MRMLNodeComboBox_IsocenterMarkups->setCurrentNodeID(paramNode->GetIsocenterMarkupsNodeId());
+      d->MRMLNodeComboBox_IsocenterMarkups->setCurrentNode(paramNode->GetIsocenterMarkupsNode());
     }
     else
     {
       this->isocenterMarkupsNodeChanged(d->MRMLNodeComboBox_IsocenterMarkups->currentNode());
     }
-    if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetBeamModelNodeId()))
+    if (paramNode->GetBeamModelNode())
     {
-      d->MRMLNodeComboBox_BeamModel->setCurrentNodeID(paramNode->GetBeamModelNodeId());
+      d->MRMLNodeComboBox_BeamModel->setCurrentNode(paramNode->GetBeamModelNode());
     }
     else
     {
@@ -241,7 +242,7 @@ void qSlicerBeamsModuleWidget::isocenterMarkupsNodeChanged(vtkMRMLNode* node)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveIsocenterMarkupsNodeId(node->GetID());
+  paramNode->SetAndObserveIsocenterMarkupsNode(vtkMRMLMarkupsFiducialNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -261,7 +262,7 @@ void qSlicerBeamsModuleWidget::beamModelNodeChanged(vtkMRMLNode* node)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveBeamModelNodeId(node->GetID());
+  paramNode->SetAndObserveBeamModelNode(vtkMRMLModelNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -273,8 +274,8 @@ void qSlicerBeamsModuleWidget::updateButtonsState()
   Q_D(qSlicerBeamsModuleWidget);
 
   bool applyEnabled = d->logic()->GetBeamsNode()
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetBeamsNode()->GetIsocenterMarkupsNodeId())
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetBeamsNode()->GetBeamModelNodeId());
+                   && d->logic()->GetBeamsNode()->GetIsocenterMarkupsNode()
+                   && d->logic()->GetBeamsNode()->GetBeamModelNode();
   d->pushButton_Apply->setEnabled(applyEnabled);
 
   d->label_Error->setVisible(false);
@@ -316,8 +317,7 @@ void qSlicerBeamsModuleWidget::refreshOutputBaseName()
 
   QString newBeamModelBaseName(SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX.c_str());
 
-  vtkMRMLMarkupsFiducialNode* isocenterNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(
-    this->mrmlScene()->GetNodeByID(paramNode->GetIsocenterMarkupsNodeId()) );
+  vtkMRMLMarkupsFiducialNode* isocenterNode = paramNode->GetIsocenterMarkupsNode();
   if (isocenterNode)
   {
     newBeamModelBaseName.append(isocenterNode->GetName());

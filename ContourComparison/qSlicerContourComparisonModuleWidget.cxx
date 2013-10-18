@@ -32,10 +32,11 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
 #include "qMRMLContourSelectorWidget.h"
 
 // MRML includes
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ContourComparison
@@ -178,20 +179,20 @@ void qSlicerContourComparisonModuleWidget::setContourComparisonNode(vtkMRMLNode 
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
-    if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceContourNodeId())
+    if ( !paramNode->GetReferenceContourNode()
       && d->ContourSelectorWidget_Compare->currentNode() )
     {
-      paramNode->SetAndObserveReferenceContourNodeId(d->ContourSelectorWidget_Compare->currentNodeID().toLatin1().constData());
+      paramNode->SetAndObserveReferenceContourNode(vtkMRMLContourNode::SafeDownCast(d->ContourSelectorWidget_Compare->currentNode()));
     }
-    if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareContourNodeId())
+    if ( !paramNode->GetCompareContourNode()
       && d->ContourSelectorWidget_Compare->currentNode() )
     {
-      paramNode->SetAndObserveCompareContourNodeId(d->ContourSelectorWidget_Compare->currentNodeID().toLatin1().constData());
+      paramNode->SetAndObserveCompareContourNode(vtkMRMLContourNode::SafeDownCast(d->ContourSelectorWidget_Compare->currentNode()));
     }
-    if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetRasterizationReferenceVolumeNodeId())
+    if ( !paramNode->GetRasterizationReferenceVolumeNode()
       && !d->ContourSelectorWidget_Reference->currentReferenceVolumeNodeID().isEmpty() )
     {
-      paramNode->SetAndObserveRasterizationReferenceVolumeNodeId(d->ContourSelectorWidget_Reference->currentReferenceVolumeNodeID().toLatin1().constData());
+      paramNode->SetAndObserveRasterizationReferenceVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(d->ContourSelectorWidget_Reference->currentReferenceVolumeNode()));
     }
     this->updateButtonsState();
   }
@@ -217,17 +218,17 @@ void qSlicerContourComparisonModuleWidget::updateWidgetFromMRML()
   }
 
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetContourComparisonNode());
-  if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceContourNodeId()))
+  if (paramNode->GetReferenceContourNode())
   {
-    d->ContourSelectorWidget_Reference->setCurrentNodeID(paramNode->GetReferenceContourNodeId());
+    d->ContourSelectorWidget_Reference->setCurrentNode(paramNode->GetReferenceContourNode());
   }
-  if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetCompareContourNodeId()))
+  if (paramNode->GetCompareContourNode())
   {
-    d->ContourSelectorWidget_Compare->setCurrentNodeID(paramNode->GetCompareContourNodeId());
+    d->ContourSelectorWidget_Compare->setCurrentNode(paramNode->GetCompareContourNode());
   }
-  if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetRasterizationReferenceVolumeNodeId()))
+  if (paramNode->GetRasterizationReferenceVolumeNode())
   {
-    d->ContourSelectorWidget_Compare->setCurrentReferenceVolumeNodeID(paramNode->GetRasterizationReferenceVolumeNodeId());
+    d->ContourSelectorWidget_Compare->setCurrentReferenceVolumeNodeID(paramNode->GetRasterizationReferenceVolumeNode()->GetID());
   }
 }
 
@@ -268,8 +269,8 @@ void qSlicerContourComparisonModuleWidget::updateButtonsState()
   Q_D(qSlicerContourComparisonModuleWidget);
 
   bool computeEnabled = d->logic()->GetContourComparisonNode()
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetReferenceContourNodeId())
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourComparisonNode()->GetCompareContourNodeId())
+                   && d->logic()->GetContourComparisonNode()->GetReferenceContourNode()
+                   && d->logic()->GetContourComparisonNode()->GetCompareContourNode()
                    && d->ContourSelectorWidget_Compare->isSelectionValid();
   d->pushButton_ComputeDice->setEnabled(computeEnabled);
   d->pushButton_ComputeHausdorff->setEnabled(computeEnabled);
@@ -301,7 +302,7 @@ void qSlicerContourComparisonModuleWidget::referenceContourNodeChanged(vtkMRMLNo
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveReferenceContourNodeId(node->GetID());
+  paramNode->SetAndObserveReferenceContourNode(vtkMRMLContourNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->invalidateDiceResults();
@@ -327,7 +328,7 @@ void qSlicerContourComparisonModuleWidget::compareContourNodeChanged(vtkMRMLNode
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveCompareContourNodeId(node->GetID());
+  paramNode->SetAndObserveCompareContourNode(vtkMRMLContourNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->invalidateDiceResults();
@@ -353,7 +354,7 @@ void qSlicerContourComparisonModuleWidget::referenceVolumeNodeChanged(vtkMRMLNod
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveRasterizationReferenceVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveRasterizationReferenceVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->invalidateDiceResults();
