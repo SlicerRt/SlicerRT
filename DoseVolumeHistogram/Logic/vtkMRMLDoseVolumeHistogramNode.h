@@ -31,12 +31,20 @@
 
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLChartNode;
+
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkMRMLDoseVolumeHistogramNode : public vtkMRMLNode
 {
 public:
   static vtkMRMLDoseVolumeHistogramNode *New();
   vtkTypeMacro(vtkMRMLDoseVolumeHistogramNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  static std::string DoseVolumeReferenceRole;
+  static std::string StructureSetContourReferenceRole;
+  static std::string ChartReferenceRole;
+  static std::string DvhDoubleArrayReferenceRole;
 
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -54,39 +62,42 @@ public:
   virtual const char* GetNodeTagName() {return "DoseVolumeHistogram";};
 
 public:
-  /// Get dose volume node ID
-  vtkGetStringMacro(DoseVolumeNodeId);
+  /// Get dose volume node
+  vtkMRMLScalarVolumeNode* GetDoseVolumeNode();
 
-  /// Set and observe dose volume node ID
-  void SetAndObserveDoseVolumeNodeId(const char* id);
+  /// Set and observe dose volume node
+  void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get structure set node ID
-  vtkGetStringMacro(StructureSetContourNodeId);
+  /// Get structure set node (can be model node or model hierarchy node)
+  vtkMRMLNode* GetStructureSetContourNode();
 
-  /// Set and observe structure set node ID
-  void SetAndObserveStructureSetContourNodeId(const char* id);
+  /// Set and observe structure set node (can be model node or model hierarchy node)
+  void SetAndObserveStructureSetContourNode(vtkMRMLNode* node);
 
-  /// Get chart node ID
-  vtkGetStringMacro(ChartNodeId);
+  /// Get chart node
+  vtkMRMLChartNode* GetChartNode();
 
-  /// Set and observe chart node ID
-  void SetAndObserveChartNodeId(const char* id);
+  /// Set and observe chart node
+  void SetAndObserveChartNode(vtkMRMLChartNode* node);
 
   /// Get list of all the DVH double array node IDs in the scene
-  std::vector<std::string>* GetDvhDoubleArrayNodeIds()
+  void GetDvhDoubleArrayNodes(std::vector<vtkMRMLNode*> &nodes);
+
+  /// Get show in chart check states
+  void GetShowInChartCheckStates(std::vector<bool> &checkboxStates)
   {
-    return &this->DvhDoubleArrayNodeIds;
+    checkboxStates = this->ShowInChartCheckStates;
+  }
+
+  /// Set show in chart check states
+  void SetShowInChartCheckStates(std::vector<bool> checkboxStates)
+  {
+    this->ShowInChartCheckStates = checkboxStates;
   }
 
   /// Get/Set Show/Hide all checkbox state
   vtkGetMacro(ShowHideAll, int);
   vtkSetMacro(ShowHideAll, int);
-
-  /// Get show in chart check states
-  std::vector<bool>* GetShowInChartCheckStates()
-  {
-    return &this->ShowInChartCheckStates;
-  }
 
   /// Get/Set input dose values for V metrics
   vtkGetStringMacro(VDoseValues);
@@ -120,19 +131,6 @@ public:
   vtkSetMacro(ShowDoseVolumesOnly, bool);
   vtkBooleanMacro(ShowDoseVolumesOnly, bool);
 
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
-protected:
-  /// Set dose volume node ID
-  vtkSetStringMacro(DoseVolumeNodeId);
-
-  /// Set structure set node ID
-  vtkSetStringMacro(StructureSetContourNodeId);
-
-  /// Set chart node ID
-  vtkSetStringMacro(ChartNodeId);
-
 protected:
   vtkMRMLDoseVolumeHistogramNode();
   ~vtkMRMLDoseVolumeHistogramNode();
@@ -140,23 +138,12 @@ protected:
   void operator=(const vtkMRMLDoseVolumeHistogramNode&);
 
 protected:
-  /// Selected dose volume MRML node object ID
-  char* DoseVolumeNodeId;
-
-  /// Selected structure set MRML node object ID. Can be model node or model hierarchy node
-  char* StructureSetContourNodeId;
-
-  /// Selected chart MRML node object ID
-  char* ChartNodeId;
-
-  /// List of all the DVH double array MRML node IDs that are present in the scene
-  std::vector<std::string> DvhDoubleArrayNodeIds;
-
   /// State of Show/Hide all checkbox
   int ShowHideAll;
 
   /// Vector of checkbox states for the case the user makes the show/hide all checkbox state
-  /// partially checked. Then the last configuration is restored
+  /// partially checked. Then the last configuration is restored. The flags correspond to the
+  /// referenced DVH double array node with the same index.
   std::vector<bool> ShowInChartCheckStates;
 
   /// Input dose values for V metrics
@@ -177,7 +164,7 @@ protected:
   /// State of Show Gy for D metrics checkbox
   bool ShowDMetrics;
 
-  /// State of Show dose volumse only checkbox
+  /// State of Show dose volumes only checkbox
   bool ShowDoseVolumesOnly;
 };
 

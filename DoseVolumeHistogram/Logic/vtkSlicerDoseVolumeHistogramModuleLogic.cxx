@@ -82,24 +82,20 @@ vtkSlicerDoseVolumeHistogramModuleLogic::vtkSlicerDoseVolumeHistogramModuleLogic
 //----------------------------------------------------------------------------
 vtkSlicerDoseVolumeHistogramModuleLogic::~vtkSlicerDoseVolumeHistogramModuleLogic()
 {
+  // Release double array nodes to prevent memory leak
   if (this->GetMRMLScene() && this->DoseVolumeHistogramNode)
   {
-    for (std::vector<std::string>::iterator it = this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->begin();
-      it != this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->end(); ++it)
+    std::vector<vtkMRMLNode*> dvhNodes;
+    this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodes(dvhNodes);
+    std::vector<vtkMRMLNode*>::iterator dvhIt;
+    int dvhIndex = 0;
+    for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt, ++dvhIndex)
     {
-      vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-        this->GetMRMLScene()->GetNodeByID(it->c_str()));
-      dvhNode->Delete();
+      (*dvhIt)->Delete();
     }    
   }
 
   vtkSetAndObserveMRMLNodeMacro(this->DoseVolumeHistogramNode, NULL);
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
@@ -141,7 +137,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RefreshDvhDoubleArrayNodesFromScen
     return;
   }
 
-  this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->clear();
+  this->DoseVolumeHistogramNode->RemoveAllNodeReferenceIDs(vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole.c_str());
 
   if (this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLDoubleArrayNode") < 1)
   {
@@ -158,7 +154,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RefreshDvhDoubleArrayNodesFromScen
       const char* type = doubleArrayNode->GetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str());
       if (type)
       {
-        this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->push_back(doubleArrayNode->GetID());
+        this->DoseVolumeHistogramNode->AddNodeReferenceID(
+          vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole.c_str(), doubleArrayNode->GetID() );
       }
     }
 
@@ -206,7 +203,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* 
       const char* type = doubleArrayNode->GetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str());
       if (type)
       {
-        this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->push_back(doubleArrayNode->GetID());
+        this->DoseVolumeHistogramNode->AddNodeReferenceID(
+          vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole.c_str(), doubleArrayNode->GetID() );
       }
     }
   }
@@ -234,19 +232,22 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode
     return;
   }
 
-  if (node->IsA("vtkMRMLDoubleArrayNode") && this->DoseVolumeHistogramNode)
-  {
-    const char* removedNodeId = vtkMRMLDoubleArrayNode::SafeDownCast(node)->GetID();
-    for (std::vector<std::string>::iterator it = this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->begin();
-      it != this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->end(); ++it)
-    {
-      if (!it->compare(removedNodeId))
-      {
-        this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds()->erase(it);
-        break;
-      }
-    }
-  }
+  //if (node->IsA("vtkMRMLDoubleArrayNode") && this->DoseVolumeHistogramNode)
+  //{
+  //  std::vector<vtkMRMLNode*> dvhNodes;
+  //  this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodes(dvhNodes);
+  //  std::vector<vtkMRMLNode*>::iterator dvhIt;
+  //  int dvhIndex = 0;
+  //  for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt, ++dvhIndex)
+  //  {
+  //    if ((*dvhIt) == node)
+  //    {
+  //      this->DoseVolumeHistogramNode->RemoveNthNodeReferenceID(
+  //        vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole.c_str(), dvhIndex );
+  //      break;
+  //    }
+  //  }
+  //}
 
   if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
     || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLDisplayableHierarchyNode")
@@ -304,8 +305,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
   }
 
   // Resample the dose volume to match the indexed labelmap so that we can compute the stencil
-  vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
+  vtkMRMLScalarVolumeNode* doseVolumeNode = this->DoseVolumeHistogramNode->GetDoseVolumeNode();
   if (!doseVolumeNode)
   {
     vtkErrorMacro("GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour: Unable to get dose volume node!");
@@ -388,8 +388,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
 
-  vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
+  vtkMRMLScalarVolumeNode* doseVolumeNode = this->DoseVolumeHistogramNode->GetDoseVolumeNode();
+  if (!doseVolumeNode)
+  {
+    vtkErrorMacro("ComputeDch: Invalid dose volume!");
+    return;
+  }
 
   // Get dose unit name
   const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
@@ -652,11 +656,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
     return;
   }
 
-  vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetChartNodeId()));
-  vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId()));
-
+  vtkMRMLChartNode* chartNode = this->DoseVolumeHistogramNode->GetChartNode();
+  vtkMRMLScalarVolumeNode* doseVolumeNode = this->DoseVolumeHistogramNode->GetDoseVolumeNode();
   if (!chartNode || !doseVolumeNode)
   {
     vtkErrorMacro("AddDvhToSelectedChart: Invalid chart or dose volume node!");
@@ -721,9 +722,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromSelectedChart(const c
     return;
   }
 
-  vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetChartNodeId()));
-
+  vtkMRMLChartNode* chartNode = this->DoseVolumeHistogramNode->GetChartNode();
   if (!chartNode)
   {
     vtkErrorMacro("RemoveDvhFromSelectedChart: Invalid chart node!");
@@ -909,12 +908,12 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::DoseVolumeContainsDose()
     return false;
   }
 
-  vtkMRMLNode* doseVolumeNode = this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetDoseVolumeNodeId());
+  vtkMRMLScalarVolumeNode* doseVolumeNode = this->DoseVolumeHistogramNode->GetDoseVolumeNode();
   return SlicerRtCommon::IsDoseVolumeNode(doseVolumeNode);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::CollectMetricsForDvhNodes(std::vector<std::string>* dvhNodeIds, std::vector<std::string> &metricList)
+void vtkSlicerDoseVolumeHistogramModuleLogic::CollectMetricsForDvhNodes(std::vector<vtkMRMLNode*> dvhNodes, std::vector<std::string> &metricList)
 {
   metricList.clear();
 
@@ -924,7 +923,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::CollectMetricsForDvhNodes(std::vec
     return;
   }
 
-  if (dvhNodeIds->size() < 1)
+  if (dvhNodes.size() < 1)
   {
     return;
   }
@@ -938,16 +937,15 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::CollectMetricsForDvhNodes(std::vec
   std::ostringstream metricListAttributeNameStream;
   metricListAttributeNameStream << SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << SlicerRtCommon::DVH_METRIC_LIST_ATTRIBUTE_NAME;
   std::set<std::string> metricSet;
-  for (std::vector<std::string>::iterator it = dvhNodeIds->begin(); it != dvhNodeIds->end(); ++it)
+  std::vector<vtkMRMLNode*>::iterator dvhIt;
+  for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt)
   {
-    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-      this->GetMRMLScene()->GetNodeByID(it->c_str()));
-    if (!dvhNode)
+    if (!(*dvhIt))
     {
       continue;
     }
 
-    std::string metricListString = dvhNode->GetAttribute(metricListAttributeNameStream.str().c_str());
+    std::string metricListString = (*dvhIt)->GetAttribute(metricListAttributeNameStream.str().c_str());
     if (metricListString.empty())
     {
       continue;
@@ -999,8 +997,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(const char* fileNam
     return false;
   }
 
-  vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->DoseVolumeHistogramNode->GetChartNodeId()));
+  vtkMRMLChartNode* chartNode = this->DoseVolumeHistogramNode->GetChartNode();
   if (!chartNode)
   {
     vtkErrorMacro("ExportDvhToCsv: Unable to get chart node");
@@ -1136,11 +1133,12 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(const char* 
 		return false;
 	}
 
-  std::vector<std::string>* dvhDoubleArrayNodeIds = this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodeIds();
+  std::vector<vtkMRMLNode*> dvhNodes;
+  this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodes(dvhNodes);
 
   // Collect metrics for all included nodes
   std::vector<std::string> metricList;
-  this->CollectMetricsForDvhNodes(dvhDoubleArrayNodeIds, metricList);
+  this->CollectMetricsForDvhNodes(dvhNodes, metricList);
 
   // Write header
   outfile << "Structure" << (comma ? "," : "\t");
@@ -1170,21 +1168,20 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(const char* 
   outfile.precision(6);
 
   // Fill the table
-  for (std::vector<std::string>::iterator it = dvhDoubleArrayNodeIds->begin(); it != dvhDoubleArrayNodeIds->end(); ++it)
+  std::vector<vtkMRMLNode*>::iterator dvhIt;
+  for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt)
   {
-    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-      this->GetMRMLScene()->GetNodeByID(it->c_str()));
-    if (!dvhNode)
+    if (!(*dvhIt))
     {
       continue;
     }
 
-    outfile << dvhNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) << (comma ? "," : "\t");
+    outfile << (*dvhIt)->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) << (comma ? "," : "\t");
 
     // Add default metric values
     for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
     {
-      std::string metricValue( dvhNode->GetAttribute( it->c_str() ) );
+      std::string metricValue( (*dvhIt)->GetAttribute( it->c_str() ) );
       if (metricValue.empty())
       {
         outfile << (comma ? "," : "\t");
@@ -1199,7 +1196,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(const char* 
     if (vDoseValuesCc.size() > 0)
     {
       std::vector<double> volumes;
-      this->ComputeVMetrics(dvhNode, vDoseValuesCc, volumes, dummy);
+      this->ComputeVMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), vDoseValuesCc, volumes, dummy);
       for (std::vector<double>::iterator it = volumes.begin(); it != volumes.end(); ++it)
       {
         outfile << (*it) << (comma ? "," : "\t");
@@ -1208,7 +1205,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(const char* 
     if (vDoseValuesPercent.size() > 0)
     {
       std::vector<double> percents;
-      this->ComputeVMetrics(dvhNode, vDoseValuesPercent, dummy, percents);
+      this->ComputeVMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), vDoseValuesPercent, dummy, percents);
       for (std::vector<double>::iterator it = percents.begin(); it != percents.end(); ++it)
       {
         outfile << (*it) << (comma ? "," : "\t");
@@ -1219,7 +1216,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(const char* 
     if (dVolumeValuesCc.size() > 0)
     {
       std::vector<double> doses;
-      this->ComputeDMetrics(dvhNode, dVolumeValuesCc, doses, false);
+      this->ComputeDMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), dVolumeValuesCc, doses, false);
       for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
       {
         outfile << (*it) << (comma ? "," : "\t");
@@ -1228,7 +1225,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(const char* 
     if (dVolumeValuesPercent.size() > 0)
     {
       std::vector<double> doses;
-      this->ComputeDMetrics(dvhNode, dVolumeValuesPercent, doses, true);
+      this->ComputeDMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), dVolumeValuesPercent, doses, true);
       for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
       {
         outfile << (*it) << (comma ? "," : "\t");

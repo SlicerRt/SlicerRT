@@ -35,7 +35,7 @@
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 
 // MRML includes
-#include "vtkMRMLScalarVolumeNode.h"
+#include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>

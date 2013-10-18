@@ -23,7 +23,7 @@
 #include "ui_qSlicerDicomRtExportModule.h"
 #include "vtkSlicerDicomRtExportModuleLogic.h"
 
-#include "vtkMRMLNode.h"
+#include <vtkMRMLNode.h>
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"

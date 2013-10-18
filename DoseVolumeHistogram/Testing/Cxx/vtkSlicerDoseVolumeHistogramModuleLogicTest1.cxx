@@ -410,9 +410,9 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode = vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
-  paramNode->SetAndObserveDoseVolumeNodeId(doseScalarVolumeNode->GetID());
-  paramNode->SetAndObserveStructureSetContourNodeId(contourHierarchyNode->GetID());
-  paramNode->SetAndObserveChartNodeId(chartNode->GetID());
+  paramNode->SetAndObserveDoseVolumeNode(doseScalarVolumeNode);
+  paramNode->SetAndObserveStructureSetContourNode(contourHierarchyNode);
+  paramNode->SetAndObserveChartNode(chartNode);
   mrmlScene->AddNode(paramNode);
   dvhLogic->SetAndObserveDoseVolumeHistogramNode(paramNode);
 
@@ -442,21 +442,20 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
 
-  std::vector<std::string>* dvhNodeIDs = paramNode->GetDvhDoubleArrayNodeIds();
+  std::vector<vtkMRMLNode*> dvhNodes;
+  paramNode->GetDvhDoubleArrayNodes(dvhNodes);
 
   // Add DVH arrays to chart node
-  std::vector<std::string>::iterator dvhIt;
-  for (dvhIt = dvhNodeIDs->begin(); dvhIt != dvhNodeIDs->end(); ++dvhIt)
+  std::vector<vtkMRMLNode*>::iterator dvhIt;
+  for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt)
   {
-    vtkMRMLDoubleArrayNode* dvhNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-      mrmlScene->GetNodeByID(dvhIt->c_str()));
-    if (!dvhNode)
+    if (!(*dvhIt))
     {
       std::cerr << "Error: Invalid DVH node!" << std::endl;
       return EXIT_FAILURE;
     }
 
-    chartNode->AddArray( dvhNode->GetName(), dvhNode->GetID() );    
+    chartNode->AddArray( (*dvhIt)->GetName(), (*dvhIt)->GetID() );    
   }
 
   mrmlScene->Commit();

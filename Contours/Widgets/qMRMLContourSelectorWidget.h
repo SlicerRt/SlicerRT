@@ -77,8 +77,11 @@ public:
   /// Returns currently selected contour or contour hierarchy node's ID
   QString currentNodeID();
 
-  /// Set currently selected contour or contour hierarchy node
+  /// Set currently selected contour or contour hierarchy node by its ID
   void setCurrentNodeID(const QString& nodeID);
+
+  /// Set currently selected contour or contour hierarchy node by pointer
+  void setCurrentNode(vtkMRMLNode* newCurrentNode);
 
   /// Update widget state according to selection and set widget properties
   void updateWidgetState();

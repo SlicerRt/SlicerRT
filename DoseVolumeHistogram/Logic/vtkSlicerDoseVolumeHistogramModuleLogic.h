@@ -34,10 +34,6 @@
 // VTK includes
 #include "vtkImageAccumulate.h"
 
-// STD includes
-#include <cstdlib>
-#include <set>
-
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
 class vtkImageStencilData;
@@ -63,7 +59,6 @@ class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramMo
 public:
   static vtkSlicerDoseVolumeHistogramModuleLogic *New();
   vtkTypeMacro(vtkSlicerDoseVolumeHistogramModuleLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
   /// Compute DVH for the given structure contour node volume with the stenciled dose volume (the indexed labelmap representation but with dose values instead of the labels)
@@ -103,7 +98,7 @@ public:
   bool ExportDvhMetricsToCsv(const char* fileName, std::vector<double> vDoseValuesCc, std::vector<double> vDoseValuesPercent, std::vector<double> dVolumeValuesCc, std::vector<double> dVolumeValuesPercent, bool comma=true);
 
   /// Collect DVH metrics from a collection of DVH double array nodes and try to order some of them
-  void CollectMetricsForDvhNodes(std::vector<std::string>* dvhNodeIds, std::vector<std::string> &metricList);
+  void CollectMetricsForDvhNodes(std::vector<vtkMRMLNode*> dvhNodes, std::vector<std::string> &metricList);
 
   /// Assemble attribute name for dose metric, e.g. DVH_Metric_Mean dose (Gy), where
   /// \param doseMetricAttributeNamePrefix Prefix of the desired dose metric attribute name, e.g. "Mean dose"

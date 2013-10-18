@@ -33,8 +33,8 @@
 #include "vtkConvertContourRepresentations.h"
 
 // MRML includes
-#include "vtkMRMLScalarVolumeNode.h"
-#include "vtkMRMLDisplayableHierarchyNode.h"
+#include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLDisplayableHierarchyNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>

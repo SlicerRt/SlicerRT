@@ -37,7 +37,7 @@
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLDisplayNode.h>
-#include "vtkMRMLDisplayableHierarchyNode.h"
+#include <vtkMRMLDisplayableHierarchyNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>

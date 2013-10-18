@@ -15,9 +15,9 @@
 #include "vtkVolumesOrientedResampleUtility.h"
 
 // MRML nodes includes
-#include "vtkMRMLScalarVolumeNode.h"
-#include "vtkMRMLTransformNode.h"
-#include "vtkMRMLScene.h"
+#include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLTransformNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkImageData.h>

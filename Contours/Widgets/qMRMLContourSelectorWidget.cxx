@@ -25,7 +25,7 @@
 #include "qMRMLNodeComboBox.h"
 
 // MRML includes
-#include "vtkMRMLScalarVolumeNode.h"
+#include <vtkMRMLScalarVolumeNode.h>
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
@@ -427,6 +427,12 @@ void qMRMLContourSelectorWidget::setCurrentNodeID(const QString& nodeID)
 {
   Q_D(qMRMLContourSelectorWidget);
   d->MRMLNodeComboBox_Contour->setCurrentNodeID(nodeID);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::setCurrentNode(vtkMRMLNode* newCurrentNode)
+{
+  this->setCurrentNodeID(newCurrentNode ? newCurrentNode->GetID() : "");
 }
 
 //------------------------------------------------------------------------------

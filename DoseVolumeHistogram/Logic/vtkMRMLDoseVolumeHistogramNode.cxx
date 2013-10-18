@@ -23,12 +23,13 @@
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // SlicerRT includes
+#include "SlicerRtCommon.h"
 #include "vtkSlicerDicomRtImportModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
-#include <vtkMRMLVolumeNode.h>
-#include <vtkMRMLContourNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLChartNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -38,15 +39,17 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
+std::string vtkMRMLDoseVolumeHistogramNode::DoseVolumeReferenceRole = std::string("doseVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLDoseVolumeHistogramNode::StructureSetContourReferenceRole = std::string("structureSetContour") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLDoseVolumeHistogramNode::ChartReferenceRole = std::string("chart") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole = std::string("dvhDoubleArray") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+
+//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLDoseVolumeHistogramNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 {
-  this->DoseVolumeNodeId = NULL;
-  this->StructureSetContourNodeId = NULL;
-  this->ChartNodeId = NULL;
-  this->DvhDoubleArrayNodeIds.clear();
   this->ShowHideAll = 0;
   this->ShowInChartCheckStates.clear();
   this->VDoseValues = NULL;
@@ -63,10 +66,6 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 //----------------------------------------------------------------------------
 vtkMRMLDoseVolumeHistogramNode::~vtkMRMLDoseVolumeHistogramNode()
 {
-  this->SetDoseVolumeNodeId(NULL);
-  this->SetStructureSetContourNodeId(NULL);
-  this->SetChartNodeId(NULL);
-  this->DvhDoubleArrayNodeIds.clear();
   this->ShowInChartCheckStates.clear();
   this->SetVDoseValues(NULL);
   this->SetDVolumeValuesCc(NULL);
@@ -80,28 +79,6 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
 
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
-
-  if ( this->DoseVolumeNodeId )
-    {
-    of << indent << " DoseVolumeNodeId=\"" << this->DoseVolumeNodeId << "\"";
-    }
-
-  if ( this->StructureSetContourNodeId )
-    {
-    of << indent << " StructureSetContourNodeId=\"" << this->StructureSetContourNodeId << "\"";
-    }
-
-  if ( this->ChartNodeId )
-    {
-    of << indent << " ChartNodeId=\"" << this->ChartNodeId << "\"";
-    }
-
-  of << indent << " DvhDoubleArrayNodeIds=\"";
-  for (std::vector<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
-    {
-    of << (*it) << "|";
-    }
-  of << "\"";
 
   {
     std::stringstream ss;
@@ -166,45 +143,7 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "DoseVolumeNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveDoseVolumeNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "StructureSetContourNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveStructureSetContourNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "ChartNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveChartNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "DvhDoubleArrayNodeIds")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      std::string valueStr = ss.str();
-      std::string separatorCharacter("|");
-
-      this->DvhDoubleArrayNodeIds.clear();
-      size_t separatorPosition = valueStr.find( separatorCharacter );
-      while (separatorPosition != std::string::npos)
-        {
-        this->DvhDoubleArrayNodeIds.push_back( valueStr.substr(0, separatorPosition) );
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-        }
-      if (! valueStr.empty() )
-        {
-        this->DvhDoubleArrayNodeIds.push_back( valueStr );
-        }
-      }
-    else if (!strcmp(attName, "ShowHideAll")) 
+    if (!strcmp(attName, "ShowHideAll")) 
       {
       std::stringstream ss;
       ss << attValue;
@@ -283,11 +222,6 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLDoseVolumeHistogramNode *node = (vtkMRMLDoseVolumeHistogramNode *) anode;
 
-  this->SetAndObserveDoseVolumeNodeId(node->DoseVolumeNodeId);
-  this->SetAndObserveStructureSetContourNodeId(node->StructureSetContourNodeId);
-  this->SetAndObserveChartNodeId(node->ChartNodeId);
-
-  this->DvhDoubleArrayNodeIds = node->DvhDoubleArrayNodeIds;
   this->ShowHideAll = node->ShowHideAll;
   this->ShowInChartCheckStates = node->ShowInChartCheckStates;
 
@@ -308,19 +242,6 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
-
-  os << indent << "DoseVolumeNodeId:   " << (this->DoseVolumeNodeId ? this->DoseVolumeNodeId : "NULL") << "\n";
-  os << indent << "StructureSetContourNodeId:   " << (this->StructureSetContourNodeId ? this->StructureSetContourNodeId : "NULL") << "\n";
-  os << indent << "ChartNodeId:   " << (this->ChartNodeId ? this->ChartNodeId : "NULL") << "\n";
-
-  {
-    os << indent << "DvhDoubleArrayNodeIds:   ";
-    for (std::vector<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
-      {
-      os << (*it) << "|";
-      }
-    os << "\n";
-  }
 
   os << indent << "ShowHideAll:   " << this->ShowHideAll << "\n";
 
@@ -344,73 +265,49 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNodeId(const char* id)
+vtkMRMLScalarVolumeNode* vtkMRMLDoseVolumeHistogramNode::GetDoseVolumeNode()
 {
-  if (this->DoseVolumeNodeId && this->Scene)
-  {
-    this->Scene->RemoveReferencedNodeID(this->DoseVolumeNodeId, this);
-  }
-
-  this->SetDoseVolumeNodeId(id);
-
-  if (id && this->Scene)
-  {
-    this->Scene->AddReferencedNodeID(this->DoseVolumeNodeId, this);
-  }
+  return vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::DoseVolumeReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::SetAndObserveStructureSetContourNodeId(const char* id)
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  if (this->StructureSetContourNodeId && this->Scene)
-  {
-    this->Scene->RemoveReferencedNodeID(this->StructureSetContourNodeId, this);
-  }
-
-  this->SetStructureSetContourNodeId(id);
-
-  if (id && this->Scene)
-  {
-    this->Scene->AddReferencedNodeID(this->StructureSetContourNodeId, this);
-  }
+  this->SetNthNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::DoseVolumeReferenceRole.c_str(), 0, node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNodeId(const char* id)
+vtkMRMLNode* vtkMRMLDoseVolumeHistogramNode::GetStructureSetContourNode()
 {
-  if (this->ChartNodeId && this->Scene)
-  {
-    this->Scene->RemoveReferencedNodeID(this->ChartNodeId, this);
-  }
-
-  this->SetChartNodeId(id);
-
-  if (id && this->Scene)
-  {
-    this->Scene->AddReferencedNodeID(this->ChartNodeId, this);
-  }
+  return this->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::StructureSetContourReferenceRole.c_str());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::UpdateReferenceID(const char *oldID, const char *newID)
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveStructureSetContourNode(vtkMRMLNode* node)
 {
-  if (this->DoseVolumeNodeId && !strcmp(oldID, this->DoseVolumeNodeId))
-    {
-    this->SetAndObserveDoseVolumeNodeId(newID);
-    }
-  if (this->StructureSetContourNodeId && !strcmp(oldID, this->StructureSetContourNodeId))
-    {
-    this->SetAndObserveStructureSetContourNodeId(newID);
-    }
-  if (this->ChartNodeId && !strcmp(oldID, this->ChartNodeId))
-    {
-    this->SetAndObserveChartNodeId(newID);
-    }
-  for (std::vector<std::string>::iterator it = this->DvhDoubleArrayNodeIds.begin(); it != this->DvhDoubleArrayNodeIds.end(); ++it)
-    {
-    if (!it->compare(oldID))
-      {
-      (*it) = newID;
-      }
-    }
+  this->SetNthNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::StructureSetContourReferenceRole.c_str(), 0, node->GetID());
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
+{
+  return vtkMRMLChartNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::ChartReferenceRole.c_str()) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNode(vtkMRMLChartNode* node)
+{
+  this->SetNthNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::ChartReferenceRole.c_str(), 0, node->GetID());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseVolumeHistogramNode::GetDvhDoubleArrayNodes(std::vector<vtkMRMLNode*> &nodes)
+{
+  // Disable modify event for this operation as it triggers unwanted calls of
+  // qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable thus causing crash
+  this->DisableModifiedEventOn();
+  this->GetNodeReferences(vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole.c_str(), nodes);
+  this->DisableModifiedEventOff();
 }

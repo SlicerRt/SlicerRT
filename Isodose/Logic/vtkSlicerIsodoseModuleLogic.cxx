@@ -40,8 +40,8 @@
 #include <vtkMRMLTransformNode.h>
 
 // MRMLLogic includes
-#include "vtkMRMLColorLogic.h"
-#include "vtkMRMLApplicationLogic.h"
+#include <vtkMRMLColorLogic.h>
+#include <vtkMRMLApplicationLogic.h>
 
 // VTK includes
 #include <vtkNew.h>

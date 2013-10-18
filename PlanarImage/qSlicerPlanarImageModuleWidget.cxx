@@ -34,8 +34,8 @@
 #include "vtkMRMLPlanarImageNode.h"
 
 // MRML includes
-#include "vtkMRMLScalarVolumeNode.h"
-#include "vtkMRMLModelNode.h"
+#include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLModelNode.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_PlanarImage
