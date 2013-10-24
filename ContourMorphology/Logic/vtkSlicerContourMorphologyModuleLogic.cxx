@@ -206,20 +206,18 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
     return -1;
   }
 
-  vtkMRMLContourNode* inputContourANode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetContourANodeId()));
+  vtkMRMLContourNode* inputContourANode = this->ContourMorphologyNode->GetContourANode();
 
   if (inputContourANode->GetIndexedLabelmapVolumeNodeId() == NULL)
   {
-    vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-      this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetReferenceVolumeNodeId()));
+    vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ContourMorphologyNode->GetReferenceVolumeNode();
     if (!referenceVolumeNode)
     {
       vtkErrorMacro("SetContourARepresentationToLabelmap: Reference Volume is not initialized!")
       return -1;
     }
     inputContourANode->SetAndObserveRasterizationReferenceVolumeNodeId(
-      this->ContourMorphologyNode->GetReferenceVolumeNodeId() );
+      this->ContourMorphologyNode->GetReferenceVolumeNode()->GetID() );
   }
   
   inputContourANode->SetRasterizationOversamplingFactor(1.0);
@@ -243,20 +241,18 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
     return -1;
   }
 
-  vtkMRMLContourNode* inputContourBNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetContourBNodeId()));
+  vtkMRMLContourNode* inputContourBNode = this->ContourMorphologyNode->GetContourBNode();
 
   if (inputContourBNode->GetIndexedLabelmapVolumeNodeId() == NULL)
   {
-    vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-      this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetReferenceVolumeNodeId()));
+    vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ContourMorphologyNode->GetReferenceVolumeNode();
     if (!referenceVolumeNode)
     {
       vtkErrorMacro("SetContourBRepresentationToLabelmap: Reference Volume is not initialized!")
       return -1;
     }
     inputContourBNode->SetAndObserveRasterizationReferenceVolumeNodeId(
-      this->ContourMorphologyNode->GetReferenceVolumeNodeId() );
+      this->ContourMorphologyNode->GetReferenceVolumeNode()->GetID() );
   }
 
   inputContourBNode->SetRasterizationOversamplingFactor(1.0);
@@ -277,12 +273,9 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   int dimensions[3] = {0, 0, 0};
   double spacingX, spacingY, spacingZ;
 
-  vtkMRMLContourNode* inputContourANode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetContourANodeId()));
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetReferenceVolumeNodeId()));
-  vtkMRMLContourNode* outputContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetOutputContourNodeId()));
+  vtkMRMLContourNode* inputContourANode = this->ContourMorphologyNode->GetContourANode();
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ContourMorphologyNode->GetReferenceVolumeNode();
+  vtkMRMLContourNode* outputContourNode = this->ContourMorphologyNode->GetOutputContourNode();
   // Make sure inputs are initialized
   if (!this->GetMRMLScene() || !inputContourANode || !referenceVolumeNode || !outputContourNode)
   {
@@ -313,8 +306,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   vtkMRMLScalarVolumeNode* inputLabelmapBNode = NULL;
   vtkImageData* tempImageB = NULL;
   vtkSmartPointer<vtkMRMLScalarVolumeNode> tempVolumeNodeB= vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  vtkMRMLContourNode* inputContourBNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ContourMorphologyNode->GetContourBNodeId()));
+  vtkMRMLContourNode* inputContourBNode = this->ContourMorphologyNode->GetContourBNode();
 
   vtkMRMLContourMorphologyNode::ContourMorphologyOperationType operation = this->ContourMorphologyNode->GetOperation();
   if (operation == vtkMRMLContourMorphologyNode::Union || operation == vtkMRMLContourMorphologyNode::Intersect || operation == vtkMRMLContourMorphologyNode::Subtract) 

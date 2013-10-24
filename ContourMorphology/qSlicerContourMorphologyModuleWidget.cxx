@@ -277,17 +277,17 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
 
   // Apply parameter node parameters to the widgets
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
-  if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetContourANodeId()))
+  if (paramNode->GetContourANode())
   {
-    d->ContourSelectorWidget_ContourA->setCurrentNodeID(paramNode->GetContourANodeId());
+    d->ContourSelectorWidget_ContourA->setCurrentNode(paramNode->GetContourANode());
   }
   else
   {
     this->setContourANode(d->ContourSelectorWidget_ContourA->currentNode());
   }
-  if (!SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetContourBNodeId()))
+  if (paramNode->GetContourBNode())
   {
-    d->ContourSelectorWidget_ContourB->setCurrentNodeID(paramNode->GetContourBNodeId());
+    d->ContourSelectorWidget_ContourB->setCurrentNode(paramNode->GetContourBNode());
   }
   else
   {
@@ -313,10 +313,10 @@ void qSlicerContourMorphologyModuleWidget::updateButtonsState()
   }
 
   bool applyEnabled = d->logic()->GetContourMorphologyNode()
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetContourANodeId())
-                   && (d->ContourSelectorWidget_ContourB->isEnabled() ? !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetContourBNodeId()) : true)
-                   && !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetOutputContourNodeId())
-                   //&& !SlicerRtCommon::IsStringNullOrEmpty(d->logic()->GetContourMorphologyNode()->GetReferenceVolumeNodeId())
+                   && d->logic()->GetContourMorphologyNode()->GetContourANode()
+                   && (d->ContourSelectorWidget_ContourB->isEnabled() ? d->logic()->GetContourMorphologyNode()->GetContourBNode() : true)
+                   && d->logic()->GetContourMorphologyNode()->GetOutputContourNode()
+                   //&& d->logic()->GetContourMorphologyNode()->GetReferenceVolumeNode()
                    && (d->ContourSelectorWidget_ContourB->isEnabled() ? d->ContourSelectorWidget_ContourB->isSelectionValid() : d->ContourSelectorWidget_ContourA->isSelectionValid());
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
@@ -386,31 +386,31 @@ void qSlicerContourMorphologyModuleWidget::setContourMorphologyNode(vtkMRMLNode 
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
-    if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetContourANodeId())
+    if ( !paramNode->GetContourANode()
       && d->ContourSelectorWidget_ContourA->currentNode() )
     {
-      paramNode->SetAndObserveContourANodeId(d->ContourSelectorWidget_ContourA->currentNodeID().toLatin1().constData());
+      paramNode->SetAndObserveContourANode(vtkMRMLContourNode::SafeDownCast(d->ContourSelectorWidget_ContourA->currentNode()));
     }
-    if ( SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetContourBNodeId())
+    if ( !paramNode->GetContourBNode()
       && d->ContourSelectorWidget_ContourB->currentNode() )
     {
-      paramNode->SetAndObserveContourBNodeId(d->ContourSelectorWidget_ContourB->currentNodeID().toLatin1().constData());
+      paramNode->SetAndObserveContourBNode(vtkMRMLContourNode::SafeDownCast(d->ContourSelectorWidget_ContourB->currentNode()));
     }
-    if (SlicerRtCommon::IsStringNullOrEmpty(paramNode->GetReferenceVolumeNodeId()))
+    if (!paramNode->GetReferenceVolumeNode())
     {
       // If binary operator es selected, then contour selector B is the one in charge
       if (d->ContourSelectorWidget_ContourB->isEnabled())
       {
-        if (!d->ContourSelectorWidget_ContourB->currentReferenceVolumeNodeID().isEmpty())
+        if (d->ContourSelectorWidget_ContourB->currentReferenceVolumeNode())
         {
-          paramNode->SetAndObserveReferenceVolumeNodeId(d->ContourSelectorWidget_ContourB->currentReferenceVolumeNodeID().toLatin1().constData());
+          paramNode->SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(d->ContourSelectorWidget_ContourB->currentReferenceVolumeNode()));
         }
       }
       else
       {
-        if (!d->ContourSelectorWidget_ContourA->currentReferenceVolumeNodeID().isEmpty())
+        if (d->ContourSelectorWidget_ContourA->currentReferenceVolumeNode())
         {
-          paramNode->SetAndObserveReferenceVolumeNodeId(d->ContourSelectorWidget_ContourA->currentReferenceVolumeNodeID().toLatin1().constData());
+          paramNode->SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(d->ContourSelectorWidget_ContourA->currentReferenceVolumeNode()));
         }
       }
     }
@@ -438,7 +438,7 @@ void qSlicerContourMorphologyModuleWidget::setContourANode(vtkMRMLNode* node)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveContourANodeId(node->GetID());
+  paramNode->SetAndObserveContourANode(vtkMRMLContourNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->updateWidgetFromMRML();
@@ -462,7 +462,7 @@ void qSlicerContourMorphologyModuleWidget::setContourBNode(vtkMRMLNode* node)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveContourBNodeId(node->GetID());
+  paramNode->SetAndObserveContourBNode(vtkMRMLContourNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->updateWidgetFromMRML();
@@ -486,7 +486,7 @@ void qSlicerContourMorphologyModuleWidget::setReferenceVolumeNode(vtkMRMLNode* n
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveReferenceVolumeNodeId(node->GetID());
+  paramNode->SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->updateWidgetFromMRML();
@@ -510,7 +510,7 @@ void qSlicerContourMorphologyModuleWidget::setOutputContourNode(vtkMRMLNode* nod
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveOutputContourNodeId(node->GetID());
+  paramNode->SetAndObserveOutputContourNode(vtkMRMLContourNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->updateWidgetFromMRML();

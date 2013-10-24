@@ -187,16 +187,15 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLIsodoseNode> paramNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
-  paramNode->SetAndObserveDoseVolumeNodeId(doseScalarVolumeNode->GetID());
-  paramNode->SetColorTableNodeId(isodoseColorNode->GetID());
+  paramNode->SetAndObserveDoseVolumeNode(doseScalarVolumeNode);
+  paramNode->SetAndObserveColorTableNode(isodoseColorNode);
   mrmlScene->AddNode(paramNode);
   isodoseLogic->SetAndObserveIsodoseNode(paramNode);
 
   // Compute isodose
   isodoseLogic->CreateIsodoseSurfaces();
 
-  vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkMRMLModelHierarchyNode::SafeDownCast(
-    mrmlScene->GetNodeByID(paramNode->GetIsodoseSurfaceModelsParentHierarchyNodeId()));  
+  vtkMRMLModelHierarchyNode* modelHierarchyRootNode = paramNode->GetIsodoseSurfaceModelsParentHierarchyNode();  
   if (modelHierarchyRootNode == NULL)
   {
     mrmlScene->Commit();
@@ -208,7 +207,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
 
   vtkSmartPointer<vtkCollection> collection = vtkSmartPointer<vtkCollection>::New();
   modelHierarchyRootNode->GetChildrenModelNodes(collection);
-  vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
   
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
   reader->SetFileName(baselineIsodoseSurfaceFileName);

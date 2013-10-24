@@ -29,7 +29,6 @@
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
-#include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLVolumeDisplayNode.h>
 #include <vtkMRMLModelHierarchyNode.h>
@@ -156,7 +155,7 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     return;
   }
 
-  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLIsodoseNode"))
+  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLIsodoseNode"))
   {
     this->Modified();
   }
@@ -177,7 +176,7 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
     return;
   }
 
-  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLIsodoseNode"))
+  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLIsodoseNode"))
   {
     this->Modified();
   }
@@ -205,7 +204,7 @@ bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
     return false;
   }
 
-  vtkMRMLNode* doseVolumeNode = this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId());
+  vtkMRMLScalarVolumeNode* doseVolumeNode = this->IsodoseNode->GetDoseVolumeNode();
   return SlicerRtCommon::IsDoseVolumeNode(doseVolumeNode);
 }
 
@@ -284,12 +283,11 @@ void vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable()
 //------------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int newNumberOfColors)
 {
-  if (!this->IsodoseNode->GetColorTableNodeId() || newNumberOfColors < 1)
+  vtkMRMLColorTableNode* colorTableNode = this->IsodoseNode->GetColorTableNode();  
+  if (!colorTableNode || newNumberOfColors < 1)
   {
     return;
   }
-  vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
 
   // Set the default colors in case the number of colors was less than that in the default table
   colorTableNode->SetNumberOfColors(6);
@@ -320,8 +318,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     return;
   }
 
-  vtkMRMLVolumeNode* doseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetDoseVolumeNodeId()));
+  vtkMRMLScalarVolumeNode* doseVolumeNode = this->IsodoseNode->GetDoseVolumeNode();
   if (!doseVolumeNode)
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Invalid dose volume!");
@@ -338,10 +335,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   }
 
   // Hierarchy node for the loaded structure sets
-  vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkMRMLModelHierarchyNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(
-    this->GetIsodoseNode()->GetIsodoseSurfaceModelsParentHierarchyNodeId()));
-
-  modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
   modelHierarchyRootNode->AllowMultipleChildrenOn();
   modelHierarchyRootNode->HideFromEditorsOff();
   std::string hierarchyNodeName = std::string(doseVolumeNode->GetName()) + SlicerRtCommon::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX
@@ -367,8 +361,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   modelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
 
   // Get color table
-  vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->IsodoseNode->GetColorTableNodeId()));  
+  vtkMRMLColorTableNode* colorTableNode = this->IsodoseNode->GetColorTableNode();  
   vtkSmartPointer<vtkLookupTable> lookupTable = colorTableNode->GetLookupTable();
 
   // Reslice dose volume
@@ -505,7 +498,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     }
   }
 
-  this->IsodoseNode->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(modelHierarchyRootNode->GetID());
+  this->IsodoseNode->SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(modelHierarchyRootNode);
     
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 }

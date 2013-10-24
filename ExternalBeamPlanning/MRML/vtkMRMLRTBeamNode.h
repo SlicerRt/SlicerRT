@@ -32,7 +32,6 @@
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLDisplayableNode;
-class vtkMRMLColorTableNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLModelNode;
 

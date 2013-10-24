@@ -29,6 +29,9 @@
 
 #include "vtkSlicerContourMorphologyModuleLogicExport.h"
 
+class vtkMRMLContourNode;
+class vtkMRMLScalarVolumeNode;
+
 class VTK_SLICER_CONTOURMORPHOLOGY_MODULE_LOGIC_EXPORT vtkMRMLContourMorphologyNode : public vtkMRMLNode
 {
 public:
@@ -41,6 +44,11 @@ public:
     Intersect,
     Subtract
   };
+
+  static std::string ContourAReferenceRole;
+  static std::string ContourBReferenceRole;
+  static std::string ReferenceVolumeReferenceRole;
+  static std::string OutputContourReferenceRole;
 
 public:
   static vtkMRMLContourMorphologyNode *New();
@@ -63,32 +71,25 @@ public:
   virtual const char* GetNodeTagName() { return "ContourMorphology"; };
 
 public:
-  /// Get contour A node ID
-  vtkGetStringMacro(ContourANodeId);
+  /// Get contour A node
+  vtkMRMLContourNode* GetContourANode();
+  /// Set contour A node
+  void SetAndObserveContourANode(vtkMRMLContourNode* node);
 
-  /// Set and observe contour A node ID
-  void SetAndObserveContourANodeId(const char* id);
+  /// Get contour B node
+  vtkMRMLContourNode* GetContourBNode();
+  /// Set contour B node
+  void SetAndObserveContourBNode(vtkMRMLContourNode* node);
 
-  /// Get dose volume node ID
-  vtkGetStringMacro(ContourBNodeId);
+  /// Get reference volume node
+  vtkMRMLScalarVolumeNode* GetReferenceVolumeNode();
+  /// Set reference volume node
+  void SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Set and observe contour B node ID
-  void SetAndObserveContourBNodeId(const char* id);
-
-  /// Get reference volume node ID
-  vtkGetStringMacro(ReferenceVolumeNodeId);
-
-  /// Set and observe reference volume node ID
-  void SetAndObserveReferenceVolumeNodeId(const char* id);
-
-  /// Get output contour node ID
-  vtkGetStringMacro(OutputContourNodeId);
-
-  /// Set and observe output contour node ID
-  void SetAndObserveOutputContourNodeId(const char* id);
-
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
+  /// Get output contour node
+  vtkMRMLContourNode* GetOutputContourNode();
+  /// Set output contour node
+  void SetAndObserveOutputContourNode(vtkMRMLContourNode* node);
  
   /// Get the operation type
   ContourMorphologyOperationType GetOperation() { return this->Operation; };
@@ -107,37 +108,12 @@ public:
   vtkSetMacro(ZSize, double);
 
 protected:
-  /// Set contour A node ID
-  vtkSetStringMacro(ContourANodeId);
-
-  /// Set contour B node ID
-  vtkSetStringMacro(ContourBNodeId);
-
-  /// Set reference volume node ID
-  vtkSetStringMacro(ReferenceVolumeNodeId);
-
-  /// Set output hierarchy node ID
-  vtkSetStringMacro(OutputContourNodeId);
-
-protected:
   vtkMRMLContourMorphologyNode();
   ~vtkMRMLContourMorphologyNode();
   vtkMRMLContourMorphologyNode(const vtkMRMLContourMorphologyNode&);
   void operator=(const vtkMRMLContourMorphologyNode&);
 
 protected:
-  /// Selected contour A MRML node object ID
-  char* ContourANodeId;
-
-  /// Selected contour B MRML node object ID
-  char* ContourBNodeId;
-
-  /// Selected reference volume MRML node object ID
-  char* ReferenceVolumeNodeId;
-
-  /// Selected output contour MRML node object ID
-  char* OutputContourNodeId;
-
   /// Selected contour morphology operation
   ContourMorphologyOperationType Operation;
 

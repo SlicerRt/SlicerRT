@@ -20,12 +20,17 @@
 
 ==============================================================================*/
 
-// MRMLDoseAccumulation includes
+// MRMLIsodose includes
 #include "vtkMRMLIsodoseNode.h"
+
+// SlicerRt includes
+#include "SlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLModelHierarchyNode.h>
+#include <vtkMRMLColorTableNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -35,14 +40,16 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
+std::string vtkMRMLIsodoseNode::DoseVolumeReferenceRole = std::string("doseVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLIsodoseNode::IsodoseSurfaceModelsParentHierarchyReferenceRole = std::string("isodoseSurfaceModelsParentHierarchy") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLIsodoseNode::ColorTableReferenceRole = std::string("colorTable") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+
+//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLIsodoseNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
 {
-  this->DoseVolumeNodeId = NULL;
-  this->ColorTableNodeId = NULL;
-  this->IsodoseSurfaceModelsParentHierarchyNodeId = NULL;
   this->ShowIsodoseLines = true;
   this->ShowIsodoseSurfaces = true;
   this->ShowScalarBar = false;
@@ -53,9 +60,6 @@ vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
 //----------------------------------------------------------------------------
 vtkMRMLIsodoseNode::~vtkMRMLIsodoseNode()
 {
-  this->SetDoseVolumeNodeId(NULL);
-  this->SetColorTableNodeId(NULL);
-  this->SetIsodoseSurfaceModelsParentHierarchyNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -66,37 +70,8 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  {
-    std::stringstream ss;
-    if ( this->DoseVolumeNodeId )
-      {
-      ss << this->DoseVolumeNodeId;
-      of << indent << " DoseVolumeNodeId=\"" << ss.str() << "\"";
-      }
-  }
-
-  {
-    std::stringstream ss;
-    if ( this->ColorTableNodeId )
-      {
-      ss << this->ColorTableNodeId;
-      of << indent << " ColorTableNodeId=\"" << ss.str() << "\"";
-      }
-  }
-
-  {
-    std::stringstream ss;
-    if ( this->IsodoseSurfaceModelsParentHierarchyNodeId )
-      {
-      ss << this->IsodoseSurfaceModelsParentHierarchyNodeId;
-      of << indent << " IsodoseSurfaceModelsParentHierarchyNodeId=\"" << ss.str() << "\"";
-      }
-  }
-
   of << indent << " ShowIsodoseLines=\"" << (this->ShowIsodoseLines ? "true" : "false") << "\"";
-
   of << indent << " ShowIsodoseSurfaces=\"" << (this->ShowIsodoseSurfaces ? "true" : "false") << "\"";
-
   of << indent << " ShowScalarBar=\"" << (this->ShowScalarBar ? "true" : "false") << "\"";
 }
 
@@ -114,25 +89,7 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "DoseVolumeNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveDoseVolumeNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "ColorTableNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveColorTableNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "IsodoseSurfaceModelsParentHierarchyNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "ShowIsodoseLines")) 
+    if (!strcmp(attName, "ShowIsodoseLines")) 
       {
       this->ShowIsodoseLines = 
         (strcmp(attValue,"true") ? false : true);
@@ -160,10 +117,6 @@ void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLIsodoseNode *node = (vtkMRMLIsodoseNode *) anode;
 
-  this->SetAndObserveDoseVolumeNodeId(node->DoseVolumeNodeId);
-  this->SetAndObserveColorTableNodeId(node->ColorTableNodeId);
-  this->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(node->IsodoseSurfaceModelsParentHierarchyNodeId);
-
   this->ShowIsodoseLines = node->ShowIsodoseLines;
   this->ShowIsodoseSurfaces = node->ShowIsodoseSurfaces;
   this->ShowScalarBar = node->ShowScalarBar;
@@ -177,75 +130,46 @@ void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "DoseVolumeNodeId:   " << (this->DoseVolumeNodeId ? this->DoseVolumeNodeId : "NULL") << "\n";
-  os << indent << "ColorTableNodeId:   " << (this->ColorTableNodeId ? this->ColorTableNodeId : "NULL") << "\n";
-  os << indent << "IsodoseSurfaceModelsParentHierarchyNodeId:   " << (this->IsodoseSurfaceModelsParentHierarchyNodeId ? this->IsodoseSurfaceModelsParentHierarchyNodeId : "NULL") << "\n";
   os << indent << "ShowIsodoseLines:   " << (this->ShowIsodoseLines ? "true" : "false") << "\n";
   os << indent << "ShowIsodoseSurfaces:   " << (this->ShowIsodoseSurfaces ? "true" : "false") << "\n";
   os << indent << "ShowScalarBar:   " << (this->ShowScalarBar ? "true" : "false") << "\n";
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::UpdateReferenceID(const char *oldID, const char *newID)
+vtkMRMLScalarVolumeNode* vtkMRMLIsodoseNode::GetDoseVolumeNode()
 {
-  if (this->DoseVolumeNodeId && !strcmp(oldID, this->DoseVolumeNodeId))
-    {
-    this->SetAndObserveDoseVolumeNodeId(newID);
-    }
-  if (this->ColorTableNodeId && !strcmp(oldID, this->ColorTableNodeId))
-    {
-    this->SetAndObserveColorTableNodeId(newID);
-    }
-  if (this->IsodoseSurfaceModelsParentHierarchyNodeId && !strcmp(oldID, this->IsodoseSurfaceModelsParentHierarchyNodeId))
-    {
-    this->SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(newID);
-    }
+  return vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLIsodoseNode::DoseVolumeReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNodeId(const char* id)
+void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  if (this->DoseVolumeNodeId)
-    {
-    this->Scene->RemoveReferencedNodeID(this->DoseVolumeNodeId, this);
-    }
-
-  this->SetDoseVolumeNodeId(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->DoseVolumeNodeId, this);
-    }
+  this->SetNthNodeReferenceID(vtkMRMLIsodoseNode::DoseVolumeReferenceRole.c_str(), 0, node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::SetAndObserveColorTableNodeId(const char* id)
+vtkMRMLModelHierarchyNode* vtkMRMLIsodoseNode::GetIsodoseSurfaceModelsParentHierarchyNode()
 {
-  if (this->ColorTableNodeId)
-    {
-    this->Scene->RemoveReferencedNodeID(this->ColorTableNodeId, this);
-    }
-
-  this->SetColorTableNodeId(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->ColorTableNodeId, this);
-    }
+  return vtkMRMLModelHierarchyNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLIsodoseNode::IsodoseSurfaceModelsParentHierarchyReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(const char* id)
+void vtkMRMLIsodoseNode::SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(vtkMRMLModelHierarchyNode* node)
 {
-  if (this->IsodoseSurfaceModelsParentHierarchyNodeId)
-    {
-    this->Scene->RemoveReferencedNodeID(this->IsodoseSurfaceModelsParentHierarchyNodeId, this);
-    }
+  this->SetNthNodeReferenceID(vtkMRMLIsodoseNode::IsodoseSurfaceModelsParentHierarchyReferenceRole.c_str(), 0, node->GetID());
+}
 
-  this->SetIsodoseSurfaceModelsParentHierarchyNodeId(id);
+//----------------------------------------------------------------------------
+vtkMRMLColorTableNode* vtkMRMLIsodoseNode::GetColorTableNode()
+{
+  return vtkMRMLColorTableNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLIsodoseNode::ColorTableReferenceRole.c_str()) );
+}
 
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->IsodoseSurfaceModelsParentHierarchyNodeId, this);
-    }
+//----------------------------------------------------------------------------
+void vtkMRMLIsodoseNode::SetAndObserveColorTableNode(vtkMRMLColorTableNode* node)
+{
+  this->SetNthNodeReferenceID(vtkMRMLIsodoseNode::ColorTableReferenceRole.c_str(), 0, node->GetID());
 }

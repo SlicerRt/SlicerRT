@@ -72,7 +72,6 @@ public:
 
   // Get default isodose color table ID
   vtkGetStringMacro(DefaultIsodoseColorTableNodeId);
-
   // Set default isodose color table ID
   vtkSetStringMacro(DefaultIsodoseColorTableNodeId);
 

@@ -27,10 +27,11 @@
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
 
-// STD includes
-#include <vector>
-
 #include "vtkSlicerIsodoseModuleLogicExport.h"
+
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLModelHierarchyNode;
+class vtkMRMLColorTableNode;
 
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
 {
@@ -38,6 +39,10 @@ public:
   static vtkMRMLIsodoseNode *New();
   vtkTypeMacro(vtkMRMLIsodoseNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  static std::string DoseVolumeReferenceRole;
+  static std::string IsodoseSurfaceModelsParentHierarchyReferenceRole;
+  static std::string ColorTableReferenceRole;
 
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -55,29 +60,21 @@ public:
   virtual const char* GetNodeTagName() {return "Isodose";};
 
 public:
-  /// Get dose volume node ID
-  vtkGetStringMacro(DoseVolumeNodeId);
+  /// Get dose volume node
+  vtkMRMLScalarVolumeNode* GetDoseVolumeNode();
+  /// Set and observe dose volume node
+  void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Set and observe dose volume node ID
-  void SetAndObserveDoseVolumeNodeId(const char* id);
+  /// Get isodose surface models parent hierarchy node
+  vtkMRMLModelHierarchyNode* GetIsodoseSurfaceModelsParentHierarchyNode();
+  /// Set and observe isodose surface models parent hierarchy node
+  void SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(vtkMRMLModelHierarchyNode* node);
 
-  /// Get output hierarchy node ID
-  vtkGetStringMacro(IsodoseSurfaceModelsParentHierarchyNodeId);
+  /// Get color table node
+  vtkMRMLColorTableNode* GetColorTableNode();
+  /// Set and observe color table node
+  void SetAndObserveColorTableNode(vtkMRMLColorTableNode* node);
 
-  /// Set and observe isodose surface models parent hierarchy node ID
-  void SetAndObserveIsodoseSurfaceModelsParentHierarchyNodeId(const char* id);
-
-  /// Get color node ID
-  vtkGetStringMacro(ColorTableNodeId);
-  /// Set color node ID
-  vtkSetStringMacro(ColorTableNodeId);
-
-  /// Set and observe chart node ID
-  void SetAndObserveColorTableNodeId(const char* id);
-
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
- 
   /// Get/Set show Gy for D metrics checkbox state
   vtkGetMacro(ShowIsodoseLines, bool);
   vtkSetMacro(ShowIsodoseLines, bool);
@@ -94,28 +91,12 @@ public:
   vtkBooleanMacro(ShowScalarBar, bool);
 
 protected:
-  /// Set dose volume node ID
-  vtkSetStringMacro(DoseVolumeNodeId);
-
-  /// Set output hierarchy node ID
-  vtkSetStringMacro(IsodoseSurfaceModelsParentHierarchyNodeId);
-
-protected:
   vtkMRMLIsodoseNode();
   ~vtkMRMLIsodoseNode();
   vtkMRMLIsodoseNode(const vtkMRMLIsodoseNode&);
   void operator=(const vtkMRMLIsodoseNode&);
 
 protected:
-  /// Selected dose volume MRML node object ID
-  char* DoseVolumeNodeId;
-
-  /// Output isosurface models' parent hierarchy node
-  char* IsodoseSurfaceModelsParentHierarchyNodeId;
-
-  /// Selected chart MRML node object ID
-  char* ColorTableNodeId;
-
   /// State of Show isodose lines checkbox
   bool ShowIsodoseLines;
 

@@ -23,9 +23,13 @@
 // MRMLDoseAccumulation includes
 #include "vtkMRMLContourMorphologyNode.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLContourNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -35,15 +39,17 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
+std::string vtkMRMLContourMorphologyNode::ContourAReferenceRole = std::string("contourA") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLContourMorphologyNode::ContourBReferenceRole = std::string("contourB") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLContourMorphologyNode::ReferenceVolumeReferenceRole = std::string("referenceVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLContourMorphologyNode::OutputContourReferenceRole = std::string("outputContour") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+
+//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourMorphologyNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLContourMorphologyNode::vtkMRMLContourMorphologyNode()
 {
-  this->ContourANodeId = NULL;
-  this->ContourBNodeId = NULL;
-  this->ReferenceVolumeNodeId = NULL;
-  this->OutputContourNodeId = NULL;
   this->Operation = Expand;
   this->XSize = 1;
   this->YSize = 1;
@@ -55,10 +61,6 @@ vtkMRMLContourMorphologyNode::vtkMRMLContourMorphologyNode()
 //----------------------------------------------------------------------------
 vtkMRMLContourMorphologyNode::~vtkMRMLContourMorphologyNode()
 {
-  this->SetContourANodeId(NULL);
-  this->SetContourBNodeId(NULL);
-  this->SetReferenceVolumeNodeId(NULL);
-  this->SetOutputContourNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -69,48 +71,9 @@ void vtkMRMLContourMorphologyNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  {
-    std::stringstream ss;
-    if ( this->ContourANodeId )
-      {
-      ss << this->ContourANodeId;
-      of << indent << " ContourANodeId=\"" << ss.str() << "\"";
-      }
-  }
-
-  {
-    std::stringstream ss;
-    if ( this->ContourBNodeId )
-      {
-      ss << this->ContourBNodeId;
-      of << indent << " ContourBNodeId=\"" << ss.str() << "\"";
-      }
-  }
-
-  {
-    std::stringstream ss;
-    if ( this->ReferenceVolumeNodeId )
-      {
-      ss << this->ReferenceVolumeNodeId;
-      of << indent << " ReferenceVolumeNodeId=\"" << ss.str() << "\"";
-      }
-  }
-
-  {
-    std::stringstream ss;
-    if ( this->OutputContourNodeId )
-      {
-      ss << this->OutputContourNodeId;
-      of << indent << " OutputContourNodeId=\"" << ss.str() << "\"";
-      }
-  }
-
   of << indent << " Operation=\"" << (this->Operation) << "\"";
-
   of << indent << " XSize=\"" << (this->XSize) << "\"";
-
   of << indent << " YSize=\"" << (this->YSize) << "\"";
-
   of << indent << " ZSize=\"" << (this->ZSize) << "\"";
 }
 
@@ -128,31 +91,7 @@ void vtkMRMLContourMorphologyNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "ContourANodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveContourANodeId(ss.str().c_str());
-      }
-    if (!strcmp(attName, "ContourBNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveContourBNodeId(ss.str().c_str());
-      }
-    if (!strcmp(attName, "ReferenceVolumeNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveReferenceVolumeNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "OutputContourNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveOutputContourNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "Operation")) 
+    if (!strcmp(attName, "Operation")) 
       {
       std::stringstream ss;
       ss << attValue;
@@ -197,11 +136,6 @@ void vtkMRMLContourMorphologyNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLContourMorphologyNode *node = (vtkMRMLContourMorphologyNode *)anode;
 
-  this->SetAndObserveContourANodeId(node->ContourANodeId);
-  this->SetAndObserveContourBNodeId(node->ContourBNodeId);
-  this->SetAndObserveReferenceVolumeNodeId(node->ReferenceVolumeNodeId);
-  this->SetAndObserveOutputContourNodeId(node->OutputContourNodeId);
-
   this->Operation = node->Operation;
   this->XSize = node->XSize;
   this->YSize = node->YSize;
@@ -216,10 +150,6 @@ void vtkMRMLContourMorphologyNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "ContourANodeId:   " << (this->ContourANodeId ? this->ContourANodeId : "NULL") << "\n";
-  os << indent << "ContourBNodeId:   " << (this->ContourBNodeId ? this->ContourBNodeId : "NULL") << "\n";
-  os << indent << "ReferenceVolumeNodeId:   " << (this->ReferenceVolumeNodeId ? this->ReferenceVolumeNodeId : "NULL") << "\n";
-  os << indent << "OutputContourNodeId:   " << (this->OutputContourNodeId ? this->OutputContourNodeId : "NULL") << "\n";
   os << indent << "Operation:   " << (int)(this->Operation) << "\n";
   os << indent << "XSize:   " << (this->XSize) << "\n";
   os << indent << "YSize:   " << (this->YSize) << "\n";
@@ -227,86 +157,53 @@ void vtkMRMLContourMorphologyNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourMorphologyNode::UpdateReferenceID(const char *oldID, const char *newID)
+vtkMRMLContourNode* vtkMRMLContourMorphologyNode::GetContourANode()
 {
-  if (this->ContourANodeId && !strcmp(oldID, this->ContourANodeId))
-    {
-    this->SetAndObserveContourANodeId(newID);
-    }
-  if (this->ContourBNodeId && !strcmp(oldID, this->ContourBNodeId))
-    {
-    this->SetAndObserveContourBNodeId(newID);
-    }
-  if (this->ReferenceVolumeNodeId && !strcmp(oldID, this->ReferenceVolumeNodeId))
-    {
-    this->SetAndObserveReferenceVolumeNodeId(newID);
-    }
-  if (this->OutputContourNodeId && !strcmp(oldID, this->OutputContourNodeId))
-    {
-    this->SetAndObserveOutputContourNodeId(newID);
-    }
+  return vtkMRMLContourNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLContourMorphologyNode::ContourAReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourMorphologyNode::SetAndObserveContourANodeId(const char* id)
+void vtkMRMLContourMorphologyNode::SetAndObserveContourANode(vtkMRMLContourNode* node)
 {
-  if (this->ContourANodeId != NULL)
-    {
-    this->Scene->RemoveReferencedNodeID(this->ContourANodeId, this);
-    }
-
-  this->SetContourANodeId(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->ContourANodeId, this);
-    }
+  this->SetNthNodeReferenceID(vtkMRMLContourMorphologyNode::ContourAReferenceRole.c_str(), 0, node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourMorphologyNode::SetAndObserveContourBNodeId(const char* id)
+vtkMRMLContourNode* vtkMRMLContourMorphologyNode::GetContourBNode()
 {
-  if (this->ContourBNodeId != NULL)
-    {
-    this->Scene->RemoveReferencedNodeID(this->ContourBNodeId, this);
-    }
-
-  this->SetContourBNodeId(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->ContourBNodeId, this);
-    }
+  return vtkMRMLContourNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLContourMorphologyNode::ContourBReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourMorphologyNode::SetAndObserveReferenceVolumeNodeId(const char* id)
+void vtkMRMLContourMorphologyNode::SetAndObserveContourBNode(vtkMRMLContourNode* node)
 {
-  if (this->ReferenceVolumeNodeId != NULL)
-    {
-    this->Scene->RemoveReferencedNodeID(this->ReferenceVolumeNodeId, this);
-    }
-
-  this->SetReferenceVolumeNodeId(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->ReferenceVolumeNodeId, this);
-    }
+  this->SetNthNodeReferenceID(vtkMRMLContourMorphologyNode::ContourBReferenceRole.c_str(), 0, node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourMorphologyNode::SetAndObserveOutputContourNodeId(const char* id)
+vtkMRMLScalarVolumeNode* vtkMRMLContourMorphologyNode::GetReferenceVolumeNode()
 {
-  if (this->OutputContourNodeId != NULL)
-    {
-    this->Scene->RemoveReferencedNodeID(this->OutputContourNodeId, this);
-    }
+  return vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLContourMorphologyNode::ReferenceVolumeReferenceRole.c_str()) );
+}
 
-  this->SetOutputContourNodeId(id);
+//----------------------------------------------------------------------------
+void vtkMRMLContourMorphologyNode::SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
+{
+  this->SetNthNodeReferenceID(vtkMRMLContourMorphologyNode::ReferenceVolumeReferenceRole.c_str(), 0, node->GetID());
+}
 
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->OutputContourNodeId, this);
-    }
+//----------------------------------------------------------------------------
+vtkMRMLContourNode* vtkMRMLContourMorphologyNode::GetOutputContourNode()
+{
+  return vtkMRMLContourNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLContourMorphologyNode::OutputContourReferenceRole.c_str()) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourMorphologyNode::SetAndObserveOutputContourNode(vtkMRMLContourNode* node)
+{
+  this->SetNthNodeReferenceID(vtkMRMLContourMorphologyNode::OutputContourReferenceRole.c_str(), 0, node->GetID());
 }

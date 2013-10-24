@@ -640,16 +640,19 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
     }
   }
 
+  vtkMRMLColorTableNode* defaultIsodoseColorTable = vtkMRMLColorTableNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId()) );
+
   // Create isodose parameter set node and set color table to default
   std::string isodoseParameterSetNodeName;
   isodoseParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
     SlicerRtCommon::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX + volumeNodeName );
   vtkSmartPointer<vtkMRMLIsodoseNode> isodoseParameterSetNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
   isodoseParameterSetNode->SetName(isodoseParameterSetNodeName.c_str());
-  isodoseParameterSetNode->SetAndObserveDoseVolumeNodeId(volumeNode->GetID());
-  if (this->IsodoseLogic)
+  isodoseParameterSetNode->SetAndObserveDoseVolumeNode(volumeNode);
+  if (this->IsodoseLogic && defaultIsodoseColorTable)
   {
-    isodoseParameterSetNode->SetAndObserveColorTableNodeId(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId());
+    isodoseParameterSetNode->SetAndObserveColorTableNode(defaultIsodoseColorTable);
   }
   this->GetMRMLScene()->AddNode(isodoseParameterSetNode);
 
@@ -662,18 +665,15 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
   volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
 
   // Set window/level to match the isodose levels
-  if (this->IsodoseLogic)
+  if (this->IsodoseLogic && defaultIsodoseColorTable)
   {
-    vtkMRMLColorTableNode* defaultIsodoseColorTable = vtkMRMLColorTableNode::SafeDownCast(
-      this->GetMRMLScene()->GetNodeByID(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId()) );
-    
     std::stringstream ssMin;
     ssMin << defaultIsodoseColorTable->GetColorName(0);;
     int minDoseInDefaultIsodoseLevels;
     ssMin >> minDoseInDefaultIsodoseLevels;
 
     std::stringstream ssMax;
-    ssMax << defaultIsodoseColorTable->GetColorName( defaultIsodoseColorTable->GetNumberOfColors()-1 );;
+    ssMax << defaultIsodoseColorTable->GetColorName(defaultIsodoseColorTable->GetNumberOfColors()-1);
     int maxDoseInDefaultIsodoseLevels;
     ssMax >> maxDoseInDefaultIsodoseLevels;
 
