@@ -149,7 +149,7 @@ void qMRMLPatientHierarchyTreeView::toggleVisibility(const QModelIndex& index)
   }
   vtkMRMLNode* associatedNode = hierarchyNode->GetAssociatedNode();
 
-  if (associatedNode && associatedNode->IsA("vtkMRMLVolumeNode"))
+  if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
   {
     // Show/hide is available in case of RT images. Not propagated to possible children
     if (hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()))

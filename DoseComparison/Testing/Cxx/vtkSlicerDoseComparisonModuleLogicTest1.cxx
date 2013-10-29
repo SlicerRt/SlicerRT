@@ -32,7 +32,6 @@
 #include <vtkMRMLCoreTestingMacros.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLVolumeNode.h>
 
 // VTK includes
 #include <vtkNew.h>

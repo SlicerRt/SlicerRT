@@ -1,5 +1,5 @@
 // MRML includes
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
@@ -10,7 +10,7 @@
 #include <vtkTransform.h>
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1/*=false*/)
+template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1/*=false*/)
 {
   if ( inVolumeNode == NULL )
   {
@@ -136,7 +136,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLVol
 }
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1/*=false*/)
+template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1/*=false*/)
 {
   if ( inVolumeNode == NULL )
   {

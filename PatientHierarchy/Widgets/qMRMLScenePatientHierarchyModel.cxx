@@ -211,7 +211,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
     int visible = vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(hierarchyNode);
 
     // Always set a different icon to volumes. If not a volume then set the appropriate eye icon
-    if (associatedNode && associatedNode->IsA("vtkMRMLVolumeNode"))
+    if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
     {
       // If case of RT image show regular eye icon (because it can be shown and hidden)
       if (hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
@@ -279,7 +279,7 @@ void qMRMLScenePatientHierarchyModel::updateItemDataFromNode(QStandardItem* item
       {
         item->setIcon(d->StructureSetIcon);
       }
-      else if (associatedNode && associatedNode->IsA("vtkMRMLVolumeNode"))
+      else if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
       {
         if (SlicerRtCommon::IsDoseVolumeNode(associatedNode))
         {

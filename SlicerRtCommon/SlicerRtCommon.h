@@ -10,7 +10,7 @@
 
 class vtkMRMLTransformableNode;
 class vtkMRMLNode;
-class vtkMRMLVolumeNode;
+class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 class vtkMRMLColorTableNode;
 
@@ -189,7 +189,7 @@ public:
     \param outputImageDataExtent Output extent that has to be set to the reslice algorithm
     \param outputImageDataSpacing Output spacing that has to be set to the reslice algorithm
   */
-  static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor, int outputImageDataExtent[6], double outputImageDataSpacing[3]);
+  static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLScalarVolumeNode* inputVolumeNode, double oversamplingFactor, int outputImageDataExtent[6], double outputImageDataSpacing[3]);
 
   /// Determine if a node is a patient hierarchy node
   static bool IsPatientHierarchyNode(vtkMRMLNode* node);
@@ -203,7 +203,7 @@ public:
   static void StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscreteColorTable, vtkMRMLColorTableNode* output256ValueColorTable, unsigned int numberOfColors=256);
 
   /// Check if the lattice (grid, geometry) of two volumes are the same
-  static bool DoVolumeLatticesMatch(vtkMRMLVolumeNode* volume1, vtkMRMLVolumeNode* volume2);
+  static bool DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtkMRMLScalarVolumeNode* volume2);
 
 //BTX
   /*!
@@ -213,7 +213,7 @@ public:
     \param paintForegroundTo1 Paint non-zero values to 1 (Optional)
     \return Success
   */
-  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
+  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
   /*!
     Convert VTK image to ITK image in LPS coordinate system (DICOM and ITK space)
     \param inVolumeNode Input volume node
@@ -221,7 +221,7 @@ public:
     \param paintForegroundTo1 Paint non-zero values to 1 (Optional)
     \return Success
   */
-  template<typename T> static bool ConvertVolumeNodeToItkImageInLPS(vtkMRMLVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
+  template<typename T> static bool ConvertVolumeNodeToItkImageInLPS(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
   //ETX
 };
 

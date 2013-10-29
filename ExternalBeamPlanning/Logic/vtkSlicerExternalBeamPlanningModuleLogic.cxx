@@ -455,7 +455,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   }
 
   // Convert input images to ITK format for Plastimatch
-  vtkMRMLVolumeNode* referenceVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
   itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
 
@@ -693,7 +693,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
   }
 
   // Convert input images to ITK format for Plastimatch
-  vtkMRMLVolumeNode* referenceVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
   //  itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
   itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();

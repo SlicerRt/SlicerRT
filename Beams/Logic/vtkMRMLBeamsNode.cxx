@@ -117,7 +117,7 @@ void vtkMRMLBeamsNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 void vtkMRMLBeamsNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkMRMLNode::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
   os << indent << "BeamModelOpacity:   " << this->BeamModelOpacity << "\n";
 }

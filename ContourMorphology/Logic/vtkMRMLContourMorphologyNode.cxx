@@ -148,7 +148,7 @@ void vtkMRMLContourMorphologyNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkMRMLNode::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
   os << indent << "Operation:   " << (int)(this->Operation) << "\n";
   os << indent << "XSize:   " << (this->XSize) << "\n";

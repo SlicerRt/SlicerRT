@@ -359,7 +359,7 @@ void vtkMRMLContourComparisonNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkMRMLNode::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
   os << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
   os << indent << " TruePositivesPercent=\"" << this->TruePositivesPercent << "\"";

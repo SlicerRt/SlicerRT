@@ -142,11 +142,11 @@ void vtkSlicerPlastimatchPyModuleLogic::SetPar(char* key, char* value)
 void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
 {
   // Set input images
-  vtkMRMLVolumeNode* fixedVtkImage = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
+  vtkMRMLScalarVolumeNode* fixedVtkImage = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
   itk::Image<float, 3>::Pointer fixedItkImage = itk::Image<float, 3>::New();
   SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(fixedVtkImage, fixedItkImage);
 
-  vtkMRMLVolumeNode* movingVtkImage = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
+  vtkMRMLScalarVolumeNode* movingVtkImage = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
   itk::Image<float, 3>::Pointer movingItkImage = itk::Image<float, 3>::New();
   SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(movingVtkImage, movingItkImage);
 
@@ -371,8 +371,8 @@ void vtkSlicerPlastimatchPyModuleLogic::SetWarpedImageInVolumeNode(Plm_image* wa
     }
   
   // Read fixed image to get the geometrical information
-  vtkMRMLVolumeNode* fixedVolumeNode =
-    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
+  vtkMRMLScalarVolumeNode* fixedVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(\
+    this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
   if (!fixedVolumeNode)
     {
     vtkErrorMacro("SetWarpedImageInVolumeNode: Node containing the fixed image cannot be retrieved!");
@@ -380,8 +380,8 @@ void vtkSlicerPlastimatchPyModuleLogic::SetWarpedImageInVolumeNode(Plm_image* wa
     }
 
   // Create new image node
-  vtkMRMLVolumeNode* warpedImageNode =
-    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->OutputVolumeID));
+  vtkMRMLScalarVolumeNode* warpedImageNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->OutputVolumeID));
   if (!warpedImageNode)
     {
     vtkErrorMacro("SetWarpedImageInVolumeNode: Node containing the warped image cannot be retrieved!");

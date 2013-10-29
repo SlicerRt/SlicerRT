@@ -34,7 +34,6 @@
 
 #include "vtkSlicerDoseAccumulationModuleLogicExport.h"
 
-class vtkMRMLVolumeNode;
 class vtkMRMLDoseAccumulationNode;
 
 /// \ingroup Slicer_QtModules_DoseAccumulation

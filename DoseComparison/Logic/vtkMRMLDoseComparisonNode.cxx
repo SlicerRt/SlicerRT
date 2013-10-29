@@ -24,7 +24,7 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -219,7 +219,7 @@ void vtkMRMLDoseComparisonNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkMRMLNode::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
   os << indent << "ReferenceDoseVolumeNodeId:   " << (this->ReferenceDoseVolumeNodeId ? this->ReferenceDoseVolumeNodeId : "NULL") << "\n";
   os << indent << "CompareDoseVolumeNodeId:   " << (this->CompareDoseVolumeNodeId ? this->CompareDoseVolumeNodeId : "NULL") << "\n";

@@ -1413,7 +1413,7 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
     for (hierarchyNodes->InitTraversal(); (nextObject = hierarchyNodes->GetNextItemAsObject()); )
     {
       vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(nextObject);
-      if (hierarchyNode && hierarchyNode->GetAssociatedNode() && hierarchyNode->GetAssociatedNode()->IsA("vtkMRMLVolumeNode"))
+      if (hierarchyNode && hierarchyNode->GetAssociatedNode() && hierarchyNode->GetAssociatedNode()->IsA("vtkMRMLScalarVolumeNode"))
       {
         // If this volume node has a referenced plan UID and it matches the isocenter UID then this may be the corresponding RT image
         const char* referencedPlanSopInstanceUid = hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());

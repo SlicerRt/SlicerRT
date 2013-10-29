@@ -33,7 +33,6 @@
 
 #include "vtkSlicerDoseComparisonModuleLogicExport.h"
 
-class vtkMRMLVolumeNode;
 class vtkMRMLDoseComparisonNode;
 
 /// \ingroup Slicer_QtModules_DoseComparison

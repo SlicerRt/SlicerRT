@@ -82,7 +82,7 @@ double vtkSlicerContoursPatientHierarchyPlugin::CanPluginAddNodeToPatientHierarc
     return 0.0;
   }
 
-  if (node->IsA("vtkMRMLModelNode") || node->IsA("vtkMRMLVolumeNode"))
+  if (node->IsA("vtkMRMLModelNode") || node->IsA("vtkMRMLScalarVolumeNode"))
   {
     if (this->IsNodeAContourRepresentation(node))
     {
@@ -197,7 +197,7 @@ double vtkSlicerContoursPatientHierarchyPlugin::CanPluginReparentNodeInsidePatie
     return 1.0;
   }
 
-  if (associatedNode->IsA("vtkMRMLModelNode") || associatedNode->IsA("vtkMRMLVolumeNode"))
+  if (associatedNode->IsA("vtkMRMLModelNode") || associatedNode->IsA("vtkMRMLScalarVolumeNode"))
   {
     // Node is a potential contour node representation. On reparenting under a structure set node in Patient Hierarchy, a contour node will be created
     return 0.7;
@@ -321,7 +321,7 @@ vtkMRMLContourNode* vtkSlicerContoursPatientHierarchyPlugin::IsNodeAContourRepre
   }
 
   // If the node is neither a model nor a volume, the it cannot be a representation
-  if (!node->IsA("vtkMRMLModelNode") && !node->IsA("vtkMRMLVolumeNode"))
+  if (!node->IsA("vtkMRMLModelNode") && !node->IsA("vtkMRMLScalarVolumeNode"))
   {
     return NULL;
   }

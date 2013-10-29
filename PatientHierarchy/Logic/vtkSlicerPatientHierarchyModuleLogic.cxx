@@ -339,7 +339,7 @@ int vtkSlicerPatientHierarchyModuleLogic::GetBranchVisibility(vtkMRMLHierarchyNo
   for (int i=0; i<childDisplayableNodes->GetNumberOfItems(); ++i)
   {
     vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(childDisplayableNodes->GetItemAsObject(i));
-    if (displayableNode && !displayableNode->IsA("vtkMRMLVolumeNode"))
+    if (displayableNode && !displayableNode->IsA("vtkMRMLScalarVolumeNode"))
     {
       // If we set visibility
       if (visible == -1)

@@ -682,7 +682,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     d->tableWidget_ChartStatistics->setItem(dvhIndex, 1, new QTableWidgetItem(
       QString((*dvhIt)->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));    
 
-    vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(
+    vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
       (*dvhIt)->GetNodeReference(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str()) );
     if (volumeNode)
     {

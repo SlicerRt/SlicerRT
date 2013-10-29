@@ -32,7 +32,6 @@
 #include <vtkMRMLCoreTestingMacros.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLVolumeNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -166,14 +165,14 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   vtkSmartPointer<vtkMRMLDoseAccumulationNode> paramNode = vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New();
   mrmlScene->AddNode(paramNode);
   
-  paramNode->GetSelectedInputVolumeIds()->insert(doseScalarVolumeNode->GetID());
-  paramNode->GetSelectedInputVolumeIds()->insert(doseScalarVolumeNode2->GetID());
+  paramNode->AddSelectedInputVolumeNode(doseScalarVolumeNode);
+  paramNode->AddSelectedInputVolumeNode(doseScalarVolumeNode2);
   std::map<std::string,double>* volumeNodeIdsToWeightsMap = paramNode->GetVolumeNodeIdsToWeightsMap();
   std::string doseVolumeId(doseScalarVolumeNode->GetID());
   (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode->GetID()] = 0.5;
   (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode2->GetID()] = 0.5;
-  paramNode->SetAndObserveAccumulatedDoseVolumeNodeId(outputVolumeNode->GetID());
-  paramNode->SetAndObserveReferenceDoseVolumeNodeId(doseScalarVolumeNode->GetID());
+  paramNode->SetAndObserveAccumulatedDoseVolumeNode(outputVolumeNode);
+  paramNode->SetAndObserveReferenceDoseVolumeNode(doseScalarVolumeNode);
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic> doseAccumulationLogic = vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic>::New();
@@ -191,8 +190,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   }
 
   // Get output volume
-  vtkSmartPointer<vtkMRMLVolumeNode> accumulatedDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
-    mrmlScene->GetNodeByID(paramNode->GetAccumulatedDoseVolumeNodeId()));  
+  vtkMRMLScalarVolumeNode* accumulatedDoseVolumeNode = paramNode->GetAccumulatedDoseVolumeNode();
   if (accumulatedDoseVolumeNode == NULL)
   { 
     mrmlScene->Commit();

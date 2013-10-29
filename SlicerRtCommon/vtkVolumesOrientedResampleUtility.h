@@ -27,7 +27,7 @@
 #define __vtkVolumesOrientedResampleUtility_h
 
 // MRML includes
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // ITK includes
 #include "itkImage.h"
@@ -46,9 +46,9 @@ public:
   /// Note: Interpolation mode is the default one: nearest neighbor
   /// \param TODO:
   /// \param TODO:
-  static bool ResampleInputVolumeNodeToReferenceVolumeNode(vtkMRMLVolumeNode* inVolumeNode, 
-                                                           vtkMRMLVolumeNode* refVolumeNode,
-                                                           vtkMRMLVolumeNode* outVolumeNode);
+  static bool ResampleInputVolumeNodeToReferenceVolumeNode(vtkMRMLScalarVolumeNode* inVolumeNode, 
+                                                           vtkMRMLScalarVolumeNode* refVolumeNode,
+                                                           vtkMRMLScalarVolumeNode* outVolumeNode);
 
 protected:
   vtkVolumesOrientedResampleUtility();

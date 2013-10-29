@@ -108,7 +108,7 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkMRMLNode::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
   os << indent << "RTPlanName:   " << (this->RTPlanName ? this->RTPlanName : "NULL") << "\n";
 }
@@ -132,7 +132,7 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
   if (eventID == vtkMRMLModelNode::PolyDataModifiedEvent || eventID == vtkMRMLVolumeNode::ImageDataModifiedEvent)
     {
     vtkMRMLModelNode* callerModelNode = vtkMRMLModelNode::SafeDownCast(caller);
-    vtkMRMLVolumeNode* callerVolumeNode = vtkMRMLVolumeNode::SafeDownCast(caller);
+    vtkMRMLScalarVolumeNode* callerVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(caller);
     if (!callerModelNode && !callerVolumeNode)
       {
       return;

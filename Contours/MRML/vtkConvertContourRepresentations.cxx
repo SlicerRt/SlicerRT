@@ -30,7 +30,6 @@
 #include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
-#include <vtkMRMLVolumeNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLModelHierarchyNode.h>

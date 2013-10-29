@@ -2,7 +2,7 @@
 
 // MRML includes
 #include <vtkMRMLTransformNode.h>
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLDisplayNode.h>
@@ -210,7 +210,7 @@ bool SlicerRtCommon::IsStringNullOrEmpty(const char* aString)
 }
 
 //----------------------------------------------------------------------------
-void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLVolumeNode* inputVolumeNode, double oversamplingFactor,
+void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLScalarVolumeNode* inputVolumeNode, double oversamplingFactor,
                                                                int outputImageDataExtent[6], double outputImageDataSpacing[3] )
 {
   if (!inputVolumeNode || !inputVolumeNode->GetImageData())
@@ -280,7 +280,7 @@ bool SlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
     return false;
   }
 
-  if (node->IsA("vtkMRMLVolumeNode"))
+  if (node->IsA("vtkMRMLScalarVolumeNode"))
   {
     const char* doseVolumeIdentifier = node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
     if (doseVolumeIdentifier != NULL)
@@ -333,7 +333,7 @@ void SlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscr
 }
 
 //---------------------------------------------------------------------------
-bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLVolumeNode* volume1, vtkMRMLVolumeNode* volume2)
+bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtkMRMLScalarVolumeNode* volume2)
 {
   if (!volume1 || !volume2)
   {

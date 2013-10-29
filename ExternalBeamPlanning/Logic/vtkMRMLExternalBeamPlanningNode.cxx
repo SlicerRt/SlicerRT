@@ -163,7 +163,7 @@ void vtkMRMLExternalBeamPlanningNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkMRMLNode::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
   os << indent << "ReferenceVolumeNodeID:   " << (this->ReferenceVolumeNodeID ? this->ReferenceVolumeNodeID : "NULL") << "\n";
   os << indent << "RTPlanNodeID:   " << (this->RTPlanNodeID ? this->RTPlanNodeID : "NULL") << "\n";

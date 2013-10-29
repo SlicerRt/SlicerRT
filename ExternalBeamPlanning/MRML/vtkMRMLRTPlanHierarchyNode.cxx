@@ -54,31 +54,6 @@ vtkMRMLRTPlanHierarchyNode::~vtkMRMLRTPlanHierarchyNode()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanHierarchyNode::WriteXML(ostream& of, int nIndent)
-{
-  Superclass::WriteXML(of, nIndent);
-
-  // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTPlanHierarchyNode::ReadXMLAttributes(const char** atts)
-{
-  vtkMRMLNode::ReadXMLAttributes(atts);
-
-  // Read all MRML node attributes from two arrays of names and values
-  const char* attName;
-  const char* attValue;
-
-  while (*atts != NULL) 
-    {
-    attName = *(atts++);
-    attValue = *(atts++);
-    }
-}
-
-//----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLRTPlanHierarchyNode::Copy(vtkMRMLNode *anode)
@@ -90,30 +65,6 @@ void vtkMRMLRTPlanHierarchyNode::Copy(vtkMRMLNode *anode)
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTPlanHierarchyNode::UpdateReferences()
-{
-  Superclass::UpdateReferences();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTPlanHierarchyNode::UpdateReferenceID(const char *oldID, const char *newID)
-{
-  Superclass::UpdateReferenceID(oldID, newID);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTPlanHierarchyNode::UpdateScene(vtkMRMLScene *scene)
-{
-  Superclass::UpdateScene(scene);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTPlanHierarchyNode::PrintSelf(ostream& os, vtkIndent indent)
-{
-  vtkMRMLNode::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
@@ -134,7 +85,7 @@ void vtkMRMLRTPlanHierarchyNode::ProcessMRMLEvents(vtkObject *caller, unsigned l
   if (eventID == vtkMRMLModelNode::PolyDataModifiedEvent || eventID == vtkMRMLVolumeNode::ImageDataModifiedEvent)
     {
     vtkMRMLModelNode* callerModelNode = vtkMRMLModelNode::SafeDownCast(caller);
-    vtkMRMLVolumeNode* callerVolumeNode = vtkMRMLVolumeNode::SafeDownCast(caller);
+    vtkMRMLScalarVolumeNode* callerVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(caller);
     if (!callerModelNode && !callerVolumeNode)
       {
       return;

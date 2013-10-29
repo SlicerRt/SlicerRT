@@ -209,7 +209,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* 
     }
   }
 
-  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
+  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
     || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLDisplayableHierarchyNode")
     || node->IsA("vtkMRMLChartNode") || node->IsA("vtkMRMLDoseVolumeHistogramNode"))
   {
@@ -238,7 +238,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode
     node->Delete();
   }
 
-  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
+  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
     || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLDisplayableHierarchyNode")
     || node->IsA("vtkMRMLChartNode") || node->IsA("vtkMRMLDoseVolumeHistogramNode"))
   {

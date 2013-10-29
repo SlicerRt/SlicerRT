@@ -34,7 +34,7 @@
 #include "vtkMRMLDoseComparisonNode.h"
 
 // MRML includes
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_DoseComparison
@@ -560,9 +560,9 @@ void qSlicerDoseComparisonModuleWidget::checkDoseVolumeAttributes()
     return;
   }
 
-  vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetReferenceDoseVolumeNodeId()));
-  vtkMRMLVolumeNode* compareDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* compareDoseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetCompareDoseVolumeNodeId()));
 
   if (referenceDoseVolumeNode && !SlicerRtCommon::IsDoseVolumeNode(referenceDoseVolumeNode))
@@ -598,14 +598,14 @@ void qSlicerDoseComparisonModuleWidget::refreshOutputBaseName()
 
   QString newBaseName(SlicerRtCommon::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX.c_str());
 
-  vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetReferenceDoseVolumeNodeId()));
   if (referenceDoseVolumeNode)
   {
     newBaseName.append(referenceDoseVolumeNode->GetName());
   }
 
-  vtkMRMLVolumeNode* compareDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* compareDoseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->mrmlScene()->GetNodeByID(paramNode->GetCompareDoseVolumeNodeId()));
   if (compareDoseVolumeNode)
   {

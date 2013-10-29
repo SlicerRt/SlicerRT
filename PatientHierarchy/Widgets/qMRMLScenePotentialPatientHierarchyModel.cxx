@@ -117,7 +117,7 @@ bool qMRMLScenePotentialPatientHierarchyModel::canBeAChild(vtkMRMLNode* node)con
 {
   // Volumes and models can be patient hierarchy leaves by default
   // TODO: Outsource this decision to the modules? (e.g. Beams in case of models)
-  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLModelNode"))
+  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLModelNode"))
   {
     return true;
   }

@@ -27,10 +27,11 @@
 #include <vtkMRMLNode.h>
 
 // STD includes
-#include <set>
 #include <map>
 
 #include "vtkSlicerDoseAccumulationModuleLogicExport.h"
+
+class vtkMRMLScalarVolumeNode;
 
 class VTK_SLICER_DOSEACCUMULATION_LOGIC_EXPORT vtkMRMLDoseAccumulationNode : public vtkMRMLNode
 {
@@ -38,6 +39,10 @@ public:
   static vtkMRMLDoseAccumulationNode *New();
   vtkTypeMacro(vtkMRMLDoseAccumulationNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  static std::string ReferenceDoseVolumeReferenceRole;
+  static std::string AccumulatedDoseVolumeReferenceRole;
+  static std::string SelectedInputVolumeReferenceRole;
 
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -54,44 +59,37 @@ public:
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "DoseAccumulation";};
 
+public:
   /// Enable/Disable show dose volumes only
   vtkBooleanMacro(ShowDoseVolumesOnly, bool);
   vtkGetMacro(ShowDoseVolumesOnly, bool);
   vtkSetMacro(ShowDoseVolumesOnly, bool);
 
-  /// Get selected input volumes MRML Ids
-  std::set<std::string>* GetSelectedInputVolumeIds()
-  {
-    return &this->SelectedInputVolumeIds;
-  }
+  /// Get input reference dose volume node
+  vtkMRMLScalarVolumeNode* GetReferenceDoseVolumeNode();
+  /// Set and observe input reference dose volume node
+  void SetAndObserveReferenceDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  /// Get output accumulated dose volume node
+  vtkMRMLScalarVolumeNode* GetAccumulatedDoseVolumeNode();
+  /// Set and observe output accumulated dose volume node
+  void SetAndObserveAccumulatedDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  /// Get nth selected input volume node
+  /// \return The pointer of the volume node if available, NULL otherwise
+  vtkMRMLScalarVolumeNode* GetNthSelectedInputVolumeNode(unsigned int index);
+  /// Get number of selected input volume nodes
+  unsigned int GetNumberOfSelectedInputVolumeNodes();
+  /// Add selected input volume node
+  void AddSelectedInputVolumeNode(vtkMRMLScalarVolumeNode* node);
+  /// Remove selected input volume node
+  void RemoveSelectedInputVolumeNode(vtkMRMLScalarVolumeNode* node);
 
   /// Get volumes node IDs to weights map
   std::map<std::string,double>* GetVolumeNodeIdsToWeightsMap()
   {
     return &this->VolumeNodeIdsToWeightsMap;
   }
-
-  /// Get reference dose volume MRML Id 
-  vtkGetStringMacro(ReferenceDoseVolumeNodeId);
-
-  /// Set and observe reference dose volume MRML Id 
-  void SetAndObserveReferenceDoseVolumeNodeId(const char* id);
-
-  /// Get output accumulated dose volume MRML Id 
-  vtkGetStringMacro(AccumulatedDoseVolumeNodeId);
-
-  /// Set and observe output accumulated dose volume MRML Id 
-  void SetAndObserveAccumulatedDoseVolumeNodeId(const char* id);
-
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
-protected:
-  /// Set input reference dose volume MRML Id 
-  vtkSetStringMacro(ReferenceDoseVolumeNodeId);
-
-  /// Set output accumulated dose volume MRML Id 
-  vtkSetStringMacro(AccumulatedDoseVolumeNodeId);
 
 protected:
   vtkMRMLDoseAccumulationNode();
@@ -103,18 +101,9 @@ protected:
   /// State of Show dose volumes only checkbox
   bool ShowDoseVolumesOnly;
 
-  /// List of IDs of the selected input volume nodes
-  std::set<std::string> SelectedInputVolumeIds;
-
   /// Map assigning a weight to the available input volume nodes
   /// (as the user set it on the module GUI)
   std::map<std::string,double> VolumeNodeIdsToWeightsMap;
-
-  /// ID of the input reference dose volume node
-  char* ReferenceDoseVolumeNodeId;
-
-  /// ID of the output accumulated dose volume node
-  char* AccumulatedDoseVolumeNodeId;
 };
 
 #endif

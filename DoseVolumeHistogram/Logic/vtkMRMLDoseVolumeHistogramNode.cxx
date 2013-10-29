@@ -241,7 +241,7 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkMRMLNode::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
   os << indent << "ShowHideAll:   " << this->ShowHideAll << "\n";
 

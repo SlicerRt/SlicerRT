@@ -36,7 +36,6 @@
 #include "vtkSlicerBeamsModuleLogicExport.h"
 
 class vtkTransform;
-class vtkMRMLVolumeNode;
 class vtkMRMLBeamsNode;
 
 /// \ingroup Slicer_QtModules_Beams

@@ -46,9 +46,9 @@ vtkVolumesOrientedResampleUtility::~vtkVolumesOrientedResampleUtility()
 
 //----------------------------------------------------------------------------
 bool vtkVolumesOrientedResampleUtility
-::ResampleInputVolumeNodeToReferenceVolumeNode(vtkMRMLVolumeNode* inVolumeNode, 
-                                               vtkMRMLVolumeNode* refVolumeNode, 
-                                               vtkMRMLVolumeNode* outVolumeNode)
+::ResampleInputVolumeNodeToReferenceVolumeNode(vtkMRMLScalarVolumeNode* inVolumeNode, 
+                                               vtkMRMLScalarVolumeNode* refVolumeNode, 
+                                               vtkMRMLScalarVolumeNode* outVolumeNode)
 {
   int dimensions[3] = {0, 0, 0};
 

@@ -271,7 +271,7 @@ void vtkMRMLContourNode::UpdateReferenceID(const char *oldID, const char *newID)
 //----------------------------------------------------------------------------
 void vtkMRMLContourNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkMRMLNode::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
   os << indent << "RibbonModelNodeId:   " << (this->RibbonModelNodeId ? this->RibbonModelNodeId : "NULL") << "\n";
   os << indent << "IndexedLabelmapVolumeNodeId:   " << (this->IndexedLabelmapVolumeNodeId ? this->IndexedLabelmapVolumeNodeId : "NULL") << "\n";
@@ -301,7 +301,7 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
   if (eventID == vtkMRMLModelNode::PolyDataModifiedEvent || eventID == vtkMRMLVolumeNode::ImageDataModifiedEvent)
     {
     vtkMRMLModelNode* callerModelNode = vtkMRMLModelNode::SafeDownCast(caller);
-    vtkMRMLVolumeNode* callerVolumeNode = vtkMRMLVolumeNode::SafeDownCast(caller);
+    vtkMRMLScalarVolumeNode* callerVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(caller);
     if (!callerModelNode && !callerVolumeNode)
       {
       return;

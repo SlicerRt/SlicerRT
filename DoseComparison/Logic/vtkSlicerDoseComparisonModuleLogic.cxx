@@ -30,7 +30,7 @@
 #include "gamma_dose_comparison.h"
 
 // MRML includes
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLColorTableNode.h>
@@ -144,7 +144,7 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     return;
   }
 
-  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
+  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
   {
     this->Modified();
   }
@@ -159,7 +159,7 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* nod
     return;
   }
 
-  if (node->IsA("vtkMRMLVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
+  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
   {
     this->Modified();
   }
@@ -189,11 +189,11 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   this->DoseComparisonNode->ResultsValidOff();
 
   // Convert input images to the format Plastimatch can use
-  vtkMRMLVolumeNode* referenceDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetReferenceDoseVolumeNodeId()));
   itk::Image<float, 3>::Pointer referenceDoseVolumeItk = itk::Image<float, 3>::New();
 
-  vtkMRMLVolumeNode* compareDoseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* compareDoseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetCompareDoseVolumeNodeId()));
   itk::Image<float, 3>::Pointer compareDoseVolumeItk = itk::Image<float, 3>::New();
 
@@ -244,7 +244,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   }
 
   // Set properties of output volume node
-  vtkMRMLVolumeNode* gammaVolumeNode = vtkMRMLVolumeNode::SafeDownCast(
+  vtkMRMLScalarVolumeNode* gammaVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetGammaVolumeNodeId()));
 
   if (gammaVolumeNode == NULL)
