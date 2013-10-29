@@ -22,6 +22,9 @@
 // MRMLDoseAccumulation includes
 #include "vtkMRMLDoseComparisonNode.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
@@ -34,15 +37,16 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
+std::string vtkMRMLDoseComparisonNode::ReferenceDoseVolumeReferenceRole = std::string("referenceDoseVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLDoseComparisonNode::CompareDoseVolumeReferenceRole = std::string("compareDoseVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLDoseComparisonNode::GammaVolumeReferenceRole = std::string("outputGammaVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+
+//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLDoseComparisonNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
 {
-  this->ReferenceDoseVolumeNodeId = NULL;
-  this->CompareDoseVolumeNodeId = NULL;
-  this->GammaVolumeNodeId = NULL;
-
   this->DtaDistanceToleranceMm = 3.0;
   this->DoseDifferenceTolerancePercent = 3.0;
   this->ReferenceDoseGy = 50.0;
@@ -58,9 +62,6 @@ vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
 //----------------------------------------------------------------------------
 vtkMRMLDoseComparisonNode::~vtkMRMLDoseComparisonNode()
 {
-  this->SetReferenceDoseVolumeNodeId(NULL);
-  this->SetCompareDoseVolumeNodeId(NULL);
-  this->SetGammaVolumeNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -70,21 +71,6 @@ void vtkMRMLDoseComparisonNode::WriteXML(ostream& of, int nIndent)
 
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
-
-  if ( this->ReferenceDoseVolumeNodeId )
-    {
-    of << indent << " ReferenceDoseVolumeNodeId=\"" << this->ReferenceDoseVolumeNodeId << "\"";
-    }
-
-  if ( this->CompareDoseVolumeNodeId )
-    {
-    of << indent << " CompareDoseVolumeNodeId=\"" << this->CompareDoseVolumeNodeId << "\"";
-    }
-
-  if ( this->GammaVolumeNodeId )
-    {
-    of << indent << " GammaVolumeNodeId=\"" << this->GammaVolumeNodeId << "\"";
-    }
 
   of << indent << " DtaDistanceToleranceMm=\"" << this->DtaDistanceToleranceMm << "\"";
   of << indent << " DoseDifferenceTolerancePercent=\"" << this->DoseDifferenceTolerancePercent << "\"";
@@ -110,25 +96,7 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "ReferenceDoseVolumeNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveReferenceDoseVolumeNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "CompareDoseVolumeNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveCompareDoseVolumeNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "GammaVolumeNodeId")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveGammaVolumeNodeId(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "DtaDistanceToleranceMm")) 
+    if (!strcmp(attName, "DtaDistanceToleranceMm")) 
       {
       std::stringstream ss;
       ss << attValue;
@@ -199,10 +167,6 @@ void vtkMRMLDoseComparisonNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLDoseComparisonNode *node = (vtkMRMLDoseComparisonNode *) anode;
 
-  this->SetAndObserveReferenceDoseVolumeNodeId(node->ReferenceDoseVolumeNodeId);
-  this->SetAndObserveCompareDoseVolumeNodeId(node->CompareDoseVolumeNodeId);
-  this->SetAndObserveGammaVolumeNodeId(node->GammaVolumeNodeId);
-
   this->DtaDistanceToleranceMm = node->DtaDistanceToleranceMm;
   this->DoseDifferenceTolerancePercent = node->DoseDifferenceTolerancePercent;
   this->ReferenceDoseGy = node->ReferenceDoseGy;
@@ -221,10 +185,6 @@ void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "ReferenceDoseVolumeNodeId:   " << (this->ReferenceDoseVolumeNodeId ? this->ReferenceDoseVolumeNodeId : "NULL") << "\n";
-  os << indent << "CompareDoseVolumeNodeId:   " << (this->CompareDoseVolumeNodeId ? this->CompareDoseVolumeNodeId : "NULL") << "\n";
-  os << indent << "GammaVolumeNodeId:   " << (this->GammaVolumeNodeId ? this->GammaVolumeNodeId : "NULL") << "\n";
-
   os << indent << "DtaDistanceToleranceMm:   " << this->DtaDistanceToleranceMm << "\n";
   os << indent << "DoseDifferenceTolerancePercent:   " << this->DoseDifferenceTolerancePercent << "\n";
   os << indent << "ReferenceDoseGy:   " << this->ReferenceDoseGy << "\n";
@@ -236,66 +196,41 @@ void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseComparisonNode::SetAndObserveReferenceDoseVolumeNodeId(const char* id)
+vtkMRMLScalarVolumeNode* vtkMRMLDoseComparisonNode::GetReferenceDoseVolumeNode()
 {
-  if (this->ReferenceDoseVolumeNodeId)
-  {
-    this->Scene->RemoveReferencedNodeID(this->ReferenceDoseVolumeNodeId, this);
-  }
-
-  this->SetReferenceDoseVolumeNodeId(id);
-
-  if (id)
-  {
-    this->Scene->AddReferencedNodeID(this->ReferenceDoseVolumeNodeId, this);
-  }
+  return vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLDoseComparisonNode::ReferenceDoseVolumeReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseComparisonNode::SetAndObserveCompareDoseVolumeNodeId(const char* id)
+void vtkMRMLDoseComparisonNode::SetAndObserveReferenceDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  if (this->CompareDoseVolumeNodeId)
-  {
-    this->Scene->RemoveReferencedNodeID(this->CompareDoseVolumeNodeId, this);
-  }
-
-  this->SetCompareDoseVolumeNodeId(id);
-
-  if (id)
-  {
-    this->Scene->AddReferencedNodeID(this->CompareDoseVolumeNodeId, this);
-  }
+  this->SetNthNodeReferenceID(vtkMRMLDoseComparisonNode::ReferenceDoseVolumeReferenceRole.c_str(), 0, node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseComparisonNode::SetAndObserveGammaVolumeNodeId(const char* id)
+vtkMRMLScalarVolumeNode* vtkMRMLDoseComparisonNode::GetCompareDoseVolumeNode()
 {
-  if (this->GammaVolumeNodeId)
-  {
-    this->Scene->RemoveReferencedNodeID(this->GammaVolumeNodeId, this);
-  }
-
-  this->SetGammaVolumeNodeId(id);
-
-  if (id)
-  {
-    this->Scene->AddReferencedNodeID(this->GammaVolumeNodeId, this);
-  }
+  return vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLDoseComparisonNode::CompareDoseVolumeReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseComparisonNode::UpdateReferenceID(const char *oldID, const char *newID)
+void vtkMRMLDoseComparisonNode::SetAndObserveCompareDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  if (this->ReferenceDoseVolumeNodeId && !strcmp(oldID, this->ReferenceDoseVolumeNodeId))
-    {
-    this->SetAndObserveReferenceDoseVolumeNodeId(newID);
-    }
-  if (this->CompareDoseVolumeNodeId && !strcmp(oldID, this->CompareDoseVolumeNodeId))
-    {
-    this->SetAndObserveCompareDoseVolumeNodeId(newID);
-    }
-  if (this->GammaVolumeNodeId && !strcmp(oldID, this->GammaVolumeNodeId))
-    {
-    this->SetAndObserveGammaVolumeNodeId(newID);
-    }
+  this->SetNthNodeReferenceID(vtkMRMLDoseComparisonNode::CompareDoseVolumeReferenceRole.c_str(), 0, node->GetID());
 }
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkMRMLDoseComparisonNode::GetGammaVolumeNode()
+{
+  return vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLDoseComparisonNode::GammaVolumeReferenceRole.c_str()) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseComparisonNode::SetAndObserveGammaVolumeNode(vtkMRMLScalarVolumeNode* node)
+{
+  this->SetNthNodeReferenceID(vtkMRMLDoseComparisonNode::GammaVolumeReferenceRole.c_str(), 0, node->GetID());
+}
+

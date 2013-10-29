@@ -194,21 +194,19 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeam(char *beamname, double
     return;
   }
 
-  vtkMRMLRTPlanNode* RTPlanNode = vtkMRMLRTPlanNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetRTPlanNodeID()));
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
-  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetIsocenterNodeID()));
+  vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
+  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
+
   // Make sure inputs are initialized
-  if (!RTPlanNode || !isocenterMarkupsNode )
+  if (!rtPlanNode || !isocenterMarkupsNode || !referenceVolumeNode)
   {
     vtkErrorMacro("UpdateBeam: Inputs are not initialized!")
     return;
   }
 
   vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  RTPlanNode->GetRTBeamNodes(beams);
+  rtPlanNode->GetRTBeamNodes(beams);
   // Fill the table
   if (!beams) return;
   vtkMRMLRTBeamNode* beamNode = NULL;
@@ -241,7 +239,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeam(char *beamname, double
   vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
 
   vtkMRMLLinearTransformNode *transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-             this->GetMRMLScene()->GetNodeByID(beamModelNode->GetTransformNodeID()));
+    this->GetMRMLScene()->GetNodeByID(beamModelNode->GetTransformNodeID()) );
   if (transformNode)
   {
     transformNode->SetAndObserveMatrixTransformToParent(transform->GetMatrix());
@@ -257,20 +255,17 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
     return;
   }
 
-  vtkMRMLRTPlanNode* RTPlanNode = vtkMRMLRTPlanNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetRTPlanNodeID()));
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
-  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetIsocenterNodeID()));
+  vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
+  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
   // Make sure inputs are initialized
-  if (!RTPlanNode || !isocenterMarkupsNode )
+  if (!rtPlanNode || !isocenterMarkupsNode )
   {
     vtkErrorMacro("AddBeam: Inputs are not initialized!")
     return;
   }
 
-  // Get rtplan hierarchy node
+  // Get RT plan hierarchy node
   vtkSmartPointer<vtkMRMLRTPlanHierarchyNode> RTPlanHierarchyRootNode;
 
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
@@ -329,7 +324,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   RTBeamNode->HideFromEditorsOff();
 
   // Put the RTBeam node in the hierarchy
-  RTPlanNode->AddRTBeamNode(RTBeamNode);
+  rtPlanNode->AddRTBeamNode(RTBeamNode);
 
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 
@@ -345,23 +340,21 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
     return;
   }
 
-  vtkMRMLRTPlanNode* RTPlanNode = vtkMRMLRTPlanNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetRTPlanNodeID()));
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
+  vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
   // Make sure inputs are initialized
-  if (!RTPlanNode)
+  if (!rtPlanNode)
   {
     vtkErrorMacro("RemoveBeam: Inputs are not initialized!")
     return;
   }
 
-  // Get rtplan hierarchy node
+  // Get RT plan hierarchy node
   vtkSmartPointer<vtkMRMLRTPlanHierarchyNode> RTPlanHierarchyRootNode;
 
-  // Find rtbeam node in rtplan hierarchy node
+  // Find RT beam node in RT plan hierarchy node
   vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  RTPlanNode->GetRTBeamNodes(beams);
+  rtPlanNode->GetRTBeamNodes(beams);
 
   beams->InitTraversal();
   if (beams->GetNumberOfItems() < 1)
@@ -380,7 +373,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
       {
         vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
         vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelDisplayNode = beamModelNode->GetModelDisplayNode();
-        RTPlanNode->RemoveRTBeamNode(beamNode);
+        rtPlanNode->RemoveRTBeamNode(beamNode);
         this->GetMRMLScene()->RemoveNode(beamModelNode);
         this->GetMRMLScene()->RemoveNode(beamModelDisplayNode);
         break;
@@ -455,12 +448,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   }
 
   // Convert input images to ITK format for Plastimatch
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
   itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
 
-  vtkMRMLContourNode* targetContourNode = vtkMRMLContourNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetProtonTargetVolumeNodeID()));
+  vtkMRMLContourNode* targetContourNode = this->ExternalBeamPlanningNode->GetProtonTargetContourNode();
   vtkMRMLScalarVolumeNode* targetVolumeNode = targetContourNode->GetIndexedLabelmapVolumeNode();
   itk::Image<unsigned char, 3>::Pointer targetVolumeItk = itk::Image<unsigned char, 3>::New();
 
@@ -693,8 +684,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
   }
 
   // Convert input images to ITK format for Plastimatch
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->ExternalBeamPlanningNode->GetReferenceVolumeNodeID()));
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
   //  itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
   itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
 

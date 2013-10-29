@@ -60,15 +60,11 @@ public slots:
   void updateWidgetFromMRML();
 
 protected slots:
-
   void onLogicModified();
 
   void referenceVolumeNodeChanged(vtkMRMLNode*);
-
-  void RTPlanNodeChanged(vtkMRMLNode*);
-
+  void rtPlanNodeChanged(vtkMRMLNode*);
   void addBeamClicked();
-
   void removeBeamClicked();
 
   void beamNameChanged(const QString &);
@@ -85,8 +81,8 @@ protected slots:
   /* Geometry page */
   void gantryAngleChanged(double);
   void collimatorTypeChanged(const QString &);
-  void IsocenterNodeChanged(vtkMRMLNode*);
-  void protonTargetVolumeNodeChanged(vtkMRMLNode* node);
+  void isocenterFiducialNodeChanged(vtkMRMLNode*);
+  void protonTargetContourNodeChanged(vtkMRMLNode* node);
 
   void tableWidgetItemClicked(QTableWidgetItem *item);
 

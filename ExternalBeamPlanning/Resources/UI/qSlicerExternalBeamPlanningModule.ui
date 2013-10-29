@@ -37,7 +37,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RTPlan">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -440,7 +440,7 @@
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ProtonTargetVolume">
+             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ProtonTargetContour">
               <property name="enabled">
                <bool>true</bool>
               </property>
@@ -462,7 +462,7 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Isocenter">
+             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_IsocenterFiducial">
               <property name="enabled">
                <bool>true</bool>
               </property>
@@ -728,7 +728,7 @@
   <connection>
    <sender>qSlicerExternalBeamPlanningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_RTPlan</receiver>
+   <receiver>MRMLNodeComboBox_RtPlan</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -744,7 +744,7 @@
   <connection>
    <sender>qSlicerExternalBeamPlanningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_Isocenter</receiver>
+   <receiver>MRMLNodeComboBox_IsocenterFiducial</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -760,7 +760,7 @@
   <connection>
    <sender>qSlicerExternalBeamPlanningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ProtonTargetVolume</receiver>
+   <receiver>MRMLNodeComboBox_ProtonTargetContour</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">

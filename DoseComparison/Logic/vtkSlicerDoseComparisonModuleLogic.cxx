@@ -68,14 +68,8 @@ vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerDoseComparisonModuleLogic::~vtkSlicerDoseComparisonModuleLogic()
 {
-  this->SetAndObserveDoseComparisonNode(NULL); // Release the node object to avoid memory leaks
+  this->SetAndObserveDoseComparisonNode(NULL);
   this->SetDefaultGammaColorTableNodeId(NULL);
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerDoseComparisonModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
@@ -189,12 +183,10 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   this->DoseComparisonNode->ResultsValidOff();
 
   // Convert input images to the format Plastimatch can use
-  vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetReferenceDoseVolumeNodeId()));
+  vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = this->DoseComparisonNode->GetReferenceDoseVolumeNode();
   itk::Image<float, 3>::Pointer referenceDoseVolumeItk = itk::Image<float, 3>::New();
 
-  vtkMRMLScalarVolumeNode* compareDoseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetCompareDoseVolumeNodeId()));
+  vtkMRMLScalarVolumeNode* compareDoseVolumeNode = this->DoseComparisonNode->GetCompareDoseVolumeNode();
   itk::Image<float, 3>::Pointer compareDoseVolumeItk = itk::Image<float, 3>::New();
 
   // Convert inputs to ITK images
@@ -244,8 +236,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   }
 
   // Set properties of output volume node
-  vtkMRMLScalarVolumeNode* gammaVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->DoseComparisonNode->GetGammaVolumeNodeId()));
+  vtkMRMLScalarVolumeNode* gammaVolumeNode = this->DoseComparisonNode->GetGammaVolumeNode();
 
   if (gammaVolumeNode == NULL)
   {

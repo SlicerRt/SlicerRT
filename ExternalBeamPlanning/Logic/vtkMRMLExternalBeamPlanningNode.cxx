@@ -23,9 +23,15 @@
 // MRMLDoseAccumulation includes
 #include "vtkMRMLExternalBeamPlanningNode.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+#include "vtkMRMLRTPlanNode.h"
+#include "vtkMRMLContourNode.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLMarkupsFiducialNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -35,26 +41,23 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
+std::string vtkMRMLExternalBeamPlanningNode::ReferenceVolumeReferenceRole = std::string("referenceVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLExternalBeamPlanningNode::RtPlanReferenceRole = std::string("rtPlan") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLExternalBeamPlanningNode::IsocenterFiducialReferenceRole = std::string("isocenterFiducial") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+std::string vtkMRMLExternalBeamPlanningNode::ProtonTargetContourReferenceRole = std::string("protonTargetContour") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+
+//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLExternalBeamPlanningNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLExternalBeamPlanningNode::vtkMRMLExternalBeamPlanningNode()
 {
-  this->ReferenceVolumeNodeID = NULL;
-  this->RTPlanNodeID = NULL;
-  this->IsocenterNodeID = NULL;
-  this->ProtonTargetVolumeNodeID = NULL;
-
   this->HideFromEditors = false;
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLExternalBeamPlanningNode::~vtkMRMLExternalBeamPlanningNode()
 {
-  this->SetReferenceVolumeNodeID(NULL);
-  this->SetRTPlanNodeID(NULL);
-  this->SetIsocenterNodeID(NULL);
-  this->SetProtonTargetVolumeNodeID(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -64,81 +67,12 @@ void vtkMRMLExternalBeamPlanningNode::WriteXML(ostream& of, int nIndent)
 
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
-
-  {
-    std::stringstream ss;
-    if ( this->ReferenceVolumeNodeID )
-    {
-      ss << this->ReferenceVolumeNodeID;
-      of << indent << " ReferenceVolumeNodeID=\"" << ss.str() << "\"";
-    }
-  }
-
-  {
-    std::stringstream ss;
-    if ( this->RTPlanNodeID )
-    {
-      ss << this->RTPlanNodeID;
-      of << indent << " RTPlanNodeID=\"" << ss.str() << "\"";
-    }
-  }
-
-  {
-    std::stringstream ss;
-    if ( this->IsocenterNodeID )
-    {
-      ss << this->IsocenterNodeID;
-      of << indent << " IsocenterNodeID=\"" << ss.str() << "\"";
-    }
-  }
-
-  if ( this->ProtonTargetVolumeNodeID )
-  {
-    std::stringstream ss;
-    ss << this->ProtonTargetVolumeNodeID;
-    of << indent << " ProtonTargetVolumeNodeID=\"" << ss.str() << "\"";
-  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::ReadXMLAttributes(const char** atts)
 {
   vtkMRMLNode::ReadXMLAttributes(atts);
-
-  // Read all MRML node attributes from two arrays of names and values
-  const char* attName;
-  const char* attValue;
-
-  while (*atts != NULL) 
-    {
-    attName = *(atts++);
-    attValue = *(atts++);
-
-    if (!strcmp(attName, "ReferenceVolumeNodeID")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveReferenceVolumeNodeID(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "RTPlanNodeID")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveRTPlanNodeID(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "IsocenterNodeID")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveIsocenterNodeID(ss.str().c_str());
-      }
-    else if (!strcmp(attName, "ProtonTargetVolumeNodeID")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetAndObserveProtonTargetVolumeNodeID(ss.str().c_str());
-      }
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -151,11 +85,6 @@ void vtkMRMLExternalBeamPlanningNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLExternalBeamPlanningNode *node = (vtkMRMLExternalBeamPlanningNode *)anode;
 
-  this->SetAndObserveReferenceVolumeNodeID(node->ReferenceVolumeNodeID);
-  this->SetAndObserveRTPlanNodeID(node->RTPlanNodeID);
-  this->SetAndObserveIsocenterNodeID(node->IsocenterNodeID);
-  this->SetAndObserveProtonTargetVolumeNodeID(node->ProtonTargetVolumeNodeID);
-
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
 }
@@ -164,95 +93,57 @@ void vtkMRMLExternalBeamPlanningNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLExternalBeamPlanningNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
-
-  os << indent << "ReferenceVolumeNodeID:   " << (this->ReferenceVolumeNodeID ? this->ReferenceVolumeNodeID : "NULL") << "\n";
-  os << indent << "RTPlanNodeID:   " << (this->RTPlanNodeID ? this->RTPlanNodeID : "NULL") << "\n";
-  os << indent << "IsocenterNodeID:   " << (this->IsocenterNodeID ? this->IsocenterNodeID : "NULL") << "\n";
-  os << indent << "ProtonTargetVolumeNodeID:   " << (this->ProtonTargetVolumeNodeID ? this->ProtonTargetVolumeNodeID : "NULL") << "\n";
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLExternalBeamPlanningNode::UpdateReferenceID(const char *oldID, const char *newID)
+vtkMRMLScalarVolumeNode* vtkMRMLExternalBeamPlanningNode::GetReferenceVolumeNode()
 {
-  if (this->ReferenceVolumeNodeID && !strcmp(oldID, this->ReferenceVolumeNodeID))
-  {
-    this->SetAndObserveReferenceVolumeNodeID(newID);
-  }
-  if (this->RTPlanNodeID && !strcmp(oldID, this->RTPlanNodeID))
-  {
-    this->SetAndObserveRTPlanNodeID(newID);
-  }
-  if (this->IsocenterNodeID && !strcmp(oldID, this->IsocenterNodeID))
-  {
-    this->SetAndObserveIsocenterNodeID(newID);
-  }
-  if (this->ProtonTargetVolumeNodeID && !strcmp(oldID, this->ProtonTargetVolumeNodeID))
-  {
-    this->SetAndObserveProtonTargetVolumeNodeID(newID);
-  }
+  return vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLExternalBeamPlanningNode::ReferenceVolumeReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLExternalBeamPlanningNode::SetAndObserveReferenceVolumeNodeID(const char* id)
+void vtkMRMLExternalBeamPlanningNode::SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  if (this->ReferenceVolumeNodeID != NULL)
-    {
-    this->Scene->RemoveReferencedNodeID(this->ReferenceVolumeNodeID, this);
-    }
-
-  this->SetReferenceVolumeNodeID(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->ReferenceVolumeNodeID, this);
-    }
+  this->SetNthNodeReferenceID(vtkMRMLExternalBeamPlanningNode::ReferenceVolumeReferenceRole.c_str(), 0, node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLExternalBeamPlanningNode::SetAndObserveRTPlanNodeID(const char* id)
+vtkMRMLRTPlanNode* vtkMRMLExternalBeamPlanningNode::GetRtPlanNode()
 {
-  if (this->RTPlanNodeID != NULL)
-    {
-    this->Scene->RemoveReferencedNodeID(this->RTPlanNodeID, this);
-    }
-
-  this->SetRTPlanNodeID(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->RTPlanNodeID, this);
-    }
+  return vtkMRMLRTPlanNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLExternalBeamPlanningNode::RtPlanReferenceRole.c_str()) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLExternalBeamPlanningNode::SetAndObserveIsocenterNodeID(const char* id)
+void vtkMRMLExternalBeamPlanningNode::SetAndObserveRtPlanNode(vtkMRMLRTPlanNode* node)
 {
-  if (this->IsocenterNodeID != NULL)
-    {
-    this->Scene->RemoveReferencedNodeID(this->IsocenterNodeID, this);
-    }
-
-  this->SetIsocenterNodeID(id);
-
-  if (id)
-    {
-    this->Scene->AddReferencedNodeID(this->IsocenterNodeID, this);
-    }
+  this->SetNthNodeReferenceID(vtkMRMLExternalBeamPlanningNode::RtPlanReferenceRole.c_str(), 0, node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLExternalBeamPlanningNode::SetAndObserveProtonTargetVolumeNodeID(const char* id)
+vtkMRMLMarkupsFiducialNode* vtkMRMLExternalBeamPlanningNode::GetIsocenterFiducialNode()
 {
-  if (this->ProtonTargetVolumeNodeID != NULL)
-  {
-    this->Scene->RemoveReferencedNodeID(this->ProtonTargetVolumeNodeID, this);
-  }
+  return vtkMRMLMarkupsFiducialNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLExternalBeamPlanningNode::IsocenterFiducialReferenceRole.c_str()) );
+}
 
-  this->SetProtonTargetVolumeNodeID(id);
+//----------------------------------------------------------------------------
+void vtkMRMLExternalBeamPlanningNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node)
+{
+  this->SetNthNodeReferenceID(vtkMRMLExternalBeamPlanningNode::IsocenterFiducialReferenceRole.c_str(), 0, node->GetID());
+}
 
-  if (id)
-  {
-    this->Scene->AddReferencedNodeID(this->ProtonTargetVolumeNodeID, this);
-  }
+//----------------------------------------------------------------------------
+vtkMRMLContourNode* vtkMRMLExternalBeamPlanningNode::GetProtonTargetContourNode()
+{
+  return vtkMRMLContourNode::SafeDownCast(
+    this->GetNodeReference(vtkMRMLExternalBeamPlanningNode::ProtonTargetContourReferenceRole.c_str()) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLExternalBeamPlanningNode::SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node)
+{
+  this->SetNthNodeReferenceID(vtkMRMLExternalBeamPlanningNode::ProtonTargetContourReferenceRole.c_str(), 0, node->GetID());
 }
 

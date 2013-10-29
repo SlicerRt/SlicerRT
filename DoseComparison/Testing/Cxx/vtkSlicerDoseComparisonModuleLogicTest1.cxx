@@ -144,9 +144,9 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
   vtkSmartPointer<vtkMRMLDoseComparisonNode> paramNode = vtkSmartPointer<vtkMRMLDoseComparisonNode>::New();
   mrmlScene->AddNode(paramNode);
 
-  paramNode->SetAndObserveReferenceDoseVolumeNodeId(day1DoseScalarVolumeNode->GetID());
-  paramNode->SetAndObserveCompareDoseVolumeNodeId(day2DoseScalarVolumeNode->GetID());
-  paramNode->SetAndObserveGammaVolumeNodeId(outputGammaVolumeNode->GetID());
+  paramNode->SetAndObserveReferenceDoseVolumeNode(day1DoseScalarVolumeNode);
+  paramNode->SetAndObserveCompareDoseVolumeNode(day2DoseScalarVolumeNode);
+  paramNode->SetAndObserveGammaVolumeNode(outputGammaVolumeNode);
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseComparisonModuleLogic> doseComparisonLogic = vtkSmartPointer<vtkSlicerDoseComparisonModuleLogic>::New();

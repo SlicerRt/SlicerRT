@@ -42,7 +42,6 @@ class VTK_SLICER_DOSECOMPARISON_LOGIC_EXPORT vtkSlicerDoseComparisonModuleLogic 
 public:
   static vtkSlicerDoseComparisonModuleLogic *New();
   vtkTypeMacro(vtkSlicerDoseComparisonModuleLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
   /// Compute gamma metric according to the selected input volumes and parameters (DoseComparison parameter set node content)

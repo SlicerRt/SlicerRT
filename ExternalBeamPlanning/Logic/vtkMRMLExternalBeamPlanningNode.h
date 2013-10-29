@@ -27,8 +27,10 @@
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
 
-// STD includes
-#include <vector>
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLRTPlanNode;
+class vtkMRMLMarkupsFiducialNode;
+class vtkMRMLContourNode;
 
 #include "vtkSlicerExternalBeamPlanningModuleLogicExport.h"
 
@@ -38,6 +40,11 @@ public:
   static vtkMRMLExternalBeamPlanningNode *New();
   vtkTypeMacro(vtkMRMLExternalBeamPlanningNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  static std::string ReferenceVolumeReferenceRole;
+  static std::string RtPlanReferenceRole;
+  static std::string IsocenterFiducialReferenceRole;
+  static std::string ProtonTargetContourReferenceRole;
 
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -55,32 +62,25 @@ public:
   virtual const char* GetNodeTagName() {return "ExternalBeamPlanning";};
 
 public:
-  /// Get TODO
-  vtkGetStringMacro(ReferenceVolumeNodeID);
+  /// Get reference volume node
+  vtkMRMLScalarVolumeNode* GetReferenceVolumeNode();
+  /// Set and observe reference volume node
+  void SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Set TODO
-  void SetAndObserveReferenceVolumeNodeID(const char* id);
+  /// Get RT plan node
+  vtkMRMLRTPlanNode* GetRtPlanNode();
+  /// Set and observe RT plan node
+  void SetAndObserveRtPlanNode(vtkMRMLRTPlanNode* node);
 
-  /// Get TODO
-  vtkGetStringMacro(RTPlanNodeID);
+  /// Get isocenter fiducial node
+  vtkMRMLMarkupsFiducialNode* GetIsocenterFiducialNode();
+  /// Set and observe isocenter fiducial node
+  void SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node);
 
-  /// Set TODO
-  void SetAndObserveRTPlanNodeID(const char* id);
-
-  /// Get TODO
-  vtkGetStringMacro(IsocenterNodeID);
-
-  /// Set TODO
-  void SetAndObserveIsocenterNodeID(const char* id);
-
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
-  /// Get TODO
-  vtkGetStringMacro(ProtonTargetVolumeNodeID);
-
-  /// Set TODO
-  void SetAndObserveProtonTargetVolumeNodeID(const char* id);
+  /// Get proton target contour node
+  vtkMRMLContourNode* GetProtonTargetContourNode();
+  /// Set and observe proton target contour node
+  void SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node);
 
   vtkGetMacro(GantryAngle, double);
   vtkSetMacro(GantryAngle, double);
@@ -90,38 +90,12 @@ public:
   vtkSetMacro(ProximalMargin, double);
   vtkGetMacro(DistalMargin, double);
   vtkSetMacro(DistalMargin, double);
-
-protected:
-  /// Set TODO
-  vtkSetStringMacro(ReferenceVolumeNodeID);
-
-  /// Set TODO
-  vtkSetStringMacro(RTPlanNodeID);
- 
-  /// Set TODO
-  vtkSetStringMacro(IsocenterNodeID);
- 
-  /// Set TODO
-  vtkSetStringMacro(ProtonTargetVolumeNodeID);
-
  
 protected:
   vtkMRMLExternalBeamPlanningNode();
   ~vtkMRMLExternalBeamPlanningNode();
   vtkMRMLExternalBeamPlanningNode(const vtkMRMLExternalBeamPlanningNode&);
   void operator=(const vtkMRMLExternalBeamPlanningNode&);
-
-  /// TODO
-  char* ReferenceVolumeNodeID;
-
-  /// TODO
-  char* RTPlanNodeID;
-
-  /// TODO
-  char* IsocenterNodeID;
-
-  /// TODO
-  char* ProtonTargetVolumeNodeID;
 
   double GantryAngle;
   double Smearing;

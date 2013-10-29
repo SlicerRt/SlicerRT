@@ -32,12 +32,18 @@
 
 #include "vtkSlicerDoseComparisonModuleLogicExport.h"
 
+class vtkMRMLScalarVolumeNode;
+
 class VTK_SLICER_DOSECOMPARISON_LOGIC_EXPORT vtkMRMLDoseComparisonNode : public vtkMRMLNode
 {
 public:
   static vtkMRMLDoseComparisonNode *New();
   vtkTypeMacro(vtkMRMLDoseComparisonNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  static std::string ReferenceDoseVolumeReferenceRole;
+  static std::string CompareDoseVolumeReferenceRole;
+  static std::string GammaVolumeReferenceRole;
 
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -55,23 +61,20 @@ public:
   virtual const char* GetNodeTagName() {return "DoseComparison";};
 
 public:
-  /// Get reference dose volume node ID
-  vtkGetStringMacro(ReferenceDoseVolumeNodeId);
+  /// Get reference dose volume node
+  vtkMRMLScalarVolumeNode* GetReferenceDoseVolumeNode();
+  /// Set and observe reference dose volume node
+  void SetAndObserveReferenceDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Set and observe reference dose volume node ID
-  void SetAndObserveReferenceDoseVolumeNodeId(const char* id);
+  /// Get compare dose volume node
+  vtkMRMLScalarVolumeNode* GetCompareDoseVolumeNode();
+  /// Set and observe compare dose volume node
+  void SetAndObserveCompareDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get compare dose volume node ID
-  vtkGetStringMacro(CompareDoseVolumeNodeId);
-
-  /// Set and observe reference dose volume node ID
-  void SetAndObserveCompareDoseVolumeNodeId(const char* id);
-
-  /// Get output gamma volume node ID
-  vtkGetStringMacro(GammaVolumeNodeId);
-
-  /// Set and observe reference dose volume node ID
-  void SetAndObserveGammaVolumeNodeId(const char* id);
+  /// Get output gamma volume node
+  vtkMRMLScalarVolumeNode* GetGammaVolumeNode();
+  /// Set and observe output gamma volume node
+  void SetAndObserveGammaVolumeNode(vtkMRMLScalarVolumeNode* node);
 
   /// Get/Set distance to agreement (DTA) tolerance, in mm
   vtkGetMacro(DtaDistanceToleranceMm, double);
@@ -107,19 +110,6 @@ public:
   vtkGetMacro(PassFractionPercent, double);
   vtkSetMacro(PassFractionPercent, double);
 
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
-protected:
-  /// Set reference dose volume node ID
-  vtkSetStringMacro(ReferenceDoseVolumeNodeId);
-
-  /// Set compare dose volume node ID
-  vtkSetStringMacro(CompareDoseVolumeNodeId);
-
-  /// Set output gamma volume node ID
-  vtkSetStringMacro(GammaVolumeNodeId);
-
 protected:
   vtkMRMLDoseComparisonNode();
   ~vtkMRMLDoseComparisonNode();
@@ -127,15 +117,6 @@ protected:
   void operator=(const vtkMRMLDoseComparisonNode&);
 
 protected:
-  /// Selected reference dose volume MRML node object ID
-  char* ReferenceDoseVolumeNodeId;
-
-  /// Selected compare dose volume MRML node object ID
-  char* CompareDoseVolumeNodeId;
-
-  /// Selected output gamma volume MRML node object ID
-  char* GammaVolumeNodeId;
-
   /// Distance to agreement (DTA) tolerance, in mm
   double DtaDistanceToleranceMm;
 
