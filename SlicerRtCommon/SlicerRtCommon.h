@@ -138,6 +138,7 @@ public:
 
   // DoseAccumulation constants
   static const std::string DOSEACCUMULATION_ATTRIBUTE_PREFIX;
+  static const std::string DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME;
   static const std::string DOSEACCUMULATION_OUTPUT_BASE_NAME_PREFIX;
 
   // Isodose constants
