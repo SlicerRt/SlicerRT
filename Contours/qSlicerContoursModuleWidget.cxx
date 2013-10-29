@@ -132,27 +132,7 @@ void qSlicerContoursModuleWidget::onEnter()
 //-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::setup()
 {
-  Q_D(qSlicerContoursModuleWidget);
-  d->setupUi(this);
-  this->Superclass::setup();
-
-  // Filter out hierarchy nodes that are not contour hierarchy nodes
-  d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
-
-  // Make connections
-  connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
-
-  connect( d->comboBox_ChangeActiveRepresentation, SIGNAL(currentIndexChanged(int)), this, SLOT(activeRepresentationComboboxSelectionChanged(int)) );
-  connect( d->pushButton_ApplyChangeRepresentation, SIGNAL(clicked()), this, SLOT(applyChangeRepresentationClicked()) );
-  connect( d->horizontalSlider_OversamplingFactor, SIGNAL(valueChanged(int)), this, SLOT(oversamplingFactorChanged(int)) );
-  connect( d->SliderWidget_TargetReductionFactorPercent, SIGNAL(valueChanged(double)), this, SLOT(targetReductionFactorPercentChanged(double)) );
-
-  d->label_NoReferenceWarning->setVisible(false);
-  d->label_NewConversion->setVisible(false);
-  d->label_NoSourceWarning->setVisible(false);
-  d->label_ActiveSelected->setVisible(false);
-  d->label_CreatedFromLabelmap->setVisible(false);
+  this->testInit();
 }
 
 //-----------------------------------------------------------------------------
@@ -632,6 +612,11 @@ bool qSlicerContoursModuleWidget::isSuitableSourceAvailableForConversionForAllSe
 {
   Q_D(qSlicerContoursModuleWidget);
 
+  if( d->SelectedContourNodes.size() == 0 )
+  {
+    return false;
+  }
+
   for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
   {
     if (!this->isSuitableSourceAvailableForConversion(*it))
@@ -862,4 +847,86 @@ bool qSlicerContoursModuleWidget::convertToClosedSurfaceModel(vtkMRMLContourNode
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::testInit()
+{
+  Q_D(qSlicerContoursModuleWidget);
+  d->setupUi(this);
+  this->Superclass::setup();
+
+  // Filter out hierarchy nodes that are not contour hierarchy nodes
+  d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
+
+  // Make connections
+  connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
+
+  connect( d->comboBox_ChangeActiveRepresentation, SIGNAL(currentIndexChanged(int)), this, SLOT(activeRepresentationComboboxSelectionChanged(int)) );
+  connect( d->pushButton_ApplyChangeRepresentation, SIGNAL(clicked()), this, SLOT(applyChangeRepresentationClicked()) );
+  connect( d->horizontalSlider_OversamplingFactor, SIGNAL(valueChanged(int)), this, SLOT(oversamplingFactorChanged(int)) );
+  connect( d->SliderWidget_TargetReductionFactorPercent, SIGNAL(valueChanged(double)), this, SLOT(targetReductionFactorPercentChanged(double)) );
+
+  d->label_NoReferenceWarning->setVisible(false);
+  d->label_NewConversion->setVisible(false);
+  d->label_NoSourceWarning->setVisible(false);
+  d->label_ActiveSelected->setVisible(false);
+  d->label_CreatedFromLabelmap->setVisible(false);
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* qSlicerContoursModuleWidget::testGetCurrentReferenceVolumeNode()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  return vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLContourNode* qSlicerContoursModuleWidget::testGetCurrentContourNode()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  return vtkMRMLContourNode::SafeDownCast(d->MRMLNodeComboBox_Contour->currentNode());
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::testSetReferenceVolumeNode( vtkMRMLScalarVolumeNode* node )
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  if( node != NULL )
+  {
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID(QString(node->GetID()));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::testSetTargetRepresentationType( vtkMRMLContourNode::ContourRepresentationType targetRepresentationType )
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  d->comboBox_ChangeActiveRepresentation->setCurrentIndex((int)targetRepresentationType);
+
+  this->activeRepresentationComboboxSelectionChanged((int)targetRepresentationType);
+}
+
+//-----------------------------------------------------------------------------
+Ui_qSlicerContoursModule* qSlicerContoursModuleWidget::testGetDPointer()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  return d;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::testSetContourNode( vtkMRMLContourNode* node )
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  if( node != NULL )
+  {
+    d->MRMLNodeComboBox_Contour->setCurrentNodeID(node->GetID());
+  }
 }

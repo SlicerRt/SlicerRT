@@ -31,7 +31,10 @@
 #include "vtkMRMLContourNode.h"
 
 class qSlicerContoursModuleWidgetPrivate;
+class vtkMRMLContourNode;
 class vtkMRMLNode;
+class vtkMRMLScalarVolumeNode;
+class Ui_qSlicerContoursModule;
 
 /// \ingroup Slicer_QtModules_Contours
 class Q_SLICER_QTMODULES_CONTOURS_EXPORT qSlicerContoursModuleWidget :
@@ -45,6 +48,16 @@ public:
   virtual ~qSlicerContoursModuleWidget();
 
   virtual void enter();
+
+public:
+  // Functions to enable automatic testing
+  void testInit();
+  vtkMRMLScalarVolumeNode* testGetCurrentReferenceVolumeNode();
+  vtkMRMLContourNode* testGetCurrentContourNode();
+  void testSetReferenceVolumeNode(vtkMRMLScalarVolumeNode* node);
+  void testSetContourNode(vtkMRMLContourNode* node);
+  void testSetTargetRepresentationType(vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
+  Ui_qSlicerContoursModule* testGetDPointer();
 
 protected:
   /// Get reference volume node ID from the selected contours.

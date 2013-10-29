@@ -22,9 +22,12 @@
 #include "SlicerRtCommon.h"
 #include "ctkTest.h"
 #include "qSlicerContoursModuleWidget.h"
+#include "ui_qSlicerContoursModule.h"
+#include "vtkSlicerContoursModuleLogic.h"
 #include <QApplication>
 #include <vtkMRMLContourNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 #include <vtksys/SystemTools.hxx>
 
 // ITK includes
@@ -38,11 +41,15 @@ class qSlicerContoursModuleWidgetTester: public QObject
   Q_OBJECT
 
 public:
+  qSlicerContoursModuleWidget* SlicerContoursModuleWidget;
+
+public:
   int argc;
   char** argv;
 
 protected:
   bool initialized;
+  vtkMRMLScene* Scene;
 
 private slots:
   void init();
@@ -78,6 +85,8 @@ void qSlicerContoursModuleWidgetTester::init()
   else
   {
     errorStream << "Invalid arguments!" << std::endl;
+    delete this->SlicerContoursModuleWidget;
+    this->SlicerContoursModuleWidget = NULL;
     return;
   }
 
@@ -98,6 +107,8 @@ void qSlicerContoursModuleWidgetTester::init()
   else
   {
     errorStream << "No arguments!" << std::endl;
+    delete this->SlicerContoursModuleWidget;
+    this->SlicerContoursModuleWidget = NULL;
     return;
   }
 
@@ -107,16 +118,25 @@ void qSlicerContoursModuleWidgetTester::init()
 #endif
 
   // Create scene
-  vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
+  this->Scene = vtkMRMLScene::New();
+
+  this->SlicerContoursModuleWidget = new qSlicerContoursModuleWidget;
+
+  vtkSmartPointer<vtkSlicerContoursModuleLogic> logic = vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
+  logic->SetMRMLScene(this->Scene);
 
   // Load test scene into temporary scene
-  mrmlScene->SetURL(testSceneFileName);
-  mrmlScene->Import();
+  this->Scene->SetURL(testSceneFileName);
+  this->Scene->Import();
 
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);
-  mrmlScene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
-  mrmlScene->SetURL(temporarySceneFileName);
-  mrmlScene->Commit();
+  this->Scene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
+  this->Scene->SetURL(temporarySceneFileName);
+  this->Scene->Commit();
+
+  this->SlicerContoursModuleWidget->testInit();
+  this->SlicerContoursModuleWidget->setMRMLScene(this->Scene);
+  this->SlicerContoursModuleWidget->enter();
 
   initialized = true;
 }
@@ -124,12 +144,57 @@ void qSlicerContoursModuleWidgetTester::init()
 // ----------------------------------------------------------------------------
 void qSlicerContoursModuleWidgetTester::cleanup()
 {
+  this->SlicerContoursModuleWidget->exit();
+  QVERIFY(this->SlicerContoursModuleWidget != NULL);
+  delete this->SlicerContoursModuleWidget;
+  this->SlicerContoursModuleWidget = NULL;
+  this->Scene->Delete();
 }
 
 // ----------------------------------------------------------------------------
 void qSlicerContoursModuleWidgetTester::testUI()
 {
-  
+  if( this->initialized )
+  {
+    this->SlicerContoursModuleWidget->show();
+
+    vtkMRMLContourNode* bodyNode = vtkMRMLContourNode::SafeDownCast(this->Scene->GetFirstNodeByName("BODY_Contour"));
+    this->SlicerContoursModuleWidget->testSetContourNode(bodyNode);
+    if( this->SlicerContoursModuleWidget->testGetCurrentContourNode() == NULL )
+    {
+      QFAIL("Unable to set contour node.");
+    }
+
+    // See if things work for index label map
+    this->SlicerContoursModuleWidget->testSetTargetRepresentationType(vtkMRMLContourNode::IndexedLabelmap);
+
+    if( !this->SlicerContoursModuleWidget->testGetDPointer()->MRMLNodeComboBox_ReferenceVolume->isVisible() )
+    {
+      QFAIL("Reference volume combobox is invisible when it should be visible.");
+    }
+    if( !this->SlicerContoursModuleWidget->testGetDPointer()->horizontalSlider_OversamplingFactor->isVisible() )
+    {
+      QFAIL("Oversampling factor widget is not visible.");
+    }
+    if( this->SlicerContoursModuleWidget->testGetDPointer()->pushButton_ApplyChangeRepresentation->isEnabled() )
+    {
+      QFAIL("Apply button is enabled when it shouldn't be.");
+    }
+
+    vtkMRMLScalarVolumeNode* doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->Scene->GetFirstNodeByName("Dose"));
+    this->SlicerContoursModuleWidget->testSetReferenceVolumeNode(doseNode);
+    if( this->SlicerContoursModuleWidget->testGetCurrentReferenceVolumeNode() != doseNode )
+    {
+      QFAIL("Selected reference volume is not \"Dose\".");
+    }
+
+    if( !this->SlicerContoursModuleWidget->testGetDPointer()->pushButton_ApplyChangeRepresentation->isEnabled() )
+    {
+      QFAIL("Apply button should be enabled after reference volume is set. It is not.");
+    }
+
+    this->SlicerContoursModuleWidget->hide();
+  }
 }
 
 // ----------------------------------------------------------------------------
