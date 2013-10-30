@@ -314,7 +314,7 @@ void qSlicerContourMorphologyModuleWidget::updateButtonsState()
 
   bool applyEnabled = d->logic()->GetContourMorphologyNode()
                    && d->logic()->GetContourMorphologyNode()->GetContourANode()
-                   && (d->ContourSelectorWidget_ContourB->isEnabled() ? d->logic()->GetContourMorphologyNode()->GetContourBNode() : true)
+                   && (d->ContourSelectorWidget_ContourB->isEnabled() ? d->logic()->GetContourMorphologyNode()->GetContourBNode() != 0 : true)
                    && d->logic()->GetContourMorphologyNode()->GetOutputContourNode()
                    //&& d->logic()->GetContourMorphologyNode()->GetReferenceVolumeNode()
                    && (d->ContourSelectorWidget_ContourB->isEnabled() ? d->ContourSelectorWidget_ContourB->isSelectionValid() : d->ContourSelectorWidget_ContourA->isSelectionValid());
