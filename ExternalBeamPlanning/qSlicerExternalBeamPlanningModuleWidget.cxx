@@ -525,6 +525,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
   if (!paramNode)
   {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked: Invalid paramNode!";
     return;
   }
 
