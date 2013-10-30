@@ -150,8 +150,12 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
   itk::Image<float, 3>::Pointer movingItkImage = itk::Image<float, 3>::New();
   SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(movingVtkImage, movingItkImage);
 
-  this->RegistrationData->fixed_image = new Plm_image(fixedItkImage);
-  this->RegistrationData->moving_image = new Plm_image(movingItkImage);
+  //this->RegistrationData->fixed_image = new Plm_image(fixedItkImage);
+  //this->RegistrationData->moving_image = new Plm_image(movingItkImage);
+  this->RegistrationData->fixed_image = Plm_image::New (
+    new Plm_image(fixedItkImage));
+  this->RegistrationData->moving_image = Plm_image::New(
+    new Plm_image(movingItkImage));
   
   // Set landmarks 
   if (this->FixedLandmarks && this->MovingLandmarks)
@@ -182,7 +186,7 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
 
   Plm_image* warpedImage = new Plm_image();
   this->ApplyWarp(warpedImage, this->MovingImageToFixedImageVectorField, movingImageToFixedImageTransformation,
-    this->RegistrationData->fixed_image, this->RegistrationData->moving_image, -1200, 0, 1);
+    this->RegistrationData->fixed_image.get(), this->RegistrationData->moving_image.get(), -1200, 0, 1);
 
   this->SetWarpedImageInVolumeNode(warpedImage);
 
@@ -318,9 +322,9 @@ void vtkSlicerPlastimatchPyModuleLogic::ApplyInitialLinearTransformation()
   initializationTransformationAsPlastimatchTransformation->set_aff(initializationTransformationAsItkTransformation);
 
   // Warp image using the input transformation
-  Plm_image* prealignedImage = new Plm_image();
-  this->ApplyWarp(prealignedImage, NULL, initializationTransformationAsPlastimatchTransformation,
-    this->RegistrationData->fixed_image, this->RegistrationData->moving_image, -1200, 0, 1);
+  Plm_image::Pointer prealignedImage = Plm_image::New();
+  this->ApplyWarp(prealignedImage.get(), NULL, initializationTransformationAsPlastimatchTransformation,
+    this->RegistrationData->fixed_image.get(), this->RegistrationData->moving_image.get(), -1200, 0, 1);
 
   // Update moving image
   this->RegistrationData->moving_image = prealignedImage;
