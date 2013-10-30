@@ -52,11 +52,11 @@ TEST_WITH_DATA(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseProstate_Contours_Scene.mrml
   ${TEMP}/TestScene_Contours_EclipseProstate.mrml 
   5448764
-  0
+  -1
   271
-  0
+  -1
   171
-  0
+  -1
   183
   171701
   341666

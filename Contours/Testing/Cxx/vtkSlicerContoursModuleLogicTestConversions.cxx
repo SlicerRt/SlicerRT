@@ -260,7 +260,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     if (STRCASECMP(argv[argIndex], "-ExpectedNumberOfPolys") == 0)
     {
       char* arg = argv[argIndex+1];
-      outputStream << "Expected number of cells: " << arg << std::endl;
+      outputStream << "Expected number of polys: " << arg << std::endl;
       argIndex += 2;
       std::stringstream ss;
       ss << arg;
