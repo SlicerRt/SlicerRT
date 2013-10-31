@@ -896,11 +896,15 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
     OFString roiName("");
     currentROISequenceObject.getROIName(roiName);
-    roiEntry.Name=roiName.c_str();
+    roiEntry.Name = roiName.c_str();
 
     OFString roiDescription("");
     currentROISequenceObject.getROIDescription(roiDescription);
-    roiEntry.Description=roiDescription.c_str();                   
+    roiEntry.Description = roiDescription.c_str();                   
+
+    OFString referencedFrameOfReferenceUid("");
+    currentROISequenceObject.getReferencedFrameOfReferenceUID(referencedFrameOfReferenceUid);
+    roiEntry.ReferencedFrameOfReferenceUid = referencedFrameOfReferenceUid.c_str();
 
     Sint32 roiNumber = -1;
     currentROISequenceObject.getROINumber(roiNumber);
@@ -918,13 +922,17 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   OFString referencedSOPInstanceUID = this->GetReferencedFrameOfReferenceSOPInstanceUID(rtStructureSetObject);
   double sliceThickness = this->GetSliceThickness(referencedSOPInstanceUID);
 
-  Sint32 referenceRoiNumber = -1;
+  Sint32 referencedRoiNumber = -1;
   DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
   if (!rtROIContourSequenceObject.gotoFirstItem().good())
   {
     return;
   }
 
+  // Used for connection from one planar contour ROI to the corresponding anatomical volume slice instance
+  std::map<unsigned int, std::string> contourToSliceInstanceUidMap;
+
+  // Read ROIs
   do 
   {
     DRTROIContourSequence::Item &currentRoiObject = rtROIContourSequenceObject.getCurrentItem();
@@ -933,69 +941,97 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       continue;
     }
 
-    // Create vtkPolyData
+    // Create containers for vtkPolyData
     vtkSmartPointer<vtkPoints> tempPoints = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
-    vtkIdType pointId=0;
+    vtkIdType pointId = 0;
 
-    currentRoiObject.getReferencedROINumber(referenceRoiNumber);
+    // Get contour sequence
+    currentRoiObject.getReferencedROINumber(referencedRoiNumber);
     DRTContourSequence &rtContourSequenceObject = currentRoiObject.getContourSequence();
-
-    if (rtContourSequenceObject.gotoFirstItem().good())
+    if (!rtContourSequenceObject.gotoFirstItem().good())
     {
-      do
-      {
-        DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
+      vtkErrorMacro("LoadRTStructureSet: Contour sequence for ROI with number " << referencedRoiNumber << " is empty!");
+      continue;
+    }
 
-        if (!contourItem.isValid())
-        {
-          continue;
-        }
-        OFString contourNumber("");
-        contourItem.getContourNumber(contourNumber);
-
-        OFString numberofpoints("");
-        contourItem.getNumberOfContourPoints(numberofpoints);
-        std::stringstream ss;
-        ss << numberofpoints;
-        int number;
-        ss >> number;
-
-        OFVector<Float64> contourData_LPS;
-        contourItem.getContourData(contourData_LPS);
-
-        tempCellArray->InsertNextCell(number+1);
-        for (int k=0; k<number; k++)
-        {
-          // Convert from DICOM LPS -> Slicer RAS
-          tempPoints->InsertPoint(pointId, -contourData_LPS[3*k], -contourData_LPS[3*k+1], contourData_LPS[3*k+2]);
-          tempCellArray->InsertCellPoint(pointId);
-          pointId++;
-        }
-
-        // Close the contour
-        tempCellArray->InsertCellPoint(pointId-number);
-
-      }
-      while (rtContourSequenceObject.gotoNextItem().good());
-
-    } // if gotoFirstItem
-
-    // Save it into ROI vector
-    RoiEntry* referenceROI = this->FindRoiByNumber(referenceRoiNumber);
-    if (referenceROI == NULL)
+    // Get ROI entry created for the referenced ROI
+    RoiEntry* roiEntry = this->FindRoiByNumber(referencedRoiNumber);
+    if (roiEntry == NULL)
     {
-      vtkErrorMacro("LoadRTStructureSet: Reference ROI is not found");      
+      vtkErrorMacro("LoadRTStructureSet: ROI with number " << referencedRoiNumber << " is not found!");      
       continue;
     } 
 
+    // Read contour data
+    do
+    {
+      DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
+
+      if (!contourItem.isValid())
+      {
+        continue;
+      }
+
+      OFString numberOfPointsString("");
+      contourItem.getNumberOfContourPoints(numberOfPointsString);
+      std::stringstream ss;
+      ss << numberOfPointsString;
+      int numberOfPoints;
+      ss >> numberOfPoints;
+
+      OFVector<Float64> contourData_LPS;
+      contourItem.getContourData(contourData_LPS);
+
+      unsigned int contourIndex = tempCellArray->InsertNextCell(numberOfPoints+1);
+      for (int k=0; k<numberOfPoints; k++)
+      {
+        // Convert from DICOM LPS -> Slicer RAS
+        tempPoints->InsertPoint(pointId, -contourData_LPS[3*k], -contourData_LPS[3*k+1], contourData_LPS[3*k+2]);
+        tempCellArray->InsertCellPoint(pointId);
+        pointId++;
+      }
+
+      // Close the contour
+      tempCellArray->InsertCellPoint(pointId-numberOfPoints);
+
+      // Add map to the referenced slice instance UID
+      DRTContourImageSequence &rtContourImageSequenceObject = contourItem.getContourImageSequence();
+      if (rtContourImageSequenceObject.gotoFirstItem().good())
+      {
+        DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject.getCurrentItem();
+        if (rtContourImageSequenceItem.isValid())
+        {
+          OFString referencedSOPInstanceUID("");
+          rtContourImageSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID);
+          contourToSliceInstanceUidMap[contourIndex] = referencedSOPInstanceUID.c_str();
+
+          // Check if multiple SOP instance UIDs are referenced
+          if (rtContourImageSequenceObject.gotoNextItem().good())
+          {
+            vtkWarningMacro("LoadRTStructureSet: Contour in ROI " << roiEntry->Number << ": " << roiEntry->Name << " contains multiple referenced instances. This is not yet supported!");
+          }
+        }
+        else
+        {
+          vtkErrorMacro("LoadRTStructureSet: Contour image sequence object item is invalid");
+        }
+      }
+      else
+      {
+        vtkErrorMacro("LoadRTStructureSet: No contour image sequence object item is available for a contour in ROI " << roiEntry->Number << ": " << roiEntry->Name);
+      }
+    }
+    while (rtContourSequenceObject.gotoNextItem().good());
+
+    // Save just loaded contour data into ROI entry
     if (tempPoints->GetNumberOfPoints() == 1)
     {
       // Point ROI
       vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
       tempPolyData->SetPoints(tempPoints);
       tempPolyData->SetVerts(tempCellArray);
-      referenceROI->SetPolyData(tempPolyData);
+      roiEntry->SetPolyData(tempPolyData);
     }
     else if (tempPoints->GetNumberOfPoints() > 1)
     {
@@ -1005,7 +1041,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       tempPolyData->SetLines(tempCellArray);
 
       // Remove coincident points (if there are multiple contour points at the same position then the ribbon filter fails)
-      vtkSmartPointer<vtkCleanPolyData> cleaner=vtkSmartPointer<vtkCleanPolyData>::New();
+      vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
       cleaner->SetInput(tempPolyData);
 
       // Convert to ribbon using vtkRibbonFilter
@@ -1022,7 +1058,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       normalFilter->ConsistencyOn();
       normalFilter->Update();
 
-      referenceROI->SetPolyData(normalFilter->GetOutput());
+      roiEntry->SetPolyData(normalFilter->GetOutput());
     }
 
     // Get structure color
@@ -1030,11 +1066,14 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     for (int j=0; j<3; j++)
     {
       currentRoiObject.getROIDisplayColor(roiDisplayColor,j);
-      referenceROI->DisplayColor[j] = roiDisplayColor/255.0;
+      roiEntry->DisplayColor[j] = roiDisplayColor/255.0;
     }
 
-    // Set referenced series UIDs
-    referenceROI->ReferencedSeriesUid = (std::string)referencedSeriesInstanceUID.c_str();
+    // Set referenced series UID
+    roiEntry->ReferencedSeriesUid = (std::string)referencedSeriesInstanceUID.c_str();
+
+    // Set referenced SOP instance UIDs
+    roiEntry->ContourIndexToSopInstanceUidMap.swap(contourToSliceInstanceUidMap);
   }
   while (rtROIContourSequenceObject.gotoNextItem().good());
 

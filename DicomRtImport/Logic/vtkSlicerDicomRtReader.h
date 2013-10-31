@@ -29,6 +29,7 @@
 
 // STD includes
 #include <vector>
+#include <map>
 
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 
@@ -236,7 +237,7 @@ public:
   vtkGetMacro(LoadRTImageSuccessful, bool);
 
 protected:
-  /// Structure storing an RT structure set
+  /// Structure storing a ROI of an RT structure set
   class RoiEntry
   {
   public:
@@ -253,6 +254,8 @@ protected:
     double DisplayColor[3];
     vtkPolyData* PolyData;
     std::string ReferencedSeriesUid;
+    std::string ReferencedFrameOfReferenceUid;
+    std::map<unsigned int,std::string> ContourIndexToSopInstanceUidMap;
   };
 
   /// Structure storing an RT structure set

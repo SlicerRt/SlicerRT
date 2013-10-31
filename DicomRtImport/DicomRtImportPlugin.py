@@ -53,7 +53,7 @@ class DicomRtImportPluginClass(DICOMPlugin):
       name = examineInfo.GetLoadableName(loadableIndex)
       if "RTDOSE" in name:
         # if this is RTDose, then we need to find the RTPlan name for it
-        # this is done in python plugin as it is easy to access the dicomDatabase
+        # TODO: Move it to the reader class
         seriesType = slicer.dicomDatabase.fileValue(loadable.files[0], self.tags['Modality'])
         if seriesType == "RTDOSE":
           slicer.dicomDatabase.loadFileHeader(loadable.files[0])
@@ -134,6 +134,7 @@ class DicomRtImportPlugin:
 
     slicer.modules.dicomPlugins['DicomRtImportPlugin'] = DicomRtImportPluginClass
 
+  # TODO
   def addSeriesInHierarchy(self,loadable,volumeNode):
     tags = {}
     tags['seriesInstanceUID'] = "0020,000E"
@@ -204,10 +205,10 @@ class DicomRtImportPlugin:
         if studyDescription == '':
           studyDescription = 'No description'
         studyNode.SetName(studyDescription + '_PatientHierarchy')
+
 #
 # DicomRtImportWidget
 #
-
 class DicomRtImportWidget:
   def __init__(self, parent = None):
     self.parent = parent
