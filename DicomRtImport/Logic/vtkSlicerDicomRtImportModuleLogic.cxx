@@ -337,7 +337,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   vtkSmartPointer<vtkPolyDataCollection> roiCollection = vtkSmartPointer<vtkPolyDataCollection>::New();
   vtkSmartPointer<vtkCollection> displayNodeCollection = vtkSmartPointer<vtkCollection>::New();
 
-  for (int internalROIIndex=0; internalROIIndex<numberOfRois; internalROIIndex++) // DICOM starts indexing from 1
+  for (int internalROIIndex=0; internalROIIndex<numberOfRois; internalROIIndex++)
   {
     const char* roiLabel = rtReader->GetRoiName(internalROIIndex);
     double *roiColor = rtReader->GetRoiDisplayColor(internalROIIndex);
@@ -363,13 +363,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
       vtkWarningMacro("LoadRtStructureSet: Cannot read polydata from file: " << firstFileNameStr << ", ROI: " << internalROIIndex);
       continue;
     }
-    if (roiPoly->GetNumberOfPoints() < 1)
+    if (roiPoly->GetNumberOfPoints() <= 0)
     {
       vtkWarningMacro("LoadRtStructureSet: The ROI polydata does not contain any points, file: " << firstFileNameStr << ", ROI: " << internalROIIndex);
       continue;
     }
-
-    if (roiPoly->GetNumberOfPoints() == 1)
+    else if (roiPoly->GetNumberOfPoints() == 1)
     {
       // Point ROI
       addedDisplayableNode = this->AddRoiPoint(roiPoly->GetPoint(0), roiLabel, roiColor);
@@ -380,9 +379,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
       contourNodeName = std::string(roiLabel) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
       contourNodeName = this->GetMRMLScene()->GenerateUniqueName(contourNodeName);
 
-      addedDisplayableNode = this->AddRoiContour(roiPoly, contourNodeName, roiColor);
+      // Create ribbon from ROI contour
+      vtkSmartPointer<vtkPolyData> ribbonModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+      rtReader->CreateRibbonModelForRoi(internalROIIndex, ribbonModelPolyData);
+      addedDisplayableNode = this->AddRoiContour(ribbonModelPolyData, contourNodeName, roiColor);
 
-      roiCollection->AddItem(roiPoly);
+      roiCollection->AddItem(ribbonModelPolyData);
     }
 
     // Add new node to the model hierarchy

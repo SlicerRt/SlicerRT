@@ -60,21 +60,12 @@ public:
   /// Do reading
   void Update();
 
+  /// Create ribbon model for an ROI
+  void CreateRibbonModelForRoi(unsigned int internalIndex, vtkPolyData* ribbonModelPolyData);
+
 public:
   /// Get number of created ROIs
   int GetNumberOfRois();
-
-  /// Get name of a certain ROI by its ROI number
-  /// \param roiNumber Number (index) of the ROI in question
-  const char* GetRoiNameByRoiNumber(unsigned int roiNumber);
-
-  /// Get display color of a certain ROI by its ROI number
-  /// \param roiNumber Number (index) of the ROI in question
-  double* GetRoiDisplayColorByRoiNumber(unsigned int roiNumber);
-
-  /// Get model of a certain ROI by its ROI number
-  /// \param roiNumber Number (index) of the ROI in question
-  vtkPolyData* GetRoiPolyDataByRoiNumber(unsigned int roiNumber);
 
   /// Get name of a certain ROI by internal index
   /// \param internalIndex Internal index of ROI to get
@@ -253,6 +244,7 @@ protected:
     std::string Description;
     double DisplayColor[3];
     vtkPolyData* PolyData;
+    double SliceThickness;
     std::string ReferencedSeriesUid;
     std::string ReferencedFrameOfReferenceUid;
     std::map<unsigned int,std::string> ContourIndexToSopInstanceUidMap;

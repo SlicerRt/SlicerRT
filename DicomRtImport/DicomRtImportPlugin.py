@@ -53,7 +53,7 @@ class DicomRtImportPluginClass(DICOMPlugin):
       name = examineInfo.GetLoadableName(loadableIndex)
       if "RTDOSE" in name:
         # if this is RTDose, then we need to find the RTPlan name for it
-        # TODO: Move it to the reader class
+        # TODO: Move it to the reader class #407
         seriesType = slicer.dicomDatabase.fileValue(loadable.files[0], self.tags['Modality'])
         if seriesType == "RTDOSE":
           slicer.dicomDatabase.loadFileHeader(loadable.files[0])

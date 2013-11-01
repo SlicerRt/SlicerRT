@@ -63,7 +63,8 @@ limitations under the License.
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::RoiEntry::RoiEntry()
 {
-  this->Number=0;
+  this->Number = 0;
+  this->SliceThickness = 0.0;
   this->DisplayColor[0] = 1.0;
   this->DisplayColor[1] = 0.0;
   this->DisplayColor[2] = 0.0;
@@ -85,7 +86,10 @@ vtkSlicerDicomRtReader::RoiEntry::RoiEntry(const RoiEntry& src)
   this->DisplayColor[2] = src.DisplayColor[2];
   this->PolyData = NULL;
   this->SetPolyData(src.PolyData);
+  this->SliceThickness = src.SliceThickness;
   this->ReferencedSeriesUid = src.ReferencedSeriesUid;
+  this->ReferencedFrameOfReferenceUid = src.ReferencedFrameOfReferenceUid;
+  this->ContourIndexToSopInstanceUidMap = src.ContourIndexToSopInstanceUidMap;
 }
 
 vtkSlicerDicomRtReader::RoiEntry& vtkSlicerDicomRtReader::RoiEntry::operator=(const RoiEntry &src)
@@ -97,7 +101,10 @@ vtkSlicerDicomRtReader::RoiEntry& vtkSlicerDicomRtReader::RoiEntry::operator=(co
   this->DisplayColor[1] = src.DisplayColor[1];
   this->DisplayColor[2] = src.DisplayColor[2];
   this->SetPolyData(src.PolyData);
+  this->SliceThickness = src.SliceThickness;
   this->ReferencedSeriesUid = src.ReferencedSeriesUid;
+  this->ReferencedFrameOfReferenceUid = src.ReferencedFrameOfReferenceUid;
+  this->ContourIndexToSopInstanceUidMap = src.ContourIndexToSopInstanceUidMap;
 
   return (*this);
 }
@@ -747,48 +754,26 @@ OFString vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceSOPInstanceUID(DRT
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerDicomRtReader::GetSliceThickness(OFString referencedSOPInstanceUID)
+double vtkSlicerDicomRtReader::GetSliceThickness(OFString sopInstanceUID)
 {
   double defaultSliceThickness = 2.0;
 
   // Get DICOM image filename from SOP instance UID
   ctkDICOMDatabase dicomDatabase;
   dicomDatabase.openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
-  QString referencedFilename = dicomDatabase.fileForInstance(referencedSOPInstanceUID.c_str());
-  dicomDatabase.closeDatabase();
-  if ( referencedFilename.isEmpty() )
+
+  // Get filename for instance
+  QString fileName = dicomDatabase.fileForInstance(sopInstanceUID.c_str());
+  if ( fileName.isEmpty() )
   {
     vtkErrorMacro("GetSliceThickness: No referenced image file is found, default slice thickness (" << defaultSliceThickness << ") is used for contour import");
+    dicomDatabase.closeDatabase();
     return defaultSliceThickness;
   }
 
-  // Load DICOM file
-  DcmFileFormat fileformat;
-  if (fileformat.loadFile(referencedFilename.toStdString().c_str(), EXS_Unknown).bad())
-  {
-    vtkErrorMacro("GetSliceThickness: Could not load image file");
-    return defaultSliceThickness;
-  }
-  DcmDataset *dataset = fileformat.getDataset();
-
-  // Use the slice thickness defined in the DICOM file
-  OFString sliceThicknessString("");
-  if (!dataset->findAndGetOFString(DCM_SliceThickness, sliceThicknessString).good())
-  {
-    vtkErrorMacro("GetSliceThickness: Could not find slice thickness tag in image file");
-    return defaultSliceThickness;
-  }
-
-  std::stringstream ss;
-  ss << sliceThicknessString;
-  double doubleValue;
-  ss >> doubleValue;
-  double sliceThickness = doubleValue;
-  if (sliceThickness <= 0.0 || sliceThickness > 20.0)
-  {
-    vtkErrorMacro("GetSliceThickness: Slice thickness field value is invalid: " << sliceThicknessString);
-    return defaultSliceThickness;
-  }
+  // Get slice thickness from file
+  double sliceThickness = dicomDatabase.fileValue(fileName, DCM_SliceThickness.getGroup(), DCM_SliceThickness.getElement()).toDouble();
+  dicomDatabase.closeDatabase();
 
   return sliceThickness;
 }
@@ -918,7 +903,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   // Get referenced anatomical image
   OFString referencedSeriesInstanceUID = this->GetReferencedSeriesInstanceUID(rtStructureSetObject);
 
-  // Get the slice thickness from the referenced image
+  // Get the slice thickness from the referenced anatomical image
   OFString referencedSOPInstanceUID = this->GetReferencedFrameOfReferenceSOPInstanceUID(rtStructureSetObject);
   double sliceThickness = this->GetSliceThickness(referencedSOPInstanceUID);
 
@@ -1025,41 +1010,19 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     while (rtContourSequenceObject.gotoNextItem().good());
 
     // Save just loaded contour data into ROI entry
+    vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
+    tempPolyData->SetPoints(tempPoints);
     if (tempPoints->GetNumberOfPoints() == 1)
     {
       // Point ROI
-      vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
-      tempPolyData->SetPoints(tempPoints);
       tempPolyData->SetVerts(tempCellArray);
-      roiEntry->SetPolyData(tempPolyData);
     }
     else if (tempPoints->GetNumberOfPoints() > 1)
     {
       // Contour ROI
-      vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
-      tempPolyData->SetPoints(tempPoints);
       tempPolyData->SetLines(tempCellArray);
-
-      // Remove coincident points (if there are multiple contour points at the same position then the ribbon filter fails)
-      vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-      cleaner->SetInput(tempPolyData);
-
-      // Convert to ribbon using vtkRibbonFilter
-      vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
-      ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
-      ribbonFilter->SetDefaultNormal(0,0,-1);
-      ribbonFilter->SetWidth(sliceThickness/2.0);
-      ribbonFilter->SetAngle(90.0);
-      ribbonFilter->UseDefaultNormalOn();
-      ribbonFilter->Update();
-
-      vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
-      normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
-      normalFilter->ConsistencyOn();
-      normalFilter->Update();
-
-      roiEntry->SetPolyData(normalFilter->GetOutput());
     }
+    roiEntry->SetPolyData(tempPolyData);
 
     // Get structure color
     Sint32 roiDisplayColor = -1;
@@ -1072,8 +1035,11 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     // Set referenced series UID
     roiEntry->ReferencedSeriesUid = (std::string)referencedSeriesInstanceUID.c_str();
 
+    // Set slice thickness
+    roiEntry->SliceThickness = sliceThickness;
+
     // Set referenced SOP instance UIDs
-    roiEntry->ContourIndexToSopInstanceUidMap.swap(contourToSliceInstanceUidMap);
+    roiEntry->ContourIndexToSopInstanceUidMap = contourToSliceInstanceUidMap;
   }
   while (rtROIContourSequenceObject.gotoNextItem().good());
 
@@ -1090,44 +1056,11 @@ int vtkSlicerDicomRtReader::GetNumberOfRois()
 }
 
 //----------------------------------------------------------------------------
-const char* vtkSlicerDicomRtReader::GetRoiNameByRoiNumber(unsigned int roiNumber)
-{
-  RoiEntry* roi = this->FindRoiByNumber(roiNumber);
-  if (roi==NULL)
-  {
-    return NULL;
-  }  
-  return (roi->Name.empty() ? SlicerRtCommon::DICOMRTIMPORT_NO_NAME : roi->Name).c_str();
-}
-
-//----------------------------------------------------------------------------
-vtkPolyData* vtkSlicerDicomRtReader::GetRoiPolyDataByRoiNumber(unsigned int roiNumber)
-{
-  RoiEntry* roi = this->FindRoiByNumber(roiNumber);
-  if (roi==NULL)
-  {
-    return NULL;
-  }
-  return roi->PolyData;
-}
-
-//----------------------------------------------------------------------------
-double* vtkSlicerDicomRtReader::GetRoiDisplayColorByRoiNumber(unsigned int roiNumber)
-{
-  RoiEntry* roi = this->FindRoiByNumber(roiNumber);
-  if (roi==NULL)
-  {
-    return NULL;
-  }
-  return roi->DisplayColor;
-}
-
-//----------------------------------------------------------------------------
 const char* vtkSlicerDicomRtReader::GetRoiName(unsigned int internalIndex)
 {
   if (internalIndex >= this->RoiSequenceVector.size())
   {
-    vtkErrorMacro("GetRoiName: Cannot get ROI with number: " << internalIndex);
+    vtkErrorMacro("GetRoiName: Cannot get ROI with internal index: " << internalIndex);
     return NULL;
   }
   return (this->RoiSequenceVector[internalIndex].Name.empty() ? SlicerRtCommon::DICOMRTIMPORT_NO_NAME : this->RoiSequenceVector[internalIndex].Name).c_str();
@@ -1138,7 +1071,7 @@ double* vtkSlicerDicomRtReader::GetRoiDisplayColor(unsigned int internalIndex)
 {
   if (internalIndex >= this->RoiSequenceVector.size())
   {
-    vtkErrorMacro("GetRoiDisplayColor: Cannot get ROI with number: " << internalIndex);
+    vtkErrorMacro("GetRoiDisplayColor: Cannot get ROI with internal index: " << internalIndex);
     return NULL;
   }
   return this->RoiSequenceVector[internalIndex].DisplayColor;
@@ -1149,7 +1082,7 @@ vtkPolyData* vtkSlicerDicomRtReader::GetRoiPolyData(unsigned int internalIndex)
 {
   if (internalIndex >= this->RoiSequenceVector.size())
   {
-    vtkErrorMacro("GetRoiPolyData: Cannot get ROI with number: " << internalIndex);
+    vtkErrorMacro("GetRoiPolyData: Cannot get ROI with internal index: " << internalIndex);
     return NULL;
   }
   return this->RoiSequenceVector[internalIndex].PolyData;
@@ -1160,7 +1093,7 @@ const char* vtkSlicerDicomRtReader::GetRoiReferencedSeriesUid(unsigned int inter
 {
   if (internalIndex >= this->RoiSequenceVector.size())
   {
-    vtkErrorMacro("GetRoiName: Cannot get ROI with number: " << internalIndex);
+    vtkErrorMacro("GetRoiName: Cannot get ROI with internal index: " << internalIndex);
     return NULL;
   }
   return this->RoiSequenceVector[internalIndex].ReferencedSeriesUid.c_str();
@@ -1338,4 +1271,54 @@ vtkSlicerDicomRtReader::RoiEntry* vtkSlicerDicomRtReader::FindRoiByNumber(unsign
   // Not found
   vtkErrorMacro("FindBeamByNumber: ROI cannot be found for number " << roiNumber);
   return NULL;
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex, vtkPolyData* ribbonModelPolyData)
+{
+  if (ribbonModelPolyData == NULL)
+  {
+    vtkErrorMacro("CreateRibbonModelForRoi: Input ribbon model poly data is NULL!");
+    return;
+  }
+
+  // Get ROI entry
+  if (internalIndex >= this->RoiSequenceVector.size())
+  {
+    vtkErrorMacro("CreateRibbonModelForRoi: Cannot get ROI with internal index: " << internalIndex);
+    return;
+  }
+
+  vtkPolyData* roiPolyData = this->RoiSequenceVector[internalIndex].PolyData;
+  if (!roiPolyData || roiPolyData->GetNumberOfPoints() == 0)
+  {
+    vtkErrorMacro("CreateRibbonModelForRoi: Invalid ROI with internal index: " << internalIndex);
+    return;
+  }
+  else if (roiPolyData->GetNumberOfPoints() == 1)
+  {
+    vtkWarningMacro("CreateRibbonModelForRoi: Point ROI does not need to be ribbonized with internal index: " << internalIndex);
+    ribbonModelPolyData->DeepCopy(roiPolyData);
+    return;
+  }
+
+  // Remove coincident points (if there are multiple contour points at the same position then the ribbon filter fails)
+  vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+  cleaner->SetInput(roiPolyData);
+
+  // Convert to ribbon using vtkRibbonFilter
+  vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
+  ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
+  ribbonFilter->SetDefaultNormal(0,0,-1);
+  ribbonFilter->SetWidth(this->RoiSequenceVector[internalIndex].SliceThickness / 2.0);
+  ribbonFilter->SetAngle(90.0);
+  ribbonFilter->UseDefaultNormalOn();
+  ribbonFilter->Update();
+
+  vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
+  normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
+  normalFilter->ConsistencyOn();
+  normalFilter->Update();
+
+  ribbonModelPolyData->DeepCopy(normalFilter->GetOutput());
 }
