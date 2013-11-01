@@ -85,6 +85,12 @@ void qSlicerDicomRtExportModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
+  // Filter out nodes that are not image volume nodes
+  d->MRMLNodeComboBox_ImageVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString("LabelMap"), 0 );
+
+  // Filter out nodes that are not dose volume nodes
+  d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
+
   // Filter out hierarchy nodes that are not contour hierarchy nodes
   d->MRMLNodeComboBox_ContourHierarchy->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
 
