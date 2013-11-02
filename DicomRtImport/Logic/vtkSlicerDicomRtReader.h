@@ -39,6 +39,7 @@ class OFString;
 class DRTContourSequence;
 class DRTStructureSetIOD;
 class DRTRTReferencedSeriesSequence;
+class DRTContourImageSequence;
 
 // Due to some reason the Python wrapping of this class fails, therefore
 // put everything between BTX/ETX to exclude from wrapping.
@@ -247,7 +248,7 @@ protected:
     double SliceThickness;
     std::string ReferencedSeriesUid;
     std::string ReferencedFrameOfReferenceUid;
-    std::map<unsigned int,std::string> ContourIndexToSopInstanceUidMap;
+    std::map<int,std::string> ContourIndexToSopInstanceUidMap;
   };
 
   /// Structure storing an RT structure set
@@ -351,8 +352,8 @@ protected:
   /// Get frame of reference for an SOP instance
   DRTRTReferencedSeriesSequence* GetReferencedSeriesSequence(DRTStructureSetIOD &rtStructureSetObject);
 
-  /// Get frame of reference for an SOP instance
-  OFString GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStructureSetObject);
+  /// Get contour image sequence object in the referenced frame of reference sequence for a structure set
+  DRTContourImageSequence* GetReferencedFrameOfReferenceContourImageSequence(DRTStructureSetIOD &rtStructureSetObject);
 
   /// Get referenced series instance UID for the structure set (0020,000E)
   OFString GetReferencedSeriesInstanceUID(DRTStructureSetIOD rtStructureSetObject);

@@ -30,6 +30,7 @@ limitations under the License.
 #include <vtkPolyDataNormals.h>
 #include <vtkSmartPointer.h>
 #include <vtkCleanPolyData.h>
+#include <vtkMath.h>
 
 // STD includes
 #include <vector>
@@ -717,40 +718,30 @@ OFString vtkSlicerDicomRtReader::GetReferencedSeriesInstanceUID(DRTStructureSetI
 }
 
 //----------------------------------------------------------------------------
-OFString vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceSOPInstanceUID(DRTStructureSetIOD &rtStructureSetObject)
+DRTContourImageSequence* vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceContourImageSequence(DRTStructureSetIOD &rtStructureSetObject)
 {
-  OFString invalidUid("");
   DRTRTReferencedSeriesSequence* rtReferencedSeriesSequenceObject = this->GetReferencedSeriesSequence(rtStructureSetObject);
   if (!rtReferencedSeriesSequenceObject || !rtReferencedSeriesSequenceObject->gotoFirstItem().good())
   {
-    vtkErrorMacro("GetReferencedFrameOfReferenceSOPInstanceUID: No referenced series sequence object item is available");
-    return invalidUid;
+    vtkErrorMacro("GetReferencedFrameOfReferenceContourImageSequence: No referenced series sequence object item is available");
+    return NULL;
   }
 
   DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject->getCurrentItem();
   if (!rtReferencedSeriesSequenceItem.isValid())
   {
-    vtkErrorMacro("GetReferencedFrameOfReferenceSOPInstanceUID: Referenced series sequence object item is invalid");
-    return invalidUid;
+    vtkErrorMacro("GetReferencedFrameOfReferenceContourImageSequence: Referenced series sequence object item is invalid");
+    return NULL;
   }
 
   DRTContourImageSequence &rtContourImageSequenceObject = rtReferencedSeriesSequenceItem.getContourImageSequence();
   if (!rtContourImageSequenceObject.gotoFirstItem().good())
   {
-    vtkErrorMacro("GetReferencedFrameOfReferenceSOPInstanceUID: No contour image sequence object item is available");
-    return invalidUid;
+    vtkErrorMacro("GetReferencedFrameOfReferenceContourImageSequence: No contour image sequence object item is available");
+    return NULL;
   }
 
-  DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject.getCurrentItem();
-  if (!rtContourImageSequenceItem.isValid())
-  {
-    vtkErrorMacro("GetReferencedFrameOfReferenceSOPInstanceUID: Contour image sequence object item is invalid");
-    return invalidUid;
-  }
-
-  OFString resultUid("");
-  rtContourImageSequenceItem.getReferencedSOPInstanceUID(resultUid);
-  return resultUid;
+  return &rtContourImageSequenceObject;
 }
 
 //----------------------------------------------------------------------------
@@ -863,7 +854,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
   vtkDebugMacro("LoadRTStructureSet: RT Structure Set object");
 
-  // Read ROI name, description, and number into the ROI contour sequence vector
+  // Read ROI name, description, and number into the ROI contour sequence vector (StructureSetROISequence)
   DRTStructureSetROISequence &rtStructureSetROISequenceObject = rtStructureSetObject.getStructureSetROISequence();
   if (!rtStructureSetROISequenceObject.gotoFirstItem().good())
   {
@@ -904,20 +895,39 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   OFString referencedSeriesInstanceUID = this->GetReferencedSeriesInstanceUID(rtStructureSetObject);
 
   // Get the slice thickness from the referenced anatomical image
-  OFString referencedSOPInstanceUID = this->GetReferencedFrameOfReferenceSOPInstanceUID(rtStructureSetObject);
-  double sliceThickness = this->GetSliceThickness(referencedSOPInstanceUID);
+  OFString firstReferencedSOPInstanceUID("");
+  DRTContourImageSequence* rtContourImageSequenceObject = this->GetReferencedFrameOfReferenceContourImageSequence(rtStructureSetObject);
+  if (rtContourImageSequenceObject && rtContourImageSequenceObject->gotoFirstItem().good())
+  {
+    DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject->getCurrentItem();
+    if (rtContourImageSequenceItem.isValid())
+    {
+      rtContourImageSequenceItem.getReferencedSOPInstanceUID(firstReferencedSOPInstanceUID);
+    }
+    else
+    {
+      vtkErrorMacro("LoadRTStructureSet: Contour image sequence object item in referenced frame of reference sequence is invalid");
+    }
+  }
+  else
+  {
+    vtkErrorMacro("LoadRTStructureSet: No items in contour image sequence object item in referenced frame of reference sequence!");
+  }
+
+  double sliceThickness = this->GetSliceThickness(firstReferencedSOPInstanceUID);
 
   Sint32 referencedRoiNumber = -1;
   DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
   if (!rtROIContourSequenceObject.gotoFirstItem().good())
   {
+    vtkErrorMacro("LoadRTStructureSet: No ROIContourSequence found!");
     return;
   }
 
   // Used for connection from one planar contour ROI to the corresponding anatomical volume slice instance
-  std::map<unsigned int, std::string> contourToSliceInstanceUidMap;
+  std::map<int, std::string> contourToSliceInstanceUidMap;
 
-  // Read ROIs
+  // Read ROIs (ROIContourSequence)
   do 
   {
     DRTROIContourSequence::Item &currentRoiObject = rtROIContourSequenceObject.getCurrentItem();
@@ -952,7 +962,6 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     do
     {
       DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
-
       if (!contourItem.isValid())
       {
         continue;
@@ -981,6 +990,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       tempCellArray->InsertCellPoint(pointId-numberOfPoints);
 
       // Add map to the referenced slice instance UID
+      // This is not a mandatory field so no error logged if not found. The reason why it is still read and stored is that it references the contours individually
       DRTContourImageSequence &rtContourImageSequenceObject = contourItem.getContourImageSequence();
       if (rtContourImageSequenceObject.gotoFirstItem().good())
       {
@@ -992,7 +1002,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
           contourToSliceInstanceUidMap[contourIndex] = referencedSOPInstanceUID.c_str();
 
           // Check if multiple SOP instance UIDs are referenced
-          if (rtContourImageSequenceObject.gotoNextItem().good())
+          if (rtContourImageSequenceObject.getNumberOfItems() > 1)
           {
             vtkWarningMacro("LoadRTStructureSet: Contour in ROI " << roiEntry->Number << ": " << roiEntry->Name << " contains multiple referenced instances. This is not yet supported!");
           }
@@ -1002,12 +1012,38 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
           vtkErrorMacro("LoadRTStructureSet: Contour image sequence object item is invalid");
         }
       }
-      else
-      {
-        vtkErrorMacro("LoadRTStructureSet: No contour image sequence object item is available for a contour in ROI " << roiEntry->Number << ": " << roiEntry->Name);
-      }
     }
     while (rtContourSequenceObject.gotoNextItem().good());
+
+    // Read slice reference UIDs from referenced frame of reference sequence if it was not included in the ROIContourSequence above
+    if (contourToSliceInstanceUidMap.empty())
+    {
+      DRTContourImageSequence* rtContourImageSequenceObject = this->GetReferencedFrameOfReferenceContourImageSequence(rtStructureSetObject);
+      if (rtContourImageSequenceObject && rtContourImageSequenceObject->gotoFirstItem().good())
+      {
+        int currentSliceNumber = -1; // Use negative keys to indicate that the slice instances cannot be directly mapped to the ROI planar contours
+        do 
+        {
+          DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject->getCurrentItem();
+          if (rtContourImageSequenceItem.isValid())
+          {
+            OFString currentReferencedSOPInstanceUID("");
+            rtContourImageSequenceItem.getReferencedSOPInstanceUID(currentReferencedSOPInstanceUID);
+            contourToSliceInstanceUidMap[currentSliceNumber] = currentReferencedSOPInstanceUID.c_str();
+          }
+          else
+          {
+            vtkErrorMacro("LoadRTStructureSet: Contour image sequence object item in referenced frame of reference sequence is invalid");
+          }
+          currentSliceNumber--;
+        }
+        while (rtContourImageSequenceObject->gotoNextItem().good());
+      }
+      else
+      {
+        vtkErrorMacro("LoadRTStructureSet: No items in contour image sequence object item in referenced frame of reference sequence!");
+      }
+    }
 
     // Save just loaded contour data into ROI entry
     vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -1302,6 +1338,62 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
     return;
   }
 
+  // Get image orientation for the contour planes from the referenced slice orientations
+  ctkDICOMDatabase dicomDatabase;
+  dicomDatabase.openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+
+  std::map<int,std::string>* contourIndexToSopInstanceUidMap = &(this->RoiSequenceVector[internalIndex].ContourIndexToSopInstanceUidMap);
+  std::map<int,std::string>::iterator sliceInstanceUidIt;
+  QString imageOrientation;
+  for (sliceInstanceUidIt = contourIndexToSopInstanceUidMap->begin(); sliceInstanceUidIt != contourIndexToSopInstanceUidMap->end(); ++sliceInstanceUidIt)
+  {
+    // Get file name for referenced slice instance from the stored SOP instance UID
+    QString fileName = dicomDatabase.fileForInstance(sliceInstanceUidIt->second.c_str());
+    if (fileName.isEmpty())
+    {
+      vtkErrorMacro("CreateRibbonModelForRoi: No referenced image file is found for ROI contour slice number " << sliceInstanceUidIt->first);
+      continue;
+    }
+
+    // Get image orientation string from the referenced slice
+    QString currentImageOrientation = dicomDatabase.fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement());
+
+    // Check if the currently read orientation matches the orientation in the already loaded slices
+    if (imageOrientation.isEmpty())
+    {
+      imageOrientation = currentImageOrientation;
+    }
+    else if (imageOrientation.compare(currentImageOrientation))
+    {
+      vtkWarningMacro("CreateRibbonModelForRoi: Image orientation in instance '" << fileName.toLatin1().constData() << "' differs from that in the first instance ("
+        << currentImageOrientation.toLatin1().constData() << " != " << imageOrientation.toLatin1().constData() << ")! This is not supported yet, so the first orientation will be used for the whole contour.");
+      break;
+    }
+  }
+
+  dicomDatabase.closeDatabase();
+
+  // Compute normal vector from the read image orientation
+  QStringList imageOrientationComponentsString = imageOrientation.split("\\");
+  if (imageOrientationComponentsString.size() != 6)
+  {
+    vtkErrorMacro("CreateRibbonModelForRoi: Invalid image orientation for ROI: " << imageOrientation.toLatin1().constData());
+    return;
+  }
+
+  double imageOrientationVectorRasX[3] = {0.0, 0.0, 0.0};
+  double imageOrientationVectorRasY[3] = {0.0, 0.0, 0.0};
+  double imageOrientationVectorRasZ[3] = {0.0, 0.0, 0.0};
+  for (unsigned int componentIndex=0; componentIndex<3; ++componentIndex)
+  {
+    // Apply LPS to RAS conversion
+    double lpsToRasConversionMultiplier = (componentIndex<2 ? (-1.0) : 1.0);
+    imageOrientationVectorRasX[componentIndex] = lpsToRasConversionMultiplier * imageOrientationComponentsString[componentIndex].toDouble();
+    imageOrientationVectorRasY[componentIndex] = lpsToRasConversionMultiplier * imageOrientationComponentsString[componentIndex+3].toDouble();
+  }
+
+  vtkMath::Cross(imageOrientationVectorRasX, imageOrientationVectorRasY, imageOrientationVectorRasZ);
+
   // Remove coincident points (if there are multiple contour points at the same position then the ribbon filter fails)
   vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
   cleaner->SetInput(roiPolyData);
@@ -1309,10 +1401,10 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
   // Convert to ribbon using vtkRibbonFilter
   vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
   ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
-  ribbonFilter->SetDefaultNormal(0,0,-1);
+  ribbonFilter->SetDefaultNormal(imageOrientationVectorRasZ);
+  ribbonFilter->UseDefaultNormalOn();
   ribbonFilter->SetWidth(this->RoiSequenceVector[internalIndex].SliceThickness / 2.0);
   ribbonFilter->SetAngle(90.0);
-  ribbonFilter->UseDefaultNormalOn();
   ribbonFilter->Update();
 
   vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
