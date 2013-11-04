@@ -30,14 +30,14 @@ SET (SLICERRT_PLASTIMATCH_DIR "${CMAKE_BINARY_DIR}/Plastimatch-build" CACHE INTE
 set (PLASTIMATCH_EXTRA_LIBRARIES 
   -DPLM_CONFIG_LIBRARY_BUILD:BOOL=ON 
   -DPLMLIB_CONFIG_ENABLE_REGISTER:BOOL=TRUE)
-#if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
+if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   set (PLASTIMATCH_EXTRA_LIBRARIES 
     ${PLASTIMATCH_EXTRA_LIBRARIES} 
     -DPLMLIB_CONFIG_ENABLE_DOSE:BOOL=TRUE)
-#endif ()
+endif ()
 
 # Choose which Plastimatch revision to build
-set (PLM_SVN_REVISION "4445")
+set (PLM_SVN_REVISION "4492")
 
 # With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
 # For earlier versions, we nullify the update state to prevent updates and
