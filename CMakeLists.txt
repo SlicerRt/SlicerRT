@@ -5,15 +5,15 @@ set(EXTENSION_NAME SlicerRT)
 
 # ------------------------------------------------------------------------
 set(SLICERRT_VERSION_MAJOR "0")
-set(SLICERRT_VERSION_MINOR "11")
-set(SLICERRT_VERSION_PATCH "1")
+set(SLICERRT_VERSION_MINOR "12")
+set(SLICERRT_VERSION_PATCH "0")
 set(SLICERRT_VERSION ${SLICERRT_VERSION_MAJOR}.${SLICERRT_VERSION_MINOR}.${SLICERRT_VERSION_PATCH})
 
 #-----------------------------------------------------------------------------
 set(EXTENSION_HOMEPAGE "http://slicerrt.org")
 set(EXTENSION_CATEGORY "Radiotherapy")
-set(EXTENSION_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto)")
-set(EXTENSION_DESCRIPTION "Extensions for radiotherapy research (DICOM-RT import, dose volume histogram, dose accumulation, etc.) Version ${SLICERRT_VERSION}")
+set(EXTENSION_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto), Greg Sharp (Massachusetts General Hospital)")
+set(EXTENSION_DESCRIPTION "Extensions for radiotherapy research (DICOM-RT import/export, dose volume histogram, dose accumulation, contour comparison, etc.) Version ${SLICERRT_VERSION}")
 set(EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/2/28/SlicerRT_Logo_2.0_128x128.png")
 set(EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/8/8b/SlicerRT0.8_EntLoaded_Beams_ThresholdedDose.png http://www.slicer.org/slicerWiki/images/8/86/SlicerRT0.8_DVH_Comparison_Whole.png http://www.slicer.org/slicerWiki/images/4/40/SlicerRtFundingSources.png")
 set(EXTENSION_STATUS "Beta")
@@ -67,6 +67,7 @@ add_subdirectory(DoseComparison)
 add_subdirectory(ContourMorphology)
 add_subdirectory(ContourComparison)
 add_subdirectory(VffFileReader)
+add_subdirectory(DicomRtExport)
 
 add_subdirectory(PlastimatchPy)
 add_subdirectory(PlmBspline) # requires Plastimatch registration
@@ -78,7 +79,6 @@ add_subdirectory(PlmXformwarp)
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # In development
   add_subdirectory(PlmThreshbox)
-  add_subdirectory(DicomRtExport)
   add_subdirectory(ExternalBeamPlanning)
 
   # Registration validation routines
