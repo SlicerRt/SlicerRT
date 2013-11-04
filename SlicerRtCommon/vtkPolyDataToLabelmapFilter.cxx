@@ -148,7 +148,7 @@ void vtkPolyDataToLabelmapFilter::Update()
 
   if( !areExtentsEqual(calculatedExtents, referenceExtents) )
   {
-    vtkWarningMacro("Update: Extents of computed labelmap are not the same as the reference volume.");
+    vtkDebugMacro("Update: Extents of computed labelmap are not the same as the reference volume.");
   }
 
   vtkSmartPointer<vtkImageData> referenceImage = vtkSmartPointer<vtkImageData>::New();

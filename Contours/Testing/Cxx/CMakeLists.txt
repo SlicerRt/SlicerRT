@@ -58,14 +58,14 @@ TEST_WITH_DATA(
   171
   -1
   183
-  171701
-  341666
-  341666
+  198748
+  396728
+  396728
   -172.799
   162.201
   -106.858
-  105.017
-  -122.5
+  105.642
+  -123.125
   106.25
 )
 set_tests_properties(vtkSlicerContoursModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
