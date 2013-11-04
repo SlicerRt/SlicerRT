@@ -292,7 +292,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   vtkMRMLScalarVolumeNode* inputLabelmapANode = inputContourANode->GetIndexedLabelmapVolumeNode();
   inputLabelmapANode->GetSpacing(spacingX, spacingY, spacingZ);
 
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> tempVolumeNodeA= vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> tempVolumeNodeA = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode(inputLabelmapANode, referenceVolumeNode, tempVolumeNodeA);
   vtkImageData* tempImageA = tempVolumeNodeA->GetImageData();
 

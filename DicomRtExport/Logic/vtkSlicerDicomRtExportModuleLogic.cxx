@@ -15,11 +15,14 @@
 
 ==============================================================================*/
 
-// ModuleTemplate includes
+// DicomRtExport includes
 #include "vtkSlicerDicomRtExportModuleLogic.h"
 #include "vtkSlicerDicomRtWriter.h"
-#include "vtkMRMLContourNode.h"
+
+// SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
+#include "vtkVolumesOrientedResampleUtility.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -145,6 +148,18 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
         vtkErrorMacro("SaveDicomRTStudy: Failed to get indexed labelmap representation from contours");
         return;
       }
+
+      // Make sure the labelmap dimensions match the reference dimensions
+      // (the conversion sometimes adds padding to the labelmap to ensure closed surface models)
+      int referenceExtents[6] = {0, 0, 0, 0, 0, 0};
+      imageNode->GetImageData()->GetExtent(referenceExtents);
+      int labelmapExtents[6] = {0, 0, 0, 0, 0, 0};
+      labelmapNode->GetImageData()->GetExtent(labelmapExtents);
+      if (!SlicerRtCommon::AreBoundsEqual(referenceExtents, labelmapExtents))
+      {
+        vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode(labelmapNode, imageNode, labelmapNode);
+      }
+
       itk::Image<unsigned char, 3>::Pointer itkStructure = itk::Image<unsigned char, 3>::New();
       if (SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<unsigned char>(labelmapNode, itkStructure) == false)
       {
@@ -154,12 +169,14 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
       char *labelmapName = labelmapNode->GetName();
       double labelmapColor[4] = {0.0,0.0,0.0,1.0};
       labelmapNode->GetDisplayNode()->GetColor(labelmapColor);
-	  // If no color is assigned to the labelmap node, use the default colortable node
-	  if (labelmapColor[0] == 0.0 && labelmapColor[1] == 0.0 && labelmapColor[2] == 0.0)
-	  {
-	    vtkMRMLColorTableNode* defaultTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("vtkMRMLColorTableNodeLabels"));
-		defaultTableNode->GetColor(i+1, labelmapColor);
-	  }
+
+	    // If no color is assigned to the labelmap node, use the default color table node
+	    if (labelmapColor[0] == 0.0 && labelmapColor[1] == 0.0 && labelmapColor[2] == 0.0)
+	    {
+	      vtkMRMLColorTableNode* defaultTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("vtkMRMLColorTableNodeLabels"));
+		    defaultTableNode->GetColor(i+1, labelmapColor);
+	    }
+
       rtWriter->AddContour(itkStructure, labelmapName, labelmapColor);
     }
   }

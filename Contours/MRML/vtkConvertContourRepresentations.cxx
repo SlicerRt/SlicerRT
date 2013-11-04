@@ -60,21 +60,6 @@
 vtkStandardNewMacro(vtkConvertContourRepresentations);
 
 //----------------------------------------------------------------------------
-namespace
-{
-  bool areBoundsEqual(int boundsA[6], int boundsB[6])
-  {
-    return 
-      boundsA[0] == boundsB [0] &&
-      boundsA[1] == boundsB [1] &&
-      boundsA[2] == boundsB [2] &&
-      boundsA[3] == boundsB [3] &&
-      boundsA[4] == boundsB [4] &&
-      boundsA[5] == boundsB [5];
-  }
-}
-
-//----------------------------------------------------------------------------
 vtkConvertContourRepresentations::vtkConvertContourRepresentations()
 {
   this->ContourNode = NULL;
@@ -475,25 +460,26 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   // Determine here if we need to pad the labelmap to create a completely closed surface
   vtkSmartPointer<vtkImageConstantPad> padder;
   bool pad(false);
-  vtkMRMLScalarVolumeNode* refVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(mrmlScene->GetNodeByID(this->ContourNode->GetRasterizationReferenceVolumeNodeId()));
-  if( refVolumeNode != NULL )
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(mrmlScene->GetNodeByID(this->ContourNode->GetRasterizationReferenceVolumeNodeId()));
+  if (referenceVolumeNode != NULL)
   {
-    int refExtents[6];
-    refVolumeNode->GetImageData()->GetExtent(refExtents);
-    int labelmapExtents[6];
+    int referenceExtents[6] = {0, 0, 0, 0, 0, 0};
+    referenceVolumeNode->GetImageData()->GetExtent(referenceExtents);
+    int labelmapExtents[6] = {0, 0, 0, 0, 0, 0};
     this->ContourNode->IndexedLabelmapVolumeNode->GetImageData()->GetExtent(labelmapExtents);
 
-    if( areBoundsEqual(refExtents, labelmapExtents) )
+    if( SlicerRtCommon::AreBoundsEqual(referenceExtents, labelmapExtents) )
     {
       pad = true;
-      vtkDebugMacro("Adding 1 pixel padding around the image, shifting origin.");
+      vtkDebugMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Adding 1 pixel padding around the image, shifting origin.");
+
       padder = vtkSmartPointer<vtkImageConstantPad>::New();
+
       vtkSmartPointer<vtkImageChangeInformation> translator = vtkSmartPointer<vtkImageChangeInformation>::New();
       translator->SetInput(this->ContourNode->IndexedLabelmapVolumeNode->GetImageData());
-      // translate the extent by 1 pixel
+      // Translate the extent by 1 pixel
       translator->SetExtentTranslation(1, 1, 1);
-      // args are: -padx*xspacing, -pady*yspacing, -padz*zspacing
-      // but padding and spacing are both 1
+      // Args are: -padx*xspacing, -pady*yspacing, -padz*zspacing but padding and spacing are both 1
       translator->SetOriginTranslation(-1.0, -1.0, -1.0);
       padder->SetInput(translator->GetOutput());
       padder->SetConstant(0);
@@ -501,8 +487,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
       translator->Update();
       int extent[6];
       this->ContourNode->IndexedLabelmapVolumeNode->GetImageData()->GetWholeExtent(extent);
-      // now set the output extent to the new size, padded by 2 on the
-      // positive side
+      // Now set the output extent to the new size, padded by 2 on the positive side
       padder->SetOutputWholeExtent(extent[0], extent[1] + 2,
         extent[2], extent[3] + 2,
         extent[4], extent[5] + 2);
@@ -511,7 +496,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
 
   // Convert labelmap to model
   vtkSmartPointer<vtkLabelmapToModelFilter> labelmapToModelFilter = vtkSmartPointer<vtkLabelmapToModelFilter>::New();
-  if( pad )
+  if (pad)
   {
     labelmapToModelFilter->SetInputLabelmap( padder->GetOutput() );
   }
@@ -537,7 +522,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
     displayNode->SetOpacity(this->ContourNode->RibbonModelNode->GetModelDisplayNode()->GetOpacity());
   }
   // Set color
-  double color[4];
+  double color[4] = {0.0, 0.0, 0.0, 0.0};
   if (colorNode)
   {
     colorNode->GetColor(structureColorIndex, color);

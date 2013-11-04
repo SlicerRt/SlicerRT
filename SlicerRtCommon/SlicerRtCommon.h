@@ -206,6 +206,9 @@ public:
   /// Check if the lattice (grid, geometry) of two volumes are the same
   static bool DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtkMRMLScalarVolumeNode* volume2);
 
+  // Determine if two bounds are equal
+  static bool AreBoundsEqual(int boundsA[6], int boundsB[6]);
+
 //BTX
   /*!
     Convert VTK image to ITK image

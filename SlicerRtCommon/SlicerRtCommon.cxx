@@ -403,3 +403,15 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtk
   // All of the tests passed, declare the lattices the same
   return true;
 }
+
+//---------------------------------------------------------------------------
+bool SlicerRtCommon::AreBoundsEqual(int boundsA[6], int boundsB[6])
+{
+  return 
+    boundsA[0] == boundsB [0] &&
+    boundsA[1] == boundsB [1] &&
+    boundsA[2] == boundsB [2] &&
+    boundsA[3] == boundsB [3] &&
+    boundsA[4] == boundsB [4] &&
+    boundsA[5] == boundsB [5];
+}

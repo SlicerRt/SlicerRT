@@ -132,49 +132,49 @@ void vtkPolyDataToLabelmapFilter::Update()
   vtkSmartPointer<vtkStripper> stripper=vtkSmartPointer<vtkStripper>::New();
   stripper->SetInputConnection(triangle->GetOutputPort());
 
-  int calculatedExtents[6];
-  double polydataExtents[6];
+  int calculatedExtents[6] = {0, 0, 0, 0, 0, 0};
+  double polydataExtents[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   this->InputPolyData->GetPoints()->ComputeBounds();
   this->InputPolyData->GetPoints()->GetBounds(polydataExtents);
-  int refExtents[6];
-  this->ReferenceImageData->GetExtent(refExtents);
+  int referenceExtents[6] = {0, 0, 0, 0, 0, 0};
+  this->ReferenceImageData->GetExtent(referenceExtents);
 
-  calculatedExtents[0] = std::min<int>(roundLarger(polydataExtents[0]), refExtents[0]);
-  calculatedExtents[1] = std::max<int>(roundLarger(polydataExtents[1]), refExtents[1]);
-  calculatedExtents[2] = std::min<int>(roundLarger(polydataExtents[2]), refExtents[2]);
-  calculatedExtents[3] = std::max<int>(roundLarger(polydataExtents[3]), refExtents[3]);
-  calculatedExtents[4] = std::min<int>(roundLarger(polydataExtents[4]), refExtents[4]);
-  calculatedExtents[5] = std::max<int>(roundLarger(polydataExtents[5]), refExtents[5]);
+  calculatedExtents[0] = std::min<int>(roundLarger(polydataExtents[0]), referenceExtents[0]);
+  calculatedExtents[1] = std::max<int>(roundLarger(polydataExtents[1]), referenceExtents[1]);
+  calculatedExtents[2] = std::min<int>(roundLarger(polydataExtents[2]), referenceExtents[2]);
+  calculatedExtents[3] = std::max<int>(roundLarger(polydataExtents[3]), referenceExtents[3]);
+  calculatedExtents[4] = std::min<int>(roundLarger(polydataExtents[4]), referenceExtents[4]);
+  calculatedExtents[5] = std::max<int>(roundLarger(polydataExtents[5]), referenceExtents[5]);
 
-  if( !areExtentsEqual(calculatedExtents, refExtents) )
+  if( !areExtentsEqual(calculatedExtents, referenceExtents) )
   {
-    vtkDebugMacro("Warning! Extents of computed labelmap are not the same as the reference volume.");
+    vtkWarningMacro("Update: Extents of computed labelmap are not the same as the reference volume.");
   }
 
-  vtkSmartPointer<vtkImageData> refImg=vtkSmartPointer<vtkImageData>::New();
+  vtkSmartPointer<vtkImageData> referenceImage = vtkSmartPointer<vtkImageData>::New();
   if (this->UseReferenceValues)
   {
     // Use reference image
-    refImg->ShallowCopy(this->ReferenceImageData);
+    referenceImage->ShallowCopy(this->ReferenceImageData);
   }
   else
   {
     // Blank reference image
-    refImg->SetExtent(calculatedExtents);
-    refImg->SetSpacing(this->ReferenceImageData->GetSpacing());
-    refImg->SetOrigin(this->ReferenceImageData->GetOrigin());
-    refImg->SetScalarType(VTK_UNSIGNED_CHAR);
-    refImg->SetNumberOfScalarComponents(1);
-    refImg->AllocateScalars();
-    void *refImgPixelsPtr = refImg->GetScalarPointerForExtent(calculatedExtents);
-    if (refImgPixelsPtr==NULL)
+    referenceImage->SetExtent(calculatedExtents);
+    referenceImage->SetSpacing(this->ReferenceImageData->GetSpacing());
+    referenceImage->SetOrigin(this->ReferenceImageData->GetOrigin());
+    referenceImage->SetScalarType(VTK_UNSIGNED_CHAR);
+    referenceImage->SetNumberOfScalarComponents(1);
+    referenceImage->AllocateScalars();
+    void *referenceImagePixelsPointer = referenceImage->GetScalarPointerForExtent(calculatedExtents);
+    if (referenceImagePixelsPointer==NULL)
     {
       std::cerr << "ERROR: Cannot allocate memory for accumulation image";
       return;
     }
     else
     {
-      memset(refImgPixelsPtr,0,((calculatedExtents[1]-calculatedExtents[0]+1)*(calculatedExtents[3]-calculatedExtents[2]+1)*(calculatedExtents[5]-calculatedExtents[4]+1)*refImg->GetScalarSize()*refImg->GetNumberOfScalarComponents()));
+      memset(referenceImagePixelsPointer,0,((calculatedExtents[1]-calculatedExtents[0]+1)*(calculatedExtents[3]-calculatedExtents[2]+1)*(calculatedExtents[5]-calculatedExtents[4]+1)*referenceImage->GetScalarSize()*referenceImage->GetNumberOfScalarComponents()));
     }
   }
 
@@ -188,7 +188,7 @@ void vtkPolyDataToLabelmapFilter::Update()
 
   // Convert stencil to image
   vtkNew<vtkImageStencil> stencil;
-  stencil->SetInput(refImg);
+  stencil->SetInput(referenceImage);
   stencil->SetStencil(polyToImage->GetOutput());
   if (this->UseReferenceValues)
   {
