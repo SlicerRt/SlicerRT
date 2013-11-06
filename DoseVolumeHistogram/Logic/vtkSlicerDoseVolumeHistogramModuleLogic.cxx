@@ -382,9 +382,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
     return;
   }
 
-  // Get dose unit name
-  const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
-
   // Get maximum dose from dose volume
   vtkNew<vtkImageAccumulate> doseStat;
   doseStat->SetInput(doseVolumeNode->GetImageData());
@@ -490,6 +487,11 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   double cubicMMPerVoxel = structureLabelmapSpacing[0] * structureLabelmapSpacing[1] * structureLabelmapSpacing[2];
   double ccPerCubicMM = 0.001;
 
+  // Get dose unit name
+  const char* doseUnitName = vtkSlicerPatientHierarchyModuleLogic::GetAttributeFromAncestor(
+    doseVolumeNode, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY );
+  bool isDoseVolume = this->DoseVolumeContainsDose();
+
   // Compute and store DVH metrics
   std::ostringstream metricList;
 
@@ -505,7 +507,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   { // Mean dose
     std::string attributeName;
     std::ostringstream attributeValueStream;
-    this->AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MEAN_ATTRIBUTE_NAME_PREFIX, doseUnitName, attributeName);
+    this->AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MEAN_ATTRIBUTE_NAME_PREFIX, (isDoseVolume?doseUnitName:NULL), attributeName);
     attributeValueStream << structureStat->GetMean()[0];
     metricList << attributeName << SlicerRtCommon::DVH_METRIC_LIST_SEPARATOR_CHARACTER;
     arrayNode->SetAttribute(attributeName.c_str(), attributeValueStream.str().c_str());
@@ -514,7 +516,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   { // Max dose
     std::string attributeName;
     std::ostringstream attributeValueStream;
-    this->AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MAX_ATTRIBUTE_NAME_PREFIX, doseUnitName, attributeName);
+    this->AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MAX_ATTRIBUTE_NAME_PREFIX, (isDoseVolume?doseUnitName:NULL), attributeName);
     attributeValueStream << structureStat->GetMax()[0];
     metricList << attributeName << SlicerRtCommon::DVH_METRIC_LIST_SEPARATOR_CHARACTER;
     arrayNode->SetAttribute(attributeName.c_str(), attributeValueStream.str().c_str());
@@ -523,7 +525,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   { // Min dose
     std::string attributeName;
     std::ostringstream attributeValueStream;
-    this->AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MIN_ATTRIBUTE_NAME_PREFIX, doseUnitName, attributeName);
+    this->AssembleDoseMetricAttributeName(SlicerRtCommon::DVH_METRIC_MIN_ATTRIBUTE_NAME_PREFIX, (isDoseVolume?doseUnitName:NULL), attributeName);
     attributeValueStream << structureStat->GetMin()[0];
     metricList << attributeName << SlicerRtCommon::DVH_METRIC_LIST_SEPARATOR_CHARACTER;
     arrayNode->SetAttribute(attributeName.c_str(), attributeValueStream.str().c_str());
@@ -542,7 +544,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   int numSamples = 0;
   double startValue;
   double stepSize;
-  bool isDoseVolume = this->DoseVolumeContainsDose();
   if (isDoseVolume)
   {
     if (rangeMin<0)
