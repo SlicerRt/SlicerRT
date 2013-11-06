@@ -189,7 +189,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseAccumulationNode::GetReferenceDoseVolumeNode
 //----------------------------------------------------------------------------
 void vtkMRMLDoseAccumulationNode::SetAndObserveReferenceDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLDoseAccumulationNode::ReferenceDoseVolumeReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLDoseAccumulationNode::ReferenceDoseVolumeReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -202,7 +202,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseAccumulationNode::GetAccumulatedDoseVolumeNo
 //----------------------------------------------------------------------------
 void vtkMRMLDoseAccumulationNode::SetAndObserveAccumulatedDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLDoseAccumulationNode::AccumulatedDoseVolumeReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLDoseAccumulationNode::AccumulatedDoseVolumeReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------

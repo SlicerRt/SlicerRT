@@ -166,7 +166,7 @@ vtkMRMLContourNode* vtkMRMLContourMorphologyNode::GetContourANode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::SetAndObserveContourANode(vtkMRMLContourNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLContourMorphologyNode::ContourAReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLContourMorphologyNode::ContourAReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -179,7 +179,7 @@ vtkMRMLContourNode* vtkMRMLContourMorphologyNode::GetContourBNode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::SetAndObserveContourBNode(vtkMRMLContourNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLContourMorphologyNode::ContourBReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLContourMorphologyNode::ContourBReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -192,7 +192,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourMorphologyNode::GetReferenceVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLContourMorphologyNode::ReferenceVolumeReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLContourMorphologyNode::ReferenceVolumeReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -205,5 +205,5 @@ vtkMRMLContourNode* vtkMRMLContourMorphologyNode::GetOutputContourNode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::SetAndObserveOutputContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLContourMorphologyNode::OutputContourReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLContourMorphologyNode::OutputContourReferenceRole.c_str(), node->GetID());
 }

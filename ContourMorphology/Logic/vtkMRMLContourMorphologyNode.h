@@ -45,11 +45,6 @@ public:
     Subtract
   };
 
-  static std::string ContourAReferenceRole;
-  static std::string ContourBReferenceRole;
-  static std::string ReferenceVolumeReferenceRole;
-  static std::string OutputContourReferenceRole;
-
 public:
   static vtkMRMLContourMorphologyNode *New();
   vtkTypeMacro(vtkMRMLContourMorphologyNode, vtkMRMLNode);

@@ -266,7 +266,7 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
   textureVolumeDisplayNode->SetDefaultColorMap();
 
   // Add reference from displayed model node to texture volume node
-  displayedModelNode->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str(), 0, textureVolumeNode->GetID());
+  displayedModelNode->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str(), textureVolumeNode->GetID());
 
   // Observe the planar image volume node so that the texture can be updated
   vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
@@ -368,7 +368,7 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
   displayedModelDisplayNode->SetDiffuse(0.0);
 
   // Add reference from the planar image to the model
-  planarImageVolume->SetNthNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), 0, displayedModelNode->GetID());
+  planarImageVolume->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), displayedModelNode->GetID());
 
   // Create plane
   vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();

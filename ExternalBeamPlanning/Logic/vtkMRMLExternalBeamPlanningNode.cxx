@@ -105,7 +105,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLExternalBeamPlanningNode::GetReferenceVolumeNode
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLExternalBeamPlanningNode::ReferenceVolumeReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLExternalBeamPlanningNode::ReferenceVolumeReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -118,7 +118,7 @@ vtkMRMLRTPlanNode* vtkMRMLExternalBeamPlanningNode::GetRtPlanNode()
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveRtPlanNode(vtkMRMLRTPlanNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLExternalBeamPlanningNode::RtPlanReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLExternalBeamPlanningNode::RtPlanReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -131,7 +131,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLExternalBeamPlanningNode::GetIsocenterFiducia
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLExternalBeamPlanningNode::IsocenterFiducialReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLExternalBeamPlanningNode::IsocenterFiducialReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -144,6 +144,6 @@ vtkMRMLContourNode* vtkMRMLExternalBeamPlanningNode::GetProtonTargetContourNode(
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLExternalBeamPlanningNode::ProtonTargetContourReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLExternalBeamPlanningNode::ProtonTargetContourReferenceRole.c_str(), node->GetID());
 }
 

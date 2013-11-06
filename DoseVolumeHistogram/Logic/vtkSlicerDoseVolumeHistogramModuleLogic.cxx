@@ -441,8 +441,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   //arrayNode->HideFromEditorsOff();
 
   // Set array node references
-  arrayNode->SetNthNodeReferenceID(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str(), 0, doseVolumeNode->GetID());
-  arrayNode->SetNthNodeReferenceID(SlicerRtCommon::DVH_STRUCTURE_CONTOUR_NODE_REFERENCE_ROLE.c_str(), 0, structureContourNode->GetID());
+  arrayNode->SetNodeReferenceID(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str(), doseVolumeNode->GetID());
+  arrayNode->SetNodeReferenceID(SlicerRtCommon::DVH_STRUCTURE_CONTOUR_NODE_REFERENCE_ROLE.c_str(), structureContourNode->GetID());
 
   // Set array node attributes
   arrayNode->SetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");

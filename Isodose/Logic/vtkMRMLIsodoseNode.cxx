@@ -145,7 +145,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLIsodoseNode::GetDoseVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLIsodoseNode::DoseVolumeReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLIsodoseNode::DoseVolumeReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -158,7 +158,7 @@ vtkMRMLModelHierarchyNode* vtkMRMLIsodoseNode::GetIsodoseSurfaceModelsParentHier
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(vtkMRMLModelHierarchyNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLIsodoseNode::IsodoseSurfaceModelsParentHierarchyReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLIsodoseNode::IsodoseSurfaceModelsParentHierarchyReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -171,5 +171,5 @@ vtkMRMLColorTableNode* vtkMRMLIsodoseNode::GetColorTableNode()
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::SetAndObserveColorTableNode(vtkMRMLColorTableNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLIsodoseNode::ColorTableReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLIsodoseNode::ColorTableReferenceRole.c_str(), node->GetID());
 }

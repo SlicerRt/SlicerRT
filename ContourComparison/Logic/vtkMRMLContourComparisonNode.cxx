@@ -413,7 +413,7 @@ vtkMRMLContourNode* vtkMRMLContourComparisonNode::GetReferenceContourNode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourComparisonNode::SetAndObserveReferenceContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLContourComparisonNode::ReferenceContourReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLContourComparisonNode::ReferenceContourReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -426,7 +426,7 @@ vtkMRMLContourNode* vtkMRMLContourComparisonNode::GetCompareContourNode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourComparisonNode::SetAndObserveCompareContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLContourComparisonNode::CompareContourReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLContourComparisonNode::CompareContourReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -439,5 +439,5 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourComparisonNode::GetRasterizationReference
 //----------------------------------------------------------------------------
 void vtkMRMLContourComparisonNode::SetAndObserveRasterizationReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLContourComparisonNode::RasterizationReferenceVolumeReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLContourComparisonNode::RasterizationReferenceVolumeReferenceRole.c_str(), node->GetID());
 }

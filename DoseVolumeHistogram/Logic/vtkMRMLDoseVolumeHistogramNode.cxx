@@ -274,7 +274,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseVolumeHistogramNode::GetDoseVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::DoseVolumeReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::DoseVolumeReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -286,7 +286,7 @@ vtkMRMLNode* vtkMRMLDoseVolumeHistogramNode::GetStructureSetContourNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveStructureSetContourNode(vtkMRMLNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::StructureSetContourReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::StructureSetContourReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -299,7 +299,7 @@ vtkMRMLChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNode(vtkMRMLChartNode* node)
 {
-  this->SetNthNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::ChartReferenceRole.c_str(), 0, node->GetID());
+  this->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::ChartReferenceRole.c_str(), node->GetID());
 }
 
 //----------------------------------------------------------------------------
