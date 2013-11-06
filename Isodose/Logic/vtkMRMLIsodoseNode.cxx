@@ -23,9 +23,6 @@
 // MRMLIsodose includes
 #include "vtkMRMLIsodoseNode.h"
 
-// SlicerRt includes
-#include "SlicerRtCommon.h"
-
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
@@ -40,9 +37,9 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
-std::string vtkMRMLIsodoseNode::DoseVolumeReferenceRole = std::string("doseVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLIsodoseNode::IsodoseSurfaceModelsParentHierarchyReferenceRole = std::string("isodoseSurfaceModelsParentHierarchy") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLIsodoseNode::ColorTableReferenceRole = std::string("colorTable") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+static const char* DOSE_VOLUME_REFERENCE_ROLE = "doseVolumeRef";
+static const char* ISODOSE_SURFACE_MODELS_PATIENT_HIERARCHY_REFERENCE_ROLE = "isodoseSurfaceModelsParentHierarchyRef";
+static const char* COLOR_TABLE_REFERENCE_ROLE = "colorTableRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLIsodoseNode);
@@ -138,38 +135,35 @@ void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkMRMLIsodoseNode::GetDoseVolumeNode()
 {
-  return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLIsodoseNode::DoseVolumeReferenceRole.c_str()) );
+  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNodeReference(DOSE_VOLUME_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLIsodoseNode::DoseVolumeReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(DOSE_VOLUME_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLModelHierarchyNode* vtkMRMLIsodoseNode::GetIsodoseSurfaceModelsParentHierarchyNode()
 {
-  return vtkMRMLModelHierarchyNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLIsodoseNode::IsodoseSurfaceModelsParentHierarchyReferenceRole.c_str()) );
+  return vtkMRMLModelHierarchyNode::SafeDownCast( this->GetNodeReference(ISODOSE_SURFACE_MODELS_PATIENT_HIERARCHY_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(vtkMRMLModelHierarchyNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLIsodoseNode::IsodoseSurfaceModelsParentHierarchyReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(ISODOSE_SURFACE_MODELS_PATIENT_HIERARCHY_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLColorTableNode* vtkMRMLIsodoseNode::GetColorTableNode()
 {
-  return vtkMRMLColorTableNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLIsodoseNode::ColorTableReferenceRole.c_str()) );
+  return vtkMRMLColorTableNode::SafeDownCast( this->GetNodeReference(COLOR_TABLE_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::SetAndObserveColorTableNode(vtkMRMLColorTableNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLIsodoseNode::ColorTableReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(COLOR_TABLE_REFERENCE_ROLE, node->GetID());
 }

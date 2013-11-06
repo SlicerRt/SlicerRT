@@ -22,9 +22,6 @@
 // MRMLBeams includes
 #include "vtkMRMLBeamsNode.h"
 
-// SlicerRT includes
-#include "SlicerRtCommon.h"
-
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
@@ -38,8 +35,8 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
-std::string vtkMRMLBeamsNode::IsocenterMarkupsReferenceRole = std::string("isocenterMarkups") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLBeamsNode::BeamModelReferenceRole = std::string("beamModel") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+static const char* ISOCENTER_MARKUPS_REFERENCE_ROLE = "isocenterMarkupsRef";
+static const char* BEAM_MODEL_REFERENCE_ROLE = "beamModelRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLBeamsNode);
@@ -125,25 +122,23 @@ void vtkMRMLBeamsNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsFiducialNode* vtkMRMLBeamsNode::GetIsocenterMarkupsNode()
 {
-  return vtkMRMLMarkupsFiducialNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLBeamsNode::IsocenterMarkupsReferenceRole.c_str()) );
+  return vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference(ISOCENTER_MARKUPS_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLBeamsNode::SetAndObserveIsocenterMarkupsNode(vtkMRMLMarkupsFiducialNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLBeamsNode::IsocenterMarkupsReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(ISOCENTER_MARKUPS_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLModelNode* vtkMRMLBeamsNode::GetBeamModelNode()
 {
-  return vtkMRMLModelNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLBeamsNode::BeamModelReferenceRole.c_str()) );
+  return vtkMRMLModelNode::SafeDownCast( this->GetNodeReference(BEAM_MODEL_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLBeamsNode::SetAndObserveBeamModelNode(vtkMRMLModelNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLBeamsNode::BeamModelReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(BEAM_MODEL_REFERENCE_ROLE, node->GetID());
 }

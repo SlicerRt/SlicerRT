@@ -38,9 +38,6 @@ public:
   vtkTypeMacro(vtkMRMLBeamsNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  static std::string IsocenterMarkupsReferenceRole;
-  static std::string BeamModelReferenceRole;
-
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
 

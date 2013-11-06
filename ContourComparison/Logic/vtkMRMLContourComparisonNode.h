@@ -38,10 +38,6 @@ public:
   vtkTypeMacro(vtkMRMLContourComparisonNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  static std::string ReferenceContourReferenceRole;
-  static std::string CompareContourReferenceRole;
-  static std::string RasterizationReferenceVolumeReferenceRole;
-
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
 

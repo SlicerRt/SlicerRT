@@ -22,9 +22,6 @@
 // MRMLDoseAccumulation includes
 #include "vtkMRMLDoseAccumulationNode.h"
 
-// SlicerRtCommon includes
-#include "SlicerRtCommon.h"
-
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
@@ -37,9 +34,9 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
-std::string vtkMRMLDoseAccumulationNode::ReferenceDoseVolumeReferenceRole = std::string("referenceDoseVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLDoseAccumulationNode::AccumulatedDoseVolumeReferenceRole = std::string("accumulatedDoseVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLDoseAccumulationNode::SelectedInputVolumeReferenceRole = std::string("selectedInputVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+static const char* REFERENCE_DOSE_VOLUME_REFERENCE_ROLE = "referenceDoseVolumeRef";
+static const char* ACCUMULATED_DOSE_VOLUME_REFERENCE_ROLE = "accumulatedDoseVolumeRef";
+static const char* SELECTED_INPUT_VOLUME_REFERENCE_ROLE = "selectedInputVolumeRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLDoseAccumulationNode);
@@ -182,46 +179,43 @@ void vtkMRMLDoseAccumulationNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkMRMLDoseAccumulationNode::GetReferenceDoseVolumeNode()
 {
-  return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLDoseAccumulationNode::ReferenceDoseVolumeReferenceRole.c_str()) );
+  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNodeReference(REFERENCE_DOSE_VOLUME_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseAccumulationNode::SetAndObserveReferenceDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLDoseAccumulationNode::ReferenceDoseVolumeReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(REFERENCE_DOSE_VOLUME_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkMRMLDoseAccumulationNode::GetAccumulatedDoseVolumeNode()
 {
-  return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLDoseAccumulationNode::AccumulatedDoseVolumeReferenceRole.c_str()) );
+  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNodeReference(ACCUMULATED_DOSE_VOLUME_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseAccumulationNode::SetAndObserveAccumulatedDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLDoseAccumulationNode::AccumulatedDoseVolumeReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(ACCUMULATED_DOSE_VOLUME_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkMRMLDoseAccumulationNode::GetNthSelectedInputVolumeNode(unsigned int index)
 {
-  return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNthNodeReference(vtkMRMLDoseAccumulationNode::SelectedInputVolumeReferenceRole.c_str(), index) );
+  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNthNodeReference(SELECTED_INPUT_VOLUME_REFERENCE_ROLE, index) );
 }
 
 //----------------------------------------------------------------------------
 unsigned int vtkMRMLDoseAccumulationNode::GetNumberOfSelectedInputVolumeNodes()
 {
-  return this->GetNumberOfNodeReferences(vtkMRMLDoseAccumulationNode::SelectedInputVolumeReferenceRole.c_str());
+  return this->GetNumberOfNodeReferences(SELECTED_INPUT_VOLUME_REFERENCE_ROLE);
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseAccumulationNode::AddSelectedInputVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->AddNodeReferenceID(vtkMRMLDoseAccumulationNode::SelectedInputVolumeReferenceRole.c_str(), node->GetID());
+  this->AddNodeReferenceID(SELECTED_INPUT_VOLUME_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -229,9 +223,9 @@ void vtkMRMLDoseAccumulationNode::RemoveSelectedInputVolumeNode(vtkMRMLScalarVol
 {
   for (int referenceIndex=0; referenceIndex<this->GetNumberOfSelectedInputVolumeNodes(); ++referenceIndex)
   {
-    if (this->GetNthNodeReference(vtkMRMLDoseAccumulationNode::SelectedInputVolumeReferenceRole.c_str(), referenceIndex) == node)
+    if (this->GetNthNodeReference(SELECTED_INPUT_VOLUME_REFERENCE_ROLE, referenceIndex) == node)
     {
-      this->RemoveNthNodeReferenceID(vtkMRMLDoseAccumulationNode::SelectedInputVolumeReferenceRole.c_str(), referenceIndex);
+      this->RemoveNthNodeReferenceID(SELECTED_INPUT_VOLUME_REFERENCE_ROLE, referenceIndex);
       break;
     }
   }

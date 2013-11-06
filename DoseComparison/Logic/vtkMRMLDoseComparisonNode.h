@@ -41,10 +41,6 @@ public:
   vtkTypeMacro(vtkMRMLDoseComparisonNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  static std::string ReferenceDoseVolumeReferenceRole;
-  static std::string CompareDoseVolumeReferenceRole;
-  static std::string GammaVolumeReferenceRole;
-
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
 

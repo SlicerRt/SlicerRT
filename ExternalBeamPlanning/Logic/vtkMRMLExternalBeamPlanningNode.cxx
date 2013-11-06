@@ -24,7 +24,6 @@
 #include "vtkMRMLExternalBeamPlanningNode.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLContourNode.h"
 
@@ -41,10 +40,10 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
-std::string vtkMRMLExternalBeamPlanningNode::ReferenceVolumeReferenceRole = std::string("referenceVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLExternalBeamPlanningNode::RtPlanReferenceRole = std::string("rtPlan") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLExternalBeamPlanningNode::IsocenterFiducialReferenceRole = std::string("isocenterFiducial") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLExternalBeamPlanningNode::ProtonTargetContourReferenceRole = std::string("protonTargetContour") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+static const char* RFERENCE_VOLUME_REFERENCE_ROLE = "referenceVolumeRef";
+static const char* RT_PLAN_REFERENCE_ROLE = "rtPlanRef";
+static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
+static const char* PROTON_TARGET_CONTOUR_REFERENCE_ROLE = "protonTargetContourRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLExternalBeamPlanningNode);
@@ -99,51 +98,48 @@ void vtkMRMLExternalBeamPlanningNode::PrintSelf(ostream& os, vtkIndent indent)
 vtkMRMLScalarVolumeNode* vtkMRMLExternalBeamPlanningNode::GetReferenceVolumeNode()
 {
   return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLExternalBeamPlanningNode::ReferenceVolumeReferenceRole.c_str()) );
+    this->GetNodeReference(RFERENCE_VOLUME_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLExternalBeamPlanningNode::ReferenceVolumeReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(RFERENCE_VOLUME_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode* vtkMRMLExternalBeamPlanningNode::GetRtPlanNode()
 {
-  return vtkMRMLRTPlanNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLExternalBeamPlanningNode::RtPlanReferenceRole.c_str()) );
+  return vtkMRMLRTPlanNode::SafeDownCast( this->GetNodeReference(RT_PLAN_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveRtPlanNode(vtkMRMLRTPlanNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLExternalBeamPlanningNode::RtPlanReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(RT_PLAN_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsFiducialNode* vtkMRMLExternalBeamPlanningNode::GetIsocenterFiducialNode()
 {
-  return vtkMRMLMarkupsFiducialNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLExternalBeamPlanningNode::IsocenterFiducialReferenceRole.c_str()) );
+  return vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference(ISOCENTER_FIDUCIAL_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLExternalBeamPlanningNode::IsocenterFiducialReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(ISOCENTER_FIDUCIAL_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLContourNode* vtkMRMLExternalBeamPlanningNode::GetProtonTargetContourNode()
 {
-  return vtkMRMLContourNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLExternalBeamPlanningNode::ProtonTargetContourReferenceRole.c_str()) );
+  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(PROTON_TARGET_CONTOUR_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLExternalBeamPlanningNode::ProtonTargetContourReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(PROTON_TARGET_CONTOUR_REFERENCE_ROLE, node->GetID());
 }
 

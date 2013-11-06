@@ -33,6 +33,7 @@
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLChartNode;
+class vtkMRMLDoubleArrayNode;
 
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkMRMLDoseVolumeHistogramNode : public vtkMRMLNode
 {
@@ -40,11 +41,6 @@ public:
   static vtkMRMLDoseVolumeHistogramNode *New();
   vtkTypeMacro(vtkMRMLDoseVolumeHistogramNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
-
-  static std::string DoseVolumeReferenceRole;
-  static std::string StructureSetContourReferenceRole;
-  static std::string ChartReferenceRole;
-  static std::string DvhDoubleArrayReferenceRole;
 
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -79,6 +75,10 @@ public:
 
   /// Get list of all the DVH double array node IDs in the scene
   void GetDvhDoubleArrayNodes(std::vector<vtkMRMLNode*> &nodes);
+  /// Add DVH double array node reference
+  void AddDvhDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
+  /// Remove all DVH double array node references
+  void RemoveAllDvhDoubleArrayNodes();
 
   /// Get show in chart check states
   void GetShowInChartCheckStates(std::vector<bool> &checkboxStates)

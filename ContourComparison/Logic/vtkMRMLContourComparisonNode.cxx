@@ -23,7 +23,6 @@
 #include "vtkMRMLContourComparisonNode.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
 
 // MRML includes
@@ -38,9 +37,9 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
-std::string vtkMRMLContourComparisonNode::ReferenceContourReferenceRole = std::string("referenceContour") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLContourComparisonNode::CompareContourReferenceRole = std::string("compareContour") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLContourComparisonNode::RasterizationReferenceVolumeReferenceRole = std::string("rasterizationReferenceVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+static const char* REFERENCE_CONTOUR_REFERENCE_ROLE = "referenceContourRef";
+static const char* COMPARE_CONTOUR_REFERENCE_ROLE = "compareContourRef";
+static const char* RASTERIZATION_REFERENCE_VOLUME_REFERENCE_ROLE = "rasterizationReferenceVolumeRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourComparisonNode);
@@ -406,38 +405,35 @@ void vtkMRMLContourComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkMRMLContourNode* vtkMRMLContourComparisonNode::GetReferenceContourNode()
 {
-  return vtkMRMLContourNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLContourComparisonNode::ReferenceContourReferenceRole.c_str()) );
+  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(REFERENCE_CONTOUR_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLContourComparisonNode::SetAndObserveReferenceContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLContourComparisonNode::ReferenceContourReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(REFERENCE_CONTOUR_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLContourNode* vtkMRMLContourComparisonNode::GetCompareContourNode()
 {
-  return vtkMRMLContourNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLContourComparisonNode::CompareContourReferenceRole.c_str()) );
+  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(COMPARE_CONTOUR_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLContourComparisonNode::SetAndObserveCompareContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLContourComparisonNode::CompareContourReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(COMPARE_CONTOUR_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkMRMLContourComparisonNode::GetRasterizationReferenceVolumeNode()
 {
-  return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLContourComparisonNode::RasterizationReferenceVolumeReferenceRole.c_str()) );
+  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNodeReference(RASTERIZATION_REFERENCE_VOLUME_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLContourComparisonNode::SetAndObserveRasterizationReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLContourComparisonNode::RasterizationReferenceVolumeReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(RASTERIZATION_REFERENCE_VOLUME_REFERENCE_ROLE, node->GetID());
 }

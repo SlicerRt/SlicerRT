@@ -41,11 +41,6 @@ public:
   vtkTypeMacro(vtkMRMLExternalBeamPlanningNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  static std::string ReferenceVolumeReferenceRole;
-  static std::string RtPlanReferenceRole;
-  static std::string IsocenterFiducialReferenceRole;
-  static std::string ProtonTargetContourReferenceRole;
-
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
 

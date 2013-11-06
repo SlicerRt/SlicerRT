@@ -40,10 +40,6 @@ public:
   vtkTypeMacro(vtkMRMLIsodoseNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  static std::string DoseVolumeReferenceRole;
-  static std::string IsodoseSurfaceModelsParentHierarchyReferenceRole;
-  static std::string ColorTableReferenceRole;
-
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
 

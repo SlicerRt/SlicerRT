@@ -137,7 +137,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RefreshDvhDoubleArrayNodesFromScen
     return;
   }
 
-  this->DoseVolumeHistogramNode->RemoveAllNodeReferenceIDs(vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole.c_str());
+  this->DoseVolumeHistogramNode->RemoveAllDvhDoubleArrayNodes();
 
   if (this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLDoubleArrayNode") < 1)
   {
@@ -154,8 +154,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RefreshDvhDoubleArrayNodesFromScen
       const char* type = doubleArrayNode->GetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str());
       if (type)
       {
-        this->DoseVolumeHistogramNode->AddNodeReferenceID(
-          vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole.c_str(), doubleArrayNode->GetID() );
+        this->DoseVolumeHistogramNode->AddDvhDoubleArrayNode(doubleArrayNode);
       }
     }
 
@@ -203,8 +202,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* 
       const char* type = doubleArrayNode->GetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str());
       if (type)
       {
-        this->DoseVolumeHistogramNode->AddNodeReferenceID(
-          vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole.c_str(), doubleArrayNode->GetID() );
+        this->DoseVolumeHistogramNode->AddDvhDoubleArrayNode(doubleArrayNode);
       }
     }
   }

@@ -365,7 +365,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     // Set previous checked state of the checkbox
     for (int referenceIndex=0; referenceIndex<paramNode->GetNumberOfSelectedInputVolumeNodes(); ++referenceIndex)
     {
-      if (paramNode->GetNthNodeReference(vtkMRMLDoseAccumulationNode::SelectedInputVolumeReferenceRole.c_str(), referenceIndex) == volumeNode)
+      if (paramNode->GetNthSelectedInputVolumeNode(referenceIndex) == volumeNode)
       {
         checkbox->setChecked(true);
         break;

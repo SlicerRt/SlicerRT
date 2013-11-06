@@ -23,13 +23,13 @@
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
 #include "vtkSlicerDicomRtImportModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLChartNode.h>
+#include <vtkMRMLDoubleArrayNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -39,10 +39,10 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
-std::string vtkMRMLDoseVolumeHistogramNode::DoseVolumeReferenceRole = std::string("doseVolume") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLDoseVolumeHistogramNode::StructureSetContourReferenceRole = std::string("structureSetContour") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLDoseVolumeHistogramNode::ChartReferenceRole = std::string("chart") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-std::string vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole = std::string("dvhDoubleArray") + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+static const char* DOSE_VOLUME_REFERENCE_ROLE = "doseVolumeRef";
+static const char* STRUCTURE_SET_CONTOUR_REFERENCE_ROLE = "structureSetContourRef";
+static const char* CHART_REFERENCE_ROLE = "chartRef";
+static const char* DVH_DOUBLE_ARRAY_REFERENCE_ROLE = "dvhDoubleArrayRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLDoseVolumeHistogramNode);
@@ -267,39 +267,37 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkMRMLDoseVolumeHistogramNode::GetDoseVolumeNode()
 {
-  return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::DoseVolumeReferenceRole.c_str()) );
+  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNodeReference(DOSE_VOLUME_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::DoseVolumeReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(DOSE_VOLUME_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLNode* vtkMRMLDoseVolumeHistogramNode::GetStructureSetContourNode()
 {
-  return this->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::StructureSetContourReferenceRole.c_str());
+  return this->GetNodeReference(STRUCTURE_SET_CONTOUR_REFERENCE_ROLE);
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveStructureSetContourNode(vtkMRMLNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::StructureSetContourReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(STRUCTURE_SET_CONTOUR_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
 {
-  return vtkMRMLChartNode::SafeDownCast(
-    this->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::ChartReferenceRole.c_str()) );
+  return vtkMRMLChartNode::SafeDownCast( this->GetNodeReference(CHART_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNode(vtkMRMLChartNode* node)
 {
-  this->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::ChartReferenceRole.c_str(), node->GetID());
+  this->SetNodeReferenceID(CHART_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -308,6 +306,18 @@ void vtkMRMLDoseVolumeHistogramNode::GetDvhDoubleArrayNodes(std::vector<vtkMRMLN
   // Disable modify event for this operation as it triggers unwanted calls of
   // qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable thus causing crash
   this->DisableModifiedEventOn();
-  this->GetNodeReferences(vtkMRMLDoseVolumeHistogramNode::DvhDoubleArrayReferenceRole.c_str(), nodes);
+  this->GetNodeReferences(DVH_DOUBLE_ARRAY_REFERENCE_ROLE, nodes);
   this->DisableModifiedEventOff();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseVolumeHistogramNode::AddDvhDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
+{
+  this->AddNodeReferenceID(DVH_DOUBLE_ARRAY_REFERENCE_ROLE, node->GetID());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseVolumeHistogramNode::RemoveAllDvhDoubleArrayNodes()
+{
+  this->RemoveAllNodeReferenceIDs(DVH_DOUBLE_ARRAY_REFERENCE_ROLE);
 }
