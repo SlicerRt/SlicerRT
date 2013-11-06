@@ -363,7 +363,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     d->CheckboxToVolumeIdMap[checkbox] = std::pair<std::string, std::string>(volumeNode->GetID(), doseUnitStr);
 
     // Set previous checked state of the checkbox
-    for (int referenceIndex=0; referenceIndex<paramNode->GetNumberOfSelectedInputVolumeNodes(); ++referenceIndex)
+    for (unsigned int referenceIndex=0; referenceIndex<paramNode->GetNumberOfSelectedInputVolumeNodes(); ++referenceIndex)
     {
       if (paramNode->GetNthSelectedInputVolumeNode(referenceIndex) == volumeNode)
       {

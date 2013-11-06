@@ -463,6 +463,7 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
 void qSlicerExternalBeamPlanningModuleWidget::tableWidgetItemClicked(QTableWidgetItem *item)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(item);
 
   int row = d->tableWidget_Beams->currentRow();
   if (row != d->currentBeamRow)  
@@ -617,7 +618,6 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
 
   /* Copy pertinent variable values from GUI to logic */
   /* Is this the right place for this? */
-  bool ok;
   d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle(d->SliderWidget_GantryAngle->value());
 
   /* OK, we're good to go (well, not really, but let's pretend). 
@@ -630,7 +630,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::updateBeamParameters()
 {
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  //Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   // Compute the DPH for the selected margin cal double array
   std::string errorMessage;
@@ -638,7 +638,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateBeamParameters()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString & text)
+void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString &text)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -654,6 +654,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString & te
     return;
   }
 
+  UNUSED_VARIABLE(text);
   // TODO:
   //d->GantryAngle = text;
 }
@@ -743,9 +744,10 @@ void qSlicerExternalBeamPlanningModuleWidget::beamModelButtonClicked()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString & text)
+void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString &text)
 {
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  //Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
 
   //TODO:
 }
@@ -779,9 +781,10 @@ void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged(const QString & text)
+void qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged(const QString &text)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
 
   if (!this->mrmlScene())
   {

@@ -221,7 +221,7 @@ void vtkMRMLDoseAccumulationNode::AddSelectedInputVolumeNode(vtkMRMLScalarVolume
 //----------------------------------------------------------------------------
 void vtkMRMLDoseAccumulationNode::RemoveSelectedInputVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  for (int referenceIndex=0; referenceIndex<this->GetNumberOfSelectedInputVolumeNodes(); ++referenceIndex)
+  for (unsigned int referenceIndex=0; referenceIndex<this->GetNumberOfSelectedInputVolumeNodes(); ++referenceIndex)
   {
     if (this->GetNthNodeReference(SELECTED_INPUT_VOLUME_REFERENCE_ROLE, referenceIndex) == node)
     {
