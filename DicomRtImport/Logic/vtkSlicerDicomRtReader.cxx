@@ -637,6 +637,11 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
     }
     while (rtPlaneBeamSequenceObject.gotoNextItem().good());
   }
+  else
+  {
+    vtkErrorMacro("LoadRTPlan: No beams found in RT plan!");
+    return;
+  }
 
   // SOP instance UID
   OFString sopInstanceUid("");
@@ -1252,6 +1257,12 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
     vtkErrorMacro("LoadRTDose: Failed to get Dose Grid Scaling for dose object");
     return; // mandatory DICOM value
   }
+  else if (doseGridScaling.empty())
+  {
+    vtkWarningMacro("LoadRTDose: Dose grid scaling tag is missing or empty! Using default dose grid scaling 0.0001.");
+    doseGridScaling = "0.0001";
+  }
+
   this->SetDoseGridScaling(doseGridScaling.c_str());
 
   OFString doseUnits("");
