@@ -165,6 +165,7 @@ class DicomRtImportPlugin:
       seriesNode = slicer.vtkMRMLHierarchyNode()
       slicer.mrmlScene.AddNode(seriesNode)
     elif seriesNode.GetAttribute('PatientHierarchy.SeriesModality') != None:
+      import sys
       sys.stderr.write('Volume with the same UID has been already loaded!')
       return
 

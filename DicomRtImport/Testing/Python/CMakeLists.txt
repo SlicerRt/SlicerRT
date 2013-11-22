@@ -9,7 +9,7 @@ configure_file(
 	${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}/util/__init__.py
 	)
 
-  #-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 set(MODULE_TEST_PYTHON_SCRIPTS
   DicomRtImportSelfTest.py
   ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}/util/DicomRtImportSelfTestPaths.py
