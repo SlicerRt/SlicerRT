@@ -34,12 +34,6 @@ if(${EXTENSION_NAME}_SUPERBUILD)
 endif()
 
 #-----------------------------------------------------------------------------
-set(MODULE_NAME ${EXTENSION_NAME}) # Do not use 'project()'
-set(MODULE_TITLE ${MODULE_NAME})
-
-string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
-
-#-----------------------------------------------------------------------------
 OPTION(SLICERRT_ENABLE_EXPERIMENTAL_MODULES "Enable the building of work-in-progress, experimental modules." OFF)
 
 #-----------------------------------------------------------------------------
