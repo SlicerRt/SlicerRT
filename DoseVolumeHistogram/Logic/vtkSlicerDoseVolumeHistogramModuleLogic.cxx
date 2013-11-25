@@ -48,7 +48,6 @@
 #include <vtkNew.h>
 #include <vtkTransform.h>
 #include <vtkImageAccumulate.h>
-#include <vtkImageThreshold.h>
 #include <vtkImageToImageStencil.h>
 #include <vtkImageStencilData.h>
 #include <vtkDoubleArray.h>

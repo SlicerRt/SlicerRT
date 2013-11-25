@@ -2,6 +2,7 @@ project(vtkSlicerRtCommon)
 
 # --------------------------------------------------------------------------
 # Sources
+# --------------------------------------------------------------------------
 
 SET (SlicerRtCommon_SRCS 
   SlicerRtCommon.cxx
@@ -19,6 +20,7 @@ SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${Slicer_Libs_INCLU
 
 # --------------------------------------------------------------------------
 # Build the library
+# --------------------------------------------------------------------------
 
 set(lib_name ${PROJECT_NAME})
 SET (SlicerRtCommon_LIBS ${SlicerRtCommon_LIBS}
@@ -41,7 +43,6 @@ ENDIF()
 if(VTK_WRAP_PYTHON AND BUILD_SHARED_LIBS)
 
   set(Slicer_Wrapped_LIBRARIES
-    
     )
 
   foreach(library ${lib_name})
