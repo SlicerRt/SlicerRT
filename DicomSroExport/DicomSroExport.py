@@ -101,6 +101,7 @@ class DicomSroExportWidget:
 
     # fixed image (directory input)
     self.fixedInputDirectory = ctk.ctkDirectoryButton()
+    self.fixedInputDirectory.directory = qt.QDir.homePath()
     parametersFormLayout.addRow("", self.fixedInputDirectory)
 
     # moving image (mrml input)
@@ -120,6 +121,7 @@ class DicomSroExportWidget:
 
     # moving image (directory input)
     self.movingInputDirectory = ctk.ctkDirectoryButton()
+    self.movingInputDirectory.directory = qt.QDir.homePath()
     parametersFormLayout.addRow("", self.movingInputDirectory)
 
     # transform (mrml input)
@@ -137,10 +139,7 @@ class DicomSroExportWidget:
 
     # output directory selector
     self.outputDirectory = ctk.ctkDirectoryButton()
-    #self.outputDirectory.setDirectory(QDir::homePath())
-    #self.outputDirectory.setDirectory(qt.QDir.homePath())
-    #self.outputDirectory.setDirectory("/")
-    #self.outputDirectory = ctk.ctkDirectoryButton("/")
+    self.outputDirectory.directory = qt.QDir.homePath()
     parametersFormLayout.addRow("Output Directory: ", self.outputDirectory)
     
     # check box to trigger taking screen shots for later use in tutorials
