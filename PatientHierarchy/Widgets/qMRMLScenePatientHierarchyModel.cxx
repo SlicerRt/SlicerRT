@@ -34,6 +34,7 @@
 #include <vtkMRMLDisplayableHierarchyNode.h>
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLScene.h>
 
 // Qt includes
 #include <QMimeData>

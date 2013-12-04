@@ -42,6 +42,7 @@
 #include <vtkNew.h>
 #include <vtkImageData.h>
 #include <vtkTimerLog.h>
+#include <vtkObjectFactory.h>
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>

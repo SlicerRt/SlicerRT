@@ -36,6 +36,7 @@
 // MRML includes
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLScene.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_Beams

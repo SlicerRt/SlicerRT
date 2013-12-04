@@ -34,6 +34,7 @@
 #include <vtkNew.h>
 #include <vtkPolyData.h>
 #include <vtkLookupTable.h>
+#include <vtkObjectFactory.h>
 
 // MRML includes
 #include <vtkMRMLModelNode.h>

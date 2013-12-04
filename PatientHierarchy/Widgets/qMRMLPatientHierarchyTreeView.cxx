@@ -41,6 +41,7 @@
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLApplicationLogic.h>
+#include <vtkMRMLScene.h>
 
 //------------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_PatientHierarchy

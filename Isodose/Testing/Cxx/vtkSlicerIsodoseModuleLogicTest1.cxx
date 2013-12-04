@@ -35,6 +35,7 @@
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkDoubleArray.h>

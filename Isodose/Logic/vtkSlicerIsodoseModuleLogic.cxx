@@ -41,6 +41,7 @@
 // MRMLLogic includes
 #include <vtkMRMLColorLogic.h>
 #include <vtkMRMLApplicationLogic.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -58,6 +59,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkObjectFactory.h>
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------

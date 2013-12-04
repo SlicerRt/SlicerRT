@@ -34,6 +34,7 @@
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLHierarchyNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -42,6 +43,7 @@
 #include <vtkMatrix4x4.h>
 #include <vtkConeSource.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerBeamsModuleLogic);

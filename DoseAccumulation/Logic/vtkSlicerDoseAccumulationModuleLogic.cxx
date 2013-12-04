@@ -35,6 +35,7 @@
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLHierarchyNode.h>
 #include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -43,6 +44,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageReslice.h>
 #include <vtkGeneralTransform.h>
+#include <vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseAccumulationModuleLogic);

@@ -25,10 +25,12 @@
 #include <vtkImageData.h>
 #include <vtkMatrix4x4.h>
 #include <vtkImageShiftScale.h>
+#include <vtkObjectFactory.h>
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
+#include <vtkMRMLScene.h>
 #include <vtkMRMLSelectionNode.h>
 
 // Slicer logic includes

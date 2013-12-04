@@ -66,6 +66,7 @@ limitations under the License.
 #include <vtkLookupTable.h>
 #include <vtkImageCast.h>
 #include <vtkStringArray.h>
+#include <vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtImportModuleLogic);

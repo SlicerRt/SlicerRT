@@ -35,6 +35,7 @@
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLScene.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_DoseComparison

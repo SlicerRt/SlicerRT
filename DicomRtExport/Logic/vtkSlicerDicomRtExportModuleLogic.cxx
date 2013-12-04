@@ -35,6 +35,7 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkImageShiftScale.h>
+#include <vtkObjectFactory.h>
 
 // ITK includes
 #include <itkImage.h>

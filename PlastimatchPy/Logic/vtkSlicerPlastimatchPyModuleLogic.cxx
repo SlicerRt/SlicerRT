@@ -21,6 +21,7 @@
 #include "vtkSlicerPlastimatchPyModuleLogic.h"
 
 // MRML includes
+#include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 
@@ -33,6 +34,7 @@
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
 #include <vtkMatrix4x4.h>
+#include <vtkObjectFactory.h>
 
 // Plastimatch includes
 #include "bspline_interpolate.h"

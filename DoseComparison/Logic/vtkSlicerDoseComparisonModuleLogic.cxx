@@ -35,6 +35,7 @@
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLScene.h>
 
 // MRMLLogic includes
 #include <vtkMRMLColorLogic.h>
@@ -45,6 +46,7 @@
 #include <vtkImageData.h>
 #include <vtkTimerLog.h>
 #include <vtkLookupTable.h>
+#include <vtkObjectFactory.h>
 #include "vtksys/SystemTools.hxx"
 
 // ITK includes

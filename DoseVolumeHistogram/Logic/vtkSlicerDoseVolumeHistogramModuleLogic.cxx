@@ -56,6 +56,7 @@
 #include <vtkImageReslice.h>
 #include <vtkTimerLog.h>
 #include <vtkPolyDataToLabelmapFilter.h>
+#include <vtkObjectFactory.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>

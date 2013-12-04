@@ -31,12 +31,14 @@
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLDisplayableHierarchyNode.h>
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkStringArray.h>
 #include <vtkSmartPointer.h>
 #include <vtkLookupTable.h>
+#include <vtkObjectFactory.h>
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>

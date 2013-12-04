@@ -72,10 +72,12 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
   def __init__(self,parent=None):
     super(PlmRegisterPlugin,self).__init__(parent)
 
-  def create(self):
+  def create(self,state=None):
     """Make the plugin-specific user interface"""
     print ("Hello from PlmRegister.create")
     super(PlmRegisterPlugin,self).create()
+
+    this.state = state
     
     #
     # Linear Registration Pane - initially hidden

@@ -56,6 +56,7 @@
 #include <vtkImageAccumulate.h>
 #include <vtkImageReslice.h>
 #include <vtkGeneralTransform.h>
+#include <vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerContourMorphologyModuleLogic);
