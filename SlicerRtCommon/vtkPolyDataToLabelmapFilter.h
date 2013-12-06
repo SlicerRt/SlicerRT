@@ -33,6 +33,8 @@
 #include <cstdlib>
 
 /// \ingroup SlicerRt_SlicerRtCommon
+/// The algorithm requires the input polydata to be transformed to the IJK coordinate system of the reference image data
+/// or the extents calculated to encompass both sets of data will be nonsensical.
 class vtkPolyDataToLabelmapFilter : public vtkObject
 {
 public:
@@ -62,10 +64,12 @@ protected:
   vtkSetObjectMacro(OutputLabelmap, vtkImageData);
   vtkSetObjectMacro(ReferenceImageData, vtkImageData);
 
-  void DeterminePolyDataReferenceOverlap(std::vector<int>& referenceExtentsVector, std::vector<double>& originVector);
+  /// This function will compute a new origin and extents to completely encompass both the reference image data
+  /// and the input polydata. If the input polydata is contained within the reference image space, then no change will occur
+  /// \return Success flag indicating sane calculated extents
+  bool DeterminePolyDataReferenceOverlap(std::vector<int>& referenceExtentsVector, std::vector<double>& originVector);
 
 protected:
-  // The algorithm requires the input polydata to be in the reference image data coordinate system
   vtkPolyData* InputPolyData;
   vtkImageData* OutputLabelmap;
   vtkImageData* ReferenceImageData;

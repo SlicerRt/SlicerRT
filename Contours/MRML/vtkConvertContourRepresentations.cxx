@@ -340,7 +340,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     vtkSmartPointer<vtkMRMLScalarVolumeNode> intermediateLabelmapNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
     intermediateLabelmapNode->SetAndObserveImageData(polyDataToLabelmapFilter->GetOutput());
     intermediateLabelmapNode->CopyOrientation(referencedAnatomyVolumeNode);
-    double newOriginHomogeneous[4];
+    double newOriginHomogeneous[4] = {0, 0, 0, 1};
     this->CalculateOriginInRAS(intermediateLabelmapNode, calculatedOriginHomogeneous, &newOriginHomogeneous[0]);
     intermediateLabelmapNode->SetOrigin(newOriginHomogeneous[0], newOriginHomogeneous[1], newOriginHomogeneous[2]);
 
@@ -410,7 +410,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   // CopyOrientation copies both ijk orientation, origin and spacing
   indexedLabelmapVolumeNode->CopyOrientation( selectedReferenceVolumeNode );
   // Override the origin with the calculated origin
-  double newOriginHomogeneous[4];
+  double newOriginHomogeneous[4] = {0, 0, 0, 1};
   this->CalculateOriginInRAS(indexedLabelmapVolumeNode, calculatedOriginHomogeneous, &newOriginHomogeneous[0]);
   indexedLabelmapVolumeNode->SetOrigin(newOriginHomogeneous[0], newOriginHomogeneous[1], newOriginHomogeneous[2]);
   

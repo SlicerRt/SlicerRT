@@ -38,14 +38,14 @@
 
 namespace
 {
-  bool areExtentsEqual(int extA[6], int extB[6])
+  bool areExtentsEqual(int extentsA[6], int extentsB[6])
   {
-    return extA[0] == extB[0] &&
-      extA[1] == extB[1] &&
-      extA[2] == extB[2] &&
-      extA[3] == extB[3] &&
-      extA[4] == extB[4] &&
-      extA[5] == extB[5];
+    return extentsA[0] == extentsB[0] &&
+      extentsA[1] == extentsB[1] &&
+      extentsA[2] == extentsB[2] &&
+      extentsA[3] == extentsB[3] &&
+      extentsA[4] == extentsB[4] &&
+      extentsA[5] == extentsB[5];
   }
 }
 
@@ -113,8 +113,8 @@ void vtkPolyDataToLabelmapFilter::Update()
   vtkSmartPointer<vtkStripper> stripper=vtkSmartPointer<vtkStripper>::New();
   stripper->SetInputConnection(triangle->GetOutputPort());
 
-  int referenceExtents[6];
-  double origin[3];
+  int referenceExtents[6] = {0,0,0,0,0,0};
+  double origin[3] = {0,0,0};
   std::vector<int> referenceExtentsVector;
   std::vector<double> originVector;
   if( !this->DeterminePolyDataReferenceOverlap(referenceExtentsVector, originVector) )
@@ -196,16 +196,26 @@ void vtkPolyDataToLabelmapFilter::Update()
 //----------------------------------------------------------------------------
 bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<int>& referenceExtentsVector, std::vector<double>& originVector)
 {
-  int referenceExtents[6];
-  double origin[3];
-  double expandedBounds[6];
-  double polydataBounds[6];
-  double referenceBounds[6];
-  double spacing[3];
+  int referenceExtents[6] = {0,0,0,0,0,0};
+  double origin[3] = {0,0,0};
+  double expandedBounds[6] = {0,0,0,0,0,0};
+  double polydataBounds[6] = {0,0,0,0,0,0};
+  double referenceBounds[6] = {0,0,0,0,0,0};
+  double spacing[3] = {0,0,0};
 
+  if( this->InputPolyData == NULL )
+  {
+    vtkErrorMacro("InputPolyData was null when trying to calculate overlap.");
+    return false;
+  }
   this->InputPolyData->GetPoints()->ComputeBounds();
   this->InputPolyData->GetPoints()->GetBounds(polydataBounds);
 
+  if( this->ReferenceImageData == NULL )
+  {
+    vtkErrorMacro("ReferenceImageData was null when trying to calcaluate overlap.");
+    return false;
+  }
   this->ReferenceImageData->ComputeBounds();
   this->ReferenceImageData->GetBounds(referenceBounds);
 
@@ -247,11 +257,7 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
     {
       referenceExtents[i] = calculatedExtents[i];
     }
-  }
-
-  if( expansionNecessary )
-  {
-    vtkWarningMacro("Update: Extents of computed labelmap are not the same as the reference volume. Expanding labelmap dimensions.");
+    vtkWarningMacro("vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap: Extents of computed labelmap are not the same as the reference volume. Expanding labelmap dimensions.");
   }
 
   for( int i = 0; i < 6; ++i )

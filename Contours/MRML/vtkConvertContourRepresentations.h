@@ -82,7 +82,7 @@ protected:
   /// Convert indexed labelmap representation to closed surface model
   vtkMRMLModelNode* ConvertFromIndexedLabelmapToClosedSurfaceModel();
 
-  /// Calculate the origin in RAS space
+  /// Calculate the origin from IJK space to RAS space
   void CalculateOriginInRAS(vtkMRMLScalarVolumeNode* volumeNodeToSet, double originInIJKHomogeneous[4], double* newOriginHomogeneous );
 
 protected:
