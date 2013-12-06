@@ -1,21 +1,21 @@
 /*==============================================================================
 
-  Program: 3D Slicer
+Program: 3D Slicer
 
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
-  See COPYRIGHT.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
+See COPYRIGHT.txt
+or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
-  and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+and was supported through the Applied Cancer Research Unit program of Cancer Care
+Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
@@ -265,6 +265,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   this->ContourNode->GetColor(structureColorIndex, colorNode);
 
   // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
+  // Transform from model space to reference space
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   this->GetTransformFromNodeToVolumeIjk( modelNode, referenceVolumeNodeUsedForConversion, modelToReferenceVolumeIjkTransform );
 
@@ -307,6 +308,12 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
 
   polyDataToLabelmapFilter->Update();
 
+  if( polyDataToLabelmapFilter->GetOutput() == NULL )
+  {
+    vtkErrorMacro("Unable to convert from polydata to labelmap.");
+    return NULL;
+  }
+
   // Resample to selected reference coordinate system if referenced anatomy was used
   double checkpointResamplingStart = timer->GetUniversalTime();
   int oversampledSelectedReferenceVolumeExtent[6] = {0, 0, 0, 0, 0, 0};
@@ -316,8 +323,15 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   double selectedReferenceSpacing[3];
   selectedReferenceVolumeNode->GetSpacing(selectedReferenceSpacing);
   double oversampledSelectedReferenceVolumeSpacing[3] = { selectedReferenceSpacing[0] * oversampledSelectedReferenceVtkVolumeSpacing[0],
-                                                          selectedReferenceSpacing[1] * oversampledSelectedReferenceVtkVolumeSpacing[1],
-                                                          selectedReferenceSpacing[2] * oversampledSelectedReferenceVtkVolumeSpacing[2] };
+    selectedReferenceSpacing[1] * oversampledSelectedReferenceVtkVolumeSpacing[1],
+    selectedReferenceSpacing[2] * oversampledSelectedReferenceVtkVolumeSpacing[2] };
+
+  double calculatedOrigin[3];
+  double calculatedOriginHomogeneous[4] = {0, 0, 0, 1};
+  polyDataToLabelmapFilter->GetOutput()->GetOrigin(calculatedOrigin);
+  calculatedOriginHomogeneous[0] = calculatedOrigin[0];
+  calculatedOriginHomogeneous[1] = calculatedOrigin[1];
+  calculatedOriginHomogeneous[2] = calculatedOrigin[2];
 
   vtkSmartPointer<vtkImageData> indexedLabelmapVolumeImageData;
   if (referencedAnatomyVolumeNode)
@@ -326,16 +340,20 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     vtkSmartPointer<vtkMRMLScalarVolumeNode> intermediateLabelmapNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
     intermediateLabelmapNode->SetAndObserveImageData(polyDataToLabelmapFilter->GetOutput());
     intermediateLabelmapNode->CopyOrientation(referencedAnatomyVolumeNode);
+    double newOriginHomogeneous[4];
+    this->CalculateOriginInRAS(intermediateLabelmapNode, calculatedOriginHomogeneous, &newOriginHomogeneous[0]);
+    intermediateLabelmapNode->SetOrigin(newOriginHomogeneous[0], newOriginHomogeneous[1], newOriginHomogeneous[2]);
+
     double referencedAnatomyVolumeNodeSpacing[3] = {0.0, 0.0, 0.0};
     referencedAnatomyVolumeNode->GetSpacing(referencedAnatomyVolumeNodeSpacing);
     intermediateLabelmapNode->SetSpacing( referencedAnatomyVolumeNodeSpacing[0] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[0],
-                                          referencedAnatomyVolumeNodeSpacing[1] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[1],
-                                          referencedAnatomyVolumeNodeSpacing[2] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[2] );
+      referencedAnatomyVolumeNodeSpacing[1] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[1],
+      referencedAnatomyVolumeNodeSpacing[2] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[2] );
 
     // Determine output (oversampled selected reference volume node) geometry for the resampling
     plm_long oversampledSelectedReferenceDimensionsLong[3] = { oversampledSelectedReferenceVolumeExtent[1]-oversampledSelectedReferenceVolumeExtent[0]+1,
-                                                               oversampledSelectedReferenceVolumeExtent[3]-oversampledSelectedReferenceVolumeExtent[2]+1,
-                                                               oversampledSelectedReferenceVolumeExtent[5]-oversampledSelectedReferenceVolumeExtent[4]+1 };
+      oversampledSelectedReferenceVolumeExtent[3]-oversampledSelectedReferenceVolumeExtent[2]+1,
+      oversampledSelectedReferenceVolumeExtent[5]-oversampledSelectedReferenceVolumeExtent[4]+1 };
     double selectedReferenceOrigin[3];
     selectedReferenceVolumeNode->GetOrigin(selectedReferenceOrigin);
     float selectedReferenceOriginFloat[3] = { selectedReferenceOrigin[0], selectedReferenceOrigin[1], selectedReferenceOrigin[2] };
@@ -389,7 +407,13 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   std::string indexedLabelmapVolumeNodeName = std::string(this->ContourNode->Name) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
   indexedLabelmapVolumeNodeName = mrmlScene->GenerateUniqueName(indexedLabelmapVolumeNodeName);
 
+  // CopyOrientation copies both ijk orientation, origin and spacing
   indexedLabelmapVolumeNode->CopyOrientation( selectedReferenceVolumeNode );
+  // Override the origin with the calculated origin
+  double newOriginHomogeneous[4];
+  this->CalculateOriginInRAS(indexedLabelmapVolumeNode, calculatedOriginHomogeneous, &newOriginHomogeneous[0]);
+  indexedLabelmapVolumeNode->SetOrigin(newOriginHomogeneous[0], newOriginHomogeneous[1], newOriginHomogeneous[2]);
+  
   indexedLabelmapVolumeNode->SetSpacing( oversampledSelectedReferenceVolumeSpacing );
 
   indexedLabelmapVolumeNode->SetName( indexedLabelmapVolumeNodeName.c_str() );
@@ -632,7 +656,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
   // Active representation is a model of any kind and we want an indexed labelmap
   if ( desiredType == vtkMRMLContourNode::IndexedLabelmap
     && ( this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::RibbonModel
-      || this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::ClosedSurfaceModel ) )
+    || this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::ClosedSurfaceModel ) )
   {
     if (!this->ContourNode->RasterizationReferenceVolumeNodeId)
     {
@@ -654,7 +678,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
   }
   // Active representation is a ribbon model and we want a closed surface model
   else if ( desiredType == vtkMRMLContourNode::ClosedSurfaceModel
-         && this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::RibbonModel )
+    && this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::RibbonModel )
   {
     // If the indexed labelmap is not created yet then we convert to it first
     if (!this->ContourNode->IndexedLabelmapVolumeNode)
@@ -765,4 +789,13 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
   {
     vtkErrorMacro("ReconvertRepresentation: Failed to re-convert representation to type #" << (unsigned int)type);
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkConvertContourRepresentations::CalculateOriginInRAS( vtkMRMLScalarVolumeNode* volumeNodeToSet, double originInIJKHomogeneous[4], double* newOriginHomogeneous )
+{
+    vtkMatrix4x4* refToRASMatrix = vtkMatrix4x4::New();
+    volumeNodeToSet->GetIJKToRASMatrix(refToRASMatrix);
+    refToRASMatrix->MultiplyPoint(originInIJKHomogeneous, newOriginHomogeneous);
+    refToRASMatrix->Delete();
 }

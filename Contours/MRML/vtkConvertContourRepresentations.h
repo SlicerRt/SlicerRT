@@ -36,6 +36,7 @@
 class vtkMRMLModelNode;
 class vtkMRMLScalarVolumeNode;
 class vtkGeneralTransform;
+class vtkImageData;
 
 /// \ingroup SlicerRt_SlicerRtCommon
 class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkConvertContourRepresentations : public vtkObject
@@ -80,6 +81,9 @@ protected:
 
   /// Convert indexed labelmap representation to closed surface model
   vtkMRMLModelNode* ConvertFromIndexedLabelmapToClosedSurfaceModel();
+
+  /// Calculate the origin in RAS space
+  void CalculateOriginInRAS(vtkMRMLScalarVolumeNode* volumeNodeToSet, double originInIJKHomogeneous[4], double* newOriginHomogeneous );
 
 protected:
   // Contour node whose representations to convert

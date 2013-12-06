@@ -35,29 +35,17 @@
 #include <vtkTriangleFilter.h>
 
 //----------------------------------------------------------------------------
+
 namespace
 {
-  bool areExtentsEqual(int extentsA[6], int extentsB[6])
+  bool areExtentsEqual(int extA[6], int extB[6])
   {
-    return 
-      extentsA[0] == extentsB [0] &&
-      extentsA[1] == extentsB [1] &&
-      extentsA[2] == extentsB [2] &&
-      extentsA[3] == extentsB [3] &&
-      extentsA[4] == extentsB [4] &&
-      extentsA[5] == extentsB [5];
-  }
-
-  double roundLarger(double value)
-  {
-    if( value < 0.0 )
-    {
-      return floor(value);
-    }
-    else
-    {
-      return ceil(value);
-    }
+    return extA[0] == extB[0] &&
+      extA[1] == extB[1] &&
+      extA[2] == extB[2] &&
+      extA[3] == extB[3] &&
+      extA[4] == extB[4] &&
+      extA[5] == extB[5];
   }
 }
 
@@ -66,23 +54,16 @@ vtkStandardNewMacro(vtkPolyDataToLabelmapFilter);
 
 //----------------------------------------------------------------------------
 vtkPolyDataToLabelmapFilter::vtkPolyDataToLabelmapFilter()
+: InputPolyData(NULL)
+, OutputLabelmap(NULL)
+, ReferenceImageData(NULL)
+, LabelValue(2)
+, BackgroundValue(0.0)
+, UseReferenceValues(true)
 {
-  this->InputPolyData = NULL;
-  vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
-  this->SetInputPolyData(inputPolyData);
-
-  this->OutputLabelmap = NULL;
-  vtkSmartPointer<vtkImageData> outputLabelmap = vtkSmartPointer<vtkImageData>::New();
-  this->SetOutputLabelmap(outputLabelmap);
-
-  this->ReferenceImageData = NULL;
-  vtkSmartPointer<vtkImageData> referenceImageData = vtkSmartPointer<vtkImageData>::New();
-  this->SetReferenceImageData(referenceImageData);
-
-  this->SetLabelValue(2);
-  this->SetBackgroundValue(0.0);
-
-  this->UseReferenceValuesOn();
+  this->SetInputPolyData(vtkSmartPointer<vtkPolyData>::New());
+  this->SetOutputLabelmap(vtkSmartPointer<vtkImageData>::New());
+  this->SetReferenceImageData(vtkSmartPointer<vtkImageData>::New());
 }
 
 //----------------------------------------------------------------------------
@@ -132,23 +113,22 @@ void vtkPolyDataToLabelmapFilter::Update()
   vtkSmartPointer<vtkStripper> stripper=vtkSmartPointer<vtkStripper>::New();
   stripper->SetInputConnection(triangle->GetOutputPort());
 
-  int calculatedExtents[6] = {0, 0, 0, 0, 0, 0};
-  double polydataExtents[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-  this->InputPolyData->GetPoints()->ComputeBounds();
-  this->InputPolyData->GetPoints()->GetBounds(polydataExtents);
-  int referenceExtents[6] = {0, 0, 0, 0, 0, 0};
-  this->ReferenceImageData->GetExtent(referenceExtents);
-
-  calculatedExtents[0] = std::min<int>(roundLarger(polydataExtents[0]), referenceExtents[0]);
-  calculatedExtents[1] = std::max<int>(roundLarger(polydataExtents[1]), referenceExtents[1]);
-  calculatedExtents[2] = std::min<int>(roundLarger(polydataExtents[2]), referenceExtents[2]);
-  calculatedExtents[3] = std::max<int>(roundLarger(polydataExtents[3]), referenceExtents[3]);
-  calculatedExtents[4] = std::min<int>(roundLarger(polydataExtents[4]), referenceExtents[4]);
-  calculatedExtents[5] = std::max<int>(roundLarger(polydataExtents[5]), referenceExtents[5]);
-
-  if( !areExtentsEqual(calculatedExtents, referenceExtents) )
+  int referenceExtents[6];
+  double origin[3];
+  std::vector<int> referenceExtentsVector;
+  std::vector<double> originVector;
+  if( !this->DeterminePolyDataReferenceOverlap(referenceExtentsVector, originVector) )
   {
-    vtkDebugMacro("Update: Extents of computed labelmap are not the same as the reference volume.");
+    vtkErrorMacro("Unable to determine input and reference overlap.");
+    return;
+  }
+  for( int i = 0; i < 6; ++i )
+  {
+    referenceExtents[i] = referenceExtentsVector[i];
+  }
+  for( int i = 0; i < 3; ++i )
+  {
+    origin[i] = originVector[i];
   }
 
   vtkSmartPointer<vtkImageData> referenceImage = vtkSmartPointer<vtkImageData>::New();
@@ -160,21 +140,21 @@ void vtkPolyDataToLabelmapFilter::Update()
   else
   {
     // Blank reference image
-    referenceImage->SetExtent(calculatedExtents);
+    referenceImage->SetExtent(referenceExtents);
     referenceImage->SetSpacing(this->ReferenceImageData->GetSpacing());
-    referenceImage->SetOrigin(this->ReferenceImageData->GetOrigin());
+    referenceImage->SetOrigin(origin);
     referenceImage->SetScalarType(VTK_UNSIGNED_CHAR);
     referenceImage->SetNumberOfScalarComponents(1);
     referenceImage->AllocateScalars();
-    void *referenceImagePixelsPointer = referenceImage->GetScalarPointerForExtent(calculatedExtents);
+    void *referenceImagePixelsPointer = referenceImage->GetScalarPointerForExtent(this->ReferenceImageData->GetExtent());
     if (referenceImagePixelsPointer==NULL)
     {
-      std::cerr << "ERROR: Cannot allocate memory for accumulation image";
+      vtkErrorMacro("ERROR: Cannot allocate memory for accumulation image");
       return;
     }
     else
     {
-      memset(referenceImagePixelsPointer,0,((calculatedExtents[1]-calculatedExtents[0]+1)*(calculatedExtents[3]-calculatedExtents[2]+1)*(calculatedExtents[5]-calculatedExtents[4]+1)*referenceImage->GetScalarSize()*referenceImage->GetNumberOfScalarComponents()));
+      memset(referenceImagePixelsPointer,0,((referenceExtents[1]-referenceExtents[0]+1)*(referenceExtents[3]-referenceExtents[2]+1)*(referenceExtents[5]-referenceExtents[4]+1)*referenceImage->GetScalarSize()*referenceImage->GetNumberOfScalarComponents()));
     }
   }
 
@@ -182,8 +162,8 @@ void vtkPolyDataToLabelmapFilter::Update()
   vtkNew<vtkPolyDataToImageStencil> polyToImage;
   polyToImage->SetInputConnection(stripper->GetOutputPort());
   polyToImage->SetOutputSpacing(this->ReferenceImageData->GetSpacing());
-  polyToImage->SetOutputOrigin(this->ReferenceImageData->GetOrigin());
-  polyToImage->SetOutputWholeExtent(calculatedExtents);
+  polyToImage->SetOutputOrigin(origin);
+  polyToImage->SetOutputWholeExtent(referenceExtents);
   polyToImage->Update();  
 
   // Convert stencil to image
@@ -211,4 +191,77 @@ void vtkPolyDataToLabelmapFilter::Update()
     imageCast->Update();
     this->OutputLabelmap->ShallowCopy(imageCast->GetOutput());
   }
+}
+
+//----------------------------------------------------------------------------
+bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<int>& referenceExtentsVector, std::vector<double>& originVector)
+{
+  int referenceExtents[6];
+  double origin[3];
+  double expandedBounds[6];
+  double polydataBounds[6];
+  double referenceBounds[6];
+  double spacing[3];
+
+  this->InputPolyData->GetPoints()->ComputeBounds();
+  this->InputPolyData->GetPoints()->GetBounds(polydataBounds);
+
+  this->ReferenceImageData->ComputeBounds();
+  this->ReferenceImageData->GetBounds(referenceBounds);
+
+  expandedBounds[0] = std::min<double>(polydataBounds[0], referenceBounds[0]);
+  expandedBounds[1] = std::max<double>(polydataBounds[1], referenceBounds[1]);
+  expandedBounds[2] = std::min<double>(polydataBounds[2], referenceBounds[2]);
+  expandedBounds[3] = std::max<double>(polydataBounds[3], referenceBounds[3]);
+  expandedBounds[4] = std::min<double>(polydataBounds[4], referenceBounds[4]);
+  expandedBounds[5] = std::max<double>(polydataBounds[5], referenceBounds[5]);
+
+  // Bounds are now axis aligned with referenceIJK because everything is in that coordinate frame
+  // Can compute extents as values derived from bounds
+  this->ReferenceImageData->GetExtent(referenceExtents);
+  this->ReferenceImageData->GetOrigin(origin);
+  this->ReferenceImageData->GetSpacing(spacing);
+  bool expansionNecessary(false);
+  origin[0] = expandedBounds[0];
+  origin[1] = expandedBounds[2];
+  origin[2] = expandedBounds[4];
+
+  int calculatedExtents[6] = {0, 0, 0, 0, 0, 0};
+  // for each boundary axis, check for necessary expansion of extents
+  for( int axis = 0; axis < 3; ++axis )
+  {
+    // extent == expandedbounds[larger] - expandedBounds[smaller]
+    // if same as original extent, no problem!
+    calculatedExtents[2*axis+1] = ceil(expandedBounds[2*axis+1] - expandedBounds[2*axis]) * (1/spacing[axis]);
+    if( calculatedExtents < 0 )
+    {
+      vtkErrorMacro("Invalid extent when calculating overlap between input polydata and reference image. Were they in the IJK coordinate system when this was called?");
+      return false;
+    }
+  }
+
+  if( !areExtentsEqual(referenceExtents, calculatedExtents) )
+  {
+    expansionNecessary = true;
+    for( int i = 0; i < 6; ++i )
+    {
+      referenceExtents[i] = calculatedExtents[i];
+    }
+  }
+
+  if( expansionNecessary )
+  {
+    vtkWarningMacro("Update: Extents of computed labelmap are not the same as the reference volume. Expanding labelmap dimensions.");
+  }
+
+  for( int i = 0; i < 6; ++i )
+  {
+    referenceExtentsVector.push_back(referenceExtents[i]);
+  }
+  for( int i = 0; i < 3; ++i )
+  {
+    originVector.push_back(origin[i]);
+  }
+
+  return true;
 }

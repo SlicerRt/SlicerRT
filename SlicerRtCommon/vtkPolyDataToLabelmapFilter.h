@@ -62,7 +62,10 @@ protected:
   vtkSetObjectMacro(OutputLabelmap, vtkImageData);
   vtkSetObjectMacro(ReferenceImageData, vtkImageData);
 
+  void DeterminePolyDataReferenceOverlap(std::vector<int>& referenceExtentsVector, std::vector<double>& originVector);
+
 protected:
+  // The algorithm requires the input polydata to be in the reference image data coordinate system
   vtkPolyData* InputPolyData;
   vtkImageData* OutputLabelmap;
   vtkImageData* ReferenceImageData;
