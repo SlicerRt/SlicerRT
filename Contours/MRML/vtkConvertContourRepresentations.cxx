@@ -792,7 +792,7 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
 }
 
 //----------------------------------------------------------------------------
-void vtkConvertContourRepresentations::CalculateOriginInRAS( vtkMRMLScalarVolumeNode* volumeNodeToSet, double originInIJKHomogeneous[4], double* newOriginHomogeneous )
+void vtkConvertContourRepresentations::CalculateOriginInRas( vtkMRMLScalarVolumeNode* volumeNodeToSet, double originInIJKHomogeneous[4], double* newOriginHomogeneous )
 {
     vtkMatrix4x4* refToRASMatrix = vtkMatrix4x4::New();
     volumeNodeToSet->GetIJKToRASMatrix(refToRASMatrix);
