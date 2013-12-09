@@ -130,13 +130,37 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
   if (contourNode)
   {
-    // Delete ribbon model representation if it is the default empty model
-    if (contourNode->RibbonModelContainsEmptyPolydata())
+    this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
+    // TODO : remove any/all hierarchy, color table, etc... nodes that are related to this contour
+    vtkMRMLContourNode::ContourRepresentationType type = contourNode->GetActiveRepresentationType();
+    switch(type)
     {
-      this->GetMRMLScene()->RemoveNode(contourNode->GetRibbonModelNode());
+    case vtkMRMLContourNode::RibbonModel:
+      {
+      vtkMRMLNode* aNode = this->GetMRMLScene()->GetNodeByID(contourNode->GetRibbonModelNodeId());
+      this->GetMRMLScene()->RemoveNode(aNode);
+      contourNode->SetAndObserveRibbonModelNodeId(NULL);
+      break;
+      }
+    case vtkMRMLContourNode::IndexedLabelmap:
+      {
+      vtkMRMLNode* aNode = this->GetMRMLScene()->GetNodeByID(contourNode->GetIndexedLabelmapVolumeNodeId());
+      this->GetMRMLScene()->RemoveNode(aNode);
+      contourNode->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
+      break;
+      }
+    case vtkMRMLContourNode::ClosedSurfaceModel:
+      {
+      vtkMRMLNode* aNode = this->GetMRMLScene()->GetNodeByID(contourNode->GetClosedSurfaceModelNodeId());
+      this->GetMRMLScene()->RemoveNode(aNode);
+      contourNode->SetAndObserveClosedSurfaceModelNodeId(NULL);
+      break;
+      }
+    default:
+      vtkErrorMacro("Unknown representation type.");
     }
-
     this->Modified();
+    this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
   }
 }
 

@@ -1078,7 +1078,7 @@ void vtkMRMLContourNode::DeleteNonActiveRepresentations()
           break;
         }
 
-      if (this->Scene->IsNodePresent(node))
+      if (this->Scene != NULL && this->Scene->IsNodePresent(node))
         {
         this->Scene->RemoveNode(node);
         }
