@@ -69,6 +69,10 @@ protected:
   /// \return Success flag indicating sane calculated extents
   bool DeterminePolyDataReferenceOverlap(std::vector<int>& referenceExtentsVector, std::vector<double>& originVector);
 
+  /// Helper function to copy values from the arry into the vector
+  void CopyArraysToVectors( std::vector<int> &extentVector, int extents[6], std::vector<double> &originVector, double origin[3] );
+
+
 protected:
   vtkPolyData* InputPolyData;
   vtkImageData* OutputLabelmap;

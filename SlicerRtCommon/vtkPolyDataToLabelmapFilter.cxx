@@ -202,11 +202,18 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
   double polydataBounds[6] = {0,0,0,0,0,0};
   double referenceBounds[6] = {0,0,0,0,0,0};
   double spacing[3] = {0,0,0};
+  this->ReferenceImageData->GetExtent(referenceExtents);
+  this->ReferenceImageData->GetOrigin(origin);
 
   if( this->InputPolyData == NULL )
   {
     vtkErrorMacro("InputPolyData was null when trying to calculate overlap.");
     return false;
+  }
+  if( this->InputPolyData->GetPoints() == NULL )
+  {
+    this->CopyArraysToVectors(referenceExtentsVector, referenceExtents, originVector, origin);
+    return true;
   }
   this->InputPolyData->GetPoints()->ComputeBounds();
   this->InputPolyData->GetPoints()->GetBounds(polydataBounds);
@@ -228,8 +235,6 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
 
   // Bounds are now axis aligned with referenceIJK because everything is in that coordinate frame
   // Can compute extents as values derived from bounds
-  this->ReferenceImageData->GetExtent(referenceExtents);
-  this->ReferenceImageData->GetOrigin(origin);
   this->ReferenceImageData->GetSpacing(spacing);
   bool expansionNecessary(false);
   origin[0] = expandedBounds[0];
@@ -260,14 +265,20 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
     vtkWarningMacro("vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap: Extents of computed labelmap are not the same as the reference volume. Expanding labelmap dimensions.");
   }
 
+  this->CopyArraysToVectors(referenceExtentsVector, referenceExtents, originVector, origin);
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkPolyDataToLabelmapFilter::CopyArraysToVectors( std::vector<int> &extentVector, int extents[6], std::vector<double> &originVector, double origin[3] )
+{
   for( int i = 0; i < 6; ++i )
   {
-    referenceExtentsVector.push_back(referenceExtents[i]);
+    extentVector.push_back(extents[i]);
   }
   for( int i = 0; i < 3; ++i )
   {
     originVector.push_back(origin[i]);
   }
-
-  return true;
 }
