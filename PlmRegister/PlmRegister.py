@@ -72,13 +72,12 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
   def __init__(self,parent=None):
     super(PlmRegisterPlugin,self).__init__(parent)
 
-  def create(self,regState=None):
+  def create(self,registrationState):
     """Make the plugin-specific user interface"""
-    print ("Hello from PlmRegister.create")
     super(PlmRegisterPlugin,self).create()
 
-    self.regState = regState
-    
+    self.registrationState = registrationState
+
     #
     # Linear Registration Pane - initially hidden
     # - interface options for linear registration
@@ -192,16 +191,14 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     reg = vtkSlicerPlastimatchPyModuleLogicPython.vtkSlicerPlastimatchPyModuleLogic()
     reg.SetMRMLScene(slicer.mrmlScene)
 
+    state = self.regState()
     # Set input/output images
-    reg.SetFixedImageID(
-      #self.volumeSelectors["Fixed"].currentNode().GetID())
-      self.parent.volumeSelectors["Fixed"].currentNode().GetID())
-      #self.parent.parent.volumeSelectors["Fixed"].currentNode().GetID())
-      #super(PlmRegisterPlugin,self).volumeSelectors["Fixed"].currentNode().GetID())
-    #reg.SetMovingImageID(
-     # self.parent.volumeSelectors["Moving"].currentNode().GetID())
-     #reg.SetOutputVolumeID(
-      #self.parent.volumeSelectors["Transformed"].currentNode().GetID())
+    # reg.SetFixedImageID(
+    #   state.volumeSelectors["Fixed"].currentNode().GetID())
+    # reg.SetMovingImageID(
+    #   self.parent.volumeSelectors["Moving"].currentNode().GetID())
+    # reg.SetOutputVolumeID(
+    #   self.parent.volumeSelectors["Transformed"].currentNode().GetID())
 
 
 # Add this plugin to the dictionary of available registrations.
