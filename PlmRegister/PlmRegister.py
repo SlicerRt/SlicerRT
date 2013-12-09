@@ -191,7 +191,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     reg = vtkSlicerPlastimatchPyModuleLogicPython.vtkSlicerPlastimatchPyModuleLogic()
     reg.SetMRMLScene(slicer.mrmlScene)
 
-    state = self.regState()
+    state = self.registrationState()
     # Set input/output images
     # reg.SetFixedImageID(
     #   state.volumeSelectors["Fixed"].currentNode().GetID())
