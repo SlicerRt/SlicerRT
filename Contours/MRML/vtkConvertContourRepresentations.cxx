@@ -341,7 +341,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     intermediateLabelmapNode->SetAndObserveImageData(polyDataToLabelmapFilter->GetOutput());
     intermediateLabelmapNode->CopyOrientation(referencedAnatomyVolumeNode);
     double newOriginHomogeneous[4] = {0, 0, 0, 1};
-    this->CalculateOriginInRAS(intermediateLabelmapNode, calculatedOriginHomogeneous, &newOriginHomogeneous[0]);
+    this->CalculateOriginInRas(intermediateLabelmapNode, calculatedOriginHomogeneous, &newOriginHomogeneous[0]);
     intermediateLabelmapNode->SetOrigin(newOriginHomogeneous[0], newOriginHomogeneous[1], newOriginHomogeneous[2]);
 
     double referencedAnatomyVolumeNodeSpacing[3] = {0.0, 0.0, 0.0};
@@ -411,7 +411,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   indexedLabelmapVolumeNode->CopyOrientation( selectedReferenceVolumeNode );
   // Override the origin with the calculated origin
   double newOriginHomogeneous[4] = {0, 0, 0, 1};
-  this->CalculateOriginInRAS(indexedLabelmapVolumeNode, calculatedOriginHomogeneous, &newOriginHomogeneous[0]);
+  this->CalculateOriginInRas(indexedLabelmapVolumeNode, calculatedOriginHomogeneous, &newOriginHomogeneous[0]);
   indexedLabelmapVolumeNode->SetOrigin(newOriginHomogeneous[0], newOriginHomogeneous[1], newOriginHomogeneous[2]);
   
   indexedLabelmapVolumeNode->SetSpacing( oversampledSelectedReferenceVolumeSpacing );
