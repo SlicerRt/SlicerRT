@@ -26,7 +26,7 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// PlastimatchPy Module Logic
+// PlastimatchPy includes
 #include "vtkSlicerPlastimatchPyModuleLogicExport.h"
 
 // ITK includes

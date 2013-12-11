@@ -335,19 +335,16 @@ class DicomSroExportLogic:
     """
     import os, sys, vtk
     print ("Hello from the Apply button")
-    import vtkSlicerPlastimatchPyModuleLogicPython
+    import vtkSlicerPlastimatchPyModuleLogic
     loadablePath = os.path.join(slicer.modules.plastimatch_slicer_bspline.path,'..'+os.sep+'..'+os.sep+'qt-loadable-modules')
     if loadablePath not in sys.path:
       sys.path.append(loadablePath)
-    reg = vtkSlicerPlastimatchPyModuleLogicPython.vtkSlicerPlastimatchPyModuleLogic()
-    reg.SetMRMLScene(slicer.mrmlScene)
-
-    print ("Did the import work?")
-
-    # Set input/output images
-    #reg.SetFixedImageID(self.volumeSelectors[fixedDataName].currentNode().GetID())
-    #reg.SetMovingImageID(self.volumeSelectors[movingDataName].currentNode().GetID())
-    #reg.SetOutputVolumeID(self.volumeSelectors['Transformed'].currentNode().GetID())
+    sro = vtkSlicerPlastimatchPyModuleLogic.plmpyDicomSroExport()
+    sro.SetFixedImageID(fixedNode.GetID())
+    sro.SetMovingImageID(movingNode.GetID())
+    sro.SetXformID(xformNode.GetID())
+    sro.SetOutputDirectory(outputDir)
+    sro.DoExport()
 
     print ("Did that work???")
 
