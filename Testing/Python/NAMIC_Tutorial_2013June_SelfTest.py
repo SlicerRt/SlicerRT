@@ -227,12 +227,10 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
       # Import study to database
       dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-      dicomWidget.dicomApp.suspendModel()
       indexer = ctk.ctkDICOMIndexer()
       self.assertTrue( indexer )
 
       indexer.addDirectory( slicer.dicomDatabase, self.dicomDataDir )
-      dicomWidget.dicomApp.resumeModel()
 
       self.assertTrue( len(slicer.dicomDatabase.patients()) == 1 )
       self.assertTrue( slicer.dicomDatabase.patients()[0] )
@@ -255,8 +253,12 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       # Choose first patient from the patient list
       dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
       self.delayDisplay("Wait for DICOM browser to initialize",self.delayMs)
-      index = dicomWidget.tree.indexAt(qt.QPoint(0,0))
-      dicomWidget.onTreeClicked(index)
+      patient = slicer.dicomDatabase.patients()[0]
+      studies = slicer.dicomDatabase.studiesForPatient(patient)
+      series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
+      seriesUIDs = [uid for uidList in series for uid in uidList]
+      dicomWidget.detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
+      dicomWidget.detailsPopup.examineForLoading()
 
       # Make sure the loadables are good (RT is assigned to 3 out of 4 and they are selected)
       loadablesByPlugin = dicomWidget.detailsPopup.loadablesByPlugin

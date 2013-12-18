@@ -3,6 +3,12 @@ import unittest
 from __main__ import vtk, qt, ctk, slicer
 
 #
+# NOTE: This self test file is not maintained any more.
+#       The successor of this test is NAMIC_Tutorial_2013June_SelfTest.py
+#       exercising much of this self-test with additional operations.
+#
+
+#
 # SlicerRtDemo_RSNA2012_SelfTest
 #
 
