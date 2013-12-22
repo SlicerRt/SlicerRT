@@ -137,7 +137,7 @@ void vtkSlicerPlastimatchPyModuleLogic::AddStage()
 //---------------------------------------------------------------------------
 void vtkSlicerPlastimatchPyModuleLogic::SetPar(char* key, char* value)
 {        
-  this->RegistrationParameters->set_key_val(key, value, 1);
+  this->RegistrationParameters->set_key_value("STAGE", key, value);
 }
 
 //---------------------------------------------------------------------------
