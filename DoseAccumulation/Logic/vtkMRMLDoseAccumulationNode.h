@@ -33,6 +33,7 @@
 
 class vtkMRMLScalarVolumeNode;
 
+/// \ingroup SlicerRt_QtModules_DoseAccumulation
 class VTK_SLICER_DOSEACCUMULATION_LOGIC_EXPORT vtkMRMLDoseAccumulationNode : public vtkMRMLNode
 {
 public:

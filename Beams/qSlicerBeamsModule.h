@@ -29,7 +29,7 @@
 
 class qSlicerBeamsModulePrivate;
 
-/// \ingroup Slicer_QtModules_Beams
+/// \ingroup SlicerRt_QtModules_Beams
 class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModule :
   public qSlicerLoadableModule
 {

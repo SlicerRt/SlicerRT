@@ -29,7 +29,7 @@
 #include "SlicerRtCommon.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_DicomRtExport
+/// \ingroup SlicerRt_QtModules_DicomRtExport
 class qSlicerDicomRtExportModuleWidgetPrivate: public Ui_qSlicerDicomRtExportModule
 {
   Q_DECLARE_PUBLIC(qSlicerDicomRtExportModuleWidget);
@@ -92,7 +92,7 @@ void qSlicerDicomRtExportModuleWidget::setup()
   d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
 
   // Filter out hierarchy nodes that are not contour hierarchy nodes
-  d->MRMLNodeComboBox_ContourHierarchy->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
+  d->MRMLNodeComboBox_ContourHierarchy->addAttribute( QString("vtkMRMLSubjectHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
 
   // Make connections
   this->connect( d->pushButton_SaveDicomRT, SIGNAL(clicked()), this, SLOT(onSaveClicked()) );

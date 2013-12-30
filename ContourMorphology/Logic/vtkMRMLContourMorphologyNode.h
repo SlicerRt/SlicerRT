@@ -32,6 +32,7 @@
 class vtkMRMLContourNode;
 class vtkMRMLScalarVolumeNode;
 
+/// \ingroup SlicerRt_QtModules_ContourMorphology
 class VTK_SLICER_CONTOURMORPHOLOGY_MODULE_LOGIC_EXPORT vtkMRMLContourMorphologyNode : public vtkMRMLNode
 {
 public:

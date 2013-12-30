@@ -8,10 +8,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${QT_QTSQL_INCLUDE_DIR}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
-  ${vtkSlicerPatientHierarchyModuleLogic_INCLUDE_DIRS}
-  ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
-  ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
-  ${vtkSlicerPlanarImageModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -28,7 +25,7 @@ set(${KIT}_SRCS
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
-  vtkSlicerPatientHierarchyModuleLogic
+  vtkSlicerSubjectHierarchyModuleLogic
   vtkSlicerContoursModuleMRML
   vtkSlicerIsodoseModuleLogic
   ${ITK_LIBRARIES}

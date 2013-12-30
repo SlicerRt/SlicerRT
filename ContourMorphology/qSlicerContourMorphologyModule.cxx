@@ -34,7 +34,7 @@
 Q_EXPORT_PLUGIN2(qSlicerContourMorphologyModule, qSlicerContourMorphologyModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_ContourMorphology
 class qSlicerContourMorphologyModulePrivate
 {
 public:

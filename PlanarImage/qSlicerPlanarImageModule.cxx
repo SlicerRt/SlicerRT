@@ -33,7 +33,7 @@
 Q_EXPORT_PLUGIN2(qSlicerPlanarImageModule, qSlicerPlanarImageModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_PlanarImage
+/// \ingroup SlicerRt_QtModules_PlanarImage
 class qSlicerPlanarImageModulePrivate
 {
 public:

@@ -36,7 +36,7 @@
 class vtkMRMLContourComparisonNode;
 class vtkSlicerContourComparisonModuleLogicPrivate;
 
-/// \ingroup Slicer_QtModules_ContourComparison
+/// \ingroup SlicerRt_QtModules_ContourComparison
 class VTK_SLICER_CONTOURCOMPARISON_MODULE_LOGIC_EXPORT vtkSlicerContourComparisonModuleLogic :
   public vtkSlicerModuleLogic
 {

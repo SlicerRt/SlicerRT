@@ -29,7 +29,7 @@
 
 class qSlicerPlanarImageModulePrivate;
 
-/// \ingroup Slicer_QtModules_PlanarImage
+/// \ingroup SlicerRt_QtModules_PlanarImage
 class Q_SLICER_QTMODULES_PLANARIMAGE_EXPORT qSlicerPlanarImageModule :
   public qSlicerLoadableModule
 {

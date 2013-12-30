@@ -31,7 +31,7 @@
 #include "ui_qSlicerVffFileReaderOptionsWidget.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_VffFileReader
+/// \ingroup SlicerRt_QtModules_VffFileReader
 class qSlicerVffFileReaderOptionsWidgetPrivate
   : public qSlicerIOOptionsPrivate
   , public Ui_qSlicerVffFileReaderOptionsWidget

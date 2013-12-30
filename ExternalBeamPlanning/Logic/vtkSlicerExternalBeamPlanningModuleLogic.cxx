@@ -417,8 +417,8 @@ itk_to_vtk (T itkImage, int vtkType)
                  0, (int) imageSize[1]-1, 
                  0, (int) imageSize[2]-1};
 
-  vtkSmartPointer<vtkImageData> vtkVolume 
-    = vtkSmartPointer<vtkImageData>::New();
+  vtkSmartPointer<vtkImageData> vtkVolume =
+    vtkSmartPointer<vtkImageData>::New();
   vtkVolume->SetExtent(extent);
   vtkVolume->SetScalarType(vtkType);
   vtkVolume->SetNumberOfScalarComponents(1);
@@ -526,24 +526,24 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 
   /* Get aperture as itk image */
   Rpl_volume *rpl_vol = ion_plan.rpl_vol;
-  Plm_image::Pointer& ap 
-    = rpl_vol->get_aperture()->get_aperture_image();
-  itk::Image<unsigned char, 3>::Pointer apertureVolumeItk 
-    = ap->itk_uchar();
+  Plm_image::Pointer& ap =
+    rpl_vol->get_aperture()->get_aperture_image();
+  itk::Image<unsigned char, 3>::Pointer apertureVolumeItk =
+    ap->itk_uchar();
 
   /* Get range compensator as itk image */
-  Plm_image::Pointer& rc 
-    = rpl_vol->get_aperture()->get_range_compensator_image();
-  itk::Image<float, 3>::Pointer rcVolumeItk 
-    = rc->itk_float();
+  Plm_image::Pointer& rc =
+    rpl_vol->get_aperture()->get_range_compensator_image();
+  itk::Image<float, 3>::Pointer rcVolumeItk =
+    rc->itk_float();
 
   /* Convert range compensator image to vtk */
-  vtkSmartPointer<vtkImageData> rcVolume 
-    = itk_to_vtk (rcVolumeItk, VTK_FLOAT);
+  vtkSmartPointer<vtkImageData> rcVolume =
+    itk_to_vtk (rcVolumeItk, VTK_FLOAT);
 
   /* Create the MRML node for the volume */
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> rcVolumeNode 
-    = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> rcVolumeNode =
+    vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
   rcVolumeNode->SetAndObserveImageData (rcVolume);
   rcVolumeNode->SetSpacing (
@@ -563,12 +563,12 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   this->GetMRMLScene()->AddNode(rcVolumeNode);
 
   /* Convert aperture image to vtk */
-  vtkSmartPointer<vtkImageData> apertureVolume 
-    = itk_to_vtk (apertureVolumeItk, VTK_UNSIGNED_CHAR);
+  vtkSmartPointer<vtkImageData> apertureVolume =
+    itk_to_vtk (apertureVolumeItk, VTK_UNSIGNED_CHAR);
 
   /* Create the MRML node for the volume */
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode 
-    = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode =
+    vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
   apertureVolumeNode->SetAndObserveImageData (apertureVolume);
   apertureVolumeNode->SetSpacing (
@@ -616,8 +616,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   vtkSmartPointer<vtkImageData> doseVolume = itk_to_vtk (doseVolumeItk, VTK_FLOAT);
 
   /* Create the MRML node for the volume */
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseVolumeNode 
-    = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseVolumeNode =
+    vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
   doseVolumeNode->SetAndObserveImageData (doseVolume);
   doseVolumeNode->SetSpacing (
@@ -760,16 +760,16 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 
   Plm_image::Pointer wed_image = Plm_image::New (new Plm_image (wed));
 
-  itk::Image<float, 3>::Pointer wedVolumeItk 
-    = wed_image->itk_float();
+  itk::Image<float, 3>::Pointer wedVolumeItk =
+    wed_image->itk_float();
 
   /* Convert aperture image to vtk */
-  vtkSmartPointer<vtkImageData> wedVolume 
-    = itk_to_vtk (wedVolumeItk, VTK_FLOAT);
+  vtkSmartPointer<vtkImageData> wedVolume =
+    itk_to_vtk (wedVolumeItk, VTK_FLOAT);
 
   /* Create the MRML node for the volume */
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> wedVolumeNode 
-    = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> wedVolumeNode =
+    vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
   wedVolumeNode->SetAndObserveImageData (wedVolume);
   wedVolumeNode->SetSpacing (

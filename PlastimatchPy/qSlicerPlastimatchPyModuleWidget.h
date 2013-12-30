@@ -26,7 +26,7 @@
 class qSlicerPlastimatchPyModuleWidgetPrivate;
 class vtkMRMLNode;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_PlastimatchPy
 class Q_SLICER_QTMODULES_PLASTIMATCHPY_EXPORT qSlicerPlastimatchPyModuleWidget :
   public qSlicerAbstractModuleWidget
 {

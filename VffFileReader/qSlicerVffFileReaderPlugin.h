@@ -30,7 +30,7 @@ class qSlicerVffFileReaderPluginPrivate;
 class vtkSlicerVffFileReaderLogic;
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_VffFileReader
+/// \ingroup SlicerRt_QtModules_VffFileReader
 class qSlicerVffFileReaderPlugin
   : public qSlicerFileReader
 {

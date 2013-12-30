@@ -30,7 +30,7 @@
 class vtkStringArray;
 struct DicomImportInfoPrivate;
 
-/// \ingroup SlicerRt_DicomRtImport
+/// \ingroup SlicerRt_QtModules_DicomRtImport
 class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkDICOMImportInfo : 
   public vtkObject
 {

@@ -25,7 +25,7 @@
 
 class qSlicerPlastimatchPyModulePrivate;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_PlastimatchPy
 class Q_SLICER_QTMODULES_PLASTIMATCHPY_EXPORT qSlicerPlastimatchPyModule : public qSlicerLoadableModule
 {
   Q_OBJECT

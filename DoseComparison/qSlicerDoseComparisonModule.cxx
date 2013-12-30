@@ -33,7 +33,7 @@
 Q_EXPORT_PLUGIN2(qSlicerDoseComparisonModule, qSlicerDoseComparisonModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_DoseComparison
+/// \ingroup SlicerRt_QtModules_DoseComparison
 class qSlicerDoseComparisonModulePrivate
 {
 public:

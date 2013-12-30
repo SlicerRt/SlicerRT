@@ -39,7 +39,7 @@ class vtkDICOMImportInfo;
 class vtkPolyData;
 class vtkSlicerDicomRtReader;
 
-/// \ingroup SlicerRt_DicomRtImportLogic
+/// \ingroup SlicerRt_QtModules_DicomRtImport
 class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtImportModuleLogic :
   public vtkSlicerModuleLogic
 {
@@ -81,7 +81,6 @@ protected:
   virtual ~vtkSlicerDicomRtImportModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
-  virtual void RegisterNodes();
   virtual void OnMRMLSceneEndClose();
 
 protected:
@@ -107,8 +106,8 @@ protected:
   /// \return Success flag
   bool LoadRtImage(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo* loadInfo);
 
-  /// Insert currently loaded series in the proper place in patient hierarchy
-  void InsertSeriesInPatientHierarchy(vtkSlicerDicomRtReader* rtReader);
+  /// Insert currently loaded series in the proper place in subject hierarchy
+  void InsertSeriesInSubjectHierarchy(vtkSlicerDicomRtReader* rtReader);
 
   /// Creates default dose color table.
   /// Should not be called, except when updating the default dose color table file manually, or when the file cannot be found (\sa LoadDefaultDoseColorTable)
@@ -136,7 +135,7 @@ private:
   /// Flag indicating whether opacity values for the loaded contours are automatically determined
   bool AutoContourOpacity;
 
-  /// Flag determining whether the generated beam models are arranged in a separate patient hierarchy
+  /// Flag determining whether the generated beam models are arranged in a separate subject hierarchy
   /// branch, or each beam model is added under its corresponding isocenter fiducial
   bool BeamModelsInSeparateBranch;
 

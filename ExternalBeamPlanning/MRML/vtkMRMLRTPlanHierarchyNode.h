@@ -34,6 +34,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 class vtkMRMLColorTableNode;
 
+/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTPlanHierarchyNode : public vtkMRMLDisplayableHierarchyNode
 {
 public:
@@ -61,7 +62,7 @@ protected:
   void operator=(const vtkMRMLRTPlanHierarchyNode&);
 
 protected:
-  char* StructureName; //TODO: This should be stored in the Patient Hierarchy
+  char* StructureName; //TODO: This should be stored in the subject hierarchy
 };
 
 #endif // __vtkMRMLRTPlanHierarchyNode_h

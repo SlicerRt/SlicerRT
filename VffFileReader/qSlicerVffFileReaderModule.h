@@ -31,7 +31,7 @@
 
 class qSlicerVffFileReaderModulePrivate;
 
-/// \ingroup Slicer_QtModules_VffFileReader
+/// \ingroup SlicerRt_QtModules_VffFileReader
 class Q_SLICER_VFFFILEREADER_EXPORT qSlicerVffFileReaderModule:
   public qSlicerLoadableModule
 {

@@ -40,7 +40,7 @@
 #include "qMRMLContourSelectorWidget.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_ContourMorphology
 class qSlicerContourMorphologyModuleWidgetPrivate: public Ui_qSlicerContourMorphologyModule
 {
   Q_DECLARE_PUBLIC(qSlicerContourMorphologyModuleWidget);

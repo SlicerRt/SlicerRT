@@ -35,7 +35,7 @@
 Q_EXPORT_PLUGIN2(qSlicerDicomRtExportModule, qSlicerDicomRtExportModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_DicomRtExport
+/// \ingroup SlicerRt_QtModules_DicomRtExport
 class qSlicerDicomRtExportModulePrivate
 {
 public:

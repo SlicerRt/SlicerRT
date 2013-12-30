@@ -31,8 +31,8 @@
 
 class qMRMLContourSelectorWidgetPrivate;
 
+/// \ingroup SlicerRt_QtModules_Contours
 /// \brief Widget for selecting contours as inputs. Automatically handles conversion to labelmap.
-/// \ingroup Slicer_QtModules_Contours
 /// 
 /// This widget consolidates the way contours are selected in modules as inputs. As in most cases
 /// the indexed labelmap representation is requested, a reference volume selector is included

@@ -15,6 +15,7 @@ vtkStandardNewMacro(vtkLeakFinder);
 
 //----------------------------------------------------------------------------
 /*!
+ * \ingroup SlicerRt_LeakFinder
  * \brief Class that extracts the call stack and saves it in a string.
  */
 class StackWalkerStringOutput : public StackWalker
@@ -48,6 +49,7 @@ protected:
 
 //----------------------------------------------------------------------------
 /*!
+ * \ingroup SlicerRt_LeakFinder
  * \brief Debug leaks observer variant that keeps a record of the created objects and the call stacks at the point of creation
  */
 class vtkLeakFinderObserver : public vtkDebugLeaksObserver

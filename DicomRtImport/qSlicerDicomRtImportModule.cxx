@@ -39,7 +39,7 @@
 Q_EXPORT_PLUGIN2(qSlicerDicomRtImportModule, qSlicerDicomRtImportModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_DicomRtImport
+/// \ingroup SlicerRt_QtModules_DicomRtImport
 class qSlicerDicomRtImportModulePrivate
 {
 public:
@@ -122,7 +122,7 @@ void qSlicerDicomRtImportModule::setup()
   }
   else
   {
-    qCritical() << "Volumes module is not found";
+    qCritical() << "qSlicerDicomRtImportModule::setup: Volumes module is not found";
   } 
 
   // Set isodose logic to the logic
@@ -134,7 +134,7 @@ void qSlicerDicomRtImportModule::setup()
   }
   else
   {
-    qCritical() << "Isodose module is not found";
+    qCritical() << "qSlicerDicomRtImportModule::setup: Isodose module is not found";
   } 
 
   // Set planar image logic to the logic
@@ -146,7 +146,7 @@ void qSlicerDicomRtImportModule::setup()
   }
   else
   {
-    qCritical() << "Planar Image module is not found";
+    qCritical() << "qSlicerDicomRtImportModule::setup: Planar Image module is not found";
   } 
 }
 

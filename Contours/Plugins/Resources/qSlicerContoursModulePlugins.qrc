@@ -1,0 +1,7 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>Icons/ColorTable.png</file>
+    <file>Icons/Contour.png</file>
+    <file>Icons/StructureSet.png</file>
+  </qresource>
+</RCC>

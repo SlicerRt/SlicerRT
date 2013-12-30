@@ -33,7 +33,7 @@
 Q_EXPORT_PLUGIN2(qSlicerDoseAccumulationModule, qSlicerDoseAccumulationModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_DoseAccumulation
+/// \ingroup SlicerRt_QtModules_DoseAccumulation
 class qSlicerDoseAccumulationModulePrivate
 {
 public:

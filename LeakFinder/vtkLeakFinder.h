@@ -33,6 +33,7 @@
 class vtkLeakFinderObserver;
 
 /*!
+ * \ingroup SlicerRt_LeakFinder
  * \brief Utility class that helps discovering memory leaks by keeping track of the created but not destroyed VTK
  *   objects. Returns a leak report containing the pointers, types and the call stacks at the point of their creation,
  *   when ending tracing manually, or writes a file just before exit (VTK patch needed for this).

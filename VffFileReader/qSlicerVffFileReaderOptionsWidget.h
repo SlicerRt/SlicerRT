@@ -32,7 +32,7 @@
 
 class qSlicerVffFileReaderOptionsWidgetPrivate;
 
-/// \ingroup Slicer_QtModules_VffFileReader
+/// \ingroup SlicerRt_QtModules_VffFileReader
 class Q_SLICER_VFFFILEREADER_EXPORT qSlicerVffFileReaderOptionsWidget :
   public qSlicerIOOptionsWidget
 {

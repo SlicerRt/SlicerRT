@@ -62,7 +62,7 @@
 #include <vtkScalarBarWidget.h>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_Isodose
+/// \ingroup SlicerRt_QtModules_Isodose
 class qSlicerIsodoseModuleWidgetPrivate: public Ui_qSlicerIsodoseModule
 {
   Q_DECLARE_PUBLIC(qSlicerIsodoseModuleWidget);
@@ -489,7 +489,7 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
   Q_D(qSlicerIsodoseModuleWidget);
   if (!d->spinBox_NumberOfLevels->isEnabled() || !d->logic()->GetIsodoseNode())
   {
-    qCritical() << "setNumberOfLevels: Invalid parameter set node!";
+    qCritical() << "qSlicerIsodoseModuleWidget::setNumberOfLevels: Invalid parameter set node!";
     return;
   }
 
@@ -497,7 +497,7 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
   vtkMRMLColorTableNode* selectedColorNode = d->logic()->GetIsodoseNode()->GetColorTableNode();
   if (!selectedColorNode)
   {
-    qCritical() << "setNumberOfLevels: Invalid color table node!";
+    qCritical() << "qSlicerIsodoseModuleWidget::setNumberOfLevels: Invalid color table node!";
     return;
   }
 

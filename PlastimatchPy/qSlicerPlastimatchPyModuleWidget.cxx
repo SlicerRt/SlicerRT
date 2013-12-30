@@ -23,7 +23,7 @@
 #include "ui_qSlicerPlastimatchPyModuleWidget.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_PlastimatchPy
 class qSlicerPlastimatchPyModuleWidgetPrivate: public Ui_qSlicerPlastimatchPyModuleWidget
 {
 public:

@@ -34,7 +34,7 @@
 Q_EXPORT_PLUGIN2(qSlicerIsodoseModule, qSlicerIsodoseModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_Isodose
+/// \ingroup SlicerRt_QtModules_Isodose
 class qSlicerIsodoseModulePrivate
 {
 public:

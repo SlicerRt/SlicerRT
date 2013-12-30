@@ -34,6 +34,7 @@ class vtkMatrix4x4;
 #endif
 
 
+/// \ingroup SlicerRt_SlicerRtCommon
 class SlicerRtCommon
 {
 public:
@@ -44,25 +45,6 @@ public:
   // SlicerRT constants
   static const char* SLICERRT_EXTENSION_NAME;
   static const std::string SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-
-  // Patient hierarchy constants
-  static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME;
-  static const char* PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE;
-  static const char* PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME;
-  static const char* PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME;
-  static const std::string PATIENTHIERARCHY_ATTRIBUTE_PREFIX;
-  static const std::string PATIENTHIERARCHY_NODE_NAME_POSTFIX;
-  static const std::string PATIENTHIERARCHY_EXCLUDE_FROM_POTENTIAL_NODES_LIST_ATTRIBUTE_NAME;
-  static const std::string PATIENTHIERARCHY_PATIENT_NAME_ATTRIBUTE_NAME;
-  static const std::string PATIENTHIERARCHY_PATIENT_ID_ATTRIBUTE_NAME;
-  static const std::string PATIENTHIERARCHY_PATIENT_SEX_ATTRIBUTE_NAME;
-  static const std::string PATIENTHIERARCHY_PATIENT_BIRTH_DATE_ATTRIBUTE_NAME;
-  static const std::string PATIENTHIERARCHY_STUDY_DATE_ATTRIBUTE_NAME;
-  static const std::string PATIENTHIERARCHY_STUDY_TIME_ATTRIBUTE_NAME;
-  static const std::string PATIENTHIERARCHY_SERIES_MODALITY_ATTRIBUTE_NAME;
-  static const std::string PATIENTHIERARCHY_NEW_NODE_NAME_PREFIX;
-  static const std::string PATIENTHIERARCHY_NEW_STRUCTURE_SET_NAME;
-  static const std::string PATIENTHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX;
 
   // Contour (vtkMRMLContourNode) constants
   static const std::string CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
@@ -77,6 +59,10 @@ public:
   static const int COLOR_INDEX_BACKGROUND;
   static const int COLOR_INDEX_INVALID;
   static const double COLOR_VALUE_INVALID[4];
+
+  static const std::string CONTOUR_NEW_CONTOUR_NAME;
+  static const std::string CONTOURHIERARCHY_NEW_STRUCTURE_SET_NAME;
+  static const std::string CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX;
 
   // DicomRtImport constants
   static const std::string DICOMRTIMPORT_ATTRIBUTE_PREFIX;
@@ -191,9 +177,6 @@ public:
     \param outputImageDataSpacing Output spacing that has to be set to the reslice algorithm
   */
   static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLScalarVolumeNode* inputVolumeNode, double oversamplingFactor, int outputImageDataExtent[6], double outputImageDataSpacing[3]);
-
-  /// Determine if a node is a patient hierarchy node
-  static bool IsPatientHierarchyNode(vtkMRMLNode* node);
 
   /// Determine if a node is a dose volume node
   static bool IsDoseVolumeNode(vtkMRMLNode* node);

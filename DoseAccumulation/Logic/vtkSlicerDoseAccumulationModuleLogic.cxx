@@ -24,9 +24,13 @@
 #include "vtkSlicerDoseAccumulationModuleLogic.h"
 #include "vtkMRMLDoseAccumulationNode.h"
 
+// Subject Hierarchy includes
+#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
+
 // SlicerRT includes
 #include "SlicerRtCommon.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -358,7 +362,16 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   }
 
   // Put accumulated dose volume under the same study as the reference dose volume
-  vtkMRMLHierarchyNode* studyNode = vtkSlicerPatientHierarchyModuleLogic::GetAncestorAtLevel(referenceDoseVolumeNode, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY);
+  vtkMRMLSubjectHierarchyNode* referenceDoseVolumeSubjectHierarchyNode =
+    vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(referenceDoseVolumeNode);
+  if (!referenceDoseVolumeSubjectHierarchyNode)
+  {
+    errorMessage = "No subject hierarchy node found for reference dose!"; 
+    vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* studyNode = referenceDoseVolumeSubjectHierarchyNode->GetAncestorAtLevel(
+    vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
   if (!studyNode)
   {
     errorMessage = "No study node found for reference dose!"; 
@@ -366,22 +379,24 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     return;
   }
 
-  std::string phSeriesNodeName(outputAccumulatedDoseVolumeNode->GetName());
-  phSeriesNodeName.append(SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX);
-  phSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(phSeriesNodeName);
-  vtkSmartPointer<vtkMRMLHierarchyNode> patientHierarchySeriesNode = vtkSmartPointer<vtkMRMLHierarchyNode>::New();
-  patientHierarchySeriesNode->HideFromEditorsOff();
-  patientHierarchySeriesNode->SetAssociatedNodeID(outputAccumulatedDoseVolumeNode->GetID());
-  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME,
-    SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE);
-  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME,
-    vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
-  patientHierarchySeriesNode->SetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME,
-    "");
-  patientHierarchySeriesNode->SetName(phSeriesNodeName.c_str());
-  this->GetMRMLScene()->AddNode(patientHierarchySeriesNode);
+  // Create subject hierarchy node for the accumulated dose volume if it doesn't exist
+  vtkMRMLSubjectHierarchyNode* subjectHierarchySeriesNode =
+    vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(outputAccumulatedDoseVolumeNode);
+  if (!subjectHierarchySeriesNode)
+  {
+    std::string shSeriesNodeName(outputAccumulatedDoseVolumeNode->GetName());
+    shSeriesNodeName.append(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);
+    shSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(shSeriesNodeName);
+    subjectHierarchySeriesNode = vtkMRMLSubjectHierarchyNode::New();
+    subjectHierarchySeriesNode->SetAssociatedNodeID(outputAccumulatedDoseVolumeNode->GetID());
+    subjectHierarchySeriesNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
+    //TODO: UID?
+    subjectHierarchySeriesNode->SetName(shSeriesNodeName.c_str());
+    this->GetMRMLScene()->AddNode(subjectHierarchySeriesNode);
+    subjectHierarchySeriesNode->Delete(); // Return ownership to the scene only
+  }
 
-  patientHierarchySeriesNode->SetParentNodeID(studyNode->GetID());
+  subjectHierarchySeriesNode->SetParentNodeID(studyNode->GetID());
 
   // Set threshold values so that the background is black
   const char* doseUnitScalingChars = studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());

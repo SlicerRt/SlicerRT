@@ -35,7 +35,7 @@
 #include "vtkSlicerDicomRtExportModuleLogicExport.h"
 
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_DicomRtExport
 class VTK_SLICER_DICOMRTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtExportModuleLogic :
   public vtkSlicerModuleLogic
 {

@@ -20,13 +20,14 @@
 
 ==============================================================================*/
 
-// DoseAccumulation includes
+// DoseComparison includes
 #include "vtkSlicerDoseComparisonModuleLogic.h"
 #include "vtkMRMLDoseComparisonNode.h"
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -104,6 +105,11 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
 
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
+
+  // TODO: Remove when subject hierarchy is integrated into Slicer core
+  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
+    vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
+  subjectHierarchyLogic->SetMRMLScene(mrmlScene);
 
   // Load test scene into temporary scene
   mrmlScene->SetURL(testSceneFileName);
@@ -187,4 +193,3 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
 
   return EXIT_SUCCESS;
 }
-

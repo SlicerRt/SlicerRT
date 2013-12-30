@@ -34,6 +34,7 @@ class vtkMRMLContourNode;
 
 #include "vtkSlicerExternalBeamPlanningModuleLogicExport.h"
 
+/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkMRMLExternalBeamPlanningNode : public vtkMRMLNode
 {
 public:

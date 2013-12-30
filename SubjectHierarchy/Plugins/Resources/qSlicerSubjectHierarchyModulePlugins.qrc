@@ -1,0 +1,11 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>Icons/Patient.png</file>
+    <file>Icons/ShowInViewers.png</file>
+    <file>Icons/Study.png</file>
+    <file>Icons/Subject.png</file>
+    <file>Icons/Unknown.png</file>
+    <file>Icons/Volume.png</file>
+    <file>Icons/Warning.png</file>
+  </qresource>
+</RCC>

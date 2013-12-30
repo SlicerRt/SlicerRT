@@ -30,7 +30,6 @@ set(MODULE_SRCS
   qSlicer${MODULE_NAME}Module.h
   qSlicer${MODULE_NAME}OptionsWidget.cxx
   qSlicer${MODULE_NAME}OptionsWidget.h
-
   )
 
 set(MODULE_MOC_SRCS
@@ -50,8 +49,6 @@ set(MODULE_TARGET_LIBRARIES
   qSlicer${MODULE_NAME}Module
   )
 
-  
-
 #-----------------------------------------------------------------------------
 slicerMacroBuildQtModule(
   NAME ${MODULE_NAME}
@@ -69,4 +66,3 @@ slicerMacroBuildQtModule(
 #if(BUILD_TESTING)
 #  add_subdirectory(Testing)
 #endif()
-

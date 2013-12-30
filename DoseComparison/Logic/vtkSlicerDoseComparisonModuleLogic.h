@@ -35,7 +35,7 @@
 
 class vtkMRMLDoseComparisonNode;
 
-/// \ingroup Slicer_QtModules_DoseComparison
+/// \ingroup SlicerRt_QtModules_DoseComparison
 class VTK_SLICER_DOSECOMPARISON_LOGIC_EXPORT vtkSlicerDoseComparisonModuleLogic :
   public vtkSlicerModuleLogic
 {

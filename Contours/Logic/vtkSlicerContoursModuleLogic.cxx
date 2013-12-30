@@ -22,13 +22,15 @@
 // Contours includes
 #include "vtkSlicerContoursModuleLogic.h"
 #include "vtkMRMLContourNode.h"
-#include "vtkSlicerContoursPatientHierarchyPlugin.h"
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "vtkVolumesOrientedResampleUtility.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
-#include "vtkSlicerPatientHierarchyPluginHandler.h"
+
+// Subject Hierarchy includes
+#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -39,7 +41,6 @@
 // MRML includes
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLDisplayableHierarchyNode.h>
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 
@@ -83,9 +84,6 @@ void vtkSlicerContoursModuleLogic::RegisterNodes()
   }
 
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
-
-  // Register Patient Hierarchy plugin
-  vtkSlicerPatientHierarchyPluginHandler::GetInstance()->RegisterPlugin(vtkSmartPointer<vtkSlicerContoursPatientHierarchyPlugin>::New());
 }
 
 //---------------------------------------------------------------------------
@@ -126,39 +124,72 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
     vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node!");
     return;
   }
+  vtkMRMLScene* scene = this->GetMRMLScene();
 
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
   if (contourNode)
   {
-    this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
-    // TODO : remove any/all hierarchy, color table, etc... nodes that are related to this contour
+    scene->StartState(vtkMRMLScene::BatchProcessState);
+
     vtkMRMLContourNode::ContourRepresentationType type = contourNode->GetActiveRepresentationType();
     switch(type)
     {
     case vtkMRMLContourNode::RibbonModel:
       {
-      vtkMRMLNode* aNode = this->GetMRMLScene()->GetNodeByID(contourNode->GetRibbonModelNodeId());
-      this->GetMRMLScene()->RemoveNode(aNode);
+      vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetRibbonModelNodeId());
+      scene->RemoveNode(aNode);
       contourNode->SetAndObserveRibbonModelNodeId(NULL);
       break;
       }
     case vtkMRMLContourNode::IndexedLabelmap:
       {
-      vtkMRMLNode* aNode = this->GetMRMLScene()->GetNodeByID(contourNode->GetIndexedLabelmapVolumeNodeId());
-      this->GetMRMLScene()->RemoveNode(aNode);
+      vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetIndexedLabelmapVolumeNodeId());
+      scene->RemoveNode(aNode);
       contourNode->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
       break;
       }
     case vtkMRMLContourNode::ClosedSurfaceModel:
       {
-      vtkMRMLNode* aNode = this->GetMRMLScene()->GetNodeByID(contourNode->GetClosedSurfaceModelNodeId());
-      this->GetMRMLScene()->RemoveNode(aNode);
+      vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetClosedSurfaceModelNodeId());
+      scene->RemoveNode(aNode);
       contourNode->SetAndObserveClosedSurfaceModelNodeId(NULL);
       break;
       }
     default:
       vtkErrorMacro("Unknown representation type.");
     }
+
+    // Remove color table entry
+    vtkMRMLColorTableNode* colorNode = NULL;
+    int structureColorIndex = -1;
+    contourNode->GetColor(structureColorIndex, colorNode, scene);
+    if (colorNode)
+    {
+      if (structureColorIndex != SlicerRtCommon::COLOR_INDEX_INVALID)
+      {
+        // Set color entry to invalid
+        colorNode->SetColor(structureColorIndex, SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1],
+          SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3]);
+        colorNode->SetColorName(structureColorIndex, SlicerRtCommon::COLOR_NAME_REMOVED);
+      }
+      else
+      {
+        vtkErrorMacro("OnMRMLSceneNodeRemoved: There was no associated color for contour '" << contourNode->GetName() << "' before removing!");
+      }
+    }
+    else
+    {
+      vtkErrorMacro("OnMRMLSceneNodeRemoved: There is no color node for the removed contour '" << contourNode->GetName() << "'!");
+    }
+
+    // Remove subject hierarchy nodes
+    vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode =
+      vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(contourNode, scene);
+    if (contourSubjectHierarchyNode)
+    {
+      scene->RemoveNode(contourSubjectHierarchyNode);
+    }
+
     this->Modified();
     this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
   }
@@ -293,11 +324,11 @@ void vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(vtkMRMLNode* 
       contours.push_back(contourNode);
     }
   }
-  else if ( node->IsA("vtkMRMLDisplayableHierarchyNode")
-    && SlicerRtCommon::IsPatientHierarchyNode(node) && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
+  else if ( node->IsA("vtkMRMLSubjectHierarchyNode")
+    && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
-    vtkMRMLDisplayableHierarchyNode::SafeDownCast(node)->GetChildrenDisplayableNodes(childContourNodes);
+    vtkMRMLSubjectHierarchyNode::SafeDownCast(node)->GetAssociatedChildrendNodes(childContourNodes);
     childContourNodes->InitTraversal();
     if (childContourNodes->GetNumberOfItems() < 1)
     {
@@ -391,8 +422,15 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
   }
 
   // Get series hierarchy node from first contour
-  vtkMRMLHierarchyNode* contourHierarchySeriesNode = vtkSlicerPatientHierarchyModuleLogic::GetAncestorAtLevel(
-    *contours.begin(), vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_SERIES);
+  vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(*contours.begin());
+  if (!contourSubjectHierarchyNode)
+  {
+    std::cerr << "vtkSlicerContoursModuleLogic::GetReferencedSeriesForContours: Failed to find subject hierarchy node for contour '"
+      << ((*contours.begin())==NULL ? "NULL" : (*contours.begin())->GetName()) << "'!" << std::endl;
+    return NULL;
+  }
+  vtkMRMLSubjectHierarchyNode* contourHierarchySeriesNode = contourSubjectHierarchyNode->GetAncestorAtLevel(
+    vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
   if (!contourHierarchySeriesNode)
   {
     std::cerr << "vtkSlicerContoursModuleLogic::GetReferencedSeriesForContours: Failed to find series hierarchy node for contour '"
@@ -402,24 +440,23 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
 
   // Traverse contour nodes from parent
   std::string commonReferencedSeriesUid("");
-  std::vector<vtkMRMLHierarchyNode*> contourPatientHierarchyNodes = contourHierarchySeriesNode->GetChildrenNodes();
-  for (std::vector<vtkMRMLHierarchyNode*>::iterator contourIt=contourPatientHierarchyNodes.begin(); contourIt!=contourPatientHierarchyNodes.end(); ++contourIt)
+  std::vector<vtkMRMLHierarchyNode*> contourHierarchyNodes = contourHierarchySeriesNode->GetChildrenNodes();
+  for (std::vector<vtkMRMLHierarchyNode*>::iterator contourIt=contourHierarchyNodes.begin(); contourIt!=contourHierarchyNodes.end(); ++contourIt)
   {
-    if ( (*contourIt)->GetAssociatedNode()
-      && (*contourIt)->GetAssociatedNode()->IsA("vtkMRMLColorTableNode") )
+    vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*contourIt);
+    if ( contourSubjectHierarchyNode->GetAssociatedDataNode()
+      && contourSubjectHierarchyNode->GetAssociatedDataNode()->IsA("vtkMRMLColorTableNode") )
     {
       continue;
     }
 
-    vtkMRMLHierarchyNode* contourPatientHierarchyNode = (*contourIt);
-
     // Get referenced series UID for contour
-    const char* referencedSeriesUid = contourPatientHierarchyNode->GetAttribute(
+    const char* referencedSeriesUid = contourSubjectHierarchyNode->GetAttribute(
       SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str() );
 
     if (!referencedSeriesUid)
     {
-      vtkWarningWithObjectMacro(contourHierarchySeriesNode, "No referenced series UID found for contour '" << contourPatientHierarchyNode->GetName() << "'");
+      vtkWarningWithObjectMacro(contourHierarchySeriesNode, "No referenced series UID found for contour '" << contourSubjectHierarchyNode->GetName() << "'");
     }
     // Set a candidate common reference UID in the first loop
     else if (commonReferencedSeriesUid.empty())
@@ -439,12 +476,16 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
     return NULL;
   }
 
-  // Common referenced series UID found, get corresponding patient hierarchy node
-  vtkMRMLHierarchyNode* referencedSeriesNode = vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(
-    contourHierarchySeriesNode->GetScene(), commonReferencedSeriesUid.c_str());
+  // Common referenced series UID found, get corresponding subject hierarchy node
+  vtkMRMLSubjectHierarchyNode* referencedSeriesNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
+    contourHierarchySeriesNode->GetScene(), vtkSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, commonReferencedSeriesUid.c_str());
+  if (!referencedSeriesNode)
+  {
+    return NULL;
+  }
 
   // Get and return referenced volume
-  return vtkMRMLScalarVolumeNode::SafeDownCast(referencedSeriesNode->GetAssociatedNode());
+  return vtkMRMLScalarVolumeNode::SafeDownCast(referencedSeriesNode->GetAssociatedDataNode());
 }
 
 //-----------------------------------------------------------------------------

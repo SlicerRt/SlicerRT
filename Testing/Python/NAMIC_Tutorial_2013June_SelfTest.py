@@ -9,7 +9,7 @@ from __main__ import vtk, qt, ctk, slicer
 #
 # I. Evaluate isocenter shifting effect on the dose
 #   1. Load planning DICOM-RT data and day 2 volumes
-#   2. Add day 2 volumes in Patient Hierarchy
+#   2. Add day 2 volumes in Subject Hierarchy
 #   3. Compute isodose lines for both dose distributions
 #   4. Register day 2 CT to planning CT using rigid registration
 #   5. Resample day 2 dose volumes using the transform
@@ -38,7 +38,7 @@ class NAMIC_Tutorial_2013June_SelfTest:
   def __init__(self, parent):
     parent.title = "SlicerRT NA-MIC Tutorial 2013June Self Test"
     parent.categories = ["Testing.SlicerRT Tests"]
-    parent.dependencies = ["DicomRtImport", "PatientHierarchy", "Contours", "Isodose", "BRAINSFit", "BRAINSResample", "DoseComparison", "DoseAccumulation", "DoseVolumeHistogram", "ContourComparison", "ContourMorphology"]
+    parent.dependencies = ["DicomRtImport", "SubjectHierarchy", "Contours", "Isodose", "BRAINSFit", "BRAINSResample", "DoseComparison", "DoseAccumulation", "DoseVolumeHistogram", "ContourComparison", "ContourMorphology"]
     parent.contributors = ["Csaba Pinter (Queen's)"]
     parent.helpText = """
     This is a self test that automatically runs the demo/tutorial prepared for the 2013 Summer NAMIC week tutorial contest.
@@ -88,7 +88,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     try:
       # Check for modules
       self.assertTrue( slicer.modules.dicomrtimport )
-      self.assertTrue( slicer.modules.patienthierarchy )
+      self.assertTrue( slicer.modules.subjecthierarchy )
       self.assertTrue( slicer.modules.contours )
       self.assertTrue( slicer.modules.isodose )
       self.assertTrue( slicer.modules.brainsfit )
@@ -103,8 +103,8 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.TestSection_I_01C_ImportDay1Study()
       self.TestSection_I_01D_SelectLoadablesAndLoad()
       self.TestSection_I_01E_LoadDay2Data()
-      self.TestSection_I_01F_SetDisplayOptions()
-      self.TestSection_I_02_AddDay2DataToPatientHierarchy()
+      self.TestSection_I_01F_AddDay2DataToSubjectHierarchy()
+      self.TestSection_I_01G_SetDisplayOptions()
       self.TestSection_I_03A_ComputeIsodoseForDay1()
       self.TestSection_I_03B_ComputeIsodoseForDay2()
       self.TestSection_I_04_RegisterDay2CTToDay1CT()
@@ -138,17 +138,18 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     
     self.day1CTName = '2: ENT IMRT'
     self.day1DoseName = '5: RTDOSE: BRAI1'
-    self.day1BeamsName = '4: RTPLAN: BRAI1_BeamModels'
-    self.day1IsodosesName = '5: RTDOSE: BRAI1_IsodoseSurfaces_PatientHierarchy'
+    self.day1BeamsName = '4: RTPLAN: BRAI1_BeamModels_SubjectHierarchy'
+    self.day1IsodosesName = '5: RTDOSE: BRAI1_IsodoseSurfaces_SubjectHierarchy'
     self.day2CTName = '2_ENT_IMRT_Day2'
     self.day2DoseName = '5_RTDOSE_Day2'
-    self.day2IsodosesName = '5_RTDOSE_Day2_IsodoseSurfaces_PatientHierarchy'
+    self.day2IsodosesName = '5_RTDOSE_Day2_IsodoseSurfaces_SubjectHierarchy'
     self.transformDay2ToDay1RigidName = 'Transform_Day2ToDay1_Rigid'
     self.transformDay2ToDay1BSplineName = 'Transform_Day2ToDay1_BSpline'
     self.day2DoseRigidName = '5_RTDOSE_Day2Registered_Rigid'
     self.day2DoseBSplineName = '5_RTDOSE_Day2Registered_BSpline'
     self.gammaVolumeName = 'Gamma_Day1_Day2Rigid'
     self.doseVolumeIdentifierAttributeName = 'DicomRtImport.DoseVolume'
+    self.doseUnitNameAttributeName = 'DicomRtImport.DoseUnitName'
     self.doseUnitValueAttributeName = 'DicomRtImport.DoseUnitValue'
     self.doseAccumulationDoseVolumeNameProperty = 'DoseAccumulation.DoseVolumeNodeName'
     self.accumulatedDoseUnregisteredName = '5_RTDOSE Accumulated Unregistered'
@@ -328,11 +329,67 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       raise Exception("Exception occurred, handled, thrown further to workflow level")
 
   #------------------------------------------------------------------------------
-  def TestSection_I_01F_SetDisplayOptions(self):
+  def TestSection_I_01F_AddDay2DataToSubjectHierarchy(self):
+    try:
+      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
+
+      # Get patient node
+      day1CT = slicer.util.getNode(self.day1CTName)
+      ct1HierarchyNode = slicer.vtkMRMLHierarchyNode.GetAssociatedHierarchyNode(slicer.mrmlScene, day1CT.GetID())
+      patientNode = ct1HierarchyNode.GetParentNode().GetParentNode()
+      self.assertTrue( patientNode != None )
+      
+      # Add new study for the day 2 data
+      studyNode = vtkMRMLSubjectHierarchyNode()
+      studyNode.SetName('Day2')
+      studyNode.SetLevel('Study')
+      studyNode.AddUID('DICOM','Day2Study_UID')
+      studyNode.SetParentNodeID(patientNode.GetID());
+      slicer.mrmlScene.AddNode(studyNode);
+      
+      # Add dose unit attributes to the new study node
+      studyDay1Node = ct1HierarchyNode.GetParentNode()
+      doseUnitName = studyDay1Node.GetAttribute(self.doseUnitNameAttributeName)
+      doseUnitValue = studyDay1Node.GetAttribute(self.doseUnitValueAttributeName)
+      studyNode.SetAttribute(self.doseUnitNameAttributeName, doseUnitName)
+      studyNode.SetAttribute(self.doseUnitValueAttributeName, doseUnitValue)
+
+      # Add day 2 CT series
+      day2CT = slicer.util.getNode(self.day2CTName)
+      seriesNodeCT = vtkMRMLSubjectHierarchyNode()
+      seriesNodeCT.SetName('Day2CT_SubjectHierarchy')
+      seriesNodeCT.SetAssociatedNodeID(day2CT.GetID())
+      seriesNodeCT.SetLevel('Series')
+      seriesNodeCT.AddUID('DICOM','Day2CT_UID')
+      seriesNodeCT.SetParentNodeID(studyNode.GetID());
+      slicer.mrmlScene.AddNode(seriesNodeCT)
+
+      # Set dose attributes for day 2 dose
+      day2Dose = slicer.util.getNode(self.day2DoseName)
+      day2Dose.SetAttribute(self.doseVolumeIdentifierAttributeName,'1')
+
+      # Add day 2 dose series
+      day2Dose = slicer.util.getNode(self.day2DoseName)
+      seriesNodeDose = vtkMRMLSubjectHierarchyNode()
+      seriesNodeDose.SetName('Day2Dose_SubjectHierarchy')
+      seriesNodeDose.SetAssociatedNodeID(day2Dose.GetID())
+      seriesNodeDose.SetLevel('Series')
+      seriesNodeDose.AddUID('DICOM','Day2Dose_UID')
+      seriesNodeDose.SetParentNodeID(studyNode.GetID());
+      slicer.mrmlScene.AddNode(seriesNodeDose)
+
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
+      raise Exception("Exception occurred, handled, thrown further to workflow level")
+
+  #------------------------------------------------------------------------------
+  def TestSection_I_01G_SetDisplayOptions(self):
     self.delayDisplay('Setting display options for loaded data',self.delayMs)
 
     try:
-      from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
+      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
 
       # Set default dose color map and W/L
       defaultDoseColorTable = slicer.util.getNode('Dose_ColorTable')
@@ -340,7 +397,8 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       day2Dose.GetDisplayNode().SetAndObserveColorNodeID(defaultDoseColorTable.GetID())
 
       day1Dose = slicer.util.getNode(self.day1DoseName)
-      doseUnitValue = vtkSlicerPatientHierarchyModuleLogic.GetAttributeFromAncestor(day1Dose, self.doseUnitValueAttributeName, 'Study')
+      day1DoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day1Dose)
+      doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, 'Study')
       day2Dose.GetDisplayNode().SetAutoWindowLevel(0)
       day2Dose.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
       day2Dose.GetDisplayNode().AutoThresholdOff();
@@ -382,69 +440,15 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       raise Exception("Exception occurred, handled, thrown further to workflow level")
 
   #------------------------------------------------------------------------------
-  def TestSection_I_02_AddDay2DataToPatientHierarchy(self):
-    try:
-      # Get patient node
-      day1CT = slicer.util.getNode(self.day1CTName)
-      ct1HierarchyNode = slicer.vtkMRMLHierarchyNode.GetAssociatedHierarchyNode(slicer.mrmlScene, day1CT.GetID())
-      patientNode = ct1HierarchyNode.GetParentNode().GetParentNode()
-      self.assertTrue( patientNode != None )
-      
-      # Add new study for the day 2 data
-      studyNode = slicer.vtkMRMLHierarchyNode()
-      studyNode.AllowMultipleChildrenOn()
-      studyNode.HideFromEditorsOff()
-      studyNode.SetName('Day2')
-      studyNode.SetAttribute('HierarchyType','PatientHierarchy')
-      studyNode.SetAttribute('DicomLevel','Study')
-      studyNode.SetAttribute('DicomUid','Day2Study_UID')
-      studyNode.SetParentNodeID(patientNode.GetID());
-      slicer.mrmlScene.AddNode(studyNode);
-
-      # Add day 2 CT series
-      day2CT = slicer.util.getNode(self.day2CTName)
-      seriesNodeCT = slicer.vtkMRMLHierarchyNode()
-      seriesNodeCT.HideFromEditorsOff()
-      seriesNodeCT.SetName('Day2CT_PatientHierarchy')
-      seriesNodeCT.SetAssociatedNodeID(day2CT.GetID())
-      seriesNodeCT.SetAttribute('HierarchyType','PatientHierarchy')
-      seriesNodeCT.SetAttribute('DicomLevel','Series')
-      seriesNodeCT.SetAttribute('DicomUid','Day2CT_UID')
-      seriesNodeCT.SetParentNodeID(studyNode.GetID());
-      slicer.mrmlScene.AddNode(seriesNodeCT)
-
-      # Set dose attributes for day 2 dose
-      day2Dose = slicer.util.getNode(self.day2DoseName)
-      day2Dose.SetAttribute(self.doseVolumeIdentifierAttributeName,'1')
-
-      # Add day 2 dose series
-      day2Dose = slicer.util.getNode(self.day2DoseName)
-      seriesNodeDose = slicer.vtkMRMLHierarchyNode()
-      seriesNodeDose.HideFromEditorsOff()
-      seriesNodeDose.SetName('Day2Dose_PatientHierarchy')
-      seriesNodeDose.SetAssociatedNodeID(day2Dose.GetID())
-      seriesNodeDose.SetAttribute('HierarchyType','PatientHierarchy')
-      seriesNodeDose.SetAttribute('DicomLevel','Series')
-      seriesNodeDose.SetAttribute('DicomUid','Day2Dose_UID')
-      seriesNodeDose.SetParentNodeID(studyNode.GetID());
-      slicer.mrmlScene.AddNode(seriesNodeDose)
-
-    except Exception, e:
-      import traceback
-      traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
-      raise Exception("Exception occurred, handled, thrown further to workflow level")
-
-  #------------------------------------------------------------------------------
   def TestSection_I_03A_ComputeIsodoseForDay1(self):
     self.delayDisplay('Computing isodose for day 1',self.delayMs)
 
     try:
-      from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
+      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
 
       # Hide beams
-      beams = slicer.util.getNode(self.day1BeamsName)
-      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(beams, 0)
+      beamsSubjectHierarchy = slicer.util.getNode(self.day1BeamsName)
+      beamsSubjectHierarchy.SetDisplayVisibilityForBranch(0)
 
       scene = slicer.mrmlScene
       mainWindow = slicer.util.mainWindow()
@@ -466,8 +470,8 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       day1CT = slicer.util.getNode(self.day1CTName)
       self.TestUtility_ShowVolumes(day1CT)
 
-      day1Isodose = slicer.util.getNode(self.day1IsodosesName)
-      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day1Isodose, 1)
+      day1IsodoseSubjectHierarchy = slicer.util.getNode(self.day1IsodosesName)
+      day1IsodoseSubjectHierarchy.SetDisplayVisibilityForBranch(1)
 
       self.delayDisplay('Show day 1 isodose lines',self.delayMs)
 
@@ -482,7 +486,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     self.delayDisplay('Computing isodose for day 2',self.delayMs)
 
     try:
-      from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
+      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
 
       scene = slicer.mrmlScene
       mainWindow = slicer.util.mainWindow()
@@ -501,14 +505,15 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelNode*') ) == numOfModelNodesBeforeLoad + 6 )
 
       # Show day 2 isodose
-      day1Isodose = slicer.util.getNode(self.day1IsodosesName)
-      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day1Isodose, 0)
+      day1IsodoseSubjectHierarchy = slicer.util.getNode(self.day1IsodosesName)
+      day1IsodoseSubjectHierarchy.SetDisplayVisibilityForBranch(0)
 
       day2CT = slicer.util.getNode(self.day2CTName)
       self.TestUtility_ShowVolumes(day2CT)
 
       day2Isodose = slicer.util.getNode(self.day2IsodosesName)
-      vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day2Isodose, 1)
+      day2IsodoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day2Isodose)
+      day2IsodoseSubjectHierarchy.SetDisplayVisibilityForBranch(1)
       
     except Exception, e:
       import traceback
@@ -519,7 +524,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   #------------------------------------------------------------------------------
   def TestSection_I_04_RegisterDay2CTToDay1CT(self):
     try:
-      from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
+      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
 
       scene = slicer.mrmlScene
       mainWindow = slicer.util.mainWindow()
@@ -529,7 +534,8 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       # Hide isodose
       day2Isodose = slicer.util.getNode(self.day2IsodosesName)
       if (day2Isodose != None):
-        vtkSlicerPatientHierarchyModuleLogic.SetBranchVisibility(day2Isodose, 0)
+        day2IsodoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day2Isodose)
+        day2IsodoseSubjectHierarchy.SetDisplayVisibilityForBranch(0)
 
       # Register Day 2 CT to Day 1 CT using rigid registration
       self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration.\n  It may take a few minutes...",self.delayMs)
@@ -594,7 +600,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
   #------------------------------------------------------------------------------
   def TestSection_I_05_ResampleDay2DoseVolume(self):
     try:
-      from vtkSlicerPatientHierarchyModuleLogic import vtkSlicerPatientHierarchyModuleLogic
+      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
 
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('BRAINSResample')
@@ -668,25 +674,24 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       defaultDoseColorTable = slicer.util.getNode('Dose_ColorTable')
       day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID(defaultDoseColorTable.GetID())
 
-      doseUnitValue = vtkSlicerPatientHierarchyModuleLogic.GetAttributeFromAncestor(day1Dose, self.doseUnitValueAttributeName, 'Study')
+      day1DoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day1Dose)
+      doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, 'Study')
       day2DoseRigid.GetDisplayNode().SetAutoWindowLevel(0)
       day2DoseRigid.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
       day2DoseRigid.GetDisplayNode().AutoThresholdOff();
       day2DoseRigid.GetDisplayNode().SetLowerThreshold(0.5 * float(doseUnitValue));
       day2DoseRigid.GetDisplayNode().SetApplyThreshold(1);    
 
-      # Add resampled dose to patient hierarchy
+      # Add resampled dose to subject hierarchy
       day2DoseHierarchyNode = slicer.vtkMRMLHierarchyNode.GetAssociatedHierarchyNode(slicer.mrmlScene, day2Dose.GetID())
       day2StudyNode = day2DoseHierarchyNode.GetParentNode()
       self.assertTrue( day2StudyNode != None )
 
-      seriesNodeResampledDose = slicer.vtkMRMLHierarchyNode()
-      seriesNodeResampledDose.HideFromEditorsOff()
-      seriesNodeResampledDose.SetName('Day2Dose_RigidResampled_PatientHierarchy')
+      seriesNodeResampledDose = vtkMRMLSubjectHierarchyNode()
+      seriesNodeResampledDose.SetName('Day2Dose_RigidResampled_SubjectHierarchy')
       seriesNodeResampledDose.SetAssociatedNodeID(day2DoseRigid.GetID())
-      seriesNodeResampledDose.SetAttribute('HierarchyType','PatientHierarchy')
-      seriesNodeResampledDose.SetAttribute('DicomLevel','Series')
-      seriesNodeResampledDose.SetAttribute('DicomUid','Day2Dose_RigidResampled_UID')
+      seriesNodeResampledDose.SetLevel('Series')
+      seriesNodeResampledDose.AddUID('DICOM','Day2Dose_RigidResampled_UID')
       seriesNodeResampledDose.SetParentNodeID(day2StudyNode.GetID());
       slicer.mrmlScene.AddNode(seriesNodeResampledDose)
 
@@ -871,7 +876,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     try:
       # Check for modules
       self.assertTrue( slicer.modules.dicomrtimport )
-      self.assertTrue( slicer.modules.patienthierarchy )
+      self.assertTrue( slicer.modules.subjecthierarchy )
       self.assertTrue( slicer.modules.contours )
       self.assertTrue( slicer.modules.brainsfit )
       self.assertTrue( slicer.modules.brainsresample )
@@ -890,7 +895,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
     try:
       # Check for modules
       self.assertTrue( slicer.modules.dicomrtimport )
-      self.assertTrue( slicer.modules.patienthierarchy )
+      self.assertTrue( slicer.modules.subjecthierarchy )
       self.assertTrue( slicer.modules.contours )
       self.assertTrue( slicer.modules.contourmorphology )
 
@@ -1216,8 +1221,8 @@ class NAMIC_Tutorial_2013June_SelfTestWidget:
     tester.TestSection_I_01C_ImportDay1Study()
     tester.TestSection_I_01D_SelectLoadablesAndLoad()
     tester.TestSection_I_01E_LoadDay2Data()
-    tester.TestSection_I_01F_SetDisplayOptions()
-    tester.TestSection_I_02_AddDay2DataToPatientHierarchy()
+    tester.TestSection_I_01G_SetDisplayOptions()
+    tester.TestSection_I_01F_AddDay2DataToSubjectHierarchy()
 
   #------------------------------------------------------------------------------
   def onGenerateIsodose(self,moduleName="NAMIC_Tutorial_2013June_SelfTest"):

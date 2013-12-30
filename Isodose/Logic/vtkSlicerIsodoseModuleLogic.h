@@ -37,7 +37,7 @@
 // MRML includes
 class vtkMRMLIsodoseNode;
 
-/// \ingroup Slicer_QtModules_Isodose
+/// \ingroup SlicerRt_QtModules_Isodose
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :
   public vtkSlicerModuleLogic
 {

@@ -36,7 +36,7 @@
 
 class vtkMRMLDoseAccumulationNode;
 
-/// \ingroup Slicer_QtModules_DoseAccumulation
+/// \ingroup SlicerRt_QtModules_DoseAccumulation
 class VTK_SLICER_DOSEACCUMULATION_LOGIC_EXPORT vtkSlicerDoseAccumulationModuleLogic :
   public vtkSlicerModuleLogic
 {

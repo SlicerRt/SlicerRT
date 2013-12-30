@@ -39,7 +39,7 @@
 #include <vtkMRMLScalarVolumeNode.h>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ContourComparison
+/// \ingroup SlicerRt_QtModules_ContourComparison
 class qSlicerContourComparisonModuleWidgetPrivate: public Ui_qSlicerContourComparisonModule
 {
   Q_DECLARE_PUBLIC(qSlicerContourComparisonModuleWidget);

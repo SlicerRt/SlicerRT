@@ -23,9 +23,12 @@
 #include "vtkSlicerBeamsModuleLogic.h"
 #include "vtkMRMLBeamsNode.h"
 
+// Subject Hierarchy includes
+#include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
+
 // SlicerRT includes
 #include "SlicerRtCommon.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLMarkupsFiducialNode.h>
@@ -191,18 +194,18 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
   double isocenterCoordinates[3] = {0.0, 0.0, 0.0};
   isocenterNode->GetNthFiducialPosition(0, isocenterCoordinates);
 
-  // Get patient hierarchy node for the isocenter
-  vtkMRMLHierarchyNode* isocenterPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(isocenterNode);
-  if (!isocenterPatientHierarchyNode)
+  // Get subject hierarchy node for the isocenter
+  vtkMRMLSubjectHierarchyNode* isocenterSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(isocenterNode);
+  if (!isocenterSubjectHierarchyNode)
   {
-    errorMessage = "Unable to retrieve isocenter patient hierarchy node!";
+    errorMessage = "Unable to retrieve isocenter subject hierarchy node!";
     vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage); 
     return;
   }
 
   // Extract beam-related parameters needed to compute source position
   double sourceAxisDistance = 0.0;
-  const char* sourceAxisDistanceChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
+  const char* sourceAxisDistanceChars = isocenterSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
   if (sourceAxisDistanceChars != NULL)
   {
     std::stringstream ss;
@@ -211,7 +214,7 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
   }
 
   double gantryAngle = 0.0;
-  const char* gantryAngleChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str());
+  const char* gantryAngleChars = isocenterSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str());
   if (gantryAngleChars != NULL)
   {
     std::stringstream ss;
@@ -220,7 +223,7 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
   }
 
   double couchAngle = 0.0;
-  const char* couchAngleChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str());
+  const char* couchAngleChars = isocenterSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str());
   if (couchAngleChars != NULL)
   {
     std::stringstream ss;
@@ -304,18 +307,18 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
     return;
   }
 
-  // Get patient hierarchy node for the isocenter
-  vtkMRMLHierarchyNode* isocenterPatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(isocenterNode);
-  if (!isocenterPatientHierarchyNode)
+  // Get subject hierarchy node for the isocenter
+  vtkMRMLSubjectHierarchyNode* isocenterSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(isocenterNode);
+  if (!isocenterSubjectHierarchyNode)
   {
-    errorMessage = "Unable to retrieve isocenter patient hierarchy node!";
+    errorMessage = "Unable to retrieve isocenter subject hierarchy node!";
     vtkErrorMacro("CreateBeamModel: " << errorMessage);
     return;
   }
 
   // Extract beam-related parameters needed to compute source position
   double collimatorAngle = 0.0;
-  const char* collimatorAngleChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str());
+  const char* collimatorAngleChars = isocenterSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str());
   if (collimatorAngleChars != NULL)
   {
     std::stringstream ss;
@@ -324,7 +327,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   }
 
   double jawPosition[2][2] = {{0.0, 0.0},{0.0, 0.0}};
-  const char* jawPositionChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str());
+  const char* jawPositionChars = isocenterSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str());
   if (jawPositionChars != NULL)
   {
     std::stringstream ss;
@@ -333,7 +336,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   }
 
   double sourceAxisDistance = 0.0;
-  const char* sourceAxisDistanceChars = isocenterPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
+  const char* sourceAxisDistanceChars = isocenterSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
   if (sourceAxisDistanceChars != NULL)
   {
     std::stringstream ss;

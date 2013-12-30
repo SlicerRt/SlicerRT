@@ -30,7 +30,7 @@
 
 class qSlicerIsodoseModulePrivate;
 
-/// \ingroup Slicer_QtModules_Isodose
+/// \ingroup SlicerRt_QtModules_Isodose
 class Q_SLICER_QTMODULES_ISODOSE_EXPORT qSlicerIsodoseModule :
   public qSlicerLoadableModule
 {

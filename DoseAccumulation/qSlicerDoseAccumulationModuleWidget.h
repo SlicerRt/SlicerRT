@@ -34,7 +34,7 @@ class QTableWidgetItem;
 // STD includes
 #include <map>
 
-/// \ingroup Slicer_QtModules_DoseAccumulation
+/// \ingroup SlicerRt_QtModules_DoseAccumulation
 class Q_SLICER_QTMODULES_DOSEACCUMULATION_EXPORT qSlicerDoseAccumulationModuleWidget :
   public qSlicerAbstractModuleWidget
 {

@@ -151,7 +151,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    qCritical() << "onEnter::compareDoseVolumeNodeChanged: Invalid scene!";
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::onEnter: Invalid scene!";
     return;
   }
 
@@ -160,7 +160,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (d->logic() == NULL)
   {
-    qCritical() << "onEnter::compareDoseVolumeNodeChanged: Invalid logic!";
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::onEnter: Invalid logic!";
     return;
   }
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();

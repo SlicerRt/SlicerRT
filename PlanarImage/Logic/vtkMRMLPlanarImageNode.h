@@ -31,6 +31,7 @@
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 
+/// \ingroup SlicerRt_QtModules_PlanarImage
 class VTK_SLICER_PLANARIMAGE_LOGIC_EXPORT vtkMRMLPlanarImageNode : public vtkMRMLNode
 {
 public:

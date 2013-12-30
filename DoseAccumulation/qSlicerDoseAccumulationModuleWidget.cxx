@@ -19,6 +19,13 @@
 
 ==============================================================================*/
 
+// DoseAccumulation includes
+#include "vtkSlicerDoseAccumulationModuleLogic.h"
+#include "vtkMRMLDoseAccumulationNode.h"
+
+// SlicerRt includes
+#include "SlicerRtCommon.h"
+
 // Qt includes
 #include <QCheckBox>
 #include <QDebug>
@@ -27,20 +34,16 @@
 #include "qSlicerDoseAccumulationModuleWidget.h"
 #include "ui_qSlicerDoseAccumulationModule.h"
 
-// SlicerRt includes
-#include "SlicerRtCommon.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
-
-// DoseAccumulation includes
-#include "vtkSlicerDoseAccumulationModuleLogic.h"
-#include "vtkMRMLDoseAccumulationNode.h"
+// SubjectHierarchy MRML includes
+#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScene.h>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_DoseAccumulation
+/// \ingroup SlicerRt_QtModules_DoseAccumulation
 class qSlicerDoseAccumulationModuleWidgetPrivate: public Ui_qSlicerDoseAccumulationModule
 {
   Q_DECLARE_PUBLIC(qSlicerDoseAccumulationModuleWidget);
@@ -354,7 +357,13 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     }
 
     // Get dose unit name
-    const char* doseUnitName = vtkSlicerPatientHierarchyModuleLogic::GetAttributeFromAncestor(volumeNode, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY);
+    const char* doseUnitName = NULL;
+    vtkMRMLSubjectHierarchyNode* volumeSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(volumeNode);
+    if (volumeSubjectHierarchyNode)
+    {
+      doseUnitName = volumeSubjectHierarchyNode->GetAttributeFromAncestor(
+        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+    }
     std::string doseUnitStr = ( doseUnitName ? doseUnitName : "N/A" );
 
     // Create checkbox

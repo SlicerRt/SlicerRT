@@ -26,7 +26,7 @@
 #include "vtkSlicerVffFileReaderLogic.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_VffFileReader
+/// \ingroup SlicerRt_QtModules_VffFileReader
 class qSlicerVffFileReaderPluginWidgetPrivate: public Ui_qSlicerVffFileReaderPluginWidget
 {
 public:

@@ -34,7 +34,7 @@
 Q_EXPORT_PLUGIN2(qSlicerExternalBeamPlanningModule, qSlicerExternalBeamPlanningModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ExternalBeamPlanning
+/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class qSlicerExternalBeamPlanningModulePrivate
 {
 public:

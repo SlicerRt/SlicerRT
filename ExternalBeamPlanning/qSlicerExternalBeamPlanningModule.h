@@ -30,7 +30,7 @@
 
 class qSlicerExternalBeamPlanningModulePrivate;
 
-/// \ingroup Slicer_QtModules_ExternalBeamPlanning
+/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class Q_SLICER_QTMODULES_EXTERNALBEAMPLANNING_EXPORT qSlicerExternalBeamPlanningModule :
   public qSlicerLoadableModule
 {

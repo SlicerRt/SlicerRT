@@ -38,7 +38,7 @@
 class vtkTransform;
 class vtkMRMLBeamsNode;
 
-/// \ingroup Slicer_QtModules_Beams
+/// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerBeamsModuleLogic :
   public vtkSlicerModuleLogic
 {

@@ -33,7 +33,7 @@ class vtkMRMLNode;
 class QString;
 class QTableWidgetItem;
 
-/// \ingroup Slicer_QtModules_Contours
+/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class Q_SLICER_QTMODULES_EXTERNALBEAMPLANNING_EXPORT qSlicerExternalBeamPlanningModuleWidget :
   public qSlicerAbstractModuleWidget
 {

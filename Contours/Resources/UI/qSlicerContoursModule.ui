@@ -34,7 +34,7 @@
        <property name="nodeTypes">
         <stringlist>
          <string>vtkMRMLContourNode</string>
-         <string>vtkMRMLDisplayableHierarchyNode</string>
+         <string>vtkMRMLSubjectHierarchyNode</string>
         </stringlist>
        </property>
        <property name="renameEnabled">

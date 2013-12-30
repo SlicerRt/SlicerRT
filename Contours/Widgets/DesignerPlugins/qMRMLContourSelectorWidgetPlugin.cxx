@@ -31,8 +31,8 @@ qMRMLContourSelectorWidgetPlugin::qMRMLContourSelectorWidgetPlugin(QObject* plug
 //-----------------------------------------------------------------------------
 QWidget *qMRMLContourSelectorWidgetPlugin::createWidget(QWidget* parentWidget)
 {
-  qMRMLContourSelectorWidget* pluginWidget
-    = new qMRMLContourSelectorWidget(parentWidget);
+  qMRMLContourSelectorWidget* pluginWidget =
+    new qMRMLContourSelectorWidget(parentWidget);
   return pluginWidget;
 }
 

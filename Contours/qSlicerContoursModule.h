@@ -29,7 +29,7 @@
 
 class qSlicerContoursModulePrivate;
 
-/// \ingroup Slicer_QtModules_Contours
+/// \ingroup SlicerRt_QtModules_Contours
 class Q_SLICER_QTMODULES_CONTOURS_EXPORT qSlicerContoursModule :
   public qSlicerLoadableModule
 {

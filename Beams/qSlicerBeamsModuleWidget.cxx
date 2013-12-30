@@ -39,7 +39,7 @@
 #include <vtkMRMLScene.h>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_Beams
+/// \ingroup SlicerRt_QtModules_Beams
 class qSlicerBeamsModuleWidgetPrivate: public Ui_qSlicerBeamsModule
 {
   Q_DECLARE_PUBLIC(qSlicerBeamsModuleWidget);

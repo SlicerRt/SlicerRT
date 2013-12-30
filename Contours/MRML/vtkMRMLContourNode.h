@@ -33,6 +33,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 class vtkMRMLColorTableNode;
 
+/// \ingroup SlicerRt_QtModules_Contours
 class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourNode : public vtkMRMLDisplayableNode
 {
 public:
@@ -103,19 +104,18 @@ public:
   /// \sa RasterizationReferenceVolumeNodeId
   bool HasBeenCreatedFromIndexedLabelmap();
 
-  /// Get structure name from patient hierarchy
+  /// Get structure name from subject hierarchy
   const char* GetStructureName();
 
   /// Update representation objects: observe nodes, update pointers
   void UpdateRepresentations();
 
-  /*!
-    Get the color table and color index for the contour
-    /param colorIndex Index of the found color in the associated color table.
-      If COLOR_INDEX_INVALID is set, then only the color node is acquired.
-    /param colorNode Output argument for the found color node (optional)
-  */
-  void GetColor(int &colorIndex, vtkMRMLColorTableNode* &colorNode);
+  /// Get the color table and color index for the contour
+  /// /param colorIndex Index of the found color in the associated color table.
+  ///   If COLOR_INDEX_INVALID is set, then only the color node is acquired.
+  /// /param colorNode Output argument for the found color node (optional)
+  /// \param scene MRML scene pointer (in case the associated node is not in the scene any more). If not specified, then the scene of the argument node is used.
+  void GetColor(int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLScene* scene=NULL);
 
 public:
   /// Set name (changes names of representations too)

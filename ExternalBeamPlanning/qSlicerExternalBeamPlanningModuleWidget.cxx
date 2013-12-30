@@ -46,7 +46,7 @@
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_Contours
+/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class qSlicerExternalBeamPlanningModuleWidgetPrivate: public Ui_qSlicerExternalBeamPlanningModule
 {
   Q_DECLARE_PUBLIC(qSlicerExternalBeamPlanningModuleWidget);

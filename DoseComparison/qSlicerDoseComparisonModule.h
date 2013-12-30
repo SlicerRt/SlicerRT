@@ -29,7 +29,7 @@
 
 class qSlicerDoseComparisonModulePrivate;
 
-/// \ingroup Slicer_QtModules_DoseComparison
+/// \ingroup SlicerRt_QtModules_DoseComparison
 class Q_SLICER_QTMODULES_DOSECOMPARISON_EXPORT qSlicerDoseComparisonModule :
   public qSlicerLoadableModule
 {

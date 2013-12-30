@@ -41,7 +41,7 @@
 Q_EXPORT_PLUGIN2(qSlicerVffFileReaderModule, qSlicerVffFileReaderModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_VffFileReader
+/// \ingroup SlicerRt_QtModules_VffFileReader
 class qSlicerVffFileReaderModulePrivate
 {
 public:

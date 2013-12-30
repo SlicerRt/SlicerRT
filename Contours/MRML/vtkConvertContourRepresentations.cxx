@@ -27,7 +27,11 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include "SlicerRtCommon.h"
 #include "vtkLabelmapToModelFilter.h"
 #include "vtkPolyDataToLabelmapFilter.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
+
+// Subject Hierarchy includes
+#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -170,20 +174,21 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     return NULL;
   }
 
-  // Get patient hierarchy node associated to the contour
-  vtkMRMLHierarchyNode* patientHierarchyNode_Contour = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(mrmlScene, this->ContourNode->GetID());
+  // Get subject hierarchy node associated to the contour
+  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode_Contour = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this->ContourNode);
   vtkMRMLScalarVolumeNode* referencedAnatomyVolumeNode = NULL;
-  if (patientHierarchyNode_Contour)
+  if (subjectHierarchyNode_Contour)
   {
     // Get referenced series (anatomy volume that was used for the contouring)
-    const char* referencedSeriesUid = patientHierarchyNode_Contour->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str());
+    const char* referencedSeriesUid = subjectHierarchyNode_Contour->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str());
     if (referencedSeriesUid)
     {
-      vtkMRMLHierarchyNode* patientHierarchyNode_ReferencedSeries =
-        vtkSlicerPatientHierarchyModuleLogic::GetPatientHierarchyNodeByUID(mrmlScene, referencedSeriesUid);
-      if (patientHierarchyNode_ReferencedSeries)
+      vtkMRMLSubjectHierarchyNode* subjectHierarchyNode_ReferencedSeries =
+        vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
+          mrmlScene, vtkSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid );
+      if (subjectHierarchyNode_ReferencedSeries)
       {
-        referencedAnatomyVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(patientHierarchyNode_ReferencedSeries->GetAssociatedNode());
+        referencedAnatomyVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(subjectHierarchyNode_ReferencedSeries->GetAssociatedDataNode());
 
         // Check if the referenced anatomy volume is in the same coordinate system as the contour
         vtkSmartPointer<vtkGeneralTransform> modelToReferencedAnatomyVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
@@ -208,7 +213,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   }
   else
   {
-    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No patient hierarchy node found for contour '" << this->ContourNode->Name << "'!");
+    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No subject hierarchy node found for contour '" << this->ContourNode->Name << "'!");
   }
 
   // If the selected reference is under a transform, then create a temporary copy and harden transform so that the whole transform is reflected in the result
@@ -269,8 +274,8 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   this->GetTransformFromNodeToVolumeIjk( modelNode, referenceVolumeNodeUsedForConversion, modelToReferenceVolumeIjkTransform );
 
-  vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter
-    = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter =
+    vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( modelNode->GetPolyData() );
   transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform( modelToReferenceVolumeIjkTransform.GetPointer() );
 

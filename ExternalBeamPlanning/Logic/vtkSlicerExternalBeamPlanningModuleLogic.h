@@ -43,7 +43,7 @@ class vtkMRMLExternalBeamPlanningNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkSlicerExternalBeamPlanningModuleLogic :
   public vtkSlicerModuleLogic
 {

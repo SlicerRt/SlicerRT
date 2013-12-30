@@ -38,7 +38,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 class vtkPoints;
 
-/// \ingroup Slicer_QtModules_PatientHierarchy
+/// \ingroup SlicerRt_QtModules_PlanarImage
 class VTK_SLICER_PLANARIMAGE_LOGIC_EXPORT vtkSlicerPlanarImageModuleLogic : public vtkSlicerModuleLogic
 {
 public:

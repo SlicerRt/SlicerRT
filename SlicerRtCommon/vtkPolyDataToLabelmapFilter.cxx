@@ -262,7 +262,7 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
     {
       referenceExtents[i] = calculatedExtents[i];
     }
-    vtkWarningMacro("vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap: Extents of computed labelmap are not the same as the reference volume. Expanding labelmap dimensions.");
+    vtkDebugMacro("DeterminePolyDataReferenceOverlap: Extents of computed labelmap are not the same as the reference volume. Expanding labelmap dimensions.");
   }
 
   this->CopyArraysToVectors(referenceExtentsVector, referenceExtents, originVector, origin);

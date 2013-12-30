@@ -35,6 +35,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLChartNode;
 class vtkMRMLDoubleArrayNode;
 
+/// \ingroup SlicerRt_QtModules_DoseVolumeHistogram
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkMRMLDoseVolumeHistogramNode : public vtkMRMLNode
 {
 public:

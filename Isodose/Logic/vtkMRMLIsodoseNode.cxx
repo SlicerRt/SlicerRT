@@ -38,7 +38,7 @@
 
 //------------------------------------------------------------------------------
 static const char* DOSE_VOLUME_REFERENCE_ROLE = "doseVolumeRef";
-static const char* ISODOSE_SURFACE_MODELS_PATIENT_HIERARCHY_REFERENCE_ROLE = "isodoseSurfaceModelsParentHierarchyRef";
+static const char* ISODOSE_SURFACE_MODELS_SUBJECT_HIERARCHY_REFERENCE_ROLE = "isodoseSurfaceModelsParentHierarchyRef";
 static const char* COLOR_TABLE_REFERENCE_ROLE = "colorTableRef";
 
 //------------------------------------------------------------------------------
@@ -147,13 +147,13 @@ void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* no
 //----------------------------------------------------------------------------
 vtkMRMLModelHierarchyNode* vtkMRMLIsodoseNode::GetIsodoseSurfaceModelsParentHierarchyNode()
 {
-  return vtkMRMLModelHierarchyNode::SafeDownCast( this->GetNodeReference(ISODOSE_SURFACE_MODELS_PATIENT_HIERARCHY_REFERENCE_ROLE) );
+  return vtkMRMLModelHierarchyNode::SafeDownCast( this->GetNodeReference(ISODOSE_SURFACE_MODELS_SUBJECT_HIERARCHY_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(vtkMRMLModelHierarchyNode* node)
 {
-  this->SetNodeReferenceID(ISODOSE_SURFACE_MODELS_PATIENT_HIERARCHY_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(ISODOSE_SURFACE_MODELS_SUBJECT_HIERARCHY_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------

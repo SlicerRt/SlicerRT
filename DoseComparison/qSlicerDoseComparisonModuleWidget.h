@@ -30,7 +30,7 @@
 class qSlicerDoseComparisonModuleWidgetPrivate;
 class vtkMRMLNode;
 
-/// \ingroup Slicer_QtModules_DoseComparison
+/// \ingroup SlicerRt_QtModules_DoseComparison
 class Q_SLICER_QTMODULES_DOSECOMPARISON_EXPORT qSlicerDoseComparisonModuleWidget :
   public qSlicerAbstractModuleWidget
 {

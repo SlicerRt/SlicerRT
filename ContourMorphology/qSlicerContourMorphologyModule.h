@@ -30,7 +30,7 @@
 
 class qSlicerContourMorphologyModulePrivate;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_ContourMorphology
 class Q_SLICER_QTMODULES_CONTOURMORPHOLOGY_EXPORT qSlicerContourMorphologyModule :
   public qSlicerLoadableModule
 {

@@ -1,3 +1,24 @@
+/*==============================================================================
+
+  Program: 3D Slicer
+
+  Copyright (c) Kitware Inc.
+
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
+==============================================================================*/
+
 #include "SlicerRtCommon.h"
 
 // MRML includes
@@ -20,28 +41,11 @@
 // Constant strings
 //----------------------------------------------------------------------------
 
+// (the python scripts use the raw strings, those need to be updated when these are changed!)
+
 // SlicerRT constants
 const char* SlicerRtCommon::SLICERRT_EXTENSION_NAME = "SlicerRT";
 const std::string SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX = "Ref";
-
-// Patient hierarchy constants (the python scripts use the raw strings, those need to be updated when these are changed!)
-const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME = "HierarchyType";
-const char* SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE = "PatientHierarchy"; // Identifier
-const char* SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME = "DicomLevel";
-const char* SlicerRtCommon::PATIENTHIERARCHY_DICOMUID_ATTRIBUTE_NAME = "DicomUid";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX = "PatientHierarchy.";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_NODE_NAME_POSTFIX = "_PatientHierarchy";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_EXCLUDE_FROM_POTENTIAL_NODES_LIST_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "ExcludeFromPotentialNodesList"; // Identifier
-const std::string SlicerRtCommon::PATIENTHIERARCHY_PATIENT_NAME_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "PatientName";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_PATIENT_ID_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "PatientId";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_PATIENT_SEX_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "PatientSex";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_PATIENT_BIRTH_DATE_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "PatientBirthDate";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_STUDY_DATE_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "StudyDate";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_STUDY_TIME_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "StudyTime";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_SERIES_MODALITY_ATTRIBUTE_NAME = SlicerRtCommon::PATIENTHIERARCHY_ATTRIBUTE_PREFIX + "SeriesModality";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_NEW_NODE_NAME_PREFIX = "NewPatientHierarchyNode_";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_NEW_STRUCTURE_SET_NAME = "NewStructureSet";
-const std::string SlicerRtCommon::PATIENTHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX = "DummyAnatomicalVolume_";
 
 // Contour (vtkMRMLContourNode) constants
 const std::string SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX = "_RibbonModel";
@@ -58,6 +62,10 @@ const char* SlicerRtCommon::COLOR_NAME_REMOVED = "Removed";
 const int SlicerRtCommon::COLOR_INDEX_BACKGROUND = 0;
 const int SlicerRtCommon::COLOR_INDEX_INVALID = 1;
 const double SlicerRtCommon::COLOR_VALUE_INVALID[4] = {0.5, 0.5, 0.5, 1.0};
+
+const std::string SlicerRtCommon::CONTOUR_NEW_CONTOUR_NAME = "NewContour";
+const std::string SlicerRtCommon::CONTOURHIERARCHY_NEW_STRUCTURE_SET_NAME = "NewStructureSet";
+const std::string SlicerRtCommon::CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX = "DummyAnatomicalVolume_";
 
 // DicomRtImport constants
 const std::string SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX = "DicomRtImport.";
@@ -246,30 +254,6 @@ void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLScalarVolu
     outputImageDataExtent[axis*2+1] = extentMax;
     outputImageDataSpacing[axis] = imageDataSpacing[axis] / oversamplingFactor;
   }
-}
-
-//---------------------------------------------------------------------------
-bool SlicerRtCommon::IsPatientHierarchyNode(vtkMRMLNode *node)
-{
-  if (!node)
-  {
-    return false;
-  }
-
-  bool isPatientHierarchyNode = false;
-  if (node->IsA("vtkMRMLHierarchyNode"))
-  {
-    const char* nodeType = node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_NAME);
-    if ( nodeType && !STRCASECMP(nodeType, SlicerRtCommon::PATIENTHIERARCHY_NODE_TYPE_ATTRIBUTE_VALUE) )
-    {
-      if ( node->GetAttribute(SlicerRtCommon::PATIENTHIERARCHY_DICOMLEVEL_ATTRIBUTE_NAME) )
-      {
-        isPatientHierarchyNode = true;
-      }
-    }
-  }
-
-  return isPatientHierarchyNode;
 }
 
 //---------------------------------------------------------------------------

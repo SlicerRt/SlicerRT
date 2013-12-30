@@ -22,12 +22,12 @@
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkVolumesOrientedResampleUtility.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLDisplayNode.h>
-#include <vtkMRMLDisplayableHierarchyNode.h>
 #include <vtkMRMLColorTableNode.h>
 
 // VTK includes
@@ -91,7 +91,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
   // check if there is at least one RTDose or RTSTRUCT is included
   vtkMRMLScalarVolumeNode* doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(doseNodeID));
-  vtkMRMLDisplayableHierarchyNode* contourHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(
+  vtkMRMLSubjectHierarchyNode* contourHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(contourHierarchyNodeID));
   if (!doseNode && !contourHierarchyNode)
   {
@@ -126,7 +126,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
   if (contourHierarchyNode)
   {
     vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
-    contourHierarchyNode->GetChildrenDisplayableNodes(childContourNodes);
+    contourHierarchyNode->GetAssociatedChildrendNodes(childContourNodes);
     childContourNodes->InitTraversal();
     if (childContourNodes->GetNumberOfItems() < 1)
     {
@@ -138,6 +138,10 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
     for (int i=0; i<childContourNodes->GetNumberOfItems(); ++i)
     {
       vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(childContourNodes->GetItemAsObject(i));
+      if (!contourNode)
+      {
+        continue; // There is a color table in the contour hierarchy
+      }
       if (contourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
       {
         contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(imageNodeID);

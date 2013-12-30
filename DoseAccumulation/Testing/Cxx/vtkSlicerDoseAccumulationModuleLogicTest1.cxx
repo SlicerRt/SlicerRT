@@ -26,7 +26,10 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
+
+// Subject Hierarchy includes
+#include "vtkSubjectHierarchyConstants.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -129,6 +132,11 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
+  // TODO: Remove when subject hierarchy is integrated into Slicer core
+  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
+    vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
+  subjectHierarchyLogic->SetMRMLScene(mrmlScene);
+
   // Load test scene into temporary scene
   mrmlScene->SetURL(testSceneFileName);
   mrmlScene->Import();
@@ -202,7 +210,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->Commit();
 
   // Check if the output volume is in the study of the reference dose volume
-  if (!vtkSlicerPatientHierarchyModuleLogic::AreNodesInSameBranch(doseScalarVolumeNode, accumulatedDoseVolumeNode, vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY))
+  if (!vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(doseScalarVolumeNode, accumulatedDoseVolumeNode, vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     std::cerr << "ERROR: Accumulated volume is not under the same study as the reference dose volume!" << std::endl;
     return EXIT_FAILURE;

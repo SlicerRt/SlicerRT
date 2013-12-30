@@ -29,7 +29,7 @@
 Q_EXPORT_PLUGIN2(qSlicerPlastimatchPyModule, qSlicerPlastimatchPyModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_PlastimatchPy
 class qSlicerPlastimatchPyModulePrivate
 {
 public:

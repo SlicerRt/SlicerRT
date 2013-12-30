@@ -38,7 +38,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkGeneralTransform;
 class vtkImageData;
 
-/// \ingroup SlicerRt_SlicerRtCommon
+/// \ingroup SlicerRt_QtModules_Contours
 class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkConvertContourRepresentations : public vtkObject
 {
 public:

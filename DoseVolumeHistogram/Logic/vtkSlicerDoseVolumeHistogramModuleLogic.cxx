@@ -29,7 +29,11 @@
 #include "vtkConvertContourRepresentations.h"
 #include "vtkSlicerContoursModuleLogic.h"
 #include "vtkVolumesOrientedResampleUtility.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
+
+// Subject Hierarchy includes
+#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -42,7 +46,6 @@
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLColorTableNode.h>
-#include <vtkMRMLDisplayableHierarchyNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -208,8 +211,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* 
   }
 
   if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
-    || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLDisplayableHierarchyNode")
+    || node->IsA("vtkMRMLContourNode")
     || node->IsA("vtkMRMLChartNode") || node->IsA("vtkMRMLDoseVolumeHistogramNode"))
+  {
+    this->Modified();
+  }
+  if ( node->IsA("vtkMRMLSubjectHierarchyNode")
+    && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     this->Modified();
   }
@@ -237,8 +245,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode
   }
 
   if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoubleArrayNode")
-    || node->IsA("vtkMRMLContourNode") || node->IsA("vtkMRMLDisplayableHierarchyNode")
+    || node->IsA("vtkMRMLContourNode")
     || node->IsA("vtkMRMLChartNode") || node->IsA("vtkMRMLDoseVolumeHistogramNode"))
+  {
+    this->Modified();
+  }
+  if ( node->IsA("vtkMRMLSubjectHierarchyNode")
+    && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     this->Modified();
   }
@@ -488,8 +501,15 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   double ccPerCubicMM = 0.001;
 
   // Get dose unit name
-  const char* doseUnitName = vtkSlicerPatientHierarchyModuleLogic::GetAttributeFromAncestor(
-    doseVolumeNode, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkSlicerPatientHierarchyModuleLogic::PATIENTHIERARCHY_LEVEL_STUDY );
+  vtkMRMLSubjectHierarchyNode* doseVolumeSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
+  if (!doseVolumeSubjectHierarchyNode)
+  {
+    errorMessage = "Failed to find subject hierarchy node for dose volume";
+    vtkErrorMacro("ComputeDvh: " << errorMessage);
+    return;
+  }
+  const char* doseUnitName = doseVolumeSubjectHierarchyNode->GetAttributeFromAncestor(
+    SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
   bool isDoseVolume = this->DoseVolumeContainsDose();
 
   // Compute and store DVH metrics
@@ -621,10 +641,10 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   this->GetMRMLScene()->AddNode(arrayNode);
 
   // Add connection attribute to input contour node
-  vtkMRMLHierarchyNode* structurePatientHierarchyNode = vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(structureContourNode);
-  if (structurePatientHierarchyNode)
+  vtkMRMLSubjectHierarchyNode* structureSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(structureContourNode);
+  if (structureSubjectHierarchyNode)
   {
-    structurePatientHierarchyNode->AddNodeReferenceID(SlicerRtCommon::DVH_CREATED_DVH_NODE_REFERENCE_ROLE.c_str(), arrayNode->GetID());
+    structureSubjectHierarchyNode->AddNodeReferenceID(SlicerRtCommon::DVH_CREATED_DVH_NODE_REFERENCE_ROLE.c_str(), arrayNode->GetID());
   }
 
   // Log measured time
@@ -731,8 +751,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromSelectedChart(const c
 //---------------------------------------------------------------------------
 vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode()
 {
-  vtkSmartPointer<vtkCollection> layoutNodes
-    = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLLayoutNode") );
+  vtkSmartPointer<vtkCollection> layoutNodes =
+    vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLLayoutNode") );
   layoutNodes->InitTraversal();
   vtkObject* layoutNodeVtkObject = layoutNodes->GetNextItemAsObject();
   vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(layoutNodeVtkObject);
@@ -743,8 +763,8 @@ vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode(
   }
   layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView );
   
-  vtkSmartPointer<vtkCollection> chartViewNodes
-    = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLChartViewNode") );
+  vtkSmartPointer<vtkCollection> chartViewNodes =
+    vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLChartViewNode") );
   chartViewNodes->InitTraversal();
   vtkMRMLChartViewNode* chartViewNode = vtkMRMLChartViewNode::SafeDownCast( chartViewNodes->GetNextItemAsObject() );
   if (!chartViewNode)

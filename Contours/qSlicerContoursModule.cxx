@@ -26,12 +26,16 @@
 #include "qSlicerContoursModule.h"
 #include "qSlicerContoursModuleWidget.h"
 #include "vtkSlicerContoursModuleLogic.h"
+#include "qSlicerSubjectHierarchyContoursPlugin.h"
+
+// Subject Hierarchy includes
+#include "qSlicerSubjectHierarchyPluginHandler.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerContoursModule, qSlicerContoursModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_Contours
+/// \ingroup SlicerRt_QtModules_Contours
 class qSlicerContoursModulePrivate
 {
 public:
@@ -103,6 +107,9 @@ QIcon qSlicerContoursModule::icon()const
 void qSlicerContoursModule::setup()
 {
   this->Superclass::setup();
+
+  // Register Subject Hierarchy Contours plugin
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyContoursPlugin());
 }
 
 //-----------------------------------------------------------------------------

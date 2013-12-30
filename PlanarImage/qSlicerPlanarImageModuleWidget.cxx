@@ -39,7 +39,7 @@
 #include <vtkMRMLScene.h>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_PlanarImage
+/// \ingroup SlicerRt_QtModules_PlanarImage
 class qSlicerPlanarImageModuleWidgetPrivate: public Ui_qSlicerPlanarImageModule
 {
   Q_DECLARE_PUBLIC(qSlicerPlanarImageModuleWidget);

@@ -26,8 +26,9 @@
 // SlicerRt includes
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
 #include "vtkSlicerContoursModuleLogic.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -354,8 +355,14 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
   // Create Contours logic
-  vtkSmartPointer<vtkSlicerContoursModuleLogic> contoursLogic = vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
+  vtkSmartPointer<vtkSlicerContoursModuleLogic> contoursLogic =
+    vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
   contoursLogic->SetMRMLScene(mrmlScene);
+
+  // TODO: Remove when subject hierarchy is integrated into Slicer core
+  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
+    vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
+  subjectHierarchyLogic->SetMRMLScene(mrmlScene);
 
   // Load test scene into temporary scene
   //mrmlScene->GetCacheManager()->ClearCache();
@@ -379,16 +386,30 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
 
-  // Get contour hierarchy node
-  vtkSmartPointer<vtkCollection> contourHierarchyNodes = vtkSmartPointer<vtkCollection>::Take(
-    mrmlScene->GetNodesByName("ContourHierarchy") );
-  if (contourHierarchyNodes->GetNumberOfItems() != 1)
+  // Get structure set subject hierarchy node
+  vtkMRMLSubjectHierarchyNode* contourHierarchyNode = NULL;
+  mrmlScene->InitTraversal();
+  vtkMRMLNode *node = mrmlScene->GetNextNodeByClass("vtkMRMLSubjectHierarchyNode");
+  while (node != NULL)
+  {
+    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
+    if (shNode)
+    {
+      const char* contourHierarchyIdentifier = shNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+      if (contourHierarchyIdentifier != NULL)
+      {
+        contourHierarchyNode = shNode;
+        break;
+      }
+    }
+    node = mrmlScene->GetNextNodeByClass("vtkMRMLSubjectHierarchyNode");
+  }
+  if (!contourHierarchyNode)
   {
     mrmlScene->Commit();
-    std::cerr << "ERROR: Failed to get dose volume!" << std::endl;
+    std::cerr << "ERROR: Failed to get contour hierarchy node!" << std::endl;
     return EXIT_FAILURE;
   }
-  vtkMRMLDisplayableHierarchyNode* contourHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(contourHierarchyNodes->GetItemAsObject(0));
 
   // Determine maximum dose
   vtkNew<vtkImageAccumulate> doseStat;
@@ -430,6 +451,8 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Compute DVH and get result nodes
   for (std::vector<vtkMRMLContourNode*>::iterator contourIt = selectedContourNodes.begin(); contourIt != selectedContourNodes.end(); ++contourIt)
   {
+    std::cout << "Computing DVH for contour '" << (*contourIt)->GetName() << "'" << std::endl;
+
     std::string errorMessage;
     dvhLogic->ComputeDvh((*contourIt), errorMessage);
 

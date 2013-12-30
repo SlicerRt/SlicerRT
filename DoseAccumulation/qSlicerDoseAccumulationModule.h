@@ -29,7 +29,7 @@
 
 class qSlicerDoseAccumulationModulePrivate;
 
-/// \ingroup Slicer_QtModules_DoseAccumulation
+/// \ingroup SlicerRt_QtModules_DoseAccumulation
 class Q_SLICER_QTMODULES_DOSEACCUMULATION_EXPORT qSlicerDoseAccumulationModule :
   public qSlicerLoadableModule
 {

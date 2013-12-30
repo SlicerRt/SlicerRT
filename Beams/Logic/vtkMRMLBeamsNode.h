@@ -31,6 +31,7 @@
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLModelNode;
 
+/// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkMRMLBeamsNode : public vtkMRMLNode
 {
 public:

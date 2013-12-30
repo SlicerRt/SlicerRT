@@ -46,7 +46,7 @@ class DRTContourImageSequence;
 // TODO #210: investigate why the wrapping fails
 //BTX
 
-/// \ingroup SlicerRt_DicomRtImport
+/// \ingroup SlicerRt_QtModules_DicomRtImport
 class VTK_SLICER_DICOMRTIMPORT_LOGIC_EXPORT vtkSlicerDicomRtReader : public vtkObject
 {
 public:

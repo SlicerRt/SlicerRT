@@ -36,6 +36,7 @@ class vtkMRMLColorTableNode;
 class vtkMRMLRTBeamNode;
 class vtkCollection;
 
+/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLDisplayableNode
 {
 public:

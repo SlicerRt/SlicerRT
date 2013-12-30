@@ -29,7 +29,7 @@
 
 class qSlicerContourComparisonModulePrivate;
 
-/// \ingroup Slicer_QtModules_ContourComparison
+/// \ingroup SlicerRt_QtModules_ContourComparison
 class Q_SLICER_QTMODULES_CONTOURCOMPARISON_EXPORT qSlicerContourComparisonModule :
   public qSlicerLoadableModule
 {

@@ -35,7 +35,7 @@
 // MRMLLogic includes
 #include "vtkSlicerIsodoseModuleWidgetsExport.h"
 
-/// \ingroup SlicerRt_Isodose
+/// \ingroup SlicerRt_QtModules_Isodose
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerRTScalarBarActor 
   : public vtkScalarBarActor
 {

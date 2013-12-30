@@ -44,7 +44,8 @@
 #include "registration_data.h"
 #include "registration_parms.h"
 
-/// Class to wrap Plastimatch registration capability into the embedded Python shell in Slicer
+/// \ingroup SlicerRt_QtModules_PlastimatchPy
+/// \brief Class to wrap Plastimatch registration capability into the embedded Python shell in Slicer
 class VTK_SLICER_PLASTIMATCHPY_MODULE_LOGIC_EXPORT vtkSlicerPlastimatchPyModuleLogic :
   public vtkSlicerModuleLogic
 {

@@ -31,7 +31,7 @@
 //BTX // comment out since it is giving python wrapping errors
 #include "rt_study.h"
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_DicomRtExport
 class VTK_SLICER_DICOMRTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtWriter :  public vtkObject
 {
 public:

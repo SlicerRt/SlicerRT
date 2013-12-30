@@ -33,7 +33,7 @@
 Q_EXPORT_PLUGIN2(qSlicerBeamsModule, qSlicerBeamsModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_Beams
+/// \ingroup SlicerRt_QtModules_Beams
 class qSlicerBeamsModulePrivate
 {
 public:

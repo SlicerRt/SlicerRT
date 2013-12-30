@@ -48,7 +48,7 @@
 #include <itkImageRegionIteratorWithIndex.h>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ContourComparison
+/// \ingroup SlicerRt_QtModules_ContourComparison
 class vtkSlicerContourComparisonModuleLogicPrivate : public vtkObject
 {
 public:
@@ -147,8 +147,8 @@ vtkSlicerContourComparisonModuleLogic::vtkSlicerContourComparisonModuleLogic()
   this->ContourComparisonNode = NULL;
 
   this->LogicPrivate = NULL;
-  vtkSmartPointer<vtkSlicerContourComparisonModuleLogicPrivate> logicPrivate
-    = vtkSmartPointer<vtkSlicerContourComparisonModuleLogicPrivate>::New();
+  vtkSmartPointer<vtkSlicerContourComparisonModuleLogicPrivate> logicPrivate =
+    vtkSmartPointer<vtkSlicerContourComparisonModuleLogicPrivate>::New();
   logicPrivate->SetLogic(this);
   this->SetLogicPrivate(logicPrivate);
 
@@ -283,10 +283,10 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
   double checkpointItkConvertStart;
 
   // Convert input images to the format Plastimatch can use
-  itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk
-    = itk::Image<unsigned char, 3>::New();
-  itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk
-    = itk::Image<unsigned char, 3>::New();
+  itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk =
+    itk::Image<unsigned char, 3>::New();
+  itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk =
+    itk::Image<unsigned char, 3>::New();
   this->LogicPrivate->GetInputContoursAsItkVolumes(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk, checkpointItkConvertStart, errorMessage);
   if (!errorMessage.empty())
   {
@@ -315,13 +315,13 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
   this->ContourComparisonNode->SetFalseNegativesPercent(dice.get_false_negatives() * 100.0 / (double)numberOfVoxels);
 
   itk::Vector<double, 3> referenceCenterItk = dice.get_reference_center();
-  double referenceCenterArray[3]
-    = { referenceCenterItk[0], referenceCenterItk[1], referenceCenterItk[2] };
+  double referenceCenterArray[3] =
+    { referenceCenterItk[0], referenceCenterItk[1], referenceCenterItk[2] };
   this->ContourComparisonNode->SetReferenceCenter(referenceCenterArray);
 
   itk::Vector<double, 3> compareCenterItk = dice.get_compare_center();
-  double compareCenterArray[3]
-  = { compareCenterItk[0], compareCenterItk[1], compareCenterItk[2] };
+  double compareCenterArray[3] =
+    { compareCenterItk[0], compareCenterItk[1], compareCenterItk[2] };
   this->ContourComparisonNode->SetCompareCenter(compareCenterArray);
 
   this->ContourComparisonNode->SetReferenceVolumeCc(dice.get_reference_volume() * voxelVolumeCc);
@@ -354,10 +354,10 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
   double checkpointItkConvertStart;
 
   // Convert input images to the format Plastimatch can use
-  itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk
-    = itk::Image<unsigned char, 3>::New();
-  itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk
-    = itk::Image<unsigned char, 3>::New();
+  itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk =
+    itk::Image<unsigned char, 3>::New();
+  itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk =
+    itk::Image<unsigned char, 3>::New();
   this->LogicPrivate->GetInputContoursAsItkVolumes(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk, checkpointItkConvertStart, errorMessage);
   if (!errorMessage.empty())
   {

@@ -34,6 +34,7 @@
 
 class vtkMRMLScalarVolumeNode;
 
+/// \ingroup SlicerRt_QtModules_DoseComparison
 class VTK_SLICER_DOSECOMPARISON_LOGIC_EXPORT vtkMRMLDoseComparisonNode : public vtkMRMLNode
 {
 public:

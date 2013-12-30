@@ -33,7 +33,7 @@
 Q_EXPORT_PLUGIN2(qSlicerContourComparisonModule, qSlicerContourComparisonModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ContourComparison
+/// \ingroup SlicerRt_QtModules_ContourComparison
 class qSlicerContourComparisonModulePrivate
 {
 public:

@@ -38,7 +38,7 @@
 // MRML includes
 class vtkMRMLScalarVolumeNode;
 
-/// \ingroup Slicer_QtModules_Contours
+/// \ingroup SlicerRt_QtModules_Contours
 class VTK_SLICER_CONTOURS_LOGIC_EXPORT vtkSlicerContoursModuleLogic :
   public vtkSlicerModuleLogic
 {
@@ -52,8 +52,8 @@ public:
   static void PaintLabelmapForeground(vtkMRMLScalarVolumeNode* volumeNode, unsigned char newColor);
 
   /// Collect contour nodes from selected nodes
-  /// \param node Selected node that contains either a vtkMRMLContourNode or a vtkMRMLDisplayableHierarchyNode
-  ///        being a parent of multiple contour nodes in patient hierarchy
+  /// \param node Selected node that contains either a vtkMRMLContourNode or a vtkMRMLSubjectHierarchyNode
+  ///        being a parent of multiple contour nodes in subject hierarchy
   /// \param contours Output list of collected contour nodes
   static void GetContourNodesFromSelectedNode(vtkMRMLNode* node, std::vector<vtkMRMLContourNode*>& contours);
 
@@ -68,7 +68,7 @@ public:
   /// \return The common rasterization reference volume in the input contours or NULL when they are not the same
   static const char* GetRasterizationReferenceVolumeOfContours(std::vector<vtkMRMLContourNode*>& contours, bool &sameReferenceVolumeInContours);
 
-  /// Get referenced volume for list of contours according to patient hierarchy attributes
+  /// Get referenced volume for list of contours according to subject hierarchy attributes
   /// \return The common reference volume for the contours if any, NULL otherwise
   static vtkMRMLScalarVolumeNode* GetReferencedVolumeByDicomForContours(std::vector<vtkMRMLContourNode*>& contours);
 

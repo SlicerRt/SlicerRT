@@ -26,7 +26,7 @@
 class qSlicerDicomRtExportModuleWidgetPrivate;
 class vtkMRMLNode;
 
-/// \ingroup SlicerRt_DicomRtExport
+/// \ingroup SlicerRt_QtModules_DicomRtExport
 class Q_SLICER_QTMODULES_DICOMRTEXPORT_EXPORT qSlicerDicomRtExportModuleWidget :
   public qSlicerAbstractModuleWidget
 {

@@ -38,7 +38,7 @@
 #include <vtkMRMLScene.h>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_DoseComparison
+/// \ingroup SlicerRt_QtModules_DoseComparison
 class qSlicerDoseComparisonModuleWidgetPrivate: public Ui_qSlicerDoseComparisonModule
 {
   Q_DECLARE_PUBLIC(qSlicerDoseComparisonModuleWidget);

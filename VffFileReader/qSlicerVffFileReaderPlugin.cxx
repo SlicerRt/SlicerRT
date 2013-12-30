@@ -31,6 +31,7 @@
 #include <vtkMRMLScalarVolumeNode.h>
 
 //-----------------------------------------------------------------------------
+/// \ingroup SlicerRt_QtModules_VffFileReader
 class qSlicerVffFileReaderPluginPrivate
 {
   public:

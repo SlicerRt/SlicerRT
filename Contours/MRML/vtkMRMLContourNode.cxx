@@ -24,8 +24,9 @@
 #include "vtkPolyDataToLabelmapFilter.h"
 #include "vtkLabelmapToModelFilter.h"
 
-// PatientHierarchy includes
-#include "vtkSlicerPatientHierarchyModuleLogic.h"
+// SubjectHierarchy includes
+#include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // Contours includes
 #include "vtkMRMLContourNode.h"
@@ -37,7 +38,6 @@
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLDisplayNode.h>
-#include <vtkMRMLDisplayableHierarchyNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -870,46 +870,55 @@ bool vtkMRMLContourNode::RepresentationExists( ContourRepresentationType type )
 //----------------------------------------------------------------------------
 const char* vtkMRMLContourNode::GetStructureName()
 {
-  // Get associated patient hierarchy node
-  vtkMRMLDisplayableHierarchyNode* contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->Scene, this->ID);
-  if (!contourPatientHierarchyNode)
+  // Get associated subject hierarchy node
+  vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this);
+  if (!contourSubjectHierarchyNode)
     {
-    vtkErrorMacro("GetStructureName: No patient hierarchy node found for contour '" << this->Name << "'");
+    vtkErrorMacro("GetStructureName: No subject hierarchy node found for contour '" << this->Name << "'");
     return NULL;
     }
 
-  return contourPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+  return contourSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &colorNode)
+void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLScene* scene/*=NULL*/)
 {
   colorNode = NULL;
 
-  // Get associated patient hierarchy node and its parent
-  vtkMRMLDisplayableHierarchyNode* contourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(
-    vtkSlicerPatientHierarchyModuleLogic::GetAssociatedPatientHierarchyNode(this) );
-  if (!contourPatientHierarchyNode)
+  if (!scene)
     {
-    vtkErrorMacro("GetColorIndex: No patient hierarchy node found for contour '" << this->Name << "'");
+    scene = this->Scene;
+    if (!scene)
+      {
+      vtkErrorMacro("GetColor: No MRML scene available (not given as argument, and the associated node has no scene)!");
+      return;
+      }
+    }
+
+  // Get associated subject hierarchy node and its parent
+  vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, scene);
+  if (!contourSubjectHierarchyNode)
+    {
+    vtkErrorMacro("GetColorIndex: No subject hierarchy node found for contour '" << this->Name << "'");
     colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
     }
-  vtkMRMLDisplayableHierarchyNode* parentContourPatientHierarchyNode = vtkMRMLDisplayableHierarchyNode::SafeDownCast(contourPatientHierarchyNode->GetParentNode());
-  if (!parentContourPatientHierarchyNode)
+  vtkMRMLSubjectHierarchyNode* parentContourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(contourSubjectHierarchyNode->GetParentNode());
+  if (!parentContourSubjectHierarchyNode)
     {
-    vtkErrorMacro("GetColorIndex: No structure set patient hierarchy node found for contour '" << this->Name << "'");
+    vtkErrorMacro("GetColorIndex: No structure set subject hierarchy node found for contour '" << this->Name << "'");
     colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
     }
 
   // Get color node created for the structure set
   vtkSmartPointer<vtkCollection> colorNodes = vtkSmartPointer<vtkCollection>::New();
-  parentContourPatientHierarchyNode->GetAssociatedChildrendNodes(colorNodes, "vtkMRMLColorTableNode");
+  parentContourSubjectHierarchyNode->GetAssociatedChildrendNodes(colorNodes, "vtkMRMLColorTableNode");
   if (colorNodes->GetNumberOfItems() != 1)
     {
     vtkErrorMacro("GetColorIndex: Invalid number (" << colorNodes->GetNumberOfItems() << ") of color table nodes found for contour '"
-      << this->Name << "' in structure set '" << parentContourPatientHierarchyNode->GetName() << "'");
+      << this->Name << "' in structure set '" << parentContourSubjectHierarchyNode->GetName() << "'");
     colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
     }
@@ -924,7 +933,7 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
     return;
   }
 
-  const char* structureName = contourPatientHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+  const char* structureName = contourSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
   if (!structureName)
     {
     vtkErrorMacro("GetColorIndex: No structure name found for contour '" << this->Name << "'");

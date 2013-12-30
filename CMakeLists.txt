@@ -49,7 +49,9 @@ IF (WIN32)
   add_subdirectory(LeakFinder)
 ENDIF()
 
-add_subdirectory(PatientHierarchy)
+add_subdirectory(SubjectHierarchy)
+add_subdirectory(RtHierarchy)
+
 add_subdirectory(Contours)
 add_subdirectory(Beams)
 add_subdirectory(Isodose)

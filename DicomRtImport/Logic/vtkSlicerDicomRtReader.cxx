@@ -576,14 +576,14 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
             beamEntry.BeamLimitingDeviceAngle = beamLimitingDeviceAngle;
 
             unsigned int numberOfFoundCollimatorPositionItems = 0;
-            DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequenceObject
-              = controlPointItem.getBeamLimitingDevicePositionSequence();
+            DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequenceObject =
+              controlPointItem.getBeamLimitingDevicePositionSequence();
             if (currentCollimatorPositionSequenceObject.gotoFirstItem().good())
             {
               do 
               {
-                DRTBeamLimitingDevicePositionSequence::Item &collimatorPositionItem
-                  = currentCollimatorPositionSequenceObject.getCurrentItem();
+                DRTBeamLimitingDevicePositionSequence::Item &collimatorPositionItem =
+                  currentCollimatorPositionSequenceObject.getCurrentItem();
                 if (collimatorPositionItem.isValid())
                 {
                   OFString rtBeamLimitingDeviceType("");
@@ -921,7 +921,6 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
   double sliceThickness = this->GetSliceThickness(firstReferencedSOPInstanceUID);
 
-  Sint32 referencedRoiNumber = -1;
   DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
   if (!rtROIContourSequenceObject.gotoFirstItem().good())
   {
@@ -946,22 +945,24 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
     vtkIdType pointId = 0;
 
-    // Get contour sequence
-    currentRoiObject.getReferencedROINumber(referencedRoiNumber);
-    DRTContourSequence &rtContourSequenceObject = currentRoiObject.getContourSequence();
-    if (!rtContourSequenceObject.gotoFirstItem().good())
-    {
-      vtkErrorMacro("LoadRTStructureSet: Contour sequence for ROI with number " << referencedRoiNumber << " is empty!");
-      continue;
-    }
-
     // Get ROI entry created for the referenced ROI
+    Sint32 referencedRoiNumber = -1;
+    currentRoiObject.getReferencedROINumber(referencedRoiNumber);
     RoiEntry* roiEntry = this->FindRoiByNumber(referencedRoiNumber);
     if (roiEntry == NULL)
     {
       vtkErrorMacro("LoadRTStructureSet: ROI with number " << referencedRoiNumber << " is not found!");      
       continue;
     } 
+
+    // Get contour sequence
+    DRTContourSequence &rtContourSequenceObject = currentRoiObject.getContourSequence();
+    if (!rtContourSequenceObject.gotoFirstItem().good())
+    {
+      vtkErrorMacro("LoadRTStructureSet: Contour sequence for ROI named '"
+        << roiEntry->Name << "' with number " << referencedRoiNumber << " is empty!");
+      continue;
+    }
 
     // Read contour data
     do

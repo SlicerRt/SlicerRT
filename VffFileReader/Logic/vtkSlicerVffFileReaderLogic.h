@@ -35,7 +35,7 @@ class vtkMRMLScalarVolumeDisplayNode;
 class vtkMRMLVolumeHeaderlessStorageNode;
 class vtkStringArray;
 
-
+/// \ingroup SlicerRt_QtModules_VffFileReader
 class VTK_SLICER_VFFFILEREADER_LOGIC_EXPORT vtkSlicerVffFileReaderLogic :
   public vtkSlicerModuleLogic
 {

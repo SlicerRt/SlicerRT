@@ -31,7 +31,7 @@
 class qSlicerContourMorphologyModuleWidgetPrivate;
 class vtkMRMLNode;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_ContourMorphology
 class Q_SLICER_QTMODULES_CONTOURMORPHOLOGY_EXPORT qSlicerContourMorphologyModuleWidget :
   public qSlicerAbstractModuleWidget
 {

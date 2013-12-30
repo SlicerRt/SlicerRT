@@ -31,10 +31,10 @@
 #include "vtkMRMLContourNode.h"
 #include "vtkSlicerContoursModuleLogic.h"
 #include "vtkConvertContourRepresentations.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLDisplayableHierarchyNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -46,7 +46,7 @@
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_Contours
+/// \ingroup SlicerRt_QtModules_Contours
 class qSlicerContoursModuleWidgetPrivate: public Ui_qSlicerContoursModule
 {
   Q_DECLARE_PUBLIC(qSlicerContoursModuleWidget);
@@ -857,7 +857,7 @@ void qSlicerContoursModuleWidget::testInit()
   this->Superclass::setup();
 
   // Filter out hierarchy nodes that are not contour hierarchy nodes
-  d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
+  d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLSubjectHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
 
   // Make connections
   connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );

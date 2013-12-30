@@ -24,7 +24,7 @@
 #include "vtkSlicerDicomRtImportModuleLogic.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_DicomRtImport
+/// \ingroup SlicerRt_QtModules_DicomRtImport
 class qSlicerDicomRtImportModuleWidgetPrivate: public Ui_qSlicerDicomRtImportModule
 {
 public:

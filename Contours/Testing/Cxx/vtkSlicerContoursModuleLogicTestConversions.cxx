@@ -19,14 +19,20 @@
 
 ==============================================================================*/
 
+// SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "vtkConvertContourRepresentations.h"
 #include "vtkSlicerContoursModuleLogic.h"
-#include <vtkCollection.h>
-#include <vtkMRMLContourNode.h>
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
+#include "vtkMRMLContourNode.h"
+
+// MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+
+// VTK includes
+#include <vtkCollection.h>
 #include <vtkPolyData.h>
 #include <vtksys/SystemTools.hxx>
 
@@ -391,8 +397,15 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
-  vtkSmartPointer<vtkSlicerContoursModuleLogic> logic = vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
-  logic->SetMRMLScene(mrmlScene);
+  // Create logic classes
+  vtkSmartPointer<vtkSlicerContoursModuleLogic> contoursLogic =
+    vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
+  contoursLogic->SetMRMLScene(mrmlScene);
+
+  // TODO: Remove when subject hierarchy is integrated into Slicer core
+  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
+    vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
+  subjectHierarchyLogic->SetMRMLScene(mrmlScene);
 
   // Load test scene into temporary scene
   mrmlScene->SetURL(testSceneFileName);
@@ -447,13 +460,10 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     extents[4] != expectedExtents[4] || 
     extents[5] != expectedExtents[5] )
   {
-    errorStream << "Extents don't match." << std::endl;
-    errorStream << "extents[0]: " << extents[0] << std::endl;
-    errorStream << "extents[1]: " << extents[1] << std::endl;
-    errorStream << "extents[2]: " << extents[2] << std::endl;
-    errorStream << "extents[3]: " << extents[3] << std::endl;
-    errorStream << "extents[4]: " << extents[4] << std::endl;
-    errorStream << "extents[5]: " << extents[5] << std::endl;
+    errorStream << "ERROR: Extents don't match:" << std::endl
+      << "  Extent: ( " << extents[0] << "-" << extents[1]
+      << ", " << extents[2] << "-" << extents[3]
+      << ", " << extents[4] << "-" << extents[5] << " )" << std::endl;
     return EXIT_FAILURE;
   }
 

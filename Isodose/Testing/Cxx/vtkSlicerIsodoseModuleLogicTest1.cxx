@@ -26,6 +26,7 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -156,6 +157,11 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
+  // TODO: Remove when subject hierarchy is integrated into Slicer core
+  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
+    vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
+  subjectHierarchyLogic->SetMRMLScene(mrmlScene);
+
   // Load test scene into temporary scene
   mrmlScene->SetURL(testSceneFileName);
   mrmlScene->Import();
@@ -178,10 +184,11 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
 
   // Create and set up logic
-  vtkSmartPointer<vtkSlicerIsodoseModuleLogic> isodoseLogic = vtkSmartPointer<vtkSlicerIsodoseModuleLogic>::New();
+  vtkSmartPointer<vtkSlicerIsodoseModuleLogic> isodoseLogic =
+    vtkSmartPointer<vtkSlicerIsodoseModuleLogic>::New();
   isodoseLogic->SetMRMLScene(mrmlScene);
 
-  // TODO: Why is the number of colors set to 1 here?
+  // TODO: @Kevin: Why is the number of colors set to 1 here?
   vtkMRMLColorTableNode* isodoseColorNode = vtkMRMLColorTableNode::SafeDownCast(
     mrmlScene->GetNodeByID(isodoseLogic->GetDefaultIsodoseColorTableNodeId()));
   isodoseColorNode->SetNumberOfColors(1);
@@ -209,7 +216,12 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   vtkSmartPointer<vtkCollection> collection = vtkSmartPointer<vtkCollection>::New();
   modelHierarchyRootNode->GetChildrenModelNodes(collection);
   vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
-  
+  if (modelNode == NULL)
+  {
+    std::cerr << "No model node in output model hierarchy node!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
   reader->SetFileName(baselineIsodoseSurfaceFileName);
   reader->Update();

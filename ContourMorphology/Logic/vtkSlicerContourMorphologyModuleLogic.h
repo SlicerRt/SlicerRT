@@ -36,7 +36,7 @@
 
 class vtkMRMLContourMorphologyNode;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_QtModules_ContourMorphology
 class VTK_SLICER_CONTOURMORPHOLOGY_MODULE_LOGIC_EXPORT vtkSlicerContourMorphologyModuleLogic :
   public vtkSlicerModuleLogic
 {

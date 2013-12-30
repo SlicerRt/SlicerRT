@@ -35,7 +35,7 @@ class vtkIntArray;
 
 //BTX
 
-/// \ingroup SlicerRt_DicomRtImportLogic
+/// \ingroup SlicerRt_QtModules_DicomRtImport
 /// \brief Algorithm class for computing topological hierarchy of multiple poly data models.
 ///   The levels of the models are determined according to the models they contain, an outer
 ///   model always having larger level value than the inner ones. To determine whether a model

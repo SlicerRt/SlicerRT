@@ -30,11 +30,13 @@
 // SlicerRt includes
 #include "SlicerRtCommon.h"
 #include "vtkSlicerContoursModuleLogic.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
 
 // Qt includes
 #include <QDebug>
 
 //------------------------------------------------------------------------------
+/// \ingroup SlicerRt_QtModules_Contours
 class qMRMLContourSelectorWidgetPrivate: public Ui_qMRMLContourSelectorWidget
 {
   Q_DECLARE_PUBLIC(qMRMLContourSelectorWidget);
@@ -379,14 +381,14 @@ void qMRMLContourSelectorWidget::setAcceptContourHierarchies(bool acceptContourH
   contourNodeTypes << "vtkMRMLContourNode";
   if (d->AcceptContourHierarchies)
   {
-    contourNodeTypes << "vtkMRMLDisplayableHierarchyNode";
+    contourNodeTypes << "vtkMRMLSubjectHierarchyNode";
   }
   d->MRMLNodeComboBox_Contour->setNodeTypes(contourNodeTypes);
 
   if (d->AcceptContourHierarchies)
   {
     // Show only displayable hierarchies that are contour hierarchies
-    d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLDisplayableHierarchyNode"),
+    d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLSubjectHierarchyNode"),
       QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
   }
 

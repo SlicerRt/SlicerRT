@@ -29,7 +29,7 @@
 
 class qSlicerDoseVolumeHistogramModulePrivate;
 
-/// \ingroup SlicerRt_DoseVolumeHistogram
+/// \ingroup SlicerRt_QtModules_DoseVolumeHistogram
 class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramModule :
   public qSlicerLoadableModule
 {

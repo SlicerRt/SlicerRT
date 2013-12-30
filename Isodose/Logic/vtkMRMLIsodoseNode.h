@@ -33,6 +33,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelHierarchyNode;
 class vtkMRMLColorTableNode;
 
+/// \ingroup SlicerRt_QtModules_Isodose
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
 {
 public:
