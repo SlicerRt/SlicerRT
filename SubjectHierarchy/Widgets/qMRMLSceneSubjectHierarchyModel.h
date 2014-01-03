@@ -72,7 +72,7 @@ public slots:
 signals:
   void saveTreeExpandState();
   void loadTreeExpandState();
-  void updateRelatedWidgets();
+  void invalidateModels();
 
 protected:
   /// Get the largest column ID

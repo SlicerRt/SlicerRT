@@ -84,6 +84,8 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
   this->SortFilterModel = new qMRMLSortFilterSubjectHierarchyProxyModel(q);
   q->setSortFilterProxyModel(this->SortFilterModel);
 
+  q->QTreeView::setModel(this->SortFilterModel);
+
   // Change item visibility
   q->setShowScene(true);
   q->setUniformRowHeights(false);

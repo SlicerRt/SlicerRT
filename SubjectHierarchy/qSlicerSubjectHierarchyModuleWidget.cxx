@@ -135,7 +135,8 @@ void qSlicerSubjectHierarchyModuleWidget::setup()
   connect( d->SubjectHierarchyTreeView, SIGNAL(currentNodeChanged(vtkMRMLNode*)), d->MRMLNodeAttributeTableWidget, SLOT(setMRMLNode(vtkMRMLNode*)) );
 
   // Connect subject hierarchy tree with potential nodes list
-  connect( d->SubjectHierarchyTreeView->sceneModel(), SIGNAL(updateRelatedWidgets()), d->PotentialSubjectHierarchyListView->model(), SLOT(invalidate()) );
+  connect( d->SubjectHierarchyTreeView->sceneModel(), SIGNAL(invalidateModels()), d->PotentialSubjectHierarchyListView->model(), SLOT(invalidate()) );
+  connect( d->SubjectHierarchyTreeView->sceneModel(), SIGNAL(invalidateModels()), d->SubjectHierarchyTreeView->model(), SLOT(invalidate()) );
 
   // Connect logic custom event for scene update
   qMRMLSceneSubjectHierarchyModel* sceneModel = dynamic_cast<qMRMLSceneSubjectHierarchyModel*>(d->SubjectHierarchyTreeView->sceneModel());

@@ -36,6 +36,7 @@
 // Qt includes
 #include <QDebug>
 #include <QMimeData>
+#include <QApplication>
 
 //------------------------------------------------------------------------------
 qMRMLSceneSubjectHierarchyModelPrivate::qMRMLSceneSubjectHierarchyModelPrivate(qMRMLSceneSubjectHierarchyModel& object)
@@ -266,6 +267,9 @@ bool qMRMLSceneSubjectHierarchyModel::dropMimeData(const QMimeData* data, Qt::Dr
   Q_UNUSED(row);
   Q_UNUSED(column);
 
+  // This list is not used now in this model, can be emptied
+  d->DraggedNodes.clear();
+
   if (action == Qt::IgnoreAction)
   {
     return true;
@@ -281,7 +285,7 @@ bool qMRMLSceneSubjectHierarchyModel::dropMimeData(const QMimeData* data, Qt::Dr
     return false;
   }
 
-  // Nothing can be dropped to the top level (patients can only be loaded at from the DICOM browser or created manually)
+  // Nothing can be dropped to the top level (subjects/patients can only be loaded at from the DICOM browser or created manually)
   if (!parent.isValid())
   {
     vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::dropMimeData: Items cannot be dropped on top level!");
@@ -291,6 +295,13 @@ bool qMRMLSceneSubjectHierarchyModel::dropMimeData(const QMimeData* data, Qt::Dr
   if (!parentNode)
   {
     vtkErrorWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::dropMimeData: Unable to get parent node!");
+    // TODO: This is a workaround. Without this the node disappears and the tree collapses
+    emit saveTreeExpandState();
+    QApplication::processEvents();
+    emit invalidateModels();
+    QApplication::processEvents();
+    this->updateScene();
+    emit loadTreeExpandState();
     return false;
   }
 
@@ -327,9 +338,6 @@ bool qMRMLSceneSubjectHierarchyModel::dropMimeData(const QMimeData* data, Qt::Dr
     return false;
   }
 
-  //TODO: Move this in the reparent function and handle disappearing nodes there (#473)
-  d->DraggedNodes.clear();
-
   // Reparent the node
   return this->reparent(droppedNode, parentNode);
 }
@@ -337,11 +345,25 @@ bool qMRMLSceneSubjectHierarchyModel::dropMimeData(const QMimeData* data, Qt::Dr
 //------------------------------------------------------------------------------
 bool qMRMLSceneSubjectHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* newParent)
 {
-  if (!node || this->parentNode(node) == newParent)
+  if (!node || newParent == node)
   {
+    std::cerr << "qMRMLSceneSubjectHierarchyModel::reparent: Invalid node to reparent!" << std::endl;
     return false;
   }
-  Q_ASSERT(newParent != node);
+
+  // Prevent collapse of the subject hierarchy tree view (TODO: This is a workaround)
+  emit saveTreeExpandState();
+  QApplication::processEvents();
+
+  if (this->parentNode(node) == newParent)
+  {
+    // TODO: This is a workaround. Without this the node disappears and the tree collapses
+    emit invalidateModels();
+    QApplication::processEvents();
+    this->updateScene();
+    emit loadTreeExpandState();
+    return true;
+  }
 
   if (!this->mrmlScene())
   {
@@ -356,9 +378,6 @@ bool qMRMLSceneSubjectHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
   {
     vtkWarningWithObjectMacro(this->mrmlScene(), "qMRMLSceneSubjectHierarchyModel::reparent: Target parent node (" << newParent->GetName() << ") is not a valid subject hierarchy parent node!");
   }
-
-  // Prevent collapse of the subject hierarchy tree view (TODO: This is a workaround)
-  emit saveTreeExpandState();
 
   // If dropped from within the subject hierarchy tree
   if (subjectHierarchyNode)
@@ -429,13 +448,10 @@ bool qMRMLSceneSubjectHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
     }
   }
 
-  // Update scene in related widgets (such as potential nodes list)
-  emit updateRelatedWidgets();
-
-  // Force updating the whole scene (TODO: this should not be needed)
+  // TODO: This is a workaround. Without this the node disappears and the tree collapses
+  emit invalidateModels();
+  QApplication::processEvents();
   this->updateScene();
-
-  // Prevent collapse of the subject hierarchy tree view (TODO: This is a workaround)
   emit loadTreeExpandState();
 
   return true;
