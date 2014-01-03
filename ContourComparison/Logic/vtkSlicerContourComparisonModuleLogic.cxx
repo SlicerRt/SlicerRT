@@ -125,8 +125,8 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsItkVolumes(
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   checkpointItkConvertStart = timer->GetUniversalTime();
 
-  if ( SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk, true) == false
-    || SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk, true) == false )
+  if ( SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk) == false
+    || SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk) == false )
   {
     errorMessage = "Failed to convert contour labelmaps to ITK volumes!";
     vtkErrorMacro("GetInputContoursAsItkVolumes: " << errorMessage);

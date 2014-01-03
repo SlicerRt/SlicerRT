@@ -197,18 +197,10 @@ public:
     Convert VTK image to ITK image
     \param inVolumeNode Input volume node
     \param outItkVolume Output ITK image
-    \param paintForegroundTo1 Paint non-zero values to 1 (Optional)
+    \param applyRasToLpsConversion Apply RAS (Slicer) to LPS (ITK, DICOM) coordinate frame conversion
     \return Success
   */
-  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
-  /*!
-    Convert VTK image to ITK image in LPS coordinate system (DICOM and ITK space)
-    \param inVolumeNode Input volume node
-    \param outItkVolume Output ITK image
-    \param paintForegroundTo1 Paint non-zero values to 1 (Optional)
-    \return Success
-  */
-  template<typename T> static bool ConvertVolumeNodeToItkImageInLPS(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool paintForegroundTo1=false);
+  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool applyRasToLpsConversion=false);
   //ETX
 };
 

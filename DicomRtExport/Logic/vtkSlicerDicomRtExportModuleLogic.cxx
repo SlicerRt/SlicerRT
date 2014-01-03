@@ -103,7 +103,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
 
   // Convert input CT/MR image to the format Plastimatch can use
   itk::Image<short, 3>::Pointer itkImage = itk::Image<short, 3>::New();
-  if (SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<short>(imageNode, itkImage) == false)
+  if (SlicerRtCommon::ConvertVolumeNodeToItkImage<short>(imageNode, itkImage, true) == false)
   {
     vtkErrorMacro("SaveDicomRTStudy: Failed to convert image volumeNode to ITK volume!");
     return;
@@ -114,7 +114,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
   if (doseNode)
   {
     itk::Image<float, 3>::Pointer itkDose = itk::Image<float, 3>::New();
-    if (SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(doseNode, itkDose) == false)
+    if (SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(doseNode, itkDose, true) == false)
     {
       vtkErrorMacro("SaveDicomRTStudy: Failed to convert dose volumeNode to ITK volume!");
       return;
@@ -166,7 +166,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
       }
 
       itk::Image<unsigned char, 3>::Pointer itkStructure = itk::Image<unsigned char, 3>::New();
-      if (SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<unsigned char>(labelmapNode, itkStructure) == false)
+      if (SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(labelmapNode, itkStructure, true) == false)
       {
         vtkErrorMacro("SaveDicomRTStudy: Failed to convert contour labelmap volumeNode to ITK volume!");
         return;
