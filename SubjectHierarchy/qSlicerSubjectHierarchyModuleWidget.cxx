@@ -137,6 +137,11 @@ void qSlicerSubjectHierarchyModuleWidget::setup()
   // Connect subject hierarchy tree with potential nodes list
   connect( d->SubjectHierarchyTreeView->sceneModel(), SIGNAL(updateRelatedWidgets()), d->PotentialSubjectHierarchyListView->model(), SLOT(invalidate()) );
 
+  // Connect logic custom event for scene update
+  qMRMLSceneSubjectHierarchyModel* sceneModel = dynamic_cast<qMRMLSceneSubjectHierarchyModel*>(d->SubjectHierarchyTreeView->sceneModel());
+  qvtkConnect( d->logic(), vtkSlicerSubjectHierarchyModuleLogic::SceneUpdateNeededEvent, sceneModel, SLOT( forceUpdateScene() ) );
+  qvtkConnect( d->logic(), vtkSlicerSubjectHierarchyModuleLogic::SceneUpdateNeededEvent, d->PotentialSubjectHierarchyListView->model(), SLOT( invalidate() ) );
+
   this->setMRMLIDsVisible(d->DisplayMRMLIDsCheckBox->isChecked());
 }
 

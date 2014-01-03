@@ -51,6 +51,15 @@ void vtkSlicerSubjectHierarchyModuleLogic::PrintSelf(ostream& os, vtkIndent inde
   this->Superclass::PrintSelf(os, indent);
 }
 
+//---------------------------------------------------------------------------
+void vtkSlicerSubjectHierarchyModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+{
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
+  events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
+  this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
+}
+
 //-----------------------------------------------------------------------------
 void vtkSlicerSubjectHierarchyModuleLogic::RegisterNodes()
 {
@@ -73,6 +82,18 @@ void vtkSlicerSubjectHierarchyModuleLogic::UpdateFromMRMLScene()
   }
 
   this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerSubjectHierarchyModuleLogic::OnMRMLSceneEndBatchProcess()
+{
+  this->InvokeEvent(vtkSlicerSubjectHierarchyModuleLogic::SceneUpdateNeededEvent);
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerSubjectHierarchyModuleLogic::OnMRMLSceneEndImport()
+{
+  this->InvokeEvent(vtkSlicerSubjectHierarchyModuleLogic::SceneUpdateNeededEvent);
 }
 
 //---------------------------------------------------------------------------

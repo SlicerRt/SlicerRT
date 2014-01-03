@@ -303,6 +303,58 @@ vtkMRMLNode* vtkMRMLSubjectHierarchyNode::GetAssociatedDataNode()
 }
 
 //---------------------------------------------------------------------------
+void vtkMRMLSubjectHierarchyNode::GetAssociatedChildrenNodes(vtkCollection *children, const char* childClass)
+{
+  if (children == NULL)
+  {
+    vtkErrorMacro("GetAssociatedChildrenNodes: Argument collection must be created before calling the method");
+    return;
+  }
+  if (this->Scene == NULL)
+  {
+    vtkErrorMacro("GetAssociatedChildrenNodes: Unable to find children for node " << this->Name << ", because it has no MRML scene set");
+    return;
+  }
+
+  std::string nodeClass("vtkMRMLNode");
+  if (childClass)
+  {
+    nodeClass = childClass;
+  }
+
+  int numNodes = this->Scene->GetNumberOfNodesByClass(nodeClass.c_str());
+  for (int n=0; n < numNodes; n++) 
+  {
+    vtkMRMLNode* currentNode = this->Scene->GetNthNodeByClass(n, nodeClass.c_str());
+
+    // Check for a hierarchy node for this node
+    vtkMRMLHierarchyNode* hierarchyNode = this->GetAssociatedHierarchyNode(this->Scene, currentNode->GetID());
+
+    // See if there is a nested association (only check here because nesting is only allowed for leaves)
+    if (hierarchyNode)
+    {
+      vtkMRMLHierarchyNode* secondHierarchyNode = this->GetAssociatedHierarchyNode(this->Scene, hierarchyNode->GetID());
+      if (secondHierarchyNode)
+      {
+        hierarchyNode = secondHierarchyNode;
+      }
+    }
+
+    while (hierarchyNode)
+    {
+      if (hierarchyNode == this) 
+      {
+        children->AddItem(currentNode);
+        break;
+      }
+
+      // The hierarchy node for this node may not be the one we're checking against, go up the tree
+      hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(hierarchyNode->GetParentNode());
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
 void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(int visible)
 {
   if (visible != 0 && visible != 1)
@@ -317,7 +369,7 @@ void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(int visible)
   }
 
   vtkSmartPointer<vtkCollection> childDisplayableNodes = vtkSmartPointer<vtkCollection>::New();
-  this->GetAssociatedChildrendNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
+  this->GetAssociatedChildrenNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
   childDisplayableNodes->InitTraversal();
   std::set<vtkMRMLHierarchyNode*> parentNodes;
   for (int childNodeIndex=0; childNodeIndex<childDisplayableNodes->GetNumberOfItems(); ++childNodeIndex)
@@ -357,7 +409,7 @@ int vtkMRMLSubjectHierarchyNode::GetDisplayVisibilityForBranch()
 {
   int visible = -1;
   vtkSmartPointer<vtkCollection> childDisplayableNodes = vtkSmartPointer<vtkCollection>::New();
-  this->GetAssociatedChildrendNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
+  this->GetAssociatedChildrenNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
   childDisplayableNodes->InitTraversal();
 
   for (int childNodeIndex=0; childNodeIndex<childDisplayableNodes->GetNumberOfItems(); ++childNodeIndex)

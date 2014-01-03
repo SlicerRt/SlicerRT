@@ -81,8 +81,14 @@ public:
   /// This must be used instead of vtkMRMLHierarchyNode::GetAssociatedNode, because there are nested associations to avoid conflicts.
   /// E.g. a data node is associated to both a ModelHierarchy and a SubjectHierarchy node. In that case the first associated hierarchy
   /// node is returned by the utility function, which is a non-deterministic behavior. To avoid this we use nested associations. In the
-  /// example case the associations are as follows: SubjectHierarchy -> ModelHiararchy -> DataNode
+  /// example case the associations are as follows: SubjectHierarchy -> ModelHierarchy -> DataNode
   vtkMRMLNode* GetAssociatedDataNode();
+
+  //TODO: Make this an override of vtkMRMLHierarchyNode::GetAssociatedChildrendNodes. For that it has to be virtual. It has a typo in its name to be fixed too.
+  /// Find all associated children nodes of a specified class in the hierarchy.
+  /// Re-implemented to handle nested associations \sa GetAssociatedDataNode
+  /// \param childClass Name of the class we are looking for. NULL returns all associated children nodes.
+  void GetAssociatedChildrenNodes(vtkCollection *children, const char* childClass=NULL);
 
   /// Set subject hierarchy branch visibility
   void SetDisplayVisibilityForBranch(int visible);

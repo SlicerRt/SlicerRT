@@ -62,11 +62,12 @@ public:
   /// Insert/move node in subject hierarchy under newParent
   virtual bool reparent(vtkMRMLNode* node, vtkMRMLNode* newParent);
 
-  /// Force update of the scene in the model
-  virtual void forceUpdateScene();
-
   int nodeTypeColumn()const;
   void setNodeTypeColumn(int column);
+
+public slots:
+  /// Force update of the scene in the model
+  void forceUpdateScene();
 
 signals:
   void saveTreeExpandState();
