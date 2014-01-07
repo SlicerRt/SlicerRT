@@ -74,7 +74,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
 
   def create(self,registrationState):
     """Make the plugin-specific user interface"""
-    super(PlmRegisterPlugin,self).create()
+    super(PlmRegisterPlugin,self).create(registrationState)
 
     self.registrationState = registrationState
 
@@ -188,8 +188,10 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     if loadablePath not in sys.path:
       sys.path.append(loadablePath)
     
+    print ("Gonna SetMRMLScene")
     reg = vtkSlicerPlastimatchPyModuleLogicPython.vtkSlicerPlastimatchPyModuleLogic()
     reg.SetMRMLScene(slicer.mrmlScene)
+    print ("Did SetMRMLScene")
 
     state = self.registrationState()
     # Set input/output images
