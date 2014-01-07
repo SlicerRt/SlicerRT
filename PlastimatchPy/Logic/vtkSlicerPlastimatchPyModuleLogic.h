@@ -43,9 +43,9 @@
 #include "pointset.h"
 #include "registration_data.h"
 #include "registration_parms.h"
+#include "vf_jacobian.h"
 
-/// \ingroup SlicerRt_QtModules_PlastimatchPy
-/// \brief Class to wrap Plastimatch registration capability into the embedded Python shell in Slicer
+/// Class to wrap Plastimatch registration capability into the embedded Python shell in Slicer
 class VTK_SLICER_PLASTIMATCHPY_MODULE_LOGIC_EXPORT vtkSlicerPlastimatchPyModuleLogic :
   public vtkSlicerModuleLogic
 {
@@ -69,6 +69,12 @@ public:
 
   /// This function warps the landmarks according to OutputTransformation
   void WarpLandmarks();
+
+  /// Compute Jacobian
+  void RunJacobian();
+
+  /// Compute landmark mismatch error
+  void RunMismatchError();
 
 public:
   /// Set the ID of the fixed image (\sa FixedImageID) (image data type must be "float").
@@ -115,6 +121,21 @@ public:
   vtkSetObjectMacro(WarpedLandmarks, vtkPoints);
   /// Get the warped landmarks (\sa WarpedLandmarks) using a vtkPoints object.
   vtkGetObjectMacro(WarpedLandmarks, vtkPoints);
+
+// NSh, Jacobian
+  /// GetMin/MaxJacobian
+  vtkGetStringMacro(JacobianMinString);
+  vtkGetStringMacro(JacobianMaxString); 
+  /// Set the ID of the vector field
+  vtkSetStringMacro(VFImageID);
+  /// Get the ID of the vector field
+  vtkGetStringMacro(VFImageID);
+
+// NSh, mismatch error
+  vtkGetStringMacro(AverageString);
+  vtkGetStringMacro(VarianceString); 
+  vtkGetStringMacro(StdevString);
+  vtkGetStringMacro(SeparationString);
 
 protected:
   /// This function sets the vtkPoints as input landmarks for Plastimatch registration
@@ -211,7 +232,24 @@ protected:
 
   /// Vector filed computed by Plastimatch
   DeformationFieldType::Pointer MovingImageToFixedImageVectorField;
-  
+
+  /// NSh: Jacobian module - return values for Slicer GUI
+  float jacobian_min;
+  float jacobian_max;
+  char* JacobianMinString;
+  char* JacobianMaxString;
+  /// ID of the vector field image to calculate the Jacobian of
+  char* VFImageID;
+ 
+  /// NSh: Mismatch Error module - 
+  float avg;
+  float var;
+  char* AverageString;
+  char* VarianceString;
+  char* StdevString;
+  char* SeparationString;
+
+
 private:
   vtkSlicerPlastimatchPyModuleLogic(const vtkSlicerPlastimatchPyModuleLogic&); // Not implemented
   void operator=(const vtkSlicerPlastimatchPyModuleLogic&);            // Not implemented

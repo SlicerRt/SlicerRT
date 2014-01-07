@@ -339,7 +339,8 @@ class DicomSroExportLogic:
     loadablePath = os.path.join(slicer.modules.plastimatch_slicer_bspline.path,'..'+os.sep+'..'+os.sep+'qt-loadable-modules')
     if loadablePath not in sys.path:
       sys.path.append(loadablePath)
-    sro = vtkSlicerPlastimatchPyModuleLogic.plmpyDicomSroExport()
+    sro = vtkSlicerPlastimatchPyModuleLogic.vtkPlmpyDicomSroExport()
+    sro.SetMRMLScene(slicer.mrmlScene)
     sro.SetFixedImageID(fixedNode.GetID())
     sro.SetMovingImageID(movingNode.GetID())
     sro.SetXformID(xformNode.GetID())

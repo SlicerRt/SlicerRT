@@ -19,7 +19,7 @@
 #include <QtPlugin>
 
 // PlastimatchPy Logic includes
-#include <vtkSlicerPlastimatchPyModuleLogic.h>
+#include "vtkSlicerPlastimatchPyModuleLogic.h"
 
 // PlastimatchPy includes
 #include "qSlicerPlastimatchPyModule.h"
@@ -110,4 +110,5 @@ qSlicerAbstractModuleRepresentation * qSlicerPlastimatchPyModule
 vtkMRMLAbstractLogic* qSlicerPlastimatchPyModule::createLogic()
 {
   return vtkSlicerPlastimatchPyModuleLogic::New();
+  //return plmpyDicomSroExport::New();
 }
