@@ -69,20 +69,20 @@ TEST_WITH_DATA(
   vtkSlicerContoursModuleLogicTestConversions
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseProstate_Contours_Scene.mrml
   ${TEMP}/TestScene_Contours_EclipseProstate.mrml 
-  5448764
+  5448899
   0
   272
   0
   172
   0
   184
-  198748
-  396728
-  396728
-  -172.799
-  162.201
-  -106.858
-  105.642
+  198679
+  396584
+  396584
+  -172.174
+  162.826
+  -105.792
+  106.083
   -123.125
   106.25
 )
