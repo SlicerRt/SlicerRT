@@ -70,11 +70,13 @@ public:
   /// This function warps the landmarks according to OutputTransformation
   void WarpLandmarks();
 
+#if defined (commentout)
   /// Compute Jacobian
   void RunJacobian();
 
   /// Compute landmark mismatch error
   void RunMismatchError();
+#endif
 
 public:
   /// Set the ID of the fixed image (\sa FixedImageID) (image data type must be "float").
