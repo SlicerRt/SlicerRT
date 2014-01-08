@@ -371,7 +371,7 @@ void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(int visible)
   vtkSmartPointer<vtkCollection> childDisplayableNodes = vtkSmartPointer<vtkCollection>::New();
   this->GetAssociatedChildrenNodes(childDisplayableNodes, "vtkMRMLDisplayableNode");
   childDisplayableNodes->InitTraversal();
-  std::set<vtkMRMLHierarchyNode*> parentNodes;
+  std::set<vtkMRMLSubjectHierarchyNode*> parentNodes;
   for (int childNodeIndex=0; childNodeIndex<childDisplayableNodes->GetNumberOfItems(); ++childNodeIndex)
   {
     vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast(childDisplayableNodes->GetItemAsObject(childNodeIndex));
@@ -386,19 +386,20 @@ void vtkMRMLSubjectHierarchyNode::SetDisplayVisibilityForBranch(int visible)
       }
 
       displayableNode->Modified();
+      this->Modified();
 
       // Collect all parents
-      vtkMRMLHierarchyNode* parentNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode( this->Scene, displayableNode->GetID() );
+      vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode( displayableNode );
       do 
       {
         parentNodes.insert(parentNode);
       }
-      while ((parentNode = parentNode->GetParentNode()) != NULL); // The double parentheses avoids a Linux build warning
+      while ( (parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(parentNode->GetParentNode()) ) != NULL); // The double parentheses avoids a Linux build warning
     }
   }
 
   // Set Modified flag for all parent nodes so that their icons are refreshed in the tree view
-  for (std::set<vtkMRMLHierarchyNode*>::iterator parentsIt = parentNodes.begin(); parentsIt != parentNodes.end(); ++ parentsIt)
+  for (std::set<vtkMRMLSubjectHierarchyNode*>::iterator parentsIt = parentNodes.begin(); parentsIt != parentNodes.end(); ++ parentsIt)
   {
     (*parentsIt)->Modified();
   }
