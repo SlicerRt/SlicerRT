@@ -33,8 +33,10 @@
 // STD includes
 #include <cstdlib>
 
+#include "vtkSlicerRtCommonWin32Header.h"
+
 /// \ingroup SlicerRt_SlicerRtCommon
-class vtkLabelmapToModelFilter : public vtkObject
+class VTK_SLICERRTCOMMON_EXPORT vtkLabelmapToModelFilter : public vtkObject
 {
 public:
 

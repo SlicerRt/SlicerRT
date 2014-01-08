@@ -32,8 +32,10 @@
 // ITK includes
 #include "itkImage.h"
 
+#include "vtkSlicerRtCommonWin32Header.h"
+
 /// \ingroup SlicerRt_SlicerRtCommon
-class vtkVolumesOrientedResampleUtility : public vtkObject
+class VTK_SLICERRTCOMMON_EXPORT vtkVolumesOrientedResampleUtility : public vtkObject
 {
 public:
   // TODO Do we need a real class or should it be more a namespace for static functions?

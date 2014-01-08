@@ -33,9 +33,10 @@ class vtkMatrix4x4;
 #  define STRCASECMP strcasecmp
 #endif
 
+#include "vtkSlicerRtCommonWin32Header.h"
 
 /// \ingroup SlicerRt_SlicerRtCommon
-class SlicerRtCommon
+class VTK_SLICERRTCOMMON_EXPORT SlicerRtCommon
 {
 public:
   //----------------------------------------------------------------------------

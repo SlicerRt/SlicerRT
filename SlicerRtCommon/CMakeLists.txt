@@ -1,6 +1,15 @@
 project(vtkSlicerRtCommon)
 
 # --------------------------------------------------------------------------
+# Configure headers
+# --------------------------------------------------------------------------
+set(configure_header_file vtkSlicerRtCommonConfigure.h)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/${configure_header_file}.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${configure_header_file}
+  )
+
+# --------------------------------------------------------------------------
 # Sources
 # --------------------------------------------------------------------------
 
@@ -16,7 +25,7 @@ SET (SlicerRtCommon_SRCS
   vtkVolumesOrientedResampleUtility.h
   )
 
-SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${Slicer_Libs_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Libs_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -27,10 +36,11 @@ SET (SlicerRtCommon_LIBS ${SlicerRtCommon_LIBS}
   vtkCommon
   vtkFiltering
   vtkImaging
+  MRMLCore
   )
 
 INCLUDE_DIRECTORIES( ${SlicerRtCommon_INCLUDE_DIRS} )
-ADD_LIBRARY(${lib_name} STATIC ${SlicerRtCommon_SRCS})
+ADD_LIBRARY(${lib_name} ${SlicerRtCommon_SRCS})
 TARGET_LINK_LIBRARIES( ${lib_name} ${SlicerRtCommon_LIBS} )
 
 IF (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32)

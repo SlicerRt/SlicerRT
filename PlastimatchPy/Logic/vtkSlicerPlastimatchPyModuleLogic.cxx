@@ -15,10 +15,11 @@
 
 ==============================================================================*/
 
-#include "SlicerRtCommon.h"
-
 // PlastimatchPy Logic includes
 #include "vtkSlicerPlastimatchPyModuleLogic.h"
+
+// SlicerRt includes
+#include "SlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>

@@ -32,10 +32,12 @@
 // STD includes
 #include <cstdlib>
 
+#include "vtkSlicerRtCommonWin32Header.h"
+
 /// \ingroup SlicerRt_SlicerRtCommon
 /// The algorithm requires the input polydata to be transformed to the IJK coordinate system of the reference image data
 /// or the extents calculated to encompass both sets of data will be nonsensical.
-class vtkPolyDataToLabelmapFilter : public vtkObject
+class VTK_SLICERRTCOMMON_EXPORT vtkPolyDataToLabelmapFilter : public vtkObject
 {
 public:
 
