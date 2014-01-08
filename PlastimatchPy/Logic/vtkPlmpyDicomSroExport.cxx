@@ -17,6 +17,7 @@
 #include "vtkPlmpyDicomSroExport.h"
 
 // SlicerRT includes
+#include "PlmCommon.h"
 #include "SlicerRtCommon.h"
 
 // MRML includes
@@ -30,6 +31,9 @@
 
 // ITK includes
 #include <itkImage.h>
+
+// Plastimatch include
+#include "plm_image.h"
 
 //------------------------------------------------------------------------------
 //vtkCxxSetObjectMacro(vtkPlmpyDicomSroExport,Points,vtkPoints);
@@ -129,6 +133,10 @@ void vtkPlmpyDicomSroExport::DoExport ()
 
   // Convert input CT/MR image to the format Plastimatch can use
   vtkMRMLScalarVolumeNode* fixedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
+
+  Plm_image::Pointer fixedImage = PlmCommon::CreatePlmImage (fixedNode);
+
+#if defined (commentout)
   itk::Image<float, 3>::Pointer itkImage = itk::Image<float, 3>::New();
   if (SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(fixedNode, itkImage, true) == false)
   {
@@ -136,7 +144,6 @@ void vtkPlmpyDicomSroExport::DoExport ()
     vtkErrorMacro("Dicom SRO Export: Failed to convert image volumeNode to ITK volume!");
     return;
   }
-#if defined (commentout)
 #endif
 
   printf ("Doing export in C++\n");

@@ -65,6 +65,7 @@ add_subdirectory(ContourComparison)
 add_subdirectory(VffFileReader)
 add_subdirectory(DicomRtExport)
 
+add_subdirectory(PlmCommon)
 add_subdirectory(PlastimatchPy)
 add_subdirectory(PlmBspline) # requires Plastimatch registration
 add_subdirectory(PlmDicomRtExport)
