@@ -131,6 +131,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::setMRMLScene(vtkMRMLScene* scene)
       this->setDoseVolumeHistogramNode( vtkMRMLDoseVolumeHistogramNode::SafeDownCast(node) );
     }
   }
+
+  if( scene )
+  {
+    this->updateChartCheckboxesState();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -294,8 +299,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
-
-  this->updateChartCheckboxesState();
 }
 
 //-----------------------------------------------------------------------------
