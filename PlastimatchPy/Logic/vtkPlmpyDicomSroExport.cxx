@@ -22,6 +22,7 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
+#include <vtkMRMLLinearTransformNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -33,6 +34,7 @@
 #include <itkImage.h>
 
 // Plastimatch include
+#include "dicom_sro_save.h"
 #include "plm_image.h"
 
 //------------------------------------------------------------------------------
@@ -118,9 +120,9 @@ void vtkPlmpyDicomSroExport::UpdateFromMRMLScene()
 void vtkPlmpyDicomSroExport::DoExport ()
 {
   if (this->FixedImageID == NULL
-    || this->MovingImageID == NULL
-    || this->XformID == NULL
-    || this->OutputDirectory == NULL)
+      || this->MovingImageID == NULL
+      || this->XformID == NULL
+      || this->OutputDirectory == NULL)
   {
     vtkErrorMacro("Sorry, vtkPlmpyDicomSroExport::DoExport () is missing some inputs");
     return;
@@ -133,18 +135,35 @@ void vtkPlmpyDicomSroExport::DoExport ()
 
   // Convert input CT/MR image to the format Plastimatch can use
   vtkMRMLScalarVolumeNode* fixedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
-
   Plm_image::Pointer fixedImage = PlmCommon::CreatePlmImage (fixedNode);
 
-#if defined (commentout)
-  itk::Image<float, 3>::Pointer itkImage = itk::Image<float, 3>::New();
-  if (SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(fixedNode, itkImage, true) == false)
-  {
-    printf ("Dicom SRO Export: Failed to convert image volumeNode to ITK volume!");
-    vtkErrorMacro("Dicom SRO Export: Failed to convert image volumeNode to ITK volume!");
+  vtkMRMLScalarVolumeNode* movingNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
+  Plm_image::Pointer movingImage = PlmCommon::CreatePlmImage (movingNode);
+
+  // Convert xform into a form that Plastimatch can use
+  vtkMRMLLinearTransformNode *xformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));
+  if (!xformNode) {
+    vtkErrorMacro("Sorry, vtkPlmpyDicomSroExport::DoExport () could not digest the transform node");
     return;
   }
-#endif
 
-  printf ("Doing export in C++\n");
+  const vtkMatrix4x4* vtkAff = xformNode->GetMatrixTransformToParent ();
+  itk::Array<double> parms(16);
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      printf ("Setting affine [%d,%d] %g\n", i, j, 
+              vtkAff->GetElement (i,j));
+      parms[i*4+j] = vtkAff->GetElement (i, j);
+    }
+  }
+  Xform::Pointer xform = Xform::New ();
+  xform->set_aff (parms);
+
+  // Run exporter
+  Dicom_sro_save dss;
+  dss.set_fixed_image (fixedImage);
+  dss.set_moving_image (movingImage);
+  dss.set_xform (xform);
+  dss.set_output_dir (this->OutputDirectory);
+  dss.run ();
 }

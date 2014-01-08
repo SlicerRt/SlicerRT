@@ -191,7 +191,7 @@ class DicomSroExportWidget:
       self.fixedMRMLSelector.currentNode(),
       self.movingMRMLSelector.currentNode(),
       self.xformMRMLSelector.currentNode(),
-      self.outputDirectory.text)
+      self.outputDirectory.directory)
 
   def onReload(self,moduleName="DicomSroExport"):
     """Generic reload method for any scripted module.
