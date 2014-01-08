@@ -245,9 +245,8 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
   // for each boundary axis, check for necessary expansion of extents
   for( int axis = 0; axis < 3; ++axis )
   {
-    // extent == expandedbounds[larger] - expandedBounds[smaller]
     // if same as original extent, no problem!
-    calculatedExtents[2*axis+1] = ceil(expandedBounds[2*axis+1] - expandedBounds[2*axis]) * (1/spacing[axis]);
+    calculatedExtents[2*axis+1] = ceil( (expandedBounds[2*axis+1] - expandedBounds[2*axis]) * (1/spacing[axis]));
     if( calculatedExtents < 0 )
     {
       vtkErrorMacro("Invalid extent when calculating overlap between input polydata and reference image. Were they in the IJK coordinate system when this was called?");
