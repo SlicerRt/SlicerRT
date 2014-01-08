@@ -1,5 +1,14 @@
 project(vtkPlmCommon)
 
+# --------------------------------------------------------------------------
+# Configure headers
+# --------------------------------------------------------------------------
+set(configure_header_file vtkPlmCommonConfigure.h)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/${configure_header_file}.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${configure_header_file}
+  )
+
 find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} )
 if(NOT Plastimatch_FOUND)
   message("Plastimatch library is not found. DoseComparison module will not be built.")

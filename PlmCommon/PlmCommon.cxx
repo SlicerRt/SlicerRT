@@ -38,7 +38,7 @@ template<class T>
 typename itk::Image<T,3>::Pointer
 convert_to_itk (vtkMRMLScalarVolumeNode* inVolumeNode)
 {
-  itk::Image<T,3>::Pointer image = itk::Image<T,3>::New ();
+  typename itk::Image<T,3>::Pointer image = itk::Image<T,3>::New ();
   SlicerRtCommon::ConvertVolumeNodeToItkImage<T>(inVolumeNode, image, true);
   return image;
 }

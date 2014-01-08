@@ -33,7 +33,7 @@ class DicomRtImportSelfTest:
     tester.runTest()
 
 #
-# qDicomRtImportSelfTestWidget
+# DicomRtImportSelfTestWidget
 #
 
 class DicomRtImportSelfTestWidget:
@@ -204,10 +204,10 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
 
   def TestSection_0RetrieveInputData(self):
     if 'util' in globals() and hasattr(util, 'DicomRtImportSelfTestPaths') and os.access(util.DicomRtImportSelfTestPaths.dataDir, os.F_OK):
-        self.dataDir = util.DicomRtImportSelfTestPaths.dataDir
-        self.dicomDatabaseDir = util.DicomRtImportSelfTestPaths.dicomDatabaseDir
-        self.tempDir = util.DicomRtImportSelfTestPaths.tempDir
-        self.delayDisplay('Test data found locally: %s' % (util.DicomRtImportSelfTestPaths.dataDir),self.delayMs)
+      self.dataDir = util.DicomRtImportSelfTestPaths.dataDir
+      self.dicomDatabaseDir = util.DicomRtImportSelfTestPaths.dicomDatabaseDir
+      self.tempDir = util.DicomRtImportSelfTestPaths.tempDir
+      self.delayDisplay('Test data found locally: %s' % (util.DicomRtImportSelfTestPaths.dataDir),self.delayMs)
     else:
       import urllib
 
@@ -273,7 +273,7 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
     detailsPopup.examineForLoading()
 
-    loadables = detailsPopup.loadableTable.loadables #TEST
+    loadables = detailsPopup.loadableTable.loadables
     self.assertTrue( len(loadables) == 8 )
 
     # Make sure the loadables are good (RT is assigned to 4 out of 8 and they are selected)

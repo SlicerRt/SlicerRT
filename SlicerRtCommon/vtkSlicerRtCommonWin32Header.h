@@ -1,19 +1,6 @@
-/*=auto=========================================================================
-
-  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
-
-  See COPYRIGHT.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
-
-  Program:   3D MRML
-  Module:    $RCSfile: vtkMRMLLogicWin32Header.h,v $
-  Date:      $Date: 2006/01/06 17:56:51 $
-  Version:   $Revision: 1.4 $
-
-=========================================================================auto=*/
-///  vtkMRMLLogicWin32Header - manage Windows system differences
+///  vtkSlicerRtCommonWin32Header - manage Windows system differences
 /// 
-/// The vtkMRMLLogicWin32Header captures some system differences between Unix
+/// The vtkSlicerRtCommonWin32Header captures some system differences between Unix
 /// and Windows operating systems. 
 
 
