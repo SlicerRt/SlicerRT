@@ -85,10 +85,27 @@ public:
   /// Set display visibility of a owned subject hierarchy node
   virtual void setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible);
 
+  /// Get display visibility of a owned subject hierarchy node
+  /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
+  virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
+
 protected:
   /// Show volume in slice viewers. The argument node becomes the background, and the previous
   /// background becomes the foreground with 50% transparency.
-  void showVolume(vtkMRMLScalarVolumeNode* node);
+  void showVolume(vtkMRMLScalarVolumeNode* node, int visible=1);
+
+  /// Update selection node based on current volumes visibility (if the selection is different in the slice viewers, then the first one is set)
+  /// TODO: This is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
+  void updateSelectionNodeBasedOnCurrentVolumesVisibility();
+  /// Determine labelmap selection (if the selection is different in the slice viewers, then the first one is set)
+  /// TODO: This is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
+  std::string getSelectedLabelmapVolumeNodeID();
+  /// Determine background volume selection (if the selection is different in the slice viewers, then the first one is set)
+  /// TODO: This is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
+  std::string getSelectedBackgroundVolumeNodeID();
+  /// Determine foreground volume selection (if the selection is different in the slice viewers, then the first one is set)
+  /// TODO: This is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
+  std::string getSelectedForegroundVolumeNodeID();
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyVolumesPluginPrivate> d_ptr;

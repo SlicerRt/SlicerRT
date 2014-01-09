@@ -2,11 +2,12 @@
   <qresource>
     <file>Icons/Labelmap.png</file>
     <file>Icons/Patient.png</file>
-    <file>Icons/ShowInViewers.png</file>
     <file>Icons/Study.png</file>
     <file>Icons/Subject.png</file>
     <file>Icons/Unknown.png</file>
     <file>Icons/Volume.png</file>
-    <file>Icons/Warning.png</file>
+    <file>Icons/VolumeVisibilityOff.png</file>
+    <file>Icons/VolumeVisibilityOn.png</file>
+  <file>Icons/Warning.png</file>
   </qresource>
 </RCC>
