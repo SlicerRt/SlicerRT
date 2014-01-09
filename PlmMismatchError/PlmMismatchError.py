@@ -95,7 +95,7 @@ class PlmMismatchErrorWidget:
     self.fixedLandmarks.removeEnabled = False
     self.fixedLandmarks.noneEnabled = True
     self.fixedLandmarks.showHidden = False
-    self.fixedLandmarks.showChildNodeTypes = False
+    self.fixedLandmarks.renameEnabled = True
     self.fixedLandmarks.setMRMLScene( slicer.mrmlScene )
     self.fixedLandmarks.setToolTip( "Landmarks on fixed image." )
     inputFormLayout.addRow("Fixed landmarks: ", self.fixedLandmarks)

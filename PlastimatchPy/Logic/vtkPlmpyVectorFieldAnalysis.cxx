@@ -14,27 +14,11 @@
   limitations under the License.
 
 ==============================================================================*/
-#include "SlicerRtCommon.h"
-
 // PlastimatchPy Logic includes
 #include "vtkSlicerPlastimatchPyModuleLogic.h"
-#include "vtkPlmpyVectorFieldanalysis.h"
+//#include "vtkPlmpyVectorFieldanalysis.h"
 
-// MRML includes
-#include <vtkMRMLScene.h>
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLVectorVolumeNode.h>
-#include <vtkMRMLLinearTransformNode.h>
-
-// ITK includes
-#include <itkAffineTransform.h>
-#include <itkArray.h>
-#include <itkImageRegionIteratorWithIndex.h>
-
-// VTK includes
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
-#include <vtkMatrix4x4.h>
+//ITK includes
 #include <vtkObjectFactory.h>
 
 // Plastimatch includes
@@ -201,10 +185,6 @@ imageExport->Export( vol->GetBufferPointer() );
 
 // modeled after pcmd_jacobian
     FloatImageType::Pointer jacimage;
-    //std::cout << "file name: " << this->FixedImageID;
-    //xform_load (&vol, (const char*) parms->input_fn);
-    //DeformationFieldType::Pointer 
-//    vol = itk_image_load_float_field ("/home/nadya/Cases/synth-rectangle/Expansion/2_1-vf.mhd");
 
     std::cout << "...loaded xf!" << std::endl;
 

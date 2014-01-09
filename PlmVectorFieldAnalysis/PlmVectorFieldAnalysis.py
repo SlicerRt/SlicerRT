@@ -83,14 +83,11 @@ class PlmVectorFieldAnalysisWidget:
     # vf image (mrml input)
     self.vfMRMLSelector = slicer.qMRMLNodeComboBox()
     self.vfMRMLSelector.nodeTypes = ( ("vtkMRMLVectorVolumeNode"), "" )
-#    self.vfMRMLSelector.addAttribute (
-#      "vtkMRMLScalarVolumeNode", "LabelMap", 0 )
-    self.vfMRMLSelector.selectNodeUponCreation = False
-#    self.vfMRMLSelector.addEnabled = False
+    self.vfMRMLSelector.selectNodeUponCreation = True
+    self.vfMRMLSelector.addEnabled = False
     self.vfMRMLSelector.removeEnabled = False
-    self.vfMRMLSelector.noneEnabled = False
+    self.vfMRMLSelector.noneEnabled = True
     self.vfMRMLSelector.showHidden = False
-#    self.vfMRMLSelector.showChildNodeTypes = False
     self.vfMRMLSelector.setMRMLScene( slicer.mrmlScene )
     self.vfMRMLSelector.setToolTip( "Pick the input to the algorithm." )
     inputFormLayout.addRow("Vector Field image: ", self.vfMRMLSelector)
@@ -108,9 +105,10 @@ class PlmVectorFieldAnalysisWidget:
     self.fixedImage = slicer.qMRMLNodeComboBox()
     self.fixedImage.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
     self.fixedImage.setMRMLScene( slicer.mrmlScene )
-    self.fixedImage.selectNodeUponCreation = False
-    self.fixedImage.addEnabled = True
+    self.fixedImage.selectNodeUponCreation = True
+    self.fixedImage.addEnabled = False
     self.fixedImage.renameEnabled = True
+    self.fixedImage.noneEnabled = True
     self.fixedImage.setToolTip( "Output image of Jacobian matrix.vtkSlicerPlastimatchModuleLogicPython" )
     inputFormLayout.addRow("Fixed image (for geometry info): ", self.fixedImage)
 
