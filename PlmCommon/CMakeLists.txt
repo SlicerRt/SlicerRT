@@ -26,6 +26,7 @@ SET (PlmCommon_SRCS
 
 SET (PlmCommon_INCLUDE_DIRS 
   ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${Slicer_Libs_INCLUDE_DIRS} 
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
@@ -37,20 +38,33 @@ SET (PlmCommon_INCLUDE_DIRS
 
 set(lib_name ${PROJECT_NAME})
 SET (PlmCommon_LIBS ${PlmCommon_LIBS}
-#  vtkCommon
-#  vtkFiltering
-#  vtkImaging
   vtkSlicerRtCommon
   ${PLASTIMATCH_LIBRARIES}
   )
 
 INCLUDE_DIRECTORIES( ${PlmCommon_INCLUDE_DIRS} )
-ADD_LIBRARY(${lib_name} STATIC ${PlmCommon_SRCS})
+ADD_LIBRARY(${lib_name} ${PlmCommon_SRCS})
 TARGET_LINK_LIBRARIES( ${lib_name} ${PlmCommon_LIBS} )
+
+# Set loadable modules output
+set_target_properties(${lib_name} PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_BIN_DIR}"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}"
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}"
+  )
 
 IF (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32)
   SET_TARGET_PROPERTIES(${lib_name} PROPERTIES COMPILE_FLAGS "-fPIC")
 ENDIF()
+
+# --------------------------------------------------------------------------
+# Install library
+# --------------------------------------------------------------------------
+install(TARGETS ${lib_name}
+  RUNTIME DESTINATION ${CMAKE_BINARY_DIR}/${Slicer_INSTALL_QTLOADABLEMODULES_BIN_DIR}
+  LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/${Slicer_INSTALL_QTLOADABLEMODULES_LIB_DIR}
+  ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/${Slicer_INSTALL_QTLOADABLEMODULES_LIB_DIR}
+  )
 
 # --------------------------------------------------------------------------
 # Python wrapping

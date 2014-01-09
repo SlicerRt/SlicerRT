@@ -43,9 +43,25 @@ INCLUDE_DIRECTORIES( ${SlicerRtCommon_INCLUDE_DIRS} )
 ADD_LIBRARY(${lib_name} ${SlicerRtCommon_SRCS})
 TARGET_LINK_LIBRARIES( ${lib_name} ${SlicerRtCommon_LIBS} )
 
+# Set loadable modules output
+set_target_properties(${lib_name} PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_BIN_DIR}"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}"
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}"
+  )
+
 IF (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32)
   SET_TARGET_PROPERTIES(${lib_name} PROPERTIES COMPILE_FLAGS "-fPIC")
 ENDIF()
+
+# --------------------------------------------------------------------------
+# Install library
+# --------------------------------------------------------------------------
+install(TARGETS ${lib_name}
+  RUNTIME DESTINATION ${CMAKE_BINARY_DIR}/${Slicer_INSTALL_QTLOADABLEMODULES_BIN_DIR}
+  LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/${Slicer_INSTALL_QTLOADABLEMODULES_LIB_DIR}
+  ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/${Slicer_INSTALL_QTLOADABLEMODULES_LIB_DIR}
+  )
 
 # --------------------------------------------------------------------------
 # Python wrapping

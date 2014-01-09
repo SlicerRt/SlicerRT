@@ -176,10 +176,8 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
 
     #TODO: Comment out
     #logFile = open('d:/pyTestLog.txt', 'w')
-    #logFile.write(repr(slicer.modules.models) + '\n')
     #logFile.write(repr(slicer.modules.dicomrtimportselftest) + '\n')
     #logFile.write(repr(slicer.modules.dicomrtimport) + '\n')
-    #logFile.write(repr(slicer.modules.models) + '\n')
     #logFile.close()
 
   def runTest(self):

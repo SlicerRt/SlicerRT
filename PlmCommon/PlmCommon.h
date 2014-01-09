@@ -11,6 +11,8 @@
 // Plastimatch includes
 #include "plm_image.h"
 
+#include "vtkPlmCommonWin32Header.h"
+
 class vtkMRMLTransformableNode;
 class vtkMRMLNode;
 class vtkMRMLScalarVolumeNode;
@@ -22,7 +24,7 @@ class vtkGeneralTransform;
 class vtkMatrix4x4;
 
 /// \ingroup SlicerRt_PlmCommon
-class PlmCommon
+class VTK_PLMCOMMON_EXPORT PlmCommon
 {
   //----------------------------------------------------------------------------
   // Utility functions
