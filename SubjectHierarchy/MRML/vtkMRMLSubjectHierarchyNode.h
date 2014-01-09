@@ -112,6 +112,9 @@ public:
   /// \param sourceNode Node where we start searching. Can be subject hierarchy or associated node
   vtkMRMLSubjectHierarchyNode* GetAncestorAtLevel(const char* level);
 
+  /// Get node name without the subject hierarchy postfix
+  std::string GetNameWithoutPostfix();
+
 public:
   /// Set level
   vtkSetStringMacro(Level);

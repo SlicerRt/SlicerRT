@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource>
+    <file>Icons/Labelmap.png</file>
     <file>Icons/Patient.png</file>
     <file>Icons/ShowInViewers.png</file>
     <file>Icons/Study.png</file>

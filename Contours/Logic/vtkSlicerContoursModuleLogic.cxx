@@ -414,6 +414,36 @@ const char* vtkSlicerContoursModuleLogic::GetRasterizationReferenceVolumeOfConto
 }
 
 //-----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContour(vtkMRMLContourNode* contour)
+{
+  if (!contour)
+  {
+    return NULL;
+  }
+
+  // Get referenced series UID for contour
+  vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(contour);
+  const char* referencedSeriesUid = contourSubjectHierarchyNode->GetAttribute(
+    SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str() );
+  if (!referencedSeriesUid)
+  {
+    vtkWarningWithObjectMacro(contourSubjectHierarchyNode, "No referenced series UID found for contour '" << contourSubjectHierarchyNode->GetName() << "'");
+    return NULL;
+  }
+
+  // Get referenced volume subject hierarchy node by found UID
+  vtkMRMLSubjectHierarchyNode* referencedSeriesNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
+    contour->GetScene(), vtkSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid);
+  if (!referencedSeriesNode)
+  {
+    return NULL;
+  }
+
+  // Get and return referenced volume
+  return vtkMRMLScalarVolumeNode::SafeDownCast(referencedSeriesNode->GetAssociatedDataNode());
+}
+
+//-----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContours(std::vector<vtkMRMLContourNode*>& contours)
 {
   if (contours.empty())
@@ -451,6 +481,8 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
     }
 
     // Get referenced series UID for contour
+    // Note: Do not use function for getting reference for one contour due to performance reasons (comparing the UID strings are
+    //   much faster than getting the subject hierarchy node by UID many times)
     const char* referencedSeriesUid = contourSubjectHierarchyNode->GetAttribute(
       SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str() );
 

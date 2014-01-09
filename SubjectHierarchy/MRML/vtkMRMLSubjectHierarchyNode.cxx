@@ -21,6 +21,7 @@
 
 // Subject Hierarchy includes
 #include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSubjectHierarchyConstants.h"
 
 // MRML includes
 #include "vtkMRMLScene.h"
@@ -555,4 +556,13 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetAncestorAtLevel(con
 
   vtkWarningMacro("GetAttributeFromAncestor: No ancestor found for node '" << this->Name << "' at level '" << level << "'!");
   return NULL;
+}
+
+//---------------------------------------------------------------------------
+std::string vtkMRMLSubjectHierarchyNode::GetNameWithoutPostfix()
+{
+  std::string nameStr(this->Name);
+  size_t postfixStart = nameStr.find(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);
+  std::string strippedNameStr = nameStr.substr(0, postfixStart);
+  return strippedNameStr;
 }

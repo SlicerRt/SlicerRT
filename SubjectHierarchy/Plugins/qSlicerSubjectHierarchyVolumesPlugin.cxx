@@ -58,6 +58,7 @@ public:
   qSlicerSubjectHierarchyVolumesPluginPrivate(qSlicerSubjectHierarchyVolumesPlugin& object);
   ~qSlicerSubjectHierarchyVolumesPluginPrivate();
 public:
+  QIcon LabelmapIcon;
   QIcon ShowInViewersIcon;
   QIcon VolumeIcon;
 };
@@ -69,6 +70,7 @@ public:
 qSlicerSubjectHierarchyVolumesPluginPrivate::qSlicerSubjectHierarchyVolumesPluginPrivate(qSlicerSubjectHierarchyVolumesPlugin& object)
 : q_ptr(&object)
 {
+  this->LabelmapIcon = QIcon(":Icons/Labelmap.png");
   this->ShowInViewersIcon = QIcon(":Icons/ShowInViewers.png");
   this->VolumeIcon = QIcon(":Icons/Volume.png");
 }
@@ -139,7 +141,15 @@ bool qSlicerSubjectHierarchyVolumesPlugin::setIcon(vtkMRMLSubjectHierarchyNode* 
   vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
   if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
   {
-    item->setIcon(d->VolumeIcon);
+    const char* labelmapAttribute = associatedNode->GetAttribute("LabelMap");
+    if (labelmapAttribute && strcmp(labelmapAttribute, "0"))
+    {
+      item->setIcon(d->LabelmapIcon);
+    }
+    else
+    {
+      item->setIcon(d->VolumeIcon);
+    }
     return true;
   }
 
@@ -214,20 +224,45 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolume(vtkMRMLScalarVolumeNode* n
     return;
   }
 
-  // Set input volume as background volume, set the original background to foreground with opacity of 0.5
-  selectionNode->SetSecondaryVolumeID(selectionNode->GetActiveVolumeID());
-  selectionNode->SetActiveVolumeID(volumeNode->GetID());
-  qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
+  vtkMRMLSliceCompositeNode *compositeNode = NULL;
+  const int numberOfCompositeNodes = volumeNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
 
-  vtkMRMLSliceCompositeNode *cnode = NULL;
-  const int nnodes = volumeNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
-  for (int i = 0; i < nnodes; i++)
+  const char* labelmapAttribute = volumeNode->GetAttribute("LabelMap");
+  if (labelmapAttribute && strcmp(labelmapAttribute, "0"))
   {
-    cnode = vtkMRMLSliceCompositeNode::SafeDownCast ( volumeNode->GetScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
-    if (cnode && cnode->GetForegroundOpacity() == 0.0)
+    selectionNode->SetActiveLabelVolumeID(volumeNode->GetID());
+    qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
+  }
+  else
+  {
+    // Determine labelmap selection (if the selection is different in the slice viewers, then the first one is set)
+    // TODO: This is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
+    std::string selectedLabelmapID("");
+    for (int i=0; i<numberOfCompositeNodes; i++)
     {
-      cnode->SetForegroundOpacity(0.5);
+      compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( volumeNode->GetScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
+      if (compositeNode && compositeNode->GetLabelVolumeID())
+      {
+        if (selectedLabelmapID.empty())
+        {
+          selectedLabelmapID = std::string(compositeNode->GetLabelVolumeID());
+        }
+      }
+    }
+    selectionNode->SetActiveLabelVolumeID(selectedLabelmapID.c_str());
+
+    // Set input volume as background volume, set the original background to foreground with opacity of 0.5
+    selectionNode->SetSecondaryVolumeID(selectionNode->GetActiveVolumeID());
+    selectionNode->SetActiveVolumeID(volumeNode->GetID());
+    qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
+
+    for (int i=0; i<numberOfCompositeNodes; i++)
+    {
+      compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( volumeNode->GetScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
+      if (compositeNode && compositeNode->GetForegroundOpacity() == 0.0)
+      {
+        compositeNode->SetForegroundOpacity(0.5);
+      }
     }
   }
 }
-
