@@ -73,6 +73,12 @@ public:
   ///
   void GetRTBeamNodes(vtkCollection *);
 
+  /// Set RTPlanName
+  vtkSetStringMacro(RTPlanName);
+
+  /// Get RTPlanName
+  vtkGetStringMacro(RTPlanName);
+
 protected:
   vtkMRMLRTPlanNode();
   ~vtkMRMLRTPlanNode();

@@ -42,7 +42,7 @@ vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
-  this->RTPlanName = NULL;
+  this->RTPlanName = "RTPlan";
   this->HideFromEditorsOff();
 
   // Register parent transform modified event so that the representations
@@ -99,7 +99,7 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLRTPlanNode *node = vtkMRMLRTPlanNode::SafeDownCast(anode);
 
-  strcpy(this->RTPlanName, node->RTPlanName);
+  this->SetRTPlanName(node->RTPlanName);
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
