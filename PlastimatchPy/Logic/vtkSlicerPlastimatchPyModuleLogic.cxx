@@ -15,10 +15,11 @@
 
 ==============================================================================*/
 
-#include "SlicerRtCommon.h"
-
 // PlastimatchPy Logic includes
 #include "vtkSlicerPlastimatchPyModuleLogic.h"
+
+// SlicerRtCommon
+#include "SlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -140,7 +141,7 @@ void vtkSlicerPlastimatchPyModuleLogic::AddStage()
 //---------------------------------------------------------------------------
 void vtkSlicerPlastimatchPyModuleLogic::SetPar(char* key, char* value)
 {        
-  this->RegistrationParameters->set_key_val(key, value, 1);
+  this->RegistrationParameters->set_key_value("STAGE", key, value);
 }
 
 //---------------------------------------------------------------------------
@@ -149,11 +150,11 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
   // Set input images
   vtkMRMLScalarVolumeNode* fixedVtkImage = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
   itk::Image<float, 3>::Pointer fixedItkImage = itk::Image<float, 3>::New();
-  SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(fixedVtkImage, fixedItkImage);
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(fixedVtkImage, fixedItkImage, true);
 
   vtkMRMLScalarVolumeNode* movingVtkImage = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
   itk::Image<float, 3>::Pointer movingItkImage = itk::Image<float, 3>::New();
-  SlicerRtCommon::ConvertVolumeNodeToItkImageInLPS<float>(movingVtkImage, movingItkImage);
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(movingVtkImage, movingItkImage, true);
 
   //this->RegistrationData->fixed_image = new Plm_image(fixedItkImage);
   //this->RegistrationData->moving_image = new Plm_image(movingItkImage);
