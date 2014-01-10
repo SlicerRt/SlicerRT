@@ -37,6 +37,7 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLSliceCompositeNode.h>
+#include <vtkMRMLSliceNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -46,6 +47,7 @@
 // Qt includes
 #include <QDebug>
 #include <QStandardItem>
+#include <QAction>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy_Plugins
@@ -57,11 +59,14 @@ protected:
 public:
   qSlicerSubjectHierarchyVolumesPluginPrivate(qSlicerSubjectHierarchyVolumesPlugin& object);
   ~qSlicerSubjectHierarchyVolumesPluginPrivate();
+  void init();
 public:
   QIcon LabelmapIcon;
   QIcon VolumeIcon;
   QIcon VolumeVisibilityOffIcon;
   QIcon VolumeVisibilityOnIcon;
+
+  QAction* ToggleLabelmapOutlineDisplayAction;
 };
 
 //-----------------------------------------------------------------------------
@@ -75,6 +80,8 @@ qSlicerSubjectHierarchyVolumesPluginPrivate::qSlicerSubjectHierarchyVolumesPlugi
   this->VolumeIcon = QIcon(":Icons/Volume.png");
   this->VolumeVisibilityOffIcon = QIcon(":Icons/VolumeVisibilityOff.png");
   this->VolumeVisibilityOnIcon = QIcon(":Icons/VolumeVisibilityOn.png");
+
+  this->ToggleLabelmapOutlineDisplayAction = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -88,6 +95,20 @@ qSlicerSubjectHierarchyVolumesPlugin::qSlicerSubjectHierarchyVolumesPlugin(QObje
  , d_ptr( new qSlicerSubjectHierarchyVolumesPluginPrivate(*this) )
 {
   this->m_Name = QString("Volumes");
+
+  Q_D(qSlicerSubjectHierarchyVolumesPlugin);
+  d->init();
+}
+
+//------------------------------------------------------------------------------
+void qSlicerSubjectHierarchyVolumesPluginPrivate::init()
+{
+  Q_Q(qSlicerSubjectHierarchyVolumesPlugin);
+
+  this->ToggleLabelmapOutlineDisplayAction = new QAction("Toggle labelmap outline display",q);
+  QObject::connect(this->ToggleLabelmapOutlineDisplayAction, SIGNAL(toggled(bool)), q, SLOT(toggleLabelmapOutlineDisplay(bool)));
+  this->ToggleLabelmapOutlineDisplayAction->setCheckable(true);
+  this->ToggleLabelmapOutlineDisplayAction->setChecked(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -270,6 +291,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolume(vtkMRMLScalarVolumeNode* n
     return;
   }
 
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
   vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
   if (!selectionNode)
   {
@@ -298,7 +320,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolume(vtkMRMLScalarVolumeNode* n
       {
         // Needed so that visibility icon is updated (could be done in a faster way, but there is no noticeable overhead)
         vtkMRMLScalarVolumeNode* originalLabelmapNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-          volumeNode->GetScene()->GetNodeByID(selectionNode->GetActiveLabelVolumeID()) );
+          scene->GetNodeByID(selectionNode->GetActiveLabelVolumeID()) );
         this->showVolume(originalLabelmapNode, 0);
       }
       selectionNode->SetActiveLabelVolumeID(volumeNode->GetID());
@@ -325,7 +347,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolume(vtkMRMLScalarVolumeNode* n
       {
         // Show volume instead of the original secondary volume
         vtkMRMLScalarVolumeNode* originalSecondaryVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-          volumeNode->GetScene()->GetNodeByID(selectionNode->GetSecondaryVolumeID()) );
+          scene->GetNodeByID(selectionNode->GetSecondaryVolumeID()) );
         // Needed so that visibility icon is updated (could be done in a faster way, but there is no noticeable overhead)
         this->showVolume(originalSecondaryVolumeNode, 0);
 
@@ -336,10 +358,10 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolume(vtkMRMLScalarVolumeNode* n
 
       // Make sure the secondary volume is shown in a semi-transparent way
       vtkMRMLSliceCompositeNode* compositeNode = NULL;
-      int numberOfCompositeNodes = volumeNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
+      int numberOfCompositeNodes = scene->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
       for (int i=0; i<numberOfCompositeNodes; i++)
       {
-        compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( volumeNode->GetScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
+        compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( scene->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
         if (compositeNode && compositeNode->GetForegroundOpacity() == 0.0)
         {
           compositeNode->SetForegroundOpacity(0.5);
@@ -406,12 +428,13 @@ std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedLabelmapVolumeNodeI
     return selectedLabelmapID;
   }
 
-  vtkMRMLSliceCompositeNode *compositeNode = NULL;
-  const int numberOfCompositeNodes = selectionNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  vtkMRMLSliceCompositeNode* compositeNode = NULL;
+  const int numberOfCompositeNodes = scene->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
 
   for (int i=0; i<numberOfCompositeNodes; i++)
   {
-    compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( selectionNode->GetScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
+    compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( scene->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
     if (compositeNode && compositeNode->GetLabelVolumeID() && selectedLabelmapID.empty())
     {
       selectedLabelmapID = std::string(compositeNode->GetLabelVolumeID());
@@ -435,12 +458,13 @@ std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedBackgroundVolumeNod
     return selectedBackgroundVolumeID;
   }
 
-  vtkMRMLSliceCompositeNode *compositeNode = NULL;
-  const int numberOfCompositeNodes = selectionNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  vtkMRMLSliceCompositeNode* compositeNode = NULL;
+  const int numberOfCompositeNodes = scene->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
 
   for (int i=0; i<numberOfCompositeNodes; i++)
   {
-    compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( selectionNode->GetScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
+    compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( scene->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
     if (compositeNode && compositeNode->GetBackgroundVolumeID() && selectedBackgroundVolumeID.empty())
     {
       selectedBackgroundVolumeID = std::string(compositeNode->GetBackgroundVolumeID());
@@ -464,12 +488,13 @@ std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedForegroundVolumeNod
     return selectedForegroundVolumeID;
   }
 
-  vtkMRMLSliceCompositeNode *compositeNode = NULL;
-  const int numberOfCompositeNodes = selectionNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  vtkMRMLSliceCompositeNode* compositeNode = NULL;
+  const int numberOfCompositeNodes = scene->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
 
   for (int i=0; i<numberOfCompositeNodes; i++)
   {
-    compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( selectionNode->GetScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
+    compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( scene->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
     if (compositeNode && compositeNode->GetForegroundVolumeID() && selectedForegroundVolumeID.empty())
     {
       selectedForegroundVolumeID = std::string(compositeNode->GetForegroundVolumeID());
@@ -478,4 +503,70 @@ std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedForegroundVolumeNod
   }
 
   return selectedForegroundVolumeID;
+}
+
+//---------------------------------------------------------------------------
+QList<QAction*> qSlicerSubjectHierarchyVolumesPlugin::nodeContextMenuActions()const
+{
+  Q_D(const qSlicerSubjectHierarchyVolumesPlugin);
+
+  QList<QAction*> actions;
+  actions << d->ToggleLabelmapOutlineDisplayAction;
+  return actions;
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyVolumesPlugin::hideAllContextMenuActions()
+{
+  Q_D(qSlicerSubjectHierarchyVolumesPlugin);
+
+  d->ToggleLabelmapOutlineDisplayAction->setVisible(false);
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyVolumesPlugin::showContextMenuActionsForHandlingNode(vtkMRMLSubjectHierarchyNode* node)
+{
+  Q_D(qSlicerSubjectHierarchyVolumesPlugin);
+
+  if (!node)
+  {
+    // There are no scene actions in this plugin
+    return;
+  }
+
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
+
+  // Contour
+  if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
+  {
+    const char* labelmapAttribute = associatedNode->GetAttribute("LabelMap");
+    if (labelmapAttribute && strcmp(labelmapAttribute, "0"))
+    {
+      // Determine current state of the toggle labelmap outline checkbox (from the first slice view)
+      vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast ( scene->GetNthNodeByClass( 0, "vtkMRMLSliceNode" ) );
+      int useLabelOutline = sliceNode->GetUseLabelOutline();
+      d->ToggleLabelmapOutlineDisplayAction->blockSignals(true);
+      d->ToggleLabelmapOutlineDisplayAction->setChecked(useLabelOutline);
+      d->ToggleLabelmapOutlineDisplayAction->blockSignals(false);
+
+      d->ToggleLabelmapOutlineDisplayAction->setVisible(true);
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyVolumesPlugin::toggleLabelmapOutlineDisplay(bool checked)
+{
+  Q_D(qSlicerSubjectHierarchyVolumesPlugin);
+
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  vtkMRMLSliceNode* sliceNode = NULL;
+  const int numberOfSliceNodes = scene->GetNumberOfNodesByClass("vtkMRMLSliceNode");
+
+  for (int i=0; i<numberOfSliceNodes; i++)
+  {
+    sliceNode = vtkMRMLSliceNode::SafeDownCast ( scene->GetNthNodeByClass( i, "vtkMRMLSliceNode" ) );
+    sliceNode->SetUseLabelOutline(checked);
+  }
 }

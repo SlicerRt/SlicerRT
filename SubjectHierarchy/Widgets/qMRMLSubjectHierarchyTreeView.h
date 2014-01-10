@@ -50,8 +50,14 @@ protected:
   /// Set checked state of the select plugin actions in the node context menu for a specific node
   void updatePluginActionCheckedStates(vtkMRMLSubjectHierarchyNode* currentSubjectHierarchyNode);
 
+  /// Populate context menu for current node
+  void populateContextMenuForCurrentNode();
+
+  /// Handle mouse press event (facilitates timely update of context menu)
+  virtual void mousePressEvent(QMouseEvent* event);
+
 public slots:
-  /// Handle current node change (apply changes in the context menus)
+  /// Handle current node change. Invokes context menu population.
   void onCurrentNodeChanged(vtkMRMLNode* newCurrentNode);
 
   /// Handle node creation by plugin (expands branch etc.)

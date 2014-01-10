@@ -24,6 +24,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QMenu>
+#include <QMouseEvent>
 
 // SubjectHierarchy includes
 #include "qMRMLSubjectHierarchyTreeView.h"
@@ -89,8 +90,8 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
   // Change item visibility
   q->setShowScene(true);
   q->setUniformRowHeights(false);
-  q->setEditMenuActionVisible(false);
-  q->setDeleteMenuActionVisible(false);
+  q->setEditMenuActionVisible(false); //TODO: Add virtual function to plugins
+  q->setDeleteMenuActionVisible(false); //TODO: Delete associated data node (and the other hierarchy node if available)
 
   // Set up headers
   q->header()->setStretchLastSection(false);
@@ -99,8 +100,7 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
   q->header()->setResizeMode(2, QHeaderView::ResizeToContents);
 
   // Set connection to handle current node change
-  QObject::connect( q, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
-    q, SLOT(onCurrentNodeChanged(vtkMRMLNode*)) );
+  QObject::connect( q, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(onCurrentNodeChanged(vtkMRMLNode*)) );
 
   // Perform tasks need for all plugins
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
@@ -190,6 +190,30 @@ void qMRMLSubjectHierarchyTreeView::toggleVisibility(const QModelIndex& index)
 //--------------------------------------------------------------------------
 void qMRMLSubjectHierarchyTreeView::onCurrentNodeChanged(vtkMRMLNode* newCurrentNode)
 {
+  // Set new current node to plugin handler (even if it's NULL which means the scene is selected)
+  qSlicerSubjectHierarchyPluginHandler::instance()->setCurrentNode(
+    vtkMRMLSubjectHierarchyNode::SafeDownCast(newCurrentNode) );
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::mousePressEvent(QMouseEvent* e)
+{
+  Q_D(qMRMLSubjectHierarchyTreeView);
+
+  if (e->button() != Qt::RightButton)
+  {
+    return;
+  }
+
+  // Make sure the shown context menu is up-to-date
+  this->populateContextMenuForCurrentNode();
+
+  this->qMRMLTreeView::mousePressEvent(e);
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::populateContextMenuForCurrentNode()
+{
   Q_D(qMRMLSubjectHierarchyTreeView);
 
   // Hide all context menu items first
@@ -198,12 +222,11 @@ void qMRMLSubjectHierarchyTreeView::onCurrentNodeChanged(vtkMRMLNode* newCurrent
     plugin->hideAllContextMenuActions();
   }
 
-  // Set new current node to plugin handler (even if it's NULL which means the scene is selected)
-  qSlicerSubjectHierarchyPluginHandler::instance()->setCurrentNode(
-    vtkMRMLSubjectHierarchyNode::SafeDownCast(newCurrentNode) );
+  // Get current node
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
 
   // Scene is selected
-  if (!newCurrentNode)
+  if (!currentNode)
   {
     foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
     {
@@ -214,10 +237,10 @@ void qMRMLSubjectHierarchyTreeView::onCurrentNodeChanged(vtkMRMLNode* newCurrent
   }
 
   // Node is selected, do a sanity check
-  vtkMRMLSubjectHierarchyNode* currentSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(newCurrentNode);
+  vtkMRMLSubjectHierarchyNode* currentSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(currentNode);
   if (!currentSubjectHierarchyNode)
   {
-    qCritical() << "qMRMLSubjectHierarchyTreeView::onCurrentNodeChanged: Selected node is not a subject hierarchy node!";
+    qCritical() << "qMRMLSubjectHierarchyTreeView::populateContextMenuForNode: Selected node is not a subject hierarchy node!";
     return;
   }
 

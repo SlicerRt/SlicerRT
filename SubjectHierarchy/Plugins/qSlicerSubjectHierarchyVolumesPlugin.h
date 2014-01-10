@@ -89,6 +89,18 @@ public:
   /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
   virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
 
+  /// Get node context menu item actions to add to tree view
+  virtual QList<QAction*> nodeContextMenuActions()const;
+
+  /// Hide all context menu actions
+  virtual void hideAllContextMenuActions();
+
+  /// Show context menu actions valid for handling a given subject hierarchy node.
+  /// "Handling" includes features that are applied to the node (e.g. transform, convert, etc.)
+  /// This function is only called for a node's owner plugin and its dependent plugins.
+  /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
+  virtual void showContextMenuActionsForHandlingNode(vtkMRMLSubjectHierarchyNode* node);
+
 protected:
   /// Show volume in slice viewers. The argument node becomes the background, and the previous
   /// background becomes the foreground with 50% transparency.
@@ -106,6 +118,10 @@ protected:
   /// Determine foreground volume selection (if the selection is different in the slice viewers, then the first one is set)
   /// TODO: This is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
   std::string getSelectedForegroundVolumeNodeID();
+
+protected slots:
+  /// Toggle between labelmap outline display in the slice views
+  void toggleLabelmapOutlineDisplay(bool checked);
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyVolumesPluginPrivate> d_ptr;
