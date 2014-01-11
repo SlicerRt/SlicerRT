@@ -258,6 +258,8 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     reg.AddStage()
     reg.SetPar("xform","bspline")
     reg.SetPar("res",str(self.hybridSubsampling.text))
+    reg.SetPar("iterations",str(self.iterationsLineEdit.text))
+    #reg.SetPar("img_out","c:/tmp/gcs.nrrd")
 
     print ("Gonna RunRegistration()")
     print("prealignment strategy is %s" % str(self.prealignmentComboBox.currentText))

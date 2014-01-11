@@ -93,9 +93,8 @@ vtkSlicerPlastimatchPyModuleLogic::~vtkSlicerPlastimatchPyModuleLogic()
 
   this->MovingImageToFixedImageVectorField = NULL;
 
-  this->RegistrationParameters = NULL;
-  this->RegistrationData = NULL;
-
+  delete this->RegistrationParameters;
+  delete this->RegistrationData;
 }
 
 //----------------------------------------------------------------------------
@@ -116,20 +115,20 @@ void vtkSlicerPlastimatchPyModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newS
 void vtkSlicerPlastimatchPyModuleLogic::RegisterNodes()
 {
   if (!this->GetMRMLScene())
-    {
+  {
     vtkErrorMacro("RegisterNodes: Invalid MRML Scene!");
     return;
-    }
+  }
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerPlastimatchPyModuleLogic::UpdateFromMRMLScene()
 {
   if (!this->GetMRMLScene())
-    {
+  {
     vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML Scene!");
     return;
-    }
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -156,8 +155,6 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
   itk::Image<float, 3>::Pointer movingItkImage = itk::Image<float, 3>::New();
   SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(movingVtkImage, movingItkImage, true);
 
-  //this->RegistrationData->fixed_image = new Plm_image(fixedItkImage);
-  //this->RegistrationData->moving_image = new Plm_image(movingItkImage);
   this->RegistrationData->fixed_image = Plm_image::New (
     new Plm_image(fixedItkImage));
   this->RegistrationData->moving_image = Plm_image::New(
@@ -165,32 +162,31 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
 
   // Set landmarks 
   if (this->FixedLandmarks && this->MovingLandmarks)
-    {
-    // From Slicer
+  {
     this->SetLandmarksFromSlicer();
-    }
-  else
-    {
-    vtkErrorMacro("RunRegistration: Unable to retrieve fixed and moving landmarks!");
-    return;
-    }
+  }
 
   // Set initial affine transformation
   if (this->InitializationLinearTransformationID)
-    {
-    this->ApplyInitialLinearTransformation(); 
-    } 
+  {
+    this->ApplyInitialLinearTransformation();
+  }
 
   // Run registration and warp image
-  Xform* movingImageToFixedImageTransformation = NULL; // Transformation (linear or deformable) computed by Plastimatch
-  do_registration_pure(&movingImageToFixedImageTransformation, this->RegistrationData ,this->RegistrationParameters);
+  Xform* outputXform = NULL; // Transformation (linear or deformable) computed by Plastimatch
+  do_registration_pure(&outputXform, this->RegistrationData, this->RegistrationParameters);
+  printf ("do_registration_pure is complete.\n");
 
   Plm_image* warpedImage = new Plm_image();
-  this->ApplyWarp(warpedImage, this->MovingImageToFixedImageVectorField, movingImageToFixedImageTransformation,
-    this->RegistrationData->fixed_image.get(), this->RegistrationData->moving_image.get(), -1200, 0, 1);
+  this->ApplyWarp(warpedImage, this->MovingImageToFixedImageVectorField, 
+                  outputXform, this->RegistrationData->fixed_image.get(), 
+                  this->RegistrationData->moving_image.get(), -1200, 0, 1);
+  printf ("ApplyWarp() is complete.\n");
 
-  this->SetWarpedImageInVolumeNode(warpedImage);
+  //this->SetWarpedImageInVolumeNode(warpedImage);
+  this->SetWarpedImageInVolumeNode(this->RegistrationData->fixed_image.get());
 
+  delete outputXform;
   delete warpedImage;
 }
 
