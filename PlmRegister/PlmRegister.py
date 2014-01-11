@@ -105,23 +105,61 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.hybridCostButtons[self.hybridCost].checked = True
     plmRegisterFormLayout.addRow("Cost Function:", buttonLayout)
 
+    # Pre-alignment
+    buttonLayout = qt.QHBoxLayout()
+    self.prealignmentComboBox = qt.QComboBox()
+    self.prealignmentComboBox.insertItem (1, "None")
+    self.prealignmentComboBox.insertItem (2, "Local")
+    self.prealignmentComboBox.insertItem (3, "Global")
+    self.prealignmentComboBox.setToolTip("Pre-alignment method\nEither none, global, or local")
+    buttonLayout.addWidget(self.prealignmentComboBox)
+    plmRegisterFormLayout.addRow("Pre-alignment:", buttonLayout)
+
+    # Stage 1
+    self.stage1Box = qt.QGroupBox("Stage 1")
+    self.stage1Box.setLayout(qt.QFormLayout())
+
+    # Iterations
+    buttonLayout = qt.QHBoxLayout()
+    self.iterationsLineEdit = qt.QLineEdit()
+    self.iterationsLineEdit.setText('20')
+    self.iterationsLineEdit.setToolTip( "Maximum number of iterations" ) 
+    buttonLayout.addWidget(self.iterationsLineEdit)
+    self.stage1Box.layout().addRow("Iterations:", buttonLayout)
+
     # Subsampling rate
     buttonLayout = qt.QHBoxLayout()
     self.hybridSubsampling = qt.QLineEdit()
     self.hybridSubsampling.setText('2 2 2')
     self.hybridSubsampling.setToolTip( "Subsampling rate" ) 
     buttonLayout.addWidget(self.hybridSubsampling)
-    #self.hybridSubsampling.connect('textEdited(QString)', self.onHybridSubsampling)
-    plmRegisterFormLayout.addRow("Subsampling rate (vox):", buttonLayout)
+    self.stage1Box.layout().addRow("Subsampling rate (vox):", buttonLayout)
 
     # Grid spacing
     buttonLayout = qt.QHBoxLayout()
     self.hybridGridSize = qt.QLineEdit()
-    self.hybridGridSize.setText('50 50 50')
+    self.hybridGridSize.setText('50')
     self.hybridGridSize.setToolTip( "Set B-spline grid spacing" )
     buttonLayout.addWidget(self.hybridGridSize)
-    #self.hybridGridSize.connect('textEdited(QString)', self.onHybridGridSize)
-    plmRegisterFormLayout.addRow("Grid Size (mm):", buttonLayout)
+    self.stage1Box.layout().addRow("Grid Size (mm):", buttonLayout)
+
+    # Regularization
+    buttonLayout = qt.QHBoxLayout()
+    self.regularizationLineEdit = qt.QLineEdit()
+    self.regularizationLineEdit.setText('0.001')
+    self.regularizationLineEdit.setToolTip("Set Regularization penalty term")
+    buttonLayout.addWidget(self.regularizationLineEdit)
+    self.stage1Box.layout().addRow("Regularization:", buttonLayout)
+
+    # Landmark penalty
+    buttonLayout = qt.QHBoxLayout()
+    self.landmarkPenaltyLineEdit = qt.QLineEdit()
+    self.landmarkPenaltyLineEdit.setText('0.001')
+    self.landmarkPenaltyLineEdit.setToolTip("Set landmark distance penalty term")
+    buttonLayout.addWidget(self.landmarkPenaltyLineEdit)
+    self.stage1Box.layout().addRow("LandmarkPenalty:", buttonLayout)
+
+    plmRegisterFormLayout.addRow(self.stage1Box)
 
     # Apply button
     self.applyButton = qt.QPushButton("Apply")
@@ -194,6 +232,40 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     print ("Did SetMRMLScene")
 
     state = self.registrationState()
+    reg.SetFixedImageID(state.fixed.GetID())
+    reg.SetMovingImageID(state.moving.GetID())
+    reg.SetOutputVolumeID(state.transformed.GetID())
+
+    ## This was shamelessly stolen from AffinePlugin.py
+    ## It converts the landmarks from MRML Markup format
+    ## into vtkPoints format
+    points = {}
+    point = [0,]*3
+    for volumeNode in (state.fixed,state.moving):
+      points[volumeNode] = vtk.vtkPoints()
+    indices = range(state.fixedFiducials.GetNumberOfFiducials())
+    fiducialLists = (state.fixedFiducials,state.movingFiducials)
+    volumeNodes = (state.fixed,state.moving)
+    for fiducials,volumeNode in zip(fiducialLists,volumeNodes):
+      for index in indices:
+        fiducials.GetNthFiducialPosition(index,point)
+        points[volumeNode].InsertNextPoint(point)
+        print("%s: %s" % (volumeNode.GetName(), str(point)))
+
+    reg.SetFixedLandmarks(points[state.fixed])
+    reg.SetMovingLandmarks(points[state.moving])
+    print ("Gonna AddStage()")
+    reg.AddStage()
+    reg.SetPar("xform","bspline")
+    reg.SetPar("res",str(self.hybridSubsampling.text))
+
+    print ("Gonna RunRegistration()")
+    print("prealignment strategy is %s" % str(self.prealignmentComboBox.currentText))
+    print("subsampling is %s" % str(self.hybridSubsampling.text))
+
+    reg.RunRegistration ()
+    print ("Did RunRegistration()")
+
     # Set input/output images
     # reg.SetFixedImageID(
     #   state.volumeSelectors["Fixed"].currentNode().GetID())

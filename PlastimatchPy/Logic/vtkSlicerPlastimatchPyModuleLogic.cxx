@@ -162,24 +162,19 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
     new Plm_image(fixedItkImage));
   this->RegistrationData->moving_image = Plm_image::New(
     new Plm_image(movingItkImage));
-  
+
   // Set landmarks 
   if (this->FixedLandmarks && this->MovingLandmarks)
     {
     // From Slicer
     this->SetLandmarksFromSlicer();
     }
-  else if (this->FixedLandmarksFileName && this->FixedLandmarksFileName)
-    {
-    // From Files
-    this->SetLandmarksFromFiles();
-    }
   else
     {
     vtkErrorMacro("RunRegistration: Unable to retrieve fixed and moving landmarks!");
     return;
     }
-  
+
   // Set initial affine transformation
   if (this->InitializationLinearTransformationID)
     {
