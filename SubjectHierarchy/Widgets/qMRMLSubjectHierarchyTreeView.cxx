@@ -99,9 +99,6 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
   q->header()->setResizeMode(1, QHeaderView::ResizeToContents);
   q->header()->setResizeMode(2, QHeaderView::ResizeToContents);
 
-  // Set connection to handle current node change
-  QObject::connect( q, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(onCurrentNodeChanged(vtkMRMLNode*)) );
-
   // Perform tasks need for all plugins
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
   {
@@ -187,28 +184,31 @@ void qMRMLSubjectHierarchyTreeView::toggleVisibility(const QModelIndex& index)
   ownerPlugin->setDisplayVisibility(subjectHierarchyNode, visible);
 }
 
-//--------------------------------------------------------------------------
-void qMRMLSubjectHierarchyTreeView::onCurrentNodeChanged(vtkMRMLNode* newCurrentNode)
-{
-  // Set new current node to plugin handler (even if it's NULL which means the scene is selected)
-  qSlicerSubjectHierarchyPluginHandler::instance()->setCurrentNode(
-    vtkMRMLSubjectHierarchyNode::SafeDownCast(newCurrentNode) );
-}
-
 //------------------------------------------------------------------------------
 void qMRMLSubjectHierarchyTreeView::mousePressEvent(QMouseEvent* e)
 {
   Q_D(qMRMLSubjectHierarchyTreeView);
 
+  // Get the index of the current column
+  QModelIndex index = this->indexAt(e->pos());
+  vtkMRMLNode* node = this->sortFilterProxyModel()->mrmlNodeFromIndex(index);
+
+  // Set new current node to plugin handler (even if it's NULL which means the scene is selected)
+  qSlicerSubjectHierarchyPluginHandler::instance()->setCurrentNode(
+    vtkMRMLSubjectHierarchyNode::SafeDownCast(node) );
+
   if (e->button() != Qt::RightButton)
   {
-    return;
+    this->QTreeView::mousePressEvent(e);
   }
+  else // Right button clicked
+  {
+    // Make sure the shown context menu is up-to-date
+    this->populateContextMenuForCurrentNode();
 
-  // Make sure the shown context menu is up-to-date
-  this->populateContextMenuForCurrentNode();
-
-  this->qMRMLTreeView::mousePressEvent(e);
+    // Show context menu
+    this->qMRMLTreeView::mousePressEvent(e);
+  }
 }
 
 //--------------------------------------------------------------------------

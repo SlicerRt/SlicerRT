@@ -111,7 +111,7 @@ qSlicerSubjectHierarchyRTPlugin::~qSlicerSubjectHierarchyRTPlugin()
 //-----------------------------------------------------------------------------
 QStringList qSlicerSubjectHierarchyRTPlugin::dependencies()const
 {
-  return QStringList() << "DICOM" << "Volumes";
+  return QStringList() << "Volumes";
 }
 
 //----------------------------------------------------------------------------

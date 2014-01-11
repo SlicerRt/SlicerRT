@@ -101,6 +101,9 @@ public:
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
   virtual void showContextMenuActionsForHandlingNode(vtkMRMLSubjectHierarchyNode* node);
 
+  /// Get the list of plugin dependencies
+  virtual QStringList dependencies()const;
+
 protected:
   /// Show volume in slice viewers. The argument node becomes the background, and the previous
   /// background becomes the foreground with 50% transparency.
@@ -122,6 +125,10 @@ protected:
 protected slots:
   /// Toggle between labelmap outline display in the slice views
   void toggleLabelmapOutlineDisplay(bool checked);
+
+  /// Show volumes in study. The first two regular volumes and the first labelmap is shown if there are more.
+  /// Hides other volumes if there are less in the current study.
+  void showVolumesInStudy();
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyVolumesPluginPrivate> d_ptr;

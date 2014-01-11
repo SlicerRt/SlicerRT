@@ -126,7 +126,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
   if (contourHierarchyNode)
   {
     vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
-    contourHierarchyNode->GetAssociatedChildrendNodes(childContourNodes);
+    contourHierarchyNode->GetAssociatedChildrenNodes(childContourNodes);
     childContourNodes->InitTraversal();
     if (childContourNodes->GetNumberOfItems() < 1)
     {

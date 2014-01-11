@@ -914,7 +914,7 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
 
   // Get color node created for the structure set
   vtkSmartPointer<vtkCollection> colorNodes = vtkSmartPointer<vtkCollection>::New();
-  parentContourSubjectHierarchyNode->GetAssociatedChildrendNodes(colorNodes, "vtkMRMLColorTableNode");
+  parentContourSubjectHierarchyNode->GetAssociatedChildrenNodes(colorNodes, "vtkMRMLColorTableNode");
   if (colorNodes->GetNumberOfItems() != 1)
     {
     vtkErrorMacro("GetColorIndex: Invalid number (" << colorNodes->GetNumberOfItems() << ") of color table nodes found for contour '"

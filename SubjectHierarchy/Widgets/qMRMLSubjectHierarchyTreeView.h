@@ -57,9 +57,6 @@ protected:
   virtual void mousePressEvent(QMouseEvent* event);
 
 public slots:
-  /// Handle current node change. Invokes context menu population.
-  void onCurrentNodeChanged(vtkMRMLNode* newCurrentNode);
-
   /// Handle node creation by plugin (expands branch etc.)
   void expandNode(vtkMRMLSubjectHierarchyNode* node);
 

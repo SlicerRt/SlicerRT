@@ -328,7 +328,7 @@ void vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(vtkMRMLNode* 
     && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     vtkSmartPointer<vtkCollection> childContourNodes = vtkSmartPointer<vtkCollection>::New();
-    vtkMRMLSubjectHierarchyNode::SafeDownCast(node)->GetAssociatedChildrendNodes(childContourNodes);
+    vtkMRMLSubjectHierarchyNode::SafeDownCast(node)->GetAssociatedChildrenNodes(childContourNodes);
     childContourNodes->InitTraversal();
     if (childContourNodes->GetNumberOfItems() < 1)
     {
