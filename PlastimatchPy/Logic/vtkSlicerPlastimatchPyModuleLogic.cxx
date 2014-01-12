@@ -173,20 +173,20 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
   }
 
   // Run registration and warp image
-  Xform* outputXform = NULL; // Transformation (linear or deformable) computed by Plastimatch
-  do_registration_pure(&outputXform, this->RegistrationData, this->RegistrationParameters);
+  Xform::Pointer outputXform = 
+    do_registration_pure (this->RegistrationData, this->RegistrationParameters);
   printf ("do_registration_pure is complete.\n");
 
   Plm_image* warpedImage = new Plm_image();
-  this->ApplyWarp(warpedImage, this->MovingImageToFixedImageVectorField, 
-                  outputXform, this->RegistrationData->fixed_image.get(), 
-                  this->RegistrationData->moving_image.get(), -1200, 0, 1);
+  this->ApplyWarp(
+    warpedImage, this->MovingImageToFixedImageVectorField, 
+    outputXform, this->RegistrationData->fixed_image.get(), 
+    this->RegistrationData->moving_image.get(), -1200, 0, 1);
   printf ("ApplyWarp() is complete.\n");
 
   //this->SetWarpedImageInVolumeNode(warpedImage);
   this->SetWarpedImageInVolumeNode(this->RegistrationData->fixed_image.get());
 
-  delete outputXform;
   delete warpedImage;
 }
 
@@ -323,24 +323,29 @@ void vtkSlicerPlastimatchPyModuleLogic::ApplyInitialLinearTransformation()
   initializationTransformationAsItkTransformation->SetParameters(initializationTransformationAsAffineParameters);
 
   // Set transformation
-  Xform* initializationTransformationAsPlastimatchTransformation = new Xform();
-  initializationTransformationAsPlastimatchTransformation->set_aff(initializationTransformationAsItkTransformation);
+  Xform::Pointer plmInitializationXform = Xform::New ();
+  plmInitializationXform->set_aff(initializationTransformationAsItkTransformation);
 
   // Warp image using the input transformation
   Plm_image::Pointer prealignedImage = Plm_image::New();
-  this->ApplyWarp(prealignedImage.get(), NULL, initializationTransformationAsPlastimatchTransformation,
+  this->ApplyWarp(prealignedImage.get(), NULL, 
+    plmInitializationXform, 
     this->RegistrationData->fixed_image.get(), this->RegistrationData->moving_image.get(), -1200, 0, 1);
 
   // Update moving image
   this->RegistrationData->moving_image = prealignedImage;
-
-  delete initializationTransformationAsPlastimatchTransformation;
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::ApplyWarp(Plm_image* warpedImage,
-  DeformationFieldType::Pointer vectorFieldFromTransformation, Xform* inputTransformation, 
-  Plm_image* fixedImage, Plm_image* imageToWarp, float defaultValue, int useItk, int interpolationLinear)
+void vtkSlicerPlastimatchPyModuleLogic::ApplyWarp(
+  Plm_image* warpedImage,
+  DeformationFieldType::Pointer vectorFieldFromTransformation, 
+  const Xform::Pointer inputTransformation, 
+  Plm_image* fixedImage, 
+  Plm_image* imageToWarp, 
+  float defaultValue, 
+  int useItk, 
+  int interpolationLinear)
 {
   Plm_image_header* plastimatchImageHeader = new Plm_image_header(fixedImage);
   plm_warp(warpedImage, &vectorFieldFromTransformation, inputTransformation, plastimatchImageHeader,

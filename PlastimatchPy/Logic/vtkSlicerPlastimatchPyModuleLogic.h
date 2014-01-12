@@ -130,7 +130,7 @@ protected:
   void ApplyWarp(
     Plm_image* warpedImage,                        /*!< Output image as Plm_image pointer */
     DeformationFieldType::Pointer vectorFieldFromTransformation, /*!< Output vector field (optional) as DeformationFieldType::Pointer */
-    Xform* inputTransformation,                    /*!< Input transformation as Xform pointer */
+    const Xform::Pointer inputTransformation,                    /*!< Input transformation as Xform pointer */
     Plm_image* fixedImage,                         /*!< Fixed image as Plm_image pointer */
     Plm_image* imageToWarp,                         /*!< Input image to warp as Plm_image pointer */
     float defaultValue,                            /*!< Value (float) for pixels without match */
