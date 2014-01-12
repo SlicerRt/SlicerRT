@@ -90,7 +90,7 @@ QString qSlicerSubjectHierarchyModule::acknowledgementText()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerSubjectHierarchyModule::categories() const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << "" << "Informatics";
 }
 
 //-----------------------------------------------------------------------------
