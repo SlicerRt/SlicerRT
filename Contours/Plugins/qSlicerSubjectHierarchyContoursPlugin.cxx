@@ -207,17 +207,8 @@ bool qSlicerSubjectHierarchyContoursPlugin::addNodeToSubjectHierarchy(vtkMRMLNod
   }
 
   // Create hierarchy node for contour node
-  vtkSmartPointer<vtkMRMLSubjectHierarchyNode> contourSubjectHierarchyNode =
-    vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-  std::string shNodeName = std::string(nodeToAdd->GetName()) + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-  shNodeName = scene->GenerateUniqueName(shNodeName);
-  contourSubjectHierarchyNode->SetName(shNodeName.c_str());
-  contourSubjectHierarchyNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
-  //TODO: UID?
-  contourSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(),
-    nodeToAdd->GetName() );
-  scene->AddNode(contourSubjectHierarchyNode);
-  contourSubjectHierarchyNode->SetParentNodeID(parentNode->GetID());
+  vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+    scene, parentNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES, nodeToAdd->GetName());
 
   QString colorName("");
 
@@ -674,17 +665,10 @@ void qSlicerSubjectHierarchyContoursPlugin::createChildStructureSetForCurrentNod
   }
 
   // Create child structure set subject hierarchy node
-  vtkSmartPointer<vtkMRMLSubjectHierarchyNode> childStructureSetSubjectHierarchyNode =
-    vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
+  vtkMRMLSubjectHierarchyNode* childStructureSetSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+    scene, currentNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, SlicerRtCommon::CONTOURHIERARCHY_NEW_STRUCTURE_SET_NAME.c_str());
   childStructureSetSubjectHierarchyNode->SetSaveWithScene(0);
-  childStructureSetSubjectHierarchyNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
-  //TODO: UID?
-  std::string childNodeName = SlicerRtCommon::CONTOURHIERARCHY_NEW_STRUCTURE_SET_NAME +
-    vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-  childStructureSetSubjectHierarchyNode->SetName(childNodeName.c_str());
   childStructureSetSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-  scene->AddNode(childStructureSetSubjectHierarchyNode);
-  childStructureSetSubjectHierarchyNode->SetParentNodeID(currentNode->GetID());
 
   // Add color table node and default colors
   vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
@@ -706,18 +690,9 @@ void qSlicerSubjectHierarchyContoursPlugin::createChildStructureSetForCurrentNod
     SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3] ); // Color indicating invalid index
 
   // Add color table in subject hierarchy
-  vtkSmartPointer<vtkMRMLSubjectHierarchyNode> structureSetColorTableSubjectHierarchyNode =
-    vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
+  vtkMRMLSubjectHierarchyNode* structureSetColorTableSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+    scene, childStructureSetSubjectHierarchyNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES, structureSetColorTableNodeName.c_str(), structureSetColorTableNode);
   structureSetColorTableSubjectHierarchyNode->SetSaveWithScene(0);
-  structureSetColorTableSubjectHierarchyNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
-  //TODO: UID?
-  std::string colorTableShNodeName = structureSetColorTableNodeName +
-    vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-  colorTableShNodeName = scene->GenerateUniqueName(colorTableShNodeName);
-  structureSetColorTableSubjectHierarchyNode->SetName(colorTableShNodeName.c_str());
-  structureSetColorTableSubjectHierarchyNode->SetAssociatedNodeID(structureSetColorTableNode->GetID());
-  scene->AddNode(structureSetColorTableSubjectHierarchyNode);
-  structureSetColorTableSubjectHierarchyNode->SetParentNodeID(childStructureSetSubjectHierarchyNode->GetID());
 
   emit requestExpandNode(childStructureSetSubjectHierarchyNode);
 }

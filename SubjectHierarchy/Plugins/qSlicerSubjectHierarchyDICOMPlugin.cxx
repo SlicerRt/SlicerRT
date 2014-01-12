@@ -35,10 +35,13 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
+#include <vtkMRMLStorableNode.h>
+#include <vtkMRMLStorageNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
+#include <vtkCollection.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy_Plugins
@@ -266,35 +269,4 @@ void qSlicerSubjectHierarchyDICOMPlugin::showContextMenuActionsForCreatingChildF
   {
     d->CreateGenericSubseriesAction->setVisible(true);
   }
-}
-
-//--------------------------------------------------------------------------
-void qSlicerSubjectHierarchyDICOMPlugin::createChildForCurrentNode()
-{
-  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
-  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
-
-  QString parentLevel;
-  // If there is current node, parent level will be an empty string, which means the scene
-  if (currentNode)
-  {
-    parentLevel = QString(currentNode->GetLevel());
-  }
-  QString childLevel = this->childLevel(parentLevel);
-
-  // Create child subject hierarchy node
-  vtkSmartPointer<vtkMRMLSubjectHierarchyNode> childSubjectHierarchyNode =
-    vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-  childSubjectHierarchyNode->SetLevel(childLevel.toLatin1().constData());
-  //TODO: UID?
-  std::string childNodeName = vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NEW_NODE_NAME_PREFIX +
-    childLevel.toLatin1().constData() + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-  childSubjectHierarchyNode->SetName(childNodeName.c_str());
-  scene->AddNode(childSubjectHierarchyNode);
-  if (currentNode)
-  {
-    childSubjectHierarchyNode->SetParentNodeID(currentNode->GetID());
-  }
-
-  emit requestExpandNode(childSubjectHierarchyNode);
 }

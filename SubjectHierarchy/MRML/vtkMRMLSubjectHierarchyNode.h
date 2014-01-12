@@ -75,6 +75,21 @@ public:
   /// \return If associatedNode is a subject hierarchy node, then return that. Otherwise the first hierarchy node found in the scene that fulfills the conditions.
   static vtkMRMLSubjectHierarchyNode* GetAssociatedSubjectHierarchyNode(vtkMRMLNode *associatedNode, vtkMRMLScene* scene=NULL);
 
+  /// Get child subject hierarchy node with specific name
+  /// \param parent Parent subject hierarchy node to start from. If NULL, then looking for top-level nodes
+  /// \param name Name to find
+  /// \param scene MRML scene (in case the parent node is not given)
+  /// \return Child node whose name without postfix is the same as the given attribute
+  static vtkMRMLSubjectHierarchyNode* GetChildWithName(vtkMRMLSubjectHierarchyNode* parent, const char* name, vtkMRMLScene* scene=NULL);
+
+  /// Create subject hierarchy node in the scene under a specified parent
+  /// \scene MRML scene
+  /// \parent Parent node under which the created node is put. If NULL, then the child will be a top-level node
+  /// \level Level string of the created node
+  /// \nodeName Name of the node (subject hierarchy postfix is added to it)
+  /// \associatedNode Data node to associate with the created subject hierarchy node. If NULL, then no node will be associated
+  static vtkMRMLSubjectHierarchyNode* CreateSubjectHierarchyNode(vtkMRMLScene* scene, vtkMRMLSubjectHierarchyNode* parentNode, const char* level, const char* nodeName, vtkMRMLNode* associatedNode=NULL);
+
 public:
   //TODO: Make this an override of vtkMRMLHierarchyNode::GetAssociatedNode. For that it has to be virtual.
   /// Get node associated with this hierarchy node.

@@ -33,6 +33,7 @@
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyDICOMPlugin.h"
 #include "qSlicerSubjectHierarchyVolumesPlugin.h"
+#include "qSlicerSubjectHierarchyParseLocalDataPlugin.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -121,6 +122,7 @@ void qSlicerSubjectHierarchyModule::setup()
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyDICOMPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyVolumesPlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyParseLocalDataPlugin());
 }
 
 //-----------------------------------------------------------------------------

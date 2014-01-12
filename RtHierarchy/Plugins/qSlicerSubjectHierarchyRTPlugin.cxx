@@ -324,7 +324,7 @@ void qSlicerSubjectHierarchyRTPlugin::setDisplayVisibility(vtkMRMLSubjectHierarc
       modelNode->SetDisplayVisibility(visible);
       node->Modified(); // Triggers icon refresh in subject hierarchy tree
     }
-    // RT Dose: show like a regular volume
+    // RT Dose: show/hide like a regular volume
     else if (SlicerRtCommon::IsDoseVolumeNode(associatedVolumeNode))
     {
       qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->setDisplayVisibility(node, visible);
@@ -366,6 +366,11 @@ int qSlicerSubjectHierarchyRTPlugin::getDisplayVisibility(vtkMRMLSubjectHierarch
         return -1;
       }
       return modelNode->GetDisplayVisibility();
+    }
+    // RT Dose: like a regular volume
+    else if (SlicerRtCommon::IsDoseVolumeNode(associatedVolumeNode))
+    {
+      return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->getDisplayVisibility(node);
     }
   }
 

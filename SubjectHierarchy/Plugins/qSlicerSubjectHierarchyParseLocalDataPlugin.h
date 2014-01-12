@@ -19,15 +19,15 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSubjectHierarchyDICOMPlugin_h
-#define __qSlicerSubjectHierarchyDICOMPlugin_h
+#ifndef __qSlicerSubjectHierarchyParseLocalDataPlugin_h
+#define __qSlicerSubjectHierarchyParseLocalDataPlugin_h
 
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyAbstractPlugin.h"
 
 #include "qSlicerSubjectHierarchyModulePluginsExport.h"
 
-class qSlicerSubjectHierarchyDICOMPluginPrivate;
+class qSlicerSubjectHierarchyParseLocalDataPluginPrivate;
 class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 
@@ -37,15 +37,15 @@ class vtkMRMLSubjectHierarchyNode;
 //BTX
 
 /// \ingroup Slicer_QtModules_SubjectHierarchy_Plugins
-class Q_SLICER_SUBJECTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyDICOMPlugin : public qSlicerSubjectHierarchyAbstractPlugin
+class Q_SLICER_SUBJECTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyParseLocalDataPlugin : public qSlicerSubjectHierarchyAbstractPlugin
 {
 public:
   Q_OBJECT
 
 public:
   typedef qSlicerSubjectHierarchyAbstractPlugin Superclass;
-  qSlicerSubjectHierarchyDICOMPlugin(QObject* parent = NULL);
-  virtual ~qSlicerSubjectHierarchyDICOMPlugin();
+  qSlicerSubjectHierarchyParseLocalDataPlugin(QObject* parent = NULL);
+  virtual ~qSlicerSubjectHierarchyParseLocalDataPlugin();
 
 public:
   /// Determines if a non subject hierarchy node can be placed in the hierarchy, and gets a confidence
@@ -81,11 +81,6 @@ public:
   /// Set visibility icon of a owned subject hierarchy node
   virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
 
-  /// Get node context menu item actions to add to tree view
-  /// Separate method is needed for the scene, as its actions are set to the
-  /// tree by a different method \sa sceneContextMenuActions
-  virtual QList<QAction*> nodeContextMenuActions()const;
-
   /// Get scene context menu item actions to add to tree view
   /// Separate method is needed for the scene, as its actions are set to the
   /// tree by a different method \sa nodeContextMenuActions
@@ -94,6 +89,9 @@ public:
   /// Hide all context menu actions
   virtual void hideAllContextMenuActions();
 
+  /// Get the list of plugin dependencies
+  virtual QStringList dependencies()const;
+
   /// Show context menu actions valid for creating a child for a given subject hierarchy node.
   /// This function is called for all plugins, not just a node's owner plugin and its dependents,
   /// because it's not the node's ownership that determines what kind of children can be created
@@ -101,12 +99,20 @@ public:
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
   virtual void showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node);
 
+protected slots:
+  /// Create subject hierarchy from loaded loacl directories.
+  /// Adds all nodes in the potential subject hierarchy nodes list that is storable and has a valid storage node with a file
+  /// name (meaning it has been loaded from local disk). Creates patient/study/series/subseries hierarchies according to the
+  /// paths of the loaded files, ignoring the part that is identical (if everything has been loaded from the same directory,
+  /// then only creates subject hierarchy nodes for the directories within that directory).
+  void createHierarchyFromLoadedLocalDirectories();
+
 protected:
-  QScopedPointer<qSlicerSubjectHierarchyDICOMPluginPrivate> d_ptr;
+  QScopedPointer<qSlicerSubjectHierarchyParseLocalDataPluginPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyDICOMPlugin);
-  Q_DISABLE_COPY(qSlicerSubjectHierarchyDICOMPlugin);
+  Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyParseLocalDataPlugin);
+  Q_DISABLE_COPY(qSlicerSubjectHierarchyParseLocalDataPlugin);
 };
 
 //ETX

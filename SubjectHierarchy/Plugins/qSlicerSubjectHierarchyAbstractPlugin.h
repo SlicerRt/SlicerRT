@@ -154,6 +154,10 @@ public:
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
   virtual void showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node) { };
 
+// Utility functions
+public:
+  vtkMRMLSubjectHierarchyNode* createChildNode(vtkMRMLSubjectHierarchyNode* parentNode, QString nodeName, vtkMRMLNode* associatedNode=NULL);
+
 public:
   /// Get the name of the plugin
   virtual QString name()const;
@@ -172,6 +176,10 @@ protected:
   /// Get child level according to child level map of the current plugin
   /// (no search is done in the dependencies)
   virtual QString childLevel(QString parentLevel);
+
+protected slots:
+  /// Create supported child for the current node (which is selected in the tree)
+  void createChildForCurrentNode();
 
 protected:
   /// Name of the plugin

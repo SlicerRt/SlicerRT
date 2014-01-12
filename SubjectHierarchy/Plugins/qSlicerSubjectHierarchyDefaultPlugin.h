@@ -100,10 +100,6 @@ public:
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
   virtual void showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node);
 
-protected slots:
-  /// Create supported child for the current node (selected in the tree)
-  void createChildForCurrentNode();
-
 public:
   /// Set default visibility icons owned by the scene model so that the default plugin can set them
   void setDefaultVisibilityIcons(QIcon visibleIcon, QIcon hiddenIcon, QIcon partiallyVisibleIcon);

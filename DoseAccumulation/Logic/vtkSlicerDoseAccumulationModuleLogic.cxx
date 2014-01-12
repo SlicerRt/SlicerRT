@@ -384,19 +384,13 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(outputAccumulatedDoseVolumeNode);
   if (!subjectHierarchySeriesNode)
   {
-    std::string shSeriesNodeName(outputAccumulatedDoseVolumeNode->GetName());
-    shSeriesNodeName.append(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);
-    shSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(shSeriesNodeName);
-    subjectHierarchySeriesNode = vtkMRMLSubjectHierarchyNode::New();
-    subjectHierarchySeriesNode->SetAssociatedNodeID(outputAccumulatedDoseVolumeNode->GetID());
-    subjectHierarchySeriesNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
-    //TODO: UID?
-    subjectHierarchySeriesNode->SetName(shSeriesNodeName.c_str());
-    this->GetMRMLScene()->AddNode(subjectHierarchySeriesNode);
-    subjectHierarchySeriesNode->Delete(); // Return ownership to the scene only
+    vtkMRMLSubjectHierarchyNode* childSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+      this->GetMRMLScene(), studyNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, outputAccumulatedDoseVolumeNode->GetName(), outputAccumulatedDoseVolumeNode);
   }
-
-  subjectHierarchySeriesNode->SetParentNodeID(studyNode->GetID());
+  else
+  {
+    subjectHierarchySeriesNode->SetParentNodeID(studyNode->GetID());
+  }
 
   // Set threshold values so that the background is black
   const char* doseUnitScalingChars = studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());

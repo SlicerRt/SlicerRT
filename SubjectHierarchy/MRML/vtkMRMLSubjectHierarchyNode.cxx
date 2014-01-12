@@ -566,3 +566,88 @@ std::string vtkMRMLSubjectHierarchyNode::GetNameWithoutPostfix()
   std::string strippedNameStr = nameStr.substr(0, postfixStart);
   return strippedNameStr;
 }
+
+//---------------------------------------------------------------------------
+vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetChildWithName(vtkMRMLSubjectHierarchyNode* parent, const char* name, vtkMRMLScene* scene/*=NULL*/)
+{
+  if (!name)
+  {
+    return NULL;
+  }
+
+  vtkMRMLSubjectHierarchyNode* nodeToReturn = NULL;
+  if (!parent)
+  {
+    if (!scene)
+    {
+      std::cerr << "vtkMRMLSubjectHierarchyNode::GetChildWithName: Unable to find top-level node without a specified scene" << std::endl;
+      return NULL;
+    }
+
+    // Looking in top-level nodes
+    vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLSubjectHierarchyNode") );
+    vtkObject* nextObject = NULL;
+    for (hierarchyNodes->InitTraversal(); (nextObject = hierarchyNodes->GetNextItemAsObject()); )
+    {
+      vtkMRMLSubjectHierarchyNode* hierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nextObject);
+      if ( hierarchyNode && !hierarchyNode->GetParentNodeID()
+        && !hierarchyNode->GetNameWithoutPostfix().compare(name) )
+      {
+        if (nodeToReturn)
+        {
+          vtkWarningWithObjectMacro(hierarchyNode,"GetChildWithName: Multiple top-level nodes with the same name found. Returning the first one");
+        }
+        else
+        {
+          nodeToReturn = hierarchyNode;
+        }
+      }
+    }
+  }
+  else
+  {
+    // Looking for child of an existing node
+    std::vector<vtkMRMLHierarchyNode*> children = parent->GetChildrenNodes();
+    for (std::vector<vtkMRMLHierarchyNode*>::iterator childIt=children.begin(); childIt!=children.end(); ++childIt)
+    {
+      vtkMRMLSubjectHierarchyNode* childNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*childIt);
+      if (childNode && !childNode->GetNameWithoutPostfix().compare(name))
+      {
+        if (nodeToReturn)
+        {
+          vtkWarningWithObjectMacro(parent,"GetChildWithName: Multiple children with the same name found. Returning the first one");
+        }
+        else
+        {
+          nodeToReturn = childNode;
+        }
+      }
+    }
+  }
+
+  return nodeToReturn;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+  vtkMRMLScene* scene, vtkMRMLSubjectHierarchyNode* parentNode, const char* level, const char* nodeName, vtkMRMLNode* associatedNode/*=NULL*/)
+{
+  // Create subject hierarchy node
+  vtkSmartPointer<vtkMRMLSubjectHierarchyNode> childSubjectHierarchyNode =
+    vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
+  childSubjectHierarchyNode->SetLevel(level);
+  //TODO: UID?
+  std::string shNodeName = nodeName + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
+  childSubjectHierarchyNode->SetName(shNodeName.c_str());
+  scene->AddNode(childSubjectHierarchyNode);
+  if (parentNode)
+  {
+    childSubjectHierarchyNode->SetParentNodeID(parentNode->GetID());
+  }
+  if (associatedNode)
+  {
+    childSubjectHierarchyNode->SetAssociatedNodeID(associatedNode->GetID());
+  }
+
+  return childSubjectHierarchyNode;
+}
