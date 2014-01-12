@@ -269,7 +269,7 @@ void qSlicerSubjectHierarchyParseLocalDataPlugin::createHierarchyFromLoadedLocal
       }
       else
       {
-        parent = this->createChildNode(parent, component);
+        parent = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("DICOM")->createChildNode(parent, component);
         createdNodes << parent;
       }
     }
