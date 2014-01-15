@@ -48,13 +48,13 @@ TEST_WITH_DATA(
   EclipseProstate_Rectum_Dilated_Contour_Labelmap.nrrd
   ${TEMP}/TestScene_ContourComparison_EclipseProstate.mrml
   0
-  4.67707
-  3.12857
-  4.22989
-  0.651661
-  0.182964
-  99.6214
-  0.195603
+  6.12
+  5.49 
+  6.60 
+  0.517694
+  0.1815
+  99.48
+  0.338187
   0.0
 )
 set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
@@ -72,7 +72,7 @@ TEST_WITH_DATA(
   0.0
   0.0
   1
-  0.182964
+  0.1815
   99.817
   0.0
   0.0
@@ -89,12 +89,12 @@ TEST_WITH_DATA(
   ${TEMP}/TestScene_ContourComparison_EclipseProstate_Transformed.mrml
   1
   5.00
-  2.14767
-  4.83854
-  0.693587
-  0.126901
+  2.56156
+  5
+  0.694316
+  0.126019
   99.761
-  0.0560625
-  0.0560625
+  0.0554816
+  0.0554816
 )
 set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
