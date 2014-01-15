@@ -64,6 +64,8 @@ vtkMRMLContourNode::vtkMRMLContourNode()
 
   this->RasterizationReferenceVolumeNodeId = NULL;
 
+  this->DicomRtRoiPoints = NULL;
+
   this->RasterizationOversamplingFactor = -1.0;
   this->DecimationTargetReductionFactor = -1.0;
 
@@ -83,6 +85,7 @@ vtkMRMLContourNode::~vtkMRMLContourNode()
   this->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
   this->SetAndObserveClosedSurfaceModelNodeId(NULL);
   this->SetRasterizationReferenceVolumeNodeId(NULL);
+  this->SetDicomRtRoiPoints(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -200,6 +203,8 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
   this->ActiveRepresentationType = node->GetActiveRepresentationType();
 
   this->SetAndObserveRasterizationReferenceVolumeNodeId( node->RasterizationReferenceVolumeNodeId );
+
+  this->SetDicomRtRoiPoints( node->GetDicomRtRoiPoints() );
 
   this->SetRasterizationOversamplingFactor( node->RasterizationOversamplingFactor );
   this->SetDecimationTargetReductionFactor( node->DecimationTargetReductionFactor );

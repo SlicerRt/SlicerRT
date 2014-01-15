@@ -27,6 +27,9 @@
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
 
+// VTK includes
+#include <vtkPolyData.h>
+
 #include "vtkSlicerContoursModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
@@ -147,6 +150,11 @@ public:
   /// Set and observe rasterization reference volume node ID
   void SetAndObserveRasterizationReferenceVolumeNodeId(const char* id);
 
+  /// Get original ROI points from DICOM-RT
+  vtkGetObjectMacro(DicomRtRoiPoints, vtkPolyData);
+  /// Set original ROI points from DICOM-RT
+  vtkSetObjectMacro(DicomRtRoiPoints, vtkPolyData);
+
   /// Get rasterization oversampling factor
   vtkGetMacro(RasterizationOversamplingFactor, double);
   /// Set rasterization oversampling factor
@@ -214,6 +222,11 @@ protected:
   vtkMRMLModelNode* ClosedSurfaceModelNode;
   /// Closed surface model representation model node ID
   char *ClosedSurfaceModelNodeId;
+
+  /// Original ROI points from DICOM-RT. For various purposes, e.g. re-ribbonization for a different slice thickness
+  /// TODO: Temporary solution. Re-ribbonization (or ribbon model) will not be needed any more when we have the direct
+  ///   conversion from points to closed surface points
+  vtkPolyData* DicomRtRoiPoints;
 
   /// Active representation type
   ContourRepresentationType ActiveRepresentationType;

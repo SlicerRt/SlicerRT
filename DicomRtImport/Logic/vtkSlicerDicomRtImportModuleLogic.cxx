@@ -344,21 +344,25 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     vtkMRMLDisplayableNode* addedDisplayableNode = NULL;
 
     // Get structure
-    vtkPolyData* roiPoly = rtReader->GetRoiPolyData(internalROIIndex);
-    if (roiPoly == NULL)
+    vtkPolyData* roiPolyTemp = rtReader->GetRoiPolyData(internalROIIndex);
+    if (roiPolyTemp == NULL)
     {
       vtkWarningMacro("LoadRtStructureSet: Invalid ROI contour data for ROI named '"
         << (roiLabel?roiLabel:"Unnamed") << "' in file '" << firstFileNameStr
         << "' (internal ROI index: " << internalROIIndex << ")");
       continue;
     }
-    if (roiPoly->GetNumberOfPoints() <= 0)
+    if (roiPolyTemp->GetNumberOfPoints() <= 0)
     {
       vtkWarningMacro("LoadRtStructureSet: ROI contour data does not contain any points for ROI named '"
         << (roiLabel?roiLabel:"Unnamed") << "' in file '" << firstFileNameStr
         << "' (internal ROI index: " << internalROIIndex << ")");
       continue;
     }
+
+    // Make a copy the poly data for further use (set the original points before ribbonization to the contour)
+    vtkSmartPointer<vtkPolyData> roiPolyData = vtkSmartPointer<vtkPolyData>::New();
+    roiPolyData->DeepCopy(roiPolyTemp);
 
     // Get referenced series UID
     const char* roiReferencedSeriesUid = rtReader->GetRoiReferencedSeriesUid(internalROIIndex);
@@ -374,10 +378,10 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     // Save color into the color table
     structureSetColorTableNode->AddColor(roiLabel, roiColor[0], roiColor[1], roiColor[2]);
 
-    if (roiPoly->GetNumberOfPoints() == 1)
+    if (roiPolyData->GetNumberOfPoints() == 1)
     {
       // Point ROI
-      addedDisplayableNode = this->AddRoiPoint(roiPoly->GetPoint(0), roiLabel, roiColor);
+      addedDisplayableNode = this->AddRoiPoint(roiPolyData->GetPoint(0), roiLabel, roiColor);
     }
     else
     {
@@ -413,7 +417,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         this->GetMRMLScene()->AddNode(contourHierarchySeriesNode);
       }
 
-      if (roiPoly->GetNumberOfPoints() == 1)
+      if (roiPolyData->GetNumberOfPoints() == 1)
       {
         // Create subject hierarchy entry for the ROI
         vtkSmartPointer<vtkMRMLSubjectHierarchyNode> subjectHierarchyRoiNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
@@ -435,6 +439,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         contourNode = vtkMRMLContourNode::SafeDownCast(this->GetMRMLScene()->AddNode(contourNode));
         contourNode->SetName(contourNodeName.c_str());
         contourNode->SetAndObserveRibbonModelNodeId(addedDisplayableNode->GetID());
+        contourNode->SetDicomRtRoiPoints(roiPolyData);
         contourNode->HideFromEditorsOff();
 
         // Put the contour node in the hierarchy
