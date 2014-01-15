@@ -195,7 +195,7 @@ public:
 
 //BTX
   /*!
-    Convert VTK image to ITK image
+    Convert volume MRML node to ITK image
     \param inVolumeNode Input volume node
     \param outItkVolume Output ITK image
     \param applyRasToLpsConversion Apply RAS (Slicer) to LPS (ITK, DICOM) coordinate frame conversion

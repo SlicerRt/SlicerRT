@@ -135,10 +135,10 @@ void vtkPlmpyDicomSroExport::DoExport ()
 
   // Convert input CT/MR image to the format Plastimatch can use
   vtkMRMLScalarVolumeNode* fixedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
-  Plm_image::Pointer fixedImage = PlmCommon::CreatePlmImage (fixedNode);
+  Plm_image::Pointer fixedImage = PlmCommon::ConvertVolumeNodeToPlmImage (fixedNode);
 
   vtkMRMLScalarVolumeNode* movingNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
-  Plm_image::Pointer movingImage = PlmCommon::CreatePlmImage (movingNode);
+  Plm_image::Pointer movingImage = PlmCommon::ConvertVolumeNodeToPlmImage (movingNode);
 
   // Convert xform into a form that Plastimatch can use
   vtkMRMLLinearTransformNode *xformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));

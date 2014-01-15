@@ -29,6 +29,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
+// SlicerRT includes
 #include "SlicerRtCommon.h"
 
 //----------------------------------------------------------------------------
@@ -44,7 +45,7 @@ convert_to_itk (vtkMRMLScalarVolumeNode* inVolumeNode)
 }
 
 Plm_image::Pointer 
-PlmCommon::CreatePlmImage(vtkMRMLScalarVolumeNode* inVolumeNode)
+PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode)
 {
   Plm_image::Pointer image = Plm_image::New ();
 
