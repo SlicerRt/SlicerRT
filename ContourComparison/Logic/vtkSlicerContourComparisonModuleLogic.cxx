@@ -44,9 +44,6 @@
 #include <vtkTimerLog.h>
 #include <vtkObjectFactory.h>
 
-// ITK includes
-#include <itkImageRegionIteratorWithIndex.h>
-
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ContourComparison
 class vtkSlicerContourComparisonModuleLogicPrivate : public vtkObject

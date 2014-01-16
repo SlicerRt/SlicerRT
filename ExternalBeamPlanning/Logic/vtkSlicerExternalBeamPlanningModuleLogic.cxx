@@ -51,9 +51,6 @@
 #include <vtkConeSource.h>
 #include <vtkObjectFactory.h>
 
-// ITK includes
-#include <itkImageRegionIteratorWithIndex.h>
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerExternalBeamPlanningModuleLogic);
 

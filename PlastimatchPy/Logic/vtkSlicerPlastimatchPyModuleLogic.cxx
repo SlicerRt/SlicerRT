@@ -30,7 +30,6 @@
 // ITK includes
 #include <itkAffineTransform.h>
 #include <itkArray.h>
-#include <itkImageRegionIteratorWithIndex.h>
 
 // VTK includes
 #include <vtkNew.h>

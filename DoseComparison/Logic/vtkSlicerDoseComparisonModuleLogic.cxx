@@ -49,9 +49,6 @@
 #include <vtkObjectFactory.h>
 #include "vtksys/SystemTools.hxx"
 
-// ITK includes
-#include <itkImageRegionIteratorWithIndex.h>
-
 // SlicerBase includes
 #include "vtkSlicerApplicationLogic.h"
 

@@ -9,6 +9,9 @@
 #include <vtkImageThreshold.h>
 #include <vtkTransform.h>
 
+// ITK includes
+#include <itkImageRegionIteratorWithIndex.h>
+
 //----------------------------------------------------------------------------
 template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion/*=false*/)
 {
@@ -147,8 +150,8 @@ template<typename T> bool SlicerRtCommon::ConvertItkImageToVtkImageData(typename
     return false; 
   }
 
-  itk::Image<T, 3>::RegionType region = inItkImage->GetBufferedRegion();
-  itk::Image<T, 3>::SizeType imageSize = region.GetSize();
+  typename itk::Image<T, 3>::RegionType region = inItkImage->GetBufferedRegion();
+  typename itk::Image<T, 3>::SizeType imageSize = region.GetSize();
   int extent[6]={0, (int) imageSize[0]-1, 0, (int) imageSize[1]-1, 0, (int) imageSize[2]-1};
   outVtkImageData->SetExtent(extent);
   outVtkImageData->SetScalarType(vtkType);
@@ -156,12 +159,14 @@ template<typename T> bool SlicerRtCommon::ConvertItkImageToVtkImageData(typename
   outVtkImageData->AllocateScalars();
 
   T* outVtkImageDataPtr = (T*)outVtkImageData->GetScalarPointer();
-  itk::ImageRegionIteratorWithIndex< itk::Image<T, 3> > itInItkImage(
+  typename itk::ImageRegionIteratorWithIndex< itk::Image<T, 3> > itInItkImage(
     inItkImage, inItkImage->GetLargestPossibleRegion() );
   for ( itInItkImage.GoToBegin(); !itInItkImage.IsAtEnd(); ++itInItkImage )
   {
-    itk::Image<T, 3>::IndexType i = itInItkImage.GetIndex();
+    typename itk::Image<T, 3>::IndexType i = itInItkImage.GetIndex();
     (*outVtkImageDataPtr) = inItkImage->GetPixel(i);
     outVtkImageDataPtr++;
   }
+
+  return true;
 }

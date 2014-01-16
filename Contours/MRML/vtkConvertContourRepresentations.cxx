@@ -53,9 +53,6 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkTimerLog.h>
 #include <vtkTransformPolyDataFilter.h>
 
-// ITK includes
-#include <itkImageRegionIteratorWithIndex.h>
-
 // Plastimatch includes
 #include "itk_resample.h"
 #include "plm_image_header.h"
