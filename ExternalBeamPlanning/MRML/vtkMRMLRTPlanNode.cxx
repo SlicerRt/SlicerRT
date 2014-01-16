@@ -42,7 +42,9 @@ vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
-  this->RTPlanName = "RTPlan";
+  this->RTPlanName = NULL;
+  this->SetRTPlanName("RTPlan");
+
   this->HideFromEditorsOff();
 
   // Register parent transform modified event so that the representations
@@ -232,7 +234,6 @@ void vtkMRMLRTPlanNode::RemoveRTBeamNode(vtkMRMLRTBeamNode *beamnode)
   vtkMRMLScene *scene = this->GetScene();
   vtkMRMLNode *mnode = NULL;
   vtkMRMLRTPlanHierarchyNode *phnode = NULL;
-  vtkMRMLRTPlanHierarchyNode *phrootnode = NULL;
   for (int n=0; n < scene->GetNumberOfNodes(); n++) 
     {
     mnode = scene->GetNthNode(n);

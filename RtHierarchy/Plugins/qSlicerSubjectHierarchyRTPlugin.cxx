@@ -117,6 +117,9 @@ QStringList qSlicerSubjectHierarchyRTPlugin::dependencies()const
 //----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRTPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)
 {
+  Q_UNUSED(node);
+  Q_UNUSED(parent);
+
   // The RT Subject Hierarchy plugin does not perform steps additional
   // to the default when adding nodes to the hierarchy from outside
   return 0.0;
@@ -125,6 +128,9 @@ double qSlicerSubjectHierarchyRTPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode
 //----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRTPlugin::canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent)
 {
+  Q_UNUSED(node);
+  Q_UNUSED(parent);
+
   // The RT Subject Hierarchy plugin does not perform steps additional
   // to the default when reparenting inside the hierarchy
   return 0.0;

@@ -107,18 +107,26 @@ QStringList qSlicerSubjectHierarchyParseLocalDataPlugin::dependencies()const
 //----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyParseLocalDataPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)
 {
+  Q_UNUSED(node);
+  Q_UNUSED(parent);
+
   return 0.0;
 }
 
 //----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyParseLocalDataPlugin::canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent)
 {
+  Q_UNUSED(node);
+  Q_UNUSED(parent);
+
   return 0.0;
 }
 
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyParseLocalDataPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
 {
+  Q_UNUSED(node);
+
   return 0.0;
 }
 

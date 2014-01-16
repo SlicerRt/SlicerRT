@@ -145,14 +145,14 @@ public:
   /// "Handling" includes features that are applied to the node (e.g. transform, convert, etc.)
   /// This function is only called for a node's owner plugin and its dependent plugins.
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForHandlingNode(vtkMRMLSubjectHierarchyNode* node) { };
+  virtual void showContextMenuActionsForHandlingNode(vtkMRMLSubjectHierarchyNode* node) { Q_UNUSED(node); };
 
   /// Show context menu actions valid for creating a child for a given subject hierarchy node.
   /// This function is called for all plugins, not just a node's owner plugin and its dependents,
   /// because it's not the node's ownership that determines what kind of children can be created
   /// to it, but the properties (level etc.) of the node
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node) { };
+  virtual void showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node) { Q_UNUSED(node); };
 
 // Utility functions
 public:

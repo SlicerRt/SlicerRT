@@ -67,6 +67,8 @@ QStringList qSlicerSubjectHierarchyAbstractPlugin::dependencies()const
 //-----------------------------------------------------------------------------
 void qSlicerSubjectHierarchyAbstractPlugin::exportNode(vtkMRMLSubjectHierarchyNode* node)
 {
+  Q_UNUSED(node);
+
   qCritical() << "qSlicerSubjectHierarchyAbstractPlugin::exportNode: This plugin ("
     << this->m_Name << ") does not support exporting!";
 }
@@ -101,6 +103,11 @@ bool qSlicerSubjectHierarchyAbstractPlugin::addNodeToSubjectHierarchy(vtkMRMLNod
   // Associate to a new hierarchy node and put it in the tree under the parent
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
     scene, parentNode, this->childLevel(parentNode->GetLevel()).toLatin1().constData(), nodeToAdd->GetName(), nodeToAdd);
+  if (!subjectHierarchyNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchyAbstractPlugin::addNodeToSubjectHierarchy: Failed to create subject hierarchy node!";
+    return false;
+  }
 
   return true;
 }
@@ -146,6 +153,8 @@ void qSlicerSubjectHierarchyAbstractPlugin::setTooltip(vtkMRMLSubjectHierarchyNo
 //-----------------------------------------------------------------------------
 void qSlicerSubjectHierarchyAbstractPlugin::setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible)
 {
+  Q_UNUSED(node);
+
   // Default behavior is to call SetDisplayVisibility on all displayable
   // associated nodes in the whole branch
   node->SetDisplayVisibilityForBranch(visible);
@@ -154,6 +163,8 @@ void qSlicerSubjectHierarchyAbstractPlugin::setDisplayVisibility(vtkMRMLSubjectH
 //-----------------------------------------------------------------------------
 int qSlicerSubjectHierarchyAbstractPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)
 {
+  Q_UNUSED(node);
+
   return node->GetDisplayVisibilityForBranch();
 }
 

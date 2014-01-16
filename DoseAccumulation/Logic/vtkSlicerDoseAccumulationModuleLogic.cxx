@@ -386,6 +386,12 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   {
     vtkMRMLSubjectHierarchyNode* childSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
       this->GetMRMLScene(), studyNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, outputAccumulatedDoseVolumeNode->GetName(), outputAccumulatedDoseVolumeNode);
+    if (!childSubjectHierarchyNode)
+    {
+      errorMessage = "Failed to create subject hierarchy node!"; 
+      vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
+      return;
+    }
   }
   else
   {

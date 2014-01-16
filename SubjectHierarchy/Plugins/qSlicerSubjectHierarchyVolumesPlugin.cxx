@@ -131,6 +131,9 @@ QStringList qSlicerSubjectHierarchyVolumesPlugin::dependencies()const
 //----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyVolumesPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)
 {
+  Q_UNUSED(node);
+  Q_UNUSED(parent);
+
   // The Volumes Subject Hierarchy plugin does not perform steps additional
   // to the default when adding nodes to the hierarchy from outside
   return 0.0;
@@ -139,6 +142,9 @@ double qSlicerSubjectHierarchyVolumesPlugin::canAddNodeToSubjectHierarchy(vtkMRM
 //----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyVolumesPlugin::canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent)
 {
+  Q_UNUSED(node);
+  Q_UNUSED(parent);
+
   // The Volumes Subject Hierarchy plugin does not perform steps additional
   // to the default when reparenting inside the hierarchy
   return 0.0;
@@ -604,8 +610,6 @@ void qSlicerSubjectHierarchyVolumesPlugin::showContextMenuActionsForHandlingNode
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyVolumesPlugin::toggleLabelmapOutlineDisplay(bool checked)
 {
-  Q_D(qSlicerSubjectHierarchyVolumesPlugin);
-
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
   vtkMRMLSliceNode* sliceNode = NULL;
   const int numberOfSliceNodes = scene->GetNumberOfNodesByClass("vtkMRMLSliceNode");

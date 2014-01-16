@@ -187,8 +187,6 @@ void qMRMLSubjectHierarchyTreeView::toggleVisibility(const QModelIndex& index)
 //------------------------------------------------------------------------------
 void qMRMLSubjectHierarchyTreeView::mousePressEvent(QMouseEvent* e)
 {
-  Q_D(qMRMLSubjectHierarchyTreeView);
-
   // Get the index of the current column
   QModelIndex index = this->indexAt(e->pos());
   vtkMRMLNode* node = this->sortFilterProxyModel()->mrmlNodeFromIndex(index);
@@ -214,8 +212,6 @@ void qMRMLSubjectHierarchyTreeView::mousePressEvent(QMouseEvent* e)
 //--------------------------------------------------------------------------
 void qMRMLSubjectHierarchyTreeView::populateContextMenuForCurrentNode()
 {
-  Q_D(qMRMLSubjectHierarchyTreeView);
-
   // Hide all context menu items first
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
   {

@@ -286,7 +286,7 @@ void SlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscr
     return;
   }
 
-  if (inputDiscreteColorTable->GetNumberOfColors() >= numberOfColors)
+  if (inputDiscreteColorTable->GetNumberOfColors() >= (int)numberOfColors)
   {
     vtkErrorWithObjectMacro(inputDiscreteColorTable, "SlicerRtCommon::StretchDiscreteColorTable: Input discrete color table should have less colors than the specified number of colors (" << inputDiscreteColorTable->GetNumberOfColors() << " < " << numberOfColors << ")");
     return;

@@ -137,7 +137,7 @@ std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std
   }
 
   stringToParse = this->TrimSpacesFromEndsOfString(stringToParse);
-  int currentNumber = 0;
+  unsigned int currentNumber = 0;
   // Parses out the specified number of numbers from the string, 
   // assuming that numbers are separated by commas, spaces, or both
   while (currentNumber < numberOfNumbers)
@@ -470,7 +470,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       title = parameterList["title"];
       // Parse out the name of the file from the file path given as the parameter title
       std::string titleStringToParse = title;
-      int locationToSplitString = titleStringToParse.find_last_of("/\\");
+      unsigned int locationToSplitString = titleStringToParse.find_last_of("/\\");
       if (locationToSplitString != std::string::npos)
       {
         titleStringToParse = titleStringToParse.substr(locationToSplitString+1);
@@ -543,13 +543,8 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       floatVffVolumeData->AllocateScalars();
 
       // Reads the line feed that comes directly before the image data from the file
-      char nextCharacter = readFileStream.get();
-
       float* floatPtr = (float*)floatVffVolumeData->GetScalarPointer();
       std::stringstream ss;
-
-      //unsigned int numberOfTotalBytesToReadFromFile=size[0]*size[1]*size[2]*bytesToRead;
-      //readFileStream.read(floatPtr, numberOfTotalBytesToReadFromFile);
 
       // The size of the image data read is specified in the header by the parameter size
       for (long x = 0; x < size[0]; x++)

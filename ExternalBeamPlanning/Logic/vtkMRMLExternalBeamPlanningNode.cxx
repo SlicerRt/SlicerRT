@@ -80,12 +80,7 @@ void vtkMRMLExternalBeamPlanningNode::ReadXMLAttributes(const char** atts)
 void vtkMRMLExternalBeamPlanningNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
-  this->DisableModifiedEventOn();
-
-  vtkMRMLExternalBeamPlanningNode *node = (vtkMRMLExternalBeamPlanningNode *)anode;
-
-  this->DisableModifiedEventOff();
-  this->InvokePendingModifiedEvent();
+  //TODO:
 }
 
 //----------------------------------------------------------------------------

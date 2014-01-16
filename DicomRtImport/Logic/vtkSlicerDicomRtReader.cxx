@@ -429,7 +429,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   Float32 gantryPitchAngle = 0.0;
   if (rtImageObject.getGantryPitchAngle(gantryPitchAngle).good())
   {
-    if (gantryPitchAngle != 0.0);
+    if (gantryPitchAngle != 0.0)
     {
       vtkErrorMacro("LoadRTImage: Non-zero GantryPitchAngle tag values are not supported yet!");
       return;
@@ -575,7 +575,6 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
             controlPointItem.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
             beamEntry.BeamLimitingDeviceAngle = beamLimitingDeviceAngle;
 
-            unsigned int numberOfFoundCollimatorPositionItems = 0;
             DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequenceObject =
               controlPointItem.getBeamLimitingDevicePositionSequence();
             if (currentCollimatorPositionSequenceObject.gotoFirstItem().good())

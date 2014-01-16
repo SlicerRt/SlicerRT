@@ -192,8 +192,6 @@ void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item
     return;
   }
 
-  vtkMRMLNode* associatedNode = subjectHierarchyNode->GetAssociatedDataNode();
-
   // Name column
   if (column == this->nameColumn())
   {
@@ -233,8 +231,6 @@ void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item
 //------------------------------------------------------------------------------
 void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, QStandardItem* item)
 {
-  Q_D(qMRMLSceneSubjectHierarchyModel);
-
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
   if (!subjectHierarchyNode)
   {

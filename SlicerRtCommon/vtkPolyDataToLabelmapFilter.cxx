@@ -236,7 +236,6 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
   // Bounds are now axis aligned with referenceIJK because everything is in that coordinate frame
   // Can compute extents as values derived from bounds
   this->ReferenceImageData->GetSpacing(spacing);
-  bool expansionNecessary(false);
   origin[0] = expandedBounds[0];
   origin[1] = expandedBounds[2];
   origin[2] = expandedBounds[4];
@@ -256,7 +255,6 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
 
   if( !areExtentsEqual(referenceExtents, calculatedExtents) )
   {
-    expansionNecessary = true;
     for( int i = 0; i < 6; ++i )
     {
       referenceExtents[i] = calculatedExtents[i];

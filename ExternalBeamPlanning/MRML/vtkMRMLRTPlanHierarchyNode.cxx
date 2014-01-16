@@ -59,12 +59,7 @@ vtkMRMLRTPlanHierarchyNode::~vtkMRMLRTPlanHierarchyNode()
 void vtkMRMLRTPlanHierarchyNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
-  this->DisableModifiedEventOn();
-
-  vtkMRMLRTPlanHierarchyNode *node = (vtkMRMLRTPlanHierarchyNode *) anode;
-
-  this->DisableModifiedEventOff();
-  this->InvokePendingModifiedEvent();
+  //TODO:
 }
 
 //----------------------------------------------------------------------------
