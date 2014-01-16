@@ -201,8 +201,18 @@ public:
     \param applyRasToLpsConversion Apply RAS (Slicer) to LPS (ITK, DICOM) coordinate frame conversion
     \return Success
   */
-  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool applyRasToLpsConversion=false);
-  //ETX
+  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion=false);
+
+  /*!
+    Convert ITK image to VTK image data. The image geometry is not considered!
+    \param inItkImage Input ITK image
+    \param outVtkImageData Output VTK image data
+    \param vtkType Data scalar type (i.e VTK_FLOAT)
+    \return Success
+  */
+  template<typename T> static bool ConvertItkImageToVtkImageData(typename itk::Image<T, 3>::Pointer inItkImage, vtkImageData* outVtkImageData, int vtkType);
+
+//ETX
 };
 
 #include "SlicerRtCommon.txx"

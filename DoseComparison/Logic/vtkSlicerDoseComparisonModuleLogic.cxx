@@ -219,23 +219,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   // Convert output to VTK
   double checkpointVtkConvertStart = timer->GetUniversalTime();
   vtkSmartPointer<vtkImageData> gammaVolume = vtkSmartPointer<vtkImageData>::New();
-  itk::Image<float, 3>::RegionType region = gammaVolumeItk->GetBufferedRegion();
-  itk::Image<float, 3>::SizeType imageSize = region.GetSize();
-  int extent[6]={0, (int) imageSize[0]-1, 0, (int) imageSize[1]-1, 0, (int) imageSize[2]-1};
-  gammaVolume->SetExtent(extent);
-  gammaVolume->SetScalarType(VTK_FLOAT);
-  gammaVolume->SetNumberOfScalarComponents(1);
-  gammaVolume->AllocateScalars();
-
-  float* gammaPtr = (float*)gammaVolume->GetScalarPointer();
-  itk::ImageRegionIteratorWithIndex< itk::Image<float, 3> > itGammaItk(
-    gammaVolumeItk, gammaVolumeItk->GetLargestPossibleRegion() );
-  for ( itGammaItk.GoToBegin(); !itGammaItk.IsAtEnd(); ++itGammaItk )
-  {
-    itk::Image<float, 3>::IndexType i = itGammaItk.GetIndex();
-    (*gammaPtr) = gammaVolumeItk->GetPixel(i);
-    gammaPtr++;
-  }
+  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(gammaVolumeItk, gammaVolume, VTK_FLOAT);
 
   // Set properties of output volume node
   vtkMRMLScalarVolumeNode* gammaVolumeNode = this->DoseComparisonNode->GetGammaVolumeNode();

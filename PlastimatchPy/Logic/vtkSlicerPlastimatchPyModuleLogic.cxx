@@ -365,24 +365,7 @@ void vtkSlicerPlastimatchPyModuleLogic::SetWarpedImageInVolumeNode(Plm_image* wa
   itk::Image<float, 3>::Pointer outputImageItk = warpedPlastimatchImage->itk_float();    
 
   vtkSmartPointer<vtkImageData> outputImageVtk = vtkSmartPointer<vtkImageData>::New();
-  itk::Image<float, 3>::RegionType region = outputImageItk->GetBufferedRegion();
-  itk::Image<float, 3>::SizeType imageSize = region.GetSize();
-  int extent[6]={0, (int) imageSize[0]-1, 0, (int) imageSize[1]-1, 0, (int) imageSize[2]-1};
-  outputImageVtk->SetExtent(extent);
-  outputImageVtk->SetScalarType(VTK_FLOAT);
-  outputImageVtk->SetNumberOfScalarComponents(1);
-  outputImageVtk->AllocateScalars();
-  
-  float* outputImagePtr = (float*)outputImageVtk->GetScalarPointer();
-  itk::ImageRegionIteratorWithIndex< itk::Image<float, 3> > outputImageItkIterator(
-    outputImageItk, outputImageItk->GetLargestPossibleRegion() );
-  
-  for ( outputImageItkIterator.GoToBegin(); !outputImageItkIterator.IsAtEnd(); ++outputImageItkIterator)
-    {
-    itk::Image<float, 3>::IndexType i = outputImageItkIterator.GetIndex();
-    (*outputImagePtr) = outputImageItk->GetPixel(i);
-    outputImagePtr++;
-    }
+  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(outputImageItk, outputImageVtk, VTK_FLOAT);
   
   // Read fixed image to get the geometrical information
   vtkMRMLScalarVolumeNode* fixedVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(\

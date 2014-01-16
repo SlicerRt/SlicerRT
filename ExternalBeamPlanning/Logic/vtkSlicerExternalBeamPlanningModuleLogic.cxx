@@ -406,40 +406,6 @@ itk_rectify_volume_hack (T image)
 }
 
 //---------------------------------------------------------------------------
-template<class T>
-static vtkSmartPointer<vtkImageData> 
-itk_to_vtk (T itkImage, int vtkType)
-{
-  typedef typename T::ObjectType::InternalPixelType TPixel;
-  typename T::ObjectType::SizeType imageSize = 
-    itkImage->GetBufferedRegion().GetSize();
-  int extent[6]={0, (int) imageSize[0]-1, 
-                 0, (int) imageSize[1]-1, 
-                 0, (int) imageSize[2]-1};
-
-  vtkSmartPointer<vtkImageData> vtkVolume =
-    vtkSmartPointer<vtkImageData>::New();
-  vtkVolume->SetExtent(extent);
-  vtkVolume->SetScalarType(vtkType);
-  vtkVolume->SetNumberOfScalarComponents(1);
-  vtkVolume->AllocateScalars();
-
-  TPixel* pixPtr = (TPixel*) vtkVolume->GetScalarPointer();
-
-  itk::ImageRegionIteratorWithIndex< itk::Image<TPixel, 3> > 
-    itPix (itkImage, 
-           itkImage->GetLargestPossibleRegion());
-  for (itPix.GoToBegin(); !itPix.IsAtEnd(); ++itPix)
-  {
-    typename itk::Image<TPixel, 3>::IndexType i = itPix.GetIndex();
-    (*pixPtr) = itkImage->GetPixel(i);
-    pixPtr++;
-  }
-
-  return vtkVolume;
-}
-
-//---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
@@ -538,8 +504,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     rc->itk_float();
 
   /* Convert range compensator image to vtk */
-  vtkSmartPointer<vtkImageData> rcVolume =
-    itk_to_vtk (rcVolumeItk, VTK_FLOAT);
+  vtkSmartPointer<vtkImageData> rcVolume = vtkSmartPointer<vtkImageData>::New();
+  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(rcVolumeItk, rcVolume, VTK_FLOAT);
 
   /* Create the MRML node for the volume */
   vtkSmartPointer<vtkMRMLScalarVolumeNode> rcVolumeNode =
@@ -563,8 +529,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   this->GetMRMLScene()->AddNode(rcVolumeNode);
 
   /* Convert aperture image to vtk */
-  vtkSmartPointer<vtkImageData> apertureVolume =
-    itk_to_vtk (apertureVolumeItk, VTK_UNSIGNED_CHAR);
+  vtkSmartPointer<vtkImageData> apertureVolume = vtkSmartPointer<vtkImageData>::New();
+  SlicerRtCommon::ConvertItkImageToVtkImageData<unsigned char>(apertureVolumeItk, apertureVolume, VTK_UNSIGNED_CHAR);
 
   /* Create the MRML node for the volume */
   vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode =
@@ -613,7 +579,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   itk::Image<float, 3>::Pointer doseVolumeItk = ion_plan.get_dose_itk();
 
   /* Convert dose image to vtk */
-  vtkSmartPointer<vtkImageData> doseVolume = itk_to_vtk (doseVolumeItk, VTK_FLOAT);
+  vtkSmartPointer<vtkImageData> doseVolume = vtkSmartPointer<vtkImageData>::New();
+  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(doseVolumeItk, doseVolume, VTK_FLOAT);
 
   /* Create the MRML node for the volume */
   vtkSmartPointer<vtkMRMLScalarVolumeNode> doseVolumeNode =
@@ -764,8 +731,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
     wed_image->itk_float();
 
   /* Convert aperture image to vtk */
-  vtkSmartPointer<vtkImageData> wedVolume =
-    itk_to_vtk (wedVolumeItk, VTK_FLOAT);
+  vtkSmartPointer<vtkImageData> wedVolume = vtkSmartPointer<vtkImageData>::New();
+  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(wedVolumeItk, wedVolume, VTK_FLOAT);
 
   /* Create the MRML node for the volume */
   vtkSmartPointer<vtkMRMLScalarVolumeNode> wedVolumeNode =

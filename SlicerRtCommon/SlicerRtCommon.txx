@@ -10,7 +10,7 @@
 #include <vtkTransform.h>
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkVolume, bool applyRasToLpsConversion/*=false*/)
+template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion/*=false*/)
 {
   if ( inVolumeNode == NULL )
   {
@@ -25,7 +25,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
     return false; 
   }
 
-  if ( outItkVolume.IsNull() )
+  if ( outItkImage.IsNull() )
   {
     vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToItkImage: Failed to convert volume node to itk image - output image is NULL!");
     return false; 
@@ -77,11 +77,11 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
     outputSpacing[1] = outputSpacing[1] < 0 ? -outputSpacing[1] : outputSpacing[1];
     outputSpacing[2] = outputSpacing[2] < 0 ? -outputSpacing[2] : outputSpacing[2];
   }
-  outItkVolume->SetSpacing(outputSpacing);
+  outItkImage->SetSpacing(outputSpacing);
 
   double outputOrigin[3] = {0.0, 0.0, 0.0};
   inVolumeToWorldTransform->GetPosition(outputOrigin);
-  outItkVolume->SetOrigin(outputOrigin);
+  outItkImage->SetOrigin(outputOrigin);
 
   double outputOrienationAngles[3] = {0.0, 0.0, 0.0};
   inVolumeToWorldTransform->GetOrientation(outputOrienationAngles);
@@ -100,7 +100,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
       outputDirectionMatrix[i][j] = inVolumeToWorldOrientationTransformMatrix->GetElement(i,j);
     }
   }
-  outItkVolume->SetDirection(outputDirectionMatrix);
+  outItkImage->SetDirection(outputDirectionMatrix);
 
   int inputExtent[6]={0,0,0,0,0,0}; 
   inVolume->GetExtent(inputExtent); 
@@ -115,11 +115,11 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
   typename itk::Image<T, 3>::RegionType region;
   region.SetSize(inputSize);
   region.SetIndex(start);
-  outItkVolume->SetRegions(region);
+  outItkImage->SetRegions(region);
 
   try
   {
-    outItkVolume->Allocate();
+    outItkImage->Allocate();
   }
   catch(itk::ExceptionObject & err)
   {
@@ -127,7 +127,41 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
     return false;
   }
 
-  imageExport->Export( outItkVolume->GetBufferPointer() );
+  imageExport->Export( outItkImage->GetBufferPointer() );
 
   return true;
+}
+
+//----------------------------------------------------------------------------
+template<typename T> bool SlicerRtCommon::ConvertItkImageToVtkImageData(typename itk::Image<T, 3>::Pointer inItkImage, vtkImageData* outVtkImageData, int vtkType)
+{
+  if ( outVtkImageData == NULL )
+  {
+    std::cerr << "SlicerRtCommon::ConvertItkImageToVtkImageData: Output VTK image data is NULL!" << std::endl;
+    return false; 
+  }
+
+  if ( inItkImage.IsNull() )
+  {
+    vtkErrorWithObjectMacro(outVtkImageData, "ConvertItkImageToVtkImageData: Input ITK image is invalid!");
+    return false; 
+  }
+
+  itk::Image<T, 3>::RegionType region = inItkImage->GetBufferedRegion();
+  itk::Image<T, 3>::SizeType imageSize = region.GetSize();
+  int extent[6]={0, (int) imageSize[0]-1, 0, (int) imageSize[1]-1, 0, (int) imageSize[2]-1};
+  outVtkImageData->SetExtent(extent);
+  outVtkImageData->SetScalarType(vtkType);
+  outVtkImageData->SetNumberOfScalarComponents(1);
+  outVtkImageData->AllocateScalars();
+
+  T* outVtkImageDataPtr = (T*)outVtkImageData->GetScalarPointer();
+  itk::ImageRegionIteratorWithIndex< itk::Image<T, 3> > itInItkImage(
+    inItkImage, inItkImage->GetLargestPossibleRegion() );
+  for ( itInItkImage.GoToBegin(); !itInItkImage.IsAtEnd(); ++itInItkImage )
+  {
+    itk::Image<T, 3>::IndexType i = itInItkImage.GetIndex();
+    (*outVtkImageDataPtr) = inItkImage->GetPixel(i);
+    outVtkImageDataPtr++;
+  }
 }

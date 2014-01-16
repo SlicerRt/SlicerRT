@@ -382,22 +382,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
 
     // Convert resampled image back to VTK
     indexedLabelmapVolumeImageData = vtkSmartPointer<vtkImageData>::New();
-    int extent[6]={0, oversampledSelectedReferenceDimensionsLong[0]-1, 0, oversampledSelectedReferenceDimensionsLong[1]-1, 0, oversampledSelectedReferenceDimensionsLong[2]-1};
-    indexedLabelmapVolumeImageData->SetExtent(extent);
-    indexedLabelmapVolumeImageData->SetScalarType(VTK_UNSIGNED_CHAR);
-    indexedLabelmapVolumeImageData->SetNumberOfScalarComponents(1);
-    indexedLabelmapVolumeImageData->AllocateScalars();
-
-    double labelmapThreshold = (double)structureColorIndex * this->LabelmapResamplingThreshold;
-    unsigned char* indexedLabelmapVolumeImageDataPtr = (unsigned char*)indexedLabelmapVolumeImageData->GetScalarPointer();
-    itk::ImageRegionIteratorWithIndex< itk::Image<unsigned char, 3> > itLabelmapItk( resampledIntermediateLabelmapItkVolume, resampledIntermediateLabelmapItkVolume->GetLargestPossibleRegion() );
-    for ( itLabelmapItk.GoToBegin(); !itLabelmapItk.IsAtEnd(); ++itLabelmapItk )
-    {
-      itk::Image<unsigned char, 3>::IndexType index = itLabelmapItk.GetIndex();
-      unsigned char resampledVoxelValue = resampledIntermediateLabelmapItkVolume->GetPixel(index);
-      (*indexedLabelmapVolumeImageDataPtr) = ( resampledVoxelValue < labelmapThreshold ? 0 : (unsigned char)structureColorIndex );
-      indexedLabelmapVolumeImageDataPtr++;
-    }
+    SlicerRtCommon::ConvertItkImageToVtkImageData<unsigned char>(resampledIntermediateLabelmapItkVolume, indexedLabelmapVolumeImageData, VTK_UNSIGNED_CHAR);
   }
   else
   {
