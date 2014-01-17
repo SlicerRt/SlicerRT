@@ -71,7 +71,7 @@ TEST_WITH_DATA(
   ${TEMP}/TestScene_Contours_EclipseProstate.mrml 
   5448899
   0
-  271
+  271 
   0
   172
   0
