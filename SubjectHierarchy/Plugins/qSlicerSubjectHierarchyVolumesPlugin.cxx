@@ -50,6 +50,9 @@
 #include <QStandardItem>
 #include <QAction>
 
+// STD includes
+#include <set>
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy_Plugins
 class qSlicerSubjectHierarchyVolumesPluginPrivate: public QObject

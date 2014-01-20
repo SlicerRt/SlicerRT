@@ -35,6 +35,7 @@
 
 // STD includes
 #include <sstream>
+#include <set>
 
 //----------------------------------------------------------------------------
 const std::string vtkMRMLSubjectHierarchyNode::SUBJECTHIERARCHY_UID_ITEM_SEPARATOR = std::string(":");
