@@ -61,7 +61,7 @@ TEST_WITH_DATA(
   EclipseProstate_PTV_Contour_Labelmap.nrrd
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Shrink_Baseline.nrrd
-  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Shrink.mrml
   Shrink
   5.0
   0
@@ -78,7 +78,7 @@ TEST_WITH_DATA(
   EclipseProstate_Bladder_Contour_Labelmap.nrrd
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Union_Baseline.nrrd
-  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Union.mrml
   Union
   0.0
   0
@@ -95,7 +95,7 @@ TEST_WITH_DATA(
   EclipseProstate_Bladder_Contour_Labelmap.nrrd
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Intersect_Baseline.nrrd
-  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Intersect.mrml
   Intersect
   0.0
   0
@@ -112,7 +112,7 @@ TEST_WITH_DATA(
   EclipseProstate_Bladder_Contour_Labelmap.nrrd
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Subtract_Baseline.nrrd
-  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Subtract.mrml
   Subtract
   0.0
   0
@@ -129,7 +129,7 @@ TEST_WITH_DATA(
   EclipseProstate_Bladder_Contour_Labelmap.nrrd
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Intersect_ApplyTransform_Baseline.nrrd
-  ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
+  ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Intersect_ApplyTransform.mrml
   Intersect
   0.0
   1
