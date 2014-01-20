@@ -411,18 +411,18 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   mrmlScene->AddNode(indexedLabelmapVolumeNode);
 
   // Create display node
-  vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
-  displayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
+  vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> indexedLabelmapDisplayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
+  indexedLabelmapDisplayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(mrmlScene->AddNode(indexedLabelmapDisplayNode));
   if (colorNode)
   {
-    displayNode->SetAndObserveColorNodeID(colorNode->GetID());
+    indexedLabelmapDisplayNode->SetAndObserveColorNodeID(colorNode->GetID());
   }
   else
   {
-    displayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
+    indexedLabelmapDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
   }
 
-  indexedLabelmapVolumeNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  indexedLabelmapVolumeNode->SetAndObserveDisplayNodeID( indexedLabelmapDisplayNode->GetID() );
 
   // Set parent transform node
   if (this->ContourNode->GetTransformNodeID())
@@ -522,24 +522,24 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   labelmapToModelFilter->Update();    
 
   // Create display node
-  vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  displayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(displayNode));
-  displayNode->SliceIntersectionVisibilityOn();  
-  displayNode->VisibilityOn();
-  displayNode->SetBackfaceCulling(0);
+  vtkSmartPointer<vtkMRMLModelDisplayNode> closedSurfaceModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  closedSurfaceModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(closedSurfaceModelDisplayNode));
+  closedSurfaceModelDisplayNode->SliceIntersectionVisibilityOn();  
+  closedSurfaceModelDisplayNode->VisibilityOn();
+  closedSurfaceModelDisplayNode->SetBackfaceCulling(0);
 
   // Set visibility and opacity to match the existing ribbon model visualization
   if (this->ContourNode->RibbonModelNode && this->ContourNode->RibbonModelNode->GetModelDisplayNode())
   {
-    displayNode->SetVisibility(this->ContourNode->RibbonModelNode->GetModelDisplayNode()->GetVisibility());
-    displayNode->SetOpacity(this->ContourNode->RibbonModelNode->GetModelDisplayNode()->GetOpacity());
+    closedSurfaceModelDisplayNode->SetVisibility(this->ContourNode->RibbonModelNode->GetModelDisplayNode()->GetVisibility());
+    closedSurfaceModelDisplayNode->SetOpacity(this->ContourNode->RibbonModelNode->GetModelDisplayNode()->GetOpacity());
   }
   // Set color
   double color[4] = {0.0, 0.0, 0.0, 0.0};
   if (colorNode)
   {
     colorNode->GetColor(structureColorIndex, color);
-    displayNode->SetColor(color);
+    closedSurfaceModelDisplayNode->SetColor(color);
   }
 
   // Create closed surface model node
@@ -548,7 +548,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   std::string closedSurfaceModelNodeName = std::string(this->ContourNode->Name) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
   closedSurfaceModelNodeName = mrmlScene->GenerateUniqueName(closedSurfaceModelNodeName);
   closedSurfaceModelNode->SetName( closedSurfaceModelNodeName.c_str() );
-  closedSurfaceModelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  closedSurfaceModelNode->SetAndObserveDisplayNodeID( closedSurfaceModelDisplayNode->GetID() );
   closedSurfaceModelNode->SetAndObserveTransformNodeID( this->ContourNode->IndexedLabelmapVolumeNode->GetTransformNodeID() );
 
   // Create model to referenceIjk transform

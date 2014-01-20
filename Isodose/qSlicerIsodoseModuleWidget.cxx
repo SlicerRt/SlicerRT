@@ -213,7 +213,13 @@ void qSlicerIsodoseModuleWidgetPrivate::updateScalarBarsFromSelectedColorTable()
     return;
   }
 
-  vtkMRMLColorTableNode* selectedColorNode = this->logic()->GetIsodoseNode()->GetColorTableNode();
+  vtkMRMLColorTableNode* selectedColorNode = paramNode->GetColorTableNode();
+  if (!selectedColorNode)
+  {
+    qDebug() << "qSlicerIsodoseModuleWidgetPrivate::updateScalarBarsFromSelectedColorTable: No color table node is selected";
+    return;
+  }
+
   this->tableView_IsodoseLevels->setMRMLColorNode(selectedColorNode);
 
   // 3D scalar bar
