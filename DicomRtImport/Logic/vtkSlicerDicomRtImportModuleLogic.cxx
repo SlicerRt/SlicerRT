@@ -463,16 +463,16 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         if (structureModelHierarchyRootNode.GetPointer()==NULL)
         {
           structureModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-          std::string hierarchyNodeName;
-          hierarchyNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
-          hierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(hierarchyNodeName);
-          structureModelHierarchyRootNode->SetName(hierarchyNodeName.c_str());
+          std::string rootModelHierarchyNodeName;
+          rootModelHierarchyNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
+          rootModelHierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(rootModelHierarchyNodeName);
+          structureModelHierarchyRootNode->SetName(rootModelHierarchyNodeName.c_str());
           this->GetMRMLScene()->AddNode(structureModelHierarchyRootNode);
 
           // Create display node for the model hierarchy node
           vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-          hierarchyNodeName.append("Display");
-          modelDisplayNode->SetName(hierarchyNodeName.c_str());
+          rootModelHierarchyNodeName.append("Display");
+          modelDisplayNode->SetName(rootModelHierarchyNodeName.c_str());
           modelDisplayNode->SetVisibility(1);
           this->GetMRMLScene()->AddNode(modelDisplayNode);
           structureModelHierarchyRootNode->SetAndObserveDisplayNodeID( modelDisplayNode->GetID() );
@@ -480,6 +480,9 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
 
         // Put the new node in the model hierarchy
         vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+        std::string modelHierarchyNodeName;
+        modelHierarchyNodeName = contourNodeName + "_ModelHierarchy";
+        modelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
         this->GetMRMLScene()->AddNode(modelHierarchyNode);
         modelHierarchyNode->SetParentNodeID( structureModelHierarchyRootNode->GetID() );
         modelHierarchyNode->SetModelNodeID( addedDisplayableNode->GetID() );

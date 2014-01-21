@@ -284,13 +284,15 @@ vtkMRMLNode* vtkMRMLSubjectHierarchyNode::GetAssociatedDataNode()
     vtkErrorMacro("GetAssociatedDataNode: Subject hierarchy node '" << this->Name << "' is associated to another subject hierarchy node! This is not permitted.");
     return NULL;
   }
+  // Handle nested associations. If a subject hierarchy node is associated to another hierarchy
+  // node, then the search goes one association down to find the associated data node.
   else if (firstAssociatedNode->IsA("vtkMRMLHierarchyNode"))
   {
     vtkMRMLHierarchyNode* firstAssociatedHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(firstAssociatedNode);
     vtkMRMLNode* secondAssociatedNode = firstAssociatedHierarchyNode->GetAssociatedNode();
     if (secondAssociatedNode->IsA("vtkMRMLHierarchyNode"))
     {
-      vtkErrorMacro("GetAssociatedDataNode: Subject hierarchy node '" << this->Name << "' has douuble-nested association! This is not permitted.");
+      vtkErrorMacro("GetAssociatedDataNode: Subject hierarchy node '" << this->Name << "' has double-nested association! This is not permitted.");
       return NULL;
     }
     else

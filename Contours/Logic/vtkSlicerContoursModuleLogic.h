@@ -106,8 +106,10 @@ protected:
   virtual void RegisterNodes();
   virtual void UpdateFromMRMLScene();
 
+  /// Handle events that do not expose a virtual method (e.g. NodeAboutToBeRemovedEvent)
+  virtual void ProcessMRMLSceneEvents(vtkObject* caller, unsigned long event, void* callData);
+
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndClose();
   virtual void OnMRMLSceneEndImport();
 
