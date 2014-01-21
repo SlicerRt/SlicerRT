@@ -755,23 +755,24 @@ double vtkSlicerDicomRtReader::GetSliceThickness(OFString sopInstanceUID)
   double sliceThickness = defaultSliceThickness;
 
   // Get DICOM image filename from SOP instance UID
+  ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
+  dicomDatabase->openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+
+  // Get filename for instance
+  QString fileName = dicomDatabase->fileForInstance(sopInstanceUID.c_str());
+  if ( fileName.isEmpty() )
   {
-    ctkDICOMDatabase dicomDatabase;
-    dicomDatabase.openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
-
-    // Get filename for instance
-    QString fileName = dicomDatabase.fileForInstance(sopInstanceUID.c_str());
-    if ( fileName.isEmpty() )
-    {
-      vtkErrorMacro("GetSliceThickness: No referenced image file is found, default slice thickness (" << defaultSliceThickness << ") is used for contour import");
-      dicomDatabase.closeDatabase();
-      return defaultSliceThickness;
-    }
-
-    // Get slice thickness from file
-    sliceThickness = dicomDatabase.fileValue(fileName, DCM_SliceThickness.getGroup(), DCM_SliceThickness.getElement()).toDouble();
-    dicomDatabase.closeDatabase();
+    vtkErrorMacro("GetSliceThickness: No referenced image file is found, default slice thickness (" << defaultSliceThickness << ") is used for contour import");
+    sliceThickness = defaultSliceThickness;
   }
+  else
+  {
+    // Get slice thickness from file
+    sliceThickness = dicomDatabase->fileValue(fileName, DCM_SliceThickness.getGroup(), DCM_SliceThickness.getElement()).toDouble();
+  }
+
+  dicomDatabase->closeDatabase();
+  delete dicomDatabase;
   QSqlDatabase::removeDatabase(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
   QSqlDatabase::removeDatabase(QString(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
 
@@ -1355,41 +1356,40 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
   }
 
   // Get image orientation for the contour planes from the referenced slice orientations
+  ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
+  dicomDatabase->openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+
   QString imageOrientation;
+  std::map<int,std::string>* contourIndexToSopInstanceUidMap = &(this->RoiSequenceVector[internalIndex].ContourIndexToSopInstanceUidMap);
+  std::map<int,std::string>::iterator sliceInstanceUidIt;
+  for (sliceInstanceUidIt = contourIndexToSopInstanceUidMap->begin(); sliceInstanceUidIt != contourIndexToSopInstanceUidMap->end(); ++sliceInstanceUidIt)
   {
-    ctkDICOMDatabase dicomDatabase;
-    dicomDatabase.openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
-
-    std::map<int,std::string>* contourIndexToSopInstanceUidMap = &(this->RoiSequenceVector[internalIndex].ContourIndexToSopInstanceUidMap);
-    std::map<int,std::string>::iterator sliceInstanceUidIt;
-    for (sliceInstanceUidIt = contourIndexToSopInstanceUidMap->begin(); sliceInstanceUidIt != contourIndexToSopInstanceUidMap->end(); ++sliceInstanceUidIt)
+    // Get file name for referenced slice instance from the stored SOP instance UID
+    QString fileName = dicomDatabase->fileForInstance(sliceInstanceUidIt->second.c_str());
+    if (fileName.isEmpty())
     {
-      // Get file name for referenced slice instance from the stored SOP instance UID
-      QString fileName = dicomDatabase.fileForInstance(sliceInstanceUidIt->second.c_str());
-      if (fileName.isEmpty())
-      {
-        vtkErrorMacro("CreateRibbonModelForRoi: No referenced image file is found for ROI contour slice number " << sliceInstanceUidIt->first);
-        continue;
-      }
-
-      // Get image orientation string from the referenced slice
-      QString currentImageOrientation = dicomDatabase.fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement());
-
-      // Check if the currently read orientation matches the orientation in the already loaded slices
-      if (imageOrientation.isEmpty())
-      {
-        imageOrientation = currentImageOrientation;
-      }
-      else if (imageOrientation.compare(currentImageOrientation))
-      {
-        vtkWarningMacro("CreateRibbonModelForRoi: Image orientation in instance '" << fileName.toLatin1().constData() << "' differs from that in the first instance ("
-          << currentImageOrientation.toLatin1().constData() << " != " << imageOrientation.toLatin1().constData() << ")! This is not supported yet, so the first orientation will be used for the whole contour.");
-        break;
-      }
+      vtkErrorMacro("CreateRibbonModelForRoi: No referenced image file is found for ROI contour slice number " << sliceInstanceUidIt->first);
+      continue;
     }
 
-    dicomDatabase.closeDatabase();
+    // Get image orientation string from the referenced slice
+    QString currentImageOrientation = dicomDatabase->fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement());
+
+    // Check if the currently read orientation matches the orientation in the already loaded slices
+    if (imageOrientation.isEmpty())
+    {
+      imageOrientation = currentImageOrientation;
+    }
+    else if (imageOrientation.compare(currentImageOrientation))
+    {
+      vtkWarningMacro("CreateRibbonModelForRoi: Image orientation in instance '" << fileName.toLatin1().constData() << "' differs from that in the first instance ("
+        << currentImageOrientation.toLatin1().constData() << " != " << imageOrientation.toLatin1().constData() << ")! This is not supported yet, so the first orientation will be used for the whole contour.");
+      break;
+    }
   }
+
+  dicomDatabase->closeDatabase();
+  delete dicomDatabase;
   QSqlDatabase::removeDatabase(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
   QSqlDatabase::removeDatabase(QString(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
 
