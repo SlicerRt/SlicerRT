@@ -543,6 +543,8 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       floatVffVolumeData->AllocateScalars();
 
       // Reads the line feed that comes directly before the image data from the file
+      char nextCharacter = readFileStream.get();
+
       float* floatPtr = (float*)floatVffVolumeData->GetScalarPointer();
       std::stringstream ss;
 
