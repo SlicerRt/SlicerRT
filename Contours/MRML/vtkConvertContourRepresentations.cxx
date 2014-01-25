@@ -271,10 +271,22 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   this->GetTransformFromNodeToVolumeIjk( modelNode, referenceVolumeNodeUsedForConversion, modelToReferenceVolumeIjkTransform );
 
+  // Apply inverse of the transform applied on the contour (because the target representation will be under the same
+  // transform and we want to avoid applying the transform twice)
+  vtkSmartPointer<vtkGeneralTransform> transformedModelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  transformedModelToReferenceVolumeIjkTransform->Concatenate(modelToReferenceVolumeIjkTransform);
+  if (modelNode->GetParentTransformNode())
+  {
+    vtkSmartPointer<vtkGeneralTransform> modelToWorldTransformInverse = vtkSmartPointer<vtkGeneralTransform>::New();
+    modelNode->GetParentTransformNode()->GetTransformToWorld(modelToWorldTransformInverse);
+    modelToWorldTransformInverse->Inverse();
+    transformedModelToReferenceVolumeIjkTransform->Concatenate(modelToWorldTransformInverse);
+  }
+
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter =
     vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( modelNode->GetPolyData() );
-  transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform( modelToReferenceVolumeIjkTransform.GetPointer() );
+  transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform( transformedModelToReferenceVolumeIjkTransform.GetPointer() );
 
   // Initialize polydata to labelmap filter for conversion
   double checkpointLabelmapConversionStart = timer->GetUniversalTime();
