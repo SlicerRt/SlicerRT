@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>448</width>
-    <height>390</height>
+    <height>414</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -84,7 +84,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="label_4">
         <property name="toolTip">
          <string>Distance to agreement (DTA) tolerance, in mm</string>
@@ -94,7 +94,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_5">
         <property name="toolTip">
          <string>Dose difference tolerance, defined as percentage of the reference dose (prescription dose) value</string>
@@ -104,7 +104,7 @@
         </property>
        </widget>
       </item>
-      <item row="11" column="0">
+      <item row="12" column="0">
        <widget class="QLabel" name="label_8">
         <property name="toolTip">
          <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
@@ -114,7 +114,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="2">
+      <item row="5" column="2">
        <widget class="QDoubleSpinBox" name="doubleSpinBox_DtaDistanceTolerance">
         <property name="toolTip">
          <string>Distance to agreement (DTA) tolerance, in mm</string>
@@ -127,7 +127,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="2">
+      <item row="6" column="2">
        <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseDifferenceTolerance">
         <property name="toolTip">
          <string>Dose difference tolerance. If a reference dose (prescription dose) is specified, the dose difference tolerance is treated as a percent of the reference dose. Otherwise it is treated as a percent of the maximum dose in the reference volume. To use a 3% dose tolerance, you would set this value to 0.03</string>
@@ -140,7 +140,7 @@
         </property>
        </widget>
       </item>
-      <item row="11" column="2">
+      <item row="12" column="2">
        <widget class="QDoubleSpinBox" name="doubleSpinBox_MaximumGamma">
         <property name="toolTip">
          <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
@@ -153,7 +153,7 @@
         </property>
        </widget>
       </item>
-      <item row="10" column="2">
+      <item row="11" column="2">
        <widget class="QDoubleSpinBox" name="doubleSpinBox_AnalysisThreshold">
         <property name="toolTip">
          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -164,7 +164,7 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
-      <item row="10" column="0">
+      <item row="11" column="0">
        <widget class="QLabel" name="label_7">
         <property name="toolTip">
          <string>Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 0.10. The threshold is applied to the reference image</string>
@@ -174,7 +174,7 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
-      <item row="3" column="0" colspan="3">
+      <item row="4" column="0" colspan="3">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
          <spacer name="horizontalSpacer_2">
@@ -241,7 +241,7 @@ p, li { white-space: pre-wrap; }
         </item>
        </layout>
       </item>
-      <item row="6" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="label_6">
         <property name="toolTip">
          <string>Specify the 100% value for the dose difference tolerance</string>
@@ -251,7 +251,7 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
-      <item row="6" column="2">
+      <item row="7" column="2">
        <layout class="QGridLayout" name="gridLayout_3">
         <property name="horizontalSpacing">
          <number>0</number>
@@ -299,6 +299,31 @@ p, li { white-space: pre-wrap; }
          </widget>
         </item>
        </layout>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="toolTip">
+         <string>Mask contour that defines the region that is considered for dose comparison</string>
+        </property>
+        <property name="text">
+         <string>Mask contour:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_MaskContour">
+        <property name="toolTip">
+         <string>Mask contour that defines the region that is considered for dose comparison</string>
+        </property>
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLContourNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -484,6 +509,22 @@ p, li { white-space: pre-wrap; }
     <hint type="destinationlabel">
      <x>344</x>
      <y>315</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDoseComparisonModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_MaskContour</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>185</x>
+     <y>1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>309</x>
+     <y>113</y>
     </hint>
    </hints>
   </connection>

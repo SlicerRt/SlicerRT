@@ -28,6 +28,7 @@
 
 // SlicerRtCommon includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
 
 // DoseComparison includes
 #include "vtkSlicerDoseComparisonModuleLogic.h"
@@ -187,6 +188,10 @@ void qSlicerDoseComparisonModuleWidget::setDoseComparisonNode(vtkMRMLNode *node)
     {
       paramNode->SetAndObserveCompareDoseVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_CompareDoseVolume->currentNode()));
     }
+    if (!paramNode->GetMaskContourNode() && d->MRMLNodeComboBox_MaskContour->currentNode())
+    {
+      paramNode->SetAndObserveMaskContourNode(vtkMRMLContourNode::SafeDownCast(d->MRMLNodeComboBox_MaskContour->currentNode()));
+    }
     if (!paramNode->GetGammaVolumeNode() && d->MRMLNodeComboBox_GammaVolume->currentNode())
     {
       paramNode->SetAndObserveGammaVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_GammaVolume->currentNode()));
@@ -214,6 +219,10 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
     if (paramNode->GetCompareDoseVolumeNode())
     {
       d->MRMLNodeComboBox_CompareDoseVolume->setCurrentNode(paramNode->GetCompareDoseVolumeNode());
+    }
+    if (paramNode->GetMaskContourNode())
+    {
+      d->MRMLNodeComboBox_MaskContour->setCurrentNode(paramNode->GetMaskContourNode());
     }
     if (paramNode->GetGammaVolumeNode())
     {
@@ -250,6 +259,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
   // Make connections
   connect( d->MRMLNodeComboBox_ReferenceDoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceDoseVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_CompareDoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareDoseVolumeNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_MaskContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(maskContourNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_GammaVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(gammaVolumeNodeChanged(vtkMRMLNode*)) );
 
   connect( d->doubleSpinBox_DtaDistanceTolerance, SIGNAL(valueChanged(double)), this, SLOT(dtaDistanceToleranceChanged(double)) );
@@ -339,6 +349,30 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
   this->invalidateResults();
   this->updateButtonsState();
   this->checkDoseVolumeAttributes();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseComparisonModuleWidget::maskContourNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerDoseComparisonModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseComparisonModuleWidget::maskContourNodeChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !node || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveMaskContourNode(vtkMRMLContourNode::SafeDownCast(node));
+  paramNode->DisableModifiedEventOff();
+
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
