@@ -22,6 +22,9 @@
 // MRMLDoseAccumulation includes
 #include "vtkMRMLDoseComparisonNode.h"
 
+// SlicerRT includes
+#include "vtkMRMLContourNode.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
@@ -36,6 +39,7 @@
 //------------------------------------------------------------------------------
 static const char* REFERENCE_DOSE_VOLUME_REFERENCE_ROLE = "referenceDoseVolumeRef";
 static const char* COMPARE_DOSE_VOLUME_REFERENCE_ROLE = "compareDoseVolumeRef";
+static const char* MASK_CONTOUR_REFERENCE_ROLE = "maskContourRef";
 static const char* GAMMA_VOLUME_REFERENCE_ROLE = "outputGammaVolumeRef";
 
 //------------------------------------------------------------------------------
@@ -214,6 +218,18 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseComparisonNode::GetCompareDoseVolumeNode()
 void vtkMRMLDoseComparisonNode::SetAndObserveCompareDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
   this->SetNodeReferenceID(COMPARE_DOSE_VOLUME_REFERENCE_ROLE, node->GetID());
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLContourNode* vtkMRMLDoseComparisonNode::GetMaskContourNode()
+{
+  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(MASK_CONTOUR_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseComparisonNode::SetAndObserveMaskContourNode(vtkMRMLContourNode* node)
+{
+  this->SetNodeReferenceID(MASK_CONTOUR_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------

@@ -191,7 +191,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
         vtkSmartPointer<vtkGeneralTransform> modelToReferencedAnatomyVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
         SlicerRtCommon::GetTransformBetweenTransformables(modelNode, referencedAnatomyVolumeNode, modelToReferencedAnatomyVolumeIjkTransform);
         double* transformedPoint = modelToReferencedAnatomyVolumeIjkTransform->TransformPoint(1.0, 0.0, 0.0);
-        if (transformedPoint[0] != 1.0 || transformedPoint[1] != 0.0 || transformedPoint[2] != 0.0)
+        if ( fabs(transformedPoint[0]-1.0) > EPSILON || fabs(transformedPoint[1]) > EPSILON || fabs(transformedPoint[2]) > EPSILON )
         {
           vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Referenced series '" << referencedAnatomyVolumeNode->GetName()
             << "' is not in the same coordinate system as contour '" << this->ContourNode->Name << "'!");
@@ -236,7 +236,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     selectedReferenceVolumeNode = temporaryHardenedSelectedReferenceVolumeCopy.GetPointer();
   }
 
-  // Use referenced anatomy volume for conversion if available, and has different geometry than the selected reference
+  // Use referenced anatomy volume for conversion if available, and has different orientation than the selected reference
   vtkMRMLScalarVolumeNode* referenceVolumeNodeUsedForConversion = selectedReferenceVolumeNode;
   if (referencedAnatomyVolumeNode && referencedAnatomyVolumeNode != selectedReferenceVolumeNode)
   {
@@ -244,19 +244,20 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     referencedAnatomyVolumeNode->GetIJKToRASDirectionMatrix(referencedAnatomyVolumeDirectionMatrix);
     vtkSmartPointer<vtkMatrix4x4> selectedReferenceVolumeDirectionMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     selectedReferenceVolumeNode->GetIJKToRASDirectionMatrix(selectedReferenceVolumeDirectionMatrix);
-    bool differentGeometry = false;
-    for (int row=0; row<4; ++row)
+    bool differentOrientation = false;
+    for (int row=0; row<3; ++row)
     {
-      for (int column=0; column<4; ++column)
+      for (int column=0; column<3; ++column)
       {
-        if (referencedAnatomyVolumeDirectionMatrix->GetElement(row,column) - selectedReferenceVolumeDirectionMatrix->GetElement(row,column) > EPSILON)
+        if ( fabs( referencedAnatomyVolumeDirectionMatrix->GetElement(row,column)
+                 - selectedReferenceVolumeDirectionMatrix->GetElement(row,column) ) > EPSILON*EPSILON)
         {
-          differentGeometry = true;
+          differentOrientation = true;
           break;
         }
       }
     }
-    if (differentGeometry)
+    if (differentOrientation)
     {
       referenceVolumeNodeUsedForConversion = referencedAnatomyVolumeNode;
     }

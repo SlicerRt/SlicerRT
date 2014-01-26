@@ -25,6 +25,7 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLContourNode.h"
 
 // Plastimatch includes
 #include "gamma_dose_comparison.h"
@@ -188,16 +189,34 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   vtkMRMLScalarVolumeNode* compareDoseVolumeNode = this->DoseComparisonNode->GetCompareDoseVolumeNode();
   itk::Image<float, 3>::Pointer compareDoseVolumeItk = itk::Image<float, 3>::New();
 
+  vtkMRMLContourNode* maskContourNode = this->DoseComparisonNode->GetMaskContourNode();
+  vtkMRMLScalarVolumeNode* maskContourLabelmapNode = NULL;
+  itk::Image<unsigned char, 3>::Pointer maskContourLabelmapItk = itk::Image<unsigned char, 3>::New();
+  if (maskContourNode)
+  {
+    maskContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(referenceDoseVolumeNode->GetID());
+    maskContourNode->SetRasterizationOversamplingFactor(1.0);
+    maskContourLabelmapNode = maskContourNode->GetIndexedLabelmapVolumeNode();
+  }
+
   // Convert inputs to ITK images
   double checkpointItkConvertStart = timer->GetUniversalTime();
   SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(referenceDoseVolumeNode, referenceDoseVolumeItk);
   SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(compareDoseVolumeNode, compareDoseVolumeItk);
+  if (maskContourNode)
+  {
+    SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(maskContourLabelmapNode, maskContourLabelmapItk);
+  }
 
   // Compute gamma dose volume
   double checkpointGammaStart = timer->GetUniversalTime();
   Gamma_dose_comparison gamma;
   gamma.set_reference_image(referenceDoseVolumeItk);
   gamma.set_compare_image(compareDoseVolumeItk);
+  if (maskContourNode)
+  {
+    gamma.set_mask_image(maskContourLabelmapItk);
+  }
   gamma.set_spatial_tolerance(this->DoseComparisonNode->GetDtaDistanceToleranceMm());
   gamma.set_dose_difference_tolerance(this->DoseComparisonNode->GetDoseDifferenceTolerancePercent() / 100.0);
   if (!this->DoseComparisonNode->GetUseMaximumDose())

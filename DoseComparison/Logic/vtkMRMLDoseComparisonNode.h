@@ -33,6 +33,7 @@
 #include "vtkSlicerDoseComparisonModuleLogicExport.h"
 
 class vtkMRMLScalarVolumeNode;
+class vtkMRMLContourNode;
 
 /// \ingroup SlicerRt_QtModules_DoseComparison
 class VTK_SLICER_DOSECOMPARISON_LOGIC_EXPORT vtkMRMLDoseComparisonNode : public vtkMRMLNode
@@ -67,6 +68,11 @@ public:
   vtkMRMLScalarVolumeNode* GetCompareDoseVolumeNode();
   /// Set and observe compare dose volume node
   void SetAndObserveCompareDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  /// Get mask contour node
+  vtkMRMLContourNode* GetMaskContourNode();
+  /// Set and observe mask contour node
+  void SetAndObserveMaskContourNode(vtkMRMLContourNode* node);
 
   /// Get output gamma volume node
   vtkMRMLScalarVolumeNode* GetGammaVolumeNode();
