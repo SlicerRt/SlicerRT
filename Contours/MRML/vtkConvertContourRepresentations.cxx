@@ -345,14 +345,14 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   double oversampledSelectedReferenceVtkVolumeSpacing[3] = {0.0, 0.0, 0.0};
   SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( selectedReferenceVolumeNode,
     oversamplingFactor, oversampledSelectedReferenceVolumeExtent, oversampledSelectedReferenceVtkVolumeSpacing );
-  double selectedReferenceSpacing[3];
+  double selectedReferenceSpacing[3] = {0.0, 0.0, 0.0};
   selectedReferenceVolumeNode->GetSpacing(selectedReferenceSpacing);
   double oversampledSelectedReferenceVolumeSpacing[3] = { selectedReferenceSpacing[0] * oversampledSelectedReferenceVtkVolumeSpacing[0],
                                                           selectedReferenceSpacing[1] * oversampledSelectedReferenceVtkVolumeSpacing[1],
                                                           selectedReferenceSpacing[2] * oversampledSelectedReferenceVtkVolumeSpacing[2] };
 
-  double calculatedOrigin[3];
-  double calculatedOriginHomogeneous[4] = {0, 0, 0, 1};
+  double calculatedOrigin[3] = {0.0, 0.0, 0.0};
+  double calculatedOriginHomogeneous[4] = {0.0, 0.0, 0.0, 1.0};
   polyDataToLabelmapFilter->GetOutput()->GetOrigin(calculatedOrigin);
   calculatedOriginHomogeneous[0] = calculatedOrigin[0];
   calculatedOriginHomogeneous[1] = calculatedOrigin[1];
@@ -379,13 +379,13 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     plm_long oversampledSelectedReferenceDimensionsLong[3] = { oversampledSelectedReferenceVolumeExtent[1]-oversampledSelectedReferenceVolumeExtent[0]+1,
                                                                oversampledSelectedReferenceVolumeExtent[3]-oversampledSelectedReferenceVolumeExtent[2]+1,
                                                                oversampledSelectedReferenceVolumeExtent[5]-oversampledSelectedReferenceVolumeExtent[4]+1 };
-    double selectedReferenceOrigin[3];
+    double selectedReferenceOrigin[3] = {0.0, 0.0, 0.0};
     selectedReferenceVolumeNode->GetOrigin(selectedReferenceOrigin);
     float selectedReferenceOriginFloat[3] = { selectedReferenceOrigin[0], selectedReferenceOrigin[1], selectedReferenceOrigin[2] };
     float oversampledSelectedReferenceSpacingFloat[3] = { oversampledSelectedReferenceVolumeSpacing[0], oversampledSelectedReferenceVolumeSpacing[1], oversampledSelectedReferenceVolumeSpacing[2] };
 
-    float selectedReferenceDirectionCosines[9];
-    double selectedReferenceDirections[3][3];
+    float selectedReferenceDirectionCosines[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    double selectedReferenceDirections[3][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
     selectedReferenceVolumeNode->GetIJKToRASDirections(selectedReferenceDirections);
     for (int matrixIndex=0; matrixIndex<9; ++matrixIndex)
     {
@@ -521,7 +521,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
       padder->SetConstant(0);
 
       translator->Update();
-      int extent[6];
+      int extent[6] = {0, 0, 0, 0, 0, 0};
       this->ContourNode->IndexedLabelmapVolumeNode->GetImageData()->GetWholeExtent(extent);
       // Now set the output extent to the new size, padded by 2 on the positive side
       padder->SetOutputWholeExtent(extent[0], extent[1] + 2,
@@ -574,18 +574,29 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   closedSurfaceModelNode->SetAndObserveDisplayNodeID( closedSurfaceModelDisplayNode->GetID() );
   closedSurfaceModelNode->SetAndObserveTransformNodeID( this->ContourNode->IndexedLabelmapVolumeNode->GetTransformNodeID() );
 
-  // Create model to referenceIjk transform
+  // Create reference volume IJK to transformed model transform
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   this->GetTransformFromNodeToVolumeIjk(closedSurfaceModelNode, this->ContourNode->IndexedLabelmapVolumeNode, modelToReferenceVolumeIjkTransform);
 
-  vtkSmartPointer<vtkGeneralTransform> referenceVolumeIjkToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  referenceVolumeIjkToModelTransform->Concatenate(modelToReferenceVolumeIjkTransform);
-  referenceVolumeIjkToModelTransform->Inverse();
+  vtkSmartPointer<vtkGeneralTransform> referenceVolumeIjkToTransformedModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  referenceVolumeIjkToTransformedModelTransform->Concatenate(modelToReferenceVolumeIjkTransform);
+
+  // Apply inverse of the transform applied on the contour (because the target representation will be under the same
+  // transform and we want to avoid applying the transform twice)
+  if (closedSurfaceModelNode->GetParentTransformNode())
+  {
+    vtkSmartPointer<vtkGeneralTransform> worldToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    closedSurfaceModelNode->GetParentTransformNode()->GetTransformToWorld(worldToModelTransform);
+    worldToModelTransform->Inverse();
+    referenceVolumeIjkToTransformedModelTransform->Concatenate(worldToModelTransform);
+  }
+
+  referenceVolumeIjkToTransformedModelTransform->Inverse();
 
   // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( labelmapToModelFilter->GetOutput() );
-  transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(referenceVolumeIjkToModelTransform.GetPointer());
+  transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(referenceVolumeIjkToTransformedModelTransform.GetPointer());
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
 
   closedSurfaceModelNode->SetAndObservePolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
