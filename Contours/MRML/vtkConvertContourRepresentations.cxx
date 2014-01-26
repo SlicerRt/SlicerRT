@@ -218,10 +218,21 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   if (selectedReferenceVolumeNode->GetParentTransformNode())
   {
     temporaryHardenedSelectedReferenceVolumeCopy->Copy(selectedReferenceVolumeNode);
-    vtkSmartPointer<vtkMatrix4x4> hardeningMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    selectedReferenceVolumeNode->GetParentTransformNode()->GetMatrixTransformToWorld(hardeningMatrix);
-    temporaryHardenedSelectedReferenceVolumeCopy->ApplyTransformMatrix(hardeningMatrix);
+    vtkSmartPointer<vtkGeneralTransform> referenceVolumeToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    referenceVolumeToModelTransform->Identity();
+    vtkSmartPointer<vtkGeneralTransform> referenceVolumeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    referenceVolumeToModelTransform->Concatenate(referenceVolumeToWorldTransform);
 
+    selectedReferenceVolumeNode->GetParentTransformNode()->GetTransformToWorld(referenceVolumeToWorldTransform);
+    if (modelNode->GetParentTransformNode())
+    {
+      vtkSmartPointer<vtkGeneralTransform> worldToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+      modelNode->GetParentTransformNode()->GetTransformToWorld(worldToModelTransform);
+      worldToModelTransform->Inverse();
+      referenceVolumeToModelTransform->Concatenate(worldToModelTransform);
+    }
+
+    temporaryHardenedSelectedReferenceVolumeCopy->ApplyTransform(referenceVolumeToModelTransform);
     selectedReferenceVolumeNode = temporaryHardenedSelectedReferenceVolumeCopy.GetPointer();
   }
 
@@ -277,10 +288,10 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   transformedModelToReferenceVolumeIjkTransform->Concatenate(modelToReferenceVolumeIjkTransform);
   if (modelNode->GetParentTransformNode())
   {
-    vtkSmartPointer<vtkGeneralTransform> modelToWorldTransformInverse = vtkSmartPointer<vtkGeneralTransform>::New();
-    modelNode->GetParentTransformNode()->GetTransformToWorld(modelToWorldTransformInverse);
-    modelToWorldTransformInverse->Inverse();
-    transformedModelToReferenceVolumeIjkTransform->Concatenate(modelToWorldTransformInverse);
+    vtkSmartPointer<vtkGeneralTransform> worldToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    modelNode->GetParentTransformNode()->GetTransformToWorld(worldToModelTransform);
+    worldToModelTransform->Inverse();
+    transformedModelToReferenceVolumeIjkTransform->Concatenate(worldToModelTransform);
   }
 
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter =
@@ -337,8 +348,8 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   double selectedReferenceSpacing[3];
   selectedReferenceVolumeNode->GetSpacing(selectedReferenceSpacing);
   double oversampledSelectedReferenceVolumeSpacing[3] = { selectedReferenceSpacing[0] * oversampledSelectedReferenceVtkVolumeSpacing[0],
-    selectedReferenceSpacing[1] * oversampledSelectedReferenceVtkVolumeSpacing[1],
-    selectedReferenceSpacing[2] * oversampledSelectedReferenceVtkVolumeSpacing[2] };
+                                                          selectedReferenceSpacing[1] * oversampledSelectedReferenceVtkVolumeSpacing[1],
+                                                          selectedReferenceSpacing[2] * oversampledSelectedReferenceVtkVolumeSpacing[2] };
 
   double calculatedOrigin[3];
   double calculatedOriginHomogeneous[4] = {0, 0, 0, 1};
@@ -350,7 +361,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   vtkSmartPointer<vtkImageData> indexedLabelmapVolumeImageData;
   if (referencedAnatomyVolumeNode)
   {
-    // Create temporary volume node so that the oversampled reference an be converted to ITK image
+    // Create temporary volume node so that the oversampled reference can be converted to ITK image
     vtkSmartPointer<vtkMRMLScalarVolumeNode> intermediateLabelmapNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
     intermediateLabelmapNode->SetAndObserveImageData(polyDataToLabelmapFilter->GetOutput());
     intermediateLabelmapNode->CopyOrientation(referencedAnatomyVolumeNode);
@@ -361,13 +372,13 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     double referencedAnatomyVolumeNodeSpacing[3] = {0.0, 0.0, 0.0};
     referencedAnatomyVolumeNode->GetSpacing(referencedAnatomyVolumeNodeSpacing);
     intermediateLabelmapNode->SetSpacing( referencedAnatomyVolumeNodeSpacing[0] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[0],
-      referencedAnatomyVolumeNodeSpacing[1] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[1],
-      referencedAnatomyVolumeNodeSpacing[2] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[2] );
+                                          referencedAnatomyVolumeNodeSpacing[1] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[1],
+                                          referencedAnatomyVolumeNodeSpacing[2] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[2] );
 
     // Determine output (oversampled selected reference volume node) geometry for the resampling
     plm_long oversampledSelectedReferenceDimensionsLong[3] = { oversampledSelectedReferenceVolumeExtent[1]-oversampledSelectedReferenceVolumeExtent[0]+1,
-      oversampledSelectedReferenceVolumeExtent[3]-oversampledSelectedReferenceVolumeExtent[2]+1,
-      oversampledSelectedReferenceVolumeExtent[5]-oversampledSelectedReferenceVolumeExtent[4]+1 };
+                                                               oversampledSelectedReferenceVolumeExtent[3]-oversampledSelectedReferenceVolumeExtent[2]+1,
+                                                               oversampledSelectedReferenceVolumeExtent[5]-oversampledSelectedReferenceVolumeExtent[4]+1 };
     double selectedReferenceOrigin[3];
     selectedReferenceVolumeNode->GetOrigin(selectedReferenceOrigin);
     float selectedReferenceOriginFloat[3] = { selectedReferenceOrigin[0], selectedReferenceOrigin[1], selectedReferenceOrigin[2] };
@@ -795,8 +806,8 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
 //----------------------------------------------------------------------------
 void vtkConvertContourRepresentations::CalculateOriginInRas( vtkMRMLScalarVolumeNode* volumeNodeToSet, double originInIJKHomogeneous[4], double* newOriginHomogeneous )
 {
-    vtkMatrix4x4* refToRASMatrix = vtkMatrix4x4::New();
-    volumeNodeToSet->GetIJKToRASMatrix(refToRASMatrix);
-    refToRASMatrix->MultiplyPoint(originInIJKHomogeneous, newOriginHomogeneous);
-    refToRASMatrix->Delete();
+  vtkMatrix4x4* refToRASMatrix = vtkMatrix4x4::New();
+  volumeNodeToSet->GetIJKToRASMatrix(refToRASMatrix);
+  refToRASMatrix->MultiplyPoint(originInIJKHomogeneous, newOriginHomogeneous);
+  refToRASMatrix->Delete();
 }
