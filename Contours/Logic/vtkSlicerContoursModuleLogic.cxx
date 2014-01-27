@@ -104,18 +104,17 @@ void vtkSlicerContoursModuleLogic::ProcessMRMLSceneEvents(vtkObject* caller, uns
   Superclass::ProcessMRMLSceneEvents(caller, event, callData);
 
   vtkMRMLScene* scene = this->GetMRMLScene();
-  vtkMRMLNode* node = reinterpret_cast<vtkMRMLNode*>(callData);
-  if (!node || !this->GetMRMLScene())
+  if (!scene)
   {
     vtkErrorMacro("ProcessMRMLSceneEvents: Invalid MRML scene or caller node!");
     return;
   }
-
   if (scene->IsBatchProcessing())
   {
     return;
   }
 
+  vtkMRMLNode* node = reinterpret_cast<vtkMRMLNode*>(callData);
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
   if (contourNode)
   {
