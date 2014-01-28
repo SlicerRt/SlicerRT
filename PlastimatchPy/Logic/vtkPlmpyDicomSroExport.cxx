@@ -147,14 +147,42 @@ void vtkPlmpyDicomSroExport::DoExport ()
     return;
   }
 
-  const vtkMatrix4x4* vtkAff = xformNode->GetMatrixTransformToParent ();
-  itk::Array<double> parms(16);
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      printf ("Setting affine [%d,%d] %g\n", i, j, 
-              vtkAff->GetElement (i,j));
-      parms[i*4+j] = vtkAff->GetElement (i, j);
+  // Make a copy of vtk affine matrix to perform some operation before export
+  const vtkMatrix4x4* vtkAffMatrix = xformNode->GetMatrixTransformToParent ();
+  vtkSmartPointer<vtkMatrix4x4> vtkAff = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkAff->DeepCopy(vtkAffMatrix);
+
+  // Change from RAS system to ITK/DICOM LPS system
+  vtkSmartPointer<vtkMatrix4x4> invMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  invMatrix->Identity();
+  invMatrix->SetElement(0,0,-1);
+  invMatrix->SetElement(1,1,-1);
+  vtkSmartPointer<vtkMatrix4x4> forMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  forMatrix->Identity();
+  forMatrix->SetElement(0,0,-1);
+  forMatrix->SetElement(1,1,-1);
+  vtkMatrix4x4::Multiply4x4(invMatrix, vtkAff, vtkAff);
+  vtkMatrix4x4::Multiply4x4(vtkAff, forMatrix, vtkAff);
+
+  // Set up the parameters for itk affine transform
+  itk::Array<double> parms(12);
+  unsigned int par = 0;
+  // First set up the matrix part
+  for (int i = 0; i < 3; i++) 
+  {
+    for (int j = 0; j < 3; j++) 
+	{
+      //printf ("Setting affine [%d,%d] %g\n", i, j, 
+      //        vtkAff->GetElement (i,j));
+      parms[par] = vtkAff->GetElement (i, j);
+	  par++;
     }
+  }
+  // Next set up the offset part
+  for (int i = 0; i < 3; i++) 
+  {
+	  parms[par] = vtkAff->GetElement (i, 3);
+	  par++;
   }
   Xform::Pointer xform = Xform::New ();
   xform->set_aff (parms);
