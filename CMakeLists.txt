@@ -78,6 +78,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(PlmThreshbox)
   add_subdirectory(ExternalBeamPlanning)
   add_subdirectory(DicomSroExport)
+  add_subdirectory(DicomSroImport)
 
   # Registration validation routines
   add_subdirectory(PlmSynth)
