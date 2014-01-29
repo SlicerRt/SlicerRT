@@ -31,6 +31,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLContourNode;
+class vtkMRMLDoubleArrayNode;
 
 #include "vtkSlicerExternalBeamPlanningModuleLogicExport.h"
 
@@ -78,8 +79,26 @@ public:
   /// Set and observe proton target contour node
   void SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node);
 
+  /// Get MLC position double array node
+  vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
+  /// Set and observe MLC position double array node
+  void SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
+
+  vtkGetMacro(X1Jaw, double);
+  vtkSetMacro(X1Jaw, double);
+  vtkGetMacro(X2Jaw, double);
+  vtkSetMacro(X2Jaw, double);
+  vtkGetMacro(Y1Jaw, double);
+  vtkSetMacro(Y1Jaw, double);
+  vtkGetMacro(Y2Jaw, double);
+  vtkSetMacro(Y2Jaw, double);
+
   vtkGetMacro(GantryAngle, double);
   vtkSetMacro(GantryAngle, double);
+  vtkGetMacro(CollimatorAngle, double);
+  vtkSetMacro(CollimatorAngle, double);
+  vtkGetMacro(CouchAngle, double);
+  vtkSetMacro(CouchAngle, double);
   vtkGetMacro(Smearing, double);
   vtkSetMacro(Smearing, double);
   vtkGetMacro(ProximalMargin, double);
@@ -93,7 +112,13 @@ protected:
   vtkMRMLExternalBeamPlanningNode(const vtkMRMLExternalBeamPlanningNode&);
   void operator=(const vtkMRMLExternalBeamPlanningNode&);
 
+  double X1Jaw;
+  double X2Jaw;
+  double Y1Jaw;
+  double Y2Jaw;
   double GantryAngle;
+  double CollimatorAngle;
+  double CouchAngle;
   double Smearing;
   double ProximalMargin;
   double DistalMargin;

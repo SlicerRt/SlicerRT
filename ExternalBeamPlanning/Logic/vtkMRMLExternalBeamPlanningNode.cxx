@@ -31,6 +31,7 @@
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLDoubleArrayNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -41,6 +42,7 @@
 
 //------------------------------------------------------------------------------
 static const char* RFERENCE_VOLUME_REFERENCE_ROLE = "referenceVolumeRef";
+static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
 static const char* RT_PLAN_REFERENCE_ROLE = "rtPlanRef";
 static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
 static const char* PROTON_TARGET_CONTOUR_REFERENCE_ROLE = "protonTargetContourRef";
@@ -51,6 +53,13 @@ vtkMRMLNodeNewMacro(vtkMRMLExternalBeamPlanningNode);
 //----------------------------------------------------------------------------
 vtkMRMLExternalBeamPlanningNode::vtkMRMLExternalBeamPlanningNode()
 {
+  this->X1Jaw = 100;
+  this->X2Jaw = 100;
+  this->Y1Jaw = 100;
+  this->Y2Jaw = 100;
+  this->GantryAngle = 0;
+  this->CollimatorAngle = 0;
+  this->CouchAngle = 0;
   this->HideFromEditors = false;
 }
 
@@ -80,7 +89,12 @@ void vtkMRMLExternalBeamPlanningNode::ReadXMLAttributes(const char** atts)
 void vtkMRMLExternalBeamPlanningNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
-  //TODO:
+  this->DisableModifiedEventOn();
+
+  vtkMRMLExternalBeamPlanningNode *node = (vtkMRMLExternalBeamPlanningNode *)anode;
+
+  this->DisableModifiedEventOff();
+  this->InvokePendingModifiedEvent();
 }
 
 //----------------------------------------------------------------------------
@@ -136,5 +150,17 @@ vtkMRMLContourNode* vtkMRMLExternalBeamPlanningNode::GetProtonTargetContourNode(
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node)
 {
   this->SetNodeReferenceID(PROTON_TARGET_CONTOUR_REFERENCE_ROLE, node->GetID());
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLDoubleArrayNode* vtkMRMLExternalBeamPlanningNode::GetMLCPositionDoubleArrayNode()
+{
+  return vtkMRMLDoubleArrayNode::SafeDownCast( this->GetNodeReference(MLCPOSITION_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLExternalBeamPlanningNode::SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
+{
+  this->SetNodeReferenceID(MLCPOSITION_REFERENCE_ROLE, node->GetID());
 }
 

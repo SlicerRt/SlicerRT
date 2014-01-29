@@ -32,11 +32,18 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
+// MRML includes
+
+// STD includes
+#include <cstdlib>
+
 #include "vtkSlicerExternalBeamPlanningModuleLogicExport.h"
 
 class vtkMRMLExternalBeamPlanningNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
+class vtkPolyData;
+class vtkDoubleArray;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkSlicerExternalBeamPlanningModuleLogic :
@@ -48,28 +55,34 @@ public:
   vtkTypeMacro(vtkSlicerExternalBeamPlanningModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  /// TODO
+  ///
   void SetAndObserveExternalBeamPlanningNode(vtkMRMLExternalBeamPlanningNode* node);
 
-  /// TODO
+  ///
   vtkGetObjectMacro(ExternalBeamPlanningNode, vtkMRMLExternalBeamPlanningNode);
 
-  /// TODO
+  ///
   void AddBeam();
 
-  /// TODO
+  ///
   void RemoveBeam(char*);
 
-  /// TODO
-  void UpdateBeam(char*, double);
+  ///
+  //void UpdateBeam(char*, double);
 
-  /// TODO
-  void CreateBeamPolyData();
+  ///
+  void UpdateBeamTransform(char*);
 
-  /// TODO
+  ///
+  void UpdateBeamGeometryModel(char*);
+
+  ///
+  vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, vtkDoubleArray*);
+
+  ///
   void ComputeDose ();
 
-  /// TODO
+  ///
   void ComputeWED ();
 
 protected:
@@ -90,6 +103,7 @@ protected:
   vtkMRMLExternalBeamPlanningNode* ExternalBeamPlanningNode;
 
 private:
+
   vtkSlicerExternalBeamPlanningModuleLogic(const vtkSlicerExternalBeamPlanningModuleLogic&); // Not implemented
   void operator=(const vtkSlicerExternalBeamPlanningModuleLogic&);               // Not implemented
 };

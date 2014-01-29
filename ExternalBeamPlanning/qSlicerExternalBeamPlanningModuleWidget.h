@@ -70,19 +70,23 @@ protected slots:
   void beamNameChanged(const QString &);
   void radiationTypeChanged(int);
 
-  /* Task buttons */
-  void beamPrescriptionButtonClicked();
-  void beamGeometryButtonClicked();
-  void beamModelButtonClicked();
-
   /* Prescription page */
   void beamTypeChanged(const QString &);
+  void XJawsPositionValuesChanged(double, double);
+  void YJawsPositionValuesChanged(double, double);
+  void nominalEnergyChanged(const QString&);
+  void nominalmAChanged(const QString &);
+  void RxDoseChanged(const QString &);
+  void beamOnTimeChanged(const QString &);
 
   /* Geometry page */
   void gantryAngleChanged(double);
+  void collimatorAngleChanged(double);
+  void couchAngleChanged(double);
   void collimatorTypeChanged(const QString &);
   void isocenterFiducialNodeChanged(vtkMRMLNode*);
   void protonTargetContourNodeChanged(vtkMRMLNode* node);
+  void MLCPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
 
   void tableWidgetItemClicked(QTableWidgetItem *item);
 

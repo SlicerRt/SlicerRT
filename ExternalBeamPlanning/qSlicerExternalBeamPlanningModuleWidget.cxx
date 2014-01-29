@@ -37,6 +37,7 @@
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLDoublearrayNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -158,7 +159,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   // First check the logic if it has a parameter node
-  if (d->logic())
+  if (d->logic() == NULL)
   {
     qCritical() << "qSlicerExternalBeamPlanningModuleWidget::onEnter: Invalid logic!";
     return;
@@ -246,26 +247,23 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
   this->connect( d->comboBox_RadiationType, SIGNAL(currentIndexChanged(int)), this, SLOT(radiationTypeChanged(int)) );
 
-  /* Task buttons */
-  this->connect( d->pushButton_BeamPrescription, SIGNAL(clicked()), this, SLOT(beamPrescriptionButtonClicked()) );
-  this->connect( d->pushButton_BeamGeometry, SIGNAL(clicked()), this, SLOT(beamGeometryButtonClicked()) );
-  this->connect( d->pushButton_BeamModel, SIGNAL(clicked()), this, SLOT(beamModelButtonClicked()) );
-
-  /* Make prescription the default task */
-  this->beamPrescriptionButtonClicked();
-
-  /* Prescription page */
+  /* Photon Prescription page */
   this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
+  this->connect( d->comboBox_NominalEnergy, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(nominalEnergyChanged(const QString&)) );
+  this->connect( d->lineEdit_NominalmA, SIGNAL(textChanged(const QString &)), this, SLOT(nominalmAChanged(const QString &)) );
+  this->connect( d->lineEdit_RxDose, SIGNAL(textChanged(const QString &)), this, SLOT(RxDoseChanged(const QString &)) );
+  this->connect( d->lineEdit_BeamOnTime, SIGNAL(textChanged(const QString &)), this, SLOT(beamOnTimeChanged(const QString &)) );
+
+  this->connect( d->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(MLCPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(XJawsPositionValuesChanged(double, double)) );
+  this->connect( d->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(YJawsPositionValuesChanged(double, double)) );
 
   /* Geometry page */
   this->connect( d->MRMLNodeComboBox_ProtonTargetContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(protonTargetContourNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_IsocenterFiducial, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(isocenterFiducialNodeChanged(vtkMRMLNode*)) );
   this->connect( d->SliderWidget_GantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
-  this->connect( d->comboBox_CollimatorType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(collimatorTypeChanged(const QString &)) );
-  //this->connect( d->comboBox_NominalEnergy, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(nominalEnergyChanged(const QString &)) );
-  //this->connect( d->lineEdit_NominalmA, SIGNAL(textChanged(const QString &)), this, SLOT(nominalmAChanged(const QString &)) );
-  //this->connect( d->lineEdit_RxDose, SIGNAL(textChanged(const QString &)), this, SLOT(RxDoseChanged(const QString &)) );
-  //this->connect( d->lineEdit_BeamOnTime, SIGNAL(textChanged(const QString &)), this, SLOT(beamOnTimeChanged(const QString &)) );
+  this->connect( d->SliderWidget_CollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
+  this->connect( d->SliderWidget_CouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
 
   /* Calculation buttons */
   this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
@@ -511,6 +509,43 @@ void qSlicerExternalBeamPlanningModuleWidget::protonTargetContourNodeChanged(vtk
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode || !node)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode::SafeDownCast(node));
+  paramNode->DisableModifiedEventOff();
+
+#if defined (commentout)
+  /* This is just debugging */
+  vtkMRMLContourNode* contourNode;
+  vtkMRMLContourNode::ContourRepresentationType contourRep;
+  contourNode = vtkMRMLContourNode::SafeDownCast(node);
+  contourRep = contourNode->GetActiveRepresentationType();
+  qDebug("Contour representation is %d\n", contourRep);
+#endif
+
+#if defined (commentout)
+  // TODO GCS FIX: Update GUI to set range & modulation, etc.
+  // Update UI from selected contours nodes list
+  this->updateWidgetFromMRML();
+#endif
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
@@ -691,8 +726,8 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
     d->lineEdit_BeamOnTime->setEnabled (true);
     d->label_NominalmA->setEnabled (true);
     d->lineEdit_NominalmA->setEnabled (true);
-    d->label_CollimatorType->setEnabled (true);
-    d->comboBox_CollimatorType->setEnabled (true);
+    //d->label_CollimatorType->setEnabled (true);
+    //d->comboBox_CollimatorType->setEnabled (true);
   }
   else
   {
@@ -702,45 +737,9 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
     d->lineEdit_BeamOnTime->setEnabled (false);
     d->label_NominalmA->setEnabled (false);
     d->lineEdit_NominalmA->setEnabled (false);
-    d->label_CollimatorType->setEnabled (false);
-    d->comboBox_CollimatorType->setEnabled (false);
+    //d->label_CollimatorType->setEnabled (false);
+    //d->comboBox_CollimatorType->setEnabled (false);
   }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::beamPrescriptionButtonClicked()
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  d->pushButton_BeamPrescription->setChecked (true);
-  d->pushButton_BeamGeometry->setChecked (false);
-  d->pushButton_BeamModel->setChecked (false);
-
-  d->stackedWidget->setCurrentIndex(0);
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::beamGeometryButtonClicked()
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  d->pushButton_BeamPrescription->setChecked (false);
-  d->pushButton_BeamGeometry->setChecked (true);
-  d->pushButton_BeamModel->setChecked (false);
-
-  d->stackedWidget->setCurrentIndex(1);
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::beamModelButtonClicked()
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  d->pushButton_BeamPrescription->setChecked (false);
-  d->pushButton_BeamGeometry->setChecked (false);
-  d->pushButton_BeamModel->setChecked (true);
-
-  d->stackedWidget->setCurrentIndex(2);
 }
 
 //-----------------------------------------------------------------------------
@@ -768,6 +767,35 @@ void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
   {
     return;
   }
+  paramNode->SetGantryAngle(value);
+  QTableWidgetItem *item = NULL;
+  char beamName[100];
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+
+  if (item)
+  {
+    strcpy(beamName, item->text().toStdString().c_str());
+    d->logic()->UpdateBeamTransform(beamName);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::collimatorAngleChanged(double value)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::collimatorAngleChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+  paramNode->SetCollimatorAngle(value);
 
   QTableWidgetItem *item = NULL;
   char beamName[100];
@@ -776,7 +804,98 @@ void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
   if (item)
   {
     strcpy(beamName, item->text().toStdString().c_str());
-    d->logic()->UpdateBeam(beamName, value);
+    d->logic()->UpdateBeamTransform(beamName);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::couchAngleChanged(double value)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::couchAngleChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+  paramNode->SetCouchAngle(value);
+
+  QTableWidgetItem *item = NULL;
+  char beamName[100];
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+
+  if (item)
+  {
+    strcpy(beamName, item->text().toStdString().c_str());
+    d->logic()->UpdateBeamTransform(beamName);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::XJawsPositionValuesChanged(double minVal, double maxVal)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::XJawPositionsValueChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::XJawPositionsValueChanged: Invalid module parameter!";
+    return;
+  }
+
+  paramNode->SetX1Jaw(-minVal);
+  paramNode->SetX2Jaw( maxVal);
+
+  QTableWidgetItem *item = NULL;
+  char beamName[100];
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+
+  if (item)
+  {
+    strcpy(beamName, item->text().toStdString().c_str());
+    d->logic()->UpdateBeamGeometryModel(beamName);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::YJawsPositionValuesChanged(double minVal, double maxVal)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::YJawPositionsValueChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+  paramNode->SetY1Jaw(-minVal);
+  paramNode->SetY2Jaw( maxVal);
+
+  QTableWidgetItem *item = NULL;
+  char beamName[100];
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+
+  if (item)
+  {
+    strcpy(beamName, item->text().toStdString().c_str());
+    d->logic()->UpdateBeamGeometryModel(beamName);
   }
 }
 
@@ -799,4 +918,40 @@ void qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged(const QStrin
   }
   
   //TODO:
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::nominalEnergyChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::nominalmAChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::RxDoseChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::beamOnTimeChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
 }
