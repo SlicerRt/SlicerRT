@@ -55,34 +55,31 @@ public:
   vtkTypeMacro(vtkSlicerExternalBeamPlanningModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  ///
+  /// TODO
   void SetAndObserveExternalBeamPlanningNode(vtkMRMLExternalBeamPlanningNode* node);
 
-  ///
+  /// TODO
   vtkGetObjectMacro(ExternalBeamPlanningNode, vtkMRMLExternalBeamPlanningNode);
 
-  ///
+  /// TODO
   void AddBeam();
 
-  ///
+  /// TODO
   void RemoveBeam(char*);
 
-  ///
-  //void UpdateBeam(char*, double);
-
-  ///
+  /// TODO
   void UpdateBeamTransform(char*);
 
-  ///
+  /// TODO
   void UpdateBeamGeometryModel(char*);
 
-  ///
+  /// TODO
   vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, vtkDoubleArray*);
 
-  ///
+  /// TODO
   void ComputeDose ();
 
-  ///
+  /// TODO
   void ComputeWED ();
 
 protected:
@@ -103,7 +100,6 @@ protected:
   vtkMRMLExternalBeamPlanningNode* ExternalBeamPlanningNode;
 
 private:
-
   vtkSlicerExternalBeamPlanningModuleLogic(const vtkSlicerExternalBeamPlanningModuleLogic&); // Not implemented
   void operator=(const vtkSlicerExternalBeamPlanningModuleLogic&);               // Not implemented
 };
