@@ -7,7 +7,7 @@ string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 #-----------------------------------------------------------------------------
 find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} )
 if(NOT Plastimatch_FOUND)
-  message("Plastimatch library is not found. DoseComparison module will not be built.")
+  message("Plastimatch library is not found. ${MODULE_NAME} module will not be built.")
   return()
 endif() 
 
