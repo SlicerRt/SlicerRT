@@ -118,91 +118,94 @@ void vtkSlicerContoursModuleLogic::ProcessMRMLSceneEvents(vtkObject* caller, uns
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
   if (contourNode)
   {
-    scene->StartState(vtkMRMLScene::BatchProcessState);
-
-    vtkMRMLContourNode::ContourRepresentationType type = contourNode->GetActiveRepresentationType();
-    switch(type)
+    if (event == vtkMRMLScene::NodeAboutToBeRemovedEvent)
     {
-    case vtkMRMLContourNode::RibbonModel:
-      {
-        vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetRibbonModelNodeId());
+      scene->StartState(vtkMRMLScene::BatchProcessState);
 
-        // Remove associated model node
-        vtkMRMLHierarchyNode* modelHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, aNode->GetID());
-        if (modelHierarchyNode)
+      vtkMRMLContourNode::ContourRepresentationType type = contourNode->GetActiveRepresentationType();
+      switch(type)
+      {
+      case vtkMRMLContourNode::RibbonModel:
         {
-          scene->RemoveNode(modelHierarchyNode);
+          vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetRibbonModelNodeId());
+
+          // Remove associated model node
+          vtkMRMLHierarchyNode* modelHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, aNode->GetID());
+          if (modelHierarchyNode)
+          {
+            scene->RemoveNode(modelHierarchyNode);
+          }
+
+          scene->RemoveNode(aNode);
+          contourNode->SetAndObserveRibbonModelNodeId(NULL);
+          break;
         }
-
-        scene->RemoveNode(aNode);
-        contourNode->SetAndObserveRibbonModelNodeId(NULL);
-        break;
-      }
-    case vtkMRMLContourNode::IndexedLabelmap:
-      {
-        vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetIndexedLabelmapVolumeNodeId());
-        scene->RemoveNode(aNode);
-        contourNode->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
-        break;
-      }
-    case vtkMRMLContourNode::ClosedSurfaceModel:
-      {
-        vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetClosedSurfaceModelNodeId());
-
-        // Remove associated model node
-        vtkMRMLHierarchyNode* modelHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, aNode->GetID());
-        if (modelHierarchyNode)
+      case vtkMRMLContourNode::IndexedLabelmap:
         {
-          scene->RemoveNode(modelHierarchyNode);
+          vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetIndexedLabelmapVolumeNodeId());
+          scene->RemoveNode(aNode);
+          contourNode->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
+          break;
         }
-
-        scene->RemoveNode(aNode);
-        contourNode->SetAndObserveClosedSurfaceModelNodeId(NULL);
-        break;
-      }
-    default:
-      vtkErrorMacro("Unknown representation type.");
-    }
-
-    // Get associated subject hierarchy node
-    vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode =
-      vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(contourNode, scene);
-
-    // No need to remove color and subject hierarchy node if the scene is closing and there is no associated subject hierarchy node any more
-    if (!scene->IsClosing() || contourSubjectHierarchyNode)
-    {
-      // Remove color table entry
-      vtkMRMLColorTableNode* colorNode = NULL;
-      int structureColorIndex = -1;
-      contourNode->GetColor(structureColorIndex, colorNode, scene);
-      if (colorNode)
-      {
-        if (structureColorIndex != SlicerRtCommon::COLOR_INDEX_INVALID)
+      case vtkMRMLContourNode::ClosedSurfaceModel:
         {
-          // Set color entry to invalid
-          colorNode->SetColor(structureColorIndex, SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1],
-            SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3]);
-          colorNode->SetColorName(structureColorIndex, SlicerRtCommon::COLOR_NAME_REMOVED);
+          vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetClosedSurfaceModelNodeId());
+
+          // Remove associated model node
+          vtkMRMLHierarchyNode* modelHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, aNode->GetID());
+          if (modelHierarchyNode)
+          {
+            scene->RemoveNode(modelHierarchyNode);
+          }
+
+          scene->RemoveNode(aNode);
+          contourNode->SetAndObserveClosedSurfaceModelNodeId(NULL);
+          break;
+        }
+      default:
+        vtkErrorMacro("Unknown representation type.");
+      }
+
+      // Get associated subject hierarchy node
+      vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode =
+        vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(contourNode, scene);
+
+      // No need to remove color and subject hierarchy node if the scene is closing and there is no associated subject hierarchy node any more
+      if (!scene->IsClosing() || contourSubjectHierarchyNode)
+      {
+        // Remove color table entry
+        vtkMRMLColorTableNode* colorNode = NULL;
+        int structureColorIndex = -1;
+        contourNode->GetColor(structureColorIndex, colorNode, scene);
+        if (colorNode)
+        {
+          if (structureColorIndex != SlicerRtCommon::COLOR_INDEX_INVALID)
+          {
+            // Set color entry to invalid
+            colorNode->SetColor(structureColorIndex, SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1],
+              SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3]);
+            colorNode->SetColorName(structureColorIndex, SlicerRtCommon::COLOR_NAME_REMOVED);
+          }
+          else
+          {
+            vtkErrorMacro("OnMRMLSceneNodeRemoved: There was no associated color for contour '" << contourNode->GetName() << "' before removing!");
+          }
         }
         else
         {
-          vtkErrorMacro("OnMRMLSceneNodeRemoved: There was no associated color for contour '" << contourNode->GetName() << "' before removing!");
+          vtkErrorMacro("OnMRMLSceneNodeRemoved: There is no color node for the removed contour '" << contourNode->GetName() << "'!");
+        }
+
+        // Remove subject hierarchy node
+        if (contourSubjectHierarchyNode)
+        {
+          scene->RemoveNode(contourSubjectHierarchyNode);
         }
       }
-      else
-      {
-        vtkErrorMacro("OnMRMLSceneNodeRemoved: There is no color node for the removed contour '" << contourNode->GetName() << "'!");
-      }
 
-      // Remove subject hierarchy node
-      if (contourSubjectHierarchyNode)
-      {
-        scene->RemoveNode(contourSubjectHierarchyNode);
-      }
+      this->Modified();
+      this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
     }
-
-    this->Modified();
-    this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
   }
 }
 
