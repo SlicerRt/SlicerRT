@@ -59,6 +59,11 @@ class Q_SLICER_SUBJECTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyAbstractPl
   /// \sa name()
   Q_PROPERTY(QString name READ name)
 
+  /// This property stores the level to assign to the owned node.
+  /// Empty by default, in which case there is no mandatory level to set to the handled nodes
+  /// \sa level()
+  Q_PROPERTY(QString level READ level)
+
   /// This property holds the name list of the plugin dependencies.
   /// There is no dependency cycle check, so special care must be taken to
   /// avoid infinite loop.
@@ -74,12 +79,14 @@ public:
 public:
   /// Determines if a non subject hierarchy node can be placed in the hierarchy using the actual plugin,
   /// and gets a confidence value for a certain MRML node (usually the type and possibly attributes are checked).
+  /// Most plugins do not perform steps additional to the default, so the default implementation returns a 0
+  /// confidence value, which can be overridden in plugins that do handle special cases.
   /// \param node Node to be added to the hierarchy
   /// \param parent Prospective parent of the node to add.
   ///   Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* node , vtkMRMLSubjectHierarchyNode* parent=NULL) = 0;
+  virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* node , vtkMRMLSubjectHierarchyNode* parent=NULL);
 
   /// Add a node to subject hierarchy under a specified parent node. If added non subject hierarchy nodes
   ///   have certain steps to perform when adding them in Subject Hierarchy, those steps take place here.
@@ -88,11 +95,13 @@ public:
 
   /// Determines if a subject hierarchy node can be reparented in the hierarchy using the actual plugin,
   /// and gets a confidence value for a certain MRML node (usually the type and possibly attributes are checked).
+  /// Most plugins do not perform steps additional to the default, so the default implementation returns a 0
+  /// confidence value, which can be overridden in plugins that do handle special cases.
   /// \param node Node to be reparented in the hierarchy
   /// \param parent Prospective parent of the node to reparent.
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent) = 0;
+  virtual double canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent);
 
   /// Reparent a node that was already in the subject hierarchy under a new parent.
   /// \return True if reparented successfully, false otherwise
@@ -117,18 +126,19 @@ public:
 
 // General (ownable) virtual methods with default implementation
 public:
+  /// Generate displayed name for the owned subject hierarchy node corresponding to its role.
+  /// The default implementation removes the '_SubjectHierarchy' ending from the node's name.
+  virtual QString displayedName(vtkMRMLSubjectHierarchyNode* node);
+
+  /// Generate tooltip for a owned subject hierarchy node
+  virtual QString tooltip(vtkMRMLSubjectHierarchyNode* node);
+
   /// Set display visibility of a owned subject hierarchy node
   virtual void setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible);
 
   /// Get display visibility of a owned subject hierarchy node
   /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
   virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
-
-  /// Set tooltip for a owned subject hierarchy node
-  virtual void setTooltip(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
-
-  //TODO:
-  virtual void exportNode(vtkMRMLSubjectHierarchyNode* node);
 
   /// Get node context menu item actions to add to tree view
   virtual QList<QAction*> nodeContextMenuActions()const;
@@ -154,6 +164,9 @@ public:
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
   virtual void showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node) { Q_UNUSED(node); };
 
+  /// Export data associated to the owned subject hierarhcy node to DICOM
+  virtual void exportNodeToDicom(vtkMRMLSubjectHierarchyNode* node);
+
 // Utility functions
 public:
   vtkMRMLSubjectHierarchyNode* createChildNode(vtkMRMLSubjectHierarchyNode* parentNode, QString nodeName, vtkMRMLNode* associatedNode=NULL);
@@ -161,6 +174,9 @@ public:
 public:
   /// Get the name of the plugin
   virtual QString name()const;
+
+  /// Get the level to assign to the owned node (mandatory if not empty)
+  virtual QString level()const;
 
   /// Get the list of plugin dependencies
   virtual QStringList dependencies()const;
@@ -184,6 +200,10 @@ protected slots:
 protected:
   /// Name of the plugin
   QString m_Name;
+
+  /// Level to assign to the owned node.
+  /// Empty by default, in which case there is no mandatory level to set to the handled nodes
+  QString m_Level;
 
   /// Map assigning a child level to a parent level for the plugin
   QMap<QString, QString> m_ChildLevelMap;

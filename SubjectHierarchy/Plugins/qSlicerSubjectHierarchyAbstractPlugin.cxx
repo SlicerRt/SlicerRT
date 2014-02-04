@@ -40,6 +40,7 @@
 qSlicerSubjectHierarchyAbstractPlugin::qSlicerSubjectHierarchyAbstractPlugin(QObject *parent)
   : Superclass(parent)
   , m_Name(QString())
+  , m_Level(QString())
 {
 }
 
@@ -59,18 +60,15 @@ QString qSlicerSubjectHierarchyAbstractPlugin::name()const
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerSubjectHierarchyAbstractPlugin::dependencies()const
+QString qSlicerSubjectHierarchyAbstractPlugin::level()const
 {
-  return QStringList();
+  return QString();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSubjectHierarchyAbstractPlugin::exportNode(vtkMRMLSubjectHierarchyNode* node)
+QStringList qSlicerSubjectHierarchyAbstractPlugin::dependencies()const
 {
-  Q_UNUSED(node);
-
-  qCritical() << "qSlicerSubjectHierarchyAbstractPlugin::exportNode: This plugin ("
-    << this->m_Name << ") does not support exporting!";
+  return QStringList();
 }
 
 //-----------------------------------------------------------------------------
@@ -83,6 +81,17 @@ QList<QAction*> qSlicerSubjectHierarchyAbstractPlugin::nodeContextMenuActions()c
 QList<QAction*> qSlicerSubjectHierarchyAbstractPlugin::sceneContextMenuActions()const
 {
   return QList<QAction*>();
+}
+
+//----------------------------------------------------------------------------
+double qSlicerSubjectHierarchyAbstractPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)
+{
+  Q_UNUSED(node);
+  Q_UNUSED(parent);
+
+  // Many plugins do not perform steps additional to the default when
+  // adding nodes to the hierarchy from outside, so return 0 by default
+  return 0.0;
 }
 
 //----------------------------------------------------------------------------
@@ -112,6 +121,17 @@ bool qSlicerSubjectHierarchyAbstractPlugin::addNodeToSubjectHierarchy(vtkMRMLNod
   return true;
 }
 
+//----------------------------------------------------------------------------
+double qSlicerSubjectHierarchyAbstractPlugin::canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent)
+{
+  Q_UNUSED(node);
+  Q_UNUSED(parent);
+
+  // Many plugins do not perform steps additional to the default
+  // when reparenting inside the hierarchy, so return 0 by default
+  return 0.0;
+}
+
 //---------------------------------------------------------------------------
 bool qSlicerSubjectHierarchyAbstractPlugin::reparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* nodeToReparent, vtkMRMLSubjectHierarchyNode* parentNode)
 {
@@ -120,12 +140,24 @@ bool qSlicerSubjectHierarchyAbstractPlugin::reparentNodeInsideSubjectHierarchy(v
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSubjectHierarchyAbstractPlugin::setTooltip(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QString qSlicerSubjectHierarchyAbstractPlugin::displayedName(vtkMRMLSubjectHierarchyNode* node)
+{
+  QString nodeText(node->GetName());
+  if (nodeText.endsWith(QString(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str())))
+  {
+    nodeText = nodeText.left( nodeText.size() - vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.size() );
+  }
+
+  return nodeText;
+}
+
+//-----------------------------------------------------------------------------
+QString qSlicerSubjectHierarchyAbstractPlugin::tooltip(vtkMRMLSubjectHierarchyNode* node)
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyAbstractPlugin::setTooltip: Subject hierarchy node is NULL!";
-    item->setToolTip("Invalid!");
+    qCritical() << "qSlicerSubjectHierarchyAbstractPlugin::tooltip: Subject hierarchy node is NULL!";
+    return QString("Invalid!");
   }
 
   // Display node type and level in the tooltip
@@ -147,7 +179,7 @@ void qSlicerSubjectHierarchyAbstractPlugin::setTooltip(vtkMRMLSubjectHierarchyNo
     tooltipString.append(")");
   }
 
-  item->setToolTip(tooltipString);
+  return tooltipString;
 }
 
 //-----------------------------------------------------------------------------
@@ -166,6 +198,15 @@ int qSlicerSubjectHierarchyAbstractPlugin::getDisplayVisibility(vtkMRMLSubjectHi
   Q_UNUSED(node);
 
   return node->GetDisplayVisibilityForBranch();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSubjectHierarchyAbstractPlugin::exportNodeToDicom(vtkMRMLSubjectHierarchyNode* node)
+{
+  Q_UNUSED(node);
+
+  qCritical() << "qSlicerSubjectHierarchyAbstractPlugin::exportNodeToDicom: This plugin ("
+    << this->m_Name << ") does not support DICOM export!";
 }
 
 //-----------------------------------------------------------------------------

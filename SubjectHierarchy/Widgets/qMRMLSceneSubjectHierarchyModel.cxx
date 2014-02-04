@@ -195,15 +195,9 @@ void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item
   // Name column
   if (column == this->nameColumn())
   {
-    QString nodeText(subjectHierarchyNode->GetName());
-    if (nodeText.endsWith(QString(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str())))
-    {
-      nodeText = nodeText.left( nodeText.size() - vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.size() );
-    }
-    item->setText(nodeText);
-
-    // Have owner plugin set the tooltip
-    ownerPlugin->setTooltip(subjectHierarchyNode, item);
+    // Have owner plugin set the name and the tooltip
+    item->setText(ownerPlugin->displayedName(subjectHierarchyNode));
+    item->setToolTip(ownerPlugin->tooltip(subjectHierarchyNode));
   }
   // ID column
   if (column == this->idColumn())

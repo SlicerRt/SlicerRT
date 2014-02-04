@@ -132,26 +132,6 @@ void qSlicerSubjectHierarchyDefaultPlugin::setDefaultVisibilityIcons(QIcon visib
   d->PartiallyVisibleIcon = partiallyVisibleIcon;
 }
 
-//----------------------------------------------------------------------------
-double qSlicerSubjectHierarchyDefaultPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)
-{
-  Q_UNUSED(node);
-  Q_UNUSED(parent);
-
-  // The default Subject Hierarchy plugin is never selected by confidence number it returns
-  return 0.0;
-}
-
-//----------------------------------------------------------------------------
-double qSlicerSubjectHierarchyDefaultPlugin::canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent)
-{
-  Q_UNUSED(node);
-  Q_UNUSED(parent);
-
-  // The default Subject Hierarchy plugin is never selected by confidence number it returns
-  return 0.0;
-}
-
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyDefaultPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
 {

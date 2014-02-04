@@ -131,28 +131,6 @@ QStringList qSlicerSubjectHierarchyVolumesPlugin::dependencies()const
   return QStringList() << "DICOM";
 }
 
-//----------------------------------------------------------------------------
-double qSlicerSubjectHierarchyVolumesPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)
-{
-  Q_UNUSED(node);
-  Q_UNUSED(parent);
-
-  // The Volumes Subject Hierarchy plugin does not perform steps additional
-  // to the default when adding nodes to the hierarchy from outside
-  return 0.0;
-}
-
-//----------------------------------------------------------------------------
-double qSlicerSubjectHierarchyVolumesPlugin::canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent)
-{
-  Q_UNUSED(node);
-  Q_UNUSED(parent);
-
-  // The Volumes Subject Hierarchy plugin does not perform steps additional
-  // to the default when reparenting inside the hierarchy
-  return 0.0;
-}
-
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
 {
