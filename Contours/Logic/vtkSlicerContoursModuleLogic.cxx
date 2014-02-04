@@ -37,6 +37,7 @@
 #include <vtkPolyData.h>
 #include <vtkLookupTable.h>
 #include <vtkObjectFactory.h>
+#include <vtksys/SystemTools.hxx>
 
 // MRML includes
 #include <vtkMRMLModelNode.h>
@@ -634,7 +635,11 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
   {
     vtkSmartPointer<vtkMRMLContourNode> newContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
     newContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->AddNode(newContourNode));
-    std::string contourName = std::string(representationNode->GetName()) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
+    std::string contourName = representationNode->GetName();
+    vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX.c_str(), "");
+    vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str(), "");
+    vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str(), "");
+    contourName.append(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX);
     contourName = mrmlScene->GenerateUniqueName(contourName);
     newContourNode->SetName(contourName.c_str());
 
