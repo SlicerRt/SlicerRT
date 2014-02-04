@@ -346,8 +346,8 @@ protected:
   /// the distance between all planes are equal.
   double GetDistanceBetweenContourPlanes(DRTContourSequence &rtContourSequenceObject);
 
-  /// Get slice thickness for an SOP instance
-  double GetSliceThickness(OFString referencedSOPInstanceUID);
+  /// Get slice thickness for a contour sequence
+  double GetSliceThickness(DRTContourImageSequence* rtContourImageSequenceObject);
 
   /// Get frame of reference for an SOP instance
   DRTRTReferencedSeriesSequence* GetReferencedSeriesSequence(DRTStructureSetIOD &rtStructureSetObject);
