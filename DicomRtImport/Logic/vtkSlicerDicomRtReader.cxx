@@ -1484,8 +1484,8 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
   }
 
   // Get image orientation for the contour planes from the referenced slice orientations
-  ctkDICOMDatabase dicomDatabase;
-  dicomDatabase.openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+  ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
+  dicomDatabase->openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
 
   std::map<int,std::string>* contourIndexToSopInstanceUidMap = &(this->RoiSequenceVector[internalIndex].ContourIndexToSopInstanceUidMap);
   std::map<int,std::string>::iterator sliceInstanceUidIt;
@@ -1493,7 +1493,7 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
   for (sliceInstanceUidIt = contourIndexToSopInstanceUidMap->begin(); sliceInstanceUidIt != contourIndexToSopInstanceUidMap->end(); ++sliceInstanceUidIt)
   {
     // Get file name for referenced slice instance from the stored SOP instance UID
-    QString fileName = dicomDatabase.fileForInstance(sliceInstanceUidIt->second.c_str());
+    QString fileName = dicomDatabase->fileForInstance(sliceInstanceUidIt->second.c_str());
     if (fileName.isEmpty())
     {
       vtkErrorMacro("CreateRibbonModelForRoi: No referenced image file is found for ROI contour slice number " << sliceInstanceUidIt->first);
@@ -1501,7 +1501,7 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
     }
 
     // Get image orientation string from the referenced slice
-    QString currentImageOrientation = dicomDatabase.fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement());
+    QString currentImageOrientation = dicomDatabase->fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement());
 
     // Check if the currently read orientation matches the orientation in the already loaded slices
     if (imageOrientation.isEmpty())
@@ -1516,7 +1516,10 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
     }
   }
 
-  dicomDatabase.closeDatabase();
+  dicomDatabase->closeDatabase();
+  delete dicomDatabase;
+  QSqlDatabase::removeDatabase(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+  QSqlDatabase::removeDatabase(QString(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
 
   // Compute normal vector from the read image orientation
   QStringList imageOrientationComponentsString = imageOrientation.split("\\");
