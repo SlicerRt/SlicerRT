@@ -455,7 +455,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   Float32 gantryPitchAngle = 0.0;
   if (rtImageObject.getGantryPitchAngle(gantryPitchAngle).good())
   {
-    if (gantryPitchAngle != 0.0);
+    if (gantryPitchAngle != 0.0)
     {
       vtkErrorMacro("LoadRTImage: Non-zero GantryPitchAngle tag values are not supported yet!");
       return;
@@ -601,7 +601,6 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
             controlPointItem.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
             beamEntry.BeamLimitingDeviceAngle = beamLimitingDeviceAngle;
 
-            unsigned int numberOfFoundCollimatorPositionItems = 0;
             DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequenceObject =
               controlPointItem.getBeamLimitingDevicePositionSequence();
             if (currentCollimatorPositionSequenceObject.gotoFirstItem().good())
@@ -788,8 +787,8 @@ double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourImageSequence* rtCon
   bool foundSliceThickness(false);
 
   // Get DICOM image filename from SOP instance UID
-  ctkDICOMDatabase dicomDatabase;
-  dicomDatabase.openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+  ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
+  dicomDatabase->openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
 
   OFString currentReferencedSOPInstanceUID("");
   OFString previousReferencedSOPInstanceUID("");
@@ -808,16 +807,16 @@ double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourImageSequence* rtCon
       rtContourImageSequenceItem.getReferencedSOPInstanceUID(currentReferencedSOPInstanceUID);
 
       // Get filename for instance
-      QString fileName = dicomDatabase.fileForInstance(currentReferencedSOPInstanceUID.c_str());
+      QString fileName = dicomDatabase->fileForInstance(currentReferencedSOPInstanceUID.c_str());
       if ( fileName.isEmpty() )
       {
         vtkWarningMacro("GetSliceThickness: No referenced image file is found, continuing to examine sequence.");
         continue;
       }
-      std::string posPatientStringCurrent = std::string(dicomDatabase.fileValue(fileName, DCM_ImagePositionPatient.getGroup(), DCM_ImagePositionPatient.getElement()).toLatin1());
+      std::string posPatientStringCurrent = std::string(dicomDatabase->fileValue(fileName, DCM_ImagePositionPatient.getGroup(), DCM_ImagePositionPatient.getElement()).toLatin1());
 
       // Get slice thickness from file
-      QString thicknessString = dicomDatabase.fileValue(fileName, DCM_SliceThickness.getGroup(), DCM_SliceThickness.getElement());
+      QString thicknessString = dicomDatabase->fileValue(fileName, DCM_SliceThickness.getGroup(), DCM_SliceThickness.getElement());
       bool conversionSuccessful(false);
       double thisSliceThickness = thicknessString.toDouble(&conversionSuccessful);
       if( conversionSuccessful && foundSliceThickness && thisSliceThickness != sliceThickness)
@@ -828,13 +827,13 @@ double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourImageSequence* rtCon
       else if( !conversionSuccessful && !previousReferencedSOPInstanceUID.empty() )
       {
         // Compute slice thickness between this slice and the previous image
-        std::string posPatientStringCurrent = std::string(dicomDatabase.fileValue(fileName, DCM_ImagePositionPatient.getGroup(), DCM_ImagePositionPatient.getElement()).toLatin1());
+        std::string posPatientStringCurrent = std::string(dicomDatabase->fileValue(fileName, DCM_ImagePositionPatient.getGroup(), DCM_ImagePositionPatient.getElement()).toLatin1());
         if( posPatientStringCurrent.empty() )
         {
           vtkErrorMacro("No ImagePositionPatient in DICOM database. This is a serious error!");
           continue;
         }
-        std::string orientationPatientStringCurrent = std::string(dicomDatabase.fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement()).toLatin1());
+        std::string orientationPatientStringCurrent = std::string(dicomDatabase->fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement()).toLatin1());
         if( orientationPatientStringCurrent.empty() )
         {
           vtkErrorMacro("No ImageOrientationPatient in DICOM database. This is a serious error!");
@@ -882,7 +881,10 @@ double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourImageSequence* rtCon
     return defaultSliceThickness;
   }
 
-  dicomDatabase.closeDatabase();
+  dicomDatabase->closeDatabase();
+  delete dicomDatabase;
+  QSqlDatabase::removeDatabase(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+  QSqlDatabase::removeDatabase(QString(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
 
   return sliceThickness;
 }
