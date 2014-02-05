@@ -912,18 +912,18 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
   vtkMRMLSubjectHierarchyNode* parentContourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(contourSubjectHierarchyNode->GetParentNode());
   if (!parentContourSubjectHierarchyNode)
     {
-    vtkErrorMacro("GetColorIndex: No structure set subject hierarchy node found for contour '" << this->Name << "'");
+    vtkErrorMacro("GetColorIndex: No contour set subject hierarchy node found for contour '" << this->Name << "'");
     colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
     }
 
-  // Get color node created for the structure set
+  // Get color node created for the contour set
   vtkSmartPointer<vtkCollection> colorNodes = vtkSmartPointer<vtkCollection>::New();
   parentContourSubjectHierarchyNode->GetAssociatedChildrenNodes(colorNodes, "vtkMRMLColorTableNode");
   if (colorNodes->GetNumberOfItems() != 1)
     {
     vtkErrorMacro("GetColorIndex: Invalid number (" << colorNodes->GetNumberOfItems() << ") of color table nodes found for contour '"
-      << this->Name << "' in structure set '" << parentContourSubjectHierarchyNode->GetName() << "'");
+      << this->Name << "' in contour set '" << parentContourSubjectHierarchyNode->GetName() << "'");
     colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
     }

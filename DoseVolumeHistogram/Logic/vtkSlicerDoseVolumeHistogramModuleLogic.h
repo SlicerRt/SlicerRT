@@ -45,7 +45,7 @@ class vtkMRMLChartViewNode;
 class vtkMRMLDoseVolumeHistogramNode;
 
 /// \ingroup SlicerRt_QtModules_DoseVolumeHistogram
-/// \brief The DoseVolumeHistogram module computes dose volume histogram (DVH) and metrics from a dose map and structure set(s).
+/// \brief The DoseVolumeHistogram module computes dose volume histogram (DVH) and metrics from a dose map and contour set(s).
 ///
 /// The dimensions of the 3D elements (voxels) describing delineated structures are derived from the selected dose distribution volume,
 /// in which the voxels have width in the transverse imaging plane as described in the DICOM image header. The image set volume is

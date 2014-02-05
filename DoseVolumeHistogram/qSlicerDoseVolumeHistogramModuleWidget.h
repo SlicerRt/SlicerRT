@@ -60,7 +60,7 @@ public slots:
 
 protected slots:
   void doseVolumeNodeChanged(vtkMRMLNode*);
-  void structureSetNodeChanged(vtkMRMLNode*);
+  void contourSetNodeChanged(vtkMRMLNode*);
   void chartNodeChanged(vtkMRMLNode*);
 
   /// Updates button states

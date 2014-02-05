@@ -315,22 +315,22 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
   // Add color table node
-  vtkSmartPointer<vtkMRMLColorTableNode> structureSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
-  std::string structureSetColorTableNodeName;
-  structureSetColorTableNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
-  structureSetColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(structureSetColorTableNodeName);
-  structureSetColorTableNode->SetName(structureSetColorTableNodeName.c_str());
-  structureSetColorTableNode->HideFromEditorsOff();
-  structureSetColorTableNode->SetTypeToUser();
-  structureSetColorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
-  this->GetMRMLScene()->AddNode(structureSetColorTableNode);
+  vtkSmartPointer<vtkMRMLColorTableNode> contourSetColorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+  std::string contourSetColorTableNodeName;
+  contourSetColorTableNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
+  contourSetColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(contourSetColorTableNodeName);
+  contourSetColorTableNode->SetName(contourSetColorTableNodeName.c_str());
+  contourSetColorTableNode->HideFromEditorsOff();
+  contourSetColorTableNode->SetTypeToUser();
+  contourSetColorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+  this->GetMRMLScene()->AddNode(contourSetColorTableNode);
 
   // Add ROIs
   int numberOfRois = rtReader->GetNumberOfRois();
-  structureSetColorTableNode->SetNumberOfColors(numberOfRois+2);
-  structureSetColorTableNode->GetLookupTable()->SetTableRange(0,numberOfRois+1);
-  structureSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_BACKGROUND, 0.0, 0.0, 0.0, 0.0); // Black background
-  structureSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_INVALID,
+  contourSetColorTableNode->SetNumberOfColors(numberOfRois+2);
+  contourSetColorTableNode->GetLookupTable()->SetTableRange(0,numberOfRois+1);
+  contourSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_BACKGROUND, 0.0, 0.0, 0.0, 0.0); // Black background
+  contourSetColorTableNode->AddColor(SlicerRtCommon::COLOR_NAME_INVALID,
     SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1],
     SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3] ); // Color indicating invalid index
 
@@ -376,7 +376,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     }
 
     // Save color into the color table
-    structureSetColorTableNode->AddColor(roiLabel, roiColor[0], roiColor[1], roiColor[2]);
+    contourSetColorTableNode->AddColor(roiLabel, roiColor[0], roiColor[1], roiColor[2]);
 
     if (roiPolyData->GetNumberOfPoints() == 1)
     {
@@ -493,10 +493,10 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   // Add color table in subject hierarchy
   vtkSmartPointer<vtkMRMLSubjectHierarchyNode> subjectHierarchyColorTableNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
   std::string shColorTableNodeName;
-  shColorTableNodeName = structureSetColorTableNodeName + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
+  shColorTableNodeName = contourSetColorTableNodeName + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
   shColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(shColorTableNodeName);
   subjectHierarchyColorTableNode->SetName(shColorTableNodeName.c_str());
-  subjectHierarchyColorTableNode->SetAssociatedNodeID(structureSetColorTableNode->GetID());
+  subjectHierarchyColorTableNode->SetAssociatedNodeID(contourSetColorTableNode->GetID());
   subjectHierarchyColorTableNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
   subjectHierarchyColorTableNode->SetParentNodeID(contourHierarchySeriesNode->GetID());
   this->GetMRMLScene()->AddNode(subjectHierarchyColorTableNode);
@@ -1195,7 +1195,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInSubjectHierarchy( vtkSlice
   {
     vtkErrorMacro("InsertSeriesInSubjectHierarchy: Series '" << seriesNode->GetName() << "' has invalid modality attribute!");
   }
-  // Put structure set under anatomical volume
+  // Put contour set under anatomical volume
   else if (!STRCASECMP(modality, "RTSTRUCT"))
   {
     const char* referencedSeriesUid = seriesNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str());
@@ -1212,7 +1212,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInSubjectHierarchy( vtkSlice
       }
       else
       {
-        // Create dummy anatomical volume node to put the structure set under. When the actual volume is loaded, it occupies the node
+        // Create dummy anatomical volume node to put the contour set under. When the actual volume is loaded, it occupies the node
         referencedSeriesNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
         referencedSeriesNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
         referencedSeriesNode->AddUID( vtkSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME,
@@ -1230,7 +1230,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInSubjectHierarchy( vtkSlice
     }
     else
     {
-      vtkErrorMacro("InsertSeriesInSubjectHierarchy: Structure set '" << seriesNode->GetName() << "' has no referenced series!");
+      vtkErrorMacro("InsertSeriesInSubjectHierarchy: Contour set '" << seriesNode->GetName() << "' has no referenced series!");
     }
   }
 }

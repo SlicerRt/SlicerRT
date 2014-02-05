@@ -2,6 +2,6 @@
   <qresource>
     <file>Icons/ColorTable.png</file>
     <file>Icons/Contour.png</file>
-    <file>Icons/StructureSet.png</file>
+    <file>Icons/ContourSet.png</file>
   </qresource>
 </RCC>

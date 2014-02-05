@@ -15,10 +15,13 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   qSlicerSubjectHierarchyContoursPlugin.cxx
   qSlicerSubjectHierarchyContoursPlugin.h
+  qSlicerSubjectHierarchyContourSetsPlugin.cxx
+  qSlicerSubjectHierarchyContourSetsPlugin.h
   )
 
 set(${KIT}_MOC_SRCS
   qSlicerSubjectHierarchyContoursPlugin.h
+  qSlicerSubjectHierarchyContourSetsPlugin.h
   )
 
 set(${KIT}_UI_SRCS

@@ -386,7 +386,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
 
-  // Get structure set subject hierarchy node
+  // Get contour set subject hierarchy node
   vtkMRMLSubjectHierarchyNode* contourHierarchyNode = NULL;
   mrmlScene->InitTraversal();
   vtkMRMLNode *node = mrmlScene->GetNextNodeByClass("vtkMRMLSubjectHierarchyNode");
@@ -432,7 +432,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode = vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
   paramNode->SetAndObserveDoseVolumeNode(doseScalarVolumeNode);
-  paramNode->SetAndObserveStructureSetContourNode(contourHierarchyNode);
+  paramNode->SetAndObserveContourSetContourNode(contourHierarchyNode);
   paramNode->SetAndObserveChartNode(chartNode);
   mrmlScene->AddNode(paramNode);
   dvhLogic->SetAndObserveDoseVolumeHistogramNode(paramNode);

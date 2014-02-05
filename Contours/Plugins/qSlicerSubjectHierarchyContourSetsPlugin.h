@@ -19,15 +19,15 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSubjectHierarchyContoursPlugin_h
-#define __qSlicerSubjectHierarchyContoursPlugin_h
+#ifndef __qSlicerSubjectHierarchyContourSetsPlugin_h
+#define __qSlicerSubjectHierarchyContourSetsPlugin_h
 
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyAbstractPlugin.h"
 
 #include "qSlicerContoursModulePluginsExport.h"
 
-class qSlicerSubjectHierarchyContoursPluginPrivate;
+class qSlicerSubjectHierarchyContourSetsPluginPrivate;
 class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 class vtkMRMLContourNode;
@@ -38,17 +38,44 @@ class vtkMRMLContourNode;
 //BTX
 
 /// \ingroup SlicerRt_QtModules_Contours
-class Q_SLICER_CONTOURS_PLUGINS_EXPORT qSlicerSubjectHierarchyContoursPlugin : public qSlicerSubjectHierarchyAbstractPlugin
+class Q_SLICER_CONTOURS_PLUGINS_EXPORT qSlicerSubjectHierarchyContourSetsPlugin : public qSlicerSubjectHierarchyAbstractPlugin
 {
 public:
   Q_OBJECT
 
 public:
   typedef qSlicerSubjectHierarchyAbstractPlugin Superclass;
-  qSlicerSubjectHierarchyContoursPlugin(QObject* parent = NULL);
-  virtual ~qSlicerSubjectHierarchyContoursPlugin();
+  qSlicerSubjectHierarchyContourSetsPlugin(QObject* parent = NULL);
+  virtual ~qSlicerSubjectHierarchyContourSetsPlugin();
 
 public:
+  /// Determines if a non subject hierarchy node can be placed in the hierarchy, and gets a confidence
+  ///   value for a certain MRML node (usually the type and possibly attributes are checked)
+  /// \param node Node to be added to the hierarchy
+  /// \param parent Prospective parent of the node to add.
+  ///   Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
+  /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
+  ///   node, and 1 means that the plugin is the only one that can handle the node (by type or identifier attribute)
+  virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parent=NULL);
+
+  /// Add a node to subject hierarchy under a specified parent node. If added non subject hierarchy nodes
+  ///   have certain steps to perform when adding them in subject hierarchy, those steps take place here
+  /// \return True if added successfully, false otherwise
+  virtual bool addNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parentNode);
+
+  /// Determines if a subject hierarchy node can be reparented in the hierarchy using the actual plugin,
+  /// and gets a confidence value for a certain MRML node (usually the type and possibly attributes are checked).
+  /// \param node Node to be reparented in the hierarchy
+  /// \param parent Prospective parent of the node to reparent.
+  ///   Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
+  /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
+  ///   node, and 1 means that the plugin is the only one that can handle the node (by type or identifier attribute)
+  virtual double canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* nodeToReparent, vtkMRMLSubjectHierarchyNode* parent);
+
+  /// Reparent a node that was already in the subject hierarchy under a new parent.
+  /// \return True if reparented successfully, false otherwise
+  virtual bool reparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* nodeToReparent, vtkMRMLSubjectHierarchyNode* parentNode);
+
   /// Determines if the actual plugin can handle a subject hierarchy node. The plugin with
   /// the highest confidence number will "own" the node in the subject hierarchy (set icon, tooltip,
   /// set context menu etc.)
@@ -86,19 +113,25 @@ public:
   /// Get the list of plugin dependencies
   virtual QStringList dependencies()const;
 
-protected slots:
-  /// Create supported child for the current node (selected in the tree)
-  void createChildContourForCurrentNode();
+protected:
+  /// Determine if the argument node is a representation object of a Contour node in the scene
+  /// \return The found contour node whose representation the argument node is, NULL if node is not a representation
+  vtkMRMLContourNode* isNodeAContourRepresentation(vtkMRMLNode* node);
 
-  /// Delete current (selected) contour and add its representation to the scene
-  void convertCurrentNodeContourToRepresentation();
+  /// Add the color of a contour to the corresponding color table (in the same contour set)
+  /// Also repaint the occasional labelmap representation to the new color index
+  bool addContourColorToCorrespondingColorTable(vtkMRMLContourNode* contourNode, QString colorName);
+
+protected slots:
+  /// Create contour set node under the current node
+  void createChildContourSetForCurrentNode();
 
 protected:
-  QScopedPointer<qSlicerSubjectHierarchyContoursPluginPrivate> d_ptr;
+  QScopedPointer<qSlicerSubjectHierarchyContourSetsPluginPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyContoursPlugin);
-  Q_DISABLE_COPY(qSlicerSubjectHierarchyContoursPlugin);
+  Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyContourSetsPlugin);
+  Q_DISABLE_COPY(qSlicerSubjectHierarchyContourSetsPlugin);
 };
 
 //ETX

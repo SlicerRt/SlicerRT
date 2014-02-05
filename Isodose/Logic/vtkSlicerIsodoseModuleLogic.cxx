@@ -338,7 +338,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     vtkErrorMacro("CreateIsodoseSurfaces: Failed to get subject hierarchy node for dose volume '" << doseVolumeNode->GetName() << "'");
   }
 
-  // Model hierarchy node for the loaded structure sets
+  // Model hierarchy node for the loaded contour sets
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
   modelHierarchyRootNode->AllowMultipleChildrenOn();
   modelHierarchyRootNode->HideFromEditorsOff();

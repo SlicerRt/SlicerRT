@@ -27,6 +27,7 @@
 #include "qSlicerContoursModuleWidget.h"
 #include "vtkSlicerContoursModuleLogic.h"
 #include "qSlicerSubjectHierarchyContoursPlugin.h"
+#include "qSlicerSubjectHierarchyContourSetsPlugin.h"
 
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -108,8 +109,9 @@ void qSlicerContoursModule::setup()
 {
   this->Superclass::setup();
 
-  // Register Subject Hierarchy Contours plugin
+  // Register subject hierarchy contours plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyContoursPlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyContourSetsPlugin());
 }
 
 //-----------------------------------------------------------------------------

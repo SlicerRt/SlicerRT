@@ -62,7 +62,7 @@ public:
   static const double COLOR_VALUE_INVALID[4];
 
   static const std::string CONTOUR_NEW_CONTOUR_NAME;
-  static const std::string CONTOURHIERARCHY_NEW_STRUCTURE_SET_NAME;
+  static const std::string CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME;
   static const std::string CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX;
 
   // DicomRtImport constants

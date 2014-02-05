@@ -40,7 +40,7 @@
 
 //------------------------------------------------------------------------------
 static const char* DOSE_VOLUME_REFERENCE_ROLE = "doseVolumeRef";
-static const char* STRUCTURE_SET_CONTOUR_REFERENCE_ROLE = "structureSetContourRef";
+static const char* CONTOUR_SET_CONTOUR_REFERENCE_ROLE = "contourSetContourRef";
 static const char* CHART_REFERENCE_ROLE = "chartRef";
 static const char* DVH_DOUBLE_ARRAY_REFERENCE_ROLE = "dvhDoubleArrayRef";
 
@@ -277,15 +277,15 @@ void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVo
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLDoseVolumeHistogramNode::GetStructureSetContourNode()
+vtkMRMLNode* vtkMRMLDoseVolumeHistogramNode::GetContourSetContourNode()
 {
-  return this->GetNodeReference(STRUCTURE_SET_CONTOUR_REFERENCE_ROLE);
+  return this->GetNodeReference(CONTOUR_SET_CONTOUR_REFERENCE_ROLE);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::SetAndObserveStructureSetContourNode(vtkMRMLNode* node)
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveContourSetContourNode(vtkMRMLNode* node)
 {
-  this->SetNodeReferenceID(STRUCTURE_SET_CONTOUR_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(CONTOUR_SET_CONTOUR_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------

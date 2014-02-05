@@ -64,10 +64,10 @@ public:
   /// Set and observe dose volume node
   void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get structure set node (can be model node or model hierarchy node)
-  vtkMRMLNode* GetStructureSetContourNode();
-  /// Set and observe structure set node (can be model node or model hierarchy node)
-  void SetAndObserveStructureSetContourNode(vtkMRMLNode* node);
+  /// Get contour set node (can be model node or model hierarchy node)
+  vtkMRMLNode* GetContourSetContourNode();
+  /// Set and observe contour set node (can be model node or model hierarchy node)
+  void SetAndObserveContourSetContourNode(vtkMRMLNode* node);
 
   /// Get chart node
   vtkMRMLChartNode* GetChartNode();
