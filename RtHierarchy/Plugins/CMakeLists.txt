@@ -11,12 +11,24 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
-  qSlicerSubjectHierarchyRTPlugin.cxx
-  qSlicerSubjectHierarchyRTPlugin.h
+  qSlicerSubjectHierarchyRtImagePlugin.cxx
+  qSlicerSubjectHierarchyRtImagePlugin.h
+  qSlicerSubjectHierarchyRtDoseVolumePlugin.cxx
+  qSlicerSubjectHierarchyRtDoseVolumePlugin.h
+  qSlicerSubjectHierarchyRtPlanPlugin.cxx
+  qSlicerSubjectHierarchyRtPlanPlugin.h
+  qSlicerSubjectHierarchyRtBeamPlugin.cxx
+  qSlicerSubjectHierarchyRtBeamPlugin.h
+  qSlicerSubjectHierarchyIsodosePlugin.cxx
+  qSlicerSubjectHierarchyIsodosePlugin.h
   )
 
 set(${KIT}_MOC_SRCS
-  qSlicerSubjectHierarchyRTPlugin.h
+  qSlicerSubjectHierarchyRtImagePlugin.h
+  qSlicerSubjectHierarchyRtDoseVolumePlugin.h
+  qSlicerSubjectHierarchyRtPlanPlugin.h
+  qSlicerSubjectHierarchyRtBeamPlugin.h
+  qSlicerSubjectHierarchyIsodosePlugin.h
   )
 
 set(${KIT}_UI_SRCS

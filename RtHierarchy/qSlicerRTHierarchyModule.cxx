@@ -28,7 +28,11 @@
 // RTHierarchy includes
 #include "qSlicerRTHierarchyModule.h"
 #include "qSlicerRTHierarchyModuleWidget.h"
-#include "qSlicerSubjectHierarchyRTPlugin.h"
+#include "qSlicerSubjectHierarchyRtImagePlugin.h"
+#include "qSlicerSubjectHierarchyRtDoseVolumePlugin.h"
+#include "qSlicerSubjectHierarchyRtPlanPlugin.h"
+#include "qSlicerSubjectHierarchyRtBeamPlugin.h"
+#include "qSlicerSubjectHierarchyIsodosePlugin.h"
 
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -109,8 +113,12 @@ void qSlicerRTHierarchyModule::setup()
 {
   this->Superclass::setup();
 
-  // Register Subject Hierarchy RT plugin
-  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRTPlugin());
+  // Register subject hierarchy RT plugins
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtImagePlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtDoseVolumePlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtPlanPlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtBeamPlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyIsodosePlugin());
 }
 
 //-----------------------------------------------------------------------------

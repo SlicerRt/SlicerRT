@@ -19,15 +19,15 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSubjectHierarchyRTPlugin_h
-#define __qSlicerSubjectHierarchyRTPlugin_h
+#ifndef __qSlicerSubjectHierarchyRtBeamPlugin_h
+#define __qSlicerSubjectHierarchyRtBeamPlugin_h
 
 // SlicerRt includes
 #include "qSlicerSubjectHierarchyAbstractPlugin.h"
 
 #include "qSlicerRTHierarchyModulePluginsExport.h"
 
-class qSlicerSubjectHierarchyRTPluginPrivate;
+class qSlicerSubjectHierarchyRtBeamPluginPrivate;
 class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 
@@ -37,15 +37,15 @@ class vtkMRMLSubjectHierarchyNode;
 //BTX
 
 /// \ingroup SlicerRt_QtModules_RtHierarchy
-class Q_SLICER_RTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyRTPlugin : public qSlicerSubjectHierarchyAbstractPlugin
+class Q_SLICER_RTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyRtBeamPlugin : public qSlicerSubjectHierarchyAbstractPlugin
 {
 public:
   Q_OBJECT
 
 public:
   typedef qSlicerSubjectHierarchyAbstractPlugin Superclass;
-  qSlicerSubjectHierarchyRTPlugin(QObject* parent = NULL);
-  virtual ~qSlicerSubjectHierarchyRTPlugin();
+  qSlicerSubjectHierarchyRtBeamPlugin(QObject* parent = NULL);
+  virtual ~qSlicerSubjectHierarchyRtBeamPlugin();
 
 public:
   /// Determines if the actual plugin can handle a subject hierarchy node. The plugin with
@@ -63,22 +63,12 @@ public:
   /// Set visibility icon of a owned subject hierarchy node
   virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
 
-  /// Set display visibility of a owned subject hierarchy node
-  virtual void setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible);
-
-  /// Get display visibility of a owned subject hierarchy node
-  /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
-  virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
-
-  /// Get the list of plugin dependencies
-  virtual QStringList dependencies()const;
-
 protected:
-  QScopedPointer<qSlicerSubjectHierarchyRTPluginPrivate> d_ptr;
+  QScopedPointer<qSlicerSubjectHierarchyRtBeamPluginPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyRTPlugin);
-  Q_DISABLE_COPY(qSlicerSubjectHierarchyRTPlugin);
+  Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyRtBeamPlugin);
+  Q_DISABLE_COPY(qSlicerSubjectHierarchyRtBeamPlugin);
 };
 
 //ETX
