@@ -27,6 +27,9 @@
 // VTK includes
 #include "vtkObject.h"
 
+// CTK includes
+#include <ctkDICOMDatabase.h>
+
 // STD includes
 #include <vector>
 #include <map>
@@ -37,6 +40,7 @@ class vtkPolyData;
 class DcmDataset;
 class OFString;
 class DRTContourSequence;
+class DRTROIContourSequence;
 class DRTStructureSetIOD;
 class DRTRTReferencedSeriesSequence;
 class DRTContourImageSequence;
@@ -344,10 +348,10 @@ protected:
   /// Variables for estimating the distance between contour planes.
   /// This is not a reliable solution, as it assumes that the plane normals are (0,0,1) and
   /// the distance between all planes are equal.
-  double GetDistanceBetweenContourPlanes(DRTContourSequence &rtContourSequenceObject);
+  double GetDistanceBetweenContourPlanes(DRTROIContourSequence &rtROIContourSequenceObject);
 
   /// Get slice thickness for a contour sequence
-  double GetSliceThickness(DRTContourImageSequence* rtContourImageSequenceObject);
+  double GetSliceThickness(DRTContourSequence& rtContourSequence);
 
   /// Get frame of reference for an SOP instance
   DRTRTReferencedSeriesSequence* GetReferencedSeriesSequence(DRTStructureSetIOD &rtStructureSetObject);
@@ -357,6 +361,9 @@ protected:
 
   /// Get referenced series instance UID for the structure set (0020,000E)
   OFString GetReferencedSeriesInstanceUID(DRTStructureSetIOD rtStructureSetObject);
+
+  // Reorder slices by position and orientation in 3 space
+  bool OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDatabase, std::map<std::string, int>& slices );
 
 //xBTX //TODO #210: Re-enable
   template<class T> void GetAndStoreHierarchyInformation(T* dcmtkIodObject);

@@ -76,7 +76,19 @@ namespace
   }
 
   template<class T>
-  float Vector3Magnitude(const vtkVector3<T>& aVector)
+  bool operator ==(const vtkVector3<T>& a, const vtkVector3<T>& b)
+  {
+    return a.X() == b.X() && a.Y() == b.Y() && a.Z() == b.Z();
+  }
+
+  template<class T>
+  bool operator !=(const vtkVector3<T>& a, const vtkVector3<T>& b)
+  {
+    return !(a==b);
+  }
+
+  template<class T>
+  Float64 Vector3Magnitude(const vtkVector3<T>& aVector)
   {
     return sqrt( pow(aVector.GetX(),2) + pow(aVector.GetY(),2) + pow(aVector.GetZ(),2) );
   }
@@ -775,14 +787,9 @@ DRTContourImageSequence* vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceCo
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourImageSequence* rtContourImageSequenceObject )
+double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourSequence& rtContourSequence )
 {
   double defaultSliceThickness(2.0);
-  if( rtContourImageSequenceObject == NULL )
-  {
-    vtkErrorMacro("GetSliceThickness: Invalid contour image sequence. Returning default slice thickness of " << defaultSliceThickness << ".");
-    return defaultSliceThickness;
-  }
   double sliceThickness(-1);
   bool foundSliceThickness(false);
 
@@ -796,83 +803,112 @@ double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourImageSequence* rtCon
   double currentImagePositionPatient[3] = {0,0,0};
   double currentOrientationPatient[6] = {0,0,0,0,0,0};
 
-  // WIP : referenced CT images are not accessed in order, throwing off the thickness calculation
-  // currently works if slice thickness variable is defined in the DICOM
-  rtContourImageSequenceObject->gotoFirstItem();
+  if( rtContourSequence.gotoFirstItem().bad() )
+  {
+    vtkErrorMacro("Unable to go to first item in contour sequence. Returning default slice thickness of " << defaultSliceThickness);
+    return defaultSliceThickness;
+  }
+
+  std::map<std::string, int> slices;
   do
   {
-    DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject->getCurrentItem();
-    if (rtContourImageSequenceItem.isValid())
-    {
-      rtContourImageSequenceItem.getReferencedSOPInstanceUID(currentReferencedSOPInstanceUID);
+    // For each slice
+    DRTContourSequence::Item& rtContourSequenceItem = rtContourSequence.getCurrentItem();
 
-      // Get filename for instance
-      QString fileName = dicomDatabase->fileForInstance(currentReferencedSOPInstanceUID.c_str());
-      if ( fileName.isEmpty() )
+    DRTContourImageSequence& rtContourImageSequence = rtContourSequenceItem.getContourImageSequence();
+    if( rtContourImageSequence.gotoFirstItem().bad())
+    {
+      continue;
+    }
+    do 
+    {
+      DRTContourImageSequence::Item& rtContourImageSequenceItem = rtContourImageSequence.getCurrentItem();
+      if (rtContourImageSequenceItem.isValid())
       {
-        vtkWarningMacro("GetSliceThickness: No referenced image file is found, continuing to examine sequence.");
+        rtContourImageSequenceItem.getReferencedSOPInstanceUID(currentReferencedSOPInstanceUID);
+        slices[std::string(currentReferencedSOPInstanceUID.c_str())] = -1;
+      }
+    }
+    while (rtContourImageSequence.gotoNextItem().good());
+  }
+  while(rtContourSequence.gotoNextItem().good());
+
+  if( !this->OrderSliceSOPInstanceUID(*dicomDatabase, slices) )
+  {
+    vtkErrorMacro("Error while re-ordering DICOM files. Unable to parse slice thickness in order. Returning default of " << defaultSliceThickness);
+    return defaultSliceThickness;
+  }
+
+  std::map<int, std::string> sliceIndexes;
+  // Swap the keys and values
+  for( std::map<std::string, int>::iterator it = slices.begin(); it != slices.end(); ++it )
+  {
+    sliceIndexes[it->second] = it->first;
+  }
+
+  for( std::map<int, std::string>::iterator it = sliceIndexes.begin(); it != sliceIndexes.end(); ++it )
+  {
+    // Get filename for instance
+    QString fileName = dicomDatabase->fileForInstance(it->second.c_str());
+    if ( fileName.isEmpty() )
+    {
+      vtkWarningMacro("GetSliceThickness: No referenced image file is found, continuing to examine sequence.");
+      continue;
+    }
+    std::string posPatientStringCurrent = std::string(dicomDatabase->fileValue(fileName, DCM_ImagePositionPatient.getGroup(), DCM_ImagePositionPatient.getElement()).toLatin1());
+
+    // Get slice thickness from file
+    QString thicknessString = dicomDatabase->fileValue(fileName, DCM_SliceThickness.getGroup(), DCM_SliceThickness.getElement());
+    bool conversionSuccessful(false);
+    double thisSliceThickness = thicknessString.toDouble(&conversionSuccessful);
+    if( conversionSuccessful && foundSliceThickness && thisSliceThickness != sliceThickness)
+    {
+      vtkErrorMacro("GetSliceThickness: Varying slice thickness in referenced image series. Returning default of " << defaultSliceThickness << ".");
+      return defaultSliceThickness;
+    }
+    else if( !conversionSuccessful && !previousReferencedSOPInstanceUID.empty() )
+    {
+      // Compute slice thickness between this slice and the previous image
+      std::string posPatientStringCurrent = std::string(dicomDatabase->fileValue(fileName, DCM_ImagePositionPatient.getGroup(), DCM_ImagePositionPatient.getElement()).toLatin1());
+      if( posPatientStringCurrent.empty() )
+      {
+        vtkErrorMacro("No ImagePositionPatient in DICOM database for file " << std::string(fileName.toLatin1()) << ". This is a serious error!");
         continue;
       }
-      std::string posPatientStringCurrent = std::string(dicomDatabase->fileValue(fileName, DCM_ImagePositionPatient.getGroup(), DCM_ImagePositionPatient.getElement()).toLatin1());
+      std::string orientationPatientStringCurrent = std::string(dicomDatabase->fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement()).toLatin1());
+      if( orientationPatientStringCurrent.empty() )
+      {
+        vtkErrorMacro("No ImageOrientationPatient in DICOM database for file " << std::string(fileName.toLatin1()) << ". This is a serious error!");
+        continue;
+      }
+      int rc = sscanf(posPatientStringCurrent.c_str(), "%lf\\%lf\\%lf", &currentImagePositionPatient[0], &currentImagePositionPatient[1], &currentImagePositionPatient[2]);
+      rc = sscanf(orientationPatientStringCurrent.c_str(), "%lf\\%lf\\%lf\\%lf\\%lf\\%lf", &currentOrientationPatient[0], &currentOrientationPatient[1], &currentOrientationPatient[2],
+        &currentOrientationPatient[3], &currentOrientationPatient[4], &currentOrientationPatient[5]);
 
-      // Get slice thickness from file
-      QString thicknessString = dicomDatabase->fileValue(fileName, DCM_SliceThickness.getGroup(), DCM_SliceThickness.getElement());
-      bool conversionSuccessful(false);
-      double thisSliceThickness = thicknessString.toDouble(&conversionSuccessful);
-      if( conversionSuccessful && foundSliceThickness && thisSliceThickness != sliceThickness)
+      // k vector is cross product of i and j vector, which are orientation read above
+      vtkVector3<float> currentIVector(currentOrientationPatient[0], currentOrientationPatient[1], currentOrientationPatient[2]);
+      vtkVector3<float> currentJVector(currentOrientationPatient[3], currentOrientationPatient[4], currentOrientationPatient[5]);
+      vtkVector3<float> currentKVector = currentIVector.Cross(currentJVector);
+
+      // projection of distance vector along k vector
+      vtkVector3<float> originDifferenceVector = vtkVector3<float>(currentImagePositionPatient[0], currentImagePositionPatient[1], currentImagePositionPatient[2]) - previousImagePositionPatient;
+      thisSliceThickness = abs(originDifferenceVector.Dot(currentKVector));
+      if( foundSliceThickness && thisSliceThickness != sliceThickness )
       {
         vtkErrorMacro("GetSliceThickness: Varying slice thickness in referenced image series. Returning default of " << defaultSliceThickness << ".");
         return defaultSliceThickness;
-      }
-      else if( !conversionSuccessful && !previousReferencedSOPInstanceUID.empty() )
-      {
-        // Compute slice thickness between this slice and the previous image
-        std::string posPatientStringCurrent = std::string(dicomDatabase->fileValue(fileName, DCM_ImagePositionPatient.getGroup(), DCM_ImagePositionPatient.getElement()).toLatin1());
-        if( posPatientStringCurrent.empty() )
-        {
-          vtkErrorMacro("No ImagePositionPatient in DICOM database. This is a serious error!");
-          continue;
-        }
-        std::string orientationPatientStringCurrent = std::string(dicomDatabase->fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement()).toLatin1());
-        if( orientationPatientStringCurrent.empty() )
-        {
-          vtkErrorMacro("No ImageOrientationPatient in DICOM database. This is a serious error!");
-          continue;
-        }
-        int rc = sscanf(posPatientStringCurrent.c_str(), "%lf\\%lf\\%lf", &currentImagePositionPatient[0], &currentImagePositionPatient[1], &currentImagePositionPatient[2]);
-        rc = sscanf(orientationPatientStringCurrent.c_str(), "%lf\\%lf\\%lf\\%lf\\%lf\\%lf", &currentOrientationPatient[0], &currentOrientationPatient[1], &currentOrientationPatient[2],
-          &currentOrientationPatient[3], &currentOrientationPatient[4], &currentOrientationPatient[5]);
-
-        // k vector is cross product of i and j vector, which are orientation read above
-        vtkVector3<float> currentIVector(currentOrientationPatient[0], currentOrientationPatient[1], currentOrientationPatient[2]);
-        vtkVector3<float> currentJVector(currentOrientationPatient[3], currentOrientationPatient[4], currentOrientationPatient[5]);
-        vtkVector3<float> currentKVector = currentIVector.Cross(currentJVector);
-
-        // projection of distance vector along k vector
-        vtkVector3<float> originDifferenceVector = vtkVector3<float>(currentImagePositionPatient[0], currentImagePositionPatient[1], currentImagePositionPatient[2]) - previousImagePositionPatient;
-        thisSliceThickness = abs(originDifferenceVector.Dot(currentKVector));
-        if( foundSliceThickness && thisSliceThickness != sliceThickness )
-        {
-          vtkErrorMacro("GetSliceThickness: Varying slice thickness in referenced image series. Returning default of " << defaultSliceThickness << ".");
-          return defaultSliceThickness;
-        }   
-      }
-      // either we found it in the file or we calculated it, but we've got some value (or we've skipped this image)
-      // if we've calculated a varying slice thickness, we've already exited because that's a problem
-      // we might have a k vector pointing away from the previous slice, so just take the absolute value
-      sliceThickness = thisSliceThickness;
-      foundSliceThickness = true;
+      }   
     }
-    else
-    {
-      vtkErrorMacro("LoadRTStructureSet: Contour image sequence object item in referenced frame of reference sequence is invalid. ");
-      continue;
-    }
+    // either we found it in the file or we calculated it, but we've got some value (or we've skipped this image)
+    // if we've calculated a varying slice thickness, we've already exited because that's a problem
+    // we might have a k vector pointing away from the previous slice, so just take the absolute value
+    sliceThickness = thisSliceThickness;
+    foundSliceThickness = true;
+
     previousImagePositionPatient.Set(currentImagePositionPatient[0], currentImagePositionPatient[1], currentImagePositionPatient[2]);
     previousReferencedSOPInstanceUID = currentReferencedSOPInstanceUID;
     currentReferencedSOPInstanceUID = OFString("");
   }
-  while(rtContourImageSequenceObject->gotoNextItem().good());
 
   if( !foundSliceThickness )
   {
@@ -891,96 +927,149 @@ double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourImageSequence* rtCon
 
 //----------------------------------------------------------------------------
 // Variables for calculating the distance between contour planes.
-double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTContourSequence &rtContourSequenceObject)
+double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequence &rtROIContourSequenceObject)
 {
   double defaultDistanceBetweenContourPlanes(1.0);
 
   double distanceBetweenContourPlanes(-1.0);
   bool foundDistance(false);
-
-  if( rtContourSequenceObject.isEmpty() )
-  {
-    vtkErrorMacro("Empty contour. Returning default distance of " << defaultDistanceBetweenContourPlanes);
-    return defaultDistanceBetweenContourPlanes;
-  }
-  if( rtContourSequenceObject.getNumberOfItems() < 2 )
-  {
-    vtkErrorMacro("Unable to calculate distance between contour planes, less than two planes detected. Returning default of " << defaultDistanceBetweenContourPlanes);
-    return defaultDistanceBetweenContourPlanes;
-  }
-  if (!rtContourSequenceObject.gotoFirstItem().good())
-  {
-    vtkErrorMacro("GetDistanceBetweenContourPlanes: Contour sequence object is invalid. Returning default of " << defaultDistanceBetweenContourPlanes);
-    return defaultDistanceBetweenContourPlanes;
-  }
-
   vtkPlane* previousContourPlane = vtkPlane::New();
   bool previousSet(false);
   vtkPlane* currentContourPlane = vtkPlane::New();
+
+  if (!rtROIContourSequenceObject.gotoFirstItem().good())
+  {
+    vtkErrorMacro("vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes: No structure sets were found. Returning default of " << defaultDistanceBetweenContourPlanes);
+    return defaultDistanceBetweenContourPlanes;
+  }
+  // Iterate over each contour in the set until you find one that gives you a result
   do 
   {
-    DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
-    if ( !contourItem.isValid())
+    DRTROIContourSequence::Item &currentRoiObject = rtROIContourSequenceObject.getCurrentItem();
+    if (!currentRoiObject.isValid())
     {
       continue;
     }
-
-    OFString numberofpoints("");
-    contourItem.getNumberOfContourPoints(numberofpoints);
-
-    std::stringstream ss;
-    ss << numberofpoints;
-    int number;
-    ss >> number;
-    if (number<3)
+    // Get contour sequence
+    DRTContourSequence &rtContourSequenceObject = currentRoiObject.getContourSequence();
+    if (!rtContourSequenceObject.gotoFirstItem().good())
     {
-      Sint32 contourNumber(-1);
-      contourItem.getContourNumber(contourNumber);
-      vtkWarningMacro("Contour does not contain enough points to extract a planar equation. Skipping contour number: " << contourNumber << ".");
-      previousContourPlane->SetNormal(0.0, 0.0, 0.0);
-      previousContourPlane->SetOrigin(0.0, 0.0, 0.0);
-      previousSet = false;
+      vtkErrorMacro("LoadRTStructureSet: Contour sequence for ROI is empty!");
       continue;
     }
 
-    OFVector<Float64>  contourData_LPS;
-    contourItem.getContourData(contourData_LPS);
-
-    vtkVector3<Float64> firstPlanePoint(contourData_LPS[0], contourData_LPS[1], contourData_LPS[2]);
-    vtkVector3<Float64> secondPlanePoint(contourData_LPS[3], contourData_LPS[4], contourData_LPS[5]);
-    vtkVector3<Float64> thirdPlanePoint(contourData_LPS[6], contourData_LPS[7], contourData_LPS[8]);
-
-    vtkVector3<Float64> currentPlaneIVector = secondPlanePoint - firstPlanePoint;
-    vtkVector3<Float64> currentPlaneJVector = thirdPlanePoint - firstPlanePoint;
-    vtkVector3<Float64> currentPlaneKVector = currentPlaneIVector.Cross(currentPlaneJVector);
-    currentPlaneKVector.Normalize();
-
-    currentContourPlane->SetNormal(currentPlaneKVector.GetX(), currentPlaneKVector.GetY(), currentPlaneKVector.GetZ());
-    currentContourPlane->SetOrigin(firstPlanePoint.GetX(), firstPlanePoint.GetY(), firstPlanePoint.GetZ());
-
-    if( previousSet )
+    if( rtContourSequenceObject.isEmpty() )
     {
-      // Previous contour plane was valid, let er rip
-      double thisDistanceBetweenPlanes = currentContourPlane->DistanceToPlane(previousContourPlane->GetOrigin(), currentContourPlane->GetNormal(), currentContourPlane->GetOrigin());
-      if( foundDistance && !AreSame(thisDistanceBetweenPlanes, distanceBetweenContourPlanes) )
-      {
-        vtkErrorMacro("Contour do not have consistent plane spacing. Unable to compute distance between planes. Returning default of " << defaultDistanceBetweenContourPlanes);
-        distanceBetweenContourPlanes = defaultDistanceBetweenContourPlanes;
-        break;
-      }
-      else if ( !foundDistance )
-      {
-        distanceBetweenContourPlanes = thisDistanceBetweenPlanes;
-        foundDistance = true;
-      }
+      vtkErrorMacro("Empty contour. Skipping.");
+      continue;
+    }
+    if( rtContourSequenceObject.getNumberOfItems() < 2 )
+    {
+      vtkErrorMacro("Unable to calculate distance between contour planes, less than two planes detected. Skipping.");
+      continue;
+    }
+    if (!rtContourSequenceObject.gotoFirstItem().good())
+    {
+      vtkErrorMacro("GetDistanceBetweenContourPlanes: Contour sequence object is invalid. Skipping.");
+      continue;
     }
 
-    previousSet = true;
-    previousContourPlane->SetNormal(currentContourPlane->GetNormal());
-    previousContourPlane->SetOrigin(currentContourPlane->GetOrigin());
-  } 
-  while (rtContourSequenceObject.gotoNextItem().good());
+    // Iterate over each plane in the contour
+    do 
+    {
+      DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
+      if ( !contourItem.isValid())
+      {
+        continue;
+      }
 
+      OFString numberofpoints("");
+      contourItem.getNumberOfContourPoints(numberofpoints);
+
+      std::stringstream ss;
+      ss << numberofpoints;
+      int number;
+      ss >> number;
+      if (number < 3)
+      {
+        Sint32 contourNumber(-1);
+        contourItem.getContourNumber(contourNumber);
+        vtkWarningMacro("Contour does not contain enough points to extract a planar equation. Skipping contour number: " << contourNumber << ".");
+        previousContourPlane->SetNormal(0.0, 0.0, 0.0);
+        previousContourPlane->SetOrigin(0.0, 0.0, 0.0);
+        previousSet = false;
+        continue;
+      }
+
+      OFVector<Float64>  contourData_LPS;
+      contourItem.getContourData(contourData_LPS);
+      vtkVector3<Float64> firstPlanePoint;
+      vtkVector3<Float64> secondPlanePoint;
+      vtkVector3<Float64> thirdPlanePoint;
+
+      vtkVector3<Float64> currentPlaneIVector;
+      vtkVector3<Float64> currentPlaneJVector;
+      vtkVector3<Float64> currentPlaneKVector;
+
+      for( int i = 0; i < contourData_LPS.size(); i+=3 )
+      {
+        if( i+8 >= contourData_LPS.size() )
+        {
+          break;
+        }
+        firstPlanePoint.Set(contourData_LPS[i], contourData_LPS[i+1], contourData_LPS[i+2]);
+        secondPlanePoint.Set(contourData_LPS[i+3], contourData_LPS[i+4], contourData_LPS[i+5]);
+        thirdPlanePoint.Set(contourData_LPS[i+6], contourData_LPS[i+7], contourData_LPS[i+8]);
+
+        currentPlaneIVector = secondPlanePoint - firstPlanePoint;
+        currentPlaneJVector = thirdPlanePoint - firstPlanePoint;
+        currentPlaneKVector = currentPlaneIVector.Cross(currentPlaneJVector);
+
+        if( !(currentPlaneKVector.GetX() == 0 && currentPlaneKVector.GetY() == 0 && currentPlaneKVector.GetZ() == 0) )
+        {
+          break;
+        }
+      }
+
+      if( currentPlaneKVector.GetX() == 0 && currentPlaneKVector.GetY() == 0 && currentPlaneKVector.GetZ() == 0 )
+      {
+        vtkErrorMacro("All points in contour produce co-linear vectors. Unable to determine equation of the plane. Returning default of " << defaultDistanceBetweenContourPlanes);
+        return defaultDistanceBetweenContourPlanes;
+      }
+
+      currentPlaneKVector.Normalize();
+      currentContourPlane->SetNormal(currentPlaneKVector.GetX(), currentPlaneKVector.GetY(), currentPlaneKVector.GetZ());
+      currentContourPlane->SetOrigin(firstPlanePoint.GetX(), firstPlanePoint.GetY(), firstPlanePoint.GetZ());
+
+      if( previousSet )
+      {
+        // Previous contour plane was valid, let er rip
+        double thisDistanceBetweenPlanes = currentContourPlane->DistanceToPlane(previousContourPlane->GetOrigin(), currentContourPlane->GetNormal(), currentContourPlane->GetOrigin());
+        if( foundDistance && !AreSame(thisDistanceBetweenPlanes, distanceBetweenContourPlanes) )
+        {
+          vtkErrorMacro("Contours do not have consistent plane spacing. Unable to compute distance between planes. Returning default of " << defaultDistanceBetweenContourPlanes);
+          distanceBetweenContourPlanes = defaultDistanceBetweenContourPlanes;
+          break;
+        }
+        else if ( !foundDistance )
+        {
+          distanceBetweenContourPlanes = thisDistanceBetweenPlanes;
+          foundDistance = true;
+        }
+      }
+
+      previousSet = true;
+      previousContourPlane->SetNormal(currentContourPlane->GetNormal());
+      previousContourPlane->SetOrigin(currentContourPlane->GetOrigin());
+    } 
+    while (rtContourSequenceObject.gotoNextItem().good());
+
+    if( foundDistance )
+    {
+      break;
+    }
+  }
+  while(rtROIContourSequenceObject.gotoNextItem().good());
 
   currentContourPlane->Delete();
   previousContourPlane->Delete();
@@ -1051,8 +1140,9 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     vtkErrorMacro("LoadRTStructureSet: No ROIContourSequence found!");
     return;
   }
-  DRTContourSequence &contourSequence = rtROIContourSequenceObject.getCurrentItem().getContourSequence();
-  double sliceThickness = this->GetDistanceBetweenContourPlanes(contourSequence);
+  double sliceThickness = this->GetDistanceBetweenContourPlanes(rtROIContourSequenceObject);
+  rtROIContourSequenceObject.gotoFirstItem();
+  this->GetSliceThickness(rtROIContourSequenceObject.getCurrentItem().getContourSequence());
 
   // Reset the ROI contour sequence to the start
   if (!rtROIContourSequenceObject.gotoFirstItem().good())
@@ -1561,4 +1651,78 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
   normalFilter->Update();
 
   ribbonModelPolyData->DeepCopy(normalFilter->GetOutput());
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDatabase, std::map<std::string, int>& slices )
+{
+  if( !openDatabase.isOpen() )
+  {
+    return false;
+  }
+  double imagePositionPatient[3] = {0,0,0};
+  double orientationPatient[6] = {0,0,0,0,0,0};
+  vtkVector3<Float64> patientPosition;
+  vtkVector3<Float64> patientOrientationNormal;
+  vtkVector3<Float64> prevPatientOrientationNormal(0,0,0);
+  std::map<Float64, std::string> sliceOrdering;
+
+  for( std::map<std::string, int>::iterator it = slices.begin(); it != slices.end(); ++it )
+  {
+    // Get filename for instance
+    QString fileName = openDatabase.fileForInstance(it->first.c_str());
+    if ( fileName.isEmpty() )
+    {
+      vtkWarningMacro("GetSliceThickness: No referenced image file is found, continuing to examine sequence.");
+      continue;
+    }
+    std::string posPatientStringCurrent = std::string(openDatabase.fileValue(fileName, DCM_ImagePositionPatient.getGroup(), DCM_ImagePositionPatient.getElement()).toLatin1());
+    if( posPatientStringCurrent.empty() )
+    {
+      continue;
+    }
+    std::string orientationPatientStringCurrent = std::string(openDatabase.fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement()).toLatin1());
+    if( orientationPatientStringCurrent.empty() )
+    {
+      continue;
+    }
+    int rc = sscanf(posPatientStringCurrent.c_str(), "%lf\\%lf\\%lf", &imagePositionPatient[0], &imagePositionPatient[1], &imagePositionPatient[2]);
+    rc = sscanf(orientationPatientStringCurrent.c_str(), "%lf\\%lf\\%lf\\%lf\\%lf\\%lf", &orientationPatient[0], &orientationPatient[1], &orientationPatient[2],
+      &orientationPatient[3], &orientationPatient[4], &orientationPatient[5]);
+
+    patientPosition.Set(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
+
+    // Determine the projection of the origin onto the normal for each slice, use this as the slice ordering
+    vtkVector3<Float64> iVec(orientationPatient[0], orientationPatient[1], orientationPatient[2]);
+    vtkVector3<Float64> jVec(orientationPatient[3], orientationPatient[4], orientationPatient[5]);
+    patientOrientationNormal = iVec.Cross(jVec);
+    patientOrientationNormal.Normalize();
+    if( prevPatientOrientationNormal.X() == 0 && prevPatientOrientationNormal.Y() == 0 && prevPatientOrientationNormal.Z() == 0 )
+    {
+      prevPatientOrientationNormal = patientOrientationNormal;
+    }
+    else
+    {
+      // Confirm that all slices have the same normal, or the algo breaks down
+      if( prevPatientOrientationNormal != patientOrientationNormal )
+      {
+        vtkErrorMacro("DCM_ImageOrientationPatient values are not consistent in the DICOM files.");
+        return false;
+      }
+    }
+
+    Float64 mag = patientPosition.Dot(patientOrientationNormal);
+    sliceOrdering[mag] = it->first;
+  }
+
+  int i = 0;
+  slices.clear();
+  for (std::map<Float64, std::string>::iterator it = sliceOrdering.begin(); it != sliceOrdering.end(); ++it)
+  {
+    // Transfer the ordering back to the slices vector
+    slices[it->second] = i;
+    i++;
+  }
+
+  return true;
 }
