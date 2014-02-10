@@ -1141,8 +1141,6 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     return;
   }
   double sliceThickness = this->GetDistanceBetweenContourPlanes(rtROIContourSequenceObject);
-  rtROIContourSequenceObject.gotoFirstItem();
-  this->GetSliceThickness(rtROIContourSequenceObject.getCurrentItem().getContourSequence());
 
   // Reset the ROI contour sequence to the start
   if (!rtROIContourSequenceObject.gotoFirstItem().good())
