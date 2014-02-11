@@ -26,9 +26,11 @@
 #include "qSlicerSubjectHierarchyModulePluginsExport.h"
 
 // Qt includes
+#include <QObject>
 #include <QList>
 #include <QString>
 
+class vtkObject;
 class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 class vtkMRMLScene;
@@ -40,8 +42,10 @@ class qSlicerSubjectHierarchyPluginHandlerCleanup;
 /// \ingroup Slicer_QtModules_SubjectHierarchy_Plugins
 /// \class qSlicerSubjectHierarchyPluginHandler 
 /// \brief Singleton class managing Subject Hierarchy plugins
-class Q_SLICER_SUBJECTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyPluginHandler
+class Q_SLICER_SUBJECTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyPluginHandler : public QObject
 {
+  Q_OBJECT
+
 public:
   /// Instance getter for the singleton class
   /// \return Instance object
@@ -109,7 +113,7 @@ public:
   /// Find and set plugin that is most suitable to own a subject hierarchy node
   /// The best plugins are found based on the confidence numbers they return for the inputs.
   /// \param node Node to be owned
-  void findAndSetOwnerPluginForSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
+  qSlicerSubjectHierarchyAbstractPlugin* findAndSetOwnerPluginForSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
 
   /// Get plugin owning a certain subject hierarchy node.
   /// This function doesn't try to find a suitable plugin, it just returns the one already assigned.
@@ -122,6 +126,13 @@ public:
   /// \candidatePlugins List of plugins to choose from
   /// \return Plugin chosen by the user
   qSlicerSubjectHierarchyAbstractPlugin* selectPluginFromDialog(QString textToDisplay, QList<qSlicerSubjectHierarchyAbstractPlugin*> candidatePlugins);
+
+protected slots:
+  /// Reconnect 'owner plugin changed' signal to the new owner plugin.
+  /// When the owner plugin is changed, both the old and the new plugins have the chance to
+  /// take actions (e.g. the new plugin can force a level) by connecting a locally defined
+  /// slot to the \sa ownerPluginChanged signal.
+  void reconnectOwnerPluginChanged(vtkObject* node, void* callData);
 
 protected:
   /// List of registered plugin instances
@@ -150,6 +161,7 @@ private:
 private:
   Q_DISABLE_COPY(qSlicerSubjectHierarchyPluginHandler);
   friend class qSlicerSubjectHierarchyPluginHandlerCleanup;
+  friend class qSlicerSubjectHierarchyModule;
 
 private:
   /// Instance of the singleton

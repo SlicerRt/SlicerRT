@@ -137,7 +137,7 @@ public:
   vtkGetStringMacro(Level);
 
   /// Set owner plugin name
-  vtkSetStringMacro(OwnerPluginName);
+  virtual void SetOwnerPluginName(const char* pluginName);
   /// Get owner plugin name
   vtkGetStringMacro(OwnerPluginName);
 
@@ -159,6 +159,12 @@ public:
 
   /// Get UID map for this subject hierarchy node
   std::map<std::string, std::string> GetUIDs();
+
+public:
+  enum
+  {
+    OwnerPluginChangedEvent = 24000
+  };
 
 protected:
   /// Level identifier (default levels are Subject and Study)

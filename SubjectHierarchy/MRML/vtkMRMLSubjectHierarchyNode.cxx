@@ -195,6 +195,31 @@ void vtkMRMLSubjectHierarchyNode::Copy(vtkMRMLNode *anode)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLSubjectHierarchyNode::SetOwnerPluginName(const char* pluginName)
+{
+  // Mostly copied from vtkSetStringMacro() in vtkSetGet.cxx
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting OwnerPluginName to " << (pluginName?pluginName:"(null)") );
+  if ( this->OwnerPluginName == NULL && pluginName == NULL) { return;}
+  if ( this->OwnerPluginName && pluginName && (!strcmp(this->OwnerPluginName,pluginName))) { return;}
+  char* oldPluginName = this->OwnerPluginName;
+  if (pluginName)
+    {
+    size_t n = strlen(pluginName) + 1;
+    char *cp1 =  new char[n];
+    const char *cp2 = (pluginName);
+    this->OwnerPluginName = cp1;
+    do { *cp1++ = *cp2++; } while ( --n );
+    }
+  else
+    {
+    this->OwnerPluginName = NULL;
+    }
+  this->InvokeEvent(vtkMRMLSubjectHierarchyNode::OwnerPluginChangedEvent, oldPluginName);
+  if (oldPluginName) { delete [] oldPluginName; }
+  this->Modified();
+} 
+
+//----------------------------------------------------------------------------
 void vtkMRMLSubjectHierarchyNode::AddUID(const char* uidName, const char* uidValue)
 {
   std::string uidNameStr(uidName);

@@ -40,7 +40,6 @@
 qSlicerSubjectHierarchyAbstractPlugin::qSlicerSubjectHierarchyAbstractPlugin(QObject *parent)
   : Superclass(parent)
   , m_Name(QString())
-  , m_Level(QString())
 {
 }
 
@@ -57,12 +56,6 @@ QString qSlicerSubjectHierarchyAbstractPlugin::name()const
     qCritical() << "qSlicerSubjectHierarchyAbstractPlugin::name: Empty plugin name!";
   }
   return this->m_Name;
-}
-
-//-----------------------------------------------------------------------------
-QString qSlicerSubjectHierarchyAbstractPlugin::level()const
-{
-  return QString();
 }
 
 //-----------------------------------------------------------------------------
@@ -267,4 +260,10 @@ void qSlicerSubjectHierarchyAbstractPlugin::createChildForCurrentNode()
   // Create child subject hierarchy node
   std::string childNodeName = vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NEW_NODE_NAME_PREFIX + childLevel.toLatin1().constData();
   this->createChildNode(currentNode, childNodeName.c_str());
+}
+
+//--------------------------------------------------------------------------
+void qSlicerSubjectHierarchyAbstractPlugin::emitOwnerPluginChanged(vtkObject* node, void* callData)
+{
+  emit ownerPluginChanged(node, callData);
 }

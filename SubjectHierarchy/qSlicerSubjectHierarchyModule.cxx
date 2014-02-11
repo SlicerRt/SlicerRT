@@ -157,10 +157,16 @@ void qSlicerSubjectHierarchyModule::onNodeAdded(vtkObject* scene, vtkObject* nod
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nodeObject);
   if (subjectHierarchyNode)
   {
-    // Find plugin for current subject hierarchy node and "claim" it
-    qSlicerSubjectHierarchyPluginHandler::instance()->findAndSetOwnerPluginForSubjectHierarchyNode(subjectHierarchyNode);
+    // Keep 'owner plugin changed' connections up-to date (reconnect to the new plugin)
+    qvtkConnect( subjectHierarchyNode, vtkMRMLSubjectHierarchyNode::OwnerPluginChangedEvent,
+      qSlicerSubjectHierarchyPluginHandler::instance(), SLOT( reconnectOwnerPluginChanged(vtkObject*,void*) ) );
 
-    qvtkConnect( subjectHierarchyNode, vtkCommand::ModifiedEvent, this, SLOT( onSubjectHierarchyNodeModified(vtkObject*) ) );
+    // Find plugin for current subject hierarchy node and "claim" it
+    qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->findAndSetOwnerPluginForSubjectHierarchyNode(subjectHierarchyNode);
+
+    // See if owner plugin has to be changed when a note is modified
+    qvtkConnect( subjectHierarchyNode, vtkCommand::ModifiedEvent,
+      this, SLOT( onSubjectHierarchyNodeModified(vtkObject*) ) );
   }
 }
 

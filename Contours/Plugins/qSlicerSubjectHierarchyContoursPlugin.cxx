@@ -160,9 +160,7 @@ bool qSlicerSubjectHierarchyContoursPlugin::setIcon(vtkMRMLSubjectHierarchyNode*
 
   vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
 
-  // Contour
-  if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES)
-    && associatedNode && associatedNode->IsA("vtkMRMLContourNode") )
+  if (this->canOwnSubjectHierarchyNode(node))
   {
     item->setIcon(d->ContourIcon);
     return true;

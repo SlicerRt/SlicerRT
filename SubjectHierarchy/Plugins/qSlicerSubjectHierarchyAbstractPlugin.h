@@ -30,6 +30,7 @@
 // SlicerRt includes
 #include "qSlicerSubjectHierarchyModulePluginsExport.h"
 
+class vtkObject;
 class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 class QStandardItem;
@@ -58,11 +59,6 @@ class Q_SLICER_SUBJECTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyAbstractPl
   /// Cannot be empty.
   /// \sa name()
   Q_PROPERTY(QString name READ name)
-
-  /// This property stores the level to assign to the owned node.
-  /// Empty by default, in which case there is no mandatory level to set to the handled nodes
-  /// \sa level()
-  Q_PROPERTY(QString level READ level)
 
   /// This property holds the name list of the plugin dependencies.
   /// There is no dependency cycle check, so special care must be taken to
@@ -171,12 +167,11 @@ public:
 public:
   vtkMRMLSubjectHierarchyNode* createChildNode(vtkMRMLSubjectHierarchyNode* parentNode, QString nodeName, vtkMRMLNode* associatedNode=NULL);
 
+  void emitOwnerPluginChanged(vtkObject* node, void* callData);
+
 public:
   /// Get the name of the plugin
   virtual QString name()const;
-
-  /// Get the level to assign to the owned node (mandatory if not empty)
-  virtual QString level()const;
 
   /// Get the list of plugin dependencies
   virtual QStringList dependencies()const;
@@ -187,6 +182,11 @@ public:
 signals:
   /// Signal requesting expanding of the subject hierarchy tree item belonging to a node
   void requestExpandNode(vtkMRMLSubjectHierarchyNode* node);
+
+  /// Signal that is emitted when a node changes owner plugin
+  /// \param node Subject hierarchy node changing owner plugin
+  /// \callData Name of the old plugin (the name of the new plugin can be get from the node)
+  void ownerPluginChanged(vtkObject* node, void* callData);
 
 protected:
   /// Get child level according to child level map of the current plugin
@@ -200,10 +200,6 @@ protected slots:
 protected:
   /// Name of the plugin
   QString m_Name;
-
-  /// Level to assign to the owned node.
-  /// Empty by default, in which case there is no mandatory level to set to the handled nodes
-  QString m_Level;
 
   /// Map assigning a child level to a parent level for the plugin
   QMap<QString, QString> m_ChildLevelMap;

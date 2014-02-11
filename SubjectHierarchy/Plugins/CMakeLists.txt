@@ -32,6 +32,7 @@ set(${KIT}_SRCS
 
 set(${KIT}_MOC_SRCS
   qSlicerSubjectHierarchyAbstractPlugin.h
+  qSlicerSubjectHierarchyPluginHandler.h
   qSlicerSubjectHierarchyDefaultPlugin.h
   qSlicerSubjectHierarchyDICOMPlugin.h
   qSlicerSubjectHierarchyVolumesPlugin.h
