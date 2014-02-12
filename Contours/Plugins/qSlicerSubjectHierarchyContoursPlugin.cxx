@@ -98,6 +98,8 @@ void qSlicerSubjectHierarchyContoursPluginPrivate::init()
   this->ConvertContourToRepresentationAction = new QAction("Convert contour to its active representation",q);
   QObject::connect(this->ConvertContourToRepresentationAction, SIGNAL(triggered()), q, SLOT(convertCurrentNodeContourToRepresentation()));
   this->ConvertContourToRepresentationAction->setEnabled(false); //TODO Remove when the feature is added
+
+  QObject::connect(q, SIGNAL(ownerPluginChanged(vtkObject*,void*)), q, SLOT(onNodeClaimed(vtkObject*,void*)));
 }
 
 //-----------------------------------------------------------------------------
@@ -276,4 +278,25 @@ void qSlicerSubjectHierarchyContoursPlugin::convertCurrentNodeContourToRepresent
 {
   //TODO:
   qCritical() << "qSlicerSubjectHierarchyContoursPlugin::convertCurrentNodeContourToRepresentation: Not implemented yet!";
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContoursPlugin::onNodeClaimed(vtkObject* node, void* callData)
+{
+  // Sample code for acquiring the name of the old plugin if necessary
+  //char* oldPluginName = reinterpret_cast<char*>(callData);
+
+  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
+  if (!subjectHierarchyNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchyContoursPlugin::onNodeClaimed: Invalid subject hierarchy node!";
+    return;
+  }
+
+  // Only force level if this is the new owner plugin
+  if (!this->m_Name.compare(subjectHierarchyNode->GetOwnerPluginName()))
+  {
+    subjectHierarchyNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
+    qDebug() << "qSlicerSubjectHierarchyContoursPlugin::onNodeClaimed: Level of node " << subjectHierarchyNode->GetName() << " changed to subseries on owner plugin change to Contours";
+  }
 }

@@ -93,6 +93,10 @@ protected slots:
   /// Delete current (selected) contour and add its representation to the scene
   void convertCurrentNodeContourToRepresentation();
 
+  /// Called when a node's owner plugin has changed
+  /// Note: Also called when this plugin was the owner from which it has been changed!
+  void onNodeClaimed(vtkObject* node, void* callData);
+
 protected:
   QScopedPointer<qSlicerSubjectHierarchyContoursPluginPrivate> d_ptr;
 
