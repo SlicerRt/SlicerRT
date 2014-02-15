@@ -241,18 +241,6 @@ void qMRMLSubjectHierarchyTreeView::populateContextMenuForCurrentNode()
   {
     plugin->showContextMenuActionsForCreatingChildForNode(currentSubjectHierarchyNode);
   }
-
-  //TODO test
-  // Check select plugin action if it's the owner
-  Q_D(qMRMLSubjectHierarchyTreeView);
-  foreach (QAction* currentSelectPluginAction, d->SelectPluginActions)
-  {
-    // Check select plugin action if it's the owner
-    bool isOwner = !(currentSelectPluginAction->text().compare(ownerPlugin->name()));
-    currentSelectPluginAction->blockSignals(true);
-    currentSelectPluginAction->setChecked(isOwner);
-    currentSelectPluginAction->blockSignals(false);
-  }
 }
 
 //--------------------------------------------------------------------------
@@ -277,7 +265,12 @@ void qMRMLSubjectHierarchyTreeView::selectPluginForCurrentNode()
     return;
   }
   QString selectedPluginName = d->SelectPluginActionGroup->checkedAction()->data().toString();
-  if (!selectedPluginName.compare(currentNode->GetOwnerPluginName()))
+  if (selectedPluginName.isEmpty())
+  {
+    qCritical() << "qMRMLSubjectHierarchyTreeView::selectPluginForCurrentNode: No owner plugin found for node " << currentNode->GetName();
+    return;
+  }
+  else if (!selectedPluginName.compare(currentNode->GetOwnerPluginName()))
   {
     // Do nothing if the owner plugin stays the same
     return;
@@ -295,7 +288,7 @@ void qMRMLSubjectHierarchyTreeView::selectPluginForCurrentNode()
   // Set new owner plugin
   currentNode->SetOwnerPluginName(selectedPluginName.toLatin1().constData());
   qDebug() << "qMRMLSubjectHierarchyTreeView::selectPluginForCurrentNode: Owner plugin of subject hierarchy node '"
-    << currentNode->GetName() << "' has been manually changed to '" << d->SelectPluginActionGroup->checkedAction()->text() << "'";
+    << currentNode->GetName() << "' has been manually changed to '" << d->SelectPluginActionGroup->checkedAction()->data().toString() << "'";
 }
 
 //--------------------------------------------------------------------------
@@ -313,26 +306,27 @@ void qMRMLSubjectHierarchyTreeView::updateSelectPluginActions()
   foreach (QAction* currentSelectPluginAction, d->SelectPluginActions)
   {
     // Check select plugin action if it's the owner
-    bool isOwner = !(currentSelectPluginAction->text().compare(ownerPluginName));
-    //currentSelectPluginAction->blockSignals(true);
-    //currentSelectPluginAction->setChecked(isOwner);
-    //currentSelectPluginAction->blockSignals(false);
+    bool isOwner = !(currentSelectPluginAction->data().toString().compare(ownerPluginName));
 
     // Get confidence numbers and show the plugins with non-zero confidence
     qSlicerSubjectHierarchyAbstractPlugin* currentPlugin = 
       qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName( currentSelectPluginAction->data().toString() );
     QString role = QString();
     double confidenceNumber = currentPlugin->canOwnSubjectHierarchyNode(currentNode, role);
+
     if (confidenceNumber <= 0.0 && !isOwner)
     {
       currentSelectPluginAction->setVisible(false);
     }
     else
     {
+      // Set text to display for the role
       QString currentSelectPluginActionText = QString("%1: '%2', (%3%)").arg(
         role).arg(currentPlugin->displayedName(currentNode)).arg(confidenceNumber*100.0, 0, 'f', 0);
       currentSelectPluginAction->setText(currentSelectPluginActionText);
       currentSelectPluginAction->setVisible(true);
     }
+
+    currentSelectPluginAction->setChecked(isOwner);
   }
 }
