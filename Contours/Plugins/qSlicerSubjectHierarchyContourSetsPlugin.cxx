@@ -489,8 +489,10 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addContourColorToCorrespondingCol
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyContourSetsPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyContourSetsPlugin::canOwnSubjectHierarchyNode(
+  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
 {
+  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -503,6 +505,7 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canOwnSubjectHierarchyNode(vtkM
   if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
     && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
+    role = QString("Contour set");
     return 1.0; // Only the Contours plugin can handle this node
   }
 
@@ -510,6 +513,7 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canOwnSubjectHierarchyNode(vtkM
   if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES)
     && associatedNode && associatedNode->IsA("vtkMRMLColorTableNode") )
   {
+    role = QString("Color table for contour set");
     return 0.5;
   }
 

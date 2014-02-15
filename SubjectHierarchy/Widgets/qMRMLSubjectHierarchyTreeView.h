@@ -47,9 +47,6 @@ protected:
   /// Toggle visibility
   virtual void toggleVisibility(const QModelIndex& index);
 
-  /// Set checked state of the select plugin actions in the node context menu for a specific node
-  void updatePluginActionCheckedStates(vtkMRMLSubjectHierarchyNode* currentSubjectHierarchyNode);
-
   /// Populate context menu for current node
   void populateContextMenuForCurrentNode();
 
@@ -57,14 +54,17 @@ protected:
   virtual void mousePressEvent(QMouseEvent* event);
 
 public slots:
-  /// Handle node creation by plugin (expands branch etc.)
+  /// Handle expand node requests in the subject hierarchy tree
   void expandNode(vtkMRMLSubjectHierarchyNode* node);
 
   /// Handle manual selection of a plugin as the new owner of a subject hierarchy node
   void selectPluginForCurrentNode();
 
-protected:
-  QScopedPointer<qMRMLSubjectHierarchyTreeViewPrivate> d_ptr;
+  /// Update select plugin actions. Is called when the plugin selection sub-menu is opened,
+  /// and when the user manually changes the owner plugin of a node. It sets checked state
+  /// and update confidence values in the select plugin actions in the node context menu
+  /// for the currently selected node.
+  void updateSelectPluginActions();
 
 private:
   Q_DECLARE_PRIVATE(qMRMLSubjectHierarchyTreeView);

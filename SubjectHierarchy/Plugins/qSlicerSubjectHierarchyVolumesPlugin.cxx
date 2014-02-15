@@ -132,8 +132,10 @@ QStringList qSlicerSubjectHierarchyVolumesPlugin::dependencies()const
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(
+  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
 {
+  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -144,12 +146,14 @@ double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(vtkMRMLS
   vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
   if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
   {
+    role = QString("Scalar volume");
     return 0.5; // There are other plugins that can handle special volume nodes better, thus the relatively low value
   }
 
   // Study level (so that bulk show/hide of volumes is possible)
   if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
+    role = QString("Study (can show volumes)");
     return 0.5;
   }
 

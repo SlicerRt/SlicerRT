@@ -133,9 +133,11 @@ void qSlicerSubjectHierarchyDefaultPlugin::setDefaultVisibilityIcons(QIcon visib
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyDefaultPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyDefaultPlugin::canOwnSubjectHierarchyNode(
+  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
 {
   Q_UNUSED(node);
+  role = QString("Generic");
 
   // The default Subject Hierarchy plugin is never selected by confidence number it returns
   return 0.0;

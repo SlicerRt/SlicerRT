@@ -45,47 +45,42 @@
 
 //------------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy
-class qMRMLSubjectHierarchyTreeViewPrivate// : public qMRMLTreeViewPrivate //TODO: Uncomment when qMRMLTreeViewPrivate is exported
+class qMRMLSubjectHierarchyTreeViewPrivate : public qMRMLTreeViewPrivate
 {
   Q_DECLARE_PUBLIC(qMRMLSubjectHierarchyTreeView);
-protected:
-  qMRMLSubjectHierarchyTreeView* const q_ptr;
-
 public:
+  typedef qMRMLTreeViewPrivate Superclass;
   qMRMLSubjectHierarchyTreeViewPrivate(qMRMLSubjectHierarchyTreeView& object);
-  void init();
 
-  qMRMLSceneSubjectHierarchyModel* SceneModel;
-  qMRMLSortFilterSubjectHierarchyProxyModel* SortFilterModel;
+  /// Different initializer method is needed, because when qMRMLTreeView
+  /// calls its init(), then the instance has not been constructed as a
+  /// qMRMLSubjectHierarchyTreeView, only as a qMRMLTreeView, so the subject
+  /// hierarchy related initializations have to be done from within the
+  /// constructor of qMRMLSubjectHierarchyTreeView
+  virtual void init2();
+
   QList<QAction*> SelectPluginActions;
   QActionGroup* SelectPluginActionGroup;
 };
 
 //------------------------------------------------------------------------------
 qMRMLSubjectHierarchyTreeViewPrivate::qMRMLSubjectHierarchyTreeViewPrivate(qMRMLSubjectHierarchyTreeView& object)
-//  : qMRMLTreeViewPrivate(object) //TODO: Uncomment when qMRMLTreeViewPrivate is exported
-//  , q_ptr(&object)
-  : q_ptr(&object)
+  : qMRMLTreeViewPrivate(object)
 {
-  this->SceneModel = NULL;
-  this->SortFilterModel = NULL;
 }
 
 //------------------------------------------------------------------------------
-void qMRMLSubjectHierarchyTreeViewPrivate::init()
+void qMRMLSubjectHierarchyTreeViewPrivate::init2()
 {
   Q_Q(qMRMLSubjectHierarchyTreeView);
 
   // Set up scene model and sort and proxy model
-  this->SceneModel = new qMRMLSceneSubjectHierarchyModel(q);
-  QObject::connect( this->SceneModel, SIGNAL(saveTreeExpandState()), q, SLOT(saveTreeExpandState()) );
-  QObject::connect( this->SceneModel, SIGNAL(loadTreeExpandState()), q, SLOT(loadTreeExpandState()) );
-  q->setSceneModel(this->SceneModel, "SubjectHierarchy");
+  qMRMLSceneModel* sceneModel = new qMRMLSceneSubjectHierarchyModel(q);
+  QObject::connect( sceneModel, SIGNAL(saveTreeExpandState()), q, SLOT(saveTreeExpandState()) );
+  QObject::connect( sceneModel, SIGNAL(loadTreeExpandState()), q, SLOT(loadTreeExpandState()) );
+  q->setSceneModel(sceneModel, "SubjectHierarchy");
 
-  this->SortFilterModel = new qMRMLSortFilterSubjectHierarchyProxyModel(q);
-  q->setSortFilterProxyModel(this->SortFilterModel);
-
-  q->QTreeView::setModel(this->SortFilterModel);
+  q->setSortFilterProxyModel(new qMRMLSortFilterSubjectHierarchyProxyModel(q));
 
   // Change item visibility
   q->setShowScene(true);
@@ -105,13 +100,13 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
     // Add node context menu actions
     foreach (QAction* action, plugin->nodeContextMenuActions())
     {
-      q->appendNodeMenuAction(action);
+      this->NodeMenu->addAction(action);
     }
 
     // Add scene context menu actions
     foreach (QAction* action, plugin->sceneContextMenuActions())
     {
-      q->appendSceneMenuAction(action);
+      this->SceneMenu->addAction(action);
     }
 
     // Connect plugin events to be handled by the tree view
@@ -120,40 +115,29 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init()
   }
 
   // Create a plugin selection action for each plugin in a sub-menu
-  QAction* separatorAction = new QAction(q);
-  separatorAction->setSeparator(true);
-  q->appendNodeMenuAction(separatorAction);
+  QMenu* selectPluginSubMenu = this->NodeMenu->addMenu("Select role");
   this->SelectPluginActionGroup = new QActionGroup(q);
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
   {
     QAction* selectPluginAction = new QAction(plugin->name(),q);
     selectPluginAction->setCheckable(true);
     selectPluginAction->setActionGroup(this->SelectPluginActionGroup);
-    q->appendNodeMenuAction(selectPluginAction);
+    selectPluginAction->setData(QVariant(plugin->name()));
+    selectPluginSubMenu->addAction(selectPluginAction);
     QObject::connect(selectPluginAction, SIGNAL(triggered()), q, SLOT(selectPluginForCurrentNode()));
     this->SelectPluginActions << selectPluginAction;
   }
-  //TODO: Change back to the code below when qMRMLTreeViewPrivate is exported
-  //QMenu* selectPluginSubMenu = this->NodeMenu->addMenu("Select owner plugin");
-  //this->SelectPluginActionGroup = new QActionGroup(q);
-  //foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
-  //{
-  //  QAction* selectPluginAction = new QAction(plugin->name(),q);
-  //  selectPluginAction->setCheckable(true);
-  //  selectPluginAction->setActionGroup(this->SelectPluginActionGroup);
-  //  selectPluginSubMenu->addAction(selectPluginAction);
-  //  QObject::connect(selectPluginAction, SIGNAL(triggered()), q, SLOT(selectPluginForActiveNode()));
-  //  this->SelectPluginActions << selectPluginAction;
-  //}
+
+  // Update actions in owner plugin sub-menu when opened
+  QObject::connect( selectPluginSubMenu, SIGNAL(aboutToShow()), q, SLOT(updateSelectPluginActions()) );
 }
 
 //------------------------------------------------------------------------------
 qMRMLSubjectHierarchyTreeView::qMRMLSubjectHierarchyTreeView(QWidget *parent)
-  : qMRMLTreeView(parent)
-  , d_ptr(new qMRMLSubjectHierarchyTreeViewPrivate(*this))
+  : qMRMLTreeView(new qMRMLSubjectHierarchyTreeViewPrivate(*this), parent)
 {
   Q_D(qMRMLSubjectHierarchyTreeView);
-  d->init();
+  d->init2();
 }
 
 //------------------------------------------------------------------------------
@@ -258,8 +242,17 @@ void qMRMLSubjectHierarchyTreeView::populateContextMenuForCurrentNode()
     plugin->showContextMenuActionsForCreatingChildForNode(currentSubjectHierarchyNode);
   }
 
-  // Check the plugin action to the one that owns the current node
-  this->updatePluginActionCheckedStates(currentSubjectHierarchyNode);
+  //TODO test
+  // Check select plugin action if it's the owner
+  Q_D(qMRMLSubjectHierarchyTreeView);
+  foreach (QAction* currentSelectPluginAction, d->SelectPluginActions)
+  {
+    // Check select plugin action if it's the owner
+    bool isOwner = !(currentSelectPluginAction->text().compare(ownerPlugin->name()));
+    currentSelectPluginAction->blockSignals(true);
+    currentSelectPluginAction->setChecked(isOwner);
+    currentSelectPluginAction->blockSignals(false);
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -283,7 +276,7 @@ void qMRMLSubjectHierarchyTreeView::selectPluginForCurrentNode()
     qCritical() << "qMRMLSubjectHierarchyTreeView::selectPluginForCurrentNode: Invalid current node for manually selecting owner plugin!";
     return;
   }
-  QString selectedPluginName = d->SelectPluginActionGroup->checkedAction()->text();
+  QString selectedPluginName = d->SelectPluginActionGroup->checkedAction()->data().toString();
   if (!selectedPluginName.compare(currentNode->GetOwnerPluginName()))
   {
     // Do nothing if the owner plugin stays the same
@@ -303,20 +296,43 @@ void qMRMLSubjectHierarchyTreeView::selectPluginForCurrentNode()
   currentNode->SetOwnerPluginName(selectedPluginName.toLatin1().constData());
   qDebug() << "qMRMLSubjectHierarchyTreeView::selectPluginForCurrentNode: Owner plugin of subject hierarchy node '"
     << currentNode->GetName() << "' has been manually changed to '" << d->SelectPluginActionGroup->checkedAction()->text() << "'";
-
-  // Check selected plugin
-  this->updatePluginActionCheckedStates(currentNode);
 }
 
 //--------------------------------------------------------------------------
-void qMRMLSubjectHierarchyTreeView::updatePluginActionCheckedStates(vtkMRMLSubjectHierarchyNode* node)
+void qMRMLSubjectHierarchyTreeView::updateSelectPluginActions()
 {
   Q_D(qMRMLSubjectHierarchyTreeView);
-  foreach (QAction* selectPluginAction, d->SelectPluginActions)
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  if (!currentNode)
   {
-    bool checked = !(selectPluginAction->text().compare(node->GetOwnerPluginName()));
-    selectPluginAction->blockSignals(true);
-    selectPluginAction->setChecked(checked);
-    selectPluginAction->blockSignals(false);
+    qCritical() << "qMRMLSubjectHierarchyTreeView::updateSelectPluginActions: Invalid current node!";
+    return;
+  }
+  QString ownerPluginName = QString(currentNode->GetOwnerPluginName());
+
+  foreach (QAction* currentSelectPluginAction, d->SelectPluginActions)
+  {
+    // Check select plugin action if it's the owner
+    bool isOwner = !(currentSelectPluginAction->text().compare(ownerPluginName));
+    //currentSelectPluginAction->blockSignals(true);
+    //currentSelectPluginAction->setChecked(isOwner);
+    //currentSelectPluginAction->blockSignals(false);
+
+    // Get confidence numbers and show the plugins with non-zero confidence
+    qSlicerSubjectHierarchyAbstractPlugin* currentPlugin = 
+      qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName( currentSelectPluginAction->data().toString() );
+    QString role = QString();
+    double confidenceNumber = currentPlugin->canOwnSubjectHierarchyNode(currentNode, role);
+    if (confidenceNumber <= 0.0 && !isOwner)
+    {
+      currentSelectPluginAction->setVisible(false);
+    }
+    else
+    {
+      QString currentSelectPluginActionText = QString("%1: '%2', (%3%)").arg(
+        role).arg(currentPlugin->displayedName(currentNode)).arg(confidenceNumber*100.0, 0, 'f', 0);
+      currentSelectPluginAction->setText(currentSelectPluginActionText);
+      currentSelectPluginAction->setVisible(true);
+    }
   }
 }

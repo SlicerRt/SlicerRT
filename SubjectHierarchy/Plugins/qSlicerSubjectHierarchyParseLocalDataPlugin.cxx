@@ -105,10 +105,12 @@ QStringList qSlicerSubjectHierarchyParseLocalDataPlugin::dependencies()const
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyParseLocalDataPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyParseLocalDataPlugin::canOwnSubjectHierarchyNode(
+  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
 {
   Q_UNUSED(node);
 
+  role = QString();
   return 0.0;
 }
 

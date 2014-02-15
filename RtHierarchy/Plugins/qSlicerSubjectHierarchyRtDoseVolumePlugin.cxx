@@ -98,8 +98,10 @@ QStringList qSlicerSubjectHierarchyRtDoseVolumePlugin::dependencies()const
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(
+  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
 {
+  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -112,6 +114,7 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(vtk
   if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
     && associatedNode && SlicerRtCommon::IsDoseVolumeNode(associatedNode) )
   {
+    role = QString("RT dose volume");
     return 1.0; // Only this plugin can handle this node
   }
 

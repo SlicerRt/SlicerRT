@@ -105,8 +105,10 @@ QStringList qSlicerSubjectHierarchyRtImagePlugin::dependencies()const
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode(
+  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
 {
+  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -120,6 +122,7 @@ double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode(vtkMRMLS
     && associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode")
     && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
+    role = QString("RT image");
     return 1.0; // Only this plugin can handle this node
   }
 

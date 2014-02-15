@@ -92,8 +92,10 @@ qSlicerSubjectHierarchyRtPlanPlugin::~qSlicerSubjectHierarchyRtPlanPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtPlanPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyRtPlanPlugin::canOwnSubjectHierarchyNode(
+  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
 {
+  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyRtPlanPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -112,6 +114,7 @@ double qSlicerSubjectHierarchyRtPlanPlugin::canOwnSubjectHierarchyNode(vtkMRMLSu
     && associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode")
     && parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
   {
+    role = QString("RT plan");
     return 1.0;
   }
 

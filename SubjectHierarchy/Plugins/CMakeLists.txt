@@ -4,15 +4,11 @@ set(KIT ${PROJECT_NAME})
 
 set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_${MODULE_NAME_UPPER}_PLUGINS_EXPORT")
 
-#TODO: Replace with MRMLWidgets_INCLUDE_DIRS when available
-list(GET MRMLCore_INCLUDE_DIRS 0 MRMLCore_DIR)
-list(GET MRMLCore_INCLUDE_DIRS 1 MRMLCore_BIN_DIR)
 set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
   ${MRMLLogic_INCLUDE_DIRS}
-  ${MRMLCore_DIR}/../Widgets
-  ${MRMLCore_BIN_DIR}/../Widgets
+  ${qMRMLWidgets_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -54,6 +50,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
   MRMLCore
   MRMLLogic
+  qMRMLWidgets
   ${QT_LIBRARIES}
   )
 

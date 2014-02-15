@@ -134,8 +134,10 @@ qSlicerSubjectHierarchyDICOMPlugin::~qSlicerSubjectHierarchyDICOMPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyNode(
+  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
 {
+  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -145,16 +147,19 @@ double qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyNode(vtkMRMLSub
   // Patient level
   if (node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_PATIENT))
   {
+    role = QString("Patient");
     return 0.7;
   }
   // Study level (so that creation of a generic series is possible)
   if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
+    role = QString("Study");
     return 0.3;
   }
   // Series level
   if (node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES))
   {
+    role = QString("Generic series");
     return 0.3;
   }
 

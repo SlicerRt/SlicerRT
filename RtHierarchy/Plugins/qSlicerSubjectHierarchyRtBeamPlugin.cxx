@@ -91,8 +91,10 @@ qSlicerSubjectHierarchyRtBeamPlugin::~qSlicerSubjectHierarchyRtBeamPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode(
+  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
 {
+  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -113,6 +115,7 @@ double qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode(vtkMRMLSu
     && ( parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX.c_str())
       || hierarchyNodeName.startsWith(SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX.c_str()) ) )
   {
+    role = QString("RT beam");
     return 1.0;
   }
 
