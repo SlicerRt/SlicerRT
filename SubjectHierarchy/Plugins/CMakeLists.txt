@@ -42,6 +42,8 @@ set(${KIT}_RESOURCES
   Resources/${KIT}.qrc
   )
 
+set_source_files_properties( qSlicerSubjectHierarchyAbstractPlugin.h WRAP_EXCLUDE )
+  
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------
