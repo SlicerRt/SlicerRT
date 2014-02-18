@@ -1663,7 +1663,8 @@ bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDat
   vtkVector3<Float64> patientPosition;
   vtkVector3<Float64> patientOrientationNormal;
   vtkVector3<Float64> prevPatientOrientationNormal(0,0,0);
-  std::map<Float64, std::string> sliceOrdering;
+
+  std::map< std::string, vtkPlane*> planeList;
 
   for( std::map<std::string, int>::iterator it = slices.begin(); it != slices.end(); ++it )
   {
@@ -1688,38 +1689,35 @@ bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDat
     rc = sscanf(orientationPatientStringCurrent.c_str(), "%lf\\%lf\\%lf\\%lf\\%lf\\%lf", &orientationPatient[0], &orientationPatient[1], &orientationPatient[2],
       &orientationPatient[3], &orientationPatient[4], &orientationPatient[5]);
 
-    patientPosition.Set(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
-
-    // Determine the projection of the origin onto the normal for each slice, use this as the slice ordering
+    // Calculate the slice normal
     vtkVector3<Float64> iVec(orientationPatient[0], orientationPatient[1], orientationPatient[2]);
     vtkVector3<Float64> jVec(orientationPatient[3], orientationPatient[4], orientationPatient[5]);
     patientOrientationNormal = iVec.Cross(jVec);
     patientOrientationNormal.Normalize();
+
     if( prevPatientOrientationNormal.X() == 0 && prevPatientOrientationNormal.Y() == 0 && prevPatientOrientationNormal.Z() == 0 )
     {
-      prevPatientOrientationNormal = patientOrientationNormal;
+      prevPatientOrientationNormal.Set(patientOrientationNormal[0], patientOrientationNormal[1], patientOrientationNormal[2]);
     }
-    else
+    else if( patientOrientationNormal != prevPatientOrientationNormal )
     {
-      // Confirm that all slices have the same normal, or the algo breaks down
-      if( prevPatientOrientationNormal != patientOrientationNormal )
-      {
-        vtkErrorMacro("DCM_ImageOrientationPatient values are not consistent in the DICOM files.");
-        return false;
-      }
+      vtkErrorMacro("Normals are not the same. Slices are not co-planar. Algorithm requires this.");
+      return false;
     }
 
-    Float64 mag = patientPosition.Dot(patientOrientationNormal);
-    sliceOrdering[mag] = it->first;
+    vtkVector3<Float64> patientOrigin(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
+
+    vtkPlane* slicePlane = vtkPlane::New();
+    slicePlane->SetOrigin(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
+    slicePlane->SetNormal(patientOrientationNormal[0], patientOrientationNormal[1], patientOrientationNormal[2]);
+    planeList[it->first] = slicePlane;
   }
 
-  int i = 0;
-  slices.clear();
-  for (std::map<Float64, std::string>::iterator it = sliceOrdering.begin(); it != sliceOrdering.end(); ++it)
+  SlicerRtCommon::OrderPlanesAlongNormal<std::string>(planeList, slices);
+
+  for( std::map< std::string, vtkPlane*>::iterator it = planeList.begin(); it != planeList.end(); ++it)
   {
-    // Transfer the ordering back to the slices vector
-    slices[it->second] = i;
-    i++;
+    it->second->Delete();
   }
 
   return true;

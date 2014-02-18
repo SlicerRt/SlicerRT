@@ -8,6 +8,9 @@
 // ITK includes
 #include "itkImage.h"
 
+// VTK includes
+#include <vtkVector.h>
+
 class vtkMRMLTransformableNode;
 class vtkMRMLNode;
 class vtkMRMLScalarVolumeNode;
@@ -17,6 +20,7 @@ class vtkMRMLColorTableNode;
 class vtkImageData;
 class vtkGeneralTransform;
 class vtkMatrix4x4;
+class vtkPlane;
 
 #define EPSILON 0.0001
 
@@ -192,6 +196,10 @@ public:
 
   // Determine if two bounds are equal
   static bool AreBoundsEqual(int boundsA[6], int boundsB[6]);
+
+  // Return an ordering of planes along a normal by origin
+  template <class Key>
+  static bool OrderPlanesAlongNormal( std::map<Key, vtkPlane*> inputPlanes, std::map<Key, int>& outputPlaneIdentifierOrdering );
 
 //BTX
   /*!
