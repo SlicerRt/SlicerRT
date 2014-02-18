@@ -59,12 +59,6 @@ QString qSlicerSubjectHierarchyAbstractPlugin::name()const
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerSubjectHierarchyAbstractPlugin::dependencies()const
-{
-  return QStringList();
-}
-
-//-----------------------------------------------------------------------------
 QList<QAction*> qSlicerSubjectHierarchyAbstractPlugin::nodeContextMenuActions()const
 {
   return QList<QAction*>();

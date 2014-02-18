@@ -57,8 +57,6 @@ public:
 public:
   QIcon PatientIcon;
 
-  QAction* CreatePatientAction;
-  QAction* CreateStudyAction;
   QAction* CreateGenericSeriesAction;
   QAction* CreateGenericSubseriesAction;
 };
@@ -72,8 +70,6 @@ qSlicerSubjectHierarchyDICOMPluginPrivate::qSlicerSubjectHierarchyDICOMPluginPri
 {
   this->PatientIcon = QIcon(":Icons/Patient.png");
 
-  this->CreatePatientAction = NULL;
-  this->CreateStudyAction = NULL;
   this->CreateGenericSeriesAction = NULL;
   this->CreateGenericSubseriesAction = NULL;
 }
@@ -82,12 +78,6 @@ qSlicerSubjectHierarchyDICOMPluginPrivate::qSlicerSubjectHierarchyDICOMPluginPri
 void qSlicerSubjectHierarchyDICOMPluginPrivate::init()
 {
   Q_Q(qSlicerSubjectHierarchyDICOMPlugin);
-
-  this->CreatePatientAction = new QAction("Create new patient",q);
-  QObject::connect(this->CreatePatientAction, SIGNAL(triggered()), q, SLOT(createChildForCurrentNode()));
-
-  this->CreateStudyAction = new QAction("Create new study",q);
-  QObject::connect(this->CreateStudyAction, SIGNAL(triggered()), q, SLOT(createChildForCurrentNode()));
 
   this->CreateGenericSeriesAction = new QAction("Create child generic series",q);
   QObject::connect(this->CreateGenericSeriesAction, SIGNAL(triggered()), q, SLOT(createChildForCurrentNode()));
@@ -108,11 +98,8 @@ qSlicerSubjectHierarchyDICOMPlugin::qSlicerSubjectHierarchyDICOMPlugin(QObject* 
 {
   this->m_Name = QString("DICOM");
 
-  // Scene -> Patient
-  this->m_ChildLevelMap.insert( QString(),
-    vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_PATIENT );
-  // Patient -> Study
-  this->m_ChildLevelMap.insert( vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_PATIENT,
+  // Subject -> Study
+  this->m_ChildLevelMap.insert( vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT,
     vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
   // Study -> Series
   this->m_ChildLevelMap.insert( vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY,
@@ -144,8 +131,8 @@ double qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyNode(
     return 0.0;
   }
 
-  // Patient level
-  if (node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_PATIENT))
+  // Subject level
+  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
   {
     role = QString("Patient");
     return 0.7;
@@ -178,7 +165,7 @@ bool qSlicerSubjectHierarchyDICOMPlugin::setIcon(vtkMRMLSubjectHierarchyNode* no
   Q_D(qSlicerSubjectHierarchyDICOMPlugin);
 
   // Patient icon
-  if (node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_PATIENT))
+  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
   {
     item->setIcon(d->PatientIcon);
     return true;
@@ -207,48 +194,26 @@ QList<QAction*> qSlicerSubjectHierarchyDICOMPlugin::nodeContextMenuActions()cons
   Q_D(const qSlicerSubjectHierarchyDICOMPlugin);
 
   QList<QAction*> actions;
-  actions << d->CreateStudyAction << d->CreateGenericSeriesAction << d->CreateGenericSubseriesAction;
-  return actions;
-}
-
-//-----------------------------------------------------------------------------
-QList<QAction*> qSlicerSubjectHierarchyDICOMPlugin::sceneContextMenuActions()const
-{
-  Q_D(const qSlicerSubjectHierarchyDICOMPlugin);
-
-  QList<QAction*> actions;
-  actions << d->CreatePatientAction;
+  actions << d->CreateGenericSeriesAction << d->CreateGenericSubseriesAction;
   return actions;
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyDICOMPlugin::hideAllContextMenuActions()
+void qSlicerSubjectHierarchyDICOMPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyDICOMPlugin);
 
-  d->CreatePatientAction->setVisible(false);
-  d->CreateStudyAction->setVisible(false);
   d->CreateGenericSeriesAction->setVisible(false);
   d->CreateGenericSubseriesAction->setVisible(false);
-}
 
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyDICOMPlugin::showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_D(qSlicerSubjectHierarchyDICOMPlugin);
-
-  // Scene
   if (!node)
   {
-    d->CreatePatientAction->setVisible(true);
+    // There are no scene actions in this plugin
+    return;
   }
-  // Patient
-  else if (node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_PATIENT))
-  {
-    d->CreateStudyAction->setVisible(true);
-  }
+
   // Study
-  else if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     d->CreateGenericSeriesAction->setVisible(true);
   }

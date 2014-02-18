@@ -84,11 +84,6 @@ public:
   /// \return The plugin instance if exists, NULL otherwise
   qSlicerSubjectHierarchyAbstractPlugin* pluginByName(QString name);
 
-  /// Collect all dependencies for a plugin recursively
-  /// The dependencies are defined in each plugin by the dependencies() method
-  /// Note: The default plugin is a dependency of every plugin. The argument plugin is not added to the returned list
-  QList<qSlicerSubjectHierarchyAbstractPlugin*> dependenciesForPlugin(qSlicerSubjectHierarchyAbstractPlugin* plugin);
-
   /// Returns the plugin that can handle a node the best for adding it from outside to inside the subject hierarchy
   /// The best plugins are found based on the confidence numbers they return for the inputs.
   /// \param node Node to be added to the hierarchy

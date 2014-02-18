@@ -98,12 +98,6 @@ qSlicerSubjectHierarchyParseLocalDataPlugin::~qSlicerSubjectHierarchyParseLocalD
 {
 }
 
-//-----------------------------------------------------------------------------
-QStringList qSlicerSubjectHierarchyParseLocalDataPlugin::dependencies()const
-{
-  return QStringList() << "DICOM";
-}
-
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyParseLocalDataPlugin::canOwnSubjectHierarchyNode(
   vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
@@ -137,17 +131,11 @@ QList<QAction*> qSlicerSubjectHierarchyParseLocalDataPlugin::sceneContextMenuAct
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyParseLocalDataPlugin::hideAllContextMenuActions()
+void qSlicerSubjectHierarchyParseLocalDataPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyParseLocalDataPlugin);
 
   d->CreateHierarchyFromLoadedLocalDirectoriesAction->setVisible(false);
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyParseLocalDataPlugin::showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_D(qSlicerSubjectHierarchyParseLocalDataPlugin);
 
   // Scene
   if (!node)

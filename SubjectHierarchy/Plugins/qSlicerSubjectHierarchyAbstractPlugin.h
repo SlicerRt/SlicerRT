@@ -60,12 +60,6 @@ class Q_SLICER_SUBJECTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyAbstractPl
   /// \sa name()
   Q_PROPERTY(QString name READ name)
 
-  /// This property holds the name list of the plugin dependencies.
-  /// There is no dependency cycle check, so special care must be taken to
-  /// avoid infinite loop.
-  /// By default, there is no dependency
-  Q_PROPERTY(QStringList dependencies READ dependencies)
-
 public:
   typedef QObject Superclass;
   qSlicerSubjectHierarchyAbstractPlugin(QObject* parent = NULL);
@@ -146,23 +140,11 @@ public:
   /// tree by a different method \sa nodeContextMenuActions
   virtual QList<QAction*> sceneContextMenuActions()const;
 
-  /// Hide all context menu actions
-  virtual void hideAllContextMenuActions() { };
-
-  /// Show context menu actions valid for handling a given subject hierarchy node.
-  /// "Handling" includes features that are applied to the node (e.g. transform, convert, etc.)
-  /// This function is only called for a node's owner plugin and its dependent plugins.
+  /// Show context menu actions valid for  given subject hierarchy node.
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForHandlingNode(vtkMRMLSubjectHierarchyNode* node) { Q_UNUSED(node); };
+  virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node) { Q_UNUSED(node); };
 
-  /// Show context menu actions valid for creating a child for a given subject hierarchy node.
-  /// This function is called for all plugins, not just a node's owner plugin and its dependents,
-  /// because it's not the node's ownership that determines what kind of children can be created
-  /// to it, but the properties (level etc.) of the node
-  /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node) { Q_UNUSED(node); };
-
-  /// Export data associated to the owned subject hierarhcy node to DICOM
+  /// Export data associated to the owned subject hierarchy node to DICOM
   virtual void exportNodeToDicom(vtkMRMLSubjectHierarchyNode* node);
 
 // Utility functions
@@ -174,9 +156,6 @@ public:
 public:
   /// Get the name of the plugin
   virtual QString name()const;
-
-  /// Get the list of plugin dependencies
-  virtual QStringList dependencies()const;
 
   /// Get child level map
   QMap<QString, QString> childLevelMap() { return m_ChildLevelMap; };
@@ -192,7 +171,6 @@ signals:
 
 protected:
   /// Get child level according to child level map of the current plugin
-  /// (no search is done in the dependencies)
   virtual QString childLevel(QString parentLevel);
 
 protected slots:

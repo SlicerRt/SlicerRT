@@ -98,12 +98,6 @@ qSlicerSubjectHierarchyRtImagePlugin::~qSlicerSubjectHierarchyRtImagePlugin()
 {
 }
 
-//-----------------------------------------------------------------------------
-QStringList qSlicerSubjectHierarchyRtImagePlugin::dependencies()const
-{
-  return QStringList() << "Volumes";
-}
-
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode(
   vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)

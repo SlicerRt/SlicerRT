@@ -186,35 +186,6 @@ qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyPluginHandler::plu
 }
 
 //---------------------------------------------------------------------------
-QList<qSlicerSubjectHierarchyAbstractPlugin*> qSlicerSubjectHierarchyPluginHandler::dependenciesForPlugin(qSlicerSubjectHierarchyAbstractPlugin* plugin)
-{
-  QSet<qSlicerSubjectHierarchyAbstractPlugin*> returnedSet;
-  QList<qSlicerSubjectHierarchyAbstractPlugin*> dependencyList;
-  dependencyList << plugin;
-
-  while (!dependencyList.empty())
-  {
-    QList<qSlicerSubjectHierarchyAbstractPlugin*> dependencyListCopy = dependencyList;
-    foreach (qSlicerSubjectHierarchyAbstractPlugin* currentDependency, dependencyListCopy)
-    {
-      foreach (QString currentPluginString, currentDependency->dependencies())
-      {
-        qSlicerSubjectHierarchyAbstractPlugin* currentPlugin =
-          this->pluginByName(currentPluginString);
-        returnedSet << currentPlugin;
-        dependencyList << currentPlugin;
-      }
-      dependencyList.removeOne(currentDependency);
-    }
-  }
-
-  // Every plugin depends on the default plugin
-  returnedSet << m_DefaultPlugin;
-
-  return returnedSet.toList();
-}
-
-//---------------------------------------------------------------------------
 QList<qSlicerSubjectHierarchyAbstractPlugin*> qSlicerSubjectHierarchyPluginHandler::pluginsForAddingToSubjectHierarchyForNode(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)
 {
   QList<qSlicerSubjectHierarchyAbstractPlugin*> mostSuitablePlugins;

@@ -71,9 +71,6 @@ public:
   /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
   virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
 
-  /// Get the list of plugin dependencies
-  virtual QStringList dependencies()const;
-
 protected:
   QScopedPointer<qSlicerSubjectHierarchyRtDoseVolumePluginPrivate> d_ptr;
 

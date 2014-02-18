@@ -91,12 +91,6 @@ qSlicerSubjectHierarchyRtDoseVolumePlugin::~qSlicerSubjectHierarchyRtDoseVolumeP
 {
 }
 
-//-----------------------------------------------------------------------------
-QStringList qSlicerSubjectHierarchyRtDoseVolumePlugin::dependencies()const
-{
-  return QStringList() << "Volumes";
-}
-
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(
   vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)

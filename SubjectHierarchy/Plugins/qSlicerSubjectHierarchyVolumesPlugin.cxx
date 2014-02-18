@@ -125,12 +125,6 @@ qSlicerSubjectHierarchyVolumesPlugin::~qSlicerSubjectHierarchyVolumesPlugin()
 {
 }
 
-//-----------------------------------------------------------------------------
-QStringList qSlicerSubjectHierarchyVolumesPlugin::dependencies()const
-{
-  return QStringList() << "DICOM";
-}
-
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(
   vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
@@ -148,13 +142,6 @@ double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(
   {
     role = QString("Scalar volume");
     return 0.5; // There are other plugins that can handle special volume nodes better, thus the relatively low value
-  }
-
-  // Study level (so that bulk show/hide of volumes is possible)
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
-  {
-    role = QString("Study (can show volumes)");
-    return 0.5;
   }
 
   return 0.0;
@@ -546,18 +533,12 @@ QList<QAction*> qSlicerSubjectHierarchyVolumesPlugin::nodeContextMenuActions()co
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyVolumesPlugin::hideAllContextMenuActions()
+void qSlicerSubjectHierarchyVolumesPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyVolumesPlugin);
 
   d->ToggleLabelmapOutlineDisplayAction->setVisible(false);
   d->ShowVolumesInStudyAction->setVisible(false);
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyVolumesPlugin::showContextMenuActionsForHandlingNode(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_D(qSlicerSubjectHierarchyVolumesPlugin);
 
   if (!node)
   {

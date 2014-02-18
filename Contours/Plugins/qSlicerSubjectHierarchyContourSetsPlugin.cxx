@@ -117,12 +117,6 @@ qSlicerSubjectHierarchyContourSetsPlugin::~qSlicerSubjectHierarchyContourSetsPlu
 {
 }
 
-//-----------------------------------------------------------------------------
-QStringList qSlicerSubjectHierarchyContourSetsPlugin::dependencies()const
-{
-  return QStringList() << "DICOM";
-}
-
 //----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyContourSetsPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)
 {
@@ -570,31 +564,11 @@ QList<QAction*> qSlicerSubjectHierarchyContourSetsPlugin::nodeContextMenuActions
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyContourSetsPlugin::hideAllContextMenuActions()
+void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyContourSetsPlugin);
 
   d->CreateContourSetNodeAction->setVisible(false);
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForHandlingNode(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_D(qSlicerSubjectHierarchyContourSetsPlugin);
-
-  if (!node)
-  {
-    // There are no scene actions in this plugin
-    return;
-  }
-
-  vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_D(qSlicerSubjectHierarchyContourSetsPlugin);
 
   if (!node)
   {

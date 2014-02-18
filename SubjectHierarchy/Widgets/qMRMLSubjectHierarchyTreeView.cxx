@@ -196,50 +196,13 @@ void qMRMLSubjectHierarchyTreeView::mousePressEvent(QMouseEvent* e)
 //--------------------------------------------------------------------------
 void qMRMLSubjectHierarchyTreeView::populateContextMenuForCurrentNode()
 {
-  // Hide all context menu items first
-  foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
-  {
-    plugin->hideAllContextMenuActions();
-  }
-
   // Get current node
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
 
-  // Scene is selected
-  if (!currentNode)
-  {
-    foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
-    {
-      plugin->showContextMenuActionsForHandlingNode(NULL);
-      plugin->showContextMenuActionsForCreatingChildForNode(NULL);
-    }
-    return;
-  }
-
-  // Node is selected, do a sanity check
-  vtkMRMLSubjectHierarchyNode* currentSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(currentNode);
-  if (!currentSubjectHierarchyNode)
-  {
-    qCritical() << "qMRMLSubjectHierarchyTreeView::populateContextMenuForNode: Selected node is not a subject hierarchy node!";
-    return;
-  }
-
-  // Show only the context menu items for handling the selected node
-  // that have been added by the owner plugin or its dependencies
-  qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin =
-    qSlicerSubjectHierarchyPluginHandler::instance()->getOwnerPluginForSubjectHierarchyNode(currentSubjectHierarchyNode);
-  QList<qSlicerSubjectHierarchyAbstractPlugin*> dependencyList =
-    qSlicerSubjectHierarchyPluginHandler::instance()->dependenciesForPlugin(ownerPlugin);
-  dependencyList << ownerPlugin; // The owner plugin needs to add its context menu actions too
-  foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, dependencyList)
-  {
-    plugin->showContextMenuActionsForHandlingNode(currentSubjectHierarchyNode);
-  }
-
-  // Show context menu items for creating child node for all plugins
+  // Have all plugins show context menu items for current node
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
   {
-    plugin->showContextMenuActionsForCreatingChildForNode(currentSubjectHierarchyNode);
+    plugin->showContextMenuActionsForNode(currentNode);
   }
 }
 

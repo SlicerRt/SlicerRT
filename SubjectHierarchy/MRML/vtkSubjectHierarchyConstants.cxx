@@ -35,7 +35,6 @@ const char* vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT = "Subj
 const char* vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY = "Study";
 
 // DICOM plugin constants
-const char* vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_PATIENT = "Patient";
 const char* vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES = "Series";
 const char* vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES = "Subseries";
 

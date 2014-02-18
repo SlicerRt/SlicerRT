@@ -68,24 +68,9 @@ public:
   /// Get node context menu item actions to add to tree view
   virtual QList<QAction*> nodeContextMenuActions()const;
 
-  /// Hide all context menu actions
-  virtual void hideAllContextMenuActions();
-
-  /// Show context menu actions valid for handling a given subject hierarchy node.
-  /// "Handling" includes features that are applied to the node (e.g. transform, convert, etc.)
-  /// This function is only called for a node's owner plugin and its dependent plugins.
+  /// Show context menu actions valid for  given subject hierarchy node.
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForHandlingNode(vtkMRMLSubjectHierarchyNode* node);
-
-  /// Show context menu actions valid for creating a child for a given subject hierarchy node.
-  /// This function is called for all plugins, not just a node's owner plugin and its dependents,
-  /// because it's not the node's ownership that determines what kind of children can be created
-  /// to it, but the properties (level etc.) of the node
-  /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node);
-
-  /// Get the list of plugin dependencies
-  virtual QStringList dependencies()const;
+  virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node);
 
 protected slots:
   /// Create supported child for the current node (selected in the tree)

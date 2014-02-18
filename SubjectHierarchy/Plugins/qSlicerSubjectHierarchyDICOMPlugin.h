@@ -69,20 +69,9 @@ public:
   /// tree by a different method \sa sceneContextMenuActions
   virtual QList<QAction*> nodeContextMenuActions()const;
 
-  /// Get scene context menu item actions to add to tree view
-  /// Separate method is needed for the scene, as its actions are set to the
-  /// tree by a different method \sa nodeContextMenuActions
-  virtual QList<QAction*> sceneContextMenuActions()const;
-
-  /// Hide all context menu actions
-  virtual void hideAllContextMenuActions();
-
-  /// Show context menu actions valid for creating a child for a given subject hierarchy node.
-  /// This function is called for all plugins, not just a node's owner plugin and its dependents,
-  /// because it's not the node's ownership that determines what kind of children can be created
-  /// to it, but the properties (level etc.) of the node
+  /// Show context menu actions valid for  given subject hierarchy node.
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node);
+  virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node);
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyDICOMPluginPrivate> d_ptr;

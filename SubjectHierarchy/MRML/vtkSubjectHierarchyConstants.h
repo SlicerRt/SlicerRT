@@ -24,7 +24,6 @@ public:
   static const char* SUBJECTHIERARCHY_LEVEL_STUDY;
 
   // DICOM plugin constants
-  static const char* DICOMHIERARCHY_LEVEL_PATIENT;
   static const char* DICOMHIERARCHY_LEVEL_SERIES;
   static const char* DICOMHIERARCHY_LEVEL_SUBSERIES;
 

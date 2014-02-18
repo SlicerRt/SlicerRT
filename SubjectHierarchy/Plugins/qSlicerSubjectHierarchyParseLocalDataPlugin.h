@@ -69,18 +69,9 @@ public:
   /// tree by a different method \sa nodeContextMenuActions
   virtual QList<QAction*> sceneContextMenuActions()const;
 
-  /// Hide all context menu actions
-  virtual void hideAllContextMenuActions();
-
-  /// Get the list of plugin dependencies
-  virtual QStringList dependencies()const;
-
-  /// Show context menu actions valid for creating a child for a given subject hierarchy node.
-  /// This function is called for all plugins, not just a node's owner plugin and its dependents,
-  /// because it's not the node's ownership that determines what kind of children can be created
-  /// to it, but the properties (level etc.) of the node
+  /// Show context menu actions valid for  given subject hierarchy node.
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
-  virtual void showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node);
+  virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node);
 
 protected slots:
   /// Create subject hierarchy from loaded loacl directories.

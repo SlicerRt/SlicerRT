@@ -123,12 +123,6 @@ qSlicerSubjectHierarchyContoursPlugin::~qSlicerSubjectHierarchyContoursPlugin()
 {
 }
 
-//-----------------------------------------------------------------------------
-QStringList qSlicerSubjectHierarchyContoursPlugin::dependencies()const
-{
-  return QStringList() << "DICOM";
-}
-
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyContoursPlugin::canOwnSubjectHierarchyNode(
   vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
@@ -193,18 +187,12 @@ QList<QAction*> qSlicerSubjectHierarchyContoursPlugin::nodeContextMenuActions()c
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyContoursPlugin::hideAllContextMenuActions()
+void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyContoursPlugin);
 
   d->CreateContourAction->setVisible(false);
   d->ConvertContourToRepresentationAction->setVisible(false);
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForHandlingNode(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_D(qSlicerSubjectHierarchyContoursPlugin);
 
   if (!node)
   {
@@ -214,27 +202,16 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForHandlingNod
 
   vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
 
-  // Contour
+  // Owned Contour
   if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES)
-    && associatedNode && associatedNode->IsA("vtkMRMLContourNode") )
+    && associatedNode && associatedNode->IsA("vtkMRMLContourNode")
+    && !strcmp(node->GetOwnerPluginName(), this->m_Name.toLatin1().constData()) )
   {
     d->ConvertContourToRepresentationAction->setVisible(true);
   }
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForCreatingChildForNode(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_D(qSlicerSubjectHierarchyContoursPlugin);
-
-  if (!node)
-  {
-    // There are no scene actions in this plugin
-    return;
-  }
 
   // Contour set
-  else if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+  if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
     && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     d->CreateContourAction->setVisible(true);
