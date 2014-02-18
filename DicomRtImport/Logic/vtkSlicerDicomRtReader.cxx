@@ -1724,6 +1724,7 @@ bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDat
 
     vtkVector3<vtkTypeFloat64> patientOrigin(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
 
+    // Create a plane representation for this slice
     vtkSmartPointer<vtkPlane> slicePlane = vtkSmartPointer<vtkPlane>::New();
     slicePlane->SetOrigin(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
     slicePlane->SetNormal(patientOrientationNormal[0], patientOrientationNormal[1], patientOrientationNormal[2]);
@@ -1734,7 +1735,7 @@ bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDat
   std::map<double, vtkSmartPointer<vtkPlane> > orderedPlanes;
   SlicerRtCommon::OrderPlanesAlongNormal(planeList, orderedPlanes);
 
-  // Now that we have the sorted planes, rebuild the ID to order map as requested
+  // Now that we have the sorted planes, rebuild the ID to sorted plane order map as requested
   int i = 0;
   for( std::map<double, vtkSmartPointer<vtkPlane> >::iterator it = orderedPlanes.begin(); it != orderedPlanes.end(); ++it )
   {

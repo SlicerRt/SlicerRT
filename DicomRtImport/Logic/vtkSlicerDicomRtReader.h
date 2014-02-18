@@ -371,7 +371,10 @@ protected:
   /// Get referenced series instance UID for the structure set (0020,000E)
   OFString GetReferencedSeriesInstanceUID(DRTStructureSetIOD rtStructureSetObject);
 
-  // Reorder slices by position and orientation in 3 space
+  /// Reorder slices by position and orientation in 3 space
+  /// \param openDatabase A reference to an open DICOM database
+  /// \param slices A map with any value for the int keys, the SOPInstanceUID string for the values
+  /// \return whether or not the function succeededo
   bool OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDatabase, std::map<int, std::string>& slices );
 
   // Helper function to extract a plane equation from a set of points

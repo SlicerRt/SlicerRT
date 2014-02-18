@@ -410,14 +410,17 @@ bool SlicerRtCommon::OrderPlanesAlongNormal( std::vector<vtkSmartPointer<vtkPlan
   vtkVector3<double> lastNormal;
   for(  std::vector<vtkSmartPointer<vtkPlane>>::iterator it = inputPlanes.begin(); it != inputPlanes.end(); ++it )
   {
-    // Calculate the projection of the origin onto the normal
+    // For each plane, re-encase it in friendly vtk classes
     vtkVector3<double> origin((*it)->GetOrigin()[0], (*it)->GetOrigin()[1], (*it)->GetOrigin()[2]);
     vtkVector3<double> normal((*it)->GetNormal()[0], (*it)->GetNormal()[1], (*it)->GetNormal()[2]);
 
+    // If this normal the previous normal differ, they are not co-planar
     if( it != inputPlanes.begin() && ( normal.X() != lastNormal.X() || normal.Y() != lastNormal.Y() || normal.Z() != lastNormal.Z() ) )
     {
       return false;
     }
+
+    // Project the origin point onto the normal, this is our metric for distance along the normal line
     double mag = origin.Dot(normal);
     outputPlaneOrdering[mag] = *it;
 

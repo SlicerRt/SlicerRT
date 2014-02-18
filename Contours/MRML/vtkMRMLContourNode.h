@@ -249,6 +249,7 @@ protected:
   double DecimationTargetReductionFactor;
 
   /// A stored representation of each plane of the contour data, ordered by distance along the normal line
+  /// The distance is calculated by taking the dot product of a planes origin and it's normal
   std::map<double, vtkSmartPointer<vtkPlane> > OrderedContourPlanes;
 };
 
