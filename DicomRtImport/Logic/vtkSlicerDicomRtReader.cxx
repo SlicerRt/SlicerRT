@@ -88,7 +88,7 @@ namespace
   }
 
   template<class T>
-  Float64 Vector3Magnitude(const vtkVector3<T>& aVector)
+  vtkTypeFloat64 Vector3Magnitude(const vtkVector3<T>& aVector)
   {
     return sqrt( pow(aVector.GetX(),2) + pow(aVector.GetY(),2) + pow(aVector.GetZ(),2) );
   }
@@ -388,7 +388,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   }
 
   // XRayImageReceptorTranslation
-  OFVector<Float64> xRayImageReceptorTranslation;
+  OFVector<vtkTypeFloat64> xRayImageReceptorTranslation;
   if (rtImageObject.getXRayImageReceptorTranslation(xRayImageReceptorTranslation).good())
   {
     if (xRayImageReceptorTranslation.size() == 3)
@@ -408,7 +408,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   }
 
   // XRayImageReceptorAngle
-  Float64 xRayImageReceptorAngle = 0.0;
+  vtkTypeFloat64 xRayImageReceptorAngle = 0.0;
   if (rtImageObject.getXRayImageReceptorAngle(xRayImageReceptorAngle).good())
   {
     if (xRayImageReceptorAngle != 0.0)
@@ -419,7 +419,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   }
 
   // ImagePlanePixelSpacing
-  OFVector<Float64> imagePlanePixelSpacing;
+  OFVector<vtkTypeFloat64> imagePlanePixelSpacing;
   if (rtImageObject.getImagePlanePixelSpacing(imagePlanePixelSpacing).good())
   {
     if (imagePlanePixelSpacing.size() == 2)
@@ -433,7 +433,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   }
 
   // RTImagePosition
-  OFVector<Float64> rtImagePosition;
+  OFVector<vtkTypeFloat64> rtImagePosition;
   if (rtImageObject.getRTImagePosition(rtImagePosition).good())
   {
     if (rtImagePosition.size() == 2)
@@ -447,7 +447,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   }
 
   // RTImageOrientation
-  OFVector<Float64> rtImageOrientation;
+  OFVector<vtkTypeFloat64> rtImageOrientation;
   if (rtImageObject.getRTImageOrientation(rtImageOrientation).good())
   {
     if (rtImageOrientation.size() > 0)
@@ -457,14 +457,14 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   }
 
   // GantryAngle
-  Float64 gantryAngle = 0.0;
+  vtkTypeFloat64 gantryAngle = 0.0;
   if (rtImageObject.getGantryAngle(gantryAngle).good())
   {
     this->SetGantryAngle(gantryAngle);
   }
 
   // GantryPitchAngle
-  Float32 gantryPitchAngle = 0.0;
+  vtkTypeFloat32 gantryPitchAngle = 0.0;
   if (rtImageObject.getGantryPitchAngle(gantryPitchAngle).good())
   {
     if (gantryPitchAngle != 0.0)
@@ -475,56 +475,56 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   }
 
   // BeamLimitingDeviceAngle
-  Float64 beamLimitingDeviceAngle = 0.0;
+  vtkTypeFloat64 beamLimitingDeviceAngle = 0.0;
   if (rtImageObject.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle).good())
   {
     this->SetBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
   }
 
   // PatientSupportAngle
-  Float64 patientSupportAngle = 0.0;
+  vtkTypeFloat64 patientSupportAngle = 0.0;
   if (rtImageObject.getPatientSupportAngle(patientSupportAngle).good())
   {
     this->SetPatientSupportAngle(patientSupportAngle);
   }
 
   // RadiationMachineSAD
-  Float64 radiationMachineSAD = 0.0;
+  vtkTypeFloat64 radiationMachineSAD = 0.0;
   if (rtImageObject.getRadiationMachineSAD(radiationMachineSAD).good())
   {
     this->SetRadiationMachineSAD(radiationMachineSAD);
   }
 
   // RadiationMachineSSD
-  Float64 radiationMachineSSD = 0.0;
+  vtkTypeFloat64 radiationMachineSSD = 0.0;
   if (rtImageObject.getRadiationMachineSSD(radiationMachineSSD).good())
   {
     //this->SetRadiationMachineSSD(radiationMachineSSD);
   }
 
   // RTImageSID
-  Float64 rtImageSID = 0.0;
+  vtkTypeFloat64 rtImageSID = 0.0;
   if (rtImageObject.getRTImageSID(rtImageSID).good())
   {
     this->SetRTImageSID(rtImageSID);
   }
 
   // SourceToReferenceObjectDistance
-  Float64 sourceToReferenceObjectDistance = 0.0;
+  vtkTypeFloat64 sourceToReferenceObjectDistance = 0.0;
   if (rtImageObject.getSourceToReferenceObjectDistance(sourceToReferenceObjectDistance).good())
   {
     //this->SetSourceToReferenceObjectDistance(sourceToReferenceObjectDistance);
   }
 
   // WindowCenter
-  Float64 windowCenter = 0.0;
+  vtkTypeFloat64 windowCenter = 0.0;
   if (rtImageObject.getWindowCenter(windowCenter).good())
   {
     this->SetWindowCenter(windowCenter);
   }
 
   // WindowWidth
-  Float64 windowWidth = 0.0;
+  vtkTypeFloat64 windowWidth = 0.0;
   if (rtImageObject.getWindowWidth(windowWidth).good())
   {
     this->SetWindowWidth(windowWidth);
@@ -578,10 +578,10 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
       beamEntry.Type=beamType.c_str();
 
       Sint32 beamNumber = -1;
-      currentBeamSequenceObject.getBeamNumber(beamNumber);        
+      currentBeamSequenceObject.getBeamNumber( beamNumber );        
       beamEntry.Number = beamNumber;
 
-      Float64 sourceAxisDistance = 0.0;
+      vtkTypeFloat64 sourceAxisDistance = 0.0;
       currentBeamSequenceObject.getSourceAxisDistance(sourceAxisDistance);
       beamEntry.SourceAxisDistance = sourceAxisDistance;
 
@@ -593,7 +593,7 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
           DRTControlPointSequence::Item &controlPointItem = rtControlPointSequenceObject.getCurrentItem();
           if (controlPointItem.isValid())
           {
-            OFVector<Float64> isocenterPositionDataLps;
+            OFVector<vtkTypeFloat64> isocenterPositionDataLps;
             controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
 
             // Convert from DICOM LPS -> Slicer RAS
@@ -601,15 +601,15 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
             beamEntry.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
             beamEntry.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
 
-            Float64 gantryAngle = 0.0;
+            vtkTypeFloat64 gantryAngle = 0.0;
             controlPointItem.getGantryAngle(gantryAngle);
             beamEntry.GantryAngle = gantryAngle;
 
-            Float64 patientSupportAngle = 0.0;
+            vtkTypeFloat64 patientSupportAngle = 0.0;
             controlPointItem.getPatientSupportAngle(patientSupportAngle);
             beamEntry.PatientSupportAngle = patientSupportAngle;
 
-            Float64 beamLimitingDeviceAngle = 0.0;
+            vtkTypeFloat64 beamLimitingDeviceAngle = 0.0;
             controlPointItem.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
             beamEntry.BeamLimitingDeviceAngle = beamLimitingDeviceAngle;
 
@@ -626,7 +626,7 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
                   OFString rtBeamLimitingDeviceType("");
                   collimatorPositionItem.getRTBeamLimitingDeviceType(rtBeamLimitingDeviceType);
 
-                  OFVector<Float64> leafJawPositions;
+                  OFVector<vtkTypeFloat64> leafJawPositions;
                   OFCondition getJawPositionsCondition = collimatorPositionItem.getLeafJawPositions(leafJawPositions);
 
                   if ( !rtBeamLimitingDeviceType.compare("ASYMX") || !rtBeamLimitingDeviceType.compare("X") )
@@ -994,15 +994,15 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
         continue;
       }
 
-      OFVector<Float64>  contourData_LPS;
+      OFVector<vtkTypeFloat64>  contourData_LPS;
       contourItem.getContourData(contourData_LPS);
-      vtkVector3<Float64> firstPlanePoint;
-      vtkVector3<Float64> secondPlanePoint;
-      vtkVector3<Float64> thirdPlanePoint;
+      vtkVector3<vtkTypeFloat64> firstPlanePoint;
+      vtkVector3<vtkTypeFloat64> secondPlanePoint;
+      vtkVector3<vtkTypeFloat64> thirdPlanePoint;
 
-      vtkVector3<Float64> currentPlaneIVector;
-      vtkVector3<Float64> currentPlaneJVector;
-      vtkVector3<Float64> currentPlaneKVector;
+      vtkVector3<vtkTypeFloat64> currentPlaneIVector;
+      vtkVector3<vtkTypeFloat64> currentPlaneJVector;
+      vtkVector3<vtkTypeFloat64> currentPlaneKVector;
 
       for( int i = 0; i < contourData_LPS.size(); i+=3 )
       {
@@ -1195,7 +1195,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       int numberOfPoints;
       ss >> numberOfPoints;
 
-      OFVector<Float64> contourData_LPS;
+      OFVector<vtkTypeFloat64> contourData_LPS;
       contourItem.getContourData(contourData_LPS);
 
       // Create a vtk plane for later access
@@ -1511,7 +1511,7 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   }
   this->SetDoseUnits(doseUnits.c_str());
 
-  OFVector<Float64> pixelSpacingOFVector;
+  OFVector<vtkTypeFloat64> pixelSpacingOFVector;
   if (rtDoseObject.getPixelSpacing(pixelSpacingOFVector).bad() || pixelSpacingOFVector.size() < 2)
   {
     vtkErrorMacro("LoadRTDose: Failed to get Pixel Spacing for dose object");
@@ -1676,9 +1676,9 @@ bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDat
   }
   double imagePositionPatient[3] = {0,0,0};
   double orientationPatient[6] = {0,0,0,0,0,0};
-  vtkVector3<Float64> patientPosition;
-  vtkVector3<Float64> patientOrientationNormal;
-  vtkVector3<Float64> prevPatientOrientationNormal(0,0,0);
+  vtkVector3<vtkTypeFloat64> patientPosition;
+  vtkVector3<vtkTypeFloat64> patientOrientationNormal;
+  vtkVector3<vtkTypeFloat64> prevPatientOrientationNormal(0,0,0);
 
   std::vector<vtkSmartPointer<vtkPlane> > planeList;
   std::map<std::string, vtkSmartPointer<vtkPlane> > planeToIdMap;
@@ -1707,8 +1707,8 @@ bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDat
       &orientationPatient[3], &orientationPatient[4], &orientationPatient[5]);
 
     // Calculate the slice normal
-    vtkVector3<Float64> iVec(orientationPatient[0], orientationPatient[1], orientationPatient[2]);
-    vtkVector3<Float64> jVec(orientationPatient[3], orientationPatient[4], orientationPatient[5]);
+    vtkVector3<vtkTypeFloat64> iVec(orientationPatient[0], orientationPatient[1], orientationPatient[2]);
+    vtkVector3<vtkTypeFloat64> jVec(orientationPatient[3], orientationPatient[4], orientationPatient[5]);
     patientOrientationNormal = iVec.Cross(jVec);
     patientOrientationNormal.Normalize();
 
@@ -1722,7 +1722,7 @@ bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDat
       return false;
     }
 
-    vtkVector3<Float64> patientOrigin(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
+    vtkVector3<vtkTypeFloat64> patientOrigin(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
 
     vtkSmartPointer<vtkPlane> slicePlane = vtkSmartPointer<vtkPlane>::New();
     slicePlane->SetOrigin(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
@@ -1756,20 +1756,20 @@ bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDat
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomRtReader::CreatePlaneFromContourData( OFVector<Float64>& contourData_LPS, vtkPlane* aPlane )
+bool vtkSlicerDicomRtReader::CreatePlaneFromContourData( OFVector<vtkTypeFloat64>& contourData_LPS, vtkPlane* aPlane )
 {
   if( aPlane == NULL )
   {
     vtkErrorMacro("Null plane sent to vtkSlicerDicomRtReader::CreatePlaneFromContourData. Can't continue.");
     return false;
   }
-  vtkVector3<Float64> firstPlanePoint;
-  vtkVector3<Float64> secondPlanePoint;
-  vtkVector3<Float64> thirdPlanePoint;
+  vtkVector3<vtkTypeFloat64> firstPlanePoint;
+  vtkVector3<vtkTypeFloat64> secondPlanePoint;
+  vtkVector3<vtkTypeFloat64> thirdPlanePoint;
 
-  vtkVector3<Float64> currentPlaneIVector;
-  vtkVector3<Float64> currentPlaneJVector;
-  vtkVector3<Float64> currentPlaneKVector;
+  vtkVector3<vtkTypeFloat64> currentPlaneIVector;
+  vtkVector3<vtkTypeFloat64> currentPlaneJVector;
+  vtkVector3<vtkTypeFloat64> currentPlaneKVector;
 
   for( int i = 0; i < contourData_LPS.size(); i+=3 )
   {

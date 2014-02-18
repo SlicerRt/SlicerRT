@@ -28,6 +28,7 @@
 #include "vtkObject.h"
 #include <vtkPlane.h>
 #include <vtkSmartPointer.h>
+#include <vtkType.h>
 
 // CTK includes
 #include <ctkDICOMDatabase.h>
@@ -375,7 +376,7 @@ protected:
 
   // Helper function to extract a plane equation from a set of points
   // Assumes points are planar
-  bool CreatePlaneFromContourData( OFVector<Float64>& contourData_LPS, vtkPlane* aPlane );
+  bool CreatePlaneFromContourData( OFVector<vtkTypeFloat64>& contourData_LPS, vtkPlane* aPlane );
 
 //xBTX //TODO #210: Re-enable
   template<class T> void GetAndStoreHierarchyInformation(T* dcmtkIodObject);
