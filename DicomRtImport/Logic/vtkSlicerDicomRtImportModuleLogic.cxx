@@ -441,6 +441,13 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         contourNode->SetAndObserveRibbonModelNodeId(addedDisplayableNode->GetID());
         contourNode->SetDicomRtRoiPoints(roiPolyData);
         contourNode->HideFromEditorsOff();
+        std::map<double, vtkSmartPointer<vtkPlane> > orderedPlanes = rtReader->GetRoiOrderedContourPlanes(internalROIIndex);
+        if( orderedPlanes.empty() )
+        {
+          vtkErrorMacro("Unable to retrieve ordered planes when creating contour node. They will be unaccessible.");
+        }
+        // This passes memory ownership of the internal vtkPlane*'s to the contour node
+        contourNode->SetOrderedContourPlanes(orderedPlanes);
 
         // Put the contour node in the hierarchy
         vtkSmartPointer<vtkMRMLSubjectHierarchyNode> contourSubjectHierarchyNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();

@@ -40,10 +40,11 @@
 #include <vtkMRMLDisplayNode.h>
 
 // VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkIntArray.h>
 #include <vtkCollection.h>
+#include <vtkIntArray.h>
+#include <vtkObjectFactory.h>
+#include <vtkPlane.h>
+#include <vtkSmartPointer.h>
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourNode);
@@ -733,6 +734,19 @@ void vtkMRMLContourNode::SetDecimationTargetReductionFactor(double targetReducti
 
   this->DecimationTargetReductionFactor = targetReductionFactor;
 }
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetOrderedContourPlanes( std::map<double, vtkSmartPointer<vtkPlane> >& orderedContourPlanes )
+{
+  this->OrderedContourPlanes = orderedContourPlanes;
+}
+
+//----------------------------------------------------------------------------
+const std::map<double, vtkSmartPointer<vtkPlane> >& vtkMRMLContourNode::GetOrderedContourPlanes() const
+{
+  return this->OrderedContourPlanes;
+}
+
 
 //----------------------------------------------------------------------------
 std::vector<vtkMRMLDisplayableNode*> vtkMRMLContourNode::CreateTemporaryRepresentationsVector()

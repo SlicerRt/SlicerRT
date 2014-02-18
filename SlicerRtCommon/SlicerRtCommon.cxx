@@ -30,12 +30,13 @@
 #include <vtkMRMLColorTableNode.h>
 
 // VTK includes
-#include <vtkGeneralTransform.h>
-#include <vtkSmartPointer.h>
-#include <vtkMatrix4x4.h>
-#include <vtkImageData.h>
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkGeneralTransform.h>
+#include <vtkImageData.h>
 #include <vtkLookupTable.h>
+#include <vtkMatrix4x4.h>
+#include <vtkPlane.h>
+#include <vtkSmartPointer.h>
 
 //----------------------------------------------------------------------------
 // Constant strings
@@ -398,4 +399,30 @@ bool SlicerRtCommon::AreBoundsEqual(int boundsA[6], int boundsB[6])
     boundsA[3] == boundsB [3] &&
     boundsA[4] == boundsB [4] &&
     boundsA[5] == boundsB [5];
+}
+
+
+//---------------------------------------------------------------------------
+bool SlicerRtCommon::OrderPlanesAlongNormal( std::vector<vtkSmartPointer<vtkPlane> > inputPlanes, std::map<double, vtkSmartPointer<vtkPlane> >& outputPlaneOrdering )
+{
+  std::map<double, vtkVector3<double> > intermediateSortMap;
+  // Iterate over each plane
+  vtkVector3<double> lastNormal;
+  for(  std::vector<vtkSmartPointer<vtkPlane>>::iterator it = inputPlanes.begin(); it != inputPlanes.end(); ++it )
+  {
+    // Calculate the projection of the origin onto the normal
+    vtkVector3<double> origin((*it)->GetOrigin()[0], (*it)->GetOrigin()[1], (*it)->GetOrigin()[2]);
+    vtkVector3<double> normal((*it)->GetNormal()[0], (*it)->GetNormal()[1], (*it)->GetNormal()[2]);
+
+    if( it != inputPlanes.begin() && ( normal.X() != lastNormal.X() || normal.Y() != lastNormal.Y() || normal.Z() != lastNormal.Z() ) )
+    {
+      return false;
+    }
+    double mag = origin.Dot(normal);
+    outputPlaneOrdering[mag] = *it;
+
+    lastNormal.Set(normal.X(), normal.Y(), normal.Z());
+  }
+
+  return true;
 }

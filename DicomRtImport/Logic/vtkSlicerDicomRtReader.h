@@ -26,6 +26,8 @@
 
 // VTK includes
 #include "vtkObject.h"
+#include <vtkPlane.h>
+#include <vtkSmartPointer.h>
 
 // CTK includes
 #include <ctkDICOMDatabase.h>
@@ -87,6 +89,11 @@ public:
   /// Get referenced series UID for a certain ROI by internal index
   /// \param internalIndex Internal index of ROI to get
   const char* GetRoiReferencedSeriesUid(unsigned int internalIndex);
+
+  /// Get ordered contour planes for a certain ROI by internal index, returns a copy
+  /// Passes ownership of the generated vtkPlanes to a client
+  /// \param internalIndex Internal index of ROI to get
+  std::map<double, vtkSmartPointer<vtkPlane> > GetRoiOrderedContourPlanes( unsigned int internalROIIndex );
 
   /// Get number of beams
   int GetNumberOfBeams();
@@ -253,6 +260,7 @@ protected:
     std::string ReferencedSeriesUid;
     std::string ReferencedFrameOfReferenceUid;
     std::map<int,std::string> ContourIndexToSopInstanceUidMap;
+    std::map<double, vtkSmartPointer<vtkPlane> > OrderedContourPlanes;
   };
 
   /// Structure storing an RT structure set
@@ -363,7 +371,11 @@ protected:
   OFString GetReferencedSeriesInstanceUID(DRTStructureSetIOD rtStructureSetObject);
 
   // Reorder slices by position and orientation in 3 space
-  bool OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDatabase, std::map<std::string, int>& slices );
+  bool OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDatabase, std::map<int, std::string>& slices );
+
+  // Helper function to extract a plane equation from a set of points
+  // Assumes points are planar
+  bool CreatePlaneFromContourData( OFVector<Float64>& contourData_LPS, vtkPlane* aPlane );
 
 //xBTX //TODO #210: Re-enable
   template<class T> void GetAndStoreHierarchyInformation(T* dcmtkIodObject);

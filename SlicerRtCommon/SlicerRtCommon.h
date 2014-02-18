@@ -10,6 +10,8 @@
 
 // VTK includes
 #include <vtkVector.h>
+#include <vtkSmartPointer.h>
+#include <vtkPlane.h>
 
 class vtkMRMLTransformableNode;
 class vtkMRMLNode;
@@ -20,7 +22,6 @@ class vtkMRMLColorTableNode;
 class vtkImageData;
 class vtkGeneralTransform;
 class vtkMatrix4x4;
-class vtkPlane;
 
 #define EPSILON 0.0001
 
@@ -198,8 +199,7 @@ public:
   static bool AreBoundsEqual(int boundsA[6], int boundsB[6]);
 
   // Return an ordering of planes along a normal by origin
-  template <class Key>
-  static bool OrderPlanesAlongNormal( std::map<Key, vtkPlane*> inputPlanes, std::map<Key, int>& outputPlaneIdentifierOrdering );
+  static bool OrderPlanesAlongNormal( std::vector< vtkSmartPointer<vtkPlane> > inputPlanes, std::map<double, vtkSmartPointer<vtkPlane> >& outputPlaneOrdering );
 
 //BTX
   /*!

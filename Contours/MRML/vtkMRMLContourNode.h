@@ -32,9 +32,10 @@
 
 #include "vtkSlicerContoursModuleMRMLExport.h"
 
-class vtkMRMLScalarVolumeNode;
-class vtkMRMLModelNode;
 class vtkMRMLColorTableNode;
+class vtkMRMLModelNode;
+class vtkMRMLScalarVolumeNode;
+class vtkPlane;
 
 /// \ingroup SlicerRt_QtModules_Contours
 class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourNode : public vtkMRMLDisplayableNode
@@ -165,6 +166,11 @@ public:
   /// Set target reduction factor
   void SetDecimationTargetReductionFactor(double targetReductionFactor);
 
+  /// Get the ordered contour planes
+  const std::map<double, vtkSmartPointer<vtkPlane> >& GetOrderedContourPlanes() const;
+  /// Set the ordered contour planes
+  void SetOrderedContourPlanes(std::map<double, vtkSmartPointer<vtkPlane> >& orderedContourPlanes);
+
 protected:
   /// Create a temporary vector for easier batch handling of representations
   std::vector<vtkMRMLDisplayableNode*> CreateTemporaryRepresentationsVector();
@@ -241,6 +247,9 @@ protected:
 
   /// Target reduction factor for decimation applied in labelmap to closed surface model conversion
   double DecimationTargetReductionFactor;
+
+  /// A stored representation of each plane of the contour data, ordered by distance along the normal line
+  std::map<double, vtkSmartPointer<vtkPlane> > OrderedContourPlanes;
 };
 
 #endif // __vtkMRMLContourNode_h
