@@ -26,6 +26,9 @@
 #include <QMenu>
 #include <QMouseEvent>
 
+// SlicerQt includes
+#include "qSlicerApplication.h"
+
 // SubjectHierarchy includes
 #include "qMRMLSubjectHierarchyTreeView.h"
 #include "qMRMLSceneSubjectHierarchyModel.h"
@@ -85,8 +88,10 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
   // Change item visibility
   q->setShowScene(true);
   q->setUniformRowHeights(false);
-  q->setEditMenuActionVisible(false); //TODO: Add virtual function to plugins
   q->setDeleteMenuActionVisible(false); //TODO: Delete associated data node (and the other hierarchy node if available)
+
+  // Connect edit properties context menu action
+  QObject::connect(q, SIGNAL(editNodeRequested(vtkMRMLNode*)), q, SLOT(openModuleForSubjectHierarchyNode(vtkMRMLNode*)));
 
   // Set up headers
   q->header()->setStretchLastSection(false);
@@ -292,4 +297,24 @@ void qMRMLSubjectHierarchyTreeView::updateSelectPluginActions()
 
     currentSelectPluginAction->setChecked(isOwner);
   }
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::openModuleForSubjectHierarchyNode(vtkMRMLNode* node)
+{
+  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
+  if (!subjectHierarchyNode)
+  {
+    qCritical() << "qMRMLSubjectHierarchyTreeView::openModuleForSubjectHierarchyNode: Invalid node!";
+    return;
+  }
+  vtkMRMLNode* associatedNode = subjectHierarchyNode->GetAssociatedDataNode();
+  if (!associatedNode)
+  {
+    qCritical() << "qMRMLSubjectHierarchyTreeView::openModuleForSubjectHierarchyNode: Invalid associated node!";
+    return;
+  }
+
+  // Open module belonging to the associated node
+  qSlicerApplication::application()->openNodeModule(associatedNode);
 }

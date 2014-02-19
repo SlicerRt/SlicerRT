@@ -932,17 +932,13 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
     }
 
   // Get color node created for the contour set
-  vtkSmartPointer<vtkCollection> colorNodes = vtkSmartPointer<vtkCollection>::New();
-  parentContourSubjectHierarchyNode->GetAssociatedChildrenNodes(colorNodes, "vtkMRMLColorTableNode");
-  if (colorNodes->GetNumberOfItems() != 1)
+  colorNode = vtkMRMLColorTableNode::SafeDownCast( parentContourSubjectHierarchyNode->GetNodeReference(
+    SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE) );
+  if (!colorNode)
     {
-    vtkErrorMacro("GetColorIndex: Invalid number (" << colorNodes->GetNumberOfItems() << ") of color table nodes found for contour '"
-      << this->Name << "' in contour set '" << parentContourSubjectHierarchyNode->GetName() << "'");
-    colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
+    vtkErrorMacro("GetColorIndex: No color table found for contour '" << this->Name << "'");
     return;
     }
-
-  colorNode = vtkMRMLColorTableNode::SafeDownCast( colorNodes->GetItemAsObject(0) );
 
   // Do not continue to look for the color index if it was invalid
   // It is a feature of the function, that if the colorIndex was initialized as invalid, then only the color node is acquired

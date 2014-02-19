@@ -56,7 +56,6 @@ const std::string SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX
 const double SlicerRtCommon::DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR = 2.0;
 const double SlicerRtCommon::DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR = 0.0;
 
-const char* SlicerRtCommon::CONTOUR_ORPHAN_CONTOURS_COLOR_TABLE_NODE_NAME = "OrphanContours_ColorTable";
 const char* SlicerRtCommon::COLOR_NAME_BACKGROUND = "Background";
 const char* SlicerRtCommon::COLOR_NAME_INVALID = "Invalid";
 const char* SlicerRtCommon::COLOR_NAME_REMOVED = "Removed";
@@ -67,6 +66,8 @@ const double SlicerRtCommon::COLOR_VALUE_INVALID[4] = {0.5, 0.5, 0.5, 1.0};
 const std::string SlicerRtCommon::CONTOUR_NEW_CONTOUR_NAME = "NewContour";
 const std::string SlicerRtCommon::CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME = "NewContourSet";
 const std::string SlicerRtCommon::CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX = "DummyAnatomicalVolume_";
+const char* SlicerRtCommon::CONTOUR_ORPHAN_CONTOURS_COLOR_TABLE_NODE_NAME = "OrphanContours_ColorTable";
+const char* SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE = "contourSetColorTableRef"; // Node reference role
 
 // DicomRtImport constants
 const std::string SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX = "DicomRtImport.";

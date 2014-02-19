@@ -507,8 +507,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
   for (std::vector<vtkMRMLHierarchyNode*>::iterator contourIt=contourHierarchyNodes.begin(); contourIt!=contourHierarchyNodes.end(); ++contourIt)
   {
     vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*contourIt);
-    if ( contourSubjectHierarchyNode->GetAssociatedDataNode()
-      && contourSubjectHierarchyNode->GetAssociatedDataNode()->IsA("vtkMRMLColorTableNode") )
+    if (!contourSubjectHierarchyNode)
     {
       continue;
     }

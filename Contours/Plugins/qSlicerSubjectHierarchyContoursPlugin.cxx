@@ -43,12 +43,6 @@
 // MRML includes
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
-#include <vtkMRMLColorTableNode.h>
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLVolumeDisplayNode.h>
-#include <vtkMRMLLabelMapVolumeDisplayNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -202,10 +196,8 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
 
   vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
 
-  // Owned Contour
-  if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES)
-    && associatedNode && associatedNode->IsA("vtkMRMLContourNode")
-    && !strcmp(node->GetOwnerPluginName(), this->m_Name.toLatin1().constData()) )
+  // Contour (owned)
+  if ( this->canOwnSubjectHierarchyNode(node) && this->isThisPluginOwnerOfNode(node) )
   {
     d->ConvertContourToRepresentationAction->setVisible(true);
   }

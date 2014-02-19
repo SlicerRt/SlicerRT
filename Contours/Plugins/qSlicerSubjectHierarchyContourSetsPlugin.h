@@ -112,6 +112,9 @@ protected slots:
   /// Create contour set node under the current node
   void createChildContourSetForCurrentNode();
 
+  /// Jump to Colors module to edit the color table belonging to the current contour set node
+  void onEditColorTable();
+
 protected:
   QScopedPointer<qSlicerSubjectHierarchyContourSetsPluginPrivate> d_ptr;
 

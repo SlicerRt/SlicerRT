@@ -149,8 +149,13 @@ public:
 
 // Utility functions
 public:
+  /// Create child node for a given parent node based on the child level map
   vtkMRMLSubjectHierarchyNode* createChildNode(vtkMRMLSubjectHierarchyNode* parentNode, QString nodeName, vtkMRMLNode* associatedNode=NULL);
 
+  /// Determines if the node is owned by this plugin
+  bool isThisPluginOwnerOfNode(vtkMRMLSubjectHierarchyNode* node);
+
+  /// Emit owner plugin changed signal
   void emitOwnerPluginChanged(vtkObject* node, void* callData);
 
 public:

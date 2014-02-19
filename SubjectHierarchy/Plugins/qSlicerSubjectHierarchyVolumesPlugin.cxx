@@ -547,11 +547,11 @@ void qSlicerSubjectHierarchyVolumesPlugin::showContextMenuActionsForNode(vtkMRML
   }
 
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
-  vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
 
   // Volume
-  if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
+  if (this->canOwnSubjectHierarchyNode(node))
   {
+    vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
     const char* labelmapAttribute = associatedNode->GetAttribute("LabelMap");
     if (labelmapAttribute && strcmp(labelmapAttribute, "0"))
     {

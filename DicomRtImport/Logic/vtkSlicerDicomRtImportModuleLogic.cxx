@@ -441,13 +441,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         contourNode->SetAndObserveRibbonModelNodeId(addedDisplayableNode->GetID());
         contourNode->SetDicomRtRoiPoints(roiPolyData);
         contourNode->HideFromEditorsOff();
-        std::map<double, vtkSmartPointer<vtkPlane> > orderedPlanes = rtReader->GetRoiOrderedContourPlanes(internalROIIndex);
-        if( orderedPlanes.empty() )
-        {
-          vtkErrorMacro("Unable to retrieve ordered planes when creating contour node. They will be unaccessible.");
-        }
-        // This passes memory ownership of the internal vtkPlane*'s to the contour node
-        contourNode->SetOrderedContourPlanes(orderedPlanes);
 
         // Put the contour node in the hierarchy
         vtkSmartPointer<vtkMRMLSubjectHierarchyNode> contourSubjectHierarchyNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
@@ -497,16 +490,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     }
   }
 
-  // Add color table in subject hierarchy
-  vtkSmartPointer<vtkMRMLSubjectHierarchyNode> subjectHierarchyColorTableNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-  std::string shColorTableNodeName;
-  shColorTableNodeName = contourSetColorTableNodeName + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-  shColorTableNodeName = this->GetMRMLScene()->GenerateUniqueName(shColorTableNodeName);
-  subjectHierarchyColorTableNode->SetName(shColorTableNodeName.c_str());
-  subjectHierarchyColorTableNode->SetAssociatedNodeID(contourSetColorTableNode->GetID());
-  subjectHierarchyColorTableNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
-  subjectHierarchyColorTableNode->SetParentNodeID(contourHierarchySeriesNode->GetID());
-  this->GetMRMLScene()->AddNode(subjectHierarchyColorTableNode);
+  // Add reference from contour set to color table
+  contourHierarchySeriesNode->SetNodeReferenceID(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE, contourSetColorTableNode->GetID());
 
   // Set referenced series UID to the series subject hierarchy node
   contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(), structureSetReferencedSeriesUid.c_str());

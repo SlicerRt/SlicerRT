@@ -261,3 +261,14 @@ void qSlicerSubjectHierarchyAbstractPlugin::emitOwnerPluginChanged(vtkObject* no
 {
   emit ownerPluginChanged(node, callData);
 }
+
+//--------------------------------------------------------------------------
+bool qSlicerSubjectHierarchyAbstractPlugin::isThisPluginOwnerOfNode(vtkMRMLSubjectHierarchyNode* node)
+{
+  if (!node)
+  {
+    return false;
+  }
+
+  return !strcmp(node->GetOwnerPluginName(), this->m_Name.toLatin1().constData());
+}

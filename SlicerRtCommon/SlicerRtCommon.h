@@ -58,7 +58,6 @@ public:
   static const std::string CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
   static const double DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR;
   static const double DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR;
-  static const char* CONTOUR_ORPHAN_CONTOURS_COLOR_TABLE_NODE_NAME;
   static const char* COLOR_NAME_BACKGROUND;
   static const char* COLOR_NAME_INVALID;
   static const char* COLOR_NAME_REMOVED;
@@ -69,6 +68,8 @@ public:
   static const std::string CONTOUR_NEW_CONTOUR_NAME;
   static const std::string CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME;
   static const std::string CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX;
+  static const char* CONTOUR_ORPHAN_CONTOURS_COLOR_TABLE_NODE_NAME;
+  static const char* CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE;
 
   // DicomRtImport constants
   static const std::string DICOMRTIMPORT_ATTRIBUTE_PREFIX;

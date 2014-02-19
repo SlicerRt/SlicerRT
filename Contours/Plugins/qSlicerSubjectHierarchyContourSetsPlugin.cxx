@@ -40,6 +40,11 @@
 #include <QAction>
 #include <QStandardItem>
 
+// SlicerQt includes
+#include "qSlicerApplication.h"
+#include "qSlicerAbstractModule.h"
+#include "qSlicerModuleManager.h"
+
 // MRML includes
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
@@ -68,10 +73,10 @@ public:
   ~qSlicerSubjectHierarchyContourSetsPluginPrivate();
   void init();
 public:
-  QIcon ColorTableIcon;
   QIcon ContourSetIcon;
 
   QAction* CreateContourSetNodeAction;
+  QAction* EditColorTableAction;
 };
 
 //-----------------------------------------------------------------------------
@@ -81,10 +86,10 @@ public:
 qSlicerSubjectHierarchyContourSetsPluginPrivate::qSlicerSubjectHierarchyContourSetsPluginPrivate(qSlicerSubjectHierarchyContourSetsPlugin& object)
 : q_ptr(&object)
 {
-  this->ColorTableIcon = QIcon(":Icons/ColorTable.png");
   this->ContourSetIcon = QIcon(":Icons/ContourSet.png");
 
   this->CreateContourSetNodeAction = NULL;
+  this->EditColorTableAction = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -94,6 +99,9 @@ void qSlicerSubjectHierarchyContourSetsPluginPrivate::init()
 
   this->CreateContourSetNodeAction = new QAction("Create child contour set",q);
   QObject::connect(this->CreateContourSetNodeAction, SIGNAL(triggered()), q, SLOT(createChildContourSetForCurrentNode()));
+
+  this->EditColorTableAction = new QAction("Edit contour set color table...",q);
+  QObject::connect(this->EditColorTableAction, SIGNAL(triggered()), q, SLOT(onEditColorTable()));
 }
 
 //-----------------------------------------------------------------------------
@@ -503,14 +511,6 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canOwnSubjectHierarchyNode(
     return 1.0; // Only the Contours plugin can handle this node
   }
 
-  // Color table
-  if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES)
-    && associatedNode && associatedNode->IsA("vtkMRMLColorTableNode") )
-  {
-    role = QString("Color table for contour set");
-    return 0.5;
-  }
-
   return 0.0;
 }
 
@@ -534,13 +534,6 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::setIcon(vtkMRMLSubjectHierarchyNo
     item->setIcon(d->ContourSetIcon);
     return true;
   }
-  // Color table
-  else if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES)
-    && associatedNode->IsA("vtkMRMLColorTableNode") )
-  {
-    item->setIcon(d->ColorTableIcon);
-    return true;
-  }
 
   // Node unknown by plugin
   return false;
@@ -559,7 +552,7 @@ QList<QAction*> qSlicerSubjectHierarchyContourSetsPlugin::nodeContextMenuActions
   Q_D(const qSlicerSubjectHierarchyContourSetsPlugin);
 
   QList<QAction*> actions;
-  actions << d->CreateContourSetNodeAction;
+  actions << d->CreateContourSetNodeAction << d->EditColorTableAction;
   return actions;
 }
 
@@ -569,11 +562,18 @@ void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForNode(vtk
   Q_D(qSlicerSubjectHierarchyContourSetsPlugin);
 
   d->CreateContourSetNodeAction->setVisible(false);
+  d->EditColorTableAction->setVisible(false);
 
   if (!node)
   {
     // There are no scene actions in this plugin
     return;
+  }
+
+  // Contour set (owned)
+  if ( this->canOwnSubjectHierarchyNode(node) && this->isThisPluginOwnerOfNode(node) )
+  {
+    d->EditColorTableAction->setVisible(true);
   }
 
   // Study
@@ -626,10 +626,39 @@ void qSlicerSubjectHierarchyContourSetsPlugin::createChildContourSetForCurrentNo
     SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1],
     SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3] ); // Color indicating invalid index
 
-  // Add color table in subject hierarchy
-  vtkMRMLSubjectHierarchyNode* contourSetColorTableSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    scene, childContourSetSubjectHierarchyNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES, contourSetColorTableNodeName.c_str(), contourSetColorTableNode);
-  contourSetColorTableSubjectHierarchyNode->SetSaveWithScene(0);
+  // Add reference from contour set to color table
+  childContourSetSubjectHierarchyNode->SetNodeReferenceID(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE, contourSetColorTableNode->GetID());
 
   emit requestExpandNode(childContourSetSubjectHierarchyNode);
+}
+
+//--------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable()
+{
+  // Switch to Colors module
+  qSlicerAbstractCoreModule* colorsModule = qSlicerApplication::application()->moduleManager()->module("Colors");
+  qSlicerAbstractModule* colorsModuleWithAction = qobject_cast<qSlicerAbstractModule*>(colorsModule);
+  if (colorsModuleWithAction)
+  {
+    colorsModuleWithAction->action()->trigger();
+  }
+
+  // Get color node for current structure set
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  if (!this->canOwnSubjectHierarchyNode(currentNode))
+  {
+    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable: Current node is not a contour set node!";
+    return;
+  }
+  vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(
+    currentNode->GetNodeReference(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE) );
+  if (!colorNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable: No color table found for contour set " << currentNode->GetName() << " !";
+    return;
+  }
+
+  // Set color table as current color node in Colors module
+  //TODO: Colors module cannot be linked
+  //colorsModuleWidget->setCurrentColorNode(colorNode);
 }
