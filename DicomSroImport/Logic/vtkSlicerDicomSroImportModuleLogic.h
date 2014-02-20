@@ -13,16 +13,16 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
-// .NAME vtkSlicerDicomSroImportModuleLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerDicomSroImportModuleLogic - slicer logic class for SRO importing
 // .SECTION Description
-// This class manages the logic associated with reading Dicom Sro object
+// This class manages the logic associated with reading Dicom spatial registration object
 
 
 #ifndef __vtkSlicerDicomSroImportLogic_h
@@ -55,7 +55,7 @@ public:
   void Examine(vtkDICOMImportInfo *importInfo);
 
   /// Load DICOM Sro series from file name
-  /// /return True if loading successful
+  /// \return True if loading successful
   bool LoadDicomSro(vtkDICOMImportInfo *loadInfo);
 
 protected:

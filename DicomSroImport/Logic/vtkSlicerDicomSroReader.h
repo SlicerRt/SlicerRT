@@ -13,17 +13,17 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
+
 // .NAME vtkSlicerDicomSroReader - 
 // .SECTION Description
-// This class manages the Reader associated with reading Dicom Sro
-
+// This class manages the Reader associated with reading Dicom Spatial Registration Object
 
 #ifndef __vtkSlicerDicomSroReader_h
 #define __vtkSlicerDicomSroReader_h
@@ -31,14 +31,11 @@
 // VTK includes
 #include "vtkObject.h"
 
-// STD includes
-#include <vector>
-
 #include "vtkSlicerDicomSroImportModuleLogicExport.h"
 
 class DcmDataset;
-class OFString;
 class vtkMatrix4x4;
+class vtkImageData;
 
 // Due to some reason the Python wrapping of this class fails, therefore
 // put everything between BTX/ETX to exclude from wrapping.
@@ -61,77 +58,110 @@ public:
   void Update();
 
 public:
-  /// Get model of a certain ROI by internal index
-  /// \param internalIndex Internal index of ROI to get
-  vtkMatrix4x4* GetRegistrationMatrix();
+  /// Get spatial registration matrix
+  vtkMatrix4x4* GetSpatialRegistrationMatrix();
+
+  /// Get pre deformation registration matrix
+  vtkMatrix4x4* GetPreDeformationRegistrationMatrix();
+
+  /// Get post deformation registration matrix
+  vtkMatrix4x4* GetPostDeformationRegistrationMatrix();
+
+  /// Get deformable registration grid (displacment vector field)
+  vtkImageData* GetDeformableRegistrationGrid();
+
+  /// Get deformable registration grid orientation matrix
+  vtkMatrix4x4* GetDeformableRegistrationGridOrientationMatrix();
 
   /// Set input file name
   vtkSetStringMacro(FileName);
 
   /// Get patient name
   vtkGetStringMacro(PatientName);
+
   /// Get patient ID
   vtkGetStringMacro(PatientId);
+
   /// Get patient sex
   vtkGetStringMacro(PatientSex);
+
   /// Get patient birth date
   vtkGetStringMacro(PatientBirthDate);
+
   /// Get study instance UID
   vtkGetStringMacro(StudyInstanceUid);
+
   /// Get study description
   vtkGetStringMacro(StudyDescription);
+
   /// Get study date
   vtkGetStringMacro(StudyDate);
+
   /// Get study time
   vtkGetStringMacro(StudyTime);
+
   /// Get series instance UID
   vtkGetStringMacro(SeriesInstanceUid);
+
   /// Get series description
   vtkGetStringMacro(SeriesDescription);
+
   /// Get series modality
   vtkGetStringMacro(SeriesModality);
 
   /// Get DICOM database file name
   vtkGetStringMacro(DatabaseFile);
 
-  /// Get load dose successful flag
+  /// Get load spatial registration successful flag
   vtkGetMacro(LoadSpatialRegistrationSuccessful, bool);
 
-  /// Get load dose successful flag
+  /// Get load spatial fieducials successful flag
   vtkGetMacro(LoadSpatialFiducialsSuccessful, bool);
 
-  /// Get load dose successful flag
+  /// Get load deformable spatial registration successful flag
   vtkGetMacro(LoadDeformableSpatialRegistrationSuccessful, bool);
 
 protected:
   /// Load spatial registration
   void LoadSpatialRegistration(DcmDataset*);
+
   /// Load spatial fiducials
   void LoadSpatialFiducials(DcmDataset*);
+
   /// Load deformable spatial registration
   void LoadDeformableSpatialRegistration(DcmDataset*);
 
 protected:
   /// Set patient name
   vtkSetStringMacro(PatientName);
+
   /// Set patient ID
   vtkSetStringMacro(PatientId);
+
   /// Set patient sex
   vtkSetStringMacro(PatientSex);
+
   /// Set patient birth date
   vtkSetStringMacro(PatientBirthDate);
+
   /// Set study instance UID
   vtkSetStringMacro(StudyInstanceUid);
+
   /// Set study description
   vtkSetStringMacro(StudyDescription); 
+
   /// Set study date
   vtkSetStringMacro(StudyDate);
+
   /// Set study time
   vtkSetStringMacro(StudyTime);
+
   /// Set series instance UID
   vtkSetStringMacro(SeriesInstanceUid);
+
   /// Set series description
   vtkSetStringMacro(SeriesDescription); 
+
   /// Set series modality
   vtkSetStringMacro(SeriesModality);
 
@@ -179,7 +209,19 @@ protected:
   char* DatabaseFile;
 
   /// Spatial registration matrix
-  vtkMatrix4x4* RegistrationMatrix;
+  vtkMatrix4x4* SpatialRegistrationMatrix;
+
+  /// Pre deformation registration matrix
+  vtkMatrix4x4* PreDeformationRegistrationMatrix;
+
+  /// Post deformation registration matrix
+  vtkMatrix4x4* PostDeformationRegistrationMatrix;
+
+  /// Deformable registration grid
+  vtkImageData* DeformableRegistrationGrid;
+
+  /// Deformable registration grid orientation matrix
+  vtkMatrix4x4* DeformableRegistrationGridOrientationMatrix;
 
   /// Flag indicating if spatial registration object has been successfully read from the input dataset
   bool LoadSpatialRegistrationSuccessful;

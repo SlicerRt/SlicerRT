@@ -13,12 +13,13 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
+
 
 // Module includes
 #include "vtkSlicerDicomSroReader.h"
@@ -27,6 +28,8 @@
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkMatrix4x4.h>
+#include <vtkImageData.h>
+#include <vtkPointData.h>
 
 // STD includes
 #include <cassert>
@@ -36,13 +39,10 @@
 #include <dcmtk/ofstd/ofconapp.h>
 #include <dcmtk/dcmdata/dctk.h>
 
-// Qt includes
-
 // CTK includes
 #include <ctkDICOMDatabase.h>
 
 //----------------------------------------------------------------------------
-
 const std::string vtkSlicerDicomSroReader::DICOMSROREADER_DICOM_DATABASE_FILENAME = "/ctkDICOM.sql";
 const std::string vtkSlicerDicomSroReader::DICOMSROREADER_DICOM_CONNECTION_NAME = "Slicer";
 
@@ -67,7 +67,12 @@ vtkSlicerDicomSroReader::vtkSlicerDicomSroReader()
 
   this->DatabaseFile = NULL;
 
-  this->RegistrationMatrix = vtkMatrix4x4::New();
+  this->SpatialRegistrationMatrix = vtkMatrix4x4::New();
+
+  this->PreDeformationRegistrationMatrix = vtkMatrix4x4::New();
+  this->PostDeformationRegistrationMatrix = vtkMatrix4x4::New();
+  this->DeformableRegistrationGrid = vtkImageData::New();
+  this->DeformableRegistrationGridOrientationMatrix = vtkMatrix4x4::New();
 
   this->LoadSpatialRegistrationSuccessful = false;
   this->LoadSpatialFiducialsSuccessful = false;
@@ -77,7 +82,11 @@ vtkSlicerDicomSroReader::vtkSlicerDicomSroReader()
 //----------------------------------------------------------------------------
 vtkSlicerDicomSroReader::~vtkSlicerDicomSroReader()
 {
-  this->RegistrationMatrix->Delete();
+  this->SpatialRegistrationMatrix->Delete();
+  this->PreDeformationRegistrationMatrix->Delete();
+  this->PostDeformationRegistrationMatrix->Delete();
+  this->DeformableRegistrationGrid->Delete();
+  this->DeformableRegistrationGridOrientationMatrix->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -90,7 +99,10 @@ void vtkSlicerDicomSroReader::PrintSelf(ostream& os, vtkIndent indent)
 void vtkSlicerDicomSroReader::Update()
 {
 
-  this->RegistrationMatrix->Identity();
+  this->SpatialRegistrationMatrix->Identity();
+  this->PreDeformationRegistrationMatrix->Identity();
+  this->PostDeformationRegistrationMatrix->Identity();
+  this->DeformableRegistrationGridOrientationMatrix->Identity();
 
   if ((this->FileName != NULL) && (strlen(this->FileName) > 0))
   {
@@ -127,22 +139,22 @@ void vtkSlicerDicomSroReader::Update()
         }
         else
         {
-          //OFLOG_ERROR(drtdumpLogger, "unsupported SOPClassUID (" << sopClass << ") in file: " << ifname);
+		  vtkDebugMacro("vtkSlicerDicomSroReader::Update: unsupported SOPClassUID (" << sopClass);
         }
       } 
       else 
       {
-        //OFLOG_ERROR(drtdumpLogger, "SOPClassUID (0008,0016) missing or empty in file: " << ifname);
+		vtkDebugMacro("vtkSlicerDicomSroReader::Update: SOPClassUID (0008,0016) missing or empty in file");
       }
     } 
     else 
     {
-      //OFLOG_FATAL(drtdumpLogger, OFFIS_CONSOLE_APPLICATION << ": error (" << result.text() << ") reading file: " << ifname);
+      vtkDebugMacro("vtkSlicerDicomSroReader::Update: error reading file");
     }
   } 
   else 
   {
-    //OFLOG_FATAL(drtdumpLogger, OFFIS_CONSOLE_APPLICATION << ": invalid filename: <empty string>");
+    vtkDebugMacro("vtkSlicerDicomSroReader::Update: invalid filename: <empty string>");
   }
 }
 
@@ -207,20 +219,20 @@ void vtkSlicerDicomSroReader::LoadSpatialRegistration(DcmDataset* dataset)
               {
                 continue;
               }
-              const Float64* matrixData = new Float64[16];
-              unsigned long count = 0;
-              result = currentmatrixSequenceItem->findAndGetFloat64Array(DCM_FrameOfReferenceTransformationMatrix, matrixData, &count, OFTrue);
-              vtkSmartPointer<vtkMatrix4x4> tempMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+              //const Float64* matrixData = new Float64[16];
+              //unsigned long count = 0;
+              //result = currentmatrixSequenceItem->findAndGetFloat64Array(DCM_FrameOfReferenceTransformationMatrix, matrixData, &count, OFTrue);
+
+			  vtkSmartPointer<vtkMatrix4x4> tempMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
               OFString  matrixString;
-              //unsigned long pos = 0;
               for (unsigned long n=0; n<16; n++)
               {
                 result = currentmatrixSequenceItem->findAndGetOFString(DCM_FrameOfReferenceTransformationMatrix, matrixString, n);
                 tempMatrix->SetElement((int)(n/4), n%4, atof(matrixString.c_str()));
               }
               vtkSmartPointer<vtkMatrix4x4> tempMatrix2 = vtkSmartPointer<vtkMatrix4x4>::New();
-              vtkMatrix4x4::Multiply4x4(this->RegistrationMatrix, tempMatrix, tempMatrix2);
-              this->RegistrationMatrix->DeepCopy(tempMatrix2);
+              vtkMatrix4x4::Multiply4x4(this->SpatialRegistrationMatrix, tempMatrix, tempMatrix2);
+              this->SpatialRegistrationMatrix->DeepCopy(tempMatrix2);
             } //
           }
         } // 
@@ -238,15 +250,300 @@ void vtkSlicerDicomSroReader::LoadSpatialFiducials(DcmDataset* dataset)
   this->LoadSpatialFiducialsSuccessful = false; 
 }
 
-// TODO: not implemented yet...
 //----------------------------------------------------------------------------
 void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* dataset)
 {
   this->LoadDeformableSpatialRegistrationSuccessful = false; 
+  
+  // Deformable registration sequence
+  DcmSequenceOfItems *registrationSequence = NULL;
+  OFCondition result = dataset->findAndGetSequence(DCM_DeformableRegistrationSequence, registrationSequence);
+  if (result.good())
+  {
+    OFString tmpString, dummyString;
+    vtkDebugMacro("LoadDeformableSpatialRegistration: Load Deformable Spatial Registration object");
+
+    unsigned long numOfDeformableRegistrationSequenceItems = registrationSequence->card();
+    for(unsigned long i=0; i<numOfDeformableRegistrationSequenceItems; i++)
+    {
+
+      DcmItem *currentDeformableRegistrationSequenceItem = NULL;
+      currentDeformableRegistrationSequenceItem  = registrationSequence->getItem(i);  
+      
+      if (currentDeformableRegistrationSequenceItem->isEmpty())
+      {
+        vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+        break;
+      }
+
+	  // Pre-Deformation matrix registration sequence
+      DcmSequenceOfItems *preDeformationMatrixRegistrationSequence = NULL;
+      OFCondition result = currentDeformableRegistrationSequenceItem->findAndGetSequence(DCM_PreDeformationMatrixRegistrationSequence, preDeformationMatrixRegistrationSequence);
+      if (result.good())
+      {
+        unsigned long numOfPreDeformationMMatrixRegistrationSequenceItems = preDeformationMatrixRegistrationSequence->card();
+        for (unsigned long j=0; j<numOfPreDeformationMMatrixRegistrationSequenceItems; j++)
+        {
+          DcmItem *preDeformationMatrixRegistrationSequenceItem = NULL;
+          preDeformationMatrixRegistrationSequenceItem = preDeformationMatrixRegistrationSequence->getItem(j);
+          
+          if (preDeformationMatrixRegistrationSequenceItem->isEmpty())
+          {
+            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            break;
+          }
+
+          OFString  matrixType;
+          OFCondition result = preDeformationMatrixRegistrationSequenceItem->findAndGetOFString(DCM_FrameOfReferenceTransformationMatrixType, matrixType);
+          if (!result.good())
+          {
+            continue;
+          }
+          const Float64* matrixData = new Float64[16];
+          unsigned long count = 0;
+          result = preDeformationMatrixRegistrationSequenceItem->findAndGetFloat64Array(DCM_FrameOfReferenceTransformationMatrix, matrixData, &count, OFTrue);
+
+          vtkSmartPointer<vtkMatrix4x4> preDeformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+          OFString  matrixString;
+          for (unsigned long n=0; n<16; n++)
+          {
+            result = preDeformationMatrixRegistrationSequenceItem->findAndGetOFString(DCM_FrameOfReferenceTransformationMatrix, matrixString, n);
+            preDeformationMatrix->SetElement((int)(n/4), n%4, atof(matrixString.c_str()));
+          }
+		  this->PreDeformationRegistrationMatrix->DeepCopy(preDeformationMatrix);
+        } // numOfMatrixRegistrationSequenceItems
+      } // if 
+
+	  // Post Deformation matrix registration sequence
+      DcmSequenceOfItems *postDeformationMatrixRegistrationSequence = NULL;
+      result = currentDeformableRegistrationSequenceItem->findAndGetSequence(DCM_PostDeformationMatrixRegistrationSequence, postDeformationMatrixRegistrationSequence);
+      if (result.good())
+      {
+        unsigned long numOfPostDeformationMMatrixRegistrationSequenceItems = postDeformationMatrixRegistrationSequence->card();
+        for (unsigned long j=0; j<numOfPostDeformationMMatrixRegistrationSequenceItems; j++)
+        {
+          DcmItem *postDeformationMatrixRegistrationSequenceItem = NULL;
+          postDeformationMatrixRegistrationSequenceItem = postDeformationMatrixRegistrationSequence->getItem(j);
+          
+          if (postDeformationMatrixRegistrationSequenceItem->isEmpty())
+          {
+            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            break;
+          }
+
+          OFString  matrixType;
+          OFCondition result = postDeformationMatrixRegistrationSequenceItem->findAndGetOFString(DCM_FrameOfReferenceTransformationMatrixType, matrixType);
+          if (!result.good())
+          {
+            continue;
+          }
+          const Float64* matrixData = new Float64[16];
+          unsigned long count = 0;
+          result = postDeformationMatrixRegistrationSequenceItem->findAndGetFloat64Array(DCM_FrameOfReferenceTransformationMatrix, matrixData, &count, OFTrue);
+
+          vtkSmartPointer<vtkMatrix4x4> postDeformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+          OFString  matrixString;
+          for (unsigned long n=0; n<16; n++)
+          {
+            result = postDeformationMatrixRegistrationSequenceItem->findAndGetOFString(DCM_FrameOfReferenceTransformationMatrix, matrixString, n);
+            postDeformationMatrix->SetElement((int)(n/4), n%4, atof(matrixString.c_str()));
+          }
+		  this->PostDeformationRegistrationMatrix->DeepCopy(postDeformationMatrix);
+        } // numOfMatrixRegistrationSequenceItems
+      } // if 
+
+	  // Deformable registration grid sequence
+      DcmSequenceOfItems *deformableRegistrationGridSequence = NULL;
+      result = currentDeformableRegistrationSequenceItem->findAndGetSequence(DCM_DeformableRegistrationGridSequence, deformableRegistrationGridSequence);
+      if (result.good())
+      {
+        unsigned long numOfDeformableRegistrationGridSequenceItems = deformableRegistrationGridSequence->card();
+        for (unsigned long j=0; j<numOfDeformableRegistrationGridSequenceItems; j++)
+        {
+          DcmItem *deformableRegistrationGridSequenceItem = NULL;
+          deformableRegistrationGridSequenceItem = deformableRegistrationGridSequence->getItem(j);
+          
+          if (deformableRegistrationGridSequenceItem->isEmpty())
+          {
+            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            break;
+          }
+
+		  // Image orientation patient
+		  double imageOrientationPatient[6];
+          OFString tmpGridOrientationX0;
+          OFString tmpGridOrientationX1;
+          OFString tmpGridOrientationX2;
+          OFString tmpGridOrientationY0;
+          OFString tmpGridOrientationY1;
+          OFString tmpGridOrientationY2;
+          if (deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_ImageOrientationPatient, tmpGridOrientationX0, 0).good() &&
+              deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_ImageOrientationPatient, tmpGridOrientationX1, 1).good() &&
+			  deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_ImageOrientationPatient, tmpGridOrientationX2, 2).good() &&
+              deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_ImageOrientationPatient, tmpGridOrientationY0, 3).good() &&
+              deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_ImageOrientationPatient, tmpGridOrientationY1, 4).good() &&
+			  deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_ImageOrientationPatient, tmpGridOrientationY2, 5).good())
+		  {
+			imageOrientationPatient[0] = atof(tmpGridOrientationX0.c_str());
+			imageOrientationPatient[1] = atof(tmpGridOrientationX1.c_str());
+			imageOrientationPatient[2] = atof(tmpGridOrientationX2.c_str());
+			imageOrientationPatient[3] = atof(tmpGridOrientationY0.c_str());
+			imageOrientationPatient[4] = atof(tmpGridOrientationY1.c_str());
+			imageOrientationPatient[5] = atof(tmpGridOrientationY2.c_str());
+		  }
+		  else
+		  {
+            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            break;
+		  }
+
+		  // Image position patient
+		  double imagePositionPatient[3];
+          OFString tmpGridPositionX;
+          OFString tmpGridPositionY;
+          OFString tmpGridPositionZ;
+          if (deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_ImagePositionPatient, tmpGridPositionX, 0).good() &&
+              deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_ImagePositionPatient, tmpGridPositionY, 1).good() &&
+			  deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_ImagePositionPatient, tmpGridPositionZ, 2).good())
+		  {
+			imagePositionPatient[0] = atof(tmpGridPositionX.c_str());
+			imagePositionPatient[1] = atof(tmpGridPositionY.c_str());
+			imagePositionPatient[2] = atof(tmpGridPositionZ.c_str());
+		  }
+		  else
+		  {
+            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            break;
+		  }
+
+		  this->DeformableRegistrationGridOrientationMatrix->SetElement(0, 0, imageOrientationPatient[0]);
+		  this->DeformableRegistrationGridOrientationMatrix->SetElement(0, 1, imageOrientationPatient[1]);
+		  this->DeformableRegistrationGridOrientationMatrix->SetElement(0, 2, imageOrientationPatient[2]);
+		  this->DeformableRegistrationGridOrientationMatrix->SetElement(1, 0, imageOrientationPatient[3]);
+		  this->DeformableRegistrationGridOrientationMatrix->SetElement(1, 1, imageOrientationPatient[4]);
+		  this->DeformableRegistrationGridOrientationMatrix->SetElement(1, 2, imageOrientationPatient[5]);
+		  this->DeformableRegistrationGridOrientationMatrix->SetElement(0, 3, imagePositionPatient[0]);
+		  this->DeformableRegistrationGridOrientationMatrix->SetElement(1, 3, imagePositionPatient[1]);
+		  this->DeformableRegistrationGridOrientationMatrix->SetElement(2, 3, imagePositionPatient[2]);
+
+		  int gridDimX, gridDimY, gridDimZ;
+		  double gridSpacingX, gridSpacingY, gridSpacingZ;
+
+		  // Grid dimension
+          OFString tmpGridDimX;
+          OFString tmpGridDimY;
+          OFString tmpGridDimZ;
+          if (deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_GridDimensions, tmpGridDimX, 0).good() &&
+              deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_GridDimensions, tmpGridDimY, 1).good() &&
+			  deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_GridDimensions, tmpGridDimZ, 2).good())
+		  {
+			  gridDimX = static_cast<int>(atoi(tmpGridDimX.c_str()));
+			  gridDimY = static_cast<int>(atoi(tmpGridDimY.c_str()));
+			  gridDimZ = static_cast<int>(atoi(tmpGridDimZ.c_str()));
+		  }
+		  else
+		  {
+            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            break;
+		  }
+
+		  // Grid spacing
+		  OFString tmpGridSpacingX;
+          OFString tmpGridSpacingY;
+          OFString tmpGridSpacingZ;
+          if (deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_GridResolution, tmpGridSpacingX, 0).good() &&
+              deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_GridResolution, tmpGridSpacingY, 1).good() &&
+			  deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_GridResolution, tmpGridSpacingZ, 2).good())
+		  {
+			gridSpacingX = atof(tmpGridSpacingX.c_str());
+			gridSpacingY = atof(tmpGridSpacingY.c_str());
+			gridSpacingZ = atof(tmpGridSpacingZ.c_str());
+		  }
+		  else
+		  {
+            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            break;
+		  }
+
+		  // Add in scaling factor
+		  vtkSmartPointer<vtkMatrix4x4> tempScaleMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		  tempScaleMatrix->Identity();
+		  tempScaleMatrix->SetElement(0, 0, gridSpacingX);
+		  tempScaleMatrix->SetElement(1, 1, gridSpacingY);
+		  tempScaleMatrix->SetElement(2, 2, gridSpacingZ);
+		  this->DeformableRegistrationGridOrientationMatrix->Multiply4x4(this->DeformableRegistrationGridOrientationMatrix, tempScaleMatrix, 
+			  this->DeformableRegistrationGridOrientationMatrix);
+
+		  // Grid vector
+          OFString  tmpStrX;
+          OFString  tmpStrY;
+          OFString  tmpStrZ;
+		  int numOfVector = gridDimX * gridDimY * gridDimZ;
+		  this->DeformableRegistrationGrid->SetOrigin(0, 0, 0);
+		  this->DeformableRegistrationGrid->SetSpacing(1, 1, 1);
+		  this->DeformableRegistrationGrid->SetExtent(0,gridDimX-1,0,gridDimY-1,0,gridDimZ-1);
+		  this->DeformableRegistrationGrid->SetScalarTypeToDouble();
+		  this->DeformableRegistrationGrid->SetNumberOfScalarComponents(3);
+		  this->DeformableRegistrationGrid->AllocateScalars();
+		  int n = 0;
+          for (unsigned int k=0; k<gridDimZ; k++)
+          {
+            for (unsigned int j=0; j<gridDimY; j++)
+            {
+              for (unsigned int i=0; i<gridDimX; i++)
+              {
+				n = i + j*gridDimX + k*gridDimX*gridDimY ;
+				if (deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_VectorGridData, tmpStrX, 3*n).good() &&
+                    deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_VectorGridData, tmpStrY, 3*n + 1).good() &&
+                    deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_VectorGridData, tmpStrZ, 3*n + 2).good())
+				{
+			      this->DeformableRegistrationGrid->SetScalarComponentFromDouble(i,j,k,0,atof(tmpStrX.c_str()));
+			      this->DeformableRegistrationGrid->SetScalarComponentFromDouble(i,j,k,1,atof(tmpStrY.c_str()));
+			      this->DeformableRegistrationGrid->SetScalarComponentFromDouble(i,j,k,2,atof(tmpStrZ.c_str()));
+				}
+				else
+				{
+				  continue;
+				}
+			  }
+			}
+          }
+        } // numOfMatrixRegistrationSequenceItems
+      } // if 
+
+	} // numOfRegistrationSequenceItems 
+  }
+
+  this->LoadDeformableSpatialRegistrationSuccessful = true; 
 }
 
 //----------------------------------------------------------------------------
-vtkMatrix4x4* vtkSlicerDicomSroReader::GetRegistrationMatrix()
+vtkMatrix4x4* vtkSlicerDicomSroReader::GetSpatialRegistrationMatrix()
 {
-  return this->RegistrationMatrix;
+  return this->SpatialRegistrationMatrix;
 }
+
+//----------------------------------------------------------------------------
+vtkMatrix4x4* vtkSlicerDicomSroReader::GetPreDeformationRegistrationMatrix()
+{
+  return this->PreDeformationRegistrationMatrix;
+}
+
+//----------------------------------------------------------------------------
+vtkMatrix4x4* vtkSlicerDicomSroReader::GetPostDeformationRegistrationMatrix()
+{
+  return this->PostDeformationRegistrationMatrix;
+}
+
+//----------------------------------------------------------------------------
+vtkImageData* vtkSlicerDicomSroReader::GetDeformableRegistrationGrid()
+{
+  return this->DeformableRegistrationGrid;
+}
+
+//----------------------------------------------------------------------------
+vtkMatrix4x4* vtkSlicerDicomSroReader::GetDeformableRegistrationGridOrientationMatrix()
+{
+  return this->DeformableRegistrationGridOrientationMatrix;
+}
+
