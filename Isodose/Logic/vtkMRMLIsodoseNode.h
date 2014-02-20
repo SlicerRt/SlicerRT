@@ -2,7 +2,7 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -13,12 +13,13 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
+
 
 #ifndef __vtkMRMLIsodoseNode_h
 #define __vtkMRMLIsodoseNode_h
@@ -87,6 +88,11 @@ public:
   vtkSetMacro(ShowScalarBar, bool);
   vtkBooleanMacro(ShowScalarBar, bool);
 
+  /// Get/Set show dose volumes only checkbox state
+  vtkGetMacro(ShowDoseVolumesOnly, bool);
+  vtkSetMacro(ShowDoseVolumesOnly, bool);
+  vtkBooleanMacro(ShowDoseVolumesOnly, bool);
+
 protected:
   vtkMRMLIsodoseNode();
   ~vtkMRMLIsodoseNode();
@@ -102,6 +108,9 @@ protected:
 
   /// State of Show scalar bar checkbox
   bool ShowScalarBar;
+
+  /// State of Show dose volumes only checkbox
+  bool ShowDoseVolumesOnly;
 };
 
 #endif

@@ -13,8 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -68,6 +68,9 @@ protected slots:
 
   /// Slot handling change of output hierarchy node
   void outputHierarchyNodeChanged(vtkMRMLNode*);
+
+  /// Slot handling change of show dose only checkbox
+  void showDoseVolumesOnlyCheckboxChanged(int);
 
   /// Slot for changing isoline visibility
   void setIsolineVisibility(bool);

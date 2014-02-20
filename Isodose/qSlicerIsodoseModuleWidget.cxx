@@ -13,11 +13,11 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
-  
+
 ==============================================================================*/
 
 // Qt includes
@@ -376,11 +376,15 @@ void qSlicerIsodoseModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
+  // Show only dose volumes in the dose volume combobox by default
+  d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setIsodoseNode(vtkMRMLNode*) ) );
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
   connect( d->spinBox_NumberOfLevels, SIGNAL(valueChanged(int)), this, SLOT(setNumberOfLevels(int)));
 
+  connect( d->checkBox_ShowDoseVolumesOnly, SIGNAL( stateChanged(int) ), this, SLOT( showDoseVolumesOnlyCheckboxChanged(int) ) );
   connect( d->checkBox_Isoline, SIGNAL(toggled(bool)), this, SLOT( setIsolineVisibility(bool) ) );
   connect( d->checkBox_Isosurface, SIGNAL(toggled(bool)), this, SLOT( setIsosurfaceVisibility(bool) ) );
   connect( d->checkBox_ScalarBar, SIGNAL(toggled(bool)), this, SLOT( setScalarBarVisibility(bool) ) );
@@ -539,6 +543,38 @@ void qSlicerIsodoseModuleWidget::outputHierarchyNodeChanged(vtkMRMLNode* node)
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(vtkMRMLModelHierarchyNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerIsodoseModuleWidget::showDoseVolumesOnlyCheckboxChanged(int aState)
+{
+  Q_D(qSlicerIsodoseModuleWidget);
+  
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerIsodoseModuleWidget::showDoseVolumesOnlyCheckboxChanged: Invalid scene!";
+    return;
+  }
+  
+  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetShowDoseVolumesOnly(aState);
+  paramNode->DisableModifiedEventOff();
+
+  if (aState)
+  {
+    d->MRMLNodeComboBox_DoseVolume->addAttribute("vtkMRMLScalarVolumeNode", SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+  }
+  else
+  {
+    // The row has to be replaced, so replace with an attribute that matches all desired volumes
+    d->MRMLNodeComboBox_DoseVolume->addAttribute("vtkMRMLScalarVolumeNode", "LabelMap", 0);
+  }
 }
 
 //-----------------------------------------------------------------------------
