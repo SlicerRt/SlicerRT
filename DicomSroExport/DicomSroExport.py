@@ -1,5 +1,6 @@
 import os
 import unittest
+import sys
 from __main__ import vtk, qt, ctk, slicer
 
 #
@@ -11,7 +12,7 @@ class DicomSroExport:
     parent.title = "DICOM Registration Export"
     parent.categories = ["Plastimatch"]
     parent.dependencies = []
-    parent.contributors = ["Gregory Sharp (MGH)"]
+    parent.contributors = ["Gregory Sharp (MGH), Kevin Wang (Princess Margaret Cancer Centre)"]
     parent.helpText = """
     This is an example of scripted loadable module bundled in an extension.
     """
@@ -252,50 +253,10 @@ class DicomSroExportLogic:
     qt.QTimer.singleShot(msec, self.info.close)
     self.info.exec_()
 
-  def takeScreenshot(self,name,description,type=-1):
-    # show the message even if not taking a screen shot
-    self.delayDisplay(description)
-
-    if self.enableScreenshots == 0:
-      return
-
-    lm = slicer.app.layoutManager()
-    # switch on the type to get the requested window
-    widget = 0
-    if type == -1:
-      # full window
-      widget = slicer.util.mainWindow()
-    elif type == slicer.qMRMLScreenShotDialog().FullLayout:
-      # full layout
-      widget = lm.viewport()
-    elif type == slicer.qMRMLScreenShotDialog().ThreeD:
-      # just the 3D window
-      widget = lm.threeDWidget(0).threeDView()
-    elif type == slicer.qMRMLScreenShotDialog().Red:
-      # red slice window
-      widget = lm.sliceWidget("Red")
-    elif type == slicer.qMRMLScreenShotDialog().Yellow:
-      # yellow slice window
-      widget = lm.sliceWidget("Yellow")
-    elif type == slicer.qMRMLScreenShotDialog().Green:
-      # green slice window
-      widget = lm.sliceWidget("Green")
-
-    # grab and convert to vtk image data
-    qpixMap = qt.QPixmap().grabWidget(widget)
-    qimage = qpixMap.toImage()
-    imageData = vtk.vtkImageData()
-    slicer.qMRMLUtils().qImageToVtkImageData(qimage,imageData)
-
-    annotationLogic = slicer.modules.annotations.logic()
-    annotationLogic.CreateSnapShot(name, description, type, self.screenshotScaleFactor, imageData)
-
   def run (self,fixedNode,movingNode,xformNode,outputDir):
     """
     Run the actual algorithm
     """
-    import os, sys, vtk
-    print ("Hello from the Apply button")
     import vtkSlicerPlastimatchPyModuleLogic
     loadablePath = os.path.join(slicer.modules.plastimatch_slicer_bspline.path,'..'+os.sep+'..'+os.sep+'qt-loadable-modules')
     if loadablePath not in sys.path:
@@ -307,8 +268,6 @@ class DicomSroExportLogic:
     sro.SetXformID(xformNode.GetID())
     sro.SetOutputDirectory(outputDir)
     sro.DoExport()
-
-    print ("Did that work???")
 
     return True
 
