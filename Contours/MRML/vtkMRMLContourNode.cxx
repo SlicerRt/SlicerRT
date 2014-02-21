@@ -747,6 +747,17 @@ const std::map<double, vtkSmartPointer<vtkPlane> >& vtkMRMLContourNode::GetOrder
   return this->OrderedContourPlanes;
 }
 
+//----------------------------------------------------------------------------
+vtkPlaneCollection* vtkMRMLContourNode::GetOrderedContourPlanes()
+{
+  vtkPlaneCollection* aCollection = vtkPlaneCollection::New();
+  for( std::map<double, vtkSmartPointer<vtkPlane> >::iterator it = this->OrderedContourPlanes.begin(); it != this->OrderedContourPlanes.end(); ++it)
+  {
+    aCollection->AddItem(it->second.GetPointer());
+  }
+  return aCollection;
+}
+
 
 //----------------------------------------------------------------------------
 std::vector<vtkMRMLDisplayableNode*> vtkMRMLContourNode::CreateTemporaryRepresentationsVector()

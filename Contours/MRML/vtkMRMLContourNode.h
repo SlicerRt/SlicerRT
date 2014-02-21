@@ -36,6 +36,7 @@ class vtkMRMLColorTableNode;
 class vtkMRMLModelNode;
 class vtkMRMLScalarVolumeNode;
 class vtkPlane;
+class vtkPlaneCollection;
 
 /// \ingroup SlicerRt_QtModules_Contours
 class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourNode : public vtkMRMLDisplayableNode
@@ -168,6 +169,8 @@ public:
 
   /// Get the ordered contour planes
   const std::map<double, vtkSmartPointer<vtkPlane> >& GetOrderedContourPlanes() const;
+  /// Get the ordered contour planes
+  vtkPlaneCollection* GetOrderedContourPlanes();
   /// Set the ordered contour planes
   void SetOrderedContourPlanes(std::map<double, vtkSmartPointer<vtkPlane> >& orderedContourPlanes);
 
