@@ -361,7 +361,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSl
   deformableRegistrationGridTransformNodeName = this->GetMRMLScene()->GenerateUniqueName(deformableRegistrationGridTransformNodeName+"_DeformableRegistrationGrid");
   deformableRegistrationGridTransformNode->SetName(deformableRegistrationGridTransformNodeName.c_str());
   deformableRegistrationGridTransformNode->HideFromEditorsOff();
-  //deformableRegistrationGridTransformNode->SetAndObserveWarpTransformToParent(gridTransform); //TODO: Fix build error
+  deformableRegistrationGridTransformNode->SetAndObserveWarpTransformToParent(gridTransform, true); 
   deformableRegistrationGridTransformNode->SetDisableModifiedEvent(0);
   this->GetMRMLScene()->AddNode(deformableRegistrationGridTransformNode);
 
