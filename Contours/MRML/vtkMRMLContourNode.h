@@ -170,7 +170,7 @@ public:
   /// Get the ordered contour planes
   const std::map<double, vtkSmartPointer<vtkPlane> >& GetOrderedContourPlanes() const;
   /// Get the ordered contour planes, caller is responsible for collection deallocation (not internals!)
-  vtkPlaneCollection* GetOrderedContourPlanes() const;
+  vtkPlaneCollection* GetOrderedContourPlanesVtk() const;
   /// Set the ordered contour planes
   void SetOrderedContourPlanes(std::map<double, vtkSmartPointer<vtkPlane> >& orderedContourPlanes);
 

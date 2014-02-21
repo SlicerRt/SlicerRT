@@ -1199,9 +1199,9 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       contourItem.getContourData(contourData_LPS);
 
       // Create a vtk plane for later access
-      vtkSmartPointer<vtkPlane> aPlane = vtkSmartPointer<vtkPlane>::New();
-      this->CreatePlaneFromContourData(contourData_LPS, aPlane);
-      tempPlanes.push_back(aPlane);
+      vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
+      this->CreatePlaneFromContourData(contourData_LPS, plane);
+      tempPlanes.push_back(plane);
 
       unsigned int contourIndex = tempCellArray->InsertNextCell(numberOfPoints+1);
       for (int k=0; k<numberOfPoints; k++)

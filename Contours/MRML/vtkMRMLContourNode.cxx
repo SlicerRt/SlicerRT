@@ -43,8 +43,9 @@
 #include <vtkCollection.h>
 #include <vtkIntArray.h>
 #include <vtkObjectFactory.h>
-#include <vtkPlane.h>
 #include <vtkSmartPointer.h>
+#include <vtkPlane.h>
+#include <vtkPlaneCollection.h>
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourNode);
@@ -70,6 +71,8 @@ vtkMRMLContourNode::vtkMRMLContourNode()
   this->RasterizationOversamplingFactor = -1.0;
   this->DecimationTargetReductionFactor = -1.0;
 
+  this->OrderedContourPlanes.clear();
+
   this->HideFromEditorsOff();
 
   // Register parent transform modified event so that the representations
@@ -87,6 +90,8 @@ vtkMRMLContourNode::~vtkMRMLContourNode()
   this->SetAndObserveClosedSurfaceModelNodeId(NULL);
   this->SetRasterizationReferenceVolumeNodeId(NULL);
   this->SetDicomRtRoiPoints(NULL);
+
+  this->OrderedContourPlanes.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -748,16 +753,16 @@ const std::map<double, vtkSmartPointer<vtkPlane> >& vtkMRMLContourNode::GetOrder
 }
 
 //----------------------------------------------------------------------------
-vtkPlaneCollection* vtkMRMLContourNode::GetOrderedContourPlanes()
+vtkPlaneCollection* vtkMRMLContourNode::GetOrderedContourPlanesVtk() const
 {
-  vtkPlaneCollection* aCollection = vtkPlaneCollection::New();
-  for( std::map<double, vtkSmartPointer<vtkPlane> >::iterator it = this->OrderedContourPlanes.begin(); it != this->OrderedContourPlanes.end(); ++it)
+  vtkPlaneCollection* planeCollection = vtkPlaneCollection::New();
+  std::map<double, vtkSmartPointer<vtkPlane> >::const_iterator planesIt;
+  for (planesIt = this->OrderedContourPlanes.begin(); planesIt != this->OrderedContourPlanes.end(); ++planesIt)
   {
-    aCollection->AddItem(it->second.GetPointer());
+    planeCollection->AddItem(planesIt->second.GetPointer());
   }
-  return aCollection;
+  return planeCollection;
 }
-
 
 //----------------------------------------------------------------------------
 std::vector<vtkMRMLDisplayableNode*> vtkMRMLContourNode::CreateTemporaryRepresentationsVector()
