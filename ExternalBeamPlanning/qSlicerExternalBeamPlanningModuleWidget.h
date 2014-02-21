@@ -13,8 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -30,6 +30,8 @@
 
 class qSlicerExternalBeamPlanningModuleWidgetPrivate;
 class vtkMRMLNode;
+class vtkMRMLExternalBeamPlanningNode;
+class vtkMRMLRTBeamNode;
 class QString;
 class QTableWidgetItem;
 
@@ -60,6 +62,7 @@ public slots:
   void updateWidgetFromMRML();
 
 protected slots:
+  ///
   void onLogicModified();
 
   void referenceVolumeNodeChanged(vtkMRMLNode*);
@@ -89,20 +92,36 @@ protected slots:
   void MLCPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
 
   void tableWidgetItemClicked(QTableWidgetItem *item);
+  void tableWidgetItemSelectionChanged();
 
   /* Calculation buttons */
   void calculateDoseClicked();
   void calculateWEDClicked();
 
 protected:
-  QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;
-
+  ///
   virtual void setup();
+
+  ///
   void onEnter();
 
+  ///
   void updateRTBeamTableWidget();
 
+  ///
   void updateBeamParameters();
+
+  ///
+  vtkMRMLRTBeamNode* getCurrentBeamNode(vtkMRMLExternalBeamPlanningNode*);
+
+  ///
+  void UpdateBeamTransform();
+
+  ///
+  void UpdateBeamGeometryModel();
+
+protected:
+  QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerExternalBeamPlanningModuleWidget);

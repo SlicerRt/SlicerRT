@@ -13,8 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -197,11 +197,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamTransform(char *beamnam
 
   vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
-  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
-  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode();
 
   // Make sure inputs are initialized
-  if (!rtPlanNode || !isocenterMarkupsNode || !referenceVolumeNode)// || !MLCPositionDoubleArrayNode)
+  if (!rtPlanNode || !referenceVolumeNode)
   {
     vtkErrorMacro("UpdateBeamTransform: Inputs are not initialized!")
     return;
@@ -225,10 +223,24 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamTransform(char *beamnam
     }
   }
 
+  // Make sure inputs are initialized
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    return;
+  }
+  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
+  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
+  if (!isocenterMarkupsNode || !MLCPositionDoubleArrayNode)
+  {
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    return;
+  }
+
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->Identity();
-  transform->RotateZ(this->ExternalBeamPlanningNode->GetGantryAngle());
-  transform->RotateY(this->ExternalBeamPlanningNode->GetCollimatorAngle());
+  transform->RotateZ(beamNode->GetGantryAngle());
+  transform->RotateY(beamNode->GetCollimatorAngle());
   transform->RotateX(-90);
 
   vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
@@ -261,11 +273,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
 
   vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
-  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
-  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode();
 
   // Make sure inputs are initialized
-  if (!rtPlanNode || !isocenterMarkupsNode || !referenceVolumeNode)// || !MLCPositionDoubleArrayNode)
+  if (!rtPlanNode || !referenceVolumeNode)
   {
     vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
     return;
@@ -273,8 +283,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
 
   vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
   rtPlanNode->GetRTBeamNodes(beams);
-  // Fill the table
-  if (!beams) return;
+  if (!beams) 
+  {
+    return;
+  }
   vtkMRMLRTBeamNode* beamNode = NULL;
   for (int i=0; i<beams->GetNumberOfItems(); ++i)
   {
@@ -283,20 +295,33 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
     {
       if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
       {
-        //RTPlanNode->RemoveRTBeamNode(beamNode);
         break;
       }
     }
   }
 
+  // Make sure inputs are initialized
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    return;
+  }
+  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
+  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
+  if (!isocenterMarkupsNode || !MLCPositionDoubleArrayNode)
+  {
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    return;
+  }
+
   vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
 
   vtkSmartPointer<vtkPolyData> beamModelPolyData = this->CreateBeamPolyData(
-	  this->ExternalBeamPlanningNode->GetX1Jaw(),
-	  this->ExternalBeamPlanningNode->GetX2Jaw(), 
-	  this->ExternalBeamPlanningNode->GetY1Jaw(),
-	  this->ExternalBeamPlanningNode->GetY2Jaw(),
-	  this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode()->GetArray());
+	  beamNode->GetX1Jaw(),
+	  beamNode->GetX2Jaw(), 
+	  beamNode->GetY1Jaw(),
+	  beamNode->GetY2Jaw(),
+	  beamNode->GetMLCPositionDoubleArrayNode()->GetArray());
 
   beamModelNode->SetAndObservePolyData(beamModelPolyData);
 }
@@ -317,6 +342,7 @@ vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBea
 
   double Y2LeavePosition[40];
   double Y1LeavePosition[40];
+
   // Calculate Y2 first
   for (int i = X2count; i >= -X1count; i--)
   {
@@ -347,10 +373,6 @@ vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBea
   // Create beam model
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   points->InsertPoint(0,0,0,1000);
-  //points->InsertPoint(1,Y1*2,-X1*2, -1000 );
-  //points->InsertPoint(2,Y1*2,X2*2, -1000 );
-  //points->InsertPoint(3,-Y2*2,X2*2, -1000 );
-  //points->InsertPoint(4,-Y2*2,-X1*2, -1000 );
 
   int count = 1;
   for (int i = X2count; i > -X1count; i--)
@@ -389,19 +411,14 @@ vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBea
      cellArray->InsertCellPoint(i);
      cellArray->InsertCellPoint(i+1);
   }
+
   // Add connection between Y2 and Y1
-	 cellArray->InsertNextCell(3);
-     cellArray->InsertCellPoint(0);
-     cellArray->InsertCellPoint(2*numPointsEachSide);
-     cellArray->InsertCellPoint(1);
+  cellArray->InsertNextCell(3);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(2*numPointsEachSide);
+  cellArray->InsertCellPoint(1);
 
-  //// add the last side triangle to close the last with first point.
-  //cellArray->InsertNextCell(3);
-  //cellArray->InsertCellPoint(0);
-  //cellArray->InsertCellPoint(n);
-  //cellArray->InsertCellPoint(1);
-
-  // add the cap to the bottom
+  // Add the cap to the bottom
   cellArray->InsertNextCell(2*numPointsEachSide);
   for (int i = 1; i <= 2*numPointsEachSide; i++)
   {
@@ -427,8 +444,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
+  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode();
+  
   // Make sure inputs are initialized
-  if (!rtPlanNode || !isocenterMarkupsNode )
+  if (!rtPlanNode || !isocenterMarkupsNode || !MLCPositionDoubleArrayNode)
   {
     vtkErrorMacro("AddBeam: Inputs are not initialized!")
     return;
@@ -440,19 +459,12 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
   // Create beam model
-  //vtkSmartPointer<vtkConeSource> coneSource = vtkSmartPointer<vtkConeSource>::New();
-  //double baseRadius = 2;
-  //coneSource->SetRadius(baseRadius*2.0*sqrt(2.0));
-  //coneSource->SetHeight(100*2.0);
-  //coneSource->SetResolution(4);
-  //coneSource->SetDirection(0,1,0);
-  //coneSource->Update();
   vtkSmartPointer<vtkPolyData> beamModelPolyData = this->CreateBeamPolyData(
 	  this->ExternalBeamPlanningNode->GetX1Jaw(),
 	  this->ExternalBeamPlanningNode->GetX2Jaw(), 
 	  this->ExternalBeamPlanningNode->GetY1Jaw(),
 	  this->ExternalBeamPlanningNode->GetY2Jaw(),
-	  this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode()->GetArray());
+	  MLCPositionDoubleArrayNode->GetArray());
 
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->Identity();
@@ -473,19 +485,26 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   transformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->AddNode(transformNode));
   transformNode->SetAndObserveMatrixTransformToParent(transform->GetMatrix());
   
+  std::string rtBeamNodeName;
+  std::string rtBeamModelNodeName;
+  rtBeamNodeName = std::string("RTBeam");
+  rtBeamNodeName = this->GetMRMLScene()->GenerateUniqueName(rtBeamNodeName);
+  rtBeamModelNodeName = rtBeamNodeName + "_SurfaceModel";
+
   // Create rtbeam model node
   vtkSmartPointer<vtkMRMLModelNode> RTBeamModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
   RTBeamModelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(RTBeamModelNode));
-  //RTBeamNode->SetBeamName("BeamName");
+  RTBeamModelNode->SetName(rtBeamModelNodeName.c_str());
   RTBeamModelNode->SetAndObservePolyData(beamModelPolyData);
   RTBeamModelNode->SetAndObserveTransformNodeID(transformNode->GetID());
   RTBeamModelNode->HideFromEditorsOff();
 
-  // create model node for beam
+  // Create model node for beam
   vtkSmartPointer<vtkMRMLModelDisplayNode> RTBeamModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
   RTBeamModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(RTBeamModelDisplayNode));
   RTBeamModelDisplayNode->SetColor(0.0, 1.0, 0.0);
   RTBeamModelDisplayNode->SetOpacity(0.3);
+
   // Disable backface culling to make the back side of the contour visible as well
   RTBeamModelDisplayNode->SetBackfaceCulling(0);
   RTBeamModelDisplayNode->HideFromEditorsOff();
@@ -496,12 +515,27 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   // Create rtbeam node
   vtkSmartPointer<vtkMRMLRTBeamNode> RTBeamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
   RTBeamNode = vtkMRMLRTBeamNode::SafeDownCast(this->GetMRMLScene()->AddNode(RTBeamNode));
-  RTBeamNode->SetBeamName("BeamName");
+  RTBeamNode->SetBeamName(rtBeamNodeName.c_str());
   RTBeamNode->SetAndObserveBeamModelNodeId(RTBeamModelNode->GetID());
   RTBeamNode->HideFromEditorsOff();
 
   // Put the RTBeam node in the hierarchy
   rtPlanNode->AddRTBeamNode(RTBeamNode);
+
+  //RTBeamNode->SetBeamName(this->ExternalBeamPlanningNode->GetBeamName());
+  this->ExternalBeamPlanningNode->SetBeamName(RTBeamNode->GetBeamName());
+
+  RTBeamNode->SetX1Jaw(this->ExternalBeamPlanningNode->GetX1Jaw());
+  RTBeamNode->SetX2Jaw(this->ExternalBeamPlanningNode->GetX2Jaw());
+  RTBeamNode->SetY1Jaw(this->ExternalBeamPlanningNode->GetY1Jaw());
+  RTBeamNode->SetY2Jaw(this->ExternalBeamPlanningNode->GetY2Jaw());
+  RTBeamNode->SetAndObserveMLCPositionDoubleArrayNode(this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode());
+  RTBeamNode->SetAndObserveIsocenterFiducialNode(this->ExternalBeamPlanningNode->GetIsocenterFiducialNode());
+  // RTBeamNode->SetAndObserveProtonTargetContourNode(this->ExternalBeamPlanningNode->GetProtonTargetContourNode());
+
+  RTBeamNode->SetGantryAngle(this->ExternalBeamPlanningNode->GetGantryAngle());
+  RTBeamNode->SetCollimatorAngle(this->ExternalBeamPlanningNode->GetCollimatorAngle());
+  RTBeamNode->SetCouchAngle(this->ExternalBeamPlanningNode->GetCouchAngle());
 
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 

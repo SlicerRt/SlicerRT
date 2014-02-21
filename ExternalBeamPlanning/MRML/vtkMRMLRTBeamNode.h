@@ -2,7 +2,7 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -13,8 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -34,6 +34,9 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLDisplayableNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLModelNode;
+class vtkMRMLMarkupsFiducialNode;
+class vtkMRMLContourNode;
+class vtkMRMLDoubleArrayNode;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLDisplayableNode
@@ -101,21 +104,6 @@ public:
   vtkSetStringMacro(BeamDescription);
 
   /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(SAD, double);
-  vtkSetMacro(SAD, double);
-
-  /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(GantryAngle, double);
-  vtkSetMacro(GantryAngle, double);
-
-  /// Get beam model node ID
-  vtkGetStringMacro(BeamModelNodeId);
-  /// Get ribbon model node
-  vtkMRMLModelNode* GetBeamModelNode();
-  /// Set and observe ribbon model node
-  void SetAndObserveBeamModelNodeId(const char *nodeID);
-
-  /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(NominalEnergy, double);
   vtkSetMacro(NominalEnergy, double);
 
@@ -131,7 +119,69 @@ public:
   vtkGetMacro(RxDose, double);
   vtkSetMacro(RxDose, double);
 
+  vtkGetMacro(X1Jaw, double);
+  vtkSetMacro(X1Jaw, double);
+  vtkGetMacro(X2Jaw, double);
+  vtkSetMacro(X2Jaw, double);
+  vtkGetMacro(Y1Jaw, double);
+  vtkSetMacro(Y1Jaw, double);
+  vtkGetMacro(Y2Jaw, double);
+  vtkSetMacro(Y2Jaw, double);
+
+  /// Get/Set Save labelmaps checkbox state
+  vtkGetMacro(GantryAngle, double);
+  vtkSetMacro(GantryAngle, double);
+
+  /// 
+  vtkGetMacro(CollimatorAngle, double);
+  vtkSetMacro(CollimatorAngle, double);
+
+  ///
+  vtkGetMacro(CouchAngle, double);
+  vtkSetMacro(CouchAngle, double);
+
+  ///
+  vtkGetMacro(Smearing, double);
+  vtkSetMacro(Smearing, double);
+  
+  ///
+  vtkGetMacro(ProximalMargin, double);
+  vtkSetMacro(ProximalMargin, double);
+  
+  ///
+  vtkGetMacro(DistalMargin, double);
+  vtkSetMacro(DistalMargin, double);
+ 
+  /// Get/Set Save labelmaps checkbox state
+  vtkGetMacro(SAD, double);
+  vtkSetMacro(SAD, double);
+
+  /// Get beam model node ID
+  vtkGetStringMacro(BeamModelNodeId);
+
+  /// Get ribbon model node
+  vtkMRMLModelNode* GetBeamModelNode();
+
+  /// Set and observe ribbon model node
+  void SetAndObserveBeamModelNodeId(const char *nodeID);
+
+  ///
   vtkMRMLRTPlanNode* GetRTPlanNode();
+
+  /// Get isocenter fiducial node
+  vtkMRMLMarkupsFiducialNode* GetIsocenterFiducialNode();
+  /// Set and observe isocenter fiducial node
+  void SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node);
+
+  /// Get proton target contour node
+  vtkMRMLContourNode* GetProtonTargetContourNode();
+  /// Set and observe proton target contour node
+  void SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node);
+
+  /// Get MLC position double array node
+  vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
+  /// Set and observe MLC position double array node
+  void SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
 
 protected:
   /// Set beam model node ID
@@ -148,23 +198,34 @@ protected:
   char* BeamName;
   int   BeamNumber;
   char* BeamDescription;
-  RTBeamType  BeamType;
   RTRadiationType RadiationType;
-  double SAD;
+
+  RTBeamType  BeamType;
+  RTCollimatorType CollimatorType;
+  double NominalEnergy;
+  double NominalmA;
+  double RxDose;
+  double BeamOnTime;
+  double X1Jaw;
+  double X2Jaw;
+  double Y1Jaw;
+  double Y2Jaw;
+
   double Isocenter[3];
   double GantryAngle;
-  RTCollimatorType CollimatorType;
+  double CollimatorAngle;
+  double CouchAngle;
+
+  double Smearing;
+  double ProximalMargin;
+  double DistalMargin;
+  double SAD;
 
   /// Beam model representation
   vtkMRMLModelNode* BeamModelNode;
   
   /// Ribbon model representation model node ID
   char* BeamModelNodeId;
-
-  double NominalEnergy;
-  double NominalmA;
-  double RxDose;
-  double BeamOnTime;
 };
 
 #endif // __vtkMRMLRTBeamNode_h

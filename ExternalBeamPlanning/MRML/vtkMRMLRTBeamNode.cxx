@@ -2,7 +2,7 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -13,8 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -27,6 +27,7 @@
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanHierarchyNode.h"
 #include "vtkMRMLRTPlanNode.h"
+#include "vtkMRMLContourNode.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -36,6 +37,8 @@
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelHierarchyNode.h>
+#include <vtkMRMLDoubleArrayNode.h>
+#include <vtkMRMLMarkupsFiducialNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -47,30 +50,45 @@
 #include <vtkCollection.h>
 
 //------------------------------------------------------------------------------
+static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
+static const char* PROTON_TARGET_CONTOUR_REFERENCE_ROLE = "protonTargetContourRef";
+static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
+
+//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTBeamNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 {
   this->BeamName = NULL;
-  this->BeamNumber = 0.0;
+  this->SetBeamName("RTBeam");
+  this->BeamNumber = 0;
   this->BeamDescription = NULL;
-  this->BeamType = Static;
   this->RadiationType = Photon;
-  this->SAD = 0.0;
-  this->Isocenter[0] = 0.0;
-  this->Isocenter[1] = 0.0;
-  this->Isocenter[2] = 0.0;
-  this->GantryAngle = 0.0;
-  this->CollimatorType = SquareHalfMM;
 
-  this->BeamModelNode = NULL;
-  this->BeamModelNodeId = NULL;
-
+  this->BeamType = Static;
   this->NominalEnergy = 0.0;
   this->NominalmA = 0.0;
   this->RxDose = 0.0;
   this->BeamOnTime = 0.0;
+  this->X1Jaw = 100;
+  this->X2Jaw = 100;
+  this->Y1Jaw = 100;
+  this->Y2Jaw = 100;
+
+  this->GantryAngle = 0;
+  this->CollimatorAngle = 0;
+  this->CouchAngle = 0;
+  this->Isocenter[0] = 0.0;
+  this->Isocenter[1] = 0.0;
+  this->Isocenter[2] = 0.0;
+
+  this->CollimatorType = SquareHalfMM;
+
+  this->SAD = 0.0;
+
+  this->BeamModelNode = NULL;
+  this->BeamModelNodeId = NULL;
 
   this->HideFromEditorsOff();
 
@@ -189,6 +207,42 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   Superclass::PrintSelf(os,indent);
 
   os << indent << "BeamModelNodeId:   " << (this->BeamModelNodeId ? this->BeamModelNodeId : "NULL") << "\n";
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLMarkupsFiducialNode* vtkMRMLRTBeamNode::GetIsocenterFiducialNode()
+{
+  return vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference(ISOCENTER_FIDUCIAL_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node)
+{
+  this->SetNodeReferenceID(ISOCENTER_FIDUCIAL_REFERENCE_ROLE, node->GetID());
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLContourNode* vtkMRMLRTBeamNode::GetProtonTargetContourNode()
+{
+  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(PROTON_TARGET_CONTOUR_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node)
+{
+  this->SetNodeReferenceID(PROTON_TARGET_CONTOUR_REFERENCE_ROLE, node->GetID());
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLDoubleArrayNode* vtkMRMLRTBeamNode::GetMLCPositionDoubleArrayNode()
+{
+  return vtkMRMLDoubleArrayNode::SafeDownCast( this->GetNodeReference(MLCPOSITION_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
+{
+  this->SetNodeReferenceID(MLCPOSITION_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------

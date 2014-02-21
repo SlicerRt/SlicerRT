@@ -89,7 +89,9 @@ QStringList qSlicerExternalBeamPlanningModule::categories() const
 QStringList qSlicerExternalBeamPlanningModule::contributors() const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Kevin Wang (PMH, Toronto)");
+  moduleContributors << QString("Kevin Wang (Princess Margaret Cancer Centre)");
+  moduleContributors << QString("Maxime Desplanques (CNAO, Italy)");
+  moduleContributors << QString("Greg Sharp (MGH)");
   return moduleContributors;
 }
 

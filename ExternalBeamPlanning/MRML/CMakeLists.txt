@@ -5,6 +5,7 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
+  ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
   )
 
@@ -27,6 +28,8 @@ SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
+  vtkSlicerMarkupsModuleMRML
+  vtkSlicerContoursModuleMRML
   MRMLCore
   )
 

@@ -2,7 +2,7 @@
 
   Program: 3D Slicer
 
-  Copyright (c) Kitware Inc.
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -13,8 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -42,10 +42,10 @@
 
 //------------------------------------------------------------------------------
 static const char* RFERENCE_VOLUME_REFERENCE_ROLE = "referenceVolumeRef";
-static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
 static const char* RT_PLAN_REFERENCE_ROLE = "rtPlanRef";
 static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
 static const char* PROTON_TARGET_CONTOUR_REFERENCE_ROLE = "protonTargetContourRef";
+static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLExternalBeamPlanningNode);
@@ -53,13 +53,33 @@ vtkMRMLNodeNewMacro(vtkMRMLExternalBeamPlanningNode);
 //----------------------------------------------------------------------------
 vtkMRMLExternalBeamPlanningNode::vtkMRMLExternalBeamPlanningNode()
 {
+  this->BeamName = NULL;
+  this->SetBeamName("RTBeam");
+  this->BeamNumber = 0;
+  this->BeamDescription = NULL;
+  this->RadiationType = Photon;
+
+  this->BeamType = Static;
+  this->NominalEnergy = 0.0;
+  this->NominalmA = 0.0;
+  this->RxDose = 0.0;
+  this->BeamOnTime = 0.0;
   this->X1Jaw = 100;
   this->X2Jaw = 100;
   this->Y1Jaw = 100;
   this->Y2Jaw = 100;
+
   this->GantryAngle = 0;
   this->CollimatorAngle = 0;
   this->CouchAngle = 0;
+  this->Isocenter[0] = 0.0;
+  this->Isocenter[1] = 0.0;
+  this->Isocenter[2] = 0.0;
+
+  this->CollimatorType = SquareHalfMM;
+
+  this->SAD = 0.0;
+
   this->HideFromEditors = false;
 }
 
@@ -163,4 +183,5 @@ void vtkMRMLExternalBeamPlanningNode::SetAndObserveMLCPositionDoubleArrayNode(vt
 {
   this->SetNodeReferenceID(MLCPOSITION_REFERENCE_ROLE, node->GetID());
 }
+
 
