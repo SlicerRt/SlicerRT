@@ -545,7 +545,7 @@
       <item row="1" column="1">
        <widget class="QCheckBox" name="checkBox_ShowDoseVolumesOnly">
         <property name="text">
-         <string>Show Dose Volumes Only</string>
+         <string>Show dose volumes only</string>
         </property>
         <property name="checked">
          <bool>true</bool>
