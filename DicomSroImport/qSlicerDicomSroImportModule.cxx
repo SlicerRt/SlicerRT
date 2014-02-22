@@ -108,7 +108,7 @@ QStringList qSlicerDicomSroImportModule::categories()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerDicomSroImportModule::dependencies()const
 {
-  return QStringList() << "";
+  return QStringList();
 }
 
 //-----------------------------------------------------------------------------
