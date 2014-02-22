@@ -51,10 +51,13 @@ public:
   /// the highest confidence number will "own" the node in the subject hierarchy (set icon, tooltip,
   /// set context menu etc.)
   /// \param node Note to handle in the subject hierarchy tree
-  /// \param role Output argument for the role that the plugin assigns to the subject hierarchy node
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node, QString &role=QString());
+  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
+
+  /// Get role that the plugin assigns to the subject hierarchy node.
+  ///   Each plugin should provide only one role.
+  virtual const QString roleForPlugin()const;
 
   /// Set icon of a owned subject hierarchy node
   /// \return Flag indicating whether setting an icon was successful

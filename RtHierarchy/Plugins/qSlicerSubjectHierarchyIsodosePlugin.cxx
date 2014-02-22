@@ -91,10 +91,8 @@ qSlicerSubjectHierarchyIsodosePlugin::~qSlicerSubjectHierarchyIsodosePlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyNode(
-  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
+double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
 {
-  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -112,11 +110,16 @@ double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyNode(
   if ( associatedNode && associatedNode->IsA("vtkMRMLModelNode")
     && parentHierarchyNodeName.contains(SlicerRtCommon::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
   {
-    role = QString("Isodose surface");
     return 1.0;
   }
 
   return 0.0;
+}
+
+//---------------------------------------------------------------------------
+const QString qSlicerSubjectHierarchyIsodosePlugin::roleForPlugin()const
+{
+  return "Isodose surface";
 }
 
 //---------------------------------------------------------------------------

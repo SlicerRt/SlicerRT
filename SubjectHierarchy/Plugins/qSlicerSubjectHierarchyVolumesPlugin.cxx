@@ -126,10 +126,8 @@ qSlicerSubjectHierarchyVolumesPlugin::~qSlicerSubjectHierarchyVolumesPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(
-  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
+double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
 {
-  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -140,11 +138,16 @@ double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(
   vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
   if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
   {
-    role = QString("Scalar volume");
     return 0.5; // There are other plugins that can handle special volume nodes better, thus the relatively low value
   }
 
   return 0.0;
+}
+
+//---------------------------------------------------------------------------
+const QString qSlicerSubjectHierarchyVolumesPlugin::roleForPlugin()const
+{
+  return "Scalar volume";
 }
 
 //---------------------------------------------------------------------------

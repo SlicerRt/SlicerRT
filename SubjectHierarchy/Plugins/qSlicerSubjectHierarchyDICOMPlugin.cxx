@@ -121,10 +121,8 @@ qSlicerSubjectHierarchyDICOMPlugin::~qSlicerSubjectHierarchyDICOMPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyNode(
-  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
+double qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
 {
-  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -134,23 +132,51 @@ double qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyNode(
   // Subject level
   if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
   {
-    role = QString("Patient");
     return 0.7;
   }
   // Study level (so that creation of a generic series is possible)
   if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
-    role = QString("Study");
     return 0.3;
   }
   // Series level
   if (node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES))
   {
-    role = QString("Generic series");
     return 0.3;
   }
 
   return 0.0;
+}
+
+//---------------------------------------------------------------------------
+const QString qSlicerSubjectHierarchyDICOMPlugin::roleForPlugin()const
+{
+  // Get current node to determine tole
+  //TODO: This is a workaround, needs to be fixed (each plugin should provide only one role!)
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  if (!currentNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchyDICOMPlugin::roleForPlugin: Invalid current node!";
+    return "Error!";
+  }
+
+  // Subject level
+  if (currentNode->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
+  {
+    return "Patient";
+  }
+  // Study level (so that creation of a generic series is possible)
+  if (currentNode->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  {
+    return "Study";
+  }
+  // Series level
+  if (currentNode->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES))
+  {
+    return "Generic series";
+  }
+
+  return QString("Error!");
 }
 
 //---------------------------------------------------------------------------

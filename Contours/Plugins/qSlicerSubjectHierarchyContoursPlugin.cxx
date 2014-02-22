@@ -118,10 +118,8 @@ qSlicerSubjectHierarchyContoursPlugin::~qSlicerSubjectHierarchyContoursPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyContoursPlugin::canOwnSubjectHierarchyNode(
-  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
+double qSlicerSubjectHierarchyContoursPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
 {
-  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyContoursPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -133,11 +131,16 @@ double qSlicerSubjectHierarchyContoursPlugin::canOwnSubjectHierarchyNode(
   // Contour
   if ( associatedNode && associatedNode->IsA("vtkMRMLContourNode") )
   {
-    role = QString("Contour");
     return 1.0; // Only the Contours plugin can handle this node
   }
 
   return 0.0;
+}
+
+//---------------------------------------------------------------------------
+const QString qSlicerSubjectHierarchyContoursPlugin::roleForPlugin()const
+{
+  return "Contour";
 }
 
 //---------------------------------------------------------------------------

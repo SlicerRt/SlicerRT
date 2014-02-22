@@ -91,10 +91,8 @@ qSlicerSubjectHierarchyRtBeamPlugin::~qSlicerSubjectHierarchyRtBeamPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode(
-  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
+double qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
 {
-  role = QString();
   if (!node)
   {
     qCritical() << "qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
@@ -115,11 +113,16 @@ double qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode(
     && ( parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX.c_str())
       || hierarchyNodeName.startsWith(SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX.c_str()) ) )
   {
-    role = QString("RT beam");
     return 1.0;
   }
 
   return 0.0;
+}
+
+//---------------------------------------------------------------------------
+const QString qSlicerSubjectHierarchyRtBeamPlugin::roleForPlugin()const
+{
+  return "RT beam";
 }
 
 //---------------------------------------------------------------------------

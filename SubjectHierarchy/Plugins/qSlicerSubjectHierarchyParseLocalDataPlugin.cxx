@@ -99,13 +99,17 @@ qSlicerSubjectHierarchyParseLocalDataPlugin::~qSlicerSubjectHierarchyParseLocalD
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyParseLocalDataPlugin::canOwnSubjectHierarchyNode(
-  vtkMRMLSubjectHierarchyNode* node, QString &role/*=QString()*/)
+double qSlicerSubjectHierarchyParseLocalDataPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_UNUSED(node);
 
-  role = QString();
   return 0.0;
+}
+
+//---------------------------------------------------------------------------
+const QString qSlicerSubjectHierarchyParseLocalDataPlugin::roleForPlugin()const
+{
+  return QString("N/A");
 }
 
 //---------------------------------------------------------------------------

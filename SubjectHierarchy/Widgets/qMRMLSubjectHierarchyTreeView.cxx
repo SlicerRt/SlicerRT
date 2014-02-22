@@ -279,8 +279,7 @@ void qMRMLSubjectHierarchyTreeView::updateSelectPluginActions()
     // Get confidence numbers and show the plugins with non-zero confidence
     qSlicerSubjectHierarchyAbstractPlugin* currentPlugin = 
       qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName( currentSelectPluginAction->data().toString() );
-    QString role = QString();
-    double confidenceNumber = currentPlugin->canOwnSubjectHierarchyNode(currentNode, role);
+    double confidenceNumber = currentPlugin->canOwnSubjectHierarchyNode(currentNode);
 
     if (confidenceNumber <= 0.0 && !isOwner)
     {
@@ -289,6 +288,7 @@ void qMRMLSubjectHierarchyTreeView::updateSelectPluginActions()
     else
     {
       // Set text to display for the role
+      QString role = currentPlugin->roleForPlugin();
       QString currentSelectPluginActionText = QString("%1: '%2', (%3%)").arg(
         role).arg(currentPlugin->displayedName(currentNode)).arg(confidenceNumber*100.0, 0, 'f', 0);
       currentSelectPluginAction->setText(currentSelectPluginActionText);
