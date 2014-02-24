@@ -37,7 +37,7 @@
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
-#include <vtkMRMLDoublearrayNode.h>
+#include <vtkMRMLDoubleArrayNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>

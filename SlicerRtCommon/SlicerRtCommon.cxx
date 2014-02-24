@@ -409,7 +409,7 @@ bool SlicerRtCommon::OrderPlanesAlongNormal( std::vector<vtkSmartPointer<vtkPlan
   std::map<double, vtkVector3<double> > intermediateSortMap;
   // Iterate over each plane
   vtkVector3<double> lastNormal;
-  for(  std::vector<vtkSmartPointer<vtkPlane>>::iterator it = inputPlanes.begin(); it != inputPlanes.end(); ++it )
+  for(  std::vector<vtkSmartPointer<vtkPlane> >::iterator it = inputPlanes.begin(); it != inputPlanes.end(); ++it )
   {
     // For each plane, re-encase it in friendly vtk classes
     vtkVector3<double> origin((*it)->GetOrigin()[0], (*it)->GetOrigin()[1], (*it)->GetOrigin()[2]);
