@@ -28,13 +28,16 @@
 #include "vtkMRMLRTPlanHierarchyNode.h"
 
 // SlicerRT includes
+#include "PlmCommon.h"
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
 
 // Plastimatch includes
+#include "plm_image.h"
 #include "ion_beam.h"
 #include "ion_plan.h"
 #include "itk_image_save.h"
+#include "itk_image_stats.h"
 #include "rpl_volume.h"
 
 // MRML includes
@@ -624,20 +627,32 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     return;
   }
 
-  // Convert input images to ITK format for Plastimatch
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
-  itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
+  Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(
+    this->ExternalBeamPlanningNode->GetReferenceVolumeNode());
+  plmRef->print ();
 
   vtkMRMLContourNode* targetContourNode = this->ExternalBeamPlanningNode->GetProtonTargetContourNode();
-  vtkMRMLScalarVolumeNode* targetVolumeNode = targetContourNode->GetIndexedLabelmapVolumeNode();
-  itk::Image<unsigned char, 3>::Pointer targetVolumeItk = itk::Image<unsigned char, 3>::New();
+  Plm_image::Pointer plmTgt = PlmCommon::ConvertVolumeNodeToPlmImage(
+    targetContourNode->GetIndexedLabelmapVolumeNode());
+  plmTgt->print ();
 
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<short>(referenceVolumeNode, referenceVolumeItk);
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(targetVolumeNode, targetVolumeItk);
+#if defined (commentout)
+  double min_val, max_val, avg;
+  int non_zero, num_vox;
+  itk_image_stats (plmRef->m_itk_int32, &min_val, &max_val, &avg, &non_zero, &num_vox);
+  printf ("MIN %f AVE %f MAX %f NONZERO %d NUMVOX %d\n", 
+    (float) min_val, (float) avg, (float) max_val, non_zero, num_vox);
+#endif
+
+  itk::Image<short, 3>::Pointer referenceVolumeItk = plmRef->itk_short();
+  itk::Image<unsigned char, 3>::Pointer targetVolumeItk = plmTgt->itk_uchar();
 
   // Ray tracing code expects identity direction cosines.  This is a hack.
+#if defined (commentout)
+  printf ("(cd 5)\n");
   itk_rectify_volume_hack (referenceVolumeItk);
   itk_rectify_volume_hack (targetVolumeItk);
+#endif
 
   Ion_plan ion_plan;
 
@@ -829,19 +844,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     doseScalarVolumeDisplayNode->SetAutoWindowLevel(0);
     doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, 16.0);
 
-#if defined (commentout)
-    if (this->DefaultGammaColorTableNodeId)
-    {
-      gammaScalarVolumeDisplayNode->SetAndObserveColorNodeID(this->DefaultGammaColorTableNodeId);
-    }
-    else
-    {
-      vtkWarningMacro("ComputeDose: Loading gamma color table failed, stock color table is used!");
-      gammaScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-    }
-#endif
-
-    /* Just do this... */
+    /* Set colormap to rainbow */
     doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
     doseScalarVolumeDisplayNode->SetLowerThreshold (1.0);
     doseScalarVolumeDisplayNode->ApplyThresholdOn ();
