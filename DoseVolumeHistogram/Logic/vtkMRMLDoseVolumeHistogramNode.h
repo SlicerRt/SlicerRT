@@ -64,9 +64,9 @@ public:
   /// Set and observe dose volume node
   void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get contour set node (can be model node or model hierarchy node)
+  /// Get contour set node (can be contour node or contour set (subject hierarchy) node)
   vtkMRMLNode* GetContourSetContourNode();
-  /// Set and observe contour set node (can be model node or model hierarchy node)
+  /// Set and observe contour set node (can be contour node or contour set (subject hierarchy) node)
   void SetAndObserveContourSetContourNode(vtkMRMLNode* node);
 
   /// Get chart node

@@ -16,7 +16,7 @@
  <Model
   id="vtkMRMLModelNode4"  name="BODY_Contour_RibbonModel"  hideFromEditors="false"  selectable="true"  selected="false"  displayNodeRef="vtkMRMLModelDisplayNode5"  storageNodeRef="vtkMRMLModelStorageNode1"  userTags="" ></Model>
  <SubjectHierarchy
-  id="vtkMRMLDisplayableHierarchyNode2"  name="ContourHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Series"  UIDs="DICOM:1.2.246.352.71.2.2088656855.723250.20110920153449"  attributes="DicomRtImport.ContourHierarchy:1;SubjectHierarchy.PatientBirthDate:;SubjectHierarchy.PatientSex:;SubjectHierarchy.SeriesModality:RTSTRUCT;SubjectHierarchy.StudyDate:20110920;SubjectHierarchy.StudyTime:091908"  parentNodeRef="vtkMRMLHierarchyNode6"  sortingValue="19"  allowMultipleChildren="true"  displayNodeID="vtkMRMLModelDisplayNode6"  expanded="true" ></SubjectHierarchy>
+  id="vtkMRMLDisplayableHierarchyNode2"  name="ContourHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Series"  UIDs="DICOM:1.2.246.352.71.2.2088656855.723250.20110920153449"  attributes="DicomRtImport.ContourHierarchy:1;SubjectHierarchy.PatientBirthDate:;SubjectHierarchy.PatientSex:;SubjectHierarchy.SeriesModality:RTSTRUCT;SubjectHierarchy.StudyDate:20110920;SubjectHierarchy.StudyTime:091908"  references="contourSetColorTableRef:vtkMRMLColorTableNode3;"  parentNodeRef="vtkMRMLHierarchyNode6"  sortingValue="19"  allowMultipleChildren="true"  displayNodeID="vtkMRMLModelDisplayNode6"  expanded="true" ></SubjectHierarchy>
  <Contour
   id="vtkMRMLContourNode1"  name="BODY_Contour"  hideFromEditors="false"  selectable="true"  selected="false"  userTags=""  RibbonModelNodeId="vtkMRMLModelNode4"  ActiveRepresentationType="0"  RasterizationReferenceVolumeNodeId="vtkMRMLScalarVolumeNode1"  RasterizationOversamplingFactor="-1"  DecimationTargetReductionFactor="-1" ></Contour>
  <SubjectHierarchy
@@ -53,8 +53,6 @@
   id="vtkMRMLDisplayableHierarchyNode8"  name="Rectum_Contour_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Subseries"  attributes="DicomRtImport.StructureName:Rectum"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLContourNode6"  sortingValue="14"  allowMultipleChildren="true"  expanded="true" ></SubjectHierarchy>
  <ModelHierarchy
   id="vtkMRMLModelHierarchyNode7"  name="ModelHierarchy_5"  hideFromEditors="false"  selectable="true"  selected="false"  parentNodeRef="vtkMRMLModelHierarchyNode1"  associatedNodeRef="vtkMRMLModelNode14"  sortingValue="15"  allowMultipleChildren="true"  expanded="true" ></ModelHierarchy>
- <SubjectHierarchy
-  id="vtkMRMLHierarchyNode5"  name="3: RTSTRUCT: PROS_ColorTable_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Subseries"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLColorTableNode3"  sortingValue="16"  allowMultipleChildren="true" ></SubjectHierarchy>
  <SubjectHierarchy
   id="vtkMRMLHierarchyNode6"  name="DummyAnatomicalVolume_Series_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Series"  UIDs="DICOM:1.2.840.113619.2.55.3.671756986.106.1316467036.465"  parentNodeRef="vtkMRMLHierarchyNode4"  sortingValue="18"  allowMultipleChildren="true" ></SubjectHierarchy>
  <VolumeArchetypeStorage

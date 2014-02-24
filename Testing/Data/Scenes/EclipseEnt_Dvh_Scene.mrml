@@ -14,7 +14,7 @@
  <Model
   id="vtkMRMLModelNode4"  name="BODY_Contour_RibbonModel"  hideFromEditors="false"  selectable="true"  selected="false"  displayNodeRef="vtkMRMLModelDisplayNode5"  storageNodeRef="vtkMRMLModelStorageNode1"  userTags="" ></Model>
  <SubjectHierarchy
-  id="vtkMRMLDisplayableHierarchyNode2"  name="ContourHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Series"  UIDs="DICOM:1.2.246.352.71.2.2088656855.722865.20110920093221"  attributes="DicomRtImport.ContourHierarchy:1;SubjectHierarchy.PatientBirthDate:;SubjectHierarchy.PatientSex:;SubjectHierarchy.SeriesModality:RTSTRUCT;SubjectHierarchy.StudyDate:20110920;SubjectHierarchy.StudyTime:085705"  parentNodeRef="vtkMRMLHierarchyNode6"  sortingValue="39"  allowMultipleChildren="true"  displayNodeID="vtkMRMLModelDisplayNode6"  expanded="true" ></SubjectHierarchy>
+  id="vtkMRMLDisplayableHierarchyNode2"  name="ContourHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Series"  UIDs="DICOM:1.2.246.352.71.2.2088656855.722865.20110920093221"  attributes="DicomRtImport.ContourHierarchy:1;SubjectHierarchy.PatientBirthDate:;SubjectHierarchy.PatientSex:;SubjectHierarchy.SeriesModality:RTSTRUCT;SubjectHierarchy.StudyDate:20110920;SubjectHierarchy.StudyTime:085705"  references="contourSetColorTableRef:vtkMRMLColorTableNode3;"  parentNodeRef="vtkMRMLHierarchyNode6"  sortingValue="39"  allowMultipleChildren="true"  displayNodeID="vtkMRMLModelDisplayNode6"  expanded="true" ></SubjectHierarchy>
  <Contour
   id="vtkMRMLContourNode1"  name="BODY_Contour"  hideFromEditors="false"  selectable="true"  selected="false"  userTags=""  RibbonModelNodeId="vtkMRMLModelNode4"  ActiveRepresentationType="0"  RasterizationReferenceVolumeNodeId="vtkMRMLScalarVolumeNode1"  RasterizationOversamplingFactor="-1"  DecimationTargetReductionFactor="-1" ></Contour>
  <SubjectHierarchy
@@ -103,8 +103,6 @@
   id="vtkMRMLContourNode16"  name="optOptic_Contour"  hideFromEditors="false"  selectable="true"  selected="false"  userTags=""  RibbonModelNodeId="vtkMRMLModelNode34"  ActiveRepresentationType="0"  RasterizationReferenceVolumeNodeId="vtkMRMLScalarVolumeNode1"  RasterizationOversamplingFactor="-1"  DecimationTargetReductionFactor="-1" ></Contour>
  <SubjectHierarchy
   id="vtkMRMLDisplayableHierarchyNode18"  name="optOptic_Contour_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Subseries"  attributes="DicomRtImport.StructureName:optOptic"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLContourNode16"  sortingValue="34"  allowMultipleChildren="true"  expanded="true" ></SubjectHierarchy>
- <SubjectHierarchy
-  id="vtkMRMLHierarchyNode5"  name="3: RTSTRUCT: ENT_ColorTable_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Subseries"  parentNodeRef="vtkMRMLDisplayableHierarchyNode2"  associatedNodeRef="vtkMRMLColorTableNode3"  sortingValue="36"  allowMultipleChildren="true" ></SubjectHierarchy>
  <SubjectHierarchy
   id="vtkMRMLHierarchyNode6"  name="DummyAnatomicalVolume_Series_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Series"  UIDs="DICOM:1.2.840.113619.2.55.3.671756986.106.1316467036.212"  parentNodeRef="vtkMRMLHierarchyNode4"  sortingValue="38"  allowMultipleChildren="true" ></SubjectHierarchy>
  <VolumeArchetypeStorage

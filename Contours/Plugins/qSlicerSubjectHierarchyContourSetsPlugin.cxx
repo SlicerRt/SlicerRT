@@ -638,14 +638,6 @@ void qSlicerSubjectHierarchyContourSetsPlugin::createChildContourSetForCurrentNo
 //--------------------------------------------------------------------------
 void qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable()
 {
-  // Switch to Colors module
-  qSlicerAbstractCoreModule* colorsModule = qSlicerApplication::application()->moduleManager()->module("Colors");
-  qSlicerAbstractModule* colorsModuleWithAction = qobject_cast<qSlicerAbstractModule*>(colorsModule);
-  if (colorsModuleWithAction)
-  {
-    colorsModuleWithAction->action()->trigger();
-  }
-
   // Get color node for current structure set
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   if (!this->canOwnSubjectHierarchyNode(currentNode))
@@ -661,7 +653,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable()
     return;
   }
 
-  // Set color table as current color node in Colors module
-  //TODO: Colors module cannot be linked
-  //colorsModuleWidget->setCurrentColorNode(colorNode);
+  // Switch to Colors module and set color table as current color node
+  // TODO: Uncomment when related topic is integrated into Slicer core
+  //qSlicerApplication::application()->editNode();
 }
