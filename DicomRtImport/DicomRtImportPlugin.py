@@ -203,6 +203,7 @@ class DicomRtImportPlugin:
         patientName = slicer.dicomDatabase.fileValue(firstFile,tags['patientName'])
         if patientName == '':
           patientName = 'No name'
+        patientName = patientName.encode('UTF-8', 'ignore')
         patientNode.SetName(patientName + '_SubjectHierarchy')
 
     if studyNode == None:
@@ -211,6 +212,7 @@ class DicomRtImportPlugin:
         studyDescription = slicer.dicomDatabase.fileValue(firstFile,tags['studyDescription'])
         if studyDescription == '':
           studyDescription = 'No description'
+        studyDescription = studyDescription.encode('UTF-8', 'ignore')
         studyNode.SetName(studyDescription + '_SubjectHierarchy')
 
 #
