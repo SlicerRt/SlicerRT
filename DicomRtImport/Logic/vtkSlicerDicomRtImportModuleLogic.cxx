@@ -440,6 +440,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         contourNode->SetName(contourNodeName.c_str());
         contourNode->SetAndObserveRibbonModelNodeId(addedDisplayableNode->GetID());
         contourNode->SetDicomRtRoiPoints(roiPolyData);
+        contourNode->SetOrderedContourPlanes(rtReader->GetRoiOrderedContourPlanes(internalROIIndex));
         contourNode->HideFromEditorsOff();
 
         // Put the contour node in the hierarchy
