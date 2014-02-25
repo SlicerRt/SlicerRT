@@ -159,6 +159,27 @@ const std::string SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE = "
 const std::string SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE = "planarImageTexture" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
 
 //----------------------------------------------------------------------------
+// Helper functions
+//----------------------------------------------------------------------------
+namespace
+{
+  bool AreSame(double a, double b)
+  {
+    return fabs(a - b) < EPSILON;
+  }
+
+  bool AreCollinear(const vtkVector3<double>& a, const vtkVector3<double>& b)
+  {
+    if( AreSame(a.X(), b.X()) && AreSame(b.Y(), b.Y()) && AreSame(a.Z(), b.Z()) )
+    {
+      return true;
+    }
+
+    return AreSame(1.0L, abs(a.Dot(b)));
+  }
+}
+
+//----------------------------------------------------------------------------
 // Utility functions
 //----------------------------------------------------------------------------
 
@@ -407,22 +428,29 @@ bool SlicerRtCommon::AreBoundsEqual(int boundsA[6], int boundsB[6])
 bool SlicerRtCommon::OrderPlanesAlongNormal( std::vector<vtkSmartPointer<vtkPlane> > inputPlanes, std::map<double, vtkSmartPointer<vtkPlane> >& outputPlaneOrdering )
 {
   std::map<double, vtkVector3<double> > intermediateSortMap;
+  if( inputPlanes.empty() )
+  {
+    return true;
+  }
+
   // Iterate over each plane
   vtkVector3<double> lastNormal;
-  for(  std::vector<vtkSmartPointer<vtkPlane> >::iterator it = inputPlanes.begin(); it != inputPlanes.end(); ++it )
+  vtkVector3<double> firstNormal((*inputPlanes.begin())->GetNormal()[0], (*inputPlanes.begin())->GetNormal()[1], (*inputPlanes.begin())->GetNormal()[2]);
+
+  for( std::vector<vtkSmartPointer<vtkPlane> >::iterator it = inputPlanes.begin(); it != inputPlanes.end(); ++it )
   {
     // For each plane, re-encase it in friendly vtk classes
     vtkVector3<double> origin((*it)->GetOrigin()[0], (*it)->GetOrigin()[1], (*it)->GetOrigin()[2]);
     vtkVector3<double> normal((*it)->GetNormal()[0], (*it)->GetNormal()[1], (*it)->GetNormal()[2]);
 
     // If this normal the previous normal differ, they are not co-planar
-    if( it != inputPlanes.begin() && ( normal.X() != lastNormal.X() || normal.Y() != lastNormal.Y() || normal.Z() != lastNormal.Z() ) )
+    if( it != inputPlanes.begin() && !AreCollinear(normal, lastNormal) )
     {
       return false;
     }
 
     // Project the origin point onto the normal, this is our metric for distance along the normal line
-    double mag = origin.Dot(normal);
+    double mag = origin.Dot(firstNormal);
     outputPlaneOrdering[mag] = *it;
 
     lastNormal.Set(normal.X(), normal.Y(), normal.Z());

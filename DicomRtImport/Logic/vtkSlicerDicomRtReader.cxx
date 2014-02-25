@@ -1243,7 +1243,11 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
     // Now that I have all planes, lets order them
     std::map<double, vtkSmartPointer<vtkPlane> > orderedPlanes;
-    SlicerRtCommon::OrderPlanesAlongNormal(tempPlanes, orderedPlanes);
+    if( !SlicerRtCommon::OrderPlanesAlongNormal(tempPlanes, orderedPlanes) )
+    {
+      vtkErrorMacro("Unable to order planes along their normal. Set will be empty.");
+      orderedPlanes.clear();
+    }
     roiEntry->OrderedContourPlanes = orderedPlanes;
 
     // Read slice reference UIDs from referenced frame of reference sequence if it was not included in the ROIContourSequence above
