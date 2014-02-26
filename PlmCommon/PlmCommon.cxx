@@ -110,3 +110,10 @@ PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode)
 
   return image;
 }
+
+Plm_image::Pointer 
+PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLNode* inNode)
+{
+  return PlmCommon::ConvertVolumeNodeToPlmImage(
+    vtkMRMLScalarVolumeNode::SafeDownCast(inNode));
+}

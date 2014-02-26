@@ -16,9 +16,10 @@
 ==============================================================================*/
 
 // PlastimatchPy Logic includes
-#include "vtkSlicerPlastimatchPyModuleLogic.h"
+#include "vtkPlmpyRegistration.h"
 
 // SlicerRtCommon
+#include "PlmCommon.h"
 #include "SlicerRtCommon.h"
 
 // MRML includes
@@ -50,10 +51,10 @@
 #include "volume.h"
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerPlastimatchPyModuleLogic);
+vtkStandardNewMacro(vtkPlmpyRegistration);
 
 //----------------------------------------------------------------------------
-vtkSlicerPlastimatchPyModuleLogic::vtkSlicerPlastimatchPyModuleLogic()
+vtkPlmpyRegistration::vtkPlmpyRegistration()
 {
   this->FixedImageID = NULL;
   this->MovingImageID = NULL;
@@ -77,7 +78,7 @@ vtkSlicerPlastimatchPyModuleLogic::vtkSlicerPlastimatchPyModuleLogic()
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerPlastimatchPyModuleLogic::~vtkSlicerPlastimatchPyModuleLogic()
+vtkPlmpyRegistration::~vtkPlmpyRegistration()
 {
   this->SetFixedImageID(NULL);
   this->SetMovingImageID(NULL);
@@ -97,13 +98,13 @@ vtkSlicerPlastimatchPyModuleLogic::~vtkSlicerPlastimatchPyModuleLogic()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlmpyRegistration::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+void vtkPlmpyRegistration::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
@@ -111,7 +112,7 @@ void vtkSlicerPlastimatchPyModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newS
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::RegisterNodes()
+void vtkPlmpyRegistration::RegisterNodes()
 {
   if (!this->GetMRMLScene())
   {
@@ -121,7 +122,7 @@ void vtkSlicerPlastimatchPyModuleLogic::RegisterNodes()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::UpdateFromMRMLScene()
+void vtkPlmpyRegistration::UpdateFromMRMLScene()
 {
   if (!this->GetMRMLScene())
   {
@@ -131,20 +132,21 @@ void vtkSlicerPlastimatchPyModuleLogic::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::AddStage()
+void vtkPlmpyRegistration::AddStage()
 {
   this->RegistrationParameters->append_stage();
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::SetPar(char* key, char* value)
+void vtkPlmpyRegistration::SetPar(char* key, char* value)
 {        
   this->RegistrationParameters->set_key_value("STAGE", key, value);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
+void vtkPlmpyRegistration::RunRegistration()
 {
+#if defined (commentout)
   // Set input images
   vtkMRMLScalarVolumeNode* fixedVtkImage = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
   itk::Image<float, 3>::Pointer fixedItkImage = itk::Image<float, 3>::New();
@@ -158,6 +160,20 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
     new Plm_image(fixedItkImage));
   this->RegistrationData->moving_image = Plm_image::New(
     new Plm_image(movingItkImage));
+#endif
+
+  this->RegistrationData->fixed_image = 
+    PlmCommon::ConvertVolumeNodeToPlmImage(
+      this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
+  this->RegistrationData->moving_image = 
+    PlmCommon::ConvertVolumeNodeToPlmImage(
+      this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
+
+  /* A little debugging information */
+  printf ("Fixed image\n");
+  this->RegistrationData->fixed_image->print ();
+  printf ("Moving image\n");
+  this->RegistrationData->moving_image->print ();
 
   // Set landmarks 
   if (this->FixedLandmarks && this->MovingLandmarks)
@@ -190,7 +206,7 @@ void vtkSlicerPlastimatchPyModuleLogic::RunRegistration()
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::WarpLandmarks()
+void vtkPlmpyRegistration::WarpLandmarks()
 {
   Labeled_pointset warpedPointset;
   pointset_warp(&warpedPointset, this->RegistrationData->moving_landmarks, this->MovingImageToFixedImageVectorField);
@@ -215,7 +231,7 @@ void vtkSlicerPlastimatchPyModuleLogic::WarpLandmarks()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::SetLandmarksFromSlicer()
+void vtkPlmpyRegistration::SetLandmarksFromSlicer()
 {
   if (!this->FixedLandmarks || !this->MovingLandmarks)
     {
@@ -255,7 +271,7 @@ void vtkSlicerPlastimatchPyModuleLogic::SetLandmarksFromSlicer()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::SetLandmarksFromFiles()
+void vtkPlmpyRegistration::SetLandmarksFromFiles()
 {
   if (!this->FixedLandmarksFileName || !this->MovingLandmarksFileName)
     {
@@ -273,7 +289,7 @@ void vtkSlicerPlastimatchPyModuleLogic::SetLandmarksFromFiles()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::ApplyInitialLinearTransformation()
+void vtkPlmpyRegistration::ApplyInitialLinearTransformation()
 {
   if (!this->InitializationLinearTransformationID)
     {
@@ -336,7 +352,7 @@ void vtkSlicerPlastimatchPyModuleLogic::ApplyInitialLinearTransformation()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::ApplyWarp(
+void vtkPlmpyRegistration::ApplyWarp(
   Plm_image* warpedImage,
   DeformationFieldType::Pointer vectorFieldFromTransformation, 
   const Xform::Pointer inputTransformation, 
@@ -353,7 +369,7 @@ void vtkSlicerPlastimatchPyModuleLogic::ApplyWarp(
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchPyModuleLogic::SetWarpedImageInVolumeNode(Plm_image* warpedPlastimatchImage)
+void vtkPlmpyRegistration::SetWarpedImageInVolumeNode(Plm_image* warpedPlastimatchImage)
 {
   if (!warpedPlastimatchImage || !warpedPlastimatchImage->itk_float())
     {
@@ -367,8 +383,9 @@ void vtkSlicerPlastimatchPyModuleLogic::SetWarpedImageInVolumeNode(Plm_image* wa
   SlicerRtCommon::ConvertItkImageToVtkImageData<float>(outputImageItk, outputImageVtk, VTK_FLOAT);
   
   // Read fixed image to get the geometrical information
-  vtkMRMLScalarVolumeNode* fixedVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(\
-    this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
+  vtkMRMLScalarVolumeNode* fixedVolumeNode 
+    = vtkMRMLScalarVolumeNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
   if (!fixedVolumeNode)
     {
     vtkErrorMacro("SetWarpedImageInVolumeNode: Node containing the fixed image cannot be retrieved!");
@@ -376,8 +393,9 @@ void vtkSlicerPlastimatchPyModuleLogic::SetWarpedImageInVolumeNode(Plm_image* wa
     }
 
   // Create new image node
-  vtkMRMLScalarVolumeNode* warpedImageNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->OutputVolumeID));
+  vtkMRMLScalarVolumeNode* warpedImageNode 
+    = vtkMRMLScalarVolumeNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID(this->OutputVolumeID));
   if (!warpedImageNode)
     {
     vtkErrorMacro("SetWarpedImageInVolumeNode: Node containing the warped image cannot be retrieved!");

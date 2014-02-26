@@ -174,6 +174,9 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     super(PlmRegisterPlugin,self).destroy()
 
   def onLandmarkMoved(self,state):
+    pass
+  
+  def onLandmarkMoved_NOT(self,state):
     """Perform the linear transform using the vtkLandmarkTransform class"""
     if state.transformed.GetTransformNodeID() != state.linearTransform.GetID():
       state.transformed.SetAndObserveTransformNodeID(state.linearTransform.GetID())
@@ -227,7 +230,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
       sys.path.append(loadablePath)
     
     print ("Gonna SetMRMLScene")
-    reg = vtkSlicerPlastimatchPyModuleLogicPython.vtkSlicerPlastimatchPyModuleLogic()
+    reg = vtkSlicerPlastimatchPyModuleLogicPython.vtkPlmpyRegistration()
     reg.SetMRMLScene(slicer.mrmlScene)
     print ("Did SetMRMLScene")
 
@@ -241,6 +244,8 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     ## into vtkPoints format
     points = {}
     point = [0,]*3
+    ## GCS FIX: This code assumes that state.fixedFiducials is
+    ## a valid node (and is not "NoneType")
     for volumeNode in (state.fixed,state.moving):
       points[volumeNode] = vtk.vtkPoints()
     indices = range(state.fixedFiducials.GetNumberOfFiducials())
@@ -262,20 +267,11 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     #reg.SetPar("img_out","c:/tmp/gcs.nrrd")
 
     print ("Gonna RunRegistration()")
-    print("prealignment strategy is %s" % str(self.prealignmentComboBox.currentText))
-    print("subsampling is %s" % str(self.hybridSubsampling.text))
+    print ("prealignment strategy is %s" % str(self.prealignmentComboBox.currentText))
+    print ("subsampling is %s" % str(self.hybridSubsampling.text))
 
     reg.RunRegistration ()
     print ("Did RunRegistration()")
-
-    # Set input/output images
-    # reg.SetFixedImageID(
-    #   state.volumeSelectors["Fixed"].currentNode().GetID())
-    # reg.SetMovingImageID(
-    #   self.parent.volumeSelectors["Moving"].currentNode().GetID())
-    # reg.SetOutputVolumeID(
-    #   self.parent.volumeSelectors["Transformed"].currentNode().GetID())
-
 
 # Add this plugin to the dictionary of available registrations.
 # Since this module may be discovered before the Editor itself,

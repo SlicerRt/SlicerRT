@@ -12,8 +12,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
  )
 
 set(${KIT}_SRCS
-  vtkSlicer${MODULE_NAME}ModuleLogic.cxx
-  vtkSlicer${MODULE_NAME}ModuleLogic.h
+  vtkPlmpyRegistration.cxx
+  vtkPlmpyRegistration.h
   vtkPlmpyDicomSroExport.cxx
   vtkPlmpyDicomSroExport.h
   )

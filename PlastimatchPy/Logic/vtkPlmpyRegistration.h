@@ -15,13 +15,13 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerPlastimatchPyModuleLogic - slicer logic class for volumes manipulation
+// .NAME vtkPlmpyRegistration - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
-#ifndef __vtkSlicerPlastimatchPyModuleLogic_h
-#define __vtkSlicerPlastimatchPyModuleLogic_h
+#ifndef __vtkPlmpyRegistration_h
+#define __vtkPlmpyRegistration_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -45,7 +45,7 @@
 #include "registration_parms.h"
 
 /// Class to wrap Plastimatch registration capability into the embedded Python shell in Slicer
-class VTK_SLICER_PLASTIMATCHPY_MODULE_LOGIC_EXPORT vtkSlicerPlastimatchPyModuleLogic :
+class VTK_SLICER_PLASTIMATCHPY_MODULE_LOGIC_EXPORT vtkPlmpyRegistration :
   public vtkSlicerModuleLogic
 {
   typedef itk::Vector< float, 3 >  VectorType;
@@ -53,8 +53,8 @@ class VTK_SLICER_PLASTIMATCHPY_MODULE_LOGIC_EXPORT vtkSlicerPlastimatchPyModuleL
 
 public:
   /// Constructor
-  static vtkSlicerPlastimatchPyModuleLogic* New();
-  vtkTypeMacro(vtkSlicerPlastimatchPyModuleLogic, vtkSlicerModuleLogic);
+  static vtkPlmpyRegistration* New();
+  vtkTypeMacro(vtkPlmpyRegistration, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
   /// Add a registration stage in the Plastimatch workflow
@@ -142,8 +142,8 @@ protected:
   void SetWarpedImageInVolumeNode(Plm_image* warpedPlastimatchImage);
 
 protected:
-  vtkSlicerPlastimatchPyModuleLogic();
-  virtual ~vtkSlicerPlastimatchPyModuleLogic();
+  vtkPlmpyRegistration();
+  virtual ~vtkPlmpyRegistration();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
@@ -212,8 +212,8 @@ protected:
   DeformationFieldType::Pointer MovingImageToFixedImageVectorField;
 
 private:
-  vtkSlicerPlastimatchPyModuleLogic(const vtkSlicerPlastimatchPyModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerPlastimatchPyModuleLogic&);            // Not implemented
+  vtkPlmpyRegistration(const vtkPlmpyRegistration&); // Not implemented
+  void operator=(const vtkPlmpyRegistration&);            // Not implemented
 };
 
 #endif
