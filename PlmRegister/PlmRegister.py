@@ -137,10 +137,10 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
 
     # Grid spacing
     buttonLayout = qt.QHBoxLayout()
-    self.hybridGridSize = qt.QLineEdit()
-    self.hybridGridSize.setText('50')
-    self.hybridGridSize.setToolTip( "Set B-spline grid spacing" )
-    buttonLayout.addWidget(self.hybridGridSize)
+    self.gridSpacingLineEdit = qt.QLineEdit()
+    self.gridSpacingLineEdit.setText('50')
+    self.gridSpacingLineEdit.setToolTip( "Set B-spline grid spacing" )
+    buttonLayout.addWidget(self.gridSpacingLineEdit)
     self.stage1Box.layout().addRow("Grid Size (mm):", buttonLayout)
 
     # Regularization
@@ -264,6 +264,12 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     reg.SetPar("xform","bspline")
     reg.SetPar("res",str(self.hybridSubsampling.text))
     reg.SetPar("iterations",str(self.iterationsLineEdit.text))
+    reg.SetPar("regularization_lambda",str(self.regularizationLineEdit.text))
+    reg.SetPar("landmark_stiffness",str(self.landmarkPenaltyLineEdit.text))
+    reg.SetPar("grid_spacing",'{0} {0} {0}'
+               .format(str(self.gridSpacingLineEdit.text),
+                       str(self.gridSpacingLineEdit.text),
+                       str(self.gridSpacingLineEdit.text)))
     #reg.SetPar("img_out","c:/tmp/gcs.nrrd")
 
     print ("Gonna RunRegistration()")

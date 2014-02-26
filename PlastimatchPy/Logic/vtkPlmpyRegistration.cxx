@@ -139,7 +139,8 @@ void vtkPlmpyRegistration::AddStage()
 
 //---------------------------------------------------------------------------
 void vtkPlmpyRegistration::SetPar(char* key, char* value)
-{        
+{
+  printf ("Setting parameter %s %s\n", key, value);
   this->RegistrationParameters->set_key_value("STAGE", key, value);
 }
 
@@ -199,8 +200,8 @@ void vtkPlmpyRegistration::RunRegistration()
     this->RegistrationData->moving_image.get(), -1200, 0, 1);
   printf ("ApplyWarp() is complete.\n");
 
-  //this->SetWarpedImageInVolumeNode(warpedImage);
-  this->SetWarpedImageInVolumeNode(this->RegistrationData->fixed_image.get());
+  this->SetWarpedImageInVolumeNode(warpedImage);
+  //this->SetWarpedImageInVolumeNode(this->RegistrationData->fixed_image.get());
 
   delete warpedImage;
 }
