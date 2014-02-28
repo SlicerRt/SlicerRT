@@ -474,10 +474,12 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       // Disable backface culling to make the back side of the contour visible as well
       displayNode->SetBackfaceCulling(0);
 
-      const char* doseUnitName = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
-      if (!doseUnitName)
+      std::string doseUnitName("");
+      vtkMRMLSubjectHierarchyNode* doseSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
+      if (doseSubjectHierarchyNode)
       {
-        doseUnitName = "";
+        doseUnitName = std::string( doseSubjectHierarchyNode->GetAttributeFromAncestor(
+          SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY) );
       }
 
       vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();

@@ -682,10 +682,21 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
   // Set chart properties
   std::string doseAxisName;
   std::string chartTitle;
-  const char* doseUnitName=doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
-  if (doseUnitName!=NULL)
+  const char* doseIdentifier = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+  if (doseIdentifier)
   {
-    doseAxisName=std::string("Dose [")+doseUnitName+"]";
+    vtkMRMLSubjectHierarchyNode* doseSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
+    if (doseSubjectHierarchyNode)
+    {
+      const char* doseUnitName = doseSubjectHierarchyNode->GetAttributeFromAncestor(
+        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+      doseAxisName=std::string("Dose [")+doseUnitName+"]";
+    }
+    else
+    {
+      vtkErrorMacro("AddDvhToSelectedChart: Invalid subject hierarchy node for dose volume!");
+      doseAxisName=std::string("Dose");
+    }
     chartTitle="Dose Volume Histogram";
   }
   else
