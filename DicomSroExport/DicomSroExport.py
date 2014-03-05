@@ -97,7 +97,7 @@ class DicomSroExportWidget:
     self.fixedMRMLSelector.showHidden = False
     self.fixedMRMLSelector.showChildNodeTypes = False
     self.fixedMRMLSelector.setMRMLScene( slicer.mrmlScene )
-    self.fixedMRMLSelector.setToolTip( "Pick the input to the algorithm." )
+    self.fixedMRMLSelector.setToolTip ("Choose either an image within the MRML scene, or a directory containing a DICOM image")
     parametersFormLayout.addRow("Fixed image: ", self.fixedMRMLSelector)
 
     # fixed image (directory input)
@@ -117,8 +117,8 @@ class DicomSroExportWidget:
     self.movingMRMLSelector.showHidden = False
     self.movingMRMLSelector.showChildNodeTypes = False
     self.movingMRMLSelector.setMRMLScene( slicer.mrmlScene )
-    self.movingMRMLSelector.setToolTip( "Pick the input to the algorithm." )
-    parametersFormLayout.addRow("Fixed image: ", self.movingMRMLSelector)
+    self.fixedMRMLSelector.setToolTip ("Choose either an image within the MRML scene, or a directory containing a DICOM image")
+    parametersFormLayout.addRow("Moving image: ", self.movingMRMLSelector)
 
     # moving image (directory input)
     self.movingInputDirectory = ctk.ctkDirectoryButton()
@@ -135,7 +135,7 @@ class DicomSroExportWidget:
     self.xformMRMLSelector.showHidden = False
     self.xformMRMLSelector.showChildNodeTypes = False
     self.xformMRMLSelector.setMRMLScene( slicer.mrmlScene )
-    self.xformMRMLSelector.setToolTip( "Pick the input to the algorithm." )
+    #self.xformMRMLSelector.setToolTip( "Pick the input to the algorithm." )
     parametersFormLayout.addRow("Transform: ", self.xformMRMLSelector)
 
     # output directory selector
@@ -162,11 +162,19 @@ class DicomSroExportWidget:
     self.applyButton = qt.QPushButton("Apply")
     self.applyButton.toolTip = "Run the algorithm."
     self.applyButton.enabled = False
+    if (self.fixedMRMLSelector.currentNode()
+        and self.movingMRMLSelector.currentNode()
+        and self.xformMRMLSelector.currentNode()):
+      self.applyButton.enabled = True
     parametersFormLayout.addRow(self.applyButton)
 
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
     self.fixedMRMLSelector.connect(
+      "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.movingMRMLSelector.connect(
+      "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.xformMRMLSelector.connect(
       "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 
     # Add vertical spacer
@@ -257,6 +265,7 @@ class DicomSroExportLogic:
     """
     Run the actual algorithm
     """
+    import sys
     import vtkSlicerPlastimatchPyModuleLogic
     loadablePath = os.path.join(slicer.modules.plastimatch_slicer_bspline.path,'..'+os.sep+'..'+os.sep+'qt-loadable-modules')
     if loadablePath not in sys.path:
