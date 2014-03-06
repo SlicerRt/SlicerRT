@@ -8,6 +8,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerContoursModuleLogic_INCLUDE_DIRS}
+  ${qSlicerContoursModule_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModulePlugins_INCLUDE_DIRS}
   )

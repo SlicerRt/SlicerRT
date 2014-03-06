@@ -34,6 +34,7 @@
 #include "qSlicerSubjectHierarchyContourSetsPlugin.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkSlicerContoursModuleLogic.h"
+#include "qSlicerContoursModuleWidget.h"
 
 // Qt includes
 #include <QDebug>
@@ -76,6 +77,7 @@ public:
   QIcon ContourSetIcon;
 
   QAction* CreateContourSetNodeAction;
+  QAction* ConvertRepresentationIntoSetAction;
   QAction* EditColorTableAction;
 };
 
@@ -85,11 +87,11 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerSubjectHierarchyContourSetsPluginPrivate::qSlicerSubjectHierarchyContourSetsPluginPrivate(qSlicerSubjectHierarchyContourSetsPlugin& object)
 : q_ptr(&object)
+, ContourSetIcon(QIcon(":Icons/ContourSet.png"))
+, CreateContourSetNodeAction(NULL)
+, ConvertRepresentationIntoSetAction(NULL)
+, EditColorTableAction(NULL)
 {
-  this->ContourSetIcon = QIcon(":Icons/ContourSet.png");
-
-  this->CreateContourSetNodeAction = NULL;
-  this->EditColorTableAction = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -99,6 +101,9 @@ void qSlicerSubjectHierarchyContourSetsPluginPrivate::init()
 
   this->CreateContourSetNodeAction = new QAction("Create child contour set",q);
   QObject::connect(this->CreateContourSetNodeAction, SIGNAL(triggered()), q, SLOT(createChildContourSetForCurrentNode()));
+
+  this->ConvertRepresentationIntoSetAction = new QAction("Create child contour from representation...",q);
+  QObject::connect(this->ConvertRepresentationIntoSetAction, SIGNAL(triggered()), q, SLOT(convertRepresentationAction()));
 
   this->EditColorTableAction = new QAction("Edit contour set color table...",q);
   QObject::connect(this->EditColorTableAction, SIGNAL(triggered()), q, SLOT(onEditColorTable()));
@@ -555,7 +560,7 @@ QList<QAction*> qSlicerSubjectHierarchyContourSetsPlugin::nodeContextMenuActions
   Q_D(const qSlicerSubjectHierarchyContourSetsPlugin);
 
   QList<QAction*> actions;
-  actions << d->CreateContourSetNodeAction << d->EditColorTableAction;
+  actions << d->CreateContourSetNodeAction << d->ConvertRepresentationIntoSetAction << d->EditColorTableAction;
   return actions;
 }
 
@@ -565,6 +570,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForNode(vtk
   Q_D(qSlicerSubjectHierarchyContourSetsPlugin);
 
   d->CreateContourSetNodeAction->setVisible(false);
+  d->ConvertRepresentationIntoSetAction->setVisible(false);
   d->EditColorTableAction->setVisible(false);
 
   if (!node)
@@ -578,6 +584,9 @@ void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForNode(vtk
   {
     d->EditColorTableAction->setVisible(true);
   }
+
+  // TODO : any reason not to show action?
+  d->ConvertRepresentationIntoSetAction->setVisible(true);
 
   // Study
   if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
@@ -633,6 +642,46 @@ void qSlicerSubjectHierarchyContourSetsPlugin::createChildContourSetForCurrentNo
   childContourSetSubjectHierarchyNode->SetNodeReferenceID(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE, contourSetColorTableNode->GetID());
 
   emit requestExpandNode(childContourSetSubjectHierarchyNode);
+}
+
+//--------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContourSetsPlugin::convertRepresentationAction()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+
+  // Check if contour set can be created for current parent node
+  if (!currentNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::convertRepresentationAction: Invalid current node!";
+    return;
+  }
+  if (!scene)
+  {
+    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::convertRepresentationAction: Invalid MRML scene!";
+    return;
+  }
+
+  // Switch to contours module with box expanded (and maybe structure set already chosen in drop down?)
+  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(QString("Contours"));
+  if( module != NULL )
+  {
+    qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
+    if (moduleWithAction)
+    {
+      qSlicerContoursModuleWidget* widgetRep = dynamic_cast<qSlicerContoursModuleWidget*>(moduleWithAction->widgetRepresentation());
+      if( widgetRep )
+      {
+        widgetRep->ExpandConvertOnLoad = true;
+        widgetRep->StructureSetNodeOnLoad = currentNode;
+      }
+      moduleWithAction->action()->trigger();
+    }
+  }
+  else
+  {
+    qCritical() << "Contours module not found. Unable to open it.";
+  }
 }
 
 //--------------------------------------------------------------------------

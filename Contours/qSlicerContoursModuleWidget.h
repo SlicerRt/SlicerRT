@@ -32,6 +32,7 @@
 
 class qSlicerContoursModuleWidgetPrivate;
 class vtkMRMLContourNode;
+class vtkMRMLSubjectHierarchyNode;
 class vtkMRMLNode;
 class vtkMRMLScalarVolumeNode;
 class Ui_qSlicerContoursModule;
@@ -48,6 +49,12 @@ public:
   virtual ~qSlicerContoursModuleWidget();
 
   virtual void enter();
+
+  /// If this is set, the create contour from representation collapsible box will be expanded
+  bool ExpandConvertOnLoad;
+
+  /// If the expand bool is set above, this node is checked for validity, and if valid, set in the appropriate combobox
+  vtkMRMLSubjectHierarchyNode* StructureSetNodeOnLoad;
 
 public:
   // Functions to enable automatic testing
@@ -82,6 +89,11 @@ protected:
   /// This function makes sure that all the conditions are good for the proposed representation change
   /// The Apply button is enabled only if those conditions are met. Otherwise, the appropriate messages are displayed 
   void updateWidgetsInChangeActiveRepresentationGroup();
+
+  /// Set state according to create contour from representation widget group changes
+  /// This function makes sure that all the conditions are good for the proposed representation conversion
+  /// The Create button is enabled only if those conditions are met. Otherwise, the appropriate messages are displayed 
+  void updateWidgetsInCreateContourFromRepresentationGroup();
 
   /// Get oversampling factor based on the value set on the slider
   /// (The factor is two on the power set on the slider, e.g. -1 -> 2^-1 = 0.5)
@@ -132,6 +144,11 @@ protected:
   /// Utility function that returns the corresponding slider widget value for an oversampling factor (the slider is exponential)
   int getOversamplingFactorSliderValueFromOversamplingFactor(double oversamplingFactor);
 
+  /// Return a list of contours that belong to the input structure set
+  /// \param structureSetNode The structure set to query
+  /// \return the list of contours in the structure set (may be empty)
+  bool GetContoursFromStructureSet(vtkMRMLSubjectHierarchyNode* structureSetNode, std::vector< vtkMRMLContourNode* >& outputContourList);
+
 public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
@@ -139,14 +156,21 @@ public slots:
 protected slots:
   void contourNodeChanged(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode* node);
+  void createRepresentationSourceNodeChanged(vtkMRMLNode* node);
+  void targetStructureSetNodeChanged(vtkMRMLNode*);
   void activeRepresentationComboboxSelectionChanged(int index);
   void oversamplingFactorChanged(int value);
+  void targetContourNameChanged(const QString& value);
   void targetReductionFactorPercentChanged(double value);
 
   /// Perform conversions if needed and sets target representation for all selected contours
   /// This function should only be called if all conditions are good to perform the representation change
   /// Checking the conditions is done in \sa updateWidgetsFromChangeActiveRepresentationGroup
   void applyChangeRepresentationClicked();
+
+  /// Create a contour from the currently selected input representation
+  /// If it's a volume, create a labelmap. If it's a model, create a closed surface model
+  void createContourFromRepresentationClicked();
 
 protected:
   QScopedPointer<qSlicerContoursModuleWidgetPrivate> d_ptr;

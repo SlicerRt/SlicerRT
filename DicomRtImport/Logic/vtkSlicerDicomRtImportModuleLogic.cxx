@@ -400,6 +400,9 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     // Add new node to the model hierarchy
     if (addedDisplayableNode)
     {
+      // Tag the representation as such
+      addedDisplayableNode->SetAttribute(SlicerRtCommon::ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER, "1");
+
       // Create root contour hierarchy node for the series, if it has not been created yet
       if (contourHierarchySeriesNode.GetPointer()==NULL)
       {
@@ -446,7 +449,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         {
           vtkErrorMacro("Unable to retrieve ordered planes when creating contour node. They will be unaccessible.");
         }
-        // This passes memory ownership of the internal vtkPlane*'s to the contour node
         contourNode->SetOrderedContourPlanes(orderedPlanes);
 
         // Put the contour node in the hierarchy

@@ -160,6 +160,10 @@ public:
   static const std::string PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE;
   static const std::string PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE;
 
+  // Attribute constants
+  static const char* ATTRIBUTE_VOLUME_LABELMAP_IDENTIFIER;
+  static const char* ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER;
+
   //----------------------------------------------------------------------------
   // Utility functions
   //----------------------------------------------------------------------------
@@ -187,6 +191,9 @@ public:
 
   /// Determine if a node is a dose volume node
   static bool IsDoseVolumeNode(vtkMRMLNode* node);
+
+  /// Determine if a node is a labelmap volume node
+  static bool IsLabelmapVolumeNode(vtkMRMLNode* node);
 
   /// Stretch a discrete color table that contains a few values into a full 256-color palette that
   /// has the first and last colors the same as the input one, the intermediate colors inserted in

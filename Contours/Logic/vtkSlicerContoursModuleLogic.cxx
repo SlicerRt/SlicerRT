@@ -300,6 +300,7 @@ void vtkSlicerContoursModuleLogic::CreateEmptyRibbonModelForContour(vtkMRMLNode*
   std::string emptyRibbonModelName(contourNode->GetName());
   emptyRibbonModelName.append(SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX);
   emptyRibbonModelNode->SetName(emptyRibbonModelName.c_str());
+  emptyRibbonModelNode->SetAttribute(SlicerRtCommon::ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER, "1");
 
   contourNode->SetAndObserveRibbonModelNodeId(emptyRibbonModelNode->GetID());
 }
@@ -656,6 +657,9 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
     }
     newContourNode->HideFromEditorsOff();
     newContourNode->Modified();
+
+    // Representation node is now tagged as such
+    representationNode->SetAttribute(SlicerRtCommon::ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER, "1");
 
     return newContourNode.GetPointer();
   }

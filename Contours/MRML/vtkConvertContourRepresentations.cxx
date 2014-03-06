@@ -677,6 +677,9 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
   // Set default parameters if none specified
   this->ContourNode->SetDefaultConversionParametersForRepresentation(desiredType);
 
+  // Pointer to the new representation to be created
+  vtkMRMLDisplayableNode* newRepresentation(NULL);
+
   // Active representation is a model of any kind and we want an indexed labelmap
   if ( desiredType == vtkMRMLContourNode::IndexedLabelmap
     && ( this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::RibbonModel
@@ -688,17 +691,13 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
       return false;
     }
 
-    vtkMRMLScalarVolumeNode* indexedLabelmapVolumeNode = this->ConvertFromModelToIndexedLabelmap(
+    newRepresentation = this->ConvertFromModelToIndexedLabelmap(
       (this->ContourNode->RibbonModelNode ? vtkMRMLContourNode::RibbonModel : vtkMRMLContourNode::ClosedSurfaceModel) );
-
-    return (indexedLabelmapVolumeNode != NULL);
   }
   // Active representation is an indexed labelmap and we want a closed surface model
   else if ( this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::IndexedLabelmap && desiredType == vtkMRMLContourNode::ClosedSurfaceModel )
   {
-    vtkMRMLModelNode* closedSurfaceVolumeNode = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
-
-    return (closedSurfaceVolumeNode != NULL);
+    newRepresentation = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
   }
   // Active representation is a ribbon model and we want a closed surface model
   else if ( desiredType == vtkMRMLContourNode::ClosedSurfaceModel
@@ -719,16 +718,19 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
       }
     }
 
-    vtkMRMLModelNode* closedSurfaceVolumeNode = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
-
-    return (closedSurfaceVolumeNode != NULL);
+    newRepresentation = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
   }
   else
   {
     vtkWarningMacro("ConvertToRepresentation: Requested conversion not implemented yet!");
   }
+  
+  if( newRepresentation != NULL )
+  {
+    newRepresentation->SetAttribute(SlicerRtCommon::ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER, "1");
+  }
 
-  return false;
+  return newRepresentation != NULL;
 }
 
 //----------------------------------------------------------------------------

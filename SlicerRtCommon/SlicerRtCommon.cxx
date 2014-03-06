@@ -158,6 +158,10 @@ const std::string SlicerRtCommon::PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE = "
 const std::string SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE = "planarImageDisplayedModel" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
 const std::string SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE = "planarImageTexture" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
 
+// Attribute constants
+const char* SlicerRtCommon::ATTRIBUTE_VOLUME_LABELMAP_IDENTIFIER = "LabelMap";
+const char* SlicerRtCommon::ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER = "ContourRepresentation";
+
 //----------------------------------------------------------------------------
 // Helper functions
 //----------------------------------------------------------------------------
@@ -292,6 +296,27 @@ bool SlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
   {
     const char* doseVolumeIdentifier = node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
     if (doseVolumeIdentifier != NULL)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+//---------------------------------------------------------------------------
+bool SlicerRtCommon::IsLabelmapVolumeNode(vtkMRMLNode* node)
+{
+  if (!node)
+  {
+    std::cerr << "SlicerRtCommon::IsLabelmapVolumeNode: Invalid input arguments!" << std::endl;
+    return false;
+  }
+
+  if (node->IsA("vtkMRMLScalarVolumeNode"))
+  {
+    const char* labemapIdentifier = node->GetAttribute(SlicerRtCommon::ATTRIBUTE_VOLUME_LABELMAP_IDENTIFIER);
+    if (STRCASECMP(labemapIdentifier, "1") == 0 )
     {
       return true;
     }

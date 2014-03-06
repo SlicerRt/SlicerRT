@@ -115,6 +115,9 @@ protected slots:
   /// Create contour set node under the current node
   void createChildContourSetForCurrentNode();
 
+  /// Create contour set node under the current node
+  void convertRepresentationAction();
+
   /// Jump to Colors module to edit the color table belonging to the current contour set node
   void onEditColorTable();
 
