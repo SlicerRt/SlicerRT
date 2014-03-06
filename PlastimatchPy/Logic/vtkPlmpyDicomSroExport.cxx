@@ -120,9 +120,9 @@ void vtkPlmpyDicomSroExport::UpdateFromMRMLScene()
 void vtkPlmpyDicomSroExport::DoExport ()
 {
   if (this->FixedImageID == NULL
-      || this->MovingImageID == NULL
-      || this->XformID == NULL
-      || this->OutputDirectory == NULL)
+    || this->MovingImageID == NULL
+    || this->XformID == NULL
+    || this->OutputDirectory == NULL)
   {
     vtkErrorMacro("Sorry, vtkPlmpyDicomSroExport::DoExport () is missing some inputs");
     return;
@@ -171,18 +171,18 @@ void vtkPlmpyDicomSroExport::DoExport ()
   for (int i = 0; i < 3; i++) 
   {
     for (int j = 0; j < 3; j++) 
-	{
+    {
       //printf ("Setting affine [%d,%d] %g\n", i, j, 
       //        vtkAff->GetElement (i,j));
       parms[par] = vtkAff->GetElement (i, j);
-	  par++;
+      par++;
     }
   }
   // Next set up the offset part
   for (int i = 0; i < 3; i++) 
   {
-	  parms[par] = vtkAff->GetElement (i, 3);
-	  par++;
+    parms[par] = vtkAff->GetElement (i, 3);
+    par++;
   }
   Xform::Pointer xform = Xform::New ();
   xform->set_aff (parms);
