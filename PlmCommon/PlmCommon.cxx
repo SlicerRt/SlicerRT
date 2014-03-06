@@ -52,9 +52,6 @@ PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode)
   vtkImageData* inVolume = inVolumeNode->GetImageData();
   int vtk_type = inVolume->GetScalarType ();
 
-  printf ("Hello 1\n");
-  vtkErrorWithObjectMacro (inVolumeNode, "Hello 2\n");
-
   switch (vtk_type) {
   case VTK_CHAR:
   case VTK_SIGNED_CHAR:
