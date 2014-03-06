@@ -330,8 +330,9 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     print ("Hello from runOneIteration")
 
     self.statusLabel.setText("Working...")
-    slicer.app.processEvents()
-    
+    self.statusLabel.repaint()
+    self.statusLabel.repaint()
+
     loadablePath = os.path.join(slicer.modules.plastimatch_slicer_bspline.path,'..'+os.sep+'..'+os.sep+'qt-loadable-modules')
     if loadablePath not in sys.path:
       sys.path.append(loadablePath)
@@ -346,32 +347,12 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     reg.SetMovingImageID(state.moving.GetID())
     reg.SetOutputVolumeID(state.transformed.GetID())
 
-    ## This was shamelessly stolen from AffinePlugin.py
-    ## It converts the landmarks from MRML Markup format
-    ## into vtkPoints format
-    if 0:
-      points = {}
-      point = [0,]*3
-      ## GCS FIX: This code assumes that state.fixedFiducials is
-      ## a valid node (and is not "NoneType")
-      for volumeNode in (state.fixed,state.moving):
-        points[volumeNode] = vtk.vtkPoints()
-      indices = range(state.fixedFiducials.GetNumberOfFiducials())
-      fiducialLists = (state.fixedFiducials,state.movingFiducials)
-      volumeNodes = (state.fixed,state.moving)
-      for fiducials,volumeNode in zip(fiducialLists,volumeNodes):
-        for index in indices:
-          fiducials.GetNthFiducialPosition(index,point)
-          points[volumeNode].InsertNextPoint(point)
-          print("%s: %s" % (volumeNode.GetName(), str(point)))
-
     volumeNodes = (state.fixed, state.moving)
     fiducialNodes = (state.fixedFiducials,state.movingFiducials)
     points = state.logic.vtkPointsForVolumes( volumeNodes, fiducialNodes )
 
     reg.SetFixedLandmarks(points[state.fixed])
     reg.SetMovingLandmarks(points[state.moving])
-
 
     if (self.prealignmentComboBox.currentText == "Global"):
       print ("Gonna AddStage(Global)")
@@ -404,7 +385,6 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
                        str(self.stage1_gridSpacingLineEdit.text),
                        str(self.stage1_gridSpacingLineEdit.text)))
 
-    #comboText = self.numstagesComboBox.currentText()
     comboText = self.numstagesComboBox.currentText
     if (comboText == "2" or comboText == "3"):
       reg.AddStage()
