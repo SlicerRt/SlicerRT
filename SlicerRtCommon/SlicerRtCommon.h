@@ -52,6 +52,9 @@ public:
   static const char* SLICERRT_EXTENSION_NAME;
   static const std::string SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
 
+  // Volume constants
+  static const char* VOLUME_LABELMAP_IDENTIFIER_ATTRIBUTE_NAME;
+
   // Contour (vtkMRMLContourNode) constants
   static const std::string CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
   static const std::string CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
@@ -70,6 +73,7 @@ public:
   static const std::string CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX;
   static const char* CONTOUR_ORPHAN_CONTOURS_COLOR_TABLE_NODE_NAME;
   static const char* CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE;
+  static const char* CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME;
 
   // DicomRtImport constants
   static const std::string DICOMRTIMPORT_ATTRIBUTE_PREFIX;
@@ -159,10 +163,6 @@ public:
   static const std::string PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE;
   static const std::string PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE;
   static const std::string PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE;
-
-  // Attribute constants
-  static const char* ATTRIBUTE_VOLUME_LABELMAP_IDENTIFIER;
-  static const char* ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER;
 
   //----------------------------------------------------------------------------
   // Utility functions

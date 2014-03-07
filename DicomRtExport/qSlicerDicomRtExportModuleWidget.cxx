@@ -86,7 +86,7 @@ void qSlicerDicomRtExportModuleWidget::setup()
   this->Superclass::setup();
 
   // Filter out nodes that are not image volume nodes
-  d->MRMLNodeComboBox_ImageVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString(SlicerRtCommon::ATTRIBUTE_VOLUME_LABELMAP_IDENTIFIER), 0 );
+  d->MRMLNodeComboBox_ImageVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString(SlicerRtCommon::VOLUME_LABELMAP_IDENTIFIER_ATTRIBUTE_NAME), 0 );
 
   // Filter out nodes that are not dose volume nodes
   d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );

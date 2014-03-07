@@ -401,7 +401,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     if (addedDisplayableNode)
     {
       // Tag the representation as such
-      addedDisplayableNode->SetAttribute(SlicerRtCommon::ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER, "1");
+      addedDisplayableNode->SetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME, "1");
 
       // Create root contour hierarchy node for the series, if it has not been created yet
       if (contourHierarchySeriesNode.GetPointer()==NULL)

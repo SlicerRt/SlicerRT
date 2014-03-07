@@ -816,8 +816,8 @@ void qSlicerContoursModuleWidget::updateWidgetsInCreateContourFromRepresentation
 
   // Do not show sources that are already contour representations
   bool isValidSource(true);
-  if( sourceNode->GetAttribute(SlicerRtCommon::ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER) != NULL &&
-    STRCASECMP(sourceNode->GetAttribute(SlicerRtCommon::ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER), "1") == 0 )
+  if( sourceNode->GetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME) != NULL &&
+    STRCASECMP(sourceNode->GetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME), "1") == 0 )
   {
     // This is already a representation
     d->label_AlreadyAContourRepresentation->setVisible(true);
@@ -1031,7 +1031,7 @@ void qSlicerContoursModuleWidget::testInit()
   d->MRMLNodeComboBox_TargetStructureSet->addAttribute( QString("vtkMRMLSubjectHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
 
   // Filter out non-labelmap nodes
-  d->MRMLNodeComboBox_ConvertRepresentationSource->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString(SlicerRtCommon::ATTRIBUTE_VOLUME_LABELMAP_IDENTIFIER), QVariant(1) );
+  d->MRMLNodeComboBox_ConvertRepresentationSource->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString(SlicerRtCommon::VOLUME_LABELMAP_IDENTIFIER_ATTRIBUTE_NAME), QVariant(1) );
 
   // MRML inputs
   connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );

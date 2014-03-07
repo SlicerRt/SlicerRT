@@ -77,7 +77,7 @@ public:
   QIcon ContourSetIcon;
 
   QAction* CreateContourSetNodeAction;
-  QAction* ConvertRepresentationIntoSetAction;
+  QAction* ConvertRepresentationIntoContourAction;
   QAction* EditColorTableAction;
 };
 
@@ -89,7 +89,7 @@ qSlicerSubjectHierarchyContourSetsPluginPrivate::qSlicerSubjectHierarchyContourS
 : q_ptr(&object)
 , ContourSetIcon(QIcon(":Icons/ContourSet.png"))
 , CreateContourSetNodeAction(NULL)
-, ConvertRepresentationIntoSetAction(NULL)
+, ConvertRepresentationIntoContourAction(NULL)
 , EditColorTableAction(NULL)
 {
 }
@@ -102,8 +102,8 @@ void qSlicerSubjectHierarchyContourSetsPluginPrivate::init()
   this->CreateContourSetNodeAction = new QAction("Create child contour set",q);
   QObject::connect(this->CreateContourSetNodeAction, SIGNAL(triggered()), q, SLOT(createChildContourSetForCurrentNode()));
 
-  this->ConvertRepresentationIntoSetAction = new QAction("Create child contour from representation...",q);
-  QObject::connect(this->ConvertRepresentationIntoSetAction, SIGNAL(triggered()), q, SLOT(convertRepresentationAction()));
+  this->ConvertRepresentationIntoContourAction = new QAction("Create child contour from representation...",q);
+  QObject::connect(this->ConvertRepresentationIntoContourAction, SIGNAL(triggered()), q, SLOT(convertRepresentationAction()));
 
   this->EditColorTableAction = new QAction("Edit contour set color table...",q);
   QObject::connect(this->EditColorTableAction, SIGNAL(triggered()), q, SLOT(onEditColorTable()));
@@ -560,7 +560,7 @@ QList<QAction*> qSlicerSubjectHierarchyContourSetsPlugin::nodeContextMenuActions
   Q_D(const qSlicerSubjectHierarchyContourSetsPlugin);
 
   QList<QAction*> actions;
-  actions << d->CreateContourSetNodeAction << d->ConvertRepresentationIntoSetAction << d->EditColorTableAction;
+  actions << d->CreateContourSetNodeAction << d->ConvertRepresentationIntoContourAction << d->EditColorTableAction;
   return actions;
 }
 
@@ -570,7 +570,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForNode(vtk
   Q_D(qSlicerSubjectHierarchyContourSetsPlugin);
 
   d->CreateContourSetNodeAction->setVisible(false);
-  d->ConvertRepresentationIntoSetAction->setVisible(false);
+  d->ConvertRepresentationIntoContourAction->setVisible(false);
   d->EditColorTableAction->setVisible(false);
 
   if (!node)
@@ -585,8 +585,12 @@ void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForNode(vtk
     d->EditColorTableAction->setVisible(true);
   }
 
-  // TODO : any reason not to show action?
-  d->ConvertRepresentationIntoSetAction->setVisible(true);
+  // Structure set only
+  if (node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str() ) != NULL &&
+    STRCASECMP(node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str() ), "1") == 0 )
+  {
+    d->ConvertRepresentationIntoContourAction->setVisible(true);
+  }
 
   // Study
   if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))

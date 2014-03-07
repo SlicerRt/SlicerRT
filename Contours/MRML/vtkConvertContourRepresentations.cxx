@@ -727,7 +727,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
   
   if( newRepresentation != NULL )
   {
-    newRepresentation->SetAttribute(SlicerRtCommon::ATTRIBUTE_CONTOUR_REPRESENTATION_IDENTIFIER, "1");
+    newRepresentation->SetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME, "1");
   }
 
   return newRepresentation != NULL;
