@@ -34,6 +34,12 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
     return false; 
   }
 
+  if (sizeof(T) != inVolume->GetScalarSize())
+  {
+    vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToItkImage: Requested type has a different scalar size than input type - output image is NULL!");
+    return false; 
+  }
+
   // Convert vtkImageData to itkImage 
   vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
   imageExport->SetInput(inVolume);
