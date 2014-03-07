@@ -98,6 +98,10 @@ protected slots:
   void calculateDoseClicked();
   void calculateWEDClicked();
 
+  /* Beam visualization */
+  void updateDRRClicked();
+  void beamEyesViewClicked(bool);
+
 protected:
   ///
   virtual void setup();

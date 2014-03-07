@@ -48,6 +48,9 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
+#include <vtkMRMLSliceLogic.h>
+#include <vtkMRMLSliceNode.h>
+#include <vtkMRMLSliceCompositeNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -58,6 +61,25 @@
 #include <vtkDoubleArray.h>
 #include <vtkPolyData.h>
 #include <vtkObjectFactory.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkCamera.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkImageData.h>
+#include <vtkImageCast.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkProperty.h>
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkVolumeRayCastMapper.h>
+#include <vtkGPUVolumeRayCastMapper.h>
+#include <vtkVolumeRayCastCompositeFunction.h>
+#include <vtkVolumeTextureMapper3D.h>
+#include <vtkVolumeTextureMapper2D.h>
+#include <vtkWindowToImageFilter.h>
+#include <vtkImageShiftScale.h>
+#include <vtkImageExtractComponents.h>
+#include <vtkTransform.h>
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
@@ -69,6 +91,8 @@ vtkStandardNewMacro(vtkSlicerExternalBeamPlanningModuleLogic);
 vtkSlicerExternalBeamPlanningModuleLogic::vtkSlicerExternalBeamPlanningModuleLogic()
 {
   this->ExternalBeamPlanningNode = NULL;
+  this->DRRImageSize[0] = 256;
+  this->DRRImageSize[1] = 256;
 }
 
 //----------------------------------------------------------------------------
@@ -351,26 +375,26 @@ vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBea
   {
     double leafPosition = doubleArray->GetComponent(-(i-20), 1);
     if (-leafPosition>-Y2)
-	{
-	  Y2LeavePosition[-(i-20)] = leafPosition;
-	}
-	else
-	{
-	  Y2LeavePosition[-(i-20)] = Y2;
-	}
+    {
+      Y2LeavePosition[-(i-20)] = leafPosition;
+    }
+    else
+    {
+      Y2LeavePosition[-(i-20)] = Y2;
+    }
   }
   // Calculate Y1 next
   for (int i = X2count; i >= -X1count; i--)
   {
     double leafPosition = doubleArray->GetComponent(-(i-20), 0);
     if (leafPosition<Y1)
-	{
-	  Y1LeavePosition[-(i-20)] = leafPosition;
-	}
-	else
-	{
-	  Y1LeavePosition[-(i-20)] = Y1;
-	}
+    {
+      Y1LeavePosition[-(i-20)] = leafPosition;
+    }
+    else
+    {
+      Y1LeavePosition[-(i-20)] = Y1;
+    }
   }
 
   // Create beam model
@@ -381,38 +405,38 @@ vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBea
   for (int i = X2count; i > -X1count; i--)
   {
     points->InsertPoint(count,-Y2LeavePosition[-(i-20)]*2, i*10*2, -1000 );
-	count ++;
+    count ++;
     points->InsertPoint(count,-Y2LeavePosition[-(i-20)]*2, (i-1)*10*2, -1000 );
-	count ++;
+    count ++;
   }
 
   for (int i = -X1count; i < X2count; i++)
   {
     points->InsertPoint(count,Y1LeavePosition[-(i-20)]*2, i*10*2, -1000 );
-	count ++;
+    count ++;
     points->InsertPoint(count,Y1LeavePosition[-(i-20)]*2, (i+1)*10*2, -1000 );
-	count ++;
+    count ++;
   }
 
   vtkSmartPointer<vtkCellArray> cellArray = vtkSmartPointer<vtkCellArray>::New();
   for (int i = 1; i <numPointsEachSide; i++)
   {
-	 cellArray->InsertNextCell(3);
-     cellArray->InsertCellPoint(0);
-     cellArray->InsertCellPoint(i);
-     cellArray->InsertCellPoint(i+1);
+    cellArray->InsertNextCell(3);
+    cellArray->InsertCellPoint(0);
+    cellArray->InsertCellPoint(i);
+    cellArray->InsertCellPoint(i+1);
   }
   // Add connection between Y2 and Y1
-	 cellArray->InsertNextCell(3);
-     cellArray->InsertCellPoint(0);
-     cellArray->InsertCellPoint(numPointsEachSide);
-     cellArray->InsertCellPoint(numPointsEachSide+1);
+  cellArray->InsertNextCell(3);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(numPointsEachSide);
+  cellArray->InsertCellPoint(numPointsEachSide+1);
   for (int i = numPointsEachSide+1; i <2*numPointsEachSide; i++)
   {
-	 cellArray->InsertNextCell(3);
-     cellArray->InsertCellPoint(0);
-     cellArray->InsertCellPoint(i);
-     cellArray->InsertCellPoint(i+1);
+    cellArray->InsertNextCell(3);
+    cellArray->InsertCellPoint(0);
+    cellArray->InsertCellPoint(i);
+    cellArray->InsertCellPoint(i+1);
   }
 
   // Add connection between Y2 and Y1
@@ -463,11 +487,11 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
 
   // Create beam model
   vtkSmartPointer<vtkPolyData> beamModelPolyData = this->CreateBeamPolyData(
-	  this->ExternalBeamPlanningNode->GetX1Jaw(),
-	  this->ExternalBeamPlanningNode->GetX2Jaw(), 
-	  this->ExternalBeamPlanningNode->GetY1Jaw(),
-	  this->ExternalBeamPlanningNode->GetY2Jaw(),
-	  MLCPositionDoubleArrayNode->GetArray());
+      this->ExternalBeamPlanningNode->GetX1Jaw(),
+      this->ExternalBeamPlanningNode->GetX2Jaw(), 
+      this->ExternalBeamPlanningNode->GetY1Jaw(),
+      this->ExternalBeamPlanningNode->GetY2Jaw(),
+      MLCPositionDoubleArrayNode->GetArray());
 
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->Identity();
@@ -596,6 +620,198 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
   }
 
   this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
+{
+  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
+  {
+    vtkErrorMacro("RemoveBeam: Invalid MRML scene or parameter set node!");
+    return;
+  }
+
+  vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
+  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
+  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode();
+
+  // Make sure inputs are initialized
+  if (!rtPlanNode || !isocenterMarkupsNode || !referenceVolumeNode)// || !MLCPositionDoubleArrayNode)
+  {
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    return;
+  }
+
+  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
+  rtPlanNode->GetRTBeamNodes(beams);
+  // Fill the table
+  if (!beams) return;
+  vtkMRMLRTBeamNode* beamNode = NULL;
+  for (int i=0; i<beams->GetNumberOfItems(); ++i)
+  {
+    beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
+    if (beamNode)
+    {
+      if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
+      {
+        //RTPlanNode->RemoveRTBeamNode(beamNode);
+        break;
+      }
+    }
+  }
+
+  // Cast image data to uchar for faster rendering (this is for CT data only now)
+  vtkSmartPointer<vtkImageShiftScale> cast = vtkSmartPointer<vtkImageShiftScale>::New();
+  cast->SetInput(referenceVolumeNode->GetImageData());
+  cast->SetOutputScalarTypeToUnsignedChar();
+  cast->SetShift(1000);
+  cast->SetScale(255./2000.);
+  cast->SetClampOverflow(1);
+  cast->Update();
+
+  // Create the renderer, render window 
+  vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+  vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
+  renWin->SetOffScreenRendering(1);
+  renWin->AddRenderer(renderer);
+
+  // Create our volume and mapper
+  // Currently use cpu ray casting as gpu ray casting and texturemapping 3d are not working on my computer
+  vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
+  vtkSmartPointer<vtkVolumeRayCastMapper> mapper = vtkSmartPointer<vtkVolumeRayCastMapper>::New();
+  vtkSmartPointer<vtkVolumeRayCastCompositeFunction> compositeFunction = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
+  mapper->SetVolumeRayCastFunction(compositeFunction);
+  //vtkSmartPointer<vtkVolumeTextureMapper3D> mapper = vtkSmartPointer<vtkVolumeTextureMapper3D>::New();
+  //vtkSmartPointer<vtkVolumeTextureMapper2D> mapper = vtkSmartPointer<vtkVolumeTextureMapper2D>::New();
+  //vtkSmartPointer<vtkGPUVolumeRayCastMapper> mapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
+  mapper->SetInput( cast->GetOutput() );
+  mapper->SetBlendModeToComposite();
+  volume->SetMapper( mapper );
+
+  // Create our transfer function
+  vtkSmartPointer<vtkColorTransferFunction> colorFun = vtkSmartPointer<vtkColorTransferFunction>::New();
+  vtkSmartPointer<vtkPiecewiseFunction> opacityFun = vtkSmartPointer<vtkPiecewiseFunction>::New();
+
+  // Create the property and attach the transfer functions
+  vtkSmartPointer<vtkVolumeProperty> volumeProperty = vtkSmartPointer<vtkVolumeProperty>::New();
+  volumeProperty->SetColor( colorFun );
+  volumeProperty->SetScalarOpacity( opacityFun );
+  volumeProperty->SetInterpolationTypeToLinear();
+
+  colorFun->AddRGBPoint( 0, 0, 0, 0);
+  colorFun->AddRGBPoint( 128, 0, 0, 0);
+  colorFun->AddRGBPoint( 255, 1, 1, 1);
+
+  opacityFun->AddPoint(0, 0 );
+  opacityFun->AddPoint(128, 0 );
+  opacityFun->AddPoint(255, 0.1);
+
+  volumeProperty->ShadeOff();
+  volumeProperty->SetScalarOpacityUnitDistance(0.8919);
+
+  // connect up the volume to the property and the mapper
+  volume->SetProperty( volumeProperty );
+
+  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+  transform->Identity();
+  transform->RotateY(this->ExternalBeamPlanningNode->GetGantryAngle());
+  transform->RotateX(90);
+
+  vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
+  transform2->Identity();
+  double isoCenterPosition[3] = {0.0,0.0,0.0};
+  isocenterMarkupsNode->GetNthFiducialPosition(0,isoCenterPosition);
+  transform2->Translate(-isoCenterPosition[0], -isoCenterPosition[1], -isoCenterPosition[2]);
+
+  vtkSmartPointer<vtkTransform> transform3 = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> IJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  referenceVolumeNode->GetIJKToRASMatrix(IJK2RASMatrix);
+  transform3->SetMatrix(IJK2RASMatrix);
+
+  transform->PreMultiply();
+  transform->Concatenate(transform2);
+  transform->Concatenate(transform3);
+  volume->SetUserTransform( transform );
+
+  // The usual rendering stuff.
+  vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
+  // fixed camera parameters for now
+  camera->SetPosition(0, 0, 1000);
+  camera->SetFocalPoint(0, 0, 0);
+  camera->SetViewAngle(14.68);
+  camera->ParallelProjectionOff();
+
+  // Add the volume to the scene
+  renderer->AddVolume( volume );
+  renderer->SetActiveCamera(camera);
+
+  renWin->SetSize(this->DRRImageSize[0], this->DRRImageSize[1]);
+  renWin->Render();
+
+  // Capture and convert to 2D image
+  vtkSmartPointer<vtkWindowToImageFilter> windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
+  windowToImage->SetInput( renWin );
+
+  vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();
+  extract->SetInputConnection( windowToImage->GetOutputPort() );
+  extract->SetComponents(0);
+  extract->Update();
+
+  // Add the drr image to mrml scene
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> DRRImageNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  DRRImageNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->AddNode(DRRImageNode));
+  std::string DRRImageNodeName = std::string(beamname) + std::string("_DRRImage");
+  DRRImageNodeName = this->GetMRMLScene()->GenerateUniqueName(DRRImageNodeName);
+  DRRImageNode->SetName(DRRImageNodeName.c_str());
+  //DRRImageNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  DRRImageNode->SetAndObserveImageData(extract->GetOutput());
+  DRRImageNode->SetOrigin(-128,-128,0);
+  DRRImageNode->SetSelectable(1);
+
+  vtkSmartPointer<vtkMRMLSliceLogic> sliceLogic = this->GetApplicationLogic()->GetSliceLogicByLayoutName("Slice4");
+  if (!sliceLogic)
+  {
+    vtkErrorMacro("UpdateDRR: Invalid sliceLogic for DRR viewer!");
+    return;
+  }
+
+  //  
+  vtkSmartPointer<vtkTransform> transformDRR = vtkSmartPointer<vtkTransform>::New();
+  transformDRR->Identity();
+  transformDRR->RotateZ(this->ExternalBeamPlanningNode->GetGantryAngle());
+  transformDRR->RotateX(-90);
+
+  vtkSmartPointer<vtkTransform> transformDRR2 = vtkSmartPointer<vtkTransform>::New();
+  transformDRR2->Identity();
+  transformDRR2->Translate(isoCenterPosition[0], isoCenterPosition[1], isoCenterPosition[2]);
+
+  transformDRR->PostMultiply();
+  transformDRR->Concatenate(transformDRR2->GetMatrix());
+
+  vtkSmartPointer<vtkMRMLLinearTransformNode> DRRImageTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+  DRRImageTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->AddNode(DRRImageTransformNode));
+  std::string DRRImageTransformNodeName = std::string(beamname) + std::string("_DRRImage_Transform");
+  DRRImageTransformNodeName = this->GetMRMLScene()->GenerateUniqueName(DRRImageTransformNodeName);
+  DRRImageTransformNode->SetName(DRRImageTransformNodeName.c_str());
+  DRRImageTransformNode->SetAndObserveMatrixTransformToParent(transformDRR->GetMatrix());
+  DRRImageNode->SetAndObserveTransformNodeID(DRRImageTransformNode->GetID());
+
+  vtkSmartPointer<vtkMRMLSliceNode> sliceNode = sliceLogic->GetSliceNode();
+  vtkSmartPointer<vtkMRMLSliceCompositeNode> compositeSliceNode = sliceLogic->GetSliceCompositeNode();
+  compositeSliceNode->SetBackgroundVolumeID(DRRImageNode->GetID());
+
+  vtkSmartPointer<vtkTransform> transformSlice = vtkSmartPointer<vtkTransform>::New();
+  transformSlice->Identity();
+  transformSlice->RotateZ(this->ExternalBeamPlanningNode->GetGantryAngle());
+  transformSlice->RotateX(-90);
+  transformSlice->Update();
+
+  sliceNode->SetOrientationToReformat();
+  sliceNode->SetSliceToRAS(transformSlice->GetMatrix());
+  sliceNode->UpdateMatrices();
+
+  sliceLogic->FitSliceToAll();
 }
 
 //---------------------------------------------------------------------------

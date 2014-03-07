@@ -74,6 +74,9 @@ public:
   void UpdateBeamGeometryModel(char*);
 
   /// TODO
+  void UpdateDRR(char*);
+
+  /// TODO
   vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, vtkDoubleArray*);
 
   /// TODO
@@ -98,6 +101,7 @@ protected:
 
   /// Parameter set MRML node
   vtkMRMLExternalBeamPlanningNode* ExternalBeamPlanningNode;
+  int DRRImageSize[2];
 
 private:
   vtkSlicerExternalBeamPlanningModuleLogic(const vtkSlicerExternalBeamPlanningModuleLogic&); // Not implemented

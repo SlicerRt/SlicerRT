@@ -27,6 +27,10 @@
 // SlicerRtCommon includes
 #include "SlicerRtCommon.h"
 
+// QSlicer includes
+#include "qSlicerApplication.h"
+#include "qSlicerLayoutManager.h" 
+
 // SlicerRt includes
 #include "vtkMRMLContourNode.h"
 #include "vtkMRMLExternalBeamPlanningNode.h"
@@ -38,6 +42,7 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
+#include <vtkMRMLLayoutNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -299,6 +304,10 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   /* Calculation buttons */
   this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
   this->connect( d->pushButton_CalculateWED, SIGNAL(clicked()), this, SLOT(calculateWEDClicked()) );
+
+  /* Beam visualization */
+  this->connect( d->pushButton_UpdateDRR, SIGNAL(clicked()), this, SLOT(updateDRRClicked()) );
+  this->connect( d->checkBox_BeamEyesView, SIGNAL(clicked(bool)), this, SLOT(beamEyesViewClicked(bool)) );
 
   /* Disable unused buttons in prescription task */
   this->radiationTypeChanged(0);
@@ -1193,6 +1202,49 @@ void qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged(const QStrin
   }
   
   //TODO:
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::beamEyesViewClicked(bool checked)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (checked)
+  {
+    qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
+  }
+  else
+  {
+    qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutFourUpView);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::updateDRRClicked()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::updateDRRClicked: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
+  QTableWidgetItem *item = NULL;
+  char beamName[100];
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+
+  if (item)
+  {
+    strcpy(beamName, item->text().toStdString().c_str());
+    d->logic()->UpdateDRR(beamName);
+  }
 }
 
 //-----------------------------------------------------------------------------
