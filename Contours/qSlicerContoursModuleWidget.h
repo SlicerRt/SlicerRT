@@ -50,6 +50,9 @@ public:
 
   virtual void enter();
 
+  /// Only allow access to the contour sets plugin
+  friend class qSlicerSubjectHierarchyContourSetsPlugin;
+protected:
   /// If this is set, the create contour from representation collapsible box will be expanded
   bool ExpandConvertOnLoad;
 
