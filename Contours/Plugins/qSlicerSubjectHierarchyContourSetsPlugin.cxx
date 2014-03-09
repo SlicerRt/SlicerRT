@@ -673,7 +673,8 @@ void qSlicerSubjectHierarchyContourSetsPlugin::convertRepresentationAction()
     qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
     if (moduleWithAction)
     {
-      qSlicerContoursModuleWidget* widgetRep = dynamic_cast<qSlicerContoursModuleWidget*>(moduleWithAction->widgetRepresentation());
+      //qSlicerContoursModuleWidget* widgetRep = dynamic_cast<qSlicerContoursModuleWidget*>(moduleWithAction->widgetRepresentation());
+      qSlicerContoursModuleWidget* widgetRep = static_cast<qSlicerContoursModuleWidget*>(moduleWithAction->widgetRepresentation());
       if( widgetRep )
       {
         widgetRep->ExpandConvertOnLoad = true;
