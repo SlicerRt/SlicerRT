@@ -116,6 +116,20 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     buttonLayout.addWidget(self.numstagesComboBox)
     plmRegisterFormLayout.addRow("B-Spline stages:", buttonLayout)
 
+    # Output transform
+    self.outputTransformComboBox = slicer.qMRMLNodeComboBox()
+    self.outputTransformComboBox.nodeTypes = (
+      ("vtkMRMLGridTransformNode"), "" )
+    self.outputTransformComboBox.selectNodeUponCreation = True
+    self.outputTransformComboBox.addEnabled = True
+    self.outputTransformComboBox.removeEnabled = True
+    self.outputTransformComboBox.noneEnabled = True
+    self.outputTransformComboBox.showHidden = False
+    self.outputTransformComboBox.showChildNodeTypes = False
+    self.outputTransformComboBox.setMRMLScene( slicer.mrmlScene )
+    plmRegisterFormLayout.addRow("Output transform:",
+                                 self.outputTransformComboBox)
+
     # Apply button
     self.applyButton = qt.QPushButton("Click to start registration!")
     self.applyButton.setStyleSheet("background-color: #FFFF99")
@@ -346,6 +360,9 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     reg.SetFixedImageID(state.fixed.GetID())
     reg.SetMovingImageID(state.moving.GetID())
     reg.SetOutputVolumeID(state.transformed.GetID())
+    output_transform = self.outputTransformComboBox.currentNode()
+    if output_transform:
+      reg.SetOutputVectorFieldID(output_transform.GetID())
 
     volumeNodes = (state.fixed, state.moving)
     fiducialNodes = (state.fixedFiducials,state.movingFiducials)

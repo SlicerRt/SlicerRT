@@ -27,6 +27,7 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLVectorVolumeNode.h>
 #include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLGridTransformNode.h>
 
 // ITK includes
 #include <itkAffineTransform.h>
@@ -37,6 +38,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
+#include <vtkGridTransform.h>
 
 // Plastimatch includes
 #include "bspline_interpolate.h"
@@ -62,6 +64,7 @@ vtkPlmpyRegistration::vtkPlmpyRegistration()
   this->MovingLandmarksFileName = NULL;
   this->InitializationLinearTransformationID = NULL;
   this->OutputVolumeID = NULL;
+  this->OutputVectorFieldID = NULL;
 
   this->FixedLandmarks = NULL;
   this->MovingLandmarks = NULL;
@@ -86,6 +89,7 @@ vtkPlmpyRegistration::~vtkPlmpyRegistration()
   this->SetMovingLandmarksFileName(NULL);
   this->SetInitializationLinearTransformationID(NULL);
   this->SetOutputVolumeID(NULL);
+  this->SetOutputVectorFieldID(NULL);
 
   this->SetFixedLandmarks(NULL);
   this->SetMovingLandmarks(NULL);
@@ -147,22 +151,6 @@ void vtkPlmpyRegistration::SetPar(char* key, char* value)
 //---------------------------------------------------------------------------
 void vtkPlmpyRegistration::RunRegistration()
 {
-#if defined (commentout)
-  // Set input images
-  vtkMRMLScalarVolumeNode* fixedVtkImage = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
-  itk::Image<float, 3>::Pointer fixedItkImage = itk::Image<float, 3>::New();
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(fixedVtkImage, fixedItkImage, true);
-
-  vtkMRMLScalarVolumeNode* movingVtkImage = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
-  itk::Image<float, 3>::Pointer movingItkImage = itk::Image<float, 3>::New();
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(movingVtkImage, movingItkImage, true);
-
-  this->RegistrationData->fixed_image = Plm_image::New (
-    new Plm_image(fixedItkImage));
-  this->RegistrationData->moving_image = Plm_image::New(
-    new Plm_image(movingItkImage));
-#endif
-
   this->RegistrationData->fixed_image = 
     PlmCommon::ConvertVolumeNodeToPlmImage(
       this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
@@ -191,19 +179,74 @@ void vtkPlmpyRegistration::RunRegistration()
   // Run registration and warp image
   Xform::Pointer outputXform = 
     do_registration_pure (this->RegistrationData, this->RegistrationParameters);
-  printf ("do_registration_pure is complete.\n");
 
   Plm_image* warpedImage = new Plm_image();
   this->ApplyWarp(
     warpedImage, this->MovingImageToFixedImageVectorField, 
     outputXform, this->RegistrationData->fixed_image.get(), 
     this->RegistrationData->moving_image.get(), -1200, 0, 1);
-  printf ("ApplyWarp() is complete.\n");
 
   this->SetWarpedImageInVolumeNode(warpedImage);
-  //this->SetWarpedImageInVolumeNode(this->RegistrationData->fixed_image.get());
-
   delete warpedImage;
+
+  // Do some maneuvers to put our vector field into the node
+  if (this->OutputVectorFieldID) {
+    printf ("An output vector field was requested\n");
+    vtkMRMLGridTransformNode* vfNode = 
+      vtkMRMLGridTransformNode::SafeDownCast (
+        this->GetMRMLScene()->GetNodeByID(this->OutputVectorFieldID));
+
+    vtkGridTransform* vtkgrid = vtkGridTransform::New();
+    vtkgrid->SetInterpolationModeToCubic();
+    vtkImageData *vtkgridimage = vtkImageData::New();
+
+    typedef itk::Vector < float, 3 > ItkVectorType;
+    typedef itk::Image < ItkVectorType, 3 > ItkVectorFieldType;
+    ItkVectorFieldType::RegionType region = 
+      this->MovingImageToFixedImageVectorField->GetBufferedRegion();
+    ItkVectorFieldType::SizeType size 
+      = region.GetSize();
+    ItkVectorFieldType::PointType origin
+      = this->MovingImageToFixedImageVectorField->GetOrigin();
+    ItkVectorFieldType::SpacingType spacing 
+      = this->MovingImageToFixedImageVectorField->GetSpacing();
+
+    vtkgridimage->Initialize ();
+    vtkgridimage->SetOrigin (
+      -origin[0] - spacing[0] * (size[0]-1),
+      -origin[1] - spacing[1] * (size[1]-1),
+      origin[2]);
+    vtkgridimage->SetSpacing (spacing.GetDataPointer());
+    vtkgridimage->SetDimensions (size[0], size[1], size[2]);
+    vtkgridimage->SetNumberOfScalarComponents (3);
+    vtkgridimage->SetScalarTypeToDouble ();
+    vtkgridimage->AllocateScalars ();
+
+    double* vtkDataPtr = reinterpret_cast<double*>(
+      vtkgridimage->GetScalarPointer());
+    for (size_t k = 0; k < size[2]; ++k) {
+      ItkVectorFieldType::IndexType ijk;
+      ijk[2] = k;
+      for (size_t j = 0; j < size[1]; ++j) {
+        ijk[1] = size[1] - j - 1;
+        for (size_t i = 0; i < size[0]; ++i, vtkDataPtr += 3) {
+          ijk[0] = size[0] - i - 1;
+          ItkVectorFieldType::PixelType pixel 
+            = this->MovingImageToFixedImageVectorField->GetPixel (ijk);
+          vtkDataPtr[0] = -pixel[0];
+          vtkDataPtr[1] = -pixel[1];
+          vtkDataPtr[2] = pixel[2];
+        }
+      }
+    }
+
+    vtkgrid->SetDisplacementGrid (vtkgridimage);
+    vtkgridimage->Delete();
+
+    vfNode->SetAndObserveWarpTransformFromParent (vtkgrid, true);
+    vtkgrid->Delete();
+  }
+  printf ("RunRegistration() is now complete.\n");
 }
 
 //------------------------------------------------------------------------------

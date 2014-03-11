@@ -100,6 +100,11 @@ public:
   /// Get the ID of the output image (\sa OutputVolumeID).
   vtkGetStringMacro(OutputVolumeID);
 
+  /// Set the ID of the output vector field (\sa OutputVectorFieldID).
+  vtkSetStringMacro(OutputVectorFieldID);
+  /// Get the ID of the output vector field (\sa OutputVectorFieldID).
+  vtkGetStringMacro(OutputVectorFieldID);
+
   /// Set the fixed landmarks (\sa FixedLandmarks) using a vtkPoints object.
   vtkSetObjectMacro(FixedLandmarks, vtkPoints);
   /// Get the fixed landmarks (\sa FixedLandmarks) using a vtkPoints object.
@@ -183,6 +188,11 @@ protected:
   /// ID of the registered image
   /// This value is a required parameter to execute a registration.
   char* OutputVolumeID;
+
+  /// ID of the output vector field
+  /// This value is an optional parameter to execute a registration.
+  /// If specified, an output vector field will be stored into this node
+  char* OutputVectorFieldID;
 
   /// vtkPoints object containing the fixed landmarks
   /// The number of the fixed landmarks must be the same of the number of the moving landmarks.
