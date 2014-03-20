@@ -243,7 +243,9 @@ void vtkPlmpyRegistration::RunRegistration()
     vtkgrid->SetDisplacementGrid (vtkgridimage);
     vtkgridimage->Delete();
 
-    vfNode->SetAndObserveWarpTransformFromParent (vtkgrid, true);
+    //vfNode->SetAndObserveWarpTransformFromParent (vtkgrid, true);
+    vfNode->SetAndObserveTransformFromParent(vtkgrid);
+
     vtkgrid->Delete();
   }
   printf ("RunRegistration() is now complete.\n");
