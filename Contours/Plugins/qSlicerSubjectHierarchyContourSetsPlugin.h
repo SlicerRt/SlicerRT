@@ -48,6 +48,14 @@ public:
   qSlicerSubjectHierarchyContourSetsPlugin(QObject* parent = NULL);
   virtual ~qSlicerSubjectHierarchyContourSetsPlugin();
 
+signals:
+  /*!
+  * Emmitted when the user wants to create a contour from a representation
+  * \param Structure set node to use as group for new contour
+  */
+  void CreateContourFromRepresentationClicked(std::string);
+  
+
 public:
   /// Determines if a non subject hierarchy node can be placed in the hierarchy, and gets a confidence
   ///   value for a certain MRML node (usually the type and possibly attributes are checked)

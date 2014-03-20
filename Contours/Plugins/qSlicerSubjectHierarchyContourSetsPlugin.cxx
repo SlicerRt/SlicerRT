@@ -666,27 +666,22 @@ void qSlicerSubjectHierarchyContourSetsPlugin::convertRepresentationAction()
     return;
   }
 
-  // Switch to contours module with box expanded (and maybe structure set already chosen in drop down?)
+  // Switch to contours module with box expanded and structure set already chosen in drop down
   qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(QString("Contours"));
   if( module != NULL )
   {
     qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
     if (moduleWithAction)
     {
-      //qSlicerContoursModuleWidget* widgetRep = dynamic_cast<qSlicerContoursModuleWidget*>(moduleWithAction->widgetRepresentation());
-      qSlicerContoursModuleWidget* widgetRep = static_cast<qSlicerContoursModuleWidget*>(moduleWithAction->widgetRepresentation());
-      if( widgetRep )
-      {
-        widgetRep->ExpandConvertOnLoad = true;
-        widgetRep->StructureSetNodeOnLoad = currentNode;
-      }
-      moduleWithAction->action()->trigger();
+      moduleWithAction->widgetRepresentation();
     }
   }
   else
   {
     qCritical() << "Contours module not found. Unable to open it.";
   }
+
+  emit CreateContourFromRepresentationClicked( std::string(currentNode->GetID()) );
 }
 
 //--------------------------------------------------------------------------

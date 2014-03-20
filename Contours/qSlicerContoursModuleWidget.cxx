@@ -21,8 +21,13 @@
 
 // SlicerQt includes
 #include "qSlicerContoursModuleWidget.h"
+#include "qSlicerAbstractModule.h"
 #include "ui_qSlicerContoursModule.h"
 #include <qSlicerApplication.h>
+
+// Subject Hierarchy includes
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyAbstractPlugin.h"
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
@@ -128,17 +133,6 @@ void qSlicerContoursModuleWidget::onEnter()
   d->ModuleWindowInitialized = true;
 
   this->contourNodeChanged( d->MRMLNodeComboBox_Contour->currentNode() );
-
-  if( this->ExpandConvertOnLoad )
-  {
-    this->ExpandConvertOnLoad = false;
-    d->CTKCollapsibleButton_ConvertRepresentation->setCollapsed(false);
-
-    if( this->StructureSetNodeOnLoad != NULL )
-    {
-      d->MRMLNodeComboBox_TargetStructureSet->setCurrentNodeID(QString(this->StructureSetNodeOnLoad->GetID()));
-    }
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -398,6 +392,18 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 
   // Update UI from selected contours nodes list
   this->updateWidgetFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::showContourFromRepresentationUI(std::string structureSetNode)
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>( this->module() );
+  moduleWithAction->action()->trigger();
+
+  d->CTKCollapsibleButton_ConvertRepresentation->setCollapsed(false);
+  d->MRMLNodeComboBox_TargetStructureSet->setCurrentNodeID(QString(structureSetNode.c_str()));
 }
 
 //-----------------------------------------------------------------------------
@@ -1032,6 +1038,10 @@ void qSlicerContoursModuleWidget::testInit()
 
   // Filter out non-labelmap nodes
   d->MRMLNodeComboBox_ConvertRepresentationSource->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString(SlicerRtCommon::VOLUME_LABELMAP_IDENTIFIER_ATTRIBUTE_NAME), QVariant(1) );
+
+  // Connect to the external show signal
+  qSlicerSubjectHierarchyAbstractPlugin* contourSetsPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName(QString("ContourSets"));
+  connect( contourSetsPlugin, SIGNAL(CreateContourFromRepresentationClicked(std::string)), this, SLOT(showContourFromRepresentationUI(std::string)) );
 
   // MRML inputs
   connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );
