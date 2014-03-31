@@ -87,6 +87,16 @@
         <number>0</number>
        </property>
        <item>
+        <widget class="QCheckBox" name="DisplayTransformsCheckBox">
+         <property name="text">
+          <string>Display transforms</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -221,6 +231,7 @@ p, li { white-space: pre-wrap; }
   </customwidget>
  </customwidgets>
  <resources>
+  <include location="../qSlicerSubjectHierarchyModule.qrc"/>
   <include location="../qSlicerSubjectHierarchyModule.qrc"/>
   <include location="../qSlicerSubjectHierarchyModule.qrc"/>
  </resources>

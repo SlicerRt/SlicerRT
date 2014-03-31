@@ -39,6 +39,12 @@ class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qMRMLSceneSubjectHierarchy
   /// A value of -1 hides it. Hidden by default (value of -1).
   Q_PROPERTY (int nodeTypeColumn READ nodeTypeColumn WRITE setNodeTypeColumn)
 
+  /// Control in which column the parent transforms are displayed
+  /// A MRML node combobox is displayed in the row of the transformable nodes, in which
+  /// the current transform is selected. The user can change the transform using the combobox.
+  /// A value of -1 (default) hides the column
+  Q_PROPERTY (int transformColumn READ transformColumn WRITE setTransformColumn)
+
 public:
   typedef qMRMLSceneHierarchyModel Superclass;
   qMRMLSceneSubjectHierarchyModel(QObject *parent=0);
@@ -65,7 +71,10 @@ public:
   int nodeTypeColumn()const;
   void setNodeTypeColumn(int column);
 
-public slots:
+  int transformColumn()const;
+  void setTransformColumn(int column);
+
+  public slots:
   /// Force update of the scene in the model
   void forceUpdateScene();
 
@@ -77,6 +86,9 @@ signals:
 protected:
   /// Get the largest column ID
   virtual int maxColumnId()const;
+
+  /// Overridden function to return flags for custom columns
+  virtual QFlags<Qt::ItemFlag> nodeFlags(vtkMRMLNode* node, int column)const;
 
   /// Overridden function to handle tree view item display from node data
   virtual void updateItemDataFromNode(QStandardItem* item, vtkMRMLNode* node, int column);

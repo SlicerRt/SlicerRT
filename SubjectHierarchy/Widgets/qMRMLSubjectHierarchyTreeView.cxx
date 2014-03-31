@@ -33,6 +33,7 @@
 #include "qMRMLSubjectHierarchyTreeView.h"
 #include "qMRMLSceneSubjectHierarchyModel.h"
 #include "qMRMLSortFilterSubjectHierarchyProxyModel.h"
+#include "qMRMLTransformItemDelegate.h"
 
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
@@ -64,6 +65,7 @@ public:
 
   QList<QAction*> SelectPluginActions;
   QActionGroup* SelectPluginActionGroup;
+  qMRMLTransformItemDelegate* TransformItemDelegate;
 };
 
 //------------------------------------------------------------------------------
@@ -78,7 +80,7 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
   Q_Q(qMRMLSubjectHierarchyTreeView);
 
   // Set up scene model and sort and proxy model
-  qMRMLSceneModel* sceneModel = new qMRMLSceneSubjectHierarchyModel(q);
+  qMRMLSceneSubjectHierarchyModel* sceneModel = new qMRMLSceneSubjectHierarchyModel(q);
   QObject::connect( sceneModel, SIGNAL(saveTreeExpandState()), q, SLOT(saveTreeExpandState()) );
   QObject::connect( sceneModel, SIGNAL(loadTreeExpandState()), q, SLOT(loadTreeExpandState()) );
   q->setSceneModel(sceneModel, "SubjectHierarchy");
@@ -95,9 +97,15 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
 
   // Set up headers
   q->header()->setStretchLastSection(false);
-  q->header()->setResizeMode(0, QHeaderView::Stretch);
-  q->header()->setResizeMode(1, QHeaderView::ResizeToContents);
-  q->header()->setResizeMode(2, QHeaderView::ResizeToContents);
+  q->header()->setResizeMode(sceneModel->nameColumn(), QHeaderView::Stretch);
+  q->header()->setResizeMode(sceneModel->visibilityColumn(), QHeaderView::ResizeToContents);
+  q->header()->setResizeMode(sceneModel->transformColumn(), QHeaderView::Interactive);
+  q->header()->setResizeMode(sceneModel->idColumn(), QHeaderView::ResizeToContents);
+
+  // Set item delegate (that creates widgets for certain types of data)
+  this->TransformItemDelegate = new qMRMLTransformItemDelegate(q);
+  this->TransformItemDelegate->setMRMLScene(q->mrmlScene());
+  q->setItemDelegateForColumn(sceneModel->transformColumn(), this->TransformItemDelegate);
 
   // Perform tasks need for all plugins
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
@@ -148,6 +156,18 @@ qMRMLSubjectHierarchyTreeView::qMRMLSubjectHierarchyTreeView(QWidget *parent)
 //------------------------------------------------------------------------------
 qMRMLSubjectHierarchyTreeView::~qMRMLSubjectHierarchyTreeView()
 {
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::setMRMLScene(vtkMRMLScene* scene)
+{
+  Q_D(qMRMLSubjectHierarchyTreeView);
+  Q_ASSERT(d->SortFilterModel);
+  vtkMRMLNode* rootNode = this->rootNode();
+  d->SceneModel->setMRMLScene(scene);
+  d->TransformItemDelegate->setMRMLScene(scene);
+  this->setRootNode(rootNode);
+  this->expandToDepth(4);
 }
 
 //------------------------------------------------------------------------------

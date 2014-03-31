@@ -54,6 +54,9 @@ protected:
   virtual void mousePressEvent(QMouseEvent* event);
 
 public slots:
+  /// Set MRML scene
+  virtual void setMRMLScene(vtkMRMLScene* scene);
+  
   /// Handle expand node requests in the subject hierarchy tree
   void expandNode(vtkMRMLSubjectHierarchyNode* node);
 

@@ -25,6 +25,8 @@ set(${KIT}_SRCS
   qMRMLScenePotentialSubjectHierarchyModel_p.h
   qMRMLSortFilterPotentialSubjectHierarchyProxyModel.cxx
   qMRMLSortFilterPotentialSubjectHierarchyProxyModel.h
+  qMRMLTransformItemDelegate.cxx
+  qMRMLTransformItemDelegate.h
   )
 
 set(${KIT}_MOC_SRCS
@@ -34,6 +36,7 @@ set(${KIT}_MOC_SRCS
   qMRMLPotentialSubjectHierarchyListView.h
   qMRMLScenePotentialSubjectHierarchyModel.h
   qMRMLSortFilterPotentialSubjectHierarchyProxyModel.h
+  qMRMLTransformItemDelegate.h
   )
 
 set(${KIT}_UI_SRCS

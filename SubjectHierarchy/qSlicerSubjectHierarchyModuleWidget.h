@@ -53,6 +53,9 @@ protected slots:
   /// Show or hide MRML IDs
   void setMRMLIDsVisible(bool visible);
 
+  /// Show or hide transforms
+  void setTransformsVisible(bool visible);
+
 protected:
   QScopedPointer<qSlicerSubjectHierarchyModuleWidgetPrivate> d_ptr;
 

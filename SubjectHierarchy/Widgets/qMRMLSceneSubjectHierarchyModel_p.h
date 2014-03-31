@@ -47,6 +47,7 @@ public:
   virtual void init();
 
   int NodeTypeColumn;
+  int TransformColumn;
 
   QIcon UnknownIcon;
   QIcon WarningIcon;

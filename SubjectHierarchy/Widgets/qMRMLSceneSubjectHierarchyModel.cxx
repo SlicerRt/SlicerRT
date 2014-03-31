@@ -32,6 +32,7 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSceneViewNode.h>
+#include <vtkMRMLTransformNode.h>
 
 // Qt includes
 #include <QDebug>
@@ -43,6 +44,7 @@ qMRMLSceneSubjectHierarchyModelPrivate::qMRMLSceneSubjectHierarchyModelPrivate(q
 : Superclass(object)
 {
   this->NodeTypeColumn = -1;
+  this->TransformColumn = -1;
 
   this->UnknownIcon = QIcon(":Icons/Unknown.png");
   this->WarningIcon = QIcon(":Icons/Warning.png");
@@ -57,14 +59,16 @@ void qMRMLSceneSubjectHierarchyModelPrivate::init()
   q->setNameColumn(0);
   q->setNodeTypeColumn(q->nameColumn());
   q->setVisibilityColumn(1);
-  q->setIDColumn(2);
+  q->setTransformColumn(2);
+  q->setIDColumn(3);
 
   q->setHorizontalHeaderLabels(
-    QStringList() << "Nodes" << "Vis" << "IDs");
+    QStringList() << "Node" << "Vis" << "Tr" << "IDs");
 
-  q->horizontalHeaderItem(0)->setToolTip(QObject::tr("Node name and type"));
-  q->horizontalHeaderItem(1)->setToolTip(QObject::tr("Show/hide branch or node"));
-  q->horizontalHeaderItem(2)->setToolTip(QObject::tr("Node ID"));
+  q->horizontalHeaderItem(q->nameColumn())->setToolTip(QObject::tr("Node name and type"));
+  q->horizontalHeaderItem(q->visibilityColumn())->setToolTip(QObject::tr("Show/hide branch or node"));
+  q->horizontalHeaderItem(q->transformColumn())->setToolTip(QObject::tr("Applied transform"));
+  q->horizontalHeaderItem(q->idColumn())->setToolTip(QObject::tr("Node ID"));
 
   // Set visibility icons from model to the default plugin
   qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDefaultVisibilityIcons(this->VisibleIcon, this->HiddenIcon, this->PartiallyVisibleIcon);
@@ -157,15 +161,53 @@ void qMRMLSceneSubjectHierarchyModel::setNodeTypeColumn(int column)
 }
 
 //------------------------------------------------------------------------------
+int qMRMLSceneSubjectHierarchyModel::transformColumn()const
+{
+  Q_D(const qMRMLSceneSubjectHierarchyModel);
+  return d->TransformColumn;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSceneSubjectHierarchyModel::setTransformColumn(int column)
+{
+  Q_D(qMRMLSceneSubjectHierarchyModel);
+  d->TransformColumn = column;
+  this->updateColumnCount();
+}
+
+//------------------------------------------------------------------------------
 int qMRMLSceneSubjectHierarchyModel::maxColumnId()const
 {
   Q_D(const qMRMLSceneSubjectHierarchyModel);
   int maxId = this->Superclass::maxColumnId();
   maxId = qMax(maxId, d->VisibilityColumn);
   maxId = qMax(maxId, d->NodeTypeColumn);
+  maxId = qMax(maxId, d->TransformColumn);
   maxId = qMax(maxId, d->NameColumn);
   maxId = qMax(maxId, d->IDColumn);
   return maxId;
+}
+
+//------------------------------------------------------------------------------
+QFlags<Qt::ItemFlag> qMRMLSceneSubjectHierarchyModel::nodeFlags(vtkMRMLNode* node, int column)const
+{
+  Q_D(const qMRMLSceneSubjectHierarchyModel);
+  QFlags<Qt::ItemFlag> flags = this->Superclass::nodeFlags(node, column);
+
+  if (column == this->transformColumn() && node)
+  {
+    vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
+    if (subjectHierarchyNode)
+    {
+      vtkMRMLNode* dataNode = subjectHierarchyNode->GetAssociatedDataNode();
+      if (dataNode && dataNode->IsA("vtkMRMLTransformableNode"))
+      {
+        flags = flags | Qt::ItemIsEditable;
+      }
+    }
+  }
+
+  return flags;
 }
 
 //------------------------------------------------------------------------------
@@ -220,6 +262,22 @@ void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item
       item->setIcon(d->UnknownIcon);
     }
   }
+  // Transform column
+  if (column == this->transformColumn())
+  {
+    vtkMRMLNode* associatedNode = subjectHierarchyNode->GetAssociatedDataNode();
+    vtkMRMLTransformableNode* transformableNode = vtkMRMLTransformableNode::SafeDownCast(associatedNode);
+    if (transformableNode)
+    {
+      vtkMRMLTransformNode* parentTransformNode = ( transformableNode->GetParentTransformNode() ? transformableNode->GetParentTransformNode() : NULL );
+      QString transformNodeId( parentTransformNode ? parentTransformNode->GetID() : "" );
+      item->setData( transformNodeId, qMRMLSceneModel::UIDRole );
+      item->setData( "Transform", Qt::WhatsThisRole );
+      //item->setData( transformNodeId, Qt::EditRole );
+      //item->setData( (parentTransformNode ? parentTransformNode->GetName() : ""), Qt::DisplayRole );
+      item->setText( parentTransformNode ? parentTransformNode->GetName() : "" );
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -234,10 +292,12 @@ void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
   qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin =
     qSlicerSubjectHierarchyPluginHandler::instance()->getOwnerPluginForSubjectHierarchyNode(subjectHierarchyNode);
 
+  // Name column
   if ( item->column() == this->nameColumn() )
   {
     subjectHierarchyNode->SetName(item->text().append(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str()).toLatin1().constData());
   }
+  // Visibility column
   if ( item->column() == this->visibilityColumn()
     && !item->data(VisibilityRole).isNull() )
   {
@@ -247,6 +307,15 @@ void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
       // Have owner plugin set the display visibility
       ownerPlugin->setDisplayVisibility(subjectHierarchyNode, visible);
     }
+  }
+  // Transform column
+  if (item->column() == this->transformColumn())
+  {
+    QVariant uidData = item->data(qMRMLSceneModel::UIDRole);
+    QString uidString = uidData.toString();
+    std::string newParentTransformNodeIdStr = uidData.toString().toLatin1().constData();
+    const char* newParentTransformNodeId = (newParentTransformNodeIdStr.empty() ? NULL : newParentTransformNodeIdStr.c_str());
+qWarning() << "ZZZ newParentTransformNodeId: '" << uidString << "', '" << (newParentTransformNodeId ? newParentTransformNodeId : "NULL") << "'";
   }
 }
 
