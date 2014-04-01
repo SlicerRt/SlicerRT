@@ -27,6 +27,10 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLDisplayableNode.h"
 #include "vtkMRMLDisplayNode.h"
+#include "vtkMRMLTransformNode.h"
+
+// Slicer Libs includes
+#include <vtkSlicerTransformLogic.h> 
 
 // VTK includes
 #include <vtkCollection.h>
@@ -678,4 +682,112 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchy
   }
 
   return childSubjectHierarchyNode;
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLSubjectHierarchyNode::IsAnyNodeInBranchTransformed(vtkMRMLTransformNode* exceptionNode/*=NULL*/)
+{
+  // Check data node first
+  vtkMRMLTransformableNode* transformableDataNode = vtkMRMLTransformableNode::SafeDownCast(this->GetAssociatedDataNode());
+  if ( transformableDataNode && transformableDataNode->GetParentTransformNode()
+    && transformableDataNode->GetParentTransformNode() != exceptionNode)
+  {
+    return true;
+  }
+
+  // Check all children
+  vtkSmartPointer<vtkCollection> childTransformableNodes = vtkSmartPointer<vtkCollection>::New();
+  this->GetAssociatedChildrenNodes(childTransformableNodes, "vtkMRMLTransformableNode");
+  childTransformableNodes->InitTraversal();
+
+  for (int childNodeIndex=0; childNodeIndex<childTransformableNodes->GetNumberOfItems(); ++childNodeIndex)
+  {
+    vtkMRMLTransformableNode* transformableNode = vtkMRMLTransformableNode::SafeDownCast(
+      childTransformableNodes->GetItemAsObject(childNodeIndex) );
+    vtkMRMLTransformNode* parentTransformNode = NULL;
+    if (transformableNode && (parentTransformNode = transformableNode->GetParentTransformNode()))
+    {
+      if (parentTransformNode != exceptionNode)
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSubjectHierarchyNode::TransformBranch(vtkMRMLTransformNode* transformNode, bool hardenExistingTransforms/*=true*/)
+{
+  if (!transformNode)
+  {
+    vtkDebugMacro("TransformBranch: NULL transform specified, nothing to do.");
+    return;
+  }
+
+  // Get all associated data nodes from children nodes
+  vtkSmartPointer<vtkCollection> childTransformableNodes = vtkSmartPointer<vtkCollection>::New();
+  this->GetAssociatedChildrenNodes(childTransformableNodes, "vtkMRMLTransformableNode");
+
+  // Add associated data node (if any) to children nodes so that it will be transformed too
+  vtkMRMLTransformableNode* transformableDataNode = vtkMRMLTransformableNode::SafeDownCast(this->GetAssociatedDataNode());
+  if (transformableDataNode)
+  {
+    childTransformableNodes->AddItem(transformableDataNode);
+  }
+  childTransformableNodes->InitTraversal();
+
+  for (int childNodeIndex=0; childNodeIndex<childTransformableNodes->GetNumberOfItems(); ++childNodeIndex)
+  {
+    vtkMRMLTransformableNode* transformableNode = vtkMRMLTransformableNode::SafeDownCast(
+      childTransformableNodes->GetItemAsObject(childNodeIndex) );
+    if (!transformableNode)
+    {
+      vtkWarningMacro("TransformBranch: Non-transformable node found in a collection of transformable nodes!");
+      continue;
+    }
+
+    vtkMRMLTransformNode* parentTransformNode = transformableNode->GetParentTransformNode();
+    if (parentTransformNode)
+    {
+      // Do nothing if the parent transform matches the specified transform to apply
+      if (parentTransformNode == transformNode)
+      {
+        vtkDebugMacro("TransformBranch: Specified transform " << transformNode->GetName() << " already applied on data node belonging to subject hierarchy node " << this->Name);
+        continue;
+      }
+      if (hardenExistingTransforms)
+      {
+        vtkSlicerTransformLogic::hardenTransform(transformableNode);
+        transformableNode->SetAndObserveTransformNodeID(transformNode->GetID());
+      }
+      else
+      {
+        // Look for the top transform. Do nothing if the specified transform is found among the ancestors.
+        bool specifiedTransformAlreadyApplied = false; // False because we checked this earlier
+        while (parentTransformNode->GetParentTransformNode())
+        {
+          parentTransformNode = parentTransformNode->GetParentTransformNode();
+          if (parentTransformNode == transformNode)
+          {
+            specifiedTransformAlreadyApplied = true;
+            break;
+          }
+        }
+        if (specifiedTransformAlreadyApplied)
+        {
+          vtkDebugMacro("TransformBranch: Specified transform " << transformNode->GetName() << " already applied on data node belonging to subject hierarchy node " << this->Name);
+          continue;
+        }
+        // Set specified transform as parent of the top transform found for the current node
+        parentTransformNode->SetAndObserveTransformNodeID(transformNode->GetID());
+      }
+    }
+    // There is no transform applied on the current node
+    else
+    {
+      transformableNode->SetAndObserveTransformNodeID(transformNode->GetID());
+    }
+  }
 }

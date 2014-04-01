@@ -6,6 +6,7 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT"
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${MRMLCore_INCLUDE_DIRS}
+  ${Slicer_Base_INCLUDE_DIRS}
   )
 
 # --------------------------------------------------------------------------
@@ -25,6 +26,7 @@ SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
 
 set(${KIT}_TARGET_LIBRARIES
   MRMLCore
+  SlicerBaseLogic
   )
 
 SlicerMacroBuildModuleMRML(

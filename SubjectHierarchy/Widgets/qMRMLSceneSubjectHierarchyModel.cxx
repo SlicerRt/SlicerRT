@@ -312,10 +312,23 @@ void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
   if (item->column() == this->transformColumn())
   {
     QVariant uidData = item->data(qMRMLSceneModel::UIDRole);
-    QString uidString = uidData.toString();
     std::string newParentTransformNodeIdStr = uidData.toString().toLatin1().constData();
-    const char* newParentTransformNodeId = (newParentTransformNodeIdStr.empty() ? NULL : newParentTransformNodeIdStr.c_str());
-qWarning() << "ZZZ newParentTransformNodeId: '" << uidString << "', '" << (newParentTransformNodeId ? newParentTransformNodeId : "NULL") << "'";
+    vtkMRMLNode* newParentTransformNodeGeneric = this->mrmlScene()->GetNodeByID(newParentTransformNodeIdStr);
+    vtkMRMLTransformNode* newParentTransformNode = NULL;
+    if ( !newParentTransformNodeGeneric
+      || !(newParentTransformNode = vtkMRMLTransformNode::SafeDownCast(newParentTransformNodeGeneric)) )
+    {
+      qCritical() << "qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData: Invalid transform node selected! Node ID: " << newParentTransformNodeIdStr.c_str();
+      return;
+    }
+
+    bool hardenExistingTransforms = true;
+    if (subjectHierarchyNode->IsAnyNodeInBranchTransformed(newParentTransformNode))
+    {
+      // TODO message box: Harden, Apply, Abort
+    }
+
+    subjectHierarchyNode->TransformBranch(newParentTransformNode, hardenExistingTransforms);
   }
 }
 
