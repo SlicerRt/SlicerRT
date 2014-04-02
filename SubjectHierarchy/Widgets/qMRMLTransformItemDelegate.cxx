@@ -31,9 +31,9 @@
 
 // MRML Widgets includes
 #include "qMRMLNodeComboBox.h"
-#include "qMRMLSceneModel.h"
 
 // Subject hierarchy widgets includes
+#include "qMRMLSceneSubjectHierarchyModel.h"
 #include "qMRMLTransformItemDelegate.h"
 
 //------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ void qMRMLTransformItemDelegate::setEditorData(QWidget *editor,
 {
   if (this->isTransform(index))
     {
-    QString transformNodeID = index.data(qMRMLSceneModel::UIDRole).toString();
+    QString transformNodeID = index.data(qMRMLSceneSubjectHierarchyModel::TransformIDRole).toString();
     qMRMLNodeComboBox* transformNodeCombobox = qobject_cast<qMRMLNodeComboBox*>(editor);
     if (!transformNodeCombobox)
       {
@@ -128,7 +128,7 @@ void qMRMLTransformItemDelegate::setModelData(QWidget *editor, QAbstractItemMode
       return;
       }
     QString transformNodeID = transformNodeCombobox->currentNodeID();
-    model->setData(index, transformNodeID, qMRMLSceneModel::UIDRole);
+    model->setData(index, transformNodeID, qMRMLSceneSubjectHierarchyModel::TransformIDRole);
     }
   else
     {

@@ -726,16 +726,9 @@ void vtkMRMLSubjectHierarchyNode::TransformBranch(vtkMRMLTransformNode* transfor
     return;
   }
 
-  // Get all associated data nodes from children nodes
+  // Get all associated data nodes from children nodes (and itself)
   vtkSmartPointer<vtkCollection> childTransformableNodes = vtkSmartPointer<vtkCollection>::New();
   this->GetAssociatedChildrenNodes(childTransformableNodes, "vtkMRMLTransformableNode");
-
-  // Add associated data node (if any) to children nodes so that it will be transformed too
-  vtkMRMLTransformableNode* transformableDataNode = vtkMRMLTransformableNode::SafeDownCast(this->GetAssociatedDataNode());
-  if (transformableDataNode)
-  {
-    childTransformableNodes->AddItem(transformableDataNode);
-  }
   childTransformableNodes->InitTraversal();
 
   for (int childNodeIndex=0; childNodeIndex<childTransformableNodes->GetNumberOfItems(); ++childNodeIndex)
@@ -760,34 +753,9 @@ void vtkMRMLSubjectHierarchyNode::TransformBranch(vtkMRMLTransformNode* transfor
       if (hardenExistingTransforms)
       {
         vtkSlicerTransformLogic::hardenTransform(transformableNode);
-        transformableNode->SetAndObserveTransformNodeID(transformNode->GetID());
-      }
-      else
-      {
-        // Look for the top transform. Do nothing if the specified transform is found among the ancestors.
-        bool specifiedTransformAlreadyApplied = false; // False because we checked this earlier
-        while (parentTransformNode->GetParentTransformNode())
-        {
-          parentTransformNode = parentTransformNode->GetParentTransformNode();
-          if (parentTransformNode == transformNode)
-          {
-            specifiedTransformAlreadyApplied = true;
-            break;
-          }
-        }
-        if (specifiedTransformAlreadyApplied)
-        {
-          vtkDebugMacro("TransformBranch: Specified transform " << transformNode->GetName() << " already applied on data node belonging to subject hierarchy node " << this->Name);
-          continue;
-        }
-        // Set specified transform as parent of the top transform found for the current node
-        parentTransformNode->SetAndObserveTransformNodeID(transformNode->GetID());
       }
     }
-    // There is no transform applied on the current node
-    else
-    {
-      transformableNode->SetAndObserveTransformNodeID(transformNode->GetID());
-    }
+
+    transformableNode->SetAndObserveTransformNodeID(transformNode->GetID());
   }
 }

@@ -50,6 +50,14 @@ public:
   qMRMLSceneSubjectHierarchyModel(QObject *parent=0);
   virtual ~qMRMLSceneSubjectHierarchyModel();
 
+  enum ItemDataRole
+  {
+    /// MRML node ID of the parent transform
+    TransformIDRole = qMRMLSceneModel::LastRole + 1,
+    /// Must stay the last enum in the list.
+    LastRole
+  };
+
   /// Function returning the supported MIME types
   virtual QStringList mimeTypes()const;
 
