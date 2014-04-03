@@ -197,15 +197,7 @@ QFlags<Qt::ItemFlag> qMRMLSceneSubjectHierarchyModel::nodeFlags(vtkMRMLNode* nod
 
   if (column == this->transformColumn() && node)
   {
-    vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
-    if (subjectHierarchyNode)
-    {
-      vtkMRMLNode* dataNode = subjectHierarchyNode->GetAssociatedDataNode();
-      if (dataNode && dataNode->IsA("vtkMRMLTransformableNode"))
-      {
-        flags = flags | Qt::ItemIsEditable;
-      }
-    }
+    flags = flags | Qt::ItemIsEditable;
   }
 
   return flags;
@@ -266,7 +258,10 @@ void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item
   // Transform column
   if (column == this->transformColumn())
   {
-    item->setData( "Transform", Qt::WhatsThisRole );
+    if (item->data(Qt::WhatsThisRole).toString().isEmpty())
+    {
+      item->setData( "Transform", Qt::WhatsThisRole );
+    }
 
     vtkMRMLNode* associatedNode = subjectHierarchyNode->GetAssociatedDataNode();
     vtkMRMLTransformableNode* transformableNode = vtkMRMLTransformableNode::SafeDownCast(associatedNode);
@@ -274,14 +269,19 @@ void qMRMLSceneSubjectHierarchyModel::updateItemDataFromNode(QStandardItem* item
     {
       vtkMRMLTransformNode* parentTransformNode = ( transformableNode->GetParentTransformNode() ? transformableNode->GetParentTransformNode() : NULL );
       QString transformNodeId( parentTransformNode ? parentTransformNode->GetID() : "" );
-      item->setData( transformNodeId, qMRMLSceneSubjectHierarchyModel::TransformIDRole );
-
-      item->setText( parentTransformNode ? parentTransformNode->GetName() : "" );
-      item->setToolTip( parentTransformNode ? tr("%1 (%2)").arg(parentTransformNode->GetName()).arg(parentTransformNode->GetID()) : "" );
+      QString transformNodeName( parentTransformNode ? parentTransformNode->GetName() : "" );
+      // Only change item if the transform itself changed
+      if (item->text().compare(transformNodeName))
+      {
+        item->setData( transformNodeId, qMRMLSceneSubjectHierarchyModel::TransformIDRole );
+        item->setText( transformNodeName );
+        item->setToolTip( parentTransformNode ? tr("%1 (%2)").arg(parentTransformNode->GetName()).arg(parentTransformNode->GetID()) : "" );
+      }
     }
     else
     {
-      item->setToolTip(tr("No transform can be directly applied on non-transformable nodes, however a transform can be chosen to apply it on all the children"));
+      //item->setData( tr(""), qMRMLSceneSubjectHierarchyModel::TransformIDRole );
+      item->setToolTip(tr("No transform can be directly applied on non-transformable nodes,\nhowever a transform can be chosen to apply it on all the children"));
     }
   }
 }
@@ -319,14 +319,25 @@ void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
   {
     QVariant transformIdData = item->data(qMRMLSceneSubjectHierarchyModel::TransformIDRole);
     std::string newParentTransformNodeIdStr = transformIdData.toString().toLatin1().constData();
-    vtkMRMLNode* newParentTransformNodeGeneric = this->mrmlScene()->GetNodeByID(newParentTransformNodeIdStr);
-    vtkMRMLTransformNode* newParentTransformNode = NULL;
-    if ( !newParentTransformNodeGeneric
-      || !(newParentTransformNode = vtkMRMLTransformNode::SafeDownCast(newParentTransformNodeGeneric)) )
+    vtkMRMLTransformNode* newParentTransformNode = 
+      vtkMRMLTransformNode::SafeDownCast( this->mrmlScene()->GetNodeByID(newParentTransformNodeIdStr) );
+
+    // No checks and questions when the transform is being removed
+    if (!newParentTransformNode)
+    {
+      subjectHierarchyNode->TransformBranch(NULL, false);
+      return;
+    }
+
+    // No action if the chosen transform is the same as the applied one
+    vtkMRMLTransformableNode* dataNode = vtkMRMLTransformableNode:: SafeDownCast(
+      subjectHierarchyNode->GetAssociatedDataNode() );
+    if (dataNode && dataNode->GetParentTransformNode() == newParentTransformNode)
     {
       return;
     }
 
+    // Ask the user if any child node in the tree is transformed with a transform different from the chosen one
     bool hardenExistingTransforms = true;
     if (subjectHierarchyNode->IsAnyNodeInBranchTransformed(newParentTransformNode))
     {
@@ -336,11 +347,11 @@ void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
         "  Note: If you choose no, then the applied transform will simply be replaced."),
         QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
         QMessageBox::Yes);
-      if (answer = QMessageBox::No)
+      if (answer == QMessageBox::No)
       {
         hardenExistingTransforms = false;
       }
-      else
+      else if (answer == QMessageBox::Cancel)
       {
         qDebug() << "qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData: Transform branch cancelled";
         return;

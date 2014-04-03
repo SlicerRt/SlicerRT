@@ -89,6 +89,14 @@ public:
   /// Overridden function to set visibility to active representations
   virtual void SetDisplayVisibility(int visible);
 
+  /// Returns true if the transformable node can apply non linear transforms
+  /// \sa ApplyTransform
+  virtual bool CanApplyNonLinearTransforms()const;
+
+  /// Apply a transform on the representations
+  /// \sa SetAndObserveTransformNodeID, CanApplyNonLinearTransforms
+  virtual void ApplyTransform(vtkAbstractTransform* transform);
+
 public:
   /// Set default representation by the object instance
   void SetActiveRepresentationByNode(vtkMRMLDisplayableNode *node);

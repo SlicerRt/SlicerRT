@@ -1147,3 +1147,22 @@ void vtkMRMLContourNode::UpdateRepresentations()
     this->SetActiveRepresentationByType(this->ActiveRepresentationType);
     }
 }
+
+//-----------------------------------------------------------
+bool vtkMRMLContourNode::CanApplyNonLinearTransforms()const
+{
+  return true;
+}
+
+//-----------------------------------------------------------
+void vtkMRMLContourNode::ApplyTransform(vtkAbstractTransform* transform)
+{
+  std::vector<vtkMRMLDisplayableNode*> representations = this->CreateTemporaryRepresentationsVector();
+  for (int i=0; i<NumberOfRepresentationTypes; ++i)
+  {
+    if ( representations[i] )
+    {
+      representations[i]->ApplyTransform(transform);
+    }
+  }
+}
