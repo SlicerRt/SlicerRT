@@ -34,7 +34,6 @@
 #include "qSlicerSubjectHierarchyContourSetsPlugin.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkSlicerContoursModuleLogic.h"
-#include "qSlicerContoursModuleWidget.h"
 
 // Qt includes
 #include <QDebug>
