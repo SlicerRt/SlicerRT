@@ -24,6 +24,7 @@
 #include "vtkMRMLContourComparisonNode.h"
 
 // SlicerRT includes
+#include "PlmCommon.h"
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
 
@@ -52,9 +53,11 @@ public:
   static vtkSlicerContourComparisonModuleLogicPrivate *New();
   vtkTypeMacro(vtkSlicerContourComparisonModuleLogicPrivate,vtkObject);
 
-  /// Get input contours as labelmaps, then convert them to ITK volumes
-  void GetInputContoursAsItkVolumes( itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk,
-    itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk, double &checkpointItkConvertStart, std::string & errorMessage );
+  /// Get input contours as labelmaps, then convert them to Plm_image volumes
+  void GetInputContoursAsPlmVolumes(
+    Plm_image::Pointer& plmRefContourLabelmap,
+    Plm_image::Pointer& plmCmpContourLabelmap,
+    double &checkpointItkConvertStart, std::string & errorMessage);
 
   void SetLogic(vtkSlicerContourComparisonModuleLogic* logic) { this->Logic = logic; };
 
@@ -84,9 +87,9 @@ vtkSlicerContourComparisonModuleLogicPrivate::~vtkSlicerContourComparisonModuleL
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsItkVolumes(
-  itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk,
-  itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk,
+void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsPlmVolumes(
+  Plm_image::Pointer& plmRefContourLabelmap,
+  Plm_image::Pointer& plmCmpContourLabelmap,
   double &checkpointItkConvertStart, std::string & errorMessage )
 {
   if (!this->Logic->GetContourComparisonNode() || !this->Logic->GetMRMLScene())
@@ -122,11 +125,19 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsItkVolumes(
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   checkpointItkConvertStart = timer->GetUniversalTime();
 
-  if ( SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(referenceContourLabelmapVolumeNode, referenceContourLabelmapVolumeItk) == false
-    || SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(compareContourLabelmapVolumeNode, compareContourLabelmapVolumeItk) == false )
-  {
-    errorMessage = "Failed to convert contour labelmaps to ITK volumes!";
-    vtkErrorMacro("GetInputContoursAsItkVolumes: " << errorMessage);
+  plmRefContourLabelmap = 
+    PlmCommon::ConvertVolumeNodeToPlmImage (referenceContourLabelmapVolumeNode);
+  if (!plmRefContourLabelmap) {
+    errorMessage = "Failed to convert contour labelmaps into Plm_image!";
+    vtkErrorMacro("GetInputContoursAsPlmVolumes: " << errorMessage);
+    return;
+  }
+
+  plmCmpContourLabelmap = 
+    PlmCommon::ConvertVolumeNodeToPlmImage (compareContourLabelmapVolumeNode);
+  if (!plmCmpContourLabelmap) {
+    errorMessage = "Failed to convert contour labelmaps into Plm_image!";
+    vtkErrorMacro("GetInputContoursAsPlmVolumes: " << errorMessage);
     return;
   }
 }
@@ -280,11 +291,9 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
   double checkpointItkConvertStart;
 
   // Convert input images to the format Plastimatch can use
-  itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk =
-    itk::Image<unsigned char, 3>::New();
-  itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk =
-    itk::Image<unsigned char, 3>::New();
-  this->LogicPrivate->GetInputContoursAsItkVolumes(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk, checkpointItkConvertStart, errorMessage);
+  Plm_image::Pointer plmRefContourLabelmap;
+  Plm_image::Pointer plmCmpContourLabelmap;
+  this->LogicPrivate->GetInputContoursAsPlmVolumes(plmRefContourLabelmap, plmCmpContourLabelmap, checkpointItkConvertStart, errorMessage);
   if (!errorMessage.empty())
   {
     vtkErrorMacro("ComputeDiceStatistics: Error occurred during ITK conversion!");
@@ -292,16 +301,14 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
   }
 
   // Get voxel volume and number of voxels (the itk_image_header_compare check made sure the spacings match)
-  itk::Image<unsigned char, 3>::SpacingType spacing = referenceContourLabelmapVolumeItk->GetSpacing();
-  double voxelVolumeCc = spacing[0] * spacing[1] * spacing[2];
-  itk::Image<unsigned char, 3>::RegionType region = referenceContourLabelmapVolumeItk->GetLargestPossibleRegion();
-  unsigned long numberOfVoxels = region.GetNumberOfPixels();
+  double voxelVolumeCc = plmRefContourLabelmap->spacing(0) * plmRefContourLabelmap->spacing(1) * plmRefContourLabelmap->spacing(2);
+  unsigned long numberOfVoxels = plmRefContourLabelmap->dim(0) * plmRefContourLabelmap->dim(1) * plmRefContourLabelmap->dim(2);
 
   //// Compute Dice similarity metrics
   double checkpointDiceStart = timer->GetUniversalTime();
   Dice_statistics dice;
-  dice.set_reference_image(referenceContourLabelmapVolumeItk);
-  dice.set_compare_image(compareContourLabelmapVolumeItk);
+  dice.set_reference_image(plmRefContourLabelmap->itk_uchar());
+  dice.set_compare_image(plmCmpContourLabelmap->itk_uchar());
 
   dice.run();
 
@@ -351,22 +358,20 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
   double checkpointItkConvertStart;
 
   // Convert input images to the format Plastimatch can use
-  itk::Image<unsigned char, 3>::Pointer referenceContourLabelmapVolumeItk =
-    itk::Image<unsigned char, 3>::New();
-  itk::Image<unsigned char, 3>::Pointer compareContourLabelmapVolumeItk =
-    itk::Image<unsigned char, 3>::New();
-  this->LogicPrivate->GetInputContoursAsItkVolumes(referenceContourLabelmapVolumeItk, compareContourLabelmapVolumeItk, checkpointItkConvertStart, errorMessage);
+  Plm_image::Pointer plmRefContourLabelmap;
+  Plm_image::Pointer plmCmpContourLabelmap;
+  this->LogicPrivate->GetInputContoursAsPlmVolumes(plmRefContourLabelmap, plmCmpContourLabelmap, checkpointItkConvertStart, errorMessage);
   if (!errorMessage.empty())
   {
-    vtkErrorMacro("ComputeHausdorffDistances: Error occurred during ITK conversion!");
+    vtkErrorMacro("ComputeDiceStatistics: Error occurred during ITK conversion!");
     return;
   }
 
   // Compute Hausdorff distances
   double checkpointHausdorffStart = timer->GetUniversalTime();
   Hausdorff_distance hausdorff;
-  hausdorff.set_reference_image(referenceContourLabelmapVolumeItk);
-  hausdorff.set_compare_image(compareContourLabelmapVolumeItk);
+  hausdorff.set_reference_image(plmRefContourLabelmap->itk_uchar());
+  hausdorff.set_compare_image(plmCmpContourLabelmap->itk_uchar());
 
   hausdorff.run();
 
