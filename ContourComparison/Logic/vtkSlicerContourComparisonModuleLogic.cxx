@@ -363,7 +363,7 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
   this->LogicPrivate->GetInputContoursAsPlmVolumes(plmRefContourLabelmap, plmCmpContourLabelmap, checkpointItkConvertStart, errorMessage);
   if (!errorMessage.empty())
   {
-    vtkErrorMacro("ComputeDiceStatistics: Error occurred during ITK conversion!");
+    vtkErrorMacro("ComputeHausdorffStatistics: Error occurred during ITK conversion!");
     return;
   }
 
