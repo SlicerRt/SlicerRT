@@ -63,15 +63,15 @@ void vtkSlicerDicomRtWriter::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDicomRtWriter::SetImage(ShortImageType::Pointer itk_image)
+void vtkSlicerDicomRtWriter::SetImage(const Plm_image::Pointer& img)
 {
-  RtStudy.set_image(itk_image);
+  RtStudy.set_image(img);
 }
   
 //----------------------------------------------------------------------------
-void vtkSlicerDicomRtWriter::SetDose(FloatImageType::Pointer itk_dose)
+void vtkSlicerDicomRtWriter::SetDose(const Plm_image::Pointer& img)
 {
-  RtStudy.set_dose(itk_dose);
+  RtStudy.set_dose(img);
 }
   
 //----------------------------------------------------------------------------

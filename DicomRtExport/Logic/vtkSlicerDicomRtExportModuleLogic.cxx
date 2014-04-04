@@ -20,6 +20,7 @@
 #include "vtkSlicerDicomRtWriter.h"
 
 // SlicerRT includes
+#include "PlmCommon.h"
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
@@ -76,18 +77,6 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
     return;
   }
 
-  // Cast the input CT/MR image to Short in case it is read in as Int
-  vtkImageData* imageData = imageNode->GetImageData();
-  vtkSmartPointer<vtkImageShiftScale> caster = vtkSmartPointer<vtkImageShiftScale>::New();
-  caster->SetInput(imageData);
-  caster->SetShift(0);
-  caster->SetScale(1);
-  caster->SetOutputScalarTypeToShort();
-  caster->Update();
-
-  vtkSmartPointer<vtkImageData> newImageData = caster->GetOutput();
-  imageNode->SetAndObserveImageData(newImageData);
-
   // check if there is at least one RTDose or RTSTRUCT is included
   vtkMRMLScalarVolumeNode* doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(doseNodeID));
@@ -101,18 +90,21 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
 
   vtkSmartPointer<vtkSlicerDicomRtWriter> rtWriter = vtkSmartPointer<vtkSlicerDicomRtWriter>::New();
 
-  // Convert input CT/MR image to the format Plastimatch can use
-  itk::Image<short, 3>::Pointer itkImage = itk::Image<short, 3>::New();
-  if (SlicerRtCommon::ConvertVolumeNodeToItkImage<short>(imageNode, itkImage, true) == false)
-  {
-    vtkErrorMacro("SaveDicomRTStudy: Failed to convert image volumeNode to ITK volume!");
-    return;
-  }
-  rtWriter->SetImage(itkImage);
+  // Convert input image (CT/MR/etc) to the format Plastimatch can use
+  Plm_image::Pointer plm_img = PlmCommon::ConvertVolumeNodeToPlmImage(
+    imageNode);
+  plm_img->print ();
+  rtWriter->SetImage(plm_img);
 
   // Convert input RTDose to the format Plastimatch can use
   if (doseNode)
   {
+  Plm_image::Pointer dose_img = PlmCommon::ConvertVolumeNodeToPlmImage(
+    doseNode);
+  dose_img->print ();
+  rtWriter->SetDose(dose_img);
+
+#if defined (commentout)
     itk::Image<float, 3>::Pointer itkDose = itk::Image<float, 3>::New();
     if (SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(doseNode, itkDose, true) == false)
     {
@@ -120,6 +112,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
       return;
     }
     rtWriter->SetDose(itkDose);
+#endif
   }
 
   // Convert input contours to the format Plastimatch can use

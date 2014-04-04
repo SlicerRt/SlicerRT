@@ -40,10 +40,10 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// TODO: Description, argument names and descriptions
-  void SetImage(ShortImageType::Pointer);
+  void SetImage(const Plm_image::Pointer&);
 
   /// TODO: Description, argument names and descriptions
-  void SetDose(FloatImageType::Pointer);
+  void SetDose(const Plm_image::Pointer&);
 
   /// TODO: Description, argument names and descriptions
   void AddContour(UCharImageType::Pointer, const char*, double*);
