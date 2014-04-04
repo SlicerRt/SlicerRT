@@ -766,3 +766,29 @@ void vtkMRMLSubjectHierarchyNode::TransformBranch(vtkMRMLTransformNode* transfor
     subjectHierarchyNode->Modified();
   }
 }
+
+//---------------------------------------------------------------------------
+void vtkMRMLSubjectHierarchyNode::HardenTransformOnBranch()
+{
+  // Get all associated data nodes from children nodes (and itself)
+  vtkSmartPointer<vtkCollection> childTransformableNodes = vtkSmartPointer<vtkCollection>::New();
+  this->GetAssociatedChildrenNodes(childTransformableNodes, "vtkMRMLTransformableNode");
+  childTransformableNodes->InitTraversal();
+
+  for (int childNodeIndex=0; childNodeIndex<childTransformableNodes->GetNumberOfItems(); ++childNodeIndex)
+  {
+    vtkMRMLTransformableNode* transformableNode = vtkMRMLTransformableNode::SafeDownCast(
+      childTransformableNodes->GetItemAsObject(childNodeIndex) );
+    vtkSlicerTransformLogic::hardenTransform(transformableNode);
+
+    // Trigger update by setting the modified flag on the subject hierarchy node
+    vtkMRMLSubjectHierarchyNode* subjectHierarchyNode =
+      vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(transformableNode);
+    if (!subjectHierarchyNode)
+    {
+      vtkErrorMacro("TransformBranch: Unable to find subject hierarchy node for transformable node " << transformableNode->GetName());
+      continue;
+    }
+    subjectHierarchyNode->Modified();
+  }
+}

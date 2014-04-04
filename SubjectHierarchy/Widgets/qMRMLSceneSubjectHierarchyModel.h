@@ -82,7 +82,13 @@ public:
   int transformColumn()const;
   void setTransformColumn(int column);
 
-  public slots:
+public slots:
+  /// Remove transforms from nodes in branch of current node
+  void onRemoveTransformsFromBranchOfCurrentNode();
+
+  /// Harden transform on branch of current node
+  void onHardenTransformOnBranchOfCurrentNode();
+
   /// Force update of the scene in the model
   void forceUpdateScene();
 

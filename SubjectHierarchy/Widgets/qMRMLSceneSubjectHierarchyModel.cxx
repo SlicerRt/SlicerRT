@@ -560,6 +560,26 @@ bool qMRMLSceneSubjectHierarchyModel::reparent(vtkMRMLNode* node, vtkMRMLNode* n
 }
 
 //------------------------------------------------------------------------------
+void qMRMLSceneSubjectHierarchyModel::onHardenTransformOnBranchOfCurrentNode()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  if (currentNode)
+  {
+    currentNode->HardenTransformOnBranch();
+  }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSceneSubjectHierarchyModel::onRemoveTransformsFromBranchOfCurrentNode()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  if (currentNode)
+  {
+    currentNode->TransformBranch(NULL, false);
+  }
+}
+
+//------------------------------------------------------------------------------
 void qMRMLSceneSubjectHierarchyModel::forceUpdateScene()
 {
   // Force updating the whole scene (TODO: this should not be needed)

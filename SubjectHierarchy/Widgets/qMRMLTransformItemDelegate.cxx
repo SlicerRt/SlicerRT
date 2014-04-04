@@ -25,6 +25,7 @@
 #include <QHBoxLayout>
 #include <QDebug>
 #include <QSpinBox>
+#include <QAction>
 
 // MRML includes
 #include "vtkMRMLScene.h"
@@ -41,6 +42,12 @@ qMRMLTransformItemDelegate::qMRMLTransformItemDelegate(QObject *parent)
   : QStyledItemDelegate(parent)
 {
   this->MRMLScene = NULL;
+
+  this->RemoveTransformAction = new QAction("Remove transforms from branch", this);
+  connect(this->RemoveTransformAction, SIGNAL(triggered()), this, SIGNAL(removeTransformsFromBranchOfCurrentNode()));
+
+  this->HardenAction = new QAction("Harden transform on branch", this);
+  connect(this->HardenAction, SIGNAL(triggered()), this, SIGNAL(hardenTransformOnBranchOfCurrentNode()));
 }
 
 //------------------------------------------------------------------------------
@@ -84,6 +91,8 @@ QWidget *qMRMLTransformItemDelegate
     transformNodeCombobox->setRemoveEnabled(false);
     transformNodeCombobox->setRenameEnabled(false);
     transformNodeCombobox->setAddEnabled(false);
+    transformNodeCombobox->addMenuAction(this->RemoveTransformAction);
+    transformNodeCombobox->addMenuAction(this->HardenAction);
     transformNodeCombobox->setMRMLScene(this->MRMLScene);
     connect(transformNodeCombobox, SIGNAL(currentNodeIDChanged(QString)),
             this, SLOT(commitAndClose()), Qt::QueuedConnection);

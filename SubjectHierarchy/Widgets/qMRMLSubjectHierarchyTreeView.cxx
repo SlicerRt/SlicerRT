@@ -106,6 +106,10 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
   this->TransformItemDelegate = new qMRMLTransformItemDelegate(q);
   this->TransformItemDelegate->setMRMLScene(q->mrmlScene());
   q->setItemDelegateForColumn(sceneModel->transformColumn(), this->TransformItemDelegate);
+  QObject::connect(this->TransformItemDelegate, SIGNAL(removeTransformsFromBranchOfCurrentNode()),
+    sceneModel, SLOT(onRemoveTransformsFromBranchOfCurrentNode()));
+  QObject::connect(this->TransformItemDelegate, SIGNAL(hardenTransformOnBranchOfCurrentNode()),
+    sceneModel, SLOT(onHardenTransformOnBranchOfCurrentNode()));
 
   // Perform tasks need for all plugins
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())

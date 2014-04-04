@@ -60,11 +60,17 @@ public:
   // We make initStyleOption public so it can be used by qMRMLTreeView
   using QStyledItemDelegate::initStyleOption;
 
+signals:
+  void removeTransformsFromBranchOfCurrentNode();
+  void hardenTransformOnBranchOfCurrentNode();
+
 protected slots:
   void commitAndClose();
 
 protected:
   vtkMRMLScene* MRMLScene;
+  QAction* RemoveTransformAction;
+  QAction* HardenAction;
 };
 
 #endif

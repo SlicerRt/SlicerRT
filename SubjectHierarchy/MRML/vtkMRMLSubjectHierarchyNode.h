@@ -143,6 +143,9 @@ public:
   ///   transformed with the specified transform (Note: this latter approach may result in unwanted transformations of other nodes)
   void TransformBranch(vtkMRMLTransformNode* transformNode, bool hardenExistingTransforms=true);
 
+  /// Harden transform on itself and on all children, recursively
+  void HardenTransformOnBranch();
+
 public:
   /// Set level
   vtkSetStringMacro(Level);
