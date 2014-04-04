@@ -66,7 +66,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
   if (!this->GetMRMLScene())
   {
     vtkErrorMacro("SaveDicomRTStudy: MRML scene not valid!")
-    return;
+      return;
   }
 
   vtkMRMLScalarVolumeNode* imageNode = vtkMRMLScalarVolumeNode::SafeDownCast(
@@ -74,7 +74,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
   if (!imageNode)
   {
     vtkErrorMacro("SaveDicomRTStudy: Must set the primary CT/MR image!")
-    return;
+      return;
   }
 
   // check if there is at least one RTDose or RTSTRUCT is included
@@ -84,7 +84,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
     this->GetMRMLScene()->GetNodeByID(contourHierarchyNodeID));
   if (!doseNode && !contourHierarchyNode)
   {
-    vtkErrorMacro("SaveDicomRTStudy: Must set at least the dose or contours!")
+    vtkErrorMacro("SaveDicomRTStudy: Must set at least the dose or contours!");
     return;
   }
 
@@ -99,20 +99,10 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
   // Convert input RTDose to the format Plastimatch can use
   if (doseNode)
   {
-  Plm_image::Pointer dose_img = PlmCommon::ConvertVolumeNodeToPlmImage(
-    doseNode);
-  dose_img->print ();
-  rtWriter->SetDose(dose_img);
-
-#if defined (commentout)
-    itk::Image<float, 3>::Pointer itkDose = itk::Image<float, 3>::New();
-    if (SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(doseNode, itkDose, true) == false)
-    {
-      vtkErrorMacro("SaveDicomRTStudy: Failed to convert dose volumeNode to ITK volume!");
-      return;
-    }
-    rtWriter->SetDose(itkDose);
-#endif
+    Plm_image::Pointer dose_img = PlmCommon::ConvertVolumeNodeToPlmImage(
+      doseNode);
+    dose_img->print ();
+    rtWriter->SetDose(dose_img);
   }
 
   // Convert input contours to the format Plastimatch can use
@@ -168,12 +158,12 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
       double labelmapColor[4] = {0.0,0.0,0.0,1.0};
       labelmapNode->GetDisplayNode()->GetColor(labelmapColor);
 
-	    // If no color is assigned to the labelmap node, use the default color table node
-	    if (labelmapColor[0] == 0.0 && labelmapColor[1] == 0.0 && labelmapColor[2] == 0.0)
-	    {
-	      vtkMRMLColorTableNode* defaultTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("vtkMRMLColorTableNodeLabels"));
-		    defaultTableNode->GetColor(i+1, labelmapColor);
-	    }
+      // If no color is assigned to the labelmap node, use the default color table node
+      if (labelmapColor[0] == 0.0 && labelmapColor[1] == 0.0 && labelmapColor[2] == 0.0)
+      {
+        vtkMRMLColorTableNode* defaultTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("vtkMRMLColorTableNodeLabels"));
+        defaultTableNode->GetColor(i+1, labelmapColor);
+      }
 
       rtWriter->AddContour(itkStructure, labelmapName, labelmapColor);
     }
