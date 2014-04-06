@@ -619,7 +619,6 @@ void qSlicerSubjectHierarchyContourSetsPlugin::createChildContourSetForCurrentNo
   // Create child contour set subject hierarchy node
   vtkMRMLSubjectHierarchyNode* childContourSetSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
     scene, currentNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, SlicerRtCommon::CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME.c_str());
-  childContourSetSubjectHierarchyNode->SetSaveWithScene(0);
   childContourSetSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
   // Add color table node and default colors
@@ -631,7 +630,6 @@ void qSlicerSubjectHierarchyContourSetsPlugin::createChildContourSetForCurrentNo
   contourSetColorTableNodeName = scene->GenerateUniqueName(contourSetColorTableNodeName);
   contourSetColorTableNode->SetName(contourSetColorTableNodeName.c_str());
   contourSetColorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
-  contourSetColorTableNode->SetSaveWithScene(0);
   contourSetColorTableNode->SetTypeToUser();
 
   contourSetColorTableNode->SetNumberOfColors(2);
