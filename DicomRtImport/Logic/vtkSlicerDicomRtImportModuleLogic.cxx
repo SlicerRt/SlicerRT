@@ -780,6 +780,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
     // Isocenter fiducial
     double isoColor[3] = { 1.0, 1.0, 1.0 };
     addedMarkupsNode = this->AddRoiPoint(rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber), rtReader->GetBeamName(dicomBeamNumber), isoColor);
+    vtkMRMLMarkupsDisplayNode* markupsDisplayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast(addedMarkupsNode->GetDisplayNode());
+    if (markupsDisplayNode)
+    {
+      markupsDisplayNode->SetGlyphType(vtkMRMLMarkupsDisplayNode::StarBurst2D);
+      markupsDisplayNode->SetGlyphScale(8.0);
+    }
 
     // Add new node to the hierarchy node
     if (addedMarkupsNode)
