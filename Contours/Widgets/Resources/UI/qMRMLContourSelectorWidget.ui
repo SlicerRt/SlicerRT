@@ -25,6 +25,9 @@
      <property name="noneEnabled">
       <bool>true</bool>
      </property>
+     <property name="addEnabled">
+      <bool>false</bool>
+     </property>
      <property name="renameEnabled">
       <bool>true</bool>
      </property>
