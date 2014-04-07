@@ -500,7 +500,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
   }
 
   // Add reference from contour set to color table
-  contourHierarchySeriesNode->SetNodeReferenceID(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE, contourSetColorTableNode->GetID());
+  contourHierarchySeriesNode->SetNodeReferenceID(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE.c_str(), contourSetColorTableNode->GetID());
 
   // Set referenced series UID to the series subject hierarchy node
   contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(), structureSetReferencedSeriesUid.c_str());

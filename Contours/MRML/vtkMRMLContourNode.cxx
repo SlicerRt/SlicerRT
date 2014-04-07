@@ -951,7 +951,7 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
 
   // Get color node created for the contour set
   colorNode = vtkMRMLColorTableNode::SafeDownCast( parentContourSubjectHierarchyNode->GetNodeReference(
-    SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE) );
+    SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE.c_str()) );
   if (!colorNode)
     {
     vtkErrorMacro("GetColorIndex: No color table found for contour '" << this->Name << "'");

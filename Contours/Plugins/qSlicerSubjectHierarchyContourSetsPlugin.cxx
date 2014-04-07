@@ -641,7 +641,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::createChildContourSetForCurrentNo
     SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3] ); // Color indicating invalid index
 
   // Add reference from contour set to color table
-  childContourSetSubjectHierarchyNode->SetNodeReferenceID(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE, contourSetColorTableNode->GetID());
+  childContourSetSubjectHierarchyNode->SetNodeReferenceID(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE.c_str(), contourSetColorTableNode->GetID());
 
   emit requestExpandNode(childContourSetSubjectHierarchyNode);
 }
@@ -693,7 +693,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable()
     return;
   }
   vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(
-    currentNode->GetNodeReference(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE) );
+    currentNode->GetNodeReference(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE.c_str()) );
   if (!colorNode)
   {
     qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable: No color table found for contour set " << currentNode->GetName() << " !";
