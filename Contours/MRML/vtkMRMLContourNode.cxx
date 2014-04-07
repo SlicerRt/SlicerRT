@@ -1100,12 +1100,15 @@ void vtkMRMLContourNode::SetName(const char* newName)
       }
 
     // Set new name to hierarchy nodes
-    vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode =
-      vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this);
-    if (contourSubjectHierarchyNode)
-      {
-      std::string newContourShName = newContourNameNoPostfix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-      contourSubjectHierarchyNode->SetName(newContourShName.c_str());
+    if (this->Scene)
+    {
+      vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode =
+        vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this);
+      if (contourSubjectHierarchyNode)
+        {
+        std::string newContourShName = newContourNameNoPostfix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
+        contourSubjectHierarchyNode->SetName(newContourShName.c_str());
+        }
       }
     }
 }
