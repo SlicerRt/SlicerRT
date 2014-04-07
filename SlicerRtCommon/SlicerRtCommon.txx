@@ -13,7 +13,7 @@
 #include <itkImageRegionIteratorWithIndex.h>
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion/*=false*/)
+template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion, bool applyRasToLpsConversion)
 {
   if ( inVolumeNode == NULL )
   {
@@ -71,7 +71,10 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
   inVolumeToWorldTransform->Identity();
   inVolumeToWorldTransform->PostMultiply();
   inVolumeToWorldTransform->Concatenate(inVolumeToRasTransformMatrix);
-  inVolumeToWorldTransform->Concatenate(rasToWorldTransformMatrix);
+  if (applyRasToWorldConversion)
+  {
+    inVolumeToWorldTransform->Concatenate(rasToWorldTransformMatrix);
+  }
   if (applyRasToLpsConversion)
   {
     inVolumeToWorldTransform->Concatenate(ras2LpsTransformMatrix);

@@ -30,11 +30,10 @@ class VTK_PLMCOMMON_EXPORT PlmCommon
   // Utility functions
   //----------------------------------------------------------------------------
 public:
-  static Plm_image::Pointer 
-    ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode);
-  static Plm_image::Pointer 
-    ConvertVolumeNodeToPlmImage(vtkMRMLNode* inNode);
-
+  static Plm_image::Pointer ConvertVolumeNodeToPlmImage(
+    vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform = true);
+  static Plm_image::Pointer ConvertVolumeNodeToPlmImage(
+    vtkMRMLNode* inNode, bool applyWorldTransform = true);
 };
 
 #endif

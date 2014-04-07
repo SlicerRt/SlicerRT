@@ -1085,7 +1085,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
   //  itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
   itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
 
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<short>(referenceVolumeNode, referenceVolumeItk);
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<short>(referenceVolumeNode, referenceVolumeItk, true, false);
 
   // Ray tracing code expects identity direction cosines.  This is a hack.
   itk_rectify_volume_hack (referenceVolumeItk);

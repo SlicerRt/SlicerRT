@@ -201,11 +201,11 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   // Convert inputs to ITK images
   double checkpointItkConvertStart = timer->GetUniversalTime();
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(referenceDoseVolumeNode, referenceDoseVolumeItk);
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(compareDoseVolumeNode, compareDoseVolumeItk);
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(referenceDoseVolumeNode, referenceDoseVolumeItk, true, false);
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(compareDoseVolumeNode, compareDoseVolumeItk, true, false);
   if (maskContourNode)
   {
-    SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(maskContourLabelmapNode, maskContourLabelmapItk);
+    SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(maskContourLabelmapNode, maskContourLabelmapItk, true, false);
   }
 
   // Compute gamma dose volume

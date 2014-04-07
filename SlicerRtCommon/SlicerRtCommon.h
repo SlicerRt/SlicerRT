@@ -217,10 +217,11 @@ public:
     Convert volume MRML node to ITK image
     \param inVolumeNode Input volume node
     \param outItkVolume Output ITK image
+    \param applyRasToWorldConversion Apply parent linear transform to image
     \param applyRasToLpsConversion Apply RAS (Slicer) to LPS (ITK, DICOM) coordinate frame conversion
     \return Success
   */
-  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion=false);
+  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion, bool applyRasToLpsConversion);
 
   /*!
     Convert ITK image to VTK image data. The image geometry is not considered!

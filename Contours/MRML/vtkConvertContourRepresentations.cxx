@@ -397,7 +397,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     //       https://www.assembla.com/spaces/slicerrt/tickets/516-use-vtkvolumesorientedresampleutility-for-contour-conversion
     // Convert intermediate labelmap to ITK image
     itk::Image<unsigned char, 3>::Pointer intermediateLabelmapItkVolume = itk::Image<unsigned char, 3>::New();
-    SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(intermediateLabelmapNode, intermediateLabelmapItkVolume);
+    SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(intermediateLabelmapNode, intermediateLabelmapItkVolume, true, false);
 
     Plm_image_header resampledItkImageHeader(oversampledSelectedReferenceDimensionsLong, selectedReferenceOriginFloat, oversampledSelectedReferenceSpacingFloat, selectedReferenceDirectionCosines);
     itk::Image<unsigned char, 3>::Pointer resampledIntermediateLabelmapItkVolume = resample_image(intermediateLabelmapItkVolume, resampledItkImageHeader, 0, 1);

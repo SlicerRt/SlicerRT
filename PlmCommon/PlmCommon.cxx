@@ -36,16 +36,17 @@
 // Utility functions
 //----------------------------------------------------------------------------
 template<class T> 
-typename itk::Image<T,3>::Pointer
-convert_to_itk (vtkMRMLScalarVolumeNode* inVolumeNode)
+static typename itk::Image<T,3>::Pointer
+convert_to_itk (vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform)
 {
   typename itk::Image<T,3>::Pointer image = itk::Image<T,3>::New ();
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<T>(inVolumeNode, image, true);
+  SlicerRtCommon::ConvertVolumeNodeToItkImage<T>(
+    inVolumeNode, image, applyWorldTransform, true);
   return image;
 }
 
 Plm_image::Pointer 
-PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode)
+PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform)
 {
   Plm_image::Pointer image = Plm_image::New ();
 
@@ -55,49 +56,49 @@ PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode)
   switch (vtk_type) {
   case VTK_CHAR:
   case VTK_SIGNED_CHAR:
-    image->set_itk (convert_to_itk<char> (inVolumeNode));
+    image->set_itk (convert_to_itk<char> (inVolumeNode, applyWorldTransform));
     break;
   
   case VTK_UNSIGNED_CHAR:
-    image->set_itk (convert_to_itk<unsigned char> (inVolumeNode));
+    image->set_itk (convert_to_itk<unsigned char> (inVolumeNode, applyWorldTransform));
     break;
   
   case VTK_SHORT:
-    image->set_itk (convert_to_itk<short> (inVolumeNode));
+    image->set_itk (convert_to_itk<short> (inVolumeNode, applyWorldTransform));
     break;
   
   case VTK_UNSIGNED_SHORT:
-    image->set_itk (convert_to_itk<unsigned short> (inVolumeNode));
+    image->set_itk (convert_to_itk<unsigned short> (inVolumeNode, applyWorldTransform));
     break;
   
 #if (CMAKE_SIZEOF_UINT == 4)
   case VTK_INT:
   case VTK_LONG: 
-    image->set_itk (convert_to_itk<int> (inVolumeNode));
+    image->set_itk (convert_to_itk<int> (inVolumeNode, applyWorldTransform));
     break;
   
   case VTK_UNSIGNED_INT:
   case VTK_UNSIGNED_LONG:
-    image->set_itk (convert_to_itk<unsigned int> (inVolumeNode));
+    image->set_itk (convert_to_itk<unsigned int> (inVolumeNode, applyWorldTransform));
     break;
 #else
   case VTK_INT:
   case VTK_LONG: 
-    image->set_itk (convert_to_itk<long> (inVolumeNode));
+    image->set_itk (convert_to_itk<long> (inVolumeNode, applyWorldTransform));
     break;
   
   case VTK_UNSIGNED_INT:
   case VTK_UNSIGNED_LONG:
-    image->set_itk (convert_to_itk<unsigned long> (inVolumeNode));
+    image->set_itk (convert_to_itk<unsigned long> (inVolumeNode, applyWorldTransform));
     break;
 #endif
   
   case VTK_FLOAT:
-    image->set_itk (convert_to_itk<float> (inVolumeNode));
+    image->set_itk (convert_to_itk<float> (inVolumeNode, applyWorldTransform));
     break;
   
   case VTK_DOUBLE:
-    image->set_itk (convert_to_itk<double> (inVolumeNode));
+    image->set_itk (convert_to_itk<double> (inVolumeNode, applyWorldTransform));
     break;
 
   default:
@@ -109,8 +110,8 @@ PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode)
 }
 
 Plm_image::Pointer 
-PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLNode* inNode)
+PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLNode* inNode, bool applyWorldTransform)
 {
   return PlmCommon::ConvertVolumeNodeToPlmImage(
-    vtkMRMLScalarVolumeNode::SafeDownCast(inNode));
+    vtkMRMLScalarVolumeNode::SafeDownCast(inNode), applyWorldTransform);
 }

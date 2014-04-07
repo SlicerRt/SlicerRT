@@ -149,7 +149,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
       }
 
       itk::Image<unsigned char, 3>::Pointer itkStructure = itk::Image<unsigned char, 3>::New();
-      if (SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(labelmapNode, itkStructure, true) == false)
+      if (SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(labelmapNode, itkStructure, true, true) == false)
       {
         vtkErrorMacro("SaveDicomRTStudy: Failed to convert contour labelmap volumeNode to ITK volume!");
         return;
