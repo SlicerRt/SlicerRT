@@ -490,7 +490,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         // Put the new node in the model hierarchy
         vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
         std::string modelHierarchyNodeName;
-        modelHierarchyNodeName = contourNodeName + "_ModelHierarchy";
+        modelHierarchyNodeName = contourNodeName + SlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
         modelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
         this->GetMRMLScene()->AddNode(modelHierarchyNode);
         modelHierarchyNode->SetParentNodeID( structureModelHierarchyRootNode->GetID() );

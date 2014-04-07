@@ -496,7 +496,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       // Put the new node in the model hierarchy
       vtkSmartPointer<vtkMRMLModelHierarchyNode> isodoseModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
       this->GetMRMLScene()->AddNode(isodoseModelHierarchyNode);
-      std::string modelHierarchyNodeName = std::string(isodoseModelNodeName) + std::string("_ModelHierarchy");
+      std::string modelHierarchyNodeName = std::string(isodoseModelNodeName) + SlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
       isodoseModelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
       isodoseModelHierarchyNode->SetParentNodeID( modelHierarchyRootNode->GetID() );
       isodoseModelHierarchyNode->SetModelNodeID( isodoseModelNode->GetID() );

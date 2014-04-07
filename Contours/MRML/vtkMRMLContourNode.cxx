@@ -26,6 +26,7 @@
 
 // SubjectHierarchy includes
 #include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSubjectHierarchyConstants.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // Contours includes
@@ -46,6 +47,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPlane.h>
 #include <vtkPlaneCollection.h>
+#include <vtksys/SystemTools.hxx>
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourNode);
@@ -1052,39 +1054,60 @@ void vtkMRMLContourNode::SetDisplayVisibility(int visible)
 //---------------------------------------------------------------------------
 void vtkMRMLContourNode::SetName(const char* newName)
 {
-  if ( this->Name == NULL && newName == NULL) { return; }
-  if ( this->Name && newName && (!strcmp(this->Name,newName))) { return; }
-  if (this->Name) { delete [] this->Name; }
-  if (newName)
+  // Strip postfix
+  std::string contourNameNoPostfix = this->Name ? std::string(this->Name) : "";
+  vtksys::SystemTools::ReplaceString(contourNameNoPostfix, SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX.c_str(), "");
+  std::string newContourNameNoPostfix = newName ? std::string(newName) : "";
+  vtksys::SystemTools::ReplaceString(newContourNameNoPostfix, SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX.c_str(), "");
+  bool updateContourName = true;
+  if (this->Name && newName && contourNameNoPostfix == newContourNameNoPostfix)
     {
-    size_t n = strlen(newName) + 1;
-    char *cp1 =  new char[n];
-    const char *cp2 = (newName);
-    this->Name = cp1;
-    do { *cp1++ = *cp2++; } while ( --n );
+    updateContourName = false;
+    }
+  if (updateContourName)
+    {
+    if (this->Name) { delete [] this->Name; }
+    if (newName)
+      {
+      std::string newContourName = newContourNameNoPostfix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
+      size_t n = newContourName.length() + 1;
+      char *cp1 =  new char[n];
+      const char *cp2 = (newContourName.c_str());
+      this->Name = cp1;
+      do { *cp1++ = *cp2++; } while ( --n );
+      }
+    else
+      {
+      this->Name = NULL;
+      }
+    this->Modified();
 
     // Set new name to representations
     if (this->RibbonModelNode)
       {
-      std::string newRibbonModelName = std::string(newName) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
+      std::string newRibbonModelName = newContourNameNoPostfix + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
       this->RibbonModelNode->SetName(newRibbonModelName.c_str());
       }
     if (this->IndexedLabelmapVolumeNode)
       {
-      std::string newIndexedLabelmapName = std::string(newName) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
+      std::string newIndexedLabelmapName = newContourNameNoPostfix + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
       this->IndexedLabelmapVolumeNode->SetName(newIndexedLabelmapName.c_str());
       }
     if (this->ClosedSurfaceModelNode)
       {
-      std::string newClosedSurfaceModelName = std::string(newName) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
+      std::string newClosedSurfaceModelName = newContourNameNoPostfix + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
       this->IndexedLabelmapVolumeNode->SetName(newClosedSurfaceModelName.c_str());
       }
+
+    // Set new name to hierarchy nodes
+    vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode =
+      vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this);
+    if (contourSubjectHierarchyNode)
+      {
+      std::string newContourShName = newContourNameNoPostfix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
+      contourSubjectHierarchyNode->SetName(newContourShName.c_str());
+      }
     }
-  else
-    {
-    this->Name = NULL;
-    }
-  this->Modified();
 }
 
 //---------------------------------------------------------------------------
