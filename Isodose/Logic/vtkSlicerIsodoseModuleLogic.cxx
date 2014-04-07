@@ -232,6 +232,7 @@ void vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable()
   colorTableNode->AddColor("20", 1, 0.66, 0, 0.2);
   colorTableNode->AddColor("25", 1, 0.33, 0, 0.2);
   colorTableNode->AddColor("30", 1, 0, 0, 0.2);
+  colorTableNode->SaveWithSceneOff();
   
   this->GetMRMLScene()->AddNode(colorTableNode);
   this->SetDefaultIsodoseColorTableNodeId(colorTableNode->GetID());
@@ -260,6 +261,7 @@ void vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable()
     colorTableNode->HideFromEditorsOn();
     colorTableNode->SetNumberOfColors(tempLookupTable->GetNumberOfColors());
     colorTableNode->SetLookupTable(tempLookupTable);
+    colorTableNode->SaveWithSceneOff();
   }
   else
   {

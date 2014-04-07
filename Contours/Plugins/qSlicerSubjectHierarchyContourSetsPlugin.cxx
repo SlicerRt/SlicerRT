@@ -631,6 +631,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::createChildContourSetForCurrentNo
   contourSetColorTableNode->SetName(contourSetColorTableNodeName.c_str());
   contourSetColorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
   contourSetColorTableNode->SetTypeToUser();
+  contourSetColorTableNode->HideFromEditorsOff();
 
   contourSetColorTableNode->SetNumberOfColors(2);
   contourSetColorTableNode->GetLookupTable()->SetTableRange(0,1);

@@ -324,6 +324,7 @@ void vtkSlicerDoseComparisonModuleLogic::CreateDefaultGammaColorTable()
   gammaColorTable->GetLookupTable()->SetRampToLinear();
   gammaColorTable->GetLookupTable()->ForceBuild();
   gammaColorTable->SetNamesFromColors();
+  gammaColorTable->SaveWithSceneOff();
   gammaColorTable->SetDescription("Goes from green to red, passing through the colors of the rainbow in between in reverse. Useful for a colorful display of a difference volume");
 
   this->GetMRMLScene()->AddNode(gammaColorTable);
@@ -344,6 +345,7 @@ void vtkSlicerDoseComparisonModuleLogic::LoadDefaultGammaColorTable()
     colorTableNode = vtkMRMLColorTableNode::SafeDownCast(loadedColorNode);
     colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
     colorTableNode->HideFromEditorsOn();
+    colorTableNode->SaveWithSceneOff();
   }
   else
   {

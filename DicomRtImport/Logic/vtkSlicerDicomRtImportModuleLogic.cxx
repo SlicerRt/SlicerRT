@@ -1272,7 +1272,7 @@ void vtkSlicerDicomRtImportModuleLogic::CreateDefaultDoseColorTable()
   defaultDoseColorTable->SetName(SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME);
   defaultDoseColorTable->SetTypeToUser();
   defaultDoseColorTable->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
-  defaultDoseColorTable->HideFromEditorsOn();
+  defaultDoseColorTable->HideFromEditorsOff();
   defaultDoseColorTable->SetNumberOfColors(256);
 
   SlicerRtCommon::StretchDiscreteColorTable(defaultIsodoseColorTable, defaultDoseColorTable);
