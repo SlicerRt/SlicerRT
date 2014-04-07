@@ -258,6 +258,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       studies = slicer.dicomDatabase.studiesForPatient(patient)
       series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
       seriesUIDs = [uid for uidList in series for uid in uidList]
+      dicomWidget.detailsPopup.advancedViewButton.setChecked(True) #TODO: Temporary fix for intermediate DICOM browser version
       dicomWidget.detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
       dicomWidget.detailsPopup.examineForLoading()
 

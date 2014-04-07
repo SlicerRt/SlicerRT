@@ -235,6 +235,7 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     studies = slicer.dicomDatabase.studiesForPatient(patient)
     series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
     seriesUIDs = [uid for uidList in series for uid in uidList]
+    detailsPopup.advancedViewButton.setChecked(True) #TODO: Temporary fix for intermediate DICOM browser version
     detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
     detailsPopup.examineForLoading()
 
@@ -269,8 +270,8 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == 3 )
     # Model hierarchies: Beam models (parent + individual beams) and Contour ribbon models (parent + individual ribbons)
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 13 )
-    # Subject hierarchy nodes: Patient, Study, Dose, Color table, RT image, Dummy anatomical volume to reference to from the structure set, structure set, contours, beam models (both model and subject hierarchy for those)
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ) == 25 )
+    # Subject hierarchy nodes: Patient, Study, Dose, RT image, Dummy anatomical volume to reference to from the structure set, structure set, contours, beam models (both model and subject hierarchy for those)
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ) == 24 )
     # Contours: The loaded structures
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == 6 )
     # Markups: the isocenters and their derived sources (in the same markup node as the isocenter)
