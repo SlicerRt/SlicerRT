@@ -37,6 +37,9 @@
          <string>vtkMRMLSubjectHierarchyNode</string>
         </stringlist>
        </property>
+       <property name="addEnabled">
+        <bool>false</bool>
+       </property>
        <property name="renameEnabled">
         <bool>true</bool>
        </property>
@@ -622,8 +625,8 @@
              <string>Inputs are not complete</string>
             </property>
            </widget>
-		  </item>
-		  <item>
+          </item>
+          <item>
            <widget class="QLabel" name="label_AlreadyAContourRepresentation">
             <property name="palette">
              <palette>
@@ -672,7 +675,7 @@
              <string>Selected source is already a representation for a contour.</string>
             </property>
            </widget>
-		  </item>
+          </item>
           <item>
            <widget class="QLabel" name="label_StructureSetContainsContourName">
             <property name="palette">
