@@ -66,8 +66,7 @@ const double SlicerRtCommon::COLOR_VALUE_INVALID[4] = {0.5, 0.5, 0.5, 1.0};
 const std::string SlicerRtCommon::CONTOUR_NEW_CONTOUR_NAME = "NewContour";
 const std::string SlicerRtCommon::CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME = "NewContourSet";
 const std::string SlicerRtCommon::CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX = "DummyAnatomicalVolume_";
-const char* SlicerRtCommon::CONTOUR_ORPHAN_CONTOURS_COLOR_TABLE_NODE_NAME = "OrphanContours_ColorTable";
-const char* SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE = "contourSetColorTableRef"; // Node reference role
+const char* SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE = "contourSetColorTable" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
 const char* SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME = "ContourRepresentation";
 
 // DicomRtImport constants
