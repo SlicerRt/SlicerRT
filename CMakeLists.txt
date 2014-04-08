@@ -45,6 +45,7 @@ message(STATUS "SLICERRT_ENABLE_EXPERIMENTAL_MODULES: " ${SLICERRT_ENABLE_EXPERI
 
 #-----------------------------------------------------------------------------
 add_subdirectory(SlicerRtCommon)
+add_subdirectory(PlmCommon)
 IF (WIN32)
   add_subdirectory(LeakFinder)
 ENDIF()
@@ -66,7 +67,6 @@ add_subdirectory(VffFileReader)
 add_subdirectory(DicomRtExport)
 add_subdirectory(DicomSroImport)
 
-add_subdirectory(PlmCommon)
 add_subdirectory(PlastimatchPy)
 add_subdirectory(PlmBspline) # requires Plastimatch registration
 add_subdirectory(PlmDicomRtExport)
