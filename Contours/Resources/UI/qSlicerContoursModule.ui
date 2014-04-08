@@ -493,7 +493,7 @@
       <item row="0" column="1">
        <widget class="QLabel" name="label_SourceRepresentation">
         <property name="text">
-         <string>Source:</string>
+         <string>Source volume/model:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -528,7 +528,7 @@
       <item row="1" column="1">
        <widget class="QLabel" name="label_TargetStructureSet">
         <property name="text">
-         <string>Target Structure Set:</string>
+         <string>Parent contour set:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -559,7 +559,7 @@
       <item row="2" column="1">
        <widget class="QLabel" name="label_TargetContourName">
         <property name="text">
-         <string>Target Name:</string>
+         <string>New contour name:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

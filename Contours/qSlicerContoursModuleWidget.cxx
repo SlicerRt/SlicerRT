@@ -169,7 +169,7 @@ void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::createRepresentationSourceNodeChanged(vtkMRMLNode* node)
+void qSlicerContoursModuleWidget::sourceRepresentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContoursModuleWidget);
 
@@ -177,20 +177,20 @@ void qSlicerContoursModuleWidget::createRepresentationSourceNodeChanged(vtkMRMLN
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerContoursModuleWidget::createRepresentationSourceNodeChanged: Invalid scene!";
+    qCritical() << "qSlicerContoursModuleWidget::sourceRepresentationNodeChanged: Invalid scene!";
     return;
   }
   if (!d->ModuleWindowInitialized)
   {
     return;
   }
+
+  this->updateWidgetsInCreateContourFromRepresentationGroup();
+
   if (!node)
   {
     d->label_NoInputWarning->setVisible(true);
-    return;
   }
-
-  this->updateWidgetsInCreateContourFromRepresentationGroup();
 }
 
 //-----------------------------------------------------------------------------
@@ -840,12 +840,8 @@ void qSlicerContoursModuleWidget::updateWidgetsInCreateContourFromRepresentation
   bool isNameValid(true);
   QString targetNameQ = d->lineEdit_TargetContourName->text();
   std::string targetNameStd(targetNameQ.toStdString());
-  if( targetNameStd.empty() )
-  {
-    isNameValid = false;
-  }
 
-  if( isNameValid )
+  if( !targetNameStd.empty() )
   {
     std::vector<vtkMRMLContourNode*> nodes;
     this->GetContoursFromStructureSet(structureSet, nodes);
@@ -953,7 +949,9 @@ void qSlicerContoursModuleWidget::createContourFromRepresentationClicked()
   this->mrmlScene()->StartState(vtkMRMLScene::BatchProcessState);
 
   vtkMRMLDisplayableNode* dispNode = vtkMRMLDisplayableNode::SafeDownCast(d->MRMLNodeComboBox_ConvertRepresentationSource->currentNode());
-  vtkMRMLContourNode* newContourNode = vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(dispNode);
+  std::string targetName = std::string(d->lineEdit_TargetContourName->text().toLatin1());
+
+  vtkMRMLContourNode* newContourNode = vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(dispNode, targetName.empty() ? NULL : targetName.c_str() );
 
   if( newContourNode == NULL )
   {
@@ -964,7 +962,14 @@ void qSlicerContoursModuleWidget::createContourFromRepresentationClicked()
     d->lineEdit_TargetContourName->setText(QString(""));
   }
 
-  this->updateWidgetsInCreateContourFromRepresentationGroup();
+  if( d->MRMLNodeComboBox_TargetStructureSet->currentNode() != NULL )
+  {
+    // Make all node connections
+    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("ContourSets")->addNodeToSubjectHierarchy( newContourNode, vtkMRMLSubjectHierarchyNode::SafeDownCast(d->MRMLNodeComboBox_TargetStructureSet->currentNode()) );
+  }
+
+  // Reset the index to prevent a confusing warning that the newly created node already exists
+  d->MRMLNodeComboBox_ConvertRepresentationSource->setCurrentNodeIndex(-1);
 
   this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
 
@@ -1046,7 +1051,7 @@ void qSlicerContoursModuleWidget::testInit()
   // MRML inputs
   connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_ConvertRepresentationSource, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(createRepresentationSourceNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_ConvertRepresentationSource, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(sourceRepresentationNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_TargetStructureSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(targetStructureSetNodeChanged(vtkMRMLNode*)) );
 
   // Input widgets

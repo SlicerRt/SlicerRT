@@ -153,7 +153,7 @@ public slots:
 protected slots:
   void contourNodeChanged(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode* node);
-  void createRepresentationSourceNodeChanged(vtkMRMLNode* node);
+  void sourceRepresentationNodeChanged(vtkMRMLNode* node);
   void targetStructureSetNodeChanged(vtkMRMLNode*);
   void activeRepresentationComboboxSelectionChanged(int index);
   void oversamplingFactorChanged(int value);

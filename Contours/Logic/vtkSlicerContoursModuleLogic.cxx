@@ -615,7 +615,7 @@ void vtkSlicerContoursModuleLogic::GetIndexedLabelmapWithGivenGeometry(vtkMRMLCo
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(vtkMRMLDisplayableNode* representationNode)
+vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(vtkMRMLDisplayableNode* representationNode, const char* optionalName)
 {
   if (!representationNode)
   {
@@ -635,7 +635,15 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
   {
     vtkSmartPointer<vtkMRMLContourNode> newContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
     newContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->AddNode(newContourNode));
-    std::string contourName = representationNode->GetName();
+    std::string contourName;
+    if( optionalName != NULL )
+    {
+      contourName = std::string(optionalName);
+    }
+    else
+    {
+      contourName = representationNode->GetName();
+    }
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX.c_str(), "");
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str(), "");
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str(), "");

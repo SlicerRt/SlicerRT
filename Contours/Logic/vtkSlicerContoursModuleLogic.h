@@ -93,7 +93,7 @@ public:
 
   /// Create a contour node from a representation. Does not handle color tables
   /// \param representationNode Representation to create the contour from. Can be labelmap or model
-  static vtkMRMLContourNode* CreateContourFromRepresentation(vtkMRMLDisplayableNode* representationNode);
+  static vtkMRMLContourNode* CreateContourFromRepresentation(vtkMRMLDisplayableNode* representationNode, const char* optionalName=NULL);
 
 protected:
   /// Creates an empty ribbon model as a default representation for the new contours
