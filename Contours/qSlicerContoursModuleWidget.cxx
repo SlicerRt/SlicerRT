@@ -960,16 +960,22 @@ void qSlicerContoursModuleWidget::createContourFromRepresentationClicked()
   else
   {
     d->lineEdit_TargetContourName->setText(QString(""));
-  }
 
-  if( d->MRMLNodeComboBox_TargetStructureSet->currentNode() != NULL )
-  {
-    // Make all node connections
-    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("ContourSets")->addNodeToSubjectHierarchy( newContourNode, vtkMRMLSubjectHierarchyNode::SafeDownCast(d->MRMLNodeComboBox_TargetStructureSet->currentNode()) );
-  }
+    if( d->MRMLNodeComboBox_TargetStructureSet->currentNode() != NULL )
+    {
+      // Make all node connections
+      if( !qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("ContourSets")->addNodeToSubjectHierarchy( newContourNode, vtkMRMLSubjectHierarchyNode::SafeDownCast(d->MRMLNodeComboBox_TargetStructureSet->currentNode()) ) )
+      {
+        qCritical() << "Unable to connect new contour node <" << newContourNode->GetName() << "> to subject heirarchy.";
+      }
+    }
 
-  // Reset the index to prevent a confusing warning that the newly created node already exists
-  d->MRMLNodeComboBox_ConvertRepresentationSource->setCurrentNodeIndex(-1);
+    // Reset the index to prevent a confusing warning that the newly created node already exists
+    d->MRMLNodeComboBox_ConvertRepresentationSource->setCurrentNodeIndex(-1);
+
+    // Don't show a warning message after a succesful operation, it's confusing
+    d->label_NoInputWarning->setVisible(false);
+  }
 
   this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
 
