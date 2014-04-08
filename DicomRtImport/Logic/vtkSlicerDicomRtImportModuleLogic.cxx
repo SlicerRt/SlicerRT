@@ -810,9 +810,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       if (beamModelHierarchyRootNode.GetPointer()==NULL)
       {
         beamModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-        std::string beamModelHierarchyRootNodeName;
-        beamModelHierarchyRootNodeName = std::string(seriesName)
-          + SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
+        std::string beamModelHierarchyRootNodeName = std::string(seriesName) + SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
         beamModelHierarchyRootNodeName = this->GetMRMLScene()->GenerateUniqueName(beamModelHierarchyRootNodeName);
         beamModelHierarchyRootNode->SetName(beamModelHierarchyRootNodeName.c_str());
         this->GetMRMLScene()->AddNode(beamModelHierarchyRootNode);
@@ -829,9 +827,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
         if (this->BeamModelsInSeparateBranch)
         {
           beamModelSubjectHierarchyRootNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-          std::string beamModelSubjectHierarchyRootNodeName;
-          beamModelSubjectHierarchyRootNodeName = beamModelHierarchyRootNodeName
-            + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
+          std::string beamModelSubjectHierarchyRootNodeName = beamModelHierarchyRootNodeName + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
           beamModelSubjectHierarchyRootNodeName = this->GetMRMLScene()->GenerateUniqueName(beamModelSubjectHierarchyRootNodeName);
           beamModelSubjectHierarchyRootNode->SetName(beamModelSubjectHierarchyRootNodeName.c_str());
           beamModelSubjectHierarchyRootNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
@@ -924,7 +920,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
 
       // Put new beam model in the model hierarchy
       vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-      beamModelHierarchyNode->SetName(beamModelName.c_str());
+      std::string beamModelHierarchyNodeName = beamModelName + SlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
+      beamModelHierarchyNode->SetName(beamModelHierarchyNodeName.c_str());
       beamModelHierarchyNode->SetDisplayableNodeID(beamModelNode->GetID());
       beamModelHierarchyNode->SetParentNodeID(beamModelHierarchyRootNode->GetID());
       this->GetMRMLScene()->AddNode(beamModelHierarchyNode);

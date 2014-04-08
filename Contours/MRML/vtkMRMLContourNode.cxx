@@ -1107,7 +1107,10 @@ void vtkMRMLContourNode::SetName(const char* newName)
       if (contourSubjectHierarchyNode)
         {
         std::string newContourShName = newContourNameNoPostfix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-        contourSubjectHierarchyNode->SetName(newContourShName.c_str());
+        if (strcmp(contourSubjectHierarchyNode->GetName(), newContourShName.c_str()))
+          {
+          contourSubjectHierarchyNode->SetName(newContourShName.c_str());
+          }
         }
       }
     }

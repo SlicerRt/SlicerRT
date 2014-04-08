@@ -83,6 +83,10 @@ protected slots:
   /// if it is a subject hierarchy node
   void onNodeAdded(vtkObject* scene, vtkObject* nodeObject);
 
+  /// Called when a node is removed to the scene so that the associated
+  /// subject hierarchy node can be deleted too
+  void onNodeRemoved(vtkObject* scene, vtkObject* nodeObject);
+
   /// Called when a subject hierarchy node is modified.
   /// A search for owner plugin is performed if the plugin is not overridden by the user,
   /// in case the changes in the subject hierarchy node leads to a new most suitable plugin.

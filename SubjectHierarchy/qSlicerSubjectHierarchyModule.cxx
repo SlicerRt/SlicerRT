@@ -118,6 +118,8 @@ void qSlicerSubjectHierarchyModule::setup()
 
   // Connect scene node added event so that the new subject hierarchy nodes can be claimed by a plugin
   qvtkConnect( this->mrmlScene(), vtkMRMLScene::NodeAddedEvent, this, SLOT( onNodeAdded(vtkObject*,vtkObject*) ) );
+  // Connect scene node added event so that the associated subject hierarchy node can be deleted too
+  qvtkConnect( this->mrmlScene(), vtkMRMLScene::NodeAboutToBeRemovedEvent, this, SLOT( onNodeRemoved(vtkObject*,vtkObject*) ) );
 
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyDICOMPlugin());
@@ -144,6 +146,8 @@ void qSlicerSubjectHierarchyModule::onLogicModified()
 
   // Connect scene node added event so that the new subject hierarchy nodes can be claimed by a plugin
   qvtkReconnect( scene, vtkMRMLScene::NodeAddedEvent, this, SLOT( onNodeAdded(vtkObject*,vtkObject*) ) );
+  // Connect scene node added event so that the associated subject hierarchy node can be deleted too
+  qvtkReconnect( scene, vtkMRMLScene::NodeAboutToBeRemovedEvent, this, SLOT( onNodeRemoved(vtkObject*,vtkObject*) ) );
 
   // Set the new scene to the plugin handler
   qSlicerSubjectHierarchyPluginHandler::instance()->setScene(scene);
@@ -174,6 +178,34 @@ void qSlicerSubjectHierarchyModule::onNodeAdded(vtkObject* sceneObject, vtkObjec
     // See if owner plugin has to be changed when a note is modified
     qvtkConnect( subjectHierarchyNode, vtkCommand::ModifiedEvent,
       this, SLOT( onSubjectHierarchyNodeModified(vtkObject*) ) );
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSubjectHierarchyModule::onNodeRemoved(vtkObject* sceneObject, vtkObject* nodeObject)
+{
+  vtkMRMLScene* scene = vtkMRMLScene::SafeDownCast(sceneObject);
+  if (!scene)
+  {
+    return;
+  }
+  vtkMRMLNode* removedNode = vtkMRMLNode::SafeDownCast(nodeObject);
+  if (!removedNode || removedNode->IsA("vtkMRMLSubjectHierarchyNode"))
+  {
+    return;
+  }
+
+  // Remove associated subject hierarchy node if any
+  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(removedNode, scene);
+  if (subjectHierarchyNode)
+  {
+    scene->RemoveNode(subjectHierarchyNode);
+  }
+  // Remove associated other hierarchy node if any (if there is a nested association)
+  vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, removedNode->GetID());
+  if (hierarchyNode)
+  {
+    scene->RemoveNode(hierarchyNode);
   }
 }
 
