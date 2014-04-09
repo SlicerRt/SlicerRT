@@ -165,6 +165,7 @@ void qSlicerSubjectHierarchyModule::onNodeAdded(vtkObject* sceneObject, vtkObjec
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nodeObject);
   if (subjectHierarchyNode)
   {
+
     // Keep 'owner plugin changed' connections up-to date (reconnect to the new plugin)
     qvtkConnect( subjectHierarchyNode, vtkMRMLSubjectHierarchyNode::OwnerPluginChangedEvent,
       qSlicerSubjectHierarchyPluginHandler::instance(), SLOT( reconnectOwnerPluginChanged(vtkObject*,void*) ) );
@@ -189,23 +190,35 @@ void qSlicerSubjectHierarchyModule::onNodeRemoved(vtkObject* sceneObject, vtkObj
   {
     return;
   }
-  vtkMRMLNode* removedNode = vtkMRMLNode::SafeDownCast(nodeObject);
-  if (!removedNode || removedNode->IsA("vtkMRMLSubjectHierarchyNode"))
-  {
-    return;
-  }
-
-  // Remove associated subject hierarchy node if any
-  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(removedNode, scene);
+  vtkMRMLNode* dataNode = vtkMRMLNode::SafeDownCast(nodeObject);
+  vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nodeObject);
   if (subjectHierarchyNode)
   {
-    scene->RemoveNode(subjectHierarchyNode);
+    // Remove associated data node if any
+    vtkMRMLNode* associatedDataNode = subjectHierarchyNode->GetAssociatedDataNode();
+    if (associatedDataNode)
+    {
+      subjectHierarchyNode->DisableModifiedEventOn();
+      subjectHierarchyNode->SetAssociatedNodeID(NULL); // Ensuring that this method does not enter in an infinite loop
+      scene->RemoveNode(associatedDataNode);
+    }
   }
-  // Remove associated other hierarchy node if any (if there is a nested association)
-  vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, removedNode->GetID());
-  if (hierarchyNode)
+  else if (dataNode)
   {
-    scene->RemoveNode(hierarchyNode);
+    // Remove associated subject hierarchy node if any
+    vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(dataNode, scene);
+    if (subjectHierarchyNode)
+    {
+      subjectHierarchyNode->DisableModifiedEventOn();
+      subjectHierarchyNode->SetAssociatedNodeID(NULL); // Ensuring that this method does not enter in an infinite loop
+      scene->RemoveNode(subjectHierarchyNode);
+    }
+    // Remove associated other hierarchy node if any (if there is a nested association)
+    vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, dataNode->GetID());
+    if (hierarchyNode)
+    {
+      scene->RemoveNode(hierarchyNode);
+    }
   }
 }
 

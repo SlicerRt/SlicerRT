@@ -90,7 +90,6 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
   // Change item visibility
   q->setShowScene(true);
   q->setUniformRowHeights(false);
-  q->setDeleteMenuActionVisible(false); //TODO: Delete associated data node (and the other hierarchy node if available)
 
   // Connect edit properties context menu action
   QObject::connect(q, SIGNAL(editNodeRequested(vtkMRMLNode*)), q, SLOT(openModuleForSubjectHierarchyNode(vtkMRMLNode*)));
