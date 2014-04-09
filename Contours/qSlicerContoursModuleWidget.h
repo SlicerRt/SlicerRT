@@ -148,7 +148,7 @@ public slots:
   void updateWidgetFromMRML();
 
   /// Open the contour module, expand the box and select the requested structure set node
-  void showContourFromRepresentationUI(std::string contourSetNode);
+  void showContourFromRepresentationPanel(QString contourSetNodeID);
 
 protected slots:
   void contourNodeChanged(vtkMRMLNode*);
@@ -169,7 +169,7 @@ protected slots:
 
   /// Create a contour from the currently selected input representation
   /// If it's a volume, create a labelmap. If it's a model, create a closed surface model
-  void createContourFromRepresentationClicked();
+  void onCreateContourFromRepresentationClicked();
 
 protected:
   QScopedPointer<qSlicerContoursModuleWidgetPrivate> d_ptr;

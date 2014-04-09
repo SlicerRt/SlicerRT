@@ -679,7 +679,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::convertRepresentationAction()
     qCritical() << "Contours module not found. Unable to open it.";
   }
 
-  emit CreateContourFromRepresentationClicked( std::string(currentNode->GetID()) );
+  emit createContourFromRepresentationClicked( QString(currentNode->GetID()) );
 }
 
 //--------------------------------------------------------------------------

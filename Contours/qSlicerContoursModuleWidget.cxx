@@ -393,7 +393,7 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::showContourFromRepresentationUI(std::string contourSetNode)
+void qSlicerContoursModuleWidget::showContourFromRepresentationPanel(QString contourSetNodeID)
 {
   Q_D(qSlicerContoursModuleWidget);
 
@@ -401,7 +401,7 @@ void qSlicerContoursModuleWidget::showContourFromRepresentationUI(std::string co
   moduleWithAction->action()->trigger();
 
   d->CTKCollapsibleButton_ConvertRepresentation->setCollapsed(false);
-  d->MRMLNodeComboBox_TargetContourSet->setCurrentNodeID(QString(contourSetNode.c_str()));
+  d->MRMLNodeComboBox_TargetContourSet->setCurrentNodeID(QString(contourSetNodeID.toLatin1().constData()));
 }
 
 //-----------------------------------------------------------------------------
@@ -941,7 +941,7 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::createContourFromRepresentationClicked()
+void qSlicerContoursModuleWidget::onCreateContourFromRepresentationClicked()
 {
   Q_D(qSlicerContoursModuleWidget);
 
@@ -1074,7 +1074,7 @@ void qSlicerContoursModuleWidget::testInit()
 
   // Connect to the external show signal
   qSlicerSubjectHierarchyAbstractPlugin* contourSetsPlugin = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName(QString("ContourSets"));
-  connect( contourSetsPlugin, SIGNAL(CreateContourFromRepresentationClicked(std::string)), this, SLOT(showContourFromRepresentationUI(std::string)) );
+  connect( contourSetsPlugin, SIGNAL(createContourFromRepresentationClicked(QString)), this, SLOT(showContourFromRepresentationPanel(QString)) );
 
   // MRML inputs
   connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );
@@ -1090,7 +1090,7 @@ void qSlicerContoursModuleWidget::testInit()
 
   // Buttons
   connect( d->pushButton_ApplyChangeRepresentation, SIGNAL(clicked()), this, SLOT(applyChangeRepresentationClicked()) );
-  connect( d->pushButton_CreateContourFromRepresentation, SIGNAL(clicked()), this, SLOT(createContourFromRepresentationClicked()) );
+  connect( d->pushButton_CreateContourFromRepresentation, SIGNAL(clicked()), this, SLOT(onCreateContourFromRepresentationClicked()) );
 
   d->label_NoReferenceWarning->setVisible(false);
   d->label_NewConversion->setVisible(false);

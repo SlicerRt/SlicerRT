@@ -48,14 +48,6 @@ public:
   qSlicerSubjectHierarchyContourSetsPlugin(QObject* parent = NULL);
   virtual ~qSlicerSubjectHierarchyContourSetsPlugin();
 
-signals:
-  /*!
-  * Emmitted when the user wants to create a contour from a representation
-  * \param Structure set node to use as group for new contour
-  */
-  void CreateContourFromRepresentationClicked(std::string);
-  
-
 public:
   /// Determines if a non subject hierarchy node can be placed in the hierarchy, and gets a confidence
   ///   value for a certain MRML node (usually the type and possibly attributes are checked)
@@ -118,6 +110,11 @@ protected:
   /// Add the color of a contour to the corresponding color table (in the same contour set)
   /// Also repaint the occasional labelmap representation to the new color index
   bool addContourColorToCorrespondingColorTable(vtkMRMLContourNode* contourNode, QString colorName);
+
+signals:
+  /// Emmitted when the user wants to create a contour from a representation
+  /// \param Structure set node to use as group for new contour
+  void createContourFromRepresentationClicked(QString);
 
 protected slots:
   /// Create contour set node under the current node
