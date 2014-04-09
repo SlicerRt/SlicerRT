@@ -634,7 +634,8 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
   if (representationNode->IsA("vtkMRMLModelNode") || representationNode->IsA("vtkMRMLScalarVolumeNode"))
   {
     vtkSmartPointer<vtkMRMLContourNode> newContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-    newContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->AddNode(newContourNode));
+    mrmlScene->AddNode(newContourNode);
+
     std::string contourName;
     if( optionalName != NULL )
     {

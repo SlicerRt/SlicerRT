@@ -133,6 +133,8 @@ void qSlicerContoursModuleWidget::onEnter()
   d->ModuleWindowInitialized = true;
 
   this->contourNodeChanged( d->MRMLNodeComboBox_Contour->currentNode() );
+
+  this->updateWidgetsInCreateContourFromRepresentationGroup();
 }
 
 //-----------------------------------------------------------------------------
@@ -169,11 +171,20 @@ void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::oversamplingFactorChanged(int value)
+{
+  Q_D(qSlicerContoursModuleWidget);
+  UNUSED_VARIABLE(value);
+
+  d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
+
+  this->updateWidgetsInChangeActiveRepresentationGroup();
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::sourceRepresentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContoursModuleWidget);
-
-  d->pushButton_CreateContourFromRepresentation->setEnabled(false);
 
   if (!this->mrmlScene())
   {
@@ -186,32 +197,20 @@ void qSlicerContoursModuleWidget::sourceRepresentationNodeChanged(vtkMRMLNode* n
   }
 
   this->updateWidgetsInCreateContourFromRepresentationGroup();
-
-  if (!node)
-  {
-    d->label_NoInputWarning->setVisible(true);
-  }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::targetStructureSetNodeChanged(vtkMRMLNode* node)
+void qSlicerContoursModuleWidget::targetContourSetNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContoursModuleWidget);
 
-  d->pushButton_CreateContourFromRepresentation->setEnabled(false);
-
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerContoursModuleWidget::targetStructureSetNodeChanged: Invalid scene!";
+    qCritical() << "qSlicerContoursModuleWidget::targetContourSetNodeChanged: Invalid scene!";
     return;
   }
   if (!d->ModuleWindowInitialized)
   {
-    return;
-  }
-  if (!node)
-  {
-    d->label_NoInputWarning->setVisible(true);
     return;
   }
 
@@ -219,20 +218,19 @@ void qSlicerContoursModuleWidget::targetStructureSetNodeChanged(vtkMRMLNode* nod
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::oversamplingFactorChanged(int value)
-{
-  Q_D(qSlicerContoursModuleWidget);
-  UNUSED_VARIABLE(value);
-
-  d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
-
-  this->updateWidgetsInChangeActiveRepresentationGroup();
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::targetContourNameChanged(const QString& value)
 {
   Q_D(qSlicerContoursModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerContoursModuleWidget::sourceRepresentationNodeChanged: Invalid scene!";
+    return;
+  }
+  if (!d->ModuleWindowInitialized)
+  {
+    return;
+  }
 
   this->updateWidgetsInCreateContourFromRepresentationGroup();
 }
@@ -395,7 +393,7 @@ void qSlicerContoursModuleWidget::contourNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::showContourFromRepresentationUI(std::string structureSetNode)
+void qSlicerContoursModuleWidget::showContourFromRepresentationUI(std::string contourSetNode)
 {
   Q_D(qSlicerContoursModuleWidget);
 
@@ -403,7 +401,7 @@ void qSlicerContoursModuleWidget::showContourFromRepresentationUI(std::string st
   moduleWithAction->action()->trigger();
 
   d->CTKCollapsibleButton_ConvertRepresentation->setCollapsed(false);
-  d->MRMLNodeComboBox_TargetStructureSet->setCurrentNodeID(QString(structureSetNode.c_str()));
+  d->MRMLNodeComboBox_TargetContourSet->setCurrentNodeID(QString(contourSetNode.c_str()));
 }
 
 //-----------------------------------------------------------------------------
@@ -811,53 +809,63 @@ void qSlicerContoursModuleWidget::updateWidgetsInCreateContourFromRepresentation
   d->label_NoInputWarning->setVisible(false);
   d->label_ContourCreatedFromLabelmap->setVisible(false);
   d->label_ContourCreatedFromModel->setVisible(false);
-  d->label_StructureSetContainsContourName->setVisible(false);
+  d->label_ContourSetContainsContourName->setVisible(false);
   d->label_AlreadyAContourRepresentation->setVisible(false);
 
+  bool hasSourceNode(true);
   vtkMRMLDisplayableNode* sourceNode = vtkMRMLDisplayableNode::SafeDownCast(d->MRMLNodeComboBox_ConvertRepresentationSource->currentNode());
-  if( sourceNode == NULL )
+  if( sourceNode != NULL )
   {
-    return;
-  }
-
-  // Do not show sources that are already contour representations
-  bool isValidSource(true);
-  if( sourceNode->GetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME) != NULL &&
-    STRCASECMP(sourceNode->GetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME), "1") == 0 )
-  {
-    // This is already a representation
-    d->label_AlreadyAContourRepresentation->setVisible(true);
-    isValidSource = false;
-  }
-
-  vtkMRMLSubjectHierarchyNode* structureSet = vtkMRMLSubjectHierarchyNode::SafeDownCast(d->MRMLNodeComboBox_TargetStructureSet->currentNode());
-  if( structureSet == NULL )
-  {
-    return;
-  }
-
-  // Check if target contour name exists in requested structure set
-  bool isNameValid(true);
-  QString targetNameQ = d->lineEdit_TargetContourName->text();
-  std::string targetNameStd(targetNameQ.toStdString());
-
-  if( !targetNameStd.empty() )
-  {
-    std::vector<vtkMRMLContourNode*> nodes;
-    this->GetContoursFromStructureSet(structureSet, nodes);
-    for( std::vector<vtkMRMLContourNode*>::iterator it = nodes.begin(); it != nodes.end(); ++it)
+    // Do not show sources that are already contour representations
+    if( sourceNode->GetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME) != NULL &&
+      STRCASECMP(sourceNode->GetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME), "1") == 0 )
     {
-      if( STRCASECMP( (*it)->GetName(), targetNameStd.c_str() ) == 0 )
+      // This is already a representation
+      d->label_AlreadyAContourRepresentation->setVisible(true);
+    }
+  }
+  else
+  {
+    hasSourceNode = false;
+  }
+
+  bool isNameValid(true);
+  bool hasContourSet(true);
+  vtkMRMLSubjectHierarchyNode* contourSet = vtkMRMLSubjectHierarchyNode::SafeDownCast(d->MRMLNodeComboBox_TargetContourSet->currentNode());
+  if( contourSet != NULL )
+  {
+    // Check if target contour name exists in requested structure set
+    QString targetNameQ = d->lineEdit_TargetContourName->text();
+    std::string targetNameStd(targetNameQ.toStdString());
+
+    if( !targetNameStd.empty() )
+    {
+      std::vector<vtkMRMLContourNode*> nodes;
+      this->GetContoursFromContourSet(contourSet, nodes);
+      for( std::vector<vtkMRMLContourNode*>::iterator it = nodes.begin(); it != nodes.end(); ++it)
       {
-        isNameValid = false;
-        d->label_StructureSetContainsContourName->setVisible(true);
-        break;
+        if( STRCASECMP( (*it)->GetName(), targetNameStd.c_str() ) == 0 )
+        {
+          isNameValid = false;
+          d->label_ContourSetContainsContourName->setVisible(true);
+          break;
+        }
       }
     }
   }
+  else
+  {
+    hasContourSet = false;
+  }
+
+  if( !hasSourceNode || !hasContourSet )
+  {
+    d->label_ContourSetContainsContourName->setVisible(false);
+    d->label_AlreadyAContourRepresentation->setVisible(false);
+    d->label_NoInputWarning->setVisible(true);
+  }
   
-  bool enabled = isValidSource && isNameValid && d->MRMLNodeComboBox_ConvertRepresentationSource->currentNode() != NULL &&
-    d->MRMLNodeComboBox_TargetStructureSet->currentNode() != NULL;
+  bool enabled = hasSourceNode && isNameValid && hasContourSet;
   d->pushButton_CreateContourFromRepresentation->setEnabled(enabled);
 }
 
@@ -959,22 +967,36 @@ void qSlicerContoursModuleWidget::createContourFromRepresentationClicked()
   }
   else
   {
-    d->lineEdit_TargetContourName->setText(QString(""));
-
-    if( d->MRMLNodeComboBox_TargetStructureSet->currentNode() != NULL )
+    // Make all node connections
+    if( !qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("ContourSets")->addNodeToSubjectHierarchy( newContourNode, vtkMRMLSubjectHierarchyNode::SafeDownCast(d->MRMLNodeComboBox_TargetContourSet->currentNode()) ) )
     {
-      // Make all node connections
-      if( !qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("ContourSets")->addNodeToSubjectHierarchy( newContourNode, vtkMRMLSubjectHierarchyNode::SafeDownCast(d->MRMLNodeComboBox_TargetStructureSet->currentNode()) ) )
+      qCritical() << "Unable to connect new contour node <" << newContourNode->GetName() << "> to subject heirarchy.";
+    }
+    else
+    {
+      // Reset the name so warnings don't show up
+      d->lineEdit_TargetContourName->setText(QString(""));
+
+      // Reset the source node as it is now a representation
+      d->MRMLNodeComboBox_ConvertRepresentationSource->setCurrentNodeIndex(-1);
+
+      // Don't show a warning message after a successful operation, it's confusing
+      d->label_NoInputWarning->setVisible(false);
+
+      // Do show a nice success message!
+      if( vtkMRMLModelNode::SafeDownCast(dispNode) != NULL )
       {
-        qCritical() << "Unable to connect new contour node <" << newContourNode->GetName() << "> to subject heirarchy.";
+        d->label_ContourCreatedFromModel->setVisible(true);
+      }
+      else if( vtkMRMLScalarVolumeNode::SafeDownCast(dispNode) != NULL )
+      {
+        d->label_ContourCreatedFromLabelmap->setVisible(true);
+      }
+      else
+      {
+        qCritical() << "Unknown representation source type. What did you just do!?";
       }
     }
-
-    // Reset the index to prevent a confusing warning that the newly created node already exists
-    d->MRMLNodeComboBox_ConvertRepresentationSource->setCurrentNodeIndex(-1);
-
-    // Don't show a warning message after a succesful operation, it's confusing
-    d->label_NoInputWarning->setVisible(false);
   }
 
   this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
@@ -1045,7 +1067,7 @@ void qSlicerContoursModuleWidget::testInit()
   d->MRMLNodeComboBox_Contour->addAttribute( QString("vtkMRMLSubjectHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
 
   // Filter out hierarchy nodes that are not contour hierarchy nodes
-  d->MRMLNodeComboBox_TargetStructureSet->addAttribute( QString("vtkMRMLSubjectHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
+  d->MRMLNodeComboBox_TargetContourSet->addAttribute( QString("vtkMRMLSubjectHierarchyNode"), QString(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) );
 
   // Filter out non-labelmap nodes
   d->MRMLNodeComboBox_ConvertRepresentationSource->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString(SlicerRtCommon::VOLUME_LABELMAP_IDENTIFIER_ATTRIBUTE_NAME), QVariant(1) );
@@ -1058,7 +1080,7 @@ void qSlicerContoursModuleWidget::testInit()
   connect( d->MRMLNodeComboBox_Contour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(contourNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_ConvertRepresentationSource, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(sourceRepresentationNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_TargetStructureSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(targetStructureSetNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_TargetContourSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(targetContourSetNodeChanged(vtkMRMLNode*)) );
 
   // Input widgets
   connect( d->comboBox_ChangeActiveRepresentation, SIGNAL(currentIndexChanged(int)), this, SLOT(activeRepresentationComboboxSelectionChanged(int)) );
@@ -1079,7 +1101,7 @@ void qSlicerContoursModuleWidget::testInit()
   d->label_NoInputWarning->setVisible(false);
   d->label_ContourCreatedFromLabelmap->setVisible(false);
   d->label_ContourCreatedFromModel->setVisible(false);
-  d->label_StructureSetContainsContourName->setVisible(false);
+  d->label_ContourSetContainsContourName->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -1139,11 +1161,11 @@ void qSlicerContoursModuleWidget::testSetContourNode( vtkMRMLContourNode* node )
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::GetContoursFromStructureSet( vtkMRMLSubjectHierarchyNode* structureSetNode, std::vector< vtkMRMLContourNode* >& outputContourList )
+bool qSlicerContoursModuleWidget::GetContoursFromContourSet( vtkMRMLSubjectHierarchyNode* contourSetNode, std::vector< vtkMRMLContourNode* >& outputContourList )
 {
-  if( structureSetNode == NULL )
+  if( contourSetNode == NULL )
   {
-    qCritical() << "Invalid structure set node sent to qSlicerContoursModuleWidget::GetContoursFromStructureSet";
+    qCritical() << "Invalid structure set node sent to qSlicerContoursModuleWidget::GetContoursFromContourSet";
     return false;
   }
   outputContourList.clear();
@@ -1163,11 +1185,12 @@ bool qSlicerContoursModuleWidget::GetContoursFromStructureSet( vtkMRMLSubjectHie
       continue;
     }
     
-    if( vtkMRMLSubjectHierarchyNode::GetChildWithName( structureSetNode, hierarchyNode->GetNameWithoutPostfix().c_str() ) != NULL )
+    if( vtkMRMLSubjectHierarchyNode::GetChildWithName( contourSetNode, hierarchyNode->GetNameWithoutPostfix().c_str() ) != NULL )
     {
       outputContourList.push_back(node);
     }
   }
+  contourNodes->Delete();
 
   return true;
 }

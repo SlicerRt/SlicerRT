@@ -139,26 +139,28 @@ protected:
   int getOversamplingFactorSliderValueFromOversamplingFactor(double oversamplingFactor);
 
   /// Return a list of contours that belong to the input structure set
-  /// \param structureSetNode The structure set to query
+  /// \param contourSetNode The structure set to query
   /// \return the list of contours in the structure set (may be empty)
-  bool GetContoursFromStructureSet(vtkMRMLSubjectHierarchyNode* structureSetNode, std::vector< vtkMRMLContourNode* >& outputContourList);
+  bool GetContoursFromContourSet(vtkMRMLSubjectHierarchyNode* contourSetNode, std::vector< vtkMRMLContourNode* >& outputContourList);
 
 public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
 
   /// Open the contour module, expand the box and select the requested structure set node
-  void showContourFromRepresentationUI(std::string structureSetNode);
+  void showContourFromRepresentationUI(std::string contourSetNode);
 
 protected slots:
   void contourNodeChanged(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode* node);
-  void sourceRepresentationNodeChanged(vtkMRMLNode* node);
-  void targetStructureSetNodeChanged(vtkMRMLNode*);
   void activeRepresentationComboboxSelectionChanged(int index);
   void oversamplingFactorChanged(int value);
-  void targetContourNameChanged(const QString& value);
   void targetReductionFactorPercentChanged(double value);
+
+  /// Slots for the create contour from representation feature
+  void targetContourSetNodeChanged(vtkMRMLNode*);
+  void sourceRepresentationNodeChanged(vtkMRMLNode* node);
+  void targetContourNameChanged(const QString& value);
 
   /// Perform conversions if needed and sets target representation for all selected contours
   /// This function should only be called if all conditions are good to perform the representation change

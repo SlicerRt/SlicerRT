@@ -526,7 +526,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLabel" name="label_TargetStructureSet">
+       <widget class="QLabel" name="label_TargetContourSet">
         <property name="text">
          <string>Parent contour set:</string>
         </property>
@@ -536,7 +536,7 @@
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_TargetStructureSet">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_TargetContourSet">
         <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLSubjectHierarchyNode</string>
@@ -677,7 +677,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_StructureSetContainsContourName">
+           <widget class="QLabel" name="label_ContourSetContainsContourName">
             <property name="palette">
              <palette>
               <active>
@@ -728,6 +728,49 @@
           </item>
           <item>
            <widget class="QLabel" name="label_ContourCreatedFromLabelmap">
+            <property name="palette">
+             <palette>
+              <active>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>0</red>
+                  <green>170</green>
+                  <blue>0</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </active>
+              <inactive>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>0</red>
+                  <green>170</green>
+                  <blue>0</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </inactive>
+              <disabled>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>106</red>
+                  <green>104</green>
+                  <blue>100</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </disabled>
+             </palette>
+            </property>
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="toolTip">
              <string>This is why there is no reference selected, as the contour's labelmap representation is its own reference</string>
             </property>
@@ -738,6 +781,49 @@
           </item>
           <item>
            <widget class="QLabel" name="label_ContourCreatedFromModel">
+            <property name="palette">
+             <palette>
+              <active>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>0</red>
+                  <green>170</green>
+                  <blue>0</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </active>
+              <inactive>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>0</red>
+                  <green>170</green>
+                  <blue>0</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </inactive>
+              <disabled>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>106</red>
+                  <green>104</green>
+                  <blue>100</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </disabled>
+             </palette>
+            </property>
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>A contour has been created from the input model</string>
             </property>
@@ -911,7 +997,7 @@
   <connection>
    <sender>qSlicerContoursModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_TargetStructureSet</receiver>
+   <receiver>MRMLNodeComboBox_TargetContourSet</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
