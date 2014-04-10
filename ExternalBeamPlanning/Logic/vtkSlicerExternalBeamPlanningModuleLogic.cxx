@@ -1081,21 +1081,18 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
   }
 
   // Convert input images to ITK format for Plastimatch
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
-  //  itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
-  itk::Image<short, 3>::Pointer referenceVolumeItk = itk::Image<short, 3>::New();
-
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<short>(referenceVolumeNode, referenceVolumeItk, true, false);
+  Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(
+    this->ExternalBeamPlanningNode->GetReferenceVolumeNode());
 
   // Ray tracing code expects identity direction cosines.  This is a hack.
-  itk_rectify_volume_hack (referenceVolumeItk);
+  itk_rectify_volume_hack (plmRef->itk_float());
 
   Ion_plan ion_plan;
 
   try
   {
     // Assign inputs to dose calc logic
-    ion_plan.set_patient (referenceVolumeItk);
+    ion_plan.set_patient (plmRef);
 
     vtkDebugMacro("ComputeWED: Gantry angle is: " << this->ExternalBeamPlanningNode->GetGantryAngle());
 
@@ -1142,8 +1139,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
   // Get wed as itk image 
   Rpl_volume *rpl_vol = ion_plan.rpl_vol;
 
-  Plm_image::Pointer patient = Plm_image::New();
-  patient->set_itk (referenceVolumeItk);
+  Plm_image::Pointer patient = plmRef;
   Volume::Pointer patient_vol = patient->get_volume_float();
   // Volume* wed = rpl_vol->create_wed_volume (&ion_plan); //TODO: this line broke the build, needs to be fixed
   Volume* wed = NULL; // Creating dummy variable to ensure compilation

@@ -5,6 +5,7 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_LOGIC_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
+  ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
   )
@@ -17,6 +18,7 @@ set(${KIT}_SRCS
   )
 
 set(${KIT}_TARGET_LIBRARIES
+  vtkPlmCommon
   vtkSlicerRtCommon
   vtkSlicerContoursModuleMRML
   ${PLASTIMATCH_LIBRARIES}

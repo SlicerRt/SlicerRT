@@ -148,12 +148,8 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
         vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode(labelmapNode, imageNode, labelmapNode);
       }
 
-      itk::Image<unsigned char, 3>::Pointer itkStructure = itk::Image<unsigned char, 3>::New();
-      if (SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(labelmapNode, itkStructure, true, true) == false)
-      {
-        vtkErrorMacro("SaveDicomRTStudy: Failed to convert contour labelmap volumeNode to ITK volume!");
-        return;
-      }
+      Plm_image::Pointer plmStructure = PlmCommon::ConvertVolumeNodeToPlmImage(
+        labelmapNode);
       char *labelmapName = labelmapNode->GetName();
       double labelmapColor[4] = {0.0,0.0,0.0,1.0};
       labelmapNode->GetDisplayNode()->GetColor(labelmapColor);
@@ -165,7 +161,7 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
         defaultTableNode->GetColor(i+1, labelmapColor);
       }
 
-      rtWriter->AddContour(itkStructure, labelmapName, labelmapColor);
+      rtWriter->AddContour(plmStructure->itk_uchar(), labelmapName, labelmapColor);
     }
   }
 

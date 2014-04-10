@@ -25,6 +25,7 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "PlmCommon.h"
 #include "vtkMRMLContourNode.h"
 
 // Plastimatch includes
@@ -182,40 +183,31 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   this->DoseComparisonNode->ResultsValidOff();
 
-  // Convert input images to the format Plastimatch can use
+  double checkpointConvertStart = timer->GetUniversalTime();
   vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = this->DoseComparisonNode->GetReferenceDoseVolumeNode();
-  itk::Image<float, 3>::Pointer referenceDoseVolumeItk = itk::Image<float, 3>::New();
+  Plm_image::Pointer referenceDose = PlmCommon::ConvertVolumeNodeToPlmImage(
+    this->DoseComparisonNode->GetReferenceDoseVolumeNode());
+  Plm_image::Pointer compareDose = PlmCommon::ConvertVolumeNodeToPlmImage(
+    this->DoseComparisonNode->GetCompareDoseVolumeNode());
 
-  vtkMRMLScalarVolumeNode* compareDoseVolumeNode = this->DoseComparisonNode->GetCompareDoseVolumeNode();
-  itk::Image<float, 3>::Pointer compareDoseVolumeItk = itk::Image<float, 3>::New();
-
+  Plm_image::Pointer maskVolume;
   vtkMRMLContourNode* maskContourNode = this->DoseComparisonNode->GetMaskContourNode();
-  vtkMRMLScalarVolumeNode* maskContourLabelmapNode = NULL;
-  itk::Image<unsigned char, 3>::Pointer maskContourLabelmapItk = itk::Image<unsigned char, 3>::New();
   if (maskContourNode)
   {
     maskContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(referenceDoseVolumeNode->GetID());
     maskContourNode->SetRasterizationOversamplingFactor(1.0);
-    maskContourLabelmapNode = maskContourNode->GetIndexedLabelmapVolumeNode();
-  }
-
-  // Convert inputs to ITK images
-  double checkpointItkConvertStart = timer->GetUniversalTime();
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(referenceDoseVolumeNode, referenceDoseVolumeItk, true, false);
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<float>(compareDoseVolumeNode, compareDoseVolumeItk, true, false);
-  if (maskContourNode)
-  {
-    SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(maskContourLabelmapNode, maskContourLabelmapItk, true, false);
+    maskVolume = PlmCommon::ConvertVolumeNodeToPlmImage(
+      maskContourNode->GetIndexedLabelmapVolumeNode());
   }
 
   // Compute gamma dose volume
   double checkpointGammaStart = timer->GetUniversalTime();
   Gamma_dose_comparison gamma;
-  gamma.set_reference_image(referenceDoseVolumeItk);
-  gamma.set_compare_image(compareDoseVolumeItk);
+  gamma.set_reference_image(referenceDose->itk_float());
+  gamma.set_compare_image(compareDose->itk_float());
   if (maskContourNode)
   {
-    gamma.set_mask_image(maskContourLabelmapItk);
+    gamma.set_mask_image(maskVolume->itk_uchar());
   }
   gamma.set_spatial_tolerance(this->DoseComparisonNode->GetDtaDistanceToleranceMm());
   gamma.set_dose_difference_tolerance(this->DoseComparisonNode->GetDoseDifferenceTolerancePercent() / 100.0);
@@ -299,10 +291,10 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   {
     double checkpointEnd = timer->GetUniversalTime();
     std::cout << "Total gamma computation time: " << checkpointEnd-checkpointStart << " s" << std::endl
-      << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s" << std::endl
-      << "\tConverting from VTK to ITK: " << checkpointGammaStart-checkpointItkConvertStart << " s" << std::endl
-      << "\tGamma computation: " << checkpointVtkConvertStart-checkpointGammaStart << " s" << std::endl
-      << "\tConverting back from ITK to VTK: " << checkpointEnd-checkpointVtkConvertStart << " s" << std::endl;
+              << "\tApplying transforms: " << checkpointConvertStart-checkpointStart << " s" << std::endl
+              << "\tConverting from VTK to ITK: " << checkpointGammaStart-checkpointConvertStart << " s" << std::endl
+              << "\tGamma computation: " << checkpointVtkConvertStart-checkpointGammaStart << " s" << std::endl
+              << "\tConverting back from ITK to VTK: " << checkpointEnd-checkpointVtkConvertStart << " s" << std::endl;
   }
 }
 
