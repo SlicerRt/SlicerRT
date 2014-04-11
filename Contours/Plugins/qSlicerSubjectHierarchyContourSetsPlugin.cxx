@@ -584,7 +584,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForNode(vtk
     d->EditColorTableAction->setVisible(true);
   }
 
-  // Structure set only
+  // Contour set only
   if (node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str() ) != NULL &&
     STRCASECMP(node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str() ), "1") == 0 )
   {
@@ -664,7 +664,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::convertRepresentationAction()
     return;
   }
 
-  // Switch to contours module with box expanded and structure set already chosen in drop down
+  // Switch to contours module with box expanded and contour set already chosen in drop down
   qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(QString("Contours"));
   if( module != NULL )
   {
@@ -685,7 +685,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::convertRepresentationAction()
 //--------------------------------------------------------------------------
 void qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable()
 {
-  // Get color node for current structure set
+  // Get color node for current contour set
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   if (!this->canOwnSubjectHierarchyNode(currentNode))
   {

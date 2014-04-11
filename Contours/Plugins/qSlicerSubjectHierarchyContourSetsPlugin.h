@@ -113,7 +113,7 @@ protected:
 
 signals:
   /// Emmitted when the user wants to create a contour from a representation
-  /// \param Structure set node to use as group for new contour
+  /// \param Contour set node to use as group for new contour
   void createContourFromRepresentationClicked(QString);
 
 protected slots:

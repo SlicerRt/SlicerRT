@@ -483,6 +483,9 @@
      <property name="text">
       <string>Create contour from representation</string>
      </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
      <property name="collapsed">
       <bool>true</bool>
      </property>
@@ -555,7 +558,7 @@
          <bool>false</bool>
         </property>
         <property name="noneDisplay">
-         <string>Select a Structure Set</string>
+         <string>Select a contour set</string>
         </property>
        </widget>
       </item>
@@ -725,7 +728,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Selected structure set already contains this name</string>
+             <string>Selected contour set already contains this name</string>
             </property>
            </widget>
           </item>

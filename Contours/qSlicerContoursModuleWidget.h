@@ -138,16 +138,16 @@ protected:
   /// Utility function that returns the corresponding slider widget value for an oversampling factor (the slider is exponential)
   int getOversamplingFactorSliderValueFromOversamplingFactor(double oversamplingFactor);
 
-  /// Return a list of contours that belong to the input structure set
-  /// \param contourSetNode The structure set to query
-  /// \return the list of contours in the structure set (may be empty)
+  /// Return a list of contours that belong to the input contour set
+  /// \param contourSetNode The contour set to query
+  /// \return The list of contours in the contour set (may be empty)
   bool GetContoursFromContourSet(vtkMRMLSubjectHierarchyNode* contourSetNode, std::vector< vtkMRMLContourNode* >& outputContourList);
 
 public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
 
-  /// Open the contour module, expand the box and select the requested structure set node
+  /// Open the contour module, expand the box and select the requested contour set node
   void showContourFromRepresentationPanel(QString contourSetNodeID);
 
 protected slots:
