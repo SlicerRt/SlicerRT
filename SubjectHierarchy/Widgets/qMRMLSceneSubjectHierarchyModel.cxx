@@ -188,11 +188,6 @@ int qMRMLSceneSubjectHierarchyModel::nodeIndex(vtkMRMLNode* node)const
           return index;
         }
         ++index;
-        // The associated node of a hierarchy node is displayed after the hierarchy node
-        if (child->GetAssociatedNode())
-        {
-          ++index;
-        }
       }
     }
   }
