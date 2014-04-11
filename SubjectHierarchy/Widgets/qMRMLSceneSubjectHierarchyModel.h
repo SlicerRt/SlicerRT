@@ -67,6 +67,12 @@ public:
   /// Handles dropping of items
   virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
 
+  /// Get parent node
+  virtual vtkMRMLNode* parentNode(vtkMRMLNode* node)const;
+
+  /// Provide node index for node
+  virtual int nodeIndex(vtkMRMLNode* node)const;
+
   /// Fast function that only check the type of the node to know if it can be a child.
   virtual bool canBeAChild(vtkMRMLNode* node)const;
 

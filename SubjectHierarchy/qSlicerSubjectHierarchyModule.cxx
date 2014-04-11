@@ -199,7 +199,7 @@ void qSlicerSubjectHierarchyModule::onNodeRemoved(vtkObject* sceneObject, vtkObj
     if (associatedDataNode)
     {
       subjectHierarchyNode->DisableModifiedEventOn();
-      subjectHierarchyNode->SetAssociatedNodeID(NULL); // Ensuring that this method does not enter in an infinite loop
+      subjectHierarchyNode->SetAssociatedNodeID(NULL);
       scene->RemoveNode(associatedDataNode);
     }
   }
@@ -210,7 +210,7 @@ void qSlicerSubjectHierarchyModule::onNodeRemoved(vtkObject* sceneObject, vtkObj
     if (subjectHierarchyNode)
     {
       subjectHierarchyNode->DisableModifiedEventOn();
-      subjectHierarchyNode->SetAssociatedNodeID(NULL); // Ensuring that this method does not enter in an infinite loop
+      subjectHierarchyNode->SetAssociatedNodeID(NULL);
       scene->RemoveNode(subjectHierarchyNode);
     }
     // Remove associated other hierarchy node if any (if there is a nested association)
