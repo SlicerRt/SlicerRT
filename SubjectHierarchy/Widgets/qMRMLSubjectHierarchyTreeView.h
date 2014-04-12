@@ -72,6 +72,9 @@ public slots:
   /// Open module belonging to the data node associated to a subject hierarchy node
   void openModuleForSubjectHierarchyNode(vtkMRMLNode* node);
 
+  /// Remove current node from subject hierarchy on context menu choice
+  void removeCurrentNodeFromSubjectHierarchy();
+
 private:
   Q_DECLARE_PRIVATE(qMRMLSubjectHierarchyTreeView);
   Q_DISABLE_COPY(qMRMLSubjectHierarchyTreeView);

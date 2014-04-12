@@ -119,7 +119,7 @@ void qSlicerSubjectHierarchyModule::setup()
   // Connect scene node added event so that the new subject hierarchy nodes can be claimed by a plugin
   qvtkConnect( this->mrmlScene(), vtkMRMLScene::NodeAddedEvent, this, SLOT( onNodeAdded(vtkObject*,vtkObject*) ) );
   // Connect scene node added event so that the associated subject hierarchy node can be deleted too
-  qvtkConnect( this->mrmlScene(), vtkMRMLScene::NodeAboutToBeRemovedEvent, this, SLOT( onNodeRemoved(vtkObject*,vtkObject*) ) );
+  qvtkConnect( this->mrmlScene(), vtkMRMLScene::NodeAboutToBeRemovedEvent, this, SLOT( onNodeAboutToBeRemoved(vtkObject*,vtkObject*) ) );
 
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyDICOMPlugin());
@@ -147,7 +147,7 @@ void qSlicerSubjectHierarchyModule::onLogicModified()
   // Connect scene node added event so that the new subject hierarchy nodes can be claimed by a plugin
   qvtkReconnect( scene, vtkMRMLScene::NodeAddedEvent, this, SLOT( onNodeAdded(vtkObject*,vtkObject*) ) );
   // Connect scene node added event so that the associated subject hierarchy node can be deleted too
-  qvtkReconnect( scene, vtkMRMLScene::NodeAboutToBeRemovedEvent, this, SLOT( onNodeRemoved(vtkObject*,vtkObject*) ) );
+  qvtkReconnect( scene, vtkMRMLScene::NodeAboutToBeRemovedEvent, this, SLOT( onNodeAboutToBeRemoved(vtkObject*,vtkObject*) ) );
 
   // Set the new scene to the plugin handler
   qSlicerSubjectHierarchyPluginHandler::instance()->setScene(scene);
@@ -183,7 +183,7 @@ void qSlicerSubjectHierarchyModule::onNodeAdded(vtkObject* sceneObject, vtkObjec
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSubjectHierarchyModule::onNodeRemoved(vtkObject* sceneObject, vtkObject* nodeObject)
+void qSlicerSubjectHierarchyModule::onNodeAboutToBeRemoved(vtkObject* sceneObject, vtkObject* nodeObject)
 {
   vtkMRMLScene* scene = vtkMRMLScene::SafeDownCast(sceneObject);
   if (!scene)
@@ -196,7 +196,7 @@ void qSlicerSubjectHierarchyModule::onNodeRemoved(vtkObject* sceneObject, vtkObj
   {
     // Remove associated data node if any
     vtkMRMLNode* associatedDataNode = subjectHierarchyNode->GetAssociatedDataNode();
-    if (associatedDataNode)
+    if (associatedDataNode && !subjectHierarchyNode->GetDisableModifiedEvent())
     {
       subjectHierarchyNode->DisableModifiedEventOn();
       subjectHierarchyNode->SetAssociatedNodeID(NULL);

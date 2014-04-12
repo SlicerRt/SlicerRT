@@ -65,6 +65,7 @@ public:
 
   QList<QAction*> SelectPluginActions;
   QActionGroup* SelectPluginActionGroup;
+  QAction* RemoveFromSubjectHierarchyAction;
   qMRMLTransformItemDelegate* TransformItemDelegate;
 };
 
@@ -72,6 +73,7 @@ public:
 qMRMLSubjectHierarchyTreeViewPrivate::qMRMLSubjectHierarchyTreeViewPrivate(qMRMLSubjectHierarchyTreeView& object)
   : qMRMLTreeViewPrivate(object)
 {
+  this->RemoveFromSubjectHierarchyAction = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -110,7 +112,14 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
   QObject::connect(this->TransformItemDelegate, SIGNAL(hardenTransformOnBranchOfCurrentNode()),
     sceneModel, SLOT(onHardenTransformOnBranchOfCurrentNode()));
 
-  // Perform tasks need for all plugins
+  // Set up remove from subject hierarchy action (hidden by default)
+  this->RemoveFromSubjectHierarchyAction = new QAction(qMRMLTreeView::tr("Remove from subject hierarchy"), this->NodeMenu);
+  this->NodeMenu->addAction(this->RemoveFromSubjectHierarchyAction);
+  this->RemoveFromSubjectHierarchyAction->setVisible(false);
+  QObject::connect(this->RemoveFromSubjectHierarchyAction, SIGNAL(triggered()), q, SLOT(removeCurrentNodeFromSubjectHierarchy()));
+
+  int index = 0; // Index used to insert actions before default tree actions
+  // Perform tasks needed for all plugins
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
   {
     // Add node context menu actions
@@ -340,4 +349,18 @@ void qMRMLSubjectHierarchyTreeView::openModuleForSubjectHierarchyNode(vtkMRMLNod
 
   // Open module belonging to the associated node
   qSlicerApplication::application()->openNodeModule(associatedNode);
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::removeCurrentNodeFromSubjectHierarchy()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  if (!currentNode)
+  {
+    qCritical() << "qMRMLSubjectHierarchyTreeView::updateSelectPluginActions: Invalid current node!";
+    return;
+  }
+
+  currentNode->DisableModifiedEventOn();
+  qSlicerSubjectHierarchyPluginHandler::instance()->scene()->RemoveNode(currentNode);
 }
