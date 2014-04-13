@@ -73,6 +73,7 @@ add_subdirectory(PlmBspline) # requires Plastimatch registration
 add_subdirectory(PlmDicomRtExport)
 add_subdirectory(PlmDicomRtImport)
 add_subdirectory(PlmLandwarp)
+add_subdirectory(PlmRegister)
 add_subdirectory(PlmXformwarp)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
