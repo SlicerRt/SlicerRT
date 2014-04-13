@@ -85,6 +85,8 @@ void qSlicerDicomRtExportModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
+  d->label_Error->setText("");
+
   // Filter out nodes that are not image volume nodes
   d->MRMLNodeComboBox_ImageVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), QString(SlicerRtCommon::VOLUME_LABELMAP_IDENTIFIER_ATTRIBUTE_NAME), 0 );
 
@@ -103,13 +105,18 @@ void qSlicerDicomRtExportModuleWidget::onSaveClicked()
 {
   Q_D(qSlicerDicomRtExportModuleWidget);
 
+  d->label_Error->setText("Saving...");
+  d->label_Error->repaint();
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   d->logic()->SaveDicomRTStudy(
+    d->lineEdit_PatientName->text().toLatin1().constData(),
+    d->lineEdit_PatientID->text().toLatin1().constData(),
     d->MRMLNodeComboBox_ImageVolume->currentNodeId().toLatin1().constData(),
     d->MRMLNodeComboBox_DoseVolume->currentNodeId().toLatin1().constData(),
     d->MRMLNodeComboBox_ContourHierarchy->currentNodeId().toLatin1().constData(),
-    d->DirectoryButton_OutputDirectory->directory().toLatin1().constData() );
+    d->DirectoryButton_OutputDirectory->directory().toLatin1().constData());
 
   QApplication::restoreOverrideCursor();
+  d->label_Error->setText("Done.");
 }

@@ -46,7 +46,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// TODO: Description, argument names and descriptions
-  void SaveDicomRTStudy(const char*, const char*, const char*, const char*);
+  void SaveDicomRTStudy(const char*, const char*, const char*, const char*, const char*, const char*);
 
 protected:
   vtkSlicerDicomRtExportModuleLogic();

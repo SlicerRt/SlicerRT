@@ -14,6 +14,8 @@
   limitations under the License.
 
 ==============================================================================*/
+#include <string>
+#include <vector>
 
 // DicomRtExport includes
 #include "vtkSlicerDicomRtWriter.h"
@@ -48,6 +50,8 @@ vtkStandardNewMacro(vtkSlicerDicomRtWriter);
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtWriter::vtkSlicerDicomRtWriter()
 {
+  this->PatientName = NULL;
+  this->PatientID = NULL;
   this->FileName = NULL;
 }
 
@@ -96,7 +100,18 @@ void vtkSlicerDicomRtWriter::AddContour(UCharImageType::Pointer itk_structure, c
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtWriter::Write()
 {
+  /* Set metadata */
+  std::vector<std::string> metadata;
+  if (this->PatientName && this->PatientName[0] != 0) {
+    std::string metadata_string = std::string("0010,0010=") + this->PatientName;
+    metadata.push_back(metadata_string);
+  }
+  if (this->PatientID && this->PatientID[0] != 0) {
+    std::string metadata_string = std::string("0010,0020=") + this->PatientID;
+    metadata.push_back(metadata_string);
+  }
+  RtStudy.set_user_metadata(metadata);
+
+  /* Write output to files */
   RtStudy.save_dicom(this->FileName);
 }
-  
-

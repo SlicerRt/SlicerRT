@@ -52,9 +52,12 @@ public:
   void Write();
 
 public:
-  /// Get file name
+  /// Macros for accessing strings
+  vtkGetStringMacro(PatientName);
+  vtkSetStringMacro(PatientName);
+  vtkGetStringMacro(PatientID);
+  vtkSetStringMacro(PatientID);
   vtkGetStringMacro(FileName);
-  /// Set file name
   vtkSetStringMacro(FileName);
   
 protected:
@@ -62,6 +65,8 @@ protected:
   virtual ~vtkSlicerDicomRtWriter();
 
   /// TODO:
+  char* PatientName;
+  char* PatientID;
   char* FileName;
 
   /// TODO:

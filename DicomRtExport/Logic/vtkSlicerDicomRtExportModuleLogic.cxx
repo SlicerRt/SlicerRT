@@ -61,7 +61,13 @@ void vtkSlicerDicomRtExportModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID, const char* doseNodeID, const char* contourHierarchyNodeID, const char* currentOutputPath)
+void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(
+  const char* patientName,
+  const char* patientID,
+  const char* imageNodeID, 
+  const char* doseNodeID,
+  const char* contourHierarchyNodeID, 
+  const char* currentOutputPath)
 {
   if (!this->GetMRMLScene())
   {
@@ -69,26 +75,27 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
       return;
   }
 
+  // Get nodes for input volumes
   vtkMRMLScalarVolumeNode* imageNode = vtkMRMLScalarVolumeNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(imageNodeID));
+  vtkMRMLScalarVolumeNode* doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(doseNodeID));
+  vtkMRMLSubjectHierarchyNode* contourHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(contourHierarchyNodeID));
+
+  // Make sure there is an image node.  Don't check for struct / dose, 
+  // as those are optional
   if (!imageNode)
   {
     vtkErrorMacro("SaveDicomRTStudy: Must set the primary CT/MR image!")
       return;
   }
 
-  // check if there is at least one RTDose or RTSTRUCT is included
-  vtkMRMLScalarVolumeNode* doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(doseNodeID));
-  vtkMRMLSubjectHierarchyNode* contourHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(contourHierarchyNodeID));
-  if (!doseNode && !contourHierarchyNode)
-  {
-    vtkErrorMacro("SaveDicomRTStudy: Must set at least the dose or contours!");
-    return;
-  }
-
   vtkSmartPointer<vtkSlicerDicomRtWriter> rtWriter = vtkSmartPointer<vtkSlicerDicomRtWriter>::New();
+
+  // Set metadata
+  rtWriter->SetPatientName (patientName);
+  rtWriter->SetPatientID (patientID);
 
   // Convert input image (CT/MR/etc) to the format Plastimatch can use
   Plm_image::Pointer plm_img = PlmCommon::ConvertVolumeNodeToPlmImage(
@@ -160,7 +167,6 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(const char* imageNodeID
         vtkMRMLColorTableNode* defaultTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("vtkMRMLColorTableNodeLabels"));
         defaultTableNode->GetColor(i+1, labelmapColor);
       }
-
       rtWriter->AddContour(plmStructure->itk_uchar(), labelmapName, labelmapColor);
     }
   }
