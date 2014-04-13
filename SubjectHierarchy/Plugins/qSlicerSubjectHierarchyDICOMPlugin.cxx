@@ -250,3 +250,9 @@ void qSlicerSubjectHierarchyDICOMPlugin::showContextMenuActionsForNode(vtkMRMLSu
     d->CreateGenericSubseriesAction->setVisible(true);
   }
 }
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyDICOMPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+{
+  //TODO: Implement
+}

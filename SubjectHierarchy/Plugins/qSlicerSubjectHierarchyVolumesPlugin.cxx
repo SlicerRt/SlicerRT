@@ -50,6 +50,11 @@
 #include <QStandardItem>
 #include <QAction>
 
+// SlicerQt includes
+#include "qSlicerApplication.h"
+#include "qSlicerAbstractModule.h"
+#include "qSlicerModuleManager.h"
+
 // STD includes
 #include <set>
 
@@ -688,4 +693,24 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolumesInStudy()
     }
   }
 
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyVolumesPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+{
+  // Switch to contours module with box expanded and contour set already chosen in drop down
+  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(QString("Contours"));
+  if( module != NULL )
+  {
+    qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
+    if (moduleWithAction)
+    {
+      moduleWithAction->widgetRepresentation(); // Make sure it's created before showing
+      moduleWithAction->action()->trigger();
+    }
+  }
+  else
+  {
+    qCritical() << "Contours module not found. Unable to open it.";
+  }
 }

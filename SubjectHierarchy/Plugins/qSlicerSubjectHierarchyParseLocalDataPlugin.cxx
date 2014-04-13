@@ -268,3 +268,9 @@ void qSlicerSubjectHierarchyParseLocalDataPlugin::createHierarchyFromLoadedLocal
     emit requestExpandNode(createdNode);
   }
 }
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyParseLocalDataPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+{
+  // No role, no edit properties
+}

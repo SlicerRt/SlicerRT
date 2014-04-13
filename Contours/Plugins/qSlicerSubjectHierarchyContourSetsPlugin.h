@@ -95,6 +95,9 @@ public:
   /// Set visibility icon of a owned subject hierarchy node
   virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
 
+  /// Open module belonging to node and set inputs in opened module
+  virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
+
   /// Get node context menu item actions to add to tree view
   virtual QList<QAction*> nodeContextMenuActions()const;
 

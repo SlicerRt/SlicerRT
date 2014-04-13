@@ -245,3 +245,9 @@ void qSlicerSubjectHierarchyDefaultPlugin::showContextMenuActionsForNode(vtkMRML
     d->CreateStudyAction->setVisible(true);
   }
 }
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyDefaultPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+{
+  // No role, no edit properties
+}

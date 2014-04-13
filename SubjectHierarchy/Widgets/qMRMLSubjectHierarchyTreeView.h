@@ -75,6 +75,9 @@ public slots:
   /// Remove current node from subject hierarchy on context menu choice
   void removeCurrentNodeFromSubjectHierarchy();
 
+  /// Edit properties of current node
+  void editCurrentSubjectHierarchyNode();
+
 private:
   Q_DECLARE_PRIVATE(qMRMLSubjectHierarchyTreeView);
   Q_DISABLE_COPY(qMRMLSubjectHierarchyTreeView);

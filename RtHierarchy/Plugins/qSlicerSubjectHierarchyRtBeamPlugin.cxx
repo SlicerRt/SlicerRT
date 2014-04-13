@@ -153,3 +153,9 @@ void qSlicerSubjectHierarchyRtBeamPlugin::setVisibilityIcon(vtkMRMLSubjectHierar
   qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
 }
 
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyRtBeamPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+{
+  //TODO: Switch to Beams (or RT Plans) module when created
+}

@@ -112,7 +112,11 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
   QObject::connect(this->TransformItemDelegate, SIGNAL(hardenTransformOnBranchOfCurrentNode()),
     sceneModel, SLOT(onHardenTransformOnBranchOfCurrentNode()));
 
-  // Set up remove from subject hierarchy action (hidden by default)
+  // Connect Edit properties... action to another slot
+  QObject::disconnect(this->EditAction, SIGNAL(triggered()), (qMRMLTreeView*)q, SLOT(editCurrentNode()));
+  QObject::connect(this->EditAction, SIGNAL(triggered()), q, SLOT(editCurrentSubjectHierarchyNode()));
+
+  // Set up Remove from subject hierarchy action (hidden by default)
   this->RemoveFromSubjectHierarchyAction = new QAction(qMRMLTreeView::tr("Remove from subject hierarchy"), this->NodeMenu);
   this->NodeMenu->addAction(this->RemoveFromSubjectHierarchyAction);
   this->RemoveFromSubjectHierarchyAction->setVisible(false);
@@ -125,7 +129,7 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
     // Add node context menu actions
     foreach (QAction* action, plugin->nodeContextMenuActions())
     {
-      this->NodeMenu->addAction(action);
+      this->NodeMenu->insertAction(this->NodeMenu->actions()[index++], action);
     }
 
     // Add scene context menu actions
@@ -357,10 +361,25 @@ void qMRMLSubjectHierarchyTreeView::removeCurrentNodeFromSubjectHierarchy()
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   if (!currentNode)
   {
-    qCritical() << "qMRMLSubjectHierarchyTreeView::updateSelectPluginActions: Invalid current node!";
+    qCritical() << "qMRMLSubjectHierarchyTreeView::removeCurrentNodeFromSubjectHierarchy: Invalid current node!";
     return;
   }
 
   currentNode->DisableModifiedEventOn();
   qSlicerSubjectHierarchyPluginHandler::instance()->scene()->RemoveNode(currentNode);
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::editCurrentSubjectHierarchyNode()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  if (!currentNode)
+  {
+    qCritical() << "qMRMLSubjectHierarchyTreeView::editCurrentSubjectHierarchyNode: Invalid current node!";
+    return;
+  }
+
+  qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin =
+    qSlicerSubjectHierarchyPluginHandler::instance()->getOwnerPluginForSubjectHierarchyNode(currentNode);
+  ownerPlugin->editProperties(currentNode);
 }

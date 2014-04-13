@@ -67,6 +67,9 @@ public:
   /// Set visibility icon of a owned subject hierarchy node
   virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
 
+  /// Open module belonging to node and set inputs in opened module
+  virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
+
   /// Set display visibility of a owned subject hierarchy node
   virtual void setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible);
 

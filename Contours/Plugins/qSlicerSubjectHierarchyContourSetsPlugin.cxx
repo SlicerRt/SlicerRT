@@ -44,6 +44,7 @@
 #include "qSlicerApplication.h"
 #include "qSlicerAbstractModule.h"
 #include "qSlicerModuleManager.h"
+#include "qSlicerAbstractModuleWidget.h"
 
 // MRML includes
 #include <vtkMRMLNode.h>
@@ -54,6 +55,9 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLVolumeDisplayNode.h>
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
+
+// MRML widgets includes
+#include "qMRMLNodeComboBox.h"
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -671,7 +675,8 @@ void qSlicerSubjectHierarchyContourSetsPlugin::convertRepresentationAction()
     qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
     if (moduleWithAction)
     {
-      moduleWithAction->widgetRepresentation();
+      moduleWithAction->widgetRepresentation(); // Make sure it's created before showing
+      moduleWithAction->action()->trigger();
     }
   }
   else
@@ -703,4 +708,32 @@ void qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable()
   // Switch to Colors module and set color table as current color node
   // TODO: Uncomment when related topic is integrated into Slicer core
   //qSlicerApplication::application()->editNode();
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContourSetsPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+{
+  // Switch to contours module with box expanded and contour set already chosen in drop down
+  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(QString("Contours"));
+  if( module != NULL )
+  {
+    qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
+    if (moduleWithAction)
+    {
+      moduleWithAction->widgetRepresentation(); // Make sure it's created before showing
+      moduleWithAction->action()->trigger();
+
+      // Get node selector combobox
+      qSlicerAbstractModuleWidget* moduleWidget =
+        dynamic_cast<qSlicerAbstractModuleWidget*>(moduleWithAction->widgetRepresentation());
+      qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_Contour");
+
+      // Choose current data node
+      nodeSelector->setCurrentNode(node);
+    }
+  }
+  else
+  {
+    qCritical() << "Contours module not found. Unable to open it.";
+  }
 }

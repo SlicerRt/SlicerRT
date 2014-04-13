@@ -40,6 +40,11 @@
 #include <QAction>
 #include <QStandardItem>
 
+// SlicerQt includes
+#include "qSlicerApplication.h"
+#include "qSlicerAbstractModule.h"
+#include "qSlicerModuleManager.h"
+
 // MRML includes
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
@@ -274,4 +279,10 @@ void qSlicerSubjectHierarchyContoursPlugin::onNodeClaimed(vtkObject* node, void*
     subjectHierarchyNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
     qDebug() << "qSlicerSubjectHierarchyContoursPlugin::onNodeClaimed: Level of node " << subjectHierarchyNode->GetName() << " changed to subseries on owner plugin change to Contours";
   }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContoursPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+{
+  //TODO: Implement
 }

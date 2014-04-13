@@ -48,6 +48,11 @@
 #include <QIcon>
 #include <QStandardItem>
 
+// SlicerQt includes
+//#include "qSlicerApplication.h"
+//#include "qSlicerAbstractModule.h"
+//#include "qSlicerModuleManager.h"
+
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RtHierarchy
 class qSlicerSubjectHierarchyIsodosePluginPrivate: public QObject
@@ -150,3 +155,8 @@ void qSlicerSubjectHierarchyIsodosePlugin::setVisibilityIcon(vtkMRMLSubjectHiera
   qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
 }
 
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyIsodosePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+{
+  //TODO: Implement
+}

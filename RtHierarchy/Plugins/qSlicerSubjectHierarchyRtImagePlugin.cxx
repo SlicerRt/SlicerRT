@@ -260,3 +260,9 @@ int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkMRMLSubjectHie
   // Default
   return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->getDisplayVisibility(node);
 }
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyRtImagePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+{
+  //TODO: Implement
+}

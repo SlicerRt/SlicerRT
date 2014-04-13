@@ -397,9 +397,6 @@ void qSlicerContoursModuleWidget::showContourFromRepresentationPanel(QString con
 {
   Q_D(qSlicerContoursModuleWidget);
 
-  qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>( this->module() );
-  moduleWithAction->action()->trigger();
-
   d->CTKCollapsibleButton_ConvertRepresentation->setCollapsed(false);
   d->MRMLNodeComboBox_TargetContourSet->setCurrentNodeID(QString(contourSetNodeID.toLatin1().constData()));
 }
