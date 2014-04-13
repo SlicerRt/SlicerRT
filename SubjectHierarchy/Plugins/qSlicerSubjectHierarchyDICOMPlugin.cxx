@@ -98,6 +98,8 @@ qSlicerSubjectHierarchyDICOMPlugin::qSlicerSubjectHierarchyDICOMPlugin(QObject* 
 {
   this->m_Name = QString("DICOM");
 
+  // Scene (empty level) -> Subject
+  this->m_ChildLevelMap.insert( "", vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
   // Subject -> Study
   this->m_ChildLevelMap.insert( vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT,
     vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
