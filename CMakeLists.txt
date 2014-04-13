@@ -65,6 +65,7 @@ add_subdirectory(ContourMorphology)
 add_subdirectory(ContourComparison)
 add_subdirectory(VffFileReader)
 add_subdirectory(DicomRtExport)
+add_subdirectory(DicomSroExport)
 add_subdirectory(DicomSroImport)
 
 add_subdirectory(PlastimatchPy)
@@ -78,7 +79,6 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # In development
   add_subdirectory(PlmThreshbox)
   add_subdirectory(ExternalBeamPlanning)
-  add_subdirectory(DicomSroExport)
 
   # Registration validation routines
   add_subdirectory(PlmSynth)
