@@ -49,9 +49,10 @@
 #include <QStandardItem>
 
 // SlicerQt includes
-//#include "qSlicerApplication.h"
-//#include "qSlicerAbstractModule.h"
-//#include "qSlicerModuleManager.h"
+#include "qSlicerAbstractModule.h"
+#include "qSlicerModuleManager.h"
+#include "qSlicerAbstractModuleWidget.h"
+#include "qSlicerApplication.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RtHierarchy

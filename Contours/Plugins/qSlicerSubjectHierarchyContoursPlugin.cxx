@@ -44,6 +44,7 @@
 #include "qSlicerApplication.h"
 #include "qSlicerAbstractModule.h"
 #include "qSlicerModuleManager.h"
+#include "qSlicerAbstractModuleWidget.h"
 
 // MRML includes
 #include <vtkMRMLNode.h>

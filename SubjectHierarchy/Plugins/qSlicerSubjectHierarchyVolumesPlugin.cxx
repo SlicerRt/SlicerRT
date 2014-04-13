@@ -54,6 +54,10 @@
 #include "qSlicerApplication.h"
 #include "qSlicerAbstractModule.h"
 #include "qSlicerModuleManager.h"
+#include "qSlicerAbstractModuleWidget.h"
+
+// MRML widgets includes
+#include "qMRMLNodeComboBox.h"
 
 // STD includes
 #include <set>
@@ -699,7 +703,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolumesInStudy()
 void qSlicerSubjectHierarchyVolumesPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
   // Switch to contours module with box expanded and contour set already chosen in drop down
-  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(QString("Contours"));
+  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(QString("Volumes"));
   if( module != NULL )
   {
     qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
@@ -707,6 +711,14 @@ void qSlicerSubjectHierarchyVolumesPlugin::editProperties(vtkMRMLSubjectHierarch
     {
       moduleWithAction->widgetRepresentation(); // Make sure it's created before showing
       moduleWithAction->action()->trigger();
+
+      // Get node selector combobox
+      qSlicerAbstractModuleWidget* moduleWidget =
+        dynamic_cast<qSlicerAbstractModuleWidget*>(moduleWithAction->widgetRepresentation());
+      qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("ActiveVolumeNodeSelector");
+
+      // Choose current data node
+      nodeSelector->setCurrentNode(node->GetAssociatedDataNode());
     }
   }
   else

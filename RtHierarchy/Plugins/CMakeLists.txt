@@ -8,6 +8,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModulePlugins_INCLUDE_DIRS}
+  ${Slicer_Base_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
