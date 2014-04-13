@@ -130,16 +130,7 @@ vtkMRMLNode* qMRMLSceneSubjectHierarchyModel::parentNode(vtkMRMLNode* node)const
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
   if (!subjectHierarchyNode)
   {
-    vtkMRMLHierarchyNode* hierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(node);
-    if (hierarchyNode) // Nested association
-    {
-      subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(
-        hierarchyNode->GetAssociatedNode());
-    }
-    else // Data node
-    {
-      subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(node);
-    }
+    subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(node);
   }
   return subjectHierarchyNode ? subjectHierarchyNode->GetParentNode() : 0;
 }

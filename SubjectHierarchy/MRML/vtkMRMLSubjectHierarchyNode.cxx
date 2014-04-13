@@ -515,17 +515,35 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHi
     return vtkMRMLSubjectHierarchyNode::SafeDownCast(associatedNode);
   }
 
-  vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLSubjectHierarchyNode") );
-  vtkObject* nextObject = NULL;
-  for (hierarchyNodes->InitTraversal(); (nextObject = hierarchyNodes->GetNextItemAsObject()); )
+  vtkMRMLHierarchyNode::UpdateAssociatedToHierarchyMap(scene);
+
+  std::map<vtkMRMLScene*, AssociatedHierarchyNodesType>::iterator sceneIt =
+    vtkMRMLHierarchyNode::SceneAssociatedHierarchyNodes.find(scene);
+  if (sceneIt == vtkMRMLHierarchyNode::SceneAssociatedHierarchyNodes.end())
   {
-    vtkMRMLSubjectHierarchyNode* hierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nextObject);
-    if (hierarchyNode)
+    vtkErrorWithObjectMacro(scene, "GetAssociatedSubjectHierarchyNode: Failed to find an associated hierarchy node type associated with the scene");
+    return NULL;
+  }
+
+  AssociatedHierarchyNodesType sceneAssociations = sceneIt->second;
+  std::map<std::string, vtkMRMLHierarchyNode*>::iterator assocIt =
+    sceneAssociations.find(associatedNode->GetID());
+  if (assocIt != sceneAssociations.end())
+  {
+    vtkMRMLHierarchyNode* associatedHierarchyNode = assocIt->second;
+    if (associatedHierarchyNode->IsA("vtkMRMLSubjectHierarchyNode"))
     {
-      vtkMRMLNode* currentAssociatedNode = hierarchyNode->GetAssociatedDataNode();
-      if ( currentAssociatedNode && !strcmp(currentAssociatedNode->GetID(), associatedNode->GetID()) )
+      return vtkMRMLSubjectHierarchyNode::SafeDownCast(associatedHierarchyNode);
+    }
+    // Associated node is a regular hierarchy node, because either nested association
+    // was used, or the node does not have an associated subject hierarchy node
+    else
+    {
+      std::map<std::string, vtkMRMLHierarchyNode*>::iterator nestedIt =
+        sceneAssociations.find(associatedHierarchyNode->GetID());
+      if (nestedIt != sceneAssociations.end())
       {
-        return hierarchyNode;
+        return vtkMRMLSubjectHierarchyNode::SafeDownCast(nestedIt->second);
       }
     }
   }

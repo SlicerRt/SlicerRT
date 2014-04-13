@@ -72,9 +72,13 @@ public:
   static vtkMRMLSubjectHierarchyNode* GetSubjectHierarchyNodeByUID(vtkMRMLScene* scene, const char* uidName, const char* uidValue);
 
   /// Get associated subject hierarchy node for a MRML node
+  /// Note: This must be used instead of vtkMRMLHierarchyNode::GetAssociatedHierarchyNode, because nested associations have been introduced to avoid conflicts.
+  /// E.g. a data node is associated to both a ModelHierarchy and a SubjectHierarchy node. In that case the first associated hierarchy
+  /// node is returned by the utility function, which is a non-deterministic behavior. To avoid this we use nested associations. In the
+  /// example case the associations are as follows: SubjectHierarchy -> ModelHierarchy -> DataNode
   /// \param associatedNode The node for which we want the associated hierarchy node
   /// \param scene MRML scene pointer (in case the associated node is not in the scene any more). If not specified, then the scene of the argument node is used.
-  /// \return If associatedNode is a subject hierarchy node, then return that. Otherwise the first hierarchy node found in the scene that fulfills the conditions.
+  /// \return If associatedNode is a subject hierarchy node, then return that. Otherwise the first subject hierarchy node to which the given node is associated to.
   static vtkMRMLSubjectHierarchyNode* GetAssociatedSubjectHierarchyNode(vtkMRMLNode *associatedNode, vtkMRMLScene* scene=NULL);
 
   /// Get child subject hierarchy node with specific name
@@ -95,7 +99,7 @@ public:
 public:
   //TODO: Make this an override of vtkMRMLHierarchyNode::GetAssociatedNode. For that it has to be virtual.
   /// Get node associated with this hierarchy node.
-  /// This must be used instead of vtkMRMLHierarchyNode::GetAssociatedNode, because there are nested associations to avoid conflicts.
+  /// Note: This must be used instead of vtkMRMLHierarchyNode::GetAssociatedNode, because nested associations have been introduced to avoid conflicts.
   /// E.g. a data node is associated to both a ModelHierarchy and a SubjectHierarchy node. In that case the first associated hierarchy
   /// node is returned by the utility function, which is a non-deterministic behavior. To avoid this we use nested associations. In the
   /// example case the associations are as follows: SubjectHierarchy -> ModelHierarchy -> DataNode
