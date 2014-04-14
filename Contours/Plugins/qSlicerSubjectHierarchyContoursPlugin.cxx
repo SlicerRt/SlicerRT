@@ -160,8 +160,6 @@ bool qSlicerSubjectHierarchyContoursPlugin::setIcon(vtkMRMLSubjectHierarchyNode*
 
   Q_D(qSlicerSubjectHierarchyContoursPlugin);
 
-  vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
-
   if (this->canOwnSubjectHierarchyNode(node))
   {
     item->setIcon(d->ContourIcon);
@@ -285,5 +283,6 @@ void qSlicerSubjectHierarchyContoursPlugin::onNodeClaimed(vtkObject* node, void*
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyContoursPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
-  //TODO: Implement
+  // Have the contour sets plugin do this (switch to Contours and set node as selected)
+  qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("ContourSets")->editProperties(node);
 }

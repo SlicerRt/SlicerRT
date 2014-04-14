@@ -7,6 +7,8 @@ set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_${MODULE_NAME_UPPER}_PLUGINS_EXPORT")
 set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerDoseVolumeHistogramModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModulePlugins_INCLUDE_DIRS}
   ${Slicer_Base_INCLUDE_DIRS}
   )
@@ -16,6 +18,8 @@ set(${KIT}_SRCS
   qSlicerSubjectHierarchyRtImagePlugin.h
   qSlicerSubjectHierarchyRtDoseVolumePlugin.cxx
   qSlicerSubjectHierarchyRtDoseVolumePlugin.h
+  qSlicerSubjectHierarchyDvhPlugin.cxx
+  qSlicerSubjectHierarchyDvhPlugin.h
   qSlicerSubjectHierarchyRtPlanPlugin.cxx
   qSlicerSubjectHierarchyRtPlanPlugin.h
   qSlicerSubjectHierarchyRtBeamPlugin.cxx
@@ -27,6 +31,7 @@ set(${KIT}_SRCS
 set(${KIT}_MOC_SRCS
   qSlicerSubjectHierarchyRtImagePlugin.h
   qSlicerSubjectHierarchyRtDoseVolumePlugin.h
+  qSlicerSubjectHierarchyDvhPlugin.h
   qSlicerSubjectHierarchyRtPlanPlugin.h
   qSlicerSubjectHierarchyRtBeamPlugin.h
   qSlicerSubjectHierarchyIsodosePlugin.h

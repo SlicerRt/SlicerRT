@@ -158,24 +158,10 @@ void qSlicerSubjectHierarchyRtImagePlugin::setVisibilityIcon(vtkMRMLSubjectHiera
 
   Q_D(qSlicerSubjectHierarchyRtImagePlugin);
 
-  vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
-  if (!associatedNode)
-  {
-    qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::setVisibilityIcon: Invalid associated node for subject hierarchy node " << node->GetName();
-    return;
-  }
-  
   // RT image (show regular eye icon (because it can be shown and hidden)
   if (this->canOwnSubjectHierarchyNode(node))
   {
-    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-      associatedNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
-    if (!modelNode)
-    {
-      qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::setVisibilityIcon: No displayed model found for planar image '" << associatedNode->GetName() << "'!";
-      return;
-    }
-    if (modelNode->GetDisplayVisibility())
+    if (this->getDisplayVisibility(node))
     {
       item->setIcon(d->VisibleIcon);
     }

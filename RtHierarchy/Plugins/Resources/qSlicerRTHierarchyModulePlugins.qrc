@@ -2,6 +2,7 @@
   <qresource>
     <file>Icons/Beam.png</file>
     <file>Icons/DoseVolume.png</file>
+    <file>Icons/DVH.png</file>
     <file>Icons/Isocenter.png</file>
     <file>Icons/IsodoseLines.png</file>
     <file>Icons/Plan.png</file>

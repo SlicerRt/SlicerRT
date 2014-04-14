@@ -21,6 +21,7 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLIsodoseNode.h"
 
 // RTHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyIsodosePlugin.h"
@@ -38,6 +39,9 @@
 #include <vtkMRMLScene.h>
 #include <vtkMRMLModelNode.h>
 
+// MRML Widgets includes
+#include <qMRMLNodeComboBox.h>
+
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
@@ -47,6 +51,7 @@
 #include <QDebug>
 #include <QIcon>
 #include <QStandardItem>
+#include <QAction>
 
 // SlicerQt includes
 #include "qSlicerAbstractModule.h"
@@ -88,7 +93,7 @@ qSlicerSubjectHierarchyIsodosePlugin::qSlicerSubjectHierarchyIsodosePlugin(QObje
  : Superclass(parent)
  , d_ptr( new qSlicerSubjectHierarchyIsodosePluginPrivate(*this) )
 {
-  this->m_Name = QString("RtIsodose");
+  this->m_Name = QString("Isodose");
 }
 
 //-----------------------------------------------------------------------------
@@ -159,5 +164,31 @@ void qSlicerSubjectHierarchyIsodosePlugin::setVisibilityIcon(vtkMRMLSubjectHiera
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyIsodosePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
-  //TODO: Implement
+  // Switch to contours module with box expanded and contour set already chosen in drop down
+  qSlicerAbstractCoreModule* module =
+    qSlicerApplication::application()->moduleManager()->module(QString("Isodose"));
+  if (module)
+  {
+    qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
+    if (moduleWithAction)
+    {
+      moduleWithAction->widgetRepresentation(); // Make sure it's created before showing
+      moduleWithAction->action()->trigger();
+
+      // Get node selector combobox
+      qSlicerAbstractModuleWidget* moduleWidget =
+        dynamic_cast<qSlicerAbstractModuleWidget*>(moduleWithAction->widgetRepresentation());
+      qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_ParameterSet");
+
+      //TODO: Get parameter set node for isodose model node
+      vtkMRMLIsodoseNode* isodoseParameterSetNode = NULL; //TODO:
+
+      // Choose current data node
+      nodeSelector->setCurrentNode(isodoseParameterSetNode);
+    }
+  }
+  else
+  {
+    qCritical() << "Contours module not found. Unable to open it.";
+  }
 }

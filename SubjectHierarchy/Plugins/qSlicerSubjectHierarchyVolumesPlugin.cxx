@@ -703,8 +703,9 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolumesInStudy()
 void qSlicerSubjectHierarchyVolumesPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
   // Switch to contours module with box expanded and contour set already chosen in drop down
-  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(QString("Volumes"));
-  if( module != NULL )
+  qSlicerAbstractCoreModule* module =
+    qSlicerApplication::application()->moduleManager()->module(QString("Volumes"));
+  if (module)
   {
     qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
     if (moduleWithAction)

@@ -51,7 +51,6 @@ IF (WIN32)
 ENDIF()
 
 add_subdirectory(SubjectHierarchy)
-add_subdirectory(RtHierarchy)
 
 add_subdirectory(Contours)
 add_subdirectory(Beams)
@@ -75,6 +74,8 @@ add_subdirectory(PlmDicomRtImport)
 add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmRegister)
 add_subdirectory(PlmXformwarp)
+
+add_subdirectory(RtHierarchy)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # In development

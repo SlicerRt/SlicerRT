@@ -30,6 +30,7 @@
 #include "qSlicerRTHierarchyModuleWidget.h"
 #include "qSlicerSubjectHierarchyRtImagePlugin.h"
 #include "qSlicerSubjectHierarchyRtDoseVolumePlugin.h"
+#include "qSlicerSubjectHierarchyDvhPlugin.h"
 #include "qSlicerSubjectHierarchyRtPlanPlugin.h"
 #include "qSlicerSubjectHierarchyRtBeamPlugin.h"
 #include "qSlicerSubjectHierarchyIsodosePlugin.h"
@@ -116,6 +117,7 @@ void qSlicerRTHierarchyModule::setup()
   // Register subject hierarchy RT plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtImagePlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtDoseVolumePlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyDvhPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtPlanPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtBeamPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyIsodosePlugin());

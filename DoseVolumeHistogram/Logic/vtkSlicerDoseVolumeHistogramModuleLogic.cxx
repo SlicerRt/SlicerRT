@@ -672,7 +672,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
     return;
   }
 
-  vtkMRMLChartViewNode* chartViewNode = GetChartViewNode();
+  vtkMRMLChartViewNode* chartViewNode = this->GetChartViewNode();
   if (chartViewNode == NULL)
   {
     vtkErrorMacro("AddDvhToSelectedChart: Unable to get chart view node!");

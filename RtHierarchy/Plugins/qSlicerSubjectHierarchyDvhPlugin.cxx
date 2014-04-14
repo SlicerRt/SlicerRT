@@ -23,7 +23,7 @@
 #include "SlicerRtCommon.h"
 
 // RTHierarchy Plugins includes
-#include "qSlicerSubjectHierarchyRtDoseVolumePlugin.h"
+#include "qSlicerSubjectHierarchyDvhPlugin.h"
 
 // SubjectHierarchy MRML includes
 #include "vtkSubjectHierarchyConstants.h"
@@ -32,12 +32,14 @@
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyDefaultPlugin.h"
-#include "qSlicerSubjectHierarchyVolumesPlugin.h"
+#include "qSlicerSubjectHierarchyChartsPlugin.h"
+
+// DoseVolumeHistogram includes
+#include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // MRML includes
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
-#include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -51,60 +53,60 @@
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RtHierarchy
-class qSlicerSubjectHierarchyRtDoseVolumePluginPrivate: public QObject
+class qSlicerSubjectHierarchyDvhPluginPrivate: public QObject
 {
-  Q_DECLARE_PUBLIC(qSlicerSubjectHierarchyRtDoseVolumePlugin);
+  Q_DECLARE_PUBLIC(qSlicerSubjectHierarchyDvhPlugin);
 protected:
-  qSlicerSubjectHierarchyRtDoseVolumePlugin* const q_ptr;
+  qSlicerSubjectHierarchyDvhPlugin* const q_ptr;
 public:
-  qSlicerSubjectHierarchyRtDoseVolumePluginPrivate(qSlicerSubjectHierarchyRtDoseVolumePlugin& object);
-  ~qSlicerSubjectHierarchyRtDoseVolumePluginPrivate();
+  qSlicerSubjectHierarchyDvhPluginPrivate(qSlicerSubjectHierarchyDvhPlugin& object);
+  ~qSlicerSubjectHierarchyDvhPluginPrivate();
 public:
-  QIcon DoseVolumeIcon;
+  QIcon DvhIcon;
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerSubjectHierarchyRtDoseVolumePluginPrivate methods
+// qSlicerSubjectHierarchyDvhPluginPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::qSlicerSubjectHierarchyRtDoseVolumePluginPrivate(qSlicerSubjectHierarchyRtDoseVolumePlugin& object)
+qSlicerSubjectHierarchyDvhPluginPrivate::qSlicerSubjectHierarchyDvhPluginPrivate(qSlicerSubjectHierarchyDvhPlugin& object)
  : q_ptr(&object)
 {
-  this->DoseVolumeIcon = QIcon(":Icons/DoseVolume.png");
+  this->DvhIcon = QIcon(":Icons/DVH.png");
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::~qSlicerSubjectHierarchyRtDoseVolumePluginPrivate()
+qSlicerSubjectHierarchyDvhPluginPrivate::~qSlicerSubjectHierarchyDvhPluginPrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRtDoseVolumePlugin::qSlicerSubjectHierarchyRtDoseVolumePlugin(QObject* parent)
+qSlicerSubjectHierarchyDvhPlugin::qSlicerSubjectHierarchyDvhPlugin(QObject* parent)
  : Superclass(parent)
- , d_ptr( new qSlicerSubjectHierarchyRtDoseVolumePluginPrivate(*this) )
+ , d_ptr( new qSlicerSubjectHierarchyDvhPluginPrivate(*this) )
 {
-  this->m_Name = QString("RtDoseVolume");
+  this->m_Name = QString("DVH");
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRtDoseVolumePlugin::~qSlicerSubjectHierarchyRtDoseVolumePlugin()
+qSlicerSubjectHierarchyDvhPlugin::~qSlicerSubjectHierarchyDvhPlugin()
 {
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyDvhPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
     return 0.0;
   }
 
   vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
 
-  // RT Dose
-  if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
-    && associatedNode && SlicerRtCommon::IsDoseVolumeNode(associatedNode) )
+  // DVH
+  if ( associatedNode && associatedNode->IsA("vtkMRMLDoubleArrayNode")
+    && associatedNode->GetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     return 1.0; // Only this plugin can handle this node
   }
@@ -113,25 +115,25 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(vtk
 }
 
 //---------------------------------------------------------------------------
-const QString qSlicerSubjectHierarchyRtDoseVolumePlugin::roleForPlugin()const
+const QString qSlicerSubjectHierarchyDvhPlugin::roleForPlugin()const
 {
-  return "RT dose volume";
+  return "Dose volume histogram";
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyRtDoseVolumePlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+bool qSlicerSubjectHierarchyDvhPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
 {
   if (!node || !item)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::setIcon: NULL node or item given!";
+    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::setIcon: NULL node or item given!";
     return false;
   }
 
-  Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
+  Q_D(qSlicerSubjectHierarchyDvhPlugin);
 
   if (this->canOwnSubjectHierarchyNode(node))
   {
-    item->setIcon(d->DoseVolumeIcon);
+    item->setIcon(d->DvhIcon);
     return true;
   }
 
@@ -140,37 +142,25 @@ bool qSlicerSubjectHierarchyRtDoseVolumePlugin::setIcon(vtkMRMLSubjectHierarchyN
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtDoseVolumePlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+void qSlicerSubjectHierarchyDvhPlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
 {
-  if (!node || !item)
-  {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::setVisibilityIcon: NULL node or item given!";
-    return;
-  }
-
-  if (this->canOwnSubjectHierarchyNode(node))
-  {
-    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->setVisibilityIcon(node, item);
-  }
-  else
-  {
-    // For all other owned nodes the visibility icon is set as default
-    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
-  }
+  // Have the default plugin (which is not registered) take care of this
+  qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtDoseVolumePlugin::setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible)
+void qSlicerSubjectHierarchyDvhPlugin::setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible)
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::setDisplayVisibility: NULL node!";
+    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::setDisplayVisibility: NULL node!";
     return;
   }
 
   if (this->canOwnSubjectHierarchyNode(node))
   {
-    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->setDisplayVisibility(node, visible);
+    // Get parameter set node for DVH, then chart from the parameter set node
+    //TODO:
   }
   // Default
   else
@@ -180,11 +170,11 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::setDisplayVisibility(vtkMRMLSubj
 }
 
 //---------------------------------------------------------------------------
-int qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)
+int qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility: NULL node!";
+    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility: NULL node!";
     return -1;
   }
 
@@ -198,7 +188,7 @@ int qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility(vtkMRMLSubje
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtDoseVolumePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+void qSlicerSubjectHierarchyDvhPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
   return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->editProperties(node);
 }

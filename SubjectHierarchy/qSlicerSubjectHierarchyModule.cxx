@@ -32,6 +32,7 @@
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyDICOMPlugin.h"
+#include "qSlicerSubjectHierarchyChartsPlugin.h"
 #include "qSlicerSubjectHierarchyVolumesPlugin.h"
 #include "qSlicerSubjectHierarchyParseLocalDataPlugin.h"
 
@@ -123,6 +124,7 @@ void qSlicerSubjectHierarchyModule::setup()
 
   // Register Subject Hierarchy core plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyDICOMPlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyChartsPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyVolumesPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyParseLocalDataPlugin());
 }

@@ -536,8 +536,6 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::setIcon(vtkMRMLSubjectHierarchyNo
 
   Q_D(qSlicerSubjectHierarchyContourSetsPlugin);
 
-  vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
-
   // Contour set
   if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
     && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
@@ -714,8 +712,9 @@ void qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable()
 void qSlicerSubjectHierarchyContourSetsPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
   // Switch to contours module with box expanded and contour set already chosen in drop down
-  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(QString("Contours"));
-  if( module != NULL )
+  qSlicerAbstractCoreModule* module =
+    qSlicerApplication::application()->moduleManager()->module(QString("Contours"));
+  if (module)
   {
     qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
     if (moduleWithAction)
