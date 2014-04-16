@@ -54,10 +54,7 @@
 #include <QAction>
 
 // SlicerQt includes
-#include "qSlicerAbstractModule.h"
-#include "qSlicerModuleManager.h"
 #include "qSlicerAbstractModuleWidget.h"
-#include "qSlicerApplication.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RtHierarchy
@@ -164,31 +161,20 @@ void qSlicerSubjectHierarchyIsodosePlugin::setVisibilityIcon(vtkMRMLSubjectHiera
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyIsodosePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
-  // Switch to contours module with box expanded and contour set already chosen in drop down
-  qSlicerAbstractCoreModule* module =
-    qSlicerApplication::application()->moduleManager()->module(QString("Isodose"));
-  if (module)
+  // Switch to isodose module with parameter set node already selected
+  qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Isodose");
+  if (moduleWidget)
   {
-    qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
-    if (moduleWithAction)
+    // Get node selector combobox
+    qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_ParameterSet");
+
+    //TODO: Get parameter set node for isodose model node
+    vtkMRMLIsodoseNode* isodoseParameterSetNode = NULL; //TODO:
+
+    // Choose current data node
+    if (nodeSelector)
     {
-      moduleWithAction->widgetRepresentation(); // Make sure it's created before showing
-      moduleWithAction->action()->trigger();
-
-      // Get node selector combobox
-      qSlicerAbstractModuleWidget* moduleWidget =
-        dynamic_cast<qSlicerAbstractModuleWidget*>(moduleWithAction->widgetRepresentation());
-      qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_ParameterSet");
-
-      //TODO: Get parameter set node for isodose model node
-      vtkMRMLIsodoseNode* isodoseParameterSetNode = NULL; //TODO:
-
-      // Choose current data node
       nodeSelector->setCurrentNode(isodoseParameterSetNode);
     }
-  }
-  else
-  {
-    qCritical() << "Contours module not found. Unable to open it.";
   }
 }

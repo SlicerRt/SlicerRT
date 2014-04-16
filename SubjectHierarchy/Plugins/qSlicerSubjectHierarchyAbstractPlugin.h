@@ -35,6 +35,7 @@ class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 class QStandardItem;
 class QAction;
+class qSlicerAbstractModuleWidget;
 
 /// \ingroup Slicer_QtModules_SubjectHierarchy_Plugins
 /// \brief Abstract plugin for handling Subject Hierarchy nodes
@@ -162,6 +163,10 @@ public:
 
   /// Emit owner plugin changed signal
   void emitOwnerPluginChanged(vtkObject* node, void* callData);
+
+  /// Switch to module with given name
+  /// \return Widget representation of the module if found, NULL otherwise
+  static qSlicerAbstractModuleWidget* switchToModule(QString moduleName);
 
 public:
   /// Get the name of the plugin

@@ -301,7 +301,7 @@
         <item row="1" column="0">
          <widget class="QLabel" name="label_ContourSet">
           <property name="text">
-           <string>Contour set:</string>
+           <string>Contour (set):</string>
           </property>
          </widget>
         </item>

@@ -30,6 +30,12 @@
 #include <QStandardItem>
 #include <QAction>
 
+// SlicerQt includes
+#include "qSlicerApplication.h"
+#include "qSlicerAbstractModule.h"
+#include "qSlicerModuleManager.h"
+#include "qSlicerAbstractModuleWidget.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
 
@@ -271,4 +277,24 @@ bool qSlicerSubjectHierarchyAbstractPlugin::isThisPluginOwnerOfNode(vtkMRMLSubje
   }
 
   return !strcmp(node->GetOwnerPluginName(), this->m_Name.toLatin1().constData());
+}
+
+//--------------------------------------------------------------------------
+qSlicerAbstractModuleWidget* qSlicerSubjectHierarchyAbstractPlugin::switchToModule(QString moduleName)
+{
+  // Find module with name
+  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(moduleName);
+  qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
+  if (!moduleWithAction)
+  {
+    qCritical() << "qSlicerSubjectHierarchyAbstractPlugin::switchToModule: Module with name '" << moduleName << "' not found!";
+    return NULL;
+  }
+
+  // Switch to module
+  moduleWithAction->widgetRepresentation(); // Make sure it's created before showing
+  moduleWithAction->action()->trigger();
+
+  // Get node selector combobox
+  return dynamic_cast<qSlicerAbstractModuleWidget*>(moduleWithAction->widgetRepresentation());
 }

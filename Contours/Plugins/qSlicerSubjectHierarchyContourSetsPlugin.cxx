@@ -41,9 +41,6 @@
 #include <QStandardItem>
 
 // SlicerQt includes
-#include "qSlicerApplication.h"
-#include "qSlicerAbstractModule.h"
-#include "qSlicerModuleManager.h"
 #include "qSlicerAbstractModuleWidget.h"
 
 // MRML includes
@@ -667,21 +664,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::convertRepresentationAction()
   }
 
   // Switch to contours module with box expanded and contour set already chosen in drop down
-  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(QString("Contours"));
-  if( module != NULL )
-  {
-    qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
-    if (moduleWithAction)
-    {
-      moduleWithAction->widgetRepresentation(); // Make sure it's created before showing
-      moduleWithAction->action()->trigger();
-    }
-  }
-  else
-  {
-    qCritical() << "Contours module not found. Unable to open it.";
-  }
-
+  qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Contours");
   emit createContourFromRepresentationClicked( QString(currentNode->GetID()) );
 }
 
@@ -704,35 +687,34 @@ void qSlicerSubjectHierarchyContourSetsPlugin::onEditColorTable()
   }
 
   // Switch to Colors module and set color table as current color node
-  // TODO: Uncomment when related topic is integrated into Slicer core
-  //qSlicerApplication::application()->editNode();
+  qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Colors");
+  if (moduleWidget)
+  {
+    // Get node selector combobox
+    qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("ColorTableComboBox");
+
+    // Choose current data node
+    if (nodeSelector)
+    {
+      nodeSelector->setCurrentNode(colorNode);
+    }
+  }
 }
 
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyContourSetsPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
   // Switch to contours module with box expanded and contour set already chosen in drop down
-  qSlicerAbstractCoreModule* module =
-    qSlicerApplication::application()->moduleManager()->module(QString("Contours"));
-  if (module)
+  qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Contours");
+  if (moduleWidget)
   {
-    qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
-    if (moduleWithAction)
+    // Get node selector combobox
+    qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_Contour");
+
+    // Choose current data node
+    if (nodeSelector)
     {
-      moduleWithAction->widgetRepresentation(); // Make sure it's created before showing
-      moduleWithAction->action()->trigger();
-
-      // Get node selector combobox
-      qSlicerAbstractModuleWidget* moduleWidget =
-        dynamic_cast<qSlicerAbstractModuleWidget*>(moduleWithAction->widgetRepresentation());
-      qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_Contour");
-
-      // Choose current data node
       nodeSelector->setCurrentNode(node);
     }
-  }
-  else
-  {
-    qCritical() << "Contours module not found. Unable to open it.";
   }
 }

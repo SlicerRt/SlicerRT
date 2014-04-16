@@ -86,26 +86,13 @@ QString qSlicerDoseVolumeHistogramModule::acknowledgementText()const
 //-----------------------------------------------------------------------------
 QIcon qSlicerDoseVolumeHistogramModule::icon()const
 {
-  return this->Superclass::icon();
-  //return QIcon(":/Icons/DoseVolumeHistogram.png");
+  return QIcon(":/Icons/DoseVolumeHistogram.png");
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModule::setup()
 {
   this->Superclass::setup();
-
-  //qSlicerAbstractCoreModule* modelToLabelmapModule =
-  //  qSlicerCoreApplication::application()->moduleManager()->module("ModelToLabelMap");
-  //if (modelToLabelmapModule)
-  //  {
-  //  vtkSlicerModuleLogic* modelToLabelmapModuleLogic = 
-  //    vtkSlicerModuleLogic::SafeDownCast(modelToLabelmapModule->logic());
-  //  }
-  //else
-  //  {
-  //  qWarning() << "ModelToLabelMap module is not found";
-  //  }
 }
 
 //-----------------------------------------------------------------------------

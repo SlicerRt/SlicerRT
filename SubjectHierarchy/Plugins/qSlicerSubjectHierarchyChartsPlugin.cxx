@@ -180,7 +180,6 @@ void qSlicerSubjectHierarchyChartsPlugin::setVisibilityIcon(vtkMRMLSubjectHierar
 
   Q_D(qSlicerSubjectHierarchyChartsPlugin);
 
-  // Chart
   if (this->canOwnSubjectHierarchyNode(node))
   {
     if (this->getDisplayVisibility(node))

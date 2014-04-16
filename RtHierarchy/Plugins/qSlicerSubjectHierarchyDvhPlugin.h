@@ -30,6 +30,8 @@
 class qSlicerSubjectHierarchyDvhPluginPrivate;
 class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
+class vtkMRMLDoseVolumeHistogramNode;
+class vtkMRMLDoubleArrayNode;
 
 // Due to some reason the Python wrapping of this class fails, therefore
 // put everything between BTX/ETX to exclude from wrapping.
@@ -76,6 +78,10 @@ public:
   /// Get display visibility of a owned subject hierarchy node
   /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
   virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
+
+protected:
+  /// Utility function for getting DVH parameter set node for DVH array node
+  vtkMRMLDoseVolumeHistogramNode* GetDvhParameterSetNodeForDvhArray(vtkMRMLDoubleArrayNode* dvhArrayNode);
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyDvhPluginPrivate> d_ptr;

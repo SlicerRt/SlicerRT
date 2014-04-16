@@ -391,7 +391,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   vtkMRMLScalarVolumeNode* doseVolumeNode = this->DoseVolumeHistogramNode->GetDoseVolumeNode();
   if (!doseVolumeNode)
   {
-    vtkErrorMacro("ComputeDch: Invalid dose volume!");
+    vtkErrorMacro("ComputeDvh: Invalid dose volume!");
     return;
   }
 
@@ -446,7 +446,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   std::string dvhArrayNodeName = structureName + SlicerRtCommon::DVH_ARRAY_NODE_NAME_POSTFIX;
   dvhArrayNodeName = this->GetMRMLScene()->GenerateUniqueName(dvhArrayNodeName);
   arrayNode->SetName(dvhArrayNodeName.c_str());
-  //arrayNode->HideFromEditorsOff();
 
   // Set array node references
   arrayNode->SetNodeReferenceID(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str(), doseVolumeNode->GetID());
@@ -639,6 +638,11 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   // Add DVH array node to the MRML scene
   this->GetMRMLScene()->AddNode(arrayNode);
+
+  // Add DVH to subject hierarchy
+  vtkMRMLSubjectHierarchyNode* dvhSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+    this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+    dvhArrayNodeName.c_str(), arrayNode);
 
   // Add connection attribute to input contour node
   vtkMRMLSubjectHierarchyNode* structureSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(structureContourNode);

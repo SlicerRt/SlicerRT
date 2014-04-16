@@ -40,6 +40,7 @@
 // MRML includes
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLDoubleArrayNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -50,6 +51,12 @@
 #include <QDebug>
 #include <QIcon>
 #include <QStandardItem>
+
+// SlicerQt includes
+#include "qSlicerAbstractModuleWidget.h"
+
+// MRML widgets includes
+#include "qMRMLNodeComboBox.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RtHierarchy
@@ -63,6 +70,9 @@ public:
   ~qSlicerSubjectHierarchyDvhPluginPrivate();
 public:
   QIcon DvhIcon;
+
+  QIcon VisibleIcon;
+  QIcon HiddenIcon;
 };
 
 //-----------------------------------------------------------------------------
@@ -73,6 +83,9 @@ qSlicerSubjectHierarchyDvhPluginPrivate::qSlicerSubjectHierarchyDvhPluginPrivate
  : q_ptr(&object)
 {
   this->DvhIcon = QIcon(":Icons/DVH.png");
+
+  this->VisibleIcon = QIcon(":Icons/VisibleOn.png");
+  this->HiddenIcon = QIcon(":Icons/VisibleOff.png");
 }
 
 //-----------------------------------------------------------------------------
@@ -144,8 +157,30 @@ bool qSlicerSubjectHierarchyDvhPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyDvhPlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
 {
-  // Have the default plugin (which is not registered) take care of this
-  qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
+  if (!node || !item)
+  {
+    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::setVisibilityIcon: NULL node or item given!";
+    return;
+  }
+
+  Q_D(qSlicerSubjectHierarchyDvhPlugin);
+
+  if (this->canOwnSubjectHierarchyNode(node))
+  {
+    if (this->getDisplayVisibility(node))
+    {
+      item->setIcon(d->VisibleIcon);
+    }
+    else
+    {
+      item->setIcon(d->HiddenIcon);
+    }
+  }
+  else
+  {
+    // For all other owned nodes the visibility icon is set as default
+    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -190,5 +225,27 @@ int qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility(vtkMRMLSubjectHierarc
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyDvhPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
-  return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->editProperties(node);
+  qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("DoseVolumeHistogram");
+  if (moduleWidget)
+  {
+    // Get node selector combobox
+    qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_ParameterSet");
+
+    // Get DVH parameter set node containing the current DVH array
+    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(
+      vtkMRMLDoubleArrayNode::SafeDownCast(node->GetAssociatedDataNode()) );
+
+    // Choose current data node
+    if (nodeSelector)
+    {
+      nodeSelector->setCurrentNode(parameterSetNode);
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDvhPlugin::GetDvhParameterSetNodeForDvhArray(vtkMRMLDoubleArrayNode* dvhArrayNode)
+{
+  //TODO:
+  return NULL;
 }

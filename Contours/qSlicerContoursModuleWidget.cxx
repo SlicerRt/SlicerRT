@@ -21,7 +21,6 @@
 
 // SlicerQt includes
 #include "qSlicerContoursModuleWidget.h"
-#include "qSlicerAbstractModule.h"
 #include "ui_qSlicerContoursModule.h"
 #include <qSlicerApplication.h>
 
