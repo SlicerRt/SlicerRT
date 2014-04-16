@@ -423,17 +423,11 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
       if (roiPolyData->GetNumberOfPoints() == 1)
       {
         // Create subject hierarchy entry for the ROI
-        vtkSmartPointer<vtkMRMLSubjectHierarchyNode> subjectHierarchyRoiNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-        std::string shNodeName;
-        shNodeName = std::string(roiLabel) + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-        shNodeName = this->GetMRMLScene()->GenerateUniqueName(shNodeName);
-        subjectHierarchyRoiNode->SetName(shNodeName.c_str());
-        subjectHierarchyRoiNode->SetAssociatedNodeID(addedDisplayableNode->GetID());
-        subjectHierarchyRoiNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
+        vtkMRMLSubjectHierarchyNode* subjectHierarchyRoiNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+          this->GetMRMLScene(), contourHierarchySeriesNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+          roiLabel, addedDisplayableNode);
         subjectHierarchyRoiNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(),
           roiReferencedSeriesUid);
-        subjectHierarchyRoiNode->SetParentNodeID( contourHierarchySeriesNode->GetID() );
-        this->GetMRMLScene()->AddNode(subjectHierarchyRoiNode);
       }
       else
       {
@@ -452,19 +446,13 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
         contourNode->SetOrderedContourPlanes(orderedPlanes);
 
         // Put the contour node in the hierarchy
-        vtkSmartPointer<vtkMRMLSubjectHierarchyNode> contourSubjectHierarchyNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-        std::string shContourNodeName(contourNodeName);
-        shContourNodeName.append(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);
-        shContourNodeName = this->GetMRMLScene()->GenerateUniqueName(shContourNodeName);
-        contourSubjectHierarchyNode->SetName(shContourNodeName.c_str());
-        contourSubjectHierarchyNode->SetParentNodeID( contourHierarchySeriesNode->GetID() );
-        contourSubjectHierarchyNode->SetAssociatedNodeID( contourNode->GetID() );
-        contourSubjectHierarchyNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
+        vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+          this->GetMRMLScene(), contourHierarchySeriesNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+          contourNodeName.c_str(), contourNode);
         contourSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(),
           roiReferencedSeriesUid);
         contourSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(),
           roiLabel);
-        this->GetMRMLScene()->AddNode(contourSubjectHierarchyNode);
 
         displayNodeCollection->AddItem( vtkMRMLModelNode::SafeDownCast(addedDisplayableNode)->GetModelDisplayNode() );
 
@@ -836,20 +824,15 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       }
 
       // Create subject hierarchy entry for the isocenter fiducial
-      vtkSmartPointer<vtkMRMLSubjectHierarchyNode> subjectHierarchyFiducialNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-      std::string shFiducialNodeName(rtReader->GetBeamName(dicomBeamNumber));
-      shFiducialNodeName.append(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);
-      subjectHierarchyFiducialNode->SetName(shFiducialNodeName.c_str());
-      subjectHierarchyFiducialNode->SetAssociatedNodeID(addedMarkupsNode->GetID());
-      subjectHierarchyFiducialNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
+      vtkMRMLSubjectHierarchyNode* subjectHierarchyFiducialNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+        this->GetMRMLScene(), isocenterSeriesHierarchyRootNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+        rtReader->GetBeamName(dicomBeamNumber), addedMarkupsNode);
 
       // Set beam related attributes
       std::stringstream beamNumberStream;
       beamNumberStream << dicomBeamNumber;
       subjectHierarchyFiducialNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str(),
         beamNumberStream.str().c_str());
-      subjectHierarchyFiducialNode->SetParentNodeID(isocenterSeriesHierarchyRootNode->GetID());
-      this->GetMRMLScene()->AddNode(subjectHierarchyFiducialNode);
 
       // Add attributes containing beam information to the isocenter fiducial node
       std::stringstream sourceAxisDistanceStream;
@@ -928,20 +911,9 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       beamModelHierarchyNode->SetIndexInParent(beamIndex);
 
       // Put new beam model in the subject hierarchy
-      vtkSmartPointer<vtkMRMLSubjectHierarchyNode> beamModelSubjectHierarchyNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-      std::string shBeamNodeName = beamModelName + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-      beamModelSubjectHierarchyNode->SetName(shBeamNodeName.c_str());
-      beamModelSubjectHierarchyNode->SetAssociatedNodeID(beamModelHierarchyNode->GetID());
-      if (this->BeamModelsInSeparateBranch)
-      {
-        beamModelSubjectHierarchyNode->SetParentNodeID(beamModelSubjectHierarchyRootNode->GetID());
-      }
-      else
-      {
-        beamModelSubjectHierarchyNode->SetParentNodeID(subjectHierarchyFiducialNode->GetID());
-      }
-      beamModelSubjectHierarchyNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
-      this->GetMRMLScene()->AddNode(beamModelSubjectHierarchyNode);
+      vtkMRMLSubjectHierarchyNode* beamModelSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+        this->GetMRMLScene(), (this->BeamModelsInSeparateBranch ? beamModelSubjectHierarchyRootNode : subjectHierarchyFiducialNode),
+        vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES, beamModelName.c_str(), beamModelHierarchyNode);
       beamModelSubjectHierarchyNode->SetIndexInParent(beamIndex);
 
       // Compute and set geometry of possible RT image that references the loaded beam.
