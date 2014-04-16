@@ -31,7 +31,6 @@ class qSlicerSubjectHierarchyDvhPluginPrivate;
 class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 class vtkMRMLDoseVolumeHistogramNode;
-class vtkMRMLDoubleArrayNode;
 
 // Due to some reason the Python wrapping of this class fails, therefore
 // put everything between BTX/ETX to exclude from wrapping.
@@ -81,7 +80,7 @@ public:
 
 protected:
   /// Utility function for getting DVH parameter set node for DVH array node
-  vtkMRMLDoseVolumeHistogramNode* GetDvhParameterSetNodeForDvhArray(vtkMRMLDoubleArrayNode* dvhArrayNode);
+  vtkMRMLDoseVolumeHistogramNode* GetDvhParameterSetNodeForDvhArray(vtkMRMLNode* dvhArrayNode);
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyDvhPluginPrivate> d_ptr;

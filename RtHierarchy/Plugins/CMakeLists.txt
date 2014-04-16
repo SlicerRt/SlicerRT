@@ -51,6 +51,8 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerSubjectHierarchyModuleMRML
   qSlicerSubjectHierarchyModulePlugins
+  vtkSlicerDoseVolumeHistogramModuleLogic
+  vtkSlicerIsodoseModuleLogic
   )
 
 #-----------------------------------------------------------------------------

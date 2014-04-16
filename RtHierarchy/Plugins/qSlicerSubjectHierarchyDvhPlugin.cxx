@@ -41,6 +41,7 @@
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLDoubleArrayNode.h>
+#include <vtkMRMLChartNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -191,11 +192,43 @@ void qSlicerSubjectHierarchyDvhPlugin::setDisplayVisibility(vtkMRMLSubjectHierar
     qCritical() << "qSlicerSubjectHierarchyDvhPlugin::setDisplayVisibility: NULL node!";
     return;
   }
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  if (!scene)
+  {
+    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::setDisplayVisibility: Invalid MRML scene!";
+    return;
+  }
 
   if (this->canOwnSubjectHierarchyNode(node))
   {
     // Get parameter set node for DVH, then chart from the parameter set node
-    //TODO:
+    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(node->GetAssociatedDataNode());
+    vtkMRMLChartNode* chartNode = parameterSetNode->GetChartNode();
+    if (!chartNode)
+    {
+      // Create chart node if not specified
+      chartNode = vtkMRMLChartNode::SafeDownCast( scene->CreateNodeByClass("vtkMRMLChartNode") );
+      scene->AddNode(chartNode);
+      parameterSetNode->SetAndObserveChartNode(chartNode);
+    }
+
+    // Add chart to subject hierarchy if not added already
+    vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(chartNode);
+    if (!chartSubjectHierarchyNode)
+    {
+      vtkMRMLSubjectHierarchyNode* studyNode =
+        node->vtkMRMLSubjectHierarchyNode::GetAncestorAtLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+      chartSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+        scene, studyNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+        chartNode->GetName(), chartNode);
+      chartSubjectHierarchyNode->Delete(); // Return ownership to the scene only
+    }
+
+    // Show/hide the chart itself
+    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->setDisplayVisibility(chartSubjectHierarchyNode, visible);
+
+    // Show/hide the DVH plot
+    //qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(moduleName); //TODO:
   }
   // Default
   else
@@ -212,10 +245,39 @@ int qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility(vtkMRMLSubjectHierarc
     qCritical() << "qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility: NULL node!";
     return -1;
   }
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  if (!scene)
+  {
+    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility: Invalid MRML scene!";
+    return false;
+  }
 
   if (this->canOwnSubjectHierarchyNode(node))
   {
-    return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->getDisplayVisibility(node);
+    // Get parameter set node for DVH, then chart from the parameter set node
+    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(node->GetAssociatedDataNode());
+    vtkMRMLChartNode* chartNode = parameterSetNode->GetChartNode();
+    if (!chartNode)
+    {
+      // Create chart node if not specified
+      chartNode = vtkMRMLChartNode::SafeDownCast( scene->CreateNodeByClass("vtkMRMLChartNode") );
+      scene->AddNode(chartNode);
+      parameterSetNode->SetAndObserveChartNode(chartNode);
+    }
+
+    // Add chart to subject hierarchy if not added already
+    vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(chartNode);
+    if (!chartSubjectHierarchyNode)
+    {
+      vtkMRMLSubjectHierarchyNode* studyNode =
+        node->vtkMRMLSubjectHierarchyNode::GetAncestorAtLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+      chartSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+        scene, studyNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+        chartNode->GetName(), chartNode);
+      chartSubjectHierarchyNode->Delete(); // Return ownership to the scene only
+    }
+
+    return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->getDisplayVisibility(chartSubjectHierarchyNode);
   }
 
   // Default
@@ -232,8 +294,7 @@ void qSlicerSubjectHierarchyDvhPlugin::editProperties(vtkMRMLSubjectHierarchyNod
     qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_ParameterSet");
 
     // Get DVH parameter set node containing the current DVH array
-    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(
-      vtkMRMLDoubleArrayNode::SafeDownCast(node->GetAssociatedDataNode()) );
+    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(node->GetAssociatedDataNode());
 
     // Choose current data node
     if (nodeSelector)
@@ -244,8 +305,31 @@ void qSlicerSubjectHierarchyDvhPlugin::editProperties(vtkMRMLSubjectHierarchyNod
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDvhPlugin::GetDvhParameterSetNodeForDvhArray(vtkMRMLDoubleArrayNode* dvhArrayNode)
+vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDvhPlugin::GetDvhParameterSetNodeForDvhArray(vtkMRMLNode* dvhArrayNode)
 {
-  //TODO:
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  if (!scene)
+  {
+    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::GetDvhParameterSetNodeForDvhArray: Invalid MRML scene!";
+    return false;
+  }
+
+  vtkSmartPointer<vtkCollection> dvhNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLDoseVolumeHistogramNode") );
+  vtkObject* nextObject = NULL;
+  for (dvhNodes->InitTraversal(); (nextObject = dvhNodes->GetNextItemAsObject()); )
+  {
+    vtkMRMLDoseVolumeHistogramNode* dvhNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(nextObject);
+    if (dvhNode)
+    {
+      std::vector<vtkMRMLNode*> dvhArrayNodes;
+      dvhNode->GetDvhDoubleArrayNodes(dvhArrayNodes);
+      std::vector<vtkMRMLNode*>::iterator dvhArrayIt = std::find(dvhArrayNodes.begin(), dvhArrayNodes.end(), dvhArrayNode);
+      if (dvhArrayIt != dvhArrayNodes.end())
+      {
+        return dvhNode;
+      }
+    }
+  }
+
   return NULL;
 }

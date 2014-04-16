@@ -206,35 +206,39 @@ void qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility(vtkMRMLSubjectHie
     qCritical() << "qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility: NULL node!";
     return;
   }
-
-  vtkMRMLChartViewNode* chartViewNode = this->getChartViewNode();
-  if (chartViewNode == NULL)
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  if (!scene)
   {
-    qCritical() << "qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility: Unable to get chart view node!";
+    qCritical() << "qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility: Invalid MRML scene!";
     return;
   }
+
+  // Get layout node
+  vtkSmartPointer<vtkCollection> layoutNodes =
+    vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLLayoutNode") );
+  layoutNodes->InitTraversal();
+  vtkObject* layoutNodeVtkObject = layoutNodes->GetNextItemAsObject();
+  vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(layoutNodeVtkObject);
+  if (!layoutNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchyChartsPlugin::getChartViewNode: Unable to get layout node!";
+    return;
+  }
+
+  vtkMRMLChartViewNode* chartViewNode = this->getChartViewNode();
 
   vtkMRMLChartNode* associatedChartNode = vtkMRMLChartNode::SafeDownCast(node->GetAssociatedDataNode());
   if (associatedChartNode && visible)
   {
     // Switch to four-up quantitative layout
-    vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
-    if (!scene)
-    {
-      qCritical() << "qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility: Invalid MRML scene!";
-      return;
-    }
-    vtkSmartPointer<vtkCollection> layoutNodes =
-      vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLLayoutNode") );
-    layoutNodes->InitTraversal();
-    vtkObject* layoutNodeVtkObject = layoutNodes->GetNextItemAsObject();
-    vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(layoutNodeVtkObject);
-    if (!layoutNode)
-    {
-      qCritical() << "qSlicerSubjectHierarchyChartsPlugin::getChartViewNode: Unable to get layout node!";
-      return;
-    }
     layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView );
+
+    // Make sure we have a valid chart view node (if we want to show the chart, but there was
+    // no chart view, then one was just created when we switched to quantitative layout)
+    if (!chartViewNode)
+    {
+      chartViewNode = this->getChartViewNode();
+    }
 
     // Hide currently shown chart and trigger icon update
     if (chartViewNode->GetChartNodeID())
@@ -252,7 +256,7 @@ void qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility(vtkMRMLSubjectHie
     // Select chart to show
     chartViewNode->SetChartNodeID(associatedChartNode->GetID());
   }
-  else
+  else if (chartViewNode)
   {
     // Hide chart
     chartViewNode->SetChartNodeID(NULL);
@@ -272,10 +276,10 @@ int qSlicerSubjectHierarchyChartsPlugin::getDisplayVisibility(vtkMRMLSubjectHier
   }
 
   vtkMRMLChartViewNode* chartViewNode = this->getChartViewNode();
-  if (chartViewNode == NULL)
+  if (!chartViewNode)
   {
-    qCritical() << "qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility: Unable to get chart view node!";
-    return -1;
+    // No quantitative view has been set yet
+    return 0;
   }
 
   // Return hidden if current layout is not one of the quantitative ones

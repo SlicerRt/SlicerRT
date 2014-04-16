@@ -316,8 +316,12 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolume(vtkMRMLScalarVolumeNode* n
     qCritical() << "qSlicerSubjectHierarchyVolumesPlugin::showVolume: NULL node!";
     return;
   }
-
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  if (!scene)
+  {
+    qCritical() << "qSlicerSubjectHierarchyVolumesPlugin::showVolume: Invalid MRML scene!";
+    return;
+  }
   vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
   if (!selectionNode)
   {
