@@ -105,8 +105,7 @@ QStringList qSlicerSubjectHierarchyModule::contributors() const
 //-----------------------------------------------------------------------------
 QIcon qSlicerSubjectHierarchyModule::icon()const
 {
-  return this->Superclass::icon();
-  //return QIcon(":/Icons/SubjectHierarchy.png");
+  return QIcon(":/Icons/SubjectHierarchy.png");
 }
 
 //-----------------------------------------------------------------------------
