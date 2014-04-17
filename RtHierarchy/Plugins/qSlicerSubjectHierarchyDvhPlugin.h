@@ -79,8 +79,11 @@ public:
   virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
 
 protected:
-  /// Utility function for getting DVH parameter set node for DVH array node
+  /// Utility function for getting DVH parameter set node for DVH double array node
   vtkMRMLDoseVolumeHistogramNode* GetDvhParameterSetNodeForDvhArray(vtkMRMLNode* dvhArrayNode);
+
+  /// Utility function for getting chart subject hierarchy node for DVH array subject hierarchy node
+  vtkMRMLSubjectHierarchyNode* GetChartForDvhArray(vtkMRMLSubjectHierarchyNode* dvhArraySubjectHierarchyNode);
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyDvhPluginPrivate> d_ptr;

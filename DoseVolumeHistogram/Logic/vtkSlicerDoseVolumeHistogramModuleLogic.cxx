@@ -719,6 +719,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
   chartNode->SetProperty("default", "xAxisPad", "0");
   chartNode->SetProperty("default", "yAxisPad", "0");
 
+  // Get DVH array node
   vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID(dvhArrayNodeId) );
   if (dvhArrayNode == NULL)
   {
@@ -769,6 +770,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
   std::string structurePlotName = structurePlotNameStream.str();
   dvhArrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), structurePlotName.c_str());
 
+  // Add chart to chart view
+  chartViewNode->SetChartNodeID( chartNode->GetID() );
+
   // Add array to chart
   chartNode->AddArray( structurePlotName.c_str(), dvhArrayNodeId );
 
@@ -777,9 +781,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
   chartNode->SetProperty(structurePlotName.c_str(), "color", color);
   const char* lineStyle = dvhArrayNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str());
   chartNode->SetProperty(structurePlotName.c_str(), "linePattern", lineStyle);
-
-  // Add chart to chart view
-  chartViewNode->SetChartNodeID( chartNode->GetID() );
 }
 
 //---------------------------------------------------------------------------

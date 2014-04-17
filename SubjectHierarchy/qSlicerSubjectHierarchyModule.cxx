@@ -191,6 +191,13 @@ void qSlicerSubjectHierarchyModule::onNodeAboutToBeRemoved(vtkObject* sceneObjec
   {
     return;
   }
+
+  // Do nothing if scene is closing
+  if (scene->IsClosing())
+  {
+    return;
+  }
+
   vtkMRMLNode* dataNode = vtkMRMLNode::SafeDownCast(nodeObject);
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nodeObject);
   if (subjectHierarchyNode)

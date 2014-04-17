@@ -375,6 +375,9 @@
             <string>vtkMRMLChartNode</string>
            </stringlist>
           </property>
+          <property name="baseName">
+           <string>Chart_DVH</string>
+          </property>
          </widget>
         </item>
         <item>
