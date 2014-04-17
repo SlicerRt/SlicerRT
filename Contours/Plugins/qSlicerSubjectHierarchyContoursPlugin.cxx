@@ -46,6 +46,10 @@
 // MRML includes
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLColorTableNode.h>
+
+// MRML widgets includes
+#include "qMRMLNodeComboBox.h"
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -69,6 +73,7 @@ public:
 
   QAction* CreateContourAction;
   QAction* ConvertContourToRepresentationAction;
+  QAction* ChangeColorAction;
 };
 
 //-----------------------------------------------------------------------------
@@ -82,6 +87,7 @@ qSlicerSubjectHierarchyContoursPluginPrivate::qSlicerSubjectHierarchyContoursPlu
 
   this->CreateContourAction = NULL;
   this->ConvertContourToRepresentationAction = NULL;
+  this->ChangeColorAction = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -95,6 +101,9 @@ void qSlicerSubjectHierarchyContoursPluginPrivate::init()
   this->ConvertContourToRepresentationAction = new QAction("Convert contour to its active representation",q);
   QObject::connect(this->ConvertContourToRepresentationAction, SIGNAL(triggered()), q, SLOT(convertCurrentNodeContourToRepresentation()));
   this->ConvertContourToRepresentationAction->setEnabled(false); //TODO Remove when the feature is added
+
+  this->ChangeColorAction = new QAction("Change color...",q);
+  QObject::connect(this->ChangeColorAction, SIGNAL(triggered()), q, SLOT(changeColorForCurrentNode()));
 
   QObject::connect(q, SIGNAL(ownerPluginChanged(vtkObject*,void*)), q, SLOT(onNodeClaimed(vtkObject*,void*)));
 }
@@ -180,7 +189,7 @@ QList<QAction*> qSlicerSubjectHierarchyContoursPlugin::nodeContextMenuActions()c
   Q_D(const qSlicerSubjectHierarchyContoursPlugin);
 
   QList<QAction*> actions;
-  actions << d->CreateContourAction << d->ConvertContourToRepresentationAction;
+  actions << d->CreateContourAction << d->ConvertContourToRepresentationAction << d->ChangeColorAction;
   return actions;
 }
 
@@ -191,6 +200,7 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
 
   d->CreateContourAction->setVisible(false);
   d->ConvertContourToRepresentationAction->setVisible(false);
+  d->ChangeColorAction->setVisible(false);
 
   if (!node)
   {
@@ -204,6 +214,7 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
   if ( this->canOwnSubjectHierarchyNode(node) && this->isThisPluginOwnerOfNode(node) )
   {
     d->ConvertContourToRepresentationAction->setVisible(true);
+    d->ChangeColorAction->setVisible(true);
   }
 
   // Contour set
@@ -282,4 +293,38 @@ void qSlicerSubjectHierarchyContoursPlugin::editProperties(vtkMRMLSubjectHierarc
 {
   // Have the contour sets plugin do this (switch to Contours and set node as selected)
   qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("ContourSets")->editProperties(node);
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContoursPlugin::changeColorForCurrentNode()
+{
+  // Get color node for current contour
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  if (!this->canOwnSubjectHierarchyNode(currentNode))
+  {
+    qCritical() << "qSlicerSubjectHierarchyContoursPlugin::changeColorForCurrentNode: Current node is not a contour node!";
+    return;
+  }
+  vtkMRMLColorTableNode* colorNode = vtkMRMLColorTableNode::SafeDownCast(
+    currentNode->GetParentNode()->GetNodeReference(
+    SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE.c_str()) );
+  if (!colorNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchyContoursPlugin::changeColorForCurrentNode: No color table found for contour " << currentNode->GetName() << " !";
+    return;
+  }
+
+  // Switch to Colors module and set color table as current color node
+  qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Colors");
+  if (moduleWidget)
+  {
+    // Get node selector combobox
+    qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("ColorTableComboBox");
+
+    // Choose current data node
+    if (nodeSelector)
+    {
+      nodeSelector->setCurrentNode(colorNode);
+    }
+  }
 }

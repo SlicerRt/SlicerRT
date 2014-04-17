@@ -36,6 +36,7 @@
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLDisplayNode.h>
+#include <vtkMRMLStorageNode.h>
 #include <vtkMRMLDisplayableNode.h>
 
 // VTK includes
@@ -205,6 +206,21 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
       clonedDisplayNode->Delete(); // Return the ownership to the scene only
     }
 
+    // Clone storage node
+    vtkMRMLStorableNode* storableDataNode = vtkMRMLStorableNode::SafeDownCast(associatedDataNode);
+    if (storableDataNode && storableDataNode->GetStorageNode())
+    {
+      vtkMRMLStorageNode* clonedStorageNode = vtkMRMLStorageNode::SafeDownCast(
+        scene->CreateNodeByClass(storableDataNode->GetStorageNode()->GetClassName()) );
+      clonedStorageNode->Copy(storableDataNode->GetStorageNode());
+      std::string clonedStorageNodeFileName = std::string(storableDataNode->GetStorageNode()->GetFileName()) + CLONE_NODE_NAME_POSTFIX;
+      clonedStorageNode->SetFileName(clonedStorageNodeFileName.c_str());
+      vtkMRMLStorableNode* clonedStorableDataNode = vtkMRMLStorableNode::SafeDownCast(clonedDataNode);
+      clonedStorableDataNode->SetAndObserveStorageNodeID(clonedStorageNode->GetID());
+      scene->AddNode(clonedStorableDataNode);
+      clonedStorableDataNode->Delete(); // Return the ownership to the scene only
+    }
+
     // Get hierarchy nodes
     vtkMRMLHierarchyNode* genericHierarchyNode =
       vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, associatedDataNode->GetID());
@@ -223,9 +239,14 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
     }
 
     // Put data node in the same subject hierarchy branch as current node
-    vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(scene,
+    vtkMRMLSubjectHierarchyNode* clonedSubjectHierarchyNode =
+      vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(scene,
       vtkMRMLSubjectHierarchyNode::SafeDownCast(currentNode->GetParentNode()),
       currentNode->GetLevel(), clonedDataNodeName.c_str(), clonedDataNode);
+
+    // Trigger update
+    clonedSubjectHierarchyNode->Modified();
+    emit requestInvalidateModels();
   }
   else // No associated node
   {

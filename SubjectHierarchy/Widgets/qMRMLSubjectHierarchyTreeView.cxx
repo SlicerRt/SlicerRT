@@ -141,6 +141,7 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
     // Connect plugin events to be handled by the tree view
     QObject::connect( plugin, SIGNAL(requestExpandNode(vtkMRMLSubjectHierarchyNode*)),
       q, SLOT(expandNode(vtkMRMLSubjectHierarchyNode*)) );
+    QObject::connect( plugin, SIGNAL(requestInvalidateModels()), q->sceneModel(), SIGNAL(invalidateModels()) );
   }
 
   // Create a plugin selection action for each plugin in a sub-menu
