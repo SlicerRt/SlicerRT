@@ -168,11 +168,12 @@ void qSlicerSubjectHierarchyIsodosePlugin::editProperties(vtkMRMLSubjectHierarch
     // Get node selector combobox
     qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_ParameterSet");
 
-    //TODO: Get parameter set node for isodose model node
+    //TODO: Get parameter set node for isodose model and model hierarchy node
+    // and set corresponding dose volume too when changes in #580 are implemented
     vtkMRMLIsodoseNode* isodoseParameterSetNode = NULL; //TODO:
 
     // Choose current data node
-    if (nodeSelector)
+    if (nodeSelector && isodoseParameterSetNode)
     {
       nodeSelector->setCurrentNode(isodoseParameterSetNode);
     }

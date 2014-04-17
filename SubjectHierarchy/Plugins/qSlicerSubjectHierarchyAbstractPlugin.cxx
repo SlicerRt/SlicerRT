@@ -194,15 +194,6 @@ int qSlicerSubjectHierarchyAbstractPlugin::getDisplayVisibility(vtkMRMLSubjectHi
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSubjectHierarchyAbstractPlugin::exportNodeToDicom(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_UNUSED(node);
-
-  qCritical() << "qSlicerSubjectHierarchyAbstractPlugin::exportNodeToDicom: This plugin ("
-    << this->m_Name << ") does not support DICOM export!";
-}
-
-//-----------------------------------------------------------------------------
 QString qSlicerSubjectHierarchyAbstractPlugin::childLevel(QString parentLevel)
 {
   // Get child level from this plugin

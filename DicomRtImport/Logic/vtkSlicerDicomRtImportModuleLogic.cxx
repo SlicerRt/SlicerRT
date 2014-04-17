@@ -910,6 +910,14 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       this->GetMRMLScene()->AddNode(beamModelHierarchyNode);
       beamModelHierarchyNode->SetIndexInParent(beamIndex);
 
+      // Create display node for the hierarchy node
+      vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+      std::string beamModelHierarchyDisplayNodeName = beamModelHierarchyNodeName + std::string("Display");
+      beamModelHierarchyDisplayNode->SetName(beamModelHierarchyDisplayNodeName.c_str());
+      beamModelHierarchyDisplayNode->SetVisibility(1);
+      this->GetMRMLScene()->AddNode(beamModelHierarchyDisplayNode);
+      beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
+
       // Put new beam model in the subject hierarchy
       vtkMRMLSubjectHierarchyNode* beamModelSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
         this->GetMRMLScene(), (this->BeamModelsInSeparateBranch ? beamModelSubjectHierarchyRootNode : subjectHierarchyFiducialNode),

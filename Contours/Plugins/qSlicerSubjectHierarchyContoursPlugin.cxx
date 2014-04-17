@@ -221,7 +221,7 @@ void qSlicerSubjectHierarchyContoursPlugin::createChildContourForCurrentNode()
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
 
   // Check if current (to-be parent) node is a contour set node
-  if (!currentNode|| !currentNode->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+  if (!currentNode || !currentNode->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
     || !currentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     qCritical() << "qSlicerSubjectHierarchyContoursPlugin::createChildContourForCurrentNode: Invalid current node for creating contour!";

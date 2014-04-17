@@ -66,38 +66,6 @@ public:
   qSlicerSubjectHierarchyAbstractPlugin(QObject* parent = NULL);
   virtual ~qSlicerSubjectHierarchyAbstractPlugin();
 
-// Parenting related pure virtual methods
-public:
-  /// Determines if a non subject hierarchy node can be placed in the hierarchy using the actual plugin,
-  /// and gets a confidence value for a certain MRML node (usually the type and possibly attributes are checked).
-  /// Most plugins do not perform steps additional to the default, so the default implementation returns a 0
-  /// confidence value, which can be overridden in plugins that do handle special cases.
-  /// \param node Node to be added to the hierarchy
-  /// \param parent Prospective parent of the node to add.
-  ///   Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
-  /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
-  ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* node , vtkMRMLSubjectHierarchyNode* parent=NULL);
-
-  /// Add a node to subject hierarchy under a specified parent node. If added non subject hierarchy nodes
-  ///   have certain steps to perform when adding them in Subject Hierarchy, those steps take place here.
-  /// \return True if added successfully, false otherwise
-  virtual bool addNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent);
-
-  /// Determines if a subject hierarchy node can be reparented in the hierarchy using the actual plugin,
-  /// and gets a confidence value for a certain MRML node (usually the type and possibly attributes are checked).
-  /// Most plugins do not perform steps additional to the default, so the default implementation returns a 0
-  /// confidence value, which can be overridden in plugins that do handle special cases.
-  /// \param node Node to be reparented in the hierarchy
-  /// \param parent Prospective parent of the node to reparent.
-  /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
-  ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent);
-
-  /// Reparent a node that was already in the subject hierarchy under a new parent.
-  /// \return True if reparented successfully, false otherwise
-  virtual bool reparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent);
-
 // General (ownable) pure virtual methods
 public:
   /// Determines if the actual plugin can handle a subject hierarchy node. The plugin with
@@ -150,8 +118,37 @@ public:
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
   virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node) { Q_UNUSED(node); };
 
-  /// Export data associated to the owned subject hierarchy node to DICOM
-  virtual void exportNodeToDicom(vtkMRMLSubjectHierarchyNode* node);
+// Parenting related virtual methods with default implementation
+public:
+  /// Determines if a non subject hierarchy node can be placed in the hierarchy using the actual plugin,
+  /// and gets a confidence value for a certain MRML node (usually the type and possibly attributes are checked).
+  /// Most plugins do not perform steps additional to the default, so the default implementation returns a 0
+  /// confidence value, which can be overridden in plugins that do handle special cases.
+  /// \param node Node to be added to the hierarchy
+  /// \param parent Prospective parent of the node to add.
+  ///   Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
+  /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
+  ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
+  virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* node , vtkMRMLSubjectHierarchyNode* parent=NULL);
+
+  /// Add a node to subject hierarchy under a specified parent node. If added non subject hierarchy nodes
+  ///   have certain steps to perform when adding them in Subject Hierarchy, those steps take place here.
+  /// \return True if added successfully, false otherwise
+  virtual bool addNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent);
+
+  /// Determines if a subject hierarchy node can be reparented in the hierarchy using the actual plugin,
+  /// and gets a confidence value for a certain MRML node (usually the type and possibly attributes are checked).
+  /// Most plugins do not perform steps additional to the default, so the default implementation returns a 0
+  /// confidence value, which can be overridden in plugins that do handle special cases.
+  /// \param node Node to be reparented in the hierarchy
+  /// \param parent Prospective parent of the node to reparent.
+  /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
+  ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
+  virtual double canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent);
+
+  /// Reparent a node that was already in the subject hierarchy under a new parent.
+  /// \return True if reparented successfully, false otherwise
+  virtual bool reparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent);
 
 // Utility functions
 public:
