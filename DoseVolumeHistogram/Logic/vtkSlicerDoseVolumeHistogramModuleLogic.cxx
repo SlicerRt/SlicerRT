@@ -660,14 +660,16 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* structurePlotName, const char* dvhArrayNodeId)
+void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* dvhArrayNodeId)
 {
-  if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  if (!scene || !this->DoseVolumeHistogramNode)
   {
     vtkErrorMacro("AddDvhToSelectedChart: Invalid MRML scene or parameter set node!");
     return;
   }
 
+  // Get selected chart and dose volume nodes
   vtkMRMLChartNode* chartNode = this->DoseVolumeHistogramNode->GetChartNode();
   vtkMRMLScalarVolumeNode* doseVolumeNode = this->DoseVolumeHistogramNode->GetDoseVolumeNode();
   if (!chartNode || !doseVolumeNode)
@@ -676,6 +678,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
     return;
   }
 
+  // Get chart view node
   vtkMRMLChartViewNode* chartViewNode = this->GetChartViewNode();
   if (chartViewNode == NULL)
   {
@@ -683,7 +686,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
     return;
   }
 
-  // Set chart properties
+  // Set chart general properties
   std::string doseAxisName;
   std::string chartTitle;
   const char* doseIdentifier = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
@@ -722,24 +725,68 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
     vtkErrorMacro("AddDvhToSelectedChart: Unable to get double array node!");
     return;
   }
+  const char* structureName = dvhArrayNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+
+  // Get number of arrays showing plot for the same structure (for plot name and line style)
+  vtkStringArray* arrayIds = chartNode->GetArrays();
+  int numberOfStructuresWithSameName = 0;
+  for (int arrayIndex = 0; arrayIndex < arrayIds->GetNumberOfValues(); ++arrayIndex)
+  {
+    vtkMRMLDoubleArrayNode* currentArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
+      scene->GetNodeByID(arrayIds->GetValue(arrayIndex).c_str()) );
+
+    const char* currentStructureName = currentArrayNode->GetAttribute(
+      SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str() );
+    if (!STRCASECMP(currentStructureName, structureName))
+    {
+      ++numberOfStructuresWithSameName;
+    }
+  }
+
+  // Assemble plot name and determine style
+  std::stringstream structurePlotNameStream;
+  structurePlotNameStream << structureName << " (" << arrayIds->GetNumberOfValues() + 1 << ")";
+  if (numberOfStructuresWithSameName % 4 == 1)
+  {
+    dvhArrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dashed");
+    structurePlotNameStream << " [- -]";
+  }
+  else if (numberOfStructuresWithSameName % 4 == 2)
+  {
+    dvhArrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dotted");
+    structurePlotNameStream << " [...]";
+  }
+  else if (numberOfStructuresWithSameName % 4 == 3)
+  {
+    dvhArrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dashed-dotted");
+    structurePlotNameStream << " [-.-]";
+  }
+  else
+  {
+    dvhArrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "solid");
+  }
+
+  std::string structurePlotName = structurePlotNameStream.str();
+  dvhArrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), structurePlotName.c_str());
 
   // Add array to chart
-  chartNode->AddArray( structurePlotName, dvhArrayNodeId );
+  chartNode->AddArray( structurePlotName.c_str(), dvhArrayNodeId );
 
   // Set plot color and line style
   const char* color = dvhArrayNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME.c_str());
-  chartNode->SetProperty(structurePlotName, "color", color);
+  chartNode->SetProperty(structurePlotName.c_str(), "color", color);
   const char* lineStyle = dvhArrayNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str());
-  chartNode->SetProperty(structurePlotName, "linePattern", lineStyle);
+  chartNode->SetProperty(structurePlotName.c_str(), "linePattern", lineStyle);
 
   // Add chart to chart view
   chartViewNode->SetChartNodeID( chartNode->GetID() );
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromSelectedChart(const char* structureName)
+void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromSelectedChart(const char* dvhArrayNodeId)
 {
-  if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  if (!scene || !this->DoseVolumeHistogramNode)
   {
     vtkErrorMacro("RemoveDvhFromSelectedChart: Invalid MRML scene or parameter set node!");
     return;
@@ -759,8 +806,46 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromSelectedChart(const c
     return;
   }
 
-  chartViewNode->SetChartNodeID( chartNode->GetID() );
-  chartNode->RemoveArray(structureName);
+  vtkStringArray* arrayIds = chartNode->GetArrays();
+  for (int arrayIndex = 0; arrayIndex < arrayIds->GetNumberOfValues(); ++arrayIndex)
+  {
+    if (!STRCASECMP(arrayIds->GetValue(arrayIndex).c_str(), dvhArrayNodeId))
+    {
+      vtkMRMLDoubleArrayNode* arrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
+        scene->GetNodeByID(arrayIds->GetValue(arrayIndex).c_str()) );
+      chartNode->RemoveArray(chartNode->GetArrayNames()->GetValue(arrayIndex).c_str());
+      return;
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerDoseVolumeHistogramModuleLogic::IsDvhAddedToSelectedChart(const char* dvhArrayNodeId)
+{
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  if (!scene || !this->DoseVolumeHistogramNode)
+  {
+    vtkErrorMacro("RemoveDvhFromSelectedChart: Invalid MRML scene or parameter set node!");
+    return false;
+  }
+
+  vtkMRMLChartNode* chartNode = this->DoseVolumeHistogramNode->GetChartNode();
+  if (!chartNode)
+  {
+    vtkErrorMacro("RemoveDvhFromSelectedChart: Invalid chart node!");
+    return false;
+  }
+
+  vtkStringArray* arrayIds = chartNode->GetArrays();
+  for (int arrayIndex = 0; arrayIndex < arrayIds->GetNumberOfValues(); ++arrayIndex)
+  {
+    if (!STRCASECMP(arrayIds->GetValue(arrayIndex).c_str(), dvhArrayNodeId))
+    {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 //---------------------------------------------------------------------------

@@ -36,6 +36,7 @@
 
 // DoseVolumeHistogram includes
 #include "vtkMRMLDoseVolumeHistogramNode.h"
+#include "vtkSlicerDoseVolumeHistogramModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLNode.h>
@@ -54,6 +55,9 @@
 #include <QStandardItem>
 
 // SlicerQt includes
+#include "qSlicerApplication.h"
+#include "qSlicerAbstractModule.h"
+#include "qSlicerModuleManager.h"
 #include "qSlicerAbstractModuleWidget.h"
 
 // MRML widgets includes
@@ -202,7 +206,8 @@ void qSlicerSubjectHierarchyDvhPlugin::setDisplayVisibility(vtkMRMLSubjectHierar
   if (this->canOwnSubjectHierarchyNode(node))
   {
     // Get parameter set node for DVH, then chart from the parameter set node
-    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(node->GetAssociatedDataNode());
+    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node->GetAssociatedDataNode());
+    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(dvhArrayNode);
     vtkMRMLChartNode* chartNode = parameterSetNode->GetChartNode();
     if (!chartNode)
     {
@@ -224,11 +229,31 @@ void qSlicerSubjectHierarchyDvhPlugin::setDisplayVisibility(vtkMRMLSubjectHierar
       chartSubjectHierarchyNode->Delete(); // Return ownership to the scene only
     }
 
-    // Show/hide the chart itself
-    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->setDisplayVisibility(chartSubjectHierarchyNode, visible);
+    // Get chart visibility
+    int chartVisible = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->getDisplayVisibility(chartSubjectHierarchyNode);
+
+    // Get DVH logic for DVH visibility setting
+    qSlicerAbstractCoreModule* dvhModule = qSlicerApplication::application()->moduleManager()->module("DoseVolumeHistogram");
+    vtkSlicerDoseVolumeHistogramModuleLogic* dvhLogic = vtkSlicerDoseVolumeHistogramModuleLogic::SafeDownCast(dvhModule->logic());
 
     // Show/hide the DVH plot
-    //qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module(moduleName); //TODO:
+    if (visible)
+    {
+      if (!chartVisible)
+      {
+        // Show the chart itself
+        qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->setDisplayVisibility(chartSubjectHierarchyNode, visible);
+      }
+
+      dvhLogic->AddDvhToSelectedChart(dvhArrayNode->GetID());
+    }
+    else if (chartVisible);
+    {
+      dvhLogic->RemoveDvhFromSelectedChart(dvhArrayNode->GetID());
+    }
+
+    // Trigger icon update
+    node->Modified();
   }
   // Default
   else
@@ -255,7 +280,8 @@ int qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility(vtkMRMLSubjectHierarc
   if (this->canOwnSubjectHierarchyNode(node))
   {
     // Get parameter set node for DVH, then chart from the parameter set node
-    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(node->GetAssociatedDataNode());
+    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node->GetAssociatedDataNode());
+    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(dvhArrayNode);
     vtkMRMLChartNode* chartNode = parameterSetNode->GetChartNode();
     if (!chartNode)
     {
@@ -277,7 +303,15 @@ int qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility(vtkMRMLSubjectHierarc
       chartSubjectHierarchyNode->Delete(); // Return ownership to the scene only
     }
 
-    return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->getDisplayVisibility(chartSubjectHierarchyNode);
+    // Get chart visibility
+    int chartVisible = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->getDisplayVisibility(chartSubjectHierarchyNode);
+
+    // Get DVH logic for DVH visibility
+    qSlicerAbstractCoreModule* dvhModule = qSlicerApplication::application()->moduleManager()->module("DoseVolumeHistogram");
+    vtkSlicerDoseVolumeHistogramModuleLogic* dvhLogic = vtkSlicerDoseVolumeHistogramModuleLogic::SafeDownCast(dvhModule->logic());
+
+    // Only return true if the chart is visible and the DVH array is added in the chart
+    return (chartVisible && dvhLogic->IsDvhAddedToSelectedChart(dvhArrayNode->GetID()));
   }
 
   // Default

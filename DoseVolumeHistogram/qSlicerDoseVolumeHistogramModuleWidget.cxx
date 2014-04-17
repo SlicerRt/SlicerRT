@@ -65,8 +65,8 @@ public:
   ~qSlicerDoseVolumeHistogramModuleWidgetPrivate();
   vtkSlicerDoseVolumeHistogramModuleLogic* logic() const;
 public:
-  /// Map that associates a string pair containing the contour set plot name (including table row number) and the vtkMRMLDoubleArrayNode id (respectively) to the show/hide in chart checkboxes
-  QMap<QCheckBox*, QPair<QString, QString> > PlotCheckboxToStructureNameMap;
+  /// Map that associates the vtkMRMLDoubleArrayNode id to the show/hide in chart checkboxes
+  QMap<QCheckBox*, QString> PlotCheckboxToStructureNameMap;
 
   /// Flag whether show/hide all checkbox has been clicked - some operations are not necessary when it was clicked
   bool ShowHideAllClicked;
@@ -379,7 +379,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateChartCheckboxesState()
   // If there is no chart node selected, disable all checkboxes
   if (chartNode == NULL)
   {
-    QMapIterator<QCheckBox*, QPair<QString, QString> > it(d->PlotCheckboxToStructureNameMap);
+    QMapIterator<QCheckBox*, QString> it(d->PlotCheckboxToStructureNameMap);
     while (it.hasNext())
     {
       it.next();
@@ -394,7 +394,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateChartCheckboxesState()
   vtkStringArray* arraysInSelectedChart = chartNode->GetArrays();
   std::vector<bool> checkStates;
 
-  QMapIterator<QCheckBox*, QPair<QString, QString> > it(d->PlotCheckboxToStructureNameMap);
+  QMapIterator<QCheckBox*, QString> it(d->PlotCheckboxToStructureNameMap);
   while (it.hasNext())
   {
     it.next();
@@ -406,7 +406,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateChartCheckboxesState()
     for (int i=0; i<arraysInSelectedChart->GetNumberOfValues(); ++i)
     {
       // Check checkbox if the plot for the array is present in the chart
-      if (arraysInSelectedChart->GetValue(i).compare(it.value().second.toLatin1().constData()) == 0)
+      if (arraysInSelectedChart->GetValue(i).compare(it.value().toLatin1().constData()) == 0)
       {
         it.key()->setChecked(true);
         break;
@@ -544,7 +544,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   d->tableWidget_ChartStatistics->clearContents();
 
   // Clear checkbox to contour set name map
-  QMapIterator<QCheckBox*, QPair<QString, QString> > it(d->PlotCheckboxToStructureNameMap);
+  QMapIterator<QCheckBox*, QString> it(d->PlotCheckboxToStructureNameMap);
   while (it.hasNext())
   {
     it.next();
@@ -592,7 +592,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
     this->getNumbersFromLineEdit(d->lineEdit_DVolumePercent, dVolumeValuesPercent);
   }
 
-  // Set up the table
+  // Set up the table columns
   d->tableWidget_ChartStatistics->setColumnCount(3 + metricList.size()
     + vColumnCount + dVolumeValuesCc.size() + dVolumeValuesPercent.size());
   QStringList headerLabels;
@@ -638,7 +638,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
   // Fill the table
   std::vector<vtkMRMLNode*>::iterator dvhIt;
   int dvhIndex = 0;
-  QList<QString> structureNames;
   for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt, ++dvhIndex)
   {
     if (!(*dvhIt))
@@ -652,36 +651,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
       QString((*dvhIt)->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
     connect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
 
-    // Assign line style and plot name
-    QString plotName( (*dvhIt)->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str()) );
-    int numberOfStructuresWithSameName = structureNames.count(plotName);
-    structureNames << plotName;
-
-    plotName.append( QString(" (%1)").arg(dvhIndex+1) );
-
-    if (numberOfStructuresWithSameName % 4 == 1)
-    {
-      (*dvhIt)->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dashed");
-      plotName.append( " [- -]" );
-    }
-    else if (numberOfStructuresWithSameName % 4 == 2)
-    {
-      (*dvhIt)->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dotted");
-      plotName.append( " [...]" );
-    }
-    else if (numberOfStructuresWithSameName % 4 == 3)
-    {
-      (*dvhIt)->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "dashed-dotted");
-      plotName.append( " [-.-]" );
-    }
-    else
-    {
-      (*dvhIt)->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str(), "solid");
-    }
-
-    // Store checkbox with the augmented contour set name and the double array ID
-    (*dvhIt)->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), plotName.toLatin1().constData());
-    d->PlotCheckboxToStructureNameMap[checkbox] = QPair<QString, QString>(plotName, (*dvhIt)->GetID());
+    // Store checkbox with the double array ID
+    d->PlotCheckboxToStructureNameMap[checkbox] = QString((*dvhIt)->GetID());
 
     d->tableWidget_ChartStatistics->setCellWidget(dvhIndex, 0, checkbox);
 
@@ -854,11 +825,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aS
 
   if (aState)
   {
-    d->logic()->AddDvhToSelectedChart(d->PlotCheckboxToStructureNameMap[senderCheckbox].first.toLatin1().constData(), d->PlotCheckboxToStructureNameMap[senderCheckbox].second.toLatin1().constData());
+    d->logic()->AddDvhToSelectedChart(d->PlotCheckboxToStructureNameMap[senderCheckbox].toLatin1().constData());
   }
   else
   {
-    d->logic()->RemoveDvhFromSelectedChart(d->PlotCheckboxToStructureNameMap[senderCheckbox].first.toLatin1().constData());
+    d->logic()->RemoveDvhFromSelectedChart(d->PlotCheckboxToStructureNameMap[senderCheckbox].toLatin1().constData());
   }
 
   if (!d->ShowHideAllClicked)
@@ -867,7 +838,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aS
     paramNode->GetShowInChartCheckStates(checkStates);
 
     // Update states vector with the one checked state and set it back to the parameter node
-    QMap<QCheckBox*, QPair<QString, QString> >::const_iterator checkboxIt;
+    QMap<QCheckBox*, QString>::const_iterator checkboxIt;
     std::vector<bool>::iterator stateIt;
     for (checkboxIt=d->PlotCheckboxToStructureNameMap.begin(), stateIt=checkStates.begin();
       checkboxIt!=d->PlotCheckboxToStructureNameMap.end(); ++checkboxIt, ++stateIt)
@@ -884,7 +855,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aS
     d->checkBox_ShowHideAll->blockSignals(true);
     bool isThereChecked = false;
     bool isThereUnchecked = false;
-    QMapIterator<QCheckBox*, QPair<QString, QString> > it(d->PlotCheckboxToStructureNameMap);
+    QMapIterator<QCheckBox*, QString> it(d->PlotCheckboxToStructureNameMap);
     while (it.hasNext())
     {
       it.next();
@@ -938,7 +909,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showHideAllCheckedStateChanged(int 
   paramNode->SetShowHideAll(aState);
   paramNode->DisableModifiedEventOff();
 
-  QMap<QCheckBox*, QPair<QString, QString> >::const_iterator checkboxIt;
+  QMap<QCheckBox*, QString>::const_iterator checkboxIt;
 
   d->ShowHideAllClicked = true;
 

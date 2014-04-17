@@ -63,11 +63,14 @@ public:
   /// Compute DVH for the given structure contour node volume with the stenciled dose volume (the indexed labelmap representation but with dose values instead of the labels)
   void ComputeDvh(vtkMRMLContourNode* structureContourNodes, std::string &errorMessage);
 
-  /// Add dose volume histogram of a structure (ROI) to the selected chart given its plot name (including table row number) and the corresponding DVH double array node ID
-  void AddDvhToSelectedChart(const char* structurePlotName, const char* dvhArrayNodeId);
+  /// Add dose volume histogram of a structure (ROI) to the selected chart given its double array node ID
+  void AddDvhToSelectedChart(const char* dvhArrayNodeId);
 
   /// Remove dose volume histogram of a structure from the selected chart
   void RemoveDvhFromSelectedChart(const char* dvhArrayNodeId);
+
+  /// Determine if a DVH array is added to the selected chart
+  bool IsDvhAddedToSelectedChart(const char* dvhArrayNodeId);
 
   /// Compute V metrics for the given DVH using the given dose values and put them in the vMetricsCc and vMetricsPercent output lists
   void ComputeVMetrics(vtkMRMLDoubleArrayNode* dvhArrayNode, std::vector<double> doseValues, std::vector<double> &vMetricsCc, std::vector<double> &vMetricsPercent);
