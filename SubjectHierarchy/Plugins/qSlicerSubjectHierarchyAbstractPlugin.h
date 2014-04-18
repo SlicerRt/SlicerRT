@@ -51,7 +51,11 @@ class qSlicerAbstractModuleWidget;
 /// 0.5 = The plugin has equal chance to handle this node as others (an example can be color table node)
 /// 0.7 = The plugin is likely be the only one that can handle the node in question, but there is a chance that other plugins can do that too
 /// 1.0 = The node in question can only be handled by the plugin (by node type or identifier attribute)
-///
+/// 
+/// Plugin subclass naming convention:
+/// - Plugins providing roles: qSubjectHierarchy[Role name, noun]Plugin
+/// - Plugins providing functions: qSubjectHierarchy[Function name, verb]Plugin
+/// 
 class Q_SLICER_SUBJECTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyAbstractPlugin : public QObject
 {
   Q_OBJECT

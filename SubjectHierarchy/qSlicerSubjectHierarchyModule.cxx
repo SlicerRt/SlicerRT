@@ -36,6 +36,7 @@
 #include "qSlicerSubjectHierarchyChartsPlugin.h"
 #include "qSlicerSubjectHierarchyVolumesPlugin.h"
 #include "qSlicerSubjectHierarchyParseLocalDataPlugin.h"
+#include "qSlicerSubjectHierarchyRegisterPlugin.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -128,6 +129,7 @@ void qSlicerSubjectHierarchyModule::setup()
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyChartsPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyVolumesPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyParseLocalDataPlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRegisterPlugin());
 }
 
 //-----------------------------------------------------------------------------

@@ -19,34 +19,34 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSubjectHierarchyDvhPlugin_h
-#define __qSlicerSubjectHierarchyDvhPlugin_h
+#ifndef __qSlicerSubjectHierarchyRegisterPlugin_h
+#define __qSlicerSubjectHierarchyRegisterPlugin_h
 
 // SlicerRt includes
 #include "qSlicerSubjectHierarchyAbstractPlugin.h"
 
-#include "qSlicerRTHierarchyModulePluginsExport.h"
+#include "qSlicerSubjectHierarchyModulePluginsExport.h"
 
-class qSlicerSubjectHierarchyDvhPluginPrivate;
+class qSlicerSubjectHierarchyRegisterPluginPrivate;
 class vtkMRMLNode;
+class vtkMRMLScalarVolumeNode;
 class vtkMRMLSubjectHierarchyNode;
-class vtkMRMLDoseVolumeHistogramNode;
 
 // Due to some reason the Python wrapping of this class fails, therefore
 // put everything between BTX/ETX to exclude from wrapping.
 // TODO #210: investigate why the wrapping fails
 //BTX
 
-/// \ingroup SlicerRt_QtModules_RtHierarchy
-class Q_SLICER_RTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyDvhPlugin : public qSlicerSubjectHierarchyAbstractPlugin
+/// \ingroup Slicer_QtModules_SubjectHierarchy_Plugins
+class Q_SLICER_SUBJECTHIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyRegisterPlugin : public qSlicerSubjectHierarchyAbstractPlugin
 {
 public:
   Q_OBJECT
 
 public:
   typedef qSlicerSubjectHierarchyAbstractPlugin Superclass;
-  qSlicerSubjectHierarchyDvhPlugin(QObject* parent = NULL);
-  virtual ~qSlicerSubjectHierarchyDvhPlugin();
+  qSlicerSubjectHierarchyRegisterPlugin(QObject* parent = NULL);
+  virtual ~qSlicerSubjectHierarchyRegisterPlugin();
 
 public:
   /// Determines if the actual plugin can handle a subject hierarchy node. The plugin with
@@ -71,26 +71,34 @@ public:
   /// Open module belonging to node and set inputs in opened module
   virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
 
-  /// Set display visibility of a owned subject hierarchy node
-  virtual void setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible);
+  /// Get node context menu item actions to add to tree view
+  virtual QList<QAction*> nodeContextMenuActions()const;
 
-  /// Get display visibility of a owned subject hierarchy node
-  /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
-  virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
+  /// Show context menu actions valid for  given subject hierarchy node.
+  /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
+  virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node);
+
+protected slots:
+  /// Start registration process by selecting the current node as the 'from' node.
+  /// Saves node in \sa m_RegisterFromNode and shows "Register * to this using..."
+  /// context menu option offering the possible registration methods,
+  void registerCurrentNodeTo();
+
+  /// Switch to registration module corresponding to selected method, set chosen
+  /// input nodes, offer a best guess parameter set based on modalities etc.
+  /// The parameter sets are stored in files and loaded in a separate scene at
+  /// startup.
+  void registerSelectedToCurrentNode();
 
 protected:
-  /// Utility function for getting DVH parameter set node for DVH double array node
-  vtkMRMLDoseVolumeHistogramNode* getDvhParameterSetNodeForDvhArray(vtkMRMLNode* dvhArrayNode);
-
-  /// Utility function for getting chart subject hierarchy node for DVH array subject hierarchy node
-  vtkMRMLSubjectHierarchyNode* getChartForDvhArray(vtkMRMLSubjectHierarchyNode* dvhArraySubjectHierarchyNode);
+  vtkMRMLSubjectHierarchyNode* m_RegisterFromNode;
 
 protected:
-  QScopedPointer<qSlicerSubjectHierarchyDvhPluginPrivate> d_ptr;
+  QScopedPointer<qSlicerSubjectHierarchyRegisterPluginPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyDvhPlugin);
-  Q_DISABLE_COPY(qSlicerSubjectHierarchyDvhPlugin);
+  Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyRegisterPlugin);
+  Q_DISABLE_COPY(qSlicerSubjectHierarchyRegisterPlugin);
 };
 
 //ETX

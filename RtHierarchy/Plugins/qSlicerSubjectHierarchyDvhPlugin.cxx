@@ -200,7 +200,7 @@ void qSlicerSubjectHierarchyDvhPlugin::setDisplayVisibility(vtkMRMLSubjectHierar
   if (this->canOwnSubjectHierarchyNode(node))
   {
     // Get chart for DVH array node
-    vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = this->GetChartForDvhArray(node);
+    vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = this->getChartForDvhArray(node);
     if (!chartSubjectHierarchyNode)
     {
       qCritical() << "qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility: Unable to get chart node for DVH array node!";
@@ -253,7 +253,7 @@ int qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility(vtkMRMLSubjectHierarc
   if (this->canOwnSubjectHierarchyNode(node))
   {
     // Get chart for DVH array node
-    vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = this->GetChartForDvhArray(node);
+    vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = this->getChartForDvhArray(node);
     if (!chartSubjectHierarchyNode)
     {
       qCritical() << "qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility: Unable to get chart node for DVH array node!";
@@ -286,7 +286,7 @@ void qSlicerSubjectHierarchyDvhPlugin::editProperties(vtkMRMLSubjectHierarchyNod
     qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_ParameterSet");
 
     // Get DVH parameter set node containing the current DVH array
-    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(node->GetAssociatedDataNode());
+    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->getDvhParameterSetNodeForDvhArray(node->GetAssociatedDataNode());
 
     // Choose current data node
     if (nodeSelector)
@@ -297,12 +297,12 @@ void qSlicerSubjectHierarchyDvhPlugin::editProperties(vtkMRMLSubjectHierarchyNod
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDvhPlugin::GetDvhParameterSetNodeForDvhArray(vtkMRMLNode* dvhArrayNode)
+vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDvhPlugin::getDvhParameterSetNodeForDvhArray(vtkMRMLNode* dvhArrayNode)
 {
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
   if (!scene)
   {
-    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::GetDvhParameterSetNodeForDvhArray: Invalid MRML scene!";
+    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::getDvhParameterSetNodeForDvhArray: Invalid MRML scene!";
     return false;
   }
 
@@ -327,19 +327,19 @@ vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDvhPlugin::GetDvhParamete
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode* qSlicerSubjectHierarchyDvhPlugin::GetChartForDvhArray(vtkMRMLSubjectHierarchyNode* dvhArraySubjectHierarchyNode)
+vtkMRMLSubjectHierarchyNode* qSlicerSubjectHierarchyDvhPlugin::getChartForDvhArray(vtkMRMLSubjectHierarchyNode* dvhArraySubjectHierarchyNode)
 {
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
   if (!scene)
   {
-    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::GetChartForDvhArray: Invalid MRML scene!";
+    qCritical() << "qSlicerSubjectHierarchyDvhPlugin::getChartForDvhArray: Invalid MRML scene!";
     return NULL;
   }
 
   // Get parameter set node for DVH, then chart from the parameter set node
   vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
     dvhArraySubjectHierarchyNode->GetAssociatedDataNode() );
-  vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->GetDvhParameterSetNodeForDvhArray(dvhArrayNode);
+  vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->getDvhParameterSetNodeForDvhArray(dvhArrayNode);
   vtkMRMLChartNode* chartNode = parameterSetNode->GetChartNode();
   if (!chartNode)
   {
