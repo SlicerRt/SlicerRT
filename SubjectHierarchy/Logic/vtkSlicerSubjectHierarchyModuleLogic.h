@@ -55,9 +55,9 @@ public:
   /// \param node1 First node to check. Can be subject hierarchy node or a node associated with one
   /// \param node2 Second node to check
   /// \param lowestCommonLevel Lowest level on which they have to share an ancestor
-  /// \return True if the two nodes or their associated hierarchy nodes share a parent on the
-  ///   specified level, false otherwise
-  static bool AreNodesInSameBranch(
+  /// \return The common parent if the two nodes or their associated hierarchy nodes share a parent
+  ///   on the specified level, NULL otherwise
+  static vtkMRMLSubjectHierarchyNode* AreNodesInSameBranch(
     vtkMRMLNode* node1, vtkMRMLNode* node2, const char* lowestCommonLevel );
 
 public:

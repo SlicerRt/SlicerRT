@@ -178,19 +178,19 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSe
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLNode* node1, vtkMRMLNode* node2,
+vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLNode* node1, vtkMRMLNode* node2,
                                                                 const char* lowestCommonLevel)
 {
   if ( !node1 || !node2 || node1->GetScene() != node2->GetScene() )
   {
     std::cerr << "vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch: Invalid input nodes or they are not in the same scene!" << std::endl;
-    return false;
+    return NULL;
   }
 
   if (!lowestCommonLevel)
   {
     vtkErrorWithObjectMacro(node1, "vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch: Invalid lowest common level!");
-    return false;
+    return NULL;
   }
 
   // If not hierarchy nodes, get the associated subject hierarchy node
@@ -200,7 +200,7 @@ bool vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLNode* nod
   // Check if valid nodes are found
   if (!hierarchyNode1 || !hierarchyNode2)
   {
-    return false;
+    return NULL;
   }
 
   // Walk the hierarchy up until we reach the lowest common level
@@ -248,5 +248,5 @@ bool vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(vtkMRMLNode* nod
     }
   }
 
-  return (hierarchyNode1 == hierarchyNode2);
+  return (hierarchyNode1 == hierarchyNode2 ? hierarchyNode1 : NULL);
 }

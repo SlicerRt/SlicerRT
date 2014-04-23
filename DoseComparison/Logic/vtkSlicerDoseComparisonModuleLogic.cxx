@@ -31,6 +31,11 @@
 // Plastimatch includes
 #include "gamma_dose_comparison.h"
 
+// Subject Hierarchy includes
+#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
+
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
@@ -276,6 +281,19 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   {
     vtkWarningMacro("ComputeGammaDoseDifference: Display node is not available for gamma volume node. The default color table will be used.");
   }
+
+  // Get common ancestor of the two input dose volumes
+  vtkMRMLSubjectHierarchyNode* commonAncestor = vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(
+    this->DoseComparisonNode->GetReferenceDoseVolumeNode(), this->DoseComparisonNode->GetCompareDoseVolumeNode(),
+    vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
+
+  // Add gamma volume to subject hierarchy
+  vtkMRMLSubjectHierarchyNode* dvhSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+    this->GetMRMLScene(), commonAncestor, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+    gammaVolumeNode->GetName(), gammaVolumeNode);
+
+  // Add connection attribute to input dose volume nodes
+  //TODO:
 
   // Select as active volume
   if (this->GetApplicationLogic()!=NULL)
