@@ -2,6 +2,8 @@
   <qresource>
     <file>Icons/Chart.png</file>
     <file>Icons/Labelmap.png</file>
+    <file>Icons/Markup.png</file>
+    <file>Icons/Model.png</file>
     <file>Icons/Patient.png</file>
     <file>Icons/Study.png</file>
     <file>Icons/Subject.png</file>

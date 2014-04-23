@@ -26,6 +26,8 @@ set(${KIT}_SRCS
   qSlicerSubjectHierarchyRtBeamPlugin.h
   qSlicerSubjectHierarchyIsodosePlugin.cxx
   qSlicerSubjectHierarchyIsodosePlugin.h
+  qSlicerSubjectHierarchyGammaPlugin.cxx
+  qSlicerSubjectHierarchyGammaPlugin.h
   )
 
 set(${KIT}_MOC_SRCS
@@ -35,6 +37,7 @@ set(${KIT}_MOC_SRCS
   qSlicerSubjectHierarchyRtPlanPlugin.h
   qSlicerSubjectHierarchyRtBeamPlugin.h
   qSlicerSubjectHierarchyIsodosePlugin.h
+  qSlicerSubjectHierarchyGammaPlugin.h
   )
 
 set(${KIT}_UI_SRCS

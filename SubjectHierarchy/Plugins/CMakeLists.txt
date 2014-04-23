@@ -29,6 +29,10 @@ set(${KIT}_SRCS
   qSlicerSubjectHierarchyDICOMPlugin.h
   qSlicerSubjectHierarchyChartsPlugin.cxx
   qSlicerSubjectHierarchyChartsPlugin.h
+  qSlicerSubjectHierarchyMarkupsPlugin.cxx
+  qSlicerSubjectHierarchyMarkupsPlugin.h
+  qSlicerSubjectHierarchyModelsPlugin.cxx
+  qSlicerSubjectHierarchyModelsPlugin.h
   qSlicerSubjectHierarchyVolumesPlugin.cxx
   qSlicerSubjectHierarchyVolumesPlugin.h
   qSlicerSubjectHierarchyParseLocalDataPlugin.cxx
@@ -44,6 +48,8 @@ set(${KIT}_MOC_SRCS
   qSlicerSubjectHierarchyCloneNodePlugin.h
   qSlicerSubjectHierarchyDICOMPlugin.h
   qSlicerSubjectHierarchyChartsPlugin.h
+  qSlicerSubjectHierarchyMarkupsPlugin.h
+  qSlicerSubjectHierarchyModelsPlugin.h
   qSlicerSubjectHierarchyVolumesPlugin.h
   qSlicerSubjectHierarchyParseLocalDataPlugin.h
   qSlicerSubjectHierarchyRegisterPlugin.h

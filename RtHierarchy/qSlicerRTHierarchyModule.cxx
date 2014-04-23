@@ -34,6 +34,7 @@
 #include "qSlicerSubjectHierarchyRtPlanPlugin.h"
 #include "qSlicerSubjectHierarchyRtBeamPlugin.h"
 #include "qSlicerSubjectHierarchyIsodosePlugin.h"
+#include "qSlicerSubjectHierarchyGammaPlugin.h"
 
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -121,6 +122,7 @@ void qSlicerRTHierarchyModule::setup()
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtPlanPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtBeamPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyIsodosePlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyGammaPlugin());
 }
 
 //-----------------------------------------------------------------------------

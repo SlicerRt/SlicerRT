@@ -167,4 +167,11 @@ void qSlicerSubjectHierarchyRtPlanPlugin::setVisibilityIcon(vtkMRMLSubjectHierar
 void qSlicerSubjectHierarchyRtPlanPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
   //TODO: Switch to Beams (or RT Plans) module when created
+
+  // For the time being switch to the Markups module if the node is an isocenter markup fiducial
+  vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
+  if (associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode"))
+  {
+    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Markups")->editProperties(node);
+  }
 }
