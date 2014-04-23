@@ -26,7 +26,6 @@
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyParseLocalDataPlugin.h"
-#include "qSlicerSubjectHierarchyDefaultPlugin.h"
 
 // Qt includes
 #include <QDebug>
@@ -98,32 +97,6 @@ qSlicerSubjectHierarchyParseLocalDataPlugin::~qSlicerSubjectHierarchyParseLocalD
 {
 }
 
-//---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyParseLocalDataPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_UNUSED(node);
-
-  return 0.0;
-}
-
-//---------------------------------------------------------------------------
-const QString qSlicerSubjectHierarchyParseLocalDataPlugin::roleForPlugin()const
-{
-  return QString("N/A");
-}
-
-//---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyParseLocalDataPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
-{
-  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setIcon(node, item);
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyParseLocalDataPlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
-{
-  qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
-}
-
 //-----------------------------------------------------------------------------
 QList<QAction*> qSlicerSubjectHierarchyParseLocalDataPlugin::sceneContextMenuActions()const
 {
@@ -138,8 +111,7 @@ QList<QAction*> qSlicerSubjectHierarchyParseLocalDataPlugin::sceneContextMenuAct
 void qSlicerSubjectHierarchyParseLocalDataPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyParseLocalDataPlugin);
-
-  d->CreateHierarchyFromLoadedLocalDirectoriesAction->setVisible(false);
+  this->hideAllContextMenuActions();
 
   // Scene
   if (!node)
@@ -267,10 +239,4 @@ void qSlicerSubjectHierarchyParseLocalDataPlugin::createHierarchyFromLoadedLocal
   {
     emit requestExpandNode(createdNode);
   }
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyParseLocalDataPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
-{
-  // No role, no edit properties
 }

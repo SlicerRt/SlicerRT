@@ -549,9 +549,7 @@ QList<QAction*> qSlicerSubjectHierarchyVolumesPlugin::nodeContextMenuActions()co
 void qSlicerSubjectHierarchyVolumesPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyVolumesPlugin);
-
-  d->ToggleLabelmapOutlineDisplayAction->setVisible(false);
-  d->ShowVolumesInStudyAction->setVisible(false);
+  this->hideAllContextMenuActions();
 
   if (!node)
   {

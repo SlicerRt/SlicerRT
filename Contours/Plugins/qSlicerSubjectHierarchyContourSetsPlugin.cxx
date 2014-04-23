@@ -566,10 +566,7 @@ QList<QAction*> qSlicerSubjectHierarchyContourSetsPlugin::nodeContextMenuActions
 void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyContourSetsPlugin);
-
-  d->CreateContourSetNodeAction->setVisible(false);
-  d->ConvertRepresentationIntoContourAction->setVisible(false);
-  d->EditColorTableAction->setVisible(false);
+  this->hideAllContextMenuActions();
 
   if (!node)
   {

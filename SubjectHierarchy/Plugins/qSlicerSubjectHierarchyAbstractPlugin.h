@@ -70,7 +70,8 @@ public:
   qSlicerSubjectHierarchyAbstractPlugin(QObject* parent = NULL);
   virtual ~qSlicerSubjectHierarchyAbstractPlugin();
 
-// General (ownable) pure virtual methods
+// Role-related virtual methods
+// If the subclass plugin does not offer a role, these do not need to be overridden
 public:
   /// Determines if the actual plugin can handle a subject hierarchy node. The plugin with
   /// the highest confidence number will "own" the node in the subject hierarchy (set icon, tooltip,
@@ -78,24 +79,22 @@ public:
   /// \param node Note to handle in the subject hierarchy tree
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node) = 0;
+  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
 
   /// Get role that the plugin assigns to the subject hierarchy node.
   ///   Each plugin should provide only one role.
-  virtual const QString roleForPlugin()const = 0;
+  virtual const QString roleForPlugin()const;
 
   /// Set icon of a owned subject hierarchy node
   /// \return Flag indicating whether setting an icon was successful
-  virtual bool setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item) = 0;
+  virtual bool setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
 
   /// Set visibility icon of a owned subject hierarchy node
-  virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item) = 0;
+  virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
 
   /// Open module belonging to node and set inputs in opened module
-  virtual void editProperties(vtkMRMLSubjectHierarchyNode* node) = 0;
+  virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
 
-// General (ownable) virtual methods with default implementation
-public:
   /// Generate displayed name for the owned subject hierarchy node corresponding to its role.
   /// The default implementation removes the '_SubjectHierarchy' ending from the node's name.
   virtual QString displayedName(vtkMRMLSubjectHierarchyNode* node);
@@ -110,6 +109,8 @@ public:
   /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
   virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
 
+// Function related virtual methods
+public:
   /// Get node context menu item actions to add to tree view
   virtual QList<QAction*> nodeContextMenuActions()const;
 
@@ -191,6 +192,12 @@ signals:
 protected:
   /// Get child level according to child level map of the current plugin
   virtual QString childLevel(QString parentLevel);
+
+  /// Hide all context menu actions offered by the plugin.
+  /// This method must be called as a first step in \sa showContextMenuActionsForNode
+  /// before showing the actions that apply to the current situation. Calling this method
+  /// prevents programming errors made in case plugin actions change.
+  void hideAllContextMenuActions();
 
 protected slots:
   /// Create supported child for the current node (which is selected in the tree)

@@ -109,32 +109,6 @@ qSlicerSubjectHierarchyCloneNodePlugin::~qSlicerSubjectHierarchyCloneNodePlugin(
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyCloneNodePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_UNUSED(node);
-
-  return 0.0;
-}
-
-//---------------------------------------------------------------------------
-const QString qSlicerSubjectHierarchyCloneNodePlugin::roleForPlugin()const
-{
-  return QString("N/A");
-}
-
-//---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyCloneNodePlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
-{
-  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setIcon(node, item);
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyCloneNodePlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
-{
-  qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
-}
-
-//---------------------------------------------------------------------------
 QList<QAction*> qSlicerSubjectHierarchyCloneNodePlugin::nodeContextMenuActions()const
 {
   Q_D(const qSlicerSubjectHierarchyCloneNodePlugin);
@@ -148,8 +122,7 @@ QList<QAction*> qSlicerSubjectHierarchyCloneNodePlugin::nodeContextMenuActions()
 void qSlicerSubjectHierarchyCloneNodePlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyCloneNodePlugin);
-
-  d->CloneNodeAction->setVisible(false);
+  this->hideAllContextMenuActions();
 
   if (!node)
   {
@@ -159,13 +132,6 @@ void qSlicerSubjectHierarchyCloneNodePlugin::showContextMenuActionsForNode(vtkMR
 
   // Show clone node for every non-scene nodes
   d->CloneNodeAction->setVisible(true);
-}
-
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyCloneNodePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
-{
-  // No role, no edit properties
 }
 
 //---------------------------------------------------------------------------

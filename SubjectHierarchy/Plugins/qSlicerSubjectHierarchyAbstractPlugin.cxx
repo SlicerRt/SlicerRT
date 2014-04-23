@@ -64,6 +64,51 @@ QString qSlicerSubjectHierarchyAbstractPlugin::name()const
   return this->m_Name;
 }
 
+//---------------------------------------------------------------------------
+double qSlicerSubjectHierarchyAbstractPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+{
+  Q_UNUSED(node);
+
+  // Default implementation applies to plugins that do not define roles, only functions and/or levels
+  return 0.0;
+}
+
+//---------------------------------------------------------------------------
+const QString qSlicerSubjectHierarchyAbstractPlugin::roleForPlugin()const
+{
+  // Default implementation applies to plugins that do not define roles, only functions and/or levels
+  return QString("N/A");
+}
+
+//---------------------------------------------------------------------------
+bool qSlicerSubjectHierarchyAbstractPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+{
+  Q_UNUSED(node);
+  Q_UNUSED(item);
+
+  // Default implementation applies to plugins that do not define roles, only functions and/or levels
+  // If there is no role, then there is no icon to set
+  return false;
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyAbstractPlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+{
+  Q_UNUSED(node);
+  Q_UNUSED(item);
+
+  // Default implementation applies to plugins that do not define roles, only functions and/or levels
+  // If there is no role, then there is no visibility icon to set
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyAbstractPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+{
+  Q_UNUSED(node);
+
+  // If there is no role, no edit properties action is needed
+}
+
 //-----------------------------------------------------------------------------
 QList<QAction*> qSlicerSubjectHierarchyAbstractPlugin::nodeContextMenuActions()const
 {
@@ -288,4 +333,17 @@ qSlicerAbstractModuleWidget* qSlicerSubjectHierarchyAbstractPlugin::switchToModu
 
   // Get node selector combobox
   return dynamic_cast<qSlicerAbstractModuleWidget*>(moduleWithAction->widgetRepresentation());
+}
+
+//--------------------------------------------------------------------------
+void qSlicerSubjectHierarchyAbstractPlugin::hideAllContextMenuActions()
+{
+  QList<QAction*> allActions;
+  allActions << this->sceneContextMenuActions();
+  allActions << this->nodeContextMenuActions();
+
+  foreach (QAction* action, allActions)
+  {
+    action->setVisible(false);
+  }
 }

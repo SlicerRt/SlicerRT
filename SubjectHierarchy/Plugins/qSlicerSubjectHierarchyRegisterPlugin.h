@@ -49,28 +49,6 @@ public:
   virtual ~qSlicerSubjectHierarchyRegisterPlugin();
 
 public:
-  /// Determines if the actual plugin can handle a subject hierarchy node. The plugin with
-  /// the highest confidence number will "own" the node in the subject hierarchy (set icon, tooltip,
-  /// set context menu etc.)
-  /// \param node Note to handle in the subject hierarchy tree
-  /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
-  ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
-
-  /// Get role that the plugin assigns to the subject hierarchy node.
-  ///   Each plugin should provide only one role.
-  virtual const QString roleForPlugin()const;
-
-  /// Set icon of a owned subject hierarchy node
-  /// \return Flag indicating whether setting an icon was successful
-  virtual bool setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
-
-  /// Set visibility icon of a owned subject hierarchy node
-  virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
-
-  /// Open module belonging to node and set inputs in opened module
-  virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
-
   /// Get node context menu item actions to add to tree view
   virtual QList<QAction*> nodeContextMenuActions()const;
 
@@ -84,11 +62,20 @@ protected slots:
   /// context menu option offering the possible registration methods,
   void registerCurrentNodeTo();
 
-  /// Switch to registration module corresponding to selected method, set chosen
-  /// input nodes, offer a best guess parameter set based on modalities etc.
-  /// The parameter sets are stored in files and loaded in a separate scene at
-  /// startup.
-  void registerSelectedToCurrentNode();
+  /// Register saved 'from' node to current node using image based rigid registration.
+  /// (Switch to registration module corresponding to selected method, set chosen
+  /// input nodes, offer a best guess parameter set based on modalities etc.)
+  void registerImageBasedRigid();
+
+  /// Register saved 'from' node to current node using image based BSpline registration
+  /// (Switch to registration module corresponding to selected method, set chosen
+  /// input nodes, offer a best guess parameter set based on modalities etc.)
+  void registerImageBasedBSpline();
+
+  /// Register saved 'from' node to current node using interactive landmark registration
+  /// (Switch to registration module corresponding to selected method, set chosen
+  /// input nodes, offer a best guess parameter set based on modalities etc.)
+  void registerInteractiveLandmark();
 
 protected:
   vtkMRMLSubjectHierarchyNode* m_RegisterFromNode;

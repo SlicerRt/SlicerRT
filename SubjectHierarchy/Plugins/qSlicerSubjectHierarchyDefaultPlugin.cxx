@@ -230,9 +230,7 @@ QList<QAction*> qSlicerSubjectHierarchyDefaultPlugin::sceneContextMenuActions()c
 void qSlicerSubjectHierarchyDefaultPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyDefaultPlugin);
-
-  d->CreateSubjectAction->setVisible(false);
-  d->CreateStudyAction->setVisible(false);
+  this->hideAllContextMenuActions();
 
   // Scene
   if (!node)

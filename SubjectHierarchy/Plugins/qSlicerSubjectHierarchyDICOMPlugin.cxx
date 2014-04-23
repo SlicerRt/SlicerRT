@@ -230,9 +230,7 @@ QList<QAction*> qSlicerSubjectHierarchyDICOMPlugin::nodeContextMenuActions()cons
 void qSlicerSubjectHierarchyDICOMPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(qSlicerSubjectHierarchyDICOMPlugin);
-
-  d->CreateGenericSeriesAction->setVisible(false);
-  d->CreateGenericSubseriesAction->setVisible(false);
+  this->hideAllContextMenuActions();
 
   if (!node)
   {
