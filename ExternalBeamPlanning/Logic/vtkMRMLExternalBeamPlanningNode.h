@@ -153,6 +153,11 @@ public:
   /// Set and observe RT plan node
   void SetAndObserveRtPlanNode(vtkMRMLRTPlanNode* node);
 
+  /// Get contour set node (can be contour node or contour set (subject hierarchy) node)
+  vtkMRMLNode* GetPlanContourSetNode();
+  /// Set and observe contour set node (can be contour node or contour set (subject hierarchy) node)
+  void SetAndObservePlanContourSetNode(vtkMRMLNode* node);
+
   /// Get isocenter fiducial node
   vtkMRMLMarkupsFiducialNode* GetIsocenterFiducialNode();
   /// Set and observe isocenter fiducial node

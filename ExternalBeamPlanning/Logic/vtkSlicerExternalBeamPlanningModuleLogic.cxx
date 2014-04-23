@@ -31,6 +31,7 @@
 #include "PlmCommon.h"
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
+#include "vtkSlicerContoursModuleLogic.h"
 
 // Plastimatch includes
 #include "plm_image.h"
@@ -51,6 +52,7 @@
 #include <vtkMRMLSliceLogic.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLSliceCompositeNode.h>
+#include <vtkMRMLScalarVolumeDisplayNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -69,6 +71,7 @@
 #include <vtkImageCast.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkProperty.h>
+#include <vtkActor.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkVolumeRayCastMapper.h>
@@ -80,6 +83,9 @@
 #include <vtkImageShiftScale.h>
 #include <vtkImageExtractComponents.h>
 #include <vtkTransform.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkImageGradientMagnitude.h>
+#include <vtkImageMathematics.h>
 
 // ITK includes
 #include <itkImageRegionIteratorWithIndex.h>
@@ -633,13 +639,14 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
 
   vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
-  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
-  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode();
+  //vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(this->ExternalBeamPlanningNode->GetPlanContourSetNode());
+  //vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
+  //vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode();
 
   // Make sure inputs are initialized
-  if (!rtPlanNode || !isocenterMarkupsNode || !referenceVolumeNode)// || !MLCPositionDoubleArrayNode)
+  if (!rtPlanNode || !referenceVolumeNode)// || !MLCPositionDoubleArrayNode)
   {
-    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    vtkErrorMacro("UpdateDRR: Inputs are not initialized!")
     return;
   }
 
@@ -659,6 +666,20 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
         break;
       }
     }
+  }
+
+  // Make sure inputs are initialized
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateDRR: Inputs are not initialized!")
+    return;
+  }
+  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
+  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
+  if (!isocenterMarkupsNode || !MLCPositionDoubleArrayNode)
+  {
+    vtkErrorMacro("UpdateDRR: Inputs are not initialized!")
+    return;
   }
 
   // Cast image data to uchar for faster rendering (this is for CT data only now)
@@ -740,6 +761,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   camera->SetPosition(0, 0, 1000);
   camera->SetFocalPoint(0, 0, 0);
   camera->SetViewAngle(14.68);
+  camera->SetClippingRange(100, 2000);
   camera->ParallelProjectionOff();
 
   // Add the volume to the scene
@@ -759,11 +781,16 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   extract->Update();
 
   // Add the drr image to mrml scene
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> DRRImageNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  DRRImageNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->AddNode(DRRImageNode));
-  std::string DRRImageNodeName = std::string(beamname) + std::string("_DRRImage");
-  DRRImageNodeName = this->GetMRMLScene()->GenerateUniqueName(DRRImageNodeName);
-  DRRImageNode->SetName(DRRImageNodeName.c_str());
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> DRRImageNode = beamNode->GetDRRVolumeNode();
+  if (!DRRImageNode)
+  {
+    DRRImageNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+    DRRImageNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->AddNode(DRRImageNode));
+    std::string DRRImageNodeName = std::string(beamname) + std::string("_DRRImage");
+    DRRImageNodeName = this->GetMRMLScene()->GenerateUniqueName(DRRImageNodeName);
+    DRRImageNode->SetName(DRRImageNodeName.c_str());
+    beamNode->SetAndObserveDRRVolumeNode(DRRImageNode);
+  }
   //DRRImageNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   DRRImageNode->SetAndObserveImageData(extract->GetOutput());
   DRRImageNode->SetOrigin(-128,-128,0);
@@ -776,7 +803,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
     return;
   }
 
-  //  
+  // Transforms to place the DRR image aligned with the beam geometry
   vtkSmartPointer<vtkTransform> transformDRR = vtkSmartPointer<vtkTransform>::New();
   transformDRR->Identity();
   transformDRR->RotateZ(this->ExternalBeamPlanningNode->GetGantryAngle());
@@ -789,18 +816,148 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   transformDRR->PostMultiply();
   transformDRR->Concatenate(transformDRR2->GetMatrix());
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> DRRImageTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
-  DRRImageTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->AddNode(DRRImageTransformNode));
-  std::string DRRImageTransformNodeName = std::string(beamname) + std::string("_DRRImage_Transform");
-  DRRImageTransformNodeName = this->GetMRMLScene()->GenerateUniqueName(DRRImageTransformNodeName);
-  DRRImageTransformNode->SetName(DRRImageTransformNodeName.c_str());
+  vtkSmartPointer<vtkMRMLLinearTransformNode> DRRImageTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID(DRRImageNode->GetTransformNodeID()));
+  if (!DRRImageTransformNode)
+  {
+    DRRImageTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+    DRRImageTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->AddNode(DRRImageTransformNode));
+    std::string DRRImageTransformNodeName = std::string(beamname) + std::string("_DRRImage_Transform");
+    DRRImageTransformNodeName = this->GetMRMLScene()->GenerateUniqueName(DRRImageTransformNodeName);
+    DRRImageTransformNode->SetName(DRRImageTransformNodeName.c_str());
+    DRRImageNode->SetAndObserveTransformNodeID(DRRImageTransformNode->GetID());
+  }
   DRRImageTransformNode->SetAndObserveMatrixTransformToParent(transformDRR->GetMatrix());
-  DRRImageNode->SetAndObserveTransformNodeID(DRRImageTransformNode->GetID());
 
+  // 
   vtkSmartPointer<vtkMRMLSliceNode> sliceNode = sliceLogic->GetSliceNode();
   vtkSmartPointer<vtkMRMLSliceCompositeNode> compositeSliceNode = sliceLogic->GetSliceCompositeNode();
   compositeSliceNode->SetBackgroundVolumeID(DRRImageNode->GetID());
 
+  // Get list of contours from the contour hierarchy node
+  std::vector<vtkMRMLContourNode*> selectedContourNodes;
+  vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(this->ExternalBeamPlanningNode->GetPlanContourSetNode(), selectedContourNodes);
+  // Compute DVH and get result nodes
+  vtkSmartPointer<vtkImageData> mergedImageData = vtkSmartPointer<vtkImageData>::New();
+  unsigned int numberOfContours = 0;
+  for (std::vector<vtkMRMLContourNode*>::iterator contourIt = selectedContourNodes.begin(); contourIt != selectedContourNodes.end(); ++contourIt)
+  {
+    numberOfContours++;
+  //if (contourNode)
+  //{
+    // Create the translucent contour object in BEV 
+    // Create the renderer, render window 
+    vtkSmartPointer<vtkRenderer> renderer2 = vtkSmartPointer<vtkRenderer>::New();
+    vtkSmartPointer<vtkRenderWindow> renWin2 = vtkSmartPointer<vtkRenderWindow>::New();
+    renWin2->SetOffScreenRendering(1);
+    renWin2->AddRenderer(renderer2);
+
+    // Now we'll look at it.
+    vtkSmartPointer<vtkPolyDataMapper> contourPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    vtkSmartPointer<vtkPolyData> polydata = (*contourIt)->GetClosedSurfaceModelNode()->GetPolyData();
+    contourPolyDataMapper->SetInput(polydata);
+    //contourPolyDataMapper->SetScalarRange(0,255);
+    vtkSmartPointer<vtkActor> contourPolyDataActor = vtkSmartPointer<vtkActor>::New();
+    contourPolyDataActor->SetMapper(contourPolyDataMapper);
+    contourPolyDataActor->GetProperty()->LightingOff();
+    contourPolyDataActor->GetProperty()->SetColor(1.0,1.0,1.0);
+
+    vtkSmartPointer<vtkTransform> transformContourBEV = vtkSmartPointer<vtkTransform>::New();
+    transformContourBEV->Identity();
+    transformContourBEV->RotateY(this->ExternalBeamPlanningNode->GetGantryAngle());
+    transformContourBEV->RotateX(90);
+
+    vtkSmartPointer<vtkTransform> transformContourBEV2 = vtkSmartPointer<vtkTransform>::New();
+    transformContourBEV2->Identity();
+    transformContourBEV2->Translate(-isoCenterPosition[0], -isoCenterPosition[1], -isoCenterPosition[2]);
+
+    transformContourBEV->PreMultiply();
+    transformContourBEV->Concatenate(transformContourBEV2);
+    contourPolyDataActor->SetUserTransform( transformContourBEV );
+
+    // The usual rendering stuff.
+    vtkSmartPointer<vtkCamera> camera2 = vtkSmartPointer<vtkCamera>::New();
+    // fixed camera parameters for now
+    camera2->SetPosition(0, 0, 1000);
+    camera2->SetFocalPoint(0, 0, 0);
+    camera2->SetViewAngle(14.68);
+    camera2->SetClippingRange(100, 2000);
+    camera2->ParallelProjectionOff();
+
+    // Add the volume to the scene
+    renderer2->AddActor(contourPolyDataActor);
+    renderer2->SetActiveCamera(camera2);
+
+    renWin2->SetSize(this->DRRImageSize[0], this->DRRImageSize[1]);
+    renWin2->Render();
+
+    // Capture and convert to 2D image
+    vtkSmartPointer<vtkWindowToImageFilter> windowToImage2 = vtkSmartPointer<vtkWindowToImageFilter>::New();
+    windowToImage2->SetInput( renWin2 );
+
+    vtkSmartPointer<vtkImageExtractComponents> extract2 = vtkSmartPointer<vtkImageExtractComponents>::New();
+    extract2->SetInputConnection( windowToImage2->GetOutputPort() );
+    extract2->SetComponents(0);
+    extract2->Update();
+
+    // Investigate when contour technique to use (gradient )
+    vtkSmartPointer<vtkImageGradientMagnitude> magnitude = vtkSmartPointer<vtkImageGradientMagnitude>::New();
+    magnitude->SetInputConnection( extract2->GetOutputPort() );
+    magnitude->SetDimensionality(2);
+    magnitude->Update();
+
+    if (numberOfContours > 1)
+    {
+      vtkSmartPointer<vtkImageMathematics> addFilter = vtkSmartPointer<vtkImageMathematics>::New(); 
+      addFilter->SetInput1(mergedImageData);
+      addFilter->SetInput2(magnitude->GetOutput());
+      addFilter->SetOperationToAdd();
+      addFilter->Update();
+      mergedImageData->DeepCopy(addFilter->GetOutput());
+    }
+    else
+    {
+      mergedImageData->DeepCopy(magnitude->GetOutput());
+    }
+  }
+
+  // Add the contour BEV image to mrml scene
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> contourBEVImageNode = beamNode->GetContourBEVVolumeNode();
+  if (!contourBEVImageNode)
+  {
+    contourBEVImageNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+    contourBEVImageNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->AddNode(contourBEVImageNode));
+    std::string contourBEVImageNodeName = std::string(beamname) + std::string("_ContourBEVImage");
+    contourBEVImageNodeName = this->GetMRMLScene()->GenerateUniqueName(contourBEVImageNodeName);
+    contourBEVImageNode->SetName(contourBEVImageNodeName.c_str());
+
+  }
+  beamNode->SetAndObserveContourBEVVolumeNode(contourBEVImageNode);
+
+  vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> volumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(contourBEVImageNode->GetDisplayNode());
+  if (!volumeDisplayNode)
+  {
+    // Set default colormap to the loaded one if found or generated, or to rainbow otherwise
+    volumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+    this->GetMRMLScene()->AddNode(volumeDisplayNode);
+  }
+  volumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGreen");
+  volumeDisplayNode->SetScalarRange(0,255);
+  volumeDisplayNode->AutoWindowLevelOff();
+  volumeDisplayNode->SetWindow(64);
+  volumeDisplayNode->SetLevel(128);
+
+  contourBEVImageNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
+  contourBEVImageNode->SetAndObserveImageData(mergedImageData);
+  contourBEVImageNode->SetOrigin(-128,-128,0);
+  contourBEVImageNode->SetSelectable(1);
+
+  contourBEVImageNode->SetAndObserveTransformNodeID(DRRImageTransformNode->GetID());
+
+  compositeSliceNode->SetForegroundVolumeID(contourBEVImageNode->GetID());
+  compositeSliceNode->SetForegroundOpacity(0.3);
+
+  // Transform ???
   vtkSmartPointer<vtkTransform> transformSlice = vtkSmartPointer<vtkTransform>::New();
   transformSlice->Identity();
   transformSlice->RotateZ(this->ExternalBeamPlanningNode->GetGantryAngle());

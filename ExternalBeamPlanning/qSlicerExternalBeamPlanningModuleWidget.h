@@ -66,6 +66,7 @@ protected slots:
   void onLogicModified();
 
   void referenceVolumeNodeChanged(vtkMRMLNode*);
+  void planContourSetNodeChanged(vtkMRMLNode*);
   void rtPlanNodeChanged(vtkMRMLNode*);
   void addBeamClicked();
   void removeBeamClicked();
@@ -101,6 +102,7 @@ protected slots:
   /* Beam visualization */
   void updateDRRClicked();
   void beamEyesViewClicked(bool);
+  void contoursInBEWClicked(bool);
 
 protected:
   ///

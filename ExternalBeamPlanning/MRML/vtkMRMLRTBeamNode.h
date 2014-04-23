@@ -183,6 +183,16 @@ public:
   /// Set and observe MLC position double array node
   void SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
 
+  /// Get DRR volume node
+  vtkMRMLScalarVolumeNode* GetDRRVolumeNode();
+  /// Set and observe DRR volume node
+  void SetAndObserveDRRVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  /// Get contour BEV node
+  vtkMRMLScalarVolumeNode* GetContourBEVVolumeNode();
+  /// Set and observe contour BEV node
+  void SetAndObserveContourBEVVolumeNode(vtkMRMLScalarVolumeNode* node);
+
 protected:
   /// Set beam model node ID
   vtkSetReferenceStringMacro(BeamModelNodeId);

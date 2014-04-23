@@ -268,9 +268,14 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
+  // Set up contour selector widget
+  d->ContourSelectorWidget->setAcceptContourHierarchies(true);
+  d->ContourSelectorWidget->setRequiredRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
+
   // Make connections
   this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setExternalBeamPlanningNode(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->ContourSelectorWidget, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planContourSetNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtPlanNodeChanged(vtkMRMLNode*)) );
 
   this->connect( d->tableWidget_Beams, SIGNAL(itemClicked(QtableWidgetItem *item)), this, SLOT(tableWidgetItemClicked(QtableWidgetItem *item)) );
@@ -308,6 +313,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   /* Beam visualization */
   this->connect( d->pushButton_UpdateDRR, SIGNAL(clicked()), this, SLOT(updateDRRClicked()) );
   this->connect( d->checkBox_BeamEyesView, SIGNAL(clicked(bool)), this, SLOT(beamEyesViewClicked(bool)) );
+  this->connect( d->checkBox_ContoursInBEW, SIGNAL(clicked(bool)), this, SLOT(contoursInBEWClicked(bool)) );
 
   /* Disable unused buttons in prescription task */
   this->radiationTypeChanged(0);
@@ -420,6 +426,28 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
+  paramNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::planContourSetNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::planContoursNodeChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode || !node)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObservePlanContourSetNode(node);
   paramNode->DisableModifiedEventOff();
 }
 
@@ -1216,6 +1244,21 @@ void qSlicerExternalBeamPlanningModuleWidget::beamEyesViewClicked(bool checked)
   else
   {
     qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutFourUpView);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::contoursInBEWClicked(bool checked)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  // Todo: add the logic to check if contours should be included in the DRR view
+  // right now the contours are included always. 
+  if (checked)
+  {
+  }
+  else
+  {
   }
 }
 
