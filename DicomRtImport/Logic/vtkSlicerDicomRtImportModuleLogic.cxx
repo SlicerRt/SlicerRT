@@ -920,7 +920,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
 
       // Put new beam model in the subject hierarchy
       vtkMRMLSubjectHierarchyNode* beamModelSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-        this->GetMRMLScene(), (this->BeamModelsInSeparateBranch ? beamModelSubjectHierarchyRootNode : subjectHierarchyFiducialNode),
+        this->GetMRMLScene(), (this->BeamModelsInSeparateBranch ? vtkMRMLSubjectHierarchyNode::SafeDownCast(beamModelSubjectHierarchyRootNode) : subjectHierarchyFiducialNode),
         vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES, beamModelName.c_str(), beamModelHierarchyNode);
       beamModelSubjectHierarchyNode->SetIndexInParent(beamIndex);
 
