@@ -133,18 +133,18 @@ protected:
   /// This function applies a linear/deformable transformation at an image.
   /// It is used from ApplyInitialLinearTransformation() and RunRegistration().
   void ApplyWarp(
-    Plm_image* warpedImage,                        /*!< Output image as Plm_image pointer */
+    Plm_image::Pointer& warpedImage,     /*!< Output image (optional) */
     DeformationFieldType::Pointer vectorFieldFromTransformation, /*!< Output vector field (optional) as DeformationFieldType::Pointer */
-    const Xform::Pointer inputTransformation,                    /*!< Input transformation as Xform pointer */
-    Plm_image* fixedImage,                         /*!< Fixed image as Plm_image pointer */
-    Plm_image* imageToWarp,                         /*!< Input image to warp as Plm_image pointer */
+    const Xform::Pointer& inputTransformation,                    /*!< Input transformation as Xform pointer */
+    const Plm_image::Pointer& fixedImage,                         /*!< Fixed image */
+    const Plm_image::Pointer& imageToWarp,                         /*!< Input image to warp */
     float defaultValue,                            /*!< Value (float) for pixels without match */
     int useItk,                                    /*!< Int to choose between itk (1) or Plastimatch (0) algorithm for the warp task */
     int interpolationLinear                        /*!< Int to choose between trilinear interpolation (1) on nearest neighbor (0) */
     );
 
   /// This function shows the deformed image into the Slicer scene
-  void SetWarpedImageInVolumeNode(Plm_image* warpedPlastimatchImage);
+  void SetWarpedImageInVolumeNode(Plm_image::Pointer& warpedPlastimatchImage);
 
 protected:
   vtkPlmpyRegistration();

@@ -180,14 +180,13 @@ void vtkPlmpyRegistration::RunRegistration()
   Xform::Pointer outputXform = 
     do_registration_pure (this->RegistrationData, this->RegistrationParameters);
 
-  Plm_image* warpedImage = new Plm_image();
+  Plm_image::Pointer warpedImage = Plm_image::New();
   this->ApplyWarp(
     warpedImage, this->MovingImageToFixedImageVectorField, 
-    outputXform, this->RegistrationData->fixed_image.get(), 
-    this->RegistrationData->moving_image.get(), -1200, 0, 1);
+    outputXform, this->RegistrationData->fixed_image, 
+    this->RegistrationData->moving_image, -1200, 0, 1);
 
   this->SetWarpedImageInVolumeNode(warpedImage);
-  delete warpedImage;
 
   // Do some maneuvers to put our vector field into the node
   if (this->OutputVectorFieldID) {
@@ -279,23 +278,23 @@ void vtkPlmpyRegistration::WarpLandmarks()
 void vtkPlmpyRegistration::SetLandmarksFromSlicer()
 {
   if (!this->FixedLandmarks || !this->MovingLandmarks)
-    {
+  {
     vtkErrorMacro("SetLandmarksFromSlicer: Landmark point lists are not valid!");
     return;
-    }
+  }
 
   Labeled_pointset* fixedLandmarksSet = new Labeled_pointset();
   Labeled_pointset* movingLandmarksSet = new Labeled_pointset();
   
   for (int i = 0; i < this->FixedLandmarks->GetNumberOfPoints(); i++)
-    {
+  {
 
 // NSh Debug
     printf("C code fixed landmark %d is (%.3f %.3f %.3f)\n", i,
       - this->FixedLandmarks->GetPoint(i)[0],
       - this->FixedLandmarks->GetPoint(i)[1],
       this->FixedLandmarks->GetPoint(i)[2]
-	);
+    );
 
     Labeled_point* fixedLandmark = new Labeled_point("point",
       - this->FixedLandmarks->GetPoint(i)[0],
@@ -309,7 +308,7 @@ void vtkPlmpyRegistration::SetLandmarksFromSlicer()
    
     fixedLandmarksSet->point_list.push_back(*fixedLandmark);
     movingLandmarksSet->point_list.push_back(*movingLandmark);
-    }
+  }
 
   this->RegistrationData->fixed_landmarks = fixedLandmarksSet;
   this->RegistrationData->moving_landmarks = movingLandmarksSet;
@@ -319,10 +318,10 @@ void vtkPlmpyRegistration::SetLandmarksFromSlicer()
 void vtkPlmpyRegistration::SetLandmarksFromFiles()
 {
   if (!this->FixedLandmarksFileName || !this->MovingLandmarksFileName)
-    {
+  {
     vtkErrorMacro("SetLandmarksFromFiles: Unable to read landmarks from files as at least one of the filenames is invalid!");
     return;
-    }
+  }
 
   Labeled_pointset* fixedLandmarksFromFile = new Labeled_pointset();
   fixedLandmarksFromFile->load(this->FixedLandmarksFileName);
@@ -337,19 +336,19 @@ void vtkPlmpyRegistration::SetLandmarksFromFiles()
 void vtkPlmpyRegistration::ApplyInitialLinearTransformation()
 {
   if (!this->InitializationLinearTransformationID)
-    {
+  {
     vtkErrorMacro("ApplyInitialLinearTransformation: Invalid input transformation ID!");
     return;
-    }
+  }
 
   // Get transformation as 4x4 matrix
   vtkMRMLLinearTransformNode* initializationLinearTransformationNode =
     vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->InitializationLinearTransformationID));
   if (!initializationLinearTransformationNode)
-    {
+  {
     vtkErrorMacro("ApplyInitialLinearTransformation: Failed to retrieve input transformation!");
     return;
-    }
+  }
   vtkMatrix4x4* initializationTransformationAsVtkTransformationMatrix = 
     initializationLinearTransformationNode->GetMatrixTransformToParent();
 
@@ -360,14 +359,14 @@ void vtkPlmpyRegistration::ApplyInitialLinearTransformation()
   // Set rotations
   int affineParameterIndex=0;
   for (int column=0; column < 3; column++)
-    {
+  {
     for (int row=0; row < 3; row++)
-      {
+    {
       initializationTransformationAsAffineParameters.SetElement(
         affineParameterIndex, initializationTransformationAsVtkTransformationMatrix->GetElement(row,column));
       affineParameterIndex++;
-      }
     }
+  }
 
   // Set translations
   initializationTransformationAsAffineParameters.SetElement(
@@ -388,9 +387,10 @@ void vtkPlmpyRegistration::ApplyInitialLinearTransformation()
 
   // Warp image using the input transformation
   Plm_image::Pointer prealignedImage = Plm_image::New();
-  this->ApplyWarp(prealignedImage.get(), NULL, 
+  this->ApplyWarp(prealignedImage, NULL, 
     plmInitializationXform, 
-    this->RegistrationData->fixed_image.get(), this->RegistrationData->moving_image.get(), -1200, 0, 1);
+    this->RegistrationData->fixed_image, 
+    this->RegistrationData->moving_image, -1200, 0, 1);
 
   // Update moving image
   this->RegistrationData->moving_image = prealignedImage;
@@ -398,29 +398,30 @@ void vtkPlmpyRegistration::ApplyInitialLinearTransformation()
 
 //---------------------------------------------------------------------------
 void vtkPlmpyRegistration::ApplyWarp(
-  Plm_image* warpedImage,
+  Plm_image::Pointer& warpedImage,
   DeformationFieldType::Pointer vectorFieldFromTransformation, 
-  const Xform::Pointer inputTransformation, 
-  Plm_image* fixedImage, 
-  Plm_image* imageToWarp, 
+  const Xform::Pointer& inputTransformation, 
+  const Plm_image::Pointer& fixedImage, 
+  const Plm_image::Pointer& imageToWarp, 
   float defaultValue, 
   int useItk, 
   int interpolationLinear)
 {
-  Plm_image_header* plastimatchImageHeader = new Plm_image_header(fixedImage);
-  plm_warp(warpedImage, &vectorFieldFromTransformation, inputTransformation, plastimatchImageHeader,
+  Plm_image_header plastimatchImageHeader (fixedImage);
+  plm_warp (warpedImage, &vectorFieldFromTransformation, 
+    inputTransformation, &plastimatchImageHeader,
     imageToWarp, defaultValue, useItk, interpolationLinear);
   this->MovingImageToFixedImageVectorField = vectorFieldFromTransformation;
 }
 
 //---------------------------------------------------------------------------
-void vtkPlmpyRegistration::SetWarpedImageInVolumeNode(Plm_image* warpedPlastimatchImage)
+void vtkPlmpyRegistration::SetWarpedImageInVolumeNode(Plm_image::Pointer& warpedPlastimatchImage)
 {
   if (!warpedPlastimatchImage || !warpedPlastimatchImage->itk_float())
-    {
+  {
     vtkErrorMacro("SetWarpedImageInVolumeNode: Invalid warped image!");
     return;
-    }
+  }
 
   itk::Image<float, 3>::Pointer outputImageItk = warpedPlastimatchImage->itk_float();    
 
@@ -432,20 +433,20 @@ void vtkPlmpyRegistration::SetWarpedImageInVolumeNode(Plm_image* warpedPlastimat
     = vtkMRMLScalarVolumeNode::SafeDownCast(
       this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
   if (!fixedVolumeNode)
-    {
+  {
     vtkErrorMacro("SetWarpedImageInVolumeNode: Node containing the fixed image cannot be retrieved!");
     return;
-    }
+  }
 
   // Create new image node
   vtkMRMLScalarVolumeNode* warpedImageNode 
     = vtkMRMLScalarVolumeNode::SafeDownCast(
       this->GetMRMLScene()->GetNodeByID(this->OutputVolumeID));
   if (!warpedImageNode)
-    {
+  {
     vtkErrorMacro("SetWarpedImageInVolumeNode: Node containing the warped image cannot be retrieved!");
     return;
-    }
+  }
 
   // Set warped image to a Slicer node
   warpedImageNode->CopyOrientation(fixedVolumeNode);
