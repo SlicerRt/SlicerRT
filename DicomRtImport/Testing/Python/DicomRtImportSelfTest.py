@@ -235,7 +235,6 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     studies = slicer.dicomDatabase.studiesForPatient(patient)
     series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
     seriesUIDs = [uid for uidList in series for uid in uidList]
-    detailsPopup.advancedViewButton.setChecked(True) #TODO: Temporary fix for intermediate DICOM browser version
     detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
     detailsPopup.examineForLoading()
 

@@ -258,7 +258,6 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       studies = slicer.dicomDatabase.studiesForPatient(patient)
       series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
       seriesUIDs = [uid for uidList in series for uid in uidList]
-      dicomWidget.detailsPopup.advancedViewButton.setChecked(True) #TODO: Temporary fix for intermediate DICOM browser version
       dicomWidget.detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
       dicomWidget.detailsPopup.examineForLoading()
 
@@ -547,7 +546,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
 
       day2CT = slicer.util.getNode(self.day2CTName)
       parametersRigid["movingVolume"] = day2CT.GetID()
-      
+
       linearTransform = slicer.vtkMRMLLinearTransformNode()
       linearTransform.SetName(self.transformDay2ToDay1RigidName)
       slicer.mrmlScene.AddNode( linearTransform )
