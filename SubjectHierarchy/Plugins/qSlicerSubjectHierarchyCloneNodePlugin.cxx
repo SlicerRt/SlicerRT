@@ -166,9 +166,9 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
       clonedDisplayNode->Copy(displayableDataNode->GetDisplayNode());
       std::string clonedDisplayNodeName = std::string(displayableDataNode->GetDisplayNode()->GetName()) + CLONE_NODE_NAME_POSTFIX;
       clonedDisplayNode->SetName(clonedDisplayNodeName.c_str());
+      scene->AddNode(clonedDisplayNode);
       vtkMRMLDisplayableNode* clonedDisplayableDataNode = vtkMRMLDisplayableNode::SafeDownCast(clonedDataNode);
       clonedDisplayableDataNode->SetAndObserveDisplayNodeID(clonedDisplayNode->GetID());
-      scene->AddNode(clonedDisplayNode);
       clonedDisplayNode->Delete(); // Return the ownership to the scene only
     }
 
@@ -182,8 +182,8 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
       std::string clonedStorageNodeFileName = std::string(storableDataNode->GetStorageNode()->GetFileName()) + CLONE_NODE_NAME_POSTFIX;
       clonedStorageNode->SetFileName(clonedStorageNodeFileName.c_str());
       vtkMRMLStorableNode* clonedStorableDataNode = vtkMRMLStorableNode::SafeDownCast(clonedDataNode);
-      clonedStorableDataNode->SetAndObserveStorageNodeID(clonedStorageNode->GetID());
       scene->AddNode(clonedStorableDataNode);
+      clonedStorableDataNode->SetAndObserveStorageNodeID(clonedStorageNode->GetID());
       clonedStorableDataNode->Delete(); // Return the ownership to the scene only
     }
 
@@ -199,8 +199,8 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
       clonedHierarchyNode->Copy(genericHierarchyNode);
       std::string clonedHierarchyNodeName = std::string(genericHierarchyNode->GetName()) + CLONE_NODE_NAME_POSTFIX;
       clonedHierarchyNode->SetName(clonedHierarchyNodeName.c_str());
-      clonedHierarchyNode->SetAssociatedNodeID(clonedDataNode->GetID());
       scene->AddNode(clonedHierarchyNode);
+      clonedHierarchyNode->SetAssociatedNodeID(clonedDataNode->GetID());
       clonedHierarchyNode->Delete(); // Return the ownership to the scene only
     }
 
