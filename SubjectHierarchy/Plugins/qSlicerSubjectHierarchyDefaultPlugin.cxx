@@ -24,7 +24,7 @@
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 
 // SubjectHierarchy MRML includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // Qt includes
@@ -108,10 +108,10 @@ qSlicerSubjectHierarchyDefaultPlugin::qSlicerSubjectHierarchyDefaultPlugin(QObje
 
   // Scene -> Subject
   this->m_ChildLevelMap.insert( QString(),
-    vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
+    vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
   // Subject -> Study
-  this->m_ChildLevelMap.insert( vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT,
-    vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
+  this->m_ChildLevelMap.insert( vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT,
+    vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
 
   Q_D(qSlicerSubjectHierarchyDefaultPlugin);
   d->init();
@@ -159,12 +159,12 @@ bool qSlicerSubjectHierarchyDefaultPlugin::setIcon(vtkMRMLSubjectHierarchyNode* 
   Q_D(qSlicerSubjectHierarchyDefaultPlugin);
 
   // Subject and Study icons
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
   {
     item->setIcon(d->SubjectIcon);
     return true;
   }
-  else if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  else if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     item->setIcon(d->StudyIcon);
     return true;
@@ -238,7 +238,7 @@ void qSlicerSubjectHierarchyDefaultPlugin::showContextMenuActionsForNode(vtkMRML
     d->CreateSubjectAction->setVisible(true);
   }
   // Subject
-  else if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
+  else if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
   {
     d->CreateStudyAction->setVisible(true);
   }

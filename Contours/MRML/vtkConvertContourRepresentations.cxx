@@ -29,7 +29,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include "vtkPolyDataToLabelmapFilter.h"
 
 // Subject Hierarchy includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
@@ -182,7 +182,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     {
       vtkMRMLSubjectHierarchyNode* subjectHierarchyNode_ReferencedSeries =
         vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-          mrmlScene, vtkSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid );
+          mrmlScene, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid );
       if (subjectHierarchyNode_ReferencedSeries)
       {
         referencedAnatomyVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(subjectHierarchyNode_ReferencedSeries->GetAssociatedDataNode());

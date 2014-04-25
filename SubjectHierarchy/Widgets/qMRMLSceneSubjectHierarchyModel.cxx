@@ -22,7 +22,7 @@
 #include "qMRMLSceneSubjectHierarchyModel.h"
 
 // Subject Hierarchy includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 #include "qMRMLSceneSubjectHierarchyModel_p.h"
@@ -393,7 +393,7 @@ void qMRMLSceneSubjectHierarchyModel::updateNodeFromItemData(vtkMRMLNode* node, 
   // Name column
   if ( item->column() == this->nameColumn() )
   {
-    subjectHierarchyNode->SetName(item->text().append(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str()).toLatin1().constData());
+    subjectHierarchyNode->SetName(item->text().append(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str()).toLatin1().constData());
 
     // Rename data node too
     vtkMRMLNode* associatedDataNode = subjectHierarchyNode->GetAssociatedDataNode();

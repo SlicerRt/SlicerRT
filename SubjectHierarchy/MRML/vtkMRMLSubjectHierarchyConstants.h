@@ -1,5 +1,5 @@
-#ifndef __vtkSubjectHierarchyConstants_h
-#define __vtkSubjectHierarchyConstants_h
+#ifndef __vtkMRMLSubjectHierarchyConstants_h
+#define __vtkMRMLSubjectHierarchyConstants_h
 
 #include "vtkSlicerSubjectHierarchyModuleMRMLExport.h"
 
@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <string>
 
-class VTK_SLICER_SUBJECTHIERARCHY_MODULE_MRML_EXPORT vtkSubjectHierarchyConstants
+class VTK_SLICER_SUBJECTHIERARCHY_MODULE_MRML_EXPORT vtkMRMLSubjectHierarchyConstants
 {
 public:
   //----------------------------------------------------------------------------

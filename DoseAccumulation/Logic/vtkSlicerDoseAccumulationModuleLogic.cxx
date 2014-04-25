@@ -25,7 +25,7 @@
 #include "vtkMRMLDoseAccumulationNode.h"
 
 // Subject Hierarchy includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
@@ -371,7 +371,7 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     return;
   }
   vtkMRMLSubjectHierarchyNode* studyNode = referenceDoseVolumeSubjectHierarchyNode->GetAncestorAtLevel(
-    vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
+    vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
   if (!studyNode)
   {
     errorMessage = "No study node found for reference dose!"; 
@@ -385,7 +385,7 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   if (!subjectHierarchySeriesNode)
   {
     vtkMRMLSubjectHierarchyNode* childSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      this->GetMRMLScene(), studyNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, outputAccumulatedDoseVolumeNode->GetName(), outputAccumulatedDoseVolumeNode);
+      this->GetMRMLScene(), studyNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, outputAccumulatedDoseVolumeNode->GetName(), outputAccumulatedDoseVolumeNode);
     if (!childSubjectHierarchyNode)
     {
       errorMessage = "Failed to create subject hierarchy node!"; 

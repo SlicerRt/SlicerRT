@@ -26,7 +26,7 @@
 #include "qSlicerSubjectHierarchyDvhPlugin.h"
 
 // SubjectHierarchy MRML includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // SubjectHierarchy Plugins includes
@@ -357,9 +357,9 @@ vtkMRMLSubjectHierarchyNode* qSlicerSubjectHierarchyDvhPlugin::getChartForDvhArr
   {
     vtkMRMLSubjectHierarchyNode* seriesNode =
       dvhArraySubjectHierarchyNode->vtkMRMLSubjectHierarchyNode::GetAncestorAtLevel(
-      vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES );
+      vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES );
     chartSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      scene, seriesNode, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+      scene, seriesNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
       chartNode->GetName(), chartNode);
   }
 

@@ -21,7 +21,7 @@
 
 // SubjectHierarchy MRML includes
 #include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -184,7 +184,7 @@ bool qSlicerSubjectHierarchyVolumesPlugin::setIcon(vtkMRMLSubjectHierarchyNode* 
   }
 
   // Study level
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("DICOM")->setIcon(node, item);
     return true;
@@ -221,7 +221,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::setVisibilityIcon(vtkMRMLSubjectHiera
   }
 
   // Study level
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("DICOM")->setVisibilityIcon(node, item);
     return;
@@ -260,7 +260,7 @@ int qSlicerSubjectHierarchyVolumesPlugin::getDisplayVisibility(vtkMRMLSubjectHie
   }
 
   // Study level
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("DICOM")->getDisplayVisibility(node);
   }
@@ -578,7 +578,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::showContextMenuActionsForNode(vtkMRML
   }
 
   // Study level
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     d->ShowVolumesInStudyAction->setVisible(true);
   }

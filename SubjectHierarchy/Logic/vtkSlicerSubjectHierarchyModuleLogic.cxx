@@ -21,7 +21,7 @@
 
 // SubjectHierarchy includes
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // MRML includes
@@ -120,7 +120,7 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSe
     vtkMRMLSubjectHierarchyNode *node = vtkMRMLSubjectHierarchyNode::SafeDownCast(subjectHierarchyNodes[i]);
     if ( node && node->IsA("vtkMRMLSubjectHierarchyNode") )
     {
-      std::string nodeDicomUIDStr = node->GetUID(vtkSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME);
+      std::string nodeDicomUIDStr = node->GetUID(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME);
       const char* nodeDicomUID = nodeDicomUIDStr.c_str();
       if (!nodeDicomUID)
       {
@@ -155,8 +155,8 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSe
   if (!patientNode)
   {
     patientNode = vtkMRMLSubjectHierarchyNode::New();
-    patientNode->SetLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT);
-    patientNode->AddUID(vtkSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, patientId);
+    patientNode->SetLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT);
+    patientNode->AddUID(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, patientId);
     patientNode->SetOwnerPluginName("DICOM");
     scene->AddNode(patientNode);
     patientNode->Delete(); // Return ownership to the scene only
@@ -165,8 +165,8 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSe
   if (!studyNode)
   {
     studyNode = vtkMRMLSubjectHierarchyNode::New();
-    studyNode->SetLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
-    studyNode->AddUID(vtkSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, studyInstanceUID);
+    studyNode->SetLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+    studyNode->AddUID(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, studyInstanceUID);
     studyNode->SetParentNodeID(patientNode->GetID());
     scene->AddNode(studyNode);
     studyNode->Delete(); // Return ownership to the scene only
@@ -209,15 +209,15 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSam
     hierarchyNode1 = vtkMRMLSubjectHierarchyNode::SafeDownCast(hierarchyNode1->GetParentNode());
     if (!hierarchyNode1)
     {
+      vtkWarningWithObjectMacro(node1, "Node ('" << node1->GetName() << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
       hierarchyNode1 = NULL;
-      vtkWarningWithObjectMacro(node1, "Subject hierarchy node ('" << hierarchyNode1->GetName() << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
       break;
     }
     const char* node1Level = hierarchyNode1->GetLevel();
     if (!node1Level)
     {
+      vtkWarningWithObjectMacro(node1, "Node ('" << node1->GetName() << "') has no DICOM level '" << lowestCommonLevel << "'");
       hierarchyNode1 = NULL;
-      vtkWarningWithObjectMacro(node1, "Subject hierarchy node ('" << hierarchyNode1->GetName() << "') has no DICOM level '" << lowestCommonLevel << "'");
       break;
     }
     if (!strcmp(node1Level, lowestCommonLevel))
@@ -231,15 +231,15 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSam
     hierarchyNode2 = vtkMRMLSubjectHierarchyNode::SafeDownCast(hierarchyNode2->GetParentNode());
     if (!hierarchyNode2)
     {
+      vtkWarningWithObjectMacro(node2, "Node ('" << node2->GetName() << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
       hierarchyNode2 = NULL;
-      vtkWarningWithObjectMacro(node1, "Subject hierarchy node ('" << hierarchyNode2->GetName() << "') has no ancestor with DICOM level '" << lowestCommonLevel << "'");
       break;
     }
     const char* node2Level = hierarchyNode2->GetLevel();
     if (!node2Level)
     {
+      vtkWarningWithObjectMacro(node2, "Node ('" << node2->GetName() << "') has no DICOM level '" << lowestCommonLevel << "'");
       hierarchyNode2 = NULL;
-      vtkWarningWithObjectMacro(node1, "Subject hierarchy node ('" << hierarchyNode2->GetName() << "') has no DICOM level '" << lowestCommonLevel << "'");
       break;
     }
     if (!strcmp(node2Level, lowestCommonLevel))

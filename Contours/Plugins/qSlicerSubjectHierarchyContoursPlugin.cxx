@@ -23,7 +23,7 @@
 #include "SlicerRtCommon.h"
 
 // SubjectHierarchy MRML includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // SubjectHierarchy Plugins includes
@@ -215,7 +215,7 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
   }
 
   // Contour set
-  if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
     && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     d->CreateContourAction->setVisible(true);
@@ -229,7 +229,7 @@ void qSlicerSubjectHierarchyContoursPlugin::createChildContourForCurrentNode()
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
 
   // Check if current (to-be parent) node is a contour set node
-  if (!currentNode || !currentNode->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+  if (!currentNode || !currentNode->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
     || !currentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     qCritical() << "qSlicerSubjectHierarchyContoursPlugin::createChildContourForCurrentNode: Invalid current node for creating contour!";
@@ -280,7 +280,7 @@ void qSlicerSubjectHierarchyContoursPlugin::onNodeClaimed(vtkObject* node, void*
   // Only force level if this is the new owner plugin
   if (!this->m_Name.compare(subjectHierarchyNode->GetOwnerPluginName()))
   {
-    subjectHierarchyNode->SetLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
+    subjectHierarchyNode->SetLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
     qDebug() << "qSlicerSubjectHierarchyContoursPlugin::onNodeClaimed: Level of node " << subjectHierarchyNode->GetName() << " changed to subseries on owner plugin change to Contours";
   }
 }

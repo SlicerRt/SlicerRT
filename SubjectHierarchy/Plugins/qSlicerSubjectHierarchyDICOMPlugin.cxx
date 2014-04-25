@@ -20,7 +20,7 @@
 ==============================================================================*/
 
 // SubjectHierarchy MRML includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // SubjectHierarchy Plugins includes
@@ -99,19 +99,19 @@ qSlicerSubjectHierarchyDICOMPlugin::qSlicerSubjectHierarchyDICOMPlugin(QObject* 
   this->m_Name = QString("DICOM");
 
   // Scene (empty level) -> Subject
-  this->m_ChildLevelMap.insert( "", vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
+  this->m_ChildLevelMap.insert( "", vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
   // Subject -> Study
-  this->m_ChildLevelMap.insert( vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT,
-    vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
+  this->m_ChildLevelMap.insert( vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT,
+    vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
   // Study -> Series
-  this->m_ChildLevelMap.insert( vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY,
-    vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES );
+  this->m_ChildLevelMap.insert( vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY,
+    vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES );
   // Series -> Subseries
-  this->m_ChildLevelMap.insert( vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES,
-    vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES );
+  this->m_ChildLevelMap.insert( vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES,
+    vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES );
   // Subseries -> Subseries
-  this->m_ChildLevelMap.insert( vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
-    vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES );
+  this->m_ChildLevelMap.insert( vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+    vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES );
 
   Q_D(qSlicerSubjectHierarchyDICOMPlugin);
   d->init();
@@ -132,17 +132,17 @@ double qSlicerSubjectHierarchyDICOMPlugin::canOwnSubjectHierarchyNode(vtkMRMLSub
   }
 
   // Subject level
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
   {
     return 0.7;
   }
   // Study level (so that creation of a generic series is possible)
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     return 0.3;
   }
   // Series level
-  if (node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES))
   {
     return 0.3;
   }
@@ -163,17 +163,17 @@ const QString qSlicerSubjectHierarchyDICOMPlugin::roleForPlugin()const
   }
 
   // Subject level
-  if (currentNode->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
+  if (currentNode->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
   {
     return "Patient";
   }
   // Study level (so that creation of a generic series is possible)
-  if (currentNode->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (currentNode->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     return "Study";
   }
   // Series level
-  if (currentNode->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES))
+  if (currentNode->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES))
   {
     return "Generic series";
   }
@@ -193,13 +193,13 @@ bool qSlicerSubjectHierarchyDICOMPlugin::setIcon(vtkMRMLSubjectHierarchyNode* no
   Q_D(qSlicerSubjectHierarchyDICOMPlugin);
 
   // Patient icon
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT))
   {
     item->setIcon(d->PatientIcon);
     return true;
   }
   // Study icon
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setIcon(node, item);
     return true;
@@ -239,13 +239,13 @@ void qSlicerSubjectHierarchyDICOMPlugin::showContextMenuActionsForNode(vtkMRMLSu
   }
 
   // Study
-  if (node->IsLevel(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     d->CreateGenericSeriesAction->setVisible(true);
   }
   // Series or Subseries
-  else if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
-    || node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES) )
+  else if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+    || node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES) )
   {
     d->CreateGenericSubseriesAction->setVisible(true);
   }

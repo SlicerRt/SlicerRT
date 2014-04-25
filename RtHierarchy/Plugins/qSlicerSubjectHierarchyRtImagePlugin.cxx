@@ -26,7 +26,7 @@
 #include "qSlicerSubjectHierarchyRtImagePlugin.h"
 
 // SubjectHierarchy MRML includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // SubjectHierarchy Plugins includes
@@ -110,7 +110,7 @@ double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode(vtkMRMLS
   vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
 
   // RT Image
-  if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
     && associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode")
     && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {

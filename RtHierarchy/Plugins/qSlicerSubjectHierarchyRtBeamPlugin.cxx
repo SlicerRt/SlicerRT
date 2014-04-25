@@ -26,7 +26,7 @@
 #include "qSlicerSubjectHierarchyRtBeamPlugin.h"
 
 // SubjectHierarchy MRML includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // SubjectHierarchy Plugins includes
@@ -108,7 +108,7 @@ double qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode(vtkMRMLSu
 
   // Beam model for an RT Plan
   QString hierarchyNodeName(node->GetName());
-  if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES)
+  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES)
     && associatedNode && associatedNode->IsA("vtkMRMLModelNode")
     && ( parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX.c_str())
       || hierarchyNodeName.startsWith(SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX.c_str()) ) )

@@ -21,7 +21,7 @@
 
 // SubjectHierarchy includes
 #include "qSlicerSubjectHierarchyAbstractPlugin.h"
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 
@@ -181,9 +181,9 @@ bool qSlicerSubjectHierarchyAbstractPlugin::reparentNodeInsideSubjectHierarchy(v
 QString qSlicerSubjectHierarchyAbstractPlugin::displayedName(vtkMRMLSubjectHierarchyNode* node)
 {
   QString nodeText(node->GetName());
-  if (nodeText.endsWith(QString(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str())))
+  if (nodeText.endsWith(QString(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str())))
   {
-    nodeText = nodeText.left( nodeText.size() - vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.size() );
+    nodeText = nodeText.left( nodeText.size() - vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.size() );
   }
 
   return nodeText;
@@ -294,7 +294,7 @@ void qSlicerSubjectHierarchyAbstractPlugin::createChildForCurrentNode()
   QString childLevel = this->childLevel(parentLevel);
 
   // Create child subject hierarchy node
-  std::string childNodeName = vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NEW_NODE_NAME_PREFIX + childLevel.toLatin1().constData();
+  std::string childNodeName = vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NEW_NODE_NAME_PREFIX + childLevel.toLatin1().constData();
   this->createChildNode(currentNode, childNodeName.c_str());
 }
 

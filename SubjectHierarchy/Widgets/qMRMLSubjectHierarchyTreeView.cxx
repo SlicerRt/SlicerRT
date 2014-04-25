@@ -66,6 +66,7 @@ public:
   QList<QAction*> SelectPluginActions;
   QActionGroup* SelectPluginActionGroup;
   QAction* RemoveFromSubjectHierarchyAction;
+  QAction* ExpandToDepthAction;
   qMRMLTransformItemDelegate* TransformItemDelegate;
 };
 
@@ -74,6 +75,7 @@ qMRMLSubjectHierarchyTreeViewPrivate::qMRMLSubjectHierarchyTreeViewPrivate(qMRML
   : qMRMLTreeViewPrivate(object)
 {
   this->RemoveFromSubjectHierarchyAction = NULL;
+  this->ExpandToDepthAction = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -122,8 +124,30 @@ void qMRMLSubjectHierarchyTreeViewPrivate::init2()
   this->RemoveFromSubjectHierarchyAction->setVisible(false);
   QObject::connect(this->RemoveFromSubjectHierarchyAction, SIGNAL(triggered()), q, SLOT(removeCurrentNodeFromSubjectHierarchy()));
 
-  int index = 0; // Index used to insert actions before default tree actions
+  // Set up expand to level action and its menu
+  this->ExpandToDepthAction = new QAction(qMRMLTreeView::tr("Expand tree to level..."), this->NodeMenu);
+  this->SceneMenu->addAction(this->ExpandToDepthAction);
+
+  QMenu* expandToDepthSubMenu = new QMenu();
+  this->ExpandToDepthAction->setMenu(expandToDepthSubMenu);
+  QAction* expandToDepth_1 = new QAction("1",q);
+  QObject::connect(expandToDepth_1, SIGNAL(triggered()), q, SLOT(expandToDepthFromContextMenu()));
+  expandToDepthSubMenu->addAction(expandToDepth_1);
+  this->ExpandToDepthAction->setMenu(expandToDepthSubMenu);
+  QAction* expandToDepth_2 = new QAction("2",q);
+  QObject::connect(expandToDepth_2, SIGNAL(triggered()), q, SLOT(expandToDepthFromContextMenu()));
+  expandToDepthSubMenu->addAction(expandToDepth_2);
+  this->ExpandToDepthAction->setMenu(expandToDepthSubMenu);
+  QAction* expandToDepth_3 = new QAction("3",q);
+  QObject::connect(expandToDepth_3, SIGNAL(triggered()), q, SLOT(expandToDepthFromContextMenu()));
+  expandToDepthSubMenu->addAction(expandToDepth_3);
+  this->ExpandToDepthAction->setMenu(expandToDepthSubMenu);
+  QAction* expandToDepth_4 = new QAction("4",q);
+  QObject::connect(expandToDepth_4, SIGNAL(triggered()), q, SLOT(expandToDepthFromContextMenu()));
+  expandToDepthSubMenu->addAction(expandToDepth_4);
+
   // Perform tasks needed for all plugins
+  int index = 0; // Index used to insert actions before default tree actions
   foreach (qSlicerSubjectHierarchyAbstractPlugin* plugin, qSlicerSubjectHierarchyPluginHandler::instance()->allPlugins())
   {
     // Add node context menu actions
@@ -383,4 +407,18 @@ void qMRMLSubjectHierarchyTreeView::editCurrentSubjectHierarchyNode()
   qSlicerSubjectHierarchyAbstractPlugin* ownerPlugin =
     qSlicerSubjectHierarchyPluginHandler::instance()->getOwnerPluginForSubjectHierarchyNode(currentNode);
   ownerPlugin->editProperties(currentNode);
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSubjectHierarchyTreeView::expandToDepthFromContextMenu()
+{
+  QAction* senderAction = qobject_cast<QAction*>(this->sender());
+  if (!senderAction)
+  {
+    qCritical() << "qMRMLSubjectHierarchyTreeView::expandToDepthFromContextMenu: Unable to get sender action!";
+    return;
+  }
+
+  int depth = senderAction->text().toInt();
+  this->expandToDepth(depth);
 }

@@ -21,7 +21,7 @@
 
 // SubjectHierarchy MRML includes
 #include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -81,11 +81,6 @@ public:
 public:
   QAction* RegisterThisAction;
   QAction* RegisterToAction;
-
-  QAction* ImageBasedRigidAction;
-  QAction* ImageBasedBSplineAction;
-  QAction* InteractiveLandmarkAction;
-  QAction* FiducialAction;
 };
 
 //-----------------------------------------------------------------------------
@@ -97,11 +92,6 @@ qSlicerSubjectHierarchyRegisterPluginPrivate::qSlicerSubjectHierarchyRegisterPlu
 {
   this->RegisterThisAction = NULL;
   this->RegisterToAction = NULL;
-
-  this->ImageBasedRigidAction = NULL;
-  this->ImageBasedBSplineAction = NULL;
-  this->InteractiveLandmarkAction = NULL;
-  this->FiducialAction = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -136,21 +126,17 @@ void qSlicerSubjectHierarchyRegisterPluginPrivate::init()
   QMenu* registrationMethodsSubMenu = new QMenu();
   this->RegisterToAction->setMenu(registrationMethodsSubMenu);
 
-  this->ImageBasedRigidAction = new QAction("Rigid image-based registration",q);
-  QObject::connect(this->ImageBasedRigidAction, SIGNAL(triggered()), q, SLOT(registerImageBasedRigid()));
-  registrationMethodsSubMenu->addAction(this->ImageBasedRigidAction);
+  QAction* imageBasedRigidAction = new QAction("Rigid image-based registration",q);
+  QObject::connect(imageBasedRigidAction, SIGNAL(triggered()), q, SLOT(registerImageBasedRigid()));
+  registrationMethodsSubMenu->addAction(imageBasedRigidAction);
 
-  this->ImageBasedBSplineAction = new QAction("BSpline image-based registration",q);
-  QObject::connect(this->ImageBasedBSplineAction, SIGNAL(triggered()), q, SLOT(registerImageBasedBSpline()));
-  registrationMethodsSubMenu->addAction(this->ImageBasedBSplineAction);
+  QAction* imageBasedBSplineAction = new QAction("BSpline image-based registration",q);
+  QObject::connect(imageBasedBSplineAction, SIGNAL(triggered()), q, SLOT(registerImageBasedBSpline()));
+  registrationMethodsSubMenu->addAction(imageBasedBSplineAction);
 
-  this->InteractiveLandmarkAction = new QAction("Interactive landmark registration",q);
-  QObject::connect(this->InteractiveLandmarkAction, SIGNAL(triggered()), q, SLOT(registerInteractiveLandmark()));
-  registrationMethodsSubMenu->addAction(this->InteractiveLandmarkAction);
-
-  //this->FiducialAction = new QAction("Fiducial registration",q);
-  //QObject::connect(this->FiducialAction, SIGNAL(triggered()), q, SLOT(()));
-  //registrationMethodsSubMenu->addAction(this->FiducialAction);
+  QAction* interactiveLandmarkAction = new QAction("Interactive landmark registration",q);
+  QObject::connect(interactiveLandmarkAction, SIGNAL(triggered()), q, SLOT(registerInteractiveLandmark()));
+  registrationMethodsSubMenu->addAction(interactiveLandmarkAction);
 }
 
 //-----------------------------------------------------------------------------

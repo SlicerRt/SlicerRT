@@ -28,7 +28,7 @@
 #include "SlicerRtCommon.h"
 
 // Subject Hierarchy includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // MRML includes
@@ -210,7 +210,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->Commit();
 
   // Check if the output volume is in the study of the reference dose volume
-  if (!vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(doseScalarVolumeNode, accumulatedDoseVolumeNode, vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (!vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(doseScalarVolumeNode, accumulatedDoseVolumeNode, vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
   {
     std::cerr << "ERROR: Accumulated volume is not under the same study as the reference dose volume!" << std::endl;
     return EXIT_FAILURE;

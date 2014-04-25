@@ -21,7 +21,7 @@
 
 // Subject Hierarchy includes
 #include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 
 // MRML includes
 #include "vtkMRMLScene.h"
@@ -612,7 +612,7 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetAncestorAtLevel(con
 std::string vtkMRMLSubjectHierarchyNode::GetNameWithoutPostfix()
 {
   std::string nameStr(this->Name);
-  size_t postfixStart = nameStr.find(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);
+  size_t postfixStart = nameStr.find(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);
   std::string strippedNameStr = nameStr.substr(0, postfixStart);
   return strippedNameStr;
 }
@@ -687,7 +687,7 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchy
     vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
   childSubjectHierarchyNode->SetLevel(level);
   //TODO: UID?
-  std::string shNodeName = nodeName + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
+  std::string shNodeName = nodeName + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
   childSubjectHierarchyNode->SetName(shNodeName.c_str());
   scene->AddNode(childSubjectHierarchyNode);
   if (parentNode)

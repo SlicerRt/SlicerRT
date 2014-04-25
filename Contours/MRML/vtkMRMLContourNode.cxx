@@ -26,7 +26,7 @@
 
 // SubjectHierarchy includes
 #include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // Contours includes
@@ -1106,7 +1106,7 @@ void vtkMRMLContourNode::SetName(const char* newName)
         vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this);
       if (contourSubjectHierarchyNode)
         {
-        std::string newContourShName = newContourNameNoPostfix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX + vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
+        std::string newContourShName = newContourNameNoPostfix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
         if (strcmp(contourSubjectHierarchyNode->GetName(), newContourShName.c_str()))
           {
           contourSubjectHierarchyNode->SetName(newContourShName.c_str());

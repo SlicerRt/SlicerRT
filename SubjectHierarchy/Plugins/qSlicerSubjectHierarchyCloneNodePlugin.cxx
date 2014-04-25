@@ -21,7 +21,7 @@
 
 // SubjectHierarchy MRML includes
 #include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -218,7 +218,7 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
   {
     std::string clonedSubjectHierarchyNodeName = currentNode->GetName();
     vtksys::SystemTools::ReplaceString(clonedSubjectHierarchyNodeName,
-      vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str(), "");
+      vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX.c_str(), "");
     clonedSubjectHierarchyNodeName.append(CLONE_NODE_NAME_POSTFIX);
 
     vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(scene,

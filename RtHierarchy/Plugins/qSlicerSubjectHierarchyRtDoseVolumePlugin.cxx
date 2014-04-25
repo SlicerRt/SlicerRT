@@ -26,7 +26,7 @@
 #include "qSlicerSubjectHierarchyRtDoseVolumePlugin.h"
 
 // SubjectHierarchy MRML includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // SubjectHierarchy Plugins includes
@@ -103,7 +103,7 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(vtk
   vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
 
   // RT Dose
-  if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
     && associatedNode && SlicerRtCommon::IsDoseVolumeNode(associatedNode) )
   {
     return 1.0; // Only this plugin can handle this node

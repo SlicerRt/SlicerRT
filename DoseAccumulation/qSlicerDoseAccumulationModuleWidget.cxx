@@ -35,7 +35,7 @@
 #include "ui_qSlicerDoseAccumulationModule.h"
 
 // SubjectHierarchy MRML includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // MRML includes
@@ -362,7 +362,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     if (volumeSubjectHierarchyNode)
     {
       doseUnitName = volumeSubjectHierarchyNode->GetAttributeFromAncestor(
-        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
     }
     std::string doseUnitStr = ( doseUnitName ? doseUnitName : "N/A" );
 

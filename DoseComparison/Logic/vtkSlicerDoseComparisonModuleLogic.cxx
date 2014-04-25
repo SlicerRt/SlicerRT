@@ -32,7 +32,7 @@
 #include "gamma_dose_comparison.h"
 
 // Subject Hierarchy includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
@@ -282,15 +282,22 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
     vtkWarningMacro("ComputeGammaDoseDifference: Display node is not available for gamma volume node. The default color table will be used.");
   }
 
-  // Get common ancestor of the two input dose volumes
-  vtkMRMLSubjectHierarchyNode* commonAncestor = vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(
-    this->DoseComparisonNode->GetReferenceDoseVolumeNode(), this->DoseComparisonNode->GetCompareDoseVolumeNode(),
-    vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
+  // Determine if the input dose volumes are in subject hierarchy. Only perform related tasks if they are.
+  bool areInputsInSubjectHierarchy =
+    ( vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this->DoseComparisonNode->GetReferenceDoseVolumeNode())
+    && vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this->DoseComparisonNode->GetCompareDoseVolumeNode()) );
+  if (areInputsInSubjectHierarchy)
+  {
+    // Get common ancestor of the two input dose volumes
+    vtkMRMLSubjectHierarchyNode* commonAncestor = vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(
+      this->DoseComparisonNode->GetReferenceDoseVolumeNode(), this->DoseComparisonNode->GetCompareDoseVolumeNode(),
+      vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
 
-  // Add gamma volume to subject hierarchy
-  vtkMRMLSubjectHierarchyNode* dvhSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    this->GetMRMLScene(), commonAncestor, vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
-    gammaVolumeNode->GetName(), gammaVolumeNode);
+    // Add gamma volume to subject hierarchy
+    vtkMRMLSubjectHierarchyNode* dvhSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+      this->GetMRMLScene(), commonAncestor, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+      gammaVolumeNode->GetName(), gammaVolumeNode);
+  }
 
   // Add connection attribute to input dose volume nodes
   //TODO:

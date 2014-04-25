@@ -26,7 +26,7 @@
 #include "qSlicerSubjectHierarchyRtPlanPlugin.h"
 
 // SubjectHierarchy MRML includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 
 // SubjectHierarchy Plugins includes
@@ -108,7 +108,7 @@ double qSlicerSubjectHierarchyRtPlanPlugin::canOwnSubjectHierarchyNode(vtkMRMLSu
   {
     parentHierarchyNodeName = QString(node->GetParentNode()->GetName());
   }
-  if ( node->IsLevel(vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES)
+  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES)
     && associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode")
     && parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
   {

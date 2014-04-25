@@ -28,7 +28,7 @@
 #include "vtkVolumesOrientedResampleUtility.h"
 
 // Subject Hierarchy includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
@@ -467,7 +467,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
 
   // Get referenced volume subject hierarchy node by found UID
   vtkMRMLSubjectHierarchyNode* referencedSeriesNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-    contour->GetScene(), vtkSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid);
+    contour->GetScene(), vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid);
   if (!referencedSeriesNode)
   {
     return NULL;
@@ -494,7 +494,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
     return NULL;
   }
   vtkMRMLSubjectHierarchyNode* contourHierarchySeriesNode = contourSubjectHierarchyNode->GetAncestorAtLevel(
-    vtkSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
+    vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
   if (!contourHierarchySeriesNode)
   {
     std::cerr << "vtkSlicerContoursModuleLogic::GetReferencedSeriesForContours: Failed to find series hierarchy node for contour '"
@@ -543,7 +543,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
 
   // Common referenced series UID found, get corresponding subject hierarchy node
   vtkMRMLSubjectHierarchyNode* referencedSeriesNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-    contourHierarchySeriesNode->GetScene(), vtkSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, commonReferencedSeriesUid.c_str());
+    contourHierarchySeriesNode->GetScene(), vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, commonReferencedSeriesUid.c_str());
   if (!referencedSeriesNode)
   {
     return NULL;

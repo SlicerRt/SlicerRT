@@ -22,7 +22,7 @@
 #include "qMRMLSortFilterPotentialSubjectHierarchyProxyModel.h"
 
 // SubjectHierarchy includes
-#include "vtkSubjectHierarchyConstants.h"
+#include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyAbstractPlugin.h"
@@ -85,7 +85,7 @@ qMRMLSortFilterProxyModel::AcceptType qMRMLSortFilterPotentialSubjectHierarchyPr
   vtkMRMLSubjectHierarchyNode* possibleShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(node);
   if (!possibleShNode && (d->includeHiddenNodes || !node->GetHideFromEditors()))
   {
-    if (node->GetAttribute(vtkSubjectHierarchyConstants::SUBJECTHIERARCHY_EXCLUDE_FROM_POTENTIAL_NODES_LIST_ATTRIBUTE_NAME.c_str()))
+    if (node->GetAttribute(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_EXCLUDE_FROM_POTENTIAL_NODES_LIST_ATTRIBUTE_NAME.c_str()))
     {
       return Reject;
     }

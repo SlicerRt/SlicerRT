@@ -78,6 +78,10 @@ public slots:
   /// Edit properties of current node
   void editCurrentSubjectHierarchyNode();
 
+protected slots:
+  /// Expand tree to depth specified by the clicked context menu action
+  void expandToDepthFromContextMenu();
+
 private:
   Q_DECLARE_PRIVATE(qMRMLSubjectHierarchyTreeView);
   Q_DISABLE_COPY(qMRMLSubjectHierarchyTreeView);
