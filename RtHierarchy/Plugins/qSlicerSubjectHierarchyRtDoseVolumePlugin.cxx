@@ -92,7 +92,7 @@ qSlicerSubjectHierarchyRtDoseVolumePlugin::~qSlicerSubjectHierarchyRtDoseVolumeP
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {
@@ -180,7 +180,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::setDisplayVisibility(vtkMRMLSubj
 }
 
 //---------------------------------------------------------------------------
-int qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)
+int qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {

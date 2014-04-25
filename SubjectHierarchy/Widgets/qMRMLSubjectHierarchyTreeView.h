@@ -48,7 +48,7 @@ protected:
   virtual void toggleVisibility(const QModelIndex& index);
 
   /// Populate context menu for current node
-  void populateContextMenuForCurrentNode();
+  virtual void populateContextMenuForCurrentNode();
 
   /// Handle mouse press event (facilitates timely update of context menu)
   virtual void mousePressEvent(QMouseEvent* event);
@@ -58,29 +58,29 @@ public slots:
   virtual void setMRMLScene(vtkMRMLScene* scene);
   
   /// Handle expand node requests in the subject hierarchy tree
-  void expandNode(vtkMRMLSubjectHierarchyNode* node);
+  virtual void expandNode(vtkMRMLSubjectHierarchyNode* node);
 
   /// Handle manual selection of a plugin as the new owner of a subject hierarchy node
-  void selectPluginForCurrentNode();
+  virtual void selectPluginForCurrentNode();
 
   /// Update select plugin actions. Is called when the plugin selection sub-menu is opened,
   /// and when the user manually changes the owner plugin of a node. It sets checked state
   /// and update confidence values in the select plugin actions in the node context menu
   /// for the currently selected node.
-  void updateSelectPluginActions();
+  virtual void updateSelectPluginActions();
 
   /// Open module belonging to the data node associated to a subject hierarchy node
-  void openModuleForSubjectHierarchyNode(vtkMRMLNode* node);
+  virtual void openModuleForSubjectHierarchyNode(vtkMRMLNode* node);
 
   /// Remove current node from subject hierarchy on context menu choice
-  void removeCurrentNodeFromSubjectHierarchy();
+  virtual void removeCurrentNodeFromSubjectHierarchy();
 
   /// Edit properties of current node
-  void editCurrentSubjectHierarchyNode();
+  virtual void editCurrentSubjectHierarchyNode();
 
 protected slots:
   /// Expand tree to depth specified by the clicked context menu action
-  void expandToDepthFromContextMenu();
+  virtual void expandToDepthFromContextMenu();
 
 private:
   Q_DECLARE_PRIVATE(qMRMLSubjectHierarchyTreeView);

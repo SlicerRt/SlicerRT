@@ -98,7 +98,7 @@ qSlicerSubjectHierarchyGammaPlugin::~qSlicerSubjectHierarchyGammaPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyGammaPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyGammaPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {
@@ -186,7 +186,7 @@ void qSlicerSubjectHierarchyGammaPlugin::setDisplayVisibility(vtkMRMLSubjectHier
 }
 
 //---------------------------------------------------------------------------
-int qSlicerSubjectHierarchyGammaPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)
+int qSlicerSubjectHierarchyGammaPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {

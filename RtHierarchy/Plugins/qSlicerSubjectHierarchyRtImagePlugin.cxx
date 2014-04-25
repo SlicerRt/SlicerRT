@@ -99,7 +99,7 @@ qSlicerSubjectHierarchyRtImagePlugin::~qSlicerSubjectHierarchyRtImagePlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {
@@ -217,7 +217,7 @@ void qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility(vtkMRMLSubjectHi
 }
 
 //---------------------------------------------------------------------------
-int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)
+int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {

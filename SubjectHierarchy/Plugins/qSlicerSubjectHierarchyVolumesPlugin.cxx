@@ -132,7 +132,7 @@ qSlicerSubjectHierarchyVolumesPlugin::~qSlicerSubjectHierarchyVolumesPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {
@@ -251,7 +251,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::setDisplayVisibility(vtkMRMLSubjectHi
 }
 
 //-----------------------------------------------------------------------------
-int qSlicerSubjectHierarchyVolumesPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)
+int qSlicerSubjectHierarchyVolumesPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {
@@ -421,7 +421,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::showVolume(vtkMRMLScalarVolumeNode* n
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyVolumesPlugin::updateSelectionNodeBasedOnCurrentVolumesVisibility()
+void qSlicerSubjectHierarchyVolumesPlugin::updateSelectionNodeBasedOnCurrentVolumesVisibility()const
 {
   vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
   if (!selectionNode)
@@ -446,7 +446,7 @@ void qSlicerSubjectHierarchyVolumesPlugin::updateSelectionNodeBasedOnCurrentVolu
 }
 
 //---------------------------------------------------------------------------
-std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedLabelmapVolumeNodeID()
+std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedLabelmapVolumeNodeID()const
 {
   // TODO: This method is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
   std::string selectedLabelmapID("");
@@ -476,7 +476,7 @@ std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedLabelmapVolumeNodeI
 }
 
 //---------------------------------------------------------------------------
-std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedBackgroundVolumeNodeID()
+std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedBackgroundVolumeNodeID()const
 {
   // TODO: This method is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
   std::string selectedBackgroundVolumeID("");
@@ -506,7 +506,7 @@ std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedBackgroundVolumeNod
 }
 
 //---------------------------------------------------------------------------
-std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedForegroundVolumeNodeID()
+std::string qSlicerSubjectHierarchyVolumesPlugin::getSelectedForegroundVolumeNodeID()const
 {
   // TODO: This method is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
   std::string selectedForegroundVolumeID("");

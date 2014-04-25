@@ -91,7 +91,7 @@ qSlicerSubjectHierarchyRtBeamPlugin::~qSlicerSubjectHierarchyRtBeamPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyRtBeamPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {

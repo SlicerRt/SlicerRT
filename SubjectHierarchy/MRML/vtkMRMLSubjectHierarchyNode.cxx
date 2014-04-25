@@ -267,7 +267,7 @@ std::string vtkMRMLSubjectHierarchyNode::GetUID(std::string uidName)
 }
 
 //----------------------------------------------------------------------------
-std::map<std::string, std::string> vtkMRMLSubjectHierarchyNode::GetUIDs()
+std::map<std::string, std::string> vtkMRMLSubjectHierarchyNode::GetUIDs()const
 {
   return this->UIDs;
 }
@@ -609,7 +609,7 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSubjectHierarchyNode::GetAncestorAtLevel(con
 }
 
 //---------------------------------------------------------------------------
-std::string vtkMRMLSubjectHierarchyNode::GetNameWithoutPostfix()
+std::string vtkMRMLSubjectHierarchyNode::GetNameWithoutPostfix()const
 {
   std::string nameStr(this->Name);
   size_t postfixStart = nameStr.find(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);

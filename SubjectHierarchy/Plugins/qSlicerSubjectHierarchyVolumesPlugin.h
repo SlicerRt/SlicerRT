@@ -55,7 +55,7 @@ public:
   /// \param node Note to handle in the subject hierarchy tree
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
+  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Get role that the plugin assigns to the subject hierarchy node.
   ///   Each plugin should provide only one role.
@@ -76,7 +76,7 @@ public:
 
   /// Get display visibility of a owned subject hierarchy node
   /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
-  virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
+  virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Get node context menu item actions to add to tree view
   virtual QList<QAction*> nodeContextMenuActions()const;
@@ -92,16 +92,16 @@ protected:
 
   /// Update selection node based on current volumes visibility (if the selection is different in the slice viewers, then the first one is set)
   /// TODO: This is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
-  void updateSelectionNodeBasedOnCurrentVolumesVisibility();
+  void updateSelectionNodeBasedOnCurrentVolumesVisibility()const;
   /// Determine labelmap selection (if the selection is different in the slice viewers, then the first one is set)
   /// TODO: This is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
-  std::string getSelectedLabelmapVolumeNodeID();
+  std::string getSelectedLabelmapVolumeNodeID()const;
   /// Determine background volume selection (if the selection is different in the slice viewers, then the first one is set)
   /// TODO: This is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
-  std::string getSelectedBackgroundVolumeNodeID();
+  std::string getSelectedBackgroundVolumeNodeID()const;
   /// Determine foreground volume selection (if the selection is different in the slice viewers, then the first one is set)
   /// TODO: This is a workaround (http://www.na-mic.org/Bug/view.php?id=3551)
-  std::string getSelectedForegroundVolumeNodeID();
+  std::string getSelectedForegroundVolumeNodeID()const;
 
 protected slots:
   /// Toggle between labelmap outline display in the slice views

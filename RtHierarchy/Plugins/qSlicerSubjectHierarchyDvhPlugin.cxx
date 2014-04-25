@@ -112,7 +112,7 @@ qSlicerSubjectHierarchyDvhPlugin::~qSlicerSubjectHierarchyDvhPlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyDvhPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyDvhPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {
@@ -242,7 +242,7 @@ void qSlicerSubjectHierarchyDvhPlugin::setDisplayVisibility(vtkMRMLSubjectHierar
 }
 
 //---------------------------------------------------------------------------
-int qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)
+int qSlicerSubjectHierarchyDvhPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {
@@ -297,7 +297,7 @@ void qSlicerSubjectHierarchyDvhPlugin::editProperties(vtkMRMLSubjectHierarchyNod
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDvhPlugin::getDvhParameterSetNodeForDvhArray(vtkMRMLNode* dvhArrayNode)
+vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDvhPlugin::getDvhParameterSetNodeForDvhArray(vtkMRMLNode* dvhArrayNode)const
 {
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
   if (!scene)
@@ -327,7 +327,7 @@ vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDvhPlugin::getDvhParamete
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode* qSlicerSubjectHierarchyDvhPlugin::getChartForDvhArray(vtkMRMLSubjectHierarchyNode* dvhArraySubjectHierarchyNode)
+vtkMRMLSubjectHierarchyNode* qSlicerSubjectHierarchyDvhPlugin::getChartForDvhArray(vtkMRMLSubjectHierarchyNode* dvhArraySubjectHierarchyNode)const
 {
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
   if (!scene)

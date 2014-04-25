@@ -79,7 +79,7 @@ public:
   /// \param node Note to handle in the subject hierarchy tree
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
+  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Get role that the plugin assigns to the subject hierarchy node.
   ///   Each plugin should provide only one role.
@@ -97,17 +97,17 @@ public:
 
   /// Generate displayed name for the owned subject hierarchy node corresponding to its role.
   /// The default implementation removes the '_SubjectHierarchy' ending from the node's name.
-  virtual QString displayedName(vtkMRMLSubjectHierarchyNode* node);
+  virtual QString displayedName(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Generate tooltip for a owned subject hierarchy node
-  virtual QString tooltip(vtkMRMLSubjectHierarchyNode* node);
+  virtual QString tooltip(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Set display visibility of a owned subject hierarchy node
   virtual void setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible);
 
   /// Get display visibility of a owned subject hierarchy node
   /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
-  virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node);
+  virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const;
 
 // Function related virtual methods
 public:
@@ -134,7 +134,7 @@ public:
   ///   Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* node , vtkMRMLSubjectHierarchyNode* parent=NULL);
+  virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* node , vtkMRMLSubjectHierarchyNode* parent=NULL)const;
 
   /// Add a node to subject hierarchy under a specified parent node. If added non subject hierarchy nodes
   ///   have certain steps to perform when adding them in Subject Hierarchy, those steps take place here.
@@ -149,7 +149,7 @@ public:
   /// \param parent Prospective parent of the node to reparent.
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent);
+  virtual double canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent)const;
 
   /// Reparent a node that was already in the subject hierarchy under a new parent.
   /// \return True if reparented successfully, false otherwise
@@ -158,10 +158,10 @@ public:
 // Utility functions
 public:
   /// Create child node for a given parent node based on the child level map
-  vtkMRMLSubjectHierarchyNode* createChildNode(vtkMRMLSubjectHierarchyNode* parentNode, QString nodeName, vtkMRMLNode* associatedNode=NULL);
+  virtual vtkMRMLSubjectHierarchyNode* createChildNode(vtkMRMLSubjectHierarchyNode* parentNode, QString nodeName, vtkMRMLNode* associatedNode=NULL);
 
   /// Determines if the node is owned by this plugin
-  bool isThisPluginOwnerOfNode(vtkMRMLSubjectHierarchyNode* node);
+  bool isThisPluginOwnerOfNode(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Emit owner plugin changed signal
   void emitOwnerPluginChanged(vtkObject* node, void* callData);
@@ -175,14 +175,14 @@ public:
   virtual QString name()const;
 
   /// Get child level map
-  QMap<QString, QString> childLevelMap() { return m_ChildLevelMap; };
+  QMap<QString, QString> childLevelMap()const { return m_ChildLevelMap; };
 
 signals:
   /// Signal requesting expanding of the subject hierarchy tree item belonging to a node
   void requestExpandNode(vtkMRMLSubjectHierarchyNode* node);
 
   /// Signal requesting invalidating the models for the tree view and the potential nodes list
-  void requestInvalidateModels();
+  void requestInvalidateModels()const;
 
   /// Signal that is emitted when a node changes owner plugin
   /// \param node Subject hierarchy node changing owner plugin
@@ -197,7 +197,7 @@ protected:
   /// This method must be called as a first step in \sa showContextMenuActionsForNode
   /// before showing the actions that apply to the current situation. Calling this method
   /// prevents programming errors made in case plugin actions change.
-  void hideAllContextMenuActions();
+  void hideAllContextMenuActions()const;
 
 protected slots:
   /// Create supported child for the current node (which is selected in the tree)

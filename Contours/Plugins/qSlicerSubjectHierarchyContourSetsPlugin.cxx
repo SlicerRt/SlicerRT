@@ -131,7 +131,7 @@ qSlicerSubjectHierarchyContourSetsPlugin::~qSlicerSubjectHierarchyContourSetsPlu
 }
 
 //----------------------------------------------------------------------------
-double qSlicerSubjectHierarchyContourSetsPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)
+double qSlicerSubjectHierarchyContourSetsPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)const
 {
   if (!node)
   {
@@ -244,7 +244,7 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRML
 }
 
 //----------------------------------------------------------------------------
-double qSlicerSubjectHierarchyContourSetsPlugin::canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent)
+double qSlicerSubjectHierarchyContourSetsPlugin::canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent)const
 {
   if (!node)
   {
@@ -388,7 +388,7 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::reparentNodeInsideSubjectHierarch
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLContourNode* qSlicerSubjectHierarchyContourSetsPlugin::isNodeAContourRepresentation(vtkMRMLNode* node)
+vtkMRMLContourNode* qSlicerSubjectHierarchyContourSetsPlugin::isNodeAContourRepresentation(vtkMRMLNode* node)const
 {
   if (!node)
   {
@@ -496,7 +496,7 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addContourColorToCorrespondingCol
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyContourSetsPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+double qSlicerSubjectHierarchyContourSetsPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
 {
   if (!node)
   {

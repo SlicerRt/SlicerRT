@@ -56,7 +56,7 @@ public:
   ///   Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by type or identifier attribute)
-  virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parent=NULL);
+  virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parent=NULL)const;
 
   /// Add a node to subject hierarchy under a specified parent node. If added non subject hierarchy nodes
   ///   have certain steps to perform when adding them in subject hierarchy, those steps take place here
@@ -70,7 +70,7 @@ public:
   ///   Default value is NULL. In that case the parent will be ignored, the confidence numbers are got based on the to-be child node alone.
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by type or identifier attribute)
-  virtual double canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* nodeToReparent, vtkMRMLSubjectHierarchyNode* parent);
+  virtual double canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* nodeToReparent, vtkMRMLSubjectHierarchyNode* parent)const;
 
   /// Reparent a node that was already in the subject hierarchy under a new parent.
   /// \return True if reparented successfully, false otherwise
@@ -82,7 +82,7 @@ public:
   /// \param node Note to handle in the subject hierarchy tree
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
+  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const;
 
   /// Get role that the plugin assigns to the subject hierarchy node.
   ///   Each plugin should provide only one role.
@@ -108,7 +108,7 @@ public:
 protected:
   /// Determine if the argument node is a representation object of a Contour node in the scene
   /// \return The found contour node whose representation the argument node is, NULL if node is not a representation
-  vtkMRMLContourNode* isNodeAContourRepresentation(vtkMRMLNode* node);
+  vtkMRMLContourNode* isNodeAContourRepresentation(vtkMRMLNode* node)const;
 
   /// Add the color of a contour to the corresponding color table (in the same contour set)
   /// Also repaint the occasional labelmap representation to the new color index

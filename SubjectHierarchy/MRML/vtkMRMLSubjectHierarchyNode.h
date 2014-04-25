@@ -134,7 +134,7 @@ public:
   vtkMRMLSubjectHierarchyNode* GetAncestorAtLevel(const char* level);
 
   /// Get node name without the subject hierarchy postfix
-  std::string GetNameWithoutPostfix();
+  std::string GetNameWithoutPostfix()const;
 
   /// Determine if any of the children of this node is transformed (has a parent transform applied), except for an optionally given node
   /// \param exceptionNode The function still returns true if the only applied transform found is this specified node
@@ -178,7 +178,7 @@ public:
   std::string GetUID(std::string uidName);
 
   /// Get UID map for this subject hierarchy node
-  std::map<std::string, std::string> GetUIDs();
+  std::map<std::string, std::string> GetUIDs()const;
 
 public:
   enum
