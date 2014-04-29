@@ -40,9 +40,7 @@
 #include <vtksys/SystemTools.hxx>
 
 // ITK includes
-#if ITK_VERSION_MAJOR > 3
 #include "itkFactoryRegistration.h"
-#endif
 
 // ----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_Contours
@@ -123,9 +121,7 @@ void qSlicerContoursModuleWidgetTester::init()
   }
 
   // Make sure NRRD reading works
-#if ITK_VERSION_MAJOR > 3
   itk::itkFactoryRegistration();
-#endif
 
   // Create scene
   this->Scene = vtkMRMLScene::New();

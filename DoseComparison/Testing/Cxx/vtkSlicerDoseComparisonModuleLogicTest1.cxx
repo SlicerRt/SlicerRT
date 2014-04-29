@@ -43,9 +43,7 @@
 #include <vtkImageMathematics.h>
 
 // ITK includes
-#if ITK_VERSION_MAJOR > 3
-  #include "itkFactoryRegistration.h"
-#endif
+#include "itkFactoryRegistration.h"
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -99,9 +97,7 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
   }
 
   // Make sure NRRD reading works
-#if ITK_VERSION_MAJOR > 3
   itk::itkFactoryRegistration();
-#endif
 
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
