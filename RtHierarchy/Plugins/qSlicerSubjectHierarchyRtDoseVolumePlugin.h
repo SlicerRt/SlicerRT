@@ -77,6 +77,17 @@ public:
   /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
   virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const;
 
+  /// Get node context menu item actions to add to tree view
+  virtual QList<QAction*> nodeContextMenuActions()const;
+
+  /// Show context menu actions valid for  given subject hierarchy node.
+  /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
+  virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node);
+
+protected slots:
+  /// Convert currently selected volume node to RT dose volume. Set dose unit name and value in a pop-up dialog
+  void convertCurrentNodeToRtDoseVolume();
+
 protected:
   QScopedPointer<qSlicerSubjectHierarchyRtDoseVolumePluginPrivate> d_ptr;
 

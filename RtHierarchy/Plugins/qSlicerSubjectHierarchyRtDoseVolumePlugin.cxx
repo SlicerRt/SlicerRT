@@ -48,6 +48,9 @@
 #include <QDebug>
 #include <QIcon>
 #include <QStandardItem>
+#include <QAction>
+#include <QInputDialog>
+#include <QMessageBox>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RtHierarchy
@@ -59,8 +62,11 @@ protected:
 public:
   qSlicerSubjectHierarchyRtDoseVolumePluginPrivate(qSlicerSubjectHierarchyRtDoseVolumePlugin& object);
   ~qSlicerSubjectHierarchyRtDoseVolumePluginPrivate();
+  void init();
 public:
   QIcon DoseVolumeIcon;
+
+  QAction* ConvertToRtDoseVolumeAction;
 };
 
 //-----------------------------------------------------------------------------
@@ -71,6 +77,8 @@ qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::qSlicerSubjectHierarchyRtDoseV
  : q_ptr(&object)
 {
   this->DoseVolumeIcon = QIcon(":Icons/DoseVolume.png");
+
+  this->ConvertToRtDoseVolumeAction = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -84,6 +92,18 @@ qSlicerSubjectHierarchyRtDoseVolumePlugin::qSlicerSubjectHierarchyRtDoseVolumePl
  , d_ptr( new qSlicerSubjectHierarchyRtDoseVolumePluginPrivate(*this) )
 {
   this->m_Name = QString("RtDoseVolume");
+
+  Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
+  d->init();
+}
+
+//------------------------------------------------------------------------------
+void qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::init()
+{
+  Q_Q(qSlicerSubjectHierarchyRtDoseVolumePlugin);
+
+  this->ConvertToRtDoseVolumeAction = new QAction("Convert to RT dose volume...",q);
+  QObject::connect(this->ConvertToRtDoseVolumeAction, SIGNAL(triggered()), q, SLOT(convertCurrentNodeToRtDoseVolume()));
 }
 
 //-----------------------------------------------------------------------------
@@ -103,8 +123,7 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(vtk
   vtkMRMLNode* associatedNode = node->GetAssociatedDataNode();
 
   // RT Dose
-  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
-    && associatedNode && SlicerRtCommon::IsDoseVolumeNode(associatedNode) )
+  if ( associatedNode && SlicerRtCommon::IsDoseVolumeNode(associatedNode) )
   {
     return 1.0; // Only this plugin can handle this node
   }
@@ -201,4 +220,127 @@ int qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility(vtkMRMLSubje
 void qSlicerSubjectHierarchyRtDoseVolumePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
   return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->editProperties(node);
+}
+
+//---------------------------------------------------------------------------
+QList<QAction*> qSlicerSubjectHierarchyRtDoseVolumePlugin::nodeContextMenuActions()const
+{
+  Q_D(const qSlicerSubjectHierarchyRtDoseVolumePlugin);
+
+  QList<QAction*> actions;
+  actions << d->ConvertToRtDoseVolumeAction;
+  return actions;
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyRtDoseVolumePlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
+{
+  Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
+  this->hideAllContextMenuActions();
+
+  if (!node)
+  {
+    // There are no scene actions in this plugin
+    return;
+  }
+
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+
+  // Volume but not RT dose or labelmap
+  if ( qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->canOwnSubjectHierarchyNode(node)
+    && !SlicerRtCommon::IsLabelmapVolumeNode(node->GetAssociatedDataNode()) && m_Name.compare(node->GetOwnerPluginName()) )
+  {
+    d->ConvertToRtDoseVolumeAction->setVisible(true);
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  if (!currentNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume: Invalid current node!";
+    return;
+  }
+
+  // Get associated volume node
+  vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+    currentNode->GetAssociatedDataNode() );
+  if (!volumeNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume: Data node associated to current node '" << currentNode->GetNameWithoutPostfix().c_str() << "' is not a volume!";
+    return;
+  }
+
+  // Get study node
+  vtkMRMLSubjectHierarchyNode* studyNode = currentNode->GetAncestorAtLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+  if (!studyNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume: Failed to find study node among the ancestors of current node '" << currentNode->GetNameWithoutPostfix().c_str() << "'!";
+    return;
+  }
+  const char* doseUnitNameInStudy = studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+  const char* doseUnitValueInStudy = studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
+
+  // Show dialogs asking about dose unit name and value
+  bool ok;
+  QString defaultDoseUnitName = (doseUnitNameInStudy ? QString(doseUnitNameInStudy) : "GY");
+  QString doseUnitName = QInputDialog::getText(NULL, tr("RT dose volume properties (1/2)"),
+    tr("Dose unit name:"), QLineEdit::Normal, defaultDoseUnitName, &ok);
+  if (!ok || doseUnitName.isEmpty())
+  {
+    qWarning() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume(): Failed to get valid dose unit name from dialog. Check study node attributes.";
+  }
+
+  double defaultDoseUnitValue = (doseUnitValueInStudy ? QString(doseUnitValueInStudy).toDouble() : 1.0);
+  double doseUnitValue = QInputDialog::getDouble(NULL, tr("RT dose volume properties (2/2)"),
+    tr("Dose unit value (scaling):"), defaultDoseUnitValue, EPSILON*EPSILON, 1000.0, 16, &ok);
+  if (!ok)
+  {
+    qWarning() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume(): Failed to get valid dose unit value from dialog. Check study node attributes.";
+  }
+
+  // Set RT dose volume properties to study node
+  bool setDoseUnitName = true;
+  if (doseUnitNameInStudy && doseUnitName.compare(doseUnitNameInStudy))
+  {
+    QMessageBox::StandardButton answer =
+      QMessageBox::question(NULL, tr("Dose unit name changed"),
+      tr("Entered dose unit name is different from the already set dose unit name in study.\n\n"
+      "Do you wish to overwrite it? Might result in unwanted results."),
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (answer == QMessageBox::No)
+    {
+      setDoseUnitName = false;
+    }
+  }
+  if (setDoseUnitName)
+  {
+    studyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), doseUnitName.toLatin1().constData());
+  }
+
+  bool setDoseUnitValue = true;
+  if ( doseUnitValueInStudy
+    && fabs(doseUnitValue - QString(doseUnitValueInStudy).toDouble()) > EPSILON*EPSILON )
+  {
+    QMessageBox::StandardButton answer =
+      QMessageBox::question(NULL, tr("Dose unit name changed"),
+      tr("Entered dose unit value is different from the already set dose unit value in study.\n\n"
+      "Do you wish to overwrite it? Might result in unwanted results."),
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (answer == QMessageBox::No)
+    {
+      setDoseUnitValue = false;
+    }
+  }
+  if (setDoseUnitValue)
+  {
+    QString doseUnitValueString = QString::number(doseUnitValue);
+    studyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), doseUnitValueString.toLatin1().constData());
+  }
+
+  // Set RT dose identifier attribute to data node
+  volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+  currentNode->Modified();
 }
