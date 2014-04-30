@@ -13,20 +13,18 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Adam Rankin, PerkLab, Queen's University
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
   and was supported through the Applied Cancer Research Unit program of Cancer Care
   Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
 #include "ctkTest.h"
-#include "qSlicerContoursModuleWidget.h"
-#include "ui_qSlicerContoursModule.h"
+#include "qSlicerSubjectHierarchyModuleWidget.h"
+#include "ui_qSlicerSubjectHierarchyModule.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
-#include "vtkMRMLContourNode.h"
-#include "vtkSlicerContoursModuleLogic.h"
+//#include "SlicerRtCommon.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // SlicerQt includes
@@ -43,21 +41,21 @@
 #include "itkFactoryRegistration.h"
 
 // ----------------------------------------------------------------------------
-/// \ingroup SlicerRt_QtModules_Contours
-class qSlicerContoursModuleWidgetTester: public QObject
+/// \ingroup SlicerRt_QtModules_SubjectHierarchy
+class qSlicerSubjectHierarchyModuleWidgetTester: public QObject
 {
   Q_OBJECT
 
 public:
-  qSlicerContoursModuleWidget* SlicerContoursModuleWidget;
+//  qSlicerSubjectHierarchyModuleWidget* SlicerSubjectHierarchyModuleWidget;
 
 public:
   int argc;
   char** argv;
 
 protected:
-  bool m_Initialized;
-  vtkMRMLScene* m_Scene;
+  bool initialized;
+  vtkMRMLScene* Scene;
 
 private slots:
   void init();
@@ -67,9 +65,9 @@ private slots:
 };
 
 // ----------------------------------------------------------------------------
-void qSlicerContoursModuleWidgetTester::init()
-{
-  m_Initialized = false;
+void qSlicerSubjectHierarchyModuleWidgetTester::init()
+{/*
+  initialized = false;
 
   int argIndex = 1;
   std::ostream& outputStream = std::cout;
@@ -93,8 +91,8 @@ void qSlicerContoursModuleWidgetTester::init()
   else
   {
     errorStream << "Invalid arguments!" << std::endl;
-    delete this->SlicerContoursModuleWidget;
-    this->SlicerContoursModuleWidget = NULL;
+    delete this->SlicerSubjectHierarchyModuleWidget;
+    this->SlicerSubjectHierarchyModuleWidget = NULL;
     return;
   }
 
@@ -115,8 +113,8 @@ void qSlicerContoursModuleWidgetTester::init()
   else
   {
     errorStream << "No arguments!" << std::endl;
-    delete this->SlicerContoursModuleWidget;
-    this->SlicerContoursModuleWidget = NULL;
+    delete this->SlicerSubjectHierarchyModuleWidget;
+    this->SlicerSubjectHierarchyModuleWidget = NULL;
     return;
   }
 
@@ -124,101 +122,101 @@ void qSlicerContoursModuleWidgetTester::init()
   itk::itkFactoryRegistration();
 
   // Create scene
-  this->m_Scene = vtkMRMLScene::New();
+  this->Scene = vtkMRMLScene::New();
 
-  this->SlicerContoursModuleWidget = new qSlicerContoursModuleWidget;
+  this->SlicerSubjectHierarchyModuleWidget = new qSlicerSubjectHierarchyModuleWidget;
 
   // Create logic
-  vtkSmartPointer<vtkSlicerContoursModuleLogic> contoursLogic =
-    vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
-  contoursLogic->SetMRMLScene(this->m_Scene);
+  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> contoursLogic =
+    vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
+  contoursLogic->SetMRMLScene(this->Scene);
 
   // TODO: Remove when subject hierarchy is integrated into Slicer core
   vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
     vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
-  subjectHierarchyLogic->SetMRMLScene(this->m_Scene);
+  subjectHierarchyLogic->SetMRMLScene(this->Scene);
 
   // Load test scene into temporary scene
-  this->m_Scene->SetURL(testSceneFileName);
-  this->m_Scene->Import();
+  this->Scene->SetURL(testSceneFileName);
+  this->Scene->Import();
 
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);
-  this->m_Scene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
-  this->m_Scene->SetURL(temporarySceneFileName);
-  this->m_Scene->Commit();
+  this->Scene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
+  this->Scene->SetURL(temporarySceneFileName);
+  this->Scene->Commit();
 
-  this->SlicerContoursModuleWidget->testInit();
-  this->SlicerContoursModuleWidget->setMRMLScene(this->m_Scene);
-  this->SlicerContoursModuleWidget->enter();
+  this->SlicerSubjectHierarchyModuleWidget->testInit();
+  this->SlicerSubjectHierarchyModuleWidget->setMRMLScene(this->Scene);
+  this->SlicerSubjectHierarchyModuleWidget->enter();
 
-  m_Initialized = true;
+  initialized = true;*/
 }
 
 // ----------------------------------------------------------------------------
-void qSlicerContoursModuleWidgetTester::cleanup()
-{
-  this->SlicerContoursModuleWidget->exit();
-  QVERIFY(this->SlicerContoursModuleWidget != NULL);
-  delete this->SlicerContoursModuleWidget;
-  this->SlicerContoursModuleWidget = NULL;
-  this->m_Scene->Delete();
+void qSlicerSubjectHierarchyModuleWidgetTester::cleanup()
+{/*
+  this->SlicerSubjectHierarchyModuleWidget->exit();
+  QVERIFY(this->SlicerSubjectHierarchyModuleWidget != NULL);
+  delete this->SlicerSubjectHierarchyModuleWidget;
+  this->SlicerSubjectHierarchyModuleWidget = NULL;
+  this->Scene->Delete();*/
 }
 
 // ----------------------------------------------------------------------------
-void qSlicerContoursModuleWidgetTester::testUI()
-{
-  if( this->m_Initialized )
+void qSlicerSubjectHierarchyModuleWidgetTester::testUI()
+{/*
+  if( this->initialized )
   {
-    this->SlicerContoursModuleWidget->show();
+    this->SlicerSubjectHierarchyModuleWidget->show();
 
-    vtkMRMLContourNode* bodyNode = vtkMRMLContourNode::SafeDownCast(this->m_Scene->GetFirstNodeByName("BODY_Contour"));
-    this->SlicerContoursModuleWidget->testSetContourNode(bodyNode);
-    if( this->SlicerContoursModuleWidget->testGetCurrentContourNode() == NULL )
+    vtkMRMLContourNode* bodyNode = vtkMRMLContourNode::SafeDownCast(this->Scene->GetFirstNodeByName("BODY_Contour"));
+    this->SlicerSubjectHierarchyModuleWidget->testSetContourNode(bodyNode);
+    if( this->SlicerSubjectHierarchyModuleWidget->testGetCurrentContourNode() == NULL )
     {
       QFAIL("Unable to set contour node.");
     }
 
     // See if things work for index label map
-    this->SlicerContoursModuleWidget->testSetTargetRepresentationType(vtkMRMLContourNode::IndexedLabelmap);
+    this->SlicerSubjectHierarchyModuleWidget->testSetTargetRepresentationType(vtkMRMLContourNode::IndexedLabelmap);
 
-    if( !this->SlicerContoursModuleWidget->testGetDPointer()->MRMLNodeComboBox_ReferenceVolume->isVisible() )
+    if( !this->SlicerSubjectHierarchyModuleWidget->testGetDPointer()->MRMLNodeComboBox_ReferenceVolume->isVisible() )
     {
       QFAIL("Reference volume combobox is invisible when it should be visible.");
     }
-    if( !this->SlicerContoursModuleWidget->testGetDPointer()->horizontalSlider_OversamplingFactor->isVisible() )
+    if( !this->SlicerSubjectHierarchyModuleWidget->testGetDPointer()->horizontalSlider_OversamplingFactor->isVisible() )
     {
       QFAIL("Oversampling factor widget is not visible.");
     }
-    if( this->SlicerContoursModuleWidget->testGetDPointer()->pushButton_ApplyChangeRepresentation->isEnabled() )
+    if( this->SlicerSubjectHierarchyModuleWidget->testGetDPointer()->pushButton_ApplyChangeRepresentation->isEnabled() )
     {
       QFAIL("Apply button is enabled when it shouldn't be.");
     }
 
-    vtkMRMLScalarVolumeNode* doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->m_Scene->GetFirstNodeByName("Dose"));
-    this->SlicerContoursModuleWidget->testSetReferenceVolumeNode(doseNode);
-    if( this->SlicerContoursModuleWidget->testGetCurrentReferenceVolumeNode() != doseNode )
+    vtkMRMLScalarVolumeNode* doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->Scene->GetFirstNodeByName("Dose"));
+    this->SlicerSubjectHierarchyModuleWidget->testSetReferenceVolumeNode(doseNode);
+    if( this->SlicerSubjectHierarchyModuleWidget->testGetCurrentReferenceVolumeNode() != doseNode )
     {
       QFAIL("Selected reference volume is not \"Dose\".");
     }
 
-    if( !this->SlicerContoursModuleWidget->testGetDPointer()->pushButton_ApplyChangeRepresentation->isEnabled() )
+    if( !this->SlicerSubjectHierarchyModuleWidget->testGetDPointer()->pushButton_ApplyChangeRepresentation->isEnabled() )
     {
       QFAIL("Apply button should be enabled after reference volume is set. It is not.");
     }
 
-    this->SlicerContoursModuleWidget->hide();
-  }
+    this->SlicerSubjectHierarchyModuleWidget->hide();
+  }*/
 }
 
 // ----------------------------------------------------------------------------
-int qSlicerContoursModuleWidgetTest(int argc, char *argv[])
+int qSlicerSubjectHierarchyModuleWidgetTest(int argc, char *argv[])
 {
   QApplication app(argc, argv);
-  qSlicerContoursModuleWidgetTester tc;
+  qSlicerSubjectHierarchyModuleWidgetTester tc;
   tc.argc = argc;
   tc.argv = argv;
   argc = 1; // Truncate all remaining entries, run all tests
   return QTest::qExec(&tc, argc, argv);
 }
 
-#include "moc_qSlicerContoursModuleWidgetTest.cxx"
+#include "moc_qSlicerSubjectHierarchyModuleWidgetTest.cxx"
