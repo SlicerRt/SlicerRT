@@ -360,6 +360,13 @@ void vtkMRMLSubjectHierarchyNode::GetAssociatedChildrenNodes(vtkCollection *chil
   {
     vtkMRMLNode* currentNode = this->Scene->GetNthNodeByClass(n, nodeClass.c_str());
 
+    // Don't include intermediate nodes in nested associations
+    vtkMRMLHierarchyNode* currentHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(currentNode);
+    if (currentHierarchyNode && currentHierarchyNode->GetAssociatedNodeID())
+    {
+      continue;
+    }
+
     // Check for a hierarchy node for this node
     vtkMRMLHierarchyNode* hierarchyNode = this->GetAssociatedHierarchyNode(this->Scene, currentNode->GetID());
 

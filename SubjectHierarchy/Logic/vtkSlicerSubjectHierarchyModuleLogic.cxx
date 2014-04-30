@@ -167,6 +167,7 @@ vtkMRMLSubjectHierarchyNode* vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSe
     studyNode = vtkMRMLSubjectHierarchyNode::New();
     studyNode->SetLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
     studyNode->AddUID(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, studyInstanceUID);
+    studyNode->SetOwnerPluginName("DICOM");
     studyNode->SetParentNodeID(patientNode->GetID());
     scene->AddNode(studyNode);
     studyNode->Delete(); // Return ownership to the scene only
