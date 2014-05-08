@@ -134,7 +134,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLExternalBeamPlanningNode::GetReferenceVolumeNode
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(RFERENCE_VOLUME_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(RFERENCE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -146,7 +146,7 @@ vtkMRMLRTPlanNode* vtkMRMLExternalBeamPlanningNode::GetRtPlanNode()
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveRtPlanNode(vtkMRMLRTPlanNode* node)
 {
-  this->SetNodeReferenceID(RT_PLAN_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(RT_PLAN_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -158,7 +158,7 @@ vtkMRMLNode* vtkMRMLExternalBeamPlanningNode::GetPlanContourSetNode()
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObservePlanContourSetNode(vtkMRMLNode* node)
 {
-  this->SetNodeReferenceID(PLAN_CONTOUR_SET_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(PLAN_CONTOUR_SET_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -170,7 +170,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLExternalBeamPlanningNode::GetIsocenterFiducia
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node)
 {
-  this->SetNodeReferenceID(ISOCENTER_FIDUCIAL_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(ISOCENTER_FIDUCIAL_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -182,7 +182,7 @@ vtkMRMLContourNode* vtkMRMLExternalBeamPlanningNode::GetProtonTargetContourNode(
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNodeReferenceID(PROTON_TARGET_CONTOUR_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(PROTON_TARGET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -194,7 +194,7 @@ vtkMRMLDoubleArrayNode* vtkMRMLExternalBeamPlanningNode::GetMLCPositionDoubleArr
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
 {
-  this->SetNodeReferenceID(MLCPOSITION_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(MLCPOSITION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 

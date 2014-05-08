@@ -307,9 +307,14 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
     qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged: Invalid scene!";
     return;
   }
+  if (!node)
+  {
+    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged: Invalid reference dose volume node set!";
+    return;
+  }
 
   vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !node || !d->ModuleWindowInitialized)
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -334,9 +339,14 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
     qCritical() << "qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged: Invalid scene!";
     return;
   }
+  if (!node)
+  {
+    qCritical() << "qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged: Invalid compare dose volume node set!";
+    return;
+  }
 
   vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !node || !d->ModuleWindowInitialized)
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -363,7 +373,7 @@ void qSlicerDoseComparisonModuleWidget::maskContourNodeChanged(vtkMRMLNode* node
   }
 
   vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !node || !d->ModuleWindowInitialized)
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }
@@ -382,12 +392,17 @@ void qSlicerDoseComparisonModuleWidget::gammaVolumeNodeChanged(vtkMRMLNode* node
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged: Invalid scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::gammaVolumeNodeChanged: Invalid scene!";
+    return;
+  }
+  if (!node)
+  {
+    qCritical() << "qSlicerDoseComparisonModuleWidget::gammaVolumeNodeChanged: Invalid output gamma volume node set!";
     return;
   }
 
   vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
-  if (!paramNode || !node || !d->ModuleWindowInitialized)
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }

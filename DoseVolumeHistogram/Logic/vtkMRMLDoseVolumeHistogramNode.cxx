@@ -273,7 +273,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseVolumeHistogramNode::GetDoseVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(DOSE_VOLUME_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -285,7 +285,7 @@ vtkMRMLNode* vtkMRMLDoseVolumeHistogramNode::GetContourSetContourNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveContourSetContourNode(vtkMRMLNode* node)
 {
-  this->SetNodeReferenceID(CONTOUR_SET_CONTOUR_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(CONTOUR_SET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -297,7 +297,7 @@ vtkMRMLChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNode(vtkMRMLChartNode* node)
 {
-  this->SetNodeReferenceID(CHART_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(CHART_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -313,7 +313,7 @@ void vtkMRMLDoseVolumeHistogramNode::GetDvhDoubleArrayNodes(std::vector<vtkMRMLN
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::AddDvhDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
 {
-  this->AddNodeReferenceID(DVH_DOUBLE_ARRAY_REFERENCE_ROLE, node->GetID());
+  this->AddNodeReferenceID(DVH_DOUBLE_ARRAY_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------

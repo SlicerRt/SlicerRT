@@ -205,7 +205,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseComparisonNode::GetReferenceDoseVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseComparisonNode::SetAndObserveReferenceDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(REFERENCE_DOSE_VOLUME_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(REFERENCE_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -217,7 +217,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseComparisonNode::GetCompareDoseVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseComparisonNode::SetAndObserveCompareDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(COMPARE_DOSE_VOLUME_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(COMPARE_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -229,7 +229,7 @@ vtkMRMLContourNode* vtkMRMLDoseComparisonNode::GetMaskContourNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseComparisonNode::SetAndObserveMaskContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNodeReferenceID(MASK_CONTOUR_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(MASK_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -241,6 +241,6 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseComparisonNode::GetGammaVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseComparisonNode::SetAndObserveGammaVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(GAMMA_VOLUME_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(GAMMA_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 

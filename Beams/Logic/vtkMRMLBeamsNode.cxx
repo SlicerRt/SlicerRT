@@ -128,7 +128,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLBeamsNode::GetIsocenterMarkupsNode()
 //----------------------------------------------------------------------------
 void vtkMRMLBeamsNode::SetAndObserveIsocenterMarkupsNode(vtkMRMLMarkupsFiducialNode* node)
 {
-  this->SetNodeReferenceID(ISOCENTER_MARKUPS_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(ISOCENTER_MARKUPS_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -140,5 +140,5 @@ vtkMRMLModelNode* vtkMRMLBeamsNode::GetBeamModelNode()
 //----------------------------------------------------------------------------
 void vtkMRMLBeamsNode::SetAndObserveBeamModelNode(vtkMRMLModelNode* node)
 {
-  this->SetNodeReferenceID(BEAM_MODEL_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(BEAM_MODEL_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }

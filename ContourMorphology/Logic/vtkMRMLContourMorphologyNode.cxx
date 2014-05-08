@@ -162,7 +162,7 @@ vtkMRMLContourNode* vtkMRMLContourMorphologyNode::GetContourANode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::SetAndObserveContourANode(vtkMRMLContourNode* node)
 {
-  this->SetNodeReferenceID(CONTOUR_A_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(CONTOUR_A_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -174,7 +174,7 @@ vtkMRMLContourNode* vtkMRMLContourMorphologyNode::GetContourBNode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::SetAndObserveContourBNode(vtkMRMLContourNode* node)
 {
-  this->SetNodeReferenceID(CONTOUR_B_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(CONTOUR_B_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -186,7 +186,7 @@ vtkMRMLScalarVolumeNode* vtkMRMLContourMorphologyNode::GetReferenceVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(REFERENCE_VOLUME_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(REFERENCE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -198,5 +198,5 @@ vtkMRMLContourNode* vtkMRMLContourMorphologyNode::GetOutputContourNode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourMorphologyNode::SetAndObserveOutputContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNodeReferenceID(OUTPUT_CONTOUR_REFERENCE_ROLE, node->GetID());
+  this->SetNodeReferenceID(OUTPUT_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }

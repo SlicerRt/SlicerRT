@@ -50,6 +50,12 @@ PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode, bo
 {
   Plm_image::Pointer image = Plm_image::New ();
 
+  if (!inVolumeNode || !inVolumeNode->GetImageData())
+  {
+    std::cerr << "PlmCommon::ConvertVolumeNodeToPlmImage: Invalid input volume node!";
+    return image;
+  }
+
   vtkImageData* inVolume = inVolumeNode->GetImageData();
   int vtk_type = inVolume->GetScalarType ();
 
