@@ -96,10 +96,6 @@ public:
   static vtkMRMLContourNode* CreateContourFromRepresentation(vtkMRMLDisplayableNode* representationNode, const char* optionalName=NULL);
 
 protected:
-  /// Creates an empty ribbon model as a default representation for the new contours
-  void CreateEmptyRibbonModelForContour(vtkMRMLNode* node);
-
-protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
@@ -109,7 +105,6 @@ protected:
   /// Handle events that do not expose a virtual method (e.g. NodeAboutToBeRemovedEvent)
   virtual void ProcessMRMLSceneEvents(vtkObject* caller, unsigned long event, void* callData);
 
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndClose();
   virtual void OnMRMLSceneEndImport();
 

@@ -211,24 +211,6 @@ void vtkSlicerContoursModuleLogic::ProcessMRMLSceneEvents(vtkObject* caller, uns
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerContoursModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
-{
-  if (!node || !this->GetMRMLScene())
-  {
-    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
-    return;
-  }
-
-  if (node->IsA("vtkMRMLContourNode"))
-  {
-    // Create empty ribbon model
-    this->CreateEmptyRibbonModelForContour(node);
-
-    this->Modified();
-  }
-}
-
-//---------------------------------------------------------------------------
 void vtkSlicerContoursModuleLogic::OnMRMLSceneEndClose()
 {
   if (!this->GetMRMLScene())
@@ -261,48 +243,6 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
   }
   
   this->Modified();
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerContoursModuleLogic::CreateEmptyRibbonModelForContour(vtkMRMLNode* node)
-{
-  vtkMRMLScene* mrmlScene = this->GetMRMLScene();
-  if (!mrmlScene)
-  {
-    vtkErrorMacro("CreateEmptyRibbonModelForContour: Invalid MRML scene!");
-    return;
-  }
-
-  vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(node);
-  if (!contourNode)
-  {
-    vtkErrorMacro("CreateEmptyRibbonModelForContour: Argument node is not a contour node!");
-    return;
-  }
-
-  // If a scene is being loaded then don't create empty model, because the node will be updated
-  // to the proper representation when importing has finished. \sa vtkMRMLContourNode::ReadXMLAttributes
-  if (contourNode->RibbonModelNodeId && !contourNode->RibbonModelNode)
-  {
-    return;
-  }
-
-  vtkSmartPointer<vtkPolyData> emptyPolyData = vtkSmartPointer<vtkPolyData>::New();
-
-  vtkSmartPointer<vtkMRMLModelDisplayNode> emptyRibbonModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  mrmlScene->AddNode(emptyRibbonModelDisplayNode);
-
-  vtkSmartPointer<vtkMRMLModelNode> emptyRibbonModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-  mrmlScene->AddNode(emptyRibbonModelNode);
-  emptyRibbonModelNode->SetAndObserveDisplayNodeID(emptyRibbonModelDisplayNode->GetID());
-  emptyRibbonModelNode->SetAndObservePolyData(emptyPolyData);
-
-  std::string emptyRibbonModelName(contourNode->GetName());
-  emptyRibbonModelName.append(SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX);
-  emptyRibbonModelNode->SetName(emptyRibbonModelName.c_str());
-  emptyRibbonModelNode->SetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME, "1");
-
-  contourNode->SetAndObserveRibbonModelNodeId(emptyRibbonModelNode->GetID());
 }
 
 //---------------------------------------------------------------------------
