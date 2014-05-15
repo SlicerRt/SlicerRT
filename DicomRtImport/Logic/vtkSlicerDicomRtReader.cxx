@@ -967,6 +967,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       continue;
     }
 
+    bool zeroPlaneDistanceDetected(false);
     // Iterate over each plane in the contour
     do 
     {
@@ -1038,7 +1039,12 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       {
         // Previous contour plane was valid, let er rip
         double thisDistanceBetweenPlanes = currentContourPlane->DistanceToPlane(previousContourPlane->GetOrigin(), currentContourPlane->GetNormal(), currentContourPlane->GetOrigin());
-        if( foundDistance && !AreSame(thisDistanceBetweenPlanes, distanceBetweenContourPlanes) )
+        if( AreSame(thisDistanceBetweenPlanes, 0.0) )
+        {
+          // Distance between planes cannot be 0, this is a serious error, check exported data
+          zeroPlaneDistanceDetected = true;
+        }
+        else if( foundDistance && !AreSame(thisDistanceBetweenPlanes, distanceBetweenContourPlanes) )
         {
           vtkErrorMacro("Contours do not have consistent plane spacing. Unable to compute distance between planes. Returning default of " << defaultDistanceBetweenContourPlanes);
           distanceBetweenContourPlanes = defaultDistanceBetweenContourPlanes;
@@ -1056,6 +1062,11 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       previousContourPlane->SetOrigin(currentContourPlane->GetOrigin());
     } 
     while (rtContourSequenceObject.gotoNextItem().good());
+
+    if( zeroPlaneDistanceDetected )
+    {
+      vtkErrorMacro("Contour contains planes with distance 0. Check exported data for planar errors.");
+    }
 
     if( foundDistance )
     {
