@@ -175,7 +175,7 @@ class DicomRtImportPlugin:
 
     seriesDescription = slicer.dicomDatabase.fileValue(firstFile,tags['seriesDescription'])
     if seriesDescription == '':
-      seriesDescription = 'No series description'
+      seriesDescription = volumeNode.GetName()
     seriesDescription = seriesDescription + '_SubjectHierarchy'
     seriesNode.SetName(seriesDescription)
     seriesNode.SetAssociatedNodeID(volumeNode.GetID())

@@ -26,10 +26,14 @@
 // Subject Hierarchy includes
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
+
 #include "qMRMLSceneSubjectHierarchyModel.h"
 #include "qMRMLScenePotentialSubjectHierarchyModel.h"
 #include "qMRMLSortFilterSubjectHierarchyProxyModel.h"
 #include "qMRMLSortFilterPotentialSubjectHierarchyProxyModel.h"
+
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyAbstractPlugin.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -215,4 +219,10 @@ qMRMLScenePotentialSubjectHierarchyModel* qSlicerSubjectHierarchyModuleWidget::p
   qMRMLScenePotentialSubjectHierarchyModel* potentialSceneModel = qobject_cast<qMRMLScenePotentialSubjectHierarchyModel*>(potentialProxyModel->sourceModel());
 
   return potentialSceneModel;
+}
+
+//-----------------------------------------------------------------------------
+qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyModuleWidget::subjectHierarchyPluginByName(QString name)
+{
+  return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName(name);
 }

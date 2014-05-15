@@ -449,4 +449,4 @@ try:
 except AttributeError:
   slicer.modules.registrationPlugins = {}
 slicer.modules.registrationPlugins['Plm'] = PlmRegisterPlugin
-print ("Finished sourcing PlmRegister.py")
+#print ("Finished sourcing PlmRegister.py")

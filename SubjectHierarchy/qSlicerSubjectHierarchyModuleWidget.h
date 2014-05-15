@@ -30,6 +30,7 @@
 class qSlicerSubjectHierarchyModuleWidgetPrivate;
 class qMRMLSceneSubjectHierarchyModel;
 class qMRMLScenePotentialSubjectHierarchyModel;
+class qSlicerSubjectHierarchyAbstractPlugin;
 
 /// \ingroup Slicer_QtModules_SubjectHierarchy
 class Q_SLICER_QTMODULES_SUBJECTHIERARCHY_EXPORT qSlicerSubjectHierarchyModuleWidget :
@@ -46,13 +47,6 @@ public:
   virtual void enter();
   virtual void exit();
 
-public:
-  /// Assessor function for subject hierarchy scene model (for python)
-  Q_INVOKABLE qMRMLSceneSubjectHierarchyModel* subjectHierarchySceneModel();
-
-  /// Assessor function for potential subject hierarchy scene model (for python)
-  Q_INVOKABLE qMRMLScenePotentialSubjectHierarchyModel* potentialSubjectHierarchySceneModel();
-
 public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
@@ -63,6 +57,16 @@ protected slots:
 
   /// Show or hide transforms
   void setTransformsVisible(bool visible);
+
+public:
+  /// Assessor function for subject hierarchy scene model (for python)
+  Q_INVOKABLE qMRMLSceneSubjectHierarchyModel* subjectHierarchySceneModel();
+
+  /// Assessor function for potential subject hierarchy scene model (for python)
+  Q_INVOKABLE qMRMLScenePotentialSubjectHierarchyModel* potentialSubjectHierarchySceneModel();
+
+  /// Assessor function for getting subject hierarchy plugin by name (for python)
+  Q_INVOKABLE qSlicerSubjectHierarchyAbstractPlugin* subjectHierarchyPluginByName(QString name);
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyModuleWidgetPrivate> d_ptr;
