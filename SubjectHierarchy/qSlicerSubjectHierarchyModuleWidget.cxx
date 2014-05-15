@@ -27,7 +27,9 @@
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 #include "qMRMLSceneSubjectHierarchyModel.h"
+#include "qMRMLScenePotentialSubjectHierarchyModel.h"
 #include "qMRMLSortFilterSubjectHierarchyProxyModel.h"
+#include "qMRMLSortFilterPotentialSubjectHierarchyProxyModel.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -143,8 +145,13 @@ void qSlicerSubjectHierarchyModuleWidget::setup()
 
   // Connect logic custom event for scene update
   qMRMLSceneSubjectHierarchyModel* sceneModel = qobject_cast<qMRMLSceneSubjectHierarchyModel*>(d->SubjectHierarchyTreeView->sceneModel());
+  sceneModel->setObjectName("SceneSubjectHierarchyModel"); // Set object name for debugging purposes
   qvtkConnect( d->logic(), vtkSlicerSubjectHierarchyModuleLogic::SceneUpdateNeededEvent, sceneModel, SLOT( forceUpdateScene() ) );
-  qvtkConnect( d->logic(), vtkSlicerSubjectHierarchyModuleLogic::SceneUpdateNeededEvent, d->PotentialSubjectHierarchyListView->model(), SLOT( invalidate() ) );
+
+  qMRMLSortFilterPotentialSubjectHierarchyProxyModel* potentialProxyModel = qobject_cast<qMRMLSortFilterPotentialSubjectHierarchyProxyModel*>(d->PotentialSubjectHierarchyListView->model());
+  qMRMLScenePotentialSubjectHierarchyModel* potentialSceneModel = qobject_cast<qMRMLScenePotentialSubjectHierarchyModel*>(potentialProxyModel->sourceModel());
+  potentialSceneModel->setObjectName("ScenePotentialSubjectHierarchyModel"); // Set object name for debugging purposes
+  qvtkConnect( d->logic(), vtkSlicerSubjectHierarchyModuleLogic::SceneUpdateNeededEvent, potentialSceneModel, SLOT( invalidate() ) );
 
   this->setMRMLIDsVisible(d->DisplayMRMLIDsCheckBox->isChecked());
   this->setTransformsVisible(d->DisplayTransformsCheckBox->isChecked());
@@ -188,4 +195,24 @@ void qSlicerSubjectHierarchyModuleWidget::setTransformsVisible(bool visible)
   d->DisplayTransformsCheckBox->blockSignals(true);
   d->DisplayTransformsCheckBox->setChecked(visible);
   d->DisplayTransformsCheckBox->blockSignals(false);
+}
+
+//-----------------------------------------------------------------------------
+qMRMLSceneSubjectHierarchyModel* qSlicerSubjectHierarchyModuleWidget::subjectHierarchySceneModel()
+{
+  Q_D(qSlicerSubjectHierarchyModuleWidget);
+
+  qMRMLSceneSubjectHierarchyModel* sceneModel = qobject_cast<qMRMLSceneSubjectHierarchyModel*>(d->SubjectHierarchyTreeView->sceneModel());
+  return sceneModel;
+}
+
+//-----------------------------------------------------------------------------
+qMRMLScenePotentialSubjectHierarchyModel* qSlicerSubjectHierarchyModuleWidget::potentialSubjectHierarchySceneModel()
+{
+  Q_D(qSlicerSubjectHierarchyModuleWidget);
+
+  qMRMLSortFilterPotentialSubjectHierarchyProxyModel* potentialProxyModel = qobject_cast<qMRMLSortFilterPotentialSubjectHierarchyProxyModel*>(d->PotentialSubjectHierarchyListView->model());
+  qMRMLScenePotentialSubjectHierarchyModel* potentialSceneModel = qobject_cast<qMRMLScenePotentialSubjectHierarchyModel*>(potentialProxyModel->sourceModel());
+
+  return potentialSceneModel;
 }

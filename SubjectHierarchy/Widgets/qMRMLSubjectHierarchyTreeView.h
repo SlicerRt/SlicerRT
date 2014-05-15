@@ -30,7 +30,6 @@
 
 class vtkMRMLSubjectHierarchyNode;
 class qMRMLSubjectHierarchyTreeViewPrivate;
-class qMRMLSceneSubjectHierarchyModel;
 class vtkSlicerSubjectHierarchyModuleLogic;
 
 /// \ingroup Slicer_QtModules_SubjectHierarchy

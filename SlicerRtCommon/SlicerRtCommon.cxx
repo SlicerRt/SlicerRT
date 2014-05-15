@@ -96,7 +96,7 @@ const std::string SlicerRtCommon::DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME
 const std::string SlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX = "_ModelHierarchy";
 const std::string SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX = "_Isocenters";
 const std::string SlicerRtCommon::DICOMRTIMPORT_NO_NAME = "No name";
-const std::string SlicerRtCommon::DICOMRTIMPORT_NO_DESCRIPTION = "No description";
+const std::string SlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION = "No study description";
 const std::string SlicerRtCommon::DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTFIX = "_Sources";
 const std::string SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX = "_BeamModels";
 

@@ -259,7 +259,6 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
       seriesUIDs = [uid for uidList in series for uid in uidList]
       dicomWidget.detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
-      dicomWidget.detailsPopup.examineForLoading()
 
       # Make sure the loadables are good (RT is assigned to 3 out of 4 and they are selected)
       loadablesByPlugin = dicomWidget.detailsPopup.loadablesByPlugin
@@ -280,7 +279,6 @@ class NAMIC_Tutorial_2013June_SelfTestTest(unittest.TestCase):
       dicomWidget.detailsPopup.loadCheckedLoadables()
 
       # Verify that the correct number of objects were loaded
-      scene = slicer.mrmlScene
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == numOfModelHierarchyNodesBeforeLoad + 24 )
       self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == numOfContourNodesBeforeLoad + 16 )

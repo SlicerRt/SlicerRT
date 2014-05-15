@@ -80,7 +80,7 @@ public:
   virtual bool canBeAParent(vtkMRMLNode* node)const;
 
   /// Insert/move node in subject hierarchy under newParent
-  virtual bool reparent(vtkMRMLNode* node, vtkMRMLNode* newParent);
+  Q_INVOKABLE virtual bool reparent(vtkMRMLNode* node, vtkMRMLNode* newParent);
 
   int nodeTypeColumn()const;
   void setNodeTypeColumn(int column);

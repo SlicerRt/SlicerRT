@@ -175,7 +175,7 @@ class DicomRtImportPlugin:
 
     seriesDescription = slicer.dicomDatabase.fileValue(firstFile,tags['seriesDescription'])
     if seriesDescription == '':
-      seriesDescription = 'No description'
+      seriesDescription = 'No series description'
     seriesDescription = seriesDescription + '_SubjectHierarchy'
     seriesNode.SetName(seriesDescription)
     seriesNode.SetAssociatedNodeID(volumeNode.GetID())
@@ -211,7 +211,7 @@ class DicomRtImportPlugin:
       if studyNode != None:
         studyDescription = slicer.dicomDatabase.fileValue(firstFile,tags['studyDescription'])
         if studyDescription == '':
-          studyDescription = 'No description'
+          studyDescription = 'No study description'
         studyDescription = studyDescription.encode('UTF-8', 'ignore')
         studyNode.SetName(studyDescription + '_SubjectHierarchy')
 

@@ -236,7 +236,6 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
     seriesUIDs = [uid for uidList in series for uid in uidList]
     detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
-    detailsPopup.examineForLoading()
 
     loadables = detailsPopup.loadableTable.loadables
     self.assertTrue( len(loadables) == 8 )

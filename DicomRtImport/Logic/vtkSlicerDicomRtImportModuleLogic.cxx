@@ -1148,7 +1148,7 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInSubjectHierarchy( vtkSlice
     {
       std::string studyNodeName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
         ? std::string(rtReader->GetStudyDescription()) + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX
-        : SlicerRtCommon::DICOMRTIMPORT_NO_DESCRIPTION + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX );
+        : SlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX );
       studyNode->SetName( studyNodeName.c_str() );
     }
     else
