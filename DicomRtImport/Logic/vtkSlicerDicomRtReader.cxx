@@ -63,6 +63,7 @@ limitations under the License.
 // CTK includes
 #include <ctkDICOMDatabase.h>
 
+//----------------------------------------------------------------------------
 namespace
 {
   template<class T>
@@ -96,6 +97,41 @@ namespace
   bool AreSame(double a, double b)
   {
     return fabs(a - b) < EPSILON;
+  }
+
+  double MajorityValue(vtkObject* object, const std::vector<double>& values)
+  {
+    std::map<double, int> frequencies;
+    double averageTotal(0.0);
+    double averageCount(0.0);
+    for( std::vector<double>::const_iterator it = values.begin(); it != values.end(); ++it )
+    {
+      averageTotal += *it;
+      averageCount++;
+      frequencies[*it]++;
+    }
+    double majorityValue;
+    int majorityCount(-1);
+    std::stringstream outputString;
+    for( std::map<double, int>::iterator it = frequencies.begin(); it != frequencies.end(); ++it )
+    {
+      outputString << "Planar spacing: " << it->first << ". Frequency: " << it->second << "." << std::endl;
+      if( it->second > majorityCount )
+      {
+        majorityValue = it->first;
+        majorityCount = it->second;
+      }
+    }
+    if( AreSame(majorityValue, averageTotal/averageCount) )
+    {
+      vtkDebugWithObjectMacro(object, "Inconsistent plane spacing. Details:\n" << outputString.str());
+    }
+    else
+    {
+      vtkErrorWithObjectMacro(object, "Inconsistent plane spacing. Details:\n" << outputString.str());
+    }
+    
+    return majorityValue;
   }
 }
 
@@ -922,20 +958,19 @@ double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourSequence& rtContourS
 // Variables for calculating the distance between contour planes.
 double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequence &rtROIContourSequenceObject)
 {
-  double defaultDistanceBetweenContourPlanes(1.0);
-
   double distanceBetweenContourPlanes(-1.0);
-  bool foundDistance(false);
   vtkPlane* previousContourPlane = vtkPlane::New();
-  bool previousSet(false);
   vtkPlane* currentContourPlane = vtkPlane::New();
 
   if (!rtROIContourSequenceObject.gotoFirstItem().good())
   {
-    vtkErrorMacro("vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes: No structure sets were found. Returning default of " << defaultDistanceBetweenContourPlanes);
-    return defaultDistanceBetweenContourPlanes;
+    vtkErrorMacro("vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes: No structure sets were found. Returning default of 1.0.");
+    return 1.0;
   }
+
   // Iterate over each contour in the set until you find one that gives you a result
+  int roiIndex = 0;
+  std::vector<double> planeSpacingValues;
   do 
   {
     DRTROIContourSequence::Item &currentRoiObject = rtROIContourSequenceObject.getCurrentItem();
@@ -968,6 +1003,8 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
     }
 
     bool zeroPlaneDistanceDetected(false);
+    bool foundDistance(false);
+    bool previousSet(false);
     // Iterate over each plane in the contour
     do 
     {
@@ -1027,8 +1064,10 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
 
       if( currentPlaneKVector.GetX() == 0 && currentPlaneKVector.GetY() == 0 && currentPlaneKVector.GetZ() == 0 )
       {
-        vtkErrorMacro("All points in contour produce co-linear vectors. Unable to determine equation of the plane. Returning default of " << defaultDistanceBetweenContourPlanes);
-        return defaultDistanceBetweenContourPlanes;
+        Sint32 planeNumber;
+        contourItem.getContourNumber(planeNumber);
+        vtkErrorMacro("All points in contour plane " << planeNumber << " in contour " << this->RoiSequenceVector[roiIndex].Name << " produce co-linear vectors. Unable to determine equation of the plane.");
+        break;
       }
 
       currentPlaneKVector.Normalize();
@@ -1039,6 +1078,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       {
         // Previous contour plane was valid, let er rip
         double thisDistanceBetweenPlanes = currentContourPlane->DistanceToPlane(previousContourPlane->GetOrigin(), currentContourPlane->GetNormal(), currentContourPlane->GetOrigin());
+        planeSpacingValues.push_back(thisDistanceBetweenPlanes);
         if( AreSame(thisDistanceBetweenPlanes, 0.0) )
         {
           // Distance between planes cannot be 0, this is a serious error, check exported data
@@ -1046,12 +1086,10 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
         }
         else if( foundDistance && !AreSame(thisDistanceBetweenPlanes, distanceBetweenContourPlanes) )
         {
-          vtkErrorMacro("Contours do not have consistent plane spacing. Unable to compute distance between planes. Returning default of " << defaultDistanceBetweenContourPlanes);
-          distanceBetweenContourPlanes = defaultDistanceBetweenContourPlanes;
-          break;
+          vtkErrorMacro("Contour: " << this->RoiSequenceVector[roiIndex].Name << " does not have consistent plane spacing (" << thisDistanceBetweenPlanes << " != " << distanceBetweenContourPlanes << "). Unable to compute distance between planes.");
         }
         else if ( !foundDistance )
-        {
+        { 
           distanceBetweenContourPlanes = thisDistanceBetweenPlanes;
           foundDistance = true;
         }
@@ -1068,18 +1106,18 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       vtkErrorMacro("Contour contains planes with distance 0. Check exported data for planar errors.");
     }
 
-    if( foundDistance )
-    {
-      break;
-    }
+    ++roiIndex;
   }
   while(rtROIContourSequenceObject.gotoNextItem().good());
+
+  // Calculate the majority value for the plane spacing from planeSpacingValues
+  distanceBetweenContourPlanes = MajorityValue(this, planeSpacingValues);
 
   currentContourPlane->Delete();
   previousContourPlane->Delete();
 
   return distanceBetweenContourPlanes;
-}
+} 
 
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
