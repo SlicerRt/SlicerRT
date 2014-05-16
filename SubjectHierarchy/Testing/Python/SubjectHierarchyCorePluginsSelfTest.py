@@ -257,7 +257,6 @@ class SubjectHierarchyCorePluginsSelfTestTest(unittest.TestCase):
     chartNode2.SetName(self.sampleChartName + '2')
 
     clonedMarkupShNode = slicer.util.getNode(self.sampleMarkupName + ' Copy_SubjectHierarchy')
-    clonedMarkupShNode.SetDisplayVisibility(0) #TODO: There is a crash without this (infinite loop when trying to show the new chart)
     clonedMarkupShNode.SetAssociatedNodeID(chartNode2.GetID())
     
     self.assertTrue( clonedMarkupShNode.GetOwnerPluginName() == 'Charts' )

@@ -212,6 +212,10 @@ void qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility(vtkMRMLSubjectHie
     qCritical() << "qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility: Invalid MRML scene!";
     return;
   }
+  if (this->getDisplayVisibility(node) == visible)
+  {
+    return;
+  }
 
   // Get layout node
   vtkSmartPointer<vtkCollection> layoutNodes =

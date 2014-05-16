@@ -150,34 +150,35 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
   if (associatedDataNode)
   {
     // Clone data node
-    vtkMRMLNode* clonedDataNode = scene->CreateNodeByClass(associatedDataNode->GetClassName());
+    vtkSmartPointer<vtkMRMLNode> clonedDataNode;
+    clonedDataNode.TakeReference(scene->CreateNodeByClass(associatedDataNode->GetClassName()));
     clonedDataNode->Copy(associatedDataNode);
     std::string clonedDataNodeName = std::string(associatedDataNode->GetName()) + CLONE_NODE_NAME_POSTFIX;
     clonedDataNode->SetName(clonedDataNodeName.c_str());
     scene->AddNode(clonedDataNode);
-    clonedDataNode->Delete(); // Return the ownership to the scene only
 
     // Clone display node
     vtkMRMLDisplayableNode* displayableDataNode = vtkMRMLDisplayableNode::SafeDownCast(associatedDataNode);
     if (displayableDataNode && displayableDataNode->GetDisplayNode())
     {
-      vtkMRMLDisplayNode* clonedDisplayNode = vtkMRMLDisplayNode::SafeDownCast(
-        scene->CreateNodeByClass(displayableDataNode->GetDisplayNode()->GetClassName()) );
+      vtkSmartPointer<vtkMRMLDisplayNode> clonedDisplayNode;
+      clonedDisplayNode.TakeReference( vtkMRMLDisplayNode::SafeDownCast(
+        scene->CreateNodeByClass(displayableDataNode->GetDisplayNode()->GetClassName()) ) );
       clonedDisplayNode->Copy(displayableDataNode->GetDisplayNode());
       std::string clonedDisplayNodeName = std::string(displayableDataNode->GetDisplayNode()->GetName()) + CLONE_NODE_NAME_POSTFIX;
       clonedDisplayNode->SetName(clonedDisplayNodeName.c_str());
       scene->AddNode(clonedDisplayNode);
       vtkMRMLDisplayableNode* clonedDisplayableDataNode = vtkMRMLDisplayableNode::SafeDownCast(clonedDataNode);
       clonedDisplayableDataNode->SetAndObserveDisplayNodeID(clonedDisplayNode->GetID());
-      clonedDisplayNode->Delete(); // Return the ownership to the scene only
     }
 
     // Clone storage node
     vtkMRMLStorableNode* storableDataNode = vtkMRMLStorableNode::SafeDownCast(associatedDataNode);
     if (storableDataNode && storableDataNode->GetStorageNode())
     {
-      vtkMRMLStorageNode* clonedStorageNode = vtkMRMLStorageNode::SafeDownCast(
-        scene->CreateNodeByClass(storableDataNode->GetStorageNode()->GetClassName()) );
+      vtkSmartPointer<vtkMRMLStorageNode> clonedStorageNode;
+      clonedStorageNode.TakeReference( vtkMRMLStorageNode::SafeDownCast(
+        scene->CreateNodeByClass(storableDataNode->GetStorageNode()->GetClassName()) ) );
       clonedStorageNode->Copy(storableDataNode->GetStorageNode());
       if (storableDataNode->GetStorageNode()->GetFileName())
       {
@@ -187,7 +188,6 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
       scene->AddNode(clonedStorageNode);
       vtkMRMLStorableNode* clonedStorableDataNode = vtkMRMLStorableNode::SafeDownCast(clonedDataNode);
       clonedStorableDataNode->SetAndObserveStorageNodeID(clonedStorageNode->GetID());
-      clonedStorableDataNode->Delete(); // Return the ownership to the scene only
     }
 
     // Get hierarchy nodes
@@ -197,14 +197,12 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
     // Put data node in the same non-subject hierarchy if any
     if (genericHierarchyNode != currentNode)
     {
-      vtkMRMLHierarchyNode* clonedHierarchyNode = vtkMRMLHierarchyNode::SafeDownCast(
-        scene->CreateNodeByClass(genericHierarchyNode->GetClassName()) );
-      clonedHierarchyNode->Copy(genericHierarchyNode);
+      vtkSmartPointer<vtkMRMLHierarchyNode> clonedHierarchyNode;
+      clonedHierarchyNode.TakeReference( vtkMRMLHierarchyNode::SafeDownCast(        scene->CreateNodeByClass(genericHierarchyNode->GetClassName()) ) );      clonedHierarchyNode->Copy(genericHierarchyNode);
       std::string clonedHierarchyNodeName = std::string(genericHierarchyNode->GetName()) + CLONE_NODE_NAME_POSTFIX;
       clonedHierarchyNode->SetName(clonedHierarchyNodeName.c_str());
       scene->AddNode(clonedHierarchyNode);
       clonedHierarchyNode->SetAssociatedNodeID(clonedDataNode->GetID());
-      clonedHierarchyNode->Delete(); // Return the ownership to the scene only
     }
 
     // Put data node in the same subject hierarchy branch as current node
