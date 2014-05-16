@@ -53,7 +53,7 @@ public:
 
 public:
   /// Get node context menu item actions to add to tree view
-  virtual QList<QAction*> nodeContextMenuActions()const;
+  Q_INVOKABLE virtual QList<QAction*> nodeContextMenuActions()const;
 
   /// Show context menu actions valid for  given subject hierarchy node.
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene

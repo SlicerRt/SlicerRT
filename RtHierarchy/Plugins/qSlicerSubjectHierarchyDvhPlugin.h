@@ -59,7 +59,7 @@ public:
 
   /// Get role that the plugin assigns to the subject hierarchy node.
   ///   Each plugin should provide only one role.
-  virtual const QString roleForPlugin()const;
+  Q_INVOKABLE virtual const QString roleForPlugin()const;
 
   /// Set icon of a owned subject hierarchy node
   /// \return Flag indicating whether setting an icon was successful

@@ -13,7 +13,7 @@ class SubjectHierarchyGenericSelfTest:
     parent.dependencies = ["SubjectHierarchy", "DICOM"]
     parent.contributors = ["Csaba Pinter (Queen's)"]
     parent.helpText = """
-    This is a self test for the Subject hierarchy module and its default plugins.
+    This is a self test for the Subject hierarchy module generic features.
     """
     parent.acknowledgementText = """This file was originally developed by Csaba Pinter, PerkLab, Queen's University and was supported through the Applied Cancer Research Unit program of Cancer Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care""" # replace with organization, grant and thanks.
     self.parent = parent
@@ -144,6 +144,9 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
     # Check for SubjectHierarchy module
     self.assertTrue( slicer.modules.subjecthierarchy )
 
+    # TODO: Uncomment when #598 is fixed
+    # slicer.util.selectModule('SubjectHierarchy')
+    
     self.section_SetupPathsAndNames()
     self.section_LoadInputData()
     self.section_AddNodeToSubjectHierarchy()
@@ -168,7 +171,7 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
     self.dicomZipFilePath = subjectHierarchyGenericSelfTestDir + '/TestDicomCT.zip'
     self.expectedNumOfFilesInDicomDataDir = 10
     self.tempDir = subjectHierarchyGenericSelfTestDir + '/Temp'
-    self.sceneFileName = self.tempDir + '/SubjectHierarchyTestScene.mrml'
+    self.sceneFileName = self.tempDir + '/SubjectHierarchyGenericSelfTestScene.mrml'
 
     self.sampleLabelmapName = 'SampleLabelmap'
     self.sampleModelName = 'SampleModel'
@@ -177,9 +180,6 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
   # ------------------------------------------------------------------------------
   def section_LoadInputData(self):
     try:
-      # TODO: Uncomment when #598 is fixed
-      # slicer.util.selectModule('SubjectHierarchy')
-
       # Download and unzip test CT DICOM data
       import urllib
       downloads = (

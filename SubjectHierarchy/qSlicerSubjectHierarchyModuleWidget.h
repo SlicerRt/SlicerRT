@@ -27,6 +27,7 @@
 
 #include "qSlicerSubjectHierarchyModuleExport.h"
 
+class vtkMRMLSubjectHierarchyNode;
 class qSlicerSubjectHierarchyModuleWidgetPrivate;
 class qMRMLSceneSubjectHierarchyModel;
 class qMRMLScenePotentialSubjectHierarchyModel;
@@ -60,13 +61,20 @@ protected slots:
 
 public:
   /// Assessor function for subject hierarchy scene model (for python)
-  Q_INVOKABLE qMRMLSceneSubjectHierarchyModel* subjectHierarchySceneModel();
+  Q_INVOKABLE qMRMLSceneSubjectHierarchyModel* subjectHierarchySceneModel()const;
 
   /// Assessor function for potential subject hierarchy scene model (for python)
-  Q_INVOKABLE qMRMLScenePotentialSubjectHierarchyModel* potentialSubjectHierarchySceneModel();
+  Q_INVOKABLE qMRMLScenePotentialSubjectHierarchyModel* potentialSubjectHierarchySceneModel()const;
 
   /// Assessor function for getting subject hierarchy plugin by name (for python)
-  Q_INVOKABLE qSlicerSubjectHierarchyAbstractPlugin* subjectHierarchyPluginByName(QString name);
+  Q_INVOKABLE qSlicerSubjectHierarchyAbstractPlugin* subjectHierarchyPluginByName(QString name)const;
+
+  /// Assessor function for getting currently selected subject hierarchy node (for python)
+  Q_INVOKABLE vtkMRMLSubjectHierarchyNode* currentSubjectHierarchyNode()const;
+
+  /// Utility test function to be able to set currently selected subject hierarchy node from python
+  /// Only used in python tests!
+  Q_INVOKABLE void setCurrentSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node);
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyModuleWidgetPrivate> d_ptr;

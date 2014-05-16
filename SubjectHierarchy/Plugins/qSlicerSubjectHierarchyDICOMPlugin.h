@@ -58,7 +58,7 @@ public:
 
   /// Get role that the plugin assigns to the subject hierarchy node.
   ///   Each plugin should provide only one role.
-  virtual const QString roleForPlugin()const;
+  Q_INVOKABLE virtual const QString roleForPlugin()const;
 
   /// Set icon of a owned subject hierarchy node
   /// \return Flag indicating whether setting an icon was successful
@@ -73,7 +73,7 @@ public:
   /// Get node context menu item actions to add to tree view
   /// Separate method is needed for the scene, as its actions are set to the
   /// tree by a different method \sa sceneContextMenuActions
-  virtual QList<QAction*> nodeContextMenuActions()const;
+  Q_INVOKABLE virtual QList<QAction*> nodeContextMenuActions()const;
 
   /// Show context menu actions valid for  given subject hierarchy node.
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene

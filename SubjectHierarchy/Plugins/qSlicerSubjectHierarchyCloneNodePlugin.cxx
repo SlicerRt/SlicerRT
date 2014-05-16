@@ -179,10 +179,13 @@ void qSlicerSubjectHierarchyCloneNodePlugin::cloneCurrentNode()
       vtkMRMLStorageNode* clonedStorageNode = vtkMRMLStorageNode::SafeDownCast(
         scene->CreateNodeByClass(storableDataNode->GetStorageNode()->GetClassName()) );
       clonedStorageNode->Copy(storableDataNode->GetStorageNode());
-      std::string clonedStorageNodeFileName = std::string(storableDataNode->GetStorageNode()->GetFileName()) + CLONE_NODE_NAME_POSTFIX;
-      clonedStorageNode->SetFileName(clonedStorageNodeFileName.c_str());
+      if (storableDataNode->GetStorageNode()->GetFileName())
+      {
+        std::string clonedStorageNodeFileName = std::string(storableDataNode->GetStorageNode()->GetFileName()) + CLONE_NODE_NAME_POSTFIX;
+        clonedStorageNode->SetFileName(clonedStorageNodeFileName.c_str());
+      }
+      scene->AddNode(clonedStorageNode);
       vtkMRMLStorableNode* clonedStorableDataNode = vtkMRMLStorableNode::SafeDownCast(clonedDataNode);
-      scene->AddNode(clonedStorableDataNode);
       clonedStorableDataNode->SetAndObserveStorageNodeID(clonedStorageNode->GetID());
       clonedStorableDataNode->Delete(); // Return the ownership to the scene only
     }

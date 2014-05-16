@@ -241,7 +241,8 @@ void qSlicerSubjectHierarchyChartsPlugin::setDisplayVisibility(vtkMRMLSubjectHie
     }
 
     // Hide currently shown chart and trigger icon update
-    if (chartViewNode->GetChartNodeID())
+    if ( chartViewNode->GetChartNodeID()
+      && strcmp(chartViewNode->GetChartNodeID(), associatedChartNode->GetID()) )
     {
       vtkMRMLSubjectHierarchyNode* currentChartShNode =
         vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(

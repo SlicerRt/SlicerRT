@@ -202,18 +202,18 @@ void qSlicerSubjectHierarchyModuleWidget::setTransformsVisible(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-qMRMLSceneSubjectHierarchyModel* qSlicerSubjectHierarchyModuleWidget::subjectHierarchySceneModel()
+qMRMLSceneSubjectHierarchyModel* qSlicerSubjectHierarchyModuleWidget::subjectHierarchySceneModel()const
 {
-  Q_D(qSlicerSubjectHierarchyModuleWidget);
+  Q_D(const qSlicerSubjectHierarchyModuleWidget);
 
   qMRMLSceneSubjectHierarchyModel* sceneModel = qobject_cast<qMRMLSceneSubjectHierarchyModel*>(d->SubjectHierarchyTreeView->sceneModel());
   return sceneModel;
 }
 
 //-----------------------------------------------------------------------------
-qMRMLScenePotentialSubjectHierarchyModel* qSlicerSubjectHierarchyModuleWidget::potentialSubjectHierarchySceneModel()
+qMRMLScenePotentialSubjectHierarchyModel* qSlicerSubjectHierarchyModuleWidget::potentialSubjectHierarchySceneModel()const
 {
-  Q_D(qSlicerSubjectHierarchyModuleWidget);
+  Q_D(const qSlicerSubjectHierarchyModuleWidget);
 
   qMRMLSortFilterPotentialSubjectHierarchyProxyModel* potentialProxyModel = qobject_cast<qMRMLSortFilterPotentialSubjectHierarchyProxyModel*>(d->PotentialSubjectHierarchyListView->model());
   qMRMLScenePotentialSubjectHierarchyModel* potentialSceneModel = qobject_cast<qMRMLScenePotentialSubjectHierarchyModel*>(potentialProxyModel->sourceModel());
@@ -222,7 +222,19 @@ qMRMLScenePotentialSubjectHierarchyModel* qSlicerSubjectHierarchyModuleWidget::p
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyModuleWidget::subjectHierarchyPluginByName(QString name)
+qSlicerSubjectHierarchyAbstractPlugin* qSlicerSubjectHierarchyModuleWidget::subjectHierarchyPluginByName(QString name)const
 {
   return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName(name);
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLSubjectHierarchyNode* qSlicerSubjectHierarchyModuleWidget::currentSubjectHierarchyNode()const
+{
+  return qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSubjectHierarchyModuleWidget::setCurrentSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)
+{
+  qSlicerSubjectHierarchyPluginHandler::instance()->setCurrentNode(node);
 }
