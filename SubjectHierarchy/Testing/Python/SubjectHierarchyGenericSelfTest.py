@@ -10,7 +10,7 @@ class SubjectHierarchyGenericSelfTest:
   def __init__(self, parent):
     parent.title = "SubjectHierarchyGenericSelfTest"
     parent.categories = ["Testing.TestCases"]
-    parent.dependencies = ["SubjectHierarchy"]
+    parent.dependencies = ["SubjectHierarchy", "DICOM"]
     parent.contributors = ["Csaba Pinter (Queen's)"]
     parent.helpText = """
     This is a self test for the Subject hierarchy module and its default plugins.
@@ -127,7 +127,7 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
 
     self.delayMs = 700
 
-    #TODO: Comment out
+    #TODO: Comment out (sample code for debugging)
     #logFile = open('d:/pyTestLog.txt', 'w')
     #logFile.write(repr(slicer.modules.subjecthierarchygenericselftest) + '\n')
     #logFile.write(repr(slicer.modules.subjecthierarchy) + '\n')
@@ -144,17 +144,17 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
     # Check for SubjectHierarchy module
     self.assertTrue( slicer.modules.subjecthierarchy )
 
-    self.testSection_SetupPathsAndNames()
-    self.testSection_LoadInputData()
-    self.testSection_AddNodeToSubjectHierarchy()
-    self.testSection_CreateSecondBranch()
-    self.testSection_ReparentNodeInSubjectHierarchy()
-    self.testSection_SaveScene()
-    self.testSection_LoadScene()
+    self.section_SetupPathsAndNames()
+    self.section_LoadInputData()
+    self.section_AddNodeToSubjectHierarchy()
+    self.section_CreateSecondBranch()
+    self.section_ReparentNodeInSubjectHierarchy()
+    self.section_SaveScene()
+    self.section_LoadScene()
 
 
   # ------------------------------------------------------------------------------
-  def testSection_SetupPathsAndNames(self):
+  def section_SetupPathsAndNames(self):
     subjectHierarchyGenericSelfTestDir = slicer.app.temporaryPath + '/SubjectHierarchyGenericSelfTest'
     print('Test directory: ' + subjectHierarchyGenericSelfTestDir)
     if not os.access(subjectHierarchyGenericSelfTestDir, os.F_OK):
@@ -168,14 +168,18 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
     self.dicomZipFilePath = subjectHierarchyGenericSelfTestDir + '/TestDicomCT.zip'
     self.expectedNumOfFilesInDicomDataDir = 10
     self.tempDir = subjectHierarchyGenericSelfTestDir + '/Temp'
+    self.sceneFileName = self.tempDir + '/SubjectHierarchyTestScene.mrml'
 
     self.sampleLabelmapName = 'SampleLabelmap'
     self.sampleModelName = 'SampleModel'
     self.study2Name = 'Study2'
 
   # ------------------------------------------------------------------------------
-  def testSection_LoadInputData(self):
+  def section_LoadInputData(self):
     try:
+      # TODO: Uncomment when #598 is fixed
+      # slicer.util.selectModule('SubjectHierarchy')
+
       # Download and unzip test CT DICOM data
       import urllib
       downloads = (
@@ -246,7 +250,7 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
   # ------------------------------------------------------------------------------
-  def testSection_AddNodeToSubjectHierarchy(self):
+  def section_AddNodeToSubjectHierarchy(self):
     self.delayDisplay("Add node to subject hierarchy",self.delayMs)
 
     from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
@@ -257,7 +261,7 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
     self.assertTrue( ctVolumeNode != None )
 
     # Create sample labelmap and model and add them in subject hierarchy
-    sampleLabelmapNode = self.createSampleLabelmapNodeVolume(ctVolumeNode, self.sampleLabelmapName, 2)
+    sampleLabelmapNode = self.createSampleLabelmapVolumeNode(ctVolumeNode, self.sampleLabelmapName, 2)
 
     sampleModelColor = [0.0, 1.0, 0.0]
     sampleModelNode = self.createSampleModelVolume(ctVolumeNode, self.sampleModelName, sampleModelColor)
@@ -273,6 +277,11 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
     self.assertTrue( ctVolumeShNode != None )
     studyNode = ctVolumeShNode.GetParentNode()
     self.assertTrue( studyNode != None )
+    
+    # Verify DICOM levels
+    self.assertTrue( studyNode.GetParentNode().GetLevel() == 'Subject' )
+    self.assertTrue( studyNode.GetLevel() == 'Study' )
+    self.assertTrue( ctVolumeShNode.GetLevel() == 'Series' )
 
     # Add model and labelmap to the created study
     subjectHierarchySceneModel.reparent(sampleLabelmapNode, studyNode)
@@ -289,7 +298,7 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
     self.assertTrue( sampleModelShNode.GetOwnerPluginName() == 'Models' )
 
   # ------------------------------------------------------------------------------
-  def testSection_CreateSecondBranch(self):
+  def section_CreateSecondBranch(self):
     self.delayDisplay("Create second branch in subject hierarchy",self.delayMs)
 
     from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
@@ -300,8 +309,7 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
     subseriesNode = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, seriesNode, 'Subseries', 'TestSuberies_Empty')
 
   # ------------------------------------------------------------------------------
-  #TODO
-  def testSection_ReparentNodeInSubjectHierarchy(self):
+  def section_ReparentNodeInSubjectHierarchy(self):
     self.delayDisplay("Reparent node in subject hierarchy",self.delayMs)
     
     # Get second study node and labelmap node to reparent
@@ -323,31 +331,55 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
     self.assertTrue( sampleLabelmapShNode.GetOwnerPluginName() == 'Volumes' )
 
   # ------------------------------------------------------------------------------
-  #TODO
-  def testSection_SaveScene(self):
+  def section_SaveScene(self):
     self.delayDisplay("Save scene",self.delayMs)
-
+ 
     if not os.access(self.tempDir, os.F_OK):
       os.mkdir(self.tempDir)
 
-    sceneFileName = self.tempDir + '/SubjectHierarchyTestScene.mrml'
-    if os.access(sceneFileName, os.F_OK):
-      os.remove(sceneFileName)
+    if os.access(self.sceneFileName, os.F_OK):
+      os.remove(self.sceneFileName)
 
     # Save MRML scene into file
-    slicer.mrmlScene.Commit(sceneFileName)
+    slicer.mrmlScene.Commit(self.sceneFileName)
 
-    readable = os.access(sceneFileName, os.R_OK)
+    readable = os.access(self.sceneFileName, os.R_OK)
     self.assertTrue( readable )
 
   # ------------------------------------------------------------------------------
-  #TODO
-  def testSection_LoadScene(self):
+  def section_LoadScene(self):
     self.delayDisplay("Load scene",self.delayMs)
+    
+    # TODO: Scene clear crashes here. After a ResetNode call from Scene::Clear(), the sort filter proxy
+    # model of a slice control volume combobox in filterAcceptsNode at an invalid pointer of a model display node
+    # That node was most probably deleted at the previous RemoveAllNodes call in scene clear. Why that proxy model
+    # has to accept that node?
+    # Test code to list all node pointers in the scene to find the invalid one that causes the crash
+    # import qSlicerSubjectHierarchyModuleWidgetsPythonQt
+    # subjectHierarchyWidget = slicer.modules.subjecthierarchy.widgetRepresentation()
+    # subjectHierarchyWidget.subjectHierarchyPluginByName('DICOM')
+    # Test code in subjectHierarchyPluginByName to list all node pointers
+    # ofstream test;
+    # test.open("D:\\log.txt", ios::app);
+    # for (int n=0; n < this->mrmlScene()->GetNodes()->GetNumberOfItems(); n++)
+    # {
+     # vtkMRMLNode* node = (vtkMRMLNode*)this->mrmlScene()->GetNodes()->GetItemAsObject(n);
+     # test << QString::number((qulonglong)node,16).toLatin1().constData() << "\t" << node->GetID() << "\t" << node->GetName() << "\n";
+    # }
+    # test.close();
+    return
+
+    slicer.mrmlScene.Clear(0)
+
+    slicer.util.loadScene(self.sceneFileName)
+
+    self.assertTrue( slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLScalarVolumeNode') == 2 )
+    self.assertTrue( slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLModelNode') == 1 )
+    self.assertTrue( slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLSubjectHierarchyNode') == 9 )
 
   # ------------------------------------------------------------------------------
   # Create sample labelmap with same geometry as input volume
-  def createSampleLabelmapNodeVolume(self, volumeNode, name, label, colorNode=None):
+  def createSampleLabelmapVolumeNode(self, volumeNode, name, label, colorNode=None):
     self.assertTrue( volumeNode != None )
     self.assertTrue( volumeNode.IsA('vtkMRMLScalarVolumeNode') )
     self.assertTrue( label > 0 )
@@ -403,19 +435,18 @@ class SubjectHierarchyGenericSelfTestTest(unittest.TestCase):
     sphere.SetRadius(radius)
     sphere.GetOutput().Update()
 
-    displayNode = slicer.vtkMRMLModelDisplayNode()
-    displayNode = slicer.vtkMRMLModelDisplayNode.SafeDownCast(slicer.mrmlScene.AddNode(displayNode))
-    displayNode.SliceIntersectionVisibilityOn()
-    displayNode.VisibilityOn()
-    displayNode.SetColor(color[0], color[1], color[2])
-
     modelNode = slicer.vtkMRMLModelNode()
     modelNode = slicer.mrmlScene.AddNode(modelNode)
     modelNodeName = slicer.mrmlScene.GenerateUniqueName(name)
     modelNode.SetName(modelNodeName)
     modelNode.SetAndObservePolyData(sphere.GetOutput())
-    modelNode.SetAndObserveDisplayNodeID(displayNode.GetID())
     modelNode.SetHideFromEditors(0)
-    modelNode.SetSelectable(1)
+
+    displayNode = slicer.vtkMRMLModelDisplayNode()
+    slicer.mrmlScene.AddNode(displayNode)
+    displayNode.SliceIntersectionVisibilityOn()
+    displayNode.VisibilityOn()
+    displayNode.SetColor(color[0], color[1], color[2])
+    modelNode.SetAndObserveDisplayNodeID(displayNode.GetID())
 
     return modelNode
