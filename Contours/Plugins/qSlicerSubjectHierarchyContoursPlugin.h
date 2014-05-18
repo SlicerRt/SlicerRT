@@ -61,6 +61,9 @@ public:
   ///   Each plugin should provide only one role.
   Q_INVOKABLE virtual const QString roleForPlugin()const;
 
+  /// Get help text for plugin to be added in subject hierarchy module widget help box
+  virtual const QString helpText()const;
+
   /// Set icon of a owned subject hierarchy node
   /// \return Flag indicating whether setting an icon was successful
   virtual bool setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);

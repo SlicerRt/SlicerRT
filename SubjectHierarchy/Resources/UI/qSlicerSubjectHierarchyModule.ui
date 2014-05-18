@@ -112,26 +112,7 @@
        <item>
         <widget class="QLabel" name="label_Help">
          <property name="toolTip">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:4px; margin-bottom:1px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; font-weight:600; color:#000000;&quot;&gt;Create contour from scratch&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:1px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; color:#000000;&quot;&gt;In Contours module select 'Create new Contour' in the contour selector drop-down to create a new contour&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:1px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; color:#000000;&quot;&gt;In Subject Hierarchy module drag&amp;amp;drop new contour from 'Potential subject hierarchy nodes' list to under a contour set in the tree&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:11px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; color:#000000;&quot;&gt;The default representation is an empty Ribbon model. It can be converted to Indexed labelmap in the Contours module and then the labelmap can be edited in the Editor module&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:4px; margin-bottom:1px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; font-weight:600; color:#000000;&quot;&gt;Create contour from labelmap volume or model&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:11px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; color:#000000;&quot;&gt;In Subject Hierarchy module drag&amp;amp;drop the existing representation (labelmap or model) from 'Potential subject hierarchy nodes' list to under a contour set in the tree. This way an encapsulating Contour node gets created and associated to the corresponding color table&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:4px; margin-bottom:1px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; font-weight:600; color:#000000;&quot;&gt;Create new generic Subject hierarchy node from scratch&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:11px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; color:#000000;&quot;&gt;Right-click on an existing node and select 'Create generic child node'. The level of the child node will be one under the parent node if available (e.g. 'Subject' -&amp;gt; 'Study', 'Subseries' -&amp;gt; 'Subseries').&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:4px; margin-bottom:1px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; font-weight:600; color:#000000;&quot;&gt;Create new Contour set from scratch&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:11px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; color:#000000;&quot;&gt;Right-click on an existing Study node and select 'Create child contour set'. This menu item is only available for Study level nodes&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:4px; margin-bottom:1px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; font-weight:600; color:#000000;&quot;&gt;Create new Subject from scratch&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:11px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; color:#000000;&quot;&gt;Right-click on the top-level item 'Scene' and select 'Create new subject'&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:4px; margin-bottom:1px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; font-weight:600; color:#000000;&quot;&gt;Rename Subject hierarchy node&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:11px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; color:#000000;&quot;&gt;Right-click on the node and select 'Rename'&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:4px; margin-bottom:1px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; font-weight:600; color:#000000;&quot;&gt;Deform contour set using a transform (registration result)&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:11px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:9pt; color:#000000;&quot;&gt;Bulk resampling not implemented yet :(&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>Tooltip is populated by the plugins</string>
          </property>
          <property name="text">
           <string/>
@@ -231,6 +212,7 @@ p, li { white-space: pre-wrap; }
   </customwidget>
  </customwidgets>
  <resources>
+  <include location="../qSlicerSubjectHierarchyModule.qrc"/>
   <include location="../qSlicerSubjectHierarchyModule.qrc"/>
   <include location="../qSlicerSubjectHierarchyModule.qrc"/>
   <include location="../qSlicerSubjectHierarchyModule.qrc"/>

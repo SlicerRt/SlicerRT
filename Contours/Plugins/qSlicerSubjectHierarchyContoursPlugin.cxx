@@ -156,6 +156,15 @@ const QString qSlicerSubjectHierarchyContoursPlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
+const QString qSlicerSubjectHierarchyContoursPlugin::helpText()const
+{
+  return QString("<p style=\" margin-top:4px; margin-bottom:1px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'sans-serif'; font-size:9pt; font-weight:600; color:#000000;\">Create contour</span></p>\n"
+    "<p style=\" margin-top:0px; margin-bottom:1px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'sans-serif'; font-size:9pt; color:#000000;\">In Subject Hierarchy module drag&amp;drop new contour from 'Potential subject hierarchy nodes' list to under a contour set in the tree</span></p>\n"
+    "<p style=\" margin-top:0px; margin-bottom:1px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'sans-serif'; font-size:9pt; color:#000000;\">In Contours module use 'Create contour from representation' panel</span></p>\n"
+    "<p style=\" margin-top:0px; margin-bottom:11px; margin-left:26px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'sans-serif'; font-size:9pt; color:#000000;\">The default representation is an empty ribbon model. It can be converted to indexed labelmap in the Contours module and then the labelmap can be edited in the Editor module</span></p>");
+}
+
+//---------------------------------------------------------------------------
 bool qSlicerSubjectHierarchyContoursPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
 {
   if (!node || !item)

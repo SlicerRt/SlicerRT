@@ -81,6 +81,13 @@ const QString qSlicerSubjectHierarchyAbstractPlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
+const QString qSlicerSubjectHierarchyAbstractPlugin::helpText()const
+{
+  // No need to define this function if there is no help text for a plugin
+  return QString("");
+}
+
+//---------------------------------------------------------------------------
 bool qSlicerSubjectHierarchyAbstractPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
 {
   Q_UNUSED(node);
