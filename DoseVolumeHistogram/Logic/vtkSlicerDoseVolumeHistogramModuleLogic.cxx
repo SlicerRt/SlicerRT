@@ -500,15 +500,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   double ccPerCubicMM = 0.001;
 
   // Get dose unit name
+  const char* doseUnitName = NULL;
   vtkMRMLSubjectHierarchyNode* doseVolumeSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
   if (!doseVolumeSubjectHierarchyNode)
   {
-    errorMessage = "Failed to find subject hierarchy node for dose volume";
-    vtkErrorMacro("ComputeDvh: " << errorMessage);
-    return;
+    doseUnitName = doseVolumeSubjectHierarchyNode->GetAttributeFromAncestor(
+      SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
   }
-  const char* doseUnitName = doseVolumeSubjectHierarchyNode->GetAttributeFromAncestor(
-    SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
   bool isDoseVolume = this->DoseVolumeContainsDose();
 
   // Compute and store DVH metrics
