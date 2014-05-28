@@ -24,6 +24,13 @@
 #include <qSlicerModuleManager.h>
 #include <vtkSlicerVolumesLogic.h>
 
+// SubjectHierarchy Plugins includes
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyRtImagePlugin.h"
+#include "qSlicerSubjectHierarchyRtDoseVolumePlugin.h"
+#include "qSlicerSubjectHierarchyRtPlanPlugin.h"
+#include "qSlicerSubjectHierarchyRtBeamPlugin.h"
+
 // SlicerRT includes
 #include "vtkSlicerIsodoseModuleLogic.h"
 #include "vtkSlicerPlanarImageModuleLogic.h"
@@ -148,6 +155,12 @@ void qSlicerDicomRtImportModule::setup()
   {
     qCritical() << "qSlicerDicomRtImportModule::setup: Planar Image module is not found";
   } 
+
+  // Register Subject Hierarchy plugins
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtImagePlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtDoseVolumePlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtPlanPlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtBeamPlugin());
 }
 
 //-----------------------------------------------------------------------------

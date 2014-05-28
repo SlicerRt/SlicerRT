@@ -23,6 +23,10 @@
 // Qt includes
 #include <QtPlugin>
 
+// SubjectHierarchy Plugins includes
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyIsodosePlugin.h"
+
 // Isodose Logic includes
 #include <vtkSlicerIsodoseModuleLogic.h>
 
@@ -105,6 +109,9 @@ QIcon qSlicerIsodoseModule::icon()const
 void qSlicerIsodoseModule::setup()
 {
   this->Superclass::setup();
+
+  // Register Subject Hierarchy plugins
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyIsodosePlugin());
 }
 
 //-----------------------------------------------------------------------------

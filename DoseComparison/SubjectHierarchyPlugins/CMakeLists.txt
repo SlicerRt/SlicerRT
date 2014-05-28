@@ -1,42 +1,54 @@
-project(qSlicer${MODULE_NAME}ModuleWidgets)
+project(qSlicer${MODULE_NAME}SubjectHierarchyPlugins)
 
 set(KIT ${PROJECT_NAME})
 
-set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_MODULE_${MODULE_NAME_UPPER}_WIDGETS_EXPORT")
+set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_${MODULE_NAME_UPPER}_SUBJECT_HIERARCHY_PLUGINS_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
+  ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
+  ${Slicer_Base_INCLUDE_DIRS}
+  ${MRMLLogic_INCLUDE_DIRS}
+  ${qMRMLWidgets_INCLUDE_DIRS}
+  ${MRMLCLI_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
-  qMRMLContourSelectorWidget.cxx
-  qMRMLContourSelectorWidget.h
+  qSlicerSubjectHierarchyGammaPlugin.cxx
+  qSlicerSubjectHierarchyGammaPlugin.h
   )
 
 set(${KIT}_MOC_SRCS
-  qMRMLContourSelectorWidget.h
+  qSlicerSubjectHierarchyGammaPlugin.h
   )
 
 set(${KIT}_UI_SRCS
-  Resources/UI/qMRMLContourSelectorWidget.ui
   )
 
 set(${KIT}_RESOURCES
   Resources/${KIT}.qrc
   )
 
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
+
+#-----------------------------------------------------------------------------
 set(${KIT}_TARGET_LIBRARIES
+  vtkSlicerRtCommon
   vtkSlicerSubjectHierarchyModuleMRML
   vtkSlicerSubjectHierarchyModuleLogic
-  vtkSlicerContoursModuleLogic
+  qSlicerSubjectHierarchyModuleWidgets
+  MRMLCore
+  MRMLLogic
+  MRMLCLI
+  qMRMLWidgets
+  qSlicerBaseQTGUI
+  ${QT_LIBRARIES}
   )
 
-SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
-  
 #-----------------------------------------------------------------------------
-SlicerMacroBuildModuleWidgets(
+SlicerMacroBuildModuleQtLibrary(
   NAME ${KIT}
   EXPORT_DIRECTIVE ${${KIT}_EXPORT_DIRECTIVE}
   INCLUDE_DIRECTORIES ${${KIT}_INCLUDE_DIRECTORIES}
@@ -47,11 +59,3 @@ SlicerMacroBuildModuleWidgets(
   RESOURCES ${${KIT}_RESOURCES}
   WRAP_PYTHONQT
   )
-
-#-----------------------------------------------------------------------------
-if(BUILD_TESTING)
-  #add_subdirectory(Testing)
-endif()
-
-#-----------------------------------------------------------------------------
-add_subdirectory(DesignerPlugins)

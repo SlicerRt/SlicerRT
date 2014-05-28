@@ -21,7 +21,10 @@
 
 // Qt includes
 #include <QtPlugin>
-//#include <QDebug>
+
+// SubjectHierarchy Plugins includes
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin.h"
 
 // Slicer includes
 #include <qSlicerCoreApplication.h>
@@ -93,6 +96,9 @@ QIcon qSlicerDoseVolumeHistogramModule::icon()const
 void qSlicerDoseVolumeHistogramModule::setup()
 {
   this->Superclass::setup();
+
+  // Register Subject Hierarchy plugins
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyDoseVolumeHistogramPlugin());
 }
 
 //-----------------------------------------------------------------------------

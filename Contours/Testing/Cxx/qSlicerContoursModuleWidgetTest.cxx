@@ -133,11 +133,6 @@ void qSlicerContoursModuleWidgetTester::init()
     vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
   contoursLogic->SetMRMLScene(this->m_Scene);
 
-  // TODO: Remove when subject hierarchy is integrated into Slicer core
-  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
-    vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
-  subjectHierarchyLogic->SetMRMLScene(this->m_Scene);
-
   // Load test scene into temporary scene
   this->m_Scene->SetURL(testSceneFileName);
   this->m_Scene->Import();

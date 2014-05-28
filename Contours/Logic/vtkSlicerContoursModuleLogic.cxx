@@ -414,7 +414,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
   }
 
   // Get and return referenced volume
-  return vtkMRMLScalarVolumeNode::SafeDownCast(referencedSeriesNode->GetAssociatedDataNode());
+  return vtkMRMLScalarVolumeNode::SafeDownCast(referencedSeriesNode->GetAssociatedNode());
 }
 
 //-----------------------------------------------------------------------------
@@ -490,7 +490,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
   }
 
   // Get and return referenced volume
-  return vtkMRMLScalarVolumeNode::SafeDownCast(referencedSeriesNode->GetAssociatedDataNode());
+  return vtkMRMLScalarVolumeNode::SafeDownCast(referencedSeriesNode->GetAssociatedNode());
 }
 
 //-----------------------------------------------------------------------------

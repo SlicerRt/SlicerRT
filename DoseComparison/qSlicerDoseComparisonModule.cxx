@@ -22,6 +22,10 @@
 // Qt includes
 #include <QtPlugin>
 
+// SubjectHierarchy Plugins includes
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyGammaPlugin.h"
+
 // DoseComparison Logic includes
 #include <vtkSlicerDoseComparisonModuleLogic.h>
 
@@ -105,6 +109,9 @@ QIcon qSlicerDoseComparisonModule::icon()const
 void qSlicerDoseComparisonModule::setup()
 {
   this->Superclass::setup();
+
+  // Register Subject Hierarchy plugins
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyGammaPlugin());
 }
 
 //-----------------------------------------------------------------------------

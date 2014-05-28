@@ -6,6 +6,7 @@ string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
 add_subdirectory(Logic)
+add_subdirectory(SubjectHierarchyPlugins)
 
 #-----------------------------------------------------------------------------
 set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
@@ -14,6 +15,9 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
   ${qSlicerContoursModuleWidgets_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/SubjectHierarchyPlugins
+  ${CMAKE_CURRENT_BINARY_DIR}/SubjectHierarchyPlugins
+  ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -33,9 +37,11 @@ set(MODULE_UI_SRCS
 )
 
 set(MODULE_TARGET_LIBRARIES
+  vtkSlicerRtCommon
   vtkSlicer${MODULE_NAME}ModuleLogic
   vtkSlicerContoursModuleMRML
   qSlicerContoursModuleWidgets
+  qSlicer${MODULE_NAME}SubjectHierarchyPlugins
   )
 
 set(MODULE_RESOURCES

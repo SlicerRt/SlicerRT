@@ -50,8 +50,6 @@ IF (WIN32)
   add_subdirectory(LeakFinder)
 ENDIF()
 
-add_subdirectory(SubjectHierarchy)
-
 add_subdirectory(Contours)
 add_subdirectory(Beams)
 add_subdirectory(Isodose)
@@ -75,8 +73,6 @@ add_subdirectory(PlmDicomRtImport)
 add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmRegister)
 add_subdirectory(PlmXformwarp)
-
-add_subdirectory(RtHierarchy)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # In development
