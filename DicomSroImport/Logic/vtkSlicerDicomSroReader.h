@@ -24,6 +24,8 @@
 // .NAME vtkSlicerDicomSroReader - 
 // .SECTION Description
 // This class manages the Reader associated with reading Dicom Spatial Registration Object
+// The reader load DICOM SRO in LPS and convert it to RAS cooridnate system mainly due to 
+// it is used for Slicer.
 
 #ifndef __vtkSlicerDicomSroReader_h
 #define __vtkSlicerDicomSroReader_h
@@ -60,9 +62,6 @@ public:
 public:
   /// Get spatial registration matrix
   vtkMatrix4x4* GetSpatialRegistrationMatrix();
-
-  /// Get pre deformation registration matrix
-  vtkMatrix4x4* GetPreDeformationRegistrationMatrix();
 
   /// Get post deformation registration matrix
   vtkMatrix4x4* GetPostDeformationRegistrationMatrix();
@@ -210,9 +209,6 @@ protected:
 
   /// Spatial registration matrix
   vtkMatrix4x4* SpatialRegistrationMatrix;
-
-  /// Pre deformation registration matrix
-  vtkMatrix4x4* PreDeformationRegistrationMatrix;
 
   /// Post deformation registration matrix
   vtkMatrix4x4* PostDeformationRegistrationMatrix;

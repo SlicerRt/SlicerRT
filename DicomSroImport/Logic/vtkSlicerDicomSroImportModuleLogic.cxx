@@ -50,7 +50,8 @@
 #include <vtkMatrix4x4.h>
 #include <vtkImageData.h>
 #include <vtkObjectFactory.h>
-#include <vtkGridTransform.h>
+#include <vtkTransform.h>
+#include <vtkOrientedGridTransform.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomSroImportModuleLogic);
@@ -223,20 +224,8 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomS
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
   const char* seriesName = loadInfo->GetLoadableName(0);
 
-  vtkMatrix4x4* regMatrix = NULL;
+  vtkSmartPointer<vtkMatrix4x4> regMatrix = NULL;
   regMatrix = regReader->GetSpatialRegistrationMatrix();
-
-  // Change to RAS system from DICOM LPS system
-  vtkSmartPointer<vtkMatrix4x4> invMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  invMatrix->Identity();
-  invMatrix->SetElement(0,0,-1);
-  invMatrix->SetElement(1,1,-1);
-  vtkSmartPointer<vtkMatrix4x4> forMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  forMatrix->Identity();
-  forMatrix->SetElement(0,0,-1);
-  forMatrix->SetElement(1,1,-1);
-  vtkMatrix4x4::Multiply4x4(invMatrix, regMatrix, regMatrix);
-  vtkMatrix4x4::Multiply4x4(regMatrix, forMatrix, regMatrix);
 
   // Add transform node
   vtkSmartPointer<vtkMRMLLinearTransformNode> spatialTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
@@ -247,7 +236,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomS
   spatialTransformNodeName = this->GetMRMLScene()->GenerateUniqueName(spatialTransformNodeName+"_SpatialRegistration");
   spatialTransformNode->SetName(spatialTransformNodeName.c_str());
   spatialTransformNode->HideFromEditorsOff();
-  spatialTransformNode->SetAndObserveMatrixTransformToParent(regMatrix);
+  spatialTransformNode->SetMatrixTransformToParent(regMatrix);
   spatialTransformNode->SetDisableModifiedEvent(0);
 
   this->GetMRMLScene()->AddNode(spatialTransformNode);
@@ -271,43 +260,9 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSl
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
   const char* seriesName = loadInfo->GetLoadableName(0);
 
-  vtkSmartPointer<vtkMatrix4x4> invMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  invMatrix->Identity();
-  invMatrix->SetElement(0,0,-1);
-  invMatrix->SetElement(1,1,-1);
-  vtkSmartPointer<vtkMatrix4x4> forMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  forMatrix->Identity();
-  forMatrix->SetElement(0,0,-1);
-  forMatrix->SetElement(1,1,-1);
-
-  // Pre deformation node
-  vtkMatrix4x4* preDeformationMatrix = NULL;
-  preDeformationMatrix = regReader->GetPreDeformationRegistrationMatrix();
-
-  // Change to RAS system from DICOM LPS system
-  vtkMatrix4x4::Multiply4x4(invMatrix, preDeformationMatrix, preDeformationMatrix);
-  vtkMatrix4x4::Multiply4x4(preDeformationMatrix, forMatrix, preDeformationMatrix);
-
-  // Add pre deformation transform node
-  vtkSmartPointer<vtkMRMLLinearTransformNode> spatialPreTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
-  spatialPreTransformNode->SetScene(this->GetMRMLScene());
-  spatialPreTransformNode->SetDisableModifiedEvent(1);
-  std::string spatialPreTransformNodeName;
-  spatialPreTransformNodeName = std::string(seriesName);
-  spatialPreTransformNodeName = this->GetMRMLScene()->GenerateUniqueName(spatialPreTransformNodeName+"_PreDeformationMatrix");
-  spatialPreTransformNode->SetName(spatialPreTransformNodeName.c_str());
-  spatialPreTransformNode->HideFromEditorsOff();
-  spatialPreTransformNode->SetAndObserveMatrixTransformToParent(preDeformationMatrix);
-  spatialPreTransformNode->SetDisableModifiedEvent(0);
-  this->GetMRMLScene()->AddNode(spatialPreTransformNode);
-
   // Post deformation node
   vtkMatrix4x4* postDeformationMatrix = NULL;
   postDeformationMatrix = regReader->GetPostDeformationRegistrationMatrix();
-
-  // Change to RAS system from DICOM LPS system
-  vtkMatrix4x4::Multiply4x4(invMatrix, postDeformationMatrix, postDeformationMatrix);
-  vtkMatrix4x4::Multiply4x4(postDeformationMatrix, forMatrix, postDeformationMatrix);
 
   // Add post deformation transform node
   vtkSmartPointer<vtkMRMLLinearTransformNode> spatialPostTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
@@ -326,31 +281,18 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSl
   vtkImageData* deformableRegistrationGrid = NULL;
   deformableRegistrationGrid = regReader->GetDeformableRegistrationGrid();
 
-  // Add vector volume node
-  vtkSmartPointer<vtkMRMLVectorVolumeNode> deformableRegistrationGridVolumeNode = vtkSmartPointer<vtkMRMLVectorVolumeNode>::New();
-  deformableRegistrationGridVolumeNode->SetScene(this->GetMRMLScene());
-  deformableRegistrationGridVolumeNode->SetDisableModifiedEvent(1);
-  std::string deformableRegistrationGridVolumeNodeName;
-  deformableRegistrationGridVolumeNodeName = std::string(seriesName);
-  deformableRegistrationGridVolumeNodeName = this->GetMRMLScene()->GenerateUniqueName(deformableRegistrationGridVolumeNodeName+"_DeformableRegistrationGridVolume");
-  deformableRegistrationGridVolumeNode->SetName(deformableRegistrationGridVolumeNodeName.c_str());
-  deformableRegistrationGridVolumeNode->HideFromEditorsOff();
-  deformableRegistrationGridVolumeNode->SetAndObserveImageData(deformableRegistrationGrid);
-  deformableRegistrationGridVolumeNode->SetIJKToRASMatrix(regReader->GetDeformableRegistrationGridOrientationMatrix());
-  deformableRegistrationGridVolumeNode->SetDisableModifiedEvent(0);
-  this->GetMRMLScene()->AddNode(deformableRegistrationGridVolumeNode);
-
-  vtkSmartPointer<vtkImageData> gridVolumeImageData = vtkSmartPointer<vtkImageData>::New();
-  gridVolumeImageData->DeepCopy(deformableRegistrationGrid);
-  gridVolumeImageData->SetOrigin(deformableRegistrationGridVolumeNode->GetOrigin());
-  gridVolumeImageData->SetSpacing(deformableRegistrationGridVolumeNode->GetSpacing());
-
-  // vtkGridTransform
-  vtkSmartPointer<vtkGridTransform> gridTransform = vtkSmartPointer<vtkGridTransform>::New();
+  // vtkOrientedGridTransform
+  vtkSmartPointer<vtkOrientedGridTransform> gridTransform = vtkSmartPointer<vtkOrientedGridTransform>::New();
   gridTransform->SetDisplacementGrid(deformableRegistrationGrid);
   gridTransform->SetDisplacementScale(1);
   gridTransform->SetDisplacementShift(0);
   gridTransform->SetInterpolationModeToLinear();
+
+  // Post deformation node
+  vtkMatrix4x4* gridOrientationMatrix = NULL;
+  gridOrientationMatrix = regReader->GetDeformableRegistrationGridOrientationMatrix();
+
+  gridTransform->SetGridDirectionMatrix(gridOrientationMatrix);
 
   // Add grid transform node
   vtkSmartPointer<vtkMRMLGridTransformNode> deformableRegistrationGridTransformNode = vtkSmartPointer<vtkMRMLGridTransformNode>::New();
