@@ -89,7 +89,7 @@ bool vtkVolumesOrientedResampleUtility
     outputVolumeResliceTransform->Concatenate(inputVolumeRAS2RASMatrix);
   }
   vtkSmartPointer<vtkMRMLTransformNode> referenceVolumeNodeTransformNode = vtkMRMLTransformNode::SafeDownCast(
-    referenceVolumeNodeTransformNode->GetScene()->GetNodeByID(referenceVolumeNodeTransformNode->GetTransformNodeID()));
+    referenceVolumeNode->GetScene()->GetNodeByID(referenceVolumeNode->GetTransformNodeID()));
   vtkSmartPointer<vtkMatrix4x4> referenceVolumeRAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   if (referenceVolumeNodeTransformNode!=NULL)
   {
