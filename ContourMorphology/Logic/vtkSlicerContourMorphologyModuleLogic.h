@@ -48,10 +48,10 @@ public:
   /// Set and observe parameter set node
   void SetAndObserveContourMorphologyNode(vtkMRMLContourMorphologyNode* node);
 
-  /// TODO Re-factor this when doing ticket #278
+  /// Ensure that contour A has a labelmap representation
   int SetContourARepresentationToLabelmap();
 
-  /// TODO Re-factor this when doing ticket #278
+  /// Ensure that contour B has a labelmap representation
   int SetContourBRepresentationToLabelmap();
 
   /// Perform selected morphological operation
