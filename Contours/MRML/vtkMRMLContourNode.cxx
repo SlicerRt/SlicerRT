@@ -343,15 +343,6 @@ void vtkMRMLContourNode::UpdateReferences()
 {
   Superclass::UpdateReferences();
 
-  // TODO : I don't get this, why is everything set to null...
-  if (this->RibbonModelPolyData != NULL )
-  {
-    this->SetAndObserveRibbonModelPolyData(NULL);
-  }
-  if (this->ClosedSurfacePolyData != NULL )
-  {
-    this->SetAndObserveClosedSurfacePolyData(NULL);
-  }
   if (this->RasterizationReferenceVolumeNodeId != NULL && this->Scene->GetNodeByID(this->RasterizationReferenceVolumeNodeId) == NULL)
   {
     this->SetAndObserveRasterizationReferenceVolumeNodeId(NULL);

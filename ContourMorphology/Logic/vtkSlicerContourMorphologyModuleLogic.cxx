@@ -263,7 +263,6 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
       this->ContourMorphologyNode->GetReferenceVolumeNode()->GetID() );
   }
 
-  // TODO : should this regenerate the labelmap?
   inputContourBNode->SetRasterizationOversamplingFactor(1.0);
 
   vtkImageData* inputContourBLabelmapData = inputContourBNode->GetLabelmapImageData();
