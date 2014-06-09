@@ -29,6 +29,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerSubjectHierarchyModuleMRML
   vtkSlicerSubjectHierarchyModuleLogic
   vtkSlicerContoursModuleMRML
+  vtkSlicerContoursModuleLogic
   vtkSlicerIsodoseModuleLogic
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}

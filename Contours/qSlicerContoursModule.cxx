@@ -22,12 +22,17 @@
 // Qt includes
 #include <QtPlugin>
 
+// Slicer includes
+#include "qSlicerIOManager.h"
+#include "qSlicerNodeWriter.h"
+
 // Contours includes
 #include "qSlicerContoursModule.h"
 #include "qSlicerContoursModuleWidget.h"
-#include "vtkSlicerContoursModuleLogic.h"
-#include "qSlicerSubjectHierarchyContoursPlugin.h"
+#include "qSlicerContoursReader.h"
 #include "qSlicerSubjectHierarchyContourSetsPlugin.h"
+#include "qSlicerSubjectHierarchyContoursPlugin.h"
+#include "vtkSlicerContoursModuleLogic.h"
 
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -109,9 +114,17 @@ void qSlicerContoursModule::setup()
 {
   this->Superclass::setup();
 
+  vtkSlicerContoursModuleLogic* contoursLogic =
+    vtkSlicerContoursModuleLogic::SafeDownCast(this->logic());
+
   // Register subject hierarchy contours plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyContoursPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyContourSetsPlugin());
+  
+  // Register IOs
+  qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
+  ioManager->registerIO(new qSlicerNodeWriter("Contour", QString("ContourFile"), QStringList() << "vtkMRMLContourNode", this));
+  ioManager->registerIO(new qSlicerContoursReader(contoursLogic, this));
 }
 
 //-----------------------------------------------------------------------------

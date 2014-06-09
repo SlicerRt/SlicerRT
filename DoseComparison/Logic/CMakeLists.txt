@@ -21,6 +21,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkPlmCommon
   vtkSlicerRtCommon
   vtkSlicerContoursModuleMRML
+  vtkSlicerContoursModuleLogic
   ${PLASTIMATCH_LIBRARIES}
   )
 

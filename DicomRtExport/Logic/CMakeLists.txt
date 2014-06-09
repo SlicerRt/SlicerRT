@@ -8,6 +8,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerContoursModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
   )
@@ -25,6 +26,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkPlmCommon
   vtkSlicerRtCommon
   vtkSlicerContoursModuleMRML
+  vtkSlicerContoursModuleLogic
   vtkSlicerSubjectHierarchyModuleMRML
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}

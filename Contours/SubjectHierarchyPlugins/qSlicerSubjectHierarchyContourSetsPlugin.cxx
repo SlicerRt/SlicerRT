@@ -32,6 +32,7 @@
 
 // Contours includes
 #include "qSlicerSubjectHierarchyContourSetsPlugin.h"
+#include "vtkMRMLContourModelDisplayNode.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkSlicerContoursModuleLogic.h"
 
@@ -44,14 +45,10 @@
 #include "qSlicerAbstractModuleWidget.h"
 
 // MRML includes
+#include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
-#include <vtkMRMLColorTableNode.h>
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLVolumeDisplayNode.h>
-#include <vtkMRMLLabelMapVolumeDisplayNode.h>
 
 // MRML widgets includes
 #include "qMRMLNodeComboBox.h"
@@ -153,22 +150,14 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canAddNodeToSubjectHierarchy(vt
 
   if (node->IsA("vtkMRMLModelNode") || node->IsA("vtkMRMLScalarVolumeNode"))
   {
-    if (this->isNodeAContourRepresentation(node))
+    // Node is a potential contour node representation. On reparenting under a contour set node in subject hierarchy, a contour node will be created
+    if ( parent && parent->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+      && parent->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
     {
-      // Node is a representation of an existing contour, so instead of the representation, the parent contour will only be the potential node
-      return 0.0;
+      return 1.0; // Only the Contours plugin can handle this add operation
     }
-    else
-    {
-      // Node is a potential contour node representation. On reparenting under a contour set node in subject hierarchy, a contour node will be created
-      if ( parent && parent->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
-        && parent->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
-      {
-        return 1.0; // Only the Contours plugin can handle this add operation
-      }
 
-      return 0.7; // Might be other plugin that can handle adding volumes and models in the subject hierarchy
-    }
+    return 0.7; // Might be other plugin that can handle adding volumes and models in the subject hierarchy
   }
 
   return 0.0;
@@ -219,6 +208,8 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRML
     }
 
     colorName = QString(nodeToAdd->GetName());
+
+    scene->RemoveNode(nodeToAdd);
   }
   else if (nodeToAdd->IsA("vtkMRMLContourNode"))
   {
@@ -231,6 +222,7 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRML
     return false;
   }
 
+  contourSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), colorName.toLatin1().constData());
   contourSubjectHierarchyNode->SetAssociatedNodeID(contourNodeAddedToSubjectHierarchy->GetID());
 
   // Add color to the new color table
@@ -388,45 +380,6 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::reparentNodeInsideSubjectHierarch
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLContourNode* qSlicerSubjectHierarchyContourSetsPlugin::isNodeAContourRepresentation(vtkMRMLNode* node)const
-{
-  if (!node)
-  {
-    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::isNodeAContourRepresentation: Input argument is NULL!";
-    return NULL;
-  }
-  vtkMRMLScene* mrmlScene = node->GetScene();
-  if (!mrmlScene)
-  {
-    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::isNodeAContourRepresentation: Invalid MRML scene!";
-    return NULL;
-  }
-
-  // If the node is neither a model nor a volume, the it cannot be a representation
-  if (!node->IsA("vtkMRMLModelNode") && !node->IsA("vtkMRMLScalarVolumeNode"))
-  {
-    return NULL;
-  }
-
-  // Check every contour node if they have the argument node among the representations
-  const char* nodeID = node->GetID();
-  vtkSmartPointer<vtkCollection> contourNodes = vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByClass("vtkMRMLContourNode") );
-  vtkObject* nextObject = NULL;
-  for (contourNodes->InitTraversal(); (nextObject = contourNodes->GetNextItemAsObject()); )
-  {
-    vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(nextObject);
-    if ( (contourNode->GetRibbonModelNodeId() && !STRCASECMP(contourNode->GetRibbonModelNodeId(), nodeID))
-      || (contourNode->GetIndexedLabelmapVolumeNodeId() && !STRCASECMP(contourNode->GetIndexedLabelmapVolumeNodeId(), nodeID))
-      || (contourNode->GetClosedSurfaceModelNodeId() && !STRCASECMP(contourNode->GetClosedSurfaceModelNodeId(), nodeID)) )
-    {
-      return contourNode;
-    }
-  }
-
-  return NULL;
-}
-
-//---------------------------------------------------------------------------
 bool qSlicerSubjectHierarchyContourSetsPlugin::addContourColorToCorrespondingColorTable(vtkMRMLContourNode* contourNode, QString colorName)
 {
   if (!contourNode)
@@ -444,14 +397,6 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addContourColorToCorrespondingCol
   // Initialize color to invalid in case it cannot be found
   double color[4] = { SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1], SlicerRtCommon::COLOR_VALUE_INVALID[2], SlicerRtCommon::COLOR_VALUE_INVALID[3] };
 
-  // Get contour color
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( mrmlScene->GetNodeByID(
-    contourNode->GetRibbonModelNodeId() ? contourNode->GetRibbonModelNodeId() : contourNode->GetClosedSurfaceModelNodeId()) );
-  if (modelNode && modelNode->GetDisplayNode())
-  {
-    modelNode->GetDisplayNode()->GetColor(color[0], color[1], color[2]);
-  }
-
   // Add color to the new color table
   vtkMRMLColorTableNode* colorNode = NULL;
   int structureColorIndex = SlicerRtCommon::COLOR_INDEX_INVALID; // Initializing to this value means that we don't request the color index, just the color table
@@ -462,34 +407,49 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addContourColorToCorrespondingCol
     return false;
   }
 
+  // Get contour color
+  vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast( 
+    contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) 
+    ? contourNode->GetRibbonModelDisplayNode() // yes
+    : contourNode->GetClosedSurfaceModelDisplayNode() );  // no
+  if (modelDisplayNode)
+  {
+    modelDisplayNode->GetColor(color[0], color[1], color[2]);
+  }
+  else
+  {
+    // Generate a color
+    SlicerRtCommon::GenerateNewColor(colorNode, color);
+  }
+
   int numberOfColors = colorNode->GetNumberOfColors();
   colorNode->SetNumberOfColors(numberOfColors+1);
   colorNode->GetLookupTable()->SetTableRange(0, numberOfColors);
   colorNode->SetColor(numberOfColors, colorName.toLatin1().constData(), color[0], color[1], color[2], color[3]);
 
   // Paint labelmap foreground value to match the index of the newly added color
-  if (contourNode->RepresentationExists(vtkMRMLContourNode::IndexedLabelmap))
+  if (contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap))
   {
-    vtkMRMLScalarVolumeNode* scalarVolumeNode = contourNode->GetIndexedLabelmapVolumeNode();
+    //vtkImageData* scalarVolumeNode = contourNode->GetLabelmapImageData();
 
     // Make sure there is a display node with the right type
     // TODO: Use Volumes logic function when available (http://www.na-mic.org/Bug/view.php?id=3304)
-    vtkMRMLDisplayNode* oldDisplayNode = scalarVolumeNode->GetDisplayNode();
+    // TODO : when contour 2d vis is re-enabled, reconnect this functionality
+    //vtkMRMLContourLabelmapDisplayNode* oldDisplayNode = contourNode->GetLabelmapVolumeDisplayNode();
 
-    vtkMRMLVolumeDisplayNode* scalarVolumeDisplayNode = vtkMRMLLabelMapVolumeDisplayNode::New();
-    scalarVolumeDisplayNode->SetAndObserveColorNodeID(colorNode->GetID());
-    mrmlScene->AddNode(scalarVolumeDisplayNode);
-    scalarVolumeNode->SetLabelMap(1);
-    scalarVolumeNode->SetAndObserveDisplayNodeID( scalarVolumeDisplayNode->GetID() );
-    scalarVolumeDisplayNode->Delete();
+    //vtkMRMLContourLabelmapDisplayNode* newDisplayNode = vtkMRMLContourLabelmapDisplayNode::New();
+    //newDisplayNode->SetAndObserveColorNodeID(colorNode->GetID());
+    //mrmlScene->AddNode(newDisplayNode);
+    //contourNode->SetAndObserveDisplayNodeID( newDisplayNode->GetID() );
+    //newDisplayNode->Delete();
 
-    if (oldDisplayNode)
-    {
-      mrmlScene->RemoveNode(oldDisplayNode);
-    }
+    //if (oldDisplayNode)
+    //{
+//      mrmlScene->RemoveNode(oldDisplayNode);
+    //}
 
     // Do the painting
-    vtkSlicerContoursModuleLogic::PaintLabelmapForeground(scalarVolumeNode, numberOfColors);
+    vtkSlicerContoursModuleLogic::PaintLabelmapRepresentationForeground(contourNode, numberOfColors);
   }
 
   return true;
@@ -715,10 +675,20 @@ void qSlicerSubjectHierarchyContourSetsPlugin::editProperties(vtkMRMLSubjectHier
     // Get node selector combobox
     qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_Contour");
 
+    vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+    vtkMRMLNode* toDropdownNode = node;
+
+    // if it's not a subseries node, get the associated contour node
+    if( node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) == NULL 
+      || strcmp(node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()), "1") != 0 )
+    {
+      toDropdownNode = scene->GetNodeByID(node->GetAssociatedNode()->GetID());
+    }
+
     // Choose current data node
     if (nodeSelector)
     {
-      nodeSelector->setCurrentNode(node);
+      nodeSelector->setCurrentNode(toDropdownNode);
     }
   }
 }

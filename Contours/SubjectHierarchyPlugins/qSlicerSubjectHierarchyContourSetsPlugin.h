@@ -109,10 +109,6 @@ public:
   virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node);
 
 protected:
-  /// Determine if the argument node is a representation object of a Contour node in the scene
-  /// \return The found contour node whose representation the argument node is, NULL if node is not a representation
-  vtkMRMLContourNode* isNodeAContourRepresentation(vtkMRMLNode* node)const;
-
   /// Add the color of a contour to the corresponding color table (in the same contour set)
   /// Also repaint the occasional labelmap representation to the new color index
   bool addContourColorToCorrespondingColorTable(vtkMRMLContourNode* contourNode, QString colorName);

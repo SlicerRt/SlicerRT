@@ -30,8 +30,8 @@
       </widget>
      </item>
      <item>
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
-       <property name="nodeTypes">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet" native="true">
+       <property name="nodeTypes" stdset="0">
         <stringlist>
          <string>vtkMRMLContourMorphologyNode</string>
         </stringlist>
@@ -41,8 +41,8 @@
     </layout>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_Input">
-     <property name="text">
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_Input" native="true">
+     <property name="text" stdset="0">
       <string>Input</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
@@ -67,21 +67,18 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_ContourA"/>
+       <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_ContourA" native="true"/>
       </item>
       <item row="2" column="1">
-       <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_ContourB"/>
+       <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_ContourB" native="true"/>
       </item>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_OperationParameters">
-     <property name="text">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_OperationParameters" native="true">
+     <property name="text" stdset="0">
       <string>Operation parameters</string>
-     </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <property name="margin">
@@ -294,15 +291,12 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Output">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Output" native="true">
      <property name="enabled">
       <bool>true</bool>
      </property>
-     <property name="text">
+     <property name="text" stdset="0">
       <string>Output</string>
-     </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <property name="margin">
@@ -312,24 +306,33 @@
        <number>4</number>
       </property>
       <item row="0" column="0">
-       <widget class="QLabel" name="label_7">
+       <widget class="QLabel" name="label_OutputContour">
         <property name="text">
          <string>Output contour:</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_OutputContour">
-        <property name="nodeTypes">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_OutputContour" native="true">
+        <property name="nodeTypes" stdset="0">
          <stringlist>
           <string>vtkMRMLContourNode</string>
          </stringlist>
         </property>
-        <property name="noneEnabled">
+        <property name="noneEnabled" stdset="0">
          <bool>true</bool>
         </property>
-        <property name="renameEnabled">
-         <bool>true</bool>
+        <property name="noneDisplay" stdset="0">
+         <string>Create New Contour</string>
+        </property>
+        <property name="addEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="renameEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="removeEnabled" stdset="0">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -400,6 +403,7 @@
    <class>qMRMLContourSelectorWidget</class>
    <extends>qMRMLWidget</extends>
    <header>qMRMLContourSelectorWidget.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>ctkCollapsibleButton</class>
@@ -409,6 +413,8 @@
   </customwidget>
  </customwidgets>
  <resources>
+  <include location="../qSlicerContourMorphologyModule.qrc"/>
+  <include location="../qSlicerContourMorphologyModule.qrc"/>
   <include location="../qSlicerContourMorphologyModule.qrc"/>
   <include location="../qSlicerContourMorphologyModule.qrc"/>
  </resources>

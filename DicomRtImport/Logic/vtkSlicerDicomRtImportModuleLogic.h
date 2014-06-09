@@ -32,7 +32,7 @@
 class vtkSlicerVolumesLogic;
 class vtkSlicerIsodoseModuleLogic;
 class vtkSlicerPlanarImageModuleLogic;
-class vtkMRMLModelNode;
+class vtkMRMLContourModelDisplayNode;
 class vtkMRMLHierarchyNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkDICOMImportInfo;
@@ -90,9 +90,6 @@ protected:
 
   /// Add an ROI point to the scene
   vtkMRMLMarkupsFiducialNode* AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor);
-
-  /// Add an ROI contour to the scene
-  vtkMRMLModelNode* AddRoiContour(vtkPolyData* roiPoly, std::string baseName, double* roiColor);
 
   /// Load RT Dose and related objects into the MRML scene
   /// \return Success flag

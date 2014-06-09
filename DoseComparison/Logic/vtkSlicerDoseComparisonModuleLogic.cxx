@@ -35,6 +35,7 @@
 #include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
+#include "vtkSlicerContoursModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -197,12 +198,14 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   Plm_image::Pointer maskVolume;
   vtkMRMLContourNode* maskContourNode = this->DoseComparisonNode->GetMaskContourNode();
-  if (maskContourNode)
+  if (maskContourNode )
   {
+    // Extract a labelmap for the dose comparison to use it as a mask
     maskContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(referenceDoseVolumeNode->GetID());
     maskContourNode->SetRasterizationOversamplingFactor(1.0);
-    maskVolume = PlmCommon::ConvertVolumeNodeToPlmImage(
-      maskContourNode->GetIndexedLabelmapVolumeNode());
+    vtkMRMLScalarVolumeNode* maskVolumeNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(maskContourNode);
+    maskVolume = PlmCommon::ConvertVolumeNodeToPlmImage( maskVolumeNode );
+    this->GetMRMLScene()->RemoveNode(maskVolumeNode);
   }
 
   // Compute gamma dose volume

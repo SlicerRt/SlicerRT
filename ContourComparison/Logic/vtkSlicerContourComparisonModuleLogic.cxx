@@ -38,6 +38,7 @@
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLTransformNode.h>
+#include <vtkSlicerContoursModuleLogic.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -101,20 +102,18 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsPlmVolumes(
   vtkMRMLContourNode* referenceContourNode = this->Logic->GetContourComparisonNode()->GetReferenceContourNode();
   vtkMRMLContourNode* compareContourNode = this->Logic->GetContourComparisonNode()->GetCompareContourNode();
 
-  if (referenceContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
+  if (!referenceContourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap))
   {
     referenceContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
       this->Logic->GetContourComparisonNode()->GetRasterizationReferenceVolumeNode()->GetID() );
   }
-  if (compareContourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
+  if (!compareContourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap))
   {
     compareContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(
       this->Logic->GetContourComparisonNode()->GetRasterizationReferenceVolumeNode()->GetID() );
   }
 
-  vtkMRMLScalarVolumeNode* referenceContourLabelmapVolumeNode = referenceContourNode->GetIndexedLabelmapVolumeNode();
-  vtkMRMLScalarVolumeNode* compareContourLabelmapVolumeNode = compareContourNode->GetIndexedLabelmapVolumeNode();
-  if (!referenceContourLabelmapVolumeNode || !compareContourLabelmapVolumeNode)
+  if (!referenceContourNode->GetLabelmapImageData() || !compareContourNode->GetLabelmapImageData())
   {
     errorMessage = "Failed to get indexed labelmap representation from selected contours";
     vtkErrorMacro("GetInputContoursAsItkVolumes: " << errorMessage);
@@ -125,21 +124,25 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsPlmVolumes(
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   checkpointItkConvertStart = timer->GetUniversalTime();
 
+  vtkMRMLScalarVolumeNode* refVolumeNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(referenceContourNode);
   plmRefContourLabelmap = 
-    PlmCommon::ConvertVolumeNodeToPlmImage (referenceContourLabelmapVolumeNode);
+    PlmCommon::ConvertVolumeNodeToPlmImage (refVolumeNode);
   if (!plmRefContourLabelmap) {
     errorMessage = "Failed to convert contour labelmaps into Plm_image!";
     vtkErrorMacro("GetInputContoursAsPlmVolumes: " << errorMessage);
     return;
   }
+  this->Logic->GetMRMLScene()->RemoveNode(refVolumeNode);
 
+  vtkMRMLScalarVolumeNode* compareVolumeNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(compareContourNode);
   plmCmpContourLabelmap = 
-    PlmCommon::ConvertVolumeNodeToPlmImage (compareContourLabelmapVolumeNode);
+    PlmCommon::ConvertVolumeNodeToPlmImage (compareVolumeNode);
   if (!plmCmpContourLabelmap) {
     errorMessage = "Failed to convert contour labelmaps into Plm_image!";
     vtkErrorMacro("GetInputContoursAsPlmVolumes: " << errorMessage);
     return;
   }
+  this->Logic->GetMRMLScene()->RemoveNode(compareVolumeNode);
 }
 
 //-----------------------------------------------------------------------------

@@ -146,8 +146,8 @@ protected:
   /// Get the resampled dose volume and the stencil for a structure on the resampled dose volume
   /// \param structureContourNode Input contour node containing the structure to stencil
   /// \param resampledDoseVolumeNode Output volume node that will contain the resampled dose volume
-  /// \param consolidatedStructureLabelmap Output labelmap containing the structure indexed labelmap if its lattice matches the resampled dose volume, or a temporarily resampled copy otherwise
-  virtual void GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour(vtkMRMLContourNode* structureContourNode, vtkMRMLScalarVolumeNode* resampledDoseVolumeNode, vtkMRMLScalarVolumeNode* consolidatedStructureLabelmapNode);
+  /// \param consolidatedStructureContourNode Output contour containing the structure indexed labelmap if its lattice matches the resampled dose volume, or a temporarily resampled copy otherwise
+  virtual void GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour(vtkMRMLContourNode* structureContourNode, vtkMRMLScalarVolumeNode* resampledDoseVolumeNode, vtkMRMLContourNode* consolidatedStructureContourNode);
 
   /// Return the chart view node object from the layout
   vtkMRMLChartViewNode* GetChartViewNode();

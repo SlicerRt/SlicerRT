@@ -143,6 +143,11 @@ protected:
   /// \return The list of contours in the contour set (may be empty)
   bool GetContoursFromContourSet(vtkMRMLSubjectHierarchyNode* contourSetNode, std::vector< vtkMRMLContourNode* >& outputContourList);
 
+  /// Return a string containing the list of representations for the given node
+  /// \param node The contour node to query
+  /// \return The string of existing representations
+  std::string buildRepresentationsString( vtkMRMLContourNode* node );
+
 public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
@@ -156,6 +161,8 @@ protected slots:
   void activeRepresentationComboboxSelectionChanged(int index);
   void oversamplingFactorChanged(int value);
   void targetReductionFactorPercentChanged(double value);
+
+  void extractLabelmapClicked();
 
   /// Slots for the create contour from representation feature
   void targetContourSetNodeChanged(vtkMRMLNode*);

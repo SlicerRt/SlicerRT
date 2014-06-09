@@ -30,13 +30,20 @@
 // VTK includes
 #include <vtkPolyData.h>
 
+// Contour includes
 #include "vtkSlicerContoursModuleMRMLExport.h"
 
+// ITK includes
+#include "itkMetaDataDictionary.h"
+
+class vtkImageData;
 class vtkMRMLColorTableNode;
-class vtkMRMLModelNode;
+class vtkMRMLContourModelDisplayNode;
 class vtkMRMLScalarVolumeNode;
+class vtkMRMLScene;
 class vtkPlane;
 class vtkPlaneCollection;
+class vtkPolyData;
 
 /// \ingroup SlicerRt_QtModules_Contours
 class VTK_SLICER_CONTOURS_MODULE_MRML_EXPORT vtkMRMLContourNode : public vtkMRMLDisplayableNode
@@ -51,9 +58,22 @@ public:
     NumberOfRepresentationTypes
   };
 
-public:
+  /// RibbonModelPolyDataModifiedEvent is fired when the ribbon model PolyData is changed.
+  /// ClosedSurfacePolyDataModifiedEvent is fired when closed surface PolyData is changed.
+  /// While it is possible for the subclasses to fire the events without modifying the polydata, it is not recommended to do so as it
+  /// doesn't mark the polydata as modified, which my result in an incorrect
+  /// return value for GetModifiedSinceRead()
+  /// \sa GetModifiedSinceRead()
+  /// TODO : when original surface points are changed, an event should be fired
+  enum
+  {
+    RibbonModelPolyDataModifiedEvent = 65001,
+    ClosedSurfacePolyDataModifiedEvent = 65002,
+    LabelmapImageDataModifiedEvent = 65003
+  };
+
   static vtkMRMLContourNode *New();
-  vtkTypeMacro(vtkMRMLContourNode,vtkMRMLDisplayableNode);
+  vtkTypeMacro(vtkMRMLContourNode, vtkMRMLDisplayableNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Create instance of a GAD node. 
@@ -68,11 +88,25 @@ public:
   /// Copy the node's attributes to this object 
   virtual void Copy(vtkMRMLNode *node);
 
+  /// Copy the entire contents of the node into this node
+  virtual void DeepCopy(vtkMRMLNode* otherNode);
+
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "Contour";};
 
   /// Update the stored reference to another node in the scene 
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
+
+  /// Get bounding box in global RAS the form (xmin,xmax, ymin,ymax, zmin,zmax).
+  virtual void GetRASBounds(double bounds[6]);
+
+  ///
+  /// Copy the node's attributes to this object
+  void CopyOrientation(vtkMRMLContourNode *node);
+
+  ///
+  /// Copy the node's attributes to this object
+  void CopyOrientation(vtkMRMLScalarVolumeNode *node);
 
   /// Updates this node if it depends on other nodes 
   /// when the node is deleted in the scene
@@ -83,11 +117,11 @@ public:
   /// - Follows parent transform changes
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
-  /// Overridden function to get visibility from active representation
-  virtual int GetDisplayVisibility();
+  /// Show representation by type
+  void ShowRepresentation(ContourRepresentationType type, bool show);
 
-  /// Overridden function to set visibility to active representations
-  virtual void SetDisplayVisibility(int visible);
+  /// Get representation by type
+  bool IsRepresentationVisible(ContourRepresentationType type);
 
   /// Returns true if the transformable node can apply non linear transforms
   /// \sa ApplyTransform
@@ -97,25 +131,18 @@ public:
   /// \sa SetAndObserveTransformNodeID, CanApplyNonLinearTransforms
   virtual void ApplyTransform(vtkAbstractTransform* transform);
 
-public:
-  /// Set default representation by the object instance
-  void SetActiveRepresentationByNode(vtkMRMLDisplayableNode *node);
+  virtual void ApplyTransformMatrix(vtkMatrix4x4* transformMatrix);
 
-  /// Set default representation by the object instance
-  void SetActiveRepresentationByType(ContourRepresentationType type);
-
-  /// Get active representation type
-  ContourRepresentationType GetActiveRepresentationType() { return this->ActiveRepresentationType; };
+  virtual void ApplyNonLinearTransform(vtkAbstractTransform* transform);
 
   /// Determines whether a representation exists in the contour node
-  bool RepresentationExists(ContourRepresentationType type);
+  bool HasRepresentation(ContourRepresentationType type);
+
+  /// Remove a representation
+  void RemoveRepresentation(ContourRepresentationType type);
 
   /// Returns true if ribbon model is empty, false otherwise
   bool RibbonModelContainsEmptyPolydata();
-
-  /// Determines if the contour has been created from an already existing indexed labelmap
-  /// \sa RasterizationReferenceVolumeNodeId
-  bool HasBeenCreatedFromIndexedLabelmap();
 
   /// Get structure name from subject hierarchy
   const char* GetStructureName();
@@ -130,30 +157,23 @@ public:
   /// \param scene MRML scene pointer (in case the associated node is not in the scene any more). If not specified, then the scene of the argument node is used.
   void GetColor(int &colorIndex, vtkMRMLColorTableNode* &colorNode, vtkMRMLScene* scene=NULL);
 
-public:
   /// Set name (changes names of representations too)
   virtual void SetName(const char* newName);
 
-  /// Get ribbon model node ID
-  vtkGetStringMacro(RibbonModelNodeId);
-  /// Get ribbon model node
-  vtkMRMLModelNode* GetRibbonModelNode();
-  /// Set and observe ribbon model node. All other representations will be deleted
-  void SetAndObserveRibbonModelNodeId(const char *nodeID);
+  /// Set and observe ribbon model data
+  virtual void SetAndObserveRibbonModelPolyData(vtkPolyData *PolyData);
+  /// Get ribbon model data
+  vtkGetObjectMacro(RibbonModelPolyData, vtkPolyData);
 
-  /// Get indexed labelmap volume node ID
-  vtkGetStringMacro(IndexedLabelmapVolumeNodeId);
-  /// Get indexed labelmap volume node
-  vtkMRMLScalarVolumeNode* GetIndexedLabelmapVolumeNode();
-  /// Set and observe indexed labelmap volume node. All other representations will be deleted
-  void SetAndObserveIndexedLabelmapVolumeNodeId(const char *nodeID);
+  /// Set and observe closed surface model data
+  virtual void SetAndObserveClosedSurfacePolyData(vtkPolyData *PolyData);
+  /// Get closed surface model data
+  virtual vtkPolyData* GetClosedSurfacePolyData();
 
-  /// Get closed surface model node ID
-  vtkGetStringMacro(ClosedSurfaceModelNodeId);
-  /// Get closed surface model node
-  vtkMRMLModelNode* GetClosedSurfaceModelNode();
-  /// Set and observe closed surface model node. All other representations will be deleted
-  void SetAndObserveClosedSurfaceModelNodeId(const char *nodeID);
+  /// Set and observe the image data
+  virtual void SetAndObserveLabelmapImageData(vtkImageData* imageData);
+  /// Get labelmap data
+  virtual vtkImageData* GetLabelmapImageData();
 
   /// Get rasterization reference volume node ID
   vtkGetStringMacro(RasterizationReferenceVolumeNodeId);
@@ -175,6 +195,21 @@ public:
   /// Set target reduction factor
   void SetDecimationTargetReductionFactor(double targetReductionFactor);
 
+  /// Set default conversion parameters if none were explicitly specified
+  void SetDefaultConversionParametersForRepresentation(ContourRepresentationType type);
+
+  // TODO : ensure that this new mechanism correctly replaces the old one
+  /// Was this contour created by converting a labelmap to contour?
+  bool HasBeenCreatedFromIndexedLabelmap();
+  vtkSetMacro(CreatedFromIndexLabelmap, bool);
+
+  /// Retrieve the display node associated with the image data
+  //vtkMRMLContourLabelmapDisplayNode* GetLabelmapVolumeDisplayNode();
+  /// Retrieve the display node associated with the ribbon model data
+  vtkMRMLContourModelDisplayNode* GetRibbonModelDisplayNode();
+  /// Retrieve the display node associated with the closed surface model data
+  vtkMRMLContourModelDisplayNode* GetClosedSurfaceModelDisplayNode();
+
   /// Get the ordered contour planes
   const std::map<double, vtkSmartPointer<vtkPlane> >& GetOrderedContourPlanes() const;
   /// Get the ordered contour planes, caller is responsible for collection deallocation (not internals!)
@@ -182,71 +217,152 @@ public:
   /// Set the ordered contour planes
   void SetOrderedContourPlanes(std::map<double, vtkSmartPointer<vtkPlane> >& orderedContourPlanes);
 
+  /// Create a contour storage node
+  virtual vtkMRMLStorageNode* CreateDefaultStorageNode();
+
+  /// Reimplemented to take into account the modified time of the internal data.
+  /// Returns true if the node (default behavior) or the internal data are modified
+  /// since read/written.
+  /// Note: The MTime of the internal data is used to know if it has been modified.
+  /// So if you invoke one of the data modified events without calling Modified() on the
+  /// internal data, GetModifiedSinceRead() won't return true.
+  /// \sa vtkMRMLStorableNode::GetModifiedSinceRead()
+  virtual bool GetModifiedSinceRead();
+
+  // Labelmap functionality
+public:
+  ///
+  /// Get the IJKToRAS Matrix that includes the spacing and origin
+  /// information (assumes the image data is Origin 0 0 0 and Spacing 1 1 1)
+  /// RASToIJK is the inverse of this
+  void GetIJKToRASMatrix(vtkMatrix4x4* mat);
+  void GetRASToIJKMatrix(vtkMatrix4x4* mat);
+
+  ///
+  /// Convenience methods to set the directions, spacing, and origin
+  /// from a matrix
+  void SetIJKToRASMatrix(vtkMatrix4x4* mat);
+  void SetRASToIJKMatrix(vtkMatrix4x4* mat);
+
+  void SetIJKToRASDirections(double dirs[3][3]);
+  void GetIJKToRASDirections(double dirs[3][3]);
+
+  ///
+  /// Spacing and Origin, with the Directions, are the independent
+  /// parameters that go to make up the IJKToRAS matrix
+  /// In setter methods, StorableModifiedTime may need to be updated,
+  /// which cannot be achieved by using vtkGetVector3Macro.
+  vtkGetVector3Macro (Spacing, double);
+  virtual void SetSpacing(double arg1, double arg2, double arg3);
+  virtual void SetSpacing(double arg[3]);
+  vtkGetVector3Macro (Origin, double);
+  virtual void SetOrigin(double arg1, double arg2, double arg3);
+  virtual void SetOrigin(double arg[3]);
+
+  ///
+  /// Set/Get the ITK MetaDataDictionary
+  void SetMetaDataDictionary( const itk::MetaDataDictionary& );
+  const itk::MetaDataDictionary& GetMetaDataDictionary() const;
+
+  /// Create ribbon model display node
+  vtkMRMLContourModelDisplayNode* CreateRibbonModelDisplayNode();
+
+  /// Create closed surface display node
+  vtkMRMLContourModelDisplayNode* CreateClosedSurfaceDisplayNode();
+
+  /// Create labelmap display node
+  // TODO : 2d vis readdition
+  //void CreateLabelmapDisplayNode();
+
+public:
+  /// Note: Interpolation mode is the default one: nearest neighbor
+  /// \param scene The scene to operate on
+  /// \param inContourNode the input contour to resample
+  /// \param refVolumeNode the reference volume to determine resampling output
+  /// \param outContourNode the output contour to put the results into
+  /// TODO : If contours ever make it into Slicer core, move this function back to rtcommon
+  static bool ResampleInputContourNodeToReferenceVolumeNode(vtkMRMLScene* scene,
+    vtkMRMLContourNode* inContourNode, 
+    vtkMRMLScalarVolumeNode* refVolumeNode,
+    vtkMRMLContourNode* outContourNode);
+
+  /// Check if the lattice (grid, geometry) of a contour and a volume are the same
+  /// This is a re-implementation of a slicerrt common function
+  /// TODO : If contours ever make it into Slicer core, move this function back to rtcommon
+  /// TODO : Do implies an action, this is a query. Consider renaming using Is or Are
+  static bool DoVolumeLatticesMatch(vtkMRMLContourNode* contour1, vtkMRMLScalarVolumeNode* volume2);
+    
 protected:
-  /// Create a temporary vector for easier batch handling of representations
-  std::vector<vtkMRMLDisplayableNode*> CreateTemporaryRepresentationsVector();
-
-  /// Show (true) or hide (false) a representation completely (editors, viewers, slice intersections)
-  void ShowRepresentation(vtkMRMLDisplayableNode* representation, bool show);
-
-  /// Set default conversion parameters if none were explicitly specified
-  void SetDefaultConversionParametersForRepresentation(ContourRepresentationType type);
-
-  /// Delete all representations except for the active one
-  void DeleteNonActiveRepresentations();
-
-protected:
-  /// Set ribbon model node ID
-  vtkSetReferenceStringMacro(RibbonModelNodeId);
-
-  /// Set indexed labelmap volume node ID
-  vtkSetReferenceStringMacro(IndexedLabelmapVolumeNodeId);
-
-  /// Set closed surface model node ID
-  vtkSetReferenceStringMacro(ClosedSurfaceModelNodeId);
+  /// Internal function to apply the transform to a model
+  vtkPolyData* ApplyTransformInternal(vtkAbstractTransform* transform, vtkPolyData* input);
 
   /// Set rasterization reference volume node ID
   vtkSetStringMacro(RasterizationReferenceVolumeNodeId);
 
-private:
-  /// Set and observe ribbon model node while preserving the existing representations (only the should converter call this)
-  void SetAndObserveRibbonModelNodeIdOnly(const char *nodeID);
-  /// Set and observe indexed labelmap volume node while preserving the existing representations (only the should converter call this)
-  void SetAndObserveIndexedLabelmapVolumeNodeIdOnly(const char *nodeID);
-  /// Set and observe closed surface model node while preserving the existing representations (only the should converter call this)
-  void SetAndObserveClosedSurfaceModelNodeIdOnly(const char *nodeID);
+  /// For logging purposes
+  static std::string GetRepresentationTypeAsString(ContourRepresentationType type);
+
+  /// Called when a node reference ID is added (list size increased).
+  virtual void OnNodeReferenceAdded(vtkMRMLNodeReference *reference);
+
+  /// Called when a node reference ID is modified.
+  virtual void OnNodeReferenceModified(vtkMRMLNodeReference *reference);
+
+  /// Internal function that sets the polydata to all the display nodes.
+  /// Can be called if the polydata is changed.
+  void SetPolyDataToDisplayNodes(vtkPolyData* polyData, ContourRepresentationType type);
+
+  /// Internal function that sets the polydata to a display node.
+  /// Can be reimplemented if you want to set a different polydata
+  virtual void SetPolyDataToDisplayNode(vtkPolyData* polyData, vtkMRMLContourModelDisplayNode* modelDisplayNode);
+
+  /// Internal function that sets the image data to all the display nodes.
+  /// Can be called if the image data is changed.
+  void SetImageDataToDisplayNodes();
+
+  /// Internal function that sets the image data to a display node.
+  /// Can be reimplemented if you want to set a different image data
+  //virtual void SetImageDataToDisplayNode(vtkMRMLContourLabelmapDisplayNode* labelmapDisplayNode);
+
+  /// Set the ribbon model data
+  void SetRibbonModelPolyData(vtkPolyData* polyData);
+
+  /// Set the closed surface data
+  void SetClosedSurfacePolyData(vtkPolyData* polyData);
+
+  /// Set the labelmap data
+  void SetLabelmapImageData(vtkImageData* imageData);
 
 protected:
   vtkMRMLContourNode();
   ~vtkMRMLContourNode();
   vtkMRMLContourNode(const vtkMRMLContourNode&);
   void operator=(const vtkMRMLContourNode&);
-  friend class vtkConvertContourRepresentations;
-  friend class vtkSlicerContoursModuleLogic;
 
-protected:
   /// Ribbon model representation
-  vtkMRMLModelNode* RibbonModelNode;
-  /// Ribbon model representation model node ID
-  char *RibbonModelNodeId;
-
-  /// Indexed labelmap representation
-  vtkMRMLScalarVolumeNode* IndexedLabelmapVolumeNode;
-  /// Indexed labelmap representation volume node ID
-  char *IndexedLabelmapVolumeNodeId;
+  vtkPolyData* RibbonModelPolyData;
 
   /// Closed surface model representation
-  vtkMRMLModelNode* ClosedSurfaceModelNode;
-  /// Closed surface model representation model node ID
-  char *ClosedSurfaceModelNodeId;
+  vtkPolyData* ClosedSurfacePolyData;
+
+  /// Labelmap representation
+  vtkImageData* LabelmapImageData;
+
+  /// TODO : rename these to indicate labelmap only application
+  /// these are unit length direction cosines
+  double IJKToRASDirections[3][3];
+
+  /// these are mappings to mm space
+  double Spacing[3];
+  double Origin[3];
+
+  itk::MetaDataDictionary Dictionary;
 
   /// Original ROI points from DICOM-RT. For various purposes, e.g. re-ribbonization for a different slice thickness
   /// TODO: Temporary solution. Re-ribbonization (or ribbon model) will not be needed any more when we have the direct
   ///   conversion from points to closed surface points
+  /// TODO: Rename to remove indication of origin of data
   vtkPolyData* DicomRtRoiPoints;
-
-  /// Active representation type
-  ContourRepresentationType ActiveRepresentationType;
 
   /// Rasterization reference volume node ID. This node is used when converting from model to labelmap
   /// IMPORTANT: If the reference volume node ID is the same as the indexed labelmap volume node ID, then it
@@ -262,6 +378,10 @@ protected:
   /// A stored representation of each plane of the contour data, ordered by distance along the normal line
   /// The distance is calculated by taking the dot product of a planes origin and it's normal
   std::map<double, vtkSmartPointer<vtkPlane> > OrderedContourPlanes;
+
+  /// Record whether or not this contour was generated from a labelmap
+  /// TODO : this actually tells what is the ground-truth representation, in the future this should be any of the representations
+  bool CreatedFromIndexLabelmap;
 };
 
 #endif // __vtkMRMLContourNode_h

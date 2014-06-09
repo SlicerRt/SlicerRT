@@ -24,7 +24,7 @@
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkVolumesOrientedResampleUtility.h"
+#include "vtkSlicerContoursModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -132,13 +132,13 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(
       {
         continue; // There is a color table in the contour hierarchy
       }
-      if (contourNode->GetIndexedLabelmapVolumeNodeId() == NULL)
+      if (!contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap))
       {
         contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(imageNodeID);
         contourNode->SetRasterizationOversamplingFactor(1.0);
       }
-      vtkMRMLScalarVolumeNode* labelmapNode = contourNode->GetIndexedLabelmapVolumeNode();
-      if (!labelmapNode)
+
+      if (!contourNode->GetLabelmapImageData())
       {
         vtkErrorMacro("SaveDicomRTStudy: Failed to get indexed labelmap representation from contours");
         return;
@@ -149,17 +149,21 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(
       int referenceExtents[6] = {0, 0, 0, 0, 0, 0};
       imageNode->GetImageData()->GetExtent(referenceExtents);
       int labelmapExtents[6] = {0, 0, 0, 0, 0, 0};
-      labelmapNode->GetImageData()->GetExtent(labelmapExtents);
+      contourNode->GetLabelmapImageData()->GetExtent(labelmapExtents);
       if (!SlicerRtCommon::AreBoundsEqual(referenceExtents, labelmapExtents))
       {
-        vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode(labelmapNode, imageNode, labelmapNode);
+        vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode(this->GetMRMLScene(), contourNode, imageNode, contourNode);
       }
 
-      Plm_image::Pointer plmStructure = PlmCommon::ConvertVolumeNodeToPlmImage(
-        labelmapNode);
-      char *labelmapName = labelmapNode->GetName();
-      double labelmapColor[4] = {0.0,0.0,0.0,1.0};
-      labelmapNode->GetDisplayNode()->GetColor(labelmapColor);
+      // TODO : if contours in the core, and plastimatch updated to use contours, remove this
+      vtkMRMLScalarVolumeNode* volumeNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(contourNode);
+      Plm_image::Pointer plmStructure = PlmCommon::ConvertVolumeNodeToPlmImage(volumeNode);
+      this->GetMRMLScene()->RemoveNode(volumeNode);
+
+      char *labelmapName = contourNode->GetName();
+      double labelmapColor[4] = {1.0,0.0,0.0,1.0};
+      // TODO : when contour 2d vis is re-added, reconnect this functionality
+      //contourNode->GetLabelmapVolumeDisplayNode()->GetColor(labelmapColor);
 
       // If no color is assigned to the labelmap node, use the default color table node
       if (labelmapColor[0] == 0.0 && labelmapColor[1] == 0.0 && labelmapColor[2] == 0.0)

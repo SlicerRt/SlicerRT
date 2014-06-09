@@ -95,6 +95,24 @@ protected slots:
   /// Note: Also called when this plugin was the owner from which it has been changed!
   void onNodeClaimed(vtkObject* node, void* callData);
 
+  /// Hide/show the ribbon model
+  void hideShowRibbonModel();
+
+  /// Hide/show the labelmap
+  void hideShowLabelmap();
+
+  /// Hide/show the closed surface model
+  void hideShowClosedSurfaceModel();
+
+  /// Create the ribbon model representation
+  void createRibbonModelRepresentation();
+
+  /// Create the labelmap representation
+  void createLabelmapRepresentation();
+
+  /// Create the closed surface model representation
+  void createClosedSurfaceModelRepresentation();
+
 protected:
   QScopedPointer<qSlicerSubjectHierarchyContoursPluginPrivate> d_ptr;
 

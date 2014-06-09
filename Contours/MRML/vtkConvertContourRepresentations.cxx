@@ -34,12 +34,12 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // MRML includes
-#include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLContourModelDisplayNode.h>
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
@@ -81,8 +81,43 @@ void vtkConvertContourRepresentations::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkConvertContourRepresentations::GetTransformFromNodeToVolumeIjk(
-  vtkMRMLTransformableNode* fromNode, vtkMRMLScalarVolumeNode* toVolumeNode, vtkGeneralTransform* fromModelToToVolumeIjkTransform)
+void vtkConvertContourRepresentations::GetTransformFromNodeToContourVolumeIjk( vtkMRMLTransformableNode* fromNode, vtkMRMLContourNode* toContourNode, vtkGeneralTransform* fromModelToContourIjkTransform )
+{
+  if (!fromModelToContourIjkTransform)
+  {
+    vtkErrorMacro("GetTransformFromModelToVolumeIjk: Invalid output transform given!");
+    return;
+  }
+  if (!fromNode || !toContourNode)
+  {
+    vtkErrorMacro("GetTransformFromModelToVolumeIjk: Invalid input nodes given!");
+    return;
+  }
+
+  vtkSmartPointer<vtkGeneralTransform> fromModelToToVolumeRasTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+
+  // Determine the 'to' node (the transform that is applied to the contour node and also this contour node is ignored)
+  vtkMRMLTransformableNode* toNode = vtkMRMLTransformableNode::SafeDownCast(toContourNode);
+  if (toContourNode->GetTransformNodeID())
+  {
+    toNode = vtkMRMLTransformableNode::SafeDownCast( this->ContourNode->GetScene()->GetNodeByID(toContourNode->GetTransformNodeID()) );  
+  }
+
+  // Get transform between the source node and the volume
+  SlicerRtCommon::GetTransformBetweenTransformables(fromNode, toNode, fromModelToToVolumeRasTransform);
+
+  // Create volumeRas to volumeIjk transform
+  vtkSmartPointer<vtkMatrix4x4> toVolumeRasToToVolumeIjkTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  toContourNode->GetRASToIJKMatrix( toVolumeRasToToVolumeIjkTransformMatrix );  
+
+  // Create model to volumeIjk transform
+  fromModelToContourIjkTransform->Identity();
+  fromModelToContourIjkTransform->Concatenate(toVolumeRasToToVolumeIjkTransformMatrix);
+  fromModelToContourIjkTransform->Concatenate(fromModelToToVolumeRasTransform);
+}
+
+//----------------------------------------------------------------------------
+void vtkConvertContourRepresentations::GetTransformFromNodeToVolumeIjk( vtkMRMLTransformableNode* fromNode, vtkMRMLScalarVolumeNode* toVolumeNode, vtkGeneralTransform* fromModelToToVolumeIjkTransform )
 {
   if (!fromModelToToVolumeIjkTransform)
   {
@@ -97,7 +132,7 @@ void vtkConvertContourRepresentations::GetTransformFromNodeToVolumeIjk(
 
   vtkSmartPointer<vtkGeneralTransform> fromModelToToVolumeRasTransform = vtkSmartPointer<vtkGeneralTransform>::New();
 
-  // Determine the 'to' node (the transform that is applied to the labelmap node and also this contour node is ignored)
+  // Determine the 'to' node (the transform that is applied to the contour node and also this contour node is ignored)
   vtkMRMLTransformableNode* toNode = vtkMRMLTransformableNode::SafeDownCast(toVolumeNode);
   if (toVolumeNode->GetTransformNodeID())
   {
@@ -118,7 +153,7 @@ void vtkConvertContourRepresentations::GetTransformFromNodeToVolumeIjk(
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedLabelmap(vtkMRMLContourNode::ContourRepresentationType type)
+vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedLabelmap(vtkMRMLContourNode::ContourRepresentationType type)
 {
   if (!this->ContourNode)
   {
@@ -132,14 +167,14 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     return NULL;
   }
 
-  vtkMRMLModelNode* modelNode = NULL;
+  vtkPolyData* modelData = NULL;
   switch (type)
   {
   case vtkMRMLContourNode::RibbonModel:
-    modelNode = this->ContourNode->RibbonModelNode;
+    modelData = this->ContourNode->GetRibbonModelPolyData();
     break;
   case vtkMRMLContourNode::ClosedSurfaceModel:
-    modelNode = this->ContourNode->ClosedSurfaceModelNode;
+    modelData = this->ContourNode->GetClosedSurfacePolyData();
     break;
   default:
     vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Invalid source representation type given!");
@@ -147,10 +182,10 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   }
 
   // Sanity check
-  if ( this->ContourNode->RasterizationOversamplingFactor < 0.01
-    || this->ContourNode->RasterizationOversamplingFactor > 100.0 )
+  if ( this->ContourNode->GetRasterizationOversamplingFactor() < 0.01
+    || this->ContourNode->GetRasterizationOversamplingFactor() > 100.0 )
   {
-    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Unreasonable rasterization oversampling factor is given: " << this->ContourNode->RasterizationOversamplingFactor);
+    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Unreasonable rasterization oversampling factor is given: " << this->ContourNode->GetRasterizationOversamplingFactor());
     return NULL;
   }
   if (this->LabelmapResamplingThreshold < 0.0 || this->LabelmapResamplingThreshold > 1.0)
@@ -164,7 +199,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
 
   // Get reference volume node
   vtkMRMLScalarVolumeNode* selectedReferenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    mrmlScene->GetNodeByID(this->ContourNode->RasterizationReferenceVolumeNodeId));
+    mrmlScene->GetNodeByID(this->ContourNode->GetRasterizationReferenceVolumeNodeId()));
   if (!selectedReferenceVolumeNode)
   {
     vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No reference volume node!");
@@ -189,28 +224,28 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
 
         // Check if the referenced anatomy volume is in the same coordinate system as the contour
         vtkSmartPointer<vtkGeneralTransform> modelToReferencedAnatomyVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-        SlicerRtCommon::GetTransformBetweenTransformables(modelNode, referencedAnatomyVolumeNode, modelToReferencedAnatomyVolumeIjkTransform);
+        SlicerRtCommon::GetTransformBetweenTransformables(this->ContourNode, referencedAnatomyVolumeNode, modelToReferencedAnatomyVolumeIjkTransform);
         double* transformedPoint = modelToReferencedAnatomyVolumeIjkTransform->TransformPoint(1.0, 0.0, 0.0);
         if ( fabs(transformedPoint[0]-1.0) > EPSILON || fabs(transformedPoint[1]) > EPSILON || fabs(transformedPoint[2]) > EPSILON )
         {
           vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Referenced series '" << referencedAnatomyVolumeNode->GetName()
-            << "' is not in the same coordinate system as contour '" << this->ContourNode->Name << "'!");
+            << "' is not in the same coordinate system as contour '" << this->ContourNode->GetName() << "'!");
           referencedAnatomyVolumeNode = NULL;
         }
       }
       else
       {
-        vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No referenced series found for contour '" << this->ContourNode->Name << "'!");
+        vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No referenced series found for contour '" << this->ContourNode->GetName() << "'!");
       }
     }
     else
     {
-      vtkDebugMacro("ConvertFromModelToIndexedLabelmap: No referenced series UID found for contour '" << this->ContourNode->Name << "'!");
+      vtkDebugMacro("ConvertFromModelToIndexedLabelmap: No referenced series UID found for contour '" << this->ContourNode->GetName() << "'!");
     }
   }
   else
   {
-    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No subject hierarchy node found for contour '" << this->ContourNode->Name << "'!");
+    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No subject hierarchy node found for contour '" << this->ContourNode->GetName() << "'!");
   }
 
   // If the selected reference is under a transform, then create a temporary copy and harden transform so that the whole transform is reflected in the result
@@ -224,10 +259,10 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     referenceVolumeToModelTransform->Concatenate(referenceVolumeToWorldTransform);
 
     selectedReferenceVolumeNode->GetParentTransformNode()->GetTransformToWorld(referenceVolumeToWorldTransform);
-    if (modelNode->GetParentTransformNode())
+    if (this->ContourNode->GetParentTransformNode())
     {
       vtkSmartPointer<vtkGeneralTransform> worldToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-      modelNode->GetParentTransformNode()->GetTransformToWorld(worldToModelTransform);
+      this->ContourNode->GetParentTransformNode()->GetTransformToWorld(worldToModelTransform);
       worldToModelTransform->Inverse();
       referenceVolumeToModelTransform->Concatenate(worldToModelTransform);
     }
@@ -250,7 +285,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
       for (int column=0; column<3; ++column)
       {
         if ( fabs( referencedAnatomyVolumeDirectionMatrix->GetElement(row,column)
-                 - selectedReferenceVolumeDirectionMatrix->GetElement(row,column) ) > EPSILON*EPSILON)
+          - selectedReferenceVolumeDirectionMatrix->GetElement(row,column) ) > EPSILON*EPSILON)
         {
           differentOrientation = true;
           break;
@@ -281,23 +316,23 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
   // Transform from model space to reference space
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  this->GetTransformFromNodeToVolumeIjk( modelNode, referenceVolumeNodeUsedForConversion, modelToReferenceVolumeIjkTransform );
+  this->GetTransformFromNodeToVolumeIjk( this->ContourNode, referenceVolumeNodeUsedForConversion, modelToReferenceVolumeIjkTransform );
 
   // Apply inverse of the transform applied on the contour (because the target representation will be under the same
   // transform and we want to avoid applying the transform twice)
   vtkSmartPointer<vtkGeneralTransform> transformedModelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   transformedModelToReferenceVolumeIjkTransform->Concatenate(modelToReferenceVolumeIjkTransform);
-  if (modelNode->GetParentTransformNode())
+  if (this->ContourNode->GetParentTransformNode())
   {
     vtkSmartPointer<vtkGeneralTransform> worldToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-    modelNode->GetParentTransformNode()->GetTransformToWorld(worldToModelTransform);
+    this->ContourNode->GetParentTransformNode()->GetTransformToWorld(worldToModelTransform);
     worldToModelTransform->Inverse();
     transformedModelToReferenceVolumeIjkTransform->Concatenate(worldToModelTransform);
   }
 
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter =
     vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( modelNode->GetPolyData() );
+  transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( modelData );
   transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform( transformedModelToReferenceVolumeIjkTransform.GetPointer() );
 
   // Initialize polydata to labelmap filter for conversion
@@ -310,7 +345,7 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
 
   // Oversample used reference volume (anatomy if present, selected reference otherwise) and set it to the converter
-  double oversamplingFactor = this->ContourNode->RasterizationOversamplingFactor;
+  double oversamplingFactor = this->ContourNode->GetRasterizationOversamplingFactor();
   double oversampledReferenceVolumeUsedForConversionSpacingMultiplier[3] = {1.0, 1.0, 1.0};
   if ( oversamplingFactor != 1.0 && referenceVolumeNodeUsedForConversion == selectedReferenceVolumeNode )
   {
@@ -349,8 +384,8 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   double selectedReferenceSpacing[3] = {0.0, 0.0, 0.0};
   selectedReferenceVolumeNode->GetSpacing(selectedReferenceSpacing);
   double oversampledSelectedReferenceVolumeSpacing[3] = { selectedReferenceSpacing[0] * oversampledSelectedReferenceVtkVolumeSpacing[0],
-                                                          selectedReferenceSpacing[1] * oversampledSelectedReferenceVtkVolumeSpacing[1],
-                                                          selectedReferenceSpacing[2] * oversampledSelectedReferenceVtkVolumeSpacing[2] };
+    selectedReferenceSpacing[1] * oversampledSelectedReferenceVtkVolumeSpacing[1],
+    selectedReferenceSpacing[2] * oversampledSelectedReferenceVtkVolumeSpacing[2] };
 
   double calculatedOrigin[3] = {0.0, 0.0, 0.0};
   double calculatedOriginHomogeneous[4] = {0.0, 0.0, 0.0, 1.0};
@@ -373,13 +408,13 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
     double referencedAnatomyVolumeNodeSpacing[3] = {0.0, 0.0, 0.0};
     referencedAnatomyVolumeNode->GetSpacing(referencedAnatomyVolumeNodeSpacing);
     intermediateLabelmapNode->SetSpacing( referencedAnatomyVolumeNodeSpacing[0] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[0],
-                                          referencedAnatomyVolumeNodeSpacing[1] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[1],
-                                          referencedAnatomyVolumeNodeSpacing[2] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[2] );
+      referencedAnatomyVolumeNodeSpacing[1] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[1],
+      referencedAnatomyVolumeNodeSpacing[2] * oversampledReferenceVolumeUsedForConversionSpacingMultiplier[2] );
 
     // Determine output (oversampled selected reference volume node) geometry for the resampling
     plm_long oversampledSelectedReferenceDimensionsLong[3] = { oversampledSelectedReferenceVolumeExtent[1]-oversampledSelectedReferenceVolumeExtent[0]+1,
-                                                               oversampledSelectedReferenceVolumeExtent[3]-oversampledSelectedReferenceVolumeExtent[2]+1,
-                                                               oversampledSelectedReferenceVolumeExtent[5]-oversampledSelectedReferenceVolumeExtent[4]+1 };
+      oversampledSelectedReferenceVolumeExtent[3]-oversampledSelectedReferenceVolumeExtent[2]+1,
+      oversampledSelectedReferenceVolumeExtent[5]-oversampledSelectedReferenceVolumeExtent[4]+1 };
     double selectedReferenceOrigin[3] = {0.0, 0.0, 0.0};
     selectedReferenceVolumeNode->GetOrigin(selectedReferenceOrigin);
     float selectedReferenceOriginFloat[3] = { selectedReferenceOrigin[0], selectedReferenceOrigin[1], selectedReferenceOrigin[2] };
@@ -415,46 +450,19 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
   indexedLabelmapVolumeImageData->SetSpacing(1.0, 1.0, 1.0);
   indexedLabelmapVolumeImageData->SetOrigin(0.0, 0.0, 0.0);
 
-  // Create indexed labelmap volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> indexedLabelmapVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  std::string indexedLabelmapVolumeNodeName = std::string(this->ContourNode->Name) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
-  indexedLabelmapVolumeNodeName = mrmlScene->GenerateUniqueName(indexedLabelmapVolumeNodeName);
-
   // CopyOrientation copies both ijk orientation, origin and spacing
-  indexedLabelmapVolumeNode->CopyOrientation( selectedReferenceVolumeNode );
+  this->ContourNode->CopyOrientation( selectedReferenceVolumeNode );
   // Override the origin with the calculated origin
   double newOriginHomogeneous[4] = {0, 0, 0, 1};
-  this->CalculateOriginInRas(indexedLabelmapVolumeNode, calculatedOriginHomogeneous, &newOriginHomogeneous[0]);
-  indexedLabelmapVolumeNode->SetOrigin(newOriginHomogeneous[0], newOriginHomogeneous[1], newOriginHomogeneous[2]);
-  
-  indexedLabelmapVolumeNode->SetSpacing( oversampledSelectedReferenceVolumeSpacing );
+  this->CalculateOriginInRas(this->ContourNode, calculatedOriginHomogeneous, &newOriginHomogeneous[0]);
+  this->ContourNode->SetOrigin(newOriginHomogeneous[0], newOriginHomogeneous[1], newOriginHomogeneous[2]);
+  this->ContourNode->SetSpacing( oversampledSelectedReferenceVolumeSpacing );
 
-  indexedLabelmapVolumeNode->SetName( indexedLabelmapVolumeNodeName.c_str() );
-  indexedLabelmapVolumeNode->SetAndObserveImageData( indexedLabelmapVolumeImageData );
-  indexedLabelmapVolumeNode->LabelMapOn();
-  mrmlScene->AddNode(indexedLabelmapVolumeNode);
+  // Update the contour node with the new image data
+  this->ContourNode->SetAndObserveLabelmapImageData( indexedLabelmapVolumeImageData );
 
-  // Create display node
-  vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> indexedLabelmapDisplayNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
-  indexedLabelmapDisplayNode = vtkMRMLLabelMapVolumeDisplayNode::SafeDownCast(mrmlScene->AddNode(indexedLabelmapDisplayNode));
-  if (colorNode)
-  {
-    indexedLabelmapDisplayNode->SetAndObserveColorNodeID(colorNode->GetID());
-  }
-  else
-  {
-    indexedLabelmapDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
-  }
-
-  indexedLabelmapVolumeNode->SetAndObserveDisplayNodeID( indexedLabelmapDisplayNode->GetID() );
-
-  // Set parent transform node
-  if (this->ContourNode->GetTransformNodeID())
-  {
-    indexedLabelmapVolumeNode->SetAndObserveTransformNodeID(this->ContourNode->GetTransformNodeID());
-  }
-
-  this->ContourNode->SetAndObserveIndexedLabelmapVolumeNodeIdOnly(indexedLabelmapVolumeNode->GetID());
+  // TODO : 2d vis readdition
+  //this->ContourNode->CreateLabelmapDisplayNode();
 
   if (this->LogSpeedMeasurements)
   {
@@ -465,11 +473,11 @@ vtkMRMLScalarVolumeNode* vtkConvertContourRepresentations::ConvertFromModelToInd
       << "\tResampling referenced series to selected reference: " << checkpointEnd-checkpointResamplingStart << " s");
   }
 
-  return indexedLabelmapVolumeNode;
+  return this->ContourNode;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapToClosedSurfaceModel()
+vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapToClosedSurfaceModel()
 {
   if (!this->ContourNode)
   {
@@ -477,7 +485,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
     return NULL;
   }
   vtkMRMLScene* mrmlScene = this->ContourNode->GetScene();
-  if (!mrmlScene || !this->ContourNode->IndexedLabelmapVolumeNode)
+  if (!mrmlScene || !this->ContourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
   {
     vtkErrorMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Invalid scene!");
     return NULL;
@@ -503,7 +511,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
     int referenceExtents[6] = {0, 0, 0, 0, 0, 0};
     referenceVolumeNode->GetImageData()->GetExtent(referenceExtents);
     int labelmapExtents[6] = {0, 0, 0, 0, 0, 0};
-    this->ContourNode->IndexedLabelmapVolumeNode->GetImageData()->GetExtent(labelmapExtents);
+    this->ContourNode->GetLabelmapImageData()->GetExtent(labelmapExtents);
 
     if( SlicerRtCommon::AreBoundsEqual(referenceExtents, labelmapExtents) )
     {
@@ -513,7 +521,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
       padder = vtkSmartPointer<vtkImageConstantPad>::New();
 
       vtkSmartPointer<vtkImageChangeInformation> translator = vtkSmartPointer<vtkImageChangeInformation>::New();
-      translator->SetInput(this->ContourNode->IndexedLabelmapVolumeNode->GetImageData());
+      translator->SetInput(this->ContourNode->GetLabelmapImageData());
       // Translate the extent by 1 pixel
       translator->SetExtentTranslation(1, 1, 1);
       // Args are: -padx*xspacing, -pady*yspacing, -padz*zspacing but padding and spacing are both 1
@@ -523,11 +531,13 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
 
       translator->Update();
       int extent[6] = {0, 0, 0, 0, 0, 0};
-      this->ContourNode->IndexedLabelmapVolumeNode->GetImageData()->GetWholeExtent(extent);
+      this->ContourNode->GetLabelmapImageData()->GetWholeExtent(extent);
       // Now set the output extent to the new size, padded by 2 on the positive side
       padder->SetOutputWholeExtent(extent[0], extent[1] + 2,
         extent[2], extent[3] + 2,
         extent[4], extent[5] + 2);
+
+      padder->Update();
     }
   }
 
@@ -539,55 +549,25 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   }
   else
   {
-    labelmapToModelFilter->SetInputLabelmap( this->ContourNode->IndexedLabelmapVolumeNode->GetImageData() );
+    labelmapToModelFilter->SetInputLabelmap( this->ContourNode->GetLabelmapImageData() );
   }
-  labelmapToModelFilter->SetDecimateTargetReduction( this->ContourNode->DecimationTargetReductionFactor );
+  labelmapToModelFilter->SetDecimateTargetReduction( this->ContourNode->GetDecimationTargetReductionFactor() );
   labelmapToModelFilter->SetLabelValue( structureColorIndex );
   labelmapToModelFilter->Update();    
 
-  // Create display node
-  vtkSmartPointer<vtkMRMLModelDisplayNode> closedSurfaceModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  closedSurfaceModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(mrmlScene->AddNode(closedSurfaceModelDisplayNode));
-  closedSurfaceModelDisplayNode->SliceIntersectionVisibilityOn();  
-  closedSurfaceModelDisplayNode->VisibilityOn();
-  closedSurfaceModelDisplayNode->SetBackfaceCulling(0);
-
-  // Set visibility and opacity to match the existing ribbon model visualization
-  if (this->ContourNode->RibbonModelNode && this->ContourNode->RibbonModelNode->GetModelDisplayNode())
-  {
-    closedSurfaceModelDisplayNode->SetVisibility(this->ContourNode->RibbonModelNode->GetModelDisplayNode()->GetVisibility());
-    closedSurfaceModelDisplayNode->SetOpacity(this->ContourNode->RibbonModelNode->GetModelDisplayNode()->GetOpacity());
-  }
-  // Set color
-  double color[4] = {0.0, 0.0, 0.0, 0.0};
-  if (colorNode)
-  {
-    colorNode->GetColor(structureColorIndex, color);
-    closedSurfaceModelDisplayNode->SetColor(color);
-  }
-
-  // Create closed surface model node
-  vtkSmartPointer<vtkMRMLModelNode> closedSurfaceModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-  closedSurfaceModelNode = vtkMRMLModelNode::SafeDownCast(mrmlScene->AddNode(closedSurfaceModelNode));
-  std::string closedSurfaceModelNodeName = std::string(this->ContourNode->Name) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
-  closedSurfaceModelNodeName = mrmlScene->GenerateUniqueName(closedSurfaceModelNodeName);
-  closedSurfaceModelNode->SetName( closedSurfaceModelNodeName.c_str() );
-  closedSurfaceModelNode->SetAndObserveDisplayNodeID( closedSurfaceModelDisplayNode->GetID() );
-  closedSurfaceModelNode->SetAndObserveTransformNodeID( this->ContourNode->IndexedLabelmapVolumeNode->GetTransformNodeID() );
-
   // Create reference volume IJK to transformed model transform
   vtkSmartPointer<vtkGeneralTransform> modelToReferenceVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  this->GetTransformFromNodeToVolumeIjk(closedSurfaceModelNode, this->ContourNode->IndexedLabelmapVolumeNode, modelToReferenceVolumeIjkTransform);
+  this->GetTransformFromNodeToContourVolumeIjk(this->ContourNode, this->ContourNode, modelToReferenceVolumeIjkTransform);
 
   vtkSmartPointer<vtkGeneralTransform> referenceVolumeIjkToTransformedModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   referenceVolumeIjkToTransformedModelTransform->Concatenate(modelToReferenceVolumeIjkTransform);
 
   // Apply inverse of the transform applied on the contour (because the target representation will be under the same
   // transform and we want to avoid applying the transform twice)
-  if (closedSurfaceModelNode->GetParentTransformNode())
+  if (this->ContourNode->GetParentTransformNode())
   {
     vtkSmartPointer<vtkGeneralTransform> worldToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-    closedSurfaceModelNode->GetParentTransformNode()->GetTransformToWorld(worldToModelTransform);
+    this->ContourNode->GetParentTransformNode()->GetTransformToWorld(worldToModelTransform);
     worldToModelTransform->Inverse();
     referenceVolumeIjkToTransformedModelTransform->Concatenate(worldToModelTransform);
   }
@@ -600,53 +580,31 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
   transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(referenceVolumeIjkToTransformedModelTransform.GetPointer());
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
 
-  closedSurfaceModelNode->SetAndObservePolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
+  this->ContourNode->SetAndObserveClosedSurfacePolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
 
   // Set parent transform node
   if (this->ContourNode->GetTransformNodeID())
   {
-    closedSurfaceModelNode->SetAndObserveTransformNodeID(this->ContourNode->GetTransformNodeID());
+    this->ContourNode->SetAndObserveTransformNodeID(this->ContourNode->GetTransformNodeID());
   }
 
-  // Put new model in the same model hierarchy as the ribbons
-  if (this->ContourNode->RibbonModelNode && this->ContourNode->RibbonModelNodeId)
+  vtkMRMLContourModelDisplayNode* closedSurfaceModelDisplayNode = this->ContourNode->CreateClosedSurfaceDisplayNode();
+
+  // Set visibility and opacity to match the existing ribbon model visualization
+  if( closedSurfaceModelDisplayNode )
   {
-    vtkMRMLModelHierarchyNode* ribbonModelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
-      vtkMRMLDisplayableHierarchyNode::GetDisplayableHierarchyNode(this->ContourNode->GetScene(), this->ContourNode->RibbonModelNodeId));
-    if (ribbonModelHierarchyNode)
-    {
-      vtkMRMLModelHierarchyNode* parentModelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(ribbonModelHierarchyNode->GetParentNode());
+    closedSurfaceModelDisplayNode->SetSliceIntersectionVisibility(this->ContourNode->GetClosedSurfaceModelDisplayNode()->GetSliceIntersectionVisibility());
+    closedSurfaceModelDisplayNode->SetVisibility(this->ContourNode->GetClosedSurfaceModelDisplayNode()->GetVisibility());
+    closedSurfaceModelDisplayNode->SetOpacity(this->ContourNode->GetClosedSurfaceModelDisplayNode()->GetOpacity());
 
-      // Use the existing hierarchy node if any
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyNode;
-      if (this->ContourNode->RepresentationExists(vtkMRMLContourNode::ClosedSurfaceModel))
-      {
-        vtkMRMLHierarchyNode* associatedHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(mrmlScene, this->ContourNode->ClosedSurfaceModelNodeId);
-        if (associatedHierarchyNode && associatedHierarchyNode->IsA("vtkMRMLModelHierarchyNode"))
-        {
-          modelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(associatedHierarchyNode);
-        }
-        else
-        {
-          vtkErrorMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Invalid model hierarchy node for closed surface representation of contour '" << this->ContourNode->GetName() << "'");
-        }
-      }
-      else
-      {
-        modelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-        this->ContourNode->GetScene()->AddNode(modelHierarchyNode);
-      }
-      modelHierarchyNode->SetParentNodeID( parentModelHierarchyNode->GetID() );
-      modelHierarchyNode->SetModelNodeID( closedSurfaceModelNode->GetID() );
-    }
-    else
+    // Set color
+    double color[4] = {0.0, 0.0, 0.0, 0.0};
+    if (colorNode)
     {
-      vtkErrorMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: No hierarchy node found for ribbon '" << this->ContourNode->RibbonModelNode->GetName() << "'");
+      colorNode->GetColor(structureColorIndex, color);
+      closedSurfaceModelDisplayNode->SetColor(color);
     }
   }
-
-  // Set new model node as closed surface representation of this contour
-  this->ContourNode->SetAndObserveClosedSurfaceModelNodeIdOnly(closedSurfaceModelNode->GetID());
 
   // TODO: Workaround (see above)
   mrmlScene->EndState(vtkMRMLScene::BatchProcessState);
@@ -657,7 +615,7 @@ vtkMRMLModelNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmapTo
     vtkDebugMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Total labelmap-model conversion time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s");
   }
 
-  return closedSurfaceModelNode;
+  return this->ContourNode;
 }
 
 //----------------------------------------------------------------------------
@@ -669,7 +627,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
     return false;
   }
 
-  if (desiredType == this->ContourNode->GetActiveRepresentationType())
+  if ( this->ContourNode->HasRepresentation(desiredType) )
   {
     return true;
   }
@@ -681,32 +639,31 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
   vtkMRMLDisplayableNode* newRepresentation(NULL);
 
   // Active representation is a model of any kind and we want an indexed labelmap
-  if ( desiredType == vtkMRMLContourNode::IndexedLabelmap
-    && ( this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::RibbonModel
-    || this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::ClosedSurfaceModel ) )
+  if ( desiredType == vtkMRMLContourNode::IndexedLabelmap && 
+    (this->ContourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel) || this->ContourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) ) )
   {
-    if (!this->ContourNode->RasterizationReferenceVolumeNodeId)
+    if (!this->ContourNode->GetRasterizationReferenceVolumeNodeId())
     {
       vtkErrorMacro("ConvertToRepresentation: Unable to convert to indexed labelmap without a reference volume node!");
       return false;
     }
 
     newRepresentation = this->ConvertFromModelToIndexedLabelmap(
-      (this->ContourNode->RibbonModelNode ? vtkMRMLContourNode::RibbonModel : vtkMRMLContourNode::ClosedSurfaceModel) );
+      (this->ContourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) ? vtkMRMLContourNode::RibbonModel : vtkMRMLContourNode::ClosedSurfaceModel) );
   }
   // Active representation is an indexed labelmap and we want a closed surface model
-  else if ( this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::IndexedLabelmap && desiredType == vtkMRMLContourNode::ClosedSurfaceModel )
+  else if ( this->ContourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) && desiredType == vtkMRMLContourNode::ClosedSurfaceModel )
   {
     newRepresentation = this->ConvertFromIndexedLabelmapToClosedSurfaceModel();
   }
   // Active representation is a ribbon model and we want a closed surface model
   else if ( desiredType == vtkMRMLContourNode::ClosedSurfaceModel
-    && this->ContourNode->GetActiveRepresentationType() == vtkMRMLContourNode::RibbonModel )
+    && this->ContourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) )
   {
     // If the indexed labelmap is not created yet then we convert to it first
-    if (!this->ContourNode->IndexedLabelmapVolumeNode)
+    if ( !this->ContourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
     {
-      if (!this->ContourNode->RasterizationReferenceVolumeNodeId)
+      if (!this->ContourNode->GetRasterizationReferenceVolumeNodeId())
       {
         vtkErrorMacro("ConvertToRepresentation: Unable to convert to indexed labelmap without a reference volume node (it is needed to convert into closed surface model)!");
         return false;
@@ -723,11 +680,6 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
   else
   {
     vtkWarningMacro("ConvertToRepresentation: Requested conversion not implemented yet!");
-  }
-  
-  if( newRepresentation != NULL )
-  {
-    newRepresentation->SetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME, "1");
   }
 
   return newRepresentation != NULL;
@@ -759,62 +711,21 @@ void vtkConvertContourRepresentations::ReconvertRepresentation(vtkMRMLContourNod
     return;
   }
 
-  std::vector<vtkMRMLDisplayableNode*> representations = this->ContourNode->CreateTemporaryRepresentationsVector();
-
-  // Delete current representation if it exists
-  if (this->ContourNode->RepresentationExists(type))
-  {
-    vtkMRMLDisplayableNode* node = representations[(unsigned int)type];
-    switch (type)
-    {
-    case vtkMRMLContourNode::IndexedLabelmap:
-      this->ContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
-      break;
-    case vtkMRMLContourNode::ClosedSurfaceModel:
-      this->ContourNode->SetAndObserveClosedSurfaceModelNodeId(NULL);
-      break;
-    default:
-      break;
-    }
-
-    this->ContourNode->GetScene()->RemoveNode(node);
-  }
-
-  // Set active representation type to the one that can be the source of the new conversion
-  switch (type)
-  {
-  case vtkMRMLContourNode::IndexedLabelmap:
-    // Prefer ribbon models over closed surface models as source of conversion to indexed labelmap
-    if (this->ContourNode->RibbonModelNode)
-    {
-      this->ContourNode->SetActiveRepresentationByType(vtkMRMLContourNode::RibbonModel);
-    }
-    else if (this->ContourNode->ClosedSurfaceModelNode)
-    {
-      this->ContourNode->SetActiveRepresentationByType(vtkMRMLContourNode::ClosedSurfaceModel);
-    }
-    break;
-  case vtkMRMLContourNode::ClosedSurfaceModel:
-    // Prefer indexed labelmap over ribbon models as source of conversion to closed surface models
-    if (this->ContourNode->IndexedLabelmapVolumeNode)
-    {
-      this->ContourNode->SetActiveRepresentationByType(vtkMRMLContourNode::IndexedLabelmap);
-    }
-    else if (this->ContourNode->RibbonModelNode)
-    {
-      this->ContourNode->SetActiveRepresentationByType(vtkMRMLContourNode::RibbonModel);
-    }
-    break;
-  default:
-    break;
-  }
-
   // Do the conversion as normally
   bool success = this->ConvertToRepresentation(type);
   if (!success)
   {
     vtkErrorMacro("ReconvertRepresentation: Failed to re-convert representation to type #" << (unsigned int)type);
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkConvertContourRepresentations::CalculateOriginInRas( vtkMRMLContourNode* contourNodeToSet, double originInIJKHomogeneous[4], double* newOriginHomogeneous )
+{
+  vtkMatrix4x4* refToRASMatrix = vtkMatrix4x4::New();
+  contourNodeToSet->GetIJKToRASMatrix(refToRASMatrix);
+  refToRASMatrix->MultiplyPoint(originInIJKHomogeneous, newOriginHomogeneous);
+  refToRASMatrix->Delete();
 }
 
 //----------------------------------------------------------------------------

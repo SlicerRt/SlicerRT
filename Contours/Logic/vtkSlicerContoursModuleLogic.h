@@ -37,6 +37,7 @@
 
 // MRML includes
 class vtkMRMLScalarVolumeNode;
+class vtkMRMLContourStorageNode;
 
 /// \ingroup SlicerRt_QtModules_Contours
 class VTK_SLICER_CONTOURS_LOGIC_EXPORT vtkSlicerContoursModuleLogic :
@@ -49,7 +50,7 @@ public:
 
   /// Paint the foreground of a specified labelmap to a certain label.
   /// This makes sure that a labelmap whose color table has changed has the same color afterwards
-  static void PaintLabelmapForeground(vtkMRMLScalarVolumeNode* volumeNode, unsigned char newColor);
+  static void PaintLabelmapRepresentationForeground(vtkMRMLContourNode* contourNode, unsigned char newColor);
 
   /// Collect contour nodes from selected nodes
   /// \param node Selected node that contains either a vtkMRMLContourNode or a vtkMRMLSubjectHierarchyNode
@@ -88,12 +89,28 @@ public:
   /// Note: The contour node will not be changed. If the result indexed labelmap needs to be set to the contour, it has to be done manually
   /// \param Input contour object
   /// \param referenceVolumeNode Input volume node object that has the desired geometry
-  /// \param outputIndexedLabelmap Output volume node in which the result is copied
-  static void GetIndexedLabelmapWithGivenGeometry(vtkMRMLContourNode* contour, vtkMRMLScalarVolumeNode* referenceVolumeNode, vtkMRMLScalarVolumeNode* outputIndexedLabelmap);
+  /// \param outputLabelmapContour Output contour node in which the result is copied
+  static void GetIndexedLabelmapWithGivenGeometry(vtkMRMLContourNode* contour, vtkMRMLScalarVolumeNode* referenceVolumeNode, vtkMRMLContourNode* outputLabelmapContour);
+
+  /// Create an empty contour node. Does not handle color tables
+  /// \param referenceVolume Reference contour used to populate dimensions, spacing, etc...
+  static vtkMRMLContourNode* CreateEmptyContourFromExistingContour(vtkMRMLContourNode* refContourNode, const std::string& contourNameNoSuffix);
 
   /// Create a contour node from a representation. Does not handle color tables
   /// \param representationNode Representation to create the contour from. Can be labelmap or model
   static vtkMRMLContourNode* CreateContourFromRepresentation(vtkMRMLDisplayableNode* representationNode, const char* optionalName=NULL);
+
+  /// Load a contour from file
+  /// \param the file to load from, expected extension is .ctr
+  vtkMRMLContourNode* LoadContourFromFile(const char* filename);
+
+  /// Create a standard labelmap from a contour node
+  /// \param contourNode the node to use to extract a labelmap from
+  static vtkMRMLScalarVolumeNode* ExtractLabelmapFromContour(vtkMRMLContourNode* contourNode);
+
+  /// Create a contour node for the given contour node
+  /// \param contourNode the node that requires a storage node be created
+  static vtkMRMLContourStorageNode* CreateContourStorageNode(vtkMRMLContourNode* contourNode);
 
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);

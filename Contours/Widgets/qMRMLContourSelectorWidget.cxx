@@ -442,6 +442,11 @@ void qMRMLContourSelectorWidget::contourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qMRMLContourSelectorWidget);
 
+  if( node == NULL )
+  {
+    return;
+  }
+
   // Get contour nodes from selection
   vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(node, d->SelectedContourNodes);
 

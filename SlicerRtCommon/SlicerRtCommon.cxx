@@ -52,6 +52,10 @@ const std::string SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX
 const std::string SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX = "_RibbonModel";
 const std::string SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX = "_IndexedLabelmap";
 const std::string SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX = "_ClosedSurfaceModel";
+const std::string SlicerRtCommon::CONTOUR_STORAGE_NODE_POSTFIX = "_Storage";
+const std::string SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX = "_Display";
+const std::string SlicerRtCommon::CONTOUR_MODEL_FILE_TYPE = ".vtk";
+const std::string SlicerRtCommon::CONTOUR_LABELMAP_FILE_TYPE = ".nrrd";
 
 const double SlicerRtCommon::DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR = 2.0;
 const double SlicerRtCommon::DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR = 0.0;
@@ -67,7 +71,6 @@ const std::string SlicerRtCommon::CONTOUR_NEW_CONTOUR_NAME = "NewContour";
 const std::string SlicerRtCommon::CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME = "NewContourSet";
 const std::string SlicerRtCommon::CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX = "DummyAnatomicalVolume_";
 const std::string SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE = "contourSetColorTable" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
-const char* SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME = "ContourRepresentation";
 
 // DicomRtImport constants
 const std::string SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX = "DicomRtImport.";
@@ -482,4 +485,37 @@ bool SlicerRtCommon::OrderPlanesAlongNormal( std::vector<vtkSmartPointer<vtkPlan
   }
 
   return true;
+}
+
+//---------------------------------------------------------------------------
+void SlicerRtCommon::GenerateNewColor( vtkMRMLColorTableNode* colorNode, double* newColor )
+{
+  const int MAX_TRIES = 50;
+
+  int currentTry(0);
+  while(currentTry < MAX_TRIES )
+  {
+    newColor[0] = rand() * 1.0 / RAND_MAX;
+    newColor[1] = rand() * 1.0 / RAND_MAX;
+    newColor[2] = rand() * 1.0 / RAND_MAX;
+
+    bool hasColor(false);
+    for( int i = 0; i < colorNode->GetNumberOfColors(); ++i )
+    {
+      double thisColor[4];
+      colorNode->GetColor(i, thisColor);
+      if( AreSame(thisColor[0], newColor[0]) && AreSame(thisColor[1], newColor[1]) && AreSame(thisColor[2], newColor[2]) )
+      {
+        hasColor = true;
+        break;
+      }
+    }
+
+    if( !hasColor )
+    {
+      break;
+    }
+
+    currentTry++;
+  }
 }

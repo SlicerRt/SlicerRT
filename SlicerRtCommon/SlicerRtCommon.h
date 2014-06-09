@@ -16,6 +16,7 @@
 class vtkMRMLTransformableNode;
 class vtkMRMLNode;
 class vtkMRMLScalarVolumeNode;
+class vtkMRMLContourNode;
 class vtkMRMLModelNode;
 class vtkMRMLColorTableNode;
 
@@ -59,6 +60,10 @@ public:
   static const std::string CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
   static const std::string CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
   static const std::string CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
+  static const std::string CONTOUR_STORAGE_NODE_POSTFIX;
+  static const std::string CONTOUR_MODEL_FILE_TYPE;
+  static const std::string CONTOUR_LABELMAP_FILE_TYPE;
+  static const std::string CONTOUR_DISPLAY_NODE_SUFFIX;
   static const double DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR;
   static const double DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR;
   static const char* COLOR_NAME_BACKGROUND;
@@ -72,7 +77,6 @@ public:
   static const std::string CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME;
   static const std::string CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX;
   static const std::string CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE;
-  static const char* CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME;
 
   // DicomRtImport constants
   static const std::string DICOMRTIMPORT_ATTRIBUTE_PREFIX;
@@ -211,6 +215,10 @@ public:
   /// \param outputPlaneOrdering the list of planes, ordered by distance along the normal line from the most extreme slice origin
   /// \return whether the function succeeded or not
   static bool OrderPlanesAlongNormal( std::vector< vtkSmartPointer<vtkPlane> > inputPlanes, std::map<double, vtkSmartPointer<vtkPlane> >& outputPlaneOrdering );
+
+  /// Generate a new color that is not already in use in a color table node
+  /// \param colorNode Color table node to validate against
+  static void GenerateNewColor(vtkMRMLColorTableNode* colorNode, double* newColor);
 
 //BTX
   /*!

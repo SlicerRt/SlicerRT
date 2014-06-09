@@ -25,7 +25,8 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
-#include "vtkVolumesOrientedResampleUtility.h"
+#include "vtkMRMLContourNode.h"
+#include "vtkMRMLContourStorageNode.h"
 
 // Subject Hierarchy includes
 #include "vtkMRMLSubjectHierarchyConstants.h"
@@ -33,16 +34,18 @@
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkPolyData.h>
+#include <vtkImageCast.h>
 #include <vtkLookupTable.h>
+#include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkPolyData.h>
 #include <vtksys/SystemTools.hxx>
 
 // MRML includes
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLContourModelDisplayNode.h>
+#include <vtkMRMLLabelMapVolumeDisplayNode.h>
+#include <vtkMRMLModelNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 
 //----------------------------------------------------------------------------
@@ -51,6 +54,7 @@ vtkStandardNewMacro(vtkSlicerContoursModuleLogic);
 //----------------------------------------------------------------------------
 vtkSlicerContoursModuleLogic::vtkSlicerContoursModuleLogic()
 {
+
 }
 
 //----------------------------------------------------------------------------
@@ -85,6 +89,10 @@ void vtkSlicerContoursModuleLogic::RegisterNodes()
   }
 
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourNode>::New());
+  this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourStorageNode>::New());
+  this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourModelDisplayNode>::New());
+  // TODO : 2d vis readdition
+  //this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLContourLabelmapDisplayNode>::New());
 }
 
 //---------------------------------------------------------------------------
@@ -122,50 +130,6 @@ void vtkSlicerContoursModuleLogic::ProcessMRMLSceneEvents(vtkObject* caller, uns
     if (event == vtkMRMLScene::NodeAboutToBeRemovedEvent)
     {
       scene->StartState(vtkMRMLScene::BatchProcessState);
-
-      vtkMRMLContourNode::ContourRepresentationType type = contourNode->GetActiveRepresentationType();
-      switch(type)
-      {
-      case vtkMRMLContourNode::RibbonModel:
-        {
-          vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetRibbonModelNodeId());
-
-          // Remove associated model node
-          vtkMRMLHierarchyNode* modelHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, aNode->GetID());
-          if (modelHierarchyNode)
-          {
-            scene->RemoveNode(modelHierarchyNode);
-          }
-
-          scene->RemoveNode(aNode);
-          contourNode->SetAndObserveRibbonModelNodeId(NULL);
-          break;
-        }
-      case vtkMRMLContourNode::IndexedLabelmap:
-        {
-          vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetIndexedLabelmapVolumeNodeId());
-          scene->RemoveNode(aNode);
-          contourNode->SetAndObserveIndexedLabelmapVolumeNodeId(NULL);
-          break;
-        }
-      case vtkMRMLContourNode::ClosedSurfaceModel:
-        {
-          vtkMRMLNode* aNode = scene->GetNodeByID(contourNode->GetClosedSurfaceModelNodeId());
-
-          // Remove associated model node
-          vtkMRMLHierarchyNode* modelHierarchyNode = vtkMRMLHierarchyNode::GetAssociatedHierarchyNode(scene, aNode->GetID());
-          if (modelHierarchyNode)
-          {
-            scene->RemoveNode(modelHierarchyNode);
-          }
-
-          scene->RemoveNode(aNode);
-          contourNode->SetAndObserveClosedSurfaceModelNodeId(NULL);
-          break;
-        }
-      default:
-        vtkErrorMacro("Unknown representation type.");
-      }
 
       // Get associated subject hierarchy node
       vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode =
@@ -231,6 +195,7 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
     return;
   }
 
+  // By using a smart pointer and ::Take the deallocation is handled when the function ends
   vtkSmartPointer<vtkCollection> contourNodes = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLContourNode") );
   vtkObject* nextObject = NULL;
   for (contourNodes->InitTraversal(); (nextObject = contourNodes->GetNextItemAsObject()); )
@@ -246,23 +211,23 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerContoursModuleLogic::PaintLabelmapForeground(vtkMRMLScalarVolumeNode* volumeNode, unsigned char newColor)
+void vtkSlicerContoursModuleLogic::PaintLabelmapRepresentationForeground(vtkMRMLContourNode* contourNode, unsigned char newColor)
 {
-  if (!volumeNode)
+  if (!contourNode)
   {
-    std::cerr << "vtkSlicerContoursModuleLogic::PaintLabelmapForeground: volumeNode argument is null!" << std::endl;
+    std::cerr << "vtkSlicerContoursModuleLogic::PaintLabelmapForeground: contourNode argument is null!" << std::endl;
     return;
   }
   if (newColor <= SlicerRtCommon::COLOR_INDEX_INVALID)
   {
-    vtkErrorWithObjectMacro(volumeNode, "PaintLabelmapForeground: Invalid color index given! Color index must be greater than the invalid color index (" << SlicerRtCommon::COLOR_INDEX_INVALID << ")");
+    vtkErrorWithObjectMacro(contourNode, "PaintLabelmapForeground: Invalid color index given! Color index must be greater than the invalid color index (" << SlicerRtCommon::COLOR_INDEX_INVALID << ")");
     return;
   }
 
-  vtkImageData* imageData = volumeNode->GetImageData();
+  vtkImageData* imageData = contourNode->GetLabelmapImageData();
   if (!imageData || imageData->GetScalarType() != VTK_UNSIGNED_CHAR)
   {
-    vtkErrorWithObjectMacro(volumeNode, "PaintLabelmapForeground: Invalid image data! Scalar type has to be unsigned char instead of '" << (imageData?imageData->GetScalarTypeAsString():"None") << "'");
+    vtkErrorWithObjectMacro(contourNode, "PaintLabelmapForeground: Invalid image data! Scalar type has to be unsigned char instead of '" << (imageData?imageData->GetScalarTypeAsString():"None") << "'");
     return;
   }
 
@@ -334,28 +299,50 @@ vtkMRMLContourNode::ContourRepresentationType vtkSlicerContoursModuleLogic::GetR
 
   for (std::vector<vtkMRMLContourNode*>::iterator it = contours.begin(); it != contours.end(); ++it)
   {
+    // Determine which representations this contour has
+    vtkMRMLContourNode::ContourRepresentationType thisRepresentationType(vtkMRMLContourNode::None);
+
+    char bitField(0);
+    bool labelmapExists(false), ribbonModelExists(false), closedSurfaceModelExists(false);
+    labelmapExists = (*it)->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap);
+    ribbonModelExists = (*it)->HasRepresentation(vtkMRMLContourNode::RibbonModel);
+    closedSurfaceModelExists = (*it)->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
+    int total = (labelmapExists ? 1 : 0) + (ribbonModelExists ? 1 : 0) + (closedSurfaceModelExists ? 1 : 0);
+    if( total > 1 )
+    {
+      return vtkMRMLContourNode::None;
+    }
+    else if ( total == 1 )
+    {
+      if( labelmapExists )
+      {
+        thisRepresentationType = vtkMRMLContourNode::IndexedLabelmap;
+      }
+      else if( ribbonModelExists )
+      {
+        thisRepresentationType = vtkMRMLContourNode::RibbonModel;
+      }
+      else if( closedSurfaceModelExists )
+      {
+        thisRepresentationType = vtkMRMLContourNode::ClosedSurfaceModel;
+      }
+    }
+    else
+    {
+      vtkErrorWithObjectMacro( (*it), "Contour does not contain any representations!");
+    }
+
     if (representationType == vtkMRMLContourNode::None)
     {
-      representationType = (*it)->GetActiveRepresentationType();
+      representationType = thisRepresentationType;
     }
-    else if ((*it)->GetActiveRepresentationType() == vtkMRMLContourNode::None) // Sanity check
+    else if (thisRepresentationType != representationType)
     {
-      vtkWarningWithObjectMacro((*it), "getRepresentationTypeOfSelectedContours: Invalid representation type (None) found for the contour node '" << (*it)->GetName() << "'!")
-    }
-    else if (representationType != (*it)->GetActiveRepresentationType())
-    {
-      sameRepresentationTypes = false;
+      return vtkMRMLContourNode::None;
     }
   }
 
-  if (sameRepresentationTypes)
-  {
-    return representationType;
-  }
-  else
-  {
-    return vtkMRMLContourNode::None;
-  }
+  return representationType;
 }
 
 //-----------------------------------------------------------------------------
@@ -503,12 +490,12 @@ bool vtkSlicerContoursModuleLogic::ContoursContainRepresentation(std::vector<vtk
 
   for (std::vector<vtkMRMLContourNode*>::iterator contourIt = contours.begin(); contourIt != contours.end(); ++contourIt)
   {
-    if (allMustContain && !(*contourIt)->RepresentationExists(representationType))
+    if (allMustContain && !(*contourIt)->HasRepresentation(representationType))
     {
       // At least one misses the requested representation
       return false;
     }
-    else if (!allMustContain && (*contourIt)->RepresentationExists(representationType))
+    else if (!allMustContain && (*contourIt)->HasRepresentation(representationType))
     {
       // At least one has the requested representation
       return true;
@@ -528,30 +515,77 @@ bool vtkSlicerContoursModuleLogic::ContoursContainRepresentation(std::vector<vtk
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerContoursModuleLogic::GetIndexedLabelmapWithGivenGeometry(vtkMRMLContourNode* contour, vtkMRMLScalarVolumeNode* referenceVolumeNode, vtkMRMLScalarVolumeNode* outputIndexedLabelmap)
+void vtkSlicerContoursModuleLogic::GetIndexedLabelmapWithGivenGeometry(vtkMRMLContourNode* inputContour, vtkMRMLScalarVolumeNode* referenceVolumeNode, vtkMRMLContourNode* outputLabelmapContour)
 {
-  if (!contour)
+  if (!inputContour)
   {
     std::cerr << "vtkSlicerContoursModuleLogic::GetIndexedLabelmapWithGivenGeometry: Invalid contour argument!" << std::endl;
     return;
   }
-  if (!referenceVolumeNode || !outputIndexedLabelmap)
+  if (!referenceVolumeNode || !outputLabelmapContour)
   {
-    vtkErrorWithObjectMacro(contour, "GetIndexedLabelmapWithGivenGeometry: Invalid reference volume or output labelmap argument!");
+    vtkErrorWithObjectMacro(inputContour, "GetIndexedLabelmapWithGivenGeometry: Invalid reference volume or output labelmap argument!");
     return;
   }
 
   // Return the contained indexed labelmap representation directly if its lattice matches the reference volume
-  vtkMRMLScalarVolumeNode* inputIndexedLabelmap = contour->GetIndexedLabelmapVolumeNode(); // Also does conversion if necessary
-  if (SlicerRtCommon::DoVolumeLatticesMatch(inputIndexedLabelmap, referenceVolumeNode))
+  if (vtkMRMLContourNode::DoVolumeLatticesMatch(inputContour, referenceVolumeNode))
   {
-    outputIndexedLabelmap->Copy(inputIndexedLabelmap);
-    outputIndexedLabelmap->CopyOrientation(inputIndexedLabelmap); // Make sure the IJK to RAS matrix is copied too (the Copy function does not do this in some cases)
+    outputLabelmapContour->Copy(inputContour);
+    outputLabelmapContour->CopyOrientation(inputContour); // Make sure the IJK to RAS matrix is copied too (the Copy function does not do this in some cases)
     return;
   }
 
   // Resampling is needed
-  vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode(inputIndexedLabelmap, referenceVolumeNode, outputIndexedLabelmap);
+  vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode(inputContour->GetScene(), inputContour, referenceVolumeNode, outputLabelmapContour);
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(vtkMRMLContourNode* refContourNode, const std::string& contourNameNoSuffix)
+{
+  if( refContourNode == NULL )
+  {
+    std::cerr << "Null input sent to vtkSlicerContoursModuleLogic::CreateEmptyContour.";
+    return NULL;
+  }
+  vtkMRMLScene* scene = refContourNode->GetScene();
+  if( scene == NULL )
+  {
+    vtkErrorWithObjectMacro(refContourNode, "Invalid scene extracted from reference contour node: " << refContourNode->GetName());
+  }
+  std::string fullName = contourNameNoSuffix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
+  std::string uniqueName = scene->GenerateUniqueName(fullName);
+
+  // Create contour node
+  vtkSmartPointer<vtkMRMLContourNode> contourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+  contourNode = vtkMRMLContourNode::SafeDownCast(scene->AddNode(contourNode));
+  contourNode->SetName(uniqueName.c_str());
+  contourNode->SetCreatedFromIndexLabelmap(false);
+  contourNode->HideFromEditorsOff();
+
+  vtkSlicerContoursModuleLogic::CreateContourStorageNode(contourNode);
+
+  if( refContourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
+  {
+    double dirs[3][3];
+    refContourNode->GetIJKToRASDirections(dirs);
+    contourNode->SetIJKToRASDirections(dirs);
+    contourNode->SetOrigin(refContourNode->GetOrigin());
+    contourNode->SetSpacing(refContourNode->GetSpacing());
+  }
+  
+  if( refContourNode->GetRasterizationReferenceVolumeNodeId() != NULL &&
+    strcmp(refContourNode->GetRasterizationReferenceVolumeNodeId(), "") != 0 )
+  {
+    contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(refContourNode->GetRasterizationReferenceVolumeNodeId());
+  }
+
+  contourNode->SetRasterizationOversamplingFactor(refContourNode->GetRasterizationOversamplingFactor());
+  contourNode->SetDecimationTargetReductionFactor(refContourNode->GetDecimationTargetReductionFactor());
+  // I'm not sure about this last one... maybe it shouldn't be copied
+  contourNode->SetMetaDataDictionary(refContourNode->GetMetaDataDictionary());
+
+  return contourNode;
 }
 
 //-----------------------------------------------------------------------------
@@ -570,21 +604,22 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
     return NULL;
   }
 
+  std::string contourName;
+  if( optionalName != NULL )
+  {
+    contourName = std::string(optionalName);
+  }
+  else
+  {
+    contourName = representationNode->GetName();
+  }
+
   // Create contour node if dropped node is volume or model
   if (representationNode->IsA("vtkMRMLModelNode") || representationNode->IsA("vtkMRMLScalarVolumeNode"))
   {
     vtkSmartPointer<vtkMRMLContourNode> newContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
     mrmlScene->AddNode(newContourNode);
 
-    std::string contourName;
-    if( optionalName != NULL )
-    {
-      contourName = std::string(optionalName);
-    }
-    else
-    {
-      contourName = representationNode->GetName();
-    }
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX.c_str(), "");
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str(), "");
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str(), "");
@@ -592,23 +627,60 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
     contourName = mrmlScene->GenerateUniqueName(contourName);
     newContourNode->SetName(contourName.c_str());
 
+    vtkSlicerContoursModuleLogic::CreateContourStorageNode(newContourNode);
+
     if (representationNode->IsA("vtkMRMLScalarVolumeNode"))
     {
-      newContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(representationNode->GetID());
+      vtkMRMLScalarVolumeNode* volNode = vtkMRMLScalarVolumeNode::SafeDownCast(representationNode);
 
-      // Set the labelmap itself as reference thus indicating there was no conversion from model representation
-      newContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(representationNode->GetID());
+      if( volNode->GetImageData()->GetScalarType() != VTK_UNSIGNED_CHAR )
+      {
+        vtkWarningWithObjectMacro(volNode, "Input image data to contour creation is not of scalar type VTK_UNSIGNED_CHAR. Attempting conversion.");
+        vtkSmartPointer<vtkImageCast> imageCast = vtkSmartPointer<vtkImageCast>::New();
+        imageCast->SetOutputScalarTypeToUnsignedChar();
+        imageCast->SetInput(volNode->GetImageData());
+        imageCast->Update();
+        volNode->SetAndObserveImageData(imageCast->GetOutput());
+      }
+
+      newContourNode->SetMetaDataDictionary( volNode->GetMetaDataDictionary() );
+      newContourNode->SetOrigin( volNode->GetOrigin() );
+      newContourNode->SetSpacing( volNode->GetSpacing() );
+      double dirs[3][3];
+      volNode->GetIJKToRASDirections(dirs);
+      newContourNode->SetIJKToRASDirections(dirs);
+      newContourNode->SetAndObserveLabelmapImageData( volNode->GetImageData() );
+
+      if( volNode->GetAttribute("AssociatedNodeID") == NULL || mrmlScene->GetNodeByID( std::string(volNode->GetAttribute("AssociatedNodeID")) ) == NULL)
+      {
+        vtkErrorWithObjectMacro(newContourNode.GetPointer(), "Unable to retrieve AssociatedNodeID from labelmap node: " << volNode->GetName() << ". Cannot set reference volume ID in new Contour.");
+        mrmlScene->RemoveNode(newContourNode);
+        return NULL;
+      }
+      else
+      {
+        newContourNode->SetAndObserveRasterizationReferenceVolumeNodeId( volNode->GetAttribute("AssociatedNodeID") );
+      }
+
+      newContourNode->SetCreatedFromIndexLabelmap(true);
+
+      // Create display node
+      // TODO : 2d vis readdition, creation 2d vis display node
     }
     else
     {
-      newContourNode->SetAndObserveClosedSurfaceModelNodeId(representationNode->GetID());
+      vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(representationNode);
       newContourNode->SetDecimationTargetReductionFactor(0.0);
+      newContourNode->SetAndObserveClosedSurfacePolyData( modelNode->GetPolyData() );
+
+      // unset (just in case) CreatedFromIndexLabelmap
+      newContourNode->SetCreatedFromIndexLabelmap(false);
+
+      // Create display node
+      newContourNode->CreateClosedSurfaceDisplayNode();
     }
     newContourNode->HideFromEditorsOff();
     newContourNode->Modified();
-
-    // Representation node is now tagged as such
-    representationNode->SetAttribute(SlicerRtCommon::CONTOUR_REPRESENTATION_IDENTIFIER_ATTRIBUTE_NAME, "1");
 
     return newContourNode.GetPointer();
   }
@@ -619,4 +691,101 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
   }
 
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLContourNode* vtkSlicerContoursModuleLogic::LoadContourFromFile( const char* filename )
+{
+  if (this->GetMRMLScene() == 0 ||
+    filename == 0)
+  {
+    return 0;
+  }
+  vtkSmartPointer<vtkMRMLContourNode> contourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+  vtkSmartPointer<vtkMRMLContourStorageNode> storageNode = vtkSmartPointer<vtkMRMLContourStorageNode>::New();
+  storageNode->SetFileName(filename);
+
+  // check to see which node can read this type of file
+  if ( !storageNode->SupportedFileType(filename) )
+  {
+    vtkErrorMacro("Contour storage node unable to load contour file.");
+    return NULL;
+  }
+
+  std::string baseName = vtksys::SystemTools::GetFilenameWithoutExtension(filename);
+  std::string uname( this->GetMRMLScene()->GetUniqueNameByString(baseName.c_str()));
+  contourNode->SetName(uname.c_str());
+  std::string storageUName = uname + SlicerRtCommon::CONTOUR_STORAGE_NODE_POSTFIX;
+  storageNode->SetName(storageUName.c_str());
+  this->GetMRMLScene()->SaveStateForUndo();
+  this->GetMRMLScene()->AddNode(storageNode.GetPointer());
+
+  contourNode->SetScene(this->GetMRMLScene());
+  contourNode->SetAndObserveStorageNodeID(storageNode->GetID());
+
+  this->GetMRMLScene()->AddNode(contourNode);
+
+  // now set up the reading
+  vtkDebugMacro("AddModel: calling read on the storage node");
+  int retval = storageNode->ReadData(contourNode);
+  if (retval != 1)
+  {
+    vtkErrorMacro("AddModel: error reading " << filename);
+    this->GetMRMLScene()->RemoveNode(contourNode);
+    return NULL;
+  }
+
+  return contourNode.GetPointer();
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour( vtkMRMLContourNode* contourNode )
+{
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> volNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  // Convert on demand
+  volNode->SetAndObserveImageData(contourNode->GetLabelmapImageData());
+  std::string volNodeName = std::string(contourNode->GetName()) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
+  volNode->SetName(volNodeName.c_str());
+  volNode->SetLabelMap(1);
+  volNode->SetOrigin(contourNode->GetOrigin());
+  volNode->SetSpacing(contourNode->GetSpacing());
+  double dirs[3][3];
+  contourNode->GetIJKToRASDirections(dirs);
+  volNode->SetIJKToRASDirections(dirs);
+  volNode->SetMetaDataDictionary(contourNode->GetMetaDataDictionary());
+  contourNode->GetScene()->AddNode(volNode);
+
+  vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> dispNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
+  std::string dispNodeName = std::string(contourNode->GetName()) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
+  contourNode->GetScene()->AddNode(dispNode);
+  volNode->SetAndObserveDisplayNodeID(dispNode->GetID());
+
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(contourNode);
+  vtkMRMLSubjectHierarchyNode* seriesNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
+  vtkMRMLColorTableNode* ctNode = vtkMRMLColorTableNode::SafeDownCast(seriesNode->GetNodeReference(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE.c_str()));
+  dispNode->SetAndObserveColorNodeID(ctNode->GetID());
+
+  return volNode;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLContourStorageNode* vtkSlicerContoursModuleLogic::CreateContourStorageNode( vtkMRMLContourNode* contourNode )
+{
+  if( contourNode == NULL || contourNode->GetScene() == NULL )
+  {
+    std::cerr << "Unable to create a contour storage node. Null contour or null scene passed in." << std::endl;
+    return NULL;
+  }
+
+  // Create contour storage node
+  vtkSmartPointer<vtkMRMLContourStorageNode> storageNode = vtkSmartPointer<vtkMRMLContourStorageNode>::New();
+  std::string storageNodeName = contourNode->GetName() + SlicerRtCommon::CONTOUR_STORAGE_NODE_POSTFIX;
+  storageNodeName = contourNode->GetScene()->GenerateUniqueName(storageNodeName);
+  storageNode->SetName(storageNodeName.c_str());
+  storageNode->SetFileName(storageNodeName.c_str());
+  contourNode->GetScene()->AddNode(storageNode);
+
+  contourNode->AddAndObserveStorageNodeID(storageNode->GetID());
+
+  return storageNode;
 }

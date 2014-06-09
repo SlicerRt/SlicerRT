@@ -806,11 +806,8 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     return;
   }
 
-  /* Make sure contour is in labelmap form */
-  vtkMRMLContourNode::ContourRepresentationType contourRepresentation;
-  contourRepresentation = contourNode->GetActiveRepresentationType();
-
-  if (contourRepresentation != vtkMRMLContourNode::IndexedLabelmap)
+  /* Make sure contour has a labelmap form */
+  if ( !contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
   {
     d->label_CalculateDoseStatus->setText("Proton target must be labelmap");
     return;

@@ -149,8 +149,6 @@ void qSlicerContourMorphologyModuleWidget::setup()
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
-
-  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -315,7 +313,7 @@ void qSlicerContourMorphologyModuleWidget::updateButtonsState()
   bool applyEnabled = d->logic()->GetContourMorphologyNode()
                    && d->logic()->GetContourMorphologyNode()->GetContourANode()
                    && (d->ContourSelectorWidget_ContourB->isEnabled() ? d->logic()->GetContourMorphologyNode()->GetContourBNode() != 0 : true)
-                   && d->logic()->GetContourMorphologyNode()->GetOutputContourNode()
+                   //&& d->logic()->GetContourMorphologyNode()->GetOutputContourNode()
                    //&& d->logic()->GetContourMorphologyNode()->GetReferenceVolumeNode()
                    && (d->ContourSelectorWidget_ContourB->isEnabled() ? d->ContourSelectorWidget_ContourB->isSelectionValid() : d->ContourSelectorWidget_ContourA->isSelectionValid());
   d->pushButton_Apply->setEnabled(applyEnabled);

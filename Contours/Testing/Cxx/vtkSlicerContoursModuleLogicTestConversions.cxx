@@ -436,16 +436,18 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
   bodyContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(doseScalarVolumeNode->GetID());
   bodyContourNode->SetRasterizationOversamplingFactor(2.0);
 
-  vtkMRMLScalarVolumeNode* indexedLabelmapNode(NULL);
   {
     vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
     converter->SetContourNode(bodyContourNode);
     converter->ReconvertRepresentation(vtkMRMLContourNode::IndexedLabelmap);
-
-    indexedLabelmapNode = bodyContourNode->GetIndexedLabelmapVolumeNode();
   }
 
-  vtkImageData* image = indexedLabelmapNode->GetImageData();
+  vtkImageData* image = bodyContourNode->GetLabelmapImageData();
+  if( image == NULL )
+  {
+    errorStream << "Conversion to indexed labelmap failed.";
+    return EXIT_FAILURE;
+  }
   int extents[6];
   image->GetExtent(extents);
 
@@ -485,7 +487,6 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  vtkMRMLModelNode* closedSurfaceModelNode(NULL);
   {
     // Set closed surface model conversion parameters
     bodyContourNode->SetDecimationTargetReductionFactor(0.0);
@@ -494,11 +495,17 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
     converter->SetContourNode(bodyContourNode);
     converter->ReconvertRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
-
-    closedSurfaceModelNode = bodyContourNode->GetClosedSurfaceModelNode();
   }
+
+  if( !bodyContourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel) )
+  {
+    errorStream << "Conversion to closed surface model failed.";
+    return EXIT_FAILURE;
+  }
+
   double bounds[6];
-  closedSurfaceModelNode->GetRASBounds(bounds);
+  // TODO : fix this, model node had a GetRASBounds as well, so now we have to choose correctly...
+  bodyContourNode->GetRASBounds(bounds);
 
   if( !CheckIfResultIsWithinOneTenthPercentFromBaseline(bounds[0], expectedBounds[0]) || 
     !CheckIfResultIsWithinOneTenthPercentFromBaseline(bounds[1], expectedBounds[1]) || 
@@ -517,21 +524,21 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  if(closedSurfaceModelNode->GetPolyData()->GetNumberOfPoints() != expectedNumberOfPoints)
+  if(bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfPoints() != expectedNumberOfPoints)
   {
-    errorStream << "Number of points mismatch in closed surface model. Expected: " << expectedNumberOfPoints << ". Got: " << closedSurfaceModelNode->GetPolyData()->GetNumberOfPoints() << std::endl;
+    errorStream << "Number of points mismatch in closed surface model. Expected: " << expectedNumberOfPoints << ". Got: " << bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfPoints() << std::endl;
     return EXIT_FAILURE;
   }
 
-  if(closedSurfaceModelNode->GetPolyData()->GetNumberOfCells() != expectedNumberOfCells)
+  if(bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfCells() != expectedNumberOfCells)
   {
-    errorStream << "Number of cells mismatch in closed surface model. Expected: " << expectedNumberOfCells << ". Got: " << closedSurfaceModelNode->GetPolyData()->GetNumberOfCells() << std::endl;
+    errorStream << "Number of cells mismatch in closed surface model. Expected: " << expectedNumberOfCells << ". Got: " << bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfCells() << std::endl;
     return EXIT_FAILURE;
   }
 
-  if(closedSurfaceModelNode->GetPolyData()->GetNumberOfPolys() != expectedNumberOfPolys)
+  if(bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfPolys() != expectedNumberOfPolys)
   {
-    errorStream << "Number of polys mismatch in closed surface model. Expected: " << expectedNumberOfPolys << ". Got: " << closedSurfaceModelNode->GetPolyData()->GetNumberOfPolys() << std::endl;
+    errorStream << "Number of polys mismatch in closed surface model. Expected: " << expectedNumberOfPolys << ". Got: " << bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfPolys() << std::endl;
     return EXIT_FAILURE;
   }
 

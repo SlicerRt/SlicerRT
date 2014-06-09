@@ -854,7 +854,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
 
     // Now we'll look at it.
     vtkSmartPointer<vtkPolyDataMapper> contourPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    vtkSmartPointer<vtkPolyData> polydata = (*contourIt)->GetClosedSurfaceModelNode()->GetPolyData();
+    vtkSmartPointer<vtkPolyData> polydata = (*contourIt)->GetClosedSurfacePolyData();
     contourPolyDataMapper->SetInput(polydata);
     //contourPolyDataMapper->SetScalarRange(0,255);
     vtkSmartPointer<vtkActor> contourPolyDataActor = vtkSmartPointer<vtkActor>::New();
@@ -1005,8 +1005,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
   plmRef->print ();
 
   vtkMRMLContourNode* targetContourNode = this->ExternalBeamPlanningNode->GetProtonTargetContourNode();
-  Plm_image::Pointer plmTgt = PlmCommon::ConvertVolumeNodeToPlmImage(
-    targetContourNode->GetIndexedLabelmapVolumeNode());
+  Plm_image::Pointer plmTgt = PlmCommon::ConvertVolumeNodeToPlmImage( targetContourNode );
   plmTgt->print ();
 
 #if defined (commentout)

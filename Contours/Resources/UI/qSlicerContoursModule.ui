@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>386</width>
-    <height>482</height>
+    <height>496</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,17 +30,17 @@
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Contour">
-       <property name="nodeTypes">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Contour" native="true">
+       <property name="nodeTypes" stdset="0">
         <stringlist>
          <string>vtkMRMLContourNode</string>
          <string>vtkMRMLSubjectHierarchyNode</string>
         </stringlist>
        </property>
-       <property name="addEnabled">
+       <property name="addEnabled" stdset="0">
         <bool>false</bool>
        </property>
-       <property name="renameEnabled">
+       <property name="renameEnabled" stdset="0">
         <bool>true</bool>
        </property>
       </widget>
@@ -48,12 +48,12 @@
      <item row="1" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Active representation:</string>
+        <string>Representations:</string>
        </property>
       </widget>
      </item>
      <item row="1" column="2">
-      <widget class="QLabel" name="label_ActiveRepresentation">
+      <widget class="QLabel" name="label_RepresentationsForContour">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -87,8 +87,8 @@
     </spacer>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ChangeActiveRepresentation">
-     <property name="text">
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ChangeActiveRepresentation" native="true">
+     <property name="text" stdset="0">
       <string>Change active representation</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
@@ -134,28 +134,28 @@
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume" native="true">
         <property name="enabled">
          <bool>true</bool>
         </property>
         <property name="toolTip">
          <string>A reference volume is needed if the active representation is a model and volume is needed</string>
         </property>
-        <property name="nodeTypes">
+        <property name="nodeTypes" stdset="0">
          <stringlist>
           <string>vtkMRMLScalarVolumeNode</string>
          </stringlist>
         </property>
-        <property name="noneEnabled">
+        <property name="noneEnabled" stdset="0">
          <bool>true</bool>
         </property>
-        <property name="addEnabled">
+        <property name="addEnabled" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="removeEnabled">
+        <property name="removeEnabled" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="selectNodeUponCreation">
+        <property name="selectNodeUponCreation" stdset="0">
          <bool>false</bool>
         </property>
        </widget>
@@ -299,13 +299,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLabel" name="label_ActiveSelected">
-            <property name="text">
-             <string>The current selection is the active representation</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
         <item>
@@ -378,23 +371,23 @@
        </widget>
       </item>
       <item row="3" column="3">
-       <widget class="ctkSliderWidget" name="SliderWidget_TargetReductionFactorPercent">
+       <widget class="ctkSliderWidget" name="SliderWidget_TargetReductionFactorPercent" native="true">
         <property name="enabled">
          <bool>true</bool>
         </property>
         <property name="toolTip">
          <string>The created closed surface model will be decimated using this parameter (e.g., if TargetReduction is set to 90%, this filter will try to reduce the data set to 10% of its original size)</string>
         </property>
-        <property name="decimals">
+        <property name="decimals" stdset="0">
          <number>0</number>
         </property>
-        <property name="singleStep">
+        <property name="singleStep" stdset="0">
          <double>5.000000000000000</double>
         </property>
-        <property name="pageStep">
+        <property name="pageStep" stdset="0">
          <double>20.000000000000000</double>
         </property>
-        <property name="maximum">
+        <property name="maximum" stdset="0">
          <double>100.000000000000000</double>
         </property>
        </widget>
@@ -479,14 +472,14 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ConvertRepresentation">
-     <property name="text">
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ConvertRepresentation" native="true">
+     <property name="text" stdset="0">
       <string>Create contour from representation</string>
      </property>
-     <property name="checked">
+     <property name="checked" stdset="0">
       <bool>false</bool>
      </property>
-     <property name="collapsed">
+     <property name="collapsed" stdset="0">
       <bool>true</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout2">
@@ -507,26 +500,26 @@
        </widget>
       </item>
       <item row="0" column="3">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ConvertRepresentationSource">
-        <property name="nodeTypes">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ConvertRepresentationSource" native="true">
+        <property name="nodeTypes" stdset="0">
          <stringlist>
           <string>vtkMRMLScalarVolumeNode</string>
           <string>vtkMRMLModelNode</string>
          </stringlist>
         </property>
-        <property name="noneEnabled">
+        <property name="noneEnabled" stdset="0">
          <bool>true</bool>
         </property>
-        <property name="addEnabled">
+        <property name="addEnabled" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="removeEnabled">
+        <property name="removeEnabled" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="renameEnabled">
+        <property name="renameEnabled" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="noneDisplay">
+        <property name="noneDisplay" stdset="0">
          <string>Select a Source</string>
         </property>
        </widget>
@@ -542,22 +535,22 @@
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_TargetContourSet">
-        <property name="nodeTypes">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_TargetContourSet" native="true">
+        <property name="nodeTypes" stdset="0">
          <stringlist>
           <string>vtkMRMLSubjectHierarchyNode</string>
          </stringlist>
         </property>
-        <property name="noneEnabled">
+        <property name="noneEnabled" stdset="0">
          <bool>true</bool>
         </property>
-        <property name="addEnabled">
+        <property name="addEnabled" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="removeEnabled">
+        <property name="removeEnabled" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="noneDisplay">
+        <property name="noneDisplay" stdset="0">
          <string>Select a contour set</string>
         </property>
        </widget>
@@ -629,56 +622,6 @@
             </property>
             <property name="text">
              <string>Inputs are not complete</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_AlreadyAContourRepresentation">
-            <property name="palette">
-             <palette>
-              <active>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>128</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </active>
-              <inactive>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>128</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </inactive>
-              <disabled>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>106</red>
-                  <green>104</green>
-                  <blue>100</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </disabled>
-             </palette>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Selected source is already a representation for a contour</string>
             </property>
            </widget>
           </item>
@@ -821,6 +764,57 @@
          <bool>false</bool>
         </property>
        </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ContoursFunctionality" native="true">
+     <property name="text" stdset="0">
+      <string>Contour functions</string>
+     </property>
+     <property name="checked" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="collapsed" stdset="0">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_ContourFunctions">
+      <property name="margin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_ExtractLabelmap">
+        <property name="text">
+         <string>Extract labelmap from contour:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QPushButton" name="pushButton_ExtractLabelmap">
+        <property name="text">
+         <string>Extract</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </widget>

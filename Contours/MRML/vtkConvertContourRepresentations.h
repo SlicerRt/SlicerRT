@@ -67,6 +67,15 @@ public:
 
 protected:
   /*!
+    Compute transform between a model and a contour IJK coordinate system (to transform the model into the contour volume voxel space)
+    The transform applied to the parent contour node is ignored
+    /param fromNode Transformable node from which we want to compute the transform
+    /param toVolumeNode Contour node to whose IJK space we want to compute the transform
+    /param fromModelToVolumeIjkTransform Output transform
+  */
+  void GetTransformFromNodeToContourVolumeIjk(vtkMRMLTransformableNode* fromNode, vtkMRMLContourNode* toContourNode, vtkGeneralTransform* fromModelToContourIjkTransform);
+
+  /*!
     Compute transform between a model and a volume IJK coordinate system (to transform the model into the volume voxel space)
     The transform applied to the parent contour node is ignored
     /param fromNode Transformable node from which we want to compute the transform
@@ -77,12 +86,15 @@ protected:
 
   /// Convert model representation to indexed labelmap
   /// \param type Source model type for the conversion
-  vtkMRMLScalarVolumeNode* ConvertFromModelToIndexedLabelmap(vtkMRMLContourNode::ContourRepresentationType type);
+  vtkMRMLContourNode* ConvertFromModelToIndexedLabelmap(vtkMRMLContourNode::ContourRepresentationType type);
 
   /// Convert indexed labelmap representation to closed surface model
-  vtkMRMLModelNode* ConvertFromIndexedLabelmapToClosedSurfaceModel();
+  vtkMRMLContourNode* ConvertFromIndexedLabelmapToClosedSurfaceModel();
 
   /// Calculate the origin from IJK space to RAS space
+  void CalculateOriginInRas(vtkMRMLContourNode* contourNodeToSet, double originInIJKHomogeneous[4], double* newOriginHomogeneous );
+
+  /// Calculate the origin from IJK space to RAS space using scalar volume node
   void CalculateOriginInRas(vtkMRMLScalarVolumeNode* volumeNodeToSet, double originInIJKHomogeneous[4], double* newOriginHomogeneous );
 
 protected:

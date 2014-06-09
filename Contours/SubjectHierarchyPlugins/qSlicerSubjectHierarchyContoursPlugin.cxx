@@ -32,12 +32,14 @@
 
 // Contours includes
 #include "qSlicerSubjectHierarchyContoursPlugin.h"
+#include "vtkMRMLContourModelDisplayNode.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkSlicerContoursModuleLogic.h"
 
 // Qt includes
-#include <QDebug>
 #include <QAction>
+#include <QDebug>
+#include <QMenu>
 #include <QStandardItem>
 
 // SlicerQt includes
@@ -71,8 +73,18 @@ public:
 public:
   QIcon ContourIcon;
 
+  QAction* RepresentationVisibilityAction;
+  QAction* RibbonModelVisibilityAction;
+  QAction* LabelmapVisibilityAction;
+  QAction* ClosedSurfaceVisibilityAction;
+
   QAction* CreateContourAction;
+
   QAction* ConvertContourToRepresentationAction;
+  QAction* CreateRibbonModelAction;
+  QAction* CreateLabelmapAction;
+  QAction* CreateClosedSurfaceAction;
+
   QAction* ChangeColorAction;
 };
 
@@ -87,7 +99,14 @@ qSlicerSubjectHierarchyContoursPluginPrivate::qSlicerSubjectHierarchyContoursPlu
 
   this->CreateContourAction = NULL;
   this->ConvertContourToRepresentationAction = NULL;
+  this->CreateRibbonModelAction = NULL;
+  this->CreateLabelmapAction = NULL;
+  this->CreateClosedSurfaceAction = NULL;
   this->ChangeColorAction = NULL;
+  this->RepresentationVisibilityAction = NULL;
+  this->RibbonModelVisibilityAction = NULL;
+  this->LabelmapVisibilityAction = NULL;
+  this->ClosedSurfaceVisibilityAction = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -95,13 +114,45 @@ void qSlicerSubjectHierarchyContoursPluginPrivate::init()
 {
   Q_Q(qSlicerSubjectHierarchyContoursPlugin);
 
+  // Show/hide actions
+  this->RepresentationVisibilityAction = new QAction("Show/Hide Representation", q);
+  QMenu* representationTypeSubMenu = new QMenu();
+  this->RepresentationVisibilityAction->setMenu(representationTypeSubMenu);
+
+  this->RibbonModelVisibilityAction = new QAction("Ribbon model",q);
+  QObject::connect(this->RibbonModelVisibilityAction, SIGNAL(triggered()), q, SLOT(hideShowRibbonModel()));
+  representationTypeSubMenu->addAction(this->RibbonModelVisibilityAction);
+
+  this->LabelmapVisibilityAction = new QAction("Labelmap",q);
+  QObject::connect(this->LabelmapVisibilityAction, SIGNAL(triggered()), q, SLOT(hideShowLabelmap()));
+  representationTypeSubMenu->addAction(this->LabelmapVisibilityAction);
+
+  this->ClosedSurfaceVisibilityAction = new QAction("Closed surface",q);
+  QObject::connect(this->ClosedSurfaceVisibilityAction, SIGNAL(triggered()), q, SLOT(hideShowClosedSurfaceModel()));
+  representationTypeSubMenu->addAction(this->ClosedSurfaceVisibilityAction);
+
+  // Create contour action
   this->CreateContourAction = new QAction("Create child contour",q);
   QObject::connect(this->CreateContourAction, SIGNAL(triggered()), q, SLOT(createChildContourForCurrentNode()));
 
-  this->ConvertContourToRepresentationAction = new QAction("Convert contour to its active representation",q);
-  QObject::connect(this->ConvertContourToRepresentationAction, SIGNAL(triggered()), q, SLOT(convertCurrentNodeContourToRepresentation()));
-  this->ConvertContourToRepresentationAction->setEnabled(false); //TODO Remove when the feature is added
+  // Convert to representation action
+  this->ConvertContourToRepresentationAction = new QAction("Add representation",q);
+  QMenu* representationCreateSubMenu = new QMenu();
+  this->ConvertContourToRepresentationAction->setMenu(representationCreateSubMenu);
 
+  this->CreateRibbonModelAction = new QAction("Ribbon model",q);
+  QObject::connect(this->CreateRibbonModelAction, SIGNAL(triggered()), q, SLOT(createRibbonModelRepresentation()));
+  representationCreateSubMenu->addAction(this->CreateRibbonModelAction);
+
+  this->CreateLabelmapAction = new QAction("Labelmap",q);
+  QObject::connect(this->CreateLabelmapAction, SIGNAL(triggered()), q, SLOT(createLabelmapRepresentation()));
+  representationCreateSubMenu->addAction(this->CreateLabelmapAction);
+
+  this->CreateClosedSurfaceAction = new QAction("Closed surface",q);
+  QObject::connect(this->CreateClosedSurfaceAction, SIGNAL(triggered()), q, SLOT(createClosedSurfaceModelRepresentation()));
+  representationCreateSubMenu->addAction(this->CreateClosedSurfaceAction);
+
+  // Change color action
   this->ChangeColorAction = new QAction("Change color...",q);
   QObject::connect(this->ChangeColorAction, SIGNAL(triggered()), q, SLOT(changeColorForCurrentNode()));
 
@@ -198,7 +249,7 @@ QList<QAction*> qSlicerSubjectHierarchyContoursPlugin::nodeContextMenuActions()c
   Q_D(const qSlicerSubjectHierarchyContoursPlugin);
 
   QList<QAction*> actions;
-  actions << d->CreateContourAction << d->ConvertContourToRepresentationAction << d->ChangeColorAction;
+  actions << d->CreateContourAction << d->ConvertContourToRepresentationAction << d->ChangeColorAction << d->RepresentationVisibilityAction;
   return actions;
 }
 
@@ -219,8 +270,39 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
   // Contour (owned)
   if ( this->canOwnSubjectHierarchyNode(node) && this->isThisPluginOwnerOfNode(node) )
   {
-    d->ConvertContourToRepresentationAction->setVisible(true);
     d->ChangeColorAction->setVisible(true);
+    vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(associatedNode);
+    d->RepresentationVisibilityAction->setVisible(contourNode != NULL);
+    if( contourNode )
+    {
+      d->RibbonModelVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel));
+      d->LabelmapVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap));
+      d->ClosedSurfaceVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel));
+    }
+    else
+    {
+      d->RibbonModelVisibilityAction->setVisible(false);
+      d->LabelmapVisibilityAction->setVisible(false);
+      d->ClosedSurfaceVisibilityAction->setVisible(false);
+    }
+
+    bool allRepresentations = contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) 
+      && contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap)
+      && contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
+
+    d->ConvertContourToRepresentationAction->setVisible(contourNode != NULL && !allRepresentations);
+    if( contourNode )
+    {
+      d->CreateRibbonModelAction->setVisible(!contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel));
+      d->CreateLabelmapAction->setVisible(!contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap));
+      d->CreateClosedSurfaceAction->setVisible(!contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel));
+    }
+    else
+    {
+      d->CreateRibbonModelAction->setVisible(false);
+      d->CreateLabelmapAction->setVisible(false);
+      d->CreateClosedSurfaceAction->setVisible(false);
+    }
   }
 
   // Contour set
@@ -332,5 +414,72 @@ void qSlicerSubjectHierarchyContoursPlugin::changeColorForCurrentNode()
     {
       nodeSelector->setCurrentNode(colorNode);
     }
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContoursPlugin::hideShowRibbonModel()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
+  if( contourNode && contourNode->GetRibbonModelDisplayNode() )
+  {
+    contourNode->GetRibbonModelDisplayNode()->SetVisibility( (1+contourNode->GetRibbonModelDisplayNode()->GetVisibility())%2 );
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContoursPlugin::hideShowLabelmap()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
+  if( contourNode )
+  {
+    // TODO : 2d vis readdition
+    //contourNode->GetRibbonModelDisplayNode()->SetVisibility( (1+contourNode->GetRibbonModelDisplayNode()->GetVisibility())%2 );
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContoursPlugin::hideShowClosedSurfaceModel()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
+  if( contourNode && contourNode->GetClosedSurfaceModelDisplayNode() )
+  {
+    contourNode->GetClosedSurfaceModelDisplayNode()->SetVisibility( (1+contourNode->GetClosedSurfaceModelDisplayNode()->GetVisibility())%2 );
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContoursPlugin::createRibbonModelRepresentation()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
+  if( contourNode ) 
+  {
+    contourNode->GetRibbonModelPolyData();
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContoursPlugin::createLabelmapRepresentation()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
+  if( contourNode )
+  {
+    contourNode->GetLabelmapImageData();
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContoursPlugin::createClosedSurfaceModelRepresentation()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
+  if( contourNode )
+  {
+    contourNode->GetClosedSurfacePolyData();
   }
 }

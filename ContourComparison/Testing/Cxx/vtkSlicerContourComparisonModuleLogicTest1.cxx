@@ -26,6 +26,7 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkSlicerContoursModuleLogic.h"
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // MRML includes
@@ -404,15 +405,9 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
   }
 
   // Create contour nodes from the input labelmaps
-  vtkSmartPointer<vtkMRMLContourNode> referenceContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  referenceContourNode->SetName("Reference_Contour");
-  mrmlScene->AddNode(referenceContourNode);
-  referenceContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(inputLabelmapReferenceScalarVolumeNode->GetID());
+  vtkSmartPointer<vtkMRMLContourNode> referenceContourNode = vtkSmartPointer<vtkMRMLContourNode>::Take(vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(inputLabelmapReferenceScalarVolumeNode, "Reference_Contour"));
 
-  vtkSmartPointer<vtkMRMLContourNode> compareContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  compareContourNode->SetName("Compare_Contour");
-  mrmlScene->AddNode(compareContourNode);
-  compareContourNode->SetAndObserveIndexedLabelmapVolumeNodeId(inputLabelmapCompareScalarVolumeNode->GetID());
+  vtkSmartPointer<vtkMRMLContourNode> compareContourNode = vtkSmartPointer<vtkMRMLContourNode>::Take(vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(inputLabelmapCompareScalarVolumeNode, "Compare_Contour"));
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLContourComparisonNode> paramNode = vtkSmartPointer<vtkMRMLContourComparisonNode>::New();
