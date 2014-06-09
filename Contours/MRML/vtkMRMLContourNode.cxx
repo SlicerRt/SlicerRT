@@ -49,6 +49,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkImageReslice.h>
 #include <vtkImageResliceMask.h>
 #include <vtkIntArray.h>
+#include <vtkMath.h>
 #include <vtkMathUtilities.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
@@ -1068,19 +1069,122 @@ vtkMRMLStorageNode* vtkMRMLContourNode::CreateDefaultStorageNode()
 //----------------------------------------------------------------------------
 void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
 {
+  // Do not call superclass ApplyTransform
+
   vtkHomogeneousTransform* linearTransform = vtkHomogeneousTransform::SafeDownCast(transform);
   if (linearTransform)
   {
-    this->ApplyTransformMatrix(linearTransform->GetMatrix());
+    // linear labelmap transformation
+    vtkNew<vtkMatrix4x4> ijkToRASMatrix;
+    vtkNew<vtkMatrix4x4> newIJKToRASMatrix;
+    this->GetIJKToRASMatrix(ijkToRASMatrix.GetPointer());
+    vtkMatrix4x4::Multiply4x4(linearTransform->GetMatrix(), ijkToRASMatrix.GetPointer(), newIJKToRASMatrix.GetPointer());
+    this->SetIJKToRASMatrix(newIJKToRASMatrix.GetPointer());
   }
   else
   {
-    this->ApplyNonLinearTransform(transform);
+    // Non-linear labelmap transformation
+    if ( this->HasRepresentation(IndexedLabelmap) )
+    {
+      int extent[6];
+      this->GetLabelmapImageData()->GetExtent(extent);
+
+      vtkNew<vtkMatrix4x4> rasToIJK;
+      vtkNew<vtkImageResliceMask> reslice;
+
+      vtkNew<vtkGeneralTransform> resampleXform;
+      resampleXform->Identity();
+      resampleXform->PostMultiply();
+
+      this->GetRASToIJKMatrix(rasToIJK.GetPointer());
+
+      vtkNew<vtkMatrix4x4> IJKToRAS;
+      IJKToRAS->DeepCopy(rasToIJK.GetPointer());
+      IJKToRAS->Invert();
+      transform->Inverse();
+
+      resampleXform->Concatenate(IJKToRAS.GetPointer());
+      resampleXform->Concatenate(transform);
+      resampleXform->Concatenate(rasToIJK.GetPointer());
+
+      reslice->SetResliceTransform(resampleXform.GetPointer());
+
+      reslice->SetInput(this->LabelmapImageData);
+      reslice->SetInterpolationModeToLinear();
+      reslice->SetBackgroundColor(0, 0, 0, 0);
+      reslice->AutoCropOutputOff();
+      reslice->SetOptimization(1);
+      reslice->SetOutputOrigin( this->GetLabelmapImageData()->GetOrigin() );
+      reslice->SetOutputSpacing( this->GetLabelmapImageData()->GetSpacing() );
+      reslice->SetOutputDimensionality( 3 );
+      reslice->SetOutputExtent( extent);
+      reslice->GetBackgroundMask()->SetUpdateExtentToWholeExtent();
+      reslice->Update();
+
+      vtkNew<vtkImageData> resampleImage;
+      resampleImage->DeepCopy(reslice->GetOutput());
+
+      this->SetAndObserveLabelmapImageData(resampleImage.GetPointer());
+    }
   }
 
-  // Apply to both ribbon and closed surface
-  this->SetAndObserveRibbonModelPolyData(this->ApplyTransformInternal(transform, this->RibbonModelPolyData));
-  this->SetAndObserveClosedSurfacePolyData(this->ApplyTransformInternal(transform, this->ClosedSurfacePolyData));
+  // Ribbon model
+  if( this->HasRepresentation(RibbonModel) )
+  {
+    vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
+
+    transformFilter->SetInput(this->RibbonModelPolyData);
+    transformFilter->SetTransform(transform);
+    transformFilter->Update();
+
+    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
+      this->RibbonModelPolyData ? this->RibbonModelPolyData->GetProducerPort()->GetProducer() : 0);
+
+    vtkSmartPointer<vtkPolyData> polyData;
+    if (isInPipeline)
+    {
+      polyData = vtkSmartPointer<vtkPolyData>::New();
+    }
+    else
+    {
+      polyData = this->RibbonModelPolyData;
+    }
+    polyData->DeepCopy(transformFilter->GetOutput());
+    if (isInPipeline)
+    {
+      this->SetAndObserveRibbonModelPolyData(polyData);
+    }
+    transformFilter->Delete();
+  }
+
+  // Closed surface model
+  if( this->HasRepresentation(ClosedSurfaceModel) )
+  {
+    vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
+
+    transformFilter->SetInput(this->ClosedSurfacePolyData);
+    transformFilter->SetTransform(transform);
+    transformFilter->Update();
+
+    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
+      this->RibbonModelPolyData ? this->ClosedSurfacePolyData->GetProducerPort()->GetProducer() : 0);
+
+    vtkSmartPointer<vtkPolyData> polyData;
+    if (isInPipeline)
+    {
+      polyData = vtkSmartPointer<vtkPolyData>::New();
+    }
+    else
+    {
+      polyData = this->ClosedSurfacePolyData;
+    }
+    polyData->DeepCopy(transformFilter->GetOutput());
+    if (isInPipeline)
+    {
+      this->SetAndObserveClosedSurfacePolyData(polyData);
+    }
+    transformFilter->Delete();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -1090,33 +1194,9 @@ bool vtkMRMLContourNode::CanApplyNonLinearTransforms() const
 }
 
 //----------------------------------------------------------------------------
-vtkPolyData* vtkMRMLContourNode::ApplyTransformInternal( vtkAbstractTransform* transform, vtkPolyData* input )
-{
-  vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
-  transformFilter->SetInput(input);
-  transformFilter->SetTransform(transform);
-  transformFilter->Update();
-
-  bool isInPipeline = !vtkTrivialProducer::SafeDownCast( input->GetProducerPort()->GetProducer() );
-  vtkSmartPointer<vtkPolyData> polyData;
-  if (isInPipeline)
-  {
-    polyData = vtkSmartPointer<vtkPolyData>::New();
-  }
-  else
-  {
-    polyData = input;
-  }
-  polyData->DeepCopy(transformFilter->GetOutput());
-  transformFilter->Delete();
-
-  return polyData;
-}
-
-//----------------------------------------------------------------------------
 bool vtkMRMLContourNode::HasBeenCreatedFromIndexedLabelmap()
 {
-  return CreatedFromIndexLabelmap;
+  return this->CreatedFromIndexLabelmap;
 }
 
 // TODO : 2d vis readdition
@@ -1252,169 +1332,6 @@ void vtkMRMLContourNode::GetRASToIJKMatrix(vtkMatrix4x4* mat)
 {
   this->GetIJKToRASMatrix( mat );
   mat->Invert();
-}
-
-//---------------------------------------------------------------------------
-void vtkMRMLContourNode::ApplyTransformMatrix(vtkMatrix4x4* transformMatrix)
-{
-  vtkNew<vtkMatrix4x4> ijkToRASMatrix;
-  vtkNew<vtkMatrix4x4> newIJKToRASMatrix;
-
-  this->GetIJKToRASMatrix(ijkToRASMatrix.GetPointer());
-  vtkMatrix4x4::Multiply4x4(transformMatrix, ijkToRASMatrix.GetPointer(), newIJKToRASMatrix.GetPointer());
-
-  this->SetIJKToRASMatrix(newIJKToRASMatrix.GetPointer());
-}
-
-//-----------------------------------------------------------
-void vtkMRMLContourNode::ApplyNonLinearTransform(vtkAbstractTransform* transform)
-{
-  // TODO : add model non-linear transform code
-
-  if ( !this->HasRepresentation(IndexedLabelmap) || !this->CanApplyNonLinearTransforms())
-  {
-    return;
-  }
-  int extent[6];
-  this->GetLabelmapImageData()->GetExtent(extent);
-
-  vtkNew<vtkMatrix4x4> rasToIJK;
-
-  /** THIS MAY BE NEEDED IF TRANSFORM ORIGIN
-  // Compute extents of the output image
-  // For each of 6 volume boundary planes:
-  // 1. Convert the slice image to a polydata
-  // 2. Transform polydata
-  // Then uppend all poly datas and compute RAS extents
-
-  vtkNew<vtkImageDataGeometryFilter> imageDataGeometryFilter;
-  imageDataGeometryFilter->SetInput(this->GetImageData());
-
-  vtkNew<vtkGeneralTransform> IJK2WorldTransform;
-  IJK2WorldTransform->Identity();
-  //IJK2WorldTransform->PostMultiply();
-
-  IJK2WorldTransform->Concatenate(transform);
-
-  this->GetRASToIJKMatrix(rasToIJK.GetPointer());
-  rasToIJK->Invert();
-  IJK2WorldTransform->Concatenate(rasToIJK.GetPointer());
-
-  vtkNew<vtkTransformPolyDataFilter> transformFilter;
-  transformFilter->SetInput(imageDataGeometryFilter->GetOutput());
-  transformFilter->SetTransform(IJK2WorldTransform.GetPointer());
-
-  vtkSmartPointer<vtkPolyData> planes[6];
-
-  planes[0] = vtkSmartPointer<vtkPolyData>::New();
-  imageDataGeometryFilter->SetExtent(extent[0],extent[0], extent[2],extent[3],extent[4],extent[5]);
-  imageDataGeometryFilter->Update();
-  transformFilter->Update();
-  planes[0]->DeepCopy(transformFilter->GetOutput());
-
-  planes[1] = vtkSmartPointer<vtkPolyData>::New();
-  imageDataGeometryFilter->SetExtent(extent[1],extent[1], extent[2],extent[3],extent[4],extent[5]);
-  imageDataGeometryFilter->Update();
-  transformFilter->Update();
-  planes[1]->DeepCopy(transformFilter->GetOutput());
-
-  planes[2] = vtkSmartPointer<vtkPolyData>::New();
-  imageDataGeometryFilter->SetExtent(extent[0],extent[1], extent[2],extent[2],extent[4],extent[5]);
-  imageDataGeometryFilter->Update();
-  transformFilter->Update();
-  planes[2]->DeepCopy(transformFilter->GetOutput());
-
-  planes[3] = vtkSmartPointer<vtkPolyData>::New();
-  imageDataGeometryFilter->SetExtent(extent[0],extent[1], extent[3],extent[3],extent[4],extent[5]);
-  imageDataGeometryFilter->Update();
-  transformFilter->Update();
-  planes[3]->DeepCopy(transformFilter->GetOutput());
-
-  planes[4] = vtkSmartPointer<vtkPolyData>::New();
-  imageDataGeometryFilter->SetExtent(extent[0],extent[1], extent[2],extent[3],extent[4],extent[4]);
-  imageDataGeometryFilter->Update();
-  transformFilter->Update();
-  planes[4]->DeepCopy(transformFilter->GetOutput());
-
-  planes[5] = vtkSmartPointer<vtkPolyData>::New();
-  imageDataGeometryFilter->SetExtent(extent[0],extent[1], extent[2],extent[3],extent[5],extent[5]);
-  imageDataGeometryFilter->Update();
-  transformFilter->Update();
-  planes[5]->DeepCopy(transformFilter->GetOutput());
-
-  vtkNew<vtkAppendPolyData> appendPolyData;
-  for (int i=0; i<6; i++)
-    {
-    appendPolyData->AddInput(planes[i]);
-    }
-  appendPolyData->Update();
-  double bounds[6];
-  appendPolyData->GetOutput()->ComputeBounds();
-  appendPolyData->GetOutput()->GetBounds(bounds);
-
-  ****/
-
-  vtkNew<vtkImageResliceMask> reslice;
-
-  vtkNew<vtkGeneralTransform> resampleXform;
-  resampleXform->Identity();
-  resampleXform->PostMultiply();
-
-  this->GetRASToIJKMatrix(rasToIJK.GetPointer());
-
-  vtkNew<vtkMatrix4x4> IJKToRAS;
-  IJKToRAS->DeepCopy(rasToIJK.GetPointer());
-  IJKToRAS->Invert();
-  transform->Inverse();
-
-  resampleXform->Concatenate(IJKToRAS.GetPointer());
-  resampleXform->Concatenate(transform);
-  resampleXform->Concatenate(rasToIJK.GetPointer());
-
-  //resampleXform->Inverse();
-
-  reslice->SetResliceTransform(resampleXform.GetPointer());
-
-  reslice->SetInput(this->GetLabelmapImageData());
-  reslice->SetInterpolationModeToLinear();
-  reslice->SetBackgroundColor(0, 0, 0, 0);
-  reslice->AutoCropOutputOff();
-  reslice->SetOptimization(1);
-
-  reslice->SetOutputOrigin( this->GetLabelmapImageData()->GetOrigin() );
-  reslice->SetOutputSpacing( this->GetLabelmapImageData()->GetSpacing() );
-  reslice->SetOutputDimensionality( 3 );
-
-  /***
-  double spacing[3];
-  double boxBounds[6];
-
-  int dimensions[3];
-  double origin[3];
-
-  this->GetOrigin(origin);
-  this->GetSpacing(spacing);
-  this->GetRASBounds(boxBounds);
-
-  for (int i=0; i<3; i++)
-    {
-    dimensions[i] = (bounds[2*i+1] - bounds[2*i])/spacing[i];
-    }
-  reslice->SetOutputExtent( 0, dimensions[0],
-                            0, dimensions[1],
-                            0, dimensions[2]);
-  ***/
-
-  reslice->SetOutputExtent( extent);
-
-  reslice->GetBackgroundMask()->SetUpdateExtentToWholeExtent();
-
-  reslice->Update();
-
-  vtkNew<vtkImageData> resampleImage;
-  resampleImage->DeepCopy(reslice->GetOutput());
-
-  this->SetAndObserveLabelmapImageData(resampleImage.GetPointer());
 }
 
 //----------------------------------------------------------------------------
@@ -1732,10 +1649,140 @@ bool vtkMRMLContourNode::DoVolumeLatticesMatch(vtkMRMLContourNode* contour1, vtk
 //---------------------------------------------------------------------------
 void vtkMRMLContourNode::GetRASBounds(double bounds[6])
 {
-  // TODO : how to choose between volume or ribbon poly data or closed surface poly data?
+  vtkMath::UninitializeBounds(bounds);
 
-  Superclass::GetRASBounds( bounds);
+  vtkPolyData* ModelData(ClosedSurfacePolyData);
+  if (this->ClosedSurfacePolyData == NULL)
+  {
+    ModelData = this->RibbonModelPolyData;
+  }
+  if( ModelData == NULL )
+  {
+    // Get volume bounds
+    this->GetLabelmapRASBounds(bounds);
+  }
+  else
+  {
+    ModelData->ComputeBounds();
 
+    double boundsLocal[6];
+    ModelData->GetBounds(boundsLocal);
+
+    this->TransformBoundsToRAS(boundsLocal, bounds);
+  }
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLContourNode::GetModifiedSinceRead()
+{
+  return this->Superclass::GetModifiedSinceRead() ||
+    (this->LabelmapImageData && this->LabelmapImageData->GetMTime() > this->GetStoredTime()) ||
+    (this->RibbonModelPolyData && this->RibbonModelPolyData->GetMTime() > this->GetStoredTime()) ||
+    (this->ClosedSurfacePolyData && this->ClosedSurfacePolyData->GetMTime() > this->GetStoredTime());
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateRibbonModelDisplayNode()
+{
+  if( this->GetRibbonModelDisplayNode() != NULL )
+  {
+    return this->GetRibbonModelDisplayNode();
+  }
+
+  vtkSmartPointer<vtkMRMLContourModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLContourModelDisplayNode>::New();
+  this->GetScene()->AddNode(displayNode);
+  std::string displayName = std::string(this->GetName()) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
+  displayNode->SetName(displayName.c_str());
+  displayNode->SetInputPolyData(this->RibbonModelPolyData);
+  displayNode->SliceIntersectionVisibilityOn();
+  displayNode->VisibilityOn();
+  displayNode->SetBackfaceCulling(0);
+
+  this->AddAndObserveDisplayNodeID(displayNode->GetID());
+
+  return displayNode;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateClosedSurfaceDisplayNode()
+{
+  if( this->GetClosedSurfaceModelDisplayNode() != NULL )
+  {
+    return this->GetClosedSurfaceModelDisplayNode();
+  }
+
+  vtkSmartPointer<vtkMRMLContourModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLContourModelDisplayNode>::New();
+  this->GetScene()->AddNode(displayNode);
+  std::string displayName = std::string(this->GetName()) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
+  displayNode->SetName(displayName.c_str());
+  displayNode->SetInputPolyData(this->ClosedSurfacePolyData);
+  displayNode->SliceIntersectionVisibilityOn();
+  displayNode->VisibilityOn();
+  displayNode->SetBackfaceCulling(0);
+
+  this->AddAndObserveDisplayNodeID(displayNode->GetID());
+
+  return displayNode;
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLContourNode::TransformBoundsToRAS( double inputBounds_Local[6], double outputBounds_RAS[6] )
+{
+  vtkMRMLTransformNode *transformNode = this->GetParentTransformNode();
+  if ( !transformNode )
+  {
+    // node is not transformed, therefore RAS=local
+    for (int i=0; i<6; i++)
+    {
+      outputBounds_RAS[i]=inputBounds_Local[i];
+    }
+    return;
+  }
+
+  vtkNew<vtkGeneralTransform> transformLocalToRAS;
+  transformNode->GetTransformToWorld(transformLocalToRAS.GetPointer());
+
+  double cornerPoints_Local[8][4] =
+  {
+    {inputBounds_Local[0], inputBounds_Local[2], inputBounds_Local[4], 1},
+    {inputBounds_Local[0], inputBounds_Local[3], inputBounds_Local[4], 1},
+    {inputBounds_Local[0], inputBounds_Local[2], inputBounds_Local[5], 1},
+    {inputBounds_Local[0], inputBounds_Local[3], inputBounds_Local[5], 1},
+    {inputBounds_Local[1], inputBounds_Local[2], inputBounds_Local[4], 1},
+    {inputBounds_Local[1], inputBounds_Local[3], inputBounds_Local[4], 1},
+    {inputBounds_Local[1], inputBounds_Local[2], inputBounds_Local[5], 1},
+    {inputBounds_Local[1], inputBounds_Local[3], inputBounds_Local[5], 1}
+  };
+
+  // initialize bounds with point 0
+  double* cornerPoint_RAS = transformLocalToRAS->TransformDoublePoint(cornerPoints_Local[0]);
+  for ( int i=0; i<3; i++)
+  {
+    outputBounds_RAS[2*i]   = cornerPoint_RAS[i];
+    outputBounds_RAS[2*i+1] = cornerPoint_RAS[i];
+  }
+
+  // update bounds with the rest of the points
+  for ( int i=1; i<8; i++)
+  {
+    cornerPoint_RAS = transformLocalToRAS->TransformPoint( cornerPoints_Local[i] );
+    for (int n=0; n<3; n++)
+    {
+      if (cornerPoint_RAS[n] < outputBounds_RAS[2*n]) // min bound
+      {
+        outputBounds_RAS[2*n] = cornerPoint_RAS[n];
+      }
+      if (cornerPoint_RAS[n] > outputBounds_RAS[2*n+1]) // max bound
+      {
+        outputBounds_RAS[2*n+1] = cornerPoint_RAS[n];
+      }
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLContourNode::GetLabelmapRASBounds( double bounds[6] )
+{
   vtkImageData *volumeImage;
   if ( !(volumeImage = this->GetLabelmapImageData()) )
   {
@@ -1809,73 +1856,4 @@ void vtkMRMLContourNode::GetRASBounds(double bounds[6])
     bounds[2*i]   = minBounds[i];
     bounds[2*i+1] = maxBounds[i];
   }
-
-  /* model getrasbounds
-
-  if (this->PolyData == NULL)
-  {
-  return;
-  }
-
-  this->PolyData->ComputeBounds();
-
-  double boundsLocal[6];
-  this->PolyData->GetBounds(boundsLocal);
-
-  this->TransformBoundsToRAS(boundsLocal, bounds);
-
-  */
-}
-
-//---------------------------------------------------------------------------
-bool vtkMRMLContourNode::GetModifiedSinceRead()
-{
-  return this->Superclass::GetModifiedSinceRead() ||
-    (this->LabelmapImageData && this->LabelmapImageData->GetMTime() > this->GetStoredTime()) ||
-    (this->RibbonModelPolyData && this->RibbonModelPolyData->GetMTime() > this->GetStoredTime()) ||
-    (this->ClosedSurfacePolyData && this->ClosedSurfacePolyData->GetMTime() > this->GetStoredTime());
-}
-
-//---------------------------------------------------------------------------
-vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateRibbonModelDisplayNode()
-{
-  if( this->GetRibbonModelDisplayNode() != NULL )
-  {
-    return this->GetRibbonModelDisplayNode();
-  }
-
-  vtkSmartPointer<vtkMRMLContourModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLContourModelDisplayNode>::New();
-  this->GetScene()->AddNode(displayNode);
-  std::string displayName = std::string(this->GetName()) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
-  displayNode->SetName(displayName.c_str());
-  displayNode->SetInputPolyData(this->RibbonModelPolyData);
-  displayNode->SliceIntersectionVisibilityOn();
-  displayNode->VisibilityOn();
-  displayNode->SetBackfaceCulling(0);
-
-  this->AddAndObserveDisplayNodeID(displayNode->GetID());
-
-  return displayNode;
-}
-
-//---------------------------------------------------------------------------
-vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateClosedSurfaceDisplayNode()
-{
-  if( this->GetClosedSurfaceModelDisplayNode() != NULL )
-  {
-    return this->GetClosedSurfaceModelDisplayNode();
-  }
-
-  vtkSmartPointer<vtkMRMLContourModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLContourModelDisplayNode>::New();
-  this->GetScene()->AddNode(displayNode);
-  std::string displayName = std::string(this->GetName()) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
-  displayNode->SetName(displayName.c_str());
-  displayNode->SetInputPolyData(this->ClosedSurfacePolyData);
-  displayNode->SliceIntersectionVisibilityOn();
-  displayNode->VisibilityOn();
-  displayNode->SetBackfaceCulling(0);
-
-  this->AddAndObserveDisplayNodeID(displayNode->GetID());
-
-  return displayNode;
 }

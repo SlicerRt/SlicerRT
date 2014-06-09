@@ -100,6 +100,12 @@ public:
   /// Get bounding box in global RAS the form (xmin,xmax, ymin,ymax, zmin,zmax).
   virtual void GetRASBounds(double bounds[6]);
 
+  /// Transforms bounds from the local coordinate system to the RAS (world)
+  /// coordinate system. Only the corner points are used for determining the
+  /// new bounds, therefore in case of non-linear transforms the transformed
+  /// bounds may not fully contain the transformed model points.
+  virtual void TransformBoundsToRAS(double inputBounds_Local[6], double outputBounds_RAS[6]);
+
   ///
   /// Copy the node's attributes to this object
   void CopyOrientation(vtkMRMLContourNode *node);
@@ -130,10 +136,6 @@ public:
   /// Apply a transform on the representations
   /// \sa SetAndObserveTransformNodeID, CanApplyNonLinearTransforms
   virtual void ApplyTransform(vtkAbstractTransform* transform);
-
-  virtual void ApplyTransformMatrix(vtkMatrix4x4* transformMatrix);
-
-  virtual void ApplyNonLinearTransform(vtkAbstractTransform* transform);
 
   /// Determines whether a representation exists in the contour node
   bool HasRepresentation(ContourRepresentationType type);
@@ -198,8 +200,8 @@ public:
   /// Set default conversion parameters if none were explicitly specified
   void SetDefaultConversionParametersForRepresentation(ContourRepresentationType type);
 
-  // TODO : ensure that this new mechanism correctly replaces the old one
-  /// Was this contour created by converting a labelmap to contour?
+  /// Record whether or not the contour was created from a labelmap
+  /// This prevents certain actions from happening that would break the contour behaviour
   bool HasBeenCreatedFromIndexedLabelmap();
   vtkSetMacro(CreatedFromIndexLabelmap, bool);
 
@@ -293,14 +295,14 @@ public:
   static bool DoVolumeLatticesMatch(vtkMRMLContourNode* contour1, vtkMRMLScalarVolumeNode* volume2);
     
 protected:
-  /// Internal function to apply the transform to a model
-  vtkPolyData* ApplyTransformInternal(vtkAbstractTransform* transform, vtkPolyData* input);
-
   /// Set rasterization reference volume node ID
   vtkSetStringMacro(RasterizationReferenceVolumeNodeId);
 
   /// For logging purposes
   static std::string GetRepresentationTypeAsString(ContourRepresentationType type);
+
+  /// Internal function to clean up getting RAS bounds for the labelmap representation
+  void GetLabelmapRASBounds( double bounds[6] );
 
   /// Called when a node reference ID is added (list size increased).
   virtual void OnNodeReferenceAdded(vtkMRMLNodeReference *reference);

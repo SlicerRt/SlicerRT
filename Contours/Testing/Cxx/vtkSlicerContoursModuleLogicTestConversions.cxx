@@ -504,7 +504,6 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
   }
 
   double bounds[6];
-  // TODO : fix this, model node had a GetRASBounds as well, so now we have to choose correctly...
   bodyContourNode->GetRASBounds(bounds);
 
   if( !CheckIfResultIsWithinOneTenthPercentFromBaseline(bounds[0], expectedBounds[0]) || 
