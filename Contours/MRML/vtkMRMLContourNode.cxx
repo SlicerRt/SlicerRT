@@ -838,7 +838,9 @@ bool vtkMRMLContourNode::RibbonModelContainsEmptyPolydata()
 //---------------------------------------------------------------------------
 void vtkMRMLContourNode::UpdateRepresentations()
 {
-  // TODO: Add event observers
+  this->SetAndObserveLabelmapImageData(this->LabelmapImageData);
+  this->SetAndObserveRibbonModelPolyData(this->RibbonModelPolyData);
+  this->SetAndObserveClosedSurfacePolyData(this->ClosedSurfacePolyData);
   this->SetAndObserveRasterizationReferenceVolumeNodeId(this->RasterizationReferenceVolumeNodeId);
 }
 

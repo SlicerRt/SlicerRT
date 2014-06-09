@@ -150,6 +150,7 @@ public:
   const char* GetStructureName();
 
   /// Update representation objects: observe nodes, update pointers
+  /// This is used when a scene has finished loading and node connections need to be restablished
   void UpdateRepresentations();
 
   /// Get the color table and color index for the contour
