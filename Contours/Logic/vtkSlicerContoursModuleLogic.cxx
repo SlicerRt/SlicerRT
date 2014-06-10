@@ -346,32 +346,22 @@ vtkMRMLContourNode::ContourRepresentationType vtkSlicerContoursModuleLogic::GetR
 }
 
 //-----------------------------------------------------------------------------
-const char* vtkSlicerContoursModuleLogic::GetRasterizationReferenceVolumeOfContours(std::vector<vtkMRMLContourNode*>& contours, bool &sameReferenceVolumeInContours)
+const char* vtkSlicerContoursModuleLogic::GetRasterizationReferenceVolumeIdOfContours(std::vector<vtkMRMLContourNode*>& contours, bool &sameReferenceVolumeInContours)
 {
   sameReferenceVolumeInContours = true;
-  std::string rasterizationReferenceVolumeNodeId("");
+  vtkMRMLNode* rasterizationReferenceNode = (*contours.begin())->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str());
 
   for (std::vector<vtkMRMLContourNode*>::iterator it = contours.begin(); it != contours.end(); ++it)
   {
-    if (rasterizationReferenceVolumeNodeId.empty())
-    {
-      rasterizationReferenceVolumeNodeId = std::string((*it)->GetRasterizationReferenceVolumeNodeId());
-    }
-    else if ( ((*it)->GetRasterizationReferenceVolumeNodeId() == NULL && !rasterizationReferenceVolumeNodeId.empty())
-           || ((*it)->GetRasterizationReferenceVolumeNodeId() != NULL && STRCASECMP(rasterizationReferenceVolumeNodeId.c_str(), (*it)->GetRasterizationReferenceVolumeNodeId())) )
+    vtkMRMLNode* thisContourRasterizationReferenceNode = (*it)->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str());
+    if (thisContourRasterizationReferenceNode != rasterizationReferenceNode)
     {
       sameReferenceVolumeInContours = false;
+      return NULL;
     }
   }
 
-  if (sameReferenceVolumeInContours)
-  {
-    return rasterizationReferenceVolumeNodeId.c_str();
-  }
-  else
-  {
-    return NULL;
-  }
+  return rasterizationReferenceNode->GetID();
 }
 
 //-----------------------------------------------------------------------------
@@ -574,10 +564,9 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateEmptyContourFromExisting
     contourNode->SetSpacing(refContourNode->GetSpacing());
   }
   
-  if( refContourNode->GetRasterizationReferenceVolumeNodeId() != NULL &&
-    strcmp(refContourNode->GetRasterizationReferenceVolumeNodeId(), "") != 0 )
+  if( refContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL )
   {
-    contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(refContourNode->GetRasterizationReferenceVolumeNodeId());
+    contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(refContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str())->GetID());
   }
 
   contourNode->SetRasterizationOversamplingFactor(refContourNode->GetRasterizationOversamplingFactor());

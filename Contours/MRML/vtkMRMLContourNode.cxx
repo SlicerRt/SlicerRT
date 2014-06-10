@@ -76,7 +76,6 @@ vtkMRMLContourNode::vtkMRMLContourNode()
 , ClosedSurfacePolyData(NULL)
 , LabelmapImageData(NULL)
 , DicomRtRoiPoints(NULL)
-, RasterizationReferenceVolumeNodeId(NULL)
 , RasterizationOversamplingFactor(-1.0)
 , DecimationTargetReductionFactor(-1.0)
 , CreatedFromIndexLabelmap(false)
@@ -118,7 +117,6 @@ vtkMRMLContourNode::~vtkMRMLContourNode()
   this->SetAndObserveRibbonModelPolyData(NULL);
   this->SetAndObserveClosedSurfacePolyData(NULL);
   this->SetAndObserveLabelmapImageData(NULL);
-  this->SetRasterizationReferenceVolumeNodeId(NULL);
   this->SetDicomRtRoiPoints(NULL);
 
   this->OrderedContourPlanes.clear();
@@ -152,14 +150,8 @@ void vtkMRMLContourNode::WriteXML(ostream& of, int nIndent)
   of << indent << " origin=\""
     << this->Origin[0] << " " << this->Origin[1] << " " << this->Origin[2] << "\"";
 
-  if (this->RasterizationReferenceVolumeNodeId != NULL) 
-  {
-    of << indent << " RasterizationReferenceVolumeNodeId=\"" << this->RasterizationReferenceVolumeNodeId << "\"";
-  }
-
   of << indent << " RasterizationOversamplingFactor=\"" << this->RasterizationOversamplingFactor << "\"";
   of << indent << " DecimationTargetReductionFactor=\"" << this->DecimationTargetReductionFactor << "\"";
-
   of << indent << " CreatedFromLabelmap=\"" << (this->CreatedFromIndexLabelmap ? "TRUE" : "FALSE") << "\"";
 }
 
@@ -258,9 +250,9 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
 {
-  Superclass::Copy(anode);
-
   this->DisableModifiedEventOn();
+
+  Superclass::Copy(anode);
 
   vtkMRMLContourNode *otherNode = vtkMRMLContourNode::SafeDownCast(anode);
 
@@ -285,8 +277,6 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
 
   this->SetCreatedFromIndexLabelmap(otherNode->HasBeenCreatedFromIndexedLabelmap());
 
-  this->SetAndObserveRasterizationReferenceVolumeNodeId( otherNode->GetRasterizationReferenceVolumeNodeId() );
-
   this->SetDicomRtRoiPoints( otherNode->GetDicomRtRoiPoints() );
 
   this->SetRasterizationOversamplingFactor( otherNode->GetRasterizationOversamplingFactor() );
@@ -300,6 +290,8 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLContourNode::DeepCopy(vtkMRMLNode* aNode)
 {
   this->DisableModifiedEventOn();
+
+  Superclass::Copy(aNode);
 
   vtkMRMLContourNode *otherNode = vtkMRMLContourNode::SafeDownCast(aNode);
 
@@ -326,8 +318,6 @@ void vtkMRMLContourNode::DeepCopy(vtkMRMLNode* aNode)
 
   this->SetCreatedFromIndexLabelmap(otherNode->HasBeenCreatedFromIndexedLabelmap());
 
-  this->SetAndObserveRasterizationReferenceVolumeNodeId( otherNode->GetRasterizationReferenceVolumeNodeId() );
-
   this->SetDicomRtRoiPoints( vtkSmartPointer<vtkPolyData>::New() );
   this->DicomRtRoiPoints->DeepCopy(otherNode->GetDicomRtRoiPoints());
 
@@ -336,28 +326,6 @@ void vtkMRMLContourNode::DeepCopy(vtkMRMLNode* aNode)
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLContourNode::UpdateReferences()
-{
-  Superclass::UpdateReferences();
-
-  if (this->RasterizationReferenceVolumeNodeId != NULL && this->Scene->GetNodeByID(this->RasterizationReferenceVolumeNodeId) == NULL)
-  {
-    this->SetAndObserveRasterizationReferenceVolumeNodeId(NULL);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLContourNode::UpdateReferenceID(const char *oldID, const char *newID)
-{
-  Superclass::UpdateReferenceID(oldID, newID);
-
-  if (this->RasterizationReferenceVolumeNodeId && !strcmp(oldID, this->RasterizationReferenceVolumeNodeId))
-  {
-    this->SetAndObserveRasterizationReferenceVolumeNodeId(newID);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -406,9 +374,9 @@ void vtkMRMLContourNode::PrintSelf(ostream& os, vtkIndent indent)
   {
     this->ClosedSurfacePolyData->PrintSelf(os, indent);
   }
-  os << indent << "RasterizationReferenceVolumeNodeId:   " << (this->RasterizationReferenceVolumeNodeId ? this->RasterizationReferenceVolumeNodeId : "NULL") << std::endl;
   os << indent << "RasterizationOversamplingFactor:   " << this->RasterizationOversamplingFactor << std::endl;
   os << indent << "DecimationTargetReductionFactor:   " << this->DecimationTargetReductionFactor << std::endl;
+  os << indent << "CreatedFromLabelmap:   " << (this->CreatedFromIndexLabelmap ? "TRUE" : "FALSE") << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -475,8 +443,8 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
 //----------------------------------------------------------------------------
 void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const char* id)
 {
-  if ( this->RasterizationReferenceVolumeNodeId && id
-    && !STRCASECMP(this->RasterizationReferenceVolumeNodeId, id) )
+  if ( this->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL &&
+    strcmp(this->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str())->GetID(), id) == 0 )
   {
     // The same reference volume is to be set as the current one - no action necessary
     return;
@@ -489,16 +457,10 @@ void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const c
     return;
   }
 
-  if (this->RasterizationReferenceVolumeNodeId && this->Scene)
-  {
-    // Break the link between these two nodes
-    this->Scene->RemoveReferencedNodeID(this->RasterizationReferenceVolumeNodeId, this);
-  }
-
   // Invalidate indexed labelmap representation if it exists and rasterization reference volume has changed (from a value other than the default invalid value),
   // because it is assumed that the current reference volume was used when creating the indexed labelmap, and allowing a reference volume change without
   // invalidating the labelmap would introduce inconsistency.
-  if (this->LabelmapImageData && this->RasterizationReferenceVolumeNodeId != NULL)
+  if (this->LabelmapImageData && this->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL)
   {
     vtkWarningMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Invalidating current indexed labelmap as the rasterization reference volume has been explicitly changed!");
 
@@ -506,12 +468,7 @@ void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const c
     this->SetAndObserveLabelmapImageData(NULL);
   }
 
-  if (id && this->Scene)
-  {
-    this->Scene->AddReferencedNodeID(id, this);
-  }
-
-  this->SetRasterizationReferenceVolumeNodeId(id);
+  this->SetAndObserveNodeReferenceID(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str(), id);
 }
 
 //----------------------------------------------------------------------------
@@ -841,7 +798,6 @@ void vtkMRMLContourNode::UpdateRepresentations()
   this->SetAndObserveLabelmapImageData(this->LabelmapImageData);
   this->SetAndObserveRibbonModelPolyData(this->RibbonModelPolyData);
   this->SetAndObserveClosedSurfacePolyData(this->ClosedSurfacePolyData);
-  this->SetAndObserveRasterizationReferenceVolumeNodeId(this->RasterizationReferenceVolumeNodeId);
 }
 
 //---------------------------------------------------------------------------

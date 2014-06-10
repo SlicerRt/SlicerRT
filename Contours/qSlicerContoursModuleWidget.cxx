@@ -281,10 +281,16 @@ bool qSlicerContoursModuleWidget::getReferenceVolumeNodeIdOfSelectedContours(QSt
   Q_D(qSlicerContoursModuleWidget);
 
   referenceVolumeNodeId.clear();
+  vtkMRMLNode* referenceVolumeNode = (*d->SelectedContourNodes.begin())->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str());
+  if( referenceVolumeNode != NULL )
+  {
+    referenceVolumeNodeId = referenceVolumeNode->GetID();
+  }
   bool sameReferenceVolumeNodeId = true;
   bool allCreatedFromLabelmap = true;
   for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
   {
+    vtkMRMLNode* thisContourReferenceVolumeNode = (*it)->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str() );
     if ( allCreatedFromLabelmap && !(*it)->HasBeenCreatedFromIndexedLabelmap() )
     {
       allCreatedFromLabelmap = false;
@@ -294,11 +300,7 @@ bool qSlicerContoursModuleWidget::getReferenceVolumeNodeIdOfSelectedContours(QSt
       continue;
     }
 
-    if (referenceVolumeNodeId.isEmpty())
-    {
-      referenceVolumeNodeId = QString( (*it)->GetRasterizationReferenceVolumeNodeId() );
-    }
-    else if (referenceVolumeNodeId.compare( (*it)->GetRasterizationReferenceVolumeNodeId() ))
+    if (referenceVolumeNode != thisContourReferenceVolumeNode)
     {
       sameReferenceVolumeNodeId = false;
       referenceVolumeNodeId.clear();
@@ -610,7 +612,7 @@ bool qSlicerContoursModuleWidget::haveConversionParametersChangedForIndexedLabel
   Q_D(qSlicerContoursModuleWidget);
 
   // Reference volume has changed if the reference volume doesn't match the stored reference volume
-  bool referenceVolumeNodeChanged = ( d->MRMLNodeComboBox_ReferenceVolume->currentNodeID().compare(contourNode->GetRasterizationReferenceVolumeNodeId()) );
+  bool referenceVolumeNodeChanged = ( d->MRMLNodeComboBox_ReferenceVolume->currentNode() == contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) );
   bool oversamplingFactorChanged = ( contourNode->HasBeenCreatedFromIndexedLabelmap() ? false
                                    : ( fabs(this->getOversamplingFactor() - contourNode->GetRasterizationOversamplingFactor()) > EPSILON ) );
 

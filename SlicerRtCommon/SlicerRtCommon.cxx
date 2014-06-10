@@ -71,6 +71,7 @@ const std::string SlicerRtCommon::CONTOUR_NEW_CONTOUR_NAME = "NewContour";
 const std::string SlicerRtCommon::CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME = "NewContourSet";
 const std::string SlicerRtCommon::CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX = "DummyAnatomicalVolume_";
 const std::string SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE = "contourSetColorTable" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
+const std::string SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE = "rasterizationVolume" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
 
 // DicomRtImport constants
 const std::string SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX = "DicomRtImport.";

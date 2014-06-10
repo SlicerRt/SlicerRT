@@ -67,7 +67,7 @@ public:
   /// \param contours Input list of collected contour nodes
   /// \param sameReferenceVolumeInContours Output parameter: True if the reference volumes in the contours are the same, false otherwise
   /// \return The common rasterization reference volume in the input contours or NULL when they are not the same
-  static const char* GetRasterizationReferenceVolumeOfContours(std::vector<vtkMRMLContourNode*>& contours, bool &sameReferenceVolumeInContours);
+  static const char* GetRasterizationReferenceVolumeIdOfContours(std::vector<vtkMRMLContourNode*>& contours, bool &sameReferenceVolumeInContours);
 
   /// Get referenced volume for a contour according to subject hierarchy attributes
   /// \return The reference volume for the contour if any, NULL otherwise

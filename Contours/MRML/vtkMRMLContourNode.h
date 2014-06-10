@@ -94,9 +94,6 @@ public:
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "Contour";};
 
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
   /// Get bounding box in global RAS the form (xmin,xmax, ymin,ymax, zmin,zmax).
   virtual void GetRASBounds(double bounds[6]);
 
@@ -113,10 +110,6 @@ public:
   ///
   /// Copy the node's attributes to this object
   void CopyOrientation(vtkMRMLScalarVolumeNode *node);
-
-  /// Updates this node if it depends on other nodes 
-  /// when the node is deleted in the scene
-  void UpdateReferences();
 
   /// Handles events registered in the observer manager
   /// - Invalidates (deletes) all non-active representations when the active is modified
@@ -178,8 +171,6 @@ public:
   /// Get labelmap data
   virtual vtkImageData* GetLabelmapImageData();
 
-  /// Get rasterization reference volume node ID
-  vtkGetStringMacro(RasterizationReferenceVolumeNodeId);
   /// Set and observe rasterization reference volume node ID
   void SetAndObserveRasterizationReferenceVolumeNodeId(const char* id);
 
@@ -296,9 +287,6 @@ public:
   static bool DoVolumeLatticesMatch(vtkMRMLContourNode* contour1, vtkMRMLScalarVolumeNode* volume2);
     
 protected:
-  /// Set rasterization reference volume node ID
-  vtkSetStringMacro(RasterizationReferenceVolumeNodeId);
-
   /// For logging purposes
   static std::string GetRepresentationTypeAsString(ContourRepresentationType type);
 
@@ -366,11 +354,6 @@ protected:
   ///   conversion from points to closed surface points
   /// TODO: Rename to remove indication of origin of data
   vtkPolyData* DicomRtRoiPoints;
-
-  /// Rasterization reference volume node ID. This node is used when converting from model to labelmap
-  /// IMPORTANT: If the reference volume node ID is the same as the indexed labelmap volume node ID, then it
-  /// means that the contour was created from labelmap, and there was no conversion from any model representation
-  char* RasterizationReferenceVolumeNodeId;
 
   /// Oversampling factor for contour polydata to labelmap conversion (rasterization)
   double RasterizationOversamplingFactor;
