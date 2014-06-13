@@ -390,6 +390,11 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
+  // Create contour nodes from the input labelmaps
+  vtkMRMLContourNode* referenceContourNode = vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(inputLabelmapReferenceScalarVolumeNode, "Reference_Contour");
+
+  vtkMRMLContourNode* compareContourNode = vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(inputLabelmapCompareScalarVolumeNode, "Compare_Contour");
+
   // Create transform if necessary
   if (applySimpleTransformToInputCompare)
   {
@@ -401,13 +406,8 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
     inputCompareTransformNode->ApplyTransformMatrix(inputCompareTransform->GetMatrix());
     mrmlScene->AddNode(inputCompareTransformNode);
 
-    inputLabelmapCompareScalarVolumeNode->SetAndObserveTransformNodeID(inputCompareTransformNode->GetID());
+    compareContourNode->SetAndObserveTransformNodeID(inputCompareTransformNode->GetID());
   }
-
-  // Create contour nodes from the input labelmaps
-  vtkSmartPointer<vtkMRMLContourNode> referenceContourNode = vtkSmartPointer<vtkMRMLContourNode>::Take(vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(inputLabelmapReferenceScalarVolumeNode, "Reference_Contour"));
-
-  vtkSmartPointer<vtkMRMLContourNode> compareContourNode = vtkSmartPointer<vtkMRMLContourNode>::Take(vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(inputLabelmapCompareScalarVolumeNode, "Compare_Contour"));
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLContourComparisonNode> paramNode = vtkSmartPointer<vtkMRMLContourComparisonNode>::New();

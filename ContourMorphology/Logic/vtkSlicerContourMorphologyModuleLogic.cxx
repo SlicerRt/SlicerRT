@@ -215,6 +215,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
 
   vtkMRMLContourNode* inputContourANode = this->ContourMorphologyNode->GetContourANode();
 
+  vtkImageData* inputContourALabelmapData(NULL);
   if ( !inputContourANode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
   {
     vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ContourMorphologyNode->GetReferenceVolumeNode();
@@ -225,11 +226,12 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
     }
     inputContourANode->SetAndObserveRasterizationReferenceVolumeNodeId(
       this->ContourMorphologyNode->GetReferenceVolumeNode()->GetID() );
+
+    inputContourANode->SetRasterizationOversamplingFactor(1.0);
   }
 
-  inputContourANode->SetRasterizationOversamplingFactor(1.0);
-
-  vtkImageData* inputContourALabelmapData = inputContourANode->GetLabelmapImageData();
+  inputContourALabelmapData = inputContourANode->GetLabelmapImageData();
+  
 
   if (!inputContourALabelmapData)
   {
@@ -261,11 +263,12 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
     }
     inputContourBNode->SetAndObserveRasterizationReferenceVolumeNodeId(
       this->ContourMorphologyNode->GetReferenceVolumeNode()->GetID() );
+
+      inputContourBNode->SetRasterizationOversamplingFactor(1.0);
   }
 
-  inputContourBNode->SetRasterizationOversamplingFactor(1.0);
-
   vtkImageData* inputContourBLabelmapData = inputContourBNode->GetLabelmapImageData();
+
   if (!inputContourBLabelmapData)
   {
     vtkErrorMacro("SetContourBRepresentationToLabelmap: Failed to get indexed labelmap representation from selected contours");

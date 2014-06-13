@@ -640,13 +640,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
       newContourNode->SetIJKToRASDirections(dirs);
       newContourNode->SetAndObserveLabelmapImageData( volNode->GetImageData() );
 
-      if( volNode->GetAttribute("AssociatedNodeID") == NULL || mrmlScene->GetNodeByID( std::string(volNode->GetAttribute("AssociatedNodeID")) ) == NULL)
-      {
-        vtkErrorWithObjectMacro(newContourNode.GetPointer(), "Unable to retrieve AssociatedNodeID from labelmap node: " << volNode->GetName() << ". Cannot set reference volume ID in new Contour.");
-        mrmlScene->RemoveNode(newContourNode);
-        return NULL;
-      }
-      else
+      if( volNode->GetAttribute("AssociatedNodeID") != NULL && mrmlScene->GetNodeByID( std::string(volNode->GetAttribute("AssociatedNodeID")) ) != NULL)
       {
         newContourNode->SetAndObserveRasterizationReferenceVolumeNodeId( volNode->GetAttribute("AssociatedNodeID") );
       }
@@ -743,6 +737,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::ExtractLabelmapFromContou
   volNode->SetIJKToRASDirections(dirs);
   volNode->SetMetaDataDictionary(contourNode->GetMetaDataDictionary());
   contourNode->GetScene()->AddNode(volNode);
+  volNode->SetAndObserveTransformNodeID(contourNode->GetTransformNodeID());
 
   vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> dispNode = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
   std::string dispNodeName = std::string(contourNode->GetName()) + SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
@@ -750,9 +745,15 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::ExtractLabelmapFromContou
   volNode->SetAndObserveDisplayNodeID(dispNode->GetID());
 
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(contourNode);
-  vtkMRMLSubjectHierarchyNode* seriesNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
-  vtkMRMLColorTableNode* ctNode = vtkMRMLColorTableNode::SafeDownCast(seriesNode->GetNodeReference(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE.c_str()));
-  dispNode->SetAndObserveColorNodeID(ctNode->GetID());
+  if( shNode )
+  {
+    vtkMRMLSubjectHierarchyNode* seriesNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
+    if( seriesNode )
+    {
+      vtkMRMLColorTableNode* ctNode = vtkMRMLColorTableNode::SafeDownCast(seriesNode->GetNodeReference(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE.c_str()));
+      dispNode->SetAndObserveColorNodeID(ctNode->GetID());
+    }
+  }
 
   return volNode;
 }
