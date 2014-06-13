@@ -202,9 +202,7 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "CreatedFromLabelmap"))
     {
       std::stringstream ss;
-      bool val;
-      ss << attValue;
-      ss >> val;
+      bool val = (strcmp("TRUE", attValue) == 0 ? true : false);
       this->SetCreatedFromIndexLabelmap(val);
     }
     else if (!strcmp(attName, "origin"))

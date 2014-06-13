@@ -129,6 +129,11 @@ void qSlicerContoursModuleWidgetTester::init()
   this->SlicerContoursModuleWidget = new qSlicerContoursModuleWidget;
 
   // Create logic
+  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> shLogic =
+    vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
+  shLogic->SetMRMLScene(this->m_Scene);
+
+  // Create logic
   vtkSmartPointer<vtkSlicerContoursModuleLogic> contoursLogic =
     vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
   contoursLogic->SetMRMLScene(this->m_Scene);

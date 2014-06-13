@@ -144,25 +144,29 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     return 0;
   }
 
+  std::string path = vtksys::SystemTools::GetFilenamePath(fullName);
+
   vtkSmartPointer<vtkXMLDataElement> element = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fullName.c_str()));
   int result = 1;
   try
   {
+    std::string labelmapFile = path + std::string("/") + std::string(element->GetAttribute("LabelmapFilename"));
     // Give the labelmap a chance to load if it exists
-    if( vtksys::SystemTools::FileExists(element->GetAttribute("LabelmapFilename")) )
+    if( vtksys::SystemTools::FileExists(labelmapFile.c_str()) )
     {
       std::string origFilename(this->GetFileName());
-      this->SetFileName(element->GetAttribute("LabelmapFilename"));
+      this->SetFileName(labelmapFile.c_str());
       this->ReadImageDataInternal(contourNode);
       this->SetFileName(origFilename.c_str());
     }
 
     // Build out other for closed surface and ribbon model
-    if( vtksys::SystemTools::FileExists(element->GetAttribute("RibbonModelFilename")) )
+    std::string ribbonFile = path + std::string("/") + std::string(element->GetAttribute("RibbonModelFilename"));
+    if( vtksys::SystemTools::FileExists(ribbonFile.c_str()) )
     {
       // Load the ribbon model!
       vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New();
-      if( this->ReadModelDataInternal(contourNode, model, element->GetAttribute("RibbonModelFilename"), SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str()) )
+      if( this->ReadModelDataInternal(contourNode, model, ribbonFile.c_str(), SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str()) )
       {
         contourNode->SetAndObserveRibbonModelPolyData( model );
       }
@@ -173,11 +177,12 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
       }
     }
 
-    if( vtksys::SystemTools::FileExists(element->GetAttribute("ClosedSurfaceModelFilename")) )
+    std::string closedSurfaceFile = path + std::string("/") + std::string(element->GetAttribute("ClosedSurfaceModelFilename"));
+    if( vtksys::SystemTools::FileExists(closedSurfaceFile.c_str()) )
     {
       // Load the closed surface!
       vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New();
-      if( this->ReadModelDataInternal(contourNode, model, element->GetAttribute("ClosedSurfaceModelFilename"), SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str()) )
+      if( this->ReadModelDataInternal(contourNode, model, closedSurfaceFile.c_str(), SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str()) )
       {
         contourNode->SetAndObserveClosedSurfacePolyData( model );
       }
@@ -188,11 +193,12 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
       }
     }
 
-    if( vtksys::SystemTools::FileExists(element->GetAttribute("RoiPointsFilename")) )
+    std::string roiPointsFile = path + std::string("/") + std::string(element->GetAttribute("RoiPointsFilename"));
+    if( vtksys::SystemTools::FileExists(roiPointsFile.c_str()) )
     {
       // Load the rt roi points
       vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New();
-      if( this->ReadModelDataInternal(NULL, model, element->GetAttribute("RoiPointsFilename"), "", false) )
+      if( this->ReadModelDataInternal(NULL, model, roiPointsFile.c_str(), "", false) )
       {
         contourNode->SetDicomRtRoiPoints( model );
       }
@@ -352,8 +358,7 @@ bool vtkMRMLContourStorageNode::ReadModelDataInternal( vtkMRMLContourNode* conto
 vtkXMLDataElement* vtkMRMLContourStorageNode::CreateXMLElement( const std::string& baseFilename )
 {
   std::string extension = vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(baseFilename);
-  std::string directoryLocation = vtksys::SystemTools::GetFilenamePath(baseFilename);
-  std::string fullNameWithoutExtension = directoryLocation + std::string("/") + vtksys::SystemTools::GetFilenameWithoutExtension(baseFilename);
+  std::string fullNameWithoutExtension = vtksys::SystemTools::GetFilenameWithoutExtension(baseFilename);
 
   vtkXMLDataElement* element = vtkXMLDataElement::New();
   element->SetName("ContourNode");
