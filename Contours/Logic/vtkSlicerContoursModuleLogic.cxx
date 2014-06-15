@@ -72,8 +72,6 @@ void vtkSlicerContoursModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 void vtkSlicerContoursModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
 {
   vtkNew<vtkIntArray> events;
-  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  events->InsertNextValue(vtkMRMLScene::NodeAboutToBeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
@@ -204,6 +202,34 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
     if (contourNode)
     {
       contourNode->UpdateRepresentations();
+
+      // Restore any color not handled during load
+      vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(contourNode, this->GetMRMLScene());
+      if( shNode )
+      {
+        vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
+        if( parentNode )
+        {
+          vtkMRMLColorTableNode* colorTableNode(NULL);
+          int structureIndex(SlicerRtCommon::COLOR_INDEX_INVALID);
+          contourNode->GetColor(structureIndex, colorTableNode, this->GetMRMLScene());
+          double color[4] = {0,0,0,1};
+          if( colorTableNode )
+          {
+            colorTableNode->GetColor(structureIndex, color);
+
+            if( contourNode->GetRibbonModelDisplayNode() )
+            {
+              contourNode->GetRibbonModelDisplayNode()->SetColor(color);
+            }
+
+            if( contourNode->GetClosedSurfaceModelDisplayNode() )
+            {
+              contourNode->GetClosedSurfaceModelDisplayNode()->SetColor(color);
+            }
+          }
+        }
+      }
     }
   }
   

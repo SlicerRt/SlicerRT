@@ -1171,7 +1171,7 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::GetRibbonModelDisplayNode()
   {
     displayNode = this->GetNthDisplayNode(i);
     vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode);
-    if( modelDisplayNode != NULL )
+    if( modelDisplayNode != NULL && modelDisplayNode->GetInputPolyData() != NULL )
     {
       if( modelDisplayNode->GetInputPolyData() == this->RibbonModelPolyData )
       {
@@ -1191,7 +1191,7 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::GetClosedSurfaceModelDisplay
   {
     displayNode = this->GetNthDisplayNode(i);
     vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode);
-    if( modelDisplayNode != NULL )
+    if( modelDisplayNode != NULL && modelDisplayNode->GetInputPolyData() != NULL )
     {
       if( modelDisplayNode->GetInputPolyData() == this->ClosedSurfacePolyData )
       {
