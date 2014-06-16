@@ -292,10 +292,6 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   {
     std::cerr << "Loading labelmap from file '" << inputLabelmapAVolumeFileName << "' failed - the file does not exist!" << std::endl;
   }
-  vtkSmartPointer<vtkMRMLContourStorageNode> inputLabelmapAContourStorageNode =
-    vtkSmartPointer<vtkMRMLContourStorageNode>::New();
-  mrmlScene->AddNode(inputLabelmapAContourStorageNode);
-  inputLabelmapAContourStorageNode->SetFileName(inputLabelmapAVolumeFileName.c_str());
 
   vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> inputLabelmapAVolumeArchetypeStorageNode =
     vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
@@ -326,10 +322,6 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   {
     std::cerr << "Loading labelmap from file '" << inputLabelmapBVolumeFileName << "' failed - the file does not exist!" << std::endl;
   }
-  vtkSmartPointer<vtkMRMLContourStorageNode> inputLabelmapBContourStorageNode =
-    vtkSmartPointer<vtkMRMLContourStorageNode>::New();
-  mrmlScene->AddNode(inputLabelmapBContourStorageNode);
-  inputLabelmapBContourStorageNode->SetFileName(inputLabelmapBVolumeFileName.c_str());
 
   vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> inputLabelmapBVolumeArchetypeStorageNode =
     vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
