@@ -601,10 +601,13 @@ void vtkMRMLContourNode::RemoveRepresentation(ContourRepresentationType type)
   {
   case RibbonModel:
     this->SetAndObserveRibbonModelPolyData(NULL);
+    break;
   case IndexedLabelmap:
     this->SetAndObserveLabelmapImageData(NULL);
+    break;
   case ClosedSurfaceModel:
     this->SetAndObserveClosedSurfacePolyData(NULL);
+    break;
   default:
     vtkErrorMacro("Unknown contour representation type sent to vtkMRMLContourNode::RemoveRepresentatio. Nothing done.");
   }
