@@ -448,6 +448,8 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     std::cout << "Computing DVH for contour '" << (*contourIt)->GetName() << "'" << std::endl;
 
+    (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(doseScalarVolumeNode->GetID());
+
     std::string errorMessage;
     dvhLogic->ComputeDvh((*contourIt), errorMessage);
 

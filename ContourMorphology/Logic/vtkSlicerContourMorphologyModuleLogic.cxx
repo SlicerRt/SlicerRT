@@ -226,7 +226,10 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
     }
     inputContourANode->SetAndObserveRasterizationReferenceVolumeNodeId(
       this->ContourMorphologyNode->GetReferenceVolumeNode()->GetID() );
+  }
 
+  if( !inputContourANode->HasBeenCreatedFromIndexedLabelmap() )
+  {
     inputContourANode->SetRasterizationOversamplingFactor(1.0);
   }
 
@@ -263,8 +266,11 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
     }
     inputContourBNode->SetAndObserveRasterizationReferenceVolumeNodeId(
       this->ContourMorphologyNode->GetReferenceVolumeNode()->GetID() );
+  }
 
-      inputContourBNode->SetRasterizationOversamplingFactor(1.0);
+  if( !inputContourBNode->HasBeenCreatedFromIndexedLabelmap() )
+  {
+    inputContourBNode->SetRasterizationOversamplingFactor(1.0);
   }
 
   vtkImageData* inputContourBLabelmapData = inputContourBNode->GetLabelmapImageData();

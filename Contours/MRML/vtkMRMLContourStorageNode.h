@@ -116,7 +116,7 @@ protected:
   virtual int WriteDataInternal(vtkMRMLNode *refNode);
 
   /// Write model data
-  virtual int WriteModelDataInternal(vtkPolyData* polyData, const char* filename);
+  virtual int WriteModelDataInternal(vtkPolyData* polyData, std::string& filename);
 
   /// Write image data
   virtual int WriteImageDataInternal(vtkMRMLContourNode* contourNode);

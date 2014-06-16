@@ -235,28 +235,30 @@ int vtkMRMLContourStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     return 0;
   }
 
+  std::string path = vtksys::SystemTools::GetFilenamePath(fullName);
+
   vtkSmartPointer<vtkXMLDataElement> element = vtkSmartPointer<vtkXMLDataElement>::Take(this->CreateXMLElement(fullName));
 
   if( contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
   {
     // Back up filename, functions below mess it all up
     std::string origFilename(this->GetFileName());
-    this->SetFileName(element->GetAttribute("LabelmapFilename"));
+    this->SetFileName(std::string(path + std::string("/") + std::string(element->GetAttribute("LabelmapFilename"))).c_str());
     this->WriteImageDataInternal(contourNode);
     this->SetFileName(origFilename.c_str());
   }
 
   if( contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) )
   {
-    this->WriteModelDataInternal(contourNode->GetRibbonModelPolyData(), element->GetAttribute("RibbonModelFilename"));
+    this->WriteModelDataInternal(contourNode->GetRibbonModelPolyData(), path + std::string("/") + std::string(element->GetAttribute("RibbonModelFilename")));
   }
 
   if( contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel) )
   {
-    this->WriteModelDataInternal(contourNode->GetClosedSurfacePolyData(), element->GetAttribute("ClosedSurfaceModelFilename"));
+    this->WriteModelDataInternal(contourNode->GetClosedSurfacePolyData(), path + std::string("/") + std::string(element->GetAttribute("ClosedSurfaceModelFilename")));
   }
 
-  this->WriteModelDataInternal(contourNode->GetDicomRtRoiPoints(), element->GetAttribute("RoiPointsFilename"));
+  this->WriteModelDataInternal(contourNode->GetDicomRtRoiPoints(), path + std::string("/") + std::string(element->GetAttribute("RoiPointsFilename")));
 
   // TODO : any way to cleanly save out the MetaDataDictionary?
   // TODO : do we even have to?
@@ -285,11 +287,11 @@ const char* vtkMRMLContourStorageNode::GetDefaultWriteFileExtension()
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLContourStorageNode::WriteModelDataInternal( vtkPolyData* polyData, const char* filename )
+int vtkMRMLContourStorageNode::WriteModelDataInternal( vtkPolyData* polyData, std::string& filename )
 {
   // Write out the ribbon model data if it exists
   vtkNew<vtkPolyDataWriter> writer;
-  writer->SetFileName(filename);
+  writer->SetFileName(filename.c_str());
   writer->SetFileType(this->GetUseCompression() ? VTK_BINARY : VTK_ASCII );
   writer->SetInput( polyData );
   try
