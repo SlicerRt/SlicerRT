@@ -393,12 +393,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   // Get maximum dose from dose volume
   vtkNew<vtkImageAccumulate> doseStat;
   doseStat->SetInput(doseVolumeNode->GetImageData());
-  doseStat->Update();
+  doseStat-> Update();
   double maxDose = doseStat->GetMax()[0];
 
   // Get resampled dose volume and matching structure labelmap (the function makes sure their lattices are the same)
   vtkSmartPointer<vtkMRMLScalarVolumeNode> resampledDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   vtkSmartPointer<vtkMRMLContourNode> consolidatedStructureContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+  this->GetMRMLScene()->AddNode(consolidatedStructureContourNode);
   this->GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour(structureContourNode, resampledDoseVolume, consolidatedStructureContourNode);
 
   // Create stencil for structure
