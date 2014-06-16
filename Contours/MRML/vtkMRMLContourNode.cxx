@@ -743,9 +743,7 @@ void vtkMRMLContourNode::SetName(const char* newName)
 {
   // Strip postfix
   std::string contourNameNoPostfix = this->Name ? std::string(this->Name) : "";
-  vtksys::SystemTools::ReplaceString(contourNameNoPostfix, SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX.c_str(), "");
   std::string newContourNameNoPostfix = newName ? std::string(newName) : "";
-  vtksys::SystemTools::ReplaceString(newContourNameNoPostfix, SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX.c_str(), "");
   bool updateContourName = true;
   if (this->Name && newName && contourNameNoPostfix == newContourNameNoPostfix)
   {
@@ -756,7 +754,7 @@ void vtkMRMLContourNode::SetName(const char* newName)
     if (this->Name) { delete [] this->Name; }
     if (newName)
     {
-      std::string newContourName = newContourNameNoPostfix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
+      std::string newContourName = newContourNameNoPostfix;
       size_t n = newContourName.length() + 1;
       char *cp1 =  new char[n];
       const char *cp2 = (newContourName.c_str());
@@ -774,7 +772,7 @@ void vtkMRMLContourNode::SetName(const char* newName)
     vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this);
     if (contourSubjectHierarchyNode)
     {
-      std::string newContourShName = newContourNameNoPostfix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
+      std::string newContourShName = newContourNameNoPostfix + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
       if (strcmp(contourSubjectHierarchyNode->GetName(), newContourShName.c_str()))
       {
         contourSubjectHierarchyNode->SetName(newContourShName.c_str());

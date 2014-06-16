@@ -336,8 +336,6 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     createdNewContour = true;
     // Create new contour selected, let's create a descriptive name for the new contour
     std::string newContourName;
-    std::string strippedInputContourANodeName = inputContourANode->GetName();
-    strippedInputContourANodeName.erase(strippedInputContourANodeName.find(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX), strippedInputContourANodeName.length());
     switch(operation)
     {
     case vtkMRMLContourMorphologyNode::Expand:
@@ -357,21 +355,21 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     case vtkMRMLContourMorphologyNode::Intersect:
       {
         std::stringstream ss;
-        ss << strippedInputContourANodeName << std::string("_Intersect_") << inputContourBNode->GetName();
+        ss << inputContourANode->GetName() << std::string("_Intersect_") << inputContourBNode->GetName();
         newContourName = ss.str();
         break;
       }
     case vtkMRMLContourMorphologyNode::Union:
       {
         std::stringstream ss;
-        ss << strippedInputContourANodeName << std::string("_Union_") << inputContourBNode->GetName();
+        ss << inputContourANode->GetName() << std::string("_Union_") << inputContourBNode->GetName();
         newContourName = ss.str();
         break;
       }
     case vtkMRMLContourMorphologyNode::Subtract:
       {
         std::stringstream ss;
-        ss << strippedInputContourANodeName << std::string("_Subtract_") << inputContourBNode->GetName();
+        ss << inputContourANode->GetName() << std::string("_Subtract_") << inputContourBNode->GetName();
         newContourName = ss.str();
         break;
       }
@@ -382,11 +380,8 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
       }
     }
 
-    std::string newContourNameNoSuffix = newContourName;
-    newContourNameNoSuffix.erase(newContourNameNoSuffix.find(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX), newContourNameNoSuffix.length());
-
     // Let's do that, essentially copy inputContourA settings (size, dimensions, reference volume, etc...)
-    outputContourNode = vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(inputContourANode, newContourNameNoSuffix);
+    outputContourNode = vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(inputContourANode, newContourName);
     
     // This creates the contour, now let's link it to the SH properly
     vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(inputContourANode));

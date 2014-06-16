@@ -419,7 +419,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
     else
     {
       // Contour ROI
-      contourNodeName = std::string(roiLabel) + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
+      contourNodeName = std::string(roiLabel);
       contourNodeName = this->GetMRMLScene()->GenerateUniqueName(contourNodeName);
 
       // Create ribbon from ROI contour

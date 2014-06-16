@@ -204,6 +204,7 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
       contourNode->UpdateRepresentations();
 
       // Restore any color not handled during load
+      // The color attribute is saved in the contour display node, but it doesn't seem to be restored on load
       vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(contourNode, this->GetMRMLScene());
       if( shNode )
       {
@@ -211,7 +212,7 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
         if( parentNode )
         {
           vtkMRMLColorTableNode* colorTableNode(NULL);
-          int structureIndex(SlicerRtCommon::COLOR_INDEX_INVALID);
+          int structureIndex(-1);
           contourNode->GetColor(structureIndex, colorTableNode, this->GetMRMLScene());
           double color[4] = {0,0,0,1};
           if( colorTableNode )
@@ -569,7 +570,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateEmptyContourFromExisting
   {
     vtkErrorWithObjectMacro(refContourNode, "Invalid scene extracted from reference contour node: " << refContourNode->GetName());
   }
-  std::string fullName = contourNameNoSuffix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
+  std::string fullName = contourNameNoSuffix;
   std::string uniqueName = scene->GenerateUniqueName(fullName);
 
   // Create contour node
@@ -638,7 +639,6 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX.c_str(), "");
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str(), "");
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str(), "");
-    contourName.append(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX);
     contourName = mrmlScene->GenerateUniqueName(contourName);
     newContourNode->SetName(contourName.c_str());
 
