@@ -29,7 +29,6 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 // VTK includes
 #include <vtkCallbackCommand.h>
-#include <vtkCollection.h>
 #include <vtkDataFileFormatHelper.h>
 #include <vtkDataIOManager.h>
 #include <vtkDataSetSurfaceFilter.h>
@@ -238,32 +237,26 @@ int vtkMRMLContourStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
 
   vtkSmartPointer<vtkXMLDataElement> element = vtkSmartPointer<vtkXMLDataElement>::Take(this->CreateXMLElement(fullName));
 
-  std::string path = vtksys::SystemTools::GetFilenamePath(fullName);
-
   if( contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
   {
-    std::string labelmapFile = path + std::string("/") + std::string(element->GetAttribute("LabelmapFilename"));
     // Back up filename, functions below mess it all up
     std::string origFilename(this->GetFileName());
-    this->SetFileName(labelmapFile.c_str());
+    this->SetFileName(element->GetAttribute("LabelmapFilename"));
     this->WriteImageDataInternal(contourNode);
     this->SetFileName(origFilename.c_str());
   }
 
   if( contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) )
   {
-    std::string ribbonFile = path + std::string("/") + std::string(element->GetAttribute("RibbonModelFilename"));
-    this->WriteModelDataInternal(contourNode->GetRibbonModelPolyData(), ribbonFile.c_str());
+    this->WriteModelDataInternal(contourNode->GetRibbonModelPolyData(), element->GetAttribute("RibbonModelFilename"));
   }
 
   if( contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel) )
   {
-    std::string closedSurfaceFile = path + std::string("/") + std::string(element->GetAttribute("ClosedSurfaceModelFilename"));
-    this->WriteModelDataInternal(contourNode->GetClosedSurfacePolyData(), closedSurfaceFile.c_str());
+    this->WriteModelDataInternal(contourNode->GetClosedSurfacePolyData(), element->GetAttribute("ClosedSurfaceModelFilename"));
   }
 
-  std::string pointsFile = path + std::string("/") + std::string(element->GetAttribute("RoiPointsFilename"));
-  this->WriteModelDataInternal(contourNode->GetDicomRtRoiPoints(), pointsFile.c_str());
+  this->WriteModelDataInternal(contourNode->GetDicomRtRoiPoints(), element->GetAttribute("RoiPointsFilename"));
 
   // TODO : any way to cleanly save out the MetaDataDictionary?
   // TODO : do we even have to?

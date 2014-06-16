@@ -570,7 +570,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateEmptyContourFromExisting
   {
     vtkErrorWithObjectMacro(refContourNode, "Invalid scene extracted from reference contour node: " << refContourNode->GetName());
   }
-  std::string fullName = contourNameNoSuffix;
+  std::string fullName = contourNameNoSuffix + SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
   std::string uniqueName = scene->GenerateUniqueName(fullName);
 
   // Create contour node
@@ -639,6 +639,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX.c_str(), "");
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str(), "");
     vtksys::SystemTools::ReplaceString(contourName, SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str(), "");
+    contourName.append(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX);
     contourName = mrmlScene->GenerateUniqueName(contourName);
     newContourNode->SetName(contourName.c_str());
 
