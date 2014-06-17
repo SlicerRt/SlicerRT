@@ -52,7 +52,8 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 // VTK ITK includes
 #include "vtkITKImageWriter.h"
 
-// STL includes
+// STL & C++ includes
+#include <iterator>
 #include <sstream>
 
 //----------------------------------------------------------------------------
@@ -250,15 +251,18 @@ int vtkMRMLContourStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
 
   if( contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) )
   {
-    this->WriteModelDataInternal(contourNode->GetRibbonModelPolyData(), path + std::string("/") + std::string(element->GetAttribute("RibbonModelFilename")));
+    std::string filename = path + std::string("/") + std::string(element->GetAttribute("RibbonModelFilename"));
+    this->WriteModelDataInternal(contourNode->GetRibbonModelPolyData(), filename);
   }
 
   if( contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel) )
   {
-    this->WriteModelDataInternal(contourNode->GetClosedSurfacePolyData(), path + std::string("/") + std::string(element->GetAttribute("ClosedSurfaceModelFilename")));
+    std::string filename = path + std::string("/") + std::string(element->GetAttribute("ClosedSurfaceModelFilename"));
+    this->WriteModelDataInternal(contourNode->GetClosedSurfacePolyData(), filename);
   }
 
-  this->WriteModelDataInternal(contourNode->GetDicomRtRoiPoints(), path + std::string("/") + std::string(element->GetAttribute("RoiPointsFilename")));
+  std::string filename = path + std::string("/") + std::string(element->GetAttribute("RoiPointsFilename"));
+  this->WriteModelDataInternal(contourNode->GetDicomRtRoiPoints(), filename);
 
   // TODO : any way to cleanly save out the MetaDataDictionary?
   // TODO : do we even have to?
