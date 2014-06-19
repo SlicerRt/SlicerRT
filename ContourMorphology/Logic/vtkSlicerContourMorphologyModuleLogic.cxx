@@ -392,18 +392,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     newContourNameNoSuffix.erase(newContourNameNoSuffix.find(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX), newContourNameNoSuffix.length());
 
     // Let's do that, essentially copy inputContourA settings (size, dimensions, reference volume, etc...)
-    outputContourNode = vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(inputContourANode, newContourNameNoSuffix);
-    
-    // This creates the contour, now let's link it to the SH properly
-    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(inputContourANode));
-    if( shNode )
-    {
-      vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
-      if( parentNode )
-      {
-        qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("ContourSets")->addNodeToSubjectHierarchy( outputContourNode, parentNode );
-      }
-    }    
+    outputContourNode = vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(inputContourANode, newContourNameNoSuffix);  
   }
 
   vtkSmartPointer<vtkMRMLContourNode> tempContourNodeA = vtkSmartPointer<vtkMRMLContourNode>::New();
@@ -485,6 +474,17 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
   outputContourNode->SetAndObserveLabelmapImageData(tempImageOutput);
+
+  // This creates the contour, now let's link it to the SH properly
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(inputContourANode));
+  if( shNode )
+  {
+    vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
+    if( parentNode )
+    {
+      qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("ContourSets")->addNodeToSubjectHierarchy( outputContourNode, parentNode );
+    }
+  }
 
   // TODO : 2d vis readdition
   //outputContourNode->GetLabelmapVolumeDisplayNode()->SetInputImageData(tempImageOutput);
