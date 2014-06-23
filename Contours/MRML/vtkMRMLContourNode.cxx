@@ -834,7 +834,7 @@ void vtkMRMLContourNode::OnNodeReferenceAdded( vtkMRMLNodeReference *reference )
       this->SetPolyDataToDisplayNode(modelDisplayNode->GetInputPolyData(), modelDisplayNode);
     }
 
-    // When 2d vis is added back in, set the image data to the vis node
+    //TODO: When 2d vis is added back in, set the image data to the vis node
     //vtkMRMLContourLabelmapDisplayNode* labelmapDisplayNode = vtkMRMLContourLabelmapDisplayNode::SafeDownCast(reference->ReferencedNode);
     //if( labelmapDisplayNode )
     //{
@@ -886,8 +886,11 @@ void vtkMRMLContourNode::SetPolyDataToDisplayNodes(vtkPolyData* polyData, Contou
 void vtkMRMLContourNode::SetPolyDataToDisplayNode(vtkPolyData* polyData, vtkMRMLContourModelDisplayNode* modelDisplayNode)
 {
   assert(modelDisplayNode); //TODO: No assert please. "If" check and then vtkErrorMacro
-  modelDisplayNode->SetInputPolyDataConnection(vtkTrivialProducer::SafeDownCast(polyData) ?
-    vtkTrivialProducer::SafeDownCast(polyData)->GetOutputPort() : NULL );
+
+  //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
+  vtkSmartPointer<vtkTrivialProducer> polyDataProducer = vtkSmartPointer<vtkTrivialProducer>::New();
+  polyDataProducer->SetOutput(polyData);
+  modelDisplayNode->SetInputPolyDataConnection(polyDataProducer->GetOutputPort());
 }
 
 //---------------------------------------------------------------------------
@@ -1088,7 +1091,11 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
     transformFilter->SetTransform(transform);
     transformFilter->Update();
 
-    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(this->RibbonModelPolyData);
+    //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
+    vtkSmartPointer<vtkTrivialProducer> ribbonModelProducer = vtkSmartPointer<vtkTrivialProducer>::New();
+    ribbonModelProducer->SetOutput(this->RibbonModelPolyData);
+    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
+      this->RibbonModelPolyData ? ribbonModelProducer->GetOutputPort()->GetProducer() : 0);
 
     vtkSmartPointer<vtkPolyData> polyData;
     if (isInPipeline)
@@ -1116,7 +1123,11 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
     transformFilter->SetTransform(transform);
     transformFilter->Update();
 
-    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(this->ClosedSurfacePolyData);
+    //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
+    vtkSmartPointer<vtkTrivialProducer> closedSurfaceModelProducer = vtkSmartPointer<vtkTrivialProducer>::New();
+    closedSurfaceModelProducer->SetOutput(this->ClosedSurfacePolyData);
+    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
+      this->ClosedSurfacePolyData ? closedSurfaceModelProducer->GetOutputPort()->GetProducer() : 0);
 
     vtkSmartPointer<vtkPolyData> polyData;
     if (isInPipeline)
@@ -1642,8 +1653,10 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateRibbonModelDisplayNode
   this->GetScene()->AddNode(displayNode);
   std::string displayName = std::string(this->GetName()) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
   displayNode->SetName(displayName.c_str());
-  displayNode->SetInputPolyDataConnection(vtkTrivialProducer::SafeDownCast(this->RibbonModelPolyData) ?
-    vtkTrivialProducer::SafeDownCast(this->RibbonModelPolyData)->GetOutputPort() : NULL );
+  //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
+  vtkSmartPointer<vtkTrivialProducer> ribbonModelProducer = vtkSmartPointer<vtkTrivialProducer>::New();
+  ribbonModelProducer->SetOutput(this->RibbonModelPolyData);
+  displayNode->SetInputPolyDataConnection(ribbonModelProducer->GetOutputPort());
   displayNode->SliceIntersectionVisibilityOn();
   displayNode->VisibilityOn();
   displayNode->SetBackfaceCulling(0);
@@ -1665,8 +1678,10 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateClosedSurfaceDisplayNo
   this->GetScene()->AddNode(displayNode);
   std::string displayName = std::string(this->GetName()) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
   displayNode->SetName(displayName.c_str());
-  displayNode->SetInputPolyDataConnection(vtkTrivialProducer::SafeDownCast(this->ClosedSurfacePolyData) ?
-    vtkTrivialProducer::SafeDownCast(this->ClosedSurfacePolyData)->GetOutputPort() : NULL );
+  //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
+  vtkSmartPointer<vtkTrivialProducer> closedSurfaceModelProducer = vtkSmartPointer<vtkTrivialProducer>::New();
+  closedSurfaceModelProducer->SetOutput(this->ClosedSurfacePolyData);
+  displayNode->SetInputPolyDataConnection(closedSurfaceModelProducer->GetOutputPort());
   displayNode->SliceIntersectionVisibilityOn();
   displayNode->VisibilityOn();
   displayNode->SetBackfaceCulling(0);

@@ -198,7 +198,7 @@ void vtkPlmpyRegistration::RunRegistration()
 
     vtkGridTransform* vtkgrid = vtkGridTransform::New();
     vtkgrid->SetInterpolationModeToCubic();
-    vtkImageData *vtkgridimage = vtkImageData::New();
+    vtkImageData *gridImage = vtkImageData::New();
 
     typedef itk::Vector < float, 3 > ItkVectorType;
     typedef itk::Image < ItkVectorType, 3 > ItkVectorFieldType;
@@ -211,17 +211,17 @@ void vtkPlmpyRegistration::RunRegistration()
     ItkVectorFieldType::SpacingType spacing 
       = this->MovingImageToFixedImageVectorField->GetSpacing();
 
-    vtkgridimage->Initialize ();
-    vtkgridimage->SetOrigin (
+    gridImage->Initialize ();
+    gridImage->SetOrigin (
       -origin[0] - spacing[0] * (size[0]-1),
       -origin[1] - spacing[1] * (size[1]-1),
       origin[2]);
-    vtkgridimage->SetSpacing (spacing.GetDataPointer());
-    vtkgridimage->SetDimensions (size[0], size[1], size[2]);
-    vtkgridimage->AllocateScalars (VTK_DOUBLE, 3);
+    gridImage->SetSpacing (spacing.GetDataPointer());
+    gridImage->SetDimensions (size[0], size[1], size[2]);
+    gridImage->AllocateScalars (VTK_DOUBLE, 3);
 
     double* vtkDataPtr = reinterpret_cast<double*>(
-      vtkgridimage->GetScalarPointer());
+      gridImage->GetScalarPointer());
     for (size_t k = 0; k < size[2]; ++k) {
       ItkVectorFieldType::IndexType ijk;
       ijk[2] = k;
@@ -238,9 +238,11 @@ void vtkPlmpyRegistration::RunRegistration()
       }
     }
 
-    vtkgrid->SetDisplacementGridConnection (vtkTrivialProducer::SafeDownCast(vtkgridimage) ?
-      vtkTrivialProducer::SafeDownCast(vtkgridimage)->GetOutputPort() : NULL );
-    vtkgridimage->Delete();
+    vtkSmartPointer<vtkTrivialProducer> gridImageProducer = vtkSmartPointer<vtkTrivialProducer>::New();
+    gridImageProducer->SetOutput(gridImage);
+    vtkgrid->SetDisplacementGridConnection (vtkTrivialProducer::SafeDownCast(gridImage) ?
+      vtkTrivialProducer::SafeDownCast(gridImage)->GetOutputPort() : NULL );
+    gridImage->Delete();
 
     vfNode->SetAndObserveTransformFromParent(vtkgrid);
 

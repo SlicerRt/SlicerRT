@@ -44,6 +44,7 @@ public:
   virtual const char* GetNodeTagName() {return "ContourModelDisplay";};
 
 protected:
+protected:
   vtkMRMLContourModelDisplayNode();
   ~vtkMRMLContourModelDisplayNode();
   vtkMRMLContourModelDisplayNode(const vtkMRMLContourModelDisplayNode&);
