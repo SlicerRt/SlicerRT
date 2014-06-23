@@ -220,9 +220,7 @@ void vtkSlicerPinnacleDVFReader::LoadDeformableSpatialRegistration(char *fileNam
   this->DeformableRegistrationGrid->SetOrigin(this->GridOrigin[0], this->GridOrigin[1], this->GridOrigin[2]);
   this->DeformableRegistrationGrid->SetSpacing(xSpacing, ySpacing, zSpacing);
   this->DeformableRegistrationGrid->SetExtent(0,dvfSizeX-1,0,dvfSizeY-1,0,dvfSizeZ-1);
-  this->DeformableRegistrationGrid->SetScalarTypeToDouble();
-  this->DeformableRegistrationGrid->SetNumberOfScalarComponents(3);
-  this->DeformableRegistrationGrid->AllocateScalars();
+  this->DeformableRegistrationGrid->AllocateScalars(VTK_DOUBLE, 3);
   int n = 0;
   for (unsigned int k=0; k<dvfSizeZ; k++)
   {

@@ -33,9 +33,7 @@ SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BIN
 
 set(lib_name ${PROJECT_NAME})
 SET (SlicerRtCommon_LIBS ${SlicerRtCommon_LIBS}
-  vtkCommon
-  vtkFiltering
-  vtkImaging
+  ${VTK_LIBRARIES}
   MRMLCore
   )
 

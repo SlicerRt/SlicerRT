@@ -224,11 +224,11 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
 
   vtkSmartPointer<vtkPolyData> baselinePolyData = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkMassProperties> propertiesBaseline = vtkSmartPointer<vtkMassProperties>::New();
-  propertiesBaseline->SetInput(reader->GetOutput());
+  propertiesBaseline->SetInputData(reader->GetOutput());
   propertiesBaseline->Update();
 
   vtkSmartPointer<vtkMassProperties> propertiesCurrent = vtkSmartPointer<vtkMassProperties>::New();
-  propertiesCurrent->SetInput(modelNode->GetPolyData());
+  propertiesCurrent->SetInputData(modelNode->GetPolyData());
   propertiesCurrent->Update();
 
   if (fabs(propertiesBaseline->GetVolume() - propertiesCurrent->GetVolume()) > volumeDifferenceToleranceCc)

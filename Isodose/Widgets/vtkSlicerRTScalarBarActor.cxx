@@ -33,7 +33,6 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
-vtkCxxRevisionMacro(vtkSlicerRTScalarBarActor, "$Revision$");
 vtkStandardNewMacro(vtkSlicerRTScalarBarActor);
 
 //---------------------------------------------------------------------------
@@ -91,6 +90,7 @@ void vtkSlicerRTScalarBarActor::AllocateAndSizeLabels(int *labelSize,
                                               vtkViewport *viewport,
                                               double *range)
 {
+  /*
   labelSize[0] = labelSize[1] = 0;
 
   if (this->GetUseColorNameAsLabel() == 1)
@@ -103,8 +103,8 @@ void vtkSlicerRTScalarBarActor::AllocateAndSizeLabels(int *labelSize,
 
   char string[512];
 
-  double val;
-  int i;
+  double val = 0.0; //TODO: Better variable name
+  int i = 0;
 
   // TODO: this should be optimized, maybe by keeping a list of
   // allocated mappers, in order to avoid creation/destruction of
@@ -197,4 +197,5 @@ void vtkSlicerRTScalarBarActor::AllocateAndSizeLabels(int *labelSize,
                                                   this->NumberOfLabels,
                                                   labelSize);
     }
+    */
 }

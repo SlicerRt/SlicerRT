@@ -178,7 +178,7 @@ namespace
 
   bool AreCollinear(const vtkVector3<double>& a, const vtkVector3<double>& b)
   {
-    if( AreSame(a.X(), b.X()) && AreSame(b.Y(), b.Y()) && AreSame(a.Z(), b.Z()) )
+    if( AreSame(a.GetX(), b.GetX()) && AreSame(b.GetY(), b.GetY()) && AreSame(a.GetZ(), b.GetZ()) )
     {
       return true;
     }
@@ -270,7 +270,7 @@ void SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( vtkMRMLScalarVolu
   int imageDataExtent[6] = {0, 0, 0, 0, 0, 0};
   double imageDataSpacing[3] = {0.0, 0.0, 0.0};
   int extentMin, extentMax;
-  inputVolumeNode->GetImageData()->GetWholeExtent(imageDataExtent);
+  inputVolumeNode->GetImageData()->GetExtent(imageDataExtent);
   inputVolumeNode->GetImageData()->GetSpacing(imageDataSpacing);
 
   for (unsigned int axis=0; axis<3; ++axis)
@@ -482,7 +482,7 @@ bool SlicerRtCommon::OrderPlanesAlongNormal( std::vector<vtkSmartPointer<vtkPlan
     double mag = origin.Dot(firstNormal);
     outputPlaneOrdering[mag] = *it;
 
-    lastNormal.Set(normal.X(), normal.Y(), normal.Z());
+    lastNormal.Set(normal.GetX(), normal.GetY(), normal.GetZ());
   }
 
   return true;

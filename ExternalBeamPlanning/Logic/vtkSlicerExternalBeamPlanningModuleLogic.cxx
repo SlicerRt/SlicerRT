@@ -684,7 +684,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
 
   // Cast image data to uchar for faster rendering (this is for CT data only now)
   vtkSmartPointer<vtkImageShiftScale> cast = vtkSmartPointer<vtkImageShiftScale>::New();
-  cast->SetInput(referenceVolumeNode->GetImageData());
+  cast->SetInputData(referenceVolumeNode->GetImageData());
   cast->SetOutputScalarTypeToUnsignedChar();
   cast->SetShift(1000);
   cast->SetScale(255./2000.);
@@ -706,7 +706,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   //vtkSmartPointer<vtkVolumeTextureMapper3D> mapper = vtkSmartPointer<vtkVolumeTextureMapper3D>::New();
   //vtkSmartPointer<vtkVolumeTextureMapper2D> mapper = vtkSmartPointer<vtkVolumeTextureMapper2D>::New();
   //vtkSmartPointer<vtkGPUVolumeRayCastMapper> mapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
-  mapper->SetInput( cast->GetOutput() );
+  mapper->SetInputData( cast->GetOutput() );
   mapper->SetBlendModeToComposite();
   volume->SetMapper( mapper );
 
@@ -855,7 +855,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
     // Now we'll look at it.
     vtkSmartPointer<vtkPolyDataMapper> contourPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     vtkSmartPointer<vtkPolyData> polydata = (*contourIt)->GetClosedSurfacePolyData();
-    contourPolyDataMapper->SetInput(polydata);
+    contourPolyDataMapper->SetInputData(polydata);
     //contourPolyDataMapper->SetScalarRange(0,255);
     vtkSmartPointer<vtkActor> contourPolyDataActor = vtkSmartPointer<vtkActor>::New();
     contourPolyDataActor->SetMapper(contourPolyDataMapper);
@@ -909,8 +909,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
     if (numberOfContours > 1)
     {
       vtkSmartPointer<vtkImageMathematics> addFilter = vtkSmartPointer<vtkImageMathematics>::New(); 
-      addFilter->SetInput1(mergedImageData);
-      addFilter->SetInput2(magnitude->GetOutput());
+      addFilter->SetInput1Data(mergedImageData);
+      addFilter->SetInput2Data(magnitude->GetOutput());
       addFilter->SetOperationToAdd();
       addFilter->Update();
       mergedImageData->DeepCopy(addFilter->GetOutput());

@@ -538,9 +538,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       floatVffVolumeData->SetSpacing(1, 1, 1);
       floatVffVolumeData->SetOrigin(0, 0, 0);
 
-      floatVffVolumeData->SetScalarType(VTK_FLOAT);
-      floatVffVolumeData->SetNumberOfScalarComponents(bands);
-      floatVffVolumeData->AllocateScalars();
+      floatVffVolumeData->AllocateScalars(VTK_FLOAT, bands);
 
       // Reads the line feed that comes directly before the image data from the file
       char nextCharacter = readFileStream.get();
@@ -599,7 +597,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
         vtkSmartPointer<vtkImageShiftScale> imageIntensityShiftScale = vtkSmartPointer<vtkImageShiftScale>::New();
         imageIntensityShiftScale->SetScale(data_scale);
         imageIntensityShiftScale->SetShift(data_offset);
-        imageIntensityShiftScale->SetInput(floatVffVolumeData);
+        imageIntensityShiftScale->SetInputData(floatVffVolumeData);
         imageIntensityShiftScale->Update();
         floatVffVolumeData = imageIntensityShiftScale->GetOutput();
       }

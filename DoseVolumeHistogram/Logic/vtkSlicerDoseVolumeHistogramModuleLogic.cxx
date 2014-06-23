@@ -335,7 +335,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
     SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(doseVolumeNode, this->DoseVolumeOversamplingFactor, outputExtent, outputSpacing);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
-    reslicer->SetInput(doseVolumeNode->GetImageData());
+    reslicer->SetInputData(doseVolumeNode->GetImageData());
     reslicer->SetInterpolationMode(VTK_RESLICE_LINEAR);
     reslicer->SetOutputExtent(outputExtent);
     reslicer->SetOutputSpacing(outputSpacing);
@@ -392,7 +392,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   // Get maximum dose from dose volume
   vtkNew<vtkImageAccumulate> doseStat;
-  doseStat->SetInput(doseVolumeNode->GetImageData());
+  doseStat->SetInputData(doseVolumeNode->GetImageData());
   doseStat-> Update();
   double maxDose = doseStat->GetMax()[0];
 
@@ -404,7 +404,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   // Create stencil for structure
   vtkNew<vtkImageToImageStencil> stencil;
-  stencil->SetInput(consolidatedStructureContourNode->GetLabelmapImageData());
+  stencil->SetInputData(consolidatedStructureContourNode->GetLabelmapImageData());
   stencil->ThresholdByUpper(0.5); // Thresholds only the labelmap, so the point is to keep the ones bigger than 0
   stencil->Update();
 
@@ -422,8 +422,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   // Compute statistics
   vtkNew<vtkImageAccumulate> structureStat;
-  structureStat->SetInput(resampledDoseVolume->GetImageData());
-  structureStat->SetStencil(structureStencil);
+  structureStat->SetInputData(resampledDoseVolume->GetImageData());
+  structureStat->SetStencilData(structureStencil);
   structureStat->Update();
 
   // Report error if there are no voxels in the stenciled dose volume (no non-zero voxels in the resampled labelmap)

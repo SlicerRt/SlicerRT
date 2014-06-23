@@ -391,7 +391,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   int dimensions[3] = {0, 0, 0};
   doseVolumeNode->GetImageData()->GetDimensions(dimensions);
   vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
-  reslice->SetInput(doseVolumeNode->GetImageData());
+  reslice->SetInputData(doseVolumeNode->GetImageData());
   reslice->SetOutputOrigin(0, 0, 0);
   reslice->SetOutputSpacing(1, 1, 1);
   reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
@@ -413,7 +413,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     colorTableNode->GetColor(i, val);
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
-    marchingCubes->SetInput(reslicedDoseVolumeImage);
+    marchingCubes->SetInputData(reslicedDoseVolumeImage);
     marchingCubes->SetNumberOfContours(1); 
     marchingCubes->SetValue(0, isoLevel);
     marchingCubes->ComputeScalarsOff();
@@ -425,11 +425,11 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     if (isoPolyData->GetNumberOfPoints() >= 1)
     {
       vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
-      triangleFilter->SetInput(marchingCubes->GetOutput());
+      triangleFilter->SetInputData(marchingCubes->GetOutput());
       triangleFilter->Update();
 
       vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
-      decimate->SetInput(triangleFilter->GetOutput());
+      decimate->SetInputData(triangleFilter->GetOutput());
       decimate->SetTargetReduction(0.6);
       decimate->SetFeatureAngle(60);
       decimate->SplittingOff();
@@ -439,14 +439,14 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
 
       vtkSmartPointer<vtkWindowedSincPolyDataFilter> smootherSinc = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
       smootherSinc->SetPassBand(0.1);
-      smootherSinc->SetInput(decimate->GetOutput() );
+      smootherSinc->SetInputData(decimate->GetOutput() );
       smootherSinc->SetNumberOfIterations(2);
       smootherSinc->FeatureEdgeSmoothingOff();
       smootherSinc->BoundarySmoothingOff();
       smootherSinc->Update();
 
       vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-      normals->SetInput(smootherSinc->GetOutput());
+      normals->SetInputData(smootherSinc->GetOutput());
       normals->ComputePointNormalsOn();
       normals->SetFeatureAngle(60);
       normals->Update();
@@ -456,7 +456,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       inputIJKToRASTransform->SetMatrix(inputIJK2RASMatrix);
 
       vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyData = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-      transformPolyData->SetInput(normals->GetOutput());
+      transformPolyData->SetInputData(normals->GetOutput());
       transformPolyData->SetTransform(inputIJKToRASTransform);
       transformPolyData->Update();
   

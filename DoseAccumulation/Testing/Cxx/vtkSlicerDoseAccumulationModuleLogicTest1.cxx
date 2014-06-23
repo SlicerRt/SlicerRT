@@ -217,13 +217,13 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   // Subtract the dose volume from the accumulated volume and check if we get back the original dose volume
   // TODO: Add test that dose the same thing using different weights
   vtkSmartPointer<vtkImageMathematics> math = vtkSmartPointer<vtkImageMathematics>::New();
-  math->SetInput1(doseScalarVolumeNode->GetImageData());
-  math->SetInput2(accumulatedDoseVolumeNode->GetImageData());
+  math->SetInput1Data(doseScalarVolumeNode->GetImageData());
+  math->SetInput2Data(accumulatedDoseVolumeNode->GetImageData());
   math->SetOperationToSubtract();
   math->Update();
 
   vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
-  histogram->SetInput(math->GetOutput());
+  histogram->SetInputData(math->GetOutput());
   histogram->Update();
   double maxDiff = histogram->GetMax()[0];
   double minDiff = histogram->GetMin()[0];

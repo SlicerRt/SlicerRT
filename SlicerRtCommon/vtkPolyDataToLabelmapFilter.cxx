@@ -102,7 +102,7 @@ void vtkPolyDataToLabelmapFilter::Update()
   }
 
   vtkNew<vtkPolyDataNormals> normalFilter;
-  normalFilter->SetInput(this->InputPolyData);
+  normalFilter->SetInputData(this->InputPolyData);
   normalFilter->ConsistencyOn();
 
   // Make sure that we have a clean triangle polydata
@@ -143,9 +143,7 @@ void vtkPolyDataToLabelmapFilter::Update()
     referenceImage->SetExtent(referenceExtents);
     referenceImage->SetSpacing(this->ReferenceImageData->GetSpacing());
     referenceImage->SetOrigin(origin);
-    referenceImage->SetScalarType(VTK_UNSIGNED_CHAR);
-    referenceImage->SetNumberOfScalarComponents(1);
-    referenceImage->AllocateScalars();
+    referenceImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
     void *referenceImagePixelsPointer = referenceImage->GetScalarPointerForExtent(this->ReferenceImageData->GetExtent());
     if (referenceImagePixelsPointer==NULL)
     {
@@ -168,8 +166,8 @@ void vtkPolyDataToLabelmapFilter::Update()
 
   // Convert stencil to image
   vtkNew<vtkImageStencil> stencil;
-  stencil->SetInput(referenceImage);
-  stencil->SetStencil(polyToImage->GetOutput());
+  stencil->SetInputData(referenceImage);
+  stencil->SetStencilData(polyToImage->GetOutput());
   if (this->UseReferenceValues)
   {
     stencil->ReverseStencilOff();

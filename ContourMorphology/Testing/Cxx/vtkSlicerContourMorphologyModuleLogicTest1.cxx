@@ -442,14 +442,14 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->Commit();
 
   vtkSmartPointer<vtkImageMathematics> difference = vtkSmartPointer<vtkImageMathematics>::New();
-  difference->SetInput1(outputContourNode->GetLabelmapImageData());
-  difference->SetInput2(baselineLabelmapScalarVolumeNode->GetImageData());
+  difference->SetInput1Data(outputContourNode->GetLabelmapImageData());
+  difference->SetInput2Data(baselineLabelmapScalarVolumeNode->GetImageData());
   difference->SetOperationToSubtract();
   difference->Update();
 
   // Compute histogram
   vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
-  histogram->SetInput(difference->GetOutput());
+  histogram->SetInputData(difference->GetOutput());
   histogram->IgnoreZeroOn();
   histogram->Update();
 

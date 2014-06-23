@@ -283,7 +283,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSl
 
   // vtkOrientedGridTransform
   vtkSmartPointer<vtkOrientedGridTransform> gridTransform = vtkSmartPointer<vtkOrientedGridTransform>::New();
-  gridTransform->SetDisplacementGrid(deformableRegistrationGrid);
+  gridTransform->SetDisplacementGridData(deformableRegistrationGrid);
   gridTransform->SetDisplacementScale(1);
   gridTransform->SetDisplacementShift(0);
   gridTransform->SetInterpolationModeToLinear();

@@ -40,10 +40,10 @@ class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerRTScalarBarActor
   : public vtkScalarBarActor
 {
 public:
-  /// The Usual vtk class functions
-  vtkTypeRevisionMacro(vtkSlicerRTScalarBarActor,vtkScalarBarActor);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  // The usual VTK class functions
   static vtkSlicerRTScalarBarActor *New();
+  vtkTypeMacro(vtkSlicerRTScalarBarActor,vtkScalarBarActor);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Get for the flag on using color names as label
   vtkGetMacro(UseColorNameAsLabel, int);

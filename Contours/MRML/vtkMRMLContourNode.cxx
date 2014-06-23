@@ -885,8 +885,9 @@ void vtkMRMLContourNode::SetPolyDataToDisplayNodes(vtkPolyData* polyData, Contou
 //---------------------------------------------------------------------------
 void vtkMRMLContourNode::SetPolyDataToDisplayNode(vtkPolyData* polyData, vtkMRMLContourModelDisplayNode* modelDisplayNode)
 {
-  assert(modelDisplayNode);
-  modelDisplayNode->SetInputPolyData(polyData);
+  assert(modelDisplayNode); //TODO: No assert please. "If" check and then vtkErrorMacro
+  modelDisplayNode->SetInputPolyDataConnection(vtkTrivialProducer::SafeDownCast(polyData) ?
+    vtkTrivialProducer::SafeDownCast(polyData)->GetOutputPort() : NULL );
 }
 
 //---------------------------------------------------------------------------
@@ -1059,7 +1060,7 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
 
       reslice->SetResliceTransform(resampleXform.GetPointer());
 
-      reslice->SetInput(this->LabelmapImageData);
+      reslice->SetInputData(this->LabelmapImageData);
       reslice->SetInterpolationModeToLinear();
       reslice->SetBackgroundColor(0, 0, 0, 0);
       reslice->AutoCropOutputOff();
@@ -1068,7 +1069,7 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
       reslice->SetOutputSpacing( this->GetLabelmapImageData()->GetSpacing() );
       reslice->SetOutputDimensionality( 3 );
       reslice->SetOutputExtent( extent);
-      reslice->GetBackgroundMask()->SetUpdateExtentToWholeExtent();
+      reslice->GetBackgroundMaskPort()->GetProducer()->SetUpdateExtentToWholeExtent();
       reslice->Update();
 
       vtkNew<vtkImageData> resampleImage;
@@ -1083,12 +1084,11 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
   {
     vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
 
-    transformFilter->SetInput(this->RibbonModelPolyData);
+    transformFilter->SetInputData(this->RibbonModelPolyData);
     transformFilter->SetTransform(transform);
     transformFilter->Update();
 
-    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
-      this->RibbonModelPolyData ? this->RibbonModelPolyData->GetProducerPort()->GetProducer() : 0);
+    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(this->RibbonModelPolyData);
 
     vtkSmartPointer<vtkPolyData> polyData;
     if (isInPipeline)
@@ -1112,12 +1112,11 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
   {
     vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
 
-    transformFilter->SetInput(this->ClosedSurfacePolyData);
+    transformFilter->SetInputData(this->ClosedSurfacePolyData);
     transformFilter->SetTransform(transform);
     transformFilter->Update();
 
-    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
-      this->RibbonModelPolyData ? this->ClosedSurfacePolyData->GetProducerPort()->GetProducer() : 0);
+    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(this->ClosedSurfacePolyData);
 
     vtkSmartPointer<vtkPolyData> polyData;
     if (isInPipeline)
@@ -1512,7 +1511,7 @@ bool vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode(vtkMRMLSc
   outputVolumeResliceTransform->Inverse();
 
   vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
-  resliceFilter->SetInput(inContourNode->GetLabelmapImageData());
+  resliceFilter->SetInputData(inContourNode->GetLabelmapImageData());
   resliceFilter->SetOutputOrigin(0, 0, 0);
   resliceFilter->SetOutputSpacing(1, 1, 1);
   resliceFilter->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
@@ -1643,7 +1642,8 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateRibbonModelDisplayNode
   this->GetScene()->AddNode(displayNode);
   std::string displayName = std::string(this->GetName()) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
   displayNode->SetName(displayName.c_str());
-  displayNode->SetInputPolyData(this->RibbonModelPolyData);
+  displayNode->SetInputPolyDataConnection(vtkTrivialProducer::SafeDownCast(this->RibbonModelPolyData) ?
+    vtkTrivialProducer::SafeDownCast(this->RibbonModelPolyData)->GetOutputPort() : NULL );
   displayNode->SliceIntersectionVisibilityOn();
   displayNode->VisibilityOn();
   displayNode->SetBackfaceCulling(0);
@@ -1665,7 +1665,8 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateClosedSurfaceDisplayNo
   this->GetScene()->AddNode(displayNode);
   std::string displayName = std::string(this->GetName()) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
   displayNode->SetName(displayName.c_str());
-  displayNode->SetInputPolyData(this->ClosedSurfacePolyData);
+  displayNode->SetInputPolyDataConnection(vtkTrivialProducer::SafeDownCast(this->ClosedSurfacePolyData) ?
+    vtkTrivialProducer::SafeDownCast(this->ClosedSurfacePolyData)->GetOutputPort() : NULL );
   displayNode->SliceIntersectionVisibilityOn();
   displayNode->VisibilityOn();
   displayNode->SetBackfaceCulling(0);

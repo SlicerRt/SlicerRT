@@ -39,6 +39,7 @@
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkGridTransform.h>
+#include <vtkTrivialProducer.h>
 
 // Plastimatch includes
 #include "bspline_interpolate.h"
@@ -217,9 +218,7 @@ void vtkPlmpyRegistration::RunRegistration()
       origin[2]);
     vtkgridimage->SetSpacing (spacing.GetDataPointer());
     vtkgridimage->SetDimensions (size[0], size[1], size[2]);
-    vtkgridimage->SetNumberOfScalarComponents (3);
-    vtkgridimage->SetScalarTypeToDouble ();
-    vtkgridimage->AllocateScalars ();
+    vtkgridimage->AllocateScalars (VTK_DOUBLE, 3);
 
     double* vtkDataPtr = reinterpret_cast<double*>(
       vtkgridimage->GetScalarPointer());
@@ -239,14 +238,15 @@ void vtkPlmpyRegistration::RunRegistration()
       }
     }
 
-    vtkgrid->SetDisplacementGrid (vtkgridimage);
+    vtkgrid->SetDisplacementGridConnection (vtkTrivialProducer::SafeDownCast(vtkgridimage) ?
+      vtkTrivialProducer::SafeDownCast(vtkgridimage)->GetOutputPort() : NULL );
     vtkgridimage->Delete();
 
     vfNode->SetAndObserveTransformFromParent(vtkgrid);
 
     vtkgrid->Delete();
   }
-  printf ("RunRegistration() is now complete.\n");
+  printf ("RunRegistration() is now complete.\n"); //TODO: vtk messages everywhere possible please (vtkDebugMacro and friends)
 }
 
 //------------------------------------------------------------------------------

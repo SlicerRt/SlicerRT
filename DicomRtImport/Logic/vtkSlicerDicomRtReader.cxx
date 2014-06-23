@@ -79,7 +79,7 @@ namespace
   template<class T>
   bool operator ==(const vtkVector3<T>& a, const vtkVector3<T>& b)
   {
-    return a.X() == b.X() && a.Y() == b.Y() && a.Z() == b.Z();
+    return a.GetX() == b.GetX() && a.GetY() == b.GetY() && a.GetZ() == b.GetZ();
   }
 
   template<class T>
@@ -1701,7 +1701,7 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
 
   // Remove coincident points (if there are multiple contour points at the same position then the ribbon filter fails)
   vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-  cleaner->SetInput(roiPolyData);
+  cleaner->SetInputData(roiPolyData);
 
   // Convert to ribbon using vtkRibbonFilter
   vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
@@ -1765,7 +1765,7 @@ bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDat
     patientOrientationNormal = iVec.Cross(jVec);
     patientOrientationNormal.Normalize();
 
-    if( prevPatientOrientationNormal.X() == 0 && prevPatientOrientationNormal.Y() == 0 && prevPatientOrientationNormal.Z() == 0 )
+    if( prevPatientOrientationNormal.GetX() == 0 && prevPatientOrientationNormal.GetY() == 0 && prevPatientOrientationNormal.GetZ() == 0 )
     {
       prevPatientOrientationNormal.Set(patientOrientationNormal[0], patientOrientationNormal[1], patientOrientationNormal[2]);
     }

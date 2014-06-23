@@ -654,7 +654,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
         vtkWarningWithObjectMacro(volNode, "Input image data to contour creation is not of scalar type VTK_UNSIGNED_CHAR. Attempting conversion.");
         vtkSmartPointer<vtkImageCast> imageCast = vtkSmartPointer<vtkImageCast>::New();
         imageCast->SetOutputScalarTypeToUnsignedChar();
-        imageCast->SetInput(volNode->GetImageData());
+        imageCast->SetInputData(volNode->GetImageData());
         imageCast->Update();
         volNode->SetAndObserveImageData(imageCast->GetOutput());
       }

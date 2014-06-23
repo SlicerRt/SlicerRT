@@ -297,7 +297,7 @@ int vtkMRMLContourStorageNode::WriteModelDataInternal( vtkPolyData* polyData, st
   vtkNew<vtkPolyDataWriter> writer;
   writer->SetFileName(filename.c_str());
   writer->SetFileType(this->GetUseCompression() ? VTK_BINARY : VTK_ASCII );
-  writer->SetInput( polyData );
+  writer->SetInputData( polyData );
   try
   {
     writer->Write();
@@ -331,7 +331,7 @@ bool vtkMRMLContourStorageNode::ReadModelDataInternal( vtkMRMLContourNode* conto
   else if (unstructuredGridReader->IsFileUnstructuredGrid())
   {
     unstructuredGridReader->Update();
-    surfaceFilter->SetInput(unstructuredGridReader->GetOutput());
+    surfaceFilter->SetInputData(unstructuredGridReader->GetOutput());
     surfaceFilter->Update();
     outModel->DeepCopy(surfaceFilter->GetOutput());
   }
@@ -352,7 +352,7 @@ bool vtkMRMLContourStorageNode::ReadModelDataInternal( vtkMRMLContourNode* conto
     vtkSmartPointer<vtkMRMLContourModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLContourModelDisplayNode>::New();
     std::string nodeName = std::string(contourNode->GetName()) + std::string(suffix) + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
     displayNode->SetName(nodeName.c_str());
-    displayNode->SetInputPolyData(outModel);
+    //displayNode->SetInputPolyData(outModel);//TODO: Fix!!!!
     this->GetScene()->AddNode(displayNode);
     contourNode->AddAndObserveDisplayNodeID(displayNode->GetID());
   }
@@ -480,7 +480,7 @@ int vtkMRMLContourStorageNode::WriteImageDataInternal( vtkMRMLContourNode* conto
     vtkNew<vtkITKImageWriter> writer;
     writer->SetFileName(fullName.c_str());
 
-    writer->SetInput( contourNode->GetLabelmapImageData() );
+    writer->SetInputData( contourNode->GetLabelmapImageData() );
     writer->SetUseCompression(this->GetUseCompression());
     if (this->GetScene() &&
       this->GetScene()->GetDataIOManager() &&
@@ -572,7 +572,7 @@ std::string vtkMRMLContourStorageNode::UpdateFileList(vtkMRMLContourNode *refNod
   vtkNew<vtkITKImageWriter> writer;
   writer->SetFileName(tempName.c_str());
 
-  writer->SetInput( refNode->GetLabelmapImageData() );
+  writer->SetInputData( refNode->GetLabelmapImageData() );
   writer->SetUseCompression(this->GetUseCompression());
   if (this->GetScene() &&
     this->GetScene()->GetDataIOManager() &&
@@ -888,7 +888,7 @@ int vtkMRMLContourStorageNode::ReadImageDataInternal( vtkMRMLContourNode* contou
   }
 
   vtkNew<vtkImageChangeInformation> ici;
-  ici->SetInput(reader->GetOutput());
+  ici->SetInputData(reader->GetOutput());
   ici->SetOutputSpacing( 1, 1, 1 );
   ici->SetOutputOrigin( 0, 0, 0 );
   ici->Update();

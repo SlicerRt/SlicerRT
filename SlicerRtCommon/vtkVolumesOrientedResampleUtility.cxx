@@ -101,7 +101,7 @@ bool vtkVolumesOrientedResampleUtility
   outputVolumeResliceTransform->Inverse();
 
   vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
-  resliceFilter->SetInput(inputVolumeNode->GetImageData());
+  resliceFilter->SetInputData(inputVolumeNode->GetImageData());
   resliceFilter->SetOutputOrigin(0, 0, 0);
   resliceFilter->SetOutputSpacing(1, 1, 1);
   resliceFilter->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);

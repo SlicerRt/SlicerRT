@@ -146,9 +146,9 @@ void vtkSlicerPlanarImageModuleLogic::OnMRMLSceneEndImport()
       // Apply the texture if it has a reference to it
       vtkMRMLScalarVolumeNode* textureNode = vtkMRMLScalarVolumeNode::SafeDownCast(
         modelNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str()) );
-      if (textureNode)
+      if (textureNode && modelNode->GetModelDisplayNode())
       {
-        modelNode->GetModelDisplayNode()->SetAndObserveTextureImageData(textureNode->GetImageData());
+        modelNode->GetModelDisplayNode()->SetTextureImageDataConnection(textureNode->GetImageDataConnection());
       }
     }
   }
@@ -281,7 +281,7 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
   if (planarImageVolumeNode->GetScalarVolumeDisplayNode())
   {
     vtkSmartPointer<vtkImageMapToWindowLevelColors> mapToWindowLevelColors = vtkSmartPointer<vtkImageMapToWindowLevelColors>::New();
-    mapToWindowLevelColors->SetInput(textureImageData);
+    mapToWindowLevelColors->SetInputData(textureImageData);
     mapToWindowLevelColors->SetOutputFormatToLuminance();
     mapToWindowLevelColors->SetWindow(planarImageVolumeNode->GetScalarVolumeDisplayNode()->GetWindow());
     mapToWindowLevelColors->SetLevel(planarImageVolumeNode->GetScalarVolumeDisplayNode()->GetLevel());
@@ -292,7 +292,10 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
 
   // Set texture image data to its volume node and to the planar image model node as texture
   textureVolumeNode->SetAndObserveImageData(textureImageData);
-  displayedModelNode->GetModelDisplayNode()->SetAndObserveTextureImageData(textureImageData);
+  if (displayedModelNode->GetModelDisplayNode())
+  {
+    displayedModelNode->GetModelDisplayNode()->SetTextureImageDataConnection(textureVolumeNode->GetImageDataConnection());
+  }
 }
 
 //----------------------------------------------------------------------------

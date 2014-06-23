@@ -72,7 +72,7 @@ class DvhComparisonWidget:
     self.reloadAndTestButton.toolTip = "Reload this module and then run the self tests."
     reloadFormLayout.addWidget(self.reloadAndTestButton)
     self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
-	
+    
     #
     # input Area
     #
@@ -133,11 +133,11 @@ class DvhComparisonWidget:
     self.doseVolumeOnlyLayout = qt.QHBoxLayout()
     inputFormLayout.addRow(self.doseVolumeOnlyLayout)
     self.doseVolumeOnlyLayout.setAlignment(0)
-    self.doseVolumeOnlyLayout.addWidget(self.doseVolumeOnlyCheckbox)	
+    self.doseVolumeOnlyLayout.addWidget(self.doseVolumeOnlyCheckbox)    
     self.doseVolumeOnlyLayout.addSpacing(10)
     self.doseVolumeOnlyLayout.addWidget(qt.QLabel("Show dose volume only"), 1)
-    	
-	#
+        
+    #
     # volume difference criterion spin box
     #
     self.volumeDifferenceSpinbox = qt.QDoubleSpinBox()
@@ -145,9 +145,9 @@ class DvhComparisonWidget:
     self.volumeDifferenceSpinbox.setDecimals(1)
     self.volumeDifferenceSpinbox.setSingleStep(0.1)
     self.volumeDifferenceSpinbox.setToolTip( "Select the volume difference criterion." )
-    inputFormLayout.addRow("Volume difference criterion: ", self.volumeDifferenceSpinbox)		
-	
-	#
+    inputFormLayout.addRow("Volume difference criterion: ", self.volumeDifferenceSpinbox)        
+    
+    #
     # dose to agreement criterion spin box
     #
     self.doseToAgreementSpinbox = qt.QDoubleSpinBox()
@@ -155,9 +155,9 @@ class DvhComparisonWidget:
     self.doseToAgreementSpinbox.setDecimals(1)
     self.doseToAgreementSpinbox.setSingleStep(0.1)
     self.doseToAgreementSpinbox.setToolTip( "Select the dose to agreement criterion." )
-    inputFormLayout.addRow("Dose to agreement criterion: ", self.doseToAgreementSpinbox)	
-	
-	#
+    inputFormLayout.addRow("Dose to agreement criterion: ", self.doseToAgreementSpinbox)    
+    
+    #
     # Output Area
     #
     outputCollapsibleButton = ctk.ctkCollapsibleButton()
@@ -170,11 +170,11 @@ class DvhComparisonWidget:
     self.agreementAcceptance = qt.QLineEdit()
     self.agreementAcceptance.setReadOnly(True)
     self.agreementAcceptance.setToolTip( "Agreement acceptance." )
-    outputFormLayout.addRow("Agreement acceptance %: ", self.agreementAcceptance)	
+    outputFormLayout.addRow("Agreement acceptance %: ", self.agreementAcceptance)    
 
     # Add vertical spacer
     self.layout.addStretch(1)
-	
+    
   def cleanup(self):
     pass
 
