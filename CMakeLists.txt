@@ -5,8 +5,8 @@ set(EXTENSION_NAME SlicerRT)
 
 # ------------------------------------------------------------------------
 set(SLICERRT_VERSION_MAJOR "0")
-set(SLICERRT_VERSION_MINOR "13")
-set(SLICERRT_VERSION_PATCH "2")
+set(SLICERRT_VERSION_MINOR "14")
+set(SLICERRT_VERSION_PATCH "0")
 set(SLICERRT_VERSION ${SLICERRT_VERSION_MAJOR}.${SLICERRT_VERSION_MINOR}.${SLICERRT_VERSION_PATCH})
 
 #-----------------------------------------------------------------------------
