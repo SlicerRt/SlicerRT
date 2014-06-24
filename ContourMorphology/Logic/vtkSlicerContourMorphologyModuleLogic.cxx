@@ -329,10 +329,14 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   }
   inputContourANode->GetSpacing(spacingX, spacingY, spacingZ);
 
+  double xSize = this->GetContourMorphologyNode()->GetXSize();
+  double ySize = this->GetContourMorphologyNode()->GetYSize();
+  double zSize = this->GetContourMorphologyNode()->GetZSize();
+
   int kernelSize[3] = {1,1,1};
-  kernelSize[0] = (int)( 2*(this->GetContourMorphologyNode()->GetXSize()/spacingX + 0.5) );
-  kernelSize[1] = (int)( 2*(this->GetContourMorphologyNode()->GetYSize()/spacingY + 0.5) );
-  kernelSize[2] = (int)( 2*(this->GetContourMorphologyNode()->GetZSize()/spacingZ + 0.5) );
+  kernelSize[0] = (int)( 2*(xSize/spacingX + 0.5) );
+  kernelSize[1] = (int)( 2*(ySize/spacingY + 0.5) );
+  kernelSize[2] = (int)( 2*(zSize/spacingZ + 0.5) );
 
   bool createdNewContour(false);
   if( outputContourNode == NULL )
@@ -347,14 +351,14 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     case vtkMRMLContourMorphologyNode::Expand:
       {
         std::stringstream ss;
-        ss << "Expanded_" << kernelSize[0] << "_" << kernelSize[1] << "_" << kernelSize[2] << "_" << inputContourANode->GetName();
+        ss << "Expanded_" << xSize << "_" << ySize << "_" << zSize << "_" << inputContourANode->GetName();
         newContourName = ss.str();
         break;
       }
     case vtkMRMLContourMorphologyNode::Shrink:
       {
         std::stringstream ss;
-        ss << "Shrunk_" << kernelSize[0] << "_" << kernelSize[1] << "_" << kernelSize[2] << "_" << inputContourANode->GetName();
+        ss << "Shrunk_" << xSize << "_" << ySize << "_" << zSize << "_" << inputContourANode->GetName();
         newContourName = ss.str();
         break;
       }

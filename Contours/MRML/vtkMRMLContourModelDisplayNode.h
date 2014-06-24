@@ -24,6 +24,7 @@
 
 // Contour includes
 #include "vtkSlicerContoursModuleMRMLExport.h"
+#include "vtkMRMLContourNode.h"
 
 // MRML includes
 #include "vtkMRMLModelDisplayNode.h"
@@ -43,7 +44,23 @@ public:
   /// Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "ContourModelDisplay";};
 
+  /// Override the functionality to be able to repair the contour model type
+  virtual void ReadXMLAttributes(const char** atts);
+
+  /// Override the functionality to save the contour model type
+  virtual void WriteXML(ostream& of, int indent);
+
+  /// Override the functionality so that the contour model type is copied
+  virtual void Copy(vtkMRMLNode *node);
+
+  vtkMRMLContourNode::ContourRepresentationType GetContourDisplayType();
+  void SetContourDisplayType(vtkMRMLContourNode::ContourRepresentationType);
+
 protected:
+  /// Identify which poly data of a contour this is connected to
+  /// Temporary until ribbon model goes away
+  vtkMRMLContourNode::ContourRepresentationType ContourDisplayType;
+
 protected:
   vtkMRMLContourModelDisplayNode();
   ~vtkMRMLContourModelDisplayNode();

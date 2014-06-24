@@ -1184,12 +1184,9 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::GetRibbonModelDisplayNode()
   {
     displayNode = this->GetNthDisplayNode(i);
     vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode);
-    if( modelDisplayNode != NULL && modelDisplayNode->GetInputPolyData() != NULL )
+    if( modelDisplayNode && modelDisplayNode->GetContourDisplayType() == RibbonModel )
     {
-      if( modelDisplayNode->GetInputPolyData() == this->RibbonModelPolyData )
-      {
-        return modelDisplayNode;
-      }
+      return modelDisplayNode;
     }
   }
 
@@ -1204,12 +1201,9 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::GetClosedSurfaceModelDisplay
   {
     displayNode = this->GetNthDisplayNode(i);
     vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode);
-    if( modelDisplayNode != NULL && modelDisplayNode->GetInputPolyData() != NULL )
+    if( modelDisplayNode && modelDisplayNode->GetContourDisplayType() == ClosedSurfaceModel )
     {
-      if( modelDisplayNode->GetInputPolyData() == this->ClosedSurfacePolyData )
-      {
-        return modelDisplayNode;
-      }
+      return modelDisplayNode;
     }
   }
 
@@ -1660,6 +1654,7 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateRibbonModelDisplayNode
   displayNode->SliceIntersectionVisibilityOn();
   displayNode->VisibilityOn();
   displayNode->SetBackfaceCulling(0);
+  displayNode->SetContourDisplayType(RibbonModel);
 
   this->AddAndObserveDisplayNodeID(displayNode->GetID());
 
@@ -1685,6 +1680,7 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateClosedSurfaceDisplayNo
   displayNode->SliceIntersectionVisibilityOn();
   displayNode->VisibilityOn();
   displayNode->SetBackfaceCulling(0);
+  displayNode->SetContourDisplayType(ClosedSurfaceModel);
 
   this->AddAndObserveDisplayNodeID(displayNode->GetID());
 

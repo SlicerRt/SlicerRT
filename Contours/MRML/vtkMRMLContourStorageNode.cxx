@@ -199,7 +199,7 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     {
       // Load the rt roi points
       vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New();
-      if( this->ReadModelDataInternal(NULL, model, roiPointsFile.c_str(), "", false) )
+      if( this->ReadModelDataInternal(NULL, model, roiPointsFile.c_str(), "") )
       {
         contourNode->SetDicomRtRoiPoints( model );
       }
@@ -311,7 +311,7 @@ int vtkMRMLContourStorageNode::WriteModelDataInternal( vtkPolyData* polyData, st
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLContourStorageNode::ReadModelDataInternal( vtkMRMLContourNode* contourNode, vtkPolyData* outModel, const char* filename, const char* suffix, bool createDisplayNode )
+bool vtkMRMLContourStorageNode::ReadModelDataInternal( vtkMRMLContourNode* contourNode, vtkPolyData* outModel, const char* filename, const char* suffix )
 {
   if( outModel == NULL )
   {
@@ -344,17 +344,6 @@ bool vtkMRMLContourStorageNode::ReadModelDataInternal( vtkMRMLContourNode* conto
   {
     vtkErrorMacro("Unable to read file " << filename);
     return false;
-  }
-
-  if( createDisplayNode )
-  {
-    // Create display node for the new model data
-    vtkSmartPointer<vtkMRMLContourModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLContourModelDisplayNode>::New();
-    std::string nodeName = std::string(contourNode->GetName()) + std::string(suffix) + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
-    displayNode->SetName(nodeName.c_str());
-    //displayNode->SetInputPolyData(outModel);//TODO: Fix!!!!
-    this->GetScene()->AddNode(displayNode);
-    contourNode->AddAndObserveDisplayNodeID(displayNode->GetID());
   }
 
   return true;

@@ -36,3 +36,70 @@ vtkMRMLContourModelDisplayNode::vtkMRMLContourModelDisplayNode()
 vtkMRMLContourModelDisplayNode::~vtkMRMLContourModelDisplayNode()
 {
 }
+
+//-----------------------------------------------------------------------------
+vtkMRMLContourNode::ContourRepresentationType vtkMRMLContourModelDisplayNode::GetContourDisplayType()
+{
+  return this->ContourDisplayType;
+}
+
+//-----------------------------------------------------------------------------
+void vtkMRMLContourModelDisplayNode::SetContourDisplayType( vtkMRMLContourNode::ContourRepresentationType aType)
+{
+  this->ContourDisplayType = aType;
+}
+
+//-----------------------------------------------------------------------------
+void vtkMRMLContourModelDisplayNode::ReadXMLAttributes( const char** atts )
+{
+  int disabledModify = this->StartModify();
+
+  Superclass::ReadXMLAttributes(atts);
+
+  const char* attName;
+  const char* attValue;
+  while (*atts != NULL)
+  {
+    attName = *(atts++);
+    attValue = *(atts++);
+    if (!strcmp(attName, "contourDisplayType"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      int type;
+      ss >> type;
+      this->ContourDisplayType = (vtkMRMLContourNode::ContourRepresentationType)(type);
+    }
+  }
+
+  this->EndModify(disabledModify);
+}
+
+//-----------------------------------------------------------------------------
+void vtkMRMLContourModelDisplayNode::WriteXML( ostream& of, int nIndent )
+{ 
+  Superclass::WriteXML(of, nIndent);
+
+  vtkIndent indent(nIndent);
+
+  of << indent << " contourDisplayType=\"" << this->ContourDisplayType << "\"";
+}
+
+//-----------------------------------------------------------------------------
+void vtkMRMLContourModelDisplayNode::Copy( vtkMRMLNode *node )
+{
+  Superclass::Copy(node);
+
+  if( node == NULL )
+  {
+    return;
+  }
+  vtkMRMLContourModelDisplayNode* otherNode = vtkMRMLContourModelDisplayNode::SafeDownCast(node);
+
+  if( otherNode == NULL )
+  {
+    return;
+  }
+
+  this->SetContourDisplayType(otherNode->GetContourDisplayType());
+}
