@@ -15,7 +15,7 @@ slicerMacroConfigureModuleCxxTestDriver(
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
-      DataDirectoryPath InputLabelmapReference InputLabelmapCompare
+      DataDirectoryPath InputContourReferenceFile InputContourCompareFile ReferenceVolumeFile
       TemporarySceneFile ApplySimpleTransformToInputCompare
       HausdorffMaximumMm HausdorffAverageMm Hausdorff95PercentMm
       DiceCoefficient TruePositivesPercent TrueNegativesPercent
@@ -24,8 +24,9 @@ macro(TEST_WITH_DATA TestName TestExecutableName
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
-    -InputLabelmapReference ${InputLabelmapReference}
-    -InputLabelmapCompare ${InputLabelmapCompare}
+    -InputContourReferenceFile ${InputContourReferenceFile}
+    -InputContourCompareFile ${InputContourCompareFile}
+	-ReferenceVolumeFile ${ReferenceVolumeFile}
     -TemporarySceneFile ${TemporarySceneFile}
     -ApplySimpleTransformToInputCompare ${ApplySimpleTransformToInputCompare}
     -HausdorffMaximumMm ${HausdorffMaximumMm}
@@ -43,9 +44,10 @@ endmacro()
 TEST_WITH_DATA(
   vtkSlicerContourComparisonModuleLogicTest_EclipseProstate
   vtkSlicerContourComparisonModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data
-  EclipseProstate_Rectum_Contour_Labelmap.nrrd
-  EclipseProstate_Rectum_Dilated_Contour_Labelmap.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
+  EclipseProstate_Rectum.ctr
+  EclipseProstate_Rectum_Dilated.ctr
+  EclipseProstate_Dose.nrrd
   ${TEMP}/TestScene_ContourComparison_EclipseProstate.mrml
   0
   6.12
@@ -63,9 +65,10 @@ set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate P
 TEST_WITH_DATA(
   vtkSlicerContourComparisonModuleLogicTest_EclipseProstate_SameInput
   vtkSlicerContourComparisonModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data
-  EclipseProstate_Rectum_Contour_Labelmap.nrrd
-  EclipseProstate_Rectum_Contour_Labelmap.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
+  EclipseProstate_Rectum.ctr
+  EclipseProstate_Rectum.ctr
+  EclipseProstate_Dose.nrrd
   ${TEMP}/TestScene_ContourComparison_EclipseProstate_SameInput.mrml
   0
   0.0
@@ -83,9 +86,10 @@ set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate P
 TEST_WITH_DATA(
   vtkSlicerContourComparisonModuleLogicTest_EclipseProstate_Transformed
   vtkSlicerContourComparisonModuleLogicTest1
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data
-  EclipseProstate_Rectum_Contour_Labelmap.nrrd
-  EclipseProstate_Rectum_Contour_Labelmap.nrrd
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
+  EclipseProstate_Rectum.ctr
+  EclipseProstate_Rectum.ctr
+  EclipseProstate_Dose.nrrd
   ${TEMP}/TestScene_ContourComparison_EclipseProstate_Transformed.mrml
   1
   5.00

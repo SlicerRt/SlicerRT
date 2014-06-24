@@ -304,7 +304,6 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     return ERROR_RETURN;
   }
 
-  vtkSmartPointer<vtkMRMLContourNode> tempContourNodeB= vtkSmartPointer<vtkMRMLContourNode>::New();
   vtkMRMLContourNode* inputContourBNode = this->ContourMorphologyNode->GetContourBNode();
   vtkImageData* tempImageB = NULL;
   if (operation == vtkMRMLContourMorphologyNode::Union || operation == vtkMRMLContourMorphologyNode::Intersect || operation == vtkMRMLContourMorphologyNode::Subtract) 
@@ -320,8 +319,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
       return ERROR_RETURN;
     }
 
-    vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode(this->GetMRMLScene(), inputContourBNode, referenceVolumeNode, tempContourNodeB);
-    tempImageB = tempContourNodeB->GetLabelmapImageData();
+    tempImageB = inputContourBNode->GetLabelmapImageData();
   }
 
   if (this->SetContourARepresentationToLabelmap() != 0)
@@ -395,9 +393,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     outputContourNode = vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(inputContourANode, newContourNameNoSuffix);  
   }
 
-  vtkSmartPointer<vtkMRMLContourNode> tempContourNodeA = vtkSmartPointer<vtkMRMLContourNode>::New();
-  vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode(this->GetMRMLScene(), inputContourANode, referenceVolumeNode, tempContourNodeA);
-  vtkImageData* tempImageA = tempContourNodeA->GetLabelmapImageData();
+  vtkImageData* tempImageA = inputContourANode->GetLabelmapImageData();
 
   referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
 

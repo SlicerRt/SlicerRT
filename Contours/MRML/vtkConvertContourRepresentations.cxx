@@ -232,19 +232,11 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
           referencedAnatomyVolumeNode = NULL;
         }
       }
-      else
-      {
-        vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No referenced series found for contour '" << this->ContourNode->GetName() << "'!");
-      }
     }
     else
     {
       vtkDebugMacro("ConvertFromModelToIndexedLabelmap: No referenced series UID found for contour '" << this->ContourNode->GetName() << "'!");
     }
-  }
-  else
-  {
-    vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No subject hierarchy node found for contour '" << this->ContourNode->GetName() << "'!");
   }
 
   // If the selected reference is under a transform, then create a temporary copy and harden transform so that the whole transform is reflected in the result

@@ -646,14 +646,14 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
   vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, scene);
   if (!contourSubjectHierarchyNode)
   {
-    vtkErrorMacro("GetColorIndex: No subject hierarchy node found for contour '" << this->Name << "'");
+    vtkDebugMacro("GetColorIndex: No subject hierarchy node found for contour '" << this->Name << "'");
     colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
   }
   vtkMRMLSubjectHierarchyNode* parentContourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(contourSubjectHierarchyNode->GetParentNode());
   if (!parentContourSubjectHierarchyNode)
   {
-    vtkErrorMacro("GetColorIndex: No contour set subject hierarchy node found for contour '" << this->Name << "'");
+    vtkDebugMacro("GetColorIndex: No contour set subject hierarchy node found for contour '" << this->Name << "'");
     colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
   }

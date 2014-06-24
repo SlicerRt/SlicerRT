@@ -76,18 +76,18 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *inputContourALabelmapFile = NULL;
+  const char *inputContourAFile = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-InputContourALabelmapFile") == 0)
+    if (STRCASECMP(argv[argIndex], "-InputContourAFile") == 0)
     {
-      inputContourALabelmapFile = argv[argIndex+1];
-      std::cout << "Input Contour A labelmap file name: " << inputContourALabelmapFile << std::endl;
+      inputContourAFile = argv[argIndex+1];
+      std::cout << "Input Contour A labelmap file name: " << inputContourAFile << std::endl;
       argIndex += 2;
     }
     else
     {
-      inputContourALabelmapFile = "";
+      inputContourAFile = "";
     }
   }
   else
@@ -96,18 +96,18 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *inputContourBLabelmapFile = NULL;
+  const char *inputContourBFile = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-InputContourBLabelmapFile") == 0)
+    if (STRCASECMP(argv[argIndex], "-InputContourBFile") == 0)
     {
-      inputContourBLabelmapFile = argv[argIndex+1];
-      std::cout << "Input Contour B labelmap file name: " << inputContourBLabelmapFile << std::endl;
+      inputContourBFile = argv[argIndex+1];
+      std::cout << "Input Contour B labelmap file name: " << inputContourBFile << std::endl;
       argIndex += 2;
     }
     else
     {
-      inputContourBLabelmapFile = "";
+      inputContourBFile = "";
     }
   }
   else
@@ -279,66 +279,33 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
-  // Create input labelmap A volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> inputLabelmapAScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  mrmlScene->AddNode(inputLabelmapAScalarVolumeNode);
-  inputLabelmapAScalarVolumeNode->SetName("Input_Labelmap_A");
-  inputLabelmapAScalarVolumeNode->LabelMapOn();
-
-  // Load input labelmap A volume
-  std::string inputLabelmapAVolumeFileName = std::string(dataDirectoryPath) + std::string(inputContourALabelmapFile);
-  std::cerr << "file name is " << inputLabelmapAVolumeFileName << std::endl;
-  if (!vtksys::SystemTools::FileExists(inputLabelmapAVolumeFileName.c_str()))
-  {
-    std::cerr << "Loading labelmap from file '" << inputLabelmapAVolumeFileName << "' failed - the file does not exist!" << std::endl;
-  }
-
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> inputLabelmapAVolumeArchetypeStorageNode =
-    vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  mrmlScene->AddNode(inputLabelmapAVolumeArchetypeStorageNode);
-  inputLabelmapAVolumeArchetypeStorageNode->SetFileName(inputLabelmapAVolumeFileName.c_str());
-
-  inputLabelmapAScalarVolumeNode->SetAndObserveStorageNodeID(inputLabelmapAVolumeArchetypeStorageNode->GetID());
-
-  if (! inputLabelmapAVolumeArchetypeStorageNode->ReadData(inputLabelmapAScalarVolumeNode))
-  {
-    mrmlScene->Commit();
-    std::cerr << "Reading labelmap from file '" << inputLabelmapAVolumeFileName << "' failed!" << std::endl;
-    return EXIT_FAILURE;
-  }
-
   // Create input contour A node
-  vtkMRMLContourNode* inputContourANode = vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(inputLabelmapAScalarVolumeNode, "Input_Contour_A");
-
-  // Create input labelmap B volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> inputLabelmapBScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  mrmlScene->AddNode(inputLabelmapBScalarVolumeNode);
-  inputLabelmapBScalarVolumeNode->SetName("Input_Labelmap_B");
-  inputLabelmapBScalarVolumeNode->LabelMapOn();
-
-  // Load input labelmap volume
-  std::string inputLabelmapBVolumeFileName = std::string(dataDirectoryPath) + std::string(inputContourBLabelmapFile);
-  if (!vtksys::SystemTools::FileExists(inputLabelmapBVolumeFileName.c_str()))
+  std::string inputContourAVolumeFileName = std::string(dataDirectoryPath) + std::string(inputContourAFile);
+  if (!vtksys::SystemTools::FileExists(inputContourAVolumeFileName.c_str()))
   {
-    std::cerr << "Loading labelmap from file '" << inputLabelmapBVolumeFileName << "' failed - the file does not exist!" << std::endl;
-  }
-
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> inputLabelmapBVolumeArchetypeStorageNode =
-    vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  mrmlScene->AddNode(inputLabelmapBVolumeArchetypeStorageNode);
-  inputLabelmapBVolumeArchetypeStorageNode->SetFileName(inputLabelmapBVolumeFileName.c_str());
-
-  inputLabelmapBScalarVolumeNode->SetAndObserveStorageNodeID(inputLabelmapBVolumeArchetypeStorageNode->GetID());
-
-  if (! inputLabelmapBVolumeArchetypeStorageNode->ReadData(inputLabelmapBScalarVolumeNode))
-  {
-    mrmlScene->Commit();
-    std::cerr << "Reading labelmap from file '" << inputLabelmapBVolumeFileName << "' failed!" << std::endl;
+    std::cerr << "Loading contour from file '" << inputContourAVolumeFileName << "' failed - the file does not exist!" << std::endl;
     return EXIT_FAILURE;
   }
+  vtkSmartPointer<vtkMRMLContourNode> inputContourANode = vtkSmartPointer<vtkMRMLContourNode>::New();
+  mrmlScene->AddNode(inputContourANode);
+  inputContourANode->SetName("Input_Contour_A");
+  vtkMRMLContourStorageNode* inputContourAStorageNode = vtkSlicerContoursModuleLogic::CreateContourStorageNode(inputContourANode);
+  inputContourAStorageNode->SetFileName(inputContourAVolumeFileName.c_str());
+  inputContourAStorageNode->ReadData(inputContourANode);
 
   // Create input contour B node
-  vtkMRMLContourNode* inputContourBNode = vtkSlicerContoursModuleLogic::CreateContourFromRepresentation(inputLabelmapBScalarVolumeNode, "Input_Contour_B");
+  std::string inputContourBVolumeFileName = std::string(dataDirectoryPath) + std::string(inputContourAFile);
+  if (!vtksys::SystemTools::FileExists(inputContourBVolumeFileName.c_str()))
+  {
+    std::cerr << "Loading contour from file '" << inputContourBVolumeFileName << "' failed - the file does not exist!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  vtkSmartPointer<vtkMRMLContourNode> inputContourBNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+  mrmlScene->AddNode(inputContourBNode);
+  inputContourBNode->SetName("Input_Contour_B");
+  vtkMRMLContourStorageNode* inputContourBStorageNode = vtkSlicerContoursModuleLogic::CreateContourStorageNode(inputContourBNode);
+  inputContourBStorageNode->SetFileName(inputContourBVolumeFileName.c_str());
+  inputContourBStorageNode->ReadData(inputContourBNode);
 
   // Create reference volume node
   vtkSmartPointer<vtkMRMLScalarVolumeNode> referenceVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();

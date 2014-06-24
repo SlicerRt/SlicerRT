@@ -15,16 +15,16 @@ slicerMacroConfigureModuleCxxTestDriver(
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
-      DataDirectoryPath InputContourALabelmapFile
-      InputContourBLabelmapFile ReferenceVolumeFile BaselineContourLabelmapFile 
+      DataDirectoryPath InputContourAFile
+      InputContourBFile ReferenceVolumeFile BaselineContourLabelmapFile 
       TemporarySceneFile MorphologicalOperation
       MorphologicalParameter ApplySimpleTransformToInput VolumeDifferenceToleranceVoxel)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
-    -InputContourALabelmapFile  ${InputContourALabelmapFile}
-    -InputContourBLabelmapFile  ${InputContourBLabelmapFile}
+    -InputContourAFile  ${InputContourAFile}
+    -InputContourBFile  ${InputContourBFile}
     -ReferenceVolumeFile  ${ReferenceVolumeFile}
     -BaselineContourLabelmapFile  ${BaselineContourLabelmapFile}
     -TemporarySceneFile ${TemporarySceneFile}
@@ -40,8 +40,8 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Expand
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV_IndexedLabelmap.nrrd
-  EclipseProstate_PTV_IndexedLabelmap.nrrd
+  EclipseProstate_PTV.ctr
+  EclipseProstate_PTV.ctr
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Expand_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
@@ -57,8 +57,8 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Shrink
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV_IndexedLabelmap.nrrd
-  EclipseProstate_PTV_IndexedLabelmap.nrrd
+  EclipseProstate_PTV.ctr
+  EclipseProstate_PTV.ctr
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Shrink_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Shrink.mrml
@@ -74,8 +74,8 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Union
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV_IndexedLabelmap.nrrd
-  EclipseProstate_Bladder_IndexedLabelmap.nrrd
+  EclipseProstate_PTV.ctr
+  EclipseProstate_Bladder.ctr
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Union_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Union.mrml
@@ -91,8 +91,8 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV_IndexedLabelmap.nrrd
-  EclipseProstate_Bladder_IndexedLabelmap.nrrd
+  EclipseProstate_PTV.ctr
+  EclipseProstate_Bladder.ctr
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Intersect_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Intersect.mrml
@@ -108,8 +108,8 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Subtract
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV_IndexedLabelmap.nrrd
-  EclipseProstate_Bladder_IndexedLabelmap.nrrd
+  EclipseProstate_PTV.ctr
+  EclipseProstate_Bladder.ctr
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Subtract_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Subtract.mrml
@@ -125,8 +125,8 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect_ApplyTransform
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV_IndexedLabelmap.nrrd
-  EclipseProstate_Bladder_IndexedLabelmap.nrrd
+  EclipseProstate_PTV.ctr
+  EclipseProstate_Bladder.ctr
   EclipseProstate_Dose.nrrd
   EclipseProstate_ContourMorphology_Intersect_ApplyTransform_Baseline.nrrd
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Intersect_ApplyTransform.mrml
