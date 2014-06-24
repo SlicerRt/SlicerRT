@@ -293,7 +293,7 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
 
     // Resample current input to reference volume geometry
     vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
-    resliceFilter->SetInputData(currentInputDoseVolumeNode->GetImageData());
+    resliceFilter->SetInputConnection(currentInputDoseVolumeNode->GetImageDataConnection());
     resliceFilter->SetOutputOrigin(0, 0, 0);
     resliceFilter->SetOutputSpacing(1, 1, 1);
     resliceFilter->SetOutputExtent(0, referenceDimensions[0]-1, 0, referenceDimensions[1]-1, 0, referenceDimensions[2]-1);
@@ -304,6 +304,7 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     multiplyFilter->SetInputConnection(resliceFilter->GetOutputPort());
     multiplyFilter->SetConstantK(currentWeight);
     multiplyFilter->SetOperationToMultiplyByK();
+    multiplyFilter->Update();
 
     // Add (accumulate) current input volume to the intermediate accumulated volume
     if (inputVolumeIndex > 0)
@@ -320,7 +321,6 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     // then just copy the weighted input dose volume in it
     else
     {
-      multiplyFilter->Update();
       accumulatedImageData->DeepCopy(multiplyFilter->GetOutput());
     }
   }

@@ -236,6 +236,7 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
     seriesUIDs = [uid for uidList in series for uid in uidList]
     detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
+    detailsPopup.examineForLoading()
 
     loadables = detailsPopup.loadableTable.loadables
     self.assertTrue( len(loadables) == 8 )
@@ -266,8 +267,8 @@ class DicomRtImportSelfTestTest(unittest.TestCase):
     scene = slicer.mrmlScene
     # Volumes: Dose, RT image, RT image texture
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == 3 )
-    # Model hierarchies: Beam models (parent + individual beams) and Contour ribbon models (parent + individual ribbons)
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 13 )
+    # Model hierarchies: Beam models (parent + individual beams)
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 6 )
     # Subject hierarchy nodes: Patient, Study, Dose, RT image, Dummy anatomical volume to reference to from the structure set, structure set, contours, beam models (both model and subject hierarchy for those)
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ) == 24 )
     # Contours: The loaded structures
