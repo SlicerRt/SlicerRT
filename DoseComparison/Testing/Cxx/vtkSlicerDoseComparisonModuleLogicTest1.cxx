@@ -174,8 +174,13 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
 
   // Subtract the baseline gamma volume from the resultant gamma volume to see if we end up with a zero result. If not, dose comparison has changed (bad!)
   vtkSmartPointer<vtkImageMathematics> math = vtkSmartPointer<vtkImageMathematics>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  math->SetInput1(outputGammaVolumeNode->GetImageData());
+  math->SetInput2(baselineGammaVolumeNode->GetImageData());
+#else
   math->SetInput1Data(outputGammaVolumeNode->GetImageData());
   math->SetInput2Data(baselineGammaVolumeNode->GetImageData());
+#endif
   math->SetOperationToSubtract();
   math->Update();
 

@@ -42,7 +42,11 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
 
   // Convert vtkImageData to itkImage 
   vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
+#if (VTK_MAJOR_VERSION <= 5)
+  imageExport->SetInput(inVolume);
+#else
   imageExport->SetInputData(inVolume);
+#endif
   imageExport->Update(); 
 
   // Determine input volume to world transform
@@ -176,7 +180,13 @@ template<typename T> bool SlicerRtCommon::ConvertItkImageToVtkImageData(typename
   typename itk::Image<T, 3>::SizeType imageSize = region.GetSize();
   int extent[6]={0, (int) imageSize[0]-1, 0, (int) imageSize[1]-1, 0, (int) imageSize[2]-1};
   outVtkImageData->SetExtent(extent);
+#if (VTK_MAJOR_VERSION <= 5)
+  outVtkImageData->SetScalarType(vtkType);
+  outVtkImageData->SetNumberOfScalarComponents(1);
+  outVtkImageData->AllocateScalars();
+#else
   outVtkImageData->AllocateScalars(vtkType, 1);
+#endif
 
   T* outVtkImageDataPtr = (T*)outVtkImageData->GetScalarPointer();
   typename itk::ImageRegionIteratorWithIndex< itk::Image<T, 3> > itInItkImage(

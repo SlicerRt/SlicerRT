@@ -335,7 +335,11 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
     SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(doseVolumeNode, this->DoseVolumeOversamplingFactor, outputExtent, outputSpacing);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+    reslicer->SetInput(doseVolumeNode->GetImageData());
+#else
     reslicer->SetInputData(doseVolumeNode->GetImageData());
+#endif
     reslicer->SetInterpolationMode(VTK_RESLICE_LINEAR);
     reslicer->SetOutputExtent(outputExtent);
     reslicer->SetOutputSpacing(outputSpacing);
@@ -392,8 +396,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   // Get maximum dose from dose volume
   vtkNew<vtkImageAccumulate> doseStat;
+#if (VTK_MAJOR_VERSION <= 5)
+  doseStat->SetInput(doseVolumeNode->GetImageData());
+#else
   doseStat->SetInputData(doseVolumeNode->GetImageData());
-  doseStat-> Update();
+#endif
+  doseStat->Update();
   double maxDose = doseStat->GetMax()[0];
 
   // Get resampled dose volume and matching structure labelmap (the function makes sure their lattices are the same)
@@ -404,7 +412,11 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   // Create stencil for structure
   vtkNew<vtkImageToImageStencil> stencil;
+#if (VTK_MAJOR_VERSION <= 5)
+  stencil->SetInput(consolidatedStructureContourNode->GetLabelmapImageData());
+#else
   stencil->SetInputData(consolidatedStructureContourNode->GetLabelmapImageData());
+#endif
   stencil->ThresholdByUpper(0.5); // Thresholds only the labelmap, so the point is to keep the ones bigger than 0
   stencil->Update();
 
@@ -422,8 +434,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   // Compute statistics
   vtkNew<vtkImageAccumulate> structureStat;
+#if (VTK_MAJOR_VERSION <= 5)
+  structureStat->SetInput(resampledDoseVolume->GetImageData());
+  structureStat->SetStencil(structureStencil);
+#else
   structureStat->SetInputData(resampledDoseVolume->GetImageData());
   structureStat->SetStencilData(structureStencil);
+#endif
   structureStat->Update();
 
   // Report error if there are no voxels in the stenciled dose volume (no non-zero voxels in the resampled labelmap)

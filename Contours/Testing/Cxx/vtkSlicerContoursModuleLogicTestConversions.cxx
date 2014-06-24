@@ -422,7 +422,12 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
+#if (VTK_MAJOR_VERSION <= 5)
+  doseScalarVolumeNode->GetImageData()->SetWholeExtent(doseScalarVolumeNode->GetImageData()->GetExtent());
+#else
   doseScalarVolumeNode->GetImageData()->SetExtent(doseScalarVolumeNode->GetImageData()->GetExtent());
+#endif
+
 
   // Get the body contour  
   vtkMRMLContourNode* bodyContourNode = vtkMRMLContourNode::SafeDownCast(mrmlScene->GetNodeByID("vtkMRMLContourNode1"));

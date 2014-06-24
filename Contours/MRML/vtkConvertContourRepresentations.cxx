@@ -323,7 +323,11 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
 
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter =
     vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( modelData );
+#else
   transformPolyDataModelToReferenceVolumeIjkFilter->SetInputData( modelData );
+#endif
   transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform( transformedModelToReferenceVolumeIjkTransform.GetPointer() );
 
   // Initialize polydata to labelmap filter for conversion
@@ -345,7 +349,11 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
       oversamplingFactor, oversampledReferenceVolumeUsedForConversionExtent, oversampledReferenceVolumeUsedForConversionSpacingMultiplier);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+    reslicer->SetInput(referenceVolumeNodeUsedForConversion->GetImageData());
+#else
     reslicer->SetInputData(referenceVolumeNodeUsedForConversion->GetImageData());
+#endif
     reslicer->SetInterpolationMode(VTK_RESLICE_LINEAR);
     reslicer->SetOutputExtent(oversampledReferenceVolumeUsedForConversionExtent);
     reslicer->SetOutputSpacing(oversampledReferenceVolumeUsedForConversionSpacingMultiplier);
@@ -512,17 +520,30 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmap
       padder = vtkSmartPointer<vtkImageConstantPad>::New();
 
       vtkSmartPointer<vtkImageChangeInformation> translator = vtkSmartPointer<vtkImageChangeInformation>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+      translator->SetInput(this->ContourNode->GetLabelmapImageData());
+#else
       translator->SetInputData(this->ContourNode->GetLabelmapImageData());
+#endif
       // Translate the extent by 1 pixel
       translator->SetExtentTranslation(1, 1, 1);
       // Args are: -padx*xspacing, -pady*yspacing, -padz*zspacing but padding and spacing are both 1
       translator->SetOriginTranslation(-1.0, -1.0, -1.0);
+#if (VTK_MAJOR_VERSION <= 5)
+      padder->SetInput(translator->GetOutput());
+#else
       padder->SetInputData(translator->GetOutput());
+#endif
       padder->SetConstant(0);
 
       translator->Update();
       int extent[6] = {0, 0, 0, 0, 0, 0};
+#if (VTK_MAJOR_VERSION <= 5)
+      this->ContourNode->GetLabelmapImageData()->GetWholeExtent(extent);
+#else
       this->ContourNode->GetLabelmapImageData()->GetExtent(extent);
+#endif
+
       // Now set the output extent to the new size, padded by 2 on the positive side
       padder->SetOutputWholeExtent(extent[0], extent[1] + 2,
         extent[2], extent[3] + 2,
@@ -567,7 +588,11 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmap
 
   // Transform the model polydata to referenceIjk coordinate frame (the labelmap image coordinate frame is referenceIjk)
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataModelToReferenceVolumeIjkFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  transformPolyDataModelToReferenceVolumeIjkFilter->SetInput( labelmapToModelFilter->GetOutput() );
+#else
   transformPolyDataModelToReferenceVolumeIjkFilter->SetInputData( labelmapToModelFilter->GetOutput() );
+#endif
   transformPolyDataModelToReferenceVolumeIjkFilter->SetTransform(referenceVolumeIjkToTransformedModelTransform.GetPointer());
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
 

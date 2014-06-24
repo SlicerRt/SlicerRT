@@ -408,7 +408,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   // Determine maximum dose
   vtkNew<vtkImageAccumulate> doseStat;
+#if (VTK_MAJOR_VERSION <= 5)
+  doseStat->SetInput(doseScalarVolumeNode->GetImageData());
+#else
   doseStat->SetInputData(doseScalarVolumeNode->GetImageData());
+#endif
   doseStat->Update();
   double maxDose = doseStat->GetMax()[0];
 

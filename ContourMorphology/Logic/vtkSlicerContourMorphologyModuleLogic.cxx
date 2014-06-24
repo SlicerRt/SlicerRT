@@ -402,7 +402,12 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
 
   vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  histogram->SetInput(tempImageA);
+#else
   histogram->SetInputData(tempImageA);
+#endif
+
   histogram->Update();
   double valueMax = histogram->GetMax()[0];
 
@@ -412,7 +417,11 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   case vtkMRMLContourMorphologyNode::Expand:
     {
       vtkSmartPointer<vtkImageContinuousDilate3D> dilateFilter = vtkSmartPointer<vtkImageContinuousDilate3D>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+      dilateFilter->SetInput(tempImageA);
+#else
       dilateFilter->SetInputData(tempImageA);
+#endif
       dilateFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
       dilateFilter->Update();
       tempImageOutput = dilateFilter->GetOutput();
@@ -421,7 +430,11 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   case vtkMRMLContourMorphologyNode::Shrink:
     {
       vtkSmartPointer<vtkImageContinuousErode3D> erodeFilter = vtkSmartPointer<vtkImageContinuousErode3D>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+      erodeFilter->SetInput(tempImageA);
+#else
       erodeFilter->SetInputData(tempImageA);
+#endif
       erodeFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
       erodeFilter->Update();
       tempImageOutput = erodeFilter->GetOutput();
@@ -430,8 +443,13 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   case vtkMRMLContourMorphologyNode::Union:
     {
       vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+      logicFilter->SetInput1(tempImageA);
+      logicFilter->SetInput2(tempImageB);
+#else
       logicFilter->SetInput1Data(tempImageA);
       logicFilter->SetInput2Data(tempImageB);
+#endif
       logicFilter->SetOperationToOr();
       logicFilter->SetOutputTrueValue(valueMax);
       logicFilter->Update();
@@ -441,8 +459,13 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   case vtkMRMLContourMorphologyNode::Intersect:
     {
       vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+      logicFilter->SetInput1(tempImageA);
+      logicFilter->SetInput2(tempImageB);
+#else
       logicFilter->SetInput1Data(tempImageA);
       logicFilter->SetInput2Data(tempImageB);
+#endif
       logicFilter->SetOperationToAnd();
       logicFilter->SetOutputTrueValue(valueMax);
       logicFilter->Update();
@@ -452,14 +475,23 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   case vtkMRMLContourMorphologyNode::Subtract:
     {
       vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+      logicFilter->SetInput1(tempImageB);
+#else
       logicFilter->SetInput1Data(tempImageB);
+#endif
       logicFilter->SetOperationToNot();
       logicFilter->SetOutputTrueValue(valueMax);
       logicFilter->Update();
 
       vtkSmartPointer<vtkImageLogic> logicFilter2 = vtkSmartPointer<vtkImageLogic>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+      logicFilter2->SetInput1(tempImageA);
+      logicFilter2->SetInput2(logicFilter->GetOutput());
+#else
       logicFilter2->SetInput1Data(tempImageA);
       logicFilter2->SetInput2Data(logicFilter->GetOutput());
+#endif
       logicFilter2->SetOperationToAnd();
       logicFilter2->SetOutputTrueValue(valueMax);
       logicFilter2->Update();

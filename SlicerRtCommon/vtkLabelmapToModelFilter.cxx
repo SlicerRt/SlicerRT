@@ -76,7 +76,11 @@ void vtkLabelmapToModelFilter::Update()
 
   // Run marching cubes
   vtkSmartPointer<vtkMarchingCubes> marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  marchingCubes->SetInput(this->InputLabelmap);
+#else
   marchingCubes->SetInputData(this->InputLabelmap);
+#endif
   marchingCubes->SetNumberOfContours(1);
   marchingCubes->SetValue(0, this->LabelValue/2.0);
   marchingCubes->ComputeScalarsOff();
@@ -99,7 +103,11 @@ void vtkLabelmapToModelFilter::Update()
 
   // Decimate
   vtkSmartPointer<vtkDecimatePro> decimator = vtkSmartPointer<vtkDecimatePro>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  decimator->SetInput(marchingCubes->GetOutput() );
+#else
   decimator->SetInputData(marchingCubes->GetOutput() );
+#endif
   decimator->SetFeatureAngle(60);
   decimator->SplittingOff();
   decimator->PreserveTopologyOn();

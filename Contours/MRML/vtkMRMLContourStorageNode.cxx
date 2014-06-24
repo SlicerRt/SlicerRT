@@ -297,7 +297,11 @@ int vtkMRMLContourStorageNode::WriteModelDataInternal( vtkPolyData* polyData, st
   vtkNew<vtkPolyDataWriter> writer;
   writer->SetFileName(filename.c_str());
   writer->SetFileType(this->GetUseCompression() ? VTK_BINARY : VTK_ASCII );
+#if (VTK_MAJOR_VERSION <= 5)
+  writer->SetInput( polyData );
+#else
   writer->SetInputData( polyData );
+#endif
   try
   {
     writer->Write();
@@ -331,7 +335,11 @@ bool vtkMRMLContourStorageNode::ReadModelDataInternal( vtkMRMLContourNode* conto
   else if (unstructuredGridReader->IsFileUnstructuredGrid())
   {
     unstructuredGridReader->Update();
+#if (VTK_MAJOR_VERSION <= 5)
+    surfaceFilter->SetInput(unstructuredGridReader->GetOutput());
+#else
     surfaceFilter->SetInputData(unstructuredGridReader->GetOutput());
+#endif
     surfaceFilter->Update();
     outModel->DeepCopy(surfaceFilter->GetOutput());
   }
@@ -469,7 +477,11 @@ int vtkMRMLContourStorageNode::WriteImageDataInternal( vtkMRMLContourNode* conto
     vtkNew<vtkITKImageWriter> writer;
     writer->SetFileName(fullName.c_str());
 
+#if (VTK_MAJOR_VERSION <= 5)
+    writer->SetInput( contourNode->GetLabelmapImageData() );
+#else
     writer->SetInputData( contourNode->GetLabelmapImageData() );
+#endif
     writer->SetUseCompression(this->GetUseCompression());
     if (this->GetScene() &&
       this->GetScene()->GetDataIOManager() &&
@@ -561,7 +573,11 @@ std::string vtkMRMLContourStorageNode::UpdateFileList(vtkMRMLContourNode *refNod
   vtkNew<vtkITKImageWriter> writer;
   writer->SetFileName(tempName.c_str());
 
+#if (VTK_MAJOR_VERSION <= 5)
+  writer->SetInput( refNode->GetLabelmapImageData() );
+#else
   writer->SetInputData( refNode->GetLabelmapImageData() );
+#endif
   writer->SetUseCompression(this->GetUseCompression());
   if (this->GetScene() &&
     this->GetScene()->GetDataIOManager() &&
@@ -877,7 +893,11 @@ int vtkMRMLContourStorageNode::ReadImageDataInternal( vtkMRMLContourNode* contou
   }
 
   vtkNew<vtkImageChangeInformation> ici;
+#if (VTK_MAJOR_VERSION <= 5)
+  ici->SetInput(reader->GetOutput());
+#else
   ici->SetInputData(reader->GetOutput());
+#endif
   ici->SetOutputSpacing( 1, 1, 1 );
   ici->SetOutputOrigin( 0, 0, 0 );
   ici->Update();

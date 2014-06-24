@@ -887,10 +887,14 @@ void vtkMRMLContourNode::SetPolyDataToDisplayNode(vtkPolyData* polyData, vtkMRML
 {
   assert(modelDisplayNode); //TODO: No assert please. "If" check and then vtkErrorMacro
 
+#if (VTK_MAJOR_VERSION <= 5)
+  modelDisplayNode->SetInputPolyData(polyData);
+#else
   //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
   vtkSmartPointer<vtkTrivialProducer> polyDataProducer = vtkSmartPointer<vtkTrivialProducer>::New();
   polyDataProducer->SetOutput(polyData);
   modelDisplayNode->SetInputPolyDataConnection(polyDataProducer->GetOutputPort());
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -1063,7 +1067,11 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
 
       reslice->SetResliceTransform(resampleXform.GetPointer());
 
+#if (VTK_MAJOR_VERSION <= 5)
+      reslice->SetInput(this->LabelmapImageData);
+#else
       reslice->SetInputData(this->LabelmapImageData);
+#endif
       reslice->SetInterpolationModeToLinear();
       reslice->SetBackgroundColor(0, 0, 0, 0);
       reslice->AutoCropOutputOff();
@@ -1072,7 +1080,11 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
       reslice->SetOutputSpacing( this->GetLabelmapImageData()->GetSpacing() );
       reslice->SetOutputDimensionality( 3 );
       reslice->SetOutputExtent( extent);
+#if (VTK_MAJOR_VERSION <= 5)
+      reslice->GetBackgroundMask()->SetUpdateExtentToWholeExtent();
+#else
       reslice->GetBackgroundMaskPort()->GetProducer()->SetUpdateExtentToWholeExtent();
+#endif
       reslice->Update();
 
       vtkNew<vtkImageData> resampleImage;
@@ -1087,15 +1099,24 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
   {
     vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
 
+#if (VTK_MAJOR_VERSION <= 5)
+    transformFilter->SetInput(this->RibbonModelPolyData);
+#else
     transformFilter->SetInputData(this->RibbonModelPolyData);
+#endif
     transformFilter->SetTransform(transform);
     transformFilter->Update();
 
+#if (VTK_MAJOR_VERSION <= 5)
+    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
+      this->RibbonModelPolyData ? this->RibbonModelPolyData->GetProducerPort()->GetProducer() : 0);
+#else
     //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
     vtkSmartPointer<vtkTrivialProducer> ribbonModelProducer = vtkSmartPointer<vtkTrivialProducer>::New();
     ribbonModelProducer->SetOutput(this->RibbonModelPolyData);
     bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
       this->RibbonModelPolyData ? ribbonModelProducer->GetOutputPort()->GetProducer() : 0);
+#endif
 
     vtkSmartPointer<vtkPolyData> polyData;
     if (isInPipeline)
@@ -1119,15 +1140,24 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
   {
     vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
 
+#if (VTK_MAJOR_VERSION <= 5)
+    transformFilter->SetInput(this->ClosedSurfacePolyData);
+#else
     transformFilter->SetInputData(this->ClosedSurfacePolyData);
+#endif
     transformFilter->SetTransform(transform);
     transformFilter->Update();
 
+#if (VTK_MAJOR_VERSION <= 5)
+    bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
+      this->RibbonModelPolyData ? this->ClosedSurfacePolyData->GetProducerPort()->GetProducer() : 0);
+#else
     //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
     vtkSmartPointer<vtkTrivialProducer> closedSurfaceModelProducer = vtkSmartPointer<vtkTrivialProducer>::New();
     closedSurfaceModelProducer->SetOutput(this->ClosedSurfacePolyData);
     bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
       this->ClosedSurfacePolyData ? closedSurfaceModelProducer->GetOutputPort()->GetProducer() : 0);
+#endif
 
     vtkSmartPointer<vtkPolyData> polyData;
     if (isInPipeline)
@@ -1516,7 +1546,11 @@ bool vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode(vtkMRMLSc
   outputVolumeResliceTransform->Inverse();
 
   vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  resliceFilter->SetInput(inContourNode->GetLabelmapImageData());
+#else
   resliceFilter->SetInputData(inContourNode->GetLabelmapImageData());
+#endif
   resliceFilter->SetOutputOrigin(0, 0, 0);
   resliceFilter->SetOutputSpacing(1, 1, 1);
   resliceFilter->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
@@ -1647,10 +1681,14 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateRibbonModelDisplayNode
   this->GetScene()->AddNode(displayNode);
   std::string displayName = std::string(this->GetName()) + SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
   displayNode->SetName(displayName.c_str());
+#if (VTK_MAJOR_VERSION <= 5)
+  displayNode->SetInputPolyData(this->RibbonModelPolyData);
+#else
   //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
   vtkSmartPointer<vtkTrivialProducer> ribbonModelProducer = vtkSmartPointer<vtkTrivialProducer>::New();
   ribbonModelProducer->SetOutput(this->RibbonModelPolyData);
   displayNode->SetInputPolyDataConnection(ribbonModelProducer->GetOutputPort());
+#endif
   displayNode->SliceIntersectionVisibilityOn();
   displayNode->VisibilityOn();
   displayNode->SetBackfaceCulling(0);
@@ -1673,10 +1711,14 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateClosedSurfaceDisplayNo
   this->GetScene()->AddNode(displayNode);
   std::string displayName = std::string(this->GetName()) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX + SlicerRtCommon::CONTOUR_DISPLAY_NODE_SUFFIX;
   displayNode->SetName(displayName.c_str());
+#if (VTK_MAJOR_VERSION <= 5)
+  displayNode->SetInputPolyData(this->ClosedSurfacePolyData);
+#else
   //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
   vtkSmartPointer<vtkTrivialProducer> closedSurfaceModelProducer = vtkSmartPointer<vtkTrivialProducer>::New();
   closedSurfaceModelProducer->SetOutput(this->ClosedSurfacePolyData);
   displayNode->SetInputPolyDataConnection(closedSurfaceModelProducer->GetOutputPort());
+#endif
   displayNode->SliceIntersectionVisibilityOn();
   displayNode->VisibilityOn();
   displayNode->SetBackfaceCulling(0);

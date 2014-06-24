@@ -560,7 +560,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
   vtkSmartPointer<vtkImageData> floatVolumeData = vtkSmartPointer<vtkImageData>::New();
 
   vtkSmartPointer<vtkImageCast> imageCast = vtkSmartPointer<vtkImageCast>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  imageCast->SetInput(volumeNode->GetImageData());
+#else
   imageCast->SetInputData(volumeNode->GetImageData());
+#endif
+
   imageCast->SetOutputScalarTypeToFloat();
   imageCast->Update();
   floatVolumeData->DeepCopy(imageCast->GetOutput());
