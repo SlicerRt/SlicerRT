@@ -27,6 +27,7 @@
 #include <vtkNew.h>
 #include <vtkMarchingCubes.h>
 #include <vtkDecimatePro.h>
+#include <vtkVersion.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkLabelmapToModelFilter);

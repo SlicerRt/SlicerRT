@@ -1150,7 +1150,7 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
 
 #if (VTK_MAJOR_VERSION <= 5)
     bool isInPipeline = !vtkTrivialProducer::SafeDownCast(
-      this->RibbonModelPolyData ? this->ClosedSurfacePolyData->GetProducerPort()->GetProducer() : 0);
+      this->ClosedSurfacePolyData ? this->ClosedSurfacePolyData->GetProducerPort()->GetProducer() : 0);
 #else
     //TODO: Use GetProducerPort()->GetProducer() once [member] becomes [member]Connection
     vtkSmartPointer<vtkTrivialProducer> closedSurfaceModelProducer = vtkSmartPointer<vtkTrivialProducer>::New();
@@ -1639,22 +1639,22 @@ void vtkMRMLContourNode::GetRASBounds(double bounds[6])
 {
   vtkMath::UninitializeBounds(bounds);
 
-  vtkPolyData* ModelData(ClosedSurfacePolyData);
+  vtkPolyData* modelData(ClosedSurfacePolyData);
   if (this->ClosedSurfacePolyData == NULL)
   {
-    ModelData = this->RibbonModelPolyData;
+    modelData = this->RibbonModelPolyData;
   }
-  if( ModelData == NULL )
+  if( modelData == NULL )
   {
     // Get volume bounds
     this->GetLabelmapRASBounds(bounds);
   }
   else
   {
-    ModelData->ComputeBounds();
+    modelData->ComputeBounds();
 
     double boundsLocal[6];
-    ModelData->GetBounds(boundsLocal);
+    modelData->GetBounds(boundsLocal);
 
     this->TransformBoundsToRAS(boundsLocal, bounds);
   }

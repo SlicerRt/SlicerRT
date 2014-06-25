@@ -33,6 +33,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
 #include <vtkTriangleFilter.h>
+#include <vtkVersion.h>
 
 //----------------------------------------------------------------------------
 

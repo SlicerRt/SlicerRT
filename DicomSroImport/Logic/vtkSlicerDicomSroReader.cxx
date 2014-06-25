@@ -30,6 +30,7 @@
 #include <vtkMatrix4x4.h>
 #include <vtkImageData.h>
 #include <vtkPointData.h>
+#include <vtkVersion.h>
 
 // STD includes
 #include <cassert>

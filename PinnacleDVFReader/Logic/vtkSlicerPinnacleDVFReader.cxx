@@ -31,6 +31,7 @@
 #include <vtkImageData.h>
 #include <vtkPointData.h>
 #include <vtkTransform.h>
+#include <vtkVersion.h>
 
 // STD includes
 #include <cassert>
