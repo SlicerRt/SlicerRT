@@ -1029,6 +1029,9 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
 {
   // Do not call superclass ApplyTransform
 
+  // TODO : maybe deform only the ribbon model / closed surface model
+  // then regenerate the labelmap if it existed before?
+
   vtkHomogeneousTransform* linearTransform = vtkHomogeneousTransform::SafeDownCast(transform);
   if (linearTransform)
   {

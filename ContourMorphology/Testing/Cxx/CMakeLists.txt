@@ -16,7 +16,7 @@ set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
       DataDirectoryPath InputContourAFile
-      InputContourBFile ReferenceVolumeFile BaselineContourLabelmapFile 
+      InputContourBFile ReferenceVolumeFile BaselineContourFile 
       TemporarySceneFile MorphologicalOperation
       MorphologicalParameter ApplySimpleTransformToInput VolumeDifferenceToleranceVoxel)
   add_test(
@@ -26,7 +26,7 @@ macro(TEST_WITH_DATA TestName TestExecutableName
     -InputContourAFile  ${InputContourAFile}
     -InputContourBFile  ${InputContourBFile}
     -ReferenceVolumeFile  ${ReferenceVolumeFile}
-    -BaselineContourLabelmapFile  ${BaselineContourLabelmapFile}
+    -BaselineContourFile  ${BaselineContourFile}
     -TemporarySceneFile ${TemporarySceneFile}
     -MorphologicalOperation ${MorphologicalOperation}
     -MorphologicalParameter ${MorphologicalParameter}
@@ -40,10 +40,10 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Expand
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV.ctr
-  EclipseProstate_PTV.ctr
+  EclipseProstate_Bladder.ctr
+  EclipseProstate_Bladder.ctr
   EclipseProstate_Dose.nrrd
-  EclipseProstate_ContourMorphology_Expand_Baseline.nrrd
+  EclipseProstate_Expanded_5_5_5_Bladder.ctr
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate.mrml
   Expand
   5.0
@@ -57,10 +57,10 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Shrink
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV.ctr
-  EclipseProstate_PTV.ctr
+  EclipseProstate_Bladder.ctr
+  EclipseProstate_Bladder.ctr
   EclipseProstate_Dose.nrrd
-  EclipseProstate_ContourMorphology_Shrink_Baseline.nrrd
+  EclipseProstate_Shrunk_5_5_5_Bladder.ctr
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Shrink.mrml
   Shrink
   5.0
@@ -74,10 +74,10 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Union
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV.ctr
   EclipseProstate_Bladder.ctr
+  EclipseProstate_PTV.ctr
   EclipseProstate_Dose.nrrd
-  EclipseProstate_ContourMorphology_Union_Baseline.nrrd
+  EclipseProstate_Bladder_Union_PTV.ctr
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Union.mrml
   Union
   0.0
@@ -91,10 +91,10 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV.ctr
   EclipseProstate_Bladder.ctr
+  EclipseProstate_PTV.ctr
   EclipseProstate_Dose.nrrd
-  EclipseProstate_ContourMorphology_Intersect_Baseline.nrrd
+  EclipseProstate_Bladder_Intersect_PTV.ctr
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Intersect.mrml
   Intersect
   0.0
@@ -108,10 +108,10 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Subtract
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV.ctr
   EclipseProstate_Bladder.ctr
+  EclipseProstate_PTV.ctr
   EclipseProstate_Dose.nrrd
-  EclipseProstate_ContourMorphology_Subtract_Baseline.nrrd
+  EclipseProstate_Bladder_Subtract_PTV.ctr
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Subtract.mrml
   Subtract
   0.0
@@ -125,10 +125,10 @@ TEST_WITH_DATA(
   vtkSlicerContourMorphologyModuleLogicTest_EclipseProstate_Intersect_ApplyTransform
   vtkSlicerContourMorphologyModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_PTV.ctr
   EclipseProstate_Bladder.ctr
+  EclipseProstate_PTV.ctr
   EclipseProstate_Dose.nrrd
-  EclipseProstate_ContourMorphology_Intersect_ApplyTransform_Baseline.nrrd
+  EclipseProstate_Bladder_Intersect_PTV_ApplyTransform.ctr
   ${TEMP}/TestScene_ContourMorphology_EclipseProstate_Intersect_ApplyTransform.mrml
   Intersect
   0.0

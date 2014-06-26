@@ -37,10 +37,10 @@ and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)
 #include <vtkMRMLLinearTransformNode.h>
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
+#include <vtkImageData.h>
 #include <vtkImageMathematics.h>
+#include <vtkNew.h>
 #include <vtkTransform.h>
 
 // ITK includes
@@ -136,18 +136,18 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *baselineContourLabelmapFileName = NULL;
+  const char *baselineContourFile = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-BaselineContourLabelmapFile") == 0)
+    if (STRCASECMP(argv[argIndex], "-BaselineContourFile") == 0)
     {
-      baselineContourLabelmapFileName = argv[argIndex+1];
-      std::cout << "Baseline Contour labelmap file name: " << baselineContourLabelmapFileName << std::endl;
+      baselineContourFile = argv[argIndex+1];
+      std::cout << "Baseline contour file name: " << baselineContourFile << std::endl;
       argIndex += 2;
     }
     else
     {
-      baselineContourLabelmapFileName = "";
+      baselineContourFile = "";
     }
   }
   else
@@ -291,7 +291,12 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   inputContourANode->SetName("Input_Contour_A");
   vtkMRMLContourStorageNode* inputContourAStorageNode = vtkSlicerContoursModuleLogic::CreateContourStorageNode(inputContourANode);
   inputContourAStorageNode->SetFileName(inputContourAVolumeFileName.c_str());
-  inputContourAStorageNode->ReadData(inputContourANode);
+  if ( !inputContourAStorageNode->ReadData(inputContourANode) )
+  {
+    mrmlScene->Commit();
+    std::cerr << "Reading contour from file '" << inputContourAVolumeFileName << "' failed!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   // Create input contour B node
   std::string inputContourBVolumeFileName = std::string(dataDirectoryPath) + std::string(inputContourAFile);
@@ -305,7 +310,12 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   inputContourBNode->SetName("Input_Contour_B");
   vtkMRMLContourStorageNode* inputContourBStorageNode = vtkSlicerContoursModuleLogic::CreateContourStorageNode(inputContourBNode);
   inputContourBStorageNode->SetFileName(inputContourBVolumeFileName.c_str());
-  inputContourBStorageNode->ReadData(inputContourBNode);
+  if ( !inputContourBStorageNode->ReadData(inputContourBNode) )
+  {
+    mrmlScene->Commit();
+    std::cerr << "Reading contour from file '" << inputContourBVolumeFileName << "' failed!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   // Create reference volume node
   vtkSmartPointer<vtkMRMLScalarVolumeNode> referenceVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
@@ -382,56 +392,61 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
 
   mrmlScene->Commit();
 
-  // Create baseline labelmap node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> baselineLabelmapScalarVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  mrmlScene->AddNode(baselineLabelmapScalarVolumeNode);
-  baselineLabelmapScalarVolumeNode->SetName("Baseline_Labelmap");
-
-  // Load baseline labelmap volume
-  std::string baselineLabelmapVolumeFileName = std::string(dataDirectoryPath) + std::string(baselineContourLabelmapFileName);
-  if (!vtksys::SystemTools::FileExists(baselineLabelmapVolumeFileName.c_str()))
+  // Create baseline contour for comparison
+  std::string baselineContourFileName = std::string(dataDirectoryPath) + std::string(baselineContourFile);
+  if (!vtksys::SystemTools::FileExists(baselineContourFileName.c_str()))
   {
-    std::cerr << "Loading labelmap from file '" << baselineLabelmapVolumeFileName << "' failed - the file does not exist!" << std::endl;
+    std::cerr << "Loading contour from file '" << baselineContourFileName << "' failed - the file does not exist!" << std::endl;
   }
-
-  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> baselineLabelmapVolumeArchetypeStorageNode =
-    vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  mrmlScene->AddNode(baselineLabelmapVolumeArchetypeStorageNode);
-  baselineLabelmapVolumeArchetypeStorageNode->SetFileName(baselineLabelmapVolumeFileName.c_str());
-  baselineLabelmapScalarVolumeNode->SetAndObserveStorageNodeID(baselineLabelmapVolumeArchetypeStorageNode->GetID());
-
-  if (! baselineLabelmapVolumeArchetypeStorageNode->ReadData(baselineLabelmapScalarVolumeNode))
+  vtkSmartPointer<vtkMRMLContourNode> baselineContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+  mrmlScene->AddNode(baselineContourNode);
+  baselineContourNode->SetName("Baseline_Contour");
+  vtkMRMLContourStorageNode* baselineContourStorageNode = vtkSlicerContoursModuleLogic::CreateContourStorageNode(baselineContourNode);
+  baselineContourStorageNode->SetFileName(baselineContourFileName.c_str());
+  if ( !baselineContourStorageNode->ReadData(baselineContourNode) )
   {
     mrmlScene->Commit();
-    std::cerr << "Reading labelmap from file '" << baselineLabelmapVolumeFileName << "' failed!" << std::endl;
+    std::cerr << "Reading contour from file '" << baselineContourFileName << "' failed!" << std::endl;
     return EXIT_FAILURE;
   }
   mrmlScene->Commit();
 
-  vtkSmartPointer<vtkImageMathematics> difference = vtkSmartPointer<vtkImageMathematics>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  difference->SetInput1(outputContourNode->GetLabelmapImageData());
-  difference->SetInput2(baselineLabelmapScalarVolumeNode->GetImageData());
-#else
-  difference->SetInput1Data(outputContourNode->GetLabelmapImageData());
-  difference->SetInput2Data(baselineLabelmapScalarVolumeNode->GetImageData());
-#endif
-  difference->SetOperationToSubtract();
-  difference->Update();
+  vtkImageData* baselineImageData = baselineContourNode->GetLabelmapImageData();
+  vtkImageData* outputImageData = outputContourNode->GetLabelmapImageData();
 
-  // Compute histogram
-  vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  histogram->SetInput(difference->GetOutput());
-#else
-  histogram->SetInputData(difference->GetOutput());
-#endif
-  histogram->IgnoreZeroOn();
-  histogram->Update();
+  unsigned char* baselineImagePtr = (unsigned char*)baselineImageData->GetScalarPointer();
+  unsigned char* outputImagePtr = (unsigned char*)outputImageData->GetScalarPointer();
 
-  if (histogram->GetVoxelCount() > volumeDifferenceToleranceVoxel)
+  if (!baselineImageData || baselineImageData->GetScalarType() != VTK_UNSIGNED_CHAR)
   {
-    std::cerr << "Contour Morphology Test: Volume difference Tolerance " << histogram->GetVoxelCount() << "(Voxel) exceeds threshold!" << std::endl;
+    std::cerr << "Invalid image data! Scalar type has to be unsigned char instead of '" << (baselineImageData?baselineImageData->GetScalarTypeAsString():"None") << "'" << std::endl;
+    return EXIT_FAILURE;
+  }
+  if (!outputImageData || outputImageData->GetScalarType() != VTK_UNSIGNED_CHAR)
+  {
+    std::cerr << "Invalid image data! Scalar type has to be unsigned char instead of '" << (outputImageData?outputImageData->GetScalarTypeAsString():"None") << "'" << std::endl;
+    return EXIT_FAILURE;
+  }
+  if( baselineImageData->GetNumberOfPoints() != outputImageData->GetNumberOfPoints() )
+  {
+    std::cerr << "Number of points do not match. " << baselineImageData->GetNumberOfPoints() << " != " << outputImageData->GetNumberOfPoints() << std::endl;
+    return EXIT_FAILURE;
+  }
+  int mismatches(0);
+  for (long i=0; i<baselineImageData->GetNumberOfPoints(); ++i)
+  {
+    if ( ((*baselineImagePtr) != 0 && (*outputImagePtr) == 0) ||
+      ((*baselineImagePtr) == 0 && (*outputImagePtr) != 0) )
+    {
+      mismatches++;
+    }
+    ++baselineImagePtr;
+    ++outputImagePtr;
+  }
+
+  if (mismatches > volumeDifferenceToleranceVoxel)
+  {
+    std::cerr << "Contour Morphology Test: Volume difference Tolerance " << mismatches << "(Voxel) exceeds threshold!" << std::endl;
     return EXIT_FAILURE;
   }
 

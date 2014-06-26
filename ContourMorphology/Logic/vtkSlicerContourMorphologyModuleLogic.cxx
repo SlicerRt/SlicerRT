@@ -305,7 +305,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   }
 
   vtkMRMLContourNode* inputContourBNode = this->ContourMorphologyNode->GetContourBNode();
-  vtkImageData* tempImageB = NULL;
+  vtkSmartPointer<vtkImageData> tempImageB = vtkSmartPointer<vtkImageData>::New();
   if (operation == vtkMRMLContourMorphologyNode::Union || operation == vtkMRMLContourMorphologyNode::Intersect || operation == vtkMRMLContourMorphologyNode::Subtract) 
   {
     if (!inputContourBNode)
@@ -319,7 +319,17 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
       return ERROR_RETURN;
     }
 
-    tempImageB = inputContourBNode->GetLabelmapImageData();
+    // TODO : not working as expected 
+    // Harden apply any parent transform into temporary contour
+    vtkSmartPointer<vtkMRMLContourNode> tempContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+    this->GetMRMLScene()->AddNode(tempContourNode);
+    tempContourNode->DeepCopy(inputContourBNode);
+    if( tempContourNode->GetParentTransformNode() && tempContourNode->GetParentTransformNode()->GetTransformToParent() )
+    {
+      tempContourNode->ApplyTransform(tempContourNode->GetParentTransformNode()->GetTransformToParent());
+    }
+    tempImageB->DeepCopy(tempContourNode->GetLabelmapImageData());
+    this->GetMRMLScene()->RemoveNode(tempContourNode);
   }
 
   if (this->SetContourARepresentationToLabelmap() != 0)
@@ -397,7 +407,19 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     outputContourNode = vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(inputContourANode, newContourNameNoSuffix);  
   }
 
-  vtkImageData* tempImageA = inputContourANode->GetLabelmapImageData();
+  // Harden any parent transform into temporary contour
+  vtkSmartPointer<vtkImageData> tempImageA = vtkSmartPointer<vtkImageData>::New();
+  {
+    vtkSmartPointer<vtkMRMLContourNode> tempContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+    this->GetMRMLScene()->AddNode(tempContourNode);
+    tempContourNode->DeepCopy(inputContourANode);
+    if( tempContourNode->GetParentTransformNode() && tempContourNode->GetParentTransformNode()->GetTransformToParent() )
+    {
+      tempContourNode->ApplyTransform(tempContourNode->GetParentTransformNode()->GetTransformToParent());
+    }
+    tempImageA->DeepCopy(tempContourNode->GetLabelmapImageData());
+    this->GetMRMLScene()->RemoveNode(tempContourNode);
+  }
 
   referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
 
