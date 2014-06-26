@@ -221,15 +221,18 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
       {
         referencedAnatomyVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(subjectHierarchyNode_ReferencedSeries->GetAssociatedNode());
 
-        // Check if the referenced anatomy volume is in the same coordinate system as the contour
-        vtkSmartPointer<vtkGeneralTransform> modelToReferencedAnatomyVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-        SlicerRtCommon::GetTransformBetweenTransformables(this->ContourNode, referencedAnatomyVolumeNode, modelToReferencedAnatomyVolumeIjkTransform);
-        double* transformedPoint = modelToReferencedAnatomyVolumeIjkTransform->TransformPoint(1.0, 0.0, 0.0);
-        if ( fabs(transformedPoint[0]-1.0) > EPSILON || fabs(transformedPoint[1]) > EPSILON || fabs(transformedPoint[2]) > EPSILON )
+        if( referencedAnatomyVolumeNode )
         {
-          vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Referenced series '" << referencedAnatomyVolumeNode->GetName()
-            << "' is not in the same coordinate system as contour '" << this->ContourNode->GetName() << "'!");
-          referencedAnatomyVolumeNode = NULL;
+          // Check if the referenced anatomy volume is in the same coordinate system as the contour
+          vtkSmartPointer<vtkGeneralTransform> modelToReferencedAnatomyVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+          SlicerRtCommon::GetTransformBetweenTransformables(this->ContourNode, referencedAnatomyVolumeNode, modelToReferencedAnatomyVolumeIjkTransform);
+          double* transformedPoint = modelToReferencedAnatomyVolumeIjkTransform->TransformPoint(1.0, 0.0, 0.0);
+          if ( fabs(transformedPoint[0]-1.0) > EPSILON || fabs(transformedPoint[1]) > EPSILON || fabs(transformedPoint[2]) > EPSILON )
+          {
+            vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Referenced series '" << referencedAnatomyVolumeNode->GetName()
+              << "' is not in the same coordinate system as contour '" << this->ContourNode->GetName() << "'!");
+            referencedAnatomyVolumeNode = NULL;
+          }
         }
       }
     }
