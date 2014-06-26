@@ -1100,9 +1100,13 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInSubjectHierarchy( vtkSlice
       this->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, rtReader->GetStudyInstanceUid() );
     if (studyNode)
     {
-      std::string studyNodeName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
-        ? std::string(rtReader->GetStudyDescription()) + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX
-        : SlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX );
+      std::string studyDescription = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
+        ? std::string(rtReader->GetStudyDescription())
+        : SlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION );
+      std::string studyDate =  ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDate())
+        ? + " (" + std::string(rtReader->GetStudyDate()) + ")"
+        : "" );
+      std::string studyNodeName = studyDescription + studyDate + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
       studyNode->SetName( studyNodeName.c_str() );
     }
     else
