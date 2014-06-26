@@ -42,6 +42,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkPolyDataReader.h>
 #include <vtkPolyDataWriter.h>
 #include <vtkStringArray.h>
+#include <vtkTrivialProducer.h>
 #include <vtkUnstructuredGrid.h>
 #include <vtkUnstructuredGridReader.h>
 #include <vtkXMLDataElement.h>
@@ -170,6 +171,12 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
       if( this->ReadModelDataInternal(contourNode, model, ribbonFile.c_str(), SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str()) )
       {
         contourNode->SetAndObserveRibbonModelPolyData( model );
+        if( contourNode->GetRibbonModelDisplayNode() )
+        {
+          vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
+          tp->SetOutput(model);
+          contourNode->GetRibbonModelDisplayNode()->SetInputPolyDataConnection(tp->GetOutputPort());
+        }
       }
       else
       {
@@ -186,6 +193,12 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
       if( this->ReadModelDataInternal(contourNode, model, closedSurfaceFile.c_str(), SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str()) )
       {
         contourNode->SetAndObserveClosedSurfacePolyData( model );
+        if( contourNode->GetClosedSurfaceModelDisplayNode() )
+        {
+          vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
+          tp->SetOutput(model);
+          contourNode->GetClosedSurfaceModelDisplayNode()->SetInputPolyDataConnection(tp->GetOutputPort());
+        }
       }
       else
       {
