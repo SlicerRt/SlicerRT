@@ -439,7 +439,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
   }
 
   bodyContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(doseScalarVolumeNode->GetID());
-  bodyContourNode->SetRasterizationOversamplingFactor(2.0);
+  bodyContourNode->SetRasterizationOversamplingFactor(1.0);
 
   {
     vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
