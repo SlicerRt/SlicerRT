@@ -453,6 +453,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     errorStream << "Conversion to indexed labelmap failed.";
     return EXIT_FAILURE;
   }
+  int result(EXIT_SUCCESS);
   int extents[6];
   image->GetExtent(extents);
 
@@ -467,7 +468,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
       << "  Extent: ( " << extents[0] << "-" << extents[1]
       << ", " << extents[2] << "-" << extents[3]
       << ", " << extents[4] << "-" << extents[5] << " )" << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
 
   int voxelCount(0);
@@ -489,7 +490,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
   if( voxelCount != nonZeroVoxelCount )
   {
     errorStream << "Non-zero voxel count does not match expected result. Got: " << voxelCount << ". Expected: " << nonZeroVoxelCount << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
 
   {
@@ -525,28 +526,28 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     errorStream << "bounds[3]: " << bounds[3] << std::endl;
     errorStream << "bounds[4]: " << bounds[4] << std::endl;
     errorStream << "bounds[5]: " << bounds[5] << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
 
   if(bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfPoints() != expectedNumberOfPoints)
   {
     errorStream << "Number of points mismatch in closed surface model. Expected: " << expectedNumberOfPoints << ". Got: " << bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfPoints() << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
 
   if(bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfCells() != expectedNumberOfCells)
   {
     errorStream << "Number of cells mismatch in closed surface model. Expected: " << expectedNumberOfCells << ". Got: " << bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfCells() << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
 
   if(bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfPolys() != expectedNumberOfPolys)
   {
     errorStream << "Number of polys mismatch in closed surface model. Expected: " << expectedNumberOfPolys << ". Got: " << bodyContourNode->GetClosedSurfacePolyData()->GetNumberOfPolys() << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
 
-  return EXIT_SUCCESS;
+  return result;
 }
 
 //-----------------------------------------------------------------------------
