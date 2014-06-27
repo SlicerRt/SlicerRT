@@ -18,7 +18,7 @@ macro(TEST_WITH_DATA TestName TestExecutableName
       TestSceneFile BaselineDvhTableCsvFile BaselineDvhMetricCsvFile
       TemporarySceneFile TemporaryDvhTableCsvFile TemporaryDvhMetricCsvFile
       VolumeDifferenceCriterion DoseToAgreementCriterion AgreementAcceptancePercentageThreshold MetricDifferenceThreshold
-      DvhStartValue DvhStepSize RasterizationOversamplingFactor)
+      DvhStartValue DvhStepSize)
   add_test(
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
@@ -34,7 +34,6 @@ macro(TEST_WITH_DATA TestName TestExecutableName
     -MetricDifferenceThreshold ${MetricDifferenceThreshold}
     -DvhStartValue ${DvhStartValue}
     -DvhStepSize ${DvhStepSize}
-    -RasterizationOversamplingFactor ${RasterizationOversamplingFactor}
   )
 endmacro()
 
@@ -54,7 +53,6 @@ TEST_WITH_DATA(
   0.0
   0.0
   0.0
-  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Base PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
@@ -74,7 +72,6 @@ TEST_WITH_DATA(
   3.0
   0.01
   0.01
-  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
@@ -94,7 +91,6 @@ TEST_WITH_DATA(
   3.0
   0.01
   0.01
-  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_CERR PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
@@ -114,7 +110,6 @@ TEST_WITH_DATA(
   3.0
   0.01
   0.01
-  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
@@ -130,10 +125,9 @@ TEST_WITH_DATA(
   ${TEMP}/TestDvhMetrics_EclipseEnt_Eclipse_SlicerRT.csv
   1.0
   1.0
-  92.0
+  91.0
   3.0
   0.01
   0.01
-  2.0
 )
 set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Eclipse PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )

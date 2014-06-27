@@ -42,7 +42,7 @@ endmacro()
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
-  vtkSlicerContourComparisonModuleLogicTest_EclipseProstate
+  vtkSlicerContourComparisonModuleLogicTest_EclipseProstate_Base
   vtkSlicerContourComparisonModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
   EclipseProstate_Rectum.ctr
@@ -59,7 +59,7 @@ TEST_WITH_DATA(
   0.338187
   0.0
 )
-set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
+set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate_Base PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -75,12 +75,12 @@ TEST_WITH_DATA(
   0.0
   0.0
   1
-  0.1815
+  0.182964
   99.817
   0.0
   0.0
 )
-set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
+set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate_SameInput PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
@@ -93,12 +93,12 @@ TEST_WITH_DATA(
   ${TEMP}/TestScene_ContourComparison_EclipseProstate_Transformed.mrml
   1
   5.00
-  2.56156
+  2.37532
   5
-  0.694316
-  0.126019
+  0.693587
+  0.126901
   99.761
-  0.0554816
-  0.0554816
+  0.0560625
+  0.0560625
 )
-set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
+set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate_Transformed PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )

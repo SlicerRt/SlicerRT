@@ -122,7 +122,7 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
     if (STRCASECMP(argv[argIndex], "-ReferenceVolumeFile") == 0)
     {
       referenceVolumeFilename = argv[argIndex+1];
-      std::cout << "Compare input contour file name: " << referenceVolumeFilename << std::endl;
+      std::cout << "Reference volume file name: " << referenceVolumeFilename << std::endl;
       argIndex += 2;
     }
     else
@@ -286,7 +286,7 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
       double doubleValue;
       ss >> doubleValue;
       trueNegativesPercent = doubleValue;
-      std::cout << "True Negatives (%): " << trueNegativesPercent << std::endl;
+      std::cout << "True negatives (%): " << trueNegativesPercent << std::endl;
       argIndex += 2;
     }
   }

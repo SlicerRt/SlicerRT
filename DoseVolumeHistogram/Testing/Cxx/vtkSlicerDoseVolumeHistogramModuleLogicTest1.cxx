@@ -313,21 +313,6 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "Invalid arguments!" << std::endl;
     return EXIT_FAILURE;
   }
-  // RasterizationOversamplingFactor
-  double rasterizationOversamplingFactor = 2.0;
-  if (argc > argIndex+1)
-  {
-    if (STRCASECMP(argv[argIndex], "-RasterizationOversamplingFactor") == 0)
-    {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      rasterizationOversamplingFactor = doubleValue;
-      std::cout << "Rasterization oversampling factor: " << rasterizationOversamplingFactor << std::endl;
-      argIndex += 2;
-    }
-  }
 
   // Constraint the criteria to be greater than zero
   if (volumeDifferenceCriterion == 0.0)
@@ -451,8 +436,6 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   for (std::vector<vtkMRMLContourNode*>::iterator contourIt = selectedContourNodes.begin(); contourIt != selectedContourNodes.end(); ++contourIt)
   {
     std::cout << "Computing DVH for contour '" << (*contourIt)->GetName() << "'" << std::endl;
-
-    (*contourIt)->SetAndObserveRasterizationReferenceVolumeNodeId(doseScalarVolumeNode->GetID());
 
     std::string errorMessage;
     dvhLogic->ComputeDvh((*contourIt), errorMessage);
