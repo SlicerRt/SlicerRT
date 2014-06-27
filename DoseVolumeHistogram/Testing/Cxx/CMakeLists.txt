@@ -40,7 +40,7 @@ endmacro()
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
-  vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate
+  vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Base
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseProstate_Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseProstate_DvhTable_SlicerRT.csv
@@ -56,7 +56,7 @@ TEST_WITH_DATA(
   0.0
   2.0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Base PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
