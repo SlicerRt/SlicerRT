@@ -31,6 +31,7 @@
 // VTK includes
 #include "vtkScalarBarActor.h"
 #include "vtkStringArray.h"
+#include "vtkVersion.h"
 
 // MRMLLogic includes
 #include "vtkSlicerIsodoseModuleWidgetsExport.h"
@@ -45,6 +46,7 @@ public:
   vtkTypeMacro(vtkSlicerRTScalarBarActor,vtkScalarBarActor);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+#if (VTK_MAJOR_VERSION <= 5)
   /// Get for the flag on using color names as label
   vtkGetMacro(UseColorNameAsLabel, int);
   /// Set for the flag on using color names as label
@@ -62,10 +64,30 @@ protected:
   /// Set color names array
   vtkSetObjectMacro(ColorNames, vtkStringArray);
 
+#else
+  /// Get for the flag on using VTK6 annotation as label
+  vtkGetMacro(UseAnnotationAsLabel, int);
+  /// Set for the flag on using VTK6 annotation as label
+  vtkSetMacro(UseAnnotationAsLabel, int);
+  /// Get/Set for the flag on using VTK6 annotation as label
+  vtkBooleanMacro(UseAnnotationAsLabel, int);
+
+  // Description:
+  // Determine the size and placement of any tick marks to be rendered.
+  //
+  // This method must set this->P->TickBox.
+  // It may depend on layout performed by ComputeScalarBarLength.
+  //
+  // The default implementation creates exactly this->NumberOfLabels
+  // tick marks, uniformly spaced on a linear or logarithmic scale.
+  virtual void LayoutTicks();
+#endif
+
 protected:
   vtkSlicerRTScalarBarActor();
   ~vtkSlicerRTScalarBarActor();
 
+#if (VTK_MAJOR_VERSION <= 5)
   /// overloaded virtual function that adds the color name as label
   virtual void AllocateAndSizeLabels(int *labelSize, int *size,
                                      vtkViewport *viewport, double *range);
@@ -75,6 +97,10 @@ protected:
 
   /// flag for setting color name as label
   int UseColorNameAsLabel;
+#else
+  /// flag for setting color name as label
+  int UseAnnotationAsLabel;
+#endif
 
 private:
   vtkSlicerRTScalarBarActor(const vtkSlicerRTScalarBarActor&);  // Not implemented.
@@ -82,3 +108,4 @@ private:
 };
 
 #endif
+

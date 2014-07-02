@@ -60,6 +60,7 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkScalarBarWidget.h>
+#include <vtkVersion.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_Isodose
@@ -76,12 +77,13 @@ public:
   void updateScalarBarsFromSelectedColorTable();
 
   vtkScalarBarWidget* ScalarBarWidget;
-  vtkSlicerRTScalarBarActor* ScalarBarActor;
   vtkScalarBarWidget* ScalarBarWidget2DRed;
-  vtkSlicerRTScalarBarActor* ScalarBarActor2DRed;
   vtkScalarBarWidget* ScalarBarWidget2DYellow;
-  vtkSlicerRTScalarBarActor* ScalarBarActor2DYellow;
   vtkScalarBarWidget* ScalarBarWidget2DGreen;
+
+  vtkSlicerRTScalarBarActor* ScalarBarActor;
+  vtkSlicerRTScalarBarActor* ScalarBarActor2DRed;
+  vtkSlicerRTScalarBarActor* ScalarBarActor2DYellow;
   vtkSlicerRTScalarBarActor* ScalarBarActor2DGreen;
 };
 
@@ -227,7 +229,11 @@ void qSlicerIsodoseModuleWidgetPrivate::updateScalarBarsFromSelectedColorTable()
   this->ScalarBarWidget->GetScalarBarActor()->SetLookupTable(selectedColorNode->GetLookupTable());
   for (int colorIndex=0; colorIndex<numberOfColors; ++colorIndex)
   {
+#if (VTK_MAJOR_VERSION <= 5)
     this->ScalarBarActor->SetColorName(colorIndex, selectedColorNode->GetColorName(colorIndex));
+#else
+    this->ScalarBarActor->GetLookupTable()->SetAnnotation(colorIndex, vtkStdString(selectedColorNode->GetColorName(colorIndex)));
+#endif
   }
   // 2D scalar bar
   this->ScalarBarActor2DRed->SetLookupTable(selectedColorNode->GetLookupTable());
@@ -236,9 +242,15 @@ void qSlicerIsodoseModuleWidgetPrivate::updateScalarBarsFromSelectedColorTable()
 
   for (int colorIndex=0; colorIndex<numberOfColors; ++colorIndex)
   {
+#if (VTK_MAJOR_VERSION <= 5)
     this->ScalarBarActor2DRed->SetColorName(colorIndex, selectedColorNode->GetColorName(colorIndex));
     this->ScalarBarActor2DYellow->SetColorName(colorIndex, selectedColorNode->GetColorName(colorIndex));
     this->ScalarBarActor2DGreen->SetColorName(colorIndex, selectedColorNode->GetColorName(colorIndex));
+#else
+    this->ScalarBarActor2DRed->GetLookupTable()->SetAnnotation(colorIndex, vtkStdString(selectedColorNode->GetColorName(colorIndex)));
+    this->ScalarBarActor2DYellow->GetLookupTable()->SetAnnotation(colorIndex, vtkStdString(selectedColorNode->GetColorName(colorIndex)));
+    this->ScalarBarActor2DGreen->GetLookupTable()->SetAnnotation(colorIndex, vtkStdString(selectedColorNode->GetColorName(colorIndex)));
+#endif
   }
 }
 
@@ -677,7 +689,11 @@ void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
   }
   if (visible)
   {
+#if (VTK_MAJOR_VERSION <= 5)
     d->ScalarBarActor->UseColorNameAsLabelOn();
+#else
+    d->ScalarBarActor->UseAnnotationAsLabelOn();
+#endif
   }
   vtkMRMLColorTableNode* selectedColorNode = d->logic()->GetIsodoseNode()->GetColorTableNode();
   if (!selectedColorNode)
@@ -688,7 +704,11 @@ void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
   int numberOfColors = selectedColorNode->GetNumberOfColors();
   for (int i=0; i<numberOfColors; i++)
   {
+#if (VTK_MAJOR_VERSION <= 5)
     d->ScalarBarActor->SetColorName(i, selectedColorNode->GetColorName(i));
+#else
+    d->ScalarBarActor->GetLookupTable()->SetAnnotation(i, vtkStdString(selectedColorNode->GetColorName(i)));
+#endif
   }
 
   d->ScalarBarWidget->SetEnabled(visible);
@@ -711,9 +731,15 @@ void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
   }
   if (visible)
   {
+#if (VTK_MAJOR_VERSION <= 5)
     d->ScalarBarActor2DRed->UseColorNameAsLabelOn();
     d->ScalarBarActor2DYellow->UseColorNameAsLabelOn();
     d->ScalarBarActor2DGreen->UseColorNameAsLabelOn();
+#else
+    d->ScalarBarActor2DRed->UseAnnotationAsLabelOn();
+    d->ScalarBarActor2DYellow->UseAnnotationAsLabelOn();
+    d->ScalarBarActor2DGreen->UseAnnotationAsLabelOn();
+#endif
   }
   vtkMRMLColorTableNode* selectedColorNode = d->logic()->GetIsodoseNode()->GetColorTableNode();
   if (!selectedColorNode)
@@ -724,9 +750,15 @@ void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
   int numberOfColors = selectedColorNode->GetNumberOfColors();
   for (int i=0; i<numberOfColors; i++)
   {
+#if (VTK_MAJOR_VERSION <= 5)
     d->ScalarBarActor2DRed->SetColorName(i, selectedColorNode->GetColorName(i));
     d->ScalarBarActor2DYellow->SetColorName(i, selectedColorNode->GetColorName(i));
     d->ScalarBarActor2DGreen->SetColorName(i, selectedColorNode->GetColorName(i));
+#else
+    d->ScalarBarActor2DRed->GetLookupTable()->SetAnnotation(i, vtkStdString(selectedColorNode->GetColorName(i)));
+    d->ScalarBarActor2DYellow->GetLookupTable()->SetAnnotation(i, vtkStdString(selectedColorNode->GetColorName(i)));
+    d->ScalarBarActor2DGreen->GetLookupTable()->SetAnnotation(i, vtkStdString(selectedColorNode->GetColorName(i)));
+#endif
   }
 
   d->ScalarBarWidget2DRed->SetEnabled(visible);
