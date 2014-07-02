@@ -22,6 +22,7 @@
 #include "vtkLabelmapToModelFilter.h"
 
 // VTK includes
+#include <vtkVersion.h>
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkNew.h>

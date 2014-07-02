@@ -219,8 +219,8 @@ void vtkPlmpyRegistration::RunRegistration()
     gridImage->SetSpacing (spacing.GetDataPointer());
     gridImage->SetDimensions (size[0], size[1], size[2]);
 #if (VTK_MAJOR_VERSION <= 5)
-	gridImage->SetScalarTypeToDouble();
-	gridImage->SetNumberOfScalarComponents(3);
+    gridImage->SetScalarTypeToDouble();
+    gridImage->SetNumberOfScalarComponents(3);
     gridImage->AllocateScalars ();
 #else
     gridImage->AllocateScalars (VTK_DOUBLE, 3);

@@ -27,6 +27,7 @@
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
+#include <vtkVersion.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>

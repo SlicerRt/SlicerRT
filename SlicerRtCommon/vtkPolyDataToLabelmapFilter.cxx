@@ -21,9 +21,11 @@
 
 #include "vtkPolyDataToLabelmapFilter.h"
 
-// VTK includes
 #include <algorithm>
 #include <math.h>
+
+// VTK includes
+#include <vtkVersion.h>
 #include <vtkImageCast.h>
 #include <vtkImageStencil.h>
 #include <vtkNew.h>
