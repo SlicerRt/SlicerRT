@@ -66,6 +66,9 @@ public:
   /// Add dose volume histogram of a structure (ROI) to the selected chart given its double array node ID
   void AddDvhToSelectedChart(const char* dvhArrayNodeId);
 
+  /// Add dose volume histogram of a structure (ROI) to the a given chart given the double array node ID and the chart node ID
+  void AddDvhToChart(const char* dvhArrayNodeId, const char* chartNodeID);
+  
   /// Remove dose volume histogram of a structure from the selected chart
   void RemoveDvhFromSelectedChart(const char* dvhArrayNodeId);
 
@@ -108,6 +111,10 @@ public:
   /// \param Output string for the attribute name. has to be allocated first
   static void AssembleDoseMetricAttributeName(std::string doseMetricAttributeNamePrefix, const char* doseUnitName, std::string &attributeName);
 
+  /// Read DVH double arrays from a CSV file
+  /// \return a vtkCollection containing vtkMRMLDoubleArrayNodes. Each node represents one structure DVH and contains the vtkDoubleArray as well as the name and total volume attributes for the structure.
+  vtkCollection* ReadCsvToDoubleArrayNode(std::string csvFilename);
+  
 public:
   void SetAndObserveDoseVolumeHistogramNode(vtkMRMLDoseVolumeHistogramNode* node);
   vtkGetObjectMacro(DoseVolumeHistogramNode, vtkMRMLDoseVolumeHistogramNode);

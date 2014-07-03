@@ -16,6 +16,8 @@ set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}ModuleLogic.h
   vtkMRML${MODULE_NAME}Node.cxx
   vtkMRML${MODULE_NAME}Node.h
+  vtkSlicerDoseVolumeHistogramComparisonLogic.cxx
+  vtkSlicerDoseVolumeHistogramComparisonLogic.h
   )
 
 set(${KIT}_TARGET_LIBRARIES

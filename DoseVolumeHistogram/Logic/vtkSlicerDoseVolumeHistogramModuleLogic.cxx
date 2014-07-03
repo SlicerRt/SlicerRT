@@ -688,6 +688,40 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
     vtkErrorMacro("AddDvhToSelectedChart: Invalid chart or dose volume node!");
     return;
   }
+  
+  AddDvhToChart(dvhArrayNodeId, chartNode->GetID());
+  
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(const char* dvhArrayNodeId, const char* chartNodeID){
+
+  vtkMRMLScene* scene = this->GetMRMLScene();
+
+  if (!scene)
+  {
+    vtkErrorMacro("AddDvhToSelectedChart: Invalid MRML scene!");
+    return;
+  }
+
+  // Get DVH array node
+  vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(scene->GetNodeByID(dvhArrayNodeId));
+  if (dvhArrayNode == NULL)
+  {
+    vtkErrorMacro("AddDvhToSelectedChart: Unable to get double array node!");
+    return;
+  }
+  const char* structureName = dvhArrayNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+
+
+  // Get selected chart and dose volume nodes
+  vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(scene->GetNodeByID(chartNodeID));
+  vtkMRMLScalarVolumeNode* doseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(dvhArrayNode->GetNodeReference("DoseVolumeHistogram.doseVolumeRef"));
+  if (!chartNode || !doseVolumeNode)
+  {
+    vtkErrorMacro("AddDvhToSelectedChart: Invalid chart or dose volume node!");
+    return;
+  }
 
   // Get chart view node
   vtkMRMLChartViewNode* chartViewNode = this->GetChartViewNode();
@@ -706,9 +740,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
     vtkMRMLSubjectHierarchyNode* doseSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
     if (doseSubjectHierarchyNode)
     {
-      std::string doseUnitName = std::string(doseSubjectHierarchyNode->GetAttributeFromAncestor(
-        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY));
-      doseAxisName=std::string("Dose [") + doseUnitName + std::string("]");
+      const char* doseUnitName = doseSubjectHierarchyNode->GetAttributeFromAncestor(
+        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+      doseAxisName=std::string("Dose [")+doseUnitName+"]";
     }
     else
     {
@@ -729,15 +763,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
   chartNode->SetProperty("default", "type", "Line");
   chartNode->SetProperty("default", "xAxisPad", "0");
   chartNode->SetProperty("default", "yAxisPad", "0");
-
-  // Get DVH array node
-  vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID(dvhArrayNodeId) );
-  if (dvhArrayNode == NULL)
-  {
-    vtkErrorMacro("AddDvhToSelectedChart: Unable to get double array node!");
-    return;
-  }
-  const char* structureName = dvhArrayNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
 
   // Get number of arrays showing plot for the same structure (for plot name and line style)
   vtkStringArray* arrayIds = chartNode->GetArrays();
@@ -792,6 +817,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToSelectedChart(const char* 
   chartNode->SetProperty(structurePlotName.c_str(), "color", color);
   const char* lineStyle = dvhArrayNode->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME.c_str());
   chartNode->SetProperty(structurePlotName.c_str(), "linePattern", lineStyle);
+
 }
 
 //---------------------------------------------------------------------------
@@ -1370,4 +1396,167 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AssembleDoseMetricAttributeName( s
   attributeNameStream << SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << doseMetricAttributeNamePrefix << valueType;
 
   attributeName = attributeNameStream.str();
+}
+
+//-----------------------------------------------------------------------------
+vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode(std::string csvFilename){
+  
+  std::string csvSeparatorCharacter = ",";
+  
+  std::vector< vtkSmartPointer< vtkDoubleArray >> currentDvh;
+  
+  // Vectors containing the names and total volumes of structures
+  std::vector<std::string> structureNames;
+  std::vector<double> structureVolumeCCs;
+
+  // Load current DVH from CSV
+  std::ifstream dvhStream;
+  dvhStream.open(csvFilename.c_str(), std::ifstream::in);
+
+  bool firstLine = true;
+  int fieldCount = 0;
+  int lineNumber = 0;
+  char line[16384];
+
+  while (dvhStream.getline(line, 16384, '\n'))
+  {
+    std::string lineStr(line);
+    size_t commaPosition = lineStr.find(csvSeparatorCharacter);
+
+    // Determine number of fields (twice the number of structures)
+    if (firstLine)
+    {
+      while (commaPosition != std::string::npos)
+      {
+        if (fieldCount%2==1)
+        {
+
+          // Get the structure's name
+          std::string field = lineStr.substr(0, commaPosition);
+          size_t middlePosition = field.find(SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE);
+          structureNames.push_back(field.substr(0, middlePosition - SlicerRtCommon::DVH_ARRAY_NODE_NAME_POSTFIX.size()));
+
+          // Get the structure's total volume and add it to the vector
+          double volumeCCs = 0;
+          {
+            std::string structureVolumeString = field.substr( middlePosition + SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(), 
+              field.size() - middlePosition - SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - SlicerRtCommon::DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
+            std::stringstream ss;
+            ss << structureVolumeString;
+            double doubleValue;
+            ss >> doubleValue;
+            volumeCCs = doubleValue;
+          }
+          structureVolumeCCs.push_back(volumeCCs);
+
+          if (volumeCCs == 0)
+          {
+            std::cerr << "Invalid structure volume in CSV header field " << field << std::endl;
+          }
+
+        }
+
+        // Move to the next structure's location in the string
+        fieldCount++;
+        lineStr = lineStr.substr(commaPosition+1);
+        commaPosition = lineStr.find(csvSeparatorCharacter);
+
+      }
+      if (! lineStr.empty() )
+      {
+        fieldCount++;
+      }
+        
+      // Add a vtkDoubleArray for each structure into the vector
+      for(int structureIndex=0; structureIndex < fieldCount/2; ++structureIndex)
+      {
+        vtkSmartPointer<vtkDoubleArray> tempArray = vtkSmartPointer<vtkDoubleArray>::New();
+        tempArray->SetNumberOfComponents(3);
+        currentDvh.push_back(tempArray);
+      }
+      firstLine = false;
+      continue;
+    }
+
+    // Read all tuples from the current line
+    int structureNumber = 0;
+    while (commaPosition != std::string::npos)
+    {
+        
+      // Tuple to be inserted into the vtkDoubleArray object
+      double *tupleToInsert = new double[3];
+      for(int j=0; j<3; ++j)
+        tupleToInsert[j] = 0;
+      
+      // Get the current bin's dose from the string
+      double doseGy = 0;
+      {
+        double doubleValue;
+        std::stringstream ss;
+        ss << lineStr.substr(0, commaPosition);
+        ss >> doubleValue;
+        doseGy = doubleValue;
+      }
+      tupleToInsert[0] = doseGy;
+
+      // Get the current bin's volume from the string
+      double volumePercent = 0;
+      {
+        double doubleValue;
+        lineStr = lineStr.substr(commaPosition+1);
+        commaPosition = lineStr.find(csvSeparatorCharacter);
+        std::stringstream ss;
+        ss << lineStr.substr(0, commaPosition);
+        ss >> doubleValue;
+        volumePercent = doubleValue;
+      }
+      tupleToInsert[1] = volumePercent;
+      
+      if ((doseGy != 0.0 || volumePercent != 0.0) && (commaPosition > 0))
+      {
+        // Add the current bin into the vtkDoubleArray for the current structure
+        currentDvh.at(structureNumber)->InsertTuple(lineNumber, tupleToInsert);        
+      }
+      
+      // Destroy the tuple
+      delete tupleToInsert;
+      tupleToInsert = NULL;
+      
+      // Move to the next structure's bin in the string
+      lineStr = lineStr.substr(commaPosition+1);
+      commaPosition = lineStr.find(csvSeparatorCharacter);
+      structureNumber++;
+    }
+    lineNumber++;
+  }
+  
+  dvhStream.close();
+  
+  vtkCollection* doubleArrayNodes = vtkCollection::New();
+  
+  for (int structureIndex=0; structureIndex < currentDvh.size(); structureIndex++)
+  {
+
+    // Create the vtkMRMLDoubleArrayNodes which will be passed to the logic function.
+    vtkNew<vtkMRMLDoubleArrayNode> currentNode;
+    currentNode->SetArray(currentDvh.at(structureIndex));
+    
+    // Set the total volume attribute in the vtkMRMLDoubleArrayNode attributes
+    std::ostringstream attributeNameStream;
+    attributeNameStream << SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << SlicerRtCommon::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+    std::ostringstream attributeValueStream;
+    attributeValueStream << structureVolumeCCs[structureIndex];
+    currentNode->SetAttribute(attributeNameStream.str().c_str(), attributeValueStream.str().c_str());
+    
+    // Set the structure's name attribute and variables
+    currentNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureNames.at(structureIndex).c_str());
+    std::string nameAttribute = structureNames.at(structureIndex) + SlicerRtCommon::DVH_ARRAY_NODE_NAME_POSTFIX;
+    currentNode->SetName(nameAttribute.c_str());
+
+    // add the new node to the vector
+    doubleArrayNodes->AddItem(currentNode.GetPointer());
+    
+  }
+
+  return doubleArrayNodes;
 }
