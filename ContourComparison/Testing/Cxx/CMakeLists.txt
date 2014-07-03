@@ -46,7 +46,7 @@ TEST_WITH_DATA(
   vtkSlicerContourComparisonModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
   EclipseProstate_Rectum.ctr
-  EclipseProstate_Rectum_Dilated.ctr
+  EclipseProstate_Expanded_5_5_5_Rectum.ctr
   EclipseProstate_Dose.nrrd
   ${TEMP}/TestScene_ContourComparison_EclipseProstate.mrml
   0

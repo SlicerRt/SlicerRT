@@ -94,6 +94,12 @@ public:
   /// Get forced reference volume node by ID \sa setForcedReferenceVolumeNodeID
   QString forcedReferenceVolumeNodeID();
 
+  /// Set if re-rasterization is enabled
+  void setRerasterizationSupported(bool rerasterizationSupported);
+
+  /// Get if re-rasterization is enabled
+  bool getRerasterizationSupported();
+
   /// Add slave contour selector widget. This operation makes this instance a master instance and sets this instance's
   /// pointer as the master instance in the new slave object.
   void addSlaveContourSelectorWidget(qMRMLContourSelectorWidget* newSlaveInstance);

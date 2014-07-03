@@ -128,6 +128,9 @@ void qSlicerContourMorphologyModuleWidget::setup()
   d->ContourSelectorWidget_ContourB->setAcceptContourHierarchies(false);
   d->ContourSelectorWidget_ContourB->setRequiredRepresentation(vtkMRMLContourNode::IndexedLabelmap);
 
+  d->ContourSelectorWidget_ContourA->setRerasterizationSupported(true);
+  d->ContourSelectorWidget_ContourB->setRerasterizationSupported(true);
+
   // Make connections
   this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setContourMorphologyNode(vtkMRMLNode*)) );
 

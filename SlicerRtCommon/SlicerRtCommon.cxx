@@ -22,12 +22,13 @@
 #include "SlicerRtCommon.h"
 
 // MRML includes
-#include <vtkMRMLTransformNode.h>
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLScene.h>
-#include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLDisplayNode.h>
+#include <vtkMRMLModelNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLScene.h>
+#include <vtkMRMLTransformNode.h>
+#include <vtkMRMLVolumeArchetypeStorageNode.h>
 
 // VTK includes
 #include <vtkDiscretizableColorTransferFunction.h>
@@ -37,6 +38,9 @@
 #include <vtkMatrix4x4.h>
 #include <vtkPlane.h>
 #include <vtkSmartPointer.h>
+
+// VTK sys tools
+#include <vtksys/SystemTools.hxx>
 
 //----------------------------------------------------------------------------
 // Constant strings
@@ -519,4 +523,51 @@ void SlicerRtCommon::GenerateNewColor( vtkMRMLColorTableNode* colorNode, double*
 
     currentTry++;
   }
+}
+
+//---------------------------------------------------------------------------
+void SlicerRtCommon::WriteImageDataToFile( vtkMRMLScene* scene, vtkImageData* imageData, const char* fileName, double dirs[3][3], double spacing[3], double origin[3], bool overwrite )
+{
+  if( scene == NULL )
+  {
+    std::cerr << "Invalid scene sent to SlicerRtCommon::WriteImageDataToFile." << std::endl;
+    return;
+  }
+
+  if( fileName == NULL || strcmp(fileName, "") == 0 )
+  {
+    std::cerr << "Invalid filename sent to SlicerRtCommon::WriteImageDataToFile." << std::endl;
+    return;
+  }
+
+  if( vtksys::SystemTools::FileExists(fileName) && overwrite )
+  {
+    vtksys::SystemTools::RemoveFile(fileName);
+  }
+  else if( vtksys::SystemTools::FileExists(fileName) )
+  {
+    return;
+  }
+
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> volumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  volumeNode->SetIJKToRASDirections(dirs);
+  volumeNode->SetOrigin(origin);
+  volumeNode->SetSpacing(spacing);
+  volumeNode->SetAndObserveImageData(imageData);
+  scene->AddNode(volumeNode);
+
+  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> storageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
+  storageNode->SetFileName(fileName);
+  scene->AddNode(storageNode);
+
+  volumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
+  if( storageNode->WriteData(volumeNode) == 0 )
+  {
+    std::cerr << "Unable to write image data to file." << std::endl;
+  }
+
+  scene->RemoveNode(storageNode);
+  scene->RemoveNode(volumeNode);
+
+  return;
 }

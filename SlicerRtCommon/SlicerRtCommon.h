@@ -13,12 +13,13 @@
 #include <vtkSmartPointer.h>
 #include <vtkPlane.h>
 
-class vtkMRMLTransformableNode;
-class vtkMRMLNode;
-class vtkMRMLScalarVolumeNode;
+class vtkMRMLColorTableNode;
 class vtkMRMLContourNode;
 class vtkMRMLModelNode;
-class vtkMRMLColorTableNode;
+class vtkMRMLNode;
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLScene;
+class vtkMRMLTransformableNode;
 
 class vtkImageData;
 class vtkGeneralTransform;
@@ -220,6 +221,16 @@ public:
   /// Generate a new color that is not already in use in a color table node
   /// \param colorNode Color table node to validate against
   static void GenerateNewColor(vtkMRMLColorTableNode* colorNode, double* newColor);
+
+  /// Write the contents of the image data to file using a scalar volume node and storage node
+  /// \param scene the scene to use (can be private scene, or common scene)
+  /// \param imageData the image data to write
+  /// \param fileName the file to write to on disk
+  /// \param dirs the IJKtoRAS directions for a scalar volume node
+  /// \param spacing the spacing of a scalar volume node
+  /// \param origin the origin of a scalar volume node
+  /// \param overwrite whether or not to remove an existing file before re-writing (avoids warnings)
+  static void WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* imageData, const char* fileName, double dirs[3][3], double spacing[3], double origin[3], bool overwrite);
 
 //BTX
   /*!

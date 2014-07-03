@@ -322,14 +322,15 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     // TODO : not working as expected 
     // Harden apply any parent transform into temporary contour
     vtkSmartPointer<vtkMRMLContourNode> tempContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-    this->GetMRMLScene()->AddNode(tempContourNode);
-    tempContourNode->DeepCopy(inputContourBNode);
-    if( tempContourNode->GetParentTransformNode() && tempContourNode->GetParentTransformNode()->GetTransformToParent() )
-    {
-      tempContourNode->ApplyTransform(tempContourNode->GetParentTransformNode()->GetTransformToParent());
-    }
-    tempImageB->DeepCopy(tempContourNode->GetLabelmapImageData());
-    this->GetMRMLScene()->RemoveNode(tempContourNode);
+    //this->GetMRMLScene()->AddNode(tempContourNode);
+    //tempContourNode->DeepCopy(inputContourBNode);
+    //if( tempContourNode->GetParentTransformNode() && tempContourNode->GetParentTransformNode()->GetTransformToParent() )
+    //{
+      //tempContourNode->ApplyTransform(tempContourNode->GetParentTransformNode()->GetTransformToParent());
+    //}
+    //tempImageB->DeepCopy(tempContourNode->GetLabelmapImageData());
+    //this->GetMRMLScene()->RemoveNode(tempContourNode);
+    tempImageB = inputContourBNode->GetLabelmapImageData();
   }
 
   if (this->SetContourARepresentationToLabelmap() != 0)
@@ -404,22 +405,24 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     newContourNameNoSuffix.erase(newContourNameNoSuffix.find(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX), newContourNameNoSuffix.length());
 
     // Let's do that, essentially copy inputContourA settings (size, dimensions, reference volume, etc...)
-    outputContourNode = vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(inputContourANode, newContourNameNoSuffix);  
+    outputContourNode = vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(inputContourANode, newContourNameNoSuffix);
+    outputContourNode->SetCreatedFromIndexLabelmap(true);
   }
 
   // Harden any parent transform into temporary contour
   vtkSmartPointer<vtkImageData> tempImageA = vtkSmartPointer<vtkImageData>::New();
-  {
-    vtkSmartPointer<vtkMRMLContourNode> tempContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-    this->GetMRMLScene()->AddNode(tempContourNode);
-    tempContourNode->DeepCopy(inputContourANode);
-    if( tempContourNode->GetParentTransformNode() && tempContourNode->GetParentTransformNode()->GetTransformToParent() )
-    {
-      tempContourNode->ApplyTransform(tempContourNode->GetParentTransformNode()->GetTransformToParent());
-    }
-    tempImageA->DeepCopy(tempContourNode->GetLabelmapImageData());
-    this->GetMRMLScene()->RemoveNode(tempContourNode);
-  }
+  //{
+//    vtkSmartPointer<vtkMRMLContourNode> tempContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+    //this->GetMRMLScene()->AddNode(tempContourNode);
+    //tempContourNode->DeepCopy(inputContourANode);
+    //if( tempContourNode->GetParentTransformNode() && tempContourNode->GetParentTransformNode()->GetTransformToParent() )
+    //{
+//      tempContourNode->ApplyTransform(tempContourNode->GetParentTransformNode()->GetTransformToParent());
+    //}
+    //tempImageA->DeepCopy(tempContourNode->GetLabelmapImageData());
+    //this->GetMRMLScene()->RemoveNode(tempContourNode);
+  //}
+  tempImageA = inputContourANode->GetLabelmapImageData();
 
   referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
 
@@ -525,7 +528,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
       break;
   }
 
-  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
 
   outputContourNode->SetAndObserveLabelmapImageData(tempImageOutput);
 

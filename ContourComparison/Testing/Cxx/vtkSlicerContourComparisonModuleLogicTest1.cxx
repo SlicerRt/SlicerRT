@@ -461,57 +461,58 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->Commit();
 
   // Compare results to baseline
+  int result(EXIT_SUCCESS);
   double resultHausdorffMaximumMm = paramNode->GetMaximumHausdorffDistanceForBoundaryMm();
   if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultHausdorffMaximumMm, hausdorffMaximumMm))
   {
     std::cerr << "Hausdorff maximum (mm) mismatch: " << resultHausdorffMaximumMm << " instead of " << hausdorffMaximumMm << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
   double resultHausdorffAverageMm = paramNode->GetAverageHausdorffDistanceForBoundaryMm();
   if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultHausdorffAverageMm, hausdorffAverageMm))
   {
     std::cerr << "Hausdorff average (mm) mismatch: " << resultHausdorffAverageMm << " instead of " << hausdorffAverageMm << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
   double resultHausdorff95PercentMm = paramNode->GetPercent95HausdorffDistanceForBoundaryMm();
   if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultHausdorff95PercentMm, hausdorff95PercentMm))
   {
     std::cerr << "Hausdorff 95% mismatch: " << resultHausdorff95PercentMm << " instead of " << hausdorff95PercentMm << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
 
   double resultDiceCoefficient = paramNode->GetDiceCoefficient();
   if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultDiceCoefficient, diceCoefficient))
   {
     std::cerr << "Dice coefficient mismatch: " << resultDiceCoefficient << " instead of " << diceCoefficient << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
   double resultTruePositivesPercent = paramNode->GetTruePositivesPercent();
   if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultTruePositivesPercent, truePositivesPercent))
   {
     std::cerr << "True positives (%) mismatch: " << resultTruePositivesPercent << " instead of " << truePositivesPercent << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
   double resultFalsePositivesPercent = paramNode->GetFalsePositivesPercent();
   if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultFalsePositivesPercent, falsePositivesPercent))
   {
     std::cerr << "False positives (%) mismatch: " << resultFalsePositivesPercent << " instead of " << falsePositivesPercent << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
   double resultTrueNegativesPercent = paramNode->GetTrueNegativesPercent();
   if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultTrueNegativesPercent, trueNegativesPercent))
   {
     std::cerr << "True negatives (%) mismatch: " << resultTrueNegativesPercent << " instead of " << trueNegativesPercent << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
   double resultFalseNegativesPercent = paramNode->GetFalseNegativesPercent();
   if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultFalseNegativesPercent, falseNegativesPercent))
   {
     std::cerr << "False negatives (%) mismatch: " << resultFalseNegativesPercent << " instead of " << falseNegativesPercent << std::endl;
-    return EXIT_FAILURE;
+    result = EXIT_FAILURE;
   }
 
-  return EXIT_SUCCESS;
+  return result;
 }
 
 //-----------------------------------------------------------------------------

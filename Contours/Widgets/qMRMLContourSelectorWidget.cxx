@@ -72,6 +72,9 @@ public:
   /// Flag determining if the current selection is valid. Takes the occasional slave instances into account
   /// Updated automatically in the /sa updateWidgetState method
   bool IsSelectionValid;
+
+  /// Flag to enable re-rasterization of labelmaps
+  bool RerasterizationSupported;
 };
 
 //------------------------------------------------------------------------------
@@ -223,8 +226,17 @@ bool qMRMLContourSelectorWidget::validateSelection(std::vector<vtkMRMLContourNod
   {
     if (!slave) // Only display this message for the master
     {
-      // There is a valid required representation in every selected contour
-      d->label_ValidRequiredRepresentation->setVisible(true);
+      if( d->RerasterizationSupported && d->RequiredRepresentation == vtkMRMLContourNode::IndexedLabelmap)
+      {
+        d->label_ReConversion->setVisible(true);
+        d->label_ValidRequiredRepresentation->setVisible(false);
+        d->MRMLNodeComboBox_ReferenceVolume->setVisible(true);
+      }
+      else
+      {
+        // There is a valid required representation in every selected contour
+        d->label_ValidRequiredRepresentation->setVisible(true);
+      }
     }
   }
   else if (d->RequiredRepresentation == vtkMRMLContourNode::RibbonModel)
@@ -665,4 +677,23 @@ void qMRMLContourSelectorWidget::ungroup()
   {
     d->MasterContourSelectorWidget->ungroup();
   }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::setRerasterizationSupported(bool rerasterizationSupported)
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  d->RerasterizationSupported = rerasterizationSupported;
+
+  // If this is a master instance
+  this->updateWidgetState();
+}
+
+//------------------------------------------------------------------------------
+bool qMRMLContourSelectorWidget::getRerasterizationSupported()
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  return d->RerasterizationSupported;
 }
