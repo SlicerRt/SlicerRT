@@ -46,7 +46,6 @@
 #include "plm_config.h"
 #include "plm_image_header.h"
 #include "plm_warp.h"
-#include "plmregister.h"
 #include "pointset.h"
 #include "pointset_warp.h"
 #include "xform.h"
