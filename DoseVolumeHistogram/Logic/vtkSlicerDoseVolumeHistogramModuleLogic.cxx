@@ -1403,7 +1403,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
   
   std::string csvSeparatorCharacter = ",";
   
-  std::vector< vtkSmartPointer< vtkDoubleArray >> currentDvh;
+  std::vector< vtkSmartPointer< vtkDoubleArray > > currentDvh;
   
   // Vectors containing the names and total volumes of structures
   std::vector<std::string> structureNames;

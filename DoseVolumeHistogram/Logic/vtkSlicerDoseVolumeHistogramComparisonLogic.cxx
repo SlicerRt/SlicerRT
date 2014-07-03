@@ -19,6 +19,8 @@
 
 #include "vtkSlicerDoseVolumeHistogramComparisonLogic.h"
 
+#include <float.h>
+
 // SlicerRt includes
 #include "SlicerRtCommon.h"
 
