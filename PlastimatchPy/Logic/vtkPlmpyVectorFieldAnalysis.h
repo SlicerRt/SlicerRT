@@ -36,7 +36,6 @@
 #include "landmark_warp.h"
 #include "plm_config.h"
 #include "plm_image.h"
-#include "plm_stages.h"
 #include "pointset.h"
 #include "registration_data.h"
 #include "registration_parms.h"

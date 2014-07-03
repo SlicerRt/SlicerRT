@@ -39,8 +39,8 @@
 #include "landmark_warp.h"
 #include "plm_config.h"
 #include "plm_image.h"
-#include "plm_stages.h"
 #include "pointset.h"
+#include "registration.h"
 #include "registration_data.h"
 #include "registration_parms.h"
 
@@ -57,14 +57,18 @@ public:
   vtkTypeMacro(vtkPlmpyRegistration, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  /// Add a registration stage in the Plastimatch workflow
-  void AddStage();
-
-  /// Set parameter in stage
-  void SetPar(char* key, char* value);
-
-  /// Execute registration
+  /// Execute "classic" registration, not stoppable 
   void RunRegistration();
+
+  /// Return the output registration to Slicer scene
+  void ReturnDataToSlicer();
+
+  /// Start Registration
+  void StartRegistration();
+  
+  /// Stop registration
+  void StopRegistration();
+  
 
   /// This function warps the landmarks according to OutputTransformation
   void WarpLandmarks();
@@ -79,6 +83,11 @@ public:
   vtkSetStringMacro(MovingImageID);
   /// Get the ID of the moving image (\sa MovingImageID) (image data type must be "float").
   vtkGetStringMacro(MovingImageID);
+
+  /// Set the RegistrationParameters string (\sa RegistrationParameters) (image data type must be "char*").
+  vtkSetStringMacro(RegistrationParameters);
+  /// Get the RegistrationParameters string (\sa RegistrationParameters) (image data type must be "char*").
+  vtkGetStringMacro(RegistrationParameters);
   
   /// Set the fcsv file name (\sa FixedLandmarksFileName) containing the fixed landmarks.
   vtkSetStringMacro(FixedLandmarksFileName);
@@ -213,13 +222,16 @@ protected:
   vtkPoints* WarpedLandmarks;
   
   /// Plastimatch registration parameters
-  Registration_parms* RegistrationParameters;
+  char* RegistrationParameters;
 
   /// Plastimatch registration data
   Registration_data* RegistrationData;
 
   /// Vector filed computed by Plastimatch
   DeformationFieldType::Pointer MovingImageToFixedImageVectorField;
+
+  /// Palstimatch registration object
+  Registration registration;
 
 private:
   vtkPlmpyRegistration(const vtkPlmpyRegistration&); // Not implemented

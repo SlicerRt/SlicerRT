@@ -1,4 +1,4 @@
-import os
+import os, sys
 from __main__ import vtk, qt, ctk, slicer
 import RegistrationLib
 
@@ -49,6 +49,8 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
   name = "Plastimatch"
   tooltip = "B-spline deformable registration with landmark and regularization"
 
+  stages = ["","","","",""] # transaltion gridsearch, translation, bspline1, bspline2, bspline3
+
   # can be true or false
   # - True: landmarks are displayed and managed by LandmarkRegistration
   # - False: landmarks are hidden
@@ -58,6 +60,12 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
   # - widget will be disabled until landmarks are defined
   landmarksNeededToEnable = 1
 
+  # Landmarks/parameters have been moved/changed during the stoppable registration
+  landmarkMoved = False
+  parameterStage1Changed = False
+  parameterStage2Changed = False
+  parameterStage3Changed = False
+
   # used for reloading - every concrete class should include this
   sourceFile = __file__
 
@@ -66,6 +74,11 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
 
   def __init__(self,parent=None):
     super(PlmRegisterPlugin,self).__init__(parent)
+    import os, sys, vtk
+    import vtkSlicerPlastimatchPyModuleLogicPython
+    self.reg = vtkSlicerPlastimatchPyModuleLogicPython.vtkPlmpyRegistration()
+    self.reg.SetMRMLScene(slicer.mrmlScene)
+
 
   def create(self,registrationState):
     """Make the plugin-specific user interface"""
@@ -136,6 +149,12 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.applyButton.connect('clicked(bool)', self.onApply)
     plmRegisterFormLayout.addWidget(self.applyButton)
 
+    # Stop button
+    self.stopButton = qt.QPushButton("Click to stop registration!")
+    self.stopButton.setStyleSheet("background-color: #FF3232")
+    self.stopButton.connect('clicked(bool)', self.onStop)
+    plmRegisterFormLayout.addWidget(self.stopButton)
+
     # Status label
     self.statusLabel = qt.QLabel("")
     plmRegisterFormLayout.addWidget(self.statusLabel)
@@ -149,6 +168,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage1_iterationsLineEdit = qt.QLineEdit()
     self.stage1_iterationsLineEdit.setText('40')
     self.stage1_iterationsLineEdit.setToolTip( "Maximum number of iterations" ) 
+    self.stage1_iterationsLineEdit.connect('textChanged(QString)', self.parameterStage1IsChanged)
     buttonLayout.addWidget(self.stage1_iterationsLineEdit)
     self.stage1Box.layout().addRow("Iterations:", buttonLayout)
 
@@ -157,6 +177,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage1_subsamplingLineEdit = qt.QLineEdit()
     self.stage1_subsamplingLineEdit.setText('4 4 2')
     self.stage1_subsamplingLineEdit.setToolTip( "Subsampling rate" ) 
+    self.stage1_subsamplingLineEdit.connect('textChanged(QString)', self.parameterStage1IsChanged)
     buttonLayout.addWidget(self.stage1_subsamplingLineEdit)
     self.stage1Box.layout().addRow("Subsampling rate (vox):", buttonLayout)
 
@@ -165,6 +186,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage1_gridSpacingLineEdit = qt.QLineEdit()
     self.stage1_gridSpacingLineEdit.setText('100')
     self.stage1_gridSpacingLineEdit.setToolTip( "Set B-spline grid spacing" )
+    self.stage1_gridSpacingLineEdit.connect('textChanged(QString)', self.parameterStage1IsChanged)
     buttonLayout.addWidget(self.stage1_gridSpacingLineEdit)
     self.stage1Box.layout().addRow("Grid size (mm):", buttonLayout)
 
@@ -174,6 +196,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage1_regularizationLineEdit.setText('0.1')
     self.stage1_regularizationLineEdit.setToolTip(
       "Set Regularization penalty term")
+    self.stage1_regularizationLineEdit.connect('textChanged(QString)', self.parameterStage1IsChanged)
     buttonLayout.addWidget(self.stage1_regularizationLineEdit)
     self.stage1Box.layout().addRow("Regularization:", buttonLayout)
 
@@ -183,6 +206,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage1_landmarkPenaltyLineEdit.setText('10')
     self.stage1_landmarkPenaltyLineEdit.setToolTip(
       "Set landmark distance penalty term")
+    self.stage1_landmarkPenaltyLineEdit.connect('textChanged(QString)', self.parameterStage1IsChanged)
     buttonLayout.addWidget(self.stage1_landmarkPenaltyLineEdit)
     self.stage1Box.layout().addRow("Landmark penalty:", buttonLayout)
 
@@ -197,6 +221,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage2_iterationsLineEdit = qt.QLineEdit()
     self.stage2_iterationsLineEdit.setText('20')
     self.stage2_iterationsLineEdit.setToolTip( "Maximum number of iterations" ) 
+    self.stage2_iterationsLineEdit.connect('textChanged(QString)', self.parameterStage2IsChanged)
     buttonLayout.addWidget(self.stage2_iterationsLineEdit)
     self.stage2Box.layout().addRow("Iterations:", buttonLayout)
 
@@ -205,6 +230,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage2_subsamplingLineEdit = qt.QLineEdit()
     self.stage2_subsamplingLineEdit.setText('2 2 1')
     self.stage2_subsamplingLineEdit.setToolTip( "Subsampling rate" ) 
+    self.stage2_subsamplingLineEdit.connect('textChanged(QString)', self.parameterStage2IsChanged)
     buttonLayout.addWidget(self.stage2_subsamplingLineEdit)
     self.stage2Box.layout().addRow("Subsampling rate (vox):", buttonLayout)
 
@@ -213,6 +239,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage2_gridSpacingLineEdit = qt.QLineEdit()
     self.stage2_gridSpacingLineEdit.setText('50')
     self.stage2_gridSpacingLineEdit.setToolTip( "Set B-spline grid spacing" )
+    self.stage2_gridSpacingLineEdit.connect('textChanged(QString)', self.parameterStage2IsChanged)
     buttonLayout.addWidget(self.stage2_gridSpacingLineEdit)
     self.stage2Box.layout().addRow("Grid size (mm):", buttonLayout)
 
@@ -222,6 +249,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage2_regularizationLineEdit.setText('0.1')
     self.stage2_regularizationLineEdit.setToolTip(
       "Set Regularization penalty term")
+    self.stage2_regularizationLineEdit.connect('textChanged(QString)', self.parameterStage2IsChanged)
     buttonLayout.addWidget(self.stage2_regularizationLineEdit)
     self.stage2Box.layout().addRow("Regularization:", buttonLayout)
 
@@ -231,6 +259,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage2_landmarkPenaltyLineEdit.setText('10')
     self.stage2_landmarkPenaltyLineEdit.setToolTip(
       "Set landmark distance penalty term")
+    self.stage2_landmarkPenaltyLineEdit.connect('textChanged(QString)', self.parameterStage2IsChanged)
     buttonLayout.addWidget(self.stage2_landmarkPenaltyLineEdit)
     self.stage2Box.layout().addRow("Landmark penalty:", buttonLayout)
 
@@ -245,6 +274,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage3_iterationsLineEdit = qt.QLineEdit()
     self.stage3_iterationsLineEdit.setText('10')
     self.stage3_iterationsLineEdit.setToolTip( "Maximum number of iterations" ) 
+    self.stage3_iterationsLineEdit.connect('textChanged(QString)', self.parameterStage3IsChanged)
     buttonLayout.addWidget(self.stage3_iterationsLineEdit)
     self.stage3Box.layout().addRow("Iterations:", buttonLayout)
 
@@ -253,6 +283,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage3_subsamplingLineEdit = qt.QLineEdit()
     self.stage3_subsamplingLineEdit.setText('1 1 1')
     self.stage3_subsamplingLineEdit.setToolTip( "Subsampling rate" ) 
+    self.stage3_subsamplingLineEdit.connect('textChanged(QString)', self.parameterStage3IsChanged)
     buttonLayout.addWidget(self.stage3_subsamplingLineEdit)
     self.stage3Box.layout().addRow("Subsampling rate (vox):", buttonLayout)
 
@@ -261,6 +292,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage3_gridSpacingLineEdit = qt.QLineEdit()
     self.stage3_gridSpacingLineEdit.setText('30')
     self.stage3_gridSpacingLineEdit.setToolTip( "Set B-spline grid spacing" )
+    self.stage3_gridSpacingLineEdit.connect('textChanged(QString)', self.parameterStage3IsChanged)
     buttonLayout.addWidget(self.stage3_gridSpacingLineEdit)
     self.stage3Box.layout().addRow("Grid size (mm):", buttonLayout)
 
@@ -270,6 +302,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage3_regularizationLineEdit.setText('0.1')
     self.stage3_regularizationLineEdit.setToolTip(
       "Set Regularization penalty term")
+    self.stage3_regularizationLineEdit.connect('textChanged(QString)', self.parameterStage3IsChanged)
     buttonLayout.addWidget(self.stage3_regularizationLineEdit)
     self.stage3Box.layout().addRow("Regularization:", buttonLayout)
 
@@ -279,6 +312,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.stage3_landmarkPenaltyLineEdit.setText('10')
     self.stage3_landmarkPenaltyLineEdit.setToolTip(
       "Set landmark distance penalty term")
+    self.stage3_landmarkPenaltyLineEdit.connect('textChanged(QString)', self.parameterStage3IsChanged)
     buttonLayout.addWidget(self.stage3_landmarkPenaltyLineEdit)
     self.stage3Box.layout().addRow("Landmark penalty:", buttonLayout)
 
@@ -291,8 +325,84 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     """Clean up"""
     super(PlmRegisterPlugin,self).destroy()
 
+  def parameterStage1IsChanged(self):
+    """ Function called when some stage 1 parameter in the textbox is changed """
+    self.parameterStage1Changed = True
+    print("PARAMETERS VALUE STAGE 1 CHANGED!!!!!")
+    """
+    self.StopRegistration()
+    self.stages[0] = ''
+    self.stages[1] = ''
+    self.stages[2] = self.getStage1Parameters()
+    reg.SetRegistrationParameters("".join(self.stages))
+    DO SOMETHING TO SET THE NEW INPUT AND XFORM (IF REQUIRED)
+    self.StartRegistration()
+    """
+
+  def parameterStage2IsChanged(self):
+    """ Function called when some stage 2 parameter in the textbox is changed """
+    self.parameterStage2Changed = True
+    print("PARAMETERS VALUE STAGE 2 CHANGED!!!!!")
+
+  def parameterStage3IsChanged(self):
+    """ Function called when some stage 3 parameter in the textbox is changed """
+    self.parameterStage3Changed = True
+    print("PARAMETERS VALUE STAGE 3 CHANGED!!!!!")
+
+  def getStage1Parameters(self):
+    parameters_stage1 = ""
+    parameters_stage1 += "[STAGE]\n"
+    parameters_stage1 += "resume = true\n"
+    parameters_stage1 += "xform = bspline\n"
+    parameters_stage1 += "impl = plastimatch\n"
+    parameters_stage1 += "res = %s\n" % str(self.stage1_subsamplingLineEdit.text)
+    parameters_stage1 += "max_its = %s\n" % str(self.stage1_iterationsLineEdit.text)
+    parameters_stage1 += "regularization_lambda = %s\n" % \
+               str(self.stage1_regularizationLineEdit.text)
+    parameters_stage1 += "landmark_stiffness = %s\n" % \
+               str(self.stage1_landmarkPenaltyLineEdit.text)
+    parameters_stage1 += "grid_spacing = {0} {0} {0}\n".format\
+               (str(self.stage1_gridSpacingLineEdit.text)) 
+   
+    return parameters_stage1
+
+  def getStage2Parameters(self):
+    parameters_stage2 = ""
+    parameters_stage2 += "[STAGE]\n"
+    parameters_stage2 += "resume = true\n"
+    parameters_stage2 += "xform = bspline\n"
+    parameters_stage2 += "impl = plastimatch\n"
+    parameters_stage2 += "res = %s\n" % str(self.stage2_subsamplingLineEdit.text)
+    parameters_stage2 += "max_its = %s\n" % str(self.stage2_iterationsLineEdit.text)
+    parameters_stage2 += "regularization_lambda = %s\n" % \
+                 str(self.stage2_regularizationLineEdit.text)
+    parameters_stage2 += "landmark_stiffness = %s\n" % \
+                 str(self.stage2_landmarkPenaltyLineEdit.text)
+    parameters_stage2 += "grid_spacing = {0} {0} {0}\n".format\
+                 (str(self.stage2_gridSpacingLineEdit.text))
+    
+    return parameters_stage2
+
+  def getStage3Parameters(self):
+    parameters_stage3 = ""
+    parameters_stage3 += "[STAGE]\n"
+    parameters_stage3 += "resume = true\n"
+    parameters_stage3 += "xform = bspline\n"
+    parameters_stage3 += "impl = plastimatch\n"
+    parameters_stage3 += "res = %s\n" % str(self.stage3_subsamplingLineEdit.text)
+    parameters_stage3 += "max_its = %s\n" % str(self.stage3_iterationsLineEdit.text)
+    parameters_stage3 += "regularization_lambda = %s\n" % \
+                 str(self.stage3_regularizationLineEdit.text)
+    parameters_stage3 += "landmark_stiffness = %s\n" % \
+                 str(self.stage3_landmarkPenaltyLineEdit.text)
+    parameters_stage3 += "grid_spacing = {0} {0} {0}\n".format\
+                 (str(self.stage3_gridSpacingLineEdit.text))
+    
+    return parameters_stage3
+
   def onLandmarkMoved(self,state):
-    pass
+    self.landmarkMoved = True
+    print ("MOVED!!!")
   
   def onLandmarkMoved_NOT(self,state):
     """Perform the linear transform using the vtkLandmarkTransform class"""
@@ -333,15 +443,18 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     pass
 
   def onApply(self):
-    import os, sys, vtk
-    import vtkSlicerPlastimatchPyModuleLogicPython
     print ("I know that you pushed the apply button!")
+    self.InitializeRegistration()
     self.runOneIteration()
 
-  def runOneIteration(self):
+  def onStop(self):
+    print ("I know that you pushed the stop button!")
+    self.reg.StopRegistration()
+    self.reg.ReturnDataToSlicer()
+
+  def InitializeRegistration(self):
     import os, sys, vtk
-    import vtkSlicerPlastimatchPyModuleLogicPython
-    print ("Hello from runOneIteration")
+    print ("Hello from InitializeRegistration")
 
     self.statusLabel.setText("Working...")
     self.statusLabel.repaint()
@@ -351,93 +464,51 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     if loadablePath not in sys.path:
       sys.path.append(loadablePath)
     
-    print ("Gonna SetMRMLScene")
-    reg = vtkSlicerPlastimatchPyModuleLogicPython.vtkPlmpyRegistration()
-    reg.SetMRMLScene(slicer.mrmlScene)
-    print ("Did SetMRMLScene")
-
     state = self.registrationState()
-    reg.SetFixedImageID(state.fixed.GetID())
-    reg.SetMovingImageID(state.moving.GetID())
-    reg.SetOutputVolumeID(state.transformed.GetID())
+    self.reg.SetFixedImageID(state.fixed.GetID())
+    self.reg.SetMovingImageID(state.moving.GetID())
+    self.reg.SetOutputVolumeID(state.transformed.GetID())
     output_transform = self.outputTransformComboBox.currentNode()
     if output_transform:
-      reg.SetOutputVectorFieldID(output_transform.GetID())
+      self.reg.SetOutputVectorFieldID(output_transform.GetID())
 
     volumeNodes = (state.fixed, state.moving)
     fiducialNodes = (state.fixedFiducials,state.movingFiducials)
     points = state.logic.vtkPointsForVolumes( volumeNodes, fiducialNodes )
 
-    reg.SetFixedLandmarks(points[state.fixed])
-    reg.SetMovingLandmarks(points[state.moving])
+    self.reg.SetFixedLandmarks(points[state.fixed])
+    self.reg.SetMovingLandmarks(points[state.moving])
+
+  def runOneIteration(self):
+    print ("Hello from runOneIteration")
 
     if (self.prealignmentComboBox.currentText == "Global"):
       print ("Gonna AddStage(Global)")
-      reg.AddStage()
-      reg.SetPar("xform","translation")
-      reg.SetPar("impl","plastimatch")
-      reg.SetPar("gridsearch_min_overlap","0.8 0.8 0.8")
-      reg.SetPar("res","4 4 2")
+      self.stages[0] = "[STAGE]\nxform = translation\nimpl = plastimatch\ngridsearch_min_overlap = 0.8 0.8 0.8\nres = 4 4 2\n"
 
     if (self.prealignmentComboBox.currentText == "Local"):
       print ("Gonna AddStage(Local)")
-      reg.AddStage()
-      reg.SetPar("xform","translation")
-      reg.SetPar("impl","itk")
-      reg.SetPar("optim","rsg")
-      reg.SetPar("res","4 4 2")
+      self.stages[1] = "[STAGE]\nxform = translation\nimpl = itk\noptim = rsg\nres = 4 4 2\n"
 
     print ("Gonna AddStage(1)")
-    reg.AddStage()
-    reg.SetPar("xform","bspline")
-    reg.SetPar("impl","plastimatch")
-    reg.SetPar("res",str(self.stage1_subsamplingLineEdit.text))
-    reg.SetPar("iterations",str(self.stage1_iterationsLineEdit.text))
-    reg.SetPar("regularization_lambda",
-               str(self.stage1_regularizationLineEdit.text))
-    reg.SetPar("landmark_stiffness",
-               str(self.stage1_landmarkPenaltyLineEdit.text))
-    reg.SetPar("grid_spacing",'{0} {0} {0}'
-               .format(str(self.stage1_gridSpacingLineEdit.text),
-                       str(self.stage1_gridSpacingLineEdit.text),
-                       str(self.stage1_gridSpacingLineEdit.text)))
+    self.stages[2] = self.getStage1Parameters()
 
     comboText = self.numstagesComboBox.currentText
     if (comboText == "2" or comboText == "3"):
-      reg.AddStage()
-      reg.SetPar("xform","bspline")
-      reg.SetPar("impl","plastimatch")
-      reg.SetPar("res",str(self.stage2_subsamplingLineEdit.text))
-      reg.SetPar("iterations",str(self.stage2_iterationsLineEdit.text))
-      reg.SetPar("regularization_lambda",
-                 str(self.stage2_regularizationLineEdit.text))
-      reg.SetPar("landmark_stiffness",
-                 str(self.stage2_landmarkPenaltyLineEdit.text))
-      reg.SetPar("grid_spacing",'{0} {0} {0}'
-                 .format(str(self.stage2_gridSpacingLineEdit.text),
-                         str(self.stage2_gridSpacingLineEdit.text),
-                         str(self.stage2_gridSpacingLineEdit.text)))
-
-    if (comboText == "3"):
-      reg.AddStage()
-      reg.SetPar("xform","bspline")
-      reg.SetPar("impl","plastimatch")
-      reg.SetPar("res",str(self.stage3_subsamplingLineEdit.text))
-      reg.SetPar("iterations",str(self.stage3_iterationsLineEdit.text))
-      reg.SetPar("regularization_lambda",
-                 str(self.stage3_regularizationLineEdit.text))
-      reg.SetPar("landmark_stiffness",
-                 str(self.stage3_landmarkPenaltyLineEdit.text))
-      reg.SetPar("grid_spacing",'{0} {0} {0}'
-                 .format(str(self.stage3_gridSpacingLineEdit.text),
-                         str(self.stage3_gridSpacingLineEdit.text),
-                         str(self.stage3_gridSpacingLineEdit.text)))
+      self.stages[3] = self.getStage2Parameters()
     
+    if (comboText == "3"):\
+      self.stages[4] = self.getStage3Parameters()
+
+    stages_string = "".join(self.stages)
+    print ("\n\n\nPARAMETERS ARE:\n%s\nEND OF PARAMETERS!\n\n\n") % stages_string
+
     print ("Gonna RunRegistration()")
     print ("prealignment strategy is %s" % str(self.prealignmentComboBox.currentText))
     print ("subsampling is %s" % str(self.stage1_subsamplingLineEdit.text))
 
-    reg.RunRegistration ()
+    self.reg.SetRegistrationParameters(stages_string)
+    self.reg.StartRegistration ()
     print ("Did RunRegistration()")
     self.statusLabel.setText("Done.")
 

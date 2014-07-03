@@ -10,7 +10,7 @@
 #include "plmregister.h"
 
 #include "plastimatch_slicer_bsplineCLP.h"
-#include "plm_stages.h"
+#include "registration.h"
 
 #include "warp_parms.h"
 
@@ -217,14 +217,15 @@ main (int argc, char * argv [])
 
   std::cout << command_string.str() << "\n";
 
-  Registration_parms regp;
-  if (regp.set_command_string (command_string.str()) < 0) {
-    return EXIT_FAILURE;
-  }
+  Registration reg;
+  reg.set_command_string(command_string.str());
+  //if (regp.set_command_string (command_string.str()) < 0) {
+  //  return EXIT_FAILURE;
+  //}
     
 
 //  if (!plmslc_interactive_registration) 
-  do_registration (&regp);
+  reg.do_registration ();
 //		else { 
 //		prepare config for interactive registration
 //		do_interactive_registration();

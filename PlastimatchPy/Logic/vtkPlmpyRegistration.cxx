@@ -76,7 +76,7 @@ vtkPlmpyRegistration::vtkPlmpyRegistration()
 
   this->MovingImageToFixedImageVectorField = NULL;
 
-  this->RegistrationParameters = new Registration_parms();
+  this->RegistrationParameters = NULL;
   this->RegistrationData = new Registration_data();
 
 }
@@ -98,7 +98,7 @@ vtkPlmpyRegistration::~vtkPlmpyRegistration()
 
   this->MovingImageToFixedImageVectorField = NULL;
 
-  delete this->RegistrationParameters;
+  this->SetRegistrationParameters(NULL);
   delete this->RegistrationData;
 }
 
@@ -137,20 +137,16 @@ void vtkPlmpyRegistration::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkPlmpyRegistration::AddStage()
-{
-  this->RegistrationParameters->append_stage();
-}
-
-//---------------------------------------------------------------------------
-void vtkPlmpyRegistration::SetPar(char* key, char* value)
-{
-  printf ("Setting parameter %s %s\n", key, value);
-  this->RegistrationParameters->set_key_value("STAGE", key, value);
-}
-
-//---------------------------------------------------------------------------
 void vtkPlmpyRegistration::RunRegistration()
+{
+    this->StartRegistration();
+    this->registration.wait_for_complete();
+    this->ReturnDataToSlicer();
+
+}
+
+//---------------------------------------------------------------------------
+void vtkPlmpyRegistration::StartRegistration()
 {
   this->RegistrationData->fixed_image = 
     PlmCommon::ConvertVolumeNodeToPlmImage(
@@ -177,9 +173,20 @@ void vtkPlmpyRegistration::RunRegistration()
     this->ApplyInitialLinearTransformation();
   }
 
-  // Run registration and warp image
-  Xform::Pointer outputXform = 
-    do_registration_pure (this->RegistrationData, this->RegistrationParameters);
+  //Registration registration;
+  this->registration.set_fixed_image(this->RegistrationData->fixed_image);
+  this->registration.set_moving_image(this->RegistrationData->moving_image);
+  this->registration.set_command_string(this->RegistrationParameters);
+
+  this->registration.start_registration ();
+}
+
+//---------------------------------------------------------------------------
+void vtkPlmpyRegistration::ReturnDataToSlicer()
+{
+
+  // Get xform and warp image
+  Xform::Pointer outputXform = this->registration.get_current_xform (); 
 
   Plm_image::Pointer warpedImage = Plm_image::New();
   this->ApplyWarp(
@@ -218,13 +225,7 @@ void vtkPlmpyRegistration::RunRegistration()
       origin[2]);
     gridImage->SetSpacing (spacing.GetDataPointer());
     gridImage->SetDimensions (size[0], size[1], size[2]);
-#if (VTK_MAJOR_VERSION <= 5)
-    gridImage->SetScalarTypeToDouble();
-    gridImage->SetNumberOfScalarComponents(3);
-    gridImage->AllocateScalars ();
-#else
     gridImage->AllocateScalars (VTK_DOUBLE, 3);
-#endif
 
     double* vtkDataPtr = reinterpret_cast<double*>(
       gridImage->GetScalarPointer());
@@ -244,16 +245,11 @@ void vtkPlmpyRegistration::RunRegistration()
       }
     }
 
-#if (VTK_MAJOR_VERSION <= 5)
-    vtkgrid->SetDisplacementGrid (gridImage);
-    gridImage->Delete();
-#else
     vtkSmartPointer<vtkTrivialProducer> gridImageProducer = vtkSmartPointer<vtkTrivialProducer>::New();
     gridImageProducer->SetOutput(gridImage);
     vtkgrid->SetDisplacementGridConnection (vtkTrivialProducer::SafeDownCast(gridImage) ?
       vtkTrivialProducer::SafeDownCast(gridImage)->GetOutputPort() : NULL );
     gridImage->Delete();
-#endif
 
     vfNode->SetAndObserveTransformFromParent(vtkgrid);
 
@@ -261,6 +257,13 @@ void vtkPlmpyRegistration::RunRegistration()
   }
   printf ("RunRegistration() is now complete.\n"); //TODO: vtk messages everywhere possible please (vtkDebugMacro and friends)
 }
+
+//---------------------------------------------------------------------------
+void vtkPlmpyRegistration::StopRegistration()
+{
+    this->registration.pause_registration ();
+}
+
 
 //------------------------------------------------------------------------------
 void vtkPlmpyRegistration::WarpLandmarks()
