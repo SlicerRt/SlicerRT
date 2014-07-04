@@ -373,7 +373,7 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
   }
 
   // Create compare contour node
-  std::string compareContourFile = std::string(dataDirectoryPath) + std::string(inputContourReferenceFileName);
+  std::string compareContourFile = std::string(dataDirectoryPath) + std::string(inputContourCompareFileName);
   if (!vtksys::SystemTools::FileExists(compareContourFile.c_str()))
   {
     std::cerr << "Loading contour from file '" << compareContourFile << "' failed - the file does not exist!" << std::endl;

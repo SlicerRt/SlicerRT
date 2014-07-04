@@ -50,13 +50,13 @@ TEST_WITH_DATA(
   EclipseProstate_Dose.nrrd
   ${TEMP}/TestScene_ContourComparison_EclipseProstate.mrml
   0
-  6.12
-  5.49 
-  6.60 
-  0.517694
-  0.1815
+  7.1807
+  5.22673
+  6.3726
+  0.520782
+  0.182964
   99.48
-  0.338187
+  0.336723
   0.0
 )
 set_tests_properties(vtkSlicerContourComparisonModuleLogicTest_EclipseProstate_Base PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
