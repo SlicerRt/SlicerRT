@@ -299,7 +299,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   }
 
   // Create input contour B node
-  std::string inputContourBVolumeFileName = std::string(dataDirectoryPath) + std::string(inputContourAFile);
+  std::string inputContourBVolumeFileName = std::string(dataDirectoryPath) + std::string(inputContourBFile);
   if (!vtksys::SystemTools::FileExists(inputContourBVolumeFileName.c_str()))
   {
     std::cerr << "Loading contour from file '" << inputContourBVolumeFileName << "' failed - the file does not exist!" << std::endl;
