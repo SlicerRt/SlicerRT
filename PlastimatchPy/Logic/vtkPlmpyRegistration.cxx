@@ -224,7 +224,13 @@ void vtkPlmpyRegistration::ReturnDataToSlicer()
       origin[2]);
     gridImage->SetSpacing (spacing.GetDataPointer());
     gridImage->SetDimensions (size[0], size[1], size[2]);
+#if (VTK_MAJOR_VERSION <= 5)
+    gridImage->SetScalarTypeToDouble();
+    gridImage->SetNumberOfScalarComponents(3);
+    gridImage->AllocateScalars();
+#else
     gridImage->AllocateScalars (VTK_DOUBLE, 3);
+#endif
 
     double* vtkDataPtr = reinterpret_cast<double*>(
       gridImage->GetScalarPointer());
@@ -244,10 +250,13 @@ void vtkPlmpyRegistration::ReturnDataToSlicer()
       }
     }
 
+#if (VTK_MAJOR_VERSION <= 5)
+    vtkgrid->SetDisplacementGrid(gridImage);
+#else
     vtkSmartPointer<vtkTrivialProducer> gridImageProducer = vtkSmartPointer<vtkTrivialProducer>::New();
     gridImageProducer->SetOutput(gridImage);
-    vtkgrid->SetDisplacementGridConnection (vtkTrivialProducer::SafeDownCast(gridImage) ?
-      vtkTrivialProducer::SafeDownCast(gridImage)->GetOutputPort() : NULL );
+    vtkgrid->SetDisplacementGridConnection( gridImageProducer->GetOutputPort() );
+#endif
     gridImage->Delete();
 
     vfNode->SetAndObserveTransformFromParent(vtkgrid);

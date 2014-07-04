@@ -173,9 +173,13 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
         contourNode->SetAndObserveRibbonModelPolyData( model );
         if( contourNode->GetRibbonModelDisplayNode() )
         {
+#if (VTK_MAJOR_VERSION <= 5)
+          contourNode->GetRibbonModelDisplayNode()->SetInputPolyData(model);
+#else
           vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
           tp->SetOutput(model);
           contourNode->GetRibbonModelDisplayNode()->SetInputPolyDataConnection(tp->GetOutputPort());
+#endif
         }
       }
       else
@@ -195,9 +199,13 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
         contourNode->SetAndObserveClosedSurfacePolyData( model );
         if( contourNode->GetClosedSurfaceModelDisplayNode() )
         {
+#if (VTK_MAJOR_VERSION <= 5)
+          contourNode->GetClosedSurfaceModelDisplayNode()->SetInputPolyData(model);
+#else
           vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
           tp->SetOutput(model);
           contourNode->GetClosedSurfaceModelDisplayNode()->SetInputPolyDataConnection(tp->GetOutputPort());
+#endif
         }
       }
       else
