@@ -51,7 +51,7 @@
 
 //------------------------------------------------------------------------------
 static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
-static const char* PROTON_TARGET_CONTOUR_REFERENCE_ROLE = "protonTargetContourRef";
+static const char* TARGET_CONTOUR_REFERENCE_ROLE = "targetContourRef";
 static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
 static const char* DRR_REFERENCE_ROLE = "DRRRef";
 static const char* CONTOUR_BEV_REFERENCE_ROLE = "contourBEVRef";
@@ -87,7 +87,7 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 
   this->CollimatorType = SquareHalfMM;
 
-  this->SAD = 0.0;
+  this->ProtonSAD = 0.0;
 
   this->BeamModelNode = NULL;
   this->BeamModelNodeId = NULL;
@@ -224,15 +224,15 @@ void vtkMRMLRTBeamNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducia
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLContourNode* vtkMRMLRTBeamNode::GetProtonTargetContourNode()
+vtkMRMLContourNode* vtkMRMLRTBeamNode::GetTargetContourNode()
 {
-  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(PROTON_TARGET_CONTOUR_REFERENCE_ROLE) );
+  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(TARGET_CONTOUR_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node)
+void vtkMRMLRTBeamNode::SetAndObserveTargetContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNodeReferenceID(PROTON_TARGET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(TARGET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------

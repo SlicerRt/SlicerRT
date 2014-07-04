@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>543</width>
+    <width>545</width>
     <height>827</height>
    </rect>
   </property>
@@ -14,6 +14,571 @@
    <string>RT Plan</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
+   <item row="4" column="0">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_BeamParameters">
+     <property name="text">
+      <string>Beam Parameters</string>
+     </property>
+     <property name="contentsFrameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Beam Name:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEdit_BeamName"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Machine Type:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="comboBox_RadiationType">
+        <item>
+         <property name="text">
+          <string>Proton</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Photon</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Electron</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="18" column="0" colspan="2">
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="tabWidgetPagePhotonRx">
+         <attribute name="title">
+          <string>Prescription</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <layout class="QFormLayout" name="formLayout_2">
+            <property name="fieldGrowthPolicy">
+             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <item row="10" column="0">
+             <widget class="QLabel" name="label_NominalEnergy">
+              <property name="text">
+               <string>Nominal Energy (kVp):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="1">
+             <widget class="QComboBox" name="comboBox_NominalEnergy">
+              <item>
+               <property name="text">
+                <string>80</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>120</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="11" column="0">
+             <widget class="QLabel" name="label_BeamOnTime">
+              <property name="text">
+               <string>Beam On Time (S):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="1">
+             <widget class="QLineEdit" name="lineEdit_BeamOnTime">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="12" column="0">
+             <widget class="QLabel" name="label_NominalmA">
+              <property name="text">
+               <string>Nominal mA:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="12" column="1">
+             <widget class="QLineEdit" name="lineEdit_NominalmA"/>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_15">
+              <property name="text">
+               <string>Target Volume:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_IsocenterFiducial">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="nodeTypes">
+               <stringlist>
+                <string>vtkMRMLMarkupsFiducialNode</string>
+               </stringlist>
+              </property>
+              <property name="showChildNodeTypes">
+               <bool>true</bool>
+              </property>
+              <property name="addEnabled">
+               <bool>false</bool>
+              </property>
+              <property name="removeEnabled">
+               <bool>false</bool>
+              </property>
+              <property name="renameEnabled">
+               <bool>false</bool>
+              </property>
+              <property name="selectNodeUponCreation">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DosePointFiducial">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_IsocenterCoordinates"/>
+            </item>
+            <item row="7" column="1">
+             <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_DosePointCoordinates"/>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_19">
+              <property name="text">
+               <string>Dose Point:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label">
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
+              </property>
+              <property name="text">
+               <string>Isocenter:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_8">
+              <property name="text">
+               <string>Beam Type:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="comboBox_BeamType">
+              <item>
+               <property name="text">
+                <string>Static</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Dynamic</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_12">
+              <property name="text">
+               <string>Rx Dose (Gy):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="lineEdit_RxDose"/>
+            </item>
+            <item row="2" column="1">
+             <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_TargetContour"/>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tabWidgetPageProtonEnergy">
+         <attribute name="title">
+          <string>Energy</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <layout class="QFormLayout" name="formLayout_4">
+            <property name="fieldGrowthPolicy">
+             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_Smearing">
+              <property name="text">
+               <string>Smearing</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="lineEdit_ProtonSmearing">
+              <property name="text">
+               <string>5.0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_">
+              <property name="text">
+               <string>Proximal Margin:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="lineEdit_ProtonProximalMargin">
+              <property name="text">
+               <string>3.0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_24">
+              <property name="text">
+               <string>Distal Margin:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="lineEdit_ProtonDistalMargin">
+              <property name="text">
+               <string>8.0</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tabWidgetPageProtonGeometry">
+         <attribute name="title">
+          <string>Geometry</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Collimator Angle:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="ctkSliderWidget" name="SliderWidget_ProtonCollimatorAngle">
+              <property name="decimals">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <double>359.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Gantry Angle:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="ctkSliderWidget" name="SliderWidget_ProtonGantryAngle">
+              <property name="decimals">
+               <number>0</number>
+              </property>
+              <property name="singleStep">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>10.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>359.000000000000000</double>
+              </property>
+              <property name="tickInterval">
+               <double>18.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Couch Angle:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="ctkSliderWidget" name="SliderWidget_ProtonCouchAngle">
+              <property name="decimals">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <double>359.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tabWidgetPagePhotonGeometry">
+         <attribute name="title">
+          <string>Geometry</string>
+         </attribute>
+         <layout class="QFormLayout" name="formLayout_6">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_MLCLeafPosition">
+            <property name="text">
+             <string>MLC Position DoubleArray:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PhotonMLCPositionDoubleArray">
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLDoubleArrayNode</string>
+             </stringlist>
+            </property>
+            <property name="addEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="removeEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="selectNodeUponCreation">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>X Jaw Positions:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="ctkRangeWidget" name="RangeWidget_PhotonXJawsPosition">
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="minimum">
+             <double>-200.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>200.000000000000000</double>
+            </property>
+            <property name="minimumValue">
+             <double>-100.000000000000000</double>
+            </property>
+            <property name="maximumValue">
+             <double>100.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_20">
+            <property name="text">
+             <string>Y Jaw Positions:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="ctkRangeWidget" name="RangeWidget_PhotonYJawsPosition">
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="minimum">
+             <double>-200.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>200.000000000000000</double>
+            </property>
+            <property name="minimumValue">
+             <double>-100.000000000000000</double>
+            </property>
+            <property name="maximumValue">
+             <double>100.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>Collimator Angle:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="ctkSliderWidget" name="SliderWidget_PhotonCollimatorAngle"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Gantry Angle:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="ctkSliderWidget" name="SliderWidget_PhotonGantryAngle"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_23">
+            <property name="text">
+             <string>Couch Angle:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="ctkSliderWidget" name="SliderWidget_PhotonCouchAngle"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tabWidgetPageProtoonBeamModel">
+         <attribute name="title">
+          <string>Beam Model</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <layout class="QFormLayout" name="formLayout_3">
+            <property name="fieldGrowthPolicy">
+             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_16">
+              <property name="text">
+               <string>Source distance</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="lineEdit_ProtonSourceDistance">
+              <property name="text">
+               <string>2000</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>Energy resolution</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="lineEdit_ProtonEnergyResolution">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>Energy spread</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="lineEdit_ProtonEnergySpread">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_17">
+              <property name="text">
+               <string>Source size</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="lineEdit_ProtonSourceSize">
+              <property name="text">
+               <string>20</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tabWidgetPhotonBeamModel">
+         <attribute name="title">
+          <string>Beam Model</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="tabWidgetPageVisualization">
+         <attribute name="title">
+          <string>Visualization</string>
+         </attribute>
+         <layout class="QFormLayout" name="formLayout_5">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="checkBox_BeamEyesView">
+            <property name="text">
+             <string>Beam eye's view</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="checkBox_ContoursInBEW">
+            <property name="text">
+             <string>Include Contour in BEW</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="pushButton_UpdateDRR">
+            <property name="text">
+             <string>Update DRR</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="1" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <property name="sizeConstraint">
@@ -37,7 +602,7 @@
      </item>
     </layout>
    </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0,0">
      <property name="sizeConstraint">
       <enum>QLayout::SetFixedSize</enum>
@@ -83,682 +648,237 @@
      <property name="text">
       <string>RT Plan</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <property name="margin">
-       <number>4</number>
-      </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_ReferenceVolume">
-        <property name="text">
-         <string>Reference Volume:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_PlanContours">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string>Plan Contours:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
-         </stringlist>
-        </property>
-        <property name="addEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="removeEnabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0" colspan="3">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_AddBeam">
-          <property name="text">
-           <string>Add Beam</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_RemoveBeam">
-          <property name="text">
-           <string>Remove Beam</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="3" column="0" colspan="3">
-       <widget class="QTableWidget" name="tableWidget_Beams">
-        <property name="columnCount">
-         <number>4</number>
-        </property>
-        <attribute name="horizontalHeaderVisible">
-         <bool>true</bool>
-        </attribute>
-        <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>70</number>
-        </attribute>
-        <attribute name="horizontalHeaderHighlightSections">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="horizontalHeaderMinimumSectionSize">
-         <number>10</number>
-        </attribute>
-        <column>
-         <property name="text">
-          <string>Vis</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Name</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Type</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Radiation</string>
-         </property>
-        </column>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_RTPlan">
-        <property name="text">
-         <string>RT Plan:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLRTPlanNode</string>
-         </stringlist>
-        </property>
-        <property name="addEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="removeEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="renameEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="selectNodeUponCreation">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_BeamVisualization">
-     <property name="text">
-      <string>Beam Visualization</string>
-     </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox_BeamEyesView">
-        <property name="text">
-         <string>Beam eye's view</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="pushButton_UpdateDRR">
-        <property name="text">
-         <string>Update DRR</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox_ContoursInBEW">
-        <property name="text">
-         <string>Include Contour in BEW</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_BeamParameters">
-     <property name="text">
-      <string>Beam Parameters</string>
-     </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Beam Name:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="lineEdit_BeamName"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_9">
-        <property name="text">
-         <string>Radiation Type:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="comboBox_RadiationType">
-        <item>
-         <property name="text">
-          <string>Proton</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Photon</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Electron</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QTabWidget" name="tabWidget">
+      <property name="margin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QTabWidget" name="tabWidget_RTPlan">
         <property name="currentIndex">
          <number>0</number>
         </property>
-        <widget class="QWidget" name="tabWidgetPagePhoton">
+        <widget class="QWidget" name="tabWidgetPagePlan">
          <attribute name="title">
-          <string>Photon Rx</string>
+          <string>Plan</string>
          </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <layout class="QFormLayout" name="formLayout_2">
-            <property name="fieldGrowthPolicy">
-             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="4" column="2">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseROI">
+            <property name="enabled">
+             <bool>true</bool>
             </property>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Beam Type:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QComboBox" name="comboBox_BeamType">
-              <item>
-               <property name="text">
-                <string>Static</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Dynamic</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_12">
-              <property name="text">
-               <string>Rx Dose (Gy):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QLineEdit" name="lineEdit_RxDose"/>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_NominalEnergy">
-              <property name="text">
-               <string>Nominal Energy (kVp):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QComboBox" name="comboBox_NominalEnergy">
-              <item>
-               <property name="text">
-                <string>80</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>120</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_BeamOnTime">
-              <property name="text">
-               <string>Beam On Time (S):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QLineEdit" name="lineEdit_BeamOnTime">
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0">
-             <widget class="QLabel" name="label_NominalmA">
-              <property name="text">
-               <string>Nominal mA:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="1">
-             <widget class="QLineEdit" name="lineEdit_NominalmA"/>
-            </item>
-            <item row="7" column="0">
-             <widget class="QLabel" name="label_MLCLeafPosition">
-              <property name="text">
-               <string>MLC Position DoubleArray:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="1">
-             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_MLCPositionDoubleArray">
-              <property name="nodeTypes">
-               <stringlist>
-                <string>vtkMRMLDoubleArrayNode</string>
-               </stringlist>
-              </property>
-              <property name="addEnabled">
-               <bool>false</bool>
-              </property>
-              <property name="removeEnabled">
-               <bool>false</bool>
-              </property>
-              <property name="selectNodeUponCreation">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="0">
-             <widget class="QLabel" name="label_18">
-              <property name="text">
-               <string>X Jaw Positions:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="9" column="0">
-             <widget class="QLabel" name="label_20">
-              <property name="text">
-               <string>Y Jaw Positions:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="1">
-             <widget class="ctkRangeWidget" name="RangeWidget_XJawsPosition">
-              <property name="decimals">
-               <number>0</number>
-              </property>
-              <property name="minimum">
-               <double>-200.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>200.000000000000000</double>
-              </property>
-              <property name="minimumValue">
-               <double>-100.000000000000000</double>
-              </property>
-              <property name="maximumValue">
-               <double>100.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="9" column="1">
-             <widget class="ctkRangeWidget" name="RangeWidget_YJawsPosition">
-              <property name="decimals">
-               <number>0</number>
-              </property>
-              <property name="minimum">
-               <double>-200.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>200.000000000000000</double>
-              </property>
-              <property name="minimumValue">
-               <double>-100.000000000000000</double>
-              </property>
-              <property name="maximumValue">
-               <double>100.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLAnnotationROINode</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLScalarVolumeNode</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_RTPlan">
+            <property name="text">
+             <string>RT Plan:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_PlanContours">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>Plan Contours:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Dose Volume:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Dose ROI:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="2">
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_ReferenceVolume">
+            <property name="text">
+             <string>Reference Volume:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="QLineEdit" name="lineEdit_DoseGridSpacing"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>Dose Grid Spacing:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLScalarVolumeNode</string>
+             </stringlist>
+            </property>
+            <property name="addEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="removeEnabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget"/>
+          </item>
+          <item row="2" column="2">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLRTPlanNode</string>
+             </stringlist>
+            </property>
+            <property name="addEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="removeEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="renameEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="selectNodeUponCreation">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="tabWidgetPageProton">
+        <widget class="QWidget" name="tabWidgetPageBeams">
          <attribute name="title">
-          <string>Proton Rx</string>
+          <string>Beams</string>
          </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_8">
-          <item>
-           <layout class="QFormLayout" name="formLayout_4">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_ProtonRxDose">
-              <property name="text">
-               <string>Rx Dose (Gy):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_Smearing">
-              <property name="text">
-               <string>Smearing</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_">
-              <property name="text">
-               <string>Proximal Margin:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_24">
-              <property name="text">
-               <string>Distal Margin:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="lineEdit"/>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="lineEdit_Smearing">
-              <property name="text">
-               <string>5.0</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QLineEdit" name="lineEdit_ProximalMargin">
-              <property name="text">
-               <string>3.0</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QLineEdit" name="lineEdit_DistalMargin">
-              <property name="text">
-               <string>8.0</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tabWidgetPageGeometry">
-         <attribute name="title">
-          <string>Geometry</string>
-         </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <layout class="QFormLayout" name="formLayout">
-            <property name="fieldGrowthPolicy">
-             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <widget class="QTableWidget" name="tableWidget_Beams">
+            <property name="columnCount">
+             <number>4</number>
             </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_15">
-              <property name="text">
-               <string>Target Volume:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ProtonTargetContour">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="nodeTypes">
-               <stringlist>
-                <string>vtkMRMLContourNode</string>
-               </stringlist>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label">
-              <property name="frameShape">
-               <enum>QFrame::NoFrame</enum>
-              </property>
-              <property name="text">
-               <string>Isocenter:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_IsocenterFiducial">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="nodeTypes">
-               <stringlist>
-                <string>vtkMRMLMarkupsFiducialNode</string>
-               </stringlist>
-              </property>
-              <property name="showChildNodeTypes">
-               <bool>true</bool>
-              </property>
-              <property name="addEnabled">
-               <bool>false</bool>
-              </property>
-              <property name="removeEnabled">
-               <bool>false</bool>
-              </property>
-              <property name="renameEnabled">
-               <bool>false</bool>
-              </property>
-              <property name="selectNodeUponCreation">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Gantry Angle:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="ctkSliderWidget" name="SliderWidget_GantryAngle">
-              <property name="decimals">
-               <number>0</number>
-              </property>
-              <property name="singleStep">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="pageStep">
-               <double>10.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>359.000000000000000</double>
-              </property>
-              <property name="tickInterval">
-               <double>18.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Couch Angle:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="ctkSliderWidget" name="SliderWidget_CouchAngle">
-              <property name="decimals">
-               <number>0</number>
-              </property>
-              <property name="maximum">
-               <double>359.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_5">
-              <property name="text">
-               <string>Collimator Angle:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="ctkSliderWidget" name="SliderWidget_CollimatorAngle">
-              <property name="decimals">
-               <number>0</number>
-              </property>
-              <property name="maximum">
-               <double>359.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
+            <attribute name="horizontalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="horizontalHeaderDefaultSectionSize">
+             <number>70</number>
+            </attribute>
+            <attribute name="horizontalHeaderHighlightSections">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="horizontalHeaderMinimumSectionSize">
+             <number>10</number>
+            </attribute>
+            <column>
+             <property name="text">
+              <string>Vis</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Name</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Type</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Radiation</string>
+             </property>
+            </column>
+           </widget>
           </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tabWidgetPageBeamModel">
-         <attribute name="title">
-          <string>Beam Model</string>
-         </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <layout class="QFormLayout" name="formLayout_3">
-            <property name="fieldGrowthPolicy">
-             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-            </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_16">
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_AddBeam">
               <property name="text">
-               <string>Source distance</string>
+               <string>Add Beam</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="lineEdit_SourceDistance">
+            <item>
+             <widget class="QPushButton" name="pushButton_RemoveBeam">
               <property name="text">
-               <string>2000</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Energy resolution</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QLineEdit" name="lineEdit_EnergyResolution">
-              <property name="text">
-               <string>1</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_11">
-              <property name="text">
-               <string>Energy spread</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QLineEdit" name="lineEdit_EnergySpread">
-              <property name="text">
-               <string>1</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_17">
-              <property name="text">
-               <string>Source size</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="lineEdit_SourceSize">
-              <property name="text">
-               <string>20</string>
+               <string>Remove Beam</string>
               </property>
              </widget>
             </item>
@@ -774,6 +894,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>qMRMLCoordinatesWidget</class>
+   <extends>ctkCoordinatesWidget</extends>
+   <header>qMRMLCoordinatesWidget.h</header>
+  </customwidget>
   <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
@@ -797,6 +922,11 @@
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCoordinatesWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkCoordinatesWidget.h</header>
   </customwidget>
   <customwidget>
    <class>ctkRangeWidget</class>
@@ -828,8 +958,8 @@
      <y>3</y>
     </hint>
     <hint type="destinationlabel">
-     <x>448</x>
-     <y>76</y>
+     <x>515</x>
+     <y>114</y>
     </hint>
    </hints>
   </connection>
@@ -860,15 +990,15 @@
      <y>735</y>
     </hint>
     <hint type="destinationlabel">
-     <x>313</x>
-     <y>124</y>
+     <x>380</x>
+     <y>159</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>qSlicerExternalBeamPlanningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_MLCPositionDoubleArray</receiver>
+   <receiver>MRMLNodeComboBox_PhotonMLCPositionDoubleArray</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -876,8 +1006,8 @@
      <y>744</y>
     </hint>
     <hint type="destinationlabel">
-     <x>519</x>
-     <y>626</y>
+     <x>513</x>
+     <y>534</y>
     </hint>
    </hints>
   </connection>
@@ -892,8 +1022,8 @@
      <y>739</y>
     </hint>
     <hint type="destinationlabel">
-     <x>469</x>
-     <y>497</y>
+     <x>521</x>
+     <y>603</y>
     </hint>
    </hints>
   </connection>
@@ -908,8 +1038,24 @@
      <y>5</y>
     </hint>
     <hint type="destinationlabel">
-     <x>231</x>
-     <y>88</y>
+     <x>298</x>
+     <y>133</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerExternalBeamPlanningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ContourSelectorWidget_TargetContour</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>183</x>
+     <y>820</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>180</x>
+     <y>549</y>
     </hint>
    </hints>
   </connection>

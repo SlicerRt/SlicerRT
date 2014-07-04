@@ -164,9 +164,9 @@ public:
   void SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node);
 
   /// Get proton target contour node
-  vtkMRMLContourNode* GetProtonTargetContourNode();
+  vtkMRMLContourNode* GetTargetContourNode();
   /// Set and observe proton target contour node
-  void SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node);
+  void SetAndObserveTargetContourNode(vtkMRMLContourNode* node);
 
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
@@ -180,7 +180,7 @@ protected:
   void operator=(const vtkMRMLExternalBeamPlanningNode&);
 
 protected:
-	  /// Name of the structure that corresponds to this contour
+  /// Name of the structure that corresponds to this contour
   char* BeamName;
   int   BeamNumber;
   char* BeamDescription;

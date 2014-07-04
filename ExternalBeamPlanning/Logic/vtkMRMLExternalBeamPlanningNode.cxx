@@ -45,7 +45,7 @@ static const char* RFERENCE_VOLUME_REFERENCE_ROLE = "referenceVolumeRef";
 static const char* RT_PLAN_REFERENCE_ROLE = "rtPlanRef";
 static const char* PLAN_CONTOUR_SET_REFERENCE_ROLE = "planContourSetRef";
 static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
-static const char* PROTON_TARGET_CONTOUR_REFERENCE_ROLE = "protonTargetContourRef";
+static const char* TARGET_CONTOUR_REFERENCE_ROLE = "targetContourRef";
 static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
 
 //------------------------------------------------------------------------------
@@ -174,15 +174,15 @@ void vtkMRMLExternalBeamPlanningNode::SetAndObserveIsocenterFiducialNode(vtkMRML
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLContourNode* vtkMRMLExternalBeamPlanningNode::GetProtonTargetContourNode()
+vtkMRMLContourNode* vtkMRMLExternalBeamPlanningNode::GetTargetContourNode()
 {
-  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(PROTON_TARGET_CONTOUR_REFERENCE_ROLE) );
+  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(TARGET_CONTOUR_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLExternalBeamPlanningNode::SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node)
+void vtkMRMLExternalBeamPlanningNode::SetAndObserveTargetContourNode(vtkMRMLContourNode* node)
 {
-  this->SetNodeReferenceID(PROTON_TARGET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(TARGET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------

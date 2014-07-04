@@ -80,7 +80,7 @@ public:
   vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, vtkDoubleArray*);
 
   /// TODO
-  void ComputeDose ();
+  void ComputeDose (char*);
 
   /// TODO
   void ComputeWED ();

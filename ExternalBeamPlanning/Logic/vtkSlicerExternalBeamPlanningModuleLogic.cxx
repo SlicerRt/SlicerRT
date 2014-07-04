@@ -1009,7 +1009,7 @@ itk_rectify_volume_hack (T image)
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
+void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose(char* beamname)
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
   {
@@ -1017,12 +1017,47 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     return;
   }
 
-  Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(
-    this->ExternalBeamPlanningNode->GetReferenceVolumeNode());
+  vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
+
+  // Make sure inputs are initialized
+  if (!rtPlanNode || !referenceVolumeNode)
+  {
+    vtkErrorMacro("UpdateBeamTransform: Inputs are not initialized!")
+    return;
+  }
+
+  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
+  rtPlanNode->GetRTBeamNodes(beams);
+  // Fill the table
+  if (!beams) return;
+  vtkMRMLRTBeamNode* beamNode = NULL;
+  for (int i=0; i<beams->GetNumberOfItems(); ++i)
+  {
+    beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
+    if (beamNode)
+    {
+      if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
+      {
+        //RTPlanNode->RemoveRTBeamNode(beamNode);
+        break;
+      }
+    }
+  }
+
+  // Make sure inputs are initialized
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    return;
+  }
+
+  Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
   plmRef->print ();
 
-  vtkMRMLContourNode* targetContourNode = this->ExternalBeamPlanningNode->GetProtonTargetContourNode();
-  Plm_image::Pointer plmTgt = PlmCommon::ConvertVolumeNodeToPlmImage( targetContourNode );
+  vtkMRMLContourNode* targetContourNode = beamNode->GetTargetContourNode();
+  vtkMRMLScalarVolumeNode* targetLabelmapNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(targetContourNode);
+  Plm_image::Pointer plmTgt = PlmCommon::ConvertVolumeNodeToPlmImage( targetLabelmapNode );
   plmTgt->print ();
 
 #if defined (commentout)
@@ -1055,18 +1090,19 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose()
     printf ("Done.\n");
 
     printf ("Gantry angle is: %g\n",
-            this->ExternalBeamPlanningNode->GetGantryAngle());
+            beamNode->GetGantryAngle());
 
     float src_dist = 2000;
     float src[3];
-    float isocenter[3] = { 0, 0, 0 };
+    double isocenter[3] = { 0, 0, 0 };
+    beamNode->GetIsocenterFiducialNode()->GetNthFiducialPosition(0,isocenter);
 
     /* Adjust src according to gantry angle */
     float ga_radians = 
-      this->ExternalBeamPlanningNode->GetGantryAngle() * M_PI / 180.;
+      beamNode->GetGantryAngle() * M_PI / 180.;
     src[0] = - src_dist * sin(ga_radians);
     src[1] = src_dist * cos(ga_radians);
-    src[2] = 0.f;
+    src[2] = isocenter[2];
 
     ion_plan.beam->set_source_position (src);
     ion_plan.beam->set_isocenter_position (isocenter);

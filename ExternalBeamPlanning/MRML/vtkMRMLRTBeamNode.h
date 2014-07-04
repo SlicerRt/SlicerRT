@@ -104,6 +104,10 @@ public:
   vtkSetStringMacro(BeamDescription);
 
   /// Get/Set Save labelmaps checkbox state
+  vtkGetMacro(RxDose, double);
+  vtkSetMacro(RxDose, double);
+
+  /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(NominalEnergy, double);
   vtkSetMacro(NominalEnergy, double);
 
@@ -114,10 +118,6 @@ public:
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(BeamOnTime, double);
   vtkSetMacro(BeamOnTime, double);
-
-  /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(RxDose, double);
-  vtkSetMacro(RxDose, double);
 
   vtkGetMacro(X1Jaw, double);
   vtkSetMacro(X1Jaw, double);
@@ -141,20 +141,20 @@ public:
   vtkSetMacro(CouchAngle, double);
 
   ///
-  vtkGetMacro(Smearing, double);
-  vtkSetMacro(Smearing, double);
+  vtkGetMacro(ProtonSmearing, double);
+  vtkSetMacro(ProtonSmearing, double);
   
   ///
-  vtkGetMacro(ProximalMargin, double);
-  vtkSetMacro(ProximalMargin, double);
+  vtkGetMacro(ProtonProximalMargin, double);
+  vtkSetMacro(ProtonProximalMargin, double);
   
   ///
-  vtkGetMacro(DistalMargin, double);
-  vtkSetMacro(DistalMargin, double);
+  vtkGetMacro(ProtonDistalMargin, double);
+  vtkSetMacro(ProtonDistalMargin, double);
  
   /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(SAD, double);
-  vtkSetMacro(SAD, double);
+  vtkGetMacro(ProtonSAD, double);
+  vtkSetMacro(ProtonSAD, double);
 
   /// Get beam model node ID
   vtkGetStringMacro(BeamModelNodeId);
@@ -174,9 +174,9 @@ public:
   void SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node);
 
   /// Get proton target contour node
-  vtkMRMLContourNode* GetProtonTargetContourNode();
+  vtkMRMLContourNode* GetTargetContourNode();
   /// Set and observe proton target contour node
-  void SetAndObserveProtonTargetContourNode(vtkMRMLContourNode* node);
+  void SetAndObserveTargetContourNode(vtkMRMLContourNode* node);
 
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
@@ -211,25 +211,27 @@ protected:
   RTRadiationType RadiationType;
 
   RTBeamType  BeamType;
-  RTCollimatorType CollimatorType;
+  double RxDose;
+  double Isocenter[3];
+  double dosePoint[3];
+
   double NominalEnergy;
   double NominalmA;
-  double RxDose;
   double BeamOnTime;
   double X1Jaw;
   double X2Jaw;
   double Y1Jaw;
   double Y2Jaw;
+  RTCollimatorType CollimatorType;
 
-  double Isocenter[3];
   double GantryAngle;
   double CollimatorAngle;
   double CouchAngle;
 
-  double Smearing;
-  double ProximalMargin;
-  double DistalMargin;
-  double SAD;
+  double ProtonSmearing;
+  double ProtonProximalMargin;
+  double ProtonDistalMargin;
+  double ProtonSAD;
 
   /// Beam model representation
   vtkMRMLModelNode* BeamModelNode;

@@ -217,47 +217,43 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
       this->rtPlanNodeChanged(d->MRMLNodeComboBox_RtPlan->currentNode());
     }
 
-	if (paramNode->GetMLCPositionDoubleArrayNode())
+    if (paramNode->GetMLCPositionDoubleArrayNode())
     {
-      d->MRMLNodeComboBox_MLCPositionDoubleArray->setCurrentNode(paramNode->GetMLCPositionDoubleArrayNode());
+      d->MRMLNodeComboBox_PhotonMLCPositionDoubleArray->setCurrentNode(paramNode->GetMLCPositionDoubleArrayNode());
     }
     else
     {
-		this->MLCPositionDoubleArrayNodeChanged(d->MRMLNodeComboBox_MLCPositionDoubleArray->currentNode());
+      this->MLCPositionDoubleArrayNodeChanged(d->MRMLNodeComboBox_PhotonMLCPositionDoubleArray->currentNode());
     }
 
-    if (paramNode->GetProtonTargetContourNode())
+    if (paramNode->GetTargetContourNode())
     {
-      d->MRMLNodeComboBox_ProtonTargetContour->setCurrentNode(paramNode->GetProtonTargetContourNode());
+      d->ContourSelectorWidget_TargetContour->setCurrentNode(paramNode->GetTargetContourNode());
     }
     else
     {
-      this->protonTargetContourNodeChanged(d->MRMLNodeComboBox_ProtonTargetContour->currentNode());
+      this->targetContourNodeChanged(d->ContourSelectorWidget_TargetContour->currentNode());
     }
 
-	if (paramNode->GetIsocenterFiducialNode())
+    if (paramNode->GetIsocenterFiducialNode())
     {
       d->MRMLNodeComboBox_IsocenterFiducial->setCurrentNode(paramNode->GetIsocenterFiducialNode());
     }
     else
     {
-		this->isocenterFiducialNodeChanged(d->MRMLNodeComboBox_IsocenterFiducial->currentNode());
+      this->isocenterFiducialNodeChanged(d->MRMLNodeComboBox_IsocenterFiducial->currentNode());
     }
 
-	if (paramNode->GetBeamName())
+    if (paramNode->GetBeamName())
     {
-	  d->lineEdit_BeamName->setText(paramNode->GetBeamName());
-	}
+      d->lineEdit_BeamName->setText(paramNode->GetBeamName());
+    }
 
-	if (paramNode->GetIsocenterFiducialNode())
-    {
-	  d->RangeWidget_XJawsPosition->setValues(-paramNode->GetX1Jaw(), paramNode->GetX2Jaw());
-	}
-
-	d->RangeWidget_YJawsPosition->setValues(-paramNode->GetY1Jaw(), paramNode->GetY2Jaw());
-	d->SliderWidget_GantryAngle->setValue(paramNode->GetGantryAngle());
-	d->SliderWidget_CollimatorAngle->setValue(paramNode->GetCollimatorAngle());
-	d->SliderWidget_CouchAngle->setValue(paramNode->GetCouchAngle());
+    d->RangeWidget_PhotonXJawsPosition->setValues(-paramNode->GetX1Jaw(), paramNode->GetX2Jaw());
+    d->RangeWidget_PhotonYJawsPosition->setValues(-paramNode->GetY1Jaw(), paramNode->GetY2Jaw());
+    d->SliderWidget_PhotonGantryAngle->setValue(paramNode->GetGantryAngle());
+    d->SliderWidget_PhotonCollimatorAngle->setValue(paramNode->GetCollimatorAngle());
+    d->SliderWidget_PhotonCouchAngle->setValue(paramNode->GetCouchAngle());
   }
 }
 
@@ -272,15 +268,23 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   d->ContourSelectorWidget->setAcceptContourHierarchies(true);
   d->ContourSelectorWidget->setRequiredRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
 
+  d->ContourSelectorWidget_TargetContour->setAcceptContourHierarchies(false);
+  d->ContourSelectorWidget_TargetContour->setRequiredRepresentation(vtkMRMLContourNode::IndexedLabelmap);
+
   // Make connections
   this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setExternalBeamPlanningNode(vtkMRMLNode*)) );
+
+  // RT plan page
   this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
   this->connect( d->ContourSelectorWidget, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planContourSetNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtPlanNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtDoseVolumeNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_DoseROI, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtDoseROINodeChanged(vtkMRMLNode*)) );
+  this->connect( d->lineEdit_DoseGridSpacing, SIGNAL(textChanged(const QString &)), this, SLOT(doseGridSpacingChanged(const QString &)) );
 
+  // RT Beams page
   this->connect( d->tableWidget_Beams, SIGNAL(itemClicked(QtableWidgetItem *item)), this, SLOT(tableWidgetItemClicked(QtableWidgetItem *item)) );
   this->connect( d->tableWidget_Beams, SIGNAL(itemSelectionChanged()), this, SLOT(tableWidgetItemSelectionChanged()) );
-
   this->connect( d->pushButton_AddBeam, SIGNAL(clicked()), this, SLOT(addBeamClicked()) );
   this->connect( d->pushButton_RemoveBeam, SIGNAL(clicked()), this, SLOT(removeBeamClicked()) );
 
@@ -288,32 +292,50 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
   this->connect( d->comboBox_RadiationType, SIGNAL(currentIndexChanged(int)), this, SLOT(radiationTypeChanged(int)) );
 
-  /* Photon prescription page */
+  /* Prescription page */
   this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
+  this->connect( d->ContourSelectorWidget_TargetContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(targetContourNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->lineEdit_RxDose, SIGNAL(textChanged(const QString &)), this, SLOT(RxDoseChanged(const QString &)) );
+  this->connect( d->MRMLNodeComboBox_IsocenterFiducial, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(isocenterFiducialNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_DosePointFiducial, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(dosePointFiducialNodeChanged(vtkMRMLNode*)) );
   this->connect( d->comboBox_NominalEnergy, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(nominalEnergyChanged(const QString&)) );
   this->connect( d->lineEdit_NominalmA, SIGNAL(textChanged(const QString &)), this, SLOT(nominalmAChanged(const QString &)) );
-  this->connect( d->lineEdit_RxDose, SIGNAL(textChanged(const QString &)), this, SLOT(RxDoseChanged(const QString &)) );
   this->connect( d->lineEdit_BeamOnTime, SIGNAL(textChanged(const QString &)), this, SLOT(beamOnTimeChanged(const QString &)) );
 
-  this->connect( d->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(MLCPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(XJawsPositionValuesChanged(double, double)) );
-  this->connect( d->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(YJawsPositionValuesChanged(double, double)) );
+  /* Energy page */
+  this->connect( d->lineEdit_ProtonSmearing, SIGNAL(textChanged(const QString &)), this, SLOT(protonSmearingChanged(const QString &)) );
+  this->connect( d->lineEdit_ProtonProximalMargin, SIGNAL(textChanged(const QString &)), this, SLOT(protonProximalMarginChanged(const QString &)) );
+  this->connect( d->lineEdit_ProtonDistalMargin, SIGNAL(textChanged(const QString &)), this, SLOT(protonDistalMarginChanged(const QString &)) );
 
-  /* Geometry page */
-  this->connect( d->MRMLNodeComboBox_ProtonTargetContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(protonTargetContourNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_IsocenterFiducial, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(isocenterFiducialNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->SliderWidget_GantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
-  this->connect( d->SliderWidget_CollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
-  this->connect( d->SliderWidget_CouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
+  /* Proton Geometry page */
+  this->connect( d->SliderWidget_ProtonGantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
+  this->connect( d->SliderWidget_ProtonCollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
+  this->connect( d->SliderWidget_ProtonCouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
 
-  /* Calculation buttons */
-  this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
-  this->connect( d->pushButton_CalculateWED, SIGNAL(clicked()), this, SLOT(calculateWEDClicked()) );
+  /* Photon Geometry page */
+  this->connect( d->MRMLNodeComboBox_PhotonMLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(MLCPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->RangeWidget_PhotonXJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(XJawsPositionValuesChanged(double, double)) );
+  this->connect( d->RangeWidget_PhotonYJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(YJawsPositionValuesChanged(double, double)) );
+  this->connect( d->SliderWidget_PhotonGantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
+  this->connect( d->SliderWidget_PhotonCollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
+  this->connect( d->SliderWidget_PhotonCouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
+
+  /* Proton beam model */
+  this->connect( d->lineEdit_ProtonSourceDistance, SIGNAL(textChanged(const QString &)), this, SLOT(protonSourceDistanceChanged(const QString &)) );
+  this->connect( d->lineEdit_ProtonSourceSize, SIGNAL(textChanged(const QString &)), this, SLOT(protonSourceSizeChanged(const QString &)) );
+  this->connect( d->lineEdit_ProtonEnergyResolution, SIGNAL(textChanged(const QString &)), this, SLOT(protonEnergyResolutionChanged(const QString &)) );
+  this->connect( d->lineEdit_ProtonEnergySpread, SIGNAL(textChanged(const QString &)), this, SLOT(protonEnerySpreadChanged(const QString &)) );
+
+  /* Photon beam model */
 
   /* Beam visualization */
   this->connect( d->pushButton_UpdateDRR, SIGNAL(clicked()), this, SLOT(updateDRRClicked()) );
   this->connect( d->checkBox_BeamEyesView, SIGNAL(clicked(bool)), this, SLOT(beamEyesViewClicked(bool)) );
   this->connect( d->checkBox_ContoursInBEW, SIGNAL(clicked(bool)), this, SLOT(contoursInBEWClicked(bool)) );
+
+  /* Calculation buttons */
+  this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
+  this->connect( d->pushButton_CalculateWED, SIGNAL(clicked()), this, SLOT(calculateWEDClicked()) );
 
   /* Disable unused buttons in prescription task */
   this->radiationTypeChanged(0);
@@ -408,6 +430,49 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
 }
 
 //-----------------------------------------------------------------------------
+vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode(vtkMRMLExternalBeamPlanningNode* paramNode)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  QTableWidgetItem *item = NULL;
+  char beamName[100];
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+  if (!item)
+  {
+    return NULL;
+  }
+  strcpy(beamName, item->text().toStdString().c_str());
+
+  vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRtPlanNode();
+  if (!rtPlanNode)
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChanged: Invalid rtplan node!";
+    return NULL;
+  }
+
+  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
+  rtPlanNode->GetRTBeamNodes(beams);
+  if (!beams) 
+  {
+    return NULL;
+  }
+  vtkMRMLRTBeamNode* beamNode = NULL;
+  for (int i=0; i<beams->GetNumberOfItems(); ++i)
+  {
+    beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
+    if (beamNode)
+    {
+      if ( strcmp(beamNode->GetBeamName(), beamName) == 0)
+      {
+        break;
+      }
+    }
+  }
+  
+  return beamNode;
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
@@ -474,56 +539,13 @@ void qSlicerExternalBeamPlanningModuleWidget::rtPlanNodeChanged(vtkMRMLNode* nod
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode(vtkMRMLExternalBeamPlanningNode* paramNode)
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  QTableWidgetItem *item = NULL;
-  char beamName[100];
-  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
-  if (!item)
-  {
-    return NULL;
-  }
-  strcpy(beamName, item->text().toStdString().c_str());
-
-  vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRtPlanNode();
-  if (!rtPlanNode)
-  {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChanged: Invalid rtplan node!";
-    return NULL;
-  }
-
-  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  rtPlanNode->GetRTBeamNodes(beams);
-  if (!beams) 
-  {
-    return NULL;
-  }
-  vtkMRMLRTBeamNode* beamNode = NULL;
-  for (int i=0; i<beams->GetNumberOfItems(); ++i)
-  {
-    beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-    if (beamNode)
-    {
-      if ( strcmp(beamNode->GetBeamName(), beamName) == 0)
-      {
-        break;
-      }
-    }
-  }
-  
-  return beamNode;
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::rtDoseVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged: Invalid scene!";
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::planContoursNodeChanged: Invalid scene!";
     return;
   }
 
@@ -533,38 +555,19 @@ void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(
     return;
   }
 
-  // Get rt plan node for ExternalBeamPlanning node
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetExternalBeamPlanningNode()->GetRtPlanNode();
-  if (!rtPlanNode)
-  { 
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget: Invalid rtplan node!";
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode::SafeDownCast(node));
-  paramNode->DisableModifiedEventOff();
-
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
-
-  // Make sure inputs are initialized
-  if (!beamNode)
-  {
-    qCritical() << "couchAngleChanged: Inputs are not initialized!";
-    return;
-  }
-
-  beamNode->SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode::SafeDownCast(node));
+  // paramNode->DisableModifiedEventOn();
+  // paramNode->SetAndObservePlanContourSetNode(node);
+  // paramNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::rtDoseROINodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::IsocenterFiducialNodeChanged: Invalid scene!";
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::planContoursNodeChanged: Invalid scene!";
     return;
   }
 
@@ -574,68 +577,18 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChanged(vtkMR
     return;
   }
 
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode::SafeDownCast(node));
-  paramNode->DisableModifiedEventOff();
-
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
-
-  // Make sure inputs are initialized
-  if (!beamNode)
-  {
-    qCritical() << "couchAngleChanged: Inputs are not initialized!";
-    return;
-  }
-
-  beamNode->SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode::SafeDownCast(node));
+  // paramNode->DisableModifiedEventOn();
+  // paramNode->SetAndObservePlanContourSetNode(node);
+  // paramNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::protonTargetContourNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged(const QString &text)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
 
-  if (!this->mrmlScene())
-  {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::protonTargetContourNodeChanged: Invalid scene!";
-    return;
-  }
-
-  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  if (!paramNode || !node)
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveProtonTargetContourNode(vtkMRMLContourNode::SafeDownCast(node));
-  paramNode->DisableModifiedEventOff();
-
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
-
-  // Make sure inputs are initialized
-  if (!beamNode)
-  {
-    qCritical() << "couchAngleChanged: Inputs are not initialized!";
-    return;
-  }
-
-  beamNode->SetAndObserveProtonTargetContourNode(vtkMRMLContourNode::SafeDownCast(node));
-
-#if defined (commentout)
-  /* This is just debugging */
-  vtkMRMLContourNode* contourNode;
-  vtkMRMLContourNode::ContourRepresentationType contourRep;
-  contourNode = vtkMRMLContourNode::SafeDownCast(node);
-  contourRep = contourNode->GetActiveRepresentationType();
-  qDebug("Contour representation is %d\n", contourRep);
-#endif
-
-#if defined (commentout)
-  // TODO GCS FIX: Update GUI to set range & modulation, etc.
-  // Update UI from selected contours nodes list
-  this->updateWidgetFromMRML();
-#endif
+  // TODO: to be implemented
 }
 
 //-----------------------------------------------------------------------------
@@ -772,130 +725,6 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetItemSelectionChanged()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  d->label_CalculateDoseStatus->setText("Starting dose calculation...");
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked: Invalid scene!";
-    return;
-  }
-
-  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  if (!paramNode)
-  {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked: Invalid paramNode!";
-    return;
-  }
-
-  /* Make sure inputs were specified */
-  vtkMRMLScalarVolumeNode* referenceVolume = paramNode->GetReferenceVolumeNode();
-  if (!referenceVolume)
-  {
-    d->label_CalculateDoseStatus->setText("No reference image");
-    return;
-  }
-
-  vtkMRMLContourNode* contourNode = paramNode->GetProtonTargetContourNode();
-  if (!contourNode)
-  {
-    d->label_CalculateDoseStatus->setText("No proton target volume");
-    return;
-  }
-
-  /* Make sure contour has a labelmap form */
-  if ( !contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
-  {
-    d->label_CalculateDoseStatus->setText("Proton target must be labelmap");
-    return;
-  }
-
-  /* Copy pertinent variable values from GUI to logic */
-  /* Is this the right place for this? */
-  bool ok;
-  d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle (
-    d->SliderWidget_GantryAngle->value());
-
-  float smearing = d->lineEdit_Smearing->text().toFloat(&ok);
-  if (!ok) {
-    d->label_CalculateDoseStatus->setText("Smearing radius must be a float");
-    return;
-  }
-  d->logic()->GetExternalBeamPlanningNode()->SetSmearing (smearing);
-
-  float proximal_margin = d->lineEdit_ProximalMargin->text().toFloat(&ok);
-  if (!ok) {
-    d->label_CalculateDoseStatus->setText("Proximal margin must be a float");
-    return;
-  }
-  d->logic()->GetExternalBeamPlanningNode()->SetProximalMargin (proximal_margin);
-
-  float distal_margin = d->lineEdit_DistalMargin->text().toFloat(&ok);
-  if (!ok) {
-    d->label_CalculateDoseStatus->setText("Distal margin must be a float");
-    return;
-  }
-  d->logic()->GetExternalBeamPlanningNode()->SetDistalMargin (distal_margin);
-
-  /* OK, we're good to go (well, not really, but let's pretend). 
-     Do the actual computation in the logic object */
-  d->logic()->ComputeDose();
-
-  d->label_CalculateDoseStatus->setText("Dose calculation done.");
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  d->label_CalculateDoseStatus->setText("Starting WED calculation...");
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked: Invalid scene!";
-    return;
-  }
-
-  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  if (!paramNode)
-  {
-    return;
-  }
-
-  /* Make sure inputs were specified - only CT needed*/
-  vtkMRMLScalarVolumeNode* referenceVolume = paramNode->GetReferenceVolumeNode();
-  if (!referenceVolume)
-  {
-    d->label_CalculateDoseStatus->setText("No reference image");
-    return;
-  }
-
-  /* Copy pertinent variable values from GUI to logic */
-  /* Is this the right place for this? */
-  d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle(d->SliderWidget_GantryAngle->value());
-
-  /* OK, we're good to go (well, not really, but let's pretend). 
-     Do the actual computation in the logic object */
-  d->logic()->ComputeWED();
-
-  d->label_CalculateDoseStatus->setText("WED calculation done.");
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::updateBeamParameters()
-{
-  //Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  // TODO:
-  std::string errorMessage;
-  //d->logic()->UpdateBeam();
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString &text)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
@@ -986,43 +815,167 @@ void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString &tex
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::UpdateBeamTransform()
+void qSlicerExternalBeamPlanningModuleWidget::targetContourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  QTableWidgetItem *item = NULL;
-  char beamName[100];
-  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
-  if (!item)
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::protonTargetContourNodeChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode || !node)
   {
     return;
   }
-  else 
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveTargetContourNode(vtkMRMLContourNode::SafeDownCast(node));
+  paramNode->DisableModifiedEventOff();
+
+  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
+
+  // Make sure inputs are initialized
+  if (!beamNode)
   {
-    strcpy(beamName, item->text().toStdString().c_str());
-    d->logic()->UpdateBeamTransform(beamName);
+    qCritical() << "couchAngleChanged: Inputs are not initialized!";
+    return;
   }
-  return;
+
+  beamNode->SetAndObserveTargetContourNode(vtkMRMLContourNode::SafeDownCast(node));
+
+#if defined (commentout)
+  /* This is just debugging */
+  vtkMRMLContourNode* contourNode;
+  vtkMRMLContourNode::ContourRepresentationType contourRep;
+  contourNode = vtkMRMLContourNode::SafeDownCast(node);
+  contourRep = contourNode->GetActiveRepresentationType();
+  qDebug("Contour representation is %d\n", contourRep);
+#endif
+
+#if defined (commentout)
+  // TODO GCS FIX: Update GUI to set range & modulation, etc.
+  // Update UI from selected contours nodes list
+  this->updateWidgetFromMRML();
+#endif
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::UpdateBeamGeometryModel()
+void qSlicerExternalBeamPlanningModuleWidget::RxDoseChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  QTableWidgetItem *item = NULL;
-  char beamName[100];
-  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
-  if (!item)
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::IsocenterFiducialNodeChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode || !node)
   {
     return;
   }
-  else 
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode::SafeDownCast(node));
+  paramNode->DisableModifiedEventOff();
+
+  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
+
+  // Make sure inputs are initialized
+  if (!beamNode)
   {
-    strcpy(beamName, item->text().toStdString().c_str());
-    d->logic()->UpdateBeamGeometryModel(beamName);
+    qCritical() << "couchAngleChanged: Inputs are not initialized!";
+    return;
   }
-  return;
+
+  beamNode->SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode::SafeDownCast(node));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::dosePointFiducialNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::IsocenterFiducialNodeChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode || !node)
+  {
+    return;
+  }
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::nominalEnergyChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::nominalmAChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::beamOnTimeChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::protonSmearingChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::protonProximalMarginChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::protonDistalMarginChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
 }
 
 //-----------------------------------------------------------------------------
@@ -1209,24 +1162,80 @@ void qSlicerExternalBeamPlanningModuleWidget::YJawsPositionValuesChanged(double 
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged(const QString &text)
+void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
-  UNUSED_VARIABLE(text);
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged: Invalid scene!";
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged: Invalid scene!";
     return;
   }
 
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  if (!paramNode)
+  if (!paramNode || !node)
   {
     return;
   }
-  
-  //TODO:
+
+  // Get rt plan node for ExternalBeamPlanning node
+  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetExternalBeamPlanningNode()->GetRtPlanNode();
+  if (!rtPlanNode)
+  { 
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget: Invalid rtplan node!";
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode::SafeDownCast(node));
+  paramNode->DisableModifiedEventOff();
+
+  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
+
+  // Make sure inputs are initialized
+  if (!beamNode)
+  {
+    qCritical() << "couchAngleChanged: Inputs are not initialized!";
+    return;
+  }
+
+  beamNode->SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode::SafeDownCast(node));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::protonSourceDistanceChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::protonSourceSizeChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::protonEnergyResolutionChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::protonEnergySpreadChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(text);
+
+  // TODO: to be implemented
 }
 
 //-----------------------------------------------------------------------------
@@ -1288,37 +1297,200 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDRRClicked()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::nominalEnergyChanged(const QString &text)
+void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
-  UNUSED_VARIABLE(text);
 
-  // TODO: to be implemented
+  d->label_CalculateDoseStatus->setText("Starting WED calculation...");
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
+  /* Make sure inputs were specified - only CT needed*/
+  vtkMRMLScalarVolumeNode* referenceVolume = paramNode->GetReferenceVolumeNode();
+  if (!referenceVolume)
+  {
+    d->label_CalculateDoseStatus->setText("No reference image");
+    return;
+  }
+
+  /* Copy pertinent variable values from GUI to logic */
+  /* Is this the right place for this? */
+  d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle(d->SliderWidget_PhotonGantryAngle->value());
+
+  /* OK, we're good to go (well, not really, but let's pretend). 
+     Do the actual computation in the logic object */
+  d->logic()->ComputeWED();
+
+  d->label_CalculateDoseStatus->setText("WED calculation done.");
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::nominalmAChanged(const QString &text)
+void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
-  UNUSED_VARIABLE(text);
 
-  // TODO: to be implemented
+  d->label_CalculateDoseStatus->setText("Starting dose calculation...");
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked: Invalid paramNode!";
+    return;
+  }
+
+  /* Make sure inputs were specified */
+  vtkMRMLScalarVolumeNode* referenceVolume = paramNode->GetReferenceVolumeNode();
+  if (!referenceVolume)
+  {
+    d->label_CalculateDoseStatus->setText("No reference image");
+    return;
+  }
+
+  vtkMRMLContourNode* contourNode = paramNode->GetTargetContourNode();
+  if (!contourNode)
+  {
+    d->label_CalculateDoseStatus->setText("No proton target volume");
+    return;
+  }
+
+  /* Make sure contour has a labelmap form */
+  if ( !contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
+  {
+    d->label_CalculateDoseStatus->setText("Proton target must be labelmap");
+    return;
+  }
+
+  /* Copy pertinent variable values from GUI to logic */
+  /* Is this the right place for this? */
+  bool ok;
+  d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle (
+    d->SliderWidget_PhotonGantryAngle->value());
+
+  float smearing = d->lineEdit_ProtonSmearing->text().toFloat(&ok);
+  if (!ok) {
+    d->label_CalculateDoseStatus->setText("Smearing radius must be a float");
+    return;
+  }
+  d->logic()->GetExternalBeamPlanningNode()->SetSmearing (smearing);
+
+  float proximal_margin = d->lineEdit_ProtonProximalMargin->text().toFloat(&ok);
+  if (!ok) {
+    d->label_CalculateDoseStatus->setText("Proximal margin must be a float");
+    return;
+  }
+  d->logic()->GetExternalBeamPlanningNode()->SetProximalMargin (proximal_margin);
+
+  float distal_margin = d->lineEdit_ProtonDistalMargin->text().toFloat(&ok);
+  if (!ok) {
+    d->label_CalculateDoseStatus->setText("Distal margin must be a float");
+    return;
+  }
+  d->logic()->GetExternalBeamPlanningNode()->SetDistalMargin (distal_margin);
+
+  // just check which beam is selected for calculation
+  QTableWidgetItem *item = NULL;
+  char beamName[100];
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+  if (!item)
+  {
+    return;
+  }
+  else 
+  {
+    strcpy(beamName, item->text().toStdString().c_str());
+    /* OK, we're good to go (well, not really, but let's pretend). 
+       Do the actual computation in the logic object */
+    d->logic()->ComputeDose(beamName);
+    d->label_CalculateDoseStatus->setText("Dose calculation done.");
+  }
+
+
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::RxDoseChanged(const QString &text)
+void qSlicerExternalBeamPlanningModuleWidget::updateBeamParameters()
 {
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-  UNUSED_VARIABLE(text);
+  //Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  // TODO: to be implemented
+  // TODO:
+  std::string errorMessage;
+  //d->logic()->UpdateBeam();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::beamOnTimeChanged(const QString &text)
+void qSlicerExternalBeamPlanningModuleWidget::UpdateBeamTransform()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  QTableWidgetItem *item = NULL;
+  char beamName[100];
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+  if (!item)
+  {
+    return;
+  }
+  else 
+  {
+    strcpy(beamName, item->text().toStdString().c_str());
+    d->logic()->UpdateBeamTransform(beamName);
+  }
+  return;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::UpdateBeamGeometryModel()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  QTableWidgetItem *item = NULL;
+  char beamName[100];
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+  if (!item)
+  {
+    return;
+  }
+  else 
+  {
+    strcpy(beamName, item->text().toStdString().c_str());
+    d->logic()->UpdateBeamGeometryModel(beamName);
+  }
+  return;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged(const QString &text)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   UNUSED_VARIABLE(text);
 
-  // TODO: to be implemented
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+  
+  //TODO:
 }
+

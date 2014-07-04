@@ -65,44 +65,70 @@ protected slots:
   ///
   void onLogicModified();
 
+  // RT plan page
   void referenceVolumeNodeChanged(vtkMRMLNode*);
   void planContourSetNodeChanged(vtkMRMLNode*);
   void rtPlanNodeChanged(vtkMRMLNode*);
+  void rtDoseVolumeNodeChanged(vtkMRMLNode*);
+  void rtDoseROINodeChanged(vtkMRMLNode*);
+  void doseGridSpacingChanged(const QString &);
+  
+  // RT Beams page
+  void tableWidgetItemClicked(QTableWidgetItem *item);
+  void tableWidgetItemSelectionChanged();
   void addBeamClicked();
   void removeBeamClicked();
 
+  /* Beam global parameters */
   void beamNameChanged(const QString &);
   void radiationTypeChanged(int);
 
   /* Prescription page */
   void beamTypeChanged(const QString &);
-  void XJawsPositionValuesChanged(double, double);
-  void YJawsPositionValuesChanged(double, double);
+  void targetContourNodeChanged(vtkMRMLNode* node);
+  void RxDoseChanged(const QString &);
+  void isocenterFiducialNodeChanged(vtkMRMLNode*);
+  void dosePointFiducialNodeChanged(vtkMRMLNode*);
   void nominalEnergyChanged(const QString&);
   void nominalmAChanged(const QString &);
-  void RxDoseChanged(const QString &);
   void beamOnTimeChanged(const QString &);
 
-  /* Geometry page */
+  /* Energy page */
+  void protonSmearingChanged(const QString &);
+  void protonProximalMarginChanged(const QString &);
+  void protonDistalMarginChanged(const QString &);
+
+  /* Proton Geometry page */
+  // void gantryAngleChanged(double);
+  // void collimatorAngleChanged(double);
+  // void couchAngleChanged(double);
+
+  /* Photon Geometry page */
   void gantryAngleChanged(double);
   void collimatorAngleChanged(double);
   void couchAngleChanged(double);
-  void collimatorTypeChanged(const QString &);
-  void isocenterFiducialNodeChanged(vtkMRMLNode*);
-  void protonTargetContourNodeChanged(vtkMRMLNode* node);
   void MLCPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
+  void XJawsPositionValuesChanged(double, double);
+  void YJawsPositionValuesChanged(double, double);
 
-  void tableWidgetItemClicked(QTableWidgetItem *item);
-  void tableWidgetItemSelectionChanged();
+  /* Proton beam model */
+  void protonSourceDistanceChanged(const QString &);
+  void protonSourceSizeChanged(const QString &);
+  void protonEnergyResolutionChanged(const QString &);
+  void protonEnergySpreadChanged(const QString &);
 
-  /* Calculation buttons */
-  void calculateDoseClicked();
-  void calculateWEDClicked();
+  /* Photon beam model */
 
   /* Beam visualization */
   void updateDRRClicked();
   void beamEyesViewClicked(bool);
   void contoursInBEWClicked(bool);
+  
+  /* Calculation buttons */
+  void calculateDoseClicked();
+  void calculateWEDClicked();
+
+  void collimatorTypeChanged(const QString &);
 
 protected:
   ///
