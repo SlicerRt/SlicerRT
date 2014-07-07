@@ -230,7 +230,7 @@ bool qMRMLContourSelectorWidget::validateSelection(std::vector<vtkMRMLContourNod
       {
         d->label_ReConversion->setVisible(true);
         d->label_ValidRequiredRepresentation->setVisible(false);
-        d->MRMLNodeComboBox_ReferenceVolume->setVisible(true);
+        d->frame_ReferenceVolumeSelection->setVisible(true);
       }
       else
       {

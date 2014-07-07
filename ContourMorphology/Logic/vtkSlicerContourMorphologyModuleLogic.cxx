@@ -288,7 +288,6 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
 int vtkSlicerContourMorphologyModuleLogic::MorphContour()
 {
   const int ERROR_RETURN(-1);
-  int dimensions[3] = {0, 0, 0};
   double spacingX, spacingY, spacingZ;
 
   vtkMRMLContourNode* inputContourANode = this->ContourMorphologyNode->GetContourANode();
@@ -305,7 +304,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   }
 
   vtkMRMLContourNode* inputContourBNode = this->ContourMorphologyNode->GetContourBNode();
-  vtkSmartPointer<vtkImageData> tempImageB = vtkSmartPointer<vtkImageData>::New();
+  vtkSmartPointer<vtkImageData> imageB = vtkSmartPointer<vtkImageData>::New();
   if (operation == vtkMRMLContourMorphologyNode::Union || operation == vtkMRMLContourMorphologyNode::Intersect || operation == vtkMRMLContourMorphologyNode::Subtract) 
   {
     if (!inputContourBNode)
@@ -319,18 +318,21 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
       return ERROR_RETURN;
     }
 
-    // TODO : not working as expected 
-    // Harden apply any parent transform into temporary contour
-    vtkSmartPointer<vtkMRMLContourNode> tempContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-    //this->GetMRMLScene()->AddNode(tempContourNode);
-    //tempContourNode->DeepCopy(inputContourBNode);
-    //if( tempContourNode->GetParentTransformNode() && tempContourNode->GetParentTransformNode()->GetTransformToParent() )
-    //{
-      //tempContourNode->ApplyTransform(tempContourNode->GetParentTransformNode()->GetTransformToParent());
-    //}
-    //tempImageB->DeepCopy(tempContourNode->GetLabelmapImageData());
-    //this->GetMRMLScene()->RemoveNode(tempContourNode);
-    tempImageB = inputContourBNode->GetLabelmapImageData();
+    if( inputContourBNode->GetParentTransformNode() )
+    {
+      // Harden the parent transform into a temporary contour (image data)
+      // because the filters below ignore the IJKtoRAS of a contour node, and operate
+      // on the image data directly
+      vtkSmartPointer<vtkMRMLContourNode> tempNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+      this->GetMRMLScene()->AddNode(tempNode);
+      vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode(this->GetMRMLScene(), inputContourBNode, referenceVolumeNode, tempNode);
+      imageB->DeepCopy(tempNode->GetLabelmapImageData());
+      this->GetMRMLScene()->RemoveNode(tempNode);
+    }
+    else
+    {
+      imageB = inputContourBNode->GetLabelmapImageData();
+    }
   }
 
   if (this->SetContourARepresentationToLabelmap() != 0)
@@ -409,28 +411,29 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     outputContourNode->SetCreatedFromIndexLabelmap(true);
   }
 
-  // Harden any parent transform into temporary contour
-  vtkSmartPointer<vtkImageData> tempImageA = vtkSmartPointer<vtkImageData>::New();
-  //{
-//    vtkSmartPointer<vtkMRMLContourNode> tempContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-    //this->GetMRMLScene()->AddNode(tempContourNode);
-    //tempContourNode->DeepCopy(inputContourANode);
-    //if( tempContourNode->GetParentTransformNode() && tempContourNode->GetParentTransformNode()->GetTransformToParent() )
-    //{
-//      tempContourNode->ApplyTransform(tempContourNode->GetParentTransformNode()->GetTransformToParent());
-    //}
-    //tempImageA->DeepCopy(tempContourNode->GetLabelmapImageData());
-    //this->GetMRMLScene()->RemoveNode(tempContourNode);
-  //}
-  tempImageA = inputContourANode->GetLabelmapImageData();
-
-  referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
+  
+  vtkSmartPointer<vtkImageData> imageA = vtkSmartPointer<vtkImageData>::New();
+  if( inputContourANode->GetParentTransformNode() )
+  {
+    // Harden the parent transform into a temporary contour (image data)
+    // because the filters below ignore the IJKtoRAS of a contour node, and operate
+    // on the image data directly
+    vtkSmartPointer<vtkMRMLContourNode> tempNode = vtkSmartPointer<vtkMRMLContourNode>::New();
+    this->GetMRMLScene()->AddNode(tempNode);
+    vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode(this->GetMRMLScene(), inputContourANode, referenceVolumeNode, tempNode);
+    imageA->DeepCopy(tempNode->GetLabelmapImageData());
+    this->GetMRMLScene()->RemoveNode(tempNode);
+  }
+  else
+  {
+    imageA = inputContourANode->GetLabelmapImageData();
+  }
 
   vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
 #if (VTK_MAJOR_VERSION <= 5)
-  histogram->SetInput(tempImageA);
+  histogram->SetInput(imageA);
 #else
-  histogram->SetInputData(tempImageA);
+  histogram->SetInputData(imageA);
 #endif
 
   histogram->Update();
@@ -443,9 +446,9 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     {
       vtkSmartPointer<vtkImageContinuousDilate3D> dilateFilter = vtkSmartPointer<vtkImageContinuousDilate3D>::New();
 #if (VTK_MAJOR_VERSION <= 5)
-      dilateFilter->SetInput(tempImageA);
+      dilateFilter->SetInput(imageA);
 #else
-      dilateFilter->SetInputData(tempImageA);
+      dilateFilter->SetInputData(imageA);
 #endif
       dilateFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
       dilateFilter->Update();
@@ -456,9 +459,9 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     {
       vtkSmartPointer<vtkImageContinuousErode3D> erodeFilter = vtkSmartPointer<vtkImageContinuousErode3D>::New();
 #if (VTK_MAJOR_VERSION <= 5)
-      erodeFilter->SetInput(tempImageA);
+      erodeFilter->SetInput(imageA);
 #else
-      erodeFilter->SetInputData(tempImageA);
+      erodeFilter->SetInputData(imageA);
 #endif
       erodeFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
       erodeFilter->Update();
@@ -469,11 +472,11 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     {
       vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
 #if (VTK_MAJOR_VERSION <= 5)
-      logicFilter->SetInput1(tempImageA);
-      logicFilter->SetInput2(tempImageB);
+      logicFilter->SetInput1(imageA);
+      logicFilter->SetInput2(imageB);
 #else
-      logicFilter->SetInput1Data(tempImageA);
-      logicFilter->SetInput2Data(tempImageB);
+      logicFilter->SetInput1Data(imageA);
+      logicFilter->SetInput2Data(imageB);
 #endif
       logicFilter->SetOperationToOr();
       logicFilter->SetOutputTrueValue(valueMax);
@@ -485,11 +488,11 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     {
       vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
 #if (VTK_MAJOR_VERSION <= 5)
-      logicFilter->SetInput1(tempImageA);
-      logicFilter->SetInput2(tempImageB);
+      logicFilter->SetInput1(imageA);
+      logicFilter->SetInput2(imageB);
 #else
-      logicFilter->SetInput1Data(tempImageA);
-      logicFilter->SetInput2Data(tempImageB);
+      logicFilter->SetInput1Data(imageA);
+      logicFilter->SetInput2Data(imageB);
 #endif
       logicFilter->SetOperationToAnd();
       logicFilter->SetOutputTrueValue(valueMax);
@@ -501,9 +504,9 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     {
       vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
 #if (VTK_MAJOR_VERSION <= 5)
-      logicFilter->SetInput1(tempImageB);
+      logicFilter->SetInput1(imageB);
 #else
-      logicFilter->SetInput1Data(tempImageB);
+      logicFilter->SetInput1Data(imageB);
 #endif
       logicFilter->SetOperationToNot();
       logicFilter->SetOutputTrueValue(valueMax);
@@ -511,10 +514,10 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
 
       vtkSmartPointer<vtkImageLogic> logicFilter2 = vtkSmartPointer<vtkImageLogic>::New();
 #if (VTK_MAJOR_VERSION <= 5)
-      logicFilter2->SetInput1(tempImageA);
+      logicFilter2->SetInput1(imageA);
       logicFilter2->SetInput2(logicFilter->GetOutput());
 #else
-      logicFilter2->SetInput1Data(tempImageA);
+      logicFilter2->SetInput1Data(imageA);
       logicFilter2->SetInput2Data(logicFilter->GetOutput());
 #endif
       logicFilter2->SetOperationToAnd();

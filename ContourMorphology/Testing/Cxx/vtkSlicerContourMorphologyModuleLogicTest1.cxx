@@ -348,7 +348,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
   {
     vtkSmartPointer<vtkTransform> inputCompareTransform = vtkSmartPointer<vtkTransform>::New();
     inputCompareTransform->Identity();
-    inputCompareTransform->Translate(0.0, 0.0, 5.0);
+    inputCompareTransform->Translate(0.0, 0.0, -10.0);
 
     vtkSmartPointer<vtkMRMLLinearTransformNode> inputCompareTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
     inputCompareTransformNode->ApplyTransformMatrix(inputCompareTransform->GetMatrix());
