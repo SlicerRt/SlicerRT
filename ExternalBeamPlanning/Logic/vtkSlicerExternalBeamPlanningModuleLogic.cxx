@@ -1132,11 +1132,11 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
   {
     beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
     if (beamNode)
-    {
+    { 
+		printf("Beam %lg \n", beamNode->GetGantryAngle());
       if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
-      {
-        //RTPlanNode->RemoveRTBeamNode(beamNode);
-        break;
+	  {
+        // //RTPlanNode->RemoveRTBeamNode(beamNode);
       }
     }
   }
@@ -1192,21 +1192,23 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
     float src[3];
     double isocenter[3] = { 0, 0, 0 };
     beamNode->GetIsocenterFiducialNode()->GetNthFiducialPosition(0,isocenter);
+	isocenter[0] = -isocenter[0];
+	isocenter[1] = -isocenter[1];
 
     /* Adjust src according to gantry angle */
     float ga_radians = 
       beamNode->GetGantryAngle() * M_PI / 180.;
-    src[0] = - src_dist * sin(ga_radians);
-    src[1] = src_dist * cos(ga_radians);
+    src[0] = isocenter[0] + src_dist * sin(ga_radians);
+    src[1] = isocenter[1] - src_dist * cos(ga_radians);
     src[2] = isocenter[2];
 
     ion_plan.beam->set_source_position (src);
     ion_plan.beam->set_isocenter_position (isocenter);
 
     float ap_offset = 1500;
-    int ap_dim[2] = { 30, 30 };
-//    float ap_origin[2] = { -19, -19 };
-    float ap_spacing[2] = { 2, 2 };
+    int ap_dim[2] = { 31, 31};
+    float ap_origin[2] = { -15, -15 };
+    float ap_spacing[2] = {1, 1};
     ion_plan.get_aperture()->set_distance (ap_offset);
     ion_plan.get_aperture()->set_dim (ap_dim);
 //    ion_plan.get_aperture()->set_origin (ap_origin);

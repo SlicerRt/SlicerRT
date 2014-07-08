@@ -81,6 +81,8 @@ vtkMRMLExternalBeamPlanningNode::vtkMRMLExternalBeamPlanningNode()
 
   this->SAD = 0.0;
 
+  this->Flavor = 'a';
+
   this->HideFromEditors = false;
 }
 

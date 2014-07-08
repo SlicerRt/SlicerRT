@@ -143,6 +143,10 @@ public:
   vtkGetMacro(SAD, double);
   vtkSetMacro(SAD, double);
 
+  ///
+  vtkGetMacro(Flavor, char);
+  vtkSetMacro(Flavor, char);
+
 public:
   /// Get reference volume node
   vtkMRMLScalarVolumeNode* GetReferenceVolumeNode();
@@ -207,6 +211,8 @@ protected:
   double ProximalMargin;
   double DistalMargin;
   double SAD;
+
+  char Flavor;
 };
 
 #endif

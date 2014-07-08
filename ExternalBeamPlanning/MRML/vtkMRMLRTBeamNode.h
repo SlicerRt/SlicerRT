@@ -156,6 +156,10 @@ public:
   vtkGetMacro(ProtonSAD, double);
   vtkSetMacro(ProtonSAD, double);
 
+  ///
+  vtkGetMacro(Flavor, char);
+  vtkSetMacro(Flavor, char);
+
   /// Get beam model node ID
   vtkGetStringMacro(BeamModelNodeId);
 
@@ -232,6 +236,8 @@ protected:
   double ProtonProximalMargin;
   double ProtonDistalMargin;
   double ProtonSAD;
+
+  char Flavor;
 
   /// Beam model representation
   vtkMRMLModelNode* BeamModelNode;
