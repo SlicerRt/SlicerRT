@@ -1335,6 +1335,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
     vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
   doseVolumeNode->SetAndObserveImageData (doseVolume);
+  doseVolumeNode->CopyOrientation (referenceVolumeNode);
+
+#if defined (commentout)
   doseVolumeNode->SetSpacing (
     doseVolumeItk->GetSpacing()[0],
     doseVolumeItk->GetSpacing()[1],
@@ -1343,6 +1346,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
     doseVolumeItk->GetOrigin()[0],
     doseVolumeItk->GetOrigin()[1],
     doseVolumeItk->GetOrigin()[2]);
+#endif
 
   std::string doseVolumeNodeName = this->GetMRMLScene()->GenerateUniqueName(std::string("proton_dose_"));
   doseVolumeNode->SetName(doseVolumeNodeName.c_str());
