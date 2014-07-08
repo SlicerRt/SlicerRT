@@ -641,15 +641,15 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineTypeChanged(const QStrin
 
   if (text.compare("Plastimatch") == 0)
   {
-    rtPlanNode->SetRTPlanDoseEngine(vtkMRMLRTPlanNode::DoseEngineType::Plastimatch);
+    rtPlanNode->SetRTPlanDoseEngine(vtkMRMLRTPlanNode::Plastimatch);
   }
   else if (text.compare("PMH") == 0)
   {
-    rtPlanNode->SetRTPlanDoseEngine(vtkMRMLRTPlanNode::DoseEngineType::PMH);
+    rtPlanNode->SetRTPlanDoseEngine(vtkMRMLRTPlanNode::PMH);
   }
   else if (text.compare("Matlab") == 0)
   {
-    rtPlanNode->SetRTPlanDoseEngine(vtkMRMLRTPlanNode::DoseEngineType::Matlab);
+    rtPlanNode->SetRTPlanDoseEngine(vtkMRMLRTPlanNode::Matlab);
   }
 }
 

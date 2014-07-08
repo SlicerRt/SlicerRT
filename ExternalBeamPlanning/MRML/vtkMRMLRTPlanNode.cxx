@@ -48,7 +48,7 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
   this->RTPlanName = NULL;
   this->SetRTPlanName("RTPlan");
 
-  this->RTPlanDoseEngine = DoseEngineType::Plastimatch;
+  this->RTPlanDoseEngine = vtkMRMLRTPlanNode::Plastimatch;
 
   this->HideFromEditorsOff();
 
