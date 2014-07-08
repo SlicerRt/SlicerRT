@@ -28,8 +28,14 @@
 #include "SlicerRtCommon.h"
 
 // QSlicer includes
-#include "qSlicerApplication.h"
-#include "qSlicerLayoutManager.h" 
+#include <qSlicerApplication.h>
+#include <qSlicerLayoutManager.h> 
+#include <qSlicerCoreApplication.h>
+#include <qSlicerModuleManager.h>
+#include <qSlicerAbstractCoreModule.h>
+
+// ExtensionTemplate Logic includes
+#include <vtkSlicerCLIModuleLogic.h>
 
 // SlicerRt includes
 #include "vtkMRMLContourNode.h"
@@ -264,6 +270,22 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
+  vtkSlicerExternalBeamPlanningModuleLogic* externalBeamPlanningModuleLogic =
+    vtkSlicerExternalBeamPlanningModuleLogic::SafeDownCast(this->logic());
+
+  qSlicerAbstractCoreModule* matlabDoseCalculationModule =
+    qSlicerCoreApplication::application()->moduleManager()->module("MatlabDoseCalculation");
+  if (matlabDoseCalculationModule)
+    {
+    vtkSlicerCLIModuleLogic* matlabDoseCalculationModuleLogic =
+      vtkSlicerCLIModuleLogic::SafeDownCast(matlabDoseCalculationModule->logic());
+    externalBeamPlanningModuleLogic->SetMatlabDoseCalculationModuleLogic(matlabDoseCalculationModuleLogic);
+    }
+  else
+    {
+    qWarning() << "MatlabDoseCalculation module is not found!";
+    }
+
   // Set up contour selector widget
   d->ContourSelectorWidget->setAcceptContourHierarchies(true);
   d->ContourSelectorWidget->setRequiredRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
@@ -281,6 +303,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtDoseVolumeNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_DoseROI, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtDoseROINodeChanged(vtkMRMLNode*)) );
   this->connect( d->lineEdit_DoseGridSpacing, SIGNAL(textChanged(const QString &)), this, SLOT(doseGridSpacingChanged(const QString &)) );
+  this->connect( d->comboBox_DoseEngineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(doseEngineTypeChanged(const QString &)) );
 
   // RT Beams page
   this->connect( d->tableWidget_Beams, SIGNAL(itemClicked(QtableWidgetItem *item)), this, SLOT(tableWidgetItemClicked(QtableWidgetItem *item)) );
@@ -555,9 +578,16 @@ void qSlicerExternalBeamPlanningModuleWidget::rtDoseVolumeNodeChanged(vtkMRMLNod
     return;
   }
 
-  // paramNode->DisableModifiedEventOn();
-  // paramNode->SetAndObservePlanContourSetNode(node);
-  // paramNode->DisableModifiedEventOff();
+  vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRtPlanNode();
+  if (!rtPlanNode)
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChanged: Invalid rtplan node!";
+    return;
+  }
+
+  rtPlanNode->DisableModifiedEventOn();
+  rtPlanNode->SetAndObserveRTPlanDoseVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
+  rtPlanNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -589,6 +619,38 @@ void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged(const QStri
   UNUSED_VARIABLE(text);
 
   // TODO: to be implemented
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::doseEngineTypeChanged(const QString &text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
+  vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRtPlanNode();
+  if (!rtPlanNode)
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChanged: Invalid rtplan node!";
+    return;
+  }
+
+  if (text.compare("Plastimatch") == 0)
+  {
+    rtPlanNode->SetRTPlanDoseEngine(vtkMRMLRTPlanNode::DoseEngineType::Plastimatch);
+  }
+  else if (text.compare("PMH") == 0)
+  {
+    rtPlanNode->SetRTPlanDoseEngine(vtkMRMLRTPlanNode::DoseEngineType::PMH);
+  }
+  else if (text.compare("Matlab") == 0)
+  {
+    rtPlanNode->SetRTPlanDoseEngine(vtkMRMLRTPlanNode::DoseEngineType::Matlab);
+  }
 }
 
 //-----------------------------------------------------------------------------

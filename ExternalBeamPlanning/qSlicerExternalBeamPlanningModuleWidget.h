@@ -72,6 +72,7 @@ protected slots:
   void rtDoseVolumeNodeChanged(vtkMRMLNode*);
   void rtDoseROINodeChanged(vtkMRMLNode*);
   void doseGridSpacingChanged(const QString &);
+  void doseEngineTypeChanged(const QString &);
   
   // RT Beams page
   void tableWidgetItemClicked(QTableWidgetItem *item);

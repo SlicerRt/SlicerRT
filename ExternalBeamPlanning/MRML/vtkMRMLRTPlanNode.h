@@ -40,6 +40,14 @@ class vtkCollection;
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLDisplayableNode
 {
 public:
+  enum DoseEngineType
+  {
+    Plastimatch = 0,
+    PMH = 1,
+    Matlab = 2
+  };
+
+public:
   static vtkMRMLRTPlanNode *New();
   vtkTypeMacro(vtkMRMLRTPlanNode,vtkMRMLDisplayableNode);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -64,6 +72,15 @@ public:
   /// - Follows parent transform changes
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
+  /// Get RT Plan Dose volume node
+  vtkMRMLScalarVolumeNode* GetRTPlanDoseVolumeNode();
+  /// Set and observe proton target contour node
+  void SetAndObserveRTPlanDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  /// Get/Set Save labelmaps checkbox state
+  void SetRTPlanDoseEngine(DoseEngineType doseEngineType) {this->RTPlanDoseEngine = doseEngineType;}
+  DoseEngineType GetRTPlanDoseEngine() {return this->RTPlanDoseEngine;}
+
   ///
   void AddRTBeamNode(vtkMRMLRTBeamNode *);
 
@@ -87,6 +104,7 @@ protected:
 
 protected:
   char* RTPlanName;
+  DoseEngineType RTPlanDoseEngine;
 };
 
 #endif // __vtkMRMLRTPlanNode_h

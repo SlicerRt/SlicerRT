@@ -77,6 +77,7 @@ public:
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "ExternalBeamPlanning";};
 
+public:
   /// Set/Get structure name
   vtkGetStringMacro(BeamName);
   vtkSetStringMacro(BeamName);

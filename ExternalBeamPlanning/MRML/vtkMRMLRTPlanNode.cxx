@@ -37,6 +37,9 @@
 #include <vtkCollection.h>
 
 //------------------------------------------------------------------------------
+static const char* RTPLAN_DOSEVOLUME_REFERENCE_ROLE = "rtPlanDoseVolumeRef";
+
+//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 
 //----------------------------------------------------------------------------
@@ -44,6 +47,8 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
   this->RTPlanName = NULL;
   this->SetRTPlanName("RTPlan");
+
+  this->RTPlanDoseEngine = DoseEngineType::Plastimatch;
 
   this->HideFromEditorsOff();
 
@@ -141,6 +146,18 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
       }
       //TODO: Implement or delete
     }
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkMRMLRTPlanNode::GetRTPlanDoseVolumeNode()
+{
+  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNodeReference(RTPLAN_DOSEVOLUME_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::SetAndObserveRTPlanDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
+{
+  this->SetNodeReferenceID(RTPLAN_DOSEVOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //---------------------------------------------------------------------------

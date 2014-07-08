@@ -44,6 +44,7 @@ class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
 class vtkPolyData;
 class vtkDoubleArray;
+class vtkSlicerCLIModuleLogic;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkSlicerExternalBeamPlanningModuleLogic :
@@ -83,7 +84,17 @@ public:
   void ComputeDose (char*);
 
   /// TODO
+  void ComputeDoseByPlastimatch (char*);
+
+  /// TODO
   void ComputeWED ();
+
+  /// TODO
+  void SetMatlabDoseCalculationModuleLogic(vtkSlicerCLIModuleLogic* logic);
+  vtkSlicerCLIModuleLogic* GetMatlabDoseCalculationModuleLogic();
+
+  /// TODO
+  void ComputeDoseByMatlab (char*);
 
 protected:
   vtkSlicerExternalBeamPlanningModuleLogic();
@@ -106,6 +117,9 @@ protected:
 private:
   vtkSlicerExternalBeamPlanningModuleLogic(const vtkSlicerExternalBeamPlanningModuleLogic&); // Not implemented
   void operator=(const vtkSlicerExternalBeamPlanningModuleLogic&);               // Not implemented
+
+  class vtkInternal;
+  vtkInternal* Internal;
 };
 
 #endif
