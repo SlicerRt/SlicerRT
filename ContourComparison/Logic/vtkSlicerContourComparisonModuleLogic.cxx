@@ -120,14 +120,6 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsPlmVolumes(
     return;
   }
 
-  double dirs[3][3];
-  referenceContourNode->GetIJKToRASDirections(dirs);
-  SlicerRtCommon::WriteImageDataToFile(this->Logic->GetMRMLScene(), referenceContourNode->GetLabelmapImageData(), "c:\\users\\rankin\\downloads\\ref.nrrd", dirs, referenceContourNode->GetSpacing(),
-    referenceContourNode->GetOrigin(), true);
-  compareContourNode->GetIJKToRASDirections(dirs);
-  SlicerRtCommon::WriteImageDataToFile(this->Logic->GetMRMLScene(), compareContourNode->GetLabelmapImageData(), "c:\\users\\rankin\\downloads\\comp.nrrd", dirs, compareContourNode->GetSpacing(),
-    compareContourNode->GetOrigin(), true);
-
   // Convert inputs to ITK images
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   checkpointItkConvertStart = timer->GetUniversalTime();
