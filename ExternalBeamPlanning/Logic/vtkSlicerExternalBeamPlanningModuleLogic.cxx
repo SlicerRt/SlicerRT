@@ -38,6 +38,7 @@
 #include "ion_beam.h"
 #include "ion_plan.h"
 #include "itk_image_save.h"
+#include "itk_image_scale.h"
 #include "itk_image_stats.h"
 #include "rpl_volume.h"
 
@@ -1325,6 +1326,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
 
   /* Get dose as itk image */
   itk::Image<float, 3>::Pointer doseVolumeItk = ion_plan.get_dose_itk();
+  itk_image_scale (doseVolumeItk, 10);
 
   /* Convert dose image to vtk */
   vtkSmartPointer<vtkImageData> doseVolume = vtkSmartPointer<vtkImageData>::New();
