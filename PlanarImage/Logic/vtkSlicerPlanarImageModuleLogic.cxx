@@ -391,7 +391,11 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
 
   // Create plane
   vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  displayedModelNode->SetAndObservePolyData(plane->GetOutput());
+#else
   displayedModelNode->SetPolyDataConnection(plane->GetOutputPort());
+#endif
 
   // Compute the image plane corners in world coordinate system
   this->ComputeImagePlaneCorners(planarImageVolume, displayedModelNode->GetPolyData()->GetPoints());
