@@ -143,9 +143,49 @@ public:
   vtkGetMacro(SAD, double);
   vtkSetMacro(SAD, double);
 
+  /// Get/Set Save beamWeight
+  vtkGetMacro(BeamWeight, double);
+  vtkSetMacro(BeamWeight, double);
+
+  /// Get/Set Energy Resolution
+  vtkGetMacro(EnergyResolution, double);
+  vtkSetMacro(EnergyResolution, double);
+
   ///
-  vtkGetMacro(Flavor, char);
-  vtkSetMacro(Flavor, char);
+  vtkGetMacro(BeamFlavor, char);
+  vtkSetMacro(BeamFlavor, char);
+
+  /// Get/Set aperture offset
+  vtkGetMacro(ApertureOffset, double);
+  vtkSetMacro(ApertureOffset, double);
+
+  /// Get/Set source size
+  vtkGetMacro(SourceSize, double);
+  vtkSetMacro(SourceSize, double);
+
+  const double* GetIsocenterPosition ();
+  double GetIsocenterPosition (int dim);
+  void SetIsocenterPosition (const float* position);
+  void SetIsocenterPosition (const double* position);
+
+  const double* GetApertureSpacing ();
+  double GetApertureSpacing (int dim);
+  void SetApertureSpacing (const float* spacing);
+  void SetApertureSpacing (const double* spacing);
+
+  const double* GetApertureSpacingAtIso ();
+  double GetApertureSpacingAtIso (int dim);
+  void SetApertureSpacingAtIso (const float* spacing);
+  void SetApertureSpacingAtIso (const double* spacing);
+
+  const double* GetApertureOrigin ();
+  double GetApertureOrigin (int dim);
+  void SetApertureOrigin (const float* origin);
+  void SetApertureOrigin (const double* origin);
+
+  const int* GetApertureDim ();
+  int GetApertureDim (int dim);
+  void SetApertureDim (const int* dim);
 
 public:
   /// Get reference volume node
@@ -177,6 +217,8 @@ public:
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
   /// Set and observe MLC position double array node
   void SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
+
+  void UpdateApertureParameters();
 
 protected:
   vtkMRMLExternalBeamPlanningNode();
@@ -211,8 +253,20 @@ protected:
   double ProximalMargin;
   double DistalMargin;
   double SAD;
+  double BeamWeight;
 
-  char Flavor;
+  double EnergyResolution;
+
+  char BeamFlavor;
+
+  double ApertureOffset;
+  double ApertureSpacing[2];
+  double ApertureSpacingAtIso[2];
+
+  double ApertureOrigin[2];
+  int ApertureDim[2];
+
+  double SourceSize;
 };
 
 #endif

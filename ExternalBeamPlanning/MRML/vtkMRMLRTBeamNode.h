@@ -27,7 +27,6 @@
 #include <vtkMRML.h>
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
-
 #include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
@@ -104,10 +103,6 @@ public:
   vtkSetStringMacro(BeamDescription);
 
   /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(RxDose, double);
-  vtkSetMacro(RxDose, double);
-
-  /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(NominalEnergy, double);
   vtkSetMacro(NominalEnergy, double);
 
@@ -156,9 +151,51 @@ public:
   vtkGetMacro(ProtonSAD, double);
   vtkSetMacro(ProtonSAD, double);
 
+  /// Get/Set beam weight
+  vtkGetMacro(BeamWeight, double);
+  vtkSetMacro(BeamWeight, double);
+
+  /// Get/Set energy resolution
+  vtkGetMacro(EnergyResolution, float);
+  vtkSetMacro(EnergyResolution, float);
+
   ///
-  vtkGetMacro(Flavor, char);
-  vtkSetMacro(Flavor, char);
+  vtkGetMacro(BeamFlavor, char);
+  vtkSetMacro(BeamFlavor, char);
+
+  /// Get/Set aperture offset
+  vtkGetMacro(ApertureOffset, double);
+  vtkSetMacro(ApertureOffset, double);
+
+  /// Get/Set source size
+  vtkGetMacro(SourceSize, double);
+  vtkSetMacro(SourceSize, double);
+
+  const double* GetIsocenterPosition ();
+  double GetIsocenterPosition (int dim);
+  void SetIsocenterPosition (const float* position);
+  void SetIsocenterPosition (const double* position);
+
+  const double* GetApertureSpacing ();
+  double GetApertureSpacing (int dim);
+  void SetApertureSpacing (const float* spacing);
+  void SetApertureSpacing (const double* spacing);
+
+  const double* GetApertureSpacingAtIso ();
+  double GetApertureSpacingAtIso (int dim);
+  void SetApertureSpacingAtIso (const float* spacing);
+  void SetApertureSpacingAtIso (const double* spacing);
+
+  const double* GetApertureOrigin ();
+  double GetApertureOrigin (int dim);
+  void SetApertureOrigin (const float* origin);
+  void SetApertureOrigin (const double* origin);
+
+  const int* GetApertureDim ();
+  int GetApertureDim (int dim);
+  void SetApertureDim (const int* dim);
+
+  void UpdateApertureParameters();
 
   /// Get beam model node ID
   vtkGetStringMacro(BeamModelNodeId);
@@ -215,7 +252,6 @@ protected:
   RTRadiationType RadiationType;
 
   RTBeamType  BeamType;
-  double RxDose;
   double Isocenter[3];
   double dosePoint[3];
 
@@ -236,8 +272,19 @@ protected:
   double ProtonProximalMargin;
   double ProtonDistalMargin;
   double ProtonSAD;
+  double BeamWeight;
 
-  char Flavor;
+  float EnergyResolution;
+
+  char BeamFlavor;
+
+  double ApertureOffset;
+  double ApertureSpacing[2];
+  double ApertureSpacingAtIso[2];
+  double ApertureOrigin[2];
+  int ApertureDim[2];
+
+  double SourceSize;
 
   /// Beam model representation
   vtkMRMLModelNode* BeamModelNode;

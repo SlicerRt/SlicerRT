@@ -87,7 +87,7 @@ protected slots:
   /* Prescription page */
   void beamTypeChanged(const QString &);
   void targetContourNodeChanged(vtkMRMLNode* node);
-  void RxDoseChanged(const QString &);
+  void RxDoseChanged(double);
   void isocenterFiducialNodeChanged(vtkMRMLNode*);
   void dosePointFiducialNodeChanged(vtkMRMLNode*);
   void nominalEnergyChanged(const QString&);
@@ -95,14 +95,15 @@ protected slots:
   void beamOnTimeChanged(const QString &);
 
   /* Energy page */
-  void protonSmearingChanged(const QString &);
-  void protonProximalMarginChanged(const QString &);
-  void protonDistalMarginChanged(const QString &);
+  void protonSmearingChanged(double);
+  void protonProximalMarginChanged(double);
+  void protonDistalMarginChanged(double);
 
   /* Proton Geometry page */
   // void gantryAngleChanged(double);
   // void collimatorAngleChanged(double);
   // void couchAngleChanged(double);
+  void beamWeightChanged(double);
 
   /* Photon Geometry page */
   void gantryAngleChanged(double);
@@ -113,10 +114,13 @@ protected slots:
   void YJawsPositionValuesChanged(double, double);
 
   /* Proton beam model */
-  void protonSourceDistanceChanged(const QString &);
-  void protonSourceSizeChanged(const QString &);
-  void protonEnergyResolutionChanged(const QString &);
+  void protonSourceDistanceChanged(double);
+  void protonSourceSizeChanged(double);
+  void protonApertureOffsetChanged(double);
+  void protonEnergyResolutionChanged(double);
   void protonEnergySpreadChanged(const QString &);
+  void protonBeamFlavorChanged(const QString &);
+  void protonSpacingAtIsoChanged(const QString &);
 
   /* Photon beam model */
 

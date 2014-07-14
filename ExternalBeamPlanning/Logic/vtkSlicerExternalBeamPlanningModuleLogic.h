@@ -34,6 +34,9 @@
 
 // MRML includes
 
+// ITK includes
+#include <itkImage.h>
+
 // STD includes
 #include <cstdlib>
 
@@ -81,10 +84,10 @@ public:
   vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, vtkDoubleArray*);
 
   /// TODO
-  void ComputeDose (char*);
+  void ComputeDose (vtkMRMLRTBeamNode*);
 
   /// TODO
-  void ComputeDoseByPlastimatch (char*);
+  void ComputeDoseByPlastimatch (vtkMRMLRTBeamNode*);
 
   /// TODO
   void ComputeWED ();
@@ -95,6 +98,12 @@ public:
 
   /// TODO
   void ComputeDoseByMatlab (char*);
+
+  void InitializeAccumulateDose();
+  void RegisterAccumulateDose();
+
+  /// Pointer that contains the accumulate dose
+  itk::Image<float, 3>::Pointer accumulateVolumeItk;
 
 protected:
   vtkSlicerExternalBeamPlanningModuleLogic();

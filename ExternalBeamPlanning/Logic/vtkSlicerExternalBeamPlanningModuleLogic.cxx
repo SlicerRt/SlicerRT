@@ -37,6 +37,9 @@
 #include "plm_image.h"
 #include "ion_beam.h"
 #include "ion_plan.h"
+#include "itk_image_accumulate.h"
+#include "itk_image_create.h"
+#include "plm_image_header.h"
 #include "itk_image_save.h"
 #include "itk_image_scale.h"
 #include "itk_image_stats.h"
@@ -594,7 +597,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
 
   //RTBeamNode->SetBeamName(this->ExternalBeamPlanningNode->GetBeamName());
   this->ExternalBeamPlanningNode->SetBeamName(RTBeamNode->GetBeamName());
-
+  
   RTBeamNode->SetX1Jaw(this->ExternalBeamPlanningNode->GetX1Jaw());
   RTBeamNode->SetX2Jaw(this->ExternalBeamPlanningNode->GetX2Jaw());
   RTBeamNode->SetY1Jaw(this->ExternalBeamPlanningNode->GetY1Jaw());
@@ -602,7 +605,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   RTBeamNode->SetAndObserveMLCPositionDoubleArrayNode(this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode());
   RTBeamNode->SetAndObserveIsocenterFiducialNode(this->ExternalBeamPlanningNode->GetIsocenterFiducialNode());
   // RTBeamNode->SetAndObserveProtonTargetContourNode(this->ExternalBeamPlanningNode->GetProtonTargetContourNode());
-
   RTBeamNode->SetGantryAngle(this->ExternalBeamPlanningNode->GetGantryAngle());
   RTBeamNode->SetCollimatorAngle(this->ExternalBeamPlanningNode->GetCollimatorAngle());
   RTBeamNode->SetCouchAngle(this->ExternalBeamPlanningNode->GetCouchAngle());
@@ -1083,7 +1085,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(char* beamnam
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose(char* beamname)
+void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose(vtkMRMLRTBeamNode* beamNode)
 {
   vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
   if (!rtPlanNode )
@@ -1094,11 +1096,11 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose(char* beamname)
 
   if(rtPlanNode->GetRTPlanDoseEngine() == vtkMRMLRTPlanNode::Plastimatch)
   {
-    this->ComputeDoseByPlastimatch(beamname);
+    this->ComputeDoseByPlastimatch(beamNode);
   }
   else if (rtPlanNode->GetRTPlanDoseEngine() == vtkMRMLRTPlanNode::Matlab)
   {
-    this->ComputeDoseByMatlab(beamname);
+    //this->ComputeDoseByMatlab(beamNode);
   }
   else
   {
@@ -1106,7 +1108,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose(char* beamname)
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* beamname)
+void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLRTBeamNode* beamNode)
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
   {
@@ -1122,24 +1124,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
   {
     vtkErrorMacro("ComputeDoseByPlastimatch: Inputs are not initialized!")
     return;
-  }
-
-  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  rtPlanNode->GetRTBeamNodes(beams);
-  // Fill the table
-  if (!beams) return;
-  vtkMRMLRTBeamNode* beamNode = NULL;
-  for (int i=0; i<beams->GetNumberOfItems(); ++i)
-  {
-    beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-    if (beamNode)
-    { 
-		printf("Beam %lg \n", beamNode->GetGantryAngle());
-      if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
-	  {
-        // //RTPlanNode->RemoveRTBeamNode(beamNode);
-      }
-    }
   }
 
   // Make sure inputs are initialized
@@ -1179,17 +1163,52 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
 
   try
   {
+	/* Connection of the beam parameters to the ion_beam class used to calculate the dose in platimatch */
+	
+    /* Plastimatch settings */
+
     // Assign inputs to dose calc logic
+    /* SETTINGS */
+
+	printf("\n ***SETTING PARAMETERS***\n");
     printf ("Setting reference volume\n");
     ion_plan.set_patient (referenceVolumeItk);
+
     printf ("Setting target volume\n");
     ion_plan.set_target (targetVolumeItk);
-    printf ("Done.\n");
 
-    printf ("Gantry angle is: %g\n",
-            beamNode->GetGantryAngle());
+	ion_plan.set_normalization_dose(1.0); // the normalization dose will be added at the creation of the global dose matrix: D = N * (beam1 * w1 + beam2 * w2...)
+    ion_plan.beam->set_beamWeight(1.0);	 // see comment previous line
 
-    float src_dist = 2000;
+	ion_plan.beam->set_flavor(beamNode->GetBeamFlavor());
+	printf("Beam Flavor = %c\n", ion_plan.beam->get_flavor());
+
+	ion_plan.beam->get_sobp()->set_energyResolution(beamNode->GetEnergyResolution());
+	printf("Energy resolution = %lg\n ", ion_plan.beam->get_sobp()->get_energyResolution());
+
+	/* APERTURE SETTINGS */
+	printf("\n***APERTURE PARAMETERS***\n");
+
+	ion_plan.get_aperture()->set_distance(beamNode->GetApertureOffset());
+	printf("Aperture offset = %lg\n", ion_plan.get_aperture()->get_distance());
+
+	printf("SAD = %lg\n", beamNode->GetProtonSAD() );
+
+	ion_plan.get_aperture()->set_spacing(beamNode->GetApertureSpacing());
+	printf("Aperture Spacing = %lg %lg\n", ion_plan.get_aperture()->get_spacing(0),  ion_plan.get_aperture()->get_spacing(1));
+
+	ion_plan.get_aperture()->set_origin(beamNode->GetApertureOrigin());
+	printf("Aperture Origin = %lg %lg\n", beamNode->GetApertureOrigin(0), beamNode->GetApertureOrigin(1));
+
+	ion_plan.get_aperture()->set_dim(beamNode->GetApertureDim() );
+	printf("Aperture dim = %d %d\n", ion_plan.get_aperture()->get_dim(0), ion_plan.get_aperture()->get_dim(1) );
+	
+	ion_plan.beam->set_source_size(beamNode->GetSourceSize());
+	printf("Source size = %lg\n", ion_plan.beam->get_source_size() );
+
+	/* Beam Parameters */
+	printf("\n***BEAM PARAMETERS***\n");
+
     float src[3];
     double isocenter[3] = { 0, 0, 0 };
     beamNode->GetIsocenterFiducialNode()->GetNthFiducialPosition(0,isocenter);
@@ -1199,23 +1218,25 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
     /* Adjust src according to gantry angle */
     float ga_radians = 
       beamNode->GetGantryAngle() * M_PI / 180.;
+	float src_dist = beamNode->GetProtonSAD();
     src[0] = isocenter[0] + src_dist * sin(ga_radians);
     src[1] = isocenter[1] - src_dist * cos(ga_radians);
     src[2] = isocenter[2];
 
     ion_plan.beam->set_source_position (src);
-    ion_plan.beam->set_isocenter_position (isocenter);
+	ion_plan.beam->set_isocenter_position (isocenter);
+	printf("Isocenter = %lg %lg %lg\n", ion_plan.beam->get_isocenter_position(0), ion_plan.beam->get_isocenter_position(1),ion_plan.beam->get_isocenter_position(2) );
+	printf("Source position = %lg %lg %lg\n", ion_plan.beam->get_source_position(0), ion_plan.beam->get_source_position(1),ion_plan.beam->get_source_position(2) );
 
-    float ap_offset = 1500;
-    int ap_dim[2] = { 31, 31};
-    float ap_origin[2] = { -15, -15 };
-    float ap_spacing[2] = {1, 1};
-    ion_plan.get_aperture()->set_distance (ap_offset);
-    ion_plan.get_aperture()->set_dim (ap_dim);
-//    ion_plan.get_aperture()->set_origin (ap_origin);
-    ion_plan.get_aperture()->set_spacing (ap_spacing);
     ion_plan.set_step_length (1);
+	printf("Step length = %lg\n", ion_plan.get_step_length() );
+
     ion_plan.set_smearing (this->ExternalBeamPlanningNode->GetSmearing());
+	printf("Smearing = %lg\n", this->ExternalBeamPlanningNode->GetSmearing());
+
+	// Distal and proximal margins are updated when the SOBP is created
+    /* All the ion_beam parameters are updated to initiate the dose calculation */
+
     if (!ion_plan.init ()) {
       /* Failure.  How to notify the user?? */
       std::cerr << "Sorry, ion_plan.init() failed.\n";
@@ -1270,9 +1291,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
     rcVolumeItk->GetOrigin()[1],
     rcVolumeItk->GetOrigin()[2]);
 
-  std::string rcVolumeNodeName = this->GetMRMLScene()
-    ->GenerateUniqueName(std::string ("range_compensator_"));
-  rcVolumeNode->SetName(rcVolumeNodeName.c_str());
+  std::string nodeName = "range_compensator_" + std::string(beamNode->GetName());
+
+  rcVolumeNode->SetName(nodeName.c_str());
 
   rcVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(rcVolumeNode);
@@ -1295,8 +1316,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
     apertureVolumeItk->GetOrigin()[1],
     apertureVolumeItk->GetOrigin()[2]);
 
-  std::string apertureVolumeNodeName = this->GetMRMLScene()->GenerateUniqueName(std::string ("aperture_"));
-  apertureVolumeNode->SetName(apertureVolumeNodeName.c_str());
+  nodeName = "aperture_" + std::string(beamNode->GetName());
+
+  apertureVolumeNode->SetName(nodeName.c_str());
 
   apertureVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(apertureVolumeNode);
@@ -1328,6 +1350,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
   itk::Image<float, 3>::Pointer doseVolumeItk = ion_plan.get_dose_itk();
   itk_image_scale (doseVolumeItk, 10);
 
+  /* Add into accumulate image */
+  itk_image_accumulate(accumulateVolumeItk, this->GetExternalBeamPlanningNode()->GetRxDose() * beamNode->GetBeamWeight(), doseVolumeItk);
+
   /* Convert dose image to vtk */
   vtkSmartPointer<vtkImageData> doseVolume = vtkSmartPointer<vtkImageData>::New();
   SlicerRtCommon::ConvertItkImageToVtkImageData<float>(doseVolumeItk, doseVolume, VTK_FLOAT);
@@ -1350,11 +1375,12 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(char* be
     doseVolumeItk->GetOrigin()[2]);
 #endif
 
-  std::string doseVolumeNodeName = this->GetMRMLScene()->GenerateUniqueName(std::string("proton_dose_"));
-  doseVolumeNode->SetName(doseVolumeNodeName.c_str());
+  nodeName = "proton_dose_" + std::string(beamNode->GetName());
+
+  doseVolumeNode->SetName(nodeName.c_str());
 
   doseVolumeNode->SetScene(this->GetMRMLScene());
-  this->GetMRMLScene()->AddNode(doseVolumeNode);
+  this->GetMRMLScene()->AddNode(doseVolumeNode); // to be removed if we want to show only the last image
 
   /* Testing .. */
   doseVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
@@ -1427,7 +1453,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
     int ap_dim[2] = { 30, 30 };
 //    float ap_origin[2] = { -19, -19 };
     float ap_spacing[2] = { 2, 2 };
-    ion_plan.get_aperture()->set_distance (ap_offset);
+    //ion_plan.get_aperture()->set_distance (ap_offset);
     ion_plan.get_aperture()->set_dim (ap_dim);
 //    ion_plan.get_aperture()->set_origin (ap_origin);
     ion_plan.get_aperture()->set_spacing (ap_spacing);
@@ -1491,4 +1517,37 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 
   wedVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(wedVolumeNode);
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::InitializeAccumulateDose()
+{
+	vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
+
+	Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
+	itk::Image<short, 3>::Pointer referenceVolumeItk = plmRef->itk_short();
+
+	accumulateVolumeItk = itk_image_create<float>(Plm_image_header(referenceVolumeItk));
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulateDose()
+{
+	/* Convert dose image to vtk */
+  vtkSmartPointer<vtkImageData> doseVolume = vtkSmartPointer<vtkImageData>::New();
+  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(accumulateVolumeItk, doseVolume, VTK_FLOAT);
+
+  /* Create the MRML node for the volume */
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
+
+  doseVolumeNode->SetAndObserveImageData (doseVolume);
+  doseVolumeNode->CopyOrientation (referenceVolumeNode);
+
+  std::string nodeName = "total_proton_dose";
+  doseVolumeNode->SetName(nodeName.c_str());
+
+  doseVolumeNode->SetScene(this->GetMRMLScene());
+  this->GetMRMLScene()->AddNode(doseVolumeNode); // to be removed if we want to show only the last image
 }
