@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>545</width>
+    <width>580</width>
     <height>827</height>
    </rect>
   </property>
@@ -15,8 +15,8 @@
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
    <item row="4" column="0">
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_BeamParameters" native="true">
-     <property name="text" stdset="0">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_BeamParameters">
+     <property name="text">
       <string>Beam Parameters</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
@@ -59,7 +59,7 @@
       <item row="18" column="0" colspan="2">
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="tabWidgetPagePhotonRx">
          <attribute name="title">
@@ -140,44 +140,44 @@
              </widget>
             </item>
             <item row="4" column="1">
-             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_IsocenterFiducial" native="true">
+             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_IsocenterFiducial">
               <property name="enabled">
                <bool>true</bool>
               </property>
-              <property name="nodeTypes" stdset="0">
+              <property name="nodeTypes">
                <stringlist>
                 <string>vtkMRMLMarkupsFiducialNode</string>
                </stringlist>
               </property>
-              <property name="showChildNodeTypes" stdset="0">
+              <property name="showChildNodeTypes">
                <bool>true</bool>
               </property>
-              <property name="addEnabled" stdset="0">
+              <property name="addEnabled">
                <bool>false</bool>
               </property>
-              <property name="removeEnabled" stdset="0">
+              <property name="removeEnabled">
                <bool>false</bool>
               </property>
-              <property name="renameEnabled" stdset="0">
+              <property name="renameEnabled">
                <bool>false</bool>
               </property>
-              <property name="selectNodeUponCreation" stdset="0">
+              <property name="selectNodeUponCreation">
                <bool>true</bool>
               </property>
              </widget>
             </item>
             <item row="6" column="1">
-             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DosePointFiducial" native="true">
+             <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DosePointFiducial">
               <property name="enabled">
                <bool>true</bool>
               </property>
              </widget>
             </item>
             <item row="5" column="1">
-             <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_IsocenterCoordinates" native="true"/>
+             <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_IsocenterCoordinates"/>
             </item>
             <item row="7" column="1">
-             <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_DosePointCoordinates" native="true"/>
+             <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_DosePointCoordinates"/>
             </item>
             <item row="6" column="0">
              <widget class="QLabel" name="label_19">
@@ -225,7 +225,7 @@
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_TargetContour" native="true"/>
+             <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget_TargetContour"/>
             </item>
             <item row="3" column="1">
              <widget class="QDoubleSpinBox" name="doubleSpinBox_RxDose">
@@ -327,11 +327,11 @@
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="ctkSliderWidget" name="SliderWidget_ProtonCollimatorAngle" native="true">
-              <property name="decimals" stdset="0">
+             <widget class="ctkSliderWidget" name="SliderWidget_ProtonCollimatorAngle">
+              <property name="decimals">
                <number>0</number>
               </property>
-              <property name="maximum" stdset="0">
+              <property name="maximum">
                <double>359.000000000000000</double>
               </property>
              </widget>
@@ -344,20 +344,20 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="ctkSliderWidget" name="SliderWidget_ProtonGantryAngle" native="true">
-              <property name="decimals" stdset="0">
+             <widget class="ctkSliderWidget" name="SliderWidget_ProtonGantryAngle">
+              <property name="decimals">
                <number>0</number>
               </property>
-              <property name="singleStep" stdset="0">
+              <property name="singleStep">
                <double>1.000000000000000</double>
               </property>
-              <property name="pageStep" stdset="0">
+              <property name="pageStep">
                <double>10.000000000000000</double>
               </property>
-              <property name="maximum" stdset="0">
+              <property name="maximum">
                <double>359.000000000000000</double>
               </property>
-              <property name="tickInterval" stdset="0">
+              <property name="tickInterval">
                <double>18.000000000000000</double>
               </property>
              </widget>
@@ -370,11 +370,11 @@
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="ctkSliderWidget" name="SliderWidget_ProtonCouchAngle" native="true">
-              <property name="decimals" stdset="0">
+             <widget class="ctkSliderWidget" name="SliderWidget_ProtonCouchAngle">
+              <property name="decimals">
                <number>0</number>
               </property>
-              <property name="maximum" stdset="0">
+              <property name="maximum">
                <double>359.000000000000000</double>
               </property>
              </widget>
@@ -399,19 +399,22 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PhotonMLCPositionDoubleArray" native="true">
-            <property name="nodeTypes" stdset="0">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PhotonMLCPositionDoubleArray">
+            <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLDoubleArrayNode</string>
              </stringlist>
             </property>
-            <property name="addEnabled" stdset="0">
+            <property name="noneEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="addEnabled">
              <bool>false</bool>
             </property>
-            <property name="removeEnabled" stdset="0">
+            <property name="removeEnabled">
              <bool>false</bool>
             </property>
-            <property name="selectNodeUponCreation" stdset="0">
+            <property name="selectNodeUponCreation">
              <bool>true</bool>
             </property>
            </widget>
@@ -424,20 +427,20 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="ctkRangeWidget" name="RangeWidget_PhotonXJawsPosition" native="true">
-            <property name="decimals" stdset="0">
+           <widget class="ctkRangeWidget" name="RangeWidget_PhotonXJawsPosition">
+            <property name="decimals">
              <number>0</number>
             </property>
-            <property name="minimum" stdset="0">
+            <property name="minimum">
              <double>-200.000000000000000</double>
             </property>
-            <property name="maximum" stdset="0">
+            <property name="maximum">
              <double>200.000000000000000</double>
             </property>
-            <property name="minimumValue" stdset="0">
+            <property name="minimumValue">
              <double>-100.000000000000000</double>
             </property>
-            <property name="maximumValue" stdset="0">
+            <property name="maximumValue">
              <double>100.000000000000000</double>
             </property>
            </widget>
@@ -450,20 +453,20 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="ctkRangeWidget" name="RangeWidget_PhotonYJawsPosition" native="true">
-            <property name="decimals" stdset="0">
+           <widget class="ctkRangeWidget" name="RangeWidget_PhotonYJawsPosition">
+            <property name="decimals">
              <number>0</number>
             </property>
-            <property name="minimum" stdset="0">
+            <property name="minimum">
              <double>-200.000000000000000</double>
             </property>
-            <property name="maximum" stdset="0">
+            <property name="maximum">
              <double>200.000000000000000</double>
             </property>
-            <property name="minimumValue" stdset="0">
+            <property name="minimumValue">
              <double>-100.000000000000000</double>
             </property>
-            <property name="maximumValue" stdset="0">
+            <property name="maximumValue">
              <double>100.000000000000000</double>
             </property>
            </widget>
@@ -476,11 +479,11 @@
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="ctkSliderWidget" name="SliderWidget_PhotonCollimatorAngle" native="true">
-            <property name="decimals" stdset="0">
+           <widget class="ctkSliderWidget" name="SliderWidget_PhotonCollimatorAngle">
+            <property name="decimals">
              <number>0</number>
             </property>
-            <property name="maximum" stdset="0">
+            <property name="maximum">
              <double>359.000000000000000</double>
             </property>
            </widget>
@@ -493,11 +496,11 @@
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="ctkSliderWidget" name="SliderWidget_PhotonGantryAngle" native="true">
-            <property name="decimals" stdset="0">
+           <widget class="ctkSliderWidget" name="SliderWidget_PhotonGantryAngle">
+            <property name="decimals">
              <number>0</number>
             </property>
-            <property name="maximum" stdset="0">
+            <property name="maximum">
              <double>359.000000000000000</double>
             </property>
            </widget>
@@ -510,11 +513,11 @@
            </widget>
           </item>
           <item row="5" column="1">
-           <widget class="ctkSliderWidget" name="SliderWidget_PhotonCouchAngle" native="true">
-            <property name="decimals" stdset="0">
+           <widget class="ctkSliderWidget" name="SliderWidget_PhotonCouchAngle">
+            <property name="decimals">
              <number>0</number>
             </property>
-            <property name="maximum" stdset="0">
+            <property name="maximum">
              <double>359.000000000000000</double>
             </property>
            </widget>
@@ -757,8 +760,8 @@
       </widget>
      </item>
      <item>
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet" native="true">
-       <property name="nodeTypes" stdset="0">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
+       <property name="nodeTypes">
         <stringlist>
          <string>vtkMRMLExternalBeamPlanningNode</string>
         </stringlist>
@@ -809,8 +812,8 @@
     </layout>
    </item>
    <item row="2" column="0">
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ExternalBeamPlanning" native="true">
-     <property name="text" stdset="0">
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ExternalBeamPlanning">
+     <property name="text">
       <string>RT Plan</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -831,11 +834,11 @@
          </attribute>
          <layout class="QGridLayout" name="gridLayout">
           <item row="4" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseROI" native="true">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseROI">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes" stdset="0">
+            <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLAnnotationROINode</string>
              </stringlist>
@@ -843,11 +846,11 @@
            </widget>
           </item>
           <item row="3" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume" native="true">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes" stdset="0">
+            <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLScalarVolumeNode</string>
              </stringlist>
@@ -855,49 +858,49 @@
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume" native="true">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes" stdset="0">
+            <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLScalarVolumeNode</string>
              </stringlist>
             </property>
-            <property name="addEnabled" stdset="0">
+            <property name="addEnabled">
              <bool>false</bool>
             </property>
-            <property name="removeEnabled" stdset="0">
+            <property name="removeEnabled">
              <bool>false</bool>
             </property>
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget" native="true"/>
+           <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget"/>
           </item>
           <item row="2" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan" native="true">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan">
             <property name="enabled">
              <bool>true</bool>
             </property>
             <property name="toolTip">
              <string/>
             </property>
-            <property name="nodeTypes" stdset="0">
+            <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLRTPlanNode</string>
              </stringlist>
             </property>
-            <property name="addEnabled" stdset="0">
+            <property name="addEnabled">
              <bool>true</bool>
             </property>
-            <property name="removeEnabled" stdset="0">
+            <property name="removeEnabled">
              <bool>true</bool>
             </property>
-            <property name="renameEnabled" stdset="0">
+            <property name="renameEnabled">
              <bool>true</bool>
             </property>
-            <property name="selectNodeUponCreation" stdset="0">
+            <property name="selectNodeUponCreation">
              <bool>true</bool>
             </property>
            </widget>
@@ -1090,6 +1093,11 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>qMRMLCoordinatesWidget</class>
+   <extends>ctkCoordinatesWidget</extends>
+   <header>qMRMLCoordinatesWidget.h</header>
+  </customwidget>
+  <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
@@ -1133,11 +1141,6 @@
    <extends>qMRMLWidget</extends>
    <header>qMRMLContourSelectorWidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLCoordinatesWidget</class>
-   <extends>ctkCoordinatesWidget</extends>
-   <header>qMRMLCoordinatesWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

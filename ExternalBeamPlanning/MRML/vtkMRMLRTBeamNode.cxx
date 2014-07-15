@@ -131,13 +131,13 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   vtkIndent indent(nIndent);
 
   if (this->BeamName != NULL) 
-    {
+  {
     of << indent << " BeamName=\"" << this->BeamName << "\"";
-    }
+  }
   if (this->BeamModelNodeId != NULL) 
-    {
+  {
     of << indent << " BeamModelNodeId=\"" << this->BeamModelNodeId << "\"";
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -150,22 +150,22 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
   const char* attValue;
 
   while (*atts != NULL) 
-    {
+  {
     attName = *(atts++);
     attValue = *(atts++);
 
     if (!strcmp(attName, "BeamName")) 
-      {
+    {
       this->SetBeamName(attValue);
-      }
+    }
     else if (!strcmp(attName, "BeamModelNodeId")) 
-      {
+    {
       this->SetAndObserveBeamModelNodeId(NULL); // clear any previous observers
       // Do not add observers yet because updates may be wrong before reading all the xml attributes
       // Observers will be added when all the attributes are read and UpdateScene is called
       this->SetBeamModelNodeId(attValue);
-      }
     }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -194,9 +194,9 @@ void vtkMRMLRTBeamNode::UpdateReferences()
   Superclass::UpdateReferences();
 
   if (this->BeamModelNodeId != NULL && this->Scene->GetNodeByID(this->BeamModelNodeId) == NULL)
-    {
+  {
     this->SetBeamModelNodeId(NULL);
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -205,9 +205,9 @@ void vtkMRMLRTBeamNode::UpdateReferenceID(const char *oldID, const char *newID)
   Superclass::UpdateReferenceID(oldID, newID);
 
   if (this->BeamModelNodeId && !strcmp(oldID, this->BeamModelNodeId))
-    {
+  {
     this->SetAndObserveBeamModelNodeId(newID);
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -295,24 +295,24 @@ vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetRTPlanNode()
   vtkMRMLRTPlanHierarchyNode *phrootnode = NULL;
   vtkMRMLRTPlanNode *pnode = NULL; 
   for (int n=0; n < scene->GetNumberOfNodes(); n++) 
-    {
+  {
     mnode = scene->GetNthNode(n);
     if (mnode->IsA("vtkMRMLRTPlanHierachyNode"))
-      {
+    {
       phnode = vtkMRMLRTPlanHierarchyNode::SafeDownCast(mnode);
       vtkMRMLRTBeamNode* pnode = vtkMRMLRTBeamNode::SafeDownCast(this->GetScene()->GetNodeByID(phnode->GetAssociatedNodeID()));
       if (pnode == this) 
-        {
+      {
         phrootnode = phnode;
         break;
-        }
-      }// end if
-    }// end for
+      }
+    }// end if
+  }// end for
   if (phrootnode)
-    {
+  {
     pnode = vtkMRMLRTPlanNode::SafeDownCast(
         scene->GetNodeByID(vtkMRMLRTPlanHierarchyNode::SafeDownCast(phrootnode->GetParentNode())->GetAssociatedNodeID()));
-    }
+  }
   return pnode;
 }
 
@@ -322,24 +322,24 @@ void vtkMRMLRTBeamNode::SetAndObserveBeamModelNodeId(const char *nodeID)
   vtkSetAndObserveMRMLObjectMacro(this->BeamModelNode, NULL);
   this->SetBeamModelNodeId(nodeID);
   if (!nodeID)
-    {
+  {
     return;
-    }
+  }
 
   vtkMRMLModelNode *tnode = this->GetBeamModelNode();
   if (tnode)
-    {
+  {
     tnode->HideFromEditorsOn();
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     events->InsertNextValue(vtkMRMLModelNode::PolyDataModifiedEvent);
     vtkSetAndObserveMRMLObjectEventsMacro(this->BeamModelNode, tnode, events);
-    }
+  }
   else
-    {
+  {
     vtkErrorMacro("Failed to set BeamModel node ID!");
     this->SetBeamModelNodeId(NULL);
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -347,10 +347,10 @@ vtkMRMLModelNode* vtkMRMLRTBeamNode::GetBeamModelNode()
 {
   vtkMRMLModelNode* node = NULL;
   if (this->Scene && this->BeamModelNodeId != NULL )
-    {
+  {
     vtkMRMLNode* snode = this->Scene->GetNodeByID(this->BeamModelNodeId);
     node = vtkMRMLModelNode::SafeDownCast(snode);
-    }
+  }
 
   return node;
 }
@@ -358,143 +358,152 @@ vtkMRMLModelNode* vtkMRMLRTBeamNode::GetBeamModelNode()
 //----------------------------------------------------------------------------
 const double* vtkMRMLRTBeamNode::GetIsocenterPosition ()
 {
-	return this->Isocenter;
+  return this->Isocenter;
 }
 
 //----------------------------------------------------------------------------
 double vtkMRMLRTBeamNode::GetIsocenterPosition (int dim)
 {
-    return this->Isocenter[dim];
+  return this->Isocenter[dim];
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetIsocenterPosition (const float* position)
 {
-    for (int d = 0; d < 3; d++) {
-        this->Isocenter[d] = position[d];
-    }
+  for (int d = 0; d < 3; d++) 
+  {
+    this->Isocenter[d] = position[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetIsocenterPosition (const double* position)
 {
-    for (int d = 0; d < 3; d++) {
-        this->Isocenter[d] = position[d];
-    }
+  for (int d = 0; d < 3; d++) 
+  {
+    this->Isocenter[d] = position[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 const double* vtkMRMLRTBeamNode::GetApertureSpacing ()
 {
-	return this->ApertureSpacing;
+  return this->ApertureSpacing;
 }
 
 //----------------------------------------------------------------------------
 double vtkMRMLRTBeamNode::GetApertureSpacing (int dim)
 {
-    return this->ApertureSpacing[dim];
+  return this->ApertureSpacing[dim];
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetApertureSpacing (const float* spacing)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureSpacing[d] = spacing[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+    this->ApertureSpacing[d] = spacing[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetApertureSpacing (const double* spacing)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureSpacing[d] = spacing[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+    this->ApertureSpacing[d] = spacing[d];
+  }
 }
 
 const double* vtkMRMLRTBeamNode::GetApertureSpacingAtIso ()
 {
-	return this->ApertureSpacingAtIso;
+  return this->ApertureSpacingAtIso;
 }
 
 //----------------------------------------------------------------------------
 double vtkMRMLRTBeamNode::GetApertureSpacingAtIso (int dim)
 {
-    return this->ApertureSpacingAtIso[dim];
+  return this->ApertureSpacingAtIso[dim];
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetApertureSpacingAtIso (const float* spacing)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureSpacingAtIso[d] = spacing[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+    this->ApertureSpacingAtIso[d] = spacing[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetApertureSpacingAtIso (const double* spacing)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureSpacingAtIso[d] = spacing[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+    this->ApertureSpacingAtIso[d] = spacing[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 const double* vtkMRMLRTBeamNode::GetApertureOrigin ()
 {
-	return this->ApertureOrigin;
+  return this->ApertureOrigin;
 }
 
 //----------------------------------------------------------------------------
 double vtkMRMLRTBeamNode::GetApertureOrigin (int dim)
 {
-    return this->ApertureOrigin[dim];
+  return this->ApertureOrigin[dim];
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetApertureOrigin (const float* position)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureOrigin[d] = position[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+    this->ApertureOrigin[d] = position[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetApertureOrigin (const double* position)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureOrigin[d] = position[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+    this->ApertureOrigin[d] = position[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 const int* vtkMRMLRTBeamNode::GetApertureDim ()
 {
-	return this->ApertureDim;
+  return this->ApertureDim;
 }
 
 //----------------------------------------------------------------------------
 int vtkMRMLRTBeamNode::GetApertureDim (int dim)
 {
-    return this->ApertureDim[dim];
+  return this->ApertureDim[dim];
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetApertureDim (const int* dim)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureDim[d] = dim[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+    this->ApertureDim[d] = dim[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::UpdateApertureParameters()
 {
-	double origin[2] = {-this->X1Jaw * this->ApertureOffset / this->ProtonSAD , -this->Y1Jaw * this->ApertureOffset / this->ProtonSAD };
-	this->SetApertureOrigin(origin);
+  double origin[2] = {-this->X1Jaw * this->ApertureOffset / this->ProtonSAD , -this->Y1Jaw * this->ApertureOffset / this->ProtonSAD };
+  this->SetApertureOrigin(origin);
 
-	double spacing_at_aperture[2] = {this->ApertureSpacingAtIso[0] * this->ApertureOffset / this->ProtonSAD, this->ApertureSpacingAtIso[1] * this->ApertureOffset / this->ProtonSAD};
-	this->SetApertureSpacing(spacing_at_aperture);
+  double spacing_at_aperture[2] = {this->ApertureSpacingAtIso[0] * this->ApertureOffset / this->ProtonSAD, this->ApertureSpacingAtIso[1] * this->ApertureOffset / this->ProtonSAD};
+  this->SetApertureSpacing(spacing_at_aperture);
 
-	int dim[2] = { (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] +1 ), (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] +1 )};
-	this->SetApertureDim(dim);
+  int dim[2] = { (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] +1 ), (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] +1 )};
+  this->SetApertureDim(dim);
 }

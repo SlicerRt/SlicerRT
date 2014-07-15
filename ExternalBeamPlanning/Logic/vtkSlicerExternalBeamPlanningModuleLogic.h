@@ -81,7 +81,10 @@ public:
   void UpdateDRR(char*);
 
   /// TODO
-  vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, vtkDoubleArray*);
+  vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double, vtkDoubleArray*);
+
+  /// TODO
+  vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double);
 
   /// TODO
   void ComputeDose (vtkMRMLRTBeamNode*);
@@ -97,7 +100,7 @@ public:
   vtkSlicerCLIModuleLogic* GetMatlabDoseCalculationModuleLogic();
 
   /// TODO
-  void ComputeDoseByMatlab (char*);
+  void ComputeDoseByMatlab (vtkMRMLRTBeamNode*);
 
   void InitializeAccumulateDose();
   void RegisterAccumulateDose();

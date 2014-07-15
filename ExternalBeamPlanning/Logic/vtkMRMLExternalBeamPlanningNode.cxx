@@ -218,21 +218,22 @@ void vtkMRMLExternalBeamPlanningNode::SetAndObserveMLCPositionDoubleArrayNode(vt
 //----------------------------------------------------------------------------
 const double* vtkMRMLExternalBeamPlanningNode::GetIsocenterPosition ()
 {
-	return this->Isocenter;
+  return this->Isocenter;
 }
 
 //----------------------------------------------------------------------------
 double vtkMRMLExternalBeamPlanningNode::GetIsocenterPosition (int dim)
 {
-    return this->Isocenter[dim];
+  return this->Isocenter[dim];
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetIsocenterPosition (const float* position)
 {
-    for (int d = 0; d < 3; d++) {
-        this->Isocenter[d] = position[d];
-    }
+  for (int d = 0; d < 3; d++) 
+  {
+    this->Isocenter[d] = position[d];
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -246,116 +247,120 @@ void vtkMRMLExternalBeamPlanningNode::SetIsocenterPosition (const double* positi
 //----------------------------------------------------------------------------
 const double* vtkMRMLExternalBeamPlanningNode::GetApertureSpacing ()
 {
-	return this->ApertureSpacing;
+  return this->ApertureSpacing;
 }
 
 //----------------------------------------------------------------------------
 double vtkMRMLExternalBeamPlanningNode::GetApertureSpacing (int dim)
 {
-    return this->ApertureSpacing[dim];
+  return this->ApertureSpacing[dim];
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetApertureSpacing (const float* spacing)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureSpacing[d] = spacing[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+  this->ApertureSpacing[d] = spacing[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetApertureSpacing (const double* spacing)
 {
     for (int d = 0; d < 2; d++) {
-		this->ApertureSpacing[d] = spacing[d];
+    this->ApertureSpacing[d] = spacing[d];
     }
 }
 
 //----------------------------------------------------------------------------
 const double* vtkMRMLExternalBeamPlanningNode::GetApertureSpacingAtIso ()
 {
-	return this->ApertureSpacingAtIso;
+  return this->ApertureSpacingAtIso;
 }
 
 //----------------------------------------------------------------------------
 double vtkMRMLExternalBeamPlanningNode::GetApertureSpacingAtIso (int dim)
 {
-    return this->ApertureSpacingAtIso[dim];
+  return this->ApertureSpacingAtIso[dim];
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetApertureSpacingAtIso (const float* spacing)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureSpacingAtIso[d] = spacing[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+    this->ApertureSpacingAtIso[d] = spacing[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetApertureSpacingAtIso (const double* spacing)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureSpacingAtIso[d] = spacing[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+    this->ApertureSpacingAtIso[d] = spacing[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 const double* vtkMRMLExternalBeamPlanningNode::GetApertureOrigin ()
 {
-	return this->ApertureOrigin;
+  return this->ApertureOrigin;
 }
 
 //----------------------------------------------------------------------------
 double vtkMRMLExternalBeamPlanningNode::GetApertureOrigin (int dim)
 {
-    return this->ApertureOrigin[dim];
+  return this->ApertureOrigin[dim];
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetApertureOrigin (const float* position)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureOrigin[d] = position[d];
-    }
+  for (int d = 0; d < 2; d++) {
+  this->ApertureOrigin[d] = position[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetApertureOrigin (const double* position)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureOrigin[d] = position[d];
-    }
+  for (int d = 0; d < 2; d++) {
+    this->ApertureOrigin[d] = position[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 const int* vtkMRMLExternalBeamPlanningNode::GetApertureDim ()
 {
-	return this->ApertureDim;
+  return this->ApertureDim;
 }
 
 //----------------------------------------------------------------------------
 int vtkMRMLExternalBeamPlanningNode::GetApertureDim (int dim)
 {
-    return this->ApertureDim[dim];
+  return this->ApertureDim[dim];
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::SetApertureDim (const int* dim)
 {
-    for (int d = 0; d < 2; d++) {
-		this->ApertureDim[d] = dim[d];
-    }
+  for (int d = 0; d < 2; d++) 
+  {
+    this->ApertureDim[d] = dim[d];
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLExternalBeamPlanningNode::UpdateApertureParameters()
 {
-	double origin[2] = {-this->X1Jaw * this->ApertureOffset / this->SAD , -this->Y1Jaw * this->ApertureOffset / this->SAD };
-	this->SetApertureOrigin(origin);
+  double origin[2] = {-this->X1Jaw * this->ApertureOffset / this->SAD , -this->Y1Jaw * this->ApertureOffset / this->SAD };
+  this->SetApertureOrigin(origin);
 
-	double spacing_at_aperture[2] = {this->ApertureSpacingAtIso[0] * this->ApertureOffset / this->SAD, this->ApertureSpacingAtIso[1] * this->ApertureOffset / this->SAD};
-	this->SetApertureSpacing(spacing_at_aperture);
+  double spacing_at_aperture[2] = {this->ApertureSpacingAtIso[0] * this->ApertureOffset / this->SAD, this->ApertureSpacingAtIso[1] * this->ApertureOffset / this->SAD};
+  this->SetApertureSpacing(spacing_at_aperture);
 
-	int dim[2] = { (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] +1 ), (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] +1 )};
-	this->SetApertureDim(dim);
+  int dim[2] = { (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] +1 ), (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] +1 )};
+  this->SetApertureDim(dim);
 }

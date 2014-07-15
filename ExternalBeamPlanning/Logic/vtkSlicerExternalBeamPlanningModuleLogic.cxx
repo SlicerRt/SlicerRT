@@ -381,27 +381,88 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
   }
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
   vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
-  if (!isocenterMarkupsNode || !MLCPositionDoubleArrayNode)
+  if (!isocenterMarkupsNode)
   {
     vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
     return;
   }
 
   vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
+  vtkSmartPointer<vtkPolyData> beamModelPolyData = NULL;
 
-  vtkSmartPointer<vtkPolyData> beamModelPolyData = this->CreateBeamPolyData(
-	  beamNode->GetX1Jaw(),
-	  beamNode->GetX2Jaw(), 
-	  beamNode->GetY1Jaw(),
-	  beamNode->GetY2Jaw(),
-	  beamNode->GetMLCPositionDoubleArrayNode()->GetArray());
+  if (MLCPositionDoubleArrayNode)
+  {
+    beamModelPolyData = this->CreateBeamPolyData(
+        beamNode->GetX1Jaw(),
+        beamNode->GetX2Jaw(), 
+        beamNode->GetY1Jaw(),
+        beamNode->GetY2Jaw(),
+        beamNode->GetProtonSAD(),
+        beamNode->GetMLCPositionDoubleArrayNode()->GetArray());
+  }
+  else
+  {
+    beamModelPolyData = this->CreateBeamPolyData(
+        beamNode->GetX1Jaw(),
+        beamNode->GetX2Jaw(), 
+        beamNode->GetY1Jaw(),
+        beamNode->GetY2Jaw(),
+        beamNode->GetProtonSAD());
+  }
 
   beamModelNode->SetAndObservePolyData(beamModelPolyData);
 }
 
 //---------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBeamPolyData(
-	double X1, double X2, double Y1, double Y2, vtkDoubleArray* doubleArray)
+    double X1, double X2, double Y1, double Y2, double SAD)
+{
+  // Create beam model
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  points->InsertPoint(0,0,0,SAD);
+  points->InsertPoint(1,-Y2, -X2, -SAD );
+  points->InsertPoint(2,-Y2,  X1, -SAD );
+  points->InsertPoint(3, Y1,  X1, -SAD );
+  points->InsertPoint(4, Y1, -X2, -SAD );
+
+  vtkSmartPointer<vtkCellArray> cellArray = vtkSmartPointer<vtkCellArray>::New();
+  cellArray->InsertNextCell(3);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(1);
+  cellArray->InsertCellPoint(2);
+
+  cellArray->InsertNextCell(3);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(2);
+  cellArray->InsertCellPoint(3);
+
+  cellArray->InsertNextCell(3);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(3);
+  cellArray->InsertCellPoint(4);
+
+  cellArray->InsertNextCell(3);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(4);
+  cellArray->InsertCellPoint(1);
+
+  // Add the cap to the bottom
+  cellArray->InsertNextCell(4);
+  cellArray->InsertCellPoint(1);
+  cellArray->InsertCellPoint(2);
+  cellArray->InsertCellPoint(3);
+  cellArray->InsertCellPoint(4);
+
+  vtkSmartPointer<vtkPolyData> beamModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  beamModelPolyData->SetPoints(points);
+  beamModelPolyData->SetPolys(cellArray);
+
+  return beamModelPolyData;
+}
+
+//---------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBeamPolyData(
+    double X1, double X2, double Y1, double Y2, double SAD, vtkDoubleArray* doubleArray)
 {
   int n = 4;
 
@@ -445,22 +506,22 @@ vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBea
 
   // Create beam model
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-  points->InsertPoint(0,0,0,1000);
+  points->InsertPoint(0,0,0,SAD);
 
   int count = 1;
   for (int i = X2count; i > -X1count; i--)
   {
-    points->InsertPoint(count,-Y2LeavePosition[-(i-20)]*2, i*10*2, -1000 );
+    points->InsertPoint(count,-Y2LeavePosition[-(i-20)]*2, i*10*2, -SAD );
     count ++;
-    points->InsertPoint(count,-Y2LeavePosition[-(i-20)]*2, (i-1)*10*2, -1000 );
+    points->InsertPoint(count,-Y2LeavePosition[-(i-20)]*2, (i-1)*10*2, -SAD );
     count ++;
   }
 
   for (int i = -X1count; i < X2count; i++)
   {
-    points->InsertPoint(count,Y1LeavePosition[-(i-20)]*2, i*10*2, -1000 );
+    points->InsertPoint(count,Y1LeavePosition[-(i-20)]*2, i*10*2, -SAD );
     count ++;
-    points->InsertPoint(count,Y1LeavePosition[-(i-20)]*2, (i+1)*10*2, -1000 );
+    points->InsertPoint(count,Y1LeavePosition[-(i-20)]*2, (i+1)*10*2, -SAD );
     count ++;
   }
 
@@ -520,7 +581,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode();
   
   // Make sure inputs are initialized
-  if (!rtPlanNode || !isocenterMarkupsNode || !MLCPositionDoubleArrayNode)
+  if (!rtPlanNode || !isocenterMarkupsNode || !referenceVolumeNode)
   {
     vtkErrorMacro("AddBeam: Inputs are not initialized!")
     return;
@@ -532,12 +593,26 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
 
   // Create beam model
-  vtkSmartPointer<vtkPolyData> beamModelPolyData = this->CreateBeamPolyData(
-      this->ExternalBeamPlanningNode->GetX1Jaw(),
-      this->ExternalBeamPlanningNode->GetX2Jaw(), 
-      this->ExternalBeamPlanningNode->GetY1Jaw(),
-      this->ExternalBeamPlanningNode->GetY2Jaw(),
-      MLCPositionDoubleArrayNode->GetArray());
+  vtkSmartPointer<vtkPolyData> beamModelPolyData;
+  if (MLCPositionDoubleArrayNode) 
+  {
+    beamModelPolyData = this->CreateBeamPolyData(
+        this->ExternalBeamPlanningNode->GetX1Jaw(),
+        this->ExternalBeamPlanningNode->GetX2Jaw(), 
+        this->ExternalBeamPlanningNode->GetY1Jaw(),
+        this->ExternalBeamPlanningNode->GetY2Jaw(),
+        this->ExternalBeamPlanningNode->GetSAD(),
+        MLCPositionDoubleArrayNode->GetArray());
+  }
+  else
+  {
+    beamModelPolyData = this->CreateBeamPolyData(
+        this->ExternalBeamPlanningNode->GetX1Jaw(),
+        this->ExternalBeamPlanningNode->GetX2Jaw(), 
+        this->ExternalBeamPlanningNode->GetY1Jaw(),
+        this->ExternalBeamPlanningNode->GetY2Jaw(),
+        this->ExternalBeamPlanningNode->GetSAD());
+  }
 
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->Identity();
@@ -1048,7 +1123,7 @@ itk_rectify_volume_hack (T image)
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(char* beamname)
+void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRMLRTBeamNode* beamNode)
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
   {
@@ -1100,7 +1175,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose(vtkMRMLRTBeamNode* be
   }
   else if (rtPlanNode->GetRTPlanDoseEngine() == vtkMRMLRTPlanNode::Matlab)
   {
-    //this->ComputeDoseByMatlab(beamNode);
+    this->ComputeDoseByMatlab(beamNode);
   }
   else
   {
@@ -1163,81 +1238,82 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
 
   try
   {
-	/* Connection of the beam parameters to the ion_beam class used to calculate the dose in platimatch */
-	
+    /* Connection of the beam parameters to the ion_beam class used to calculate the dose in platimatch */
+  
     /* Plastimatch settings */
 
     // Assign inputs to dose calc logic
     /* SETTINGS */
 
-	printf("\n ***SETTING PARAMETERS***\n");
+    printf("\n ***SETTING PARAMETERS***\n");
     printf ("Setting reference volume\n");
     ion_plan.set_patient (referenceVolumeItk);
 
     printf ("Setting target volume\n");
     ion_plan.set_target (targetVolumeItk);
 
-	ion_plan.set_normalization_dose(1.0); // the normalization dose will be added at the creation of the global dose matrix: D = N * (beam1 * w1 + beam2 * w2...)
+    ion_plan.set_normalization_dose(1.0); // the normalization dose will be added at the creation of the global dose matrix: D = N * (beam1 * w1 + beam2 * w2...)
     ion_plan.beam->set_beamWeight(1.0);	 // see comment previous line
 
-	ion_plan.beam->set_flavor(beamNode->GetBeamFlavor());
-	printf("Beam Flavor = %c\n", ion_plan.beam->get_flavor());
+    ion_plan.beam->set_flavor(beamNode->GetBeamFlavor());
+    printf("Beam Flavor = %c\n", ion_plan.beam->get_flavor());
 
-	ion_plan.beam->get_sobp()->set_energyResolution(beamNode->GetEnergyResolution());
-	printf("Energy resolution = %lg\n ", ion_plan.beam->get_sobp()->get_energyResolution());
+    ion_plan.beam->get_sobp()->set_energyResolution(beamNode->GetEnergyResolution());
+    printf("Energy resolution = %lg\n ", ion_plan.beam->get_sobp()->get_energyResolution());
 
-	/* APERTURE SETTINGS */
-	printf("\n***APERTURE PARAMETERS***\n");
+    /* APERTURE SETTINGS */
+    printf("\n***APERTURE PARAMETERS***\n");
 
-	ion_plan.get_aperture()->set_distance(beamNode->GetApertureOffset());
-	printf("Aperture offset = %lg\n", ion_plan.get_aperture()->get_distance());
+    ion_plan.get_aperture()->set_distance(beamNode->GetApertureOffset());
+    printf("Aperture offset = %lg\n", ion_plan.get_aperture()->get_distance());
 
-	printf("SAD = %lg\n", beamNode->GetProtonSAD() );
+    printf("SAD = %lg\n", beamNode->GetProtonSAD() );
 
-	ion_plan.get_aperture()->set_spacing(beamNode->GetApertureSpacing());
-	printf("Aperture Spacing = %lg %lg\n", ion_plan.get_aperture()->get_spacing(0),  ion_plan.get_aperture()->get_spacing(1));
+    ion_plan.get_aperture()->set_spacing(beamNode->GetApertureSpacing());
+    printf("Aperture Spacing = %lg %lg\n", ion_plan.get_aperture()->get_spacing(0),  ion_plan.get_aperture()->get_spacing(1));
 
-	ion_plan.get_aperture()->set_origin(beamNode->GetApertureOrigin());
-	printf("Aperture Origin = %lg %lg\n", beamNode->GetApertureOrigin(0), beamNode->GetApertureOrigin(1));
+    ion_plan.get_aperture()->set_origin(beamNode->GetApertureOrigin());
+    printf("Aperture Origin = %lg %lg\n", beamNode->GetApertureOrigin(0), beamNode->GetApertureOrigin(1));
 
-	ion_plan.get_aperture()->set_dim(beamNode->GetApertureDim() );
-	printf("Aperture dim = %d %d\n", ion_plan.get_aperture()->get_dim(0), ion_plan.get_aperture()->get_dim(1) );
-	
-	ion_plan.beam->set_source_size(beamNode->GetSourceSize());
-	printf("Source size = %lg\n", ion_plan.beam->get_source_size() );
+    ion_plan.get_aperture()->set_dim(beamNode->GetApertureDim() );
+    printf("Aperture dim = %d %d\n", ion_plan.get_aperture()->get_dim(0), ion_plan.get_aperture()->get_dim(1) );
+  
+    ion_plan.beam->set_source_size(beamNode->GetSourceSize());
+    printf("Source size = %lg\n", ion_plan.beam->get_source_size() );
 
-	/* Beam Parameters */
-	printf("\n***BEAM PARAMETERS***\n");
+    /* Beam Parameters */
+    printf("\n***BEAM PARAMETERS***\n");
 
     float src[3];
     double isocenter[3] = { 0, 0, 0 };
     beamNode->GetIsocenterFiducialNode()->GetNthFiducialPosition(0,isocenter);
-	isocenter[0] = -isocenter[0];
-	isocenter[1] = -isocenter[1];
+    isocenter[0] = -isocenter[0];
+    isocenter[1] = -isocenter[1];
 
     /* Adjust src according to gantry angle */
     float ga_radians = 
-      beamNode->GetGantryAngle() * M_PI / 180.;
-	float src_dist = beamNode->GetProtonSAD();
+    beamNode->GetGantryAngle() * M_PI / 180.;
+    float src_dist = beamNode->GetProtonSAD();
     src[0] = isocenter[0] + src_dist * sin(ga_radians);
     src[1] = isocenter[1] - src_dist * cos(ga_radians);
     src[2] = isocenter[2];
 
     ion_plan.beam->set_source_position (src);
-	ion_plan.beam->set_isocenter_position (isocenter);
-	printf("Isocenter = %lg %lg %lg\n", ion_plan.beam->get_isocenter_position(0), ion_plan.beam->get_isocenter_position(1),ion_plan.beam->get_isocenter_position(2) );
-	printf("Source position = %lg %lg %lg\n", ion_plan.beam->get_source_position(0), ion_plan.beam->get_source_position(1),ion_plan.beam->get_source_position(2) );
+    ion_plan.beam->set_isocenter_position (isocenter);
+    printf("Isocenter = %lg %lg %lg\n", ion_plan.beam->get_isocenter_position(0), ion_plan.beam->get_isocenter_position(1),ion_plan.beam->get_isocenter_position(2) );
+    printf("Source position = %lg %lg %lg\n", ion_plan.beam->get_source_position(0), ion_plan.beam->get_source_position(1),ion_plan.beam->get_source_position(2) );
 
     ion_plan.set_step_length (1);
-	printf("Step length = %lg\n", ion_plan.get_step_length() );
+    printf("Step length = %lg\n", ion_plan.get_step_length() );
 
     ion_plan.set_smearing (this->ExternalBeamPlanningNode->GetSmearing());
-	printf("Smearing = %lg\n", this->ExternalBeamPlanningNode->GetSmearing());
+    printf("Smearing = %lg\n", this->ExternalBeamPlanningNode->GetSmearing());
 
-	// Distal and proximal margins are updated when the SOBP is created
+    // Distal and proximal margins are updated when the SOBP is created
     /* All the ion_beam parameters are updated to initiate the dose calculation */
 
-    if (!ion_plan.init ()) {
+    if (!ion_plan.init ()) 
+    {
       /* Failure.  How to notify the user?? */
       std::cerr << "Sorry, ion_plan.init() failed.\n";
       return;
@@ -1451,11 +1527,11 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 
     float ap_offset = 1500;
     int ap_dim[2] = { 30, 30 };
-//    float ap_origin[2] = { -19, -19 };
+    //float ap_origin[2] = { -19, -19 };
     float ap_spacing[2] = { 2, 2 };
     //ion_plan.get_aperture()->set_distance (ap_offset);
     ion_plan.get_aperture()->set_dim (ap_dim);
-//    ion_plan.get_aperture()->set_origin (ap_origin);
+    //ion_plan.get_aperture()->set_origin (ap_origin);
     ion_plan.get_aperture()->set_spacing (ap_spacing);
     ion_plan.set_step_length (1);
     if (!ion_plan.init ())
@@ -1522,18 +1598,18 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::InitializeAccumulateDose()
 {
-	vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
 
-	Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
-	itk::Image<short, 3>::Pointer referenceVolumeItk = plmRef->itk_short();
+  Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
+  itk::Image<short, 3>::Pointer referenceVolumeItk = plmRef->itk_short();
 
-	accumulateVolumeItk = itk_image_create<float>(Plm_image_header(referenceVolumeItk));
+  accumulateVolumeItk = itk_image_create<float>(Plm_image_header(referenceVolumeItk));
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulateDose()
 {
-	/* Convert dose image to vtk */
+  /* Convert dose image to vtk */
   vtkSmartPointer<vtkImageData> doseVolume = vtkSmartPointer<vtkImageData>::New();
   SlicerRtCommon::ConvertItkImageToVtkImageData<float>(accumulateVolumeItk, doseVolume, VTK_FLOAT);
 

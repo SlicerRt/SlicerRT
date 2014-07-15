@@ -1356,20 +1356,20 @@ void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::beamWeightChanged(double value)
 {
-	Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-	if (!this->mrmlScene())
-	{
-		qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamWeightChanged: Invalid scene!";
-		return;
-	}
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamWeightChanged: Invalid scene!";
+    return;
+  }
 
-	vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-	if (!paramNode)
-	{
-		return;
-	}
-	paramNode->SetBeamWeight(value);
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+  paramNode->SetBeamWeight(value);
 
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
 
@@ -1531,48 +1531,48 @@ void qSlicerExternalBeamPlanningModuleWidget::protonEnergySpreadChanged(const QS
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::protonBeamFlavorChanged(const QString &text)
 {
-	Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-	if (!this->mrmlScene())
-	{
-		qCritical() << "qSlicerExternalBeamPlanningModuleWidget::protonBeamFlavorChanged: Invalid scene!";
-		return;
-	}
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::protonBeamFlavorChanged: Invalid scene!";
+    return;
+  }
 
-	vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-	if (!paramNode)
-	{
-		return;
-	}
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
 
-	if(text == "Ray Tracer Algorithm")
-	{
-		paramNode->SetBeamFlavor('a');
-		d->label_CalculateDoseStatus->setText("Ray Tracer Algorithm");
+  if(text == "Ray Tracer Algorithm")
+  {
+    paramNode->SetBeamFlavor('a');
+    d->label_CalculateDoseStatus->setText("Ray Tracer Algorithm");
 
-	}
-	else if(text == "Cartesian Geometry Algorithm")
-	{
-		paramNode->SetBeamFlavor('f');
-		d->label_CalculateDoseStatus->setText("Cartesian Geometry Algorithm");
+  }
+  else if(text == "Cartesian Geometry Algorithm")
+  {
+    paramNode->SetBeamFlavor('f');
+    d->label_CalculateDoseStatus->setText("Cartesian Geometry Algorithm");
 
-	}
-	else if(text == "Divergent Geometry Algorithm")
-	{
-		paramNode->SetBeamFlavor('g');
-		d->label_CalculateDoseStatus->setText("Divergent Geometry Algorithm");
+  }
+  else if(text == "Divergent Geometry Algorithm")
+  {
+    paramNode->SetBeamFlavor('g');
+    d->label_CalculateDoseStatus->setText("Divergent Geometry Algorithm");
 
-	}
-	else if(text == "Modified Hong Algorithm")
-	{
-		paramNode->SetBeamFlavor('h');
-		d->label_CalculateDoseStatus->setText("Modified Hong Algorithm");
-	}
-	else
-	{
-		paramNode->SetBeamFlavor('a');
-		d->label_CalculateDoseStatus->setText("Algorithm error, Ray Tracer chosen by default");
-	}
+  }
+  else if(text == "Modified Hong Algorithm")
+  {
+    paramNode->SetBeamFlavor('h');
+    d->label_CalculateDoseStatus->setText("Modified Hong Algorithm");
+  }
+  else
+  {
+    paramNode->SetBeamFlavor('a');
+    d->label_CalculateDoseStatus->setText("Algorithm error, Ray Tracer chosen by default");
+  }
 
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
 
@@ -1591,60 +1591,60 @@ void qSlicerExternalBeamPlanningModuleWidget::protonBeamFlavorChanged(const QStr
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::protonSpacingAtIsoChanged(const QString &text)
 {
-	Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-	if (!this->mrmlScene())
-	{
-		qCritical() << "qSlicerExternalBeamPlanningModuleWidget::protonSpacingAtIsoChanged: Invalid scene!";
-		return;
-	}
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::protonSpacingAtIsoChanged: Invalid scene!";
+    return;
+  }
 
-	vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-	if (!paramNode)
-	{
-		return;
-	}
-	double spacingAtIso[2] = {2.0, 2.0};
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+  double spacingAtIso[2] = {2.0, 2.0};
 
-	if(text == "Very high")
-	{
-		spacingAtIso[0] = 1.0;
-		spacingAtIso[1] = 1.0;
-		paramNode->SetApertureSpacingAtIso(spacingAtIso);
-		paramNode->UpdateApertureParameters();
-	}
-	else if(text == "High")
-	{
-		spacingAtIso[0] = 2.0;
-		spacingAtIso[1] = 2.0;
-		paramNode->SetApertureSpacingAtIso(spacingAtIso);
-	    paramNode->UpdateApertureParameters();
+  if(text == "Very high")
+  {
+    spacingAtIso[0] = 1.0;
+    spacingAtIso[1] = 1.0;
+    paramNode->SetApertureSpacingAtIso(spacingAtIso);
+    paramNode->UpdateApertureParameters();
+  }
+  else if(text == "High")
+  {
+    spacingAtIso[0] = 2.0;
+    spacingAtIso[1] = 2.0;
+    paramNode->SetApertureSpacingAtIso(spacingAtIso);
+      paramNode->UpdateApertureParameters();
 
-	}
-	else if(text == "Low")
-	{
-		spacingAtIso[0] = 5.0;
-		spacingAtIso[1] = 5.0;
-		paramNode->SetApertureSpacingAtIso(spacingAtIso);
-		paramNode->UpdateApertureParameters();
+  }
+  else if(text == "Low")
+  {
+    spacingAtIso[0] = 5.0;
+    spacingAtIso[1] = 5.0;
+    paramNode->SetApertureSpacingAtIso(spacingAtIso);
+    paramNode->UpdateApertureParameters();
 
-	}
-	else if(text == "Very low")
-	{
-		spacingAtIso[0] = 10.0;
-		spacingAtIso[1] = 10.0;
-		paramNode->SetApertureSpacingAtIso(spacingAtIso);
-		paramNode->UpdateApertureParameters();
-	}
-	else
-	{
-		spacingAtIso[0] = 2.0;
-		spacingAtIso[1] = 2.0;
-		paramNode->SetApertureSpacingAtIso(spacingAtIso);
-		paramNode->UpdateApertureParameters();
+  }
+  else if(text == "Very low")
+  {
+    spacingAtIso[0] = 10.0;
+    spacingAtIso[1] = 10.0;
+    paramNode->SetApertureSpacingAtIso(spacingAtIso);
+    paramNode->UpdateApertureParameters();
+  }
+  else
+  {
+    spacingAtIso[0] = 2.0;
+    spacingAtIso[1] = 2.0;
+    paramNode->SetApertureSpacingAtIso(spacingAtIso);
+    paramNode->UpdateApertureParameters();
 
-		d->label_CalculateDoseStatus->setText("Error Dose resolution, set to high");
-	}
+    d->label_CalculateDoseStatus->setText("Error Dose resolution, set to high");
+  }
 
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
 
@@ -1814,7 +1814,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   rtPlanNode->GetRTBeamNodes(beams);
   if (!beams) 
   {
-	  d->label_CalculateDoseStatus->setText("no beam found in the plan");
+    d->label_CalculateDoseStatus->setText("no beam found in the plan");
     return;
   }
   vtkMRMLRTBeamNode* beamNode = NULL;
@@ -1827,15 +1827,15 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
     if (beamNode)
     {
-		  beamNode->UpdateApertureParameters(); // Just to be sure before to send the beam to be calculated
+      beamNode->UpdateApertureParameters(); // Just to be sure before to send the beam to be calculated
           d->logic()->ComputeDose(beamNode);
-		  d->label_CalculateDoseStatus->setText("Dose calculation in progress"); //+ beamNode->GetBeamName();
-		  // sum in the final dose matrix with weights externalbeam for RxDose, and beamNode for beam wieght
+      d->label_CalculateDoseStatus->setText("Dose calculation in progress"); //+ beamNode->GetBeamName();
+      // sum in the final dose matrix with weights externalbeam for RxDose, and beamNode for beam wieght
     }
-	else
-	{
-		d->label_CalculateDoseStatus->setText("beam not found"); // + beamNode->GetBeamName();
-	}
+  else
+  {
+    d->label_CalculateDoseStatus->setText("beam not found"); // + beamNode->GetBeamName();
+  }
   }
   d->logic()->RegisterAccumulateDose();
   d->label_CalculateDoseStatus->setText("Dose calculation done.");
