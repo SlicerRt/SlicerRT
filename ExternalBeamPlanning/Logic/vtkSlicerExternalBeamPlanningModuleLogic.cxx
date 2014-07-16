@@ -290,7 +290,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamTransform(char *beamnam
     {
       if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
       {
-        //RTPlanNode->RemoveRTBeamNode(beamNode);
         break;
       }
     }
@@ -303,8 +302,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamTransform(char *beamnam
     return;
   }
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
-  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
-  if (!isocenterMarkupsNode || !MLCPositionDoubleArrayNode)
+  if (!isocenterMarkupsNode)
   {
     vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
     return;
@@ -380,7 +378,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
     return;
   }
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
-  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
   if (!isocenterMarkupsNode)
   {
     vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
@@ -389,7 +386,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
 
   vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
   vtkSmartPointer<vtkPolyData> beamModelPolyData = NULL;
-
+  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
   if (MLCPositionDoubleArrayNode)
   {
     beamModelPolyData = this->CreateBeamPolyData(
@@ -578,7 +575,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
-  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode();
   
   // Make sure inputs are initialized
   if (!rtPlanNode || !isocenterMarkupsNode || !referenceVolumeNode)
@@ -594,6 +590,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
 
   // Create beam model
   vtkSmartPointer<vtkPolyData> beamModelPolyData;
+  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode();
   if (MLCPositionDoubleArrayNode) 
   {
     beamModelPolyData = this->CreateBeamPolyData(
@@ -754,11 +751,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
   //vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(this->ExternalBeamPlanningNode->GetPlanContourSetNode());
-  //vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
-  //vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode();
 
   // Make sure inputs are initialized
-  if (!rtPlanNode || !referenceVolumeNode)// || !MLCPositionDoubleArrayNode)
+  if (!rtPlanNode || !referenceVolumeNode)
   {
     vtkErrorMacro("UpdateDRR: Inputs are not initialized!")
     return;
@@ -776,7 +771,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
     {
       if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
       {
-        //RTPlanNode->RemoveRTBeamNode(beamNode);
         break;
       }
     }
@@ -789,8 +783,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
     return;
   }
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
-  vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
-  if (!isocenterMarkupsNode || !MLCPositionDoubleArrayNode)
+  // vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
+  if (!isocenterMarkupsNode) // || !MLCPositionDoubleArrayNode)
   {
     vtkErrorMacro("UpdateDRR: Inputs are not initialized!")
     return;

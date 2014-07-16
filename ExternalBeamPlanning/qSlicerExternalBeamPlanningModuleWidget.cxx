@@ -260,6 +260,11 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
     d->SliderWidget_PhotonGantryAngle->setValue(paramNode->GetGantryAngle());
     d->SliderWidget_PhotonCollimatorAngle->setValue(paramNode->GetCollimatorAngle());
     d->SliderWidget_PhotonCouchAngle->setValue(paramNode->GetCouchAngle());
+
+    d->SliderWidget_ProtonGantryAngle->setValue(paramNode->GetGantryAngle());
+    d->SliderWidget_ProtonCollimatorAngle->setValue(paramNode->GetCollimatorAngle());
+    d->SliderWidget_ProtonCouchAngle->setValue(paramNode->GetCouchAngle());
+
   }
 }
 
@@ -306,8 +311,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->comboBox_DoseEngineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(doseEngineTypeChanged(const QString &)) );
 
   // RT Beams page
-  this->connect( d->tableWidget_Beams, SIGNAL(itemClicked(QtableWidgetItem *item)), this, SLOT(tableWidgetItemClicked(QtableWidgetItem *item)) );
-  this->connect( d->tableWidget_Beams, SIGNAL(itemSelectionChanged()), this, SLOT(tableWidgetItemSelectionChanged()) );
+  this->connect( d->tableWidget_Beams, SIGNAL(cellClicked(int, int)), this, SLOT(tableWidgetCellClicked(int, int)) );
   this->connect( d->pushButton_AddBeam, SIGNAL(clicked()), this, SLOT(addBeamClicked()) );
   this->connect( d->pushButton_RemoveBeam, SIGNAL(clicked()), this, SLOT(removeBeamClicked()) );
 
@@ -690,19 +694,18 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
   {
     return;
   }
-  strcpy(beamName, item->text().toStdString().c_str());
-
-  if (item)
+  else
   {
     strcpy(beamName, item->text().toStdString().c_str());
     d->logic()->RemoveBeam(beamName);
     d->totalBeamRows--;
     d->currentBeamRow = d->totalBeamRows-1;
+    d->tableWidget_Beams->selectRow(d->currentBeamRow);
   }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::tableWidgetItemClicked(QTableWidgetItem *item)
+void qSlicerExternalBeamPlanningModuleWidget::tableWidgetCellClicked(int row, int column)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -712,7 +715,6 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetItemClicked(QTableWidge
     return;
   }
 
-  int row = d->tableWidget_Beams->currentRow();
   if (row != d->currentBeamRow)  
   {
     d->currentBeamRow = row;
@@ -724,69 +726,6 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetItemClicked(QTableWidge
   if (!beamNode)
   {
     qCritical() << "tableWidgetItemClicked: Inputs are not initialized!";
-    return;
-  }
-
-  paramNode->SetBeamName(beamNode->GetBeamName());
-
-  paramNode->SetX1Jaw(beamNode->GetX1Jaw());
-  paramNode->SetX2Jaw(beamNode->GetX2Jaw());
-  paramNode->SetY1Jaw(beamNode->GetY1Jaw());
-  paramNode->SetY2Jaw(beamNode->GetY2Jaw());
-  paramNode->SetAndObserveMLCPositionDoubleArrayNode(beamNode->GetMLCPositionDoubleArrayNode());
-  paramNode->SetAndObserveIsocenterFiducialNode(beamNode->GetIsocenterFiducialNode());
-  // paramNode->SetAndObserveProtonTargetContourNode(beamNode->GetProtonTargetContourNode());
-
-  paramNode->SetGantryAngle(beamNode->GetGantryAngle());
-  paramNode->SetCollimatorAngle(beamNode->GetCollimatorAngle());
-  paramNode->SetCouchAngle(beamNode->GetCouchAngle());
-
-  paramNode->SetNominalEnergy(beamNode->GetNominalEnergy());
-  paramNode->SetNominalmA(beamNode->GetNominalmA());
-  paramNode->SetBeamOnTime(beamNode->GetBeamOnTime());
-
-  paramNode->SetBeamFlavor(beamNode->GetBeamFlavor());
-  paramNode->SetBeamWeight(beamNode->GetBeamWeight());
-  paramNode->SetEnergyResolution(beamNode->GetEnergyResolution());
-
-  paramNode->SetApertureOrigin(beamNode->GetApertureOrigin());
-  paramNode->SetApertureOffset(beamNode->GetApertureOffset());
-  paramNode->SetApertureSpacing(beamNode->GetApertureSpacing());
-  paramNode->SetApertureSpacingAtIso(beamNode->GetApertureSpacingAtIso());
-  paramNode->SetApertureDim(beamNode->GetApertureDim());
-  paramNode->SetSourceSize(beamNode->GetSourceSize());
-  paramNode->SetSAD(beamNode->GetProtonSAD());
-
-  /* To be implemented */
-  //paramNode->SetRadiationType
-  //paramNode->SetBeamType
-
-  this->updateWidgetFromMRML();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::tableWidgetItemSelectionChanged()
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  if (!paramNode)
-  {
-    return;
-  }
-
-  int row = d->tableWidget_Beams->currentRow();
-  if (row != d->currentBeamRow)  
-  {
-    d->currentBeamRow = row;
-  }
-
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
-
-  // Make sure inputs are initialized
-  if (!beamNode)
-  {
-    qCritical() << "tableWidgetItemSelectionChanged: Inputs are not initialized!";
     return;
   }
 

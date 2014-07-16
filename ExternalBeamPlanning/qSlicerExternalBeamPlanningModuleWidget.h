@@ -75,8 +75,7 @@ protected slots:
   void doseEngineTypeChanged(const QString &);
   
   // RT Beams page
-  void tableWidgetItemClicked(QTableWidgetItem *item);
-  void tableWidgetItemSelectionChanged();
+  void tableWidgetCellClicked(int, int);
   void addBeamClicked();
   void removeBeamClicked();
 
