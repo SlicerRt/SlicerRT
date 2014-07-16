@@ -865,18 +865,6 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  if (!this->mrmlScene())
-  {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged: Invalid scene!";
-    return;
-  }
-
-  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  if (!paramNode)
-  {
-    return;
-  }
-
   if (index == -1)
   {
     return;
@@ -894,8 +882,68 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
     d->lineEdit_NominalmA->setEnabled (true);
     //d->label_CollimatorType->setEnabled (true);
     //d->comboBox_CollimatorType->setEnabled (true);
+
+    // Make Photon pages visible and others invisible
+    int index =-1;
+    index = d->tabWidget->indexOf(d->tabWidgetPageProtonGeometry);
+    if (index >=0)
+    {
+      d->tabWidget->removeTab(index);
+    }
+    index = d->tabWidget->indexOf(d->tabWidgetPageProtonBeamModel);
+    if (index >= 0)
+    {
+      d->tabWidget->removeTab(index);
+    }
+    index = 0;
+    index = d->tabWidget->indexOf(d->tabWidgetPagePhotonGeometry);
+    if (index == -1)
+    {
+      d->tabWidget->addTab(d->tabWidgetPagePhotonGeometry, "Geometry");
+    }
+    index = d->tabWidget->indexOf(d->tabWidgetPagePhotonBeamModel);
+    if (index == -1)
+    {
+      d->tabWidget->addTab(d->tabWidgetPagePhotonBeamModel, "Beam Model");
+    }
   }
-  else
+  else if (text == "Proton")
+  {
+    d->label_NominalEnergy->setEnabled (false);
+    d->comboBox_NominalEnergy->setEnabled (false);
+    d->label_BeamOnTime->setEnabled (false);
+    d->lineEdit_BeamOnTime->setEnabled (false);
+    d->label_NominalmA->setEnabled (false);
+    d->lineEdit_NominalmA->setEnabled (false);
+    //d->label_CollimatorType->setEnabled (false);
+    //d->comboBox_CollimatorType->setEnabled (false);
+
+    // Make Photon pages visible and others invisible
+    int index =-1;
+    index = d->tabWidget->indexOf(d->tabWidgetPagePhotonGeometry);
+    if (index >=0)
+    {
+      d->tabWidget->removeTab(index);
+    }
+    index = d->tabWidget->indexOf(d->tabWidgetPagePhotonBeamModel);
+    if (index >= 0)
+    {
+      d->tabWidget->removeTab(index);
+    }
+    index = 0;
+    index = d->tabWidget->indexOf(d->tabWidgetPageProtonGeometry);
+    if (index == -1)
+    {
+      d->tabWidget->addTab(d->tabWidgetPageProtonGeometry, "Geometry");
+    }
+    index = d->tabWidget->indexOf(d->tabWidgetPageProtonBeamModel);
+    if (index == -1)
+    {
+      d->tabWidget->addTab(d->tabWidgetPageProtonBeamModel, "Beam Model");
+    }
+
+  }
+  else if (text == "Electron")
   {
     d->label_NominalEnergy->setEnabled (false);
     d->comboBox_NominalEnergy->setEnabled (false);

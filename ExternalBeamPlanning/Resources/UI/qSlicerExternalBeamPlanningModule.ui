@@ -58,8 +58,14 @@
       </item>
       <item row="18" column="0" colspan="2">
        <widget class="QTabWidget" name="tabWidget">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="currentIndex">
-         <number>3</number>
+         <number>0</number>
+        </property>
+        <property name="tabsClosable">
+         <bool>false</bool>
         </property>
         <widget class="QWidget" name="tabWidgetPagePhotonRx">
          <attribute name="title">
@@ -541,7 +547,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="tabWidgetPageProtoonBeamModel">
+        <widget class="QWidget" name="tabWidgetPageProtonBeamModel">
          <attribute name="title">
           <string>Beam Model</string>
          </attribute>
@@ -709,7 +715,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="tabWidgetPhotonBeamModel">
+        <widget class="QWidget" name="tabWidgetPagePhotonBeamModel">
          <attribute name="title">
           <string>Beam Model</string>
          </attribute>
