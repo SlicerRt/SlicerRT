@@ -1539,7 +1539,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulateDose()
   {
     if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
     {
-      this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(doseVolumeNode->GetID());
+      this->GetApplicationLogic()->GetSelectionNode()->SetReferenceSecondaryVolumeID(doseVolumeNode->GetID());
       this->GetApplicationLogic()->PropagateVolumeSelection();
     }
   }
