@@ -61,8 +61,6 @@
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
-#include <vtkMRMLSelectionNode.h>
-#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -307,6 +305,50 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamTransform(char *beamnam
   }
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
   if (!isocenterMarkupsNode)
+  {
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!");
+    return;
+  }
+
+  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+  transform->Identity();
+  transform->RotateZ(beamNode->GetGantryAngle());
+  transform->RotateY(beamNode->GetCollimatorAngle());
+  transform->RotateX(-90);
+
+  vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
+  transform2->Identity();
+  double isoCenterPosition[3] = {0.0,0.0,0.0};
+  isocenterMarkupsNode->GetNthFiducialPosition(0,isoCenterPosition);
+  transform2->Translate(isoCenterPosition[0], isoCenterPosition[1], isoCenterPosition[2]);
+
+  transform->PostMultiply();
+  transform->Concatenate(transform2->GetMatrix());
+
+  vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
+
+  vtkMRMLLinearTransformNode *transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(beamModelNode->GetTransformNodeID()) );
+  if (transformNode)
+  {
+    transformNode->SetAndObserveMatrixTransformToParent(transform->GetMatrix());
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *beamname)
+{
+  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
+  {
+    vtkErrorMacro("UpdateBeamGeometryModel: Invalid MRML scene or parameter set node!");
+    return;
+  }
+
+  vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
+
+  // Make sure inputs are initialized
+  if (!rtPlanNode || !referenceVolumeNode)
   {
     vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!");
     return;
