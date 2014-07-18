@@ -61,6 +61,7 @@
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
+#include <vtkMRMLSelectionNode.h>
 
 // VTK includes
 #include <vtkNew.h>
