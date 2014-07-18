@@ -108,12 +108,14 @@ public:
   vtkSlicerCLIModuleLogic* MatlabDoseCalculationModuleLogic;
 
   Plm_image::Pointer plmRef;
+  float TotalRx;
 };
 
 //----------------------------------------------------------------------------
 vtkSlicerExternalBeamPlanningModuleLogic::vtkInternal::vtkInternal()
 {
   this->MatlabDoseCalculationModuleLogic = 0;
+  this->TotalRx = 0.f;
 }
 
 //----------------------------------------------------------------------------
@@ -1418,10 +1420,12 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
 
   /* Get dose as itk image */
   itk::Image<float, 3>::Pointer doseVolumeItk = ion_plan.get_dose_itk();
-  itk_image_scale (doseVolumeItk, 10);
+  float beamRx = this->GetExternalBeamPlanningNode()->GetRxDose() * beamNode->GetBeamWeight();
+  Internal->TotalRx += beamRx;
+  itk_image_scale (doseVolumeItk, beamRx);
 
   /* Add into accumulate image */
-  itk_image_accumulate(accumulateVolumeItk, this->GetExternalBeamPlanningNode()->GetRxDose() * beamNode->GetBeamWeight(), doseVolumeItk);
+  itk_image_accumulate(accumulateVolumeItk, 1.0, doseVolumeItk);
 
   /* Convert dose image to vtk */
   vtkSmartPointer<vtkImageData> doseVolume = vtkSmartPointer<vtkImageData>::New();
@@ -1484,6 +1488,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::InitializeAccumulateDose()
   itk::Image<short, 3>::Pointer referenceVolumeItk = Internal->plmRef->itk_short();
 
   accumulateVolumeItk = itk_image_create<float>(Plm_image_header(referenceVolumeItk));
+  Internal->TotalRx = 0.f;
 }
 
 //---------------------------------------------------------------------------
@@ -1522,11 +1527,11 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulateDose()
   {
     vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(doseVolumeNode->GetVolumeDisplayNode());
     doseScalarVolumeDisplayNode->SetAutoWindowLevel(0);
-    doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, 16.0);
+    doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, Internal->TotalRx);
 
     /* Set colormap to rainbow */
     doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-    doseScalarVolumeDisplayNode->SetLowerThreshold (1.0);
+    doseScalarVolumeDisplayNode->SetLowerThreshold (0.05 * Internal->TotalRx);
     doseScalarVolumeDisplayNode->ApplyThresholdOn ();
   }
   else
