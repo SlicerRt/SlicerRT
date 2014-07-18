@@ -61,6 +61,8 @@
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
+#include <vtkMRMLSelectionNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -105,6 +107,8 @@ public:
   vtkInternal();
 
   vtkSlicerCLIModuleLogic* MatlabDoseCalculationModuleLogic;
+
+  Plm_image::Pointer plmRef;
 };
 
 //----------------------------------------------------------------------------
@@ -274,7 +278,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamTransform(char *beamnam
   // Make sure inputs are initialized
   if (!rtPlanNode || !referenceVolumeNode)
   {
-    vtkErrorMacro("UpdateBeamTransform: Inputs are not initialized!")
+    vtkErrorMacro("UpdateBeamTransform: Inputs are not initialized!");
     return;
   }
 
@@ -298,57 +302,13 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamTransform(char *beamnam
   // Make sure inputs are initialized
   if (!beamNode)
   {
-    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!");
     return;
   }
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
   if (!isocenterMarkupsNode)
   {
-    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
-    return;
-  }
-
-  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  transform->Identity();
-  transform->RotateZ(beamNode->GetGantryAngle());
-  transform->RotateY(beamNode->GetCollimatorAngle());
-  transform->RotateX(-90);
-
-  vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
-  transform2->Identity();
-  double isoCenterPosition[3] = {0.0,0.0,0.0};
-  isocenterMarkupsNode->GetNthFiducialPosition(0,isoCenterPosition);
-  transform2->Translate(isoCenterPosition[0], isoCenterPosition[1], isoCenterPosition[2]);
-
-  transform->PostMultiply();
-  transform->Concatenate(transform2->GetMatrix());
-
-  vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
-
-  vtkMRMLLinearTransformNode *transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(beamModelNode->GetTransformNodeID()) );
-  if (transformNode)
-  {
-    transformNode->SetAndObserveMatrixTransformToParent(transform->GetMatrix());
-  }
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *beamname)
-{
-  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
-  {
-    vtkErrorMacro("UpdateBeamGeometryModel: Invalid MRML scene or parameter set node!");
-    return;
-  }
-
-  vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
-
-  // Make sure inputs are initialized
-  if (!rtPlanNode || !referenceVolumeNode)
-  {
-    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!");
     return;
   }
 
@@ -374,13 +334,13 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
   // Make sure inputs are initialized
   if (!beamNode)
   {
-    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!");
     return;
   }
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
   if (!isocenterMarkupsNode)
   {
-    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!")
+    vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!");
     return;
   }
 
@@ -579,7 +539,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   // Make sure inputs are initialized
   if (!rtPlanNode || !isocenterMarkupsNode || !referenceVolumeNode)
   {
-    vtkErrorMacro("AddBeam: Inputs are not initialized!")
+    vtkErrorMacro("AddBeam: Inputs are not initialized!");
     return;
   }
 
@@ -700,7 +660,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
   // Make sure inputs are initialized
   if (!rtPlanNode)
   {
-    vtkErrorMacro("RemoveBeam: Inputs are not initialized!")
+    vtkErrorMacro("RemoveBeam: Inputs are not initialized!");
     return;
   }
 
@@ -755,7 +715,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   // Make sure inputs are initialized
   if (!rtPlanNode || !referenceVolumeNode)
   {
-    vtkErrorMacro("UpdateDRR: Inputs are not initialized!")
+    vtkErrorMacro("UpdateDRR: Inputs are not initialized!");
     return;
   }
 
@@ -779,14 +739,14 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   // Make sure inputs are initialized
   if (!beamNode)
   {
-    vtkErrorMacro("UpdateDRR: Inputs are not initialized!")
+    vtkErrorMacro("UpdateDRR: Inputs are not initialized!");
     return;
   }
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
   // vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
   if (!isocenterMarkupsNode) // || !MLCPositionDoubleArrayNode)
   {
-    vtkErrorMacro("UpdateDRR: Inputs are not initialized!")
+    vtkErrorMacro("UpdateDRR: Inputs are not initialized!");
     return;
   }
 
@@ -1131,7 +1091,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRMLRTBeam
   // Make sure inputs are initialized
   if (!rtPlanNode || !referenceVolumeNode)
   {
-    vtkErrorMacro("ComputeDoseByMatlab: Inputs are not initialized!")
+    vtkErrorMacro("ComputeDoseByMatlab: Inputs are not initialized!");
     return;
   }
 
@@ -1159,7 +1119,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose(vtkMRMLRTBeamNode* be
   vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
   if (!rtPlanNode )
   {
-    vtkErrorMacro("ComputeDose: Inputs are not initialized!")
+    vtkErrorMacro("ComputeDose: Inputs are not initialized!");
     return;
   }
 
@@ -1191,21 +1151,25 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   // Make sure inputs are initialized
   if (!rtPlanNode || !referenceVolumeNode)
   {
-    vtkErrorMacro("ComputeDoseByPlastimatch: Inputs are not initialized!")
-    return;
+    vtkErrorMacro("ComputeDoseByPlastimatch: Inputs are not initialized!");
+      return;
   }
 
   // Make sure inputs are initialized
   if (!beamNode)
   {
-    vtkErrorMacro("ComputeDoseByPlastimatch: Inputs are not initialized!")
-    return;
+    vtkErrorMacro("ComputeDoseByPlastimatch: Inputs are not initialized!");
+      return;
   }
 
-  Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
-  plmRef->print ();
+  Internal->plmRef->print ();
 
   vtkMRMLContourNode* targetContourNode = beamNode->GetTargetContourNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("ComputeDoseByPlastimatch: Didn't get target contour node");
+    return;
+  }
   vtkMRMLScalarVolumeNode* targetLabelmapNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(targetContourNode);
   Plm_image::Pointer plmTgt = PlmCommon::ConvertVolumeNodeToPlmImage( targetLabelmapNode );
   plmTgt->print ();
@@ -1213,20 +1177,13 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
 #if defined (commentout)
   double min_val, max_val, avg;
   int non_zero, num_vox;
-  itk_image_stats (plmRef->m_itk_int32, &min_val, &max_val, &avg, &non_zero, &num_vox);
+  itk_image_stats (Internal->plmRef->m_itk_int32, &min_val, &max_val, &avg, &non_zero, &num_vox);
   printf ("MIN %f AVE %f MAX %f NONZERO %d NUMVOX %d\n", 
     (float) min_val, (float) avg, (float) max_val, non_zero, num_vox);
 #endif
 
-  itk::Image<short, 3>::Pointer referenceVolumeItk = plmRef->itk_short();
+  itk::Image<short, 3>::Pointer referenceVolumeItk = Internal->plmRef->itk_short();
   itk::Image<unsigned char, 3>::Pointer targetVolumeItk = plmTgt->itk_uchar();
-
-  // Ray tracing code expects identity direction cosines.  This is a hack.
-#if defined (commentout)
-  printf ("(cd 5)\n");
-  itk_rectify_volume_hack (referenceVolumeItk);
-  itk_rectify_volume_hack (targetVolumeItk);
-#endif
 
   Ion_plan ion_plan;
 
@@ -1286,7 +1243,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
 
     /* Adjust src according to gantry angle */
     float ga_radians = 
-    beamNode->GetGantryAngle() * M_PI / 180.;
+      beamNode->GetGantryAngle() * M_PI / 180.;
     float src_dist = beamNode->GetProtonSAD();
     src[0] = isocenter[0] + src_dist * sin(ga_radians);
     src[1] = isocenter[1] - src_dist * cos(ga_radians);
@@ -1434,17 +1391,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   doseVolumeNode->SetAndObserveImageData (doseVolume);
   doseVolumeNode->CopyOrientation (referenceVolumeNode);
 
-#if defined (commentout)
-  doseVolumeNode->SetSpacing (
-    doseVolumeItk->GetSpacing()[0],
-    doseVolumeItk->GetSpacing()[1],
-    doseVolumeItk->GetSpacing()[2]);
-  doseVolumeNode->SetOrigin (
-    doseVolumeItk->GetOrigin()[0],
-    doseVolumeItk->GetOrigin()[1],
-    doseVolumeItk->GetOrigin()[2]);
-#endif
-
   nodeName = "proton_dose_" + std::string(beamNode->GetName());
 
   doseVolumeNode->SetName(nodeName.c_str());
@@ -1483,110 +1429,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 {
-  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
-  {
-    vtkErrorMacro("ComputeWED: Invalid MRML scene or parameter set node!");
-    return;
-  }
-
-  // Convert input images to ITK format for Plastimatch
-  Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(
-    this->ExternalBeamPlanningNode->GetReferenceVolumeNode());
-
-  // Ray tracing code expects identity direction cosines.  This is a hack.
-  itk_rectify_volume_hack (plmRef->itk_float());
-
-  Ion_plan ion_plan;
-
-  try
-  {
-    // Assign inputs to dose calc logic
-    ion_plan.set_patient (plmRef);
-
-    vtkDebugMacro("ComputeWED: Gantry angle is: " << this->ExternalBeamPlanningNode->GetGantryAngle());
-
-    float src_dist = 2000;
-    float src[3];
-    float isocenter[3] = { 0, 0, 0 };
-
-    /* Adjust src according to gantry angle */
-    float ga_radians = 
-      this->ExternalBeamPlanningNode->GetGantryAngle() * M_PI / 180.;
-    src[0] = - src_dist * sin(ga_radians);
-    src[1] = src_dist * cos(ga_radians);
-    src[2] = 0.f;
-
-    ion_plan.beam->set_source_position (src);
-    ion_plan.beam->set_isocenter_position (isocenter);
-
-    float ap_offset = 1500;
-    int ap_dim[2] = { 30, 30 };
-    //float ap_origin[2] = { -19, -19 };
-    float ap_spacing[2] = { 2, 2 };
-    //ion_plan.get_aperture()->set_distance (ap_offset);
-    ion_plan.get_aperture()->set_dim (ap_dim);
-    //ion_plan.get_aperture()->set_origin (ap_origin);
-    ion_plan.get_aperture()->set_spacing (ap_spacing);
-    ion_plan.set_step_length (1);
-    if (!ion_plan.init ())
-    {
-      vtkErrorMacro("SComputeWED: ion_plan.init() failed!");
-      return;
-    }
-
-    /* A little warm fuzzy for the developers */
-    ion_plan.debug ();
-    printf ("Working...\n");
-    fflush(stdout);
-  }
-  catch (std::exception& ex)
-  {
-    vtkErrorMacro("ComputeWED: Plastimatch exception: " << ex.what());
-    return;
-  }
-
-  // Get wed as itk image 
-  Rpl_volume *rpl_vol = ion_plan.rpl_vol;
-
-  Plm_image::Pointer patient = plmRef;
-  Volume::Pointer patient_vol = patient->get_volume_float();
-  // Volume* wed = rpl_vol->create_wed_volume (&ion_plan); //TODO: this line broke the build, needs to be fixed
-  Volume* wed = NULL; // Creating dummy variable to ensure compilation
-  return; // TODO: remove this return statement once the 
-
-  // Volume* wed = create_wed_volume (0,&ion_plan);
-
-  // Feed in reference volume, as wed output is the warped reference image.
-  rpl_vol->compute_wed_volume(wed,patient_vol.get(),-1000);
-
-  Plm_image::Pointer wed_image = Plm_image::New (new Plm_image (wed));
-
-  itk::Image<float, 3>::Pointer wedVolumeItk =
-    wed_image->itk_float();
-
-  /* Convert aperture image to vtk */
-  vtkSmartPointer<vtkImageData> wedVolume = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(wedVolumeItk, wedVolume, VTK_FLOAT);
-
-  /* Create the MRML node for the volume */
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> wedVolumeNode =
-    vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-
-  wedVolumeNode->SetAndObserveImageData (wedVolume);
-  wedVolumeNode->SetSpacing (
-    wedVolumeItk->GetSpacing()[0],
-    wedVolumeItk->GetSpacing()[1],
-    wedVolumeItk->GetSpacing()[2]);
-  wedVolumeNode->SetOrigin (
-    wedVolumeItk->GetOrigin()[0],
-    wedVolumeItk->GetOrigin()[1],
-    wedVolumeItk->GetOrigin()[2]);
-
-  std::string wedVolumeNodeName = this->GetMRMLScene()->GenerateUniqueName(std::string ("wed_"));
-  wedVolumeNode->SetName(wedVolumeNodeName.c_str());
-
-  wedVolumeNode->SetScene(this->GetMRMLScene());
-  this->GetMRMLScene()->AddNode(wedVolumeNode);
+  /* Needs re-implmentation */
 }
 
 //---------------------------------------------------------------------------
@@ -1594,8 +1437,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::InitializeAccumulateDose()
 {
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
 
-  Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
-  itk::Image<short, 3>::Pointer referenceVolumeItk = plmRef->itk_short();
+  Internal->plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
+  itk::Image<short, 3>::Pointer referenceVolumeItk = Internal->plmRef->itk_short();
 
   accumulateVolumeItk = itk_image_create<float>(Plm_image_header(referenceVolumeItk));
 }
@@ -1620,4 +1463,44 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulateDose()
 
   doseVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(doseVolumeNode); // to be removed if we want to show only the last image
+
+  /* Testing .. */
+  doseVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+
+  /* More testing .. */
+  if (doseVolumeNode->GetVolumeDisplayNode() == NULL)
+  {
+    vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+    displayNode->SetScene(this->GetMRMLScene());
+    this->GetMRMLScene()->AddNode(displayNode);
+    doseVolumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  }
+  if (doseVolumeNode->GetVolumeDisplayNode())
+  {
+    vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(doseVolumeNode->GetVolumeDisplayNode());
+    doseScalarVolumeDisplayNode->SetAutoWindowLevel(0);
+    doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, 16.0);
+
+    /* Set colormap to rainbow */
+    doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    doseScalarVolumeDisplayNode->SetLowerThreshold (1.0);
+    doseScalarVolumeDisplayNode->ApplyThresholdOn ();
+  }
+  else
+  {
+    vtkWarningMacro("ComputeDose: Display node is not available for gamma volume node. The default color table will be used.");
+  }
+
+  // Select as active volume
+  if (this->GetApplicationLogic()!=NULL)
+  {
+    if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
+    {
+      this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(doseVolumeNode->GetID());
+      this->GetApplicationLogic()->PropagateVolumeSelection();
+    }
+  }
+
+  /* Free up memory for reference CT */
+  Internal->plmRef.reset();
 }
