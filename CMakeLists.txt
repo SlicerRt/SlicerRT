@@ -82,6 +82,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 
   # Registration validation routines
   add_subdirectory(PlmSynth)
+  add_subdirectory(PlmVectorFieldAnalysis)
 
   # Requires Plastimatch segmentation 
   #add_subdirectory(PlmMabs)
