@@ -141,7 +141,10 @@ void vtkPlmpyRegistration::RunRegistration()
     this->StartRegistration();
     this->registration.wait_for_complete();
     this->ReturnDataToSlicer();
-
+//    printf ("Trying to delete old registration data, then rebuild....\n");
+//    delete this->RegistrationData;
+//    this->RegistrationData = new Registration_data();
+//    printf ("Done.\n");
 }
 
 //---------------------------------------------------------------------------
@@ -159,25 +162,41 @@ void vtkPlmpyRegistration::StartRegistration()
   this->RegistrationData->fixed_image->print ();
   printf ("Moving image\n");
   this->RegistrationData->moving_image->print ();
+  fflush (stdout);
 
   // Set landmarks 
+  printf ("Gonna SetLandmarksFromSlicer()\n");
+  fflush (stdout);
   if (this->FixedLandmarks && this->MovingLandmarks)
   {
     this->SetLandmarksFromSlicer();
   }
 
   // Set initial affine transformation
+  printf ("Gonna ApplyInitialLinearTransform()\n");
+  fflush (stdout);
   if (this->InitializationLinearTransformationID)
   {
     this->ApplyInitialLinearTransformation();
   }
 
   //Registration registration;
+  printf ("Setting fixed & moving images\n");
+  fflush (stdout);
   this->registration.set_fixed_image(this->RegistrationData->fixed_image);
   this->registration.set_moving_image(this->RegistrationData->moving_image);
+  printf ("Setting command string\n****\n");
+  fflush (stdout);
+  printf ("%s\n", this->RegistrationParameters);
+  printf ("****\n");
+  fflush (stdout);
   this->registration.set_command_string(this->RegistrationParameters);
 
+  printf ("Calling start_registration()\n");
+  fflush (stdout);
   this->registration.start_registration ();
+  printf ("start_registration returned()\n");
+  fflush (stdout);
 }
 
 //---------------------------------------------------------------------------
@@ -436,6 +455,18 @@ void vtkPlmpyRegistration::ApplyWarp(
     inputTransformation, &plastimatchImageHeader,
     imageToWarp, defaultValue, useItk, interpolationLinear);
   this->MovingImageToFixedImageVectorField = vectorFieldFromTransformation;
+}
+
+//---------------------------------------------------------------------------
+void vtkPlmpyRegistration::vtkSetBSplineTransform(vtkOrientedBSplineTransform *vtkbsp)
+{
+
+}
+
+//---------------------------------------------------------------------------
+void vtkPlmpyRegistration::vtkSetGridTransform(vtkOrientedGridTransform *vtkgrid)
+{
+
 }
 
 //---------------------------------------------------------------------------

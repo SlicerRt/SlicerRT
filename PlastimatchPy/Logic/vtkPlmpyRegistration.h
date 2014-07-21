@@ -25,6 +25,8 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
+#include "vtkOrientedBSplineTransform.h"
+#include "vtkOrientedGridTransform.h"
 
 // PlastimatchPy includes
 #include "vtkSlicerPlastimatchPyModuleLogicExport.h"
@@ -151,6 +153,11 @@ protected:
     int useItk,                                    /*!< Int to choose between itk (1) or Plastimatch (0) algorithm for the warp task */
     int interpolationLinear                        /*!< Int to choose between trilinear interpolation (1) on nearest neighbor (0) */
     );
+
+  /// This function might eventually let us create a native slicer 
+  /// xform from a plastimatch xform
+  void vtkSetBSplineTransform(vtkOrientedBSplineTransform *vtkbsp);
+  void vtkSetGridTransform(vtkOrientedGridTransform *vtkgrid);
 
   /// This function shows the deformed image into the Slicer scene
   void SetWarpedImageInVolumeNode(Plm_image::Pointer& warpedPlastimatchImage);

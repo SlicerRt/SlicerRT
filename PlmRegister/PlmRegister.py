@@ -468,9 +468,14 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.reg.SetFixedImageID(state.fixed.GetID())
     self.reg.SetMovingImageID(state.moving.GetID())
     self.reg.SetOutputVolumeID(state.transformed.GetID())
-    output_transform = self.outputTransformComboBox.currentNode()
-    if output_transform:
-      self.reg.SetOutputVectorFieldID(output_transform.GetID())
+    self.output_transform = self.outputTransformComboBox.currentNode()
+    if self.output_transform:
+      self.reg.SetOutputVectorFieldID(self.output_transform.GetID())
+    ### WHY DOESN'T THIS WORK?
+    #else:
+    #  self.output_transform = slicer.vtkOrientedBSplineTransform()
+    #  state.transform.SetAndObserveTransformToParent(self.output_transform)
+    #  self.reg.SetOutputVectorFieldID(state.transform.GetID())
 
     volumeNodes = (state.fixed, state.moving)
     fiducialNodes = (state.fixedFiducials,state.movingFiducials)
@@ -503,14 +508,21 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     stages_string = "".join(self.stages)
     print ("\n\n\nPARAMETERS ARE:\n%s\nEND OF PARAMETERS!\n\n\n") % stages_string
 
-    print ("Gonna RunRegistration()")
     print ("prealignment strategy is %s" % str(self.prealignmentComboBox.currentText))
     print ("subsampling is %s" % str(self.stage1_subsamplingLineEdit.text))
 
     self.reg.SetRegistrationParameters(stages_string)
-    self.reg.StartRegistration ()
-    print ("Did RunRegistration()")
+    # Eventually, we will only start the registration, and it will finish
+    # later.  But for now, let's wait for it to complete.
+    #self.reg.StartRegistration ()
+    print ("Gonna RunRegistration()")
+    self.reg.RunRegistration ()
     self.statusLabel.setText("Done.")
+
+    ### WHY DOESN'T THIS WORK?
+    # Here we want to send the B-Spline transform to Slicer.
+    #state = self.registrationState()
+    #state.transform.SetAndObserveTransformToParent(self.output_transform)
 
 # Add this plugin to the dictionary of available registrations.
 # Since this module may be discovered before the Editor itself,
