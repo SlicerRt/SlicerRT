@@ -15,11 +15,23 @@
 
 ==============================================================================*/
 // PlastimatchPy Logic includes
-#include "vtkSlicerPlastimatchPyModuleLogic.h"
-//#include "vtkPlmpyVectorFieldanalysis.h"
+#include "vtkPlmpyVectorFieldAnalysis.h"
 
-//ITK includes
+// VTK includes
+#include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkImageData.h>
+#include <vtkImageExport.h>
+#include <vtkSmartPointer.h>
+#include <vtkTransform.h>
+
+// Slicer includes
+#include "vtkMRMLVectorVolumeNode.h"
+#include "vtkMRMLScene.h"
+#include "vtkMRMLTransformNode.h"
+
+// SlicerRT includes
+#include "SlicerRtCommon.h"
 
 // Plastimatch includes
 #include "bspline_interpolate.h"
@@ -35,15 +47,12 @@
 vtkStandardNewMacro(vtkPlmpyVectorFieldAnalysis);
 
 //----------------------------------------------------------------------------
-vtkPlmpyVectorFieldAnalysis::plmpyVectorFieldAnalysis()
+vtkPlmpyVectorFieldAnalysis::vtkPlmpyVectorFieldAnalysis()
 {
   this->FixedImageID = NULL;
   this->OutputVolumeID = NULL;
 
   this->MovingImageToFixedImageVectorField = NULL;
-
-  this->RegistrationParameters = new Registration_parms();
-  this->RegistrationData = new Registration_data();
 
   this->jacobian_min = 0;
   this->jacobian_max = 0;
@@ -56,14 +65,24 @@ vtkPlmpyVectorFieldAnalysis::plmpyVectorFieldAnalysis()
 
   this->MovingImageToFixedImageVectorField = NULL;
 
-  this->RegistrationParameters = NULL;
-  this->RegistrationData = NULL;
-
 }
+
+vtkPlmpyVectorFieldAnalysis::~vtkPlmpyVectorFieldAnalysis()
+{
+}
+
 //----------------------------------------------------------------------------
 void vtkPlmpyVectorFieldAnalysis::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+}
+
+//---------------------------------------------------------------------------
+void vtkPlmpyVectorFieldAnalysis::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+{
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
+  this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
 
 //---------------------------------------------------------------------------
@@ -92,7 +111,11 @@ cout << "got image data";
 
 
 vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
-imageExport->SetInput(inVolume);
+#if (VTK_MAJOR_VERSION <= 5)
+  imageExport->SetInput(inVolume);
+#else
+  imageExport->SetInputData(inVolume);
+#endif
 
 cout << "gone past set input";
 
@@ -199,11 +222,48 @@ imageExport->Export( vol->GetBufferPointer() );
     sprintf(this->JacobianMinString, "%f", jacobian.jacobian_min);
     sprintf(this->JacobianMaxString, "%f", jacobian.jacobian_max);
 
-  Plm_image* jacobianImage = new Plm_image();
+    Plm_image::Pointer jacobianImage = Plm_image::New();
   jacobianImage->set_itk(jacimage);
   jacobianImage->convert_to_itk();
-  this->SetWarpedImageInVolumeNode(jacobianImage); // this also needs FixedImageID set to add geometry
-  delete jacobianImage;
+  this->SetImageIntoVolumeNode(jacobianImage); // this also needs FixedImageID set to add geometry
 
+}
+
+void vtkPlmpyVectorFieldAnalysis::SetImageIntoVolumeNode(Plm_image::Pointer& plastimatchImage)
+{
+  if (!plastimatchImage || !plastimatchImage->itk_float())
+  {
+    vtkErrorMacro("SetWarpedImageInVolumeNode: Invalid warped image!");
+    return;
+  }
+
+  itk::Image<float, 3>::Pointer outputImageItk = plastimatchImage->itk_float();    
+
+  vtkSmartPointer<vtkImageData> outputImageVtk = vtkSmartPointer<vtkImageData>::New();
+  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(outputImageItk, outputImageVtk, VTK_FLOAT);
+  
+  // Read fixed image to get the geometrical information
+  vtkMRMLScalarVolumeNode* fixedVolumeNode 
+    = vtkMRMLScalarVolumeNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
+  if (!fixedVolumeNode)
+  {
+    vtkErrorMacro("SetWarpedImageInVolumeNode: Node containing the fixed image cannot be retrieved!");
+    return;
+  }
+
+  // Create new image node
+  vtkMRMLScalarVolumeNode* warpedImageNode 
+    = vtkMRMLScalarVolumeNode::SafeDownCast(
+      this->GetMRMLScene()->GetNodeByID(this->OutputVolumeID));
+  if (!warpedImageNode)
+  {
+    vtkErrorMacro("SetWarpedImageInVolumeNode: Node containing the warped image cannot be retrieved!");
+    return;
+  }
+
+  // Set warped image to a Slicer node
+  warpedImageNode->CopyOrientation(fixedVolumeNode);
+  warpedImageNode->SetAndObserveImageData(outputImageVtk);
 }
 

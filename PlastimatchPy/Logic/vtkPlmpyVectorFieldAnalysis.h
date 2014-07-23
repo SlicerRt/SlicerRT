@@ -57,6 +57,8 @@ public:
   /// Compute Jacobian
   void RunJacobian();
 
+  void SetImageIntoVolumeNode(Plm_image::Pointer& plastimatchImage);
+
 public:
   /// Set the ID of the fixed image (\sa FixedImageID) (image data type must be "float").
   vtkSetStringMacro(FixedImageID);
@@ -80,7 +82,7 @@ public:
 
 protected:
   vtkPlmpyVectorFieldAnalysis();
-  virtual ~vtkPlmpyVectorFieldanalysis();
+  virtual ~vtkPlmpyVectorFieldAnalysis();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
@@ -105,8 +107,8 @@ protected:
   char* VFImageID;
 
 private:
-  vtkSlicerPlastimatchPyModuleLogic(const vtkSlicerPlastimatchPyModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerPlastimatchPyModuleLogic&);            // Not implemented
+  vtkPlmpyVectorFieldAnalysis(const vtkPlmpyVectorFieldAnalysis&); // Not implemented
+  void operator=(const vtkPlmpyVectorFieldAnalysis&);            // Not implemented
 };
 
 #endif

@@ -16,6 +16,8 @@ set(${KIT}_SRCS
   vtkPlmpyRegistration.h
   vtkPlmpyDicomSroExport.cxx
   vtkPlmpyDicomSroExport.h
+  vtkPlmpyVectorFieldAnalysis.cxx
+  vtkPlmpyVectorFieldAnalysis.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
