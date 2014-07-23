@@ -859,7 +859,7 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
 
     // Make Photon pages visible and others invisible
     int index =-1;
-    index = d->tabWidget->indexOf(d->tabWidgetPagePhotonGeometry);
+    index = d->tabWidget->indexOf(d->tabWidgetPageProtonGeometry);
     if (index >=0)
     {
       d->tabWidget->removeTab(index);
@@ -870,10 +870,10 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
       d->tabWidget->removeTab(index);
     }
     index = 0;
-    index = d->tabWidget->indexOf(d->tabWidgetPageProtonGeometry);
+    index = d->tabWidget->indexOf(d->tabWidgetPagePhotonGeometry);
     if (index == -1)
     {
-      d->tabWidget->addTab(d->tabWidgetPageProtonGeometry, "Geometry");
+      d->tabWidget->addTab(d->tabWidgetPagePhotonGeometry, "Geometry");
     }
     index = d->tabWidget->indexOf(d->tabWidgetPageProtonBeamModel);
     if (index == -1)
