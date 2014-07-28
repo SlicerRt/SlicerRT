@@ -124,44 +124,29 @@ const QString qSlicerSubjectHierarchyGammaPlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyGammaPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyGammaPlugin::icon(vtkMRMLSubjectHierarchyNode* node)
 {
-  if (!node || !item)
+  if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyGammaPlugin::setIcon: NULL node or item given!";
-    return false;
+    qCritical() << "qSlicerSubjectHierarchyGammaPlugin::icon: NULL node given!";
+    return QIcon();
   }
 
   Q_D(qSlicerSubjectHierarchyGammaPlugin);
 
   if (this->canOwnSubjectHierarchyNode(node))
   {
-    item->setIcon(d->GammaIcon);
-    return true;
+    return d->GammaIcon;
   }
 
   // Node unknown by plugin
-  return false;
+  return QIcon();
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyGammaPlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyGammaPlugin::visibilityIcon(int visible)
 {
-  if (!node || !item)
-  {
-    qCritical() << "qSlicerSubjectHierarchyGammaPlugin::setVisibilityIcon: NULL node or item given!";
-    return;
-  }
-
-  if (this->canOwnSubjectHierarchyNode(node))
-  {
-    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->setVisibilityIcon(node, item);
-  }
-  else
-  {
-    // For all other owned nodes the visibility icon is set as default
-    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
-  }
+  return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->visibilityIcon(visible);
 }
 
 //---------------------------------------------------------------------------

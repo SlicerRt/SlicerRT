@@ -63,12 +63,12 @@ public:
   ///   Each plugin should provide only one role.
   Q_INVOKABLE virtual const QString roleForPlugin()const;
 
-  /// Set icon of a owned subject hierarchy node
-  /// \return Flag indicating whether setting an icon was successful
-  virtual bool setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
+  /// Get icon of an owned subject hierarchy node
+  /// \return Icon to set, NULL if nothing to set
+  virtual QIcon icon(vtkMRMLSubjectHierarchyNode* node);
 
-  /// Set visibility icon of a owned subject hierarchy node
-  virtual void setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item);
+  /// Get visibility icon for a visibility state
+  virtual QIcon visibilityIcon(int visible);
 
   /// Open module belonging to node and set inputs in opened module
   virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);

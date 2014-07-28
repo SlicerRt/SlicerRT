@@ -490,12 +490,12 @@ const QString qSlicerSubjectHierarchyContourSetsPlugin::helpText()const
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyContourSetsPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyContourSetsPlugin::icon(vtkMRMLSubjectHierarchyNode* node)
 {
-  if (!node || !item)
+  if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::setIcon: NULL node or item given!";
-    return false;
+    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::icon: NULL node given!";
+    return QIcon();
   }
 
   Q_D(qSlicerSubjectHierarchyContourSetsPlugin);
@@ -504,19 +504,18 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::setIcon(vtkMRMLSubjectHierarchyNo
   if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
     && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
-    item->setIcon(d->ContourSetIcon);
-    return true;
+    return d->ContourSetIcon;
   }
 
   // Node unknown by plugin
-  return false;
+  return QIcon();
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyContourSetsPlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyContourSetsPlugin::visibilityIcon(int visible)
 {
   // Have the default plugin (which is not registered) take care of this
-  qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
+  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->visibilityIcon(visible);
 }
 
 //---------------------------------------------------------------------------

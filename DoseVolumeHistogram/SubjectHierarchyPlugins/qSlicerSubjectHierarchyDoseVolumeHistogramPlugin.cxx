@@ -139,52 +139,37 @@ const QString qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::roleForPlugin()c
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::icon(vtkMRMLSubjectHierarchyNode* node)
 {
-  if (!node || !item)
+  if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setIcon: NULL node or item given!";
-    return false;
+    qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::icon: NULL node given!";
+    return QIcon();
   }
 
   Q_D(qSlicerSubjectHierarchyDoseVolumeHistogramPlugin);
 
   if (this->canOwnSubjectHierarchyNode(node))
   {
-    item->setIcon(d->DvhIcon);
-    return true;
+    return d->DvhIcon;
   }
 
   // Node unknown by plugin
-  return false;
+  return QIcon();
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::visibilityIcon(int visible)
 {
-  if (!node || !item)
-  {
-    qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setVisibilityIcon: NULL node or item given!";
-    return;
-  }
-
   Q_D(qSlicerSubjectHierarchyDoseVolumeHistogramPlugin);
 
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (visible)
   {
-    if (this->getDisplayVisibility(node))
-    {
-      item->setIcon(d->VisibleIcon);
-    }
-    else
-    {
-      item->setIcon(d->HiddenIcon);
-    }
+    return d->VisibleIcon;
   }
   else
   {
-    // For all other owned nodes the visibility icon is set as default
-    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
+    return d->HiddenIcon;
   }
 }
 

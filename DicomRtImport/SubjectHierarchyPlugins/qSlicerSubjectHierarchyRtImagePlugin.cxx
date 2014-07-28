@@ -126,53 +126,38 @@ const QString qSlicerSubjectHierarchyRtImagePlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyRtImagePlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyRtImagePlugin::icon(vtkMRMLSubjectHierarchyNode* node)
 {
-  if (!node || !item)
+  if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::setIcon: NULL node or item given!";
-    return false;
+    qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::icon: NULL node given!";
+    return QIcon();
   }
 
   Q_D(qSlicerSubjectHierarchyRtImagePlugin);
 
   if (this->canOwnSubjectHierarchyNode(node))
   {
-    item->setIcon(d->PlanarImageIcon);
-    return true;
+    return d->PlanarImageIcon;
   }
 
   // Node unknown by plugin
-  return false;
+  return QIcon();
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtImagePlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyRtImagePlugin::visibilityIcon(int visible)
 {
-  if (!node || !item)
-  {
-    qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::setVisibilityIcon: NULL node or item given!";
-    return;
-  }
-
   Q_D(qSlicerSubjectHierarchyRtImagePlugin);
 
   // RT image (show regular eye icon (because it can be shown and hidden)
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (visible)
   {
-    if (this->getDisplayVisibility(node))
-    {
-      item->setIcon(d->VisibleIcon);
-    }
-    else
-    {
-      item->setIcon(d->HiddenIcon);
-    }
+    return d->VisibleIcon;
   }
   else
   {
-    // For all other owned nodes the visibility icon is set as default
-    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
+    return d->HiddenIcon;
   }
 }
 

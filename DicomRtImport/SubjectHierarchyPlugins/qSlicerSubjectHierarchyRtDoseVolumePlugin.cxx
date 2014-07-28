@@ -137,44 +137,29 @@ const QString qSlicerSubjectHierarchyRtDoseVolumePlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyRtDoseVolumePlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyRtDoseVolumePlugin::icon(vtkMRMLSubjectHierarchyNode* node)
 {
-  if (!node || !item)
+  if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::setIcon: NULL node or item given!";
-    return false;
+    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::icon: NULL node given!";
+    return QIcon();
   }
 
   Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
 
   if (this->canOwnSubjectHierarchyNode(node))
   {
-    item->setIcon(d->DoseVolumeIcon);
-    return true;
+    return d->DoseVolumeIcon;
   }
 
   // Node unknown by plugin
-  return false;
+  return QIcon();
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtDoseVolumePlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyRtDoseVolumePlugin::visibilityIcon(int visible)
 {
-  if (!node || !item)
-  {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::setVisibilityIcon: NULL node or item given!";
-    return;
-  }
-
-  if (this->canOwnSubjectHierarchyNode(node))
-  {
-    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->setVisibilityIcon(node, item);
-  }
-  else
-  {
-    // For all other owned nodes the visibility icon is set as default
-    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
-  }
+  return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->visibilityIcon(visible);
 }
 
 //---------------------------------------------------------------------------

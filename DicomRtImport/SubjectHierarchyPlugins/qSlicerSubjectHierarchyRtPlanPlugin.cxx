@@ -125,12 +125,12 @@ const QString qSlicerSubjectHierarchyRtPlanPlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyRtPlanPlugin::setIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyRtPlanPlugin::icon(vtkMRMLSubjectHierarchyNode* node)
 {
-  if (!node || !item)
+  if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtPlanPlugin::setIcon: NULL node or item given!";
-    return false;
+    qCritical() << "qSlicerSubjectHierarchyRtPlanPlugin::icon: NULL node given!";
+    return QIcon();
   }
 
   Q_D(qSlicerSubjectHierarchyRtPlanPlugin);
@@ -148,19 +148,18 @@ bool qSlicerSubjectHierarchyRtPlanPlugin::setIcon(vtkMRMLSubjectHierarchyNode* n
   if ( associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode")
     && parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
   {
-    item->setIcon(d->IsocenterIcon);
-    return true;
+    return d->IsocenterIcon;
   }
 
   // Node unknown by plugin
-  return false;
+  return QIcon();
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtPlanPlugin::setVisibilityIcon(vtkMRMLSubjectHierarchyNode* node, QStandardItem* item)
+QIcon qSlicerSubjectHierarchyRtPlanPlugin::visibilityIcon(int visible)
 {
   // Have the default plugin (which is not registered) take care of this
-  qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setVisibilityIcon(node, item);
+  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->visibilityIcon(visible);
 }
 
 //---------------------------------------------------------------------------
