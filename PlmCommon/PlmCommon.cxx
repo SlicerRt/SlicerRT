@@ -1,9 +1,7 @@
-/*==============================================================================
+/*==========================================================================
 
-  Program: 3D Slicer
-
-  Copyright (c) Kitware Inc.
-
+  Copyright (c) Massachusetts General Hospital, Boston, MA, USA. All Rights Reserved.
+ 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
@@ -13,11 +11,13 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  This file was originally developed by Gregory C. Sharp, Massachusetts General Hospital
   and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  Ontario with funds provided by the Natural Sciences and Engineering Research Council
+  of Canada.
 
-==============================================================================*/
+==========================================================================*/
+
 #include "PlmCommon.h"
 
 // MRML includes
