@@ -20,85 +20,85 @@
 ==============================================================================*/
 
 // SlicerQt includes
-#include "qSlicerPinnacleDVFReaderPlugin.h"
-#include "qSlicerPinnacleDVFReaderOptionsWidget.h"
+#include "qSlicerPinnacleDvfReaderPlugin.h"
+#include "qSlicerPinnacleDvfReaderOptionsWidget.h"
 
 // Logic includes
-#include "vtkSlicerPinnacleDVFReaderLogic.h"
+#include "vtkSlicerPinnacleDvfReaderLogic.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_QtModules_PinnacleDVFReader
-class qSlicerPinnacleDVFReaderPluginPrivate
+/// \ingroup SlicerRt_QtModules_PinnacleDvfReader
+class qSlicerPinnacleDvfReaderPluginPrivate
 {
   public:
-  vtkSmartPointer<vtkSlicerPinnacleDVFReaderLogic> Logic;
+  vtkSmartPointer<vtkSlicerPinnacleDvfReaderLogic> Logic;
 };
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderPlugin::qSlicerPinnacleDVFReaderPlugin(QObject* _parent)
+qSlicerPinnacleDvfReaderPlugin::qSlicerPinnacleDvfReaderPlugin(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerPinnacleDVFReaderPluginPrivate)
+  , d_ptr(new qSlicerPinnacleDvfReaderPluginPrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderPlugin::qSlicerPinnacleDVFReaderPlugin(vtkSlicerPinnacleDVFReaderLogic* logic, QObject* _parent)
+qSlicerPinnacleDvfReaderPlugin::qSlicerPinnacleDvfReaderPlugin(vtkSlicerPinnacleDvfReaderLogic* logic, QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerPinnacleDVFReaderPluginPrivate)
+  , d_ptr(new qSlicerPinnacleDvfReaderPluginPrivate)
 {
   this->setLogic(logic);
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderPlugin::~qSlicerPinnacleDVFReaderPlugin()
+qSlicerPinnacleDvfReaderPlugin::~qSlicerPinnacleDvfReaderPlugin()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerPinnacleDVFReaderPlugin::setLogic(vtkSlicerPinnacleDVFReaderLogic* logic)
+void qSlicerPinnacleDvfReaderPlugin::setLogic(vtkSlicerPinnacleDvfReaderLogic* logic)
 {
-  Q_D(qSlicerPinnacleDVFReaderPlugin);
+  Q_D(qSlicerPinnacleDvfReaderPlugin);
   d->Logic = logic;
 }
 
 //-----------------------------------------------------------------------------
-vtkSlicerPinnacleDVFReaderLogic* qSlicerPinnacleDVFReaderPlugin::logic()const
+vtkSlicerPinnacleDvfReaderLogic* qSlicerPinnacleDvfReaderPlugin::logic()const
 {
-  Q_D(const qSlicerPinnacleDVFReaderPlugin);
+  Q_D(const qSlicerPinnacleDvfReaderPlugin);
   return d->Logic.GetPointer();
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerPinnacleDVFReaderPlugin::description()const
+QString qSlicerPinnacleDvfReaderPlugin::description()const
 {
   return "Dvf";
 }
 
 //-----------------------------------------------------------------------------
-qSlicerIO::IOFileType qSlicerPinnacleDVFReaderPlugin::fileType()const
+qSlicerIO::IOFileType qSlicerPinnacleDvfReaderPlugin::fileType()const
 {
   return QString("Pinnacle DVF");
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerPinnacleDVFReaderPlugin::extensions()const
+QStringList qSlicerPinnacleDvfReaderPlugin::extensions()const
 {
   return QStringList() << "Dvf (*.dvf)";
 }
 
 //-----------------------------------------------------------------------------
-qSlicerIOOptions* qSlicerPinnacleDVFReaderPlugin::options()const
+qSlicerIOOptions* qSlicerPinnacleDvfReaderPlugin::options()const
 {
-  return new qSlicerPinnacleDVFReaderOptionsWidget;
+  return new qSlicerPinnacleDvfReaderOptionsWidget;
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerPinnacleDVFReaderPlugin::load(const IOProperties& properties) 
+bool qSlicerPinnacleDvfReaderPlugin::load(const IOProperties& properties) 
 {
-  Q_D(qSlicerPinnacleDVFReaderPlugin);
+  Q_D(qSlicerPinnacleDvfReaderPlugin);
   
   Q_ASSERT(properties.contains("fileName"));
   QString fileName = properties["fileName"].toString();
@@ -107,7 +107,7 @@ bool qSlicerPinnacleDVFReaderPlugin::load(const IOProperties& properties)
   double gridOriginX = properties["gridOriginX"].toDouble();
   double gridOriginY = properties["gridOriginY"].toDouble();
   double gridOriginZ = properties["gridOriginZ"].toDouble();
-  d->Logic->LoadPinnacleDVF(fileName.toLatin1().data(), gridOriginX, gridOriginY, gridOriginZ);
+  d->Logic->LoadPinnacleDvf(fileName.toLatin1().data(), gridOriginX, gridOriginY, gridOriginZ);
 
   this->setLoadedNodes(QStringList());
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerPinnacleDVFReaderPluginWidget</class>
- <widget class="qSlicerWidget" name="qSlicerPinnacleDVFReaderPluginWidget">
+ <class>qSlicerPinnacleDvfReaderPluginWidget</class>
+ <widget class="qSlicerWidget" name="qSlicerPinnacleDvfReaderPluginWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

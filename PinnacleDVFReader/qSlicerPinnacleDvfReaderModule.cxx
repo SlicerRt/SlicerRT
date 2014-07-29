@@ -27,55 +27,55 @@
 #include <qSlicerIOManager.h>
 #include <qSlicerNodeWriter.h>
 
-// PinnacleDVFReader Logic includes
-#include <vtkSlicerPinnacleDVFReaderLogic.h>
+// PinnacleDvfReader Logic includes
+#include <vtkSlicerPinnacleDvfReaderLogic.h>
 
-// PinnacleDVFReader QTModule includes
-#include "qSlicerPinnacleDVFReaderPlugin.h"
-#include "qSlicerPinnacleDVFReaderModule.h"
-#include "qSlicerPinnacleDVFReaderPluginWidget.h"
+// PinnacleDvfReader QTModule includes
+#include "qSlicerPinnacleDvfReaderPlugin.h"
+#include "qSlicerPinnacleDvfReaderModule.h"
+#include "qSlicerPinnacleDvfReaderPluginWidget.h"
 
-
-//-----------------------------------------------------------------------------
-Q_EXPORT_PLUGIN2(qSlicerPinnacleDVFReaderModule, qSlicerPinnacleDVFReaderModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_QtModules_PinnacleDVFReader
-class qSlicerPinnacleDVFReaderModulePrivate
+Q_EXPORT_PLUGIN2(qSlicerPinnacleDvfReaderModule, qSlicerPinnacleDvfReaderModule);
+
+//-----------------------------------------------------------------------------
+/// \ingroup SlicerRt_QtModules_PinnacleDvfReader
+class qSlicerPinnacleDvfReaderModulePrivate
 {
 public:
-  qSlicerPinnacleDVFReaderModulePrivate();
+  qSlicerPinnacleDvfReaderModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderModulePrivate::qSlicerPinnacleDVFReaderModulePrivate()
+qSlicerPinnacleDvfReaderModulePrivate::qSlicerPinnacleDvfReaderModulePrivate()
 {
 }
 
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderModule::qSlicerPinnacleDVFReaderModule(QObject* _parent)
+qSlicerPinnacleDvfReaderModule::qSlicerPinnacleDvfReaderModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerPinnacleDVFReaderModulePrivate)
+  , d_ptr(new qSlicerPinnacleDvfReaderModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderModule::~qSlicerPinnacleDVFReaderModule()
+qSlicerPinnacleDvfReaderModule::~qSlicerPinnacleDvfReaderModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerPinnacleDVFReaderModule::helpText()const
+QString qSlicerPinnacleDvfReaderModule::helpText()const
 {
   QString help = QString(
-    "The PinnacleDVFReader module enables importing and loading .DVF files into Slicer.<br>"
-    "The PinnacleDVFReader module is hidden and therefore does not require an application.<br>");
+    "The PinnacleDvfReader module enables importing and loading .DVF files into Slicer.<br>"
+    "The PinnacleDvfReader module is hidden and therefore does not require an application.<br>");
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerPinnacleDVFReaderModule::acknowledgementText()const
+QString qSlicerPinnacleDvfReaderModule::acknowledgementText()const
 {
   QString acknowledgement = QString(
     "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).");
@@ -83,7 +83,7 @@ QString qSlicerPinnacleDVFReaderModule::acknowledgementText()const
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerPinnacleDVFReaderModule::contributors()const
+QStringList qSlicerPinnacleDvfReaderModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Kevin Wang (Princess Margaret Cancer Center)");
@@ -91,37 +91,37 @@ QStringList qSlicerPinnacleDVFReaderModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerPinnacleDVFReaderModule::categories()const
+QStringList qSlicerPinnacleDvfReaderModule::categories()const
 {
   return QStringList() << "";
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerPinnacleDVFReaderModule::setup()
+void qSlicerPinnacleDvfReaderModule::setup()
 {
   this->Superclass::setup();
   
-  vtkSlicerPinnacleDVFReaderLogic* PinnacleDVFReaderLogic =  
-    vtkSlicerPinnacleDVFReaderLogic::SafeDownCast(this->logic());
+  vtkSlicerPinnacleDvfReaderLogic* PinnacleDvfReaderLogic =  
+    vtkSlicerPinnacleDvfReaderLogic::SafeDownCast(this->logic());
 
   // Adds the module to the IO Manager
   qSlicerCoreIOManager* ioManager =
     qSlicerCoreApplication::application()->coreIOManager();
-  ioManager->registerIO(new qSlicerPinnacleDVFReaderPlugin(PinnacleDVFReaderLogic,this));
+  ioManager->registerIO(new qSlicerPinnacleDvfReaderPlugin(PinnacleDvfReaderLogic,this));
   ioManager->registerIO(new qSlicerNodeWriter(
     "Dvf", QString("Pinnacle DVF"),
     QStringList() << "vtkMRMLGridTransformNode", this));
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation* qSlicerPinnacleDVFReaderModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation* qSlicerPinnacleDvfReaderModule::createWidgetRepresentation()
 {
-  return new qSlicerPinnacleDVFReaderPluginWidget;
+  return new qSlicerPinnacleDvfReaderPluginWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerPinnacleDVFReaderModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerPinnacleDvfReaderModule::createLogic()
 {
-  return vtkSlicerPinnacleDVFReaderLogic::New();
+  return vtkSlicerPinnacleDvfReaderLogic::New();
 }
 

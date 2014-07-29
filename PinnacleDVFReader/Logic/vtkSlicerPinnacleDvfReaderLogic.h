@@ -19,8 +19,8 @@
 
 ==========================================================================*/
 
-#ifndef __vtkSlicerPinnacleDVFReaderLogic_h
-#define __vtkSlicerPinnacleDVFReaderLogic_h
+#ifndef __vtkSlicerPinnacleDvfReaderLogic_h
+#define __vtkSlicerPinnacleDvfReaderLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -28,30 +28,30 @@
 // STD includes
 #include <vector>
 
-// PinnacleDVFReader includes
-#include "vtkSlicerPinnacleDVFReaderLogicExport.h"
+// PinnacleDvfReader includes
+#include "vtkSlicerPinnacleDvfReaderLogicExport.h"
 
-/// \ingroup SlicerRt_QtModules_PinnacleDVFReader
-class VTK_SLICER_PINNACLEDVFREADER_LOGIC_EXPORT vtkSlicerPinnacleDVFReaderLogic :
+/// \ingroup SlicerRt_QtModules_PinnacleDvfReader
+class VTK_SLICER_PINNACLEDVFREADER_LOGIC_EXPORT vtkSlicerPinnacleDvfReaderLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  static vtkSlicerPinnacleDVFReaderLogic *New();
-  vtkTypeMacro(vtkSlicerPinnacleDVFReaderLogic, vtkSlicerModuleLogic);
+  static vtkSlicerPinnacleDvfReaderLogic *New();
+  vtkTypeMacro(vtkSlicerPinnacleDvfReaderLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Load DVF from file
   /// \param filename Path and filename of the DVF file
   /// \param 
-  void LoadPinnacleDVF(char *filename, double gridOriginX, double gridOriginY, double gridOriginZ);
+  void LoadPinnacleDvf(char *filename, double gridOriginX, double gridOriginY, double gridOriginZ);
 
 protected:
-  vtkSlicerPinnacleDVFReaderLogic();
-  virtual ~vtkSlicerPinnacleDVFReaderLogic();
+  vtkSlicerPinnacleDvfReaderLogic();
+  virtual ~vtkSlicerPinnacleDvfReaderLogic();
 
 private:
-  vtkSlicerPinnacleDVFReaderLogic(const vtkSlicerPinnacleDVFReaderLogic&); // Not implemented
-  void operator=(const vtkSlicerPinnacleDVFReaderLogic&);               // Not implemented
+  vtkSlicerPinnacleDvfReaderLogic(const vtkSlicerPinnacleDvfReaderLogic&); // Not implemented
+  void operator=(const vtkSlicerPinnacleDvfReaderLogic&);               // Not implemented
 };
 
 #endif

@@ -19,9 +19,9 @@
 
 ==========================================================================*/
 
-// PinnacleDVFReader includes
-#include "vtkSlicerPinnacleDVFReaderLogic.h"
-#include "vtkSlicerPinnacleDVFReader.h"
+// PinnacleDvfReader includes
+#include "vtkSlicerPinnacleDvfReaderLogic.h"
+#include "vtkSlicerPinnacleDvfReader.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -41,41 +41,41 @@
 #include <vtkSlicerApplicationLogic.h>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerPinnacleDVFReaderLogic);
+vtkStandardNewMacro(vtkSlicerPinnacleDvfReaderLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerPinnacleDVFReaderLogic::vtkSlicerPinnacleDVFReaderLogic()
+vtkSlicerPinnacleDvfReaderLogic::vtkSlicerPinnacleDvfReaderLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerPinnacleDVFReaderLogic::~vtkSlicerPinnacleDVFReaderLogic()
+vtkSlicerPinnacleDvfReaderLogic::~vtkSlicerPinnacleDvfReaderLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerPinnacleDVFReaderLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerPinnacleDvfReaderLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerPinnacleDVFReaderLogic::LoadPinnacleDVF(char *filename, double gridOriginX, double gridOriginY, double gridOriginZ)
+void vtkSlicerPinnacleDvfReaderLogic::LoadPinnacleDvf(char *filename, double gridOriginX, double gridOriginY, double gridOriginZ)
 {
   ifstream readFileStream;
   readFileStream.open(filename, std::ios::binary);
   if (readFileStream.fail())
   {
-    vtkErrorMacro("LoadPinnacleDVF: The specified file could not be opened.");
+    vtkErrorMacro("LoadPinnacleDvf: The specified file could not be opened.");
   }
-  vtkSmartPointer<vtkSlicerPinnacleDVFReader> pinnacleDVFReader = vtkSmartPointer<vtkSlicerPinnacleDVFReader>::New();
-  pinnacleDVFReader->SetFileName(filename);
-  pinnacleDVFReader->SetGridOrigin(gridOriginX, gridOriginY, gridOriginZ);
-  pinnacleDVFReader->Update();
+  vtkSmartPointer<vtkSlicerPinnacleDvfReader> pinnacleDvfReader = vtkSmartPointer<vtkSlicerPinnacleDvfReader>::New();
+  pinnacleDvfReader->SetFileName(filename);
+  pinnacleDvfReader->SetGridOrigin(gridOriginX, gridOriginY, gridOriginZ);
+  pinnacleDvfReader->Update();
 
   // Post deformation node
   vtkMatrix4x4* postDeformationMatrix = NULL;
-  postDeformationMatrix = pinnacleDVFReader->GetPostDeformationRegistrationMatrix();
+  postDeformationMatrix = pinnacleDvfReader->GetPostDeformationRegistrationMatrix();
 
   // Add post deformation transform node
   vtkSmartPointer<vtkMRMLLinearTransformNode> spatialPostTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
@@ -92,14 +92,14 @@ void vtkSlicerPinnacleDVFReaderLogic::LoadPinnacleDVF(char *filename, double gri
 
   // Deformable grid vector image
   vtkImageData* deformableRegistrationGrid = NULL;
-  deformableRegistrationGrid = pinnacleDVFReader->GetDeformableRegistrationGrid();
+  deformableRegistrationGrid = pinnacleDvfReader->GetDeformableRegistrationGrid();
 
   // vtkOrientedGridTransform
   vtkSmartPointer<vtkOrientedGridTransform> gridTransform = vtkSmartPointer<vtkOrientedGridTransform>::New();
 #if (VTK_MAJOR_VERSION <= 5)
-  gridTransform->SetDisplacementGrid(pinnacleDVFReader->GetDeformableRegistrationGrid());
+  gridTransform->SetDisplacementGrid(pinnacleDvfReader->GetDeformableRegistrationGrid());
 #else
-  gridTransform->SetDisplacementGridData(pinnacleDVFReader->GetDeformableRegistrationGrid());
+  gridTransform->SetDisplacementGridData(pinnacleDvfReader->GetDeformableRegistrationGrid());
 #endif
   gridTransform->SetDisplacementScale(1);
   gridTransform->SetDisplacementShift(0);
@@ -107,7 +107,7 @@ void vtkSlicerPinnacleDVFReaderLogic::LoadPinnacleDVF(char *filename, double gri
 
   // Post deformation node
   vtkMatrix4x4* gridOrientationMatrix = NULL;
-  gridOrientationMatrix = pinnacleDVFReader->GetDeformableRegistrationGridOrientationMatrix();
+  gridOrientationMatrix = pinnacleDvfReader->GetDeformableRegistrationGridOrientationMatrix();
 
   gridTransform->SetGridDirectionMatrix(gridOrientationMatrix);
 

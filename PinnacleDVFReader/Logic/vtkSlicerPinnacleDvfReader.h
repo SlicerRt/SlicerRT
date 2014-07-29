@@ -20,19 +20,19 @@
 ==============================================================================*/
 
 
-// .NAME vtkSlicerPinnacleDVFReader - 
+// .NAME vtkSlicerPinnacleDvfReader - 
 // .SECTION Description
 // This class manages the Reader associated with reading Pinnacle DVF file
 // The reader load DVF in LPS and convert it to RAS cooridnate system mainly due to 
 // it is used for Slicer.
 
-#ifndef __vtkSlicerPinnacleDVFReader_h
-#define __vtkSlicerPinnacleDVFReader_h
+#ifndef __vtkSlicerPinnacleDvfReader_h
+#define __vtkSlicerPinnacleDvfReader_h
 
 // VTK includes
 #include "vtkObject.h"
 
-#include "vtkSlicerPinnacleDVFReaderLogicExport.h"
+#include "vtkSlicerPinnacleDvfReaderLogicExport.h"
 
 class vtkMatrix4x4;
 class vtkImageData;
@@ -43,11 +43,11 @@ class vtkImageData;
 //BTX
 
 /// \ingroup SlicerRt_DicomSroImport
-class VTK_SLICER_PINNACLEDVFREADER_LOGIC_EXPORT vtkSlicerPinnacleDVFReader : public vtkObject
+class VTK_SLICER_PINNACLEDVFREADER_LOGIC_EXPORT vtkSlicerPinnacleDvfReader : public vtkObject
 {
 public:
-  static vtkSlicerPinnacleDVFReader *New();
-  vtkTypeMacro(vtkSlicerPinnacleDVFReader, vtkObject);
+  static vtkSlicerPinnacleDvfReader *New();
+  vtkTypeMacro(vtkSlicerPinnacleDvfReader, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Do reading
@@ -96,12 +96,12 @@ protected:
   bool LoadDeformableSpatialRegistrationSuccessful;
 
 protected:
-  vtkSlicerPinnacleDVFReader();
-  virtual ~vtkSlicerPinnacleDVFReader();
+  vtkSlicerPinnacleDvfReader();
+  virtual ~vtkSlicerPinnacleDvfReader();
 
 private:
-  vtkSlicerPinnacleDVFReader(const vtkSlicerPinnacleDVFReader&); // Not implemented
-  void operator=(const vtkSlicerPinnacleDVFReader&);         // Not implemented
+  vtkSlicerPinnacleDvfReader(const vtkSlicerPinnacleDvfReader&); // Not implemented
+  void operator=(const vtkSlicerPinnacleDvfReader&);         // Not implemented
 };
 //ETX
 

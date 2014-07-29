@@ -19,34 +19,34 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerPinnacleDVFReaderPluginWidget_h
-#define __qSlicerPinnacleDVFReaderPluginWidget_h
+#ifndef __qSlicerPinnacleDvfReaderPluginWidget_h
+#define __qSlicerPinnacleDvfReaderPluginWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-// PinnacleDVFReader includes
-#include "qSlicerPinnacleDVFReaderModuleExport.h"
+// PinnacleDvfReader includes
+#include "qSlicerPinnacleDvfReaderModuleExport.h"
 
-class qSlicerPinnacleDVFReaderPluginWidgetPrivate;
+class qSlicerPinnacleDvfReaderPluginWidgetPrivate;
 
-/// \ingroup SlicerRt_QtModules_PinnacleDVFReader
-class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDVFReaderPluginWidget :
+/// \ingroup SlicerRt_QtModules_PinnacleDvfReader
+class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDvfReaderPluginWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerPinnacleDVFReaderPluginWidget(QWidget *parent=0);
-  virtual ~qSlicerPinnacleDVFReaderPluginWidget();
+  qSlicerPinnacleDvfReaderPluginWidget(QWidget *parent=0);
+  virtual ~qSlicerPinnacleDvfReaderPluginWidget();
 
 protected:
-  QScopedPointer<qSlicerPinnacleDVFReaderPluginWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerPinnacleDvfReaderPluginWidgetPrivate> d_ptr;
   virtual void setup();
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerPinnacleDVFReaderPluginWidget);
-  Q_DISABLE_COPY(qSlicerPinnacleDVFReaderPluginWidget);
+  Q_DECLARE_PRIVATE(qSlicerPinnacleDvfReaderPluginWidget);
+  Q_DISABLE_COPY(qSlicerPinnacleDvfReaderPluginWidget);
 };
 
 #endif

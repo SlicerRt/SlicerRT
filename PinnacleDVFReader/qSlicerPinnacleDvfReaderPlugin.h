@@ -19,30 +19,30 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerPinnacleDVFReaderPlugin
-#define __qSlicerPinnacleDVFReaderPlugin
+#ifndef __qSlicerPinnacleDvfReaderPlugin
+#define __qSlicerPinnacleDvfReaderPlugin
 
 // SlicerQt includes
 #include "qSlicerFileReader.h"
 
-class qSlicerPinnacleDVFReaderPluginPrivate;
-class vtkSlicerPinnacleDVFReaderLogic;
+class qSlicerPinnacleDvfReaderPluginPrivate;
+class vtkSlicerPinnacleDvfReaderLogic;
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_QtModules_PinnacleDVFReader
-class qSlicerPinnacleDVFReaderPlugin
+/// \ingroup SlicerRt_QtModules_PinnacleDvfReader
+class qSlicerPinnacleDvfReaderPlugin
   : public qSlicerFileReader
 {
   Q_OBJECT
 
 public:
   typedef qSlicerFileReader Superclass;
-  qSlicerPinnacleDVFReaderPlugin(QObject* parent = 0);
-  qSlicerPinnacleDVFReaderPlugin(vtkSlicerPinnacleDVFReaderLogic* logic, QObject* parent = 0);
-  virtual ~qSlicerPinnacleDVFReaderPlugin();
+  qSlicerPinnacleDvfReaderPlugin(QObject* parent = 0);
+  qSlicerPinnacleDvfReaderPlugin(vtkSlicerPinnacleDvfReaderLogic* logic, QObject* parent = 0);
+  virtual ~qSlicerPinnacleDvfReaderPlugin();
 
-  vtkSlicerPinnacleDVFReaderLogic* logic()const;
-  void setLogic(vtkSlicerPinnacleDVFReaderLogic* logic);
+  vtkSlicerPinnacleDvfReaderLogic* logic()const;
+  void setLogic(vtkSlicerPinnacleDvfReaderLogic* logic);
 
   virtual QString description()const;
   virtual IOFileType fileType()const;
@@ -51,11 +51,11 @@ public:
   virtual bool load(const IOProperties& properties);
 
 protected:
-  QScopedPointer<qSlicerPinnacleDVFReaderPluginPrivate> d_ptr;
+  QScopedPointer<qSlicerPinnacleDvfReaderPluginPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerPinnacleDVFReaderPlugin);
-  Q_DISABLE_COPY(qSlicerPinnacleDVFReaderPlugin);
+  Q_DECLARE_PRIVATE(qSlicerPinnacleDvfReaderPlugin);
+  Q_DISABLE_COPY(qSlicerPinnacleDvfReaderPlugin);
 };
 
 #endif

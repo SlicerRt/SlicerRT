@@ -26,25 +26,25 @@
 #include <ctkFlowLayout.h>
 #include <ctkUtils.h>
 
-/// PinnacleDVFReader includes
+/// PinnacleDvfReader includes
 #include "qSlicerIOOptions_p.h"
-#include "qSlicerPinnacleDVFReaderOptionsWidget.h"
-#include "ui_qSlicerPinnacleDVFReaderOptionsWidget.h"
+#include "qSlicerPinnacleDvfReaderOptionsWidget.h"
+#include "ui_qSlicerPinnacleDvfReaderOptionsWidget.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_QtModules_PinnacleDVFReader
-class qSlicerPinnacleDVFReaderOptionsWidgetPrivate
+/// \ingroup SlicerRt_QtModules_PinnacleDvfReader
+class qSlicerPinnacleDvfReaderOptionsWidgetPrivate
   : public qSlicerIOOptionsPrivate
-  , public Ui_qSlicerPinnacleDVFReaderOptionsWidget
+  , public Ui_qSlicerPinnacleDvfReaderOptionsWidget
 {
 public:
 };
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderOptionsWidget::qSlicerPinnacleDVFReaderOptionsWidget(QWidget* parentWidget)
-  : qSlicerIOOptionsWidget(new qSlicerPinnacleDVFReaderOptionsWidgetPrivate, parentWidget)
+qSlicerPinnacleDvfReaderOptionsWidget::qSlicerPinnacleDvfReaderOptionsWidget(QWidget* parentWidget)
+  : qSlicerIOOptionsWidget(new qSlicerPinnacleDvfReaderOptionsWidgetPrivate, parentWidget)
 {
-  Q_D(qSlicerPinnacleDVFReaderOptionsWidget);
+  Q_D(qSlicerPinnacleDvfReaderOptionsWidget);
   d->setupUi(this);
 
   connect(d->gridOriginX, SIGNAL(textChanged(const QString &)), this, SLOT(updateProperties()));
@@ -53,14 +53,14 @@ qSlicerPinnacleDVFReaderOptionsWidget::qSlicerPinnacleDVFReaderOptionsWidget(QWi
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderOptionsWidget::~qSlicerPinnacleDVFReaderOptionsWidget()
+qSlicerPinnacleDvfReaderOptionsWidget::~qSlicerPinnacleDvfReaderOptionsWidget()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerPinnacleDVFReaderOptionsWidget::updateProperties()
+void qSlicerPinnacleDvfReaderOptionsWidget::updateProperties()
 {
-  Q_D(qSlicerPinnacleDVFReaderOptionsWidget);
+  Q_D(qSlicerPinnacleDvfReaderOptionsWidget);
 
   d->Properties["gridOriginX"] = d->gridOriginX->text();
   d->Properties["gridOriginY"] = d->gridOriginY->text();

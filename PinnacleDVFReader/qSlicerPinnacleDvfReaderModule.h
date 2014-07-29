@@ -19,19 +19,19 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerPinnacleDVFReaderModule_h
-#define __qSlicerPinnacleDVFReaderModule_h
+#ifndef __qSlicerPinnacleDvfReaderModule_h
+#define __qSlicerPinnacleDvfReaderModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-// PinnacleDVFReader includes
-#include "qSlicerPinnacleDVFReaderModuleExport.h"
+// PinnacleDvfReader includes
+#include "qSlicerPinnacleDvfReaderModuleExport.h"
 
-class qSlicerPinnacleDVFReaderModulePrivate;
+class qSlicerPinnacleDvfReaderModulePrivate;
 
-/// \ingroup SlicerRt_QtModules_PinnacleDVFReader
-class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDVFReaderModule:
+/// \ingroup SlicerRt_QtModules_PinnacleDvfReader
+class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDvfReaderModule:
   public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -40,8 +40,8 @@ class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDVFReaderModule:
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  qSlicerPinnacleDVFReaderModule(QObject *parent=0);
-  virtual ~qSlicerPinnacleDVFReaderModule();
+  qSlicerPinnacleDvfReaderModule(QObject *parent=0);
+  virtual ~qSlicerPinnacleDvfReaderModule();
 
   virtual QString helpText()const;
   virtual QString acknowledgementText()const;
@@ -63,11 +63,11 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
 protected:
-  QScopedPointer<qSlicerPinnacleDVFReaderModulePrivate> d_ptr;
+  QScopedPointer<qSlicerPinnacleDvfReaderModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerPinnacleDVFReaderModule);
-  Q_DISABLE_COPY(qSlicerPinnacleDVFReaderModule);
+  Q_DECLARE_PRIVATE(qSlicerPinnacleDvfReaderModule);
+  Q_DISABLE_COPY(qSlicerPinnacleDvfReaderModule);
 };
 
 #endif

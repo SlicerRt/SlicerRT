@@ -19,8 +19,8 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerPinnacleDVFReaderOptionsWidget_h
-#define __qSlicerPinnacleDVFReaderOptionsWidget_h
+#ifndef __qSlicerPinnacleDvfReaderOptionsWidget_h
+#define __qSlicerPinnacleDvfReaderOptionsWidget_h
 
 // CTK includes
 #include <ctkPimpl.h>
@@ -28,29 +28,29 @@
 // SlicerQt includes
 #include "qSlicerIOOptionsWidget.h"
 
-// PinnacleDVFReader includes
-#include "qSlicerPinnacleDVFReaderModuleExport.h"
+// PinnacleDvfReader includes
+#include "qSlicerPinnacleDvfReaderModuleExport.h"
 
-class qSlicerPinnacleDVFReaderOptionsWidgetPrivate;
+class qSlicerPinnacleDvfReaderOptionsWidgetPrivate;
 
-/// \ingroup SlicerRt_QtModules_PinnacleDVFReader
-class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDVFReaderOptionsWidget :
+/// \ingroup SlicerRt_QtModules_PinnacleDvfReader
+class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDvfReaderOptionsWidget :
   public qSlicerIOOptionsWidget
 {
   Q_OBJECT
 public:
   typedef qSlicerIOOptionsWidget Superclass;
-  qSlicerPinnacleDVFReaderOptionsWidget(QWidget *parent=0);
-  virtual ~qSlicerPinnacleDVFReaderOptionsWidget();
+  qSlicerPinnacleDvfReaderOptionsWidget(QWidget *parent=0);
+  virtual ~qSlicerPinnacleDvfReaderOptionsWidget();
 
 
 protected slots:
   void updateProperties();
 
 private:
-  Q_DECLARE_PRIVATE_D(qGetPtrHelper(qSlicerIOOptions::d_ptr), qSlicerPinnacleDVFReaderOptionsWidget);
-  //Q_DECLARE_PRIVATE(qSlicerPinnacleDVFReaderOptionsWidget);
-  Q_DISABLE_COPY(qSlicerPinnacleDVFReaderOptionsWidget);
+  Q_DECLARE_PRIVATE_D(qGetPtrHelper(qSlicerIOOptions::d_ptr), qSlicerPinnacleDvfReaderOptionsWidget);
+  //Q_DECLARE_PRIVATE(qSlicerPinnacleDvfReaderOptionsWidget);
+  Q_DISABLE_COPY(qSlicerPinnacleDvfReaderOptionsWidget);
 };
 
 #endif

@@ -21,7 +21,7 @@
 
 
 // Module includes
-#include "vtkSlicerPinnacleDVFReader.h"
+#include "vtkSlicerPinnacleDvfReader.h"
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -39,10 +39,10 @@
 #include <algorithm>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerPinnacleDVFReader);
+vtkStandardNewMacro(vtkSlicerPinnacleDvfReader);
 
 //----------------------------------------------------------------------------
-vtkSlicerPinnacleDVFReader::vtkSlicerPinnacleDVFReader()
+vtkSlicerPinnacleDvfReader::vtkSlicerPinnacleDvfReader()
 {
   this->FileName = NULL;
 
@@ -57,7 +57,7 @@ vtkSlicerPinnacleDVFReader::vtkSlicerPinnacleDVFReader()
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerPinnacleDVFReader::~vtkSlicerPinnacleDVFReader()
+vtkSlicerPinnacleDvfReader::~vtkSlicerPinnacleDvfReader()
 {
   this->PostDeformationRegistrationMatrix->Delete();
   this->DeformableRegistrationGrid->Delete();
@@ -65,13 +65,13 @@ vtkSlicerPinnacleDVFReader::~vtkSlicerPinnacleDVFReader()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerPinnacleDVFReader::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerPinnacleDvfReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerPinnacleDVFReader::Update()
+void vtkSlicerPinnacleDvfReader::Update()
 {
   this->PostDeformationRegistrationMatrix->Identity();
   this->DeformableRegistrationGridOrientationMatrix->Identity();
@@ -82,12 +82,12 @@ void vtkSlicerPinnacleDVFReader::Update()
   } 
   else 
   {
-    vtkDebugMacro("vtkSlicerPinnacleDVFReader::Update: invalid filename: <empty string>");
+    vtkDebugMacro("vtkSlicerPinnacleDvfReader::Update: invalid filename: <empty string>");
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerPinnacleDVFReader::LoadDeformableSpatialRegistration(char *fileName)
+void vtkSlicerPinnacleDvfReader::LoadDeformableSpatialRegistration(char *fileName)
 {
   const float MIN_RESOLUTION = 0.004;
   
@@ -139,7 +139,7 @@ void vtkSlicerPinnacleDVFReader::LoadDeformableSpatialRegistration(char *fileNam
   readFileStream.open(fileName, std::ios::binary);
   if (readFileStream.fail())
   {
-    vtkErrorMacro("LoadPinnacleDVF: The specified file could not be opened.");
+    vtkErrorMacro("LoadPinnacleDvf: The specified file could not be opened.");
     return;
   }
 
@@ -278,19 +278,19 @@ void vtkSlicerPinnacleDVFReader::LoadDeformableSpatialRegistration(char *fileNam
 }
 
 //----------------------------------------------------------------------------
-vtkMatrix4x4* vtkSlicerPinnacleDVFReader::GetPostDeformationRegistrationMatrix()
+vtkMatrix4x4* vtkSlicerPinnacleDvfReader::GetPostDeformationRegistrationMatrix()
 {
   return this->PostDeformationRegistrationMatrix;
 }
 
 //----------------------------------------------------------------------------
-vtkImageData* vtkSlicerPinnacleDVFReader::GetDeformableRegistrationGrid()
+vtkImageData* vtkSlicerPinnacleDvfReader::GetDeformableRegistrationGrid()
 {
   return this->DeformableRegistrationGrid;
 }
 
 //----------------------------------------------------------------------------
-vtkMatrix4x4* vtkSlicerPinnacleDVFReader::GetDeformableRegistrationGridOrientationMatrix()
+vtkMatrix4x4* vtkSlicerPinnacleDvfReader::GetDeformableRegistrationGridOrientationMatrix()
 {
   return this->DeformableRegistrationGridOrientationMatrix;
 }

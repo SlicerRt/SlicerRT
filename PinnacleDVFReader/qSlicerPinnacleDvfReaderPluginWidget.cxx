@@ -19,40 +19,40 @@
 
 ==============================================================================*/
 
-/// PinnacleDVFReader includes
-#include "qSlicerPinnacleDVFReaderPluginWidget.h"
-#include "ui_qSlicerPinnacleDVFReaderPluginWidget.h"
-#include "vtkSlicerPinnacleDVFReaderLogic.h"
+/// PinnacleDvfReader includes
+#include "qSlicerPinnacleDvfReaderPluginWidget.h"
+#include "ui_qSlicerPinnacleDvfReaderPluginWidget.h"
+#include "vtkSlicerPinnacleDvfReaderLogic.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_QtModules_PinnacleDVFReader
-class qSlicerPinnacleDVFReaderPluginWidgetPrivate: public Ui_qSlicerPinnacleDVFReaderPluginWidget
+/// \ingroup SlicerRt_QtModules_PinnacleDvfReader
+class qSlicerPinnacleDvfReaderPluginWidgetPrivate: public Ui_qSlicerPinnacleDvfReaderPluginWidget
 {
 public:
-  qSlicerPinnacleDVFReaderPluginWidgetPrivate();
+  qSlicerPinnacleDvfReaderPluginWidgetPrivate();
 };
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderPluginWidgetPrivate::qSlicerPinnacleDVFReaderPluginWidgetPrivate()
+qSlicerPinnacleDvfReaderPluginWidgetPrivate::qSlicerPinnacleDvfReaderPluginWidgetPrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderPluginWidget::qSlicerPinnacleDVFReaderPluginWidget(QWidget* parentWidget)
+qSlicerPinnacleDvfReaderPluginWidget::qSlicerPinnacleDvfReaderPluginWidget(QWidget* parentWidget)
   : Superclass( parentWidget )
-  , d_ptr( new qSlicerPinnacleDVFReaderPluginWidgetPrivate )
+  , d_ptr( new qSlicerPinnacleDvfReaderPluginWidgetPrivate )
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDVFReaderPluginWidget::~qSlicerPinnacleDVFReaderPluginWidget()
+qSlicerPinnacleDvfReaderPluginWidget::~qSlicerPinnacleDvfReaderPluginWidget()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerPinnacleDVFReaderPluginWidget::setup()
+void qSlicerPinnacleDvfReaderPluginWidget::setup()
 {
-  Q_D(qSlicerPinnacleDVFReaderPluginWidget);
+  Q_D(qSlicerPinnacleDvfReaderPluginWidget);
   d->setupUi(this);
   this->Superclass::setup();
 }

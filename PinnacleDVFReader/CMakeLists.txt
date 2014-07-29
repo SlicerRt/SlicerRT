@@ -8,7 +8,7 @@ if(POLICY CMP0022)
 endif()
 
 #-----------------------------------------------------------------------------
-set(MODULE_NAME PinnacleDVFReader)
+set(MODULE_NAME PinnacleDvfReader)
 set(MODULE_TITLE "Pinnacle Deformation Vector Field Reader")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
