@@ -75,7 +75,7 @@ public:
   void Update();
 
   /// Create ribbon model for an ROI
-  void CreateRibbonModelForRoi(unsigned int internalIndex, vtkPolyData* ribbonModelPolyData);
+  void CreateRibbonModelForRoi(unsigned int internalIndex, double* optionalNormal, vtkPolyData* ribbonModelPolyData);
 
 public:
   /// Get number of created ROIs

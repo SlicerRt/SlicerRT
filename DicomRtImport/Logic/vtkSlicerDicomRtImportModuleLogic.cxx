@@ -428,32 +428,34 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
       contourNodeName = std::string(roiLabel);
       contourNodeName = this->GetMRMLScene()->GenerateUniqueName(contourNodeName);
 
-      // Create ribbon from ROI contour
-      vtkSmartPointer<vtkPolyData> ribbonModelPolyData = vtkSmartPointer<vtkPolyData>::New();
-      rtReader->CreateRibbonModelForRoi(internalROIIndex, ribbonModelPolyData);
-
-      roiCollection->AddItem(ribbonModelPolyData);
-
       // Create contour node
       vtkSmartPointer<vtkMRMLContourNode> contourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
       contourNode = vtkMRMLContourNode::SafeDownCast(this->GetMRMLScene()->AddNode(contourNode));
       contourNode->SetName(contourNodeName.c_str());
       contourNode->SetCreatedFromIndexLabelmap(false);
-      contourNode->SetAndObserveRibbonModelPolyData(ribbonModelPolyData);
       contourNode->SetDicomRtRoiPoints(roiPolyData);
       contourNode->HideFromEditorsOff();
-      contourNode->CreateRibbonModelDisplayNode();
 
-      vtkSlicerContoursModuleLogic::CreateContourStorageNode(contourNode);
-
-      contourNode->GetRibbonModelDisplayNode()->SetColor(roiColor[0], roiColor[1], roiColor[2]);
-
+      // Retrieve the planes that describe each contour ribbon
       std::map<double, vtkSmartPointer<vtkPlane> > orderedPlanes = rtReader->GetRoiOrderedContourPlanes(internalROIIndex);
       if( orderedPlanes.empty() )
       {
         vtkErrorMacro("Unable to retrieve ordered planes when creating contour node. They will be unaccessible.");
       }
       contourNode->SetOrderedContourPlanes(orderedPlanes);
+
+      // Create ribbon from ROI contour
+      vtkSmartPointer<vtkPolyData> ribbonModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+      rtReader->CreateRibbonModelForRoi(internalROIIndex, orderedPlanes.empty() ? NULL : orderedPlanes.begin()->second->GetNormal(), ribbonModelPolyData);
+      roiCollection->AddItem(ribbonModelPolyData);
+
+      // Complete contour node creation
+      contourNode->SetAndObserveRibbonModelPolyData(ribbonModelPolyData);
+      contourNode->CreateRibbonModelDisplayNode();
+
+      vtkSlicerContoursModuleLogic::CreateContourStorageNode(contourNode);
+
+      contourNode->GetRibbonModelDisplayNode()->SetColor(roiColor[0], roiColor[1], roiColor[2]);
 
       // Put the contour node in the hierarchy
       vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(

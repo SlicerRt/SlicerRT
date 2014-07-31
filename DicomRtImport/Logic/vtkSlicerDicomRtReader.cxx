@@ -1618,7 +1618,7 @@ vtkSlicerDicomRtReader::RoiEntry* vtkSlicerDicomRtReader::FindRoiByNumber(unsign
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex, vtkPolyData* ribbonModelPolyData)
+void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex, double* optionalNormal, vtkPolyData* ribbonModelPolyData)
 {
   if (ribbonModelPolyData == NULL)
   {
@@ -1646,64 +1646,73 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
     return;
   }
 
-  // Get image orientation for the contour planes from the referenced slice orientations
-  ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
-  dicomDatabase->openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
-
-  std::map<int,std::string>* contourIndexToSopInstanceUidMap = &(this->RoiSequenceVector[internalIndex].ContourIndexToSopInstanceUidMap);
-  std::map<int,std::string>::iterator sliceInstanceUidIt;
-  QString imageOrientation;
-  for (sliceInstanceUidIt = contourIndexToSopInstanceUidMap->begin(); sliceInstanceUidIt != contourIndexToSopInstanceUidMap->end(); ++sliceInstanceUidIt)
-  {
-    // Get file name for referenced slice instance from the stored SOP instance UID
-    QString fileName = dicomDatabase->fileForInstance(sliceInstanceUidIt->second.c_str());
-    if (fileName.isEmpty())
-    {
-      vtkErrorMacro("CreateRibbonModelForRoi: No referenced image file is found for ROI contour slice number " << sliceInstanceUidIt->first);
-      continue;
-    }
-
-    // Get image orientation string from the referenced slice
-    QString currentImageOrientation = dicomDatabase->fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement());
-
-    // Check if the currently read orientation matches the orientation in the already loaded slices
-    if (imageOrientation.isEmpty())
-    {
-      imageOrientation = currentImageOrientation;
-    }
-    else if (imageOrientation.compare(currentImageOrientation))
-    {
-      vtkWarningMacro("CreateRibbonModelForRoi: Image orientation in instance '" << fileName.toLatin1().constData() << "' differs from that in the first instance ("
-        << currentImageOrientation.toLatin1().constData() << " != " << imageOrientation.toLatin1().constData() << ")! This is not supported yet, so the first orientation will be used for the whole contour.");
-      break;
-    }
-  }
-
-  dicomDatabase->closeDatabase();
-  delete dicomDatabase;
-  QSqlDatabase::removeDatabase(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
-  QSqlDatabase::removeDatabase(QString(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
-
-  // Compute normal vector from the read image orientation
-  QStringList imageOrientationComponentsString = imageOrientation.split("\\");
-  if (imageOrientationComponentsString.size() != 6)
-  {
-    vtkErrorMacro("CreateRibbonModelForRoi: Invalid image orientation for ROI: " << imageOrientation.toLatin1().constData());
-    return;
-  }
-
-  double imageOrientationVectorRasX[3] = {0.0, 0.0, 0.0};
-  double imageOrientationVectorRasY[3] = {0.0, 0.0, 0.0};
   double imageOrientationVectorRasZ[3] = {0.0, 0.0, 0.0};
-  for (unsigned int componentIndex=0; componentIndex<3; ++componentIndex)
+  if( optionalNormal == NULL )
   {
-    // Apply LPS to RAS conversion
-    double lpsToRasConversionMultiplier = (componentIndex<2 ? (-1.0) : 1.0);
-    imageOrientationVectorRasX[componentIndex] = lpsToRasConversionMultiplier * imageOrientationComponentsString[componentIndex].toDouble();
-    imageOrientationVectorRasY[componentIndex] = lpsToRasConversionMultiplier * imageOrientationComponentsString[componentIndex+3].toDouble();
-  }
+    // Get image orientation for the contour planes from the referenced slice orientations
+    ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
+    dicomDatabase->openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
 
-  vtkMath::Cross(imageOrientationVectorRasX, imageOrientationVectorRasY, imageOrientationVectorRasZ);
+    std::map<int,std::string>* contourIndexToSopInstanceUidMap = &(this->RoiSequenceVector[internalIndex].ContourIndexToSopInstanceUidMap);
+    std::map<int,std::string>::iterator sliceInstanceUidIt;
+    QString imageOrientation;
+    for (sliceInstanceUidIt = contourIndexToSopInstanceUidMap->begin(); sliceInstanceUidIt != contourIndexToSopInstanceUidMap->end(); ++sliceInstanceUidIt)
+    {
+      // Get file name for referenced slice instance from the stored SOP instance UID
+      QString fileName = dicomDatabase->fileForInstance(sliceInstanceUidIt->second.c_str());
+      if (fileName.isEmpty())
+      {
+        vtkErrorMacro("CreateRibbonModelForRoi: No referenced image file is found for ROI contour slice number " << sliceInstanceUidIt->first);
+        continue;
+      }
+
+      // Get image orientation string from the referenced slice
+      QString currentImageOrientation = dicomDatabase->fileValue(fileName, DCM_ImageOrientationPatient.getGroup(), DCM_ImageOrientationPatient.getElement());
+
+      // Check if the currently read orientation matches the orientation in the already loaded slices
+      if (imageOrientation.isEmpty())
+      {
+        imageOrientation = currentImageOrientation;
+      }
+      else if (imageOrientation.compare(currentImageOrientation))
+      {
+        vtkWarningMacro("CreateRibbonModelForRoi: Image orientation in instance '" << fileName.toLatin1().constData() << "' differs from that in the first instance ("
+          << currentImageOrientation.toLatin1().constData() << " != " << imageOrientation.toLatin1().constData() << ")! This is not supported yet, so the first orientation will be used for the whole contour.");
+        break;
+      }
+    }
+
+    dicomDatabase->closeDatabase();
+    delete dicomDatabase;
+    QSqlDatabase::removeDatabase(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+    QSqlDatabase::removeDatabase(QString(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
+
+    // Compute normal vector from the read image orientation
+    QStringList imageOrientationComponentsString = imageOrientation.split("\\");
+    if (imageOrientationComponentsString.size() != 6)
+    {
+      vtkErrorMacro("CreateRibbonModelForRoi: Invalid image orientation for ROI: " << imageOrientation.toLatin1().constData());
+      return;
+    }
+
+    double imageOrientationVectorRasX[3] = {0.0, 0.0, 0.0};
+    double imageOrientationVectorRasY[3] = {0.0, 0.0, 0.0};
+    for (unsigned int componentIndex=0; componentIndex<3; ++componentIndex)
+    {
+      // Apply LPS to RAS conversion
+      double lpsToRasConversionMultiplier = (componentIndex<2 ? (-1.0) : 1.0);
+      imageOrientationVectorRasX[componentIndex] = lpsToRasConversionMultiplier * imageOrientationComponentsString[componentIndex].toDouble();
+      imageOrientationVectorRasY[componentIndex] = lpsToRasConversionMultiplier * imageOrientationComponentsString[componentIndex+3].toDouble();
+    }
+
+    vtkMath::Cross(imageOrientationVectorRasX, imageOrientationVectorRasY, imageOrientationVectorRasZ);
+  }
+  else
+  {
+    imageOrientationVectorRasZ[0] = optionalNormal[0];
+    imageOrientationVectorRasZ[1] = optionalNormal[1];
+    imageOrientationVectorRasZ[2] = optionalNormal[2];
+  }
 
   // Remove coincident points (if there are multiple contour points at the same position then the ribbon filter fails)
   vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
