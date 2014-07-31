@@ -1278,7 +1278,7 @@ vtkImageData* vtkMRMLContourNode::GetLabelmapImageData()
   }
   if (!this->Scene)
   {
-    vtkErrorMacro("GetClosedSurfacePolyData: Invalid MRML scene!");
+    vtkErrorMacro("GetLabelmapImageData: Invalid MRML scene!");
     return NULL;
   }
 
@@ -1291,7 +1291,7 @@ vtkImageData* vtkMRMLContourNode::GetLabelmapImageData()
   }
   else
   {
-    vtkErrorMacro("Conversion to closed surface model failed!");
+    vtkErrorMacro("Conversion to labelmap failed!");
   }
 
   return NULL;
