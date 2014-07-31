@@ -75,7 +75,10 @@ public:
   void Update();
 
   /// Create ribbon model for an ROI
-  void CreateRibbonModelForRoi(unsigned int internalIndex, double* optionalNormal, vtkPolyData* ribbonModelPolyData);
+  /// \param internalIndex the index of the ROI to access
+  /// \param optionalRibbonFilterDefaultNormal if anatomical slices aren't available, this normal can be used as a substitute to determine ribbon orientation
+  /// \param ribbonModelPolyData the output polydata to produce
+  void CreateRibbonModelForRoi(unsigned int internalIndex, double optionalRibbonOrientationNormal[], vtkPolyData* ribbonModelPolyData);
 
 public:
   /// Get number of created ROIs

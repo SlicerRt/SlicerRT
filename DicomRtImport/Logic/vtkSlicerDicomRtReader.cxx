@@ -1618,7 +1618,7 @@ vtkSlicerDicomRtReader::RoiEntry* vtkSlicerDicomRtReader::FindRoiByNumber(unsign
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex, double* optionalNormal, vtkPolyData* ribbonModelPolyData)
+void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex, double optionalRibbonOrientationNormal[], vtkPolyData* ribbonModelPolyData)
 {
   if (ribbonModelPolyData == NULL)
   {
@@ -1647,7 +1647,7 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
   }
 
   double imageOrientationVectorRasZ[3] = {0.0, 0.0, 0.0};
-  if( optionalNormal == NULL )
+  if( optionalRibbonOrientationNormal[0] == 0.0 && optionalRibbonOrientationNormal[1] == 0.0 && optionalRibbonOrientationNormal[2] == 0.0 )
   {
     // Get image orientation for the contour planes from the referenced slice orientations
     ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
@@ -1709,9 +1709,9 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
   }
   else
   {
-    imageOrientationVectorRasZ[0] = optionalNormal[0];
-    imageOrientationVectorRasZ[1] = optionalNormal[1];
-    imageOrientationVectorRasZ[2] = optionalNormal[2];
+    imageOrientationVectorRasZ[0] = optionalRibbonOrientationNormal[0];
+    imageOrientationVectorRasZ[1] = optionalRibbonOrientationNormal[1];
+    imageOrientationVectorRasZ[2] = optionalRibbonOrientationNormal[2];
   }
 
   // Remove coincident points (if there are multiple contour points at the same position then the ribbon filter fails)
