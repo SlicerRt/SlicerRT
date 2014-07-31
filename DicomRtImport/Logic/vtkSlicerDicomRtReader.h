@@ -35,6 +35,7 @@
 #include <vtkPlane.h>
 #include <vtkSmartPointer.h>
 #include <vtkType.h>
+#include <vtkVector.h>
 
 // CTK includes
 #include <ctkDICOMDatabase.h>
@@ -45,14 +46,14 @@
 
 #include "vtkSlicerDicomRtImportModuleLogicExport.h"
 
-class vtkPolyData;
-class DcmDataset;
-class OFString;
+class DRTContourImageSequence;
 class DRTContourSequence;
 class DRTROIContourSequence;
-class DRTStructureSetIOD;
 class DRTRTReferencedSeriesSequence;
-class DRTContourImageSequence;
+class DRTStructureSetIOD;
+class DcmDataset;
+class OFString;
+class vtkPolyData;
 
 // Due to some reason the Python wrapping of this class fails, therefore
 // put everything between BTX/ETX to exclude from wrapping.
@@ -78,7 +79,7 @@ public:
   /// \param internalIndex the index of the ROI to access
   /// \param optionalRibbonFilterDefaultNormal if anatomical slices aren't available, this normal can be used as a substitute to determine ribbon orientation
   /// \param ribbonModelPolyData the output polydata to produce
-  void CreateRibbonModelForRoi(unsigned int internalIndex, double optionalRibbonOrientationNormal[], vtkPolyData* ribbonModelPolyData);
+  void CreateRibbonModelForRoi(unsigned int internalIndex, vtkVector3<double>* optionalRibbonOrientationNormal, vtkPolyData* ribbonModelPolyData);
 
 public:
   /// Get number of created ROIs

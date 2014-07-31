@@ -445,14 +445,23 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
       contourNode->SetOrderedContourPlanes(orderedPlanes);
 
       // Create ribbon from ROI contour
-      double ribbonModelOrientationNormal[3] = {0.0, 0.0, 0.0};
+      vtkVector3<double>* ribbonModelOrientationNormal(NULL);
       if( !orderedPlanes.empty() )
       {
-        orderedPlanes.begin()->second->GetNormal(ribbonModelOrientationNormal);
+        ribbonModelOrientationNormal = new vtkVector3<double>();
+        ribbonModelOrientationNormal->SetX(orderedPlanes.begin()->second->GetNormal()[0]);
+        ribbonModelOrientationNormal->SetY(orderedPlanes.begin()->second->GetNormal()[1]);
+        ribbonModelOrientationNormal->SetZ(orderedPlanes.begin()->second->GetNormal()[2]);
       }
       vtkSmartPointer<vtkPolyData> ribbonModelPolyData = vtkSmartPointer<vtkPolyData>::New();
       rtReader->CreateRibbonModelForRoi(internalROIIndex, ribbonModelOrientationNormal, ribbonModelPolyData);
       roiCollection->AddItem(ribbonModelPolyData);
+
+      // Clean up normal
+      if( ribbonModelOrientationNormal )
+      {
+        delete ribbonModelOrientationNormal;
+      }
 
       // Complete contour node creation
       contourNode->SetAndObserveRibbonModelPolyData(ribbonModelPolyData);
