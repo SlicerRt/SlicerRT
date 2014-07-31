@@ -135,7 +135,7 @@ void qSlicerSubjectHierarchyContoursPluginPrivate::init()
   QObject::connect(this->CreateContourAction, SIGNAL(triggered()), q, SLOT(createChildContourForCurrentNode()));
 
   // Convert to representation action
-  this->ConvertContourToRepresentationAction = new QAction("Add representation",q);
+  this->ConvertContourToRepresentationAction = new QAction("Convert to representation",q);
   QMenu* representationCreateSubMenu = new QMenu();
   this->ConvertContourToRepresentationAction->setMenu(representationCreateSubMenu);
 
@@ -465,9 +465,13 @@ void qSlicerSubjectHierarchyContoursPlugin::createLabelmapRepresentation()
 {
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
-  if( contourNode )
+  if( contourNode && contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL )
   {
     contourNode->GetLabelmapImageData();
+  }
+  else
+  {
+    qCritical() << "Reference volume not set for contour: " << contourNode->GetID() << ". Unable to convert to labelmap. Please use Contours module to convert.";
   }
 }
 
@@ -476,8 +480,15 @@ void qSlicerSubjectHierarchyContoursPlugin::createClosedSurfaceModelRepresentati
 {
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
-  if( contourNode )
+  if( contourNode && 
+    // Either we have the image data, or we have a reference volume to create the image data
+    (contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap)
+    || contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL) )
   {
     contourNode->GetClosedSurfacePolyData();
+  }
+  else
+  {
+    qCritical() << "Image data or reference volume not set for contour: " << contourNode->GetID() << ". Unable to convert to closed surface. Please use Contours module to convert.";
   }
 }

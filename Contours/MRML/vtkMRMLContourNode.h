@@ -158,7 +158,7 @@ public:
   /// Set and observe ribbon model data
   virtual void SetAndObserveRibbonModelPolyData(vtkPolyData *PolyData);
   /// Get ribbon model data
-  vtkGetObjectMacro(RibbonModelPolyData, vtkPolyData);
+  virtual vtkPolyData* GetRibbonModelPolyData();
 
   /// Set and observe closed surface model data
   virtual void SetAndObserveClosedSurfacePolyData(vtkPolyData *PolyData);

@@ -1243,6 +1243,33 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::GetClosedSurfaceModelDisplay
 }
 
 //----------------------------------------------------------------------------
+vtkPolyData* vtkMRMLContourNode::GetRibbonModelPolyData()
+{
+  if( this->RibbonModelPolyData != NULL )
+  {
+    return this->RibbonModelPolyData;
+  }
+  if (!this->Scene)
+  {
+    vtkErrorMacro("GetRibbonModelPolyData: Invalid MRML scene!");
+    return NULL;
+  }
+
+  vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();
+  converter->SetContourNode(this);
+  if (converter->ConvertToRepresentation(RibbonModel))
+  {
+    return this->RibbonModelPolyData;
+  }
+  else
+  {
+    vtkErrorMacro("Conversion to ribbon model failed!");
+  }
+
+  return NULL;
+}
+
+//----------------------------------------------------------------------------
 vtkPolyData* vtkMRMLContourNode::GetClosedSurfacePolyData()
 {
   if( this->ClosedSurfacePolyData != NULL )
