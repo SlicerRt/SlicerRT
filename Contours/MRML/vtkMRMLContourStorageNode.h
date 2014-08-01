@@ -121,7 +121,7 @@ protected:
   virtual int WriteImageDataInternal(vtkMRMLContourNode* contourNode);
 
   /// Read model data
-  virtual bool ReadModelDataInternal( vtkMRMLContourNode* contourNode, vtkPolyData* outModel, const char* filename, const char* suffix);
+  virtual bool ReadModelDataInternal( vtkPolyData* outModel, const char* filename, const char* suffix);
 
   /// Read image data
   virtual int ReadImageDataInternal(vtkMRMLContourNode* contourNode);

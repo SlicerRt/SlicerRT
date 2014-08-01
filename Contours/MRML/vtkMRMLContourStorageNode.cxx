@@ -167,7 +167,7 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     {
       // Load the ribbon model!
       vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New();
-      if( this->ReadModelDataInternal(contourNode, model, ribbonFile.c_str(), SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str()) )
+      if( this->ReadModelDataInternal(model, ribbonFile.c_str(), SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str()) )
       {
         contourNode->SetAndObserveRibbonModelPolyData( model );
         if( contourNode->GetRibbonModelDisplayNode() )
@@ -193,7 +193,7 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     {
       // Load the closed surface!
       vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New();
-      if( this->ReadModelDataInternal(contourNode, model, closedSurfaceFile.c_str(), SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str()) )
+      if( this->ReadModelDataInternal(model, closedSurfaceFile.c_str(), SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str()) )
       {
         contourNode->SetAndObserveClosedSurfacePolyData( model );
         if( contourNode->GetClosedSurfaceModelDisplayNode() )
@@ -219,7 +219,7 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     {
       // Load the rt roi points
       vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New();
-      if( this->ReadModelDataInternal(NULL, model, roiPointsFile.c_str(), "") )
+      if( this->ReadModelDataInternal(model, roiPointsFile.c_str(), "") )
       {
         contourNode->SetDicomRtRoiPoints( model );
       }
@@ -335,7 +335,7 @@ int vtkMRMLContourStorageNode::WriteModelDataInternal( vtkPolyData* polyData, st
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLContourStorageNode::ReadModelDataInternal( vtkMRMLContourNode* contourNode, vtkPolyData* outModel, const char* filename, const char* suffix )
+bool vtkMRMLContourStorageNode::ReadModelDataInternal( vtkPolyData* outModel, const char* filename, const char* suffix )
 {
   UNUSED_VARIABLE(contourNode);
   if (outModel == NULL)

@@ -914,8 +914,8 @@ double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourSequence& rtContourS
         vtkErrorMacro("No ImageOrientationPatient in DICOM database for file " << std::string(fileName.toLatin1()) << ". This is a serious error!");
         continue;
       }
-      int rc = sscanf(posPatientStringCurrent.c_str(), "%lf\\%lf\\%lf", &currentImagePositionPatient[0], &currentImagePositionPatient[1], &currentImagePositionPatient[2]);
-      rc = sscanf(orientationPatientStringCurrent.c_str(), "%lf\\%lf\\%lf\\%lf\\%lf\\%lf", &currentOrientationPatient[0], &currentOrientationPatient[1], &currentOrientationPatient[2],
+      sscanf(posPatientStringCurrent.c_str(), "%lf\\%lf\\%lf", &currentImagePositionPatient[0], &currentImagePositionPatient[1], &currentImagePositionPatient[2]);
+      sscanf(orientationPatientStringCurrent.c_str(), "%lf\\%lf\\%lf\\%lf\\%lf\\%lf", &currentOrientationPatient[0], &currentOrientationPatient[1], &currentOrientationPatient[2],
         &currentOrientationPatient[3], &currentOrientationPatient[4], &currentOrientationPatient[5]);
 
       // k vector is cross product of i and j vector, which are orientation read above
@@ -1773,8 +1773,8 @@ bool vtkSlicerDicomRtReader::OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDat
     {
       continue;
     }
-    int rc = sscanf(posPatientStringCurrent.c_str(), "%lf\\%lf\\%lf", &imagePositionPatient[0], &imagePositionPatient[1], &imagePositionPatient[2]);
-    rc = sscanf(orientationPatientStringCurrent.c_str(), "%lf\\%lf\\%lf\\%lf\\%lf\\%lf", &orientationPatient[0], &orientationPatient[1], &orientationPatient[2],
+    sscanf(posPatientStringCurrent.c_str(), "%lf\\%lf\\%lf", &imagePositionPatient[0], &imagePositionPatient[1], &imagePositionPatient[2]);
+    sscanf(orientationPatientStringCurrent.c_str(), "%lf\\%lf\\%lf\\%lf\\%lf\\%lf", &orientationPatient[0], &orientationPatient[1], &orientationPatient[2],
       &orientationPatient[3], &orientationPatient[4], &orientationPatient[5]);
 
     // Calculate the slice normal
