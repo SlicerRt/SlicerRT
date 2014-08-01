@@ -320,7 +320,6 @@ void vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(vtkMRMLNode* 
 //-----------------------------------------------------------------------------
 vtkMRMLContourNode::ContourRepresentationType vtkSlicerContoursModuleLogic::GetRepresentationTypeOfContours(std::vector<vtkMRMLContourNode*>& contours)
 {
-  bool sameRepresentationTypes = true;
   vtkMRMLContourNode::ContourRepresentationType representationType = vtkMRMLContourNode::None;
 
   for (std::vector<vtkMRMLContourNode*>::iterator it = contours.begin(); it != contours.end(); ++it)
@@ -328,7 +327,6 @@ vtkMRMLContourNode::ContourRepresentationType vtkSlicerContoursModuleLogic::GetR
     // Determine which representations this contour has
     vtkMRMLContourNode::ContourRepresentationType thisRepresentationType(vtkMRMLContourNode::None);
 
-    char bitField(0);
     bool labelmapExists(false), ribbonModelExists(false), closedSurfaceModelExists(false);
     labelmapExists = (*it)->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap);
     ribbonModelExists = (*it)->HasRepresentation(vtkMRMLContourNode::RibbonModel);

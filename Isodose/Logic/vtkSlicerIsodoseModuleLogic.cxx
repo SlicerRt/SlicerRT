@@ -524,7 +524,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       isodoseModelHierarchyNode->SetModelNodeID( isodoseModelNode->GetID() );
 
       // Put the new node in the subject hierarchy
-      vtkMRMLSubjectHierarchyNode* isodoseSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+      vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
         this->GetMRMLScene(), subjectHierarchyRootNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
         isodoseModelNodeName.c_str(), isodoseModelHierarchyNode);
     }

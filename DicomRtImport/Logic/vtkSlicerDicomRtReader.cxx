@@ -114,7 +114,7 @@ namespace
       averageCount++;
       frequencies[*it]++;
     }
-    double majorityValue;
+    double majorityValue(0.0);
     int majorityCount(-1);
     std::stringstream outputString;
     for( std::map<double, int>::iterator it = frequencies.begin(); it != frequencies.end(); ++it )
@@ -1046,9 +1046,9 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       vtkVector3<vtkTypeFloat64> currentPlaneJVector;
       vtkVector3<vtkTypeFloat64> currentPlaneKVector;
 
-      for( int i = 0; i < contourData_LPS.size(); i+=3 )
+      for (unsigned int i = 0; i < contourData_LPS.size(); i+=3)
       {
-        if( i+8 >= contourData_LPS.size() )
+        if (i+8 >= contourData_LPS.size())
         {
           break;
         }
@@ -1835,17 +1835,17 @@ bool vtkSlicerDicomRtReader::CreatePlaneFromContourData( OFVector<vtkTypeFloat64
     vtkErrorMacro("Null plane sent to vtkSlicerDicomRtReader::CreatePlaneFromContourData. Can't continue.");
     return false;
   }
-  vtkVector3<vtkTypeFloat64> firstPlanePoint;
-  vtkVector3<vtkTypeFloat64> secondPlanePoint;
-  vtkVector3<vtkTypeFloat64> thirdPlanePoint;
+  vtkVector3<vtkTypeFloat64> firstPlanePoint(0.0,0.0,0.0);
+  vtkVector3<vtkTypeFloat64> secondPlanePoint(0.0,0.0,0.0);
+  vtkVector3<vtkTypeFloat64> thirdPlanePoint(0.0,0.0,0.0);
 
-  vtkVector3<vtkTypeFloat64> currentPlaneIVector;
-  vtkVector3<vtkTypeFloat64> currentPlaneJVector;
-  vtkVector3<vtkTypeFloat64> currentPlaneKVector;
+  vtkVector3<vtkTypeFloat64> currentPlaneIVector(0.0,0.0,0.0);
+  vtkVector3<vtkTypeFloat64> currentPlaneJVector(0.0,0.0,0.0);
+  vtkVector3<vtkTypeFloat64> currentPlaneKVector(0.0,0.0,0.0);
 
-  for( int i = 0; i < contourData_LPS.size(); i+=3 )
+  for (unsigned int i = 0; i < contourData_LPS.size(); i+=3)
   {
-    if( i+8 >= contourData_LPS.size() )
+    if (i+8 >= contourData_LPS.size())
     {
       break;
     }

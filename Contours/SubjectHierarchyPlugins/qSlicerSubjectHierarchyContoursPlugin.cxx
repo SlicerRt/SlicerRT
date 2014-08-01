@@ -356,6 +356,7 @@ void qSlicerSubjectHierarchyContoursPlugin::convertCurrentNodeContourToRepresent
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyContoursPlugin::onNodeClaimed(vtkObject* node, void* callData)
 {
+  Q_UNUSED(callData);
   // Sample code for acquiring the name of the old plugin if necessary
   //char* oldPluginName = reinterpret_cast<char*>(callData);
 

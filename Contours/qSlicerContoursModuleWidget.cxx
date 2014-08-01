@@ -201,6 +201,7 @@ void qSlicerContoursModuleWidget::sourceRepresentationNodeChanged(vtkMRMLNode* n
 //-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::targetContourSetNodeChanged(vtkMRMLNode* node)
 {
+  Q_UNUSED(node);
   Q_D(qSlicerContoursModuleWidget);
 
   if (!this->mrmlScene())
@@ -219,6 +220,7 @@ void qSlicerContoursModuleWidget::targetContourSetNodeChanged(vtkMRMLNode* node)
 //-----------------------------------------------------------------------------
 void qSlicerContoursModuleWidget::targetContourNameChanged(const QString& value)
 {
+  Q_UNUSED(value);
   Q_D(qSlicerContoursModuleWidget);
 
   if (!this->mrmlScene())
@@ -1189,23 +1191,23 @@ std::string qSlicerContoursModuleWidget::buildRepresentationsString( vtkMRMLCont
 {
   std::vector<std::string> representations;
   std::stringstream ss;
-  if( node->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
+  if (node->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap))
   {
     representations.push_back("Labelmap");
   }
-  if( node->HasRepresentation(vtkMRMLContourNode::RibbonModel) )
+  if (node->HasRepresentation(vtkMRMLContourNode::RibbonModel))
   {
     representations.push_back("Ribbon model");
   }
-  if( node->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel) )
+  if (node->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel))
   {
     representations.push_back("Closed surface");
   }
   // Create a more descriptive string of the current representations
-  for( int i = 0; i < representations.size(); ++i )
+  for (unsigned int i = 0; i < representations.size(); ++i)
   {
     ss << representations[i];
-    if( i != representations.size()-1 )
+    if (i != representations.size()-1)
     {
       ss << ", ";
     }

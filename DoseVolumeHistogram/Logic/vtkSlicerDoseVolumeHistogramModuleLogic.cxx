@@ -385,6 +385,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
 
   vtkMRMLScalarVolumeNode* doseVolumeNode = this->DoseVolumeHistogramNode->GetDoseVolumeNode();
   if (!doseVolumeNode)
@@ -650,7 +651,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   this->GetMRMLScene()->AddNode(arrayNode);
 
   // Add DVH to subject hierarchy
-  vtkMRMLSubjectHierarchyNode* dvhSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+  vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
     this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
     dvhArrayNodeName.c_str(), arrayNode);
 
@@ -663,6 +664,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
 
   // Log measured time
   double checkpointEnd = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
   if (this->LogSpeedMeasurements)
   {
     vtkDebugMacro("ComputeDvh: DVH computation time for structure '" << (structureContourNode->GetStructureName() ? structureContourNode->GetStructureName() : "Invalid") << "': " << checkpointEnd-checkpointStart << " s");

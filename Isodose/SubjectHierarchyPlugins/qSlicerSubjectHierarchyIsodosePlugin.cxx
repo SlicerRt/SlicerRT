@@ -159,6 +159,8 @@ QIcon qSlicerSubjectHierarchyIsodosePlugin::visibilityIcon(int visible)
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyIsodosePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
+  Q_UNUSED(node);
+
   // Switch to isodose module with parameter set node already selected
   qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Isodose");
   if (moduleWidget)

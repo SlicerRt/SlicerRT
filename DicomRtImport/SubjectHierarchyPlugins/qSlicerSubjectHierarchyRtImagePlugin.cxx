@@ -233,5 +233,6 @@ int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkMRMLSubjectHie
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyRtImagePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
+  Q_UNUSED(node);
   //TODO: Switch to external beam planning module when it supports RT images
 }

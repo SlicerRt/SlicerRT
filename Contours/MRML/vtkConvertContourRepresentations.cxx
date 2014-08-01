@@ -195,6 +195,7 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
 
   // Get reference volume node
   vtkMRMLScalarVolumeNode* selectedReferenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast( this->ContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) );
@@ -334,6 +335,8 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
 
   // Initialize polydata to labelmap filter for conversion
   double checkpointLabelmapConversionStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointLabelmapConversionStart); // Although it is used later, a warning is logged so needs to be suppressed
+
   vtkSmartPointer<vtkPolyDataToLabelmapFilter> polyDataToLabelmapFilter = vtkSmartPointer<vtkPolyDataToLabelmapFilter>::New();
   transformPolyDataModelToReferenceVolumeIjkFilter->Update();
   polyDataToLabelmapFilter->SetBackgroundValue(0);
@@ -378,6 +381,8 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
 
   // Resample to selected reference coordinate system if referenced anatomy was used
   double checkpointResamplingStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointResamplingStart); // Although it is used later, a warning is logged so needs to be suppressed
+
   int oversampledSelectedReferenceVolumeExtent[6] = {0, 0, 0, 0, 0, 0};
   double oversampledSelectedReferenceVtkVolumeSpacing[3] = {0.0, 0.0, 0.0};
   SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor( selectedReferenceVolumeNode,
@@ -468,6 +473,8 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
+    UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
+
     vtkDebugMacro("ConvertFromModelToIndexedLabelmap: Total model-labelmap conversion time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s\n"
       << "\tAccessing associated nodes and transform model: " << checkpointLabelmapConversionStart-checkpointStart << " s\n"
       << "\tConverting to labelmap (to referenced series if available): " << checkpointResamplingStart-checkpointLabelmapConversionStart << " s\n"
@@ -494,6 +501,7 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmap
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
 
   // TODO: Workaround for the the issue that slice intersections are not visible of newly converted models
   mrmlScene->StartState(vtkMRMLScene::BatchProcessState);
