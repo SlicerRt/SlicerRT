@@ -40,6 +40,9 @@
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLScene.h>
 
+// Slicer includes
+#include <vtkSlicerVolumesLogic.h>
+
 // VTK includes
 #include <vtkNew.h>
 #include <vtkImageMathematics.h>
@@ -253,9 +256,6 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   int referenceDimensions[3] = {0, 0, 0};
   referenceDoseVolumeNode->GetImageData()->GetDimensions(referenceDimensions);
 
-  vtkSmartPointer<vtkMatrix4x4> referenceDoseVolumeRasToIjkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  referenceDoseVolumeNode->GetRASToIJKMatrix(referenceDoseVolumeRasToIjkMatrix);
-
   // Apply weight and accumulate input dose volumes
   vtkSmartPointer<vtkImageData> accumulatedImageData = vtkSmartPointer<vtkImageData>::New();
   for (int inputVolumeIndex = 0; inputVolumeIndex<numberOfInputDoseVolumes; inputVolumeIndex++)
@@ -270,41 +270,12 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     std::map<std::string,double>* volumeNodeIdsToWeightsMap = paramNode->GetVolumeNodeIdsToWeightsMap();
     double currentWeight = (*volumeNodeIdsToWeightsMap)[currentInputDoseVolumeNode->GetID()];
 
-    // Get current input IJK to RAS transform
-    vtkSmartPointer<vtkMatrix4x4> currentInputDoseVolumeIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    currentInputDoseVolumeNode->GetIJKToRASMatrix(currentInputDoseVolumeIjkToRasMatrix);
-
-    // Create transform from reference IJK to current input IJK for resampling
-    vtkSmartPointer<vtkTransform> referenceVolumeIjkToCurrentInputVolumeIjkTransform = vtkSmartPointer<vtkTransform>::New();
-    referenceVolumeIjkToCurrentInputVolumeIjkTransform->Identity();
-    referenceVolumeIjkToCurrentInputVolumeIjkTransform->PostMultiply();
-    referenceVolumeIjkToCurrentInputVolumeIjkTransform->SetMatrix(currentInputDoseVolumeIjkToRasMatrix);
-
-    vtkMRMLTransformNode* currentInputDoseVolumeTransformNode = currentInputDoseVolumeNode->GetParentTransformNode();
-    vtkSmartPointer<vtkMatrix4x4> currentInputDoseVolumeRasToWorldRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if (currentInputDoseVolumeTransformNode)
-    {
-      currentInputDoseVolumeTransformNode->GetMatrixTransformToWorld(currentInputDoseVolumeRasToWorldRasMatrix);  
-      referenceVolumeIjkToCurrentInputVolumeIjkTransform->Concatenate(currentInputDoseVolumeRasToWorldRasMatrix);
-    }
-    referenceVolumeIjkToCurrentInputVolumeIjkTransform->Concatenate(referenceDoseVolumeRasToIjkMatrix);
-    referenceVolumeIjkToCurrentInputVolumeIjkTransform->Inverse();
-
-    // Resample current input to reference volume geometry
-    vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-    resliceFilter->SetInput(currentInputDoseVolumeNode->GetImageData());
-#else
-    resliceFilter->SetInputConnection(currentInputDoseVolumeNode->GetImageDataConnection());
-#endif
-    resliceFilter->SetOutputOrigin(0, 0, 0);
-    resliceFilter->SetOutputSpacing(1, 1, 1);
-    resliceFilter->SetOutputExtent(0, referenceDimensions[0]-1, 0, referenceDimensions[1]-1, 0, referenceDimensions[2]-1);
-    resliceFilter->SetResliceTransform(referenceVolumeIjkToCurrentInputVolumeIjkTransform);
+    vtkMRMLScalarVolumeNode* resampledInputDoseVolumeNode = 
+      vtkSlicerVolumesLogic::ResampleVolumeToReferenceVolume(currentInputDoseVolumeNode, referenceDoseVolumeNode);
 
     // Apply weight
     vtkSmartPointer<vtkImageMathematics> multiplyFilter = vtkSmartPointer<vtkImageMathematics>::New();
-    multiplyFilter->SetInputConnection(resliceFilter->GetOutputPort());
+    multiplyFilter->SetInputConnection(resampledInputDoseVolumeNode->GetImageDataConnection());
     multiplyFilter->SetConstantK(currentWeight);
     multiplyFilter->SetOperationToMultiplyByK();
     multiplyFilter->Update();
@@ -331,6 +302,9 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     {
       accumulatedImageData->DeepCopy(multiplyFilter->GetOutput());
     }
+
+    // Delete resampledInputDoseVolumeNode
+    resampledInputDoseVolumeNode->Delete();
   }
 
   // Create display node for the accumulated volume

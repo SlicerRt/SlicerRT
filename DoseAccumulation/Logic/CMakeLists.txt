@@ -21,6 +21,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerSubjectHierarchyModuleMRML
   vtkSlicerSubjectHierarchyModuleLogic
+  vtkSlicerVolumesModuleLogic
   ${ITK_LIBRARIES}
   )
 
