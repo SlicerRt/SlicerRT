@@ -46,7 +46,7 @@ vtkMRMLNodeNewMacro(vtkMRMLContourMorphologyNode);
 //----------------------------------------------------------------------------
 vtkMRMLContourMorphologyNode::vtkMRMLContourMorphologyNode()
 {
-  this->Operation = Expand;
+  this->Operation = vtkMRMLContourMorphologyNode::Expand;
   this->XSize = 1;
   this->YSize = 1;
   this->ZSize = 1;
@@ -93,7 +93,7 @@ void vtkMRMLContourMorphologyNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       int operation;
       ss >> operation;
-      this->Operation = (ContourMorphologyOperationType)operation;
+      this->Operation = operation;
       }
     else if (!strcmp(attName, "XSize")) 
       {
@@ -146,7 +146,7 @@ void vtkMRMLContourMorphologyNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "Operation:   " << (int)(this->Operation) << "\n";
+  os << indent << "Operation:   " << (this->Operation) << "\n";
   os << indent << "XSize:   " << (this->XSize) << "\n";
   os << indent << "YSize:   " << (this->YSize) << "\n";
   os << indent << "ZSize:   " << (this->ZSize) << "\n";
@@ -198,4 +198,13 @@ vtkMRMLContourNode* vtkMRMLContourMorphologyNode::GetOutputContourNode()
 void vtkMRMLContourMorphologyNode::SetAndObserveOutputContourNode(vtkMRMLContourNode* node)
 {
   this->SetNodeReferenceID(OUTPUT_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourMorphologyNode::SetOperation(int operation)
+{
+  if (this->Operation != operation)
+  {
+    this->Operation = operation;
+  }
 }

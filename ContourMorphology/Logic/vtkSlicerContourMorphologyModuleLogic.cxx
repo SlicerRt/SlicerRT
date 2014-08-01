@@ -293,7 +293,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ContourMorphologyNode->GetReferenceVolumeNode();
   vtkMRMLContourNode* outputContourNode = this->ContourMorphologyNode->GetOutputContourNode();
 
-  vtkMRMLContourMorphologyNode::ContourMorphologyOperationType operation = this->ContourMorphologyNode->GetOperation();
+  int operation = this->ContourMorphologyNode->GetOperation();
 
   // Make sure inputs are initialized
   if (!this->GetMRMLScene() || !inputContourANode || !referenceVolumeNode )

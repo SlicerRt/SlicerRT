@@ -87,8 +87,8 @@ public:
   void SetAndObserveOutputContourNode(vtkMRMLContourNode* node);
  
   /// Get the operation type
-  ContourMorphologyOperationType GetOperation() { return this->Operation; };
-  void SetOperation(ContourMorphologyOperationType operation) { this->Operation = operation; };
+  void SetOperation(int operation);
+  vtkGetMacro(Operation, int);
 
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(XSize, double);
@@ -110,7 +110,7 @@ protected:
 
 protected:
   /// Selected contour morphology operation
-  ContourMorphologyOperationType Operation;
+  int Operation;
 
   /// Dimension parameter for the X axis (for Expand or Shrink)
   double XSize;

@@ -226,7 +226,7 @@ void qSlicerContourMorphologyModuleWidget::updateWidgetFromMRML()
   bool sizeSpinboxesEnabled = false;
 
   // Set widget states according to type of operation
-  vtkMRMLContourMorphologyNode::ContourMorphologyOperationType operation = paramNode->GetOperation();
+  int operation = paramNode->GetOperation();
   switch (operation)
   {
     case vtkMRMLContourMorphologyNode::Expand:
