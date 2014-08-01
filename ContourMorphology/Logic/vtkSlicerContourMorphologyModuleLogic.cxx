@@ -408,6 +408,9 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     // Let's do that, essentially copy inputContourA settings (size, dimensions, reference volume, etc...)
     outputContourNode = vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(inputContourANode, newContourNameNoSuffix);
     outputContourNode->SetCreatedFromIndexLabelmap(true);
+
+    // Setting it back to ContourMorphologyNode so user can get it out from ContourMorphologyNode
+    this->ContourMorphologyNode->SetAndObserveOutputContourNode(outputContourNode);
   }
 
   
