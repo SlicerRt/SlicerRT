@@ -135,6 +135,12 @@ const QString qSlicerSubjectHierarchyRtDoseVolumePlugin::roleForPlugin()const
   return "RT dose volume";
 }
 
+//-----------------------------------------------------------------------------
+QString qSlicerSubjectHierarchyRtDoseVolumePlugin::tooltip(vtkMRMLSubjectHierarchyNode* node)const
+{
+  return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->tooltip(node);
+}
+
 //---------------------------------------------------------------------------
 QIcon qSlicerSubjectHierarchyRtDoseVolumePlugin::icon(vtkMRMLSubjectHierarchyNode* node)
 {
