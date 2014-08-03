@@ -112,6 +112,9 @@ protected slots:
   /// Create the closed surface model representation
   void createClosedSurfaceModelRepresentation();
 
+  /// Extract a labelmap from a contour
+  void extractLabelmapFromContour();
+
 protected:
   QScopedPointer<qSlicerSubjectHierarchyContoursPluginPrivate> d_ptr;
 

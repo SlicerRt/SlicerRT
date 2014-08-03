@@ -84,6 +84,8 @@ public:
   QAction* CreateLabelmapAction;
   QAction* CreateClosedSurfaceAction;
 
+  QAction* ExtractLabelmapFromContourAction;
+
   QAction* ChangeColorAction;
 };
 
@@ -106,6 +108,7 @@ qSlicerSubjectHierarchyContoursPluginPrivate::qSlicerSubjectHierarchyContoursPlu
   this->RibbonModelVisibilityAction = NULL;
   this->LabelmapVisibilityAction = NULL;
   this->ClosedSurfaceVisibilityAction = NULL;
+  this->ExtractLabelmapFromContourAction = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -114,6 +117,9 @@ void qSlicerSubjectHierarchyContoursPluginPrivate::init()
   Q_Q(qSlicerSubjectHierarchyContoursPlugin);
 
   // Show/hide actions
+  this->ExtractLabelmapFromContourAction = new QAction("Extract labelmap to volume node", q);
+  QObject::connect(this->ExtractLabelmapFromContourAction, SIGNAL(triggered()), q, SLOT(extractLabelmapFromContour()));
+  
   this->RepresentationVisibilityAction = new QAction("Show/Hide Representation", q);
   QMenu* representationTypeSubMenu = new QMenu();
   this->RepresentationVisibilityAction->setMenu(representationTypeSubMenu);
@@ -247,7 +253,7 @@ QList<QAction*> qSlicerSubjectHierarchyContoursPlugin::nodeContextMenuActions()c
   Q_D(const qSlicerSubjectHierarchyContoursPlugin);
 
   QList<QAction*> actions;
-  actions << d->CreateContourAction << d->ConvertContourToRepresentationAction << d->ChangeColorAction << d->RepresentationVisibilityAction;
+  actions << d->ExtractLabelmapFromContourAction << d->CreateContourAction << d->ConvertContourToRepresentationAction << d->ChangeColorAction << d->RepresentationVisibilityAction;
   return actions;
 }
 
@@ -273,12 +279,19 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
     d->RepresentationVisibilityAction->setVisible(contourNode != NULL);
     if( contourNode )
     {
+      d->ExtractLabelmapFromContourAction->setVisible(true);
+      d->ExtractLabelmapFromContourAction->setEnabled(
+        contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) || 
+        ( contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) && 
+        contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL)
+        );
       d->RibbonModelVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel));
       d->LabelmapVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap));
       d->ClosedSurfaceVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel));
     }
     else
     {
+      d->ExtractLabelmapFromContourAction->setVisible(false);
       d->RibbonModelVisibilityAction->setVisible(false);
       d->LabelmapVisibilityAction->setVisible(false);
       d->ClosedSurfaceVisibilityAction->setVisible(false);
@@ -491,5 +504,16 @@ void qSlicerSubjectHierarchyContoursPlugin::createClosedSurfaceModelRepresentati
   else
   {
     qCritical() << "Image data or reference volume not set for contour: " << contourNode->GetID() << ". Unable to convert to closed surface. Please use Contours module to convert.";
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyContoursPlugin::extractLabelmapFromContour()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+  vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
+  if( contourNode )
+  {
+    vtkMRMLScalarVolumeNode* labelmapNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(contourNode);
   }
 }
