@@ -30,7 +30,7 @@
 #include "PlmCommon.h"
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
-#include "vtkRtBeamData.h"
+#include "vtkRTBeamData.h"
 #include "vtkSlicerContoursModuleLogic.h"
 
 // Plastimatch includes
