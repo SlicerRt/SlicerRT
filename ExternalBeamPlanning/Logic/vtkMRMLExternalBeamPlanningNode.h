@@ -162,29 +162,14 @@ public:
   vtkGetMacro(SourceSize, double);
   vtkSetMacro(SourceSize, double);
 
+  /// Get/Set aperture spacing at iso
+  vtkGetMacro(ApertureSpacingAtIso, double);
+  vtkSetMacro(ApertureSpacingAtIso, double);
+
   const double* GetIsocenterPosition ();
   double GetIsocenterPosition (int dim);
   void SetIsocenterPosition (const float* position);
   void SetIsocenterPosition (const double* position);
-
-  const double* GetApertureSpacing ();
-  double GetApertureSpacing (int dim);
-  void SetApertureSpacing (const float* spacing);
-  void SetApertureSpacing (const double* spacing);
-
-  const double* GetApertureSpacingAtIso ();
-  double GetApertureSpacingAtIso (int dim);
-  void SetApertureSpacingAtIso (const float* spacing);
-  void SetApertureSpacingAtIso (const double* spacing);
-
-  const double* GetApertureOrigin ();
-  double GetApertureOrigin (int dim);
-  void SetApertureOrigin (const float* origin);
-  void SetApertureOrigin (const double* origin);
-
-  const int* GetApertureDim ();
-  int GetApertureDim (int dim);
-  void SetApertureDim (const int* dim);
 
 public:
   /// Get reference volume node
@@ -216,8 +201,6 @@ public:
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
   /// Set and observe MLC position double array node
   void SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
-
-  void UpdateApertureParameters();
 
 protected:
   vtkMRMLExternalBeamPlanningNode();
@@ -255,16 +238,9 @@ protected:
   double BeamWeight;
 
   double EnergyResolution;
-
   char BeamFlavor;
-
   double ApertureOffset;
-  double ApertureSpacing[2];
-  double ApertureSpacingAtIso[2];
-
-  double ApertureOrigin[2];
-  int ApertureDim[2];
-
+  double ApertureSpacingAtIso;
   double SourceSize;
 };
 

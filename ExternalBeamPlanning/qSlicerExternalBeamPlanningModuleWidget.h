@@ -116,9 +116,10 @@ protected slots:
   void protonSourceSizeChanged(double);
   void protonApertureOffsetChanged(double);
   void protonEnergyResolutionChanged(double);
+  void protonDoseResolutionChanged(double);
   void protonEnergySpreadChanged(const QString &);
   void protonBeamFlavorChanged(const QString &);
-  void protonSpacingAtIsoChanged(const QString &);
+  //void protonSpacingAtIsoChanged(const QString &);
 
   /* Photon beam model */
 
@@ -130,6 +131,7 @@ protected slots:
   /* Calculation buttons */
   void calculateDoseClicked();
   void calculateWEDClicked();
+  void clearDoseClicked();
 
   void collimatorTypeChanged(const QString &);
 

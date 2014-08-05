@@ -30,6 +30,7 @@
 #include "PlmCommon.h"
 #include "SlicerRtCommon.h"
 #include "vtkMRMLContourNode.h"
+#include "vtkRtBeamData.h"
 #include "vtkSlicerContoursModuleLogic.h"
 
 // Plastimatch includes
@@ -43,6 +44,7 @@
 #include "itk_image_scale.h"
 #include "itk_image_stats.h"
 #include "rpl_volume.h"
+#include "string_util.h"
 
 // CLI invocation
 #include <qSlicerCLIModule.h>
@@ -290,12 +292,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamTransform(char *beamnam
   for (int i=0; i<beams->GetNumberOfItems(); ++i)
   {
     beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-    if (beamNode)
-    {
-      if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
-      {
-        break;
-      }
+    if (beamNode && beamNode->BeamNameIs(beamname)) {
+      break;
     }
   }
 
@@ -366,21 +364,17 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
   for (int i=0; i<beams->GetNumberOfItems(); ++i)
   {
     beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-    if (beamNode)
-    {
-      if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
-      {
-        break;
-      }
+    if (beamNode && beamNode->BeamNameIs(beamname)) {
+      break;
     }
   }
 
   // Make sure inputs are initialized
-  if (!beamNode)
-  {
+  if (!beamNode) {
     vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!");
     return;
   }
+
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
   if (!isocenterMarkupsNode)
   {
@@ -398,7 +392,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
         beamNode->GetX2Jaw(), 
         beamNode->GetY1Jaw(),
         beamNode->GetY2Jaw(),
-        beamNode->GetProtonSAD(),
+        beamNode->GetSAD(),
         beamNode->GetMLCPositionDoubleArrayNode()->GetArray());
   }
   else
@@ -408,7 +402,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
         beamNode->GetX2Jaw(), 
         beamNode->GetY1Jaw(),
         beamNode->GetY2Jaw(),
-        beamNode->GetProtonSAD());
+        beamNode->GetSAD());
   }
 
   beamModelNode->SetAndObservePolyData(beamModelPolyData);
@@ -664,29 +658,43 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   // Create rtbeam node
   vtkSmartPointer<vtkMRMLRTBeamNode> RTBeamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
   RTBeamNode = vtkMRMLRTBeamNode::SafeDownCast(this->GetMRMLScene()->AddNode(RTBeamNode));
-  RTBeamNode->SetBeamName(rtBeamNodeName.c_str());
+  vtkRTBeamData *beamData = RTBeamNode->GetBeamData();
+  beamData->SetBeamName(rtBeamNodeName.c_str());
   RTBeamNode->SetAndObserveBeamModelNodeId(RTBeamModelNode->GetID());
   RTBeamNode->HideFromEditorsOff();
 
   // Put the RTBeam node in the hierarchy
   rtPlanNode->AddRTBeamNode(RTBeamNode);
 
+  // TODO GCS FIX --- this will be enveloped into the BeamData::Copy() function
   //RTBeamNode->SetBeamName(this->ExternalBeamPlanningNode->GetBeamName());
-  this->ExternalBeamPlanningNode->SetBeamName(RTBeamNode->GetBeamName());
-  
+  this->ExternalBeamPlanningNode->SetBeamName(beamData->GetBeamName());
+
+  /* Copy all appropriate settings from EBP node into beam node */
   RTBeamNode->SetX1Jaw(this->ExternalBeamPlanningNode->GetX1Jaw());
   RTBeamNode->SetX2Jaw(this->ExternalBeamPlanningNode->GetX2Jaw());
   RTBeamNode->SetY1Jaw(this->ExternalBeamPlanningNode->GetY1Jaw());
   RTBeamNode->SetY2Jaw(this->ExternalBeamPlanningNode->GetY2Jaw());
   RTBeamNode->SetAndObserveMLCPositionDoubleArrayNode(this->ExternalBeamPlanningNode->GetMLCPositionDoubleArrayNode());
-  RTBeamNode->SetAndObserveIsocenterFiducialNode(this->ExternalBeamPlanningNode->GetIsocenterFiducialNode());
-  // RTBeamNode->SetAndObserveProtonTargetContourNode(this->ExternalBeamPlanningNode->GetProtonTargetContourNode());
+
   RTBeamNode->SetGantryAngle(this->ExternalBeamPlanningNode->GetGantryAngle());
   RTBeamNode->SetCollimatorAngle(this->ExternalBeamPlanningNode->GetCollimatorAngle());
   RTBeamNode->SetCouchAngle(this->ExternalBeamPlanningNode->GetCouchAngle());
 
-  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
+  RTBeamNode->SetBeamFlavor(this->ExternalBeamPlanningNode->GetBeamFlavor());
+  RTBeamNode->SetEnergyResolution(this->ExternalBeamPlanningNode->GetEnergyResolution());
 
+  RTBeamNode->SetSAD(this->ExternalBeamPlanningNode->GetSAD());
+  RTBeamNode->SetSmearing(this->ExternalBeamPlanningNode->GetSmearing());
+  RTBeamNode->SetProximalMargin(this->ExternalBeamPlanningNode->GetProximalMargin());
+  RTBeamNode->SetDistalMargin(this->ExternalBeamPlanningNode->GetDistalMargin());
+
+  RTBeamNode->SetApertureSpacingAtIso(this->ExternalBeamPlanningNode->GetApertureSpacingAtIso());
+
+  RTBeamNode->SetAndObserveIsocenterFiducialNode(this->ExternalBeamPlanningNode->GetIsocenterFiducialNode());
+  RTBeamNode->SetAndObserveTargetContourNode(this->ExternalBeamPlanningNode->GetTargetContourNode());
+
+  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
   this->Modified();
 }
 
@@ -726,17 +734,13 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
   for (int i=0; i<beams->GetNumberOfItems(); ++i)
   {
     vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-    if (beamNode)
-    {
-      if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
-      {
-        vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
-        vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelDisplayNode = beamModelNode->GetModelDisplayNode();
-        rtPlanNode->RemoveRTBeamNode(beamNode);
-        this->GetMRMLScene()->RemoveNode(beamModelNode);
-        this->GetMRMLScene()->RemoveNode(beamModelDisplayNode);
-        break;
-      }
+    if (beamNode && beamNode->BeamNameIs(beamname)) {
+      vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
+      vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelDisplayNode = beamModelNode->GetModelDisplayNode();
+      rtPlanNode->RemoveRTBeamNode(beamNode);
+      this->GetMRMLScene()->RemoveNode(beamModelNode);
+      this->GetMRMLScene()->RemoveNode(beamModelDisplayNode);
+      break;
     }
   }
 
@@ -771,12 +775,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   for (int i=0; i<beams->GetNumberOfItems(); ++i)
   {
     beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-    if (beamNode)
-    {
-      if ( strcmp(beamNode->GetBeamName(), beamname) == 0)
-      {
-        break;
-      }
+    if (beamNode && beamNode->BeamNameIs(beamname)) {
+      break;
     }
   }
 
@@ -937,7 +937,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   transformDRR->Concatenate(transformDRR2->GetMatrix());
 
   vtkSmartPointer<vtkMRMLLinearTransformNode> DRRImageTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-      this->GetMRMLScene()->GetNodeByID(DRRImageNode->GetTransformNodeID()));
+    this->GetMRMLScene()->GetNodeByID(DRRImageNode->GetTransformNodeID()));
   if (!DRRImageTransformNode)
   {
     DRRImageTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
@@ -963,8 +963,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   for (std::vector<vtkMRMLContourNode*>::iterator contourIt = selectedContourNodes.begin(); contourIt != selectedContourNodes.end(); ++contourIt)
   {
     numberOfContours++;
-  //if (contourNode)
-  //{
+    //if (contourNode)
+    //{
     // Create the translucent contour object in BEV 
     // Create the renderer, render window 
     vtkSmartPointer<vtkRenderer> renderer2 = vtkSmartPointer<vtkRenderer>::New();
@@ -1196,14 +1196,14 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   if (!rtPlanNode || !referenceVolumeNode)
   {
     vtkErrorMacro("ComputeDoseByPlastimatch: Inputs are not initialized!");
-      return;
+    return;
   }
 
   // Make sure inputs are initialized
   if (!beamNode)
   {
     vtkErrorMacro("ComputeDoseByPlastimatch: Inputs are not initialized!");
-      return;
+    return;
   }
 
   Internal->plmRef->print ();
@@ -1223,7 +1223,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   int non_zero, num_vox;
   itk_image_stats (Internal->plmRef->m_itk_int32, &min_val, &max_val, &avg, &non_zero, &num_vox);
   printf ("MIN %f AVE %f MAX %f NONZERO %d NUMVOX %d\n", 
-    (float) min_val, (float) avg, (float) max_val, non_zero, num_vox);
+          (float) min_val, (float) avg, (float) max_val, non_zero, num_vox);
 #endif
 
   itk::Image<short, 3>::Pointer referenceVolumeItk = Internal->plmRef->itk_short();
@@ -1258,11 +1258,12 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
 
     /* APERTURE SETTINGS */
     printf("\n***APERTURE PARAMETERS***\n");
+    beamNode->UpdateApertureParameters();
 
     ion_plan.get_aperture()->set_distance(beamNode->GetApertureOffset());
     printf("Aperture offset = %lg\n", ion_plan.get_aperture()->get_distance());
 
-    printf("SAD = %lg\n", beamNode->GetProtonSAD() );
+    printf("SAD = %lg\n", beamNode->GetSAD() );
 
     ion_plan.get_aperture()->set_spacing(beamNode->GetApertureSpacing());
     printf("Aperture Spacing = %lg %lg\n", ion_plan.get_aperture()->get_spacing(0),  ion_plan.get_aperture()->get_spacing(1));
@@ -1288,7 +1289,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     /* Adjust src according to gantry angle */
     float ga_radians = 
       beamNode->GetGantryAngle() * M_PI / 180.;
-    float src_dist = beamNode->GetProtonSAD();
+    float src_dist = beamNode->GetSAD();
     src[0] = isocenter[0] + src_dist * sin(ga_radians);
     src[1] = isocenter[1] - src_dist * cos(ga_radians);
     src[2] = isocenter[2];
@@ -1301,8 +1302,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     ion_plan.set_step_length (1);
     printf("Step length = %lg\n", ion_plan.get_step_length() );
 
-    ion_plan.set_smearing (this->ExternalBeamPlanningNode->GetSmearing());
-    printf("Smearing = %lg\n", this->ExternalBeamPlanningNode->GetSmearing());
+    ion_plan.set_smearing (beamNode->GetSmearing());
+    printf("Smearing = %lg\n", beamNode->GetSmearing());
 
     // Distal and proximal margins are updated when the SOBP is created
     /* All the ion_beam parameters are updated to initiate the dose calculation */
@@ -1401,6 +1402,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     ion_plan.apply_beam_modifiers ();
 
     vtkWarningMacro ("Optimizing SOBP\n");
+    printf ("??? Comparing proximal margin: %f vs %f\n",
+            beamNode->GetProximalMargin(),
+            this->ExternalBeamPlanningNode->GetProximalMargin());
+    fflush (stdout);
     ion_plan.beam->set_proximal_margin (
       this->ExternalBeamPlanningNode->GetProximalMargin());
     ion_plan.beam->set_distal_margin (
@@ -1408,7 +1413,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     ion_plan.beam->set_sobp_prescription_min_max (
       rpl_vol->get_min_wed(), rpl_vol->get_max_wed());
     ion_plan.beam->optimize_sobp ();
-
     ion_plan.compute_dose ();
   }
   catch (std::exception& ex)
@@ -1544,10 +1548,36 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulateDose()
     if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
     {
       this->GetApplicationLogic()->GetSelectionNode()->SetReferenceSecondaryVolumeID(doseVolumeNode->GetID());
-      this->GetApplicationLogic()->PropagateVolumeSelection();
+      this->GetApplicationLogic()->PropagateVolumeSelection(0);
     }
   }
 
   /* Free up memory for reference CT */
   Internal->plmRef.reset();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::RemoveDoseNodes()
+{
+  vtkMRMLScene *scene = this->GetMRMLScene();
+
+  std::vector<vtkMRMLNode *> nodes;
+  scene->GetNodesByClass("vtkMRMLScalarVolumeNode", nodes);
+
+  std::vector<vtkMRMLNode *>::iterator it;
+  for (it = nodes.begin(); it != nodes.end(); it++) {
+    vtkMRMLScalarVolumeNode *node = vtkMRMLScalarVolumeNode::SafeDownCast(*it);
+    if (string_starts_with (node->GetName(), "aperture_")) {
+      scene->RemoveNode (node);
+    }
+    else if (string_starts_with (node->GetName(), "range_compensator_")) {
+      scene->RemoveNode (node);
+    }
+    else if (string_starts_with (node->GetName(), "proton_dose_")) {
+      scene->RemoveNode (node);
+    }
+    else if (string_starts_with (node->GetName(), "total_proton_dose")) {
+      scene->RemoveNode (node);
+    }
+  }
 }

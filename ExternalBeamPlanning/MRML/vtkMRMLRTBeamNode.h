@@ -26,6 +26,9 @@
 #include <vtkMRML.h>
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
+
+// SlicerRT includes
+//#include "vtkRTBeamData.h"
 #include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
@@ -35,6 +38,7 @@ class vtkMRMLModelNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLContourNode;
 class vtkMRMLDoubleArrayNode;
+class vtkRTBeamData;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLDisplayableNode
@@ -89,18 +93,6 @@ public:
   void UpdateReferences();
 
 public:
-  /// Set/Get structure name
-  vtkGetStringMacro(BeamName);
-  vtkSetStringMacro(BeamName);
-
-  /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(BeamNumber, int);
-  vtkSetMacro(BeamNumber, int);
-
-  /// Set/Get structure name
-  vtkGetStringMacro(BeamDescription);
-  vtkSetStringMacro(BeamDescription);
-
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(NominalEnergy, double);
   vtkSetMacro(NominalEnergy, double);
@@ -135,20 +127,20 @@ public:
   vtkSetMacro(CouchAngle, double);
 
   ///
-  vtkGetMacro(ProtonSmearing, double);
-  vtkSetMacro(ProtonSmearing, double);
+  vtkGetMacro(Smearing, double);
+  vtkSetMacro(Smearing, double);
   
   ///
-  vtkGetMacro(ProtonProximalMargin, double);
-  vtkSetMacro(ProtonProximalMargin, double);
+  vtkGetMacro(ProximalMargin, double);
+  vtkSetMacro(ProximalMargin, double);
   
   ///
-  vtkGetMacro(ProtonDistalMargin, double);
-  vtkSetMacro(ProtonDistalMargin, double);
+  vtkGetMacro(DistalMargin, double);
+  vtkSetMacro(DistalMargin, double);
  
   /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(ProtonSAD, double);
-  vtkSetMacro(ProtonSAD, double);
+  vtkGetMacro(SAD, double);
+  vtkSetMacro(SAD, double);
 
   /// Get/Set beam weight
   vtkGetMacro(BeamWeight, double);
@@ -166,9 +158,20 @@ public:
   vtkGetMacro(ApertureOffset, double);
   vtkSetMacro(ApertureOffset, double);
 
+  /// Get/Set aperture offset
+  vtkGetMacro(ApertureSpacingAtIso, double);
+  vtkSetMacro(ApertureSpacingAtIso, double);
+
   /// Get/Set source size
   vtkGetMacro(SourceSize, double);
   vtkSetMacro(SourceSize, double);
+
+  /// Get/Set beam data
+  const vtkRTBeamData* GetBeamData() const { return BeamData; }
+  vtkRTBeamData* GetBeamData() { return BeamData; }
+
+  /// Return true if the beam name matches the argument
+  bool BeamNameIs (const char *beamName);
 
   const double* GetIsocenterPosition ();
   double GetIsocenterPosition (int dim);
@@ -179,11 +182,6 @@ public:
   double GetApertureSpacing (int dim);
   void SetApertureSpacing (const float* spacing);
   void SetApertureSpacing (const double* spacing);
-
-  const double* GetApertureSpacingAtIso ();
-  double GetApertureSpacingAtIso (int dim);
-  void SetApertureSpacingAtIso (const float* spacing);
-  void SetApertureSpacingAtIso (const double* spacing);
 
   const double* GetApertureOrigin ();
   double GetApertureOrigin (int dim);
@@ -245,32 +243,33 @@ protected:
 
 protected:
   /// Name of the structure that corresponds to this contour
-  char* BeamName;
-  int   BeamNumber;
-  char* BeamDescription;
+//  char* BeamName;
+//  int   BeamNumber;
+//  char* BeamDescription;
   RTRadiationType RadiationType;
 
   RTBeamType  BeamType;
-  double Isocenter[3];
-  double dosePoint[3];
-
+  RTCollimatorType CollimatorType;
   double NominalEnergy;
   double NominalmA;
   double BeamOnTime;
+
+  double Isocenter[3];
+  double dosePoint[3];
+
   double X1Jaw;
   double X2Jaw;
   double Y1Jaw;
   double Y2Jaw;
-  RTCollimatorType CollimatorType;
 
   double GantryAngle;
   double CollimatorAngle;
   double CouchAngle;
 
-  double ProtonSmearing;
-  double ProtonProximalMargin;
-  double ProtonDistalMargin;
-  double ProtonSAD;
+  double Smearing;
+  double ProximalMargin;
+  double DistalMargin;
+  double SAD;
   double BeamWeight;
 
   float EnergyResolution;
@@ -279,11 +278,14 @@ protected:
 
   double ApertureOffset;
   double ApertureSpacing[2];
-  double ApertureSpacingAtIso[2];
+  double ApertureSpacingAtIso;
   double ApertureOrigin[2];
   int ApertureDim[2];
 
   double SourceSize;
+
+  /// Beam-specific data
+  vtkRTBeamData* BeamData;
 
   /// Beam model representation
   vtkMRMLModelNode* BeamModelNode;

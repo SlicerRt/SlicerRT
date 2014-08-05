@@ -62,7 +62,7 @@
          <bool>true</bool>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>4</number>
         </property>
         <property name="tabsClosable">
          <bool>false</bool>
@@ -567,27 +567,16 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Energy resolution</string>
+            <item row="0" column="1">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_SAD">
+              <property name="minimum">
+               <double>1.000000000000000</double>
               </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_11">
-              <property name="text">
-               <string>Energy spread</string>
+              <property name="maximum">
+               <double>10000.000000000000000</double>
               </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QLineEdit" name="lineEdit_ProtonEnergySpread">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>1</string>
+              <property name="value">
+               <double>2000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -598,10 +587,10 @@
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
-             <widget class="QLabel" name="label_26">
-              <property name="text">
-               <string>Algorithm</string>
+            <item row="1" column="1">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_ProtonSourceSize">
+              <property name="maximum">
+               <double>50.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -612,41 +601,71 @@
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
+            <item row="2" column="1">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_ApertureDistance">
+              <property name="minimum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>10000.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>1500.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>Energy resolution</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_EnergyResolution">
+              <property name="minimum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>5.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>2.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
              <widget class="QLabel" name="label_29">
               <property name="text">
                <string>Dose resolution</string>
               </property>
              </widget>
             </item>
-            <item row="6" column="1">
-             <widget class="QComboBox" name="comboBox_SpacingAtIso">
-              <property name="currentIndex">
-               <number>1</number>
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>Energy spread</string>
               </property>
-              <item>
-               <property name="text">
-                <string>Very high</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>High</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Low</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Very low</string>
-               </property>
-              </item>
              </widget>
             </item>
             <item row="5" column="1">
+             <widget class="QLineEdit" name="lineEdit_ProtonEnergySpread">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_26">
+              <property name="text">
+               <string>Algorithm</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
              <widget class="QComboBox" name="comboBox_beamFlavor">
               <item>
                <property name="text">
@@ -665,49 +684,16 @@
               </item>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_SAD">
+            <item row="4" column="1">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseResolution">
               <property name="minimum">
                <double>1.000000000000000</double>
               </property>
               <property name="maximum">
-               <double>10000.000000000000000</double>
+               <double>10.000000000000000</double>
               </property>
               <property name="value">
-               <double>2000.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_ProtonSourceSize">
-              <property name="maximum">
-               <double>50.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_ApertureDistance">
-              <property name="minimum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>10000.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>1500.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_EnergyResolution">
-              <property name="minimum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="maximum">
                <double>5.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>2.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -777,7 +763,7 @@
     </layout>
    </item>
    <item row="5" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0,0">
+    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0,0,0">
      <property name="sizeConstraint">
       <enum>QLayout::SetFixedSize</enum>
      </property>
@@ -802,7 +788,17 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButton_ClearDose">
+       <property name="text">
+        <string>Clear Dose</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButton_CalculateWED">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Calculate WED</string>
        </property>

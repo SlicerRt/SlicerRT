@@ -27,6 +27,7 @@
 #include "vtkMRMLRTPlanHierarchyNode.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLContourNode.h"
+#include "vtkRTBeamData.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -61,13 +62,13 @@ vtkMRMLNodeNewMacro(vtkMRMLRTBeamNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 {
-  this->BeamName = NULL;
-  this->SetBeamName("RTBeam");
-  this->BeamNumber = 0;
-  this->BeamDescription = NULL;
   this->RadiationType = Proton;
 
   this->BeamType = Static;
+  this->Isocenter[0] = 0.0;
+  this->Isocenter[1] = 0.0;
+  this->Isocenter[2] = 0.0;  
+
   this->NominalEnergy = 80.0;
   this->NominalmA = 1.0;
   this->BeamOnTime = 0.0;
@@ -79,29 +80,28 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->GantryAngle = 0;
   this->CollimatorAngle = 0;
   this->CouchAngle = 0;
-  this->Isocenter[0] = 0.0;
-  this->Isocenter[1] = 0.0;
-  this->Isocenter[2] = 0.0;  
   this->BeamWeight = 1.0;
 
   this->CollimatorType = SquareHalfMM;
 
-  this->ProtonSAD = 2000.0;
+  this->SAD = 2000.0;
 
   this->EnergyResolution = 2.0;
   this->BeamFlavor = 'a';
 
   this->ApertureOffset = 1500.0;
-  this->ApertureSpacingAtIso[0] = 2.0;
-  this->ApertureSpacingAtIso[1] = 2.0;
-  this->ApertureSpacing[0] = this->ApertureSpacingAtIso[0] * this->ApertureOffset / this->ProtonSAD;
-  this->ApertureSpacing[1] = this->ApertureSpacingAtIso[1] * this->ApertureOffset / this->ProtonSAD;
-  this->ApertureOrigin[0] = this->X1Jaw * this->ApertureOffset / this->ProtonSAD;
-  this->ApertureOrigin[1] = this->Y1Jaw * this->ApertureOffset / this->ProtonSAD;
-  this->ApertureDim[0] = (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] + 1);
-  this->ApertureDim[1] = (int) ((this->Y2Jaw + this->Y1Jaw) / this->ApertureSpacingAtIso[1] + 1);
+  this->ApertureSpacingAtIso = 2.0;
+  this->ApertureSpacing[0] = this->ApertureSpacingAtIso * this->ApertureOffset / this->SAD;
+  this->ApertureSpacing[1] = this->ApertureSpacingAtIso * this->ApertureOffset / this->SAD;
+  this->ApertureOrigin[0] = this->X1Jaw * this->ApertureOffset / this->SAD;
+  this->ApertureOrigin[1] = this->Y1Jaw * this->ApertureOffset / this->SAD;
+  this->ApertureDim[0] = (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso + 1);
+  this->ApertureDim[1] = (int) ((this->Y2Jaw + this->Y1Jaw) / this->ApertureSpacingAtIso + 1);
 
   this->SourceSize = 0.0;
+
+//  this->BeamData = vtkSmartPointer<vtkRTBeamData>::New();
+  this->BeamData = new vtkRTBeamData;
 
   this->BeamModelNode = NULL;
   this->BeamModelNodeId = NULL;
@@ -118,6 +118,7 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::~vtkMRMLRTBeamNode()
 {
+  delete this->BeamData;
   this->SetAndObserveBeamModelNodeId(NULL);
 }
 
@@ -129,9 +130,9 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  if (this->BeamName != NULL) 
+  if (this->BeamData->GetBeamName() != NULL) 
   {
-    of << indent << " BeamName=\"" << this->BeamName << "\"";
+    of << indent << " BeamName=\"" << this->BeamData->GetBeamName() << "\"";
   }
   if (this->BeamModelNodeId != NULL) 
   {
@@ -155,7 +156,7 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "BeamName")) 
     {
-      this->SetBeamName(attValue);
+      this->BeamData->SetBeamName(attValue);
     }
     else if (!strcmp(attName, "BeamModelNodeId")) 
     {
@@ -177,7 +178,7 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLRTBeamNode *node = (vtkMRMLRTBeamNode *) anode;
 
-  this->SetBeamName( node->GetBeamName() );
+  this->BeamData->SetBeamName( node->BeamData->GetBeamName() );
 
   // Observers must be removed here, otherwise MRML updates would activate nodes on the undo stack
   this->SetAndObserveBeamModelNodeId( NULL );
@@ -229,6 +230,12 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
 vtkMRMLMarkupsFiducialNode* vtkMRMLRTBeamNode::GetIsocenterFiducialNode()
 {
   return vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference(ISOCENTER_FIDUCIAL_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLRTBeamNode::BeamNameIs (const char *beamName)
+{
+  return !strcmp(BeamData->GetBeamName(), beamName);
 }
 
 //----------------------------------------------------------------------------
@@ -414,35 +421,6 @@ void vtkMRMLRTBeamNode::SetApertureSpacing (const double* spacing)
   }
 }
 
-const double* vtkMRMLRTBeamNode::GetApertureSpacingAtIso ()
-{
-  return this->ApertureSpacingAtIso;
-}
-
-//----------------------------------------------------------------------------
-double vtkMRMLRTBeamNode::GetApertureSpacingAtIso (int dim)
-{
-  return this->ApertureSpacingAtIso[dim];
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetApertureSpacingAtIso (const float* spacing)
-{
-  for (int d = 0; d < 2; d++) 
-  {
-    this->ApertureSpacingAtIso[d] = spacing[d];
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetApertureSpacingAtIso (const double* spacing)
-{
-  for (int d = 0; d < 2; d++) 
-  {
-    this->ApertureSpacingAtIso[d] = spacing[d];
-  }
-}
-
 //----------------------------------------------------------------------------
 const double* vtkMRMLRTBeamNode::GetApertureOrigin ()
 {
@@ -497,12 +475,12 @@ void vtkMRMLRTBeamNode::SetApertureDim (const int* dim)
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::UpdateApertureParameters()
 {
-  double origin[2] = {-this->X1Jaw * this->ApertureOffset / this->ProtonSAD , -this->Y1Jaw * this->ApertureOffset / this->ProtonSAD };
+  double origin[2] = {-this->X1Jaw * this->ApertureOffset / this->SAD , -this->Y1Jaw * this->ApertureOffset / this->SAD };
   this->SetApertureOrigin(origin);
 
-  double spacing_at_aperture[2] = {this->ApertureSpacingAtIso[0] * this->ApertureOffset / this->ProtonSAD, this->ApertureSpacingAtIso[1] * this->ApertureOffset / this->ProtonSAD};
+  double spacing_at_aperture[2] = {this->ApertureSpacingAtIso * this->ApertureOffset / this->SAD, this->ApertureSpacingAtIso * this->ApertureOffset / this->SAD};
   this->SetApertureSpacing(spacing_at_aperture);
 
-  int dim[2] = { (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] +1 ), (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso[0] +1 )};
+  int dim[2] = { (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso + 1 ), (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso + 1 )};
   this->SetApertureDim(dim);
 }

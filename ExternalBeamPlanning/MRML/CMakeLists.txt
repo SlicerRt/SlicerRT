@@ -19,6 +19,8 @@ set(${KIT}_SRCS
   vtkMRMLRTBeamNode.h
   vtkMRMLRTPlanHierarchyNode.cxx
   vtkMRMLRTPlanHierarchyNode.h
+  vtkRTBeamData.cxx
+  vtkRTBeamData.h
   )
 
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)

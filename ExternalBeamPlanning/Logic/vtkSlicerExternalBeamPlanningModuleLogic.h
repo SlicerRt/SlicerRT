@@ -104,6 +104,10 @@ public:
   void InitializeAccumulateDose();
   void RegisterAccumulateDose();
 
+  /// Remove all MRML nodes created by dose calculation, such as 
+  /// apertures, range compensators, and doses
+  void RemoveDoseNodes();
+
   /// Pointer that contains the accumulate dose
   itk::Image<float, 3>::Pointer accumulateVolumeItk;
 
