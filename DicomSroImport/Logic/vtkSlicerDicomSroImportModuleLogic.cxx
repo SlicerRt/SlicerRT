@@ -193,7 +193,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *loadIn
   }
 
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
-  const char* seriesName = loadInfo->GetLoadableName(0);
+  //const char* seriesName = loadInfo->GetLoadableName(0);
 
   vtkSmartPointer<vtkSlicerDicomSroReader> spatialRegistrationReader = vtkSmartPointer<vtkSlicerDicomSroReader>::New();
   spatialRegistrationReader->SetFileName(firstFileNameStr.c_str());

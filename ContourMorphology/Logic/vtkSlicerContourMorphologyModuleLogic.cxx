@@ -350,12 +350,10 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   kernelSize[1] = (int)( 2*(ySize/spacingY + 0.5) );
   kernelSize[2] = (int)( 2*(zSize/spacingZ + 0.5) );
 
-  bool createdNewContour(false);
   if( outputContourNode == NULL )
   {
-    createdNewContour = true;
     // Create new contour selected, let's create a descriptive name for the new contour
-    std::string newContourName;
+    std::string newContourName("");
     UNUSED_VARIABLE(newContourName); // Although it is used later, a warning is logged so needs to be suppressed
     std::string strippedInputContourANodeName = inputContourANode->GetName();
     strippedInputContourANodeName.erase(strippedInputContourANodeName.find(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX), strippedInputContourANodeName.length());

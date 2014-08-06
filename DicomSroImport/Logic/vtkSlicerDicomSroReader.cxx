@@ -506,7 +506,6 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
           OFString  tmpStrX;
           OFString  tmpStrY;
           OFString  tmpStrZ;
-          unsigned long numOfVector = gridDimX * gridDimY * gridDimZ;
           this->DeformableRegistrationGrid->SetOrigin(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
           this->DeformableRegistrationGrid->SetSpacing(gridSpacingX, gridSpacingY, gridSpacingZ);
           this->DeformableRegistrationGrid->SetExtent(0,gridDimX-1,0,gridDimY-1,0,gridDimZ-1);
