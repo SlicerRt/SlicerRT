@@ -277,21 +277,44 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
     d->ChangeColorAction->setVisible(true);
     vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(associatedNode);
     d->RepresentationVisibilityAction->setVisible(contourNode != NULL);
+
+    bool canContourExtractALabelmap(false);
+    if( contourNode != NULL && 
+      contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL &&
+      contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) )
+    {
+      canContourExtractALabelmap = true;
+    }
+    else if( contourNode != NULL && contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
+    {
+      canContourExtractALabelmap = true;
+    }
+    else if( contourNode != NULL &&
+      contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) == NULL)
+    {
+      const char* referencedSeriesUid = node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str());
+      if (referencedSeriesUid)
+      {
+        vtkMRMLSubjectHierarchyNode* foundSubjectHierarchyNode =
+          vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
+          associatedNode->GetScene(), vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid);
+        if (foundSubjectHierarchyNode)
+        {
+          vtkMRMLScalarVolumeNode* volNode = vtkMRMLScalarVolumeNode::SafeDownCast(foundSubjectHierarchyNode->GetAssociatedNode());
+          canContourExtractALabelmap = volNode != NULL;
+        }
+      }
+    }
+    d->ExtractLabelmapFromContourAction->setVisible(canContourExtractALabelmap);
+
     if( contourNode )
     {
-      d->ExtractLabelmapFromContourAction->setVisible(true);
-      d->ExtractLabelmapFromContourAction->setEnabled(
-        contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) || 
-        ( contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) && 
-        contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL)
-        );
       d->RibbonModelVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel));
       d->LabelmapVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap));
       d->ClosedSurfaceVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel));
     }
     else
     {
-      d->ExtractLabelmapFromContourAction->setVisible(false);
       d->RibbonModelVisibilityAction->setVisible(false);
       d->LabelmapVisibilityAction->setVisible(false);
       d->ClosedSurfaceVisibilityAction->setVisible(false);
@@ -479,13 +502,45 @@ void qSlicerSubjectHierarchyContoursPlugin::createLabelmapRepresentation()
 {
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
-  if( contourNode && contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL )
+  if( contourNode == NULL )
+  {
+    qCritical() << "Unable to retrieve contour node from subject hierarchy node: " << currentNode->GetID() << "::" << currentNode->GetName();
+    return;
+  }
+  if( contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) == NULL)
+  {
+    // Can we set a reasonable default reference volume?
+    const char* referencedSeriesUid = currentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str());
+    if (referencedSeriesUid)
+    {
+      vtkMRMLSubjectHierarchyNode* foundSubjectHierarchyNode =
+        vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
+        contourNode->GetScene(), vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid);
+      if (foundSubjectHierarchyNode)
+      {
+        vtkMRMLScalarVolumeNode* volNode = vtkMRMLScalarVolumeNode::SafeDownCast(foundSubjectHierarchyNode->GetAssociatedNode());
+        if( volNode )
+        {
+          contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(volNode->GetID());
+        }
+        else
+        {
+          qCritical() << "Unable to retrieve volume node containing the data for the contour's referenced series. Unable to convert to labelmap. Please use Contours module to convert.";
+        }
+      }
+      else
+      {
+        qCritical() << "Reference volume not set for contour: " << contourNode->GetID() << ". Unable to convert to labelmap. Please use Contours module to convert.";
+      }
+    }
+    else
+    {
+      qCritical() << "Contour does not have a referenced anatomical series. Unable to convert to labelmap. Please use Contours module to convert.";
+    }
+  }
+  if( contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL )
   {
     contourNode->GetLabelmapImageData();
-  }
-  else
-  {
-    qCritical() << "Reference volume not set for contour: " << contourNode->GetID() << ". Unable to convert to labelmap. Please use Contours module to convert.";
   }
 }
 
@@ -512,8 +567,15 @@ void qSlicerSubjectHierarchyContoursPlugin::extractLabelmapFromContour()
 {
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
-  if( contourNode )
+  
+  this->createLabelmapRepresentation();
+
+  if( contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
   {
-    vtkMRMLScalarVolumeNode* labelmapNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(contourNode);
+  vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(contourNode);
+  }
+  else
+  {
+    qCritical() << "Unable to extract image data to a labelmap node. Please use Contours module instead.";
   }
 }
