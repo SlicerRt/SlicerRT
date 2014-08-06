@@ -1,5 +1,6 @@
 import os, sys
 from __main__ import vtk, qt, ctk, slicer
+from slicer.ScriptedLoadableModule import *
 import RegistrationLib
 
 
@@ -24,19 +25,19 @@ comment = """
 # RegistrationPlugin
 #
 
-class PlmRegister:
+class PlmRegister(ScriptedLoadableModule):
   def __init__(self, parent):
-    parent.title = "Plastimatch"
-    parent.categories = ["Plastimatch"]
-    parent.dependencies = []
-    parent.contributors = ["Gregory Sharp (MGH)"]
-    parent.helpText = """
+    ScriptedLoadableModule.__init__(self, parent)
+    self.parent.title = "Plastimatch"
+    self.parent.categories = ["Plastimatch"]
+    self.parent.dependencies = []
+    self.parent.contributors = ["Gregory Sharp (MGH)"]
+    self.parent.helpText = """
     This is an example of scripted loadable module bundled in an extension.
     """
-    parent.acknowledgementText = """
+    self.parent.acknowledgementText = """
     This file was originally developed by Greg Sharp, Nadya Shusharina, and Paolo Zaffino and was partially funded by NIH grant 2-U54-EB005149.
     """ # replace with organization, grant and thanks.
-    self.parent = parent
     self.hidden = True
 
 

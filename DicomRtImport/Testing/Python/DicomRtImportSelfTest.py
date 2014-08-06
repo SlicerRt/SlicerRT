@@ -2,101 +2,50 @@ import os
 import unittest
 import util.DicomRtImportSelfTestPaths
 from __main__ import vtk, qt, ctk, slicer
+from slicer.ScriptedLoadableModule import *
 
 #
 # DicomRtImportSelfTest
 #
 
-class DicomRtImportSelfTest:
+class DicomRtImportSelfTest(ScriptedLoadableModule):
   def __init__(self, parent):
-    parent.title = "DicomRtImportSelfTest" # TODO make this more human readable by adding spaces
-    parent.categories = ["Testing.SlicerRT Tests"]
-    parent.dependencies = ["DicomRtImport", "Contours"]
-    parent.contributors = ["Csaba Pinter (Queen's)"]
-    parent.helpText = """
+    ScriptedLoadableModule.__init__(self, parent)
+    self.parent.title = "DicomRtImportSelfTest" # TODO make this more human readable by adding spaces
+    self.parent.categories = ["Testing.SlicerRT Tests"]
+    self.parent.dependencies = ["DicomRtImport", "Contours"]
+    self.parent.contributors = ["Csaba Pinter (Queen's)"]
+    self.parent.helpText = """
     This is a self test for the DicomRtImport DICOM plugin module.
     """
-    parent.acknowledgementText = """This file was originally developed by Csaba Pinter, PerkLab, Queen's University and was supported through the Applied Cancer Research Unit program of Cancer Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care""" # replace with organization, grant and thanks.
-    self.parent = parent
-
-    # Add this test to the SelfTest module's list for discovery when the module
-    # is created.  Since this module may be discovered before SelfTests itself,
-    # create the list if it doesn't already exist.
-    try:
-      slicer.selfTests
-    except AttributeError:
-      slicer.selfTests = {}
-    slicer.selfTests['DicomRtImportSelfTest'] = self.runTest
-
-  def runTest(self):
-    tester = DicomRtImportSelfTestTest()
-    tester.runTest()
+    self.parent.acknowledgementText = """This file was originally developed by Csaba Pinter, PerkLab, Queen's University and was supported through the Applied Cancer Research Unit program of Cancer Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care""" # replace with organization, grant and thanks.
 
 #
 # DicomRtImportSelfTestWidget
 #
 
-class DicomRtImportSelfTestWidget:
-  def __init__(self, parent = None):
-    if not parent:
-      self.parent = slicer.qMRMLWidget()
-      self.parent.setLayout(qt.QVBoxLayout())
-      self.parent.setMRMLScene(slicer.mrmlScene)
-    else:
-      self.parent = parent
-    self.layout = self.parent.layout()
-    if not parent:
-      self.setup()
-      self.parent.show()
+class DicomRtImportSelfTestWidget(ScriptedLoadableModuleWidget):
 
   def setup(self):
+
+    ScriptedLoadableModuleWidget.setup(self)
+
     # Instantiate and connect widgets ...
-
-    # reload button
-    # (use this during development, but remove it when delivering
-    #  your module to users)
-    self.reloadButton = qt.QPushButton("Reload")
-    self.reloadButton.toolTip = "Reload this module."
-    self.reloadButton.name = "DicomRtImportSelfTest Reload"
-    self.layout.addWidget(self.reloadButton)
-    self.reloadButton.connect('clicked()', self.onReload)
-
-    # reload and test button
-    # (use this during development, but remove it when delivering
-    #  your module to users)
-    self.reloadAndTestButton = qt.QPushButton("Reload and Test")
-    self.reloadAndTestButton.toolTip = "Reload this module and then run the self tests."
-    self.layout.addWidget(self.reloadAndTestButton)
-    self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
 
     # Add vertical spacer
     self.layout.addStretch(1)
-
-  def onReload(self,moduleName="DicomRtImportSelfTest"):
-    """Generic reload method for any scripted module.
-    ModuleWizard will subsitute correct default moduleName.
-    """
-    globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
-
-  def onReloadAndTest(self,moduleName="DicomRtImportSelfTest"):
-    self.onReload()
-    evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
-    tester = eval(evalString)
-    tester.runTest()
 
 #
 # DicomRtImportSelfTestLogic
 #
 
-class DicomRtImportSelfTestLogic:
+class DicomRtImportSelfTestLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual 
   computation done by your module.  The interface 
   should be such that other python code can import
   this class and make use of the functionality without
   requiring an instance of the Widget
   """
-  def __init__(self):
-    pass
 
   def hasImageData(self,volumeNode):
     """This is a dummy logic method that 
@@ -112,27 +61,10 @@ class DicomRtImportSelfTestLogic:
     return True
 
 
-class DicomRtImportSelfTestTest(unittest.TestCase):
+class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
   """
-
-  def delayDisplay(self,message,msec=1000):
-    """This utility method displays a small dialog and waits.
-    This does two things: 1) it lets the event loop catch up
-    to the state of the test so that rendering and widget updates
-    have all taken place before the test continues and 2) it
-    shows the user/developer/tester the state of the test
-    so that we'll know when it breaks.
-    """
-    print(message)
-    self.info = qt.QDialog()
-    self.infoLayout = qt.QVBoxLayout()
-    self.info.setLayout(self.infoLayout)
-    self.label = qt.QLabel(message,self.info)
-    self.infoLayout.addWidget(self.label)
-    qt.QTimer.singleShot(msec, self.info.close)
-    self.info.exec_()
 
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.

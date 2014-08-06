@@ -2,56 +2,36 @@ import os
 import unittest
 import sys
 from __main__ import vtk, qt, ctk, slicer
+from slicer.ScriptedLoadableModule import *
 
 #
 # DicomSroExport
 #
 
-class DicomSroExport:
+class DicomSroExport(ScriptedLoadableModule):
   def __init__(self, parent):
-    parent.title = "DICOM Registration Export"
-    parent.categories = ["Plastimatch"]
-    parent.dependencies = []
-    parent.contributors = ["Gregory Sharp (MGH), Kevin Wang (Princess Margaret Cancer Centre)"]
-    parent.helpText = """
+    ScriptedLoadableModule.__init__(self, parent)
+    self.parent.title = "DICOM Registration Export"
+    self.parent.categories = ["Plastimatch"]
+    self.parent.dependencies = []
+    self.parent.contributors = ["Gregory Sharp (MGH), Kevin Wang (Princess Margaret Cancer Centre)"]
+    self.parent.helpText = """
     This is an example of scripted loadable module bundled in an extension.
     """
-    parent.acknowledgementText = """
+    self.parent.acknowledgementText = """
     This file was originally developed by Greg Sharp, Massachusetts General Hospital, and was partially funded by NIH grant 2-U54-EB005149.
     """ # replace with organization, grant and thanks.
-    self.parent = parent
-
-    # Add this test to the SelfTest module's list for discovery when the module
-    # is created.  Since this module may be discovered before SelfTests itself,
-    # create the list if it doesn't already exist.
-    try:
-      slicer.selfTests
-    except AttributeError:
-      slicer.selfTests = {}
-    slicer.selfTests['DicomSroExport'] = self.runTest
-
-  def runTest(self):
-    tester = DicomSroExportTest()
-    tester.runTest()
 
 #
 # qDicomSroExportWidget
 #
 
-class DicomSroExportWidget:
-  def __init__(self, parent = None):
-    if not parent:
-      self.parent = slicer.qMRMLWidget()
-      self.parent.setLayout(qt.QVBoxLayout())
-      self.parent.setMRMLScene(slicer.mrmlScene)
-    else:
-      self.parent = parent
-    self.layout = self.parent.layout()
-    if not parent:
-      self.setup()
-      self.parent.show()
+class DicomSroExportWidget(ScriptedLoadableModuleWidget):
 
   def setup(self):
+
+    ScriptedLoadableModuleWidget.setup(self)
+
     # Instantiate and connect widgets ...
 
     ### Reload and Test area
@@ -202,38 +182,17 @@ class DicomSroExportWidget:
       self.xformMRMLSelector.currentNode(),
       self.outputDirectory.directory)
 
-  def onReload(self,moduleName="DicomSroExport"):
-    """Generic reload method for any scripted module.
-    ModuleWizard will subsitute correct default moduleName.
-    """
-    globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
-
-  def onReloadAndTest(self,moduleName="DicomSroExport"):
-    try:
-      self.onReload()
-      evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
-      tester = eval(evalString)
-      tester.runTest()
-    except Exception, e:
-      import traceback
-      traceback.print_exc()
-      qt.QMessageBox.warning(slicer.util.mainWindow(), 
-          "Reload and Test", 'Exception!\n\n' + str(e) + "\n\nSee Python Console for Stack Trace")
-
-
 #
 # DicomSroExportLogic
 #
 
-class DicomSroExportLogic:
+class DicomSroExportLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual 
   computation done by your module.  The interface 
   should be such that other python code can import
   this class and make use of the functionality without
   requiring an instance of the Widget
   """
-  def __init__(self):
-    pass
 
   def hasImageData(self,volumeNode):
     """This is a dummy logic method that 
@@ -247,19 +206,6 @@ class DicomSroExportLogic:
       print('no image data')
       return False
     return True
-
-  def delayDisplay(self,message,msec=1000):
-    #
-    # logic version of delay display
-    #
-    print(message)
-    self.info = qt.QDialog()
-    self.infoLayout = qt.QVBoxLayout()
-    self.info.setLayout(self.infoLayout)
-    self.label = qt.QLabel(message,self.info)
-    self.infoLayout.addWidget(self.label)
-    qt.QTimer.singleShot(msec, self.info.close)
-    self.info.exec_()
 
   def run (self,fixedNode,movingNode,xformNode,outputDir):
     """
@@ -281,27 +227,10 @@ class DicomSroExportLogic:
     return True
 
 
-class DicomSroExportTest(unittest.TestCase):
+class DicomSroExportTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
   """
-
-  def delayDisplay(self,message,msec=1000):
-    """This utility method displays a small dialog and waits.
-    This does two things: 1) it lets the event loop catch up
-    to the state of the test so that rendering and widget updates
-    have all taken place before the test continues and 2) it
-    shows the user/developer/tester the state of the test
-    so that we'll know when it breaks.
-    """
-    print(message)
-    self.info = qt.QDialog()
-    self.infoLayout = qt.QVBoxLayout()
-    self.info.setLayout(self.infoLayout)
-    self.label = qt.QLabel(message,self.info)
-    self.infoLayout.addWidget(self.label)
-    qt.QTimer.singleShot(msec, self.info.close)
-    self.info.exec_()
 
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.

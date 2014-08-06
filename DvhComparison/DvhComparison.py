@@ -1,80 +1,30 @@
 import os
 import unittest
 from __main__ import vtk, qt, ctk, slicer
+from slicer.ScriptedLoadableModule import *
 
 #
 # DvhComparison
 # 
-class DvhComparison:
+class DvhComparison(ScriptedLoadableModule):
   def __init__(self, parent):
-    parent.title = "DVH Comparison"
-    parent.categories = ["Radiotherapy"]
-    parent.dependencies = []
-    parent.contributors = ["Kyle Sunderland (Queen's University), Csaba Pinter (Queen's University)"]
-    parent.helpText = """This module compares two Dose Volume Histograms from corresponding Double Array Nodes."""
-    parent.acknowledgementText = """ """
-    self.parent = parent
-
-    # Add this test to the SelfTest module's list for discovery when the module
-    # is created.  Since this module may be discovered before SelfTests itself,
-    # create the list if it doesn't already exist.
-    try:
-      slicer.selfTests
-    except AttributeError:
-      slicer.selfTests = {}
-    slicer.selfTests['DvhComparison'] = self.runTest
+    ScriptedLoadableModule.__init__(self, parent)
+    self.parent.title = "DVH Comparison"
+    self.parent.categories = ["Radiotherapy"]
+    self.parent.dependencies = []
+    self.parent.contributors = ["Kyle Sunderland (Queen's University), Csaba Pinter (Queen's University)"]
+    self.parent.helpText = """This module compares two Dose Volume Histograms from corresponding Double Array Nodes."""
+    self.parent.acknowledgementText = """ """
   # end __init__
-    
-  def runTest(self):
-    tester = DvhComparisonTest()
-    tester.runTest()
-  # end runTest
 
 #
 # qDvhComparisonWidget
 #
-class DvhComparisonWidget:
-  def __init__(self, parent = None):
-    if not parent:
-      self.parent = slicer.qMRMLWidget()
-      self.parent.setLayout(qt.QVBoxLayout())
-      self.parent.setMRMLScene(slicer.mrmlScene)
-    else:
-      self.parent = parent
-    self.layout = self.parent.layout()
-    if not parent:
-      self.setup()
-      self.parent.show()
-  # end __init__
+class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
   def setup(self):
 
-    '''
-    #
-    # Reload and Test area
-    #
-    reloadCollapsibleButton = ctk.ctkCollapsibleButton()
-    reloadCollapsibleButton.text = "Reload && Test"
-    self.layout.addWidget(reloadCollapsibleButton)
-    reloadFormLayout = qt.QFormLayout(reloadCollapsibleButton)
-
-    # reload button
-    # (use this during development, but remove it when delivering
-    #  your module to users)
-    self.reloadButton = qt.QPushButton("Reload")
-    self.reloadButton.toolTip = "Reload this module."
-    self.reloadButton.name = "DvhComparison Reload"
-    reloadFormLayout.addWidget(self.reloadButton)
-    self.reloadButton.connect('clicked()', self.onReload)
-
-    # reload and test button
-    # (use this during development, but remove it when delivering
-    #  your module to users)
-    self.reloadAndTestButton = qt.QPushButton("Reload and Test")
-    self.reloadAndTestButton.toolTip = "Reload this module and then run the self tests."
-    reloadFormLayout.addWidget(self.reloadAndTestButton)
-    self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
-    '''
+    ScriptedLoadableModuleWidget.setup(self)
 
     #
     # Parameter Combobox
@@ -178,7 +128,7 @@ class DvhComparisonWidget:
 
     self.agreementAcceptanceOutput = qt.QLineEdit()
     self.agreementAcceptanceOutput.setReadOnly(True)
-    outputFormLayout.addRow("Agreement acceptance %: ", self.agreementAcceptanceOutput)   
+    outputFormLayout.addRow("Agreement acceptance %: ", self.agreementAcceptanceOutput)
 
     #
     # Visualize Area
@@ -241,8 +191,7 @@ class DvhComparisonWidget:
   # end setup
 
   def enter(self):
-    """
-    Runs whenever the module is reopened
+    """Runs whenever the module is reopened
     """
 
     self.nodeCheck()
@@ -256,8 +205,7 @@ class DvhComparisonWidget:
   # end enter
 
   def parameterNodeCreated(self, node):
-    """
-    Rename the newly created parameter node
+    """Rename the newly created parameter node
     """
     numberOfNodes = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLScriptedModuleNode')
     name = 'DvhComparison'
@@ -268,8 +216,7 @@ class DvhComparisonWidget:
   # end parameterNodeCreated
 
   def nodeCheck(self):
-    """
-    If there is no parameter node, create one and add it to the scene
+    """If there is no parameter node, create one and add it to the scene
     """
     if(self.parameterSelector.currentNode() == None):
       node = slicer.vtkMRMLScriptedModuleNode()
@@ -279,9 +226,8 @@ class DvhComparisonWidget:
   # end nodeCheck
 
   def updateTable(self):
-    '''
-    Construct and fill in the table.
-    '''
+    """Construct and fill in the table.
+    """
 
     self.checkboxList = []
     self.structureList = []
@@ -357,9 +303,8 @@ class DvhComparisonWidget:
   # end updateTable
 
   def checkBoxChanged(self, int):
-    '''
-    If one of the chart checkboxes has been changed, then update the chart
-    '''
+    """If one of the chart checkboxes has been changed, then update the chart
+    """
 
     if (self.updatingStatus == False):
       currentChart = self.chartNodeSelector.currentNode()
@@ -381,9 +326,8 @@ class DvhComparisonWidget:
   # end checkBoxChanged
 
   def updateFromParameter(self, node):
-    """ 
-    Changes the displayed inputs to match the current parameter node
-    If an attribute has not been set, it is set from the currently 
+    """Changes the displayed inputs to match the current parameter node
+    If an attribute has not been set, it is set from the currently
     displayed attribute
     """
 
@@ -458,8 +402,7 @@ class DvhComparisonWidget:
 
 
   def displayChange(self):
-    """
-    If a node has changed, make sure that the compute button is enabled/disabled as necessary
+    """If a node has changed, make sure that the compute button is enabled/disabled as necessary
     and set clear the output to avoid an illegal state.
     """
 
@@ -475,7 +418,7 @@ class DvhComparisonWidget:
 
   def onComputeButton(self):
     import vtkSlicerDoseVolumeHistogramModuleLogic
-    logic = vtkSlicerDoseVolumeHistogramModuleLogic.vtkSlicerDoseVolumeHistogramComparisonLogic() 
+    logic = vtkSlicerDoseVolumeHistogramModuleLogic.vtkSlicerDoseVolumeHistogramComparisonLogic()
     logic.SetDvh1DoubleArrayNode(self.dvh1Selector.currentNode())
     logic.SetDvh2DoubleArrayNode(self.dvh2Selector.currentNode())
     logic.SetDoseVolumeNode(self.doseVolumeSelector.currentNode())
@@ -488,8 +431,7 @@ class DvhComparisonWidget:
   # end onComputeButton
 
   def checkChart(self, dvhNodeId, chartNode):
-    """
-    Check the specified chart to see if a given DVH is being displayed.
+    """Check the specified chart to see if a given DVH is being displayed.
     """
     arrayIds = chartNode.GetArrays()
     for arrayIndex in range(0, arrayIds.GetNumberOfValues()):
@@ -501,8 +443,7 @@ class DvhComparisonWidget:
   # end checkChart
 
   def updateChecksFromChart(self, chartNode):
-    """
-    Set the check boxes in the table to match the graph display.
+    """Set the check boxes in the table to match the graph display.
     """
 
     self.updatingStatus = True
@@ -579,69 +520,31 @@ class DvhComparisonWidget:
         self.doseVolumeSelector.addAttribute("vtkMRMLScalarVolumeNode", "LabelMap", 0)
   # end showDoseVolumesOnlyCheckboxChanged
 
-
   def cleanup(self):
     pass
   # end cleanup
 
-  def onReload(self,moduleName="DvhComparison"):
-    """Generic reload method for any scripted module.
-    ModuleWizard will substitute correct default moduleName.
-    """
-    globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
-  # end onReload
-
-  def onReloadAndTest(self,moduleName="DvhComparison"):
-    try:
-      self.onReload()
-      evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
-      tester = eval(evalString)
-      tester.runTest()
-    except Exception, e:
-      import traceback
-      traceback.print_exc()
-      qt.QMessageBox.warning(slicer.util.mainWindow(),
-          "Reload and Test", 'Exception!\n\n' + str(e) + "\n\nSee Python Console for Stack Trace")
-  # end onReloadAndTest
-
-class DvhComparisonTest(unittest.TestCase):
+class DvhComparisonTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
   """
-
-  def delayDisplay(self,message,msec=1000):
-    """This utility method displays a small dialog and waits.
-    This does two things: 1) it lets the event loop catch up
-    to the state of the test so that rendering and widget updates
-    have all taken place before the test continues and 2) it
-    shows the user/developer/tester the state of the test
-    so that we'll know when it breaks.
-    """
-    print(message)
-    self.info = qt.QDialog()
-    self.infoLayout = qt.QVBoxLayout()
-    self.info.setLayout(self.infoLayout)
-    self.label = qt.QLabel(message,self.info)
-    self.infoLayout.addWidget(self.label)
-    qt.QTimer.singleShot(msec, self.info.close)
-    self.info.exec_()
 
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
     slicer.mrmlScene.Clear(0)
   # end setUp
-    
+
   def runTest(self):
-    """Run as few or as many tests as needed here.
+    """Currently no testing functionality.
     """
     self.setUp()
     self.test_DvhComparison1()
   # end runTest
 
   def test_DvhComparison1(self):
-
+    """Add test here later.
+    """
     self.delayDisplay("Starting the test")
-
     self.delayDisplay('Test passed!')
   # end test_DvhComparison1

@@ -1,38 +1,25 @@
 import os
 import unittest
 from __main__ import vtk, qt, ctk, slicer
-
+from slicer.ScriptedLoadableModule import *
 
 #
 # PlmMismatchError
 #
 
-class PlmMismatchError:
+class PlmMismatchError(ScriptedLoadableModule):
   def __init__(self, parent):
-    parent.title = "Landmark Mismatch Error"
-    parent.categories = ["Plastimatch.DIR Validation"]
-    parent.dependencies = []
-    parent.contributors = ["Gregory Sharp (MGH)"]
-    parent.helpText = """
+    ScriptedLoadableModule.__init__(self, parent)
+    self.parent.title = "Landmark Mismatch Error"
+    self.parent.categories = ["Plastimatch.DIR Validation"]
+    self.parent.dependencies = []
+    self.parent.contributors = ["Gregory Sharp (MGH)"]
+    self.parent.helpText = """
     This is an example of scripted loadable module bundled in an extension.
     """
-    parent.acknowledgementText = """
+    self.parent.acknowledgementText = """
     This file was originally developed by Greg Sharp, Massachusetts General Hospital, and was partially funded by NIH grant 2-U54-EB005149.
     """ # replace with organization, grant and thanks.
-    self.parent = parent
-
-    # Add this test to the SelfTest module's list for discovery when the module
-    # is created.  Since this module may be discovered before SelfTests itself,
-    # create the list if it doesn't already exist.
-    try:
-      slicer.selfTests
-    except AttributeError:
-      slicer.selfTests = {}
-    slicer.selfTests['PlmMismatchError'] = self.runTest
-
-  def runTest(self):
-    tester = PlmMismatchErrorTest()
-    tester.runTest()
 
 class PlmMismatchErrorWidgetLogicIO: 
   def __init__(self):
@@ -60,23 +47,16 @@ class PlmMismatchErrorWidgetLogicIO:
 # qPlmMismatchErrorWidget
 
 
-class PlmMismatchErrorWidget:
+class PlmMismatchErrorWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent = None):
+    ScriptedLoadableModuleWidget.__init__(self, parent)
     self.logic = PlmMismatchErrorLogic()
     self.WLIO = PlmMismatchErrorWidgetLogicIO()
 
-    if not parent:
-      self.parent = slicer.qMRMLWidget()
-      self.parent.setLayout(qt.QVBoxLayout())
-      self.parent.setMRMLScene(slicer.mrmlScene)
-    else:
-      self.parent = parent
-    self.layout = self.parent.layout()
-    if not parent:
-      self.setup()
-      self.parent.show()
-
   def setup(self):
+
+    ScriptedLoadableModuleWidget.setup(self)
+
     # Instantiate and connect widgets ...
 
     ### Parameters Area
@@ -257,15 +237,13 @@ class PlmMismatchErrorWidget:
 # PlmMismatchErrorLogic
 
 
-class PlmMismatchErrorLogic:
+class PlmMismatchErrorLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual 
   computation done by your module.  The interface 
   should be such that other python code can import
   this class and make use of the functionality without
   requiring an instance of the Widget
   """
-  def __init__(self):
-    pass
 
   def hasImageData(self,volumeNode):
     """This is a dummy logic method that 
