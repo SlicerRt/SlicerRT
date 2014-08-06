@@ -290,7 +290,8 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
-  double checkpointItkConvertStart;
+  UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
+  double checkpointItkConvertStart = 0.0;
 
   // Convert input images to the format Plastimatch can use
   Plm_image::Pointer plmRefContourLabelmap;
@@ -308,6 +309,7 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
 
   //// Compute Dice similarity metrics
   double checkpointDiceStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointDiceStart); // Although it is used later, a warning is logged so needs to be suppressed
   Dice_statistics dice;
   dice.set_reference_image(plmRefContourLabelmap->itk_uchar());
   dice.set_compare_image(plmCmpContourLabelmap->itk_uchar());
@@ -337,6 +339,7 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
+    UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
     vtkDebugMacro("ComputeDiceStatistics: Total Dice computation time: " << checkpointEnd-checkpointStart << " s\n"
       << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s\n"
       << "\tConverting from VTK to ITK: " << checkpointDiceStart-checkpointItkConvertStart << " s\n"
@@ -357,7 +360,8 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
-  double checkpointItkConvertStart;
+  UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
+  double checkpointItkConvertStart = 0.0;
 
   // Convert input images to the format Plastimatch can use
   Plm_image::Pointer plmRefContourLabelmap;
@@ -371,6 +375,7 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
 
   // Compute Hausdorff distances
   double checkpointHausdorffStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointHausdorffStart); // Although it is used later, a warning is logged so needs to be suppressed
   Hausdorff_distance hausdorff;
   hausdorff.set_reference_image(plmRefContourLabelmap->itk_uchar());
   hausdorff.set_compare_image(plmCmpContourLabelmap->itk_uchar());
@@ -388,6 +393,7 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
+    UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
     vtkDebugMacro("ComputeHausdorffDistances: Total Hausdorff computation time: " << checkpointEnd-checkpointStart << " s\n"
       << "\tApplying transforms: " << checkpointItkConvertStart-checkpointStart << " s\n"
       << "\tConverting from VTK to ITK: " << checkpointHausdorffStart-checkpointItkConvertStart << " s\n"

@@ -850,8 +850,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromSelectedChart(const c
   {
     if (!STRCASECMP(arrayIds->GetValue(arrayIndex).c_str(), dvhArrayNodeId))
     {
-      vtkMRMLDoubleArrayNode* arrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-        scene->GetNodeByID(arrayIds->GetValue(arrayIndex).c_str()) );
       chartNode->RemoveArray(chartNode->GetArrayNames()->GetValue(arrayIndex).c_str());
       return;
     }
@@ -1535,7 +1533,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
   
   vtkCollection* doubleArrayNodes = vtkCollection::New();
   
-  for (int structureIndex=0; structureIndex < currentDvh.size(); structureIndex++)
+  for (unsigned int structureIndex=0; structureIndex < currentDvh.size(); structureIndex++)
   {
 
     // Create the vtkMRMLDoubleArrayNodes which will be passed to the logic function.

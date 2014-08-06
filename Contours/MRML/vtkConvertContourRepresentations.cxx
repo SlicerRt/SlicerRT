@@ -638,6 +638,7 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmap
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
+    UNUSED_VARIABLE(checkpointStart); // Although it is used just below, a warning is logged so needs to be suppressed
     vtkDebugMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Total labelmap-model conversion time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s");
   }
 

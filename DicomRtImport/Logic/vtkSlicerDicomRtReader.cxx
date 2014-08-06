@@ -1036,15 +1036,15 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
         continue;
       }
 
-      OFVector<vtkTypeFloat64>  contourData_LPS;
+      OFVector<vtkTypeFloat64> contourData_LPS;
       contourItem.getContourData(contourData_LPS);
-      vtkVector3<vtkTypeFloat64> firstPlanePoint;
-      vtkVector3<vtkTypeFloat64> secondPlanePoint;
-      vtkVector3<vtkTypeFloat64> thirdPlanePoint;
+      vtkVector3<vtkTypeFloat64> firstPlanePoint(0.0,0.0,0.0);
+      vtkVector3<vtkTypeFloat64> secondPlanePoint(0.0,0.0,0.0);
+      vtkVector3<vtkTypeFloat64> thirdPlanePoint(0.0,0.0,0.0);
 
-      vtkVector3<vtkTypeFloat64> currentPlaneIVector;
-      vtkVector3<vtkTypeFloat64> currentPlaneJVector;
-      vtkVector3<vtkTypeFloat64> currentPlaneKVector;
+      vtkVector3<vtkTypeFloat64> currentPlaneIVector(0.0,0.0,0.0);
+      vtkVector3<vtkTypeFloat64> currentPlaneJVector(0.0,0.0,0.0);
+      vtkVector3<vtkTypeFloat64> currentPlaneKVector(0.0,0.0,0.0);
 
       for (unsigned int i = 0; i < contourData_LPS.size(); i+=3)
       {

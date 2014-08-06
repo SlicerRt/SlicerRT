@@ -463,13 +463,13 @@ void vtkPlmpyRegistration::ApplyWarp(
 //---------------------------------------------------------------------------
 void vtkPlmpyRegistration::vtkSetBSplineTransform(vtkOrientedBSplineTransform *vtkbsp)
 {
-
+  UNUSED_VARIABLE(vtkbsp);
 }
 
 //---------------------------------------------------------------------------
 void vtkPlmpyRegistration::vtkSetGridTransform(vtkOrientedGridTransform *vtkgrid)
 {
-
+  UNUSED_VARIABLE(vtkgrid);
 }
 
 //---------------------------------------------------------------------------

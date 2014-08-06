@@ -57,18 +57,16 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
 {
 
   vtkDoubleArray *dvh1Array = this->Dvh1DoubleArrayNode->GetArray();
-  int dvh1Size = dvh1Array->GetNumberOfTuples();
+  unsigned int dvh1Size = dvh1Array->GetNumberOfTuples();
 
   vtkDoubleArray *dvh2Array = this->Dvh2DoubleArrayNode->GetArray();
-  int dvh2Size = dvh2Array->GetNumberOfTuples();
-
+  unsigned int dvh2Size = dvh2Array->GetNumberOfTuples();
 
   vtkDoubleArray *baselineDoubleArray = NULL;
-  int baselineSize = 0;
+  unsigned int baselineSize = 0;
 
   vtkDoubleArray *currentDoubleArray = NULL;
-  int currentSize = 0;
- 
+  //unsigned int currentSize = 0; //This variable might be used for sanity checks later
 
   // Determine total volume from the attribute of the current double array node
   std::ostringstream attributeNameStream;
@@ -82,7 +80,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
     baselineSize = dvh1Size;
 
     currentDoubleArray = dvh2Array;
-    currentSize = dvh2Size;
+    //currentSize = dvh2Size;
   
     totalVolumeChar = this->Dvh2DoubleArrayNode->GetAttribute(attributeNameStream.str().c_str());
   }
@@ -92,7 +90,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
     baselineSize = dvh2Size;
 
     currentDoubleArray = dvh1Array;
-    currentSize = dvh1Size;
+    //currentSize = dvh1Size;
 
     totalVolumeChar = this->Dvh1DoubleArrayNode->GetAttribute(attributeNameStream.str().c_str());
   }
@@ -133,7 +131,6 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
 
   for (unsigned int baselineIndex=0; baselineIndex < baselineSize; ++baselineIndex)
   {
-
     // Compute the agreement for the current baseline bin
     double agreement = GetAgreementForDvhPlotPoint(currentDoubleArray, baselineDoubleArray, baselineIndex, totalVolumeCCs);
 
@@ -168,7 +165,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint(
   //   doseToAgreementCriterion is the dose-to-agreement criterion (% of the maximum dose, maxDose)
   // A value of gamma(i) < 1 indicates agreement for the DVH bin compareIndex
 
-  int compareSize = compareDvhPlot->GetNumberOfTuples();
+  unsigned int compareSize = compareDvhPlot->GetNumberOfTuples();
   if (compareIndex >= compareSize)
   {
     std::cerr << "Invalid bin index for compare plot! (" << compareIndex << ">=" << compareSize << ")" << std::endl;

@@ -337,6 +337,7 @@ int vtkMRMLContourStorageNode::WriteModelDataInternal( vtkPolyData* polyData, st
 //----------------------------------------------------------------------------
 bool vtkMRMLContourStorageNode::ReadModelDataInternal( vtkPolyData* outModel, const char* filename, const char* suffix )
 {
+  UNUSED_VARIABLE(suffix);
   if (outModel == NULL)
   {
     return false;

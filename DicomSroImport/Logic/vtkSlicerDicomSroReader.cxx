@@ -31,8 +31,8 @@
 #include <vtkPointData.h>
 #include <vtkVersion.h>
 
-// STD includes
-#include <cassert>
+// SlicerRT includes
+#include "SlicerRtCommon.h"
 
 // DCMTK includes
 #include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
@@ -255,6 +255,7 @@ void vtkSlicerDicomSroReader::LoadSpatialRegistration(DcmDataset* dataset)
 //----------------------------------------------------------------------------
 void vtkSlicerDicomSroReader::LoadSpatialFiducials(DcmDataset* dataset)
 {
+  UNUSED_VARIABLE(dataset);
   this->LoadSpatialFiducialsSuccessful = false; 
 }
 
@@ -449,7 +450,7 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
           this->DeformableRegistrationGridOrientationMatrix->SetElement(1, 3, imagePositionPatient[1]);
           this->DeformableRegistrationGridOrientationMatrix->SetElement(2, 3, imagePositionPatient[2]);
 
-          int gridDimX, gridDimY, gridDimZ;
+          unsigned int gridDimX, gridDimY, gridDimZ;
           double gridSpacingX, gridSpacingY, gridSpacingZ;
 
           // Grid dimension
@@ -505,7 +506,7 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
           OFString  tmpStrX;
           OFString  tmpStrY;
           OFString  tmpStrZ;
-          int numOfVector = gridDimX * gridDimY * gridDimZ;
+          unsigned long numOfVector = gridDimX * gridDimY * gridDimZ;
           this->DeformableRegistrationGrid->SetOrigin(imagePositionPatient[0], imagePositionPatient[1], imagePositionPatient[2]);
           this->DeformableRegistrationGrid->SetSpacing(gridSpacingX, gridSpacingY, gridSpacingZ);
           this->DeformableRegistrationGrid->SetExtent(0,gridDimX-1,0,gridDimY-1,0,gridDimZ-1);
@@ -516,7 +517,7 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
 #else
 	      this->DeformableRegistrationGrid->AllocateScalars(VTK_DOUBLE, 3);
 #endif
-          int n = 0;
+          unsigned int n = 0;
           for (unsigned int k=0; k<gridDimZ; k++)
           {
             for (unsigned int j=0; j<gridDimY; j++)

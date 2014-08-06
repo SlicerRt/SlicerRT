@@ -471,7 +471,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       title = parameterList["title"];
       // Parse out the name of the file from the file path given as the parameter title
       std::string titleStringToParse = title;
-      unsigned int locationToSplitString = titleStringToParse.find_last_of("/\\");
+      unsigned long locationToSplitString = titleStringToParse.find_last_of("/\\");
       if (locationToSplitString != std::string::npos)
       {
         titleStringToParse = titleStringToParse.substr(locationToSplitString+1);
@@ -548,7 +548,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
 #endif
 
       // Reads the line feed that comes directly before the image data from the file
-      char nextCharacter = readFileStream.get();
+      readFileStream.get();
 
       float* floatPtr = (float*)floatVffVolumeData->GetScalarPointer();
       std::stringstream ss;

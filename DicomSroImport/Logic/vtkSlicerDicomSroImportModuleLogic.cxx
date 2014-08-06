@@ -28,6 +28,9 @@
 // Slicer Logic includes
 #include "vtkSlicerVolumesLogic.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
 // DCMTK includes
 #include <dcmtk/dcmdata/dcfilefo.h>
 #include <dcmtk/dcmdata/dcdeftag.h>
@@ -247,6 +250,8 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomS
 //---------------------------------------------------------------------------
 bool vtkSlicerDicomSroImportModuleLogic::LoadSpatialFiducials(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
 {
+  UNUSED_VARIABLE(regReader);
+  UNUSED_VARIABLE(loadInfo);
   return false;
 }
 

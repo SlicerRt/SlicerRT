@@ -296,7 +296,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
       vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
 
     // Add gamma volume to subject hierarchy
-    vtkMRMLSubjectHierarchyNode* dvhSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+    vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
       this->GetMRMLScene(), commonAncestor, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
       gammaVolumeNode->GetName(), gammaVolumeNode);
   }

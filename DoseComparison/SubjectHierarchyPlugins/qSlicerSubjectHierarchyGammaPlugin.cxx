@@ -189,6 +189,8 @@ int qSlicerSubjectHierarchyGammaPlugin::getDisplayVisibility(vtkMRMLSubjectHiera
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyGammaPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
+  Q_UNUSED(node);
+
   // Switch to dose comparison module
-  qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("DoseComparison");
+  qSlicerSubjectHierarchyAbstractPlugin::switchToModule("DoseComparison");
 }

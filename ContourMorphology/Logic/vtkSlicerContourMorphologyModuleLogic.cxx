@@ -356,6 +356,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
     createdNewContour = true;
     // Create new contour selected, let's create a descriptive name for the new contour
     std::string newContourName;
+    UNUSED_VARIABLE(newContourName); // Although it is used later, a warning is logged so needs to be suppressed
     std::string strippedInputContourANodeName = inputContourANode->GetName();
     strippedInputContourANodeName.erase(strippedInputContourANodeName.find(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX), strippedInputContourANodeName.length());
     switch(operation)

@@ -184,6 +184,7 @@ void qSlicerContoursModuleWidget::oversamplingFactorChanged(int value)
 void qSlicerContoursModuleWidget::sourceRepresentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerContoursModuleWidget);
+  UNUSED_VARIABLE(node);
 
   if (!this->mrmlScene())
   {
