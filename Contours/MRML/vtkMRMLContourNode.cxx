@@ -440,8 +440,8 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
 //----------------------------------------------------------------------------
 void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const char* id)
 {
-  if ( this->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL &&
-    strcmp(this->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str())->GetID(), id) == 0 )
+  if ( this->GetRasterizationReferenceVolumeNode() != NULL &&
+    STRCASECMP(this->GetRasterizationReferenceVolumeNode()->GetID(),id) == 0 )
   {
     // The same reference volume is to be set as the current one - no action necessary
     return;
@@ -457,7 +457,7 @@ void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const c
   // Invalidate indexed labelmap representation if it exists and rasterization reference volume has changed (from a value other than the default invalid value),
   // because it is assumed that the current reference volume was used when creating the indexed labelmap, and allowing a reference volume change without
   // invalidating the labelmap would introduce inconsistency.
-  if (this->LabelmapImageData && this->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL)
+  if (this->LabelmapImageData && this->GetRasterizationReferenceVolumeNode() != NULL)
   {
     vtkWarningMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Invalidating current indexed labelmap as the rasterization reference volume has been explicitly changed!");
 
@@ -466,6 +466,12 @@ void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const c
   }
 
   this->SetAndObserveNodeReferenceID(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str(), id);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetRasterizationReferenceVolumeNode()
+{
+  return vtkMRMLScalarVolumeNode::SafeDownCast(this->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()));
 }
 
 //----------------------------------------------------------------------------

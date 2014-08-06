@@ -170,8 +170,11 @@ public:
   /// Get labelmap data
   virtual vtkImageData* GetLabelmapImageData();
 
-  /// Set and observe rasterization reference volume node ID
+  /// Set and observe rasterization reference volume node
+  /// This function sets the SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE reference
   void SetAndObserveRasterizationReferenceVolumeNodeId(const char* id);
+  /// Get rasterization reference volume node
+  vtkMRMLScalarVolumeNode* GetRasterizationReferenceVolumeNode();
 
   /// Get original ROI points from DICOM-RT
   vtkGetObjectMacro(DicomRtRoiPoints, vtkPolyData);

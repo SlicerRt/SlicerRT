@@ -37,6 +37,7 @@
 
 // Qt includes
 #include <QAction>
+#include <QApplication>
 #include <QDebug>
 #include <QMenu>
 #include <QStandardItem>
@@ -279,19 +280,24 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
     d->RepresentationVisibilityAction->setVisible(contourNode != NULL);
 
     bool canContourExtractALabelmap(false);
-    if( contourNode != NULL && 
-      contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL &&
-      contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) )
+    if( contourNode )
     {
+    if( contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL &&
+      (contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) || 
+      contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel)) )
+    {
+      // If there is a ribbon or closed surface model and a reference volume already
       canContourExtractALabelmap = true;
     }
-    else if( contourNode != NULL && contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
+    else if( contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
     {
+      // If there is a labelmap already
       canContourExtractALabelmap = true;
     }
-    else if( contourNode != NULL &&
-      contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) == NULL)
+    else if( contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) == NULL)
     {
+      // If there is no rasterization reference, can we try to guess a reasonable default?
+      // Aka the referenced series (usually anatomy) from DICOM
       const char* referencedSeriesUid = node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str());
       if (referencedSeriesUid)
       {
@@ -301,9 +307,10 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
         if (foundSubjectHierarchyNode)
         {
           vtkMRMLScalarVolumeNode* volNode = vtkMRMLScalarVolumeNode::SafeDownCast(foundSubjectHierarchyNode->GetAssociatedNode());
-          canContourExtractALabelmap = volNode != NULL;
+          canContourExtractALabelmap = (volNode != NULL);
         }
       }
+    }
     }
     d->ExtractLabelmapFromContourAction->setVisible(canContourExtractALabelmap);
 
@@ -540,7 +547,9 @@ void qSlicerSubjectHierarchyContoursPlugin::createLabelmapRepresentation()
   }
   if( contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL )
   {
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     contourNode->GetLabelmapImageData();
+    QApplication::restoreOverrideCursor();
   }
 }
 
@@ -549,12 +558,17 @@ void qSlicerSubjectHierarchyContoursPlugin::createClosedSurfaceModelRepresentati
 {
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
+
+  this->createLabelmapRepresentation();
+
   if( contourNode && 
     // Either we have the image data, or we have a reference volume to create the image data
     (contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap)
     || contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL) )
   {
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     contourNode->GetClosedSurfacePolyData();
+    QApplication::restoreOverrideCursor();
   }
   else
   {
@@ -572,7 +586,7 @@ void qSlicerSubjectHierarchyContoursPlugin::extractLabelmapFromContour()
 
   if( contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
   {
-  vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(contourNode);
+    vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(contourNode);
   }
   else
   {
