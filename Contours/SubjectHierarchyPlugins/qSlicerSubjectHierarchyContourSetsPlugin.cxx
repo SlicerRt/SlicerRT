@@ -207,8 +207,6 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRML
     }
 
     colorName = QString(nodeToAdd->GetName());
-
-    scene->RemoveNode(nodeToAdd);
   }
   else if (nodeToAdd->IsA("vtkMRMLContourNode"))
   {
@@ -224,14 +222,18 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRML
   contourSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), colorName.toLatin1().constData());
   contourSubjectHierarchyNode->SetAssociatedNodeID(contourNodeAddedToSubjectHierarchy->GetID());
 
+  bool error(false);
+
   // Add color to the new color table
   if (!this->addContourColorToCorrespondingColorTable(contourNodeAddedToSubjectHierarchy, colorName))
   {
     qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy: Failed to add contour color to corresponding color table!";
-    return false;
+    error = true;
   }
 
-  return true;
+  scene->RemoveNode(nodeToAdd);
+
+  return !error;
 }
 
 //----------------------------------------------------------------------------
