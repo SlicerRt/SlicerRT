@@ -303,8 +303,8 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
       accumulatedImageData->DeepCopy(multiplyFilter->GetOutput());
     }
 
-    // Delete resampledInputDoseVolumeNode
-    resampledInputDoseVolumeNode->Delete();
+    // Remove the resample dose node from scene and release the memory
+    this->GetMRMLScene()->RemoveNode(resampledInputDoseVolumeNode);
   }
 
   // Create display node for the accumulated volume
