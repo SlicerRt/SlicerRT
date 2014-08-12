@@ -41,6 +41,22 @@ class PlmRegister(ScriptedLoadableModule):
     self.hidden = True
 
 
+#
+# qPlmRegisterWidget
+#
+
+class PlmRegisterWidget(ScriptedLoadableModuleWidget):
+
+  def setup(self):
+
+    ScriptedLoadableModuleWidget.setup(self)
+
+    # Add vertical spacer
+    self.layout.addStretch(1)
+
+  def cleanup(self):
+    pass
+
 class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
   """ Plastimatch registration plugin class
   """
