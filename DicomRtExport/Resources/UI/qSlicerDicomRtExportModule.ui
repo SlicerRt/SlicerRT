@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>424</width>
-    <height>319</height>
+    <width>403</width>
+    <height>317</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,6 +22,18 @@
    </property>
    <item row="1" column="0">
     <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>400</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="text">
       <string>Input/Output</string>
      </property>
