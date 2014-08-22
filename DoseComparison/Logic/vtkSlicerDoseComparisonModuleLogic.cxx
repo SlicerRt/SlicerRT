@@ -197,7 +197,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   Plm_image::Pointer maskVolume;
   vtkMRMLContourNode* maskContourNode = this->DoseComparisonNode->GetMaskContourNode();
-  if (maskContourNode )
+  if (maskContourNode)
   {
     // Extract a labelmap for the dose comparison to use it as a mask
     maskContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(referenceDoseVolumeNode->GetID());

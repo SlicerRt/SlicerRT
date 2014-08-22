@@ -779,7 +779,14 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::ExtractLabelmapFromContou
     if( seriesNode )
     {
       vtkMRMLColorTableNode* ctNode = vtkMRMLColorTableNode::SafeDownCast(seriesNode->GetNodeReference(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE.c_str()));
-      dispNode->SetAndObserveColorNodeID(ctNode->GetID());
+      if (ctNode)
+      {
+        dispNode->SetAndObserveColorNodeID(ctNode->GetID());
+      }
+      else
+      {
+        vtkErrorWithObjectMacro(seriesNode, "Unable to find color table node for contour set " << seriesNode->GetNameWithoutPostfix());
+      }
     }
   }
 
