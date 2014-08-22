@@ -17,10 +17,12 @@ SET (SlicerRtCommon_SRCS
   SlicerRtCommon.cxx
   SlicerRtCommon.h
   SlicerRtCommon.txx
-  vtkPolyDataToLabelmapFilter.cxx
-  vtkPolyDataToLabelmapFilter.h
   vtkLabelmapToModelFilter.cxx
   vtkLabelmapToModelFilter.h
+  vtkPolyDataToLabelmapFilter.cxx
+  vtkPolyDataToLabelmapFilter.h
+  vtkSlicerAutoWindowLevelLogic.cxx
+  vtkSlicerAutoWindowLevelLogic.h
   vtkVolumesOrientedResampleUtility.cxx
   vtkVolumesOrientedResampleUtility.h
   )
