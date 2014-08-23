@@ -278,7 +278,7 @@ p, li { white-space: pre-wrap; }
            <string>Use a user-defined value as reference dose</string>
           </property>
           <property name="text">
-           <string>Use custom value (cGy):</string>
+           <string>Use custom value (Gy):</string>
           </property>
          </widget>
         </item>
