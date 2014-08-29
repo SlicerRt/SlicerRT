@@ -49,6 +49,12 @@ else()
   set(Plastimatch_EP_UPDATE_IF_CMAKE_LATER_THAN_288 LOG_UPDATE 1)
 endif()
 
+# Disable OpenMP on Windows until a better solution can be found
+# http://www.na-mic.org/Bug/view.php?id=3823
+set (DISABLE_OPENMP_ON_WINDOWS "")
+if (WIN32)
+    set (DISABLE_OPENMP_ON_WINDOWS "-DPLM_CONFIG_DISABLE_OPENMP:BOOL=ON")
+endif ()
 
 ExternalProject_Add( Plastimatch
   SOURCE_DIR "${SLICERRT_PLASTIMATCH_SOURCE_DIR}" 
@@ -70,6 +76,7 @@ ExternalProject_Add( Plastimatch
     -DPLM_CONFIG_INSTALL_LIBRARIES:BOOL=ON 
     # CUDA build is disabled until ticket #226 can be resolved.
     -DPLM_CONFIG_DISABLE_CUDA:BOOL=ON
+    ${DISABLE_OPENMP_ON_WINDOWS}
     ${PLASTIMATCH_EXTRA_LIBRARIES}
     -DDCMTK_DIR:STRING=${DCMTK_DIR}
     -DITK_DIR:STRING=${ITK_DIR}    
