@@ -315,8 +315,11 @@ void vtkMRMLContourNode::DeepCopy(vtkMRMLNode* aNode)
 
   this->SetCreatedFromIndexLabelmap(otherNode->HasBeenCreatedFromIndexedLabelmap());
 
-  this->SetDicomRtRoiPoints( vtkSmartPointer<vtkPolyData>::New() );
-  this->DicomRtRoiPoints->DeepCopy(otherNode->GetDicomRtRoiPoints());
+  if (otherNode->GetDicomRtRoiPoints())
+  {
+    this->SetDicomRtRoiPoints( vtkSmartPointer<vtkPolyData>::New() );
+    this->DicomRtRoiPoints->DeepCopy(otherNode->GetDicomRtRoiPoints());
+  }
 
   this->SetRasterizationOversamplingFactor( otherNode->GetRasterizationOversamplingFactor() );
   this->SetDecimationTargetReductionFactor( otherNode->GetDecimationTargetReductionFactor() );
