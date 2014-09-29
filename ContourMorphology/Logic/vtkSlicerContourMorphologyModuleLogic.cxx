@@ -227,7 +227,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourARepresentationToLabelmap()
       this->ContourMorphologyNode->GetReferenceVolumeNode()->GetID() );
   }
 
-  if( !inputContourANode->HasBeenCreatedFromIndexedLabelmap() )
+  if (!inputContourANode->HasBeenCreatedFromIndexedLabelmap())
   {
     inputContourANode->SetRasterizationOversamplingFactor(1.0);
   }
@@ -267,7 +267,7 @@ int vtkSlicerContourMorphologyModuleLogic::SetContourBRepresentationToLabelmap()
       this->ContourMorphologyNode->GetReferenceVolumeNode()->GetID() );
   }
 
-  if( !inputContourBNode->HasBeenCreatedFromIndexedLabelmap() )
+  if (!inputContourBNode->HasBeenCreatedFromIndexedLabelmap())
   {
     inputContourBNode->SetRasterizationOversamplingFactor(1.0);
   }
@@ -317,7 +317,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
       return ERROR_RETURN;
     }
 
-    if( inputContourBNode->GetParentTransformNode() )
+    if (inputContourBNode->GetParentTransformNode())
     {
       // Harden the parent transform into a temporary contour (image data)
       // because the filters below ignore the IJKtoRAS of a contour node, and operate
@@ -350,7 +350,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
   kernelSize[1] = (int)( 2*(ySize/spacingY + 0.5) );
   kernelSize[2] = (int)( 2*(zSize/spacingZ + 0.5) );
 
-  if( outputContourNode == NULL )
+  if (outputContourNode == NULL)
   {
     // Create new contour selected, let's create a descriptive name for the new contour
     std::string newContourName("");
@@ -414,7 +414,7 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
 
   
   vtkSmartPointer<vtkImageData> imageA = vtkSmartPointer<vtkImageData>::New();
-  if( inputContourANode->GetParentTransformNode() )
+  if (inputContourANode->GetParentTransformNode())
   {
     // Harden the parent transform into a temporary contour (image data)
     // because the filters below ignore the IJKtoRAS of a contour node, and operate
@@ -538,10 +538,10 @@ int vtkSlicerContourMorphologyModuleLogic::MorphContour()
 
   // This creates the contour, now let's link it to the SH properly
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(inputContourANode));
-  if( shNode )
+  if (shNode)
   {
     vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
-    if( parentNode )
+    if (parentNode)
     {
       qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("ContourSets")->addNodeToSubjectHierarchy( outputContourNode, parentNode );
     }

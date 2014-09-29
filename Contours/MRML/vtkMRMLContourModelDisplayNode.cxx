@@ -90,13 +90,13 @@ void vtkMRMLContourModelDisplayNode::Copy( vtkMRMLNode *node )
 {
   Superclass::Copy(node);
 
-  if( node == NULL )
+  if (node == NULL)
   {
     return;
   }
   vtkMRMLContourModelDisplayNode* otherNode = vtkMRMLContourModelDisplayNode::SafeDownCast(node);
 
-  if( otherNode == NULL )
+  if (otherNode == NULL)
   {
     return;
   }

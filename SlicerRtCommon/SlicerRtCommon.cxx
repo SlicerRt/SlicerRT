@@ -174,19 +174,19 @@ const char* SlicerRtCommon::VOLUME_LABELMAP_IDENTIFIER_ATTRIBUTE_NAME = "LabelMa
 //----------------------------------------------------------------------------
 namespace
 {
-  bool AreSame(double a, double b)
+  bool AreEqualWithTolerance(double a, double b)
   {
     return fabs(a - b) < EPSILON;
   }
 
   bool AreCollinear(const vtkVector3<double>& a, const vtkVector3<double>& b)
   {
-    if( AreSame(a.GetX(), b.GetX()) && AreSame(b.GetY(), b.GetY()) && AreSame(a.GetZ(), b.GetZ()) )
+    if (AreEqualWithTolerance(a.GetX(), b.GetX()) && AreEqualWithTolerance(b.GetY(), b.GetY()) && AreEqualWithTolerance(a.GetZ(), b.GetZ()))
     {
       return true;
     }
 
-    return AreSame(1.0L, abs(a.Dot(b)));
+    return AreEqualWithTolerance(1.0L, abs(a.Dot(b)));
   }
 }
 
@@ -460,7 +460,7 @@ bool SlicerRtCommon::AreBoundsEqual(int boundsA[6], int boundsB[6])
 bool SlicerRtCommon::OrderPlanesAlongNormal( std::vector<vtkSmartPointer<vtkPlane> > inputPlanes, std::map<double, vtkSmartPointer<vtkPlane> >& outputPlaneOrdering )
 {
   std::map<double, vtkVector3<double> > intermediateSortMap;
-  if( inputPlanes.empty() )
+  if (inputPlanes.empty())
   {
     return true;
   }
@@ -472,14 +472,14 @@ bool SlicerRtCommon::OrderPlanesAlongNormal( std::vector<vtkSmartPointer<vtkPlan
     (*inputPlanes.begin())->GetNormal()[1],
     (*inputPlanes.begin())->GetNormal()[2] );
 
-  for( std::vector<vtkSmartPointer<vtkPlane> >::iterator it = inputPlanes.begin(); it != inputPlanes.end(); ++it )
+  for (std::vector<vtkSmartPointer<vtkPlane> >::iterator it = inputPlanes.begin(); it != inputPlanes.end(); ++it)
   {
     // For each plane, re-encase it in friendly vtk classes
     vtkVector3<double> origin((*it)->GetOrigin()[0], (*it)->GetOrigin()[1], (*it)->GetOrigin()[2]);
     vtkVector3<double> normal((*it)->GetNormal()[0], (*it)->GetNormal()[1], (*it)->GetNormal()[2]);
 
     // If this normal the previous normal differ, they are not co-planar
-    if( it != inputPlanes.begin() && !AreCollinear(normal, lastNormal) )
+    if (it != inputPlanes.begin() && !AreCollinear(normal, lastNormal))
     {
       return false;
     }
@@ -507,18 +507,18 @@ void SlicerRtCommon::GenerateNewColor( vtkMRMLColorTableNode* colorNode, double*
     newColor[2] = rand() * 1.0 / RAND_MAX;
 
     bool hasColor(false);
-    for( int i = 0; i < colorNode->GetNumberOfColors(); ++i )
+    for (int i = 0; i < colorNode->GetNumberOfColors(); ++i)
     {
       double thisColor[4];
       colorNode->GetColor(i, thisColor);
-      if( AreSame(thisColor[0], newColor[0]) && AreSame(thisColor[1], newColor[1]) && AreSame(thisColor[2], newColor[2]) )
+      if (AreEqualWithTolerance(thisColor[0], newColor[0]) && AreEqualWithTolerance(thisColor[1], newColor[1]) && AreEqualWithTolerance(thisColor[2], newColor[2]))
       {
         hasColor = true;
         break;
       }
     }
 
-    if( !hasColor )
+    if (!hasColor)
     {
       break;
     }
@@ -530,23 +530,23 @@ void SlicerRtCommon::GenerateNewColor( vtkMRMLColorTableNode* colorNode, double*
 //---------------------------------------------------------------------------
 void SlicerRtCommon::WriteImageDataToFile( vtkMRMLScene* scene, vtkImageData* imageData, const char* fileName, double dirs[3][3], double spacing[3], double origin[3], bool overwrite )
 {
-  if( scene == NULL )
+  if (scene == NULL)
   {
     std::cerr << "Invalid scene sent to SlicerRtCommon::WriteImageDataToFile." << std::endl;
     return;
   }
 
-  if( fileName == NULL || strcmp(fileName, "") == 0 )
+  if (fileName == NULL || strcmp(fileName, "") == 0)
   {
     std::cerr << "Invalid filename sent to SlicerRtCommon::WriteImageDataToFile." << std::endl;
     return;
   }
 
-  if( vtksys::SystemTools::FileExists(fileName) && overwrite )
+  if (vtksys::SystemTools::FileExists(fileName) && overwrite)
   {
     vtksys::SystemTools::RemoveFile(fileName);
   }
-  else if( vtksys::SystemTools::FileExists(fileName) )
+  else if (vtksys::SystemTools::FileExists(fileName))
   {
     return;
   }
@@ -563,7 +563,7 @@ void SlicerRtCommon::WriteImageDataToFile( vtkMRMLScene* scene, vtkImageData* im
   scene->AddNode(storageNode);
 
   volumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
-  if( storageNode->WriteData(volumeNode) == 0 )
+  if (storageNode->WriteData(volumeNode) == 0)
   {
     std::cerr << "Unable to write image data to file." << std::endl;
   }

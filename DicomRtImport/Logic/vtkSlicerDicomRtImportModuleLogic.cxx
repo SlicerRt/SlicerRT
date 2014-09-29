@@ -438,7 +438,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
 
       // Retrieve the planes that describe each contour ribbon
       std::map<double, vtkSmartPointer<vtkPlane> > orderedPlanes = rtReader->GetRoiOrderedContourPlanes(internalROIIndex);
-      if( orderedPlanes.empty() )
+      if (orderedPlanes.empty())
       {
         vtkErrorMacro("Unable to retrieve ordered planes when creating contour node. They will be unaccessible.");
       }
@@ -446,7 +446,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
 
       // Create ribbon from ROI contour
       vtkVector3<double>* ribbonModelOrientationNormal(NULL);
-      if( !orderedPlanes.empty() )
+      if (!orderedPlanes.empty())
       {
         ribbonModelOrientationNormal = new vtkVector3<double>();
         ribbonModelOrientationNormal->SetX(orderedPlanes.begin()->second->GetNormal()[0]);
@@ -458,7 +458,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
       roiCollection->AddItem(ribbonModelPolyData);
 
       // Clean up normal
-      if( ribbonModelOrientationNormal )
+      if (ribbonModelOrientationNormal)
       {
         delete ribbonModelOrientationNormal;
       }

@@ -453,7 +453,7 @@ void qMRMLContourSelectorWidget::contourNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qMRMLContourSelectorWidget);
 
-  if( node == NULL )
+  if (node == NULL)
   {
     return;
   }

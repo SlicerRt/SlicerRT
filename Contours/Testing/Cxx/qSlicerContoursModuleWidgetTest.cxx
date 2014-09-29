@@ -166,13 +166,13 @@ void qSlicerContoursModuleWidgetTester::cleanup()
 // ----------------------------------------------------------------------------
 void qSlicerContoursModuleWidgetTester::testUI()
 {
-  if( this->m_Initialized )
+  if (this->m_Initialized)
   {
     this->SlicerContoursModuleWidget->show();
 
     vtkMRMLContourNode* bodyNode = vtkMRMLContourNode::SafeDownCast(this->m_Scene->GetFirstNodeByName("BODY_Contour"));
     this->SlicerContoursModuleWidget->testSetContourNode(bodyNode);
-    if( this->SlicerContoursModuleWidget->testGetCurrentContourNode() == NULL )
+    if (this->SlicerContoursModuleWidget->testGetCurrentContourNode() == NULL)
     {
       QFAIL("Unable to set contour node.");
     }
@@ -180,27 +180,27 @@ void qSlicerContoursModuleWidgetTester::testUI()
     // See if things work for index label map
     this->SlicerContoursModuleWidget->testSetTargetRepresentationType(vtkMRMLContourNode::IndexedLabelmap);
 
-    if( !this->SlicerContoursModuleWidget->testGetDPointer()->MRMLNodeComboBox_ReferenceVolume->isVisible() )
+    if (!this->SlicerContoursModuleWidget->testGetDPointer()->MRMLNodeComboBox_ReferenceVolume->isVisible())
     {
       QFAIL("Reference volume combobox is invisible when it should be visible.");
     }
-    if( !this->SlicerContoursModuleWidget->testGetDPointer()->horizontalSlider_OversamplingFactor->isVisible() )
+    if (!this->SlicerContoursModuleWidget->testGetDPointer()->horizontalSlider_OversamplingFactor->isVisible())
     {
       QFAIL("Oversampling factor widget is not visible.");
     }
-    if( this->SlicerContoursModuleWidget->testGetDPointer()->pushButton_ApplyChangeRepresentation->isEnabled() )
+    if (this->SlicerContoursModuleWidget->testGetDPointer()->pushButton_ApplyChangeRepresentation->isEnabled())
     {
       QFAIL("Apply button is enabled when it shouldn't be.");
     }
 
     vtkMRMLScalarVolumeNode* doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->m_Scene->GetFirstNodeByName("Dose"));
     this->SlicerContoursModuleWidget->testSetReferenceVolumeNode(doseNode);
-    if( this->SlicerContoursModuleWidget->testGetCurrentReferenceVolumeNode() != doseNode )
+    if (this->SlicerContoursModuleWidget->testGetCurrentReferenceVolumeNode() != doseNode)
     {
       QFAIL("Selected reference volume is not \"Dose\".");
     }
 
-    if( !this->SlicerContoursModuleWidget->testGetDPointer()->pushButton_ApplyChangeRepresentation->isEnabled() )
+    if (!this->SlicerContoursModuleWidget->testGetDPointer()->pushButton_ApplyChangeRepresentation->isEnabled())
     {
       QFAIL("Apply button should be enabled after reference volume is set. It is not.");
     }

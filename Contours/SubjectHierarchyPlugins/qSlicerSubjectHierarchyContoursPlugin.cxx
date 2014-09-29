@@ -280,7 +280,7 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
     d->RepresentationVisibilityAction->setVisible(contourNode != NULL);
 
     bool canContourExtractALabelmap(false);
-    if( contourNode )
+    if (contourNode)
     {
     if( contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL &&
       (contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) || 
@@ -289,7 +289,7 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
       // If there is a ribbon or closed surface model and a reference volume already
       canContourExtractALabelmap = true;
     }
-    else if( contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
+    else if (contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap))
     {
       // If there is a labelmap already
       canContourExtractALabelmap = true;
@@ -314,7 +314,7 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
     }
     d->ExtractLabelmapFromContourAction->setVisible(canContourExtractALabelmap);
 
-    if( contourNode )
+    if (contourNode)
     {
       d->RibbonModelVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel));
       d->LabelmapVisibilityAction->setVisible(contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap));
@@ -332,7 +332,7 @@ void qSlicerSubjectHierarchyContoursPlugin::showContextMenuActionsForNode(vtkMRM
       && contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
 
     d->ConvertContourToRepresentationAction->setVisible(contourNode != NULL && !allRepresentations);
-    if( contourNode )
+    if (contourNode)
     {
       d->CreateRibbonModelAction->setVisible(!contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel));
       d->CreateLabelmapAction->setVisible(!contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap));
@@ -464,7 +464,7 @@ void qSlicerSubjectHierarchyContoursPlugin::hideShowRibbonModel()
 {
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
-  if( contourNode && contourNode->GetRibbonModelDisplayNode() )
+  if (contourNode && contourNode->GetRibbonModelDisplayNode())
   {
     contourNode->GetRibbonModelDisplayNode()->SetVisibility( (1+contourNode->GetRibbonModelDisplayNode()->GetVisibility())%2 );
   }
@@ -475,7 +475,7 @@ void qSlicerSubjectHierarchyContoursPlugin::hideShowLabelmap()
 {
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
-  if( contourNode )
+  if (contourNode)
   {
     // TODO : 2d vis readdition
     //contourNode->GetRibbonModelDisplayNode()->SetVisibility( (1+contourNode->GetRibbonModelDisplayNode()->GetVisibility())%2 );
@@ -487,7 +487,7 @@ void qSlicerSubjectHierarchyContoursPlugin::hideShowClosedSurfaceModel()
 {
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
-  if( contourNode && contourNode->GetClosedSurfaceModelDisplayNode() )
+  if (contourNode && contourNode->GetClosedSurfaceModelDisplayNode())
   {
     contourNode->GetClosedSurfaceModelDisplayNode()->SetVisibility( (1+contourNode->GetClosedSurfaceModelDisplayNode()->GetVisibility())%2 );
   }
@@ -498,7 +498,7 @@ void qSlicerSubjectHierarchyContoursPlugin::createRibbonModelRepresentation()
 {
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
-  if( contourNode ) 
+  if (contourNode) 
   {
     contourNode->GetRibbonModelPolyData();
   }
@@ -509,7 +509,7 @@ void qSlicerSubjectHierarchyContoursPlugin::createLabelmapRepresentation()
 {
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(currentNode->GetAssociatedNode());
-  if( contourNode == NULL )
+  if (contourNode == NULL)
   {
     qCritical() << "Unable to retrieve contour node from subject hierarchy node: " << currentNode->GetID() << "::" << currentNode->GetName();
     return;
@@ -526,7 +526,7 @@ void qSlicerSubjectHierarchyContoursPlugin::createLabelmapRepresentation()
       if (foundSubjectHierarchyNode)
       {
         vtkMRMLScalarVolumeNode* volNode = vtkMRMLScalarVolumeNode::SafeDownCast(foundSubjectHierarchyNode->GetAssociatedNode());
-        if( volNode )
+        if (volNode)
         {
           contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(volNode->GetID());
         }
@@ -545,7 +545,7 @@ void qSlicerSubjectHierarchyContoursPlugin::createLabelmapRepresentation()
       qCritical() << "Contour does not have a referenced anatomical series. Unable to convert to labelmap. Please use Contours module to convert.";
     }
   }
-  if( contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL )
+  if (contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL)
   {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     contourNode->GetLabelmapImageData();
@@ -584,7 +584,7 @@ void qSlicerSubjectHierarchyContoursPlugin::extractLabelmapFromContour()
   
   this->createLabelmapRepresentation();
 
-  if( contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
+  if (contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap))
   {
     vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(contourNode);
   }

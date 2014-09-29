@@ -426,7 +426,7 @@ int vtkSlicerContourMorphologyModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "Invalid image data! Scalar type has to be unsigned char instead of '" << (outputImageData?outputImageData->GetScalarTypeAsString():"None") << "'" << std::endl;
     return EXIT_FAILURE;
   }
-  if( baselineImageData->GetNumberOfPoints() != outputImageData->GetNumberOfPoints() )
+  if (baselineImageData->GetNumberOfPoints() != outputImageData->GetNumberOfPoints())
   {
     std::cerr << "Number of points do not match. " << baselineImageData->GetNumberOfPoints() << " != " << outputImageData->GetNumberOfPoints() << std::endl;
     return EXIT_FAILURE;

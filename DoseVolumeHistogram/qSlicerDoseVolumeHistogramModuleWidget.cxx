@@ -131,7 +131,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setMRMLScene(vtkMRMLScene* scene)
     }
   }
 
-  if( scene )
+  if (scene)
   {
     this->updateChartCheckboxesState();
   }

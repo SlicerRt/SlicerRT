@@ -231,7 +231,11 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRML
     error = true;
   }
 
-  scene->RemoveNode(nodeToAdd);
+  // Delete representation node if the added contour was created from one
+  if (nodeToAdd->IsA("vtkMRMLModelNode") || nodeToAdd->IsA("vtkMRMLScalarVolumeNode"))
+  {
+    scene->RemoveNode(nodeToAdd);
+  }
 
   return !error;
 }

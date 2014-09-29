@@ -124,16 +124,16 @@ void vtkPolyDataToLabelmapFilter::Update()
   double origin[3] = {0,0,0};
   std::vector<int> referenceExtentsVector;
   std::vector<double> originVector;
-  if( !this->DeterminePolyDataReferenceOverlap(referenceExtentsVector, originVector) )
+  if (!this->DeterminePolyDataReferenceOverlap(referenceExtentsVector, originVector))
   {
     vtkErrorMacro("Unable to determine input and reference overlap.");
     return;
   }
-  for( int i = 0; i < 6; ++i )
+  for (int i = 0; i < 6; ++i)
   {
     referenceExtents[i] = referenceExtentsVector[i];
   }
-  for( int i = 0; i < 3; ++i )
+  for (int i = 0; i < 3; ++i)
   {
     origin[i] = originVector[i];
   }
@@ -223,12 +223,12 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
   this->ReferenceImageData->GetExtent(referenceExtents);
   this->ReferenceImageData->GetOrigin(origin);
 
-  if( this->InputPolyData == NULL )
+  if (this->InputPolyData == NULL)
   {
     vtkErrorMacro("InputPolyData was null when trying to calculate overlap.");
     return false;
   }
-  if( this->InputPolyData->GetPoints() == NULL )
+  if (this->InputPolyData->GetPoints() == NULL)
   {
     this->CopyArraysToVectors(referenceExtentsVector, referenceExtents, originVector, origin);
     return true;
@@ -236,7 +236,7 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
   this->InputPolyData->GetPoints()->ComputeBounds();
   this->InputPolyData->GetPoints()->GetBounds(polydataBounds);
 
-  if( this->ReferenceImageData == NULL )
+  if (this->ReferenceImageData == NULL)
   {
     vtkErrorMacro("ReferenceImageData was null when trying to calcaluate overlap.");
     return false;
@@ -260,20 +260,20 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
 
   int calculatedExtents[6] = {0, 0, 0, 0, 0, 0};
   // for each boundary axis, check for necessary expansion of extents
-  for( int axis = 0; axis < 3; ++axis )
+  for (int axis = 0; axis < 3; ++axis)
   {
     // if same as original extent, no problem!
     calculatedExtents[2*axis+1] = ceil( (expandedBounds[2*axis+1] - expandedBounds[2*axis]) * (1/spacing[axis]));
-    if( calculatedExtents < 0 )
+    if (calculatedExtents < 0)
     {
       vtkErrorMacro("Invalid extent when calculating overlap between input polydata and reference image. Were they in the IJK coordinate system when this was called?");
       return false;
     }
   }
 
-  if( !areExtentsEqual(referenceExtents, calculatedExtents) )
+  if (!areExtentsEqual(referenceExtents, calculatedExtents))
   {
-    for( int i = 0; i < 6; ++i )
+    for (int i = 0; i < 6; ++i)
     {
       referenceExtents[i] = calculatedExtents[i];
     }
@@ -288,11 +288,11 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
 //----------------------------------------------------------------------------
 void vtkPolyDataToLabelmapFilter::CopyArraysToVectors( std::vector<int> &extentVector, int extents[6], std::vector<double> &originVector, double origin[3] )
 {
-  for( int i = 0; i < 6; ++i )
+  for (int i = 0; i < 6; ++i)
   {
     extentVector.push_back(extents[i]);
   }
-  for( int i = 0; i < 3; ++i )
+  for (int i = 0; i < 3; ++i)
   {
     originVector.push_back(origin[i]);
   }

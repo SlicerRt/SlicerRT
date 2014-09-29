@@ -153,7 +153,7 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
   {
     std::string labelmapFile = path + std::string("/") + std::string(element->GetAttribute("LabelmapFilename"));
     // Give the labelmap a chance to load if it exists
-    if( vtksys::SystemTools::FileExists(labelmapFile.c_str()) )
+    if (vtksys::SystemTools::FileExists(labelmapFile.c_str()))
     {
       std::string origFilename(this->GetFileName());
       this->SetFileName(labelmapFile.c_str());
@@ -163,14 +163,14 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
 
     // Build out other for closed surface and ribbon model
     std::string ribbonFile = path + std::string("/") + std::string(element->GetAttribute("RibbonModelFilename"));
-    if( vtksys::SystemTools::FileExists(ribbonFile.c_str()) )
+    if (vtksys::SystemTools::FileExists(ribbonFile.c_str()))
     {
       // Load the ribbon model!
       vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New();
-      if( this->ReadModelDataInternal(model, ribbonFile.c_str(), SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str()) )
+      if (this->ReadModelDataInternal(model, ribbonFile.c_str(), SlicerRtCommon::CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX.c_str()))
       {
         contourNode->SetAndObserveRibbonModelPolyData( model );
-        if( contourNode->GetRibbonModelDisplayNode() )
+        if (contourNode->GetRibbonModelDisplayNode())
         {
 #if (VTK_MAJOR_VERSION <= 5)
           contourNode->GetRibbonModelDisplayNode()->SetInputPolyData(model);
@@ -189,14 +189,14 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     }
 
     std::string closedSurfaceFile = path + std::string("/") + std::string(element->GetAttribute("ClosedSurfaceModelFilename"));
-    if( vtksys::SystemTools::FileExists(closedSurfaceFile.c_str()) )
+    if (vtksys::SystemTools::FileExists(closedSurfaceFile.c_str()))
     {
       // Load the closed surface!
       vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New();
-      if( this->ReadModelDataInternal(model, closedSurfaceFile.c_str(), SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str()) )
+      if (this->ReadModelDataInternal(model, closedSurfaceFile.c_str(), SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX.c_str()))
       {
         contourNode->SetAndObserveClosedSurfacePolyData( model );
-        if( contourNode->GetClosedSurfaceModelDisplayNode() )
+        if (contourNode->GetClosedSurfaceModelDisplayNode())
         {
 #if (VTK_MAJOR_VERSION <= 5)
           contourNode->GetClosedSurfaceModelDisplayNode()->SetInputPolyData(model);
@@ -215,11 +215,11 @@ int vtkMRMLContourStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
     }
 
     std::string roiPointsFile = path + std::string("/") + std::string(element->GetAttribute("RoiPointsFilename"));
-    if( vtksys::SystemTools::FileExists(roiPointsFile.c_str()) )
+    if (vtksys::SystemTools::FileExists(roiPointsFile.c_str()))
     {
       // Load the rt roi points
       vtkSmartPointer<vtkPolyData> model = vtkSmartPointer<vtkPolyData>::New();
-      if( this->ReadModelDataInternal(model, roiPointsFile.c_str(), "") )
+      if (this->ReadModelDataInternal(model, roiPointsFile.c_str(), ""))
       {
         contourNode->SetDicomRtRoiPoints( model );
       }
@@ -260,7 +260,7 @@ int vtkMRMLContourStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
 
   vtkSmartPointer<vtkXMLDataElement> element = vtkSmartPointer<vtkXMLDataElement>::Take(this->CreateXMLElement(fullName));
 
-  if( contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
+  if (contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap))
   {
     // Back up filename, functions below mess it all up
     std::string origFilename(this->GetFileName());
@@ -269,13 +269,13 @@ int vtkMRMLContourStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
     this->SetFileName(origFilename.c_str());
   }
 
-  if( contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) )
+  if (contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel))
   {
     std::string filename = path + std::string("/") + std::string(element->GetAttribute("RibbonModelFilename"));
     this->WriteModelDataInternal(contourNode->GetRibbonModelPolyData(), filename);
   }
 
-  if( contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel) )
+  if (contourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel))
   {
     std::string filename = path + std::string("/") + std::string(element->GetAttribute("ClosedSurfaceModelFilename"));
     this->WriteModelDataInternal(contourNode->GetClosedSurfacePolyData(), filename);

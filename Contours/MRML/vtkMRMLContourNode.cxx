@@ -366,11 +366,11 @@ void vtkMRMLContourNode::PrintSelf(ostream& os, vtkIndent indent)
     this->LabelmapImageData->PrintSelf(os, indent.GetNextIndent());
   }
 
-  if( this->RibbonModelPolyData != NULL )
+  if (this->RibbonModelPolyData != NULL)
   {
     this->RibbonModelPolyData->PrintSelf(os, indent);
   }
-  if( this->ClosedSurfacePolyData != NULL )
+  if (this->ClosedSurfacePolyData != NULL)
   {
     this->ClosedSurfacePolyData->PrintSelf(os, indent);
   }
@@ -399,9 +399,9 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
     /// TODO : if data is modified, other representations need to be changed/deleted accordingly
     ///  if reference node is larger than 1, update other representations
     this->StorableModifiedTime.Modified();
-    if( vtkPolyData::SafeDownCast(caller) != NULL )
+    if (vtkPolyData::SafeDownCast(caller) != NULL)
     {
-      if( caller == this->RibbonModelPolyData )
+      if (caller == this->RibbonModelPolyData)
       {
         this->InvokeEvent(vtkMRMLContourNode::RibbonModelPolyDataModifiedEvent, NULL);
         // Invalidate labelmap and closed surface model
@@ -413,7 +413,7 @@ void vtkMRMLContourNode::ProcessMRMLEvents(vtkObject *caller, unsigned long even
         this->InvokeEvent(vtkMRMLContourNode::ClosedSurfacePolyDataModifiedEvent, NULL);
       }
     }
-    else if( vtkImageData::SafeDownCast(caller) != NULL )
+    else if (vtkImageData::SafeDownCast(caller) != NULL)
     {
       this->InvokeEvent(vtkMRMLContourNode::LabelmapImageDataModifiedEvent, NULL);
       // TODO : what to do with the ribbon model? the dicom rt roi points?
@@ -557,16 +557,16 @@ vtkPlaneCollection* vtkMRMLContourNode::GetOrderedContourPlanesVtk() const
 void vtkMRMLContourNode::ShowRepresentation(ContourRepresentationType representationType, bool show)
 {
   vtkMRMLDisplayNode* displayNode(NULL);
-  for( int i = 0; i < this->GetNumberOfDisplayNodes(); ++i )
+  for (int i = 0; i < this->GetNumberOfDisplayNodes(); ++i)
   {
     displayNode = this->GetNthDisplayNode(i);
-    if( vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)  != NULL )
+    if (vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)  != NULL)
     {
-      if( vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)->GetInputPolyData() == this->RibbonModelPolyData && representationType == RibbonModel )
+      if (vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)->GetInputPolyData() == this->RibbonModelPolyData && representationType == RibbonModel)
       {
         break;
       }
-      else if( vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)->GetInputPolyData() == this->ClosedSurfacePolyData && representationType == ClosedSurfaceModel )
+      else if (vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)->GetInputPolyData() == this->ClosedSurfacePolyData && representationType == ClosedSurfaceModel)
       {
         break;
       }
@@ -574,7 +574,7 @@ void vtkMRMLContourNode::ShowRepresentation(ContourRepresentationType representa
     // TODO : when 2d visualization is added back in, control it here
   }
 
-  if( displayNode != NULL )
+  if (displayNode != NULL)
   {
     displayNode->SetVisibility(show?1:0);
   }
@@ -727,17 +727,17 @@ void vtkMRMLContourNode::SetDefaultConversionParametersForRepresentation(Contour
 bool vtkMRMLContourNode::IsRepresentationVisible(ContourRepresentationType type)
 {
   vtkMRMLDisplayNode* displayNode(NULL);
-  for( int i = 0; i < this->GetNumberOfDisplayNodes(); ++i )
+  for (int i = 0; i < this->GetNumberOfDisplayNodes(); ++i)
   {
     displayNode = this->GetNthDisplayNode(i);
-    if( vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)  != NULL )
+    if (vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)  != NULL)
     {
       // Closed surface or ribbon model?
-      if( vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)->GetInputPolyData() == this->RibbonModelPolyData && type == RibbonModel )
+      if (vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)->GetInputPolyData() == this->RibbonModelPolyData && type == RibbonModel)
       {
         return true;
       }
-      else if( vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)->GetInputPolyData() == this->ClosedSurfacePolyData && type == ClosedSurfaceModel )
+      else if (vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode)->GetInputPolyData() == this->ClosedSurfacePolyData && type == ClosedSurfaceModel)
       {
         return true;
       }
@@ -836,14 +836,14 @@ void vtkMRMLContourNode::OnNodeReferenceAdded( vtkMRMLNodeReference *reference )
   if (std::string(reference->GetReferenceRole()) == this->DisplayNodeReferenceRole)
   {
     vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(reference->ReferencedNode);
-    if( modelDisplayNode )
+    if (modelDisplayNode)
     {
       this->SetPolyDataToDisplayNode(modelDisplayNode->GetInputPolyData(), modelDisplayNode);
     }
 
     //TODO: When 2d vis is added back in, set the image data to the vis node
     //vtkMRMLContourLabelmapDisplayNode* labelmapDisplayNode = vtkMRMLContourLabelmapDisplayNode::SafeDownCast(reference->ReferencedNode);
-    //if( labelmapDisplayNode )
+    //if (labelmapDisplayNode)
     //{
 //      this->SetImageDataToDisplayNode(labelmapDisplayNode);
     //}
@@ -856,14 +856,14 @@ void vtkMRMLContourNode::OnNodeReferenceAdded( vtkMRMLNodeReference *reference )
 void vtkMRMLContourNode::OnNodeReferenceModified( vtkMRMLNodeReference *reference )
 {
   vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(reference->ReferencedNode);
-  if( modelDisplayNode )
+  if (modelDisplayNode)
   {
     this->SetPolyDataToDisplayNode(modelDisplayNode->GetInputPolyData(), modelDisplayNode);
   }
 
   // When 2d vis is added back in, set the image data to the vis node
   //vtkMRMLContourLabelmapDisplayNode* labelmapDisplayNode = vtkMRMLContourLabelmapDisplayNode::SafeDownCast(reference->ReferencedNode);
-  //if( labelmapDisplayNode )
+  //if (labelmapDisplayNode)
   //{
 //    this->SetImageDataToDisplayNode(labelmapDisplayNode);
 //  }
@@ -882,7 +882,7 @@ void vtkMRMLContourNode::SetPolyDataToDisplayNodes(vtkPolyData* polyData, Contou
     {
       this->SetPolyDataToDisplayNode(polyData, dnode);
     }
-    else if( dnode && type == RibbonModel && this->GetRibbonModelDisplayNode() == dnode )
+    else if (dnode && type == RibbonModel && this->GetRibbonModelDisplayNode() == dnode)
     {
       this->SetPolyDataToDisplayNode(polyData, dnode);
     }
@@ -1105,7 +1105,7 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
   }
 
   // Ribbon model
-  if( this->HasRepresentation(RibbonModel) )
+  if (this->HasRepresentation(RibbonModel))
   {
     vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
 
@@ -1146,7 +1146,7 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
   }
 
   // Closed surface model
-  if( this->HasRepresentation(ClosedSurfaceModel) )
+  if (this->HasRepresentation(ClosedSurfaceModel))
   {
     vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
 
@@ -1204,10 +1204,10 @@ bool vtkMRMLContourNode::HasBeenCreatedFromIndexedLabelmap()
 //vtkMRMLContourLabelmapDisplayNode* vtkMRMLContourNode::GetLabelmapVolumeDisplayNode()
 //{
 //  vtkMRMLDisplayNode* displayNode(NULL);
-//  for( int i = 0; i < this->GetNumberOfDisplayNodes(); ++i )
+//  for (int i = 0; i < this->GetNumberOfDisplayNodes(); ++i)
 //  {
     //displayNode = this->GetNthDisplayNode(i);
-    //if( vtkMRMLContourLabelmapDisplayNode::SafeDownCast(displayNode) != NULL )
+    //if (vtkMRMLContourLabelmapDisplayNode::SafeDownCast(displayNode) != NULL)
     //{
 //      return vtkMRMLContourLabelmapDisplayNode::SafeDownCast(displayNode);
     //}
@@ -1220,11 +1220,11 @@ bool vtkMRMLContourNode::HasBeenCreatedFromIndexedLabelmap()
 vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::GetRibbonModelDisplayNode()
 {
   vtkMRMLDisplayNode* displayNode(NULL);
-  for( int i = 0; i < this->GetNumberOfDisplayNodes(); ++i )
+  for (int i = 0; i < this->GetNumberOfDisplayNodes(); ++i)
   {
     displayNode = this->GetNthDisplayNode(i);
     vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode);
-    if( modelDisplayNode && modelDisplayNode->GetContourDisplayType() == RibbonModel )
+    if (modelDisplayNode && modelDisplayNode->GetContourDisplayType() == RibbonModel)
     {
       return modelDisplayNode;
     }
@@ -1237,11 +1237,11 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::GetRibbonModelDisplayNode()
 vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::GetClosedSurfaceModelDisplayNode()
 {
   vtkMRMLDisplayNode* displayNode(NULL);
-  for( int i = 0; i < this->GetNumberOfDisplayNodes(); ++i )
+  for (int i = 0; i < this->GetNumberOfDisplayNodes(); ++i)
   {
     displayNode = this->GetNthDisplayNode(i);
     vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(displayNode);
-    if( modelDisplayNode && modelDisplayNode->GetContourDisplayType() == ClosedSurfaceModel )
+    if (modelDisplayNode && modelDisplayNode->GetContourDisplayType() == ClosedSurfaceModel)
     {
       return modelDisplayNode;
     }
@@ -1253,7 +1253,7 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::GetClosedSurfaceModelDisplay
 //----------------------------------------------------------------------------
 vtkPolyData* vtkMRMLContourNode::GetRibbonModelPolyData()
 {
-  if( this->RibbonModelPolyData != NULL )
+  if (this->RibbonModelPolyData != NULL)
   {
     return this->RibbonModelPolyData;
   }
@@ -1280,7 +1280,7 @@ vtkPolyData* vtkMRMLContourNode::GetRibbonModelPolyData()
 //----------------------------------------------------------------------------
 vtkPolyData* vtkMRMLContourNode::GetClosedSurfacePolyData()
 {
-  if( this->ClosedSurfacePolyData != NULL )
+  if (this->ClosedSurfacePolyData != NULL)
   {
     return this->ClosedSurfacePolyData;
   }
@@ -1307,7 +1307,7 @@ vtkPolyData* vtkMRMLContourNode::GetClosedSurfacePolyData()
 //----------------------------------------------------------------------------
 vtkImageData* vtkMRMLContourNode::GetLabelmapImageData()
 {
-  if( this->LabelmapImageData != NULL )
+  if (this->LabelmapImageData != NULL)
   {
     return this->LabelmapImageData;
   }
@@ -1681,7 +1681,7 @@ void vtkMRMLContourNode::GetRASBounds(double bounds[6])
   {
     modelData = this->RibbonModelPolyData;
   }
-  if( modelData == NULL )
+  if (modelData == NULL)
   {
     // Get volume bounds
     this->GetLabelmapRASBounds(bounds);
@@ -1709,7 +1709,7 @@ bool vtkMRMLContourNode::GetModifiedSinceRead()
 //---------------------------------------------------------------------------
 vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateRibbonModelDisplayNode()
 {
-  if( this->GetRibbonModelDisplayNode() != NULL )
+  if (this->GetRibbonModelDisplayNode() != NULL)
   {
     return this->GetRibbonModelDisplayNode();
   }
@@ -1739,7 +1739,7 @@ vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateRibbonModelDisplayNode
 //---------------------------------------------------------------------------
 vtkMRMLContourModelDisplayNode* vtkMRMLContourNode::CreateClosedSurfaceDisplayNode()
 {
-  if( this->GetClosedSurfaceModelDisplayNode() != NULL )
+  if (this->GetClosedSurfaceModelDisplayNode() != NULL)
   {
     return this->GetClosedSurfaceModelDisplayNode();
   }

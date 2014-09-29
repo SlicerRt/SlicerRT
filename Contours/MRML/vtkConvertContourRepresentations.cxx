@@ -221,7 +221,7 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
       {
         referencedAnatomyVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(subjectHierarchyNode_ReferencedSeries->GetAssociatedNode());
 
-        if( referencedAnatomyVolumeNode )
+        if (referencedAnatomyVolumeNode)
         {
           // Check if the referenced anatomy volume is in the same coordinate system as the contour
           vtkSmartPointer<vtkGeneralTransform> modelToReferencedAnatomyVolumeIjkTransform = vtkSmartPointer<vtkGeneralTransform>::New();
@@ -373,7 +373,7 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
 
   polyDataToLabelmapFilter->Update();
 
-  if( polyDataToLabelmapFilter->GetOutput() == NULL )
+  if (polyDataToLabelmapFilter->GetOutput() == NULL)
   {
     vtkErrorMacro("Unable to convert from polydata to labelmap.");
     return NULL;
@@ -522,7 +522,7 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmap
     int labelmapExtents[6] = {0, 0, 0, 0, 0, 0};
     this->ContourNode->GetLabelmapImageData()->GetExtent(labelmapExtents);
 
-    if( SlicerRtCommon::AreBoundsEqual(referenceExtents, labelmapExtents) )
+    if (SlicerRtCommon::AreBoundsEqual(referenceExtents, labelmapExtents))
     {
       pad = true;
       vtkDebugMacro("ConvertFromIndexedLabelmapToClosedSurfaceModel: Adding 1 pixel padding around the image, shifting origin.");
@@ -617,7 +617,7 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmap
   vtkMRMLContourModelDisplayNode* closedSurfaceModelDisplayNode = this->ContourNode->CreateClosedSurfaceDisplayNode();
 
   // Set visibility and opacity to match the existing ribbon model visualization
-  if( closedSurfaceModelDisplayNode )
+  if (closedSurfaceModelDisplayNode)
   {
     closedSurfaceModelDisplayNode->SetSliceIntersectionVisibility(this->ContourNode->GetClosedSurfaceModelDisplayNode()->GetSliceIntersectionVisibility());
     closedSurfaceModelDisplayNode->SetVisibility(this->ContourNode->GetClosedSurfaceModelDisplayNode()->GetVisibility());

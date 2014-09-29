@@ -205,25 +205,25 @@ void vtkSlicerContoursModuleLogic::OnMRMLSceneEndImport()
       // Restore any color not handled during load
       // The color attribute is saved in the contour display node, but it doesn't seem to be restored on load
       vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(contourNode, this->GetMRMLScene());
-      if( shNode )
+      if (shNode)
       {
         vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
-        if( parentNode )
+        if (parentNode)
         {
           vtkMRMLColorTableNode* colorTableNode(NULL);
           int structureIndex(-1);
           contourNode->GetColor(structureIndex, colorTableNode, this->GetMRMLScene());
           double color[4] = {0,0,0,1};
-          if( colorTableNode )
+          if (colorTableNode)
           {
             colorTableNode->GetColor(structureIndex, color);
 
-            if( contourNode->GetRibbonModelDisplayNode() )
+            if (contourNode->GetRibbonModelDisplayNode())
             {
               contourNode->GetRibbonModelDisplayNode()->SetColor(color);
             }
 
-            if( contourNode->GetClosedSurfaceModelDisplayNode() )
+            if (contourNode->GetClosedSurfaceModelDisplayNode())
             {
               contourNode->GetClosedSurfaceModelDisplayNode()->SetColor(color);
             }
@@ -332,21 +332,21 @@ vtkMRMLContourNode::ContourRepresentationType vtkSlicerContoursModuleLogic::GetR
     ribbonModelExists = (*it)->HasRepresentation(vtkMRMLContourNode::RibbonModel);
     closedSurfaceModelExists = (*it)->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
     int total = (labelmapExists ? 1 : 0) + (ribbonModelExists ? 1 : 0) + (closedSurfaceModelExists ? 1 : 0);
-    if( total > 1 )
+    if (total > 1)
     {
       return vtkMRMLContourNode::None;
     }
     else if ( total == 1 )
     {
-      if( labelmapExists )
+      if (labelmapExists)
       {
         thisRepresentationType = vtkMRMLContourNode::IndexedLabelmap;
       }
-      else if( ribbonModelExists )
+      else if (ribbonModelExists)
       {
         thisRepresentationType = vtkMRMLContourNode::RibbonModel;
       }
-      else if( closedSurfaceModelExists )
+      else if (closedSurfaceModelExists)
       {
         thisRepresentationType = vtkMRMLContourNode::ClosedSurfaceModel;
       }
@@ -557,13 +557,13 @@ void vtkSlicerContoursModuleLogic::GetIndexedLabelmapWithGivenGeometry(vtkMRMLCo
 //-----------------------------------------------------------------------------
 vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateEmptyContourFromExistingContour(vtkMRMLContourNode* refContourNode, const std::string& contourNameNoSuffix)
 {
-  if( refContourNode == NULL )
+  if (refContourNode == NULL)
   {
     std::cerr << "Null input sent to vtkSlicerContoursModuleLogic::CreateEmptyContour.";
     return NULL;
   }
   vtkMRMLScene* scene = refContourNode->GetScene();
-  if( scene == NULL )
+  if (scene == NULL)
   {
     vtkErrorWithObjectMacro(refContourNode, "Invalid scene extracted from reference contour node: " << refContourNode->GetName());
   }
@@ -579,7 +579,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateEmptyContourFromExisting
 
   vtkSlicerContoursModuleLogic::CreateContourStorageNode(contourNode);
 
-  if( refContourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
+  if (refContourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap))
   {
     double dirs[3][3];
     refContourNode->GetIJKToRASDirections(dirs);
@@ -588,7 +588,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateEmptyContourFromExisting
     contourNode->SetSpacing(refContourNode->GetSpacing());
   }
   
-  if( refContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL )
+  if (refContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL)
   {
     contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(refContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str())->GetID());
   }
@@ -618,7 +618,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
   }
 
   std::string contourName;
-  if( optionalName != NULL )
+  if (optionalName != NULL)
   {
     contourName = std::string(optionalName);
   }
@@ -646,7 +646,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
     {
       vtkMRMLScalarVolumeNode* volNode = vtkMRMLScalarVolumeNode::SafeDownCast(representationNode);
 
-      if( volNode->GetImageData()->GetScalarType() != VTK_UNSIGNED_CHAR )
+      if (volNode->GetImageData()->GetScalarType() != VTK_UNSIGNED_CHAR)
       {
         vtkWarningWithObjectMacro(volNode, "Input image data to contour creation is not of scalar type VTK_UNSIGNED_CHAR. Attempting conversion.");
         vtkSmartPointer<vtkImageCast> imageCast = vtkSmartPointer<vtkImageCast>::New();
@@ -668,7 +668,7 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateContourFromRepresentatio
       newContourNode->SetIJKToRASDirections(dirs);
       newContourNode->SetAndObserveLabelmapImageData( volNode->GetImageData() );
 
-      if( volNode->GetAttribute("AssociatedNodeID") != NULL && mrmlScene->GetNodeByID( std::string(volNode->GetAttribute("AssociatedNodeID")) ) != NULL)
+      if (volNode->GetAttribute("AssociatedNodeID") != NULL && mrmlScene->GetNodeByID( std::string(volNode->GetAttribute("AssociatedNodeID"))) != NULL)
       {
         newContourNode->SetAndObserveRasterizationReferenceVolumeNodeId( volNode->GetAttribute("AssociatedNodeID") );
       }
@@ -773,10 +773,10 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::ExtractLabelmapFromContou
   volNode->SetAndObserveDisplayNodeID(dispNode->GetID());
 
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(contourNode);
-  if( shNode )
+  if (shNode)
   {
     vtkMRMLSubjectHierarchyNode* seriesNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
-    if( seriesNode )
+    if (seriesNode)
     {
       vtkMRMLColorTableNode* ctNode = vtkMRMLColorTableNode::SafeDownCast(seriesNode->GetNodeReference(SlicerRtCommon::CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE.c_str()));
       if (ctNode)
@@ -796,7 +796,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::ExtractLabelmapFromContou
 //-----------------------------------------------------------------------------
 vtkMRMLContourStorageNode* vtkSlicerContoursModuleLogic::CreateContourStorageNode( vtkMRMLContourNode* contourNode )
 {
-  if( contourNode == NULL || contourNode->GetScene() == NULL )
+  if (contourNode == NULL || contourNode->GetScene() == NULL)
   {
     std::cerr << "Unable to create a contour storage node. Null contour or null scene passed in." << std::endl;
     return NULL;

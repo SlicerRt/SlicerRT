@@ -447,7 +447,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
   }
 
   vtkImageData* image = bodyContourNode->GetLabelmapImageData();
-  if( image == NULL )
+  if (image == NULL)
   {
     errorStream << "Conversion to indexed labelmap failed.";
     return EXIT_FAILURE;
@@ -478,7 +478,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
       for (int x = extents[0]; x < extents[1]; x++)
       {
         unsigned char* pixel = static_cast<unsigned char*>(image->GetScalarPointer(x,y,z));
-        if( *pixel != 0 )
+        if (*pixel != 0)
         {
           voxelCount++;
         }
@@ -486,7 +486,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     }
   }
 
-  if( voxelCount != nonZeroVoxelCount )
+  if (voxelCount != nonZeroVoxelCount)
   {
     errorStream << "Non-zero voxel count does not match expected result. Got: " << voxelCount << ". Expected: " << nonZeroVoxelCount << std::endl;
     result = EXIT_FAILURE;
@@ -502,7 +502,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     converter->ReconvertRepresentation(vtkMRMLContourNode::ClosedSurfaceModel);
   }
 
-  if( !bodyContourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel) )
+  if (!bodyContourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel))
   {
     errorStream << "Conversion to closed surface model failed.";
     return EXIT_FAILURE;

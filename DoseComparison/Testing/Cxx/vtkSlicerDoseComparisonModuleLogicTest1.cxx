@@ -186,7 +186,7 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
   vtkImageData* comparison = math->GetOutput();
   double range[2];
   comparison->GetScalarRange(range);
-  if( range[0] != 0.0 || range[1] != 0.0 )
+  if (range[0] != 0.0 || range[1] != 0.0)
   {
     return EXIT_FAILURE;
   }
