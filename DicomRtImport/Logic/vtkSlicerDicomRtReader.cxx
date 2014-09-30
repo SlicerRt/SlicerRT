@@ -103,21 +103,22 @@ namespace
     return fabs(a - b) < EPSILON;
   }
 
-  double MajorityValue(vtkObject* object, const std::vector<double>& values)
+  double MajorityValue(vtkObject* object, const std::vector<double>& spacingValues)
   {
-    std::map<double, int> frequencies;
+    std::map<double, int> spacingValueFrequencies;
     double averageTotal(0.0);
     double averageCount(0.0);
-    for (std::vector<double>::const_iterator it = values.begin(); it != values.end(); ++it)
+    for (std::vector<double>::const_iterator it = spacingValues.begin(); it != spacingValues.end(); ++it)
     {
+      double roundedSpacingValue = vtkMath::Round((*it) / EPSILON) * EPSILON; // Round value to consider spacings within tolerance the same
       averageTotal += *it;
       averageCount++;
-      frequencies[*it]++;
+      spacingValueFrequencies[roundedSpacingValue]++;
     }
     double majorityValue(0.0);
     int majorityCount(-1);
     std::stringstream outputString;
-    for (std::map<double, int>::iterator it = frequencies.begin(); it != frequencies.end(); ++it)
+    for (std::map<double, int>::iterator it = spacingValueFrequencies.begin(); it != spacingValueFrequencies.end(); ++it)
     {
       outputString << "Planar spacing: " << it->first << ". Frequency: " << it->second << "." << std::endl;
       if (it->second > majorityCount)
@@ -128,11 +129,11 @@ namespace
     }
     if (AreEqualWithTolerance(majorityValue, averageTotal/averageCount))
     {
-      vtkDebugWithObjectMacro(object, "Inconsistent plane spacing. Details:\n" << outputString.str());
+      vtkDebugWithObjectMacro(object, "MajorityValue: Inconsistent plane spacing. Details:\n" << outputString.str());
     }
     else
     {
-      vtkErrorWithObjectMacro(object, "Inconsistent plane spacing. Details:\n" << outputString.str());
+      vtkErrorWithObjectMacro(object, "MajorityValue: Inconsistent plane spacing. Details:\n" << outputString.str());
     }
     
     return majorityValue;
@@ -453,7 +454,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   {
     if (xRayImageReceptorAngle != 0.0)
     {
-      vtkErrorMacro("LoadRTImage: Non-zero XRayImageReceptorAngle values are not supported!");
+      vtkErrorMacro("LoadRTImage: Non-zero XRayImageReceptorAngle spacingValues are not supported!");
       return;
     }
   }
@@ -509,7 +510,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   {
     if (gantryPitchAngle != 0.0)
     {
-      vtkErrorMacro("LoadRTImage: Non-zero GantryPitchAngle tag values are not supported yet!");
+      vtkErrorMacro("LoadRTImage: Non-zero GantryPitchAngle tag spacingValues are not supported yet!");
       return;
     }
   }
@@ -986,7 +987,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
     DRTContourSequence &rtContourSequenceObject = currentRoiObject.getContourSequence();
     if (!rtContourSequenceObject.gotoFirstItem().good())
     {
-      vtkErrorMacro("LoadRTStructureSet: Contour sequence for ROI is empty!");
+      vtkErrorMacro("GetDistanceBetweenContourPlanes: Contour sequence for ROI is empty!");
       continue;
     }
 
@@ -997,7 +998,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
     }
     if (rtContourSequenceObject.getNumberOfItems() < 2)
     {
-      vtkDebugMacro("Unable to calculate distance between contour planes, less than two planes detected. Skipping.");
+      vtkDebugMacro("GetDistanceBetweenContourPlanes: Unable to calculate distance between contour planes, less than two planes detected. Skipping.");
       continue;
     }
     if (!rtContourSequenceObject.gotoFirstItem().good())
@@ -1029,7 +1030,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       {
         Sint32 contourNumber(-1);
         contourItem.getContourNumber(contourNumber);
-        vtkWarningMacro("Contour does not contain enough points to extract a planar equation. Skipping contour number: " << contourNumber << ".");
+        vtkWarningMacro("GetDistanceBetweenContourPlanes: Contour does not contain enough points to extract a planar equation. Skipping contour number: " << contourNumber << ".");
         previousContourPlane->SetNormal(0.0, 0.0, 0.0);
         previousContourPlane->SetOrigin(0.0, 0.0, 0.0);
         previousSet = false;
@@ -1070,7 +1071,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       {
         Sint32 planeNumber;
         contourItem.getContourNumber(planeNumber);
-        vtkErrorMacro("All points in contour plane " << planeNumber << " in contour " << this->RoiSequenceVector[roiIndex].Name << " produce co-linear vectors. Unable to determine equation of the plane.");
+        vtkErrorMacro("GetDistanceBetweenContourPlanes: All points in contour plane " << planeNumber << " in contour " << this->RoiSequenceVector[roiIndex].Name << " produce co-linear vectors. Unable to determine equation of the plane.");
         break;
       }
 
@@ -1080,17 +1081,17 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
 
       if (previousSet)
       {
-        // Previous contour plane was valid, let er rip
+        // Previous contour plane was valid
         double thisDistanceBetweenPlanes = currentContourPlane->DistanceToPlane(previousContourPlane->GetOrigin(), currentContourPlane->GetNormal(), currentContourPlane->GetOrigin());
         planeSpacingValues.push_back(thisDistanceBetweenPlanes);
         if (AreEqualWithTolerance(thisDistanceBetweenPlanes, 0.0))
         {
-          // Distance between planes cannot be 0, this is a serious error, check exported data
+          // Distance between planes is 0 (used to indicate error, but it is fine if there is branching or similar, so we don't use this any more)
           zeroPlaneDistanceDetected = true;
         }
         else if (foundDistance && !AreEqualWithTolerance(thisDistanceBetweenPlanes, distanceBetweenContourPlanes))
         {
-          vtkErrorMacro("Contour: " << this->RoiSequenceVector[roiIndex].Name << " does not have consistent plane spacing (" << thisDistanceBetweenPlanes << " != " << distanceBetweenContourPlanes << "). Unable to compute distance between planes.");
+          vtkWarningMacro("GetDistanceBetweenContourPlanes: Contour '" << this->RoiSequenceVector[roiIndex].Name << "' does not have consistent plane spacing (" << thisDistanceBetweenPlanes << " != " << distanceBetweenContourPlanes << "). Using majority spacing distance.");
         }
         else if ( !foundDistance )
         { 
@@ -1104,11 +1105,6 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       previousContourPlane->SetOrigin(currentContourPlane->GetOrigin());
     } 
     while (rtContourSequenceObject.gotoNextItem().good());
-
-    if (zeroPlaneDistanceDetected)
-    {
-      vtkErrorMacro("Contour contains planes with distance 0. Check exported data for planar errors.");
-    }
 
     ++roiIndex;
   }
