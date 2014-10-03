@@ -137,6 +137,10 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
     {
       len += inVolumeToWorldTransformMatrix->GetElement(row, col) * inVolumeToWorldTransformMatrix->GetElement(row, col);
     }
+    if (len == 0.0)
+    {
+      len = 1.0;
+    }
     len = sqrt(len);
     for (row=0; row<3; row++)
     {
