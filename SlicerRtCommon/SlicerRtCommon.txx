@@ -128,11 +128,11 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
 
   // normalize direction vectors
   itk::Matrix<double,3,3> outputDirectionMatrix;
-  int col;
+  unsigned int col = 0;
   for (col=0; col<3; col++)
   {
-    double len =0;
-    int row;
+    double len = 0;
+    unsigned int row = 0;
     for (row=0; row<3; row++)
     {
       len += inVolumeToWorldTransformMatrix->GetElement(row, col) * inVolumeToWorldTransformMatrix->GetElement(row, col);
