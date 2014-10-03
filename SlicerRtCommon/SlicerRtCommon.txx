@@ -140,7 +140,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
     len = sqrt(len);
     for (row=0; row<3; row++)
     {
-      outputDirectionMatrix[row][col] =  inVolumeToWorldTransformMatrix->GetElement(row, col)/len;
+      outputDirectionMatrix[row][col] = inVolumeToWorldTransformMatrix->GetElement(row, col)/len;
     }
   }
 
