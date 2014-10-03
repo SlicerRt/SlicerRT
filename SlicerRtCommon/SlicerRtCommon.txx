@@ -125,30 +125,25 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
   // Set ITK image properties: orientation
   vtkSmartPointer<vtkMatrix4x4> inVolumeToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   inVolumeToWorldTransform->GetMatrix(inVolumeToWorldTransformMatrix);
-  double magnitude[3] = {0.0, 0.0, 0.0};
-  for (int i=0; i<3; i++)
+
+  // normalize direction vectors
+  itk::Matrix<double,3,3> outputDirectionMatrix;
+  int col;
+  for (col=0; col<3; col++)
   {
-    // Normalize vectors
-    for (int j=0; j<3; j++)
+    double len =0;
+    int row;
+    for (row=0; row<3; row++)
     {
-      magnitude[i] += inVolumeToWorldTransformMatrix->GetElement(i,j)
-                    * inVolumeToWorldTransformMatrix->GetElement(i,j);
+      len += inVolumeToWorldTransformMatrix->GetElement(row, col) * inVolumeToWorldTransformMatrix->GetElement(row, col);
     }
-    if (magnitude[i] == 0.0)
+    len = sqrt(len);
+    for (row=0; row<3; row++)
     {
-      magnitude[i] = 1.0;
+      outputDirectionMatrix[row][col] =  inVolumeToWorldTransformMatrix->GetElement(row, col)/len;
     }
-    magnitude[i] = sqrt(magnitude[i]);
   }
 
-  itk::Matrix<double,3,3> outputDirectionMatrix;
-  for(int i=0; i<3; i++)
-  {
-    for(int j=0; j<3; j++)
-    {
-      outputDirectionMatrix[i][j] = inVolumeToWorldTransformMatrix->GetElement(i,j) / magnitude[i];
-    }
-  }
   outItkImage->SetDirection(outputDirectionMatrix);
 
   // Set ITK image properties: regions
