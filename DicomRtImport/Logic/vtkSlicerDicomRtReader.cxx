@@ -1007,7 +1007,6 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       continue;
     }
 
-    bool zeroPlaneDistanceDetected(false);
     bool foundDistance(false);
     bool previousSet(false);
     // Iterate over each plane in the contour
@@ -1083,11 +1082,10 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       {
         // Previous contour plane was valid
         double thisDistanceBetweenPlanes = currentContourPlane->DistanceToPlane(previousContourPlane->GetOrigin(), currentContourPlane->GetNormal(), currentContourPlane->GetOrigin());
-        planeSpacingValues.push_back(thisDistanceBetweenPlanes);
-        if (AreEqualWithTolerance(thisDistanceBetweenPlanes, 0.0))
+        if (!AreEqualWithTolerance(thisDistanceBetweenPlanes, 0.0))
         {
-          // Distance between planes is 0 (used to indicate error, but it is fine if there is branching or similar, so we don't use this any more)
-          zeroPlaneDistanceDetected = true;
+          // Only add spacing value if it's not 0 - multiple contours may be drawn on the same plane and it's not considered for slice thickness computation
+          planeSpacingValues.push_back(thisDistanceBetweenPlanes);
         }
         else if (foundDistance && !AreEqualWithTolerance(thisDistanceBetweenPlanes, distanceBetweenContourPlanes))
         {
