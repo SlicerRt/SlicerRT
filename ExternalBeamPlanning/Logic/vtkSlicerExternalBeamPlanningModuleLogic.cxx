@@ -1515,6 +1515,27 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulateDose()
   doseVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(doseVolumeNode); // to be removed if we want to show only the last image
 
+#if (TODO)
+  /* This requires an existing study node */
+  vtkMRMLSubjectHierarchyNode* doseSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode( this->GetMRMLScene(), studyNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), doseVolumeNodeName, doseVolumeNode );
+  /* Look in vtkMRMLSubjectHierarchyNode for utility functions, such as 
+     how to find the study node, "getAssociatedHeirarchyNode", 
+     if there is an associated heirarchy node, 
+     the parent node should be the study,
+     navigate the tree to find what we want.
+
+     vtkMRMLSubjectHierarchyNode
+     vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode
+     GetParentNode()
+
+     If no existing study node, maybe better to create one.
+     It needs a UID, like this:
+
+     subjectHierarchySeriesNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(),
+     rtReader->GetSeriesInstanceUid());
+  */
+#endif
+
   /* Testing .. */
   doseVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
