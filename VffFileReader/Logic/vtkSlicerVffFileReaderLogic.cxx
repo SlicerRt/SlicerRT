@@ -43,6 +43,7 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#include <functional>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerVffFileReaderLogic);
