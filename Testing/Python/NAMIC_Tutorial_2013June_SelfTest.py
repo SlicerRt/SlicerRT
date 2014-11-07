@@ -540,6 +540,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       parametersRigid["linearTransform"] = linearTransform.GetID()
 
       parametersRigid["useRigid"] = True
+      parametersRigid["samplingPercentage"] = 0.0002
 
       self.cliBrainsFitRigidNode = None
       self.cliBrainsFitRigidNode = slicer.cli.run(brainsFit, None, parametersRigid)
