@@ -287,7 +287,7 @@ vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin
   if (!scene)
   {
     qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDvhParameterSetNodeForDvhArray: Invalid MRML scene!";
-    return false;
+    return NULL;
   }
 
   vtkSmartPointer<vtkCollection> dvhNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLDoseVolumeHistogramNode") );

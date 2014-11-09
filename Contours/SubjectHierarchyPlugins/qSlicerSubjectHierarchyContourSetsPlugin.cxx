@@ -396,7 +396,7 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addContourColorToCorrespondingCol
   if (!mrmlScene)
   {
     qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::addContourColorToCorrespondingColorTable: Invalid MRML scene!";
-    return NULL;
+    return false;
   }
 
   // Initialize color to invalid in case it cannot be found

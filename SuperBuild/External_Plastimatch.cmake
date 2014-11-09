@@ -80,7 +80,9 @@ ExternalProject_Add( Plastimatch
     ${PLASTIMATCH_EXTRA_LIBRARIES}
     -DDCMTK_DIR:STRING=${DCMTK_DIR}
     -DITK_DIR:STRING=${ITK_DIR}    
-    -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}    
+    -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+    -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
+    -DCMAKE_OSX_SYSROOT:PATH=${CMAKE_OSX_SYSROOT}
   #--Build step-----------------
   #--Install step-----------------
   # Don't perform installation at the end of the build
