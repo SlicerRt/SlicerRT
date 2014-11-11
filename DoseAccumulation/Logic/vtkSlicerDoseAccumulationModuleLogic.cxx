@@ -223,23 +223,23 @@ bool vtkSlicerDoseAccumulationModuleLogic::ReferenceDoseVolumeContainsDose()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &errorMessage)
+const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
 {
   vtkMRMLDoseAccumulationNode* paramNode = this->GetDoseAccumulationNode();
   if (!paramNode)
   {
-    errorMessage = "No parameter set node";
+    const char* errorMessage = "No parameter set node";
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Make sure inputs are initialized
   int numberOfInputDoseVolumes = paramNode->GetNumberOfSelectedInputVolumeNodes();
   if (numberOfInputDoseVolumes == 0)
   {
-    errorMessage = "No dose volume selected";
+    const char* errorMessage = "No dose volume selected";
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Get reference and output dose volumes
@@ -247,9 +247,9 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = paramNode->GetReferenceDoseVolumeNode();
   if (referenceDoseVolumeNode == NULL || outputAccumulatedDoseVolumeNode == NULL)
   {
-    errorMessage = "reference and/or output volume not specified!";
+    const char* errorMessage = "reference and/or output volume not specified!";
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Get reference image info
@@ -263,9 +263,10 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     vtkMRMLScalarVolumeNode* currentInputDoseVolumeNode = paramNode->GetNthSelectedInputVolumeNode(inputVolumeIndex);
     if (!currentInputDoseVolumeNode->GetImageData())
     {
-      errorMessage = "No image data in input volume #" + inputVolumeIndex;
-      vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
-      return;
+      std::stringstream errorMessage;
+      errorMessage << "No image data in input volume #" << inputVolumeIndex;
+      vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage.str());
+      return errorMessage.str().c_str();
     }
     std::map<std::string,double>* volumeNodeIdsToWeightsMap = paramNode->GetVolumeNodeIdsToWeightsMap();
     double currentWeight = (*volumeNodeIdsToWeightsMap)[currentInputDoseVolumeNode->GetID()];
@@ -348,17 +349,17 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
     vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(referenceDoseVolumeNode);
   if (!referenceDoseVolumeSubjectHierarchyNode)
   {
-    errorMessage = "No subject hierarchy node found for reference dose!"; 
+    const char* errorMessage = "No subject hierarchy node found for reference dose!";
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
-    return;
+    return errorMessage;
   }
   vtkMRMLSubjectHierarchyNode* studyNode = referenceDoseVolumeSubjectHierarchyNode->GetAncestorAtLevel(
     vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
   if (!studyNode)
   {
-    errorMessage = "No study node found for reference dose!"; 
+    const char* errorMessage = "No study node found for reference dose!";
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Create subject hierarchy node for the accumulated dose volume if it doesn't exist
@@ -370,9 +371,9 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
       this->GetMRMLScene(), studyNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, outputAccumulatedDoseVolumeNode->GetName(), outputAccumulatedDoseVolumeNode);
     if (!childSubjectHierarchyNode)
     {
-      errorMessage = "Failed to create subject hierarchy node!"; 
+      const char* errorMessage = "Failed to create subject hierarchy node!";
       vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
-      return;
+      return errorMessage;
     }
   }
   else
@@ -389,4 +390,6 @@ void vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(std::string &er
   outputAccumulatedDoseVolumeDisplayNode->AutoThresholdOff();
   outputAccumulatedDoseVolumeDisplayNode->SetLowerThreshold(0.5 * doseUnitScaling);
   outputAccumulatedDoseVolumeDisplayNode->SetApplyThreshold(1);
+  
+  return NULL;
 }

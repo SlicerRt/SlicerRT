@@ -537,6 +537,23 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  if (!paramNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  // Get DVH double array nodes for parameter set node
+  std::vector<vtkMRMLNode*> dvhNodes;
+  paramNode->GetDvhDoubleArrayNodes(dvhNodes);
+
+  // If number of nodes is the same in the table and the list of nodes, then we don't need refreshing the table
+  // (this function is called after each node event, so it cannot occur that a node has been removed and another added)
+  if (d->PlotCheckboxToStructureNameMap.size() == dvhNodes.size())
+  {
+    return;
+  }
+
   // Clear the table
   d->tableWidget_ChartStatistics->setRowCount(0);
   d->tableWidget_ChartStatistics->setColumnCount(0);
@@ -555,15 +572,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
 
   d->PlotCheckboxToStructureNameMap.clear();
 
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  // Get DVH double array nodes for parameter set node
-  std::vector<vtkMRMLNode*> dvhNodes;
-  paramNode->GetDvhDoubleArrayNodes(dvhNodes);
+  // We won't have table items if the list of nodes is empty
   if (dvhNodes.size() < 1)
   {
     return;

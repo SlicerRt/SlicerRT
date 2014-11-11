@@ -74,6 +74,8 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
   #------------------------------------------------------------------------------
   def TestSection_I_EvaluateIsocenterShifting(self):
     try:
+      #slicer.namic_selftest_instance = self #TODO: For debugging
+
       # Check for modules
       self.assertTrue( slicer.modules.dicomrtimport )
       self.assertTrue( slicer.modules.subjecthierarchy )
@@ -734,19 +736,19 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       raise Exception("Exception occurred, handled, thrown further to workflow level")
 
   #------------------------------------------------------------------------------
-  def DoseAccumulationUtility_CheckDoseVolume(self, widget, doseVolumeName, checked):
-    try:
-      checkboxes = slicer.util.findChildren(widget=widget, className='QCheckBox')
-      for checkbox in checkboxes:
-        if checkbox.property(self.doseAccumulationDoseVolumeNameProperty) == doseVolumeName:
-          checkbox.setChecked(checked)
-          break
-
-    except Exception, e:
-      import traceback
-      traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
-      raise Exception("Exception occurred, handled, thrown further to workflow level")
+  def DoseAccumulationUtility_SelectDoseVolume(self, volumeName, checked):
+    logic = slicer.modules.doseaccumulation.logic()
+    paramNode = logic.GetDoseAccumulationNode()
+    if paramNode == None:
+      print('ERROR: Failed to get dose accumulation parameter set node')
+      return
+    volumeNode = slicer.util.getNode(volumeName)
+    if volumeNode == None:
+      return
+    if checked:
+      paramNode.AddSelectedInputVolumeNode(volumeNode)
+    else:
+      paramNode.RemoveSelectedInputVolumeNode(volumeNode)
 
   #------------------------------------------------------------------------------
   def TestSection_I_07_AccumulateDose(self):
@@ -754,22 +756,19 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       mainWindow = slicer.util.mainWindow()
       mainWindow.moduleSelector().selectModule('DoseAccumulation')
       doseAccumulationWidget = slicer.modules.doseaccumulation.widgetRepresentation()
+      doseAccumulationLogic = slicer.modules.doseaccumulation.logic()
 
       day1Dose = slicer.util.getNode(self.day1DoseName)
       inputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Input')[0]
       referenceVolumeCombobox = slicer.util.findChildren(widget=inputFrame, className='qMRMLNodeComboBox')[0]
       referenceVolumeCombobox.setCurrentNode(day1Dose)
 
-      applyButton = slicer.util.findChildren(widget=doseAccumulationWidget, text='Apply')[0]
       outputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Output')[0]
       outputMrmlNodeCombobox = slicer.util.findChildren(widget=outputFrame, className='qMRMLNodeComboBox')[0]
-      
+
       self.assertTrue( referenceVolumeCombobox != None )
-      self.assertTrue( applyButton != None )
       self.assertTrue( outputMrmlNodeCombobox != None )
 
-      self.DoseAccumulationUtility_CheckDoseVolume(doseAccumulationWidget, self.day1DoseName, 1)
-      
       # Create output volumes
       accumulatedDoseUnregistered = slicer.vtkMRMLScalarVolumeNode()
       accumulatedDoseUnregistered.SetName(self.accumulatedDoseUnregisteredName)
@@ -779,27 +778,29 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       accumulatedDoseRigid.SetName(self.accumulatedDoseRigidName)
       slicer.mrmlScene.AddNode( accumulatedDoseRigid )
 
+      doseAccumulationWidget.updateWidgetFromMRML()
+
+      self.DoseAccumulationUtility_SelectDoseVolume(self.day1DoseName, True)
+
       # Accumulate Day 1 dose and untransformed Day 2 dose
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose",self.delayMs)
-      self.DoseAccumulationUtility_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 1)
+      self.DoseAccumulationUtility_SelectDoseVolume(self.day2DoseName, True)
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)
-      applyButton.click()
-      
+      doseAccumulationLogic.AccumulateDoseVolumes()
+
       self.assertTrue( accumulatedDoseUnregistered.GetImageData() )
-
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose finished",self.delayMs)
-      self.DoseAccumulationUtility_CheckDoseVolume(doseAccumulationWidget, self.day2DoseName, 0)
 
-      # Accumulate Day 1 dose and Day 2 dose transformed using the rigid transform
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration",self.delayMs)
-      self.DoseAccumulationUtility_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 1)
+      self.DoseAccumulationUtility_SelectDoseVolume(self.day2DoseName, False)
+      self.DoseAccumulationUtility_SelectDoseVolume(self.day2DoseRigidName, True)
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseRigid)
-      applyButton.click()
+      doseAccumulationLogic.AccumulateDoseVolumes()
       
       self.assertTrue( accumulatedDoseRigid.GetImageData() )
 
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration finished",self.delayMs)
-      self.DoseAccumulationUtility_CheckDoseVolume(doseAccumulationWidget, self.day2DoseRigidName, 0)
+      self.DoseAccumulationUtility_SelectDoseVolume(self.day2DoseRigidName, False)
 
     except Exception, e:
       import traceback
@@ -849,7 +850,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       self.delayDisplay("Show DVH charts",self.delayMs)
       showAllCheckbox = slicer.util.findChildren(widget=dvhWidget, text='Show/hide all', className='qCheckBox')[0]
       self.assertTrue( showAllCheckbox )
-      showAllCheckbox.setChecked(1)
+      showAllCheckbox.checked = True
 
     except Exception, e:
       import traceback

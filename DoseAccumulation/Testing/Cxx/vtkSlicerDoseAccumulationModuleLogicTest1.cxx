@@ -186,10 +186,9 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   doseAccumulationLogic->SetAndObserveDoseAccumulationNode(paramNode);
 
   // Compute DoseAccumulation
-  std::string errorMessage;
-  doseAccumulationLogic->AccumulateDoseVolumes(errorMessage);
+  const char* errorMessage = doseAccumulationLogic->AccumulateDoseVolumes();
 
-  if (!errorMessage.empty())
+  if (errorMessage)
   {
     std::cerr << "ERROR: " << errorMessage << std::endl;
     return EXIT_FAILURE;

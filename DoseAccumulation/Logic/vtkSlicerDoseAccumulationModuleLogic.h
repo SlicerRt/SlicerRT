@@ -52,7 +52,8 @@ public:
   bool ReferenceDoseVolumeContainsDose();
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
-  void AccumulateDoseVolumes(std::string &errorMessage);
+  /// \return Error message on failure, NULL otherwise
+  const char* AccumulateDoseVolumes();
 
 public:
   /// Set and observe dose accumulation parameter node 

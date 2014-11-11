@@ -322,6 +322,13 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
 
   vtkSmartPointer<vtkCollection> volumeNodes = vtkSmartPointer<vtkCollection>::Take( d->logic()->GetVolumeNodesFromScene() );
 
+  // If number of nodes is the same in the table and the list of nodes, then we don't need refreshing the table
+  // (this function is called after each node event, so it cannot occur that a node has been removed and another added)
+  if (d->CheckboxToVolumeIdMap.size() == volumeNodes->GetNumberOfItems())
+  {
+    return;
+  }
+
   // Clear the table
   d->tableWidget_Volumes->clearContents();
 
@@ -452,11 +459,13 @@ void qSlicerDoseAccumulationModuleWidget::applyClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  std::string errorMessage;
-  d->logic()->AccumulateDoseVolumes(errorMessage);
+  const char* errorMessage = d->logic()->AccumulateDoseVolumes();
 
-  d->label_Error->setVisible( !errorMessage.empty() );
-  d->label_Error->setText( QString(errorMessage.c_str()) );
+  d->label_Error->setVisible( errorMessage );
+  if (errorMessage)
+  {
+    d->label_Error->setText( QString(errorMessage) );
+  }
 
   this->refreshVolumesTable();
 
