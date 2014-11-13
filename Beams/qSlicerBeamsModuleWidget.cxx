@@ -294,8 +294,7 @@ void qSlicerBeamsModuleWidget::applyClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  std::string errorMessage;
-  d->logic()->CreateBeamModel(errorMessage);
+  std::string errorMessage = d->logic()->CreateBeamModel();
 
   d->label_Error->setVisible( !errorMessage.empty() );
   d->label_Error->setText( QString(errorMessage.c_str()) );

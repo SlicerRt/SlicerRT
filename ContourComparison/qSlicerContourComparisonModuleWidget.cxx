@@ -380,8 +380,7 @@ void qSlicerContourComparisonModuleWidget::computeHausdorffClicked()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  std::string errorMessage;
-  d->logic()->ComputeHausdorffDistances(errorMessage);
+  std::string errorMessage = d->logic()->ComputeHausdorffDistances();
 
   if (paramNode->GetHausdorffResultsValid())
   {
@@ -422,8 +421,7 @@ void qSlicerContourComparisonModuleWidget::computeDiceClicked()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  std::string errorMessage;
-  d->logic()->ComputeDiceStatistics(errorMessage);
+  std::string errorMessage = d->logic()->ComputeDiceStatistics();
 
   if (paramNode->GetDiceResultsValid())
   {

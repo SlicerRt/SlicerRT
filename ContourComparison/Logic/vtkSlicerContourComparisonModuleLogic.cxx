@@ -54,10 +54,11 @@ public:
   vtkTypeMacro(vtkSlicerContourComparisonModuleLogicPrivate,vtkObject);
 
   /// Get input contours as labelmaps, then convert them to Plm_image volumes
-  void GetInputContoursAsPlmVolumes(
+  /// \return Error message, empty string if no error
+  std::string GetInputContoursAsPlmVolumes(
     Plm_image::Pointer& plmRefContourLabelmap,
     Plm_image::Pointer& plmCmpContourLabelmap,
-    double &checkpointItkConvertStart, std::string & errorMessage);
+    double &checkpointItkConvertStart);
 
   void SetLogic(vtkSlicerContourComparisonModuleLogic* logic) { this->Logic = logic; };
 
@@ -87,15 +88,16 @@ vtkSlicerContourComparisonModuleLogicPrivate::~vtkSlicerContourComparisonModuleL
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsPlmVolumes(
+std::string vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsPlmVolumes(
   Plm_image::Pointer& plmRefContourLabelmap,
   Plm_image::Pointer& plmCmpContourLabelmap,
-  double &checkpointItkConvertStart, std::string & errorMessage )
+  double &checkpointItkConvertStart )
 {
   if (!this->Logic->GetContourComparisonNode() || !this->Logic->GetMRMLScene())
   {
-    vtkErrorMacro("GetInputContoursAsItkVolumes: Invalid MRML scene or parameter set node!");
-    return;
+    std::string errorMessage("Invalid MRML scene or parameter set node");
+    vtkErrorMacro("GetInputContoursAsItkVolumes: " << errorMessage);
+    return errorMessage;
   }
 
   vtkMRMLContourNode* referenceContourNode = this->Logic->GetContourComparisonNode()->GetReferenceContourNode();
@@ -114,9 +116,9 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsPlmVolumes(
 
   if (!referenceContourNode->GetLabelmapImageData() || !compareContourNode->GetLabelmapImageData())
   {
-    errorMessage = "Failed to get indexed labelmap representation from selected contours";
+    std::string errorMessage("Failed to get indexed labelmap representation from selected contours");
     vtkErrorMacro("GetInputContoursAsItkVolumes: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Convert inputs to ITK images
@@ -126,22 +128,26 @@ void vtkSlicerContourComparisonModuleLogicPrivate::GetInputContoursAsPlmVolumes(
   vtkMRMLScalarVolumeNode* refVolumeNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(referenceContourNode);
   plmRefContourLabelmap = 
     PlmCommon::ConvertVolumeNodeToPlmImage (refVolumeNode);
-  if (!plmRefContourLabelmap) {
-    errorMessage = "Failed to convert contour labelmaps into Plm_image!";
+  if (!plmRefContourLabelmap)
+  {
+    std::string errorMessage("Failed to convert contour labelmaps into Plm_image");
     vtkErrorMacro("GetInputContoursAsPlmVolumes: " << errorMessage);
-    return;
+    return errorMessage;
   }
   this->Logic->GetMRMLScene()->RemoveNode(refVolumeNode);
 
   vtkMRMLScalarVolumeNode* compareVolumeNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(compareContourNode);
   plmCmpContourLabelmap = 
     PlmCommon::ConvertVolumeNodeToPlmImage (compareVolumeNode);
-  if (!plmCmpContourLabelmap) {
-    errorMessage = "Failed to convert contour labelmaps into Plm_image!";
+  if (!plmCmpContourLabelmap)
+  {
+    std::string errorMessage("Failed to convert contour labelmaps into Plm_image");
     vtkErrorMacro("GetInputContoursAsPlmVolumes: " << errorMessage);
-    return;
+    return errorMessage;
   }
   this->Logic->GetMRMLScene()->RemoveNode(compareVolumeNode);
+
+  return "";
 }
 
 //-----------------------------------------------------------------------------
@@ -278,12 +284,13 @@ void vtkSlicerContourComparisonModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &errorMessage)
+std::string vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics()
 {
   if (!this->ContourComparisonNode || !this->GetMRMLScene())
   {
-    vtkErrorMacro("ComputeDiceStatistics: Invalid MRML scene or parameter set node!");
-    return;
+    std::string errorMessage("Invalid MRML scene or parameter set node");
+    vtkErrorMacro("ComputeDiceStatistics: " << errorMessage);
+    return errorMessage;
   }
 
   this->ContourComparisonNode->DiceResultsValidOff();
@@ -296,11 +303,12 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
   // Convert input images to the format Plastimatch can use
   Plm_image::Pointer plmRefContourLabelmap;
   Plm_image::Pointer plmCmpContourLabelmap;
-  this->LogicPrivate->GetInputContoursAsPlmVolumes(plmRefContourLabelmap, plmCmpContourLabelmap, checkpointItkConvertStart, errorMessage);
-  if (!errorMessage.empty())
+  std::string inputToPlmResult = this->LogicPrivate->GetInputContoursAsPlmVolumes(plmRefContourLabelmap, plmCmpContourLabelmap, checkpointItkConvertStart);
+  if (!inputToPlmResult.empty())
   {
-    vtkErrorMacro("ComputeDiceStatistics: Error occurred during ITK conversion!");
-    return;
+    std::string errorMessage("Error occurred during ITK conversion");
+    vtkErrorMacro("ComputeDiceStatistics: " << errorMessage);
+    return errorMessage;
   }
 
   // Get voxel volume and number of voxels (the itk_image_header_compare check made sure the spacings match)
@@ -345,15 +353,18 @@ void vtkSlicerContourComparisonModuleLogic::ComputeDiceStatistics(std::string &e
       << "\tConverting from VTK to ITK: " << checkpointDiceStart-checkpointItkConvertStart << " s\n"
       << "\tDice computation: " << checkpointEnd-checkpointDiceStart << " s");
   }
+
+  return "";
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::string &errorMessage)
+std::string vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances()
 {
   if (!this->ContourComparisonNode || !this->GetMRMLScene())
   {
-    vtkErrorMacro("ComputeHausdorffDistances: Invalid MRML scene or parameter set node!");
-    return;
+    std::string errorMessage("Invalid MRML scene or parameter set node");
+    vtkErrorMacro("ComputeHausdorffDistances: " << errorMessage);
+    return errorMessage;
   }
 
   this->ContourComparisonNode->HausdorffResultsValidOff();
@@ -366,11 +377,12 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
   // Convert input images to the format Plastimatch can use
   Plm_image::Pointer plmRefContourLabelmap;
   Plm_image::Pointer plmCmpContourLabelmap;
-  this->LogicPrivate->GetInputContoursAsPlmVolumes(plmRefContourLabelmap, plmCmpContourLabelmap, checkpointItkConvertStart, errorMessage);
-  if (!errorMessage.empty())
+  std::string inputToPlmResult = this->LogicPrivate->GetInputContoursAsPlmVolumes(plmRefContourLabelmap, plmCmpContourLabelmap, checkpointItkConvertStart);
+  if (!inputToPlmResult.empty())
   {
-    vtkErrorMacro("ComputeHausdorffStatistics: Error occurred during ITK conversion!");
-    return;
+    std::string errorMessage("Error occurred during ITK conversion");
+    vtkErrorMacro("ComputeHausdorffDistances: " << errorMessage);
+    return errorMessage;
   }
 
   // Compute Hausdorff distances
@@ -399,4 +411,6 @@ void vtkSlicerContourComparisonModuleLogic::ComputeHausdorffDistances(std::strin
       << "\tConverting from VTK to ITK: " << checkpointHausdorffStart-checkpointItkConvertStart << " s\n"
       << "\tHausdorff computation: " << checkpointEnd-checkpointHausdorffStart << " s");
   }
+
+  return "";
 }

@@ -64,22 +64,22 @@ public:
   /// the required representation can be got without problems
   /// \return The selected contour node if valid, NULL otherwise. Also returns NULL if 
   ///         hierarchies are accepted, in this case a warning is logged too.
-  vtkMRMLContourNode* selectedContourNode();
+  Q_INVOKABLE vtkMRMLContourNode* selectedContourNode();
 
   /// Get selected contour node list. If this gives a non-empty list, then it is sure that
   /// the required representation can be got from all contours without problems
   std::vector<vtkMRMLContourNode*> selectedContourNodes();
 
   /// Returns currently selected contour or contour hierarchy node
-  vtkMRMLNode* currentNode();
+  Q_INVOKABLE vtkMRMLNode* currentNode();
   /// Returns currently selected contour or contour hierarchy node's ID
-  QString currentNodeID();
+  Q_INVOKABLE QString currentNodeID();
 
   /// Set currently selected contour or contour hierarchy node by its ID
-  void setCurrentNodeID(const QString& nodeID);
+  Q_INVOKABLE void setCurrentNodeID(const QString& nodeID);
 
   /// Set currently selected contour or contour hierarchy node by pointer
-  void setCurrentNode(vtkMRMLNode* newCurrentNode);
+  Q_INVOKABLE void setCurrentNode(vtkMRMLNode* newCurrentNode);
 
   /// Update widget state according to selection and set widget properties
   void updateWidgetState();

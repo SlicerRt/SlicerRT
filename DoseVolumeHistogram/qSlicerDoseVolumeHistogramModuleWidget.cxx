@@ -788,8 +788,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
   // Compute the DVH for each structure in the selected contour set using the selected dose volume
   for (std::vector<vtkMRMLContourNode*>::iterator contourIt = structureContourNodes.begin(); contourIt != structureContourNodes.end(); ++contourIt)
   {
-    std::string errorMessage;
-    d->logic()->ComputeDvh((*contourIt), errorMessage);
+    std::string errorMessage = d->logic()->ComputeDvh(*contourIt);
 
     if (!errorMessage.empty())
     {

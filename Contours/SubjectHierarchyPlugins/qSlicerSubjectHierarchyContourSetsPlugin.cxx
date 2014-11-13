@@ -142,7 +142,7 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canAddNodeToSubjectHierarchy(vt
 
   // Cannot add if new parent is not a contour set node
   // Do not examine parent if the pointer is NULL. In that case the parent is ignored, the confidence numbers are got based on the to-be child node alone.
-  if (parent && !parent->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
+  if (!parent || !parent->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()))
   {
     return 0.0;
   }
@@ -155,8 +155,6 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canAddNodeToSubjectHierarchy(vt
     {
       return 1.0; // Only the Contours plugin can handle this add operation
     }
-
-    return 0.7; // Might be other plugin that can handle adding volumes and models in the subject hierarchy
   }
 
   return 0.0;

@@ -444,10 +444,8 @@ int vtkSlicerContourComparisonModuleLogicTest1( int argc, char * argv[] )
   contourComparisonLogic->SetAndObserveContourComparisonNode(paramNode);
 
   // Compute Dice and Hausdorff
-  std::string errorMessageDice;
-  contourComparisonLogic->ComputeDiceStatistics(errorMessageDice);
-  std::string errorMessageHausdorff;
-  contourComparisonLogic->ComputeHausdorffDistances(errorMessageHausdorff);
+  std::string errorMessageDice = contourComparisonLogic->ComputeDiceStatistics();
+  std::string errorMessageHausdorff = contourComparisonLogic->ComputeHausdorffDistances();
 
   if (!paramNode->GetHausdorffResultsValid() || !paramNode->GetDiceResultsValid())
   {

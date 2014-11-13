@@ -46,10 +46,12 @@ public:
 
 public:
   /// Compute Dice statistics from the selected input contour labelmaps
-  void ComputeDiceStatistics(std::string &errorMessage);
+  /// \return Error message, empty string if no error
+  std::string ComputeDiceStatistics();
 
   /// Compute Hausdorff distances from the selected input contour labelmaps
-  void ComputeHausdorffDistances(std::string &errorMessage);
+  /// \return Error message, empty string if no error
+  std::string ComputeHausdorffDistances();
 
 public:
   void SetAndObserveContourComparisonNode(vtkMRMLContourComparisonNode* node);

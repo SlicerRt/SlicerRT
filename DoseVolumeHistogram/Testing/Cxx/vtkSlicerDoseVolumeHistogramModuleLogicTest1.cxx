@@ -432,9 +432,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     std::cout << "Computing DVH for contour '" << (*contourIt)->GetName() << "'" << std::endl;
 
-    std::string errorMessage;
-    dvhLogic->ComputeDvh((*contourIt), errorMessage);
-
+    std::string errorMessage = dvhLogic->ComputeDvh((*contourIt));
     if (!errorMessage.empty())
     {
       std::cerr << errorMessage << std::endl;

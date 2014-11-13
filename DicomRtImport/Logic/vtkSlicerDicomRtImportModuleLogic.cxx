@@ -896,8 +896,7 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic = vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
       beamsLogic->SetAndObserveBeamsNode(beamParameterSetNode);
       beamsLogic->SetAndObserveMRMLScene(this->GetMRMLScene());
-      std::string errorMessage;
-      beamsLogic->CreateBeamModel(errorMessage);
+      std::string errorMessage = beamsLogic->CreateBeamModel();
       if (!errorMessage.empty())
       {
         vtkWarningMacro("LoadRtPlan: Failed to create beam geometry for isocenter: " << addedMarkupsNode->GetName());

@@ -370,17 +370,19 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* structureContourNode, std::string &errorMessage)
+std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* structureContourNode)
 {
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
-    vtkErrorMacro("ComputeDvh: Invalid MRML scene or parameter set node!");
-    return;
+    std::string errorMessage("Invalid MRML scene or parameter set node");
+    vtkErrorMacro("ComputeDvh: " << errorMessage);
+    return errorMessage;
   }
   if (!structureContourNode)
   {
-    vtkWarningMacro("ComputeDvh: Invalid structure contour node");
-    return;
+    std::string errorMessage("Invalid structure contour node");
+    vtkErrorMacro("ComputeDvh: " << errorMessage);
+    return errorMessage;
   }
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
@@ -390,8 +392,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   vtkMRMLScalarVolumeNode* doseVolumeNode = this->DoseVolumeHistogramNode->GetDoseVolumeNode();
   if (!doseVolumeNode)
   {
-    vtkErrorMacro("ComputeDvh: Invalid dose volume!");
-    return;
+    std::string errorMessage("Invalid dose volume");
+    vtkErrorMacro("ComputeDvh: " << errorMessage);
+    return errorMessage;
   }
 
   // Get maximum dose from dose volume
@@ -427,9 +430,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   structureStencil->GetExtent(stencilExtent);
   if (stencilExtent[1]-stencilExtent[0] <= 0 || stencilExtent[3]-stencilExtent[2] <= 0 || stencilExtent[5]-stencilExtent[4] <= 0)
   {
-    errorMessage = "Invalid stenciled dose volume";
+    std::string errorMessage("Invalid stenciled dose volume");
     vtkErrorMacro("ComputeDvh: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Compute statistics
@@ -446,9 +449,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   // Report error if there are no voxels in the stenciled dose volume (no non-zero voxels in the resampled labelmap)
   if (structureStat->GetVoxelCount() < 1)
   {
-    errorMessage = "Dose volume and the structure do not overlap"; // User-friendly error to help troubleshooting
+    std::string errorMessage("Dose volume and the structure do not overlap"); // User-friendly error to help troubleshooting
     vtkErrorMacro("ComputeDvh: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Get structure name
@@ -578,9 +581,9 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   {
     if (rangeMin<0)
     {
-      errorMessage = "The dose volume contains negative dose values";
+      std::string errorMessage("The dose volume contains negative dose values");
       vtkErrorMacro("ComputeDvh: " << errorMessage);
-      return;
+      return errorMessage;
     }
 
     startValue = this->StartValue;
@@ -669,6 +672,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNode* str
   {
     vtkDebugMacro("ComputeDvh: DVH computation time for structure '" << (structureContourNode->GetStructureName() ? structureContourNode->GetStructureName() : "Invalid") << "': " << checkpointEnd-checkpointStart << " s");
   }
+
+  return "";
 }
 
 //---------------------------------------------------------------------------

@@ -46,11 +46,13 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Compute and set source fiducial position from isocenter position and beam parameters
-  void ComputeSourceFiducialPosition(std::string &errorMessage, vtkTransform* sourceToIsocenterTransform=NULL);
+  /// \return Error message, empty string if no error
+  std::string ComputeSourceFiducialPosition(vtkTransform* sourceToIsocenterTransform=NULL);
 
   /// Create beam geometry model from isocenter and source fiducials
   /// \param errorMessage Error message if any. If empty, then there have been no errors in course of the computation
-  void CreateBeamModel(std::string &errorMessage);
+  /// \return Error message, empty string if no error
+  std::string CreateBeamModel();
 
 public:
   /// Set and observe dose accumulation parameter node 

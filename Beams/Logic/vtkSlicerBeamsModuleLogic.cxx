@@ -166,27 +166,28 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &errorMessage, vtkTransform* aSourceToIsocenterTransform/*=NULL*/)
+std::string vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(vtkTransform* aSourceToIsocenterTransform/*=NULL*/)
 {
   if (!this->BeamsNode || !this->GetMRMLScene())
   {
-    vtkErrorMacro("ComputeSourceFiducialPosition: Invalid MRML scene or parameter set node!");
-    return;
+    std::string errorMessage("Invalid MRML scene or parameter set node");
+    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage);
+    return errorMessage;
   }
   if (!this->BeamsNode->GetIsocenterMarkupsNode())
   {
-    errorMessage = "Invalid isocenter markups node!";
-    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage); 
-    return;
+    std::string errorMessage("Invalid isocenter markups node");
+    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage);
+    return errorMessage;
   }
 
   // Get isocenter markups node
   vtkMRMLMarkupsFiducialNode* isocenterNode = this->BeamsNode->GetIsocenterMarkupsNode();
   if (!isocenterNode)
   {
-    errorMessage = "Unable to retrieve isocenter markups node!";
-    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage); 
-    return;
+    std::string errorMessage("Unable to retrieve isocenter markups node");
+    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage);
+    return errorMessage;
   }
 
   // Get isocenter coordinates
@@ -197,9 +198,9 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
   vtkMRMLSubjectHierarchyNode* isocenterSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(isocenterNode);
   if (!isocenterSubjectHierarchyNode)
   {
-    errorMessage = "Unable to retrieve isocenter subject hierarchy node!";
-    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage); 
-    return;
+    std::string errorMessage("Unable to retrieve isocenter subject hierarchy node");
+    vtkErrorMacro("ComputeSourceFiducialPosition: " << errorMessage);
+    return errorMessage;
   }
 
   // Extract beam-related parameters needed to compute source position
@@ -268,51 +269,52 @@ void vtkSlicerBeamsModuleLogic::ComputeSourceFiducialPosition(std::string &error
     aSourceToIsocenterTransform->Identity();
     aSourceToIsocenterTransform->DeepCopy(sourceToIsocenterTransform);
   }
+
+  return "";
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
+std::string vtkSlicerBeamsModuleLogic::CreateBeamModel()
 {
   if (!this->BeamsNode || !this->GetMRMLScene())
   {
-    vtkErrorMacro("CreateBeamModel: Invalid MRML scene or parameter set node!");
-    return;
+    std::string errorMessage("Invalid MRML scene or parameter set node");
+    vtkErrorMacro("CreateBeamModel: " << errorMessage);
+    return errorMessage;
   }
 
   if (!this->BeamsNode->GetIsocenterMarkupsNode())
   {
-    errorMessage = "Isocenter markups is empty!";
+    std::string errorMessage("Isocenter markup list is empty");
     vtkErrorMacro("CreateBeamModel: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Compute source position
-  std::string errorMessageSource("");
   vtkSmartPointer<vtkTransform> sourceToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();
-  this->ComputeSourceFiducialPosition(errorMessageSource, sourceToIsocenterTransform);
+  std::string errorMessageSource = this->ComputeSourceFiducialPosition(sourceToIsocenterTransform);
   if (!errorMessageSource.empty())
   {
-    errorMessage = "Failed to compute source position:\n" + errorMessageSource;
-    vtkErrorMacro("CreateBeamModel: " << errorMessage);
-    return;
+    vtkErrorMacro("CreateBeamModel: " << errorMessageSource);
+    return errorMessageSource;
   }
 
   // Get isocenter and source markups node
   vtkMRMLMarkupsFiducialNode* isocenterNode = this->BeamsNode->GetIsocenterMarkupsNode();
   if (!isocenterNode)
   {
-    errorMessage = "Unable to retrieve isocenter markups node according its ID!";
+    std::string errorMessage("Unable to retrieve isocenter markups node according its ID");
     vtkErrorMacro("CreateBeamModel: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Get subject hierarchy node for the isocenter
   vtkMRMLSubjectHierarchyNode* isocenterSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(isocenterNode);
   if (!isocenterSubjectHierarchyNode)
   {
-    errorMessage = "Unable to retrieve isocenter subject hierarchy node!";
+    std::string errorMessage("Unable to retrieve isocenter subject hierarchy node");
     vtkErrorMacro("CreateBeamModel: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Extract beam-related parameters needed to compute source position
@@ -346,24 +348,24 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   // Get beam model node
   if (!this->BeamsNode->GetBeamModelNode())
   {
-    errorMessage = "Invalid beam model node!";
-    vtkErrorMacro(<<errorMessage); 
-    return;
+    std::string errorMessage("Invalid beam model node");
+    vtkErrorMacro("CreateBeamModel: " << errorMessage);
+    return errorMessage;
   }
   vtkMRMLModelNode* beamModelNode = this->BeamsNode->GetBeamModelNode();
   if (!beamModelNode)
   {
-    errorMessage = "Unable to retrieve beam model node!";
+    std::string errorMessage("Unable to retrieve beam model node");
     vtkErrorMacro("CreateBeamModel: " << errorMessage);
-    return;
+    return errorMessage;
   }
 
   // Get isocenter position
   if (isocenterNode->GetNumberOfFiducials() != 2)
   {
-    errorMessage = "Invalid isocenter markups fiducial count! It is supposed to be 2.";
-    vtkErrorMacro(<<errorMessage); 
-    return;
+    std::string errorMessage("Invalid isocenter markups fiducial count! It is supposed to be 2");
+    vtkErrorMacro("CreateBeamModel: " << errorMessage);
+    return errorMessage;
   }
   double isocenterCoordinates[4] = {0.0, 0.0, 0.0};
   isocenterNode->GetNthFiducialPosition(0, isocenterCoordinates);
@@ -428,5 +430,7 @@ void vtkSlicerBeamsModuleLogic::CreateBeamModel(std::string &errorMessage)
   beamModelNode->SetSelectable(1);
   beamModelNode->Modified();
 
-  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
+  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
+
+  return "";
 }
