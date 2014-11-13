@@ -773,7 +773,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // Get selected contours
-  std::vector<vtkMRMLContourNode*> structureContourNodes = d->ContourSelectorWidget->selectedContourNodes();
+  QList<vtkMRMLContourNode*> structureContourNodes = d->ContourSelectorWidget->selectedContourNodes();
 
   // Initialize progress bar
   QProgressDialog *convertProgress = new QProgressDialog(qSlicerApplication::application()->mainWindow());
@@ -786,10 +786,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
   unsigned int currentContour = 0;
 
   // Compute the DVH for each structure in the selected contour set using the selected dose volume
-  for (std::vector<vtkMRMLContourNode*>::iterator contourIt = structureContourNodes.begin(); contourIt != structureContourNodes.end(); ++contourIt)
+  foreach (vtkMRMLContourNode* contour, structureContourNodes)
   {
-    std::string errorMessage = d->logic()->ComputeDvh(*contourIt);
-
+    std::string errorMessage = d->logic()->ComputeDvh(contour);
     if (!errorMessage.empty())
     {
       d->label_Error->setVisible(true);

@@ -68,10 +68,10 @@ public:
 
   /// Get selected contour node list. If this gives a non-empty list, then it is sure that
   /// the required representation can be got from all contours without problems
-  std::vector<vtkMRMLContourNode*> selectedContourNodes();
+  Q_INVOKABLE QList<vtkMRMLContourNode*> selectedContourNodes();
 
   /// Returns currently selected contour or contour hierarchy node
-  Q_INVOKABLE vtkMRMLNode* currentNode();
+  vtkMRMLNode* currentNode();
   /// Returns currently selected contour or contour hierarchy node's ID
   Q_INVOKABLE QString currentNodeID();
 
@@ -107,7 +107,7 @@ public:
   void ungroup();
 
   /// Validate selection (sets IsSelectionValid flag) and update widgets
-  bool validateSelection(std::vector<vtkMRMLContourNode*>& contours, bool slave);
+  bool validateSelection(QList<vtkMRMLContourNode*>& contours, bool slave);
 
   /// Returns true if selection is valid (the required representations can be got), false otherwise
   /// Takes occasional slave instances into account
@@ -136,7 +136,7 @@ protected:
   /// The forced reference of this instance is used, because this is called only from the master (moreover the forced reference
   /// is the same throughout the group).
   /// \param contours List of contours to search in. It should be either the only instance's selection or the unified selection of the group
-  void setReferenceInSelection(std::vector<vtkMRMLContourNode*>& contours);
+  void setReferenceInSelection(QList<vtkMRMLContourNode*> contours);
 
   /// Set master instance pointer to indicate that this instance is a slave to that one
   /// This function is only called by the master instance
