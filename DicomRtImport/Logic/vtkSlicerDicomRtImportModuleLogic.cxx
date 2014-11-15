@@ -540,14 +540,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtStructureSet(vtkSlicerDicomRtReade
 //---------------------------------------------------------------------------
 bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo *loadInfo)
 {
-  vtkSmartPointer<vtkMRMLSubjectHierarchyNode> subjectHierarchySeriesNode;
-
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
   const char* seriesName = loadInfo->GetLoadableName(0);
-
-  std::string shSeriesNodeName(seriesName);
-  shSeriesNodeName.append(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);
-  shSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(shSeriesNodeName);
 
   // Load Volume
   vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> volumeStorageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
@@ -669,21 +663,17 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader* rtRea
   volumeDisplayNode->SetLowerThreshold(0.5 * doseUnitScaling);
   volumeDisplayNode->SetApplyThreshold(1);
 
-  // Create subject hierarchy entry
-  subjectHierarchySeriesNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-  subjectHierarchySeriesNode->SetAssociatedNodeID(volumeNode->GetID());
-  subjectHierarchySeriesNode->SetLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
+  // Setup subject hierarchy entry
+  vtkMRMLSubjectHierarchyNode* subjectHierarchySeriesNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+    this->GetMRMLScene(), NULL, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, seriesName, volumeNode );
   subjectHierarchySeriesNode->AddUID(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME,
     rtReader->GetSeriesInstanceUid());
-  subjectHierarchySeriesNode->SetName(shSeriesNodeName.c_str());
-  this->GetMRMLScene()->AddNode(subjectHierarchySeriesNode);
 
   // Insert series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
 
   // Set dose unit attributes to subject hierarchy study node
-  vtkMRMLSubjectHierarchyNode* studyHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(
-    subjectHierarchySeriesNode->GetParentNode() );
+  vtkMRMLSubjectHierarchyNode* studyHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(subjectHierarchySeriesNode->GetParentNode());
   if (!studyHierarchyNode)
   {
     vtkErrorMacro("LoadRtDose: Unable to get parent study hierarchy node for dose volume '" << volumeNode->GetName() << "'");
@@ -881,6 +871,8 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       vtkSmartPointer<vtkMRMLModelNode> beamModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
       beamModelNode->SetName(beamModelName.c_str());
       this->GetMRMLScene()->AddNode(beamModelNode);
+      // Save automatically created subject hierarchy node for later use (associate it to the beam model hierarchy node and set it up)
+      vtkMRMLSubjectHierarchyNode* beamModelSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamModelNode);
 
       // Create Beams parameter set node
       std::string beamParameterSetNodeName;
@@ -919,10 +911,12 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
       this->GetMRMLScene()->AddNode(beamModelHierarchyDisplayNode);
       beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
 
-      // Put new beam model in the subject hierarchy
-      vtkMRMLSubjectHierarchyNode* beamModelSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-        this->GetMRMLScene(), (this->BeamModelsInSeparateBranch ? beamModelSubjectHierarchyRootNode.GetPointer() : subjectHierarchyFiducialNode),
-        vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES, beamModelName.c_str(), beamModelHierarchyNode);
+      // Put new beam model in the subject hierarchy. Get subject hierarchy node automatically created for the
+      // beam model and set it up for nested association by associating it with the beam model hierarchy node
+      beamModelSubjectHierarchyNode->SetAssociatedNodeID(beamModelHierarchyNode->GetID());
+      vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode( this->GetMRMLScene(), 
+        (this->BeamModelsInSeparateBranch ? beamModelSubjectHierarchyRootNode.GetPointer() : subjectHierarchyFiducialNode),
+        vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES, beamModelName.c_str(), beamModelHierarchyNode );
       beamModelSubjectHierarchyNode->SetIndexInParent(beamIndex);
 
       // Compute and set geometry of possible RT image that references the loaded beam.
@@ -951,8 +945,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader* rtRea
 //---------------------------------------------------------------------------
 bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtReader, vtkDICOMImportInfo* loadInfo)
 {
-  vtkSmartPointer<vtkMRMLSubjectHierarchyNode> subjectHierarchySeriesNode;
-
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
   const char* seriesName = loadInfo->GetLoadableName(0);
 
@@ -961,10 +953,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtRe
     vtkErrorMacro("LoadRtImage: Only one loadable and one file name is allowed for RT Image series '" << seriesName << "')");
     return false;
   }
-
-  std::string shSeriesNodeName(seriesName);
-  shSeriesNodeName.append(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX);
-  shSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(shSeriesNodeName);
 
   // Load Volume
   vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> volumeStorageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
@@ -1001,10 +989,9 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtRe
   }
   volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
 
-  // Create subject hierarchy entry
-  subjectHierarchySeriesNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-  subjectHierarchySeriesNode->SetAssociatedNodeID(volumeNode->GetID());
-  subjectHierarchySeriesNode->SetLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
+  // Set up subject hierarchy entry
+  vtkMRMLSubjectHierarchyNode* subjectHierarchySeriesNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+    this->GetMRMLScene(), NULL, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, seriesName, volumeNode );
   subjectHierarchySeriesNode->AddUID( vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME,
     rtReader->GetSeriesInstanceUid() );
 
@@ -1049,9 +1036,6 @@ bool vtkSlicerDicomRtImportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader* rtRe
   rtImagePositionStream << rtImagePosition[0] << " " << rtImagePosition[1];
   subjectHierarchySeriesNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME.c_str(),
     rtImagePositionStream.str().c_str() );
-
-  subjectHierarchySeriesNode->SetName(shSeriesNodeName.c_str());
-  this->GetMRMLScene()->AddNode(subjectHierarchySeriesNode);
 
   // Insert series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
@@ -1157,44 +1141,6 @@ void vtkSlicerDicomRtImportModuleLogic::InsertSeriesInSubjectHierarchy( vtkSlice
   if (!modality)
   {
     vtkErrorMacro("InsertSeriesInSubjectHierarchy: Series '" << seriesNode->GetName() << "' has invalid modality attribute!");
-  }
-  // Put contour set under anatomical volume
-  else if (!STRCASECMP(modality, "RTSTRUCT"))
-  {
-    const char* referencedSeriesUid = seriesNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str());
-    if (referencedSeriesUid)
-    {
-      vtkSmartPointer<vtkMRMLSubjectHierarchyNode> referencedSeriesNode;
-      vtkMRMLSubjectHierarchyNode* foundSubjectHierarchyNode =
-        vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-        this->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid);
-      if (foundSubjectHierarchyNode)
-      {
-        referencedSeriesNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::Take(foundSubjectHierarchyNode);
-        referencedSeriesNode->Register(NULL);
-      }
-      else
-      {
-        // Create dummy anatomical volume node to put the contour set under. When the actual volume is loaded, it occupies the node
-        referencedSeriesNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-        referencedSeriesNode->SetLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
-        referencedSeriesNode->AddUID( vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME,
-          referencedSeriesUid);
-        std::string referencedSeriesNodeName = SlicerRtCommon::CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX +
-          vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES + vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_NODE_NAME_POSTFIX;
-        referencedSeriesNode->SetName(referencedSeriesNodeName.c_str());
-        this->GetMRMLScene()->AddNode(referencedSeriesNode);
-
-        vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
-          this->GetMRMLScene(), rtReader->GetPatientId(), rtReader->GetStudyInstanceUid(), referencedSeriesUid );
-      }
-
-      seriesNode->SetParentNodeID(referencedSeriesNode->GetID());
-    }
-    else
-    {
-      vtkErrorMacro("InsertSeriesInSubjectHierarchy: Contour set '" << seriesNode->GetName() << "' has no referenced series!");
-    }
   }
 }
 
@@ -1521,13 +1467,13 @@ void vtkSlicerDicomRtImportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
   this->GetMRMLScene()->AddNode(displayedModelNode);
   std::string displayedModelNodeName = SlicerRtCommon::PLANARIMAGE_MODEL_NODE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName());
   displayedModelNode->SetName(displayedModelNodeName.c_str());
-  displayedModelNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_EXCLUDE_FROM_POTENTIAL_NODES_LIST_ATTRIBUTE_NAME.c_str(), "1");
+  displayedModelNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_EXCLUDE_FROM_TREE_ATTRIBUTE_NAME.c_str(), "1");
 
   vtkSmartPointer<vtkMRMLScalarVolumeNode> textureVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   this->GetMRMLScene()->AddNode(textureVolumeNode);
   std::string textureVolumeNodeName = SlicerRtCommon::PLANARIMAGE_TEXTURE_NODE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName());
   textureVolumeNode->SetName(textureVolumeNodeName.c_str());
-  textureVolumeNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_EXCLUDE_FROM_POTENTIAL_NODES_LIST_ATTRIBUTE_NAME.c_str(), "1");
+  textureVolumeNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_EXCLUDE_FROM_TREE_ATTRIBUTE_NAME.c_str(), "1");
 
   // Create PlanarImage parameter set node
   std::string planarImageParameterSetNodeName;

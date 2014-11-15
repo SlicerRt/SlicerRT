@@ -71,7 +71,7 @@ public:
   Q_INVOKABLE QList<vtkMRMLContourNode*> selectedContourNodes();
 
   /// Returns currently selected contour or contour hierarchy node
-  vtkMRMLNode* currentNode();
+  Q_INVOKABLE vtkMRMLNode* currentNode();
   /// Returns currently selected contour or contour hierarchy node's ID
   Q_INVOKABLE QString currentNodeID();
 

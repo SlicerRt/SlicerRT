@@ -62,6 +62,9 @@
 #include <vtksys/SystemTools.hxx>
 
 //------------------------------------------------------------------------------
+const char* CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE = "rasterizationVolumeRef";
+
+//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLContourNode);
 
 //------------------------------------------------------------------------------
@@ -468,13 +471,13 @@ void vtkMRMLContourNode::SetAndObserveRasterizationReferenceVolumeNodeId(const c
     this->SetAndObserveLabelmapImageData(NULL);
   }
 
-  this->SetAndObserveNodeReferenceID(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str(), id);
+  this->SetAndObserveNodeReferenceID(CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE, id);
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkMRMLContourNode::GetRasterizationReferenceVolumeNode()
 {
-  return vtkMRMLScalarVolumeNode::SafeDownCast(this->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()));
+  return vtkMRMLScalarVolumeNode::SafeDownCast(this->GetNodeReference(CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE));
 }
 
 //----------------------------------------------------------------------------

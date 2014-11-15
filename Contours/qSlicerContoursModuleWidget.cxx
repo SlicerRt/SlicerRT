@@ -288,7 +288,7 @@ bool qSlicerContoursModuleWidget::getReferenceVolumeNodeIdOfSelectedContours(QSt
   }
 
   referenceVolumeNodeId.clear();
-  vtkMRMLNode* referenceVolumeNode = (*d->SelectedContourNodes.begin())->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str());
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = (*d->SelectedContourNodes.begin())->GetRasterizationReferenceVolumeNode();
   if (referenceVolumeNode != NULL)
   {
     referenceVolumeNodeId = referenceVolumeNode->GetID();
@@ -297,7 +297,7 @@ bool qSlicerContoursModuleWidget::getReferenceVolumeNodeIdOfSelectedContours(QSt
   bool allCreatedFromLabelmap = true;
   for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
   {
-    vtkMRMLNode* thisContourReferenceVolumeNode = (*it)->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str() );
+    vtkMRMLScalarVolumeNode* thisContourReferenceVolumeNode = (*it)->GetRasterizationReferenceVolumeNode();
     if ( allCreatedFromLabelmap && !(*it)->HasBeenCreatedFromIndexedLabelmap() )
     {
       allCreatedFromLabelmap = false;
@@ -619,7 +619,7 @@ bool qSlicerContoursModuleWidget::haveConversionParametersChangedForIndexedLabel
   Q_D(qSlicerContoursModuleWidget);
 
   // Reference volume has changed if the reference volume doesn't match the stored reference volume
-  bool referenceVolumeNodeChanged = ( d->MRMLNodeComboBox_ReferenceVolume->currentNode() != contourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) );
+  bool referenceVolumeNodeChanged = ( d->MRMLNodeComboBox_ReferenceVolume->currentNode() != contourNode->GetRasterizationReferenceVolumeNode() );
   bool oversamplingFactorChanged = ( contourNode->HasBeenCreatedFromIndexedLabelmap() ? false
                                    : ( fabs(this->getOversamplingFactor() - contourNode->GetRasterizationOversamplingFactor()) > EPSILON ) );
 

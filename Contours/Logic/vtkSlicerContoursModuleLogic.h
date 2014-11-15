@@ -82,7 +82,7 @@ public:
   /// \param allMustContain If set to true, this function returns true only if all the selected
   ///        contours contain the representation. Otherwise it returns true even if only one contains it
   /// \return True if every selected node has the given type of representation, false otherwise
-  static bool ContoursContainRepresentation(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain=true);
+  static bool ContoursContainRepresentation(std::vector<vtkMRMLContourNode*> contours, vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain=true);
 
   /// Get the indexed labelmap representation of a contour with a certain geometry (grid, lattice)
   /// Note: The contour node will not be changed. If the result indexed labelmap needs to be set to the contour, it has to be done manually

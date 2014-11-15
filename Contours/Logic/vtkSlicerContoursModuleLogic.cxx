@@ -373,11 +373,11 @@ vtkMRMLContourNode::ContourRepresentationType vtkSlicerContoursModuleLogic::GetR
 const char* vtkSlicerContoursModuleLogic::GetRasterizationReferenceVolumeIdOfContours(std::vector<vtkMRMLContourNode*>& contours, bool &sameReferenceVolumeInContours)
 {
   sameReferenceVolumeInContours = true;
-  vtkMRMLNode* rasterizationReferenceNode = (*contours.begin())->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str());
+  vtkMRMLScalarVolumeNode* rasterizationReferenceNode = (*contours.begin())->GetRasterizationReferenceVolumeNode();
 
   for (std::vector<vtkMRMLContourNode*>::iterator it = contours.begin(); it != contours.end(); ++it)
   {
-    vtkMRMLNode* thisContourRasterizationReferenceNode = (*it)->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str());
+    vtkMRMLScalarVolumeNode* thisContourRasterizationReferenceNode = (*it)->GetRasterizationReferenceVolumeNode();
     if (thisContourRasterizationReferenceNode != rasterizationReferenceNode)
     {
       sameReferenceVolumeInContours = false;
@@ -411,6 +411,8 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
     contour->GetScene(), vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid);
   if (!referencedSeriesNode)
   {
+    // TODO: If there is no rasterization reference, can we try to guess a reasonable default (regular volume in the same study)
+    //   Create separate utility function for this, see other TODOs
     return NULL;
   }
 
@@ -457,6 +459,8 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
     // Get referenced series UID for contour
     // Note: Do not use function for getting reference for one contour due to performance reasons (comparing the UID strings are
     //   much faster than getting the subject hierarchy node by UID many times)
+    // TODO: If there is no rasterization reference, can we try to guess a reasonable default (regular volume in the same study)
+    //   Create separate utility function for this, see other TODOs
     const char* referencedSeriesUid = contourSubjectHierarchyNode->GetAttribute(
       SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str() );
 
@@ -495,7 +499,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerContoursModuleLogic::ContoursContainRepresentation(std::vector<vtkMRMLContourNode*>& contours, vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain/*=true*/)
+bool vtkSlicerContoursModuleLogic::ContoursContainRepresentation(std::vector<vtkMRMLContourNode*> contours, vtkMRMLContourNode::ContourRepresentationType representationType, bool allMustContain/*=true*/)
 {
   if (contours.size() == 0)
   {
@@ -588,9 +592,9 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::CreateEmptyContourFromExisting
     contourNode->SetSpacing(refContourNode->GetSpacing());
   }
   
-  if (refContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) != NULL)
+  if (refContourNode->GetRasterizationReferenceVolumeNode())
   {
-    contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(refContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str())->GetID());
+    contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(refContourNode->GetRasterizationReferenceVolumeNode()->GetID());
   }
 
   contourNode->SetRasterizationOversamplingFactor(refContourNode->GetRasterizationOversamplingFactor());

@@ -198,7 +198,7 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
   UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
 
   // Get reference volume node
-  vtkMRMLScalarVolumeNode* selectedReferenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast( this->ContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) );
+  vtkMRMLScalarVolumeNode* selectedReferenceVolumeNode = this->ContourNode->GetRasterizationReferenceVolumeNode();
   if (!selectedReferenceVolumeNode)
   {
     vtkErrorMacro("ConvertFromModelToIndexedLabelmap: No reference volume node!");
@@ -514,8 +514,8 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromIndexedLabelmap
   // Determine here if we need to pad the labelmap to create a completely closed surface
   vtkSmartPointer<vtkImageConstantPad> padder;
   bool pad(false);
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->ContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()));
-  if (referenceVolumeNode != NULL)
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ContourNode->GetRasterizationReferenceVolumeNode();
+  if (referenceVolumeNode)
   {
     int referenceExtents[6] = {0, 0, 0, 0, 0, 0};
     referenceVolumeNode->GetImageData()->GetExtent(referenceExtents);
@@ -669,7 +669,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
   if ( desiredType == vtkMRMLContourNode::IndexedLabelmap && 
     (this->ContourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel) || this->ContourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) ) )
   {
-    if ( this->ContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) == NULL )
+    if ( this->ContourNode->GetRasterizationReferenceVolumeNode() == NULL )
     {
       vtkErrorMacro("ConvertToRepresentation: Unable to convert to indexed labelmap without a reference volume node!");
       return false;
@@ -690,7 +690,7 @@ bool vtkConvertContourRepresentations::ConvertToRepresentation(vtkMRMLContourNod
     // If the indexed labelmap is not created yet then we convert to it first
     if ( !this->ContourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap) )
     {
-      if ( this->ContourNode->GetNodeReference(SlicerRtCommon::CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE.c_str()) == NULL )
+      if ( this->ContourNode->GetRasterizationReferenceVolumeNode() == NULL )
       {
         vtkErrorMacro("ConvertToRepresentation: Unable to convert to indexed labelmap without a reference volume node (it is needed to convert into closed surface model)!");
         return false;

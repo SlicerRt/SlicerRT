@@ -96,9 +96,7 @@ public:
 
   static const std::string CONTOUR_NEW_CONTOUR_NAME;
   static const std::string CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME;
-  static const std::string CONTOURHIERARCHY_DUMMY_ANATOMICAL_VOLUME_NODE_NAME_PREFIX;
   static const std::string CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE;
-  static const std::string CONTOUR_RASTERIZATION_VOLUME_REFERENCE_ROLE;
 
   // DicomRtImport constants
   static const std::string DICOMRTIMPORT_ATTRIBUTE_PREFIX;
