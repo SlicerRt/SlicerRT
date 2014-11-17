@@ -302,7 +302,8 @@ void qMRMLContourSelectorWidget::setReferenceInSelection(QList<vtkMRMLContourNod
   if (d->ForcedReferenceVolumeNodeID.isEmpty())
   {
     // Look for referenced volume for contours in DICOM and set it as forced if found
-    vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContours(contours.toVector().toStdVector());
+    std::vector<vtkMRMLContourNode*> contoursStd = contours.toVector().toStdVector();
+    vtkMRMLScalarVolumeNode* referencedVolume = vtkSlicerContoursModuleLogic::GetReferencedVolumeByDicomForContours(contoursStd);
     if (referencedVolume)
     {
       // Set referenced volume and turn off oversampling in selected contours
