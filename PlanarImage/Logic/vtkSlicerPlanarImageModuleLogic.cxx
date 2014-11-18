@@ -205,10 +205,10 @@ void vtkSlicerPlanarImageModuleLogic::ComputeImagePlaneCorners(vtkMRMLScalarVolu
   planarImageIjkToWorldTransform->Concatenate(planarImageIjkToRasTransform);
 
   // Four corners of the image in volume IJK coordinate system.
-  double point1Image[4] = { 0.0,     0.0,     0.0 };
-  double point2Image[4] = { dims[0], 0.0,     0.0 };
-  double point3Image[4] = { 0.0,     dims[1], 0.0 };
-  double point4Image[4] = { dims[0], dims[1], 0.0 };
+  double point1Image[4] = { 0.0,             0.0,             0.0 };
+  double point2Image[4] = { (double)dims[0], 0.0,             0.0 };
+  double point3Image[4] = { 0.0,             (double)dims[1], 0.0 };
+  double point4Image[4] = { (double)dims[0], (double)dims[1], 0.0 };
 
   // Compute the four corners of the image in world coordinate system.
   double point1RAS[4] = { 0.0, 0.0, 0.0 };
