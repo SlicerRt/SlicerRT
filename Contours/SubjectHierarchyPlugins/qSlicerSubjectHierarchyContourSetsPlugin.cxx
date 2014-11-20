@@ -161,7 +161,7 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canAddNodeToSubjectHierarchy(vt
 }
 
 //----------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parentNode)
+bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parentNode, const char* level/*='Series'*/)
 {
   if (!nodeToAdd || !parentNode)
   {

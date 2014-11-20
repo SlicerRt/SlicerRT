@@ -293,7 +293,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
     // Get common ancestor of the two input dose volumes
     vtkMRMLSubjectHierarchyNode* commonAncestor = vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(
       this->DoseComparisonNode->GetReferenceDoseVolumeNode(), this->DoseComparisonNode->GetCompareDoseVolumeNode(),
-      vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_SUBJECT );
+      vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_PATIENT );
 
     // Add gamma volume to subject hierarchy
     vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
