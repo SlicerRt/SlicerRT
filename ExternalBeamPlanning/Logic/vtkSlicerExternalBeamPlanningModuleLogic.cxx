@@ -34,16 +34,16 @@
 #include "vtkSlicerContoursModuleLogic.h"
 
 // Plastimatch includes
-#include "plm_image.h"
-#include "ion_beam.h"
-#include "ion_plan.h"
 #include "itk_image_accumulate.h"
 #include "itk_image_create.h"
-#include "plm_image_header.h"
 #include "itk_image_save.h"
 #include "itk_image_scale.h"
 #include "itk_image_stats.h"
+#include "plm_image.h"
+#include "plm_image_header.h"
 #include "rpl_volume.h"
+#include "rt_beam.h"
+#include "rt_plan.h"
 #include "string_util.h"
 
 // CLI invocation
@@ -1229,11 +1229,11 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   itk::Image<short, 3>::Pointer referenceVolumeItk = Internal->plmRef->itk_short();
   itk::Image<unsigned char, 3>::Pointer targetVolumeItk = plmTgt->itk_uchar();
 
-  Ion_plan ion_plan;
+  Rt_plan ion_plan;
 
   try
   {
-    /* Connection of the beam parameters to the ion_beam class used to calculate the dose in platimatch */
+    /* Connection of the beam parameters to the rt_beam class used to calculate the dose in platimatch */
   
     /* Plastimatch settings */
 
@@ -1259,7 +1259,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     /* APERTURE SETTINGS */
     printf("\n***APERTURE PARAMETERS***\n");
     beamNode->UpdateApertureParameters();
-
+#if defined (commentout)
     ion_plan.get_aperture()->set_distance(beamNode->GetApertureOffset());
     printf("Aperture offset = %lg\n", ion_plan.get_aperture()->get_distance());
 
@@ -1276,6 +1276,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   
     ion_plan.beam->set_source_size(beamNode->GetSourceSize());
     printf("Source size = %lg\n", ion_plan.beam->get_source_size() );
+#endif
 
     /* Beam Parameters */
     printf("\n***BEAM PARAMETERS***\n");
@@ -1299,14 +1300,15 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     printf("Isocenter = %lg %lg %lg\n", ion_plan.beam->get_isocenter_position(0), ion_plan.beam->get_isocenter_position(1),ion_plan.beam->get_isocenter_position(2) );
     printf("Source position = %lg %lg %lg\n", ion_plan.beam->get_source_position(0), ion_plan.beam->get_source_position(1),ion_plan.beam->get_source_position(2) );
 
+#if defined (commentout)
     ion_plan.set_step_length (1);
     printf("Step length = %lg\n", ion_plan.get_step_length() );
 
     ion_plan.set_smearing (beamNode->GetSmearing());
     printf("Smearing = %lg\n", beamNode->GetSmearing());
-
+#endif
     // Distal and proximal margins are updated when the SOBP is created
-    /* All the ion_beam parameters are updated to initiate the dose calculation */
+    /* All the rt_beam parameters are updated to initiate the dose calculation */
 
     if (!ion_plan.init ()) 
     {
@@ -1322,7 +1324,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
 
     /* Compute the aperture and range compensator */
     vtkWarningMacro ("Computing beam modifier\n");
+#if defined (commentout)
     ion_plan.compute_beam_modifiers ();
+#endif
     vtkWarningMacro ("Computing beam modifier done!\n");
 
   }
@@ -1333,7 +1337,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   }
 
   /* Get aperture as itk image */
+#if defined (commentout)
   Rpl_volume *rpl_vol = ion_plan.rpl_vol;
+#endif
+  Rpl_volume *rpl_vol = 0;   // FIXME
   Plm_image::Pointer& ap =
     rpl_vol->get_aperture()->get_aperture_image();
   itk::Image<unsigned char, 3>::Pointer apertureVolumeItk =
@@ -1399,7 +1406,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   try
   {
     vtkWarningMacro("ComputeDose: Applying beam modifiers");
+#if defined (commentout)
     ion_plan.apply_beam_modifiers ();
+#endif
 
     vtkWarningMacro ("Optimizing SOBP\n");
     printf ("??? Comparing proximal margin: %f vs %f\n",
