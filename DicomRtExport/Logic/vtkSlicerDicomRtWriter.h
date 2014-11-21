@@ -68,9 +68,14 @@ protected:
   vtkSlicerDicomRtWriter();
   virtual ~vtkSlicerDicomRtWriter();
 
-  /// TODO:
+  /// Parameters that get written into DICOM header
   char* PatientName;
   char* PatientID;
+  char* StudyDescription;
+  char* ImageSeriesDescription;
+  int ImageSeriesNumber;
+
+  /// Output directory
   char* FileName;
 
   /// TODO:

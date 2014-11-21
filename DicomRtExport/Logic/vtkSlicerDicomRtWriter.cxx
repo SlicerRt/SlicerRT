@@ -57,6 +57,10 @@ vtkSlicerDicomRtWriter::vtkSlicerDicomRtWriter()
 {
   this->PatientName = NULL;
   this->PatientID = NULL;
+  this->StudyDescription = NULL;
+  this->ImageSeriesDescription = NULL;
+  this->ImageSeriesNumber = 1;
+
   this->FileName = NULL;
 }
 
@@ -105,7 +109,7 @@ void vtkSlicerDicomRtWriter::AddContour(UCharImageType::Pointer itk_structure, c
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtWriter::Write()
 {
-  /* Set metadata */
+  /* Set study metadata */
   std::vector<std::string> metadata;
   if (this->PatientName && this->PatientName[0] != 0) {
     std::string metadata_string = std::string("0010,0010=") + this->PatientName;
@@ -115,7 +119,13 @@ void vtkSlicerDicomRtWriter::Write()
     std::string metadata_string = std::string("0010,0020=") + this->PatientID;
     metadata.push_back(metadata_string);
   }
-  RtStudy.set_user_metadata(metadata);
+  if (this->StudyDescription && this->StudyDescription[0] != 0) {
+    std::string metadata_string = std::string("0008,1030=") + this->StudyDescription;
+    metadata.push_back(metadata_string);
+  }
+  RtStudy.set_study_metadata(metadata);
+
+  /* Set image, dose, rtstruct metadata */
 
   /* Write output to files */
   RtStudy.save_dicom(this->FileName);

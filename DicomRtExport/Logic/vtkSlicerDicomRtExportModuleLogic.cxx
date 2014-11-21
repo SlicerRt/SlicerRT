@@ -166,7 +166,19 @@ void vtkSlicerDicomRtExportModuleLogic::SaveDicomRTStudy(
       char *labelmapName = contourNode->GetName();
       double labelmapColor[4] = {1.0,0.0,0.0,1.0};
       // TODO : when contour 2d vis is re-added, reconnect this functionality
-      //contourNode->GetLabelmapVolumeDisplayNode()->GetColor(labelmapColor);
+      int colorIndex;
+      vtkMRMLColorTableNode *colorNode;
+      contourNode->GetColor(colorIndex,colorNode);
+      printf (">>> labelmapName = %s\n", labelmapName);
+      printf (">>> colorIndex = %d\n", colorIndex);
+      printf (">>> colorNode = %p\n", colorNode);
+      if (colorNode) {
+        printf (">>> colorNodeType = %d\n", colorNode->GetType());
+        printf (">>> colorNodeString = %s\n", colorNode->GetTypeAsString());
+        colorNode->GetColor (1, labelmapColor);
+        printf (">>> color = %g %g %g %g\n", labelmapColor[0],
+          labelmapColor[1], labelmapColor[2], labelmapColor[3]);
+      }
 
       // If no color is assigned to the labelmap node, use the default color table node
       if (labelmapColor[0] == 0.0 && labelmapColor[1] == 0.0 && labelmapColor[2] == 0.0)

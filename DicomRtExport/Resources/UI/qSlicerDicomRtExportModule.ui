@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>403</width>
-    <height>317</height>
+    <width>408</width>
+    <height>391</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,14 +50,34 @@
         <item row="0" column="1">
          <widget class="QLineEdit" name="lineEdit_PatientName"/>
         </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Patient ID</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_PatientID"/>
+        </item>
         <item row="2" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>Study description</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEdit_StudyDescription"/>
+        </item>
+        <item row="3" column="0">
          <widget class="QLabel" name="label">
           <property name="text">
            <string>Image volume</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
+        <item row="3" column="1">
          <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ImageVolume">
           <property name="nodeTypes">
            <stringlist>
@@ -66,14 +86,48 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Series description</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="lineEdit_ImageSeriesDescription">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_9">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Series number</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="lineEdit_ImageSeriesNumber">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
          <widget class="QLabel" name="label_2">
           <property name="text">
            <string>Dose volume</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
+        <item row="6" column="1">
          <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
           <property name="nodeTypes">
            <stringlist>
@@ -85,14 +139,14 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
+        <item row="7" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
            <string>Structure set</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
+        <item row="7" column="1">
          <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ContourHierarchy">
           <property name="nodeTypes">
            <stringlist>
@@ -110,27 +164,17 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="1">
-         <widget class="ctkDirectoryButton" name="DirectoryButton_OutputDirectory"/>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit_PatientID"/>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>Patient ID</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
+        <item row="8" column="0">
          <widget class="QLabel" name="label_4">
           <property name="text">
            <string>Output directory</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="1">
+        <item row="8" column="1">
+         <widget class="ctkDirectoryButton" name="DirectoryButton_OutputDirectory"/>
+        </item>
+        <item row="9" column="1">
          <widget class="QLabel" name="label_Error">
           <property name="text">
            <string>Error message</string>
