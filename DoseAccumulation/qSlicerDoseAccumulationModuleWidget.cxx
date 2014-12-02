@@ -368,7 +368,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     if (volumeSubjectHierarchyNode)
     {
       doseUnitName = volumeSubjectHierarchyNode->GetAttributeFromAncestor(
-        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
     }
     std::string doseUnitStr = ( doseUnitName ? doseUnitName : "N/A" );
 

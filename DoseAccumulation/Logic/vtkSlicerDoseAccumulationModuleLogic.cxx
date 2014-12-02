@@ -354,7 +354,7 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
     return errorMessage;
   }
   vtkMRMLSubjectHierarchyNode* studyNode = referenceDoseVolumeSubjectHierarchyNode->GetAncestorAtLevel(
-    vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY );
+    vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy() );
   if (!studyNode)
   {
     const char* errorMessage = "No study node found for reference dose!";
@@ -368,7 +368,7 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
   if (!subjectHierarchySeriesNode)
   {
     vtkMRMLSubjectHierarchyNode* childSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      this->GetMRMLScene(), studyNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, outputAccumulatedDoseVolumeNode->GetName(), outputAccumulatedDoseVolumeNode);
+      this->GetMRMLScene(), studyNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), outputAccumulatedDoseVolumeNode->GetName(), outputAccumulatedDoseVolumeNode);
     if (!childSubjectHierarchyNode)
     {
       const char* errorMessage = "Failed to create subject hierarchy node!";

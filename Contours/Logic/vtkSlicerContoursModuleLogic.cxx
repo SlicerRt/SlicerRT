@@ -408,7 +408,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
 
   // Get referenced volume subject hierarchy node by found UID
   vtkMRMLSubjectHierarchyNode* referencedSeriesNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-    contour->GetScene(), vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid);
+    contour->GetScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), referencedSeriesUid);
   if (!referencedSeriesNode)
   {
     // TODO: If there is no rasterization reference, can we try to guess a reasonable default (regular volume in the same study)
@@ -437,7 +437,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
     return NULL;
   }
   vtkMRMLSubjectHierarchyNode* contourHierarchySeriesNode = contourSubjectHierarchyNode->GetAncestorAtLevel(
-    vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES);
+    vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries());
   if (!contourHierarchySeriesNode)
   {
     std::cerr << "vtkSlicerContoursModuleLogic::GetReferencedSeriesForContours: Failed to find series hierarchy node for contour '"
@@ -488,7 +488,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::GetReferencedVolumeByDico
 
   // Common referenced series UID found, get corresponding subject hierarchy node
   vtkMRMLSubjectHierarchyNode* referencedSeriesNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-    contourHierarchySeriesNode->GetScene(), vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, commonReferencedSeriesUid.c_str());
+    contourHierarchySeriesNode->GetScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), commonReferencedSeriesUid.c_str());
   if (!referencedSeriesNode)
   {
     return NULL;

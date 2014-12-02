@@ -1,7 +1,6 @@
 import os
 from __main__ import vtk, qt, ctk, slicer
 from DICOMLib import DICOMPlugin
-from DICOMLib import DICOMLoadable
 
 #
 # This is the plugin to handle translation of spatial registration object
@@ -22,7 +21,7 @@ class DicomSroImportPluginClass(DICOMPlugin):
     self.tags['ReferencedSOPInstanceUID'] = "0008,1155"
 
   def examine(self,fileLists):
-    """ Returns a list of DICOMLoadable instances
+    """ Returns a list of qSlicerDICOMLoadable instances
     corresponding to ways of interpreting the 
     fileLists parameter.
     """    
@@ -45,7 +44,7 @@ class DicomSroImportPluginClass(DICOMPlugin):
     # Import loadables from DicomExamineInfo
     loadables = []
     for loadableIndex in xrange(examineInfo.GetNumberOfLoadables()):
-      loadable = DICOMLib.DICOMLoadable()
+      loadable = slicer.qSlicerDICOMLoadable()
       loadableFilesVtk = examineInfo.GetLoadableFiles(loadableIndex)
       loadableFilesPy = []
       for fileIndex in xrange(loadableFilesVtk.GetNumberOfValues()):

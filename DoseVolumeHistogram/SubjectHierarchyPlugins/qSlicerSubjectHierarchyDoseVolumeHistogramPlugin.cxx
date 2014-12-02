@@ -341,9 +341,9 @@ vtkMRMLSubjectHierarchyNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::g
   {
     vtkMRMLSubjectHierarchyNode* seriesNode =
       dvhArraySubjectHierarchyNode->vtkMRMLSubjectHierarchyNode::GetAncestorAtLevel(
-      vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES );
+      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries() );
     chartSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      scene, seriesNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+      scene, seriesNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
       chartNode->GetName(), chartNode);
   }
 

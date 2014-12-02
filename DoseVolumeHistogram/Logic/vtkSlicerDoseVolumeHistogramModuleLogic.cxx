@@ -521,7 +521,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNo
   if (!doseVolumeSubjectHierarchyNode)
   {
     doseUnitName = doseVolumeSubjectHierarchyNode->GetAttributeFromAncestor(
-      SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+      SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
   }
   bool isDoseVolume = this->DoseVolumeContainsDose();
 
@@ -655,7 +655,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNo
 
   // Add DVH to subject hierarchy
   vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+    this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
     dvhArrayNodeName.c_str(), arrayNode);
 
   // Add connection attribute to input contour node
@@ -747,7 +747,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(const char* dvhArray
     if (doseSubjectHierarchyNode)
     {
       const char* doseUnitName = doseSubjectHierarchyNode->GetAttributeFromAncestor(
-        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY);
+        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
       doseAxisName=std::string("Dose [")+doseUnitName+"]";
     }
     else

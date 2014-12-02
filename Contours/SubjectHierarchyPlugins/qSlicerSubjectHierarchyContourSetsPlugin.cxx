@@ -150,7 +150,7 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canAddNodeToSubjectHierarchy(vt
   if (node->IsA("vtkMRMLModelNode") || node->IsA("vtkMRMLScalarVolumeNode"))
   {
     // Node is a potential contour node representation. On reparenting under a contour set node in subject hierarchy, a contour node will be created
-    if ( parent && parent->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+    if ( parent && parent->IsLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries())
       && parent->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
     {
       return 1.0; // Only the Contours plugin can handle this add operation
@@ -161,7 +161,7 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canAddNodeToSubjectHierarchy(vt
 }
 
 //----------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parentNode, const char* level/*='Series'*/)
+bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parentNode)
 {
   if (!nodeToAdd || !parentNode)
   {
@@ -188,7 +188,7 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRML
 
   // Create hierarchy node for contour node
   vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    scene, parentNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES, nodeToAdd->GetName());
+    scene, parentNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), nodeToAdd->GetName());
 
   QString colorName("");
 
@@ -269,7 +269,7 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canReparentNodeInsideSubjectHie
   if (associatedNode->IsA("vtkMRMLModelNode") || associatedNode->IsA("vtkMRMLScalarVolumeNode"))
   {
     // Node is a potential contour node representation. On reparenting under a contour set node in subject hierarchy, a contour node will be created
-    if ( parent->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+    if ( parent->IsLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries())
       && parent->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
     {
       return 1.0; // Only the Contours plugin can handle this reparent operation
@@ -323,7 +323,7 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::reparentNodeInsideSubjectHierarch
     // Replace the reparented contour representation with the created contour itself and do the reparenting
     nodeToReparent->SetAssociatedNodeID(reparentedContourNode->GetID());
     nodeToReparent->SetParentNodeID(parentNode->GetID());
-    nodeToReparent->SetLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES);
+    nodeToReparent->SetLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
     nodeToReparent->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), associatedNode->GetName() );
 
     colorName = QString(associatedNode->GetName());
@@ -468,7 +468,7 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canOwnSubjectHierarchyNode(vtkM
   }
 
   // Contour set
-  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries())
     && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     return 1.0; // Only the Contours plugin can handle this node
@@ -502,7 +502,7 @@ QIcon qSlicerSubjectHierarchyContourSetsPlugin::icon(vtkMRMLSubjectHierarchyNode
   Q_D(qSlicerSubjectHierarchyContourSetsPlugin);
 
   // Contour set
-  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES)
+  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries())
     && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     return d->ContourSetIcon;
@@ -555,7 +555,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::showContextMenuActionsForNode(vtk
   }
 
   // Study
-  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (node->IsLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy()))
   {
     d->CreateContourSetNodeAction->setVisible(true);
   }
@@ -568,7 +568,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::createChildContourSetForCurrentNo
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
 
   // Check if contour set can be created for current parent node
-  if (!currentNode || !currentNode->IsLevel(vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY))
+  if (!currentNode || !currentNode->IsLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy()))
   {
     qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::createChildContourSetForCurrentNode: Invalid current node for creating contour set!";
     return;
@@ -581,7 +581,7 @@ void qSlicerSubjectHierarchyContourSetsPlugin::createChildContourSetForCurrentNo
 
   // Create child contour set subject hierarchy node
   vtkMRMLSubjectHierarchyNode* childContourSetSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    scene, currentNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SERIES, SlicerRtCommon::CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME.c_str());
+    scene, currentNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), SlicerRtCommon::CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME.c_str());
   childContourSetSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
   // Add color table node and default colors

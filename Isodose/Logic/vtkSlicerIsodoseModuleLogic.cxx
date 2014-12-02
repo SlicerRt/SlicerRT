@@ -358,7 +358,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
 
   // Subject hierarchy node for the isodose surfaces
   vtkMRMLSubjectHierarchyNode* subjectHierarchyRootNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+    this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
     modelHierarchyNodeName.c_str());
 
   // Get color table
@@ -503,7 +503,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       if (doseSubjectHierarchyNode)
       {
         doseUnitName = std::string( doseSubjectHierarchyNode->GetAttributeFromAncestor(
-          SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::SUBJECTHIERARCHY_LEVEL_STUDY) );
+          SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy()) );
       }
 
       vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
@@ -525,7 +525,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
 
       // Put the new node in the subject hierarchy
       vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-        this->GetMRMLScene(), subjectHierarchyRootNode, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_LEVEL_SUBSERIES,
+        this->GetMRMLScene(), subjectHierarchyRootNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
         isodoseModelNodeName.c_str(), isodoseModelHierarchyNode);
     }
   }

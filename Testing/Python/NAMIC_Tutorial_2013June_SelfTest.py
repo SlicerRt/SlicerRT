@@ -40,7 +40,7 @@ class NAMIC_Tutorial_2013June_SelfTest(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "SlicerRT NA-MIC Tutorial 2013June Self Test"
     self.parent.categories = ["Testing.SlicerRT Tests"]
-    self.parent.dependencies = ["DicomRtImport", "SubjectHierarchy", "Contours", "Isodose", "BRAINSFit", "BRAINSResample", "DoseComparison", "DoseAccumulation", "DoseVolumeHistogram", "ContourComparison", "ContourMorphology"]
+    self.parent.dependencies = ["DicomRtImportExport", "SubjectHierarchy", "Contours", "Isodose", "BRAINSFit", "BRAINSResample", "DoseComparison", "DoseAccumulation", "DoseVolumeHistogram", "ContourComparison", "ContourMorphology"]
     self.parent.contributors = ["Csaba Pinter (Queen's)"]
     self.parent.helpText = """
     This is a self test that automatically runs the demo/tutorial prepared for the 2013 Summer NAMIC week tutorial contest.
@@ -77,7 +77,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       #slicer.namic_selftest_instance = self #TODO: For debugging
 
       # Check for modules
-      self.assertTrue( slicer.modules.dicomrtimport )
+      self.assertTrue( slicer.modules.dicomrtimportexport )
       self.assertTrue( slicer.modules.subjecthierarchy )
       self.assertTrue( slicer.modules.contours )
       self.assertTrue( slicer.modules.isodose )
@@ -128,11 +128,11 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
     
     self.day1CTName = '2: ENT IMRT'
     self.day1DoseName = '5: RTDOSE: BRAI1'
-    self.day1BeamsName = '4: RTPLAN: BRAI1_BeamModels_SubjectHierarchy'
-    self.day1IsodosesName = '5: RTDOSE: BRAI1_IsodoseSurfaces_SubjectHierarchy'
+    self.day1BeamsName = '4: RTPLAN: BRAI1_BeamModels' + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix()
+    self.day1IsodosesName = '5: RTDOSE: BRAI1_IsodoseSurfaces' + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix()
     self.day2CTName = '2_ENT_IMRT_Day2'
     self.day2DoseName = '5_RTDOSE_Day2'
-    self.day2IsodosesName = '5_RTDOSE_Day2_IsodoseSurfaces_SubjectHierarchy'
+    self.day2IsodosesName = '5_RTDOSE_Day2_IsodoseSurfaces' + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix()
     self.transformDay2ToDay1RigidName = 'Transform_Day2ToDay1_Rigid'
     self.transformDay2ToDay1BSplineName = 'Transform_Day2ToDay1_BSpline'
     self.day2DoseRigidName = '5_RTDOSE_Day2Registered_Rigid'
@@ -331,8 +331,8 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       # Add new study for the day 2 data
       studyNode = vtkMRMLSubjectHierarchyNode()
       studyNode.SetName('Day2')
-      studyNode.SetLevel('Study')
-      studyNode.AddUID('DICOM','Day2Study_UID')
+      studyNode.SetLevel(slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyLevelStudy())
+      studyNode.AddUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(),'Day2Study_UID')
       studyNode.SetParentNodeID(patientNode.GetID());
       slicer.mrmlScene.AddNode(studyNode);
       
@@ -346,10 +346,10 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       # Add day 2 CT series
       day2CT = slicer.util.getNode(self.day2CTName)
       seriesNodeCT = vtkMRMLSubjectHierarchyNode()
-      seriesNodeCT.SetName('Day2CT_SubjectHierarchy')
+      seriesNodeCT.SetName('Day2CT' + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
       seriesNodeCT.SetAssociatedNodeID(day2CT.GetID())
-      seriesNodeCT.SetLevel('Series')
-      seriesNodeCT.AddUID('DICOM','Day2CT_UID')
+      seriesNodeCT.SetLevel(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries())
+      seriesNodeCT.AddUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(),'Day2CT_UID')
       seriesNodeCT.SetParentNodeID(studyNode.GetID());
       slicer.mrmlScene.AddNode(seriesNodeCT)
 
@@ -360,10 +360,10 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       # Add day 2 dose series
       day2Dose = slicer.util.getNode(self.day2DoseName)
       seriesNodeDose = vtkMRMLSubjectHierarchyNode()
-      seriesNodeDose.SetName('Day2Dose_SubjectHierarchy')
+      seriesNodeDose.SetName('Day2Dose' + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
       seriesNodeDose.SetAssociatedNodeID(day2Dose.GetID())
-      seriesNodeDose.SetLevel('Series')
-      seriesNodeDose.AddUID('DICOM','Day2Dose_UID')
+      seriesNodeDose.SetLevel(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries())
+      seriesNodeDose.AddUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(),'Day2Dose_UID')
       seriesNodeDose.SetParentNodeID(studyNode.GetID());
       slicer.mrmlScene.AddNode(seriesNodeDose)
 
@@ -387,7 +387,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
 
       day1Dose = slicer.util.getNode(self.day1DoseName)
       day1DoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day1Dose)
-      doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, 'Study')
+      doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyLevelStudy())
       day2Dose.GetDisplayNode().SetAutoWindowLevel(0)
       day2Dose.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
       day2Dose.GetDisplayNode().AutoThresholdOff();
@@ -665,7 +665,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID(defaultDoseColorTable.GetID())
 
       day1DoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day1Dose)
-      doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, 'Study')
+      doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyLevelStudy())
       day2DoseRigid.GetDisplayNode().SetAutoWindowLevel(0)
       day2DoseRigid.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
       day2DoseRigid.GetDisplayNode().AutoThresholdOff();
@@ -678,10 +678,10 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       self.assertTrue( day2StudyNode != None )
 
       seriesNodeResampledDose = vtkMRMLSubjectHierarchyNode()
-      seriesNodeResampledDose.SetName('Day2Dose_RigidResampled_SubjectHierarchy')
+      seriesNodeResampledDose.SetName('Day2Dose_RigidResampled' + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
       seriesNodeResampledDose.SetAssociatedNodeID(day2DoseRigid.GetID())
-      seriesNodeResampledDose.SetLevel('Series')
-      seriesNodeResampledDose.AddUID('DICOM','Day2Dose_RigidResampled_UID')
+      seriesNodeResampledDose.SetLevel(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries())
+      seriesNodeResampledDose.AddUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(),'Day2Dose_RigidResampled_UID')
       seriesNodeResampledDose.SetParentNodeID(day2StudyNode.GetID());
       slicer.mrmlScene.AddNode(seriesNodeResampledDose)
 
@@ -864,7 +864,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
   def TestSection_II_EvaluateDeformableRegistration(self):
     try:
       # Check for modules
-      self.assertTrue( slicer.modules.dicomrtimport )
+      self.assertTrue( slicer.modules.dicomrtimportexport )
       self.assertTrue( slicer.modules.subjecthierarchy )
       self.assertTrue( slicer.modules.contours )
       self.assertTrue( slicer.modules.brainsfit )
@@ -883,7 +883,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
   def TestSection_III_AddMarginToTargetStructure(self):
     try:
       # Check for modules
-      self.assertTrue( slicer.modules.dicomrtimport )
+      self.assertTrue( slicer.modules.dicomrtimportexport )
       self.assertTrue( slicer.modules.subjecthierarchy )
       self.assertTrue( slicer.modules.contours )
       self.assertTrue( slicer.modules.contourmorphology )
@@ -907,7 +907,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
     # TODO: Comment out
     # logFile = open('d:/pyTestLog.txt', 'w')
     # logFile.write(repr(slicer.modules.NAMIC_Tutorial_2013June_SelfTest) + '\n')
-    # logFile.write(repr(slicer.modules.dicomrtimport) + '\n')
+    # logFile.write(repr(slicer.modules.dicomrtimportexport) + '\n')
     # logFile.write(repr(slicer.modules.contours) + '\n')
     # logFile.close()
 
@@ -1013,6 +1013,7 @@ class NAMIC_Tutorial_2013June_SelfTestWidget(ScriptedLoadableModuleWidget):
 
   #------------------------------------------------------------------------------
   def setup(self):
+    self.developerMode = True
     ScriptedLoadableModuleWidget.setup(self)
 
     # Buttons to perform parts of the test

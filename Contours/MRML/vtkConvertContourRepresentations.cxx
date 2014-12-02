@@ -216,7 +216,7 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
     {
       vtkMRMLSubjectHierarchyNode* subjectHierarchyNode_ReferencedSeries =
         vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-          mrmlScene, vtkMRMLSubjectHierarchyConstants::DICOMHIERARCHY_DICOM_UID_NAME, referencedSeriesUid );
+          mrmlScene, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), referencedSeriesUid );
       if (subjectHierarchyNode_ReferencedSeries)
       {
         referencedAnatomyVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(subjectHierarchyNode_ReferencedSeries->GetAssociatedNode());
