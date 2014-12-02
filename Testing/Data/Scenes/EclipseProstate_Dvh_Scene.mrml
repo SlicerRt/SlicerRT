@@ -60,7 +60,7 @@
  <SubjectHierarchy
   id="vtkMRMLSubjectHierarchyNode7"  name="Rectum_Contour_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomRtImport.RoiReferencedSeriesUid:1.2.840.113619.2.55.3.671756986.106.1316467036.465;DicomRtImport.StructureName:Rectum"  parentNodeRef="vtkMRMLSubjectHierarchyNode1"  associatedNodeRef="vtkMRMLContourNode6"  sortingValue="6"  allowMultipleChildren="true"  Level="Subseries"  OwnerPluginName="Contours"  OwnerPluginAutoSearch="true"  UIDs="" ></SubjectHierarchy>
  <SubjectHierarchy
-  id="vtkMRMLSubjectHierarchyNode8"  name="RANDO^PROSTATE_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  sortingValue="0"  allowMultipleChildren="true"  Level="Subject"  OwnerPluginName="DICOM"  OwnerPluginAutoSearch="true"  UIDs="DICOM; TEST PHYS PROSTATE:" ></SubjectHierarchy>
+  id="vtkMRMLSubjectHierarchyNode8"  name="RANDO^PROSTATE_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  sortingValue="0"  allowMultipleChildren="true"  Level="Patient"  OwnerPluginName="DICOM"  OwnerPluginAutoSearch="true"  UIDs="DICOM; TEST PHYS PROSTATE:" ></SubjectHierarchy>
  <SubjectHierarchy
   id="vtkMRMLSubjectHierarchyNode9"  name="No study description_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  attributes="DicomRtImport.DoseUnitName:GY;DicomRtImport.DoseUnitValue:4.4812099e-5" parentNodeRef="vtkMRMLSubjectHierarchyNode8"  sortingValue="7"  allowMultipleChildren="true"  Level="Study"  OwnerPluginName="DICOM"  OwnerPluginAutoSearch="true"  UIDs="DICOM; 1.2.840.113619.2.55.3.671756986.106.1316467036.460:" ></SubjectHierarchy>
  <ColorTableStorage

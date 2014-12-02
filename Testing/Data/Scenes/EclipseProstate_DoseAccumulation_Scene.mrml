@@ -4,7 +4,7 @@
  <SubjectHierarchy
   id="vtkMRMLHierarchyNode2"  name="5: RTDOSE: PROS_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Series"  UIDs="DICOM:1.2.246.352.71.2.2088656855.723252.20110920153632"  attributes="SubjectHierarchy.PatientBirthDate:;SubjectHierarchy.PatientSex:;SubjectHierarchy.SeriesModality:RTDOSE;SubjectHierarchy.StudyDate:20110920;SubjectHierarchy.StudyTime:091908"  parentNodeRef="vtkMRMLHierarchyNode4"  associatedNodeRef="vtkMRMLScalarVolumeNode1"  sortingValue="3"  allowMultipleChildren="true" ></SubjectHierarchy>
  <SubjectHierarchy
-  id="vtkMRMLHierarchyNode3"  name="RANDO^PROSTATE_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Subject"  UIDs="DICOM:TEST PHYS PROSTATE"  sortingValue="0"  allowMultipleChildren="true" ></SubjectHierarchy>
+  id="vtkMRMLHierarchyNode3"  name="RANDO^PROSTATE_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Patient"  UIDs="DICOM:TEST PHYS PROSTATE"  sortingValue="0"  allowMultipleChildren="true" ></SubjectHierarchy>
  <SubjectHierarchy
   id="vtkMRMLHierarchyNode4"  name="No description_SubjectHierarchy"  hideFromEditors="false"  selectable="true"  selected="false"  Level="Study"  UIDs="DICOM:1.2.840.113619.2.55.3.671756986.106.1316467036.460"  attributes="DicomRtImport.DoseUnitName:GY;DicomRtImport.DoseUnitValue:4.4812099e-5"  parentNodeRef="vtkMRMLHierarchyNode3"  sortingValue="2"  allowMultipleChildren="true" ></SubjectHierarchy>
  <VolumeArchetypeStorage
