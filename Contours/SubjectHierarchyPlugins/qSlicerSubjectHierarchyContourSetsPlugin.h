@@ -57,14 +57,6 @@ public:
   ///   node, and 1 means that the plugin is the only one that can handle the node (by type or identifier attribute)
   virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parent=NULL)const;
 
-  /// Add a node to subject hierarchy under a specified parent node. If added non subject hierarchy nodes
-  ///   have certain steps to perform when adding them in subject hierarchy, those steps take place here
-  /// \param node Node to add to subject hierarchy
-  /// \param parent Parent node of the added node
-  /// \param level Level of the added node in subject hierarchy
-  /// \return True if added successfully, false otherwise
-  virtual bool addNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent);
-
   /// Determines if a subject hierarchy node can be reparented in the hierarchy using the actual plugin,
   /// and gets a confidence value for a certain MRML node (usually the type and possibly attributes are checked).
   /// \param node Node to be reparented in the hierarchy

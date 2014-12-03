@@ -161,84 +161,6 @@ double qSlicerSubjectHierarchyContourSetsPlugin::canAddNodeToSubjectHierarchy(vt
 }
 
 //----------------------------------------------------------------------------
-bool qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy(vtkMRMLNode* nodeToAdd, vtkMRMLSubjectHierarchyNode* parentNode)
-{
-  if (!nodeToAdd || !parentNode)
-  {
-    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy: Invalid argument!";
-    return false;
-  }
-  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
-  if (!scene)
-  {
-    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy: Invalid MRML scene!";
-    return false;
-  }
-  if (!scene || scene != parentNode->GetScene())
-  {
-    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy: Invalid MRML scene!";
-    return false;
-  }
-
-  if (! (parentNode->IsA("vtkMRMLSubjectHierarchyNode") && parentNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str())) )
-  {
-    qDebug() << "qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy: Parent node must be a contour hierarchy node! Cancelling adding to subject hierarchy.";
-    return false;
-  }
-
-  // Create hierarchy node for contour node
-  vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    scene, parentNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), nodeToAdd->GetName());
-
-  QString colorName("");
-
-  // Get added contour node and associate it with the new subject hierarchy node
-  vtkMRMLContourNode* contourNodeAddedToSubjectHierarchy = NULL;
-  if (nodeToAdd->IsA("vtkMRMLModelNode") || nodeToAdd->IsA("vtkMRMLScalarVolumeNode"))
-  {
-    // Create contour from the dropped representation
-    contourNodeAddedToSubjectHierarchy = vtkSlicerContoursModuleLogic::CreateContourFromRepresentation( vtkMRMLDisplayableNode::SafeDownCast(nodeToAdd) );
-    if (!contourNodeAddedToSubjectHierarchy)
-    {
-      qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy: Failed to create contour from representation '" << nodeToAdd->GetName() << "'";
-      return false;
-    }
-
-    colorName = QString(nodeToAdd->GetName());
-  }
-  else if (nodeToAdd->IsA("vtkMRMLContourNode"))
-  {
-    contourNodeAddedToSubjectHierarchy = vtkMRMLContourNode::SafeDownCast(nodeToAdd);
-    colorName = QString(nodeToAdd->GetName());
-  }
-  else
-  {
-    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy: Invalid node type to add!";
-    return false;
-  }
-
-  contourSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), colorName.toLatin1().constData());
-  contourSubjectHierarchyNode->SetAssociatedNodeID(contourNodeAddedToSubjectHierarchy->GetID());
-
-  bool error(false);
-
-  // Add color to the new color table
-  if (!this->addContourColorToCorrespondingColorTable(contourNodeAddedToSubjectHierarchy, colorName))
-  {
-    qCritical() << "qSlicerSubjectHierarchyContourSetsPlugin::addNodeToSubjectHierarchy: Failed to add contour color to corresponding color table!";
-    error = true;
-  }
-
-  // Delete representation node if the added contour was created from one
-  if (nodeToAdd->IsA("vtkMRMLModelNode") || nodeToAdd->IsA("vtkMRMLScalarVolumeNode"))
-  {
-    scene->RemoveNode(nodeToAdd);
-  }
-
-  return !error;
-}
-
-//----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyContourSetsPlugin::canReparentNodeInsideSubjectHierarchy(vtkMRMLSubjectHierarchyNode* node, vtkMRMLSubjectHierarchyNode* parent)const
 {
   if (!node)
@@ -320,12 +242,14 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::reparentNodeInsideSubjectHierarch
       return false;
     }
 
-    // Replace the reparented contour representation with the created contour itself and do the reparenting
-    nodeToReparent->SetAssociatedNodeID(reparentedContourNode->GetID());
-    nodeToReparent->SetParentNodeID(parentNode->GetID());
-    nodeToReparent->SetLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
-    nodeToReparent->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), associatedNode->GetName() );
+    // Setup automatically created subject hierarchy node for the contour
+    vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(reparentedContourNode);
+    if (contourSubjectHierarchyNode)
+    {
+      contourSubjectHierarchyNode->SetParentNodeID(parentNode->GetID());
+    }
 
+    // Save color name as the structure name (which is the representation node name)
     colorName = QString(associatedNode->GetName());
   }
   else if (associatedNode->IsA("vtkMRMLContourNode"))
@@ -379,6 +303,12 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::reparentNodeInsideSubjectHierarch
     return false;
   }
 
+  // Remove representation node (and its subject hierarchy node too)
+  if (associatedNode->IsA("vtkMRMLModelNode") || associatedNode->IsA("vtkMRMLScalarVolumeNode"))
+  {
+    scene->RemoveNode(nodeToReparent);
+  }
+
   return true;
 }
 
@@ -412,9 +342,7 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addContourColorToCorrespondingCol
 
   // Get contour color
   vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast( 
-    contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) 
-    ? contourNode->GetRibbonModelDisplayNode() // yes
-    : contourNode->GetClosedSurfaceModelDisplayNode() );  // no
+    contourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel) ? contourNode->GetRibbonModelDisplayNode() : contourNode->GetClosedSurfaceModelDisplayNode() );
   if (modelDisplayNode)
   {
     modelDisplayNode->GetColor(color[0], color[1], color[2]);
@@ -448,7 +376,7 @@ bool qSlicerSubjectHierarchyContourSetsPlugin::addContourColorToCorrespondingCol
 
     //if (oldDisplayNode)
     //{
-//      mrmlScene->RemoveNode(oldDisplayNode);
+    //  mrmlScene->RemoveNode(oldDisplayNode);
     //}
 
     // Do the painting
