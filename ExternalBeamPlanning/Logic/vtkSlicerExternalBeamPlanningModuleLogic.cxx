@@ -1219,6 +1219,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   plmTgt->print ();
 
 #if defined (commentout)
+  /* This is debugging code, for checking the input volume */
   double min_val, max_val, avg;
   int non_zero, num_vox;
   itk_image_stats (Internal->plmRef->m_itk_int32, &min_val, &max_val, &avg, &non_zero, &num_vox);
@@ -1247,7 +1248,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     printf ("Setting target volume\n");
     ion_plan.set_target (targetVolumeItk);
 
-    ion_plan.set_normalization_dose(1.0); // the normalization dose will be added at the creation of the global dose matrix: D = N * (beam1 * w1 + beam2 * w2...)
+    // the normalization dose will be added at the creation of the 
+    // global dose matrix: D = N * (beam1 * w1 + beam2 * w2...)
+    ion_plan.set_normalization_dose(1.0); 
+#if defined (commentout)
     ion_plan.beam->set_beamWeight(1.0);	 // see comment previous line
 
     ion_plan.beam->set_flavor(beamNode->GetBeamFlavor());
@@ -1259,8 +1263,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     /* APERTURE SETTINGS */
     printf("\n***APERTURE PARAMETERS***\n");
     beamNode->UpdateApertureParameters();
-#if defined (commentout)
-    ion_plan.get_aperture()->set_distance(beamNode->GetApertureOffset());
+    ion_plan.beam->get_aperture()->set_distance(beamNode->GetApertureOffset());
     printf("Aperture offset = %lg\n", ion_plan.get_aperture()->get_distance());
 
     printf("SAD = %lg\n", beamNode->GetSAD() );
