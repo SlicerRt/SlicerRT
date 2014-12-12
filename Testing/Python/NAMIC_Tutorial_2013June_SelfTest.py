@@ -905,7 +905,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
     self.delayMs = 700
 
     # TODO: Comment out
-    # logFile = open('d:/pyTestLog.txt', 'w')
+    # logFile = open('d:/pyTestLog.txt', 'a')
     # logFile.write(repr(slicer.modules.NAMIC_Tutorial_2013June_SelfTest) + '\n')
     # logFile.write(repr(slicer.modules.dicomrtimportexport) + '\n')
     # logFile.write(repr(slicer.modules.contours) + '\n')

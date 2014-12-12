@@ -18,7 +18,7 @@ ctkMacroCompilePythonScript(
 #-----------------------------------------------------------------------------
 slicer_add_python_unittest(
   SCRIPT BatchContourConversion.py
-  SLICER_ARGS --additional-module-paths
+  SLICER_ARGS --no-main-window --additional-module-paths
                 ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}
                 ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Debug
                 ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Release

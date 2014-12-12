@@ -159,7 +159,7 @@ class BatchContourConversionTest(ScriptedLoadableModuleTest):
     self.delayMs = 700
 
     #TODO: Comment out - sample code for debugging by writing to file
-    #logFile = open('d:/pyTestLog.txt', 'w')
+    #logFile = open('d:/pyTestLog.txt', 'a')
     #logFile.write(repr(slicer.modules.batchcontourconversion) + '\n')
     #logFile.close()
 
@@ -167,13 +167,13 @@ class BatchContourConversionTest(ScriptedLoadableModuleTest):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
-    
-    # Create logic
-    self.logic = BatchContourConversionLogic()
 
     self.test_BatchContourConversion_FullTest1()
 
   def test_BatchContourConversion_FullTest1(self):
+    # Create logic
+    self.logic = BatchContourConversionLogic()
+
     # Check for modules
     self.assertTrue( slicer.modules.dicomrtimportexport )
     self.assertTrue( slicer.modules.contours )
