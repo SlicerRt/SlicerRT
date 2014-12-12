@@ -104,20 +104,16 @@ class BatchContourConversionLogic(ScriptedLoadableModuleLogic):
     labelmapsToSave = []
     
     # Get all contour nodes from the scene
-    contourNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLContourNode')
-    numberOfContours = contourNodes.GetNumberOfItems()
+    contourNodes = slicer.util.getNodes('vtkMRMLContourNode*')
 
-    for contourIndex in xrange(0,numberOfContours):
-      contourNode = contourNodes.GetItemAsObject(contourIndex)
+    for contourNode in contourNodes.values():
       print('  Converting contour ' + contourNode.GetName())
-
       # Set referenced volume as rasterization reference
       referenceVolume = vtkSlicerContoursModuleLogic.vtkSlicerContoursModuleLogic.GetReferencedVolumeByDicomForContour(contourNode)
       if referenceVolume == None:
         import sys
         sys.stderr.write('No reference volume found for contour ' + contourNode.GetName())
         continue
-
       contourNode.SetAndObserveRasterizationReferenceVolumeNodeId(referenceVolume.GetID())
 
       # Perform conversion
@@ -135,11 +131,6 @@ class BatchContourConversionLogic(ScriptedLoadableModuleLogic):
       fileName = labelmapNode.GetName() + '.nrrd'
       filePath = outputDir + '/' + fileName
       print('  Saving contour ' + labelmapNode.GetName() + '\n    to file ' + fileName)
-
-      # Workaround: create storage node to be able to save the labelmap
-      storageNode = labelmapNode.CreateDefaultStorageNode()
-      slicer.mrmlScene.AddNode(storageNode)
-      labelmapNode.SetAndObserveStorageNodeID(storageNode.GetID())
 
       # Save to file
       success = slicer.util.saveNode(labelmapNode, filePath)
@@ -252,7 +243,8 @@ class BatchContourConversionTest(ScriptedLoadableModuleTest):
     qt.QApplication.setOverrideCursor(qt.QCursor(qt.Qt.BusyCursor))
     try:
       self.labelmapsToSave = self.logic.ConvertContoursToLabelmap()
-    except e, Exception:
+      self.assertTrue( len(self.labelmapsToSave) > 0 )
+    except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)

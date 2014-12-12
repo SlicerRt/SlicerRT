@@ -870,9 +870,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
         SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX + std::string(addedMarkupsNode->GetName()) );
       vtkSmartPointer<vtkMRMLModelNode> beamModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
       beamModelNode->SetName(beamModelName.c_str());
-      this->GetMRMLScene()->AddNode(beamModelNode);
-      // Save automatically created subject hierarchy node for later use (associate it to the beam model hierarchy node and set it up)
-      vtkMRMLSubjectHierarchyNode* beamModelSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamModelNode);
+      this->GetMRMLScene()->AddNode(beamModelNode); // SH node may be automatically created here depending on auto-creation, but we set it up later
 
       // Create Beams parameter set node
       std::string beamParameterSetNodeName;
@@ -911,10 +909,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
       this->GetMRMLScene()->AddNode(beamModelHierarchyDisplayNode);
       beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
 
-      // Put new beam model in the subject hierarchy. Get subject hierarchy node automatically created for the
-      // beam model and set it up for nested association by associating it with the beam model hierarchy node
-      beamModelSubjectHierarchyNode->SetAssociatedNodeID(beamModelHierarchyNode->GetID());
-      vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode( this->GetMRMLScene(), 
+      // Setup beam model subject hierarchy node and set it up for nested association by associating it with the beam model hierarchy node
+      vtkMRMLSubjectHierarchyNode* beamModelSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode( this->GetMRMLScene(), 
         (this->BeamModelsInSeparateBranch ? beamModelSubjectHierarchyRootNode.GetPointer() : subjectHierarchyFiducialNode),
         vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), beamModelName.c_str(), beamModelHierarchyNode );
       beamModelSubjectHierarchyNode->SetIndexInParent(beamIndex);

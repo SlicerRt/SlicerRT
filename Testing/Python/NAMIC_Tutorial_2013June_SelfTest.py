@@ -331,7 +331,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       # Add new study for the day 2 data
       studyNode = vtkMRMLSubjectHierarchyNode()
       studyNode.SetName('Day2')
-      studyNode.SetLevel(slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyLevelStudy())
+      studyNode.SetLevel(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy())
       studyNode.AddUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(),'Day2Study_UID')
       studyNode.SetParentNodeID(patientNode.GetID());
       slicer.mrmlScene.AddNode(studyNode);
@@ -387,7 +387,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
 
       day1Dose = slicer.util.getNode(self.day1DoseName)
       day1DoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day1Dose)
-      doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyLevelStudy())
+      doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy())
       day2Dose.GetDisplayNode().SetAutoWindowLevel(0)
       day2Dose.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
       day2Dose.GetDisplayNode().AutoThresholdOff();
@@ -665,7 +665,7 @@ class NAMIC_Tutorial_2013June_SelfTestTest(ScriptedLoadableModuleTest):
       day2DoseRigid.GetDisplayNode().SetAndObserveColorNodeID(defaultDoseColorTable.GetID())
 
       day1DoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day1Dose)
-      doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyLevelStudy())
+      doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy())
       day2DoseRigid.GetDisplayNode().SetAutoWindowLevel(0)
       day2DoseRigid.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
       day2DoseRigid.GetDisplayNode().AutoThresholdOff();
