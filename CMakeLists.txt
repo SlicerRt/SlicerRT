@@ -65,6 +65,7 @@ add_subdirectory(ContourComparison)
 add_subdirectory(VffFileReader)
 add_subdirectory(DicomSroExport)
 add_subdirectory(DicomSroImport)
+add_subdirectory(BatchProcessing)
 
 add_subdirectory(PlastimatchPy)
 add_subdirectory(PlmBspline) # requires Plastimatch registration
