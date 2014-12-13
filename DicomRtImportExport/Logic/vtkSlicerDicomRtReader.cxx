@@ -38,9 +38,6 @@
 #include <vtkRibbonFilter.h>
 #include <vtkSmartPointer.h>
 
-// STD includes
-#include <vector>
-
 // DCMTK includes
 #include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
 
@@ -965,20 +962,19 @@ double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourSequence& rtContourS
 // Variables for calculating the distance between contour planes.
 double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequence &rtROIContourSequenceObject)
 {
-  double distanceBetweenContourPlanes(-1.0);
-  vtkPlane* previousContourPlane = vtkPlane::New();
-  vtkPlane* currentContourPlane = vtkPlane::New();
-
   if (!rtROIContourSequenceObject.gotoFirstItem().good())
   {
     vtkErrorMacro("GetDistanceBetweenContourPlanes: No structure sets were found. Returning default of 1.0.");
     return 1.0;
   }
 
-  // Iterate over each contour in the set until you find one that gives you a result
-  int roiIndex = 0;
+  // Iterate over each ROI then each contour in the set until you find one that gives you a result
   std::vector<double> planeSpacingValues;
-  do 
+  bool consistentPlaneSpacing = true;
+  double distanceBetweenContourPlanes = -1.0; // The found distance between planes if consistent
+  int roiIndex = 0;
+
+  do
   {
     DRTROIContourSequence::Item &currentRoiObject = rtROIContourSequenceObject.getCurrentItem();
     if (!currentRoiObject.isValid())
@@ -1009,8 +1005,11 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       continue;
     }
 
-    bool foundDistance(false);
-    bool previousSet(false);
+    // All contour planes in the current ROI, with their distances from the first plane
+    std::map< vtkSmartPointer<vtkPlane>, double > contourPlanes;
+    double firstNormal[3] = {0.0,0.0,0.0};
+    double firstOrigin[3] = {0.0,0.0,0.0};
+
     // Iterate over each plane in the contour
     do 
     {
@@ -1032,9 +1031,6 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
         Sint32 contourNumber(-1);
         contourItem.getContourNumber(contourNumber);
         vtkWarningMacro("GetDistanceBetweenContourPlanes: Contour does not contain enough points to extract a planar equation. Skipping contour number: " << contourNumber << ".");
-        previousContourPlane->SetNormal(0.0, 0.0, 0.0);
-        previousContourPlane->SetOrigin(0.0, 0.0, 0.0);
-        previousSet = false;
         continue;
       }
 
@@ -1052,6 +1048,7 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       {
         if (i+8 >= contourData_LPS.size())
         {
+          // We reached the end of the data (comes in coordinate groups of 9)
           break;
         }
         firstPlanePoint.Set(contourData_LPS[i], contourData_LPS[i+1], contourData_LPS[i+2]);
@@ -1077,47 +1074,87 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
       }
 
       currentPlaneKVector.Normalize();
+      vtkSmartPointer<vtkPlane> currentContourPlane = vtkSmartPointer<vtkPlane>::New();
       currentContourPlane->SetNormal(currentPlaneKVector.GetX(), currentPlaneKVector.GetY(), currentPlaneKVector.GetZ());
       currentContourPlane->SetOrigin(firstPlanePoint.GetX(), firstPlanePoint.GetY(), firstPlanePoint.GetZ());
 
-      if (previousSet)
+      // Store first plane parameters to compute distances
+      if (contourPlanes.empty())
       {
-        // Previous contour plane was valid
-        double thisDistanceBetweenPlanes = currentContourPlane->DistanceToPlane(previousContourPlane->GetOrigin(), currentContourPlane->GetNormal(), currentContourPlane->GetOrigin());
-        if (!AreEqualWithTolerance(thisDistanceBetweenPlanes, 0.0))
+        currentContourPlane->GetNormal(firstNormal);
+        currentContourPlane->GetOrigin(firstOrigin);
+        contourPlanes[currentContourPlane] = 0.0;
+      }
+      // Compute distance from first plane (also check if they are parallel)
+      else
+      {
+        double normal[3] = {0.0,0.0,0.0};
+        currentContourPlane->GetNormal(normal);
+        // We accept normal vectors with the exact opposite direction, so we accept if their dot product is 1 or -1 (normal vectors have magnitude of 1)
+        double dotProduct = (normal[0]*firstNormal[0]) + (normal[1]*firstNormal[1]) + (normal[2]*firstNormal[2]);
+        if (!AreEqualWithTolerance(fabs(dotProduct), 1.0))
+        {
+          vtkErrorMacro("GetDistanceBetweenContourPlanes: Contour planes in structures set are not parallel!");
+        }
+
+        // Store distance of current plane from first plane
+        double distanceFromFirstPlane = vtkPlane::DistanceToPlane(firstOrigin, normal, currentContourPlane->GetOrigin());
+        contourPlanes[currentContourPlane] = distanceFromFirstPlane;
+      }
+    }
+    while (rtContourSequenceObject.gotoNextItem().good()); // For all contour planes
+
+    // Order planes for current ROI
+    std::map< double, vtkSmartPointer<vtkPlane> > orderedContourPlanes;
+    std::map< vtkSmartPointer<vtkPlane>, double >::iterator planesIt;
+    for (planesIt=contourPlanes.begin(); planesIt != contourPlanes.end(); ++planesIt)
+    {
+      // Swap map to have the ordering by distance from first plane
+      orderedContourPlanes[planesIt->second] = planesIt->first;
+    }
+
+    // Compute distances between adjacent planes
+    std::map< double, vtkSmartPointer<vtkPlane> >::iterator orderedPlanesIt;
+    double previousDistance = 0.0;
+    for (orderedPlanesIt=orderedContourPlanes.begin(); orderedPlanesIt != orderedContourPlanes.end(); ++orderedPlanesIt)
+    {
+      if (orderedPlanesIt != orderedContourPlanes.begin()) // We skip the first one, just save its distance as previous
+      {
+        double currentDistance = fabs(orderedPlanesIt->first - previousDistance);
+        if (!AreEqualWithTolerance(currentDistance, 0.0))
         {
           // Only add spacing value if it's not 0 - multiple contours may be drawn on the same plane and it's not considered for slice thickness computation
-          planeSpacingValues.push_back(thisDistanceBetweenPlanes);
+          planeSpacingValues.push_back(currentDistance);
+          
+          // Store current spacing as found spacing if has not been set
+          if (distanceBetweenContourPlanes == -1.0)
+          {
+            distanceBetweenContourPlanes = currentDistance;
+          }
         }
-        else if (foundDistance && !AreEqualWithTolerance(thisDistanceBetweenPlanes, distanceBetweenContourPlanes))
+        else if ( !AreEqualWithTolerance(currentDistance, distanceBetweenContourPlanes)
+          && consistentPlaneSpacing ) // Only prompt the warning once
         {
-          vtkWarningMacro("GetDistanceBetweenContourPlanes: Contour '" << this->RoiSequenceVector[roiIndex].Name << "' does not have consistent plane spacing (" << thisDistanceBetweenPlanes << " != " << distanceBetweenContourPlanes << "). Using majority spacing distance.");
-        }
-        else if ( !foundDistance )
-        { 
-          distanceBetweenContourPlanes = thisDistanceBetweenPlanes;
-          foundDistance = true;
+          vtkWarningMacro("GetDistanceBetweenContourPlanes: Contour '" << this->RoiSequenceVector[roiIndex].Name << "' does not have consistent plane spacing (" << currentDistance << " != " << distanceBetweenContourPlanes << "). Using majority spacing distance.");
+          consistentPlaneSpacing = false;
         }
       }
-
-      previousSet = true;
-      previousContourPlane->SetNormal(currentContourPlane->GetNormal());
-      previousContourPlane->SetOrigin(currentContourPlane->GetOrigin());
-    } 
-    while (rtContourSequenceObject.gotoNextItem().good());
+      previousDistance = orderedPlanesIt->first;
+    }
 
     ++roiIndex;
   }
-  while(rtROIContourSequenceObject.gotoNextItem().good());
+  while(rtROIContourSequenceObject.gotoNextItem().good()); // For all ROIs
 
-  // Calculate the majority value for the plane spacing from planeSpacingValues
-  distanceBetweenContourPlanes = MajorityValue(this, planeSpacingValues);
-
-  currentContourPlane->Delete();
-  previousContourPlane->Delete();
+  // Calculate the majority value for the plane spacing from plane spacing values if inconsistent spacing was found
+  if (!consistentPlaneSpacing)
+  {
+    distanceBetweenContourPlanes = MajorityValue(this, planeSpacingValues);
+  }
 
   return distanceBetweenContourPlanes;
 } 
+
 
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
