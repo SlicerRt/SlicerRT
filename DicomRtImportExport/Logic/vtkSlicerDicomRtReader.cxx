@@ -89,18 +89,12 @@ namespace
     return !(a==b);
   }
 
-  template<class T>
-  vtkTypeFloat64 Vector3Magnitude(const vtkVector3<T>& aVector)
-  {
-    return sqrt( pow(aVector.GetX(),2) + pow(aVector.GetY(),2) + pow(aVector.GetZ(),2) );
-  }
-
   bool AreEqualWithTolerance(double a, double b)
   {
     return fabs(a - b) < EPSILON;
   }
 
-  double MajorityValue(vtkObject* object, const std::vector<double>& spacingValues)
+  double MajorityValue(const std::vector<double>& spacingValues, std::string &outputMessage)
   {
     std::map<double, int> spacingValueFrequencies;
     double averageTotal(0.0);
@@ -114,28 +108,21 @@ namespace
     }
     double majorityValue(0.0);
     int majorityCount(-1);
-    std::stringstream outputString;
+    std::stringstream outputStringStream;
     for (std::map<double, int>::iterator it = spacingValueFrequencies.begin(); it != spacingValueFrequencies.end(); ++it)
     {
-      outputString << "Planar spacing: " << it->first << ". Frequency: " << it->second << "." << std::endl;
+      outputStringStream << "  Planar spacing: " << it->first << ". Frequency: " << it->second << "." << std::endl;
       if (it->second > majorityCount)
       {
         majorityValue = it->first;
         majorityCount = it->second;
       }
     }
-    if (AreEqualWithTolerance(majorityValue, averageTotal/averageCount))
-    {
-      vtkDebugWithObjectMacro(object, "MajorityValue: Inconsistent plane spacing. Details:\n" << outputString.str());
-    }
-    else
-    {
-      vtkErrorWithObjectMacro(object, "MajorityValue: Inconsistent plane spacing. Details:\n" << outputString.str());
-    }
-    
+    outputMessage = outputStringStream.str();
     return majorityValue;
   }
-}
+
+} // namespace
 
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::RoiEntry::RoiEntry()
@@ -1131,13 +1118,15 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
           {
             distanceBetweenContourPlanes = currentDistance;
           }
-        }
-        else if ( !AreEqualWithTolerance(currentDistance, distanceBetweenContourPlanes)
-          && consistentPlaneSpacing ) // Only prompt the warning once
-        {
-          vtkWarningMacro("GetDistanceBetweenContourPlanes: Contour '" << this->RoiSequenceVector[roiIndex].Name << "' does not have consistent plane spacing (" << currentDistance << " != " << distanceBetweenContourPlanes << "). Using majority spacing distance.");
-          consistentPlaneSpacing = false;
-        }
+
+          // Check for inconsistency
+          if ( !AreEqualWithTolerance(currentDistance, distanceBetweenContourPlanes)
+            && consistentPlaneSpacing ) // Only prompt the warning once for each ROI
+          {
+            vtkWarningMacro("GetDistanceBetweenContourPlanes: Contour '" << this->RoiSequenceVector[roiIndex].Name << "' does not have consistent plane spacing (" << currentDistance << " != " << distanceBetweenContourPlanes << "). Using majority spacing distance.");
+            consistentPlaneSpacing = false;
+          }
+        } // If non-zero
       }
       previousDistance = orderedPlanesIt->first;
     }
@@ -1149,7 +1138,9 @@ double vtkSlicerDicomRtReader::GetDistanceBetweenContourPlanes(DRTROIContourSequ
   // Calculate the majority value for the plane spacing from plane spacing values if inconsistent spacing was found
   if (!consistentPlaneSpacing)
   {
-    distanceBetweenContourPlanes = MajorityValue(this, planeSpacingValues);
+    std::string message("");
+    distanceBetweenContourPlanes = MajorityValue(planeSpacingValues, message);
+    vtkWarningMacro("GetDistanceBetweenContourPlanes: Inconsistent plane spacing. Details:\n" << message << "Used contour spacing: " << distanceBetweenContourPlanes);
   }
 
   return distanceBetweenContourPlanes;
