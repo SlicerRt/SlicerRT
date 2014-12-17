@@ -454,17 +454,13 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
 
     if (parameterList["filter"].empty())
     {
-      vtkErrorMacro("LoadVffFile: A string was not entered for the filter. The value must be separated from the parameter with an '='. The value entered for the filter must be Ram-Lak.");
+      vtkErrorMacro("LoadVffFile: Empty filter value! The value must be separated from the parameter with an '='");
       parameterMissing = true;
     }
     else
     {
       filter = parameterList["filter"];
-      if (filter.compare("ram-lak") != 0)
-      {
-        vtkErrorMacro("LoadVffFile: The value entered for filter must be Ram-Lak.");
-        parameterInvalidValue = true;
-      }
+      vtkDebugMacro("LoadVffFile: Used filter for optical CT file is:\n" << filter);
     }
 
     if (parameterList["title"].empty() == false)
