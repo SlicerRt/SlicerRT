@@ -5,7 +5,7 @@ set(MODULE_TITLE "Contour Comparison")
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
-find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} )
+find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} NO_DEFAULT_PATH)
 if(NOT Plastimatch_FOUND)
   message("Plastimatch library is not found. ContourComparison module will not be built.")
   return()

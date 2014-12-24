@@ -9,7 +9,7 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/${configure_header_file}
   )
 
-find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} )
+find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} NO_DEFAULT_PATH)
 if(NOT Plastimatch_FOUND)
   message("Plastimatch library is not found. DoseComparison module will not be built.")
   return()

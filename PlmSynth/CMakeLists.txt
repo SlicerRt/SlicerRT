@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------
 set(MODULE_NAME plastimatch_slicer_synth)
 
-find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} )
+find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} NO_DEFAULT_PATH)
 if(NOT Plastimatch_FOUND)
   message("Plastimatch library is not found. The ${MODULE_NAME} module will not be built.")
   return()
