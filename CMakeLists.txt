@@ -68,12 +68,9 @@ add_subdirectory(DicomSroImport)
 add_subdirectory(BatchProcessing)
 
 add_subdirectory(PlastimatchPy)
-add_subdirectory(PlmBspline) # requires Plastimatch registration
-add_subdirectory(PlmDicomRtExport)
-add_subdirectory(PlmDicomRtImport)
+add_subdirectory(PlmBspline)
 add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmRegister)
-add_subdirectory(PlmXformwarp)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # In development
@@ -84,9 +81,6 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # Registration validation routines
   add_subdirectory(PlmSynth)
   add_subdirectory(PlmVectorFieldAnalysis)
-
-  # Requires Plastimatch segmentation 
-  #add_subdirectory(PlmMabs)
 endif()
 
 if(BUILD_TESTING)
