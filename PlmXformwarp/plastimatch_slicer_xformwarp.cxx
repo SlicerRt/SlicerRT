@@ -27,7 +27,7 @@
 #include "plastimatch_slicer_xformwarpCLP.h"
 
 #include "rt_study.h"
-#include "rtds_warp.h"
+#include "rt_study_warp.h"
 #include "warp_parms.h"
 
 int 
@@ -123,7 +123,7 @@ main (int argc, char * argv [])
     file_type = plm_file_format_deduce ((const char*) parms.input_fn);
 
     /* Process warp */
-    rtds_warp (&rtds, file_type, &parms);
+    rt_study_warp (&rtds, file_type, &parms);
 
     return EXIT_SUCCESS;
 }

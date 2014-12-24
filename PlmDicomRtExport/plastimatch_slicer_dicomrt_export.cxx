@@ -25,7 +25,7 @@
 
 #include "plm_config.h"
 #include "rt_study.h"
-#include "rtds_warp.h"
+#include "rt_study_warp.h"
 #include "warp_parms.h"
 
 int 
@@ -61,7 +61,7 @@ main (int argc, char * argv [])
 
 	/* Process warp */
 	file_type = PLM_FILE_FMT_IMG;
-	rtds_warp (&rtds, file_type, &parms);
+	rt_study_warp (&rtds, file_type, &parms);
     }
 
 
