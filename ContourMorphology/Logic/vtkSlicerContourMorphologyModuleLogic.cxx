@@ -26,7 +26,6 @@
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "vtkSlicerContoursModuleLogic.h"
-#include "vtkVolumesOrientedResampleUtility.h"
 
 // Core includes
 #include <qSlicerSubjectHierarchyAbstractPlugin.h>
