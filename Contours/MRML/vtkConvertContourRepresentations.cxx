@@ -434,8 +434,6 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
       selectedReferenceDirectionCosines[matrixIndex] = selectedReferenceDirections[matrixIndex/3][matrixIndex%3];
     }
 
-    // TODO: Try to use vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode here to make the conversion faster
-    //       https://www.assembla.com/spaces/slicerrt/tickets/516-use-vtkvolumesorientedresampleutility-for-contour-conversion
     // Convert intermediate labelmap to ITK image
     itk::Image<unsigned char, 3>::Pointer intermediateLabelmapItkVolume = itk::Image<unsigned char, 3>::New();
     SlicerRtCommon::ConvertVolumeNodeToItkImage<unsigned char>(intermediateLabelmapNode, intermediateLabelmapItkVolume, true, false);
