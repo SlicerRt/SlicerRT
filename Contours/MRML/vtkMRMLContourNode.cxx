@@ -1543,14 +1543,14 @@ bool vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode(vtkMRMLSc
   // Make sure inputs are initialized
   if (!scene || !inContourNode || !refVolumeNode || !outContourNode)
   {
-    vtkGenericWarningMacro("vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode: Inputs are not specified!");
+    vtkGenericWarningMacro("vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode: Inputs are not specified!");
     return false;
   }
 
   // Make sure input volume node is in the scene
   if (!inContourNode->GetScene())
   {
-    vtkErrorWithObjectMacro(inContourNode, "vtkVolumesOrientedResampleUtility::ResampleInputVolumeNodeToReferenceVolumeNode: Input volume node is not in a MRML scene!");
+    vtkErrorWithObjectMacro(inContourNode, "vtkMRMLContourNode::ResampleInputContourNodeToReferenceVolumeNode: Input volume node is not in a MRML scene!");
     return false;
   }
 
