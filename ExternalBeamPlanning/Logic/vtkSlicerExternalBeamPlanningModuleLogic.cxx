@@ -415,10 +415,10 @@ vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBea
   // Create beam model
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   points->InsertPoint(0,0,0,SAD);
-  points->InsertPoint(1,-Y2, -X2, -SAD );
-  points->InsertPoint(2,-Y2,  X1, -SAD );
-  points->InsertPoint(3, Y1,  X1, -SAD );
-  points->InsertPoint(4, Y1, -X2, -SAD );
+  points->InsertPoint(1,-2*Y2, -2*X2, -SAD );
+  points->InsertPoint(2,-2*Y2,  2*X1, -SAD );
+  points->InsertPoint(3, 2*Y1,  2*X1, -SAD );
+  points->InsertPoint(4, 2*Y1, -2*X2, -SAD );
 
   vtkSmartPointer<vtkCellArray> cellArray = vtkSmartPointer<vtkCellArray>::New();
   cellArray->InsertNextCell(3);
@@ -846,7 +846,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
 
   opacityFun->AddPoint(0, 0 );
   opacityFun->AddPoint(128, 0 );
-  opacityFun->AddPoint(255, 0.1);
+  opacityFun->AddPoint(255, 0.2);
 
   volumeProperty->ShadeOff();
   volumeProperty->SetScalarOpacityUnitDistance(0.8919);
