@@ -37,7 +37,7 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 endif ()
 
 # Choose which Plastimatch revision to build
-set (PLM_SVN_REVISION "4903")
+set (PLM_SVN_REVISION "4938")
 
 # With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
 # For earlier versions, we nullify the update state to prevent updates and
@@ -79,7 +79,8 @@ ExternalProject_Add( Plastimatch
     ${DISABLE_OPENMP_ON_WINDOWS}
     ${PLASTIMATCH_EXTRA_LIBRARIES}
     -DDCMTK_DIR:STRING=${DCMTK_DIR}
-    -DITK_DIR:STRING=${ITK_DIR}    
+    -DITK_DIR:STRING=${ITK_DIR}
+    -DVTK_DIR:STRING=${VTK_DIR}
     -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
     -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
     -DCMAKE_OSX_SYSROOT:PATH=${CMAKE_OSX_SYSROOT}
