@@ -34,6 +34,7 @@
 #include "vtkSlicerBeamsModuleLogicExport.h"
 
 class vtkTransform;
+class vtkPolyData;
 class vtkMRMLBeamsNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
@@ -45,14 +46,15 @@ public:
   vtkTypeMacro(vtkSlicerBeamsModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Compute and set source fiducial position from isocenter position and beam parameters
-  /// \return Error message, empty string if no error
-  std::string ComputeSourceFiducialPosition(vtkTransform* sourceToIsocenterTransform=NULL);
-
   /// Create beam geometry model from isocenter and source fiducials
   /// \param errorMessage Error message if any. If empty, then there have been no errors in course of the computation
   /// \return Error message, empty string if no error
   std::string CreateBeamModel();
+
+  /// Create beam vtkpolydata from beam parameters
+  /// \param x/y jaw positions and SAD
+  /// \return polydata, null if it fails to create polydata
+  vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double);
 
 public:
   /// Set and observe dose accumulation parameter node 
