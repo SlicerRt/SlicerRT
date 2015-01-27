@@ -93,7 +93,8 @@ protected:
   void updateChartCheckboxesState();
 
   /// Refresh DVH statistics table
-  void refreshDvhTable();
+  /// \param force Flag indicating if refresh is to be done in any case
+  void refreshDvhTable(bool force=false);
 
   /// Get value list from text in given line edit (empty list if unsuccessful)
   void getNumbersFromLineEdit(QLineEdit* aLineEdit, std::vector<double> &aValues);

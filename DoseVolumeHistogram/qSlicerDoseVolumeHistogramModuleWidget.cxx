@@ -533,7 +533,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::onLogicModified()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
+void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable(bool force/*=false*/)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
@@ -549,7 +549,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable()
 
   // If number of nodes is the same in the table and the list of nodes, then we don't need refreshing the table
   // (this function is called after each node event, so it cannot occur that a node has been removed and another added)
-  if (d->PlotCheckboxToStructureNameMap.size() == dvhNodes.size())
+  if (!force && d->PlotCheckboxToStructureNameMap.size() == dvhNodes.size())
   {
     return;
   }
@@ -1091,7 +1091,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
   paramNode->SetVDoseValues(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable();
+  this->refreshDvhTable(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -1115,7 +1115,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsCcCheckedStateChanged(i
   paramNode->SetShowVMetricsCc(aState);
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable();
+  this->refreshDvhTable(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -1139,7 +1139,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChan
   paramNode->SetShowVMetricsPercent(aState);
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable();
+  this->refreshDvhTable(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -1163,7 +1163,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aTe
   paramNode->SetDVolumeValuesCc(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable();
+  this->refreshDvhTable(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -1187,7 +1187,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QStrin
   paramNode->SetDVolumeValuesPercent(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable();
+  this->refreshDvhTable(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -1211,7 +1211,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
   paramNode->SetShowDMetrics(aState);
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable();
+  this->refreshDvhTable(true);
 }
 
 //-----------------------------------------------------------------------------
