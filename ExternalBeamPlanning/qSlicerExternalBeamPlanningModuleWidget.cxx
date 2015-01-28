@@ -620,6 +620,18 @@ void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged(const QStri
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   UNUSED_VARIABLE(text);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
   // TODO: to be implemented
 }
 
@@ -705,6 +717,7 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
 void qSlicerExternalBeamPlanningModuleWidget::tableWidgetCellClicked(int row, int column)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(column);
 
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
   if (!paramNode) {
@@ -1015,6 +1028,18 @@ void qSlicerExternalBeamPlanningModuleWidget::nominalEnergyChanged(const QString
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   UNUSED_VARIABLE(text);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::nominalEnergyChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
   // TODO: to be implemented
 }
 
@@ -1024,6 +1049,18 @@ void qSlicerExternalBeamPlanningModuleWidget::nominalmAChanged(const QString &te
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   UNUSED_VARIABLE(text);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::nominalmAChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
   // TODO: to be implemented
 }
 
@@ -1032,6 +1069,18 @@ void qSlicerExternalBeamPlanningModuleWidget::beamOnTimeChanged(const QString &t
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   UNUSED_VARIABLE(text);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamOnTimeChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode)
+  {
+    return;
+  }
 
   // TODO: to be implemented
 }
@@ -1471,14 +1520,16 @@ void qSlicerExternalBeamPlanningModuleWidget::protonDoseResolutionChanged(double
 
   // Set in parameter node
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
-  if (!paramNode) {
+  if (!paramNode) 
+  {
     return;
   }
   paramNode->SetApertureSpacingAtIso(value);
 
   // Set in beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
-  if (!beamNode) {
+  if (!beamNode) 
+  {
     return;
   }
   beamNode->SetApertureSpacingAtIso(value);
@@ -1489,6 +1540,19 @@ void qSlicerExternalBeamPlanningModuleWidget::protonEnergySpreadChanged(const QS
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   UNUSED_VARIABLE(text);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::protonEnergySpreadChanged: Invalid scene!";
+    return;
+  }
+
+  // Set in parameter node
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode) 
+  {
+    return;
+  }
 
   // TODO: to be implemented
 }
@@ -1549,6 +1613,19 @@ void qSlicerExternalBeamPlanningModuleWidget::beamEyesViewClicked(bool checked)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamEyesViewClicked: Invalid scene!";
+    return;
+  }
+
+  // Set in parameter node
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode) 
+  {
+    return;
+  }
+
   if (checked)
   {
     qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
@@ -1563,6 +1640,19 @@ void qSlicerExternalBeamPlanningModuleWidget::beamEyesViewClicked(bool checked)
 void qSlicerExternalBeamPlanningModuleWidget::contoursInBEWClicked(bool checked)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::contoursInBEWClicked: Invalid scene!";
+    return;
+  }
+
+  // Set in parameter node
+  vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
+  if (!paramNode) 
+  {
+    return;
+  }
 
   // Todo: add the logic to check if contours should be included in the DRR view
   // right now the contours are included always. 
@@ -1733,7 +1823,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
      else 
      {
      strcpy(beamName, item->text().toStdString().c_str());
-     /* OK, we're good to go (well, not really, but let's pretend). 
+     // OK, we're good to go (well, not really, but let's pretend). 
      Do the actual computation in the logic object
      d->logic()->ComputeDose(beamName);
      d->label_CalculateDoseStatus->setText("Dose calculation done.");

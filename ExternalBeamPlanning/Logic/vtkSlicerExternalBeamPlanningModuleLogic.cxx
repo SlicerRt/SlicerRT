@@ -466,13 +466,9 @@ vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBea
 vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBeamPolyData(
     double X1, double X2, double Y1, double Y2, double SAD, vtkDoubleArray* doubleArray)
 {
-  int n = 4;
-
   // First we extract the shape of the mlc
   int X2count = X2/10;
   int X1count = X1/10;
-  int Y2count = Y2/10;
-  int Y1count = Y1/10;
   int numLeavesVisible = X2count - (-X1count); // Calculate the number of leaves visible
   int numPointsEachSide = numLeavesVisible *2;
 
@@ -715,7 +711,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
   }
 
   vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
   // Make sure inputs are initialized
   if (!rtPlanNode)
   {
@@ -1143,7 +1138,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRMLRTBeam
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
   vtkMRMLScalarVolumeNode* outputDoseVolume = rtPlanNode->GetRTPlanDoseVolumeNode();
   // Make sure inputs are initialized
-  if (!rtPlanNode || !referenceVolumeNode)
+  if (!rtPlanNode || !referenceVolumeNode || !beamNode)
   {
     vtkErrorMacro("ComputeDoseByMatlab: Inputs are not initialized!");
     return;
