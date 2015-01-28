@@ -101,15 +101,15 @@ public:
   /// TODO
   void ComputeDoseByMatlab (vtkMRMLRTBeamNode*);
 
-  void InitializeAccumulateDose();
-  void RegisterAccumulateDose();
+  /// TODO
+  void InitializeAccumulatedDose();
+
+  /// TODO
+  void RegisterAccumulatedDose();
 
   /// Remove all MRML nodes created by dose calculation, such as 
   /// apertures, range compensators, and doses
   void RemoveDoseNodes();
-
-  /// Pointer that contains the accumulate dose
-  itk::Image<float, 3>::Pointer accumulateVolumeItk;
 
 protected:
   vtkSlicerExternalBeamPlanningModuleLogic();

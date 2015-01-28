@@ -29,6 +29,9 @@
 #ifndef __vtkSlicerDoseCalculationEngine_h
 #define __vtkSlicerDoseCalculationEngine_h
 
+#include "plm_image.h"
+#include "plm_image_header.h"
+
 // VTK includes
 #include "vtkObject.h"
 
@@ -41,7 +44,7 @@ class vtkImageData;
 // TODO #210: investigate why the wrapping fails
 //BTX
 
-/// \ingroup SlicerRt_DicomSroImport
+/// \ingroup SlicerRt_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkSlicerDoseCalculationEngine : public vtkObject
 {
 public:
@@ -50,11 +53,34 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Do dose calculation
-  void CalculateDose();
+  void InitializeAccumulatedDose(Plm_image::Pointer);
 
-protected:
-  /// Input file name
-  char* FileName;
+  /// Do dose calculation
+  void CalculateDose(
+         Plm_image::Pointer plmTgt,
+         double isocenter[],
+         double src[],
+         double proximalMargin,
+         double distalMargin,
+         double beamRx);
+
+  /// Do dose calculation
+  itk::Image<float, 3>::Pointer GetRangeCompensatorVolume();
+
+  /// Do dose calculation
+  itk::Image<unsigned char, 3>::Pointer GetApertureVolume();
+
+  /// Do dose calculation
+  itk::Image<float, 3>::Pointer GetAccumulatedDose();
+
+  /// Do dose calculation
+  itk::Image<float, 3>::Pointer GetComputedDose();
+
+  /// Get total Rx
+  double GetTotalRx();
+
+  /// Do dose calculation
+  void FinalizeAccumulatedDose();
 
 protected:
   vtkSlicerDoseCalculationEngine();
@@ -63,6 +89,9 @@ protected:
 private:
   vtkSlicerDoseCalculationEngine(const vtkSlicerDoseCalculationEngine&); // Not implemented
   void operator=(const vtkSlicerDoseCalculationEngine&);         // Not implemented
+
+  class vtkInternal;
+  vtkInternal* Internal;
 };
 //ETX
 

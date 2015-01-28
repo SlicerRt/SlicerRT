@@ -1702,7 +1702,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   }
   vtkMRMLRTBeamNode* beamNode = NULL;
 
-  d->logic()->InitializeAccumulateDose();
+  d->logic()->InitializeAccumulatedDose();
   for (int i=0; i<beams->GetNumberOfItems(); ++i)
   {
     beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
@@ -1718,7 +1718,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
       d->label_CalculateDoseStatus->setText("beam not found"); // + beamNode->GetBeamName();
     }
   }
-  d->logic()->RegisterAccumulateDose();
+  d->logic()->RegisterAccumulatedDose();
   d->label_CalculateDoseStatus->setText("Dose calculation done.");
   return;
   
