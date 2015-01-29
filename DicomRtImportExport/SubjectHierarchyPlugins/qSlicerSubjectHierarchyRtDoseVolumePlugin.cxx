@@ -282,7 +282,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
 
   double defaultDoseUnitValue = (doseUnitValueInStudy ? QString(doseUnitValueInStudy).toDouble() : 1.0);
   double doseUnitValue = QInputDialog::getDouble(NULL, tr("RT dose volume properties (2/2)"),
-    tr("Dose unit value (scaling):"), defaultDoseUnitValue, EPSILON*EPSILON, 1000.0, 16, &ok);
+    tr("Dose unit value (scaling):\n\nNote: Setting the scaling will NOT apply it to the volume voxels"), defaultDoseUnitValue, EPSILON*EPSILON, 1000.0, 16, &ok);
   if (!ok)
   {
     qWarning() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume(): Failed to get valid dose unit value from dialog. Check study node attributes.";
@@ -295,7 +295,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
     QMessageBox::StandardButton answer =
       QMessageBox::question(NULL, tr("Dose unit name changed"),
       tr("Entered dose unit name is different from the already set dose unit name in study.\n\n"
-      "Do you wish to overwrite it? Might result in unwanted results."),
+      "Do you wish to overwrite it? It might produce unwanted results."),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     if (answer == QMessageBox::No)
     {
