@@ -38,6 +38,7 @@
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyData.h>
+#include <vtkTrivialProducer.h>
 #include <vtksys/SystemTools.hxx>
 
 // MRML includes
@@ -46,6 +47,8 @@
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLModelNode.h>
+#include <vtkMRMLModelDisplayNode.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerContoursModuleLogic);
@@ -766,6 +769,11 @@ vtkMRMLContourNode* vtkSlicerContoursModuleLogic::LoadContourFromFile( const cha
 //-----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour( vtkMRMLContourNode* contourNode )
 {
+  if (!contourNode || !contourNode->GetScene() || !contourNode->GetLabelmapImageData())
+  {
+    return NULL;
+  }
+
   vtkSmartPointer<vtkMRMLScalarVolumeNode> volNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   // Convert on demand
   volNode->SetAndObserveImageData(contourNode->GetLabelmapImageData());
@@ -805,6 +813,82 @@ vtkMRMLScalarVolumeNode* vtkSlicerContoursModuleLogic::ExtractLabelmapFromContou
   }
 
   return volNode;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLModelNode* vtkSlicerContoursModuleLogic::ExtractClosedSurfaceFromContour( vtkMRMLContourNode* contourNode )
+{
+  if (!contourNode || !contourNode->GetScene() || !contourNode->GetClosedSurfacePolyData())
+  {
+    return NULL;
+  }
+
+  vtkSmartPointer<vtkPolyData> closedSurfaceModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  closedSurfaceModelPolyData->DeepCopy( contourNode->GetClosedSurfacePolyData() );
+
+  vtkSmartPointer<vtkMRMLModelNode> closedSurfaceModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  std::string closedSurfaceNodeName = std::string(contourNode->GetName()) + SlicerRtCommon::CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
+  closedSurfaceModelNode->SetName(closedSurfaceNodeName.c_str());
+  contourNode->GetScene()->AddNode(closedSurfaceModelNode);
+
+  vtkSmartPointer<vtkTrivialProducer> polyDataProducer = vtkSmartPointer<vtkTrivialProducer>::New();
+  polyDataProducer->SetOutput(closedSurfaceModelPolyData);
+  closedSurfaceModelNode->SetPolyDataConnection(polyDataProducer->GetOutputPort());
+
+  int colorIndex = -1;
+  vtkMRMLColorTableNode* colorTableNode = NULL;
+  contourNode->GetColor(colorIndex, colorTableNode);
+  double color[4] = {1.0,1.0,1.0,1.0};
+  colorTableNode->GetColor(colorIndex, color);
+
+  vtkSmartPointer<vtkMRMLModelDisplayNode> closedSurfaceModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  closedSurfaceModelDisplayNode->SliceIntersectionVisibilityOn();
+  closedSurfaceModelDisplayNode->VisibilityOn();
+  closedSurfaceModelDisplayNode->BackfaceCullingOff();
+  closedSurfaceModelDisplayNode->SetColor(color[0],color[1],color[2]);
+  contourNode->GetScene()->AddNode(closedSurfaceModelDisplayNode);
+
+  closedSurfaceModelNode->SetAndObserveDisplayNodeID( closedSurfaceModelDisplayNode->GetID() );
+
+  return closedSurfaceModelNode;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLModelNode* vtkSlicerContoursModuleLogic::ExtractDicomRtRoiPointsFromContour( vtkMRMLContourNode* contourNode )
+{
+  if (!contourNode || !contourNode->GetScene() || !contourNode->GetDicomRtRoiPoints())
+  {
+    return NULL;
+  }
+
+  vtkSmartPointer<vtkPolyData> dicomRtRoiPointsPolyData = vtkSmartPointer<vtkPolyData>::New();
+  dicomRtRoiPointsPolyData->DeepCopy( contourNode->GetDicomRtRoiPoints() );
+
+  vtkSmartPointer<vtkMRMLModelNode> dicomRtRoiPointsModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  std::string dicomRtRoiPointsNodeName = std::string(contourNode->GetName()) + "_DicomRtRoiPoints";
+  dicomRtRoiPointsModelNode->SetName(dicomRtRoiPointsNodeName.c_str());
+  contourNode->GetScene()->AddNode(dicomRtRoiPointsModelNode);
+
+  vtkSmartPointer<vtkTrivialProducer> polyDataProducer = vtkSmartPointer<vtkTrivialProducer>::New();
+  polyDataProducer->SetOutput(dicomRtRoiPointsPolyData);
+  dicomRtRoiPointsModelNode->SetPolyDataConnection(polyDataProducer->GetOutputPort());
+
+  int colorIndex = -1;
+  vtkMRMLColorTableNode* colorTableNode = NULL;
+  contourNode->GetColor(colorIndex, colorTableNode);
+  double color[4] = {1.0,1.0,1.0,1.0};
+  colorTableNode->GetColor(colorIndex, color);
+
+  vtkSmartPointer<vtkMRMLModelDisplayNode> dicomRtRoiPointsModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  dicomRtRoiPointsModelDisplayNode->SliceIntersectionVisibilityOn();
+  dicomRtRoiPointsModelDisplayNode->VisibilityOn();
+  dicomRtRoiPointsModelDisplayNode->BackfaceCullingOff();
+  dicomRtRoiPointsModelDisplayNode->SetColor(color[0],color[1],color[2]);
+  contourNode->GetScene()->AddNode(dicomRtRoiPointsModelDisplayNode);
+
+  dicomRtRoiPointsModelNode->SetAndObserveDisplayNodeID( dicomRtRoiPointsModelDisplayNode->GetID() );
+
+  return dicomRtRoiPointsModelNode;
 }
 
 //-----------------------------------------------------------------------------

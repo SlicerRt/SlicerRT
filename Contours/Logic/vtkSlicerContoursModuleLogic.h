@@ -37,6 +37,7 @@
 // MRML includes
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLContourStorageNode;
+class vtkMRMLModelNode;
 
 /// \ingroup SlicerRt_QtModules_Contours
 class VTK_SLICER_CONTOURS_LOGIC_EXPORT vtkSlicerContoursModuleLogic :
@@ -106,6 +107,14 @@ public:
   /// Create a standard labelmap from a contour node
   /// \param contourNode the node to use to extract a labelmap from
   static vtkMRMLScalarVolumeNode* ExtractLabelmapFromContour(vtkMRMLContourNode* contourNode);
+
+  /// Create a model node from the closed surface in a contour node
+  /// \param contourNode the node to use to extract a labelmap from
+  static vtkMRMLModelNode* ExtractDicomRtRoiPointsFromContour(vtkMRMLContourNode* contourNode);
+
+  /// Create a model node from the DICOM-RT ROI points in a contour node
+  /// \param contourNode the node to use to extract a labelmap from
+  static vtkMRMLModelNode* ExtractClosedSurfaceFromContour(vtkMRMLContourNode* contourNode);
 
   /// Create a contour node for the given contour node
   /// \param contourNode the node that requires a storage node be created

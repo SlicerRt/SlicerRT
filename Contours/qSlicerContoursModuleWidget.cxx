@@ -477,6 +477,10 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
       }
     }
 
+    // Set state for representation extraction buttons
+    d->pushButton_ExtractLabelmap->setEnabled(this->selectionContainsRepresentation(vtkMRMLContourNode::IndexedLabelmap));
+    d->pushButton_ExtractClosedSurface->setEnabled(this->selectionContainsRepresentation(vtkMRMLContourNode::ClosedSurfaceModel));
+
     d->CTKCollapsibleButton_ChangeActiveRepresentation->setEnabled(true);
   }
 
@@ -837,7 +841,7 @@ void qSlicerContoursModuleWidget::updateWidgetsInCreateContourFromRepresentation
     if (!targetNameStd.empty())
     {
       std::vector<vtkMRMLContourNode*> nodes;
-      this->GetContoursFromContourSet(contourSet, nodes);
+      this->getContoursFromContourSet(contourSet, nodes);
       for( std::vector<vtkMRMLContourNode*>::iterator it = nodes.begin(); it != nodes.end(); ++it)
       {
         if (STRCASECMP( (*it)->GetName(), targetNameStd.c_str() ) == 0)
@@ -932,6 +936,10 @@ void qSlicerContoursModuleWidget::applyChangeRepresentationClicked()
 
   delete convertProgress;
   this->mrmlScene()->EndState(vtkMRMLScene::BatchProcessState);
+
+  // Set state for representation extraction buttons
+  d->pushButton_ExtractLabelmap->setEnabled(this->selectionContainsRepresentation(vtkMRMLContourNode::IndexedLabelmap));
+  d->pushButton_ExtractClosedSurface->setEnabled(this->selectionContainsRepresentation(vtkMRMLContourNode::ClosedSurfaceModel));
 
   QApplication::restoreOverrideCursor();
 }
@@ -1089,6 +1097,8 @@ void qSlicerContoursModuleWidget::testInit()
   connect( d->pushButton_ApplyChangeRepresentation, SIGNAL(clicked()), this, SLOT(applyChangeRepresentationClicked()) );
   connect( d->pushButton_CreateContourFromRepresentation, SIGNAL(clicked()), this, SLOT(onCreateContourFromRepresentationClicked()) );
   connect( d->pushButton_ExtractLabelmap, SIGNAL(clicked()), this, SLOT(extractLabelmapClicked()) );
+  connect( d->pushButton_ExtractClosedSurface, SIGNAL(clicked()), this, SLOT(extractClosedSurfaceClicked()) );
+  connect( d->pushButton_ExtractDicomRtRoiPoints, SIGNAL(clicked()), this, SLOT(extractDicomRtRoiPointsClicked()) );
 
   d->label_NoReferenceWarning->setVisible(false);
   d->label_NewConversion->setVisible(false);
@@ -1158,11 +1168,11 @@ void qSlicerContoursModuleWidget::testSetContourNode( vtkMRMLContourNode* node )
 }
 
 //---------------------------------------------------------------------------
-bool qSlicerContoursModuleWidget::GetContoursFromContourSet( vtkMRMLSubjectHierarchyNode* contourSetNode, std::vector< vtkMRMLContourNode* >& outputContourList )
+bool qSlicerContoursModuleWidget::getContoursFromContourSet( vtkMRMLSubjectHierarchyNode* contourSetNode, std::vector< vtkMRMLContourNode* >& outputContourList )
 {
   if (contourSetNode == NULL)
   {
-    qCritical() << "Invalid structure set node sent to qSlicerContoursModuleWidget::GetContoursFromContourSet";
+    qCritical() << "Invalid structure set node sent to qSlicerContoursModuleWidget::getContoursFromContourSet";
     return false;
   }
   outputContourList.clear();
@@ -1230,4 +1240,42 @@ void qSlicerContoursModuleWidget::extractLabelmapClicked()
   {
     d->logic()->ExtractLabelmapFromContour(*it);
   }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::extractClosedSurfaceClicked()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
+  {
+    d->logic()->ExtractClosedSurfaceFromContour(*it);
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::extractDicomRtRoiPointsClicked()
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
+  {
+    d->logic()->ExtractDicomRtRoiPointsFromContour(*it);
+  }
+}
+
+//---------------------------------------------------------------------------
+bool qSlicerContoursModuleWidget::selectionContainsRepresentation(vtkMRMLContourNode::ContourRepresentationType representationType)
+{
+  Q_D(qSlicerContoursModuleWidget);
+
+  for (std::vector<vtkMRMLContourNode*>::iterator it = d->SelectedContourNodes.begin(); it != d->SelectedContourNodes.end(); ++it)
+  {
+    if ((*it)->HasRepresentation(representationType))
+    {
+      return true;
+    }
+  }
+
+  return false;
 }
