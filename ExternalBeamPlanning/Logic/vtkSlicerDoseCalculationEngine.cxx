@@ -208,7 +208,7 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
     }
 
     /* A little warm fuzzy for the developers */
-    ion_plan.debug ();
+    ion_plan.print_verif ();
     printf ("Working...\n");
     fflush(stdout);
 
