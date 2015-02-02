@@ -339,6 +339,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
   contourSetColorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
   this->GetMRMLScene()->AddNode(contourSetColorTableNode);
 
+  // Get referenced SOP instance UIDs
+  const char* referencedSopInstanceUids = rtReader->GetReferencedSopInstanceUids();
+
   // Add ROIs
   int numberOfRois = rtReader->GetNumberOfRois();
   contourSetColorTableNode->SetNumberOfColors(numberOfRois+2);
@@ -402,6 +405,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
       contourHierarchySeriesNode->SetName(contourHierarchySeriesNodeName.c_str());
       contourHierarchySeriesNode->SetLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries());
       contourHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+      contourHierarchySeriesNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
+        referencedSopInstanceUids);
       //TODO: If both point and contour can be found in the series, then 2 SubjectHierarchy nodes will be created with the same Series Instance UID!
       contourHierarchySeriesNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(),
         rtReader->GetSeriesInstanceUid());
@@ -484,6 +489,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
         roiReferencedSeriesUid);
       contourSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(),
         roiLabel);
+      contourSubjectHierarchyNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
+        referencedSopInstanceUids);
 
       displayNodeCollection->AddItem( contourNode->GetRibbonModelDisplayNode() );
     }
@@ -989,6 +996,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader
   subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
   subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str(),
     rtReader->GetReferencedRTPlanSOPInstanceUID());
+  subjectHierarchySeriesNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
+    rtReader->GetReferencedRTPlanSOPInstanceUID());
 
   std::stringstream radiationMachineSadStream;
   radiationMachineSadStream << rtReader->GetRadiationMachineSAD();
@@ -1062,13 +1071,13 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::AddRoiPoint
 void vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy( vtkSlicerDicomRtReader* rtReader )
 {
   // Get the higher level parent nodes by their IDs (to fill their attributes later if they do not exist yet)
-  vtkMRMLHierarchyNode* patientNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
+  vtkMRMLSubjectHierarchyNode* patientNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
     this->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetPatientId() );
-  vtkMRMLHierarchyNode* studyNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
+  vtkMRMLSubjectHierarchyNode* studyNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
     this->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid() );
 
   // Insert series in hierarchy
-  vtkMRMLHierarchyNode* seriesNode = vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
+  vtkMRMLSubjectHierarchyNode* seriesNode = vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
     this->GetMRMLScene(), rtReader->GetPatientId(), rtReader->GetStudyInstanceUid(), rtReader->GetSeriesInstanceUid() );
 
   // Fill patient and study attributes if they have been just created
@@ -1131,19 +1140,15 @@ void vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy( vt
     // Add attributes for DICOM tags to the series hierarchy node
     seriesNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesModalityAttributeName().c_str(), rtReader->GetSeriesModality() );
     seriesNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesNumberAttributeName().c_str(), rtReader->GetSeriesNumber() );
+
+    // Set SOP instance UID (RT objects are in one file so have one SOP instance UID per series)
+    seriesNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), rtReader->GetSOPInstanceUID());
   }
   else
   {
     vtkErrorMacro("InsertSeriesInSubjectHierarchy: Failed to insert series with Instance UID "
       << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
     return;
-  }
-
-  // Handle special cases, make connections
-  const char* modality = seriesNode->GetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesModalityAttributeName().c_str());
-  if (!modality)
-  {
-    vtkErrorMacro("InsertSeriesInSubjectHierarchy: Series '" << seriesNode->GetName() << "' has invalid modality attribute!");
   }
 }
 

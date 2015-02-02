@@ -137,6 +137,11 @@ public:
   /// Set input file name
   vtkSetStringMacro(FileName);
 
+  /// Get referenced SOP instance UID list for the loaded structure set
+  vtkGetStringMacro(ReferencedSopInstanceUids);
+  /// Set referenced SOP instance UID list for the loaded structure set
+  vtkSetStringMacro(ReferencedSopInstanceUids);
+
   /// Get pixel spacing
   vtkGetVector2Macro(PixelSpacing, double); 
 
@@ -392,7 +397,7 @@ protected:
   /// Reorder slices by position and orientation in 3 space
   /// \param openDatabase A reference to an open DICOM database
   /// \param slices A map with any value for the int keys, the SOPInstanceUID string for the values
-  /// \return whether or not the function succeededo
+  /// \return whether or not the function succeeded
   bool OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDatabase, std::map<int, std::string>& slices );
 
   // Helper function to extract a plane equation from a set of points
@@ -409,6 +414,9 @@ protected:
 
   /// List of loaded contour ROIs from structure set
   std::vector<RoiEntry> RoiSequenceVector;
+
+  /// Referenced SOP instance UID list for the loaded structure set (serialized, separated by spaces)
+  char* ReferencedSopInstanceUids;
 
   /// List of loaded contour ROIs from structure set
   std::vector<BeamEntry> BeamSequenceVector;

@@ -207,6 +207,8 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->FileName = NULL;
 
   this->RoiSequenceVector.clear();
+  this->ReferencedSopInstanceUids = NULL;
+  this->BeamSequenceVector.clear();
 
   this->SetPixelSpacing(0.0,0.0);
   this->DoseUnits = NULL;
@@ -249,6 +251,7 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 vtkSlicerDicomRtReader::~vtkSlicerDicomRtReader()
 {
   this->RoiSequenceVector.clear();
+  this->BeamSequenceVector.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -556,6 +559,15 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
   {
     this->SetWindowWidth(windowWidth);
   }
+
+  // SOP instance UID
+  OFString sopInstanceUid("");
+  if (rtImageObject.getSOPInstanceUID(sopInstanceUid).bad())
+  {
+    vtkErrorMacro("LoadRTImage: Failed to get SOP instance UID for RT image!");
+    return; // mandatory DICOM value
+  }
+  this->SetSOPInstanceUID(sopInstanceUid.c_str());
 
   // Get and store patient, study and series information
   this->GetAndStoreHierarchyInformation(&rtImageObject);
@@ -1221,6 +1233,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
   // Used for connection from one planar contour ROI to the corresponding anatomical volume slice instance
   std::map<int, std::string> contourToSliceInstanceUidMap;
+  std::set<std::string> referencedSopInstanceUids;
 
   // Read ROIs (ROIContourSequence)
   do 
@@ -1293,7 +1306,8 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       tempCellArray->InsertCellPoint(pointId-numberOfPoints);
 
       // Add map to the referenced slice instance UID
-      // This is not a mandatory field so no error logged if not found. The reason why it is still read and stored is that it references the contours individually
+      // This is not a mandatory field so no error logged if not found. The reason why
+      // it is still read and stored is that it references the contours individually
       DRTContourImageSequence &rtContourImageSequenceObject = contourItem.getContourImageSequence();
       if (rtContourImageSequenceObject.gotoFirstItem().good())
       {
@@ -1303,6 +1317,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
           OFString referencedSOPInstanceUID("");
           rtContourImageSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID);
           contourToSliceInstanceUidMap[contourIndex] = referencedSOPInstanceUID.c_str();
+          referencedSopInstanceUids.insert(referencedSOPInstanceUID.c_str());
 
           // Check if multiple SOP instance UIDs are referenced
           if (rtContourImageSequenceObject.getNumberOfItems() > 1)
@@ -1339,9 +1354,10 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
           DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject->getCurrentItem();
           if (rtContourImageSequenceItem.isValid())
           {
-            OFString currentReferencedSOPInstanceUID("");
-            rtContourImageSequenceItem.getReferencedSOPInstanceUID(currentReferencedSOPInstanceUID);
-            contourToSliceInstanceUidMap[currentSliceNumber] = currentReferencedSOPInstanceUID.c_str();
+            OFString referencedSOPInstanceUID("");
+            rtContourImageSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID);
+            contourToSliceInstanceUidMap[currentSliceNumber] = referencedSOPInstanceUID.c_str();
+            referencedSopInstanceUids.insert(referencedSOPInstanceUID.c_str());
           }
           else
           {
@@ -1388,8 +1404,29 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
     // Set referenced SOP instance UIDs
     roiEntry->ContourIndexToSopInstanceUidMap = contourToSliceInstanceUidMap;
+
+    // Serialize referenced SOP instance UID set
+    std::set<std::string>::iterator uidIt;
+    std::string serializedUidList("");
+    for (uidIt = referencedSopInstanceUids.begin(); uidIt != referencedSopInstanceUids.end(); ++uidIt)
+    {
+      serializedUidList.append(*uidIt);
+      serializedUidList.append(" ");
+    }
+    // Strip last space
+    serializedUidList = serializedUidList.substr(0, serializedUidList.size()-1);
+    this->SetReferencedSopInstanceUids(serializedUidList.c_str());
   }
   while (rtROIContourSequenceObject.gotoNextItem().good());
+
+  // SOP instance UID
+  OFString sopInstanceUid("");
+  if (rtStructureSetObject.getSOPInstanceUID(sopInstanceUid).bad())
+  {
+    vtkErrorMacro("LoadRTStructureSet: Failed to get SOP instance UID for RT structure set!");
+    return; // mandatory DICOM value
+  }
+  this->SetSOPInstanceUID(sopInstanceUid.c_str());
 
   // Get and store patient, study and series information
   this->GetAndStoreHierarchyInformation(&rtStructureSetObject);
@@ -1600,6 +1637,15 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   }
   this->SetPixelSpacing(pixelSpacingOFVector[0], pixelSpacingOFVector[1]);
   vtkDebugMacro("Pixel Spacing: (" << pixelSpacingOFVector[0] << ", " << pixelSpacingOFVector[1] << ")");
+
+  // SOP instance UID
+  OFString sopInstanceUid("");
+  if (rtDoseObject.getSOPInstanceUID(sopInstanceUid).bad())
+  {
+    vtkErrorMacro("LoadRTDose: Failed to get SOP instance UID for RT dose!");
+    return; // mandatory DICOM value
+  }
+  this->SetSOPInstanceUID(sopInstanceUid.c_str());
 
   // Get and store patient, study and series information
   this->GetAndStoreHierarchyInformation(&rtDoseObject);
