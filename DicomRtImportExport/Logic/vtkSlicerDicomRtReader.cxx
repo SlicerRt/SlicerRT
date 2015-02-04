@@ -213,12 +213,13 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->SetPixelSpacing(0.0,0.0);
   this->DoseUnits = NULL;
   this->DoseGridScaling = NULL;
+  this->RTDoseReferencedRTPlanSOPInstanceUID = NULL;
 
   this->SOPInstanceUID = NULL;
 
   this->ImageType = NULL;
   this->RTImageLabel = NULL;
-  this->ReferencedRTPlanSOPInstanceUID = NULL;
+  this->RTImageReferencedRTPlanSOPInstanceUID = NULL;
   this->ReferencedBeamNumber = -1;
   this->SetRTImagePosition(0.0,0.0);
   this->RTImageSID = 0.0;
@@ -396,7 +397,7 @@ void vtkSlicerDicomRtReader::LoadRTImage(DcmDataset* dataset)
       // Read Referenced RT Plan SOP instance UID
       OFString referencedSOPInstanceUID("");
       currentReferencedRtPlanSequenceObject.getReferencedSOPInstanceUID(referencedSOPInstanceUID);
-      this->SetReferencedRTPlanSOPInstanceUID(referencedSOPInstanceUID.c_str());
+      this->SetRTImageReferencedRTPlanSOPInstanceUID(referencedSOPInstanceUID.c_str());
     }
 
     if (rtReferencedRtPlanSequenceObject.getNumberOfItems() > 1)
@@ -949,6 +950,7 @@ double vtkSlicerDicomRtReader::GetSliceThickness( DRTContourSequence& rtContourS
     return defaultSliceThickness;
   }
 
+  // Close and delete temporary DICOM database
   dicomDatabase->closeDatabase();
   delete dicomDatabase;
   QSqlDatabase::removeDatabase(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
@@ -1638,6 +1640,21 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
   this->SetPixelSpacing(pixelSpacingOFVector[0], pixelSpacingOFVector[1]);
   vtkDebugMacro("Pixel Spacing: (" << pixelSpacingOFVector[0] << ", " << pixelSpacingOFVector[1] << ")");
 
+  // Get referenced RTPlan instance UID
+  DRTReferencedRTPlanSequence &referencedRTPlanSequence = rtDoseObject.getReferencedRTPlanSequence();
+  if (referencedRTPlanSequence.gotoFirstItem().good())
+  {
+    DRTReferencedRTPlanSequence::Item &referencedRTPlanSequenceItem = referencedRTPlanSequence.getCurrentItem();
+    if (referencedRTPlanSequenceItem.isValid())
+    {
+      OFString referencedSOPInstanceUID("");
+      if (referencedRTPlanSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID).good())
+      {
+        this->SetRTDoseReferencedRTPlanSOPInstanceUID(referencedSOPInstanceUID.c_str());
+      }
+    }
+  }
+
   // SOP instance UID
   OFString sopInstanceUid("");
   if (rtDoseObject.getSOPInstanceUID(sopInstanceUid).bad())
@@ -1750,6 +1767,7 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
       }
     }
 
+    // Close and delete temporary DICOM database
     dicomDatabase->closeDatabase();
     delete dicomDatabase;
     QSqlDatabase::removeDatabase(DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());

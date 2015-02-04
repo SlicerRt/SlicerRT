@@ -155,6 +155,11 @@ public:
   /// Set dose grid scaling
   vtkSetStringMacro(DoseGridScaling);
 
+  /// Get RT Plan SOP instance UID referenced by RT Dose
+  vtkGetStringMacro(RTDoseReferencedRTPlanSOPInstanceUID);
+  /// Set RT Plan SOP instance UID referenced by RT Dose
+  vtkSetStringMacro(RTDoseReferencedRTPlanSOPInstanceUID);
+
   /// Get SOP instance UID
   vtkGetStringMacro(SOPInstanceUID);
   /// Set SOP instance UID
@@ -170,10 +175,10 @@ public:
   /// Set RT image label
   vtkSetStringMacro(RTImageLabel);
 
-  /// Get referenced RT Plan SOP instance UID
-  vtkGetStringMacro(ReferencedRTPlanSOPInstanceUID);
-  /// Set referenced RT Plan SOP instance UID
-  vtkSetStringMacro(ReferencedRTPlanSOPInstanceUID);
+  /// Get RT Plan SOP instance UID referenced by RT Image
+  vtkGetStringMacro(RTImageReferencedRTPlanSOPInstanceUID);
+  /// Set RT Plan SOP instance UID referenced by RT Image
+  vtkSetStringMacro(RTImageReferencedRTPlanSOPInstanceUID);
 
   /// Get referenced beam number
   vtkGetMacro(ReferencedBeamNumber, int);
@@ -433,6 +438,9 @@ protected:
   /// Store it as a string, because it will be passed as a MRML node attribute.
   char* DoseGridScaling;
 
+  /// RT Plan SOP instance UID referenced by RT Dose
+  char* RTDoseReferencedRTPlanSOPInstanceUID;
+
   /// SOP instance UID
   char* SOPInstanceUID;
 
@@ -442,10 +450,10 @@ protected:
   /// User-defined label for RT image
   char* RTImageLabel;
 
-  /// Referenced RT Plan instance UID of an RT Image
-  char* ReferencedRTPlanSOPInstanceUID;
+  /// RT Plan SOP instance UID referenced by RT Image
+  char* RTImageReferencedRTPlanSOPInstanceUID;
 
-  /// Referenced beam number (in the referenced RT Plan, \sa ReferencedRTPlanSOPInstanceUID)
+  /// Referenced beam number (in the referenced RT Plan, \sa RTImageReferencedRTPlanSOPInstanceUID)
   int ReferencedBeamNumber;
 
   /// RT image position (center of the upper left hand corner of an RT image)

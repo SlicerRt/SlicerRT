@@ -57,6 +57,10 @@
 #include <dcmtk/ofstd/ofcond.h>
 #include <dcmtk/ofstd/ofstring.h>
 #include <dcmtk/ofstd/ofstd.h>        /* for class OFStandard */
+#include <dcmtk/dcmrt/drtdose.h>
+#include <dcmtk/dcmrt/drtimage.h>
+#include <dcmtk/dcmrt/drtplan.h>
+#include <dcmtk/dcmrt/drtstrct.h>
 
 // MRML includes
 #include <vtkMRMLColorTableNode.h>
@@ -158,7 +162,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
     OFCondition result = fileformat.loadFile(fileName.c_str(), EXS_Unknown);
     if (!result.good())
     {
-      return; // Failed to parse this file, skip it
+      continue; // Failed to parse this file, skip it
     }
 
     // Check SOP Class UID for one of the supported RT objects
@@ -166,20 +170,23 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
     OFString sopClass;
     if (!dataset->findAndGetOFString(DCM_SOPClassUID, sopClass).good() || sopClass.empty())
     {
-      return; // Failed to parse this file, skip it
-    }    
+      continue; // Failed to parse this file, skip it
+    }
 
     // DICOM parsing is successful, now check if the object is loadable 
     OFString name("");
-    OFString seriesNumber;
+    OFString seriesNumber("");
+    std::vector<OFString> referencedSOPInstanceUIDs;
     dataset->findAndGetOFString(DCM_SeriesNumber, seriesNumber);
     if (!seriesNumber.empty())
     {
       name += seriesNumber + ": ";
     }
 
+    // RTDose
     if (sopClass == UID_RTDoseStorage)
     {
+      // Assemble name
       name += "RTDOSE";
       OFString instanceNumber;
       dataset->findAndGetOFString(DCM_InstanceNumber, instanceNumber);
@@ -193,9 +200,51 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
       {
         name += " [" + instanceNumber + "]"; 
       }
+
+      // Find RTPlan name for RTDose series
+      OFString referencedSOPInstanceUID("");
+      DRTDoseIOD rtDoseObject;
+      if (rtDoseObject.read(*dataset).good())
+      {
+        DRTReferencedRTPlanSequence &referencedRTPlanSequence = rtDoseObject.getReferencedRTPlanSequence();
+        if (referencedRTPlanSequence.gotoFirstItem().good())
+        {
+          DRTReferencedRTPlanSequence::Item &referencedRTPlanSequenceItem = referencedRTPlanSequence.getCurrentItem();
+          if (referencedRTPlanSequenceItem.isValid())
+          {
+            if (referencedRTPlanSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID).good())
+            {
+              referencedSOPInstanceUIDs.push_back(referencedSOPInstanceUID);
+            }
+          }
+        }
+      }
+
+      // Create and open DICOM database to perform database operations for getting RTPlan name
+      QSettings settings;
+      QString databaseDirectory = settings.value("DatabaseDirectory").toString();
+      QString databaseFile = databaseDirectory + vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_DATABASE_FILENAME.c_str();
+      ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
+      dicomDatabase->openDatabase(databaseFile, vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+
+      // Get RTPlan name to show it with the dose
+      QString rtPlanLabelTag("300a,0002");
+      QString rtPlanFileName = dicomDatabase->fileForInstance(referencedSOPInstanceUID.c_str());
+      if (!rtPlanFileName.isEmpty())
+      {
+        name += OFString(": ") + OFString(dicomDatabase->fileValue(rtPlanFileName,rtPlanLabelTag).toLatin1().constData());
+      }
+
+      // Close and delete DICOM database
+      dicomDatabase->closeDatabase();
+      delete dicomDatabase;
+      QSqlDatabase::removeDatabase(vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+      QSqlDatabase::removeDatabase(QString(vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
     }
+    // RTPlan
     else if (sopClass == UID_RTPlanStorage)
     {
+      // Assemble name
       name += "RTPLAN";
       OFString planLabel;
       dataset->findAndGetOFString(DCM_RTPlanLabel, planLabel);
@@ -222,8 +271,10 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
         name += ": " + planName;
       }
     }
+    // RTStructureSet
     else if (sopClass == UID_RTStructureSetStorage)
     {
+      // Assemble name
       name += "RTSTRUCT";
       OFString structLabel;
       dataset->findAndGetOFString(DCM_StructureSetLabel, structLabel);
@@ -231,9 +282,104 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
       {
         name += ": " + structLabel;
       }
+
+      // Get referenced image instance UIDs
+      OFString referencedSOPInstanceUID("");
+      DRTStructureSetIOD rtStructureSetObject;
+      if (rtStructureSetObject.read(*dataset).good())
+      {
+        DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
+        if (rtROIContourSequenceObject.gotoFirstItem().good())
+        {
+          do // For all ROIs
+          {
+            DRTROIContourSequence::Item &currentRoiObject = rtROIContourSequenceObject.getCurrentItem();
+            if (currentRoiObject.isValid())
+            {
+              DRTContourSequence &rtContourSequenceObject = currentRoiObject.getContourSequence();
+              if (rtContourSequenceObject.gotoFirstItem().good())
+              {
+                do // For all contours
+                {
+                  DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
+                  if (!contourItem.isValid())
+                  {
+                    DRTContourImageSequence &rtContourImageSequenceObject = contourItem.getContourImageSequence();
+                    if (rtContourImageSequenceObject.gotoFirstItem().good())
+                    {
+                      DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject.getCurrentItem();
+                      if (rtContourImageSequenceItem.isValid())
+                      {
+                        OFString referencedSOPInstanceUID("");
+                        if (rtContourImageSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID).good())
+                        {
+                          referencedSOPInstanceUIDs.push_back(referencedSOPInstanceUID);
+                        }
+                      }
+                    }
+                  }
+                } // For all contours
+                while (rtContourSequenceObject.gotoNextItem().good());
+              }
+            }
+          } // For all ROIs
+          while (rtROIContourSequenceObject.gotoNextItem().good());
+        } // End ROIContourSequence
+
+        // If the above tags do not store the referenced instance UIDs, then look at the other possible place
+        if (referencedSOPInstanceUIDs.empty())
+        {
+          DRTReferencedFrameOfReferenceSequence &rtReferencedFrameOfReferenceSequenceObject = rtStructureSetObject.getReferencedFrameOfReferenceSequence();
+          if (rtReferencedFrameOfReferenceSequenceObject.gotoFirstItem().good())
+          {
+            DRTReferencedFrameOfReferenceSequence::Item &currentReferencedFrameOfReferenceSequenceItem = rtReferencedFrameOfReferenceSequenceObject.getCurrentItem();
+            if (currentReferencedFrameOfReferenceSequenceItem.isValid())
+            {
+              DRTRTReferencedStudySequence &rtReferencedStudySequenceObject = currentReferencedFrameOfReferenceSequenceItem.getRTReferencedStudySequence();
+              if (rtReferencedStudySequenceObject.gotoFirstItem().good())
+              {
+                DRTRTReferencedStudySequence::Item &rtReferencedStudySequenceItem = rtReferencedStudySequenceObject.getCurrentItem();
+                if (rtReferencedStudySequenceItem.isValid())
+                {
+                  DRTRTReferencedSeriesSequence &rtReferencedSeriesSequenceObject = rtReferencedStudySequenceItem.getRTReferencedSeriesSequence();
+                  if (rtReferencedSeriesSequenceObject.gotoFirstItem().good())
+                  {
+                    if (rtReferencedSeriesSequenceObject.gotoFirstItem().good())
+                    {
+                      DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject.getCurrentItem();
+                      if (rtReferencedSeriesSequenceItem.isValid())
+                      {
+                        DRTContourImageSequence &rtContourImageSequenceObject = rtReferencedSeriesSequenceItem.getContourImageSequence();
+                        if (rtContourImageSequenceObject.gotoFirstItem().good())
+                        {
+                          do
+                          {
+                            DRTContourImageSequence::Item &rtContourImageSequenceItem = rtContourImageSequenceObject.getCurrentItem();
+                            if (rtContourImageSequenceItem.isValid())
+                            {
+                              OFString referencedSOPInstanceUID("");
+                              if (rtContourImageSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID).good())
+                              {
+                                referencedSOPInstanceUIDs.push_back(referencedSOPInstanceUID);
+                              }
+                            }
+                          } // For all contours
+                          while (rtContourImageSequenceObject.gotoNextItem().good());
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } // End DRTReferencedFrameOfReferenceSequence
+      } // End finding referenced instance UIDs
     }
+    // RTImage
     else if (sopClass == UID_RTImageStorage)
     {
+      // Assemble name
       name += "RTIMAGE";
       OFString imageLabel;
       dataset->findAndGetOFString(DCM_RTImageLabel, imageLabel);
@@ -241,8 +387,24 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
       {
         name += ": " + imageLabel;
       }
+
+      // Get referenced RTPlan
+      OFString referencedSOPInstanceUID("");
+      DRTImageIOD rtImageObject;
+      if (rtImageObject.read(*dataset).good())
+      {
+        DRTReferencedRTPlanSequenceInRTImageModule &rtReferencedRtPlanSequenceObject = rtImageObject.getReferencedRTPlanSequence();
+        if (rtReferencedRtPlanSequenceObject.gotoFirstItem().good())
+        {
+          DRTReferencedRTPlanSequenceInRTImageModule::Item &currentReferencedRtPlanSequenceObject = rtReferencedRtPlanSequenceObject.getCurrentItem();
+          if (currentReferencedRtPlanSequenceObject.getReferencedSOPInstanceUID(referencedSOPInstanceUID).good())
+          {
+            referencedSOPInstanceUIDs.push_back(referencedSOPInstanceUID);
+          }
+        }
+      }
     }
-    /* not yet supported
+    /* Not yet supported
     else if (sopClass == UID_RTTreatmentSummaryRecordStorage)
     else if (sopClass == UID_RTIonPlanStorage)
     else if (sopClass == UID_RTIonBeamsTreatmentRecordStorage)
@@ -252,12 +414,18 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
       continue; // Not an RT file
     }
 
-    // The file is a loadable RT object
+    // The file is a loadable RT object, create and set up loadable
     vtkSmartPointer<vtkSlicerDICOMLoadable> loadable = vtkSmartPointer<vtkSlicerDICOMLoadable>::New();
     loadable->SetName(name.c_str());
     loadable->AddFile(fileName.c_str());
     loadable->SetConfidence(1.0);
     loadable->SetSelected(true);
+    std::vector<OFString>::iterator uidIt;
+    for (uidIt = referencedSOPInstanceUIDs.begin(); uidIt != referencedSOPInstanceUIDs.end(); ++uidIt)
+    {
+      //TODO: Reference discovery is disabled until issues regarding the pop-up window are solved.
+      //loadable->AddReferencedInstanceUID(uidIt->c_str());
+    }
     loadables->AddItem(loadable);
   }
 }
@@ -676,6 +844,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader*
     this->GetMRMLScene(), NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), seriesName, volumeNode );
   subjectHierarchySeriesNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(),
     rtReader->GetSeriesInstanceUid());
+  subjectHierarchySeriesNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
+    rtReader->GetRTDoseReferencedRTPlanSOPInstanceUID());
 
   // Insert series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
@@ -995,9 +1165,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader
   // Set RT image specific attributes
   subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
   subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str(),
-    rtReader->GetReferencedRTPlanSOPInstanceUID());
+    rtReader->GetRTImageReferencedRTPlanSOPInstanceUID());
   subjectHierarchySeriesNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
-    rtReader->GetReferencedRTPlanSOPInstanceUID());
+    rtReader->GetRTImageReferencedRTPlanSOPInstanceUID());
 
   std::stringstream radiationMachineSadStream;
   radiationMachineSadStream << rtReader->GetRadiationMachineSAD();

@@ -52,21 +52,6 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
           qtLoadable.selected = True
           loadables.append(qtLoadable)
 
-    # Find RTPlan names for RTDose series
-    # TODO: Move it to the reader class #407
-    for loadable in loadables:
-      if "RTDOSE" in loadable.name:
-        seriesType = slicer.dicomDatabase.fileValue(loadable.files[0], self.tags['Modality'])
-        if seriesType == "RTDOSE":
-          slicer.dicomDatabase.loadFileHeader(loadable.files[0])
-          referencedSOPInstanceFullString = slicer.dicomDatabase.headerValue(self.tags['ReferencedSOPInstanceUID'])
-          if len(referencedSOPInstanceFullString) > 0:
-            referenceRTPlanInstanceUID = referencedSOPInstanceFullString.split("[")[1].split("]")[0]
-            if len(referenceRTPlanInstanceUID) > 0:
-              rtPlanFileName = slicer.dicomDatabase.fileForInstance(referenceRTPlanInstanceUID)
-              if len(rtPlanFileName) > 0:
-                loadable.name = loadable.name + ": " + slicer.dicomDatabase.fileValue(rtPlanFileName,self.tags['RTPlanLabel'])
-
     return loadables
   
   def load(self,loadable):
