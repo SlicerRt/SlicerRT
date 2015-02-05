@@ -151,9 +151,9 @@ vtkSlicerDicomRtReader::RoiEntry::RoiEntry(const RoiEntry& src)
   this->PolyData = NULL;
   this->SetPolyData(src.PolyData);
   this->SliceThickness = src.SliceThickness;
-  this->ReferencedSeriesUid = src.ReferencedSeriesUid;
-  this->ReferencedFrameOfReferenceUid = src.ReferencedFrameOfReferenceUid;
-  this->ContourIndexToSopInstanceUidMap = src.ContourIndexToSopInstanceUidMap;
+  this->ReferencedSeriesUID = src.ReferencedSeriesUID;
+  this->ReferencedFrameOfReferenceUID = src.ReferencedFrameOfReferenceUID;
+  this->ContourIndexToSOPInstanceUIDMap = src.ContourIndexToSOPInstanceUIDMap;
 }
 
 vtkSlicerDicomRtReader::RoiEntry& vtkSlicerDicomRtReader::RoiEntry::operator=(const RoiEntry &src)
@@ -166,9 +166,9 @@ vtkSlicerDicomRtReader::RoiEntry& vtkSlicerDicomRtReader::RoiEntry::operator=(co
   this->DisplayColor[2] = src.DisplayColor[2];
   this->SetPolyData(src.PolyData);
   this->SliceThickness = src.SliceThickness;
-  this->ReferencedSeriesUid = src.ReferencedSeriesUid;
-  this->ReferencedFrameOfReferenceUid = src.ReferencedFrameOfReferenceUid;
-  this->ContourIndexToSopInstanceUidMap = src.ContourIndexToSopInstanceUidMap;
+  this->ReferencedSeriesUID = src.ReferencedSeriesUID;
+  this->ReferencedFrameOfReferenceUID = src.ReferencedFrameOfReferenceUID;
+  this->ContourIndexToSOPInstanceUIDMap = src.ContourIndexToSOPInstanceUIDMap;
 
   return (*this);
 }
@@ -207,7 +207,7 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->FileName = NULL;
 
   this->RoiSequenceVector.clear();
-  this->ReferencedSopInstanceUids = NULL;
+  this->RTStructureSetReferencedSOPInstanceUIDs = NULL;
   this->BeamSequenceVector.clear();
 
   this->SetPixelSpacing(0.0,0.0);
@@ -1201,7 +1201,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
     OFString referencedFrameOfReferenceUid("");
     currentROISequenceObject.getReferencedFrameOfReferenceUID(referencedFrameOfReferenceUid);
-    roiEntry.ReferencedFrameOfReferenceUid = referencedFrameOfReferenceUid.c_str();
+    roiEntry.ReferencedFrameOfReferenceUID = referencedFrameOfReferenceUid.c_str();
 
     Sint32 roiNumber = -1;
     currentROISequenceObject.getROINumber(roiNumber);
@@ -1234,7 +1234,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   }
 
   // Used for connection from one planar contour ROI to the corresponding anatomical volume slice instance
-  std::map<int, std::string> contourToSliceInstanceUidMap;
+  std::map<int, std::string> contourToSliceInstanceUIDMap;
   std::set<std::string> referencedSopInstanceUids;
 
   // Read ROIs (ROIContourSequence)
@@ -1274,12 +1274,14 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     // Read contour data
     do
     {
+      // Get contour
       DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
       if (!contourItem.isValid())
       {
         continue;
       }
 
+      // Get number of contour points
       OFString numberOfPointsString("");
       contourItem.getNumberOfContourPoints(numberOfPointsString);
       std::stringstream ss;
@@ -1287,6 +1289,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       int numberOfPoints;
       ss >> numberOfPoints;
 
+      // Get contour point data
       OFVector<vtkTypeFloat64> contourData_LPS;
       contourItem.getContourData(contourData_LPS);
 
@@ -1318,7 +1321,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
         {
           OFString referencedSOPInstanceUID("");
           rtContourImageSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID);
-          contourToSliceInstanceUidMap[contourIndex] = referencedSOPInstanceUID.c_str();
+          contourToSliceInstanceUIDMap[contourIndex] = referencedSOPInstanceUID.c_str();
           referencedSopInstanceUids.insert(referencedSOPInstanceUID.c_str());
 
           // Check if multiple SOP instance UIDs are referenced
@@ -1345,7 +1348,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     roiEntry->OrderedContourPlanes = orderedPlanes;
 
     // Read slice reference UIDs from referenced frame of reference sequence if it was not included in the ROIContourSequence above
-    if (contourToSliceInstanceUidMap.empty())
+    if (contourToSliceInstanceUIDMap.empty())
     {
       DRTContourImageSequence* rtContourImageSequenceObject = this->GetReferencedFrameOfReferenceContourImageSequence(rtStructureSetObject);
       if (rtContourImageSequenceObject && rtContourImageSequenceObject->gotoFirstItem().good())
@@ -1358,7 +1361,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
           {
             OFString referencedSOPInstanceUID("");
             rtContourImageSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID);
-            contourToSliceInstanceUidMap[currentSliceNumber] = referencedSOPInstanceUID.c_str();
+            contourToSliceInstanceUIDMap[currentSliceNumber] = referencedSOPInstanceUID.c_str();
             referencedSopInstanceUids.insert(referencedSOPInstanceUID.c_str());
           }
           else
@@ -1399,13 +1402,13 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     }
 
     // Set referenced series UID
-    roiEntry->ReferencedSeriesUid = (std::string)referencedSeriesInstanceUID.c_str();
+    roiEntry->ReferencedSeriesUID = (std::string)referencedSeriesInstanceUID.c_str();
 
     // Set slice thickness
     roiEntry->SliceThickness = sliceThickness;
 
     // Set referenced SOP instance UIDs
-    roiEntry->ContourIndexToSopInstanceUidMap = contourToSliceInstanceUidMap;
+    roiEntry->ContourIndexToSOPInstanceUIDMap = contourToSliceInstanceUIDMap;
 
     // Serialize referenced SOP instance UID set
     std::set<std::string>::iterator uidIt;
@@ -1417,7 +1420,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     }
     // Strip last space
     serializedUidList = serializedUidList.substr(0, serializedUidList.size()-1);
-    this->SetReferencedSopInstanceUids(serializedUidList.c_str());
+    this->SetRTStructureSetReferencedSOPInstanceUIDs(serializedUidList.c_str());
   }
   while (rtROIContourSequenceObject.gotoNextItem().good());
 
@@ -1483,7 +1486,7 @@ const char* vtkSlicerDicomRtReader::GetRoiReferencedSeriesUid(unsigned int inter
     vtkErrorMacro("GetRoiReferencedSeriesUid: Cannot get ROI with internal index: " << internalIndex);
     return NULL;
   }
-  return this->RoiSequenceVector[internalIndex].ReferencedSeriesUid.c_str();
+  return this->RoiSequenceVector[internalIndex].ReferencedSeriesUID.c_str();
 }
 
 //---------------------------------------------------------------------------
@@ -1738,10 +1741,10 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
     ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
     dicomDatabase->openDatabase(this->DatabaseFile, DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
 
-    std::map<int,std::string>* contourIndexToSopInstanceUidMap = &(this->RoiSequenceVector[internalIndex].ContourIndexToSopInstanceUidMap);
+    std::map<int,std::string>* contourIndexToSOPInstanceUIDMap = &(this->RoiSequenceVector[internalIndex].ContourIndexToSOPInstanceUIDMap);
     std::map<int,std::string>::iterator sliceInstanceUidIt;
     QString imageOrientation;
-    for (sliceInstanceUidIt = contourIndexToSopInstanceUidMap->begin(); sliceInstanceUidIt != contourIndexToSopInstanceUidMap->end(); ++sliceInstanceUidIt)
+    for (sliceInstanceUidIt = contourIndexToSOPInstanceUIDMap->begin(); sliceInstanceUidIt != contourIndexToSOPInstanceUIDMap->end(); ++sliceInstanceUidIt)
     {
       // Get file name for referenced slice instance from the stored SOP instance UID
       QString fileName = dicomDatabase->fileForInstance(sliceInstanceUidIt->second.c_str());

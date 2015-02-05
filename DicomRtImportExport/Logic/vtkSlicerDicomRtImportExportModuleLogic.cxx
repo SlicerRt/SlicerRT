@@ -508,7 +508,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
   this->GetMRMLScene()->AddNode(contourSetColorTableNode);
 
   // Get referenced SOP instance UIDs
-  const char* referencedSopInstanceUids = rtReader->GetReferencedSopInstanceUids();
+  const char* referencedSopInstanceUids = rtReader->GetRTStructureSetReferencedSOPInstanceUIDs();
 
   // Add ROIs
   int numberOfRois = rtReader->GetNumberOfRois();

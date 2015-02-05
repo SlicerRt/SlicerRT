@@ -138,9 +138,9 @@ public:
   vtkSetStringMacro(FileName);
 
   /// Get referenced SOP instance UID list for the loaded structure set
-  vtkGetStringMacro(ReferencedSopInstanceUids);
+  vtkGetStringMacro(RTStructureSetReferencedSOPInstanceUIDs);
   /// Set referenced SOP instance UID list for the loaded structure set
-  vtkSetStringMacro(ReferencedSopInstanceUids);
+  vtkSetStringMacro(RTStructureSetReferencedSOPInstanceUIDs);
 
   /// Get pixel spacing
   vtkGetVector2Macro(PixelSpacing, double); 
@@ -282,9 +282,9 @@ protected:
     double DisplayColor[3];
     vtkPolyData* PolyData;
     double SliceThickness;
-    std::string ReferencedSeriesUid;
-    std::string ReferencedFrameOfReferenceUid;
-    std::map<int,std::string> ContourIndexToSopInstanceUidMap;
+    std::string ReferencedSeriesUID;
+    std::string ReferencedFrameOfReferenceUID;
+    std::map<int,std::string> ContourIndexToSOPInstanceUIDMap;
     std::map<double, vtkSmartPointer<vtkPlane> > OrderedContourPlanes;
   };
 
@@ -421,7 +421,7 @@ protected:
   std::vector<RoiEntry> RoiSequenceVector;
 
   /// Referenced SOP instance UID list for the loaded structure set (serialized, separated by spaces)
-  char* ReferencedSopInstanceUids;
+  char* RTStructureSetReferencedSOPInstanceUIDs;
 
   /// List of loaded contour ROIs from structure set
   std::vector<BeamEntry> BeamSequenceVector;
