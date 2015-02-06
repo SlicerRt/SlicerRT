@@ -46,7 +46,7 @@
 #include <vtkGeneralTransform.h>
 #include <vtkImageData.h>
 #include <vtkImageReslice.h>
-#include <vtkImageResliceMask.h>
+#include <vtkImageReslice.h>
 #include <vtkIntArray.h>
 #include <vtkMath.h>
 #include <vtkMathUtilities.h>
@@ -1061,7 +1061,7 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
       this->GetLabelmapImageData()->GetExtent(extent);
 
       vtkNew<vtkMatrix4x4> rasToIJK;
-      vtkNew<vtkImageResliceMask> reslice;
+      vtkNew<vtkImageReslice> reslice;
 
       vtkNew<vtkGeneralTransform> resampleXform;
       resampleXform->Identity();
@@ -1093,11 +1093,6 @@ void vtkMRMLContourNode::ApplyTransform( vtkAbstractTransform* transform )
       reslice->SetOutputSpacing( this->GetLabelmapImageData()->GetSpacing() );
       reslice->SetOutputDimensionality( 3 );
       reslice->SetOutputExtent( extent);
-#if (VTK_MAJOR_VERSION <= 5)
-      reslice->GetBackgroundMask()->SetUpdateExtentToWholeExtent();
-#else
-      reslice->GetBackgroundMaskPort()->GetProducer()->SetUpdateExtentToWholeExtent();
-#endif
       reslice->Update();
 
       vtkNew<vtkImageData> resampleImage;
