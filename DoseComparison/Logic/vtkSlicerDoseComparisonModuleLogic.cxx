@@ -218,6 +218,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   }
   gamma.set_spatial_tolerance(this->DoseComparisonNode->GetDtaDistanceToleranceMm());
   gamma.set_dose_difference_tolerance(this->DoseComparisonNode->GetDoseDifferenceTolerancePercent() / 100.0);
+  gamma.set_resample_nn(!this->DoseComparisonNode->GetUseLinearInterpolation());
   if (!this->DoseComparisonNode->GetUseMaximumDose())
   {
     gamma.set_reference_dose(this->DoseComparisonNode->GetReferenceDoseGy());
@@ -230,6 +231,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   itk::Image<float, 3>::Pointer gammaVolumeItk = gamma.get_gamma_image_itk();
   this->DoseComparisonNode->SetPassFractionPercent( gamma.get_pass_fraction() * 100.0 );
   this->DoseComparisonNode->ResultsValidOn();
+  this->DoseComparisonNode->SetReportString(gamma.get_report_string().c_str());
 
   // Convert output to VTK
   double checkpointVtkConvertStart = timer->GetUniversalTime();

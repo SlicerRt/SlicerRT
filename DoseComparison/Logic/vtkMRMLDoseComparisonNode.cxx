@@ -53,8 +53,10 @@ vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
   this->AnalysisThresholdPercent = 10.0;
   this->MaximumGamma = 2.0;
   this->UseMaximumDose = true;
+  this->UseLinearInterpolation = true;
   this->PassFractionPercent = -1.0;
-  this->ResultsValidOff();
+  this->ResultsValid = false;
+  this->ReportString = NULL;
 
   this->HideFromEditors = false;
 }
@@ -78,8 +80,10 @@ void vtkMRMLDoseComparisonNode::WriteXML(ostream& of, int nIndent)
   of << indent << " AnalysisThresholdPercent=\"" << this->AnalysisThresholdPercent << "\"";
   of << indent << " MaximumGamma=\"" << this->MaximumGamma << "\"";
   of << indent << " UseMaximumDose=\"" << (this->UseMaximumDose ? "true" : "false") << "\"";
+  of << indent << " UseLinearInterpolation=\"" << (this->UseLinearInterpolation ? "true" : "false") << "\"";
   of << indent << " PassFractionPercent=\"" << this->PassFractionPercent << "\"";
   of << indent << " ResultsValid=\"" << (this->ResultsValid ? "true" : "false") << "\"";
+  of << indent << " ReportString=\"" << (this->ReportString ? this->ReportString : "") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -141,6 +145,11 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
       this->UseMaximumDose = 
         (strcmp(attValue,"true") ? false : true);
       }
+    else if (!strcmp(attName, "UseLinearInterpolation")) 
+      {
+      this->UseLinearInterpolation = 
+        (strcmp(attValue,"true") ? false : true);
+      }
     else if (!strcmp(attName, "PassFractionPercent")) 
       {
       std::stringstream ss;
@@ -155,6 +164,8 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
         (strcmp(attValue,"true") ? false : true);
       }
     }
+
+  // Note: ReportString is not read from XML, it is a strictly temporary value
 }
 
 //----------------------------------------------------------------------------
@@ -174,7 +185,9 @@ void vtkMRMLDoseComparisonNode::Copy(vtkMRMLNode *anode)
   this->MaximumGamma = node->MaximumGamma;
   this->PassFractionPercent = node->PassFractionPercent;
   this->UseMaximumDose = node->UseMaximumDose;
+  this->UseLinearInterpolation = node->UseLinearInterpolation;
   this->ResultsValid = node->ResultsValid;
+  this->ReportString = node->ReportString;
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -190,9 +203,11 @@ void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ReferenceDoseGy:   " << this->ReferenceDoseGy << "\n";
   os << indent << "AnalysisThresholdPercent:   " << this->AnalysisThresholdPercent << "\n";
   os << indent << "MaximumGamma:   " << this->MaximumGamma << "\n";
-  os << indent << "PassFractionPercent:   " << this->PassFractionPercent << "\n";
   os << indent << "UseMaximumDose:   " << (this->UseMaximumDose ? "true" : "false") << "\n";
-  os << indent << "ResultsValid:   " << (this->ResultsValid ? "true" : "false") << "\n";
+  os << indent << "UseLinearInterpolation=\"" << (this->UseLinearInterpolation ? "true" : "false") << "\"";
+  os << indent << "PassFractionPercent=\"" << this->PassFractionPercent << "\"";
+  os << indent << "ResultsValid=\"" << (this->ResultsValid ? "true" : "false") << "\"";
+  os << indent << "ReportString=\"" << (this->ReportString ? this->ReportString : "") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -242,4 +257,3 @@ void vtkMRMLDoseComparisonNode::SetAndObserveGammaVolumeNode(vtkMRMLScalarVolume
 {
   this->SetNodeReferenceID(GAMMA_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
-

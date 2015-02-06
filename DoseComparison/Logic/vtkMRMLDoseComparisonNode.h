@@ -78,39 +78,61 @@ public:
   /// Set and observe output gamma volume node
   void SetAndObserveGammaVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get/Set distance to agreement (DTA) tolerance, in mm
+  /// Get distance to agreement (DTA) tolerance, in mm
   vtkGetMacro(DtaDistanceToleranceMm, double);
+  /// Set distance to agreement (DTA) tolerance, in mm
   vtkSetMacro(DtaDistanceToleranceMm, double);
 
-  /// Get/Set dose difference tolerance in percent
+  /// Get dose difference tolerance in percent
   vtkGetMacro(DoseDifferenceTolerancePercent, double);
+  /// Set dose difference tolerance in percent
   vtkSetMacro(DoseDifferenceTolerancePercent, double);
 
-  /// Get/Set reference dose (prescription dose) in Gy
+  /// Get reference dose (prescription dose) in Gy
   vtkGetMacro(ReferenceDoseGy, double);
+  /// Set reference dose (prescription dose) in Gy
   vtkSetMacro(ReferenceDoseGy, double);
 
-  /// Get/Set dose threshold for gamma analysis
+  /// Get dose threshold for gamma analysis
   vtkGetMacro(AnalysisThresholdPercent, double);
+  /// Set dose threshold for gamma analysis
   vtkSetMacro(AnalysisThresholdPercent, double);
 
-  /// Get/Set maximum gamma
+  /// Get maximum gamma
   vtkGetMacro(MaximumGamma, double);
+  /// Set maximum gamma
   vtkSetMacro(MaximumGamma, double);
 
-  /// Get/Set use maximum dose
+  /// Get use maximum dose
   vtkGetMacro(UseMaximumDose, bool);
+  /// Set use maximum dose
   vtkSetMacro(UseMaximumDose, bool);
+  /// Set use maximum dose
   vtkBooleanMacro(UseMaximumDose, bool);
 
-  /// Get/Set valid flag
+  /// Get use linear interpolation flag
+  vtkGetMacro(UseLinearInterpolation, bool);
+  /// Set use linear interpolation flag
+  vtkSetMacro(UseLinearInterpolation, bool);
+  /// Set use linear interpolation flag
+  vtkBooleanMacro(UseLinearInterpolation, bool);
+
+  /// Get valid flag
   vtkGetMacro(ResultsValid, bool);
+  /// Set valid flag
   vtkSetMacro(ResultsValid, bool);
+  /// Set valid flag
   vtkBooleanMacro(ResultsValid, bool);
 
-  /// Get/Set pass fraction
+  /// Get pass fraction
   vtkGetMacro(PassFractionPercent, double);
+  /// Set pass fraction
   vtkSetMacro(PassFractionPercent, double);
+
+  /// Get report string
+  vtkGetStringMacro(ReportString);
+  /// Set report string
+  vtkSetStringMacro(ReportString);
 
 protected:
   vtkMRMLDoseComparisonNode();
@@ -142,12 +164,20 @@ protected:
 
   /// Flag indicating whether the Use maximum dose option is selected (else the Use custom value is selected)
   bool UseMaximumDose;
+
+  /// Flag determining whether linear interpolation is used when resampling the compare dose volume to reference grid.
+  /// Default value is true. On false value nearest neighbor is used.
+  bool UseLinearInterpolation;
   
   /// Percentage of voxels that passed (output)
   double PassFractionPercent;
 
   /// Flag indicating if the results are valid
   bool ResultsValid;
+
+  /// Report string assembled by the gamma algorithm.
+  /// It lists input parameters and some output, such as voxel counts and gamma histogram.
+  char* ReportString;
 };
 
 #endif

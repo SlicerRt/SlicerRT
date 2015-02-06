@@ -6,7 +6,7 @@ set(EXTENSION_NAME SlicerRT)
 # ------------------------------------------------------------------------
 set(SLICERRT_VERSION_MAJOR "0")
 set(SLICERRT_VERSION_MINOR "15")
-set(SLICERRT_VERSION_PATCH "0")
+set(SLICERRT_VERSION_PATCH "1")
 set(SLICERRT_VERSION ${SLICERRT_VERSION_MAJOR}.${SLICERRT_VERSION_MINOR}.${SLICERRT_VERSION_PATCH})
 
 #-----------------------------------------------------------------------------
@@ -14,7 +14,7 @@ set(EXTENSION_HOMEPAGE "http://slicerrt.org")
 set(EXTENSION_CATEGORY "Radiotherapy")
 set(EXTENSION_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto), Greg Sharp (Massachusetts General Hospital)")
 set(EXTENSION_DESCRIPTION "Modules for radiation therapy research. Features include DICOM-RT import/export, dose volume histogram, dose accumulation, contour handling, contour comparison, isodose contour/surface generation, etc. Version ${SLICERRT_VERSION}")
-set(EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/2/28/SlicerRT_Logo_2.0_128x128.png")
+set(EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/2/29/SlicerRT_Logo_3.0_128x128.png")
 set(EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/8/87/SlicerRT_0.10_IsocenterShiftingEvaluation.png http://www.slicer.org/slicerWiki/images/e/ef/SlicerRT_0.11_ProstateLoaded_Beams_ThresholdedDose.png http://www.slicer.org/slicerWiki/images/4/40/SlicerRtFundingSources.png")
 set(EXTENSION_STATUS "Beta")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
