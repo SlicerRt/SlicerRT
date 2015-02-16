@@ -357,6 +357,7 @@ protected:
   vtkPolyData* DicomRtRoiPoints;
 
   /// Oversampling factor for contour polydata to labelmap conversion (rasterization)
+  /// A value of -1 indicates that automatic calculation of the oversampling factor is requested
   double RasterizationOversamplingFactor;
 
   /// Target reduction factor for decimation applied in labelmap to closed surface model conversion

@@ -160,7 +160,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1" colspan="3">
+      <item row="5" column="1" colspan="3">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <property name="spacing">
          <number>4</number>
@@ -370,7 +370,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="3">
+      <item row="4" column="3">
        <widget class="ctkSliderWidget" name="SliderWidget_TargetReductionFactorPercent">
         <property name="enabled">
          <bool>true</bool>
@@ -392,7 +392,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="4" column="1">
        <widget class="QLabel" name="label_TargetReductionFactor">
         <property name="enabled">
          <bool>true</bool>
@@ -409,62 +409,90 @@
        </widget>
       </item>
       <item row="2" column="3">
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <property name="spacing">
-         <number>6</number>
+         <number>1</number>
         </property>
         <item>
-         <widget class="QSlider" name="horizontalSlider_OversamplingFactor">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="minimum">
-           <number>-2</number>
-          </property>
-          <property name="maximum">
-           <number>3</number>
-          </property>
-          <property name="pageStep">
-           <number>1</number>
-          </property>
-          <property name="value">
-           <number>1</number>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="tickPosition">
-           <enum>QSlider::TicksAbove</enum>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QRadioButton" name="radioButton_ManualOversamplingFactor">
+            <property name="text">
+             <string>Manual</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_AutomaticOversamplingFactor">
+            <property name="text">
+             <string>Automatic</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_OversamplingFactor">
-          <property name="enabled">
-           <bool>true</bool>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="spacing">
+           <number>6</number>
           </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>42</width>
-            <height>22</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>47</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
+          <item>
+           <widget class="QSlider" name="horizontalSlider_OversamplingFactor">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="minimum">
+             <number>-2</number>
+            </property>
+            <property name="maximum">
+             <number>3</number>
+            </property>
+            <property name="pageStep">
+             <number>1</number>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksAbove</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_OversamplingFactor">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>42</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>47</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>

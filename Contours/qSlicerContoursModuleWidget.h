@@ -67,7 +67,7 @@ protected:
 
   /// Get oversampling factor from the selected contours.
   /// \param oversamplingFactor Output parameter for the oversampling factor (is -1 if they are not the same)
-  /// \return True if the oversampling factors are the same, false otherwise
+  /// \return True if the oversampling factors are the same (probably automatic), false otherwise
   bool getOversamplingFactorOfSelectedContours(double &oversamplingFactor);
 
   /// Get target reduction factor from the selected contours.
@@ -90,7 +90,7 @@ protected:
 
   /// Get oversampling factor based on the value set on the slider
   /// (The factor is two on the power set on the slider, e.g. -1 -> 2^-1 = 0.5)
-  double getOversamplingFactor();
+  double getManualOversamplingFactorFromSliderValue();
 
   /// Show conversion parameters for selected target representation
   void showConversionParameterControlsForTargetRepresentation(vtkMRMLContourNode::ContourRepresentationType targetRepresentationType);
@@ -161,8 +161,9 @@ protected slots:
   void contourNodeChanged(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode* node);
   void activeRepresentationComboboxSelectionChanged(int index);
-  void oversamplingFactorChanged(int value);
+  void manualOversamplingFactorChanged(int value);
   void targetReductionFactorPercentChanged(double value);
+  void automaticOversamplingFactorToggled(bool automaticOn);
 
   void extractLabelmapClicked();
   void extractClosedSurfaceClicked();

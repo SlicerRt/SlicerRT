@@ -26,7 +26,6 @@
 #include "SlicerRtCommon.h"
 
 // MRML includes
-#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLModelNode.h>
 
 // VTK includes
@@ -42,6 +41,7 @@ vtkStandardNewMacro(vtkCalculateOversamplingFactor);
 vtkCalculateOversamplingFactor::vtkCalculateOversamplingFactor()
 {
   this->ContourNode = NULL;
+  this->RasterizationReferenceVolumeNode = NULL;
   this->OutputOversamplingFactor = 1;
   this->LogSpeedMeasurementsOff();
 }
@@ -50,6 +50,7 @@ vtkCalculateOversamplingFactor::vtkCalculateOversamplingFactor()
 vtkCalculateOversamplingFactor::~vtkCalculateOversamplingFactor()
 {
   this->SetContourNode(NULL);
+  this->SetRasterizationReferenceVolumeNode(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -75,18 +76,15 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
     vtkErrorMacro("CalculateOversamplingFactor: Invalid scene!");
     return false;
   }
+  if (!this->RasterizationReferenceVolumeNode)
+  {
+    vtkErrorMacro("CalculateOversamplingFactor: Invalid rasterization reference volume node!");
+    return false;
+  }
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
   UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
-
-  // Get reference volume node
-  vtkMRMLScalarVolumeNode* selectedReferenceVolumeNode = this->ContourNode->GetRasterizationReferenceVolumeNode();
-  if (!selectedReferenceVolumeNode)
-  {
-    vtkErrorMacro("CalculateOversamplingFactor: No reference volume node set to contour node " << this->ContourNode->GetName());
-    return false;
-  }
 
   // Resample to selected reference coordinate system if referenced anatomy was used
   double checkpointResamplingStart = timer->GetUniversalTime();

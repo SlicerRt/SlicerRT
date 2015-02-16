@@ -27,6 +27,9 @@
 // VTK includes
 #include "vtkObject.h"
 
+// MRML includes
+#include <vtkMRMLScalarVolumeNode.h>
+
 // Contours includes
 #include "vtkMRMLContourNode.h"
 
@@ -53,6 +56,9 @@ public:
   vtkGetObjectMacro(ContourNode, vtkMRMLContourNode);
   vtkSetObjectMacro(ContourNode, vtkMRMLContourNode);
 
+  vtkGetObjectMacro(RasterizationReferenceVolumeNode, vtkMRMLScalarVolumeNode);
+  vtkSetObjectMacro(RasterizationReferenceVolumeNode, vtkMRMLScalarVolumeNode);
+
   vtkGetMacro(OutputOversamplingFactor, int);
   vtkSetMacro(OutputOversamplingFactor, int);
 
@@ -63,6 +69,11 @@ public:
 protected:
   /// Input contour node
   vtkMRMLContourNode* ContourNode;
+
+  /// Rasterization reference volume node
+  /// Kept separately due to the complex logic in contour conversion (temporary transformed nodes etc.)
+  /// TODO: This will not be necessary when using the new segmentations infrastructure
+  vtkMRMLScalarVolumeNode* RasterizationReferenceVolumeNode;
 
   /// Calculated oversampling factor for the contour node and its reference volume
   int OutputOversamplingFactor;

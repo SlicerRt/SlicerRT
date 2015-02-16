@@ -78,7 +78,7 @@ vtkMRMLContourNode::vtkMRMLContourNode()
 , ClosedSurfacePolyData(NULL)
 , LabelmapImageData(NULL)
 , DicomRtRoiPoints(NULL)
-, RasterizationOversamplingFactor(-1.0)
+, RasterizationOversamplingFactor(-2.0)
 , DecimationTargetReductionFactor(-1.0)
 , CreatedFromIndexLabelmap(false)
 {
@@ -495,10 +495,10 @@ void vtkMRMLContourNode::SetRasterizationOversamplingFactor(double oversamplingF
     return;
   }
 
-  // Invalidate indexed labelmap representation if it exists and rasterization oversampling factor has changed (from a value other than the default invalid value),
-  // because it is assumed that the current oversampling factor was used when creating the indexed labelmap, and allowing an oversampling factor change without
-  // invalidating the labelmap would introduce inconsistency.
-  if (this->LabelmapImageData && this->RasterizationOversamplingFactor != -1)
+  // Invalidate indexed labelmap representation if it exists (and rasterization oversampling factor has changed)
+  // because it is assumed that the current oversampling factor was used when creating the indexed labelmap, and
+  // allowing an oversampling factor change without invalidating the labelmap would introduce inconsistency.
+  if (this->LabelmapImageData)
   {
     vtkWarningMacro("SetRasterizationOversamplingFactor: Invalidating current indexed labelmap as the rasterization oversampling factor has been explicitly changed!");
 
@@ -712,7 +712,7 @@ void vtkMRMLContourNode::SetDefaultConversionParametersForRepresentation(Contour
 {
   if (type == IndexedLabelmap || type == ClosedSurfaceModel)
   {
-    if (this->RasterizationOversamplingFactor == -1.0)
+    if (this->RasterizationOversamplingFactor == -2.0)
     {
       this->SetRasterizationOversamplingFactor(SlicerRtCommon::DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR);
     }

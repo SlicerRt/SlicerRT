@@ -19,8 +19,9 @@
 ==============================================================================*/
 
 // Contours includes
-#include "vtkConvertContourRepresentations.h"
 #include "vtkMRMLContourNode.h"
+#include "vtkConvertContourRepresentations.h"
+#include "vtkCalculateOversamplingFactor.h"
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
@@ -181,7 +182,7 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
   }
 
   // Sanity check
-  if ( this->ContourNode->GetRasterizationOversamplingFactor() < 0.01
+  if ( (this->ContourNode->GetRasterizationOversamplingFactor() < 0.01 && this->ContourNode->GetRasterizationOversamplingFactor() != -1.0) // -1 indicates automatic
     || this->ContourNode->GetRasterizationOversamplingFactor() > 100.0 )
   {
     vtkErrorMacro("ConvertFromModelToIndexedLabelmap: Unreasonable rasterization oversampling factor is given: " << this->ContourNode->GetRasterizationOversamplingFactor());
@@ -344,8 +345,22 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
   polyDataToLabelmapFilter->UseReferenceValuesOff();
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
 
-  // Oversample used reference volume (anatomy if present, selected reference otherwise) and set it to the converter
+  // Get oversampling factor from contour node
   double oversamplingFactor = this->ContourNode->GetRasterizationOversamplingFactor();
+
+  // Calculate oversampling factor if automatic calculation is requested (which is indicated by oversampling factor of -1)
+  if ( oversamplingFactor == -1.0 && referenceVolumeNodeUsedForConversion == selectedReferenceVolumeNode )
+  {
+    vtkSmartPointer<vtkCalculateOversamplingFactor> oversamplingCalculator = vtkSmartPointer<vtkCalculateOversamplingFactor>::New();
+    oversamplingCalculator->SetContourNode(this->ContourNode);
+    oversamplingCalculator->SetRasterizationReferenceVolumeNode(referenceVolumeNodeUsedForConversion);
+    if (oversamplingCalculator->CalculateOversamplingFactor())
+    {
+      oversamplingFactor = oversamplingCalculator->GetOutputOversamplingFactor();
+    }
+  }
+
+  // Oversample used reference volume (anatomy if present, selected reference otherwise) and set it to the converter
   double oversampledReferenceVolumeUsedForConversionSpacingMultiplier[3] = {1.0, 1.0, 1.0};
   if ( oversamplingFactor != 1.0 && referenceVolumeNodeUsedForConversion == selectedReferenceVolumeNode )
   {

@@ -170,12 +170,12 @@ void qSlicerContoursModuleWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerContoursModuleWidget::oversamplingFactorChanged(int value)
+void qSlicerContoursModuleWidget::manualOversamplingFactorChanged(int value)
 {
   Q_D(qSlicerContoursModuleWidget);
   UNUSED_VARIABLE(value);
 
-  d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
+  d->lineEdit_OversamplingFactor->setText( QString::number(this->getManualOversamplingFactorFromSliderValue()) );
 
   this->updateWidgetsInChangeActiveRepresentationGroup();
 }
@@ -238,7 +238,7 @@ void qSlicerContoursModuleWidget::targetContourNameChanged(const QString& value)
 }
 
 //-----------------------------------------------------------------------------
-double qSlicerContoursModuleWidget::getOversamplingFactor()
+double qSlicerContoursModuleWidget::getManualOversamplingFactorFromSliderValue()
 {
   Q_D(qSlicerContoursModuleWidget);
 
@@ -255,6 +255,14 @@ int qSlicerContoursModuleWidget::getOversamplingFactorSliderValueFromOversamplin
 void qSlicerContoursModuleWidget::targetReductionFactorPercentChanged(double value)
 {
   UNUSED_VARIABLE(value);
+
+  this->updateWidgetsInChangeActiveRepresentationGroup();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerContoursModuleWidget::automaticOversamplingFactorToggled(bool automaticOn)
+{
+  UNUSED_VARIABLE(automaticOn);
 
   this->updateWidgetsInChangeActiveRepresentationGroup();
 }
@@ -344,6 +352,7 @@ bool qSlicerContoursModuleWidget::getOversamplingFactorOfSelectedContours(double
     }
   }
 
+  // If they are not the same then likely automatic
   return sameOversamplingFactor;
 }
 
@@ -489,11 +498,22 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
   if (referencedVolume && !this->haveSelectedContoursBeenCreatedFromLabelmap())
   {
     d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(referencedVolume);
-    
-    d->horizontalSlider_OversamplingFactor->blockSignals(true);
-    d->horizontalSlider_OversamplingFactor->setValue( this->getOversamplingFactorSliderValueFromOversamplingFactor(1.0) );
-    d->horizontalSlider_OversamplingFactor->blockSignals(false);
-    d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
+
+    if (d->radioButton_AutomaticOversamplingFactor->isChecked())
+    {
+      d->horizontalSlider_OversamplingFactor->setVisible(false);
+      d->lineEdit_OversamplingFactor->setVisible(false);
+    }
+    else
+    {
+      d->horizontalSlider_OversamplingFactor->setVisible(true);
+      d->lineEdit_OversamplingFactor->setVisible(true);
+
+      d->horizontalSlider_OversamplingFactor->blockSignals(true);
+      d->horizontalSlider_OversamplingFactor->setValue( this->getOversamplingFactorSliderValueFromOversamplingFactor(1.0) );
+      d->horizontalSlider_OversamplingFactor->blockSignals(false);
+      d->lineEdit_OversamplingFactor->setText( QString::number(this->getManualOversamplingFactorFromSliderValue()) );
+    }
   }
   // If no referenced volume was found by DICOM, then set the reference and oversampling factor specified in the nodes
   else
@@ -528,24 +548,35 @@ void qSlicerContoursModuleWidget::updateWidgetFromMRML()
     double oversamplingFactor = 0.0;
     bool sameOversamplingFactor = this->getOversamplingFactorOfSelectedContours(oversamplingFactor);
 
-    // Set the oversampling factor on the GUI
-    if (oversamplingFactor != -1.0)
+    if (d->radioButton_AutomaticOversamplingFactor->isChecked())
     {
-      if (sameOversamplingFactor)
-      {
-        d->horizontalSlider_OversamplingFactor->blockSignals(true);
-      }
-      d->horizontalSlider_OversamplingFactor->setValue( this->getOversamplingFactorSliderValueFromOversamplingFactor(oversamplingFactor) );
-      d->horizontalSlider_OversamplingFactor->blockSignals(false);
+      d->horizontalSlider_OversamplingFactor->setVisible(false);
+      d->lineEdit_OversamplingFactor->setVisible(false);
     }
-    d->lineEdit_OversamplingFactor->setText( QString::number(this->getOversamplingFactor()) );
+    else
+    {
+      d->horizontalSlider_OversamplingFactor->setVisible(true);
+      d->lineEdit_OversamplingFactor->setVisible(true);
+
+      // Set the oversampling factor on the GUI
+      if (oversamplingFactor != -1.0)
+      {
+        if (sameOversamplingFactor)
+        {
+          d->horizontalSlider_OversamplingFactor->blockSignals(true);
+        }
+        d->horizontalSlider_OversamplingFactor->setValue( this->getOversamplingFactorSliderValueFromOversamplingFactor(oversamplingFactor) );
+        d->horizontalSlider_OversamplingFactor->blockSignals(false);
+      }
+      d->lineEdit_OversamplingFactor->setText( QString::number(this->getManualOversamplingFactorFromSliderValue()) );
+    }
   }
 
   // Get target reduction factor for the selected contour nodes
   double targetReductionFactor;
   bool sameTargetReductionFactor = this->getTargetReductionFactorOfSelectedContours(targetReductionFactor);
 
-  // Set the oversampling factor on the GUI ([1] applies here as well)
+  // Set the target reduction factor on the GUI ([1] applies here as well)
   if (targetReductionFactor != -1.0)
   {
     if (sameTargetReductionFactor)
@@ -584,8 +615,18 @@ void qSlicerContoursModuleWidget::showConversionParameterControlsForTargetRepres
 
   d->MRMLNodeComboBox_ReferenceVolume->setVisible(true);
   d->label_ReferenceVolume->setVisible(true);
-  d->horizontalSlider_OversamplingFactor->setVisible(true);
-  d->lineEdit_OversamplingFactor->setVisible(true);
+  d->radioButton_AutomaticOversamplingFactor->setVisible(true);
+  d->radioButton_ManualOversamplingFactor->setVisible(true);
+  if (d->radioButton_AutomaticOversamplingFactor->isChecked())
+  {
+    d->horizontalSlider_OversamplingFactor->setVisible(false);
+    d->lineEdit_OversamplingFactor->setVisible(false);
+  }
+  else
+  {
+    d->horizontalSlider_OversamplingFactor->setVisible(true);
+    d->lineEdit_OversamplingFactor->setVisible(true);
+  }
   d->label_OversamplingFactor->setVisible(true);
   d->label_TargetReductionFactor->setVisible(true);
   d->SliderWidget_TargetReductionFactorPercent->setVisible(true);
@@ -605,6 +646,8 @@ void qSlicerContoursModuleWidget::showConversionParameterControlsForTargetRepres
   {
     d->MRMLNodeComboBox_ReferenceVolume->setVisible(false);
     d->label_ReferenceVolume->setVisible(false);
+    d->radioButton_AutomaticOversamplingFactor->setVisible(false);
+    d->radioButton_ManualOversamplingFactor->setVisible(false);
     d->horizontalSlider_OversamplingFactor->setVisible(false);
     d->lineEdit_OversamplingFactor->setVisible(false);
     d->label_OversamplingFactor->setVisible(false);
@@ -625,7 +668,8 @@ bool qSlicerContoursModuleWidget::haveConversionParametersChangedForIndexedLabel
   // Reference volume has changed if the reference volume doesn't match the stored reference volume
   bool referenceVolumeNodeChanged = ( d->MRMLNodeComboBox_ReferenceVolume->currentNode() != contourNode->GetRasterizationReferenceVolumeNode() );
   bool oversamplingFactorChanged = ( contourNode->HasBeenCreatedFromIndexedLabelmap() ? false
-                                   : ( fabs(this->getOversamplingFactor() - contourNode->GetRasterizationOversamplingFactor()) > EPSILON ) );
+                                   : ( (d->radioButton_AutomaticOversamplingFactor->isChecked()) ? true // Always indicate changed if automatic
+                                   : ( fabs(this->getManualOversamplingFactorFromSliderValue() - contourNode->GetRasterizationOversamplingFactor()) > EPSILON ) ) );
 
   return contourNode->HasRepresentation(vtkMRMLContourNode::IndexedLabelmap)
     && (referenceVolumeNodeChanged || oversamplingFactorChanged);
@@ -1017,7 +1061,7 @@ bool qSlicerContoursModuleWidget::convertToIndexedLabelmap(vtkMRMLContourNode* c
   Q_D(qSlicerContoursModuleWidget);
 
   vtkMRMLScalarVolumeNode* referenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
-  double oversamplingFactor = this->getOversamplingFactor();
+  double oversamplingFactor = ( d->radioButton_AutomaticOversamplingFactor->isChecked() ? -1.0 : this->getManualOversamplingFactorFromSliderValue() );
 
   // Set indexed labelmap conversion parameters
   contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(referenceVolumeNode ? referenceVolumeNode->GetID() : NULL);
@@ -1089,7 +1133,8 @@ void qSlicerContoursModuleWidget::testInit()
 
   // Input widgets
   connect( d->comboBox_ChangeActiveRepresentation, SIGNAL(currentIndexChanged(int)), this, SLOT(activeRepresentationComboboxSelectionChanged(int)) );
-  connect( d->horizontalSlider_OversamplingFactor, SIGNAL(valueChanged(int)), this, SLOT(oversamplingFactorChanged(int)) );
+  connect( d->radioButton_AutomaticOversamplingFactor, SIGNAL(toggled(bool)), this, SLOT(automaticOversamplingFactorToggled(bool)) );
+  connect( d->horizontalSlider_OversamplingFactor, SIGNAL(valueChanged(int)), this, SLOT(manualOversamplingFactorChanged(int)) );
   connect( d->SliderWidget_TargetReductionFactorPercent, SIGNAL(valueChanged(double)), this, SLOT(targetReductionFactorPercentChanged(double)) );
   connect( d->lineEdit_TargetContourName, SIGNAL(textChanged(const QString&)), this, SLOT(targetContourNameChanged(const QString&)) );
 
