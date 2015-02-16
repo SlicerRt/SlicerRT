@@ -24,6 +24,8 @@ set(${KIT}_SRCS
   vtkMRMLContourStorageNode.h
   vtkConvertContourRepresentations.cxx
   vtkConvertContourRepresentations.h
+  vtkCalculateOversamplingFactor.cxx
+  vtkCalculateOversamplingFactor.h
   )
 
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
