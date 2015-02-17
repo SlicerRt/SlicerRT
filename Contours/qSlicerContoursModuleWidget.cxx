@@ -352,7 +352,6 @@ bool qSlicerContoursModuleWidget::getOversamplingFactorOfSelectedContours(double
     }
   }
 
-  // If they are not the same then likely automatic
   return sameOversamplingFactor;
 }
 
@@ -1065,7 +1064,11 @@ bool qSlicerContoursModuleWidget::convertToIndexedLabelmap(vtkMRMLContourNode* c
 
   // Set indexed labelmap conversion parameters
   contourNode->SetAndObserveRasterizationReferenceVolumeNodeId(referenceVolumeNode ? referenceVolumeNode->GetID() : NULL);
-  contourNode->SetRasterizationOversamplingFactor(oversamplingFactor);
+  contourNode->SetAutomaticOversamplingFactor(d->radioButton_AutomaticOversamplingFactor->isChecked());
+  if (!d->radioButton_AutomaticOversamplingFactor->isChecked())
+  {
+    contourNode->SetRasterizationOversamplingFactor(this->getManualOversamplingFactorFromSliderValue());
+  }
 
   // convert representation to desired type
   vtkSmartPointer<vtkConvertContourRepresentations> converter = vtkSmartPointer<vtkConvertContourRepresentations>::New();

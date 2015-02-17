@@ -24,10 +24,13 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+
+// Contours includes
 #include "vtkConvertContourRepresentations.h"
 #include "vtkMRMLContourModelDisplayNode.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkSlicerContoursModuleLogic.h"
+#include "vtkCalculateOversamplingFactor.h"
 
 // Subject Hierarchy includes
 #include "vtkMRMLSubjectHierarchyNode.h"
@@ -76,7 +79,7 @@ vtkSlicerDoseVolumeHistogramModuleLogic::vtkSlicerDoseVolumeHistogramModuleLogic
   this->StartValue = 0.1;
   this->StepSize = 0.2;
   this->NumberOfSamplesForNonDoseVolumes = 100;
-  this->DoseVolumeOversamplingFactor = 2.0;
+  this->DefaultDoseVolumeOversamplingFactor = 2.0;
 
   this->LogSpeedMeasurementsOff();
 }
@@ -282,7 +285,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour( vtkMRMLContourNode* structureContourNode, vtkMRMLScalarVolumeNode* resampledDoseVolumeNode, vtkMRMLContourNode* consolidatedStructureContourNode )
+void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour(
+  vtkMRMLContourNode* structureContourNode, vtkMRMLScalarVolumeNode* resampledDoseVolumeNode, vtkMRMLContourNode* consolidatedStructureContourNode )
 {
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
@@ -319,19 +323,22 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
   // Copy dose volume node to the output resampled dose volume node object
   resampledDoseVolumeNode->Copy(doseVolumeNode);
 
+  // Get rasterization oversampling factor from contour. If automatic oversampling was used, the calculated oversampling is stored in the contour
+  double oversamplingFactor = structureContourNode->GetRasterizationOversamplingFactor();
+
   // Set the proper spacing to the resampled dose volume node
   double doseVolumeSpacing[3] = {0.0, 0.0, 0.0};
   doseVolumeNode->GetSpacing(doseVolumeSpacing);
-  resampledDoseVolumeNode->SetSpacing( doseVolumeSpacing[0] / this->DoseVolumeOversamplingFactor,
-                                   doseVolumeSpacing[1] / this->DoseVolumeOversamplingFactor,
-                                   doseVolumeSpacing[2] / this->DoseVolumeOversamplingFactor );
+  resampledDoseVolumeNode->SetSpacing( doseVolumeSpacing[0] / oversamplingFactor,
+                                   doseVolumeSpacing[1] / oversamplingFactor,
+                                   doseVolumeSpacing[2] / oversamplingFactor );
 
   // Resample the dose volume if is required based on the oversampling factor
-  if (this->DoseVolumeOversamplingFactor != 1.0)
+  if (oversamplingFactor != 1.0)
   {
     int outputExtent[6] = {0, 0, 0, 0, 0, 0};
     double outputSpacing[3] = {0.0, 0.0, 0.0};
-    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(doseVolumeNode, this->DoseVolumeOversamplingFactor, outputExtent, outputSpacing);
+    SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(doseVolumeNode, oversamplingFactor, outputExtent, outputSpacing);
 
     vtkSmartPointer<vtkImageReslice> reslicer = vtkSmartPointer<vtkImageReslice>::New();
 #if (VTK_MAJOR_VERSION <= 5)
@@ -472,7 +479,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNo
   arrayNode->SetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), structureName.c_str());
   {
     std::ostringstream attributeValueStream;
-    attributeValueStream << this->DoseVolumeOversamplingFactor;
+    attributeValueStream << (this->DoseVolumeHistogramNode->GetAutomaticOversampling() ? (-1.0) : this->DefaultDoseVolumeOversamplingFactor);
     arrayNode->SetAttribute(SlicerRtCommon::DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME.c_str(), attributeValueStream.str().c_str());
   }
 

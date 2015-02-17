@@ -37,7 +37,8 @@ class qMRMLContourSelectorWidgetPrivate;
 /// the indexed labelmap representation is requested, a reference volume selector is included
 /// with the referenced volume (from DICOM) selected by default.
 /// Note: The oversampling factor is 1 when using the default selection (the referenced volume)
-///       Otherwise, the oversampling factor is 2, which means every voxel is divided to 8 voxels
+///       Otherwise, the oversampling factor is the forced value (default=2.0) or automatic oversampling
+///       is used.
 class Q_SLICER_MODULE_CONTOURS_WIDGETS_EXPORT qMRMLContourSelectorWidget : public qMRMLWidget
 {
   Q_OBJECT
@@ -89,13 +90,20 @@ public:
   /// Furthermore if an indexed labelmap has been created from a model representation using a different reference
   /// volume, it will be invalidated (the contour dose this when overriding the reference volume)
   void setForcedReferenceVolumeNodeID(const QString& nodeID);
-
   /// Get forced reference volume node by ID \sa setForcedReferenceVolumeNodeID
   QString forcedReferenceVolumeNodeID();
 
+  /// Set forced oversampling factor to use for forced reference volume
+  void setForcedOversamplingFactor(double oversamplingFactor);
+  /// Get forced oversampling factor
+  double forcedOversamplingFactor();
+  /// Set forced oversampling factor to be automatically calculated
+  void setForcedAutomaticOversamplingFactor(bool autoOversampling);
+  /// Get forced oversampling factor automatic calculation
+  bool forcedAutomaticOversamplingFactor();
+
   /// Set if re-rasterization is enabled
   void setRerasterizationSupported(bool rerasterizationSupported);
-
   /// Get if re-rasterization is enabled
   bool getRerasterizationSupported();
 

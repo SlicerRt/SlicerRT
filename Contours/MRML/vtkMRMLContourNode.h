@@ -224,7 +224,11 @@ public:
   /// \sa vtkMRMLStorableNode::GetModifiedSinceRead()
   virtual bool GetModifiedSinceRead();
 
-  // Labelmap functionality
+  /// Get/Set automatic oversampling factor flag
+  vtkGetMacro(AutomaticOversamplingFactor, bool);
+  void SetAutomaticOversamplingFactor(bool autoOversampling);
+
+// Labelmap functionality
 public:
   ///
   /// Get the IJKToRAS Matrix that includes the spacing and origin
@@ -233,7 +237,6 @@ public:
   void GetIJKToRASMatrix(vtkMatrix4x4* mat);
   void GetRASToIJKMatrix(vtkMatrix4x4* mat);
 
-  ///
   /// Convenience methods to set the directions, spacing, and origin
   /// from a matrix
   void SetIJKToRASMatrix(vtkMatrix4x4* mat);
@@ -242,7 +245,6 @@ public:
   void SetIJKToRASDirections(double dirs[3][3]);
   void GetIJKToRASDirections(double dirs[3][3]);
 
-  ///
   /// Spacing and Origin, with the Directions, are the independent
   /// parameters that go to make up the IJKToRAS matrix
   /// In setter methods, StorableModifiedTime may need to be updated,
@@ -357,8 +359,11 @@ protected:
   vtkPolyData* DicomRtRoiPoints;
 
   /// Oversampling factor for contour polydata to labelmap conversion (rasterization)
-  /// A value of -1 indicates that automatic calculation of the oversampling factor is requested
   double RasterizationOversamplingFactor;
+
+  /// Flag determining whether automatic oversampling factor is used
+  /// If on, then oversampling is automatically determined based on the contour and rasterization reference volume
+  bool AutomaticOversamplingFactor;
 
   /// Target reduction factor for decimation applied in labelmap to closed surface model conversion
   double DecimationTargetReductionFactor;

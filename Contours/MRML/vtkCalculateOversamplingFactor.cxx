@@ -101,5 +101,8 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
     //  << "\tResampling referenced series to selected reference: " << checkpointEnd-checkpointResamplingStart << " s");
   }
 
+  // Set calculated oversampling factor to contour node
+  this->ContourNode->SetRasterizationOversamplingFactor(this->OutputOversamplingFactor);
+
   return true;
 }

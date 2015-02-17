@@ -58,6 +58,7 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
   this->DVolumeValuesPercent = NULL;
   this->ShowDMetrics = false;
   this->ShowDoseVolumesOnly = true;
+  this->AutomaticOversampling = false;
 
   this->HideFromEditors = false;
 }
@@ -126,6 +127,8 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
   of << indent << " ShowDMetrics=\"" << (this->ShowDMetrics ? "true" : "false") << "\"";
 
   of << indent << " ShowDoseVolumesOnly=\"" << (this->ShowDoseVolumesOnly ? "true" : "false") << "\"";
+
+  of << indent << " AutomaticOversampling=\"" << (this->AutomaticOversampling ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -208,6 +211,10 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       {
       this->ShowDoseVolumesOnly = (strcmp(attValue,"true") ? false : true);
       }
+    else if (!strcmp(attName, "AutomaticOversampling")) 
+      {
+      this->AutomaticOversampling = (strcmp(attValue,"true") ? false : true);
+      }
     }
 }
 
@@ -232,6 +239,7 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
   this->SetDVolumeValuesPercent(node->DVolumeValuesPercent);
   this->ShowDMetrics = node->ShowDMetrics;
   this->ShowDoseVolumesOnly = node->ShowDoseVolumesOnly;
+  this->AutomaticOversampling = node->AutomaticOversampling;
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -261,6 +269,7 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "DVolumeValuesPercent:   " << this->DVolumeValuesPercent << "\n";
   os << indent << "ShowDMetrics:   " << (this->ShowDMetrics ? "true" : "false") << "\n";
   os << indent << "ShowDoseVolumesOnly:   " << (this->ShowDoseVolumesOnly ? "true" : "false") << "\n";
+  os << indent << "AutomaticOversampling:   " << (this->AutomaticOversampling ? "true" : "false") << "\n";
 }
 
 //----------------------------------------------------------------------------

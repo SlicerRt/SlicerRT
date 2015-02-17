@@ -129,8 +129,8 @@ public:
   vtkGetMacro(NumberOfSamplesForNonDoseVolumes, int);
   vtkSetMacro(NumberOfSamplesForNonDoseVolumes, int);
 
-  vtkGetMacro(DoseVolumeOversamplingFactor, double);
-  vtkSetMacro(DoseVolumeOversamplingFactor, double);
+  vtkGetMacro(DefaultDoseVolumeOversamplingFactor, double);
+  vtkSetMacro(DefaultDoseVolumeOversamplingFactor, double);
 
   vtkGetMacro(LogSpeedMeasurements, bool);
   vtkSetMacro(LogSpeedMeasurements, bool);
@@ -182,7 +182,7 @@ protected:
 
   /// Forced oversampling factor for the dose volume.
   /// The structure labelmap is resampled temporarily to the same lattice as the oversampled dose volume if needed.
-  double DoseVolumeOversamplingFactor;
+  double DefaultDoseVolumeOversamplingFactor;
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;

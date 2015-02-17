@@ -61,6 +61,7 @@ protected slots:
   void doseVolumeNodeChanged(vtkMRMLNode*);
   void contourSetNodeChanged(vtkMRMLNode*);
   void chartNodeChanged(vtkMRMLNode*);
+  void automaticOversampingCheckedStateChanged(int aState);
 
   /// Updates button states
   void updateButtonsState();

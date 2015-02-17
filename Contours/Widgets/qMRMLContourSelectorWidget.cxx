@@ -59,6 +59,12 @@ public:
   /// This means that there will be no search for a forced (DICOM-based) referenced volume, this will be used instead
   QString ForcedReferenceVolumeNodeID;
 
+  /// Forced oversampling factor to use for forced reference volume (default value 2)
+  double ForcedOversamplingFactor;
+
+  /// Oversampling factor is forced to be automatically calculated for indexed labelmap conversion
+  bool ForcedAutomaticOversamplingFactor;
+
   /// List of all contour selector widgets that are grouped under this widget instance as slave widgets.
   /// The instances in this list should have their \sa MasterContourSelectorWidget member set.
   /// Having items in this list makes this instance the master
@@ -83,6 +89,8 @@ qMRMLContourSelectorWidgetPrivate::qMRMLContourSelectorWidgetPrivate(qMRMLContou
   this->RequiredRepresentation = vtkMRMLContourNode::None;
   this->AcceptContourHierarchies = false;
   this->ForcedReferenceVolumeNodeID.clear();
+  this->ForcedOversamplingFactor = 2.0;
+  this->ForcedAutomaticOversamplingFactor = false;
   this->SlaveContourSelectorWidgets.clear();
   this->MasterContourSelectorWidget = NULL;
   this->IsSelectionValid = false;
@@ -318,6 +326,7 @@ void qMRMLContourSelectorWidget::setReferenceInSelection(QList<vtkMRMLContourNod
       {
         // This call invalidates (deletes) the occasionally existing indexed labelmap representation if the new reference differs from the original one
         contour->SetAndObserveRasterizationReferenceVolumeNodeId(referencedVolume->GetID());
+        contour->SetAutomaticOversamplingFactor(false);
         contour->SetRasterizationOversamplingFactor(1.0);
       }
     }
@@ -331,7 +340,16 @@ void qMRMLContourSelectorWidget::setReferenceInSelection(QList<vtkMRMLContourNod
     vtkMRMLScalarVolumeNode* forcedReferenceVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->mrmlScene()->GetNodeByID(d->ForcedReferenceVolumeNodeID.toLatin1().constData()));
     emit currentReferenceVolumeNodeChanged(forcedReferenceVolumeNode);
 
-    d->label_OversamplingFactorValue->setText("2");
+    QString oversamplingLabel;
+    if (d->ForcedAutomaticOversamplingFactor)
+    {
+      oversamplingLabel = QString("A");
+    }
+    else
+    {
+      oversamplingLabel = QString("%1").arg(d->ForcedOversamplingFactor);
+    }
+    d->label_OversamplingFactorValue->setText(oversamplingLabel);
 
     foreach (vtkMRMLContourNode* contour, contours)
     {
@@ -339,7 +357,11 @@ void qMRMLContourSelectorWidget::setReferenceInSelection(QList<vtkMRMLContourNod
       {
         // This call invalidates (deletes) the occasionally existing indexed labelmap representation if the new reference differs from the original one
         contour->SetAndObserveRasterizationReferenceVolumeNodeId(d->ForcedReferenceVolumeNodeID.toLatin1().constData());
-        contour->SetRasterizationOversamplingFactor(2.0);
+        contour->SetAutomaticOversamplingFactor(d->ForcedAutomaticOversamplingFactor);
+        if (!d->ForcedAutomaticOversamplingFactor)
+        {
+          contour->SetRasterizationOversamplingFactor(d->ForcedOversamplingFactor);
+        }
       }
     }
   }
@@ -487,10 +509,14 @@ void qMRMLContourSelectorWidget::referenceVolumeNodeChanged(vtkMRMLNode* node)
   foreach (vtkMRMLContourNode* contour, d->SelectedContourNodes)
   {
     contour->SetAndObserveRasterizationReferenceVolumeNodeId(node->GetID());
-    contour->SetRasterizationOversamplingFactor(2.0);
+    contour->SetAutomaticOversamplingFactor(d->ForcedAutomaticOversamplingFactor);
+    if (!d->ForcedAutomaticOversamplingFactor)
+    {
+      contour->SetRasterizationOversamplingFactor(d->ForcedAutomaticOversamplingFactor);
+    }
   }
 
-  d->label_OversamplingFactorValue->setText("2");
+  this->updateWidgetState();
 }
 
 //------------------------------------------------------------------------------
@@ -547,6 +573,62 @@ QString qMRMLContourSelectorWidget::forcedReferenceVolumeNodeID()
   Q_D(qMRMLContourSelectorWidget);
 
   return d->ForcedReferenceVolumeNodeID;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::setForcedOversamplingFactor(double oversamplingFactor)
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  d->ForcedOversamplingFactor = oversamplingFactor;
+
+  // If this is a master instance
+  if (!d->SlaveContourSelectorWidgets.empty())
+  {
+    // Set the same forced reference in all slaves
+    for (int slaveIndex = 0; slaveIndex < d->SlaveContourSelectorWidgets.size(); ++slaveIndex)
+    {
+      d->SlaveContourSelectorWidgets.at(slaveIndex)->setForcedOversamplingFactor(oversamplingFactor);
+    }
+
+    this->updateWidgetState();
+  }
+}
+
+//------------------------------------------------------------------------------
+double qMRMLContourSelectorWidget::forcedOversamplingFactor()
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  return d->ForcedOversamplingFactor;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::setForcedAutomaticOversamplingFactor(bool autoOversampling)
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  d->ForcedAutomaticOversamplingFactor = autoOversampling;
+
+  // If this is a master instance
+  if (!d->SlaveContourSelectorWidgets.empty())
+  {
+    // Set the same forced reference in all slaves
+    for (int slaveIndex = 0; slaveIndex < d->SlaveContourSelectorWidgets.size(); ++slaveIndex)
+    {
+      d->SlaveContourSelectorWidgets.at(slaveIndex)->setForcedAutomaticOversamplingFactor(autoOversampling);
+    }
+
+    this->updateWidgetState();
+  }
+}
+
+//------------------------------------------------------------------------------
+bool qMRMLContourSelectorWidget::forcedAutomaticOversamplingFactor()
+{
+  Q_D(qMRMLContourSelectorWidget);
+
+  return d->ForcedAutomaticOversamplingFactor;
 }
 
 //------------------------------------------------------------------------------
@@ -622,6 +704,8 @@ void qMRMLContourSelectorWidget::setMasterContourSelectorWidget(qMRMLContourSele
     this->setAcceptContourHierarchies(masterInstance->acceptContourHierarchies());
     d->RequiredRepresentation = masterInstance->requiredRepresentation();
     d->ForcedReferenceVolumeNodeID = masterInstance->forcedReferenceVolumeNodeID();
+    d->ForcedOversamplingFactor = masterInstance->forcedOversamplingFactor();
+    d->ForcedAutomaticOversamplingFactor = masterInstance->forcedAutomaticOversamplingFactor();
   }
 }
 
@@ -646,6 +730,8 @@ void qMRMLContourSelectorWidget::setMRMLScene(vtkMRMLScene* newScene)
   Superclass::setMRMLScene(newScene);
 
   d->ForcedReferenceVolumeNodeID.clear();
+  d->ForcedOversamplingFactor = 2.0;
+  d->ForcedAutomaticOversamplingFactor = false;
   d->IsSelectionValid = false;
 
   d->MRMLNodeComboBox_Contour->setCurrentNodeID("");

@@ -104,22 +104,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>23</height>
-           </size>
-          </property>
-          <property name="nodeTypes">
-           <stringlist>
-            <string>vtkMRMLScalarVolumeNode</string>
-           </stringlist>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" colspan="2">
+        <item row="3" column="0" colspan="2">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <property name="spacing">
            <number>4</number>
@@ -295,15 +280,44 @@
           </item>
          </layout>
         </item>
-        <item row="1" column="1">
+        <item row="2" column="1">
          <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget"/>
         </item>
-        <item row="1" column="0">
+        <item row="2" column="0">
          <widget class="QLabel" name="label_ContourSet">
           <property name="text">
            <string>Contour (set):</string>
           </property>
          </widget>
+        </item>
+        <item row="0" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLScalarVolumeNode</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBox_AutomaticOversampling">
+            <property name="toolTip">
+             <string>Use or not use automatic oversampling. If checked, then oversampling factor is automatically determined for each contour, if unchecked, then a default oversampling value of 2 is used.</string>
+            </property>
+            <property name="text">
+             <string>A/O</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>

@@ -127,6 +127,11 @@ public:
   vtkSetMacro(ShowDoseVolumesOnly, bool);
   vtkBooleanMacro(ShowDoseVolumesOnly, bool);
 
+  /// Get/Set automatic oversampling flag
+  vtkGetMacro(AutomaticOversampling, bool);
+  vtkSetMacro(AutomaticOversampling, bool);
+  vtkBooleanMacro(AutomaticOversampling, bool);
+
 protected:
   vtkMRMLDoseVolumeHistogramNode();
   ~vtkMRMLDoseVolumeHistogramNode();
@@ -162,6 +167,11 @@ protected:
 
   /// State of Show dose volumes only checkbox
   bool ShowDoseVolumesOnly;
+
+  /// Flag determining whether automatic oversampling is used
+  /// If on, then oversampling is automatically determined based on the contour and dose volume, and used
+  /// for both dose and contour when computing DVH.
+  bool AutomaticOversampling;
 };
 
 #endif

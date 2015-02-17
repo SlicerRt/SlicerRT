@@ -243,6 +243,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     d->lineEdit_DVolumeCc->setText(paramNode->GetDVolumeValuesCc());
     d->lineEdit_DVolumePercent->setText(paramNode->GetDVolumeValuesPercent());
     d->checkBox_ShowDMetrics->setChecked(paramNode->GetShowDMetrics());
+    d->checkBox_AutomaticOversampling->setChecked(paramNode->GetAutomaticOversampling());
   }
 
   this->refreshDvhTable();
@@ -275,9 +276,13 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   d->ContourSelectorWidget->setAcceptContourHierarchies(true);
   d->ContourSelectorWidget->setRequiredRepresentation(vtkMRMLContourNode::IndexedLabelmap);
 
+  // Set forced oversampling factor to default factor (automatic oversampling checkbox is off by default)
+  d->ContourSelectorWidget->setForcedOversamplingFactor(d->logic()->GetDefaultDoseVolumeOversamplingFactor());
+
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( setDoseVolumeHistogramNode(vtkMRMLNode*) ) );
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
+  connect( d->checkBox_AutomaticOversampling, SIGNAL( stateChanged(int) ), this, SLOT( automaticOversampingCheckedStateChanged(int) ) );
   connect( d->ContourSelectorWidget, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( contourSetNodeChanged(vtkMRMLNode*) ) );
   connect( d->ContourSelectorWidget, SIGNAL( selectionValidityChanged() ), this, SLOT( updateButtonsState() ) );
   connect( d->MRMLNodeComboBox_Chart, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( chartNodeChanged(vtkMRMLNode*) ) );
@@ -475,6 +480,36 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
 
   // Set forced reference volume in contour selector widget to ensure this dose volume is selected as reference
   d->ContourSelectorWidget->setForcedReferenceVolumeNodeID(node->GetID());
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::automaticOversampingCheckedStateChanged(int aState)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::automaticOversampingCheckedStateChanged: Invalid scene!";
+    return;
+  }
+  
+  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAutomaticOversampling(aState);
+  paramNode->DisableModifiedEventOff();
+
+  // Set forced oversampling factor based on selection of automatic oversampling
+  d->ContourSelectorWidget->setForcedAutomaticOversamplingFactor(paramNode->GetAutomaticOversampling());
+  if (!paramNode->GetAutomaticOversampling())
+  {
+    d->ContourSelectorWidget->setForcedOversamplingFactor(d->logic()->GetDefaultDoseVolumeOversamplingFactor());
+  }
+  d->ContourSelectorWidget->updateWidgetState();
 }
 
 //-----------------------------------------------------------------------------

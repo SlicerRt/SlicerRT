@@ -345,11 +345,9 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
   polyDataToLabelmapFilter->UseReferenceValuesOff();
   polyDataToLabelmapFilter->SetInputPolyData( transformPolyDataModelToReferenceVolumeIjkFilter->GetOutput() );
 
-  // Get oversampling factor from contour node
-  double oversamplingFactor = this->ContourNode->GetRasterizationOversamplingFactor();
-
   // Calculate oversampling factor if automatic calculation is requested (which is indicated by oversampling factor of -1)
-  if ( oversamplingFactor == -1.0 && referenceVolumeNodeUsedForConversion == selectedReferenceVolumeNode )
+  double oversamplingFactor = -1.0;
+  if ( this->ContourNode->GetAutomaticOversamplingFactor() && referenceVolumeNodeUsedForConversion == selectedReferenceVolumeNode )
   {
     vtkSmartPointer<vtkCalculateOversamplingFactor> oversamplingCalculator = vtkSmartPointer<vtkCalculateOversamplingFactor>::New();
     oversamplingCalculator->SetContourNode(this->ContourNode);
@@ -358,12 +356,25 @@ vtkMRMLContourNode* vtkConvertContourRepresentations::ConvertFromModelToIndexedL
     {
       oversamplingFactor = oversamplingCalculator->GetOutputOversamplingFactor();
     }
+    else
+    {
+      vtkWarningMacro("ConvertFromModelToIndexedLabelmap: Failed to automatically calculate oversampling factor! Using default value of 1");
+      oversamplingFactor = 1.0;
+    }
+  }
+  else
+  {
+    oversamplingFactor = this->ContourNode->GetRasterizationOversamplingFactor();
   }
 
   // Oversample used reference volume (anatomy if present, selected reference otherwise) and set it to the converter
   double oversampledReferenceVolumeUsedForConversionSpacingMultiplier[3] = {1.0, 1.0, 1.0};
   if ( oversamplingFactor != 1.0 && referenceVolumeNodeUsedForConversion == selectedReferenceVolumeNode )
   {
+    // Make sure contour node has its oversampling factor if automatically determined
+    this->ContourNode->SetRasterizationOversamplingFactor(oversamplingFactor);
+
+    // Oversample reference volume
     int oversampledReferenceVolumeUsedForConversionExtent[6] = {0, 0, 0, 0, 0, 0};
     SlicerRtCommon::GetExtentAndSpacingForOversamplingFactor(referenceVolumeNodeUsedForConversion,
       oversamplingFactor, oversampledReferenceVolumeUsedForConversionExtent, oversampledReferenceVolumeUsedForConversionSpacingMultiplier);

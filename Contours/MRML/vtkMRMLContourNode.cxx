@@ -78,7 +78,8 @@ vtkMRMLContourNode::vtkMRMLContourNode()
 , ClosedSurfacePolyData(NULL)
 , LabelmapImageData(NULL)
 , DicomRtRoiPoints(NULL)
-, RasterizationOversamplingFactor(-2.0)
+, RasterizationOversamplingFactor(-1.0)
+, AutomaticOversamplingFactor(false)
 , DecimationTargetReductionFactor(-1.0)
 , CreatedFromIndexLabelmap(false)
 {
@@ -153,6 +154,7 @@ void vtkMRMLContourNode::WriteXML(ostream& of, int nIndent)
     << this->Origin[0] << " " << this->Origin[1] << " " << this->Origin[2] << "\"";
 
   of << indent << " RasterizationOversamplingFactor=\"" << this->RasterizationOversamplingFactor << "\"";
+  of << indent << " AutomaticOversamplingFactor=\"" << (this->AutomaticOversamplingFactor ? "TRUE" : "FALSE") << "\"";
   of << indent << " DecimationTargetReductionFactor=\"" << this->DecimationTargetReductionFactor << "\"";
   of << indent << " CreatedFromLabelmap=\"" << (this->CreatedFromIndexLabelmap ? "TRUE" : "FALSE") << "\"";
 }
@@ -232,6 +234,12 @@ void vtkMRMLContourNode::ReadXMLAttributes(const char** atts)
       ss >> doubleAttValue;
       this->RasterizationOversamplingFactor = doubleAttValue;
     }
+    else if (!strcmp(attName, "AutomaticOversamplingFactor"))
+    {
+      std::stringstream ss;
+      bool val = (strcmp("TRUE", attValue) == 0 ? true : false);
+      this->SetAutomaticOversamplingFactor(val);
+    }
     else if (!strcmp(attName, "DecimationTargetReductionFactor")) 
     {
       std::stringstream ss;
@@ -280,6 +288,7 @@ void vtkMRMLContourNode::Copy(vtkMRMLNode *anode)
   this->SetDicomRtRoiPoints( otherNode->GetDicomRtRoiPoints() );
 
   this->SetRasterizationOversamplingFactor( otherNode->GetRasterizationOversamplingFactor() );
+  this->SetAutomaticOversamplingFactor( otherNode->GetAutomaticOversamplingFactor() );
   this->SetDecimationTargetReductionFactor( otherNode->GetDecimationTargetReductionFactor() );
 
   this->DisableModifiedEventOff();
@@ -325,6 +334,7 @@ void vtkMRMLContourNode::DeepCopy(vtkMRMLNode* aNode)
   }
 
   this->SetRasterizationOversamplingFactor( otherNode->GetRasterizationOversamplingFactor() );
+  this->SetAutomaticOversamplingFactor( otherNode->GetAutomaticOversamplingFactor() );
   this->SetDecimationTargetReductionFactor( otherNode->GetDecimationTargetReductionFactor() );
 
   this->DisableModifiedEventOff();
@@ -378,6 +388,7 @@ void vtkMRMLContourNode::PrintSelf(ostream& os, vtkIndent indent)
     this->ClosedSurfacePolyData->PrintSelf(os, indent);
   }
   os << indent << "RasterizationOversamplingFactor:   " << this->RasterizationOversamplingFactor << std::endl;
+  os << indent << "AutomaticOversamplingFactor:   " << (this->AutomaticOversamplingFactor ? "TRUE" : "FALSE") << std::endl;
   os << indent << "DecimationTargetReductionFactor:   " << this->DecimationTargetReductionFactor << std::endl;
   os << indent << "CreatedFromLabelmap:   " << (this->CreatedFromIndexLabelmap ? "TRUE" : "FALSE") << std::endl;
 }
@@ -491,7 +502,7 @@ void vtkMRMLContourNode::SetRasterizationOversamplingFactor(double oversamplingF
   if (this->HasBeenCreatedFromIndexedLabelmap()) 
   {
     // If the contour has been created from a labelmap, then another oversampling factor cannot be set
-    vtkWarningMacro("SetAndObserveRasterizationReferenceVolumeNodeId: Cannot set rasterization oversampling factor to a contour that has been created from an indexed labelmap");
+    vtkWarningMacro("SetRasterizationOversamplingFactor: Cannot set rasterization oversampling factor to a contour that has been created from an indexed labelmap");
     return;
   }
 
@@ -507,6 +518,35 @@ void vtkMRMLContourNode::SetRasterizationOversamplingFactor(double oversamplingF
   }
 
   this->RasterizationOversamplingFactor = oversamplingFactor;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLContourNode::SetAutomaticOversamplingFactor(bool autoOversampling)
+{
+  if (this->AutomaticOversamplingFactor == autoOversampling)
+  {
+    // The automatic oversampling flag is to be set as the current one - no action necessary
+    return;
+  }
+  if (this->HasBeenCreatedFromIndexedLabelmap()) 
+  {
+    // If the contour has been created from a labelmap, then another oversampling factor cannot be set
+    vtkWarningMacro("SetAutomaticOversamplingFactor: Cannot set rasterization oversampling factor to a contour that has been created from an indexed labelmap");
+    return;
+  }
+
+  // Invalidate indexed labelmap representation if it exists (and rasterization oversampling factor has changed)
+  // because it is assumed that the current oversampling factor was used when creating the indexed labelmap, and
+  // allowing an oversampling factor change without invalidating the labelmap would introduce inconsistency.
+  if (this->LabelmapImageData)
+  {
+    vtkWarningMacro("SetAutomaticOversamplingFactor: Invalidating current indexed labelmap as the rasterization oversampling factor has been explicitly changed!");
+
+    // Invalidate representation
+    this->SetAndObserveLabelmapImageData(NULL);
+  }
+
+  this->AutomaticOversamplingFactor = autoOversampling;
 }
 
 //----------------------------------------------------------------------------
@@ -712,7 +752,7 @@ void vtkMRMLContourNode::SetDefaultConversionParametersForRepresentation(Contour
 {
   if (type == IndexedLabelmap || type == ClosedSurfaceModel)
   {
-    if (this->RasterizationOversamplingFactor == -2.0)
+    if (this->RasterizationOversamplingFactor == -1.0)
     {
       this->SetRasterizationOversamplingFactor(SlicerRtCommon::DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR);
     }
