@@ -230,12 +230,6 @@ public:
   /// Determine if two bounds are equal
   static bool AreBoundsEqual(int boundsA[6], int boundsB[6]);
 
-  /// Return an ordering of planes along a normal by taking the dot product of the origin and the normal
-  /// \param inputPlanes the list of planes to compute
-  /// \param outputPlaneOrdering the list of planes, ordered by distance along the normal line from the most extreme slice origin
-  /// \return whether the function succeeded or not
-  static bool OrderPlanesAlongNormal( std::vector< vtkSmartPointer<vtkPlane> > inputPlanes, std::map<double, vtkSmartPointer<vtkPlane> >& outputPlaneOrdering );
-
   /// Generate a new color that is not already in use in a color table node
   /// \param colorNode Color table node to validate against
   static void GenerateNewColor(vtkMRMLColorTableNode* colorNode, double* newColor);

@@ -75,11 +75,10 @@ public:
   /// Do reading
   void Update();
 
-  /// Create ribbon model for an ROI
+  /// Create ribbon model for an ROI using the computed plane normals
   /// \param internalIndex the index of the ROI to access
-  /// \param optionalRibbonFilterDefaultNormal if anatomical slices aren't available, this normal can be used as a substitute to determine ribbon orientation
   /// \param ribbonModelPolyData the output polydata to produce
-  void CreateRibbonModelForRoi(unsigned int internalIndex, vtkVector3<double>* optionalRibbonOrientationNormal, vtkPolyData* ribbonModelPolyData);
+  void CreateRibbonModelForRoi(unsigned int internalIndex, vtkPolyData* ribbonModelPolyData);
 
 public:
   /// Get number of created ROIs
@@ -282,6 +281,7 @@ protected:
     double DisplayColor[3];
     vtkPolyData* PolyData;
     double SliceThickness;
+    double ContourPlaneNormalVector[3];
     std::string ReferencedSeriesUID;
     std::string ReferencedFrameOfReferenceUID;
     std::map<int,std::string> ContourIndexToSOPInstanceUIDMap;
@@ -382,13 +382,12 @@ protected:
   /// Find and return a ROI entry according to its ROI number
   RoiEntry* FindRoiByNumber(unsigned int roiNumber);
 
-  /// Variables for estimating the distance between contour planes.
-  /// This is not a reliable solution, as it assumes that the plane normals are (0,0,1) and
-  /// the distance between all planes are equal.
-  double GetDistanceBetweenContourPlanes(DRTROIContourSequence &rtROIContourSequenceObject);
-
-  /// Get slice thickness for a contour sequence
-  double GetSliceThickness(DRTContourSequence& rtContourSequence);
+  /// Determine distance between contour planes.
+  /// It gets contour planes, orders them along their normals, then computes the individual distances between adjacent
+  /// contours. Returns with a majority value if not all distances are equal.
+  /// Saves normal and ordered planes into ROI entries.
+  /// \param rtROIContourSequenceObject DCMTK object containing the input contour sequence
+  double CalculateDistanceBetweenContourPlanes(DRTROIContourSequence &rtROIContourSequenceObject);
 
   /// Get frame of reference for an SOP instance
   DRTRTReferencedSeriesSequence* GetReferencedSeriesSequence(DRTStructureSetIOD &rtStructureSetObject);
@@ -398,16 +397,6 @@ protected:
 
   /// Get referenced series instance UID for the structure set (0020,000E)
   OFString GetReferencedSeriesInstanceUID(DRTStructureSetIOD rtStructureSetObject);
-
-  /// Reorder slices by position and orientation in 3 space
-  /// \param openDatabase A reference to an open DICOM database
-  /// \param slices A map with any value for the int keys, the SOPInstanceUID string for the values
-  /// \return whether or not the function succeeded
-  bool OrderSliceSOPInstanceUID( ctkDICOMDatabase& openDatabase, std::map<int, std::string>& slices );
-
-  // Helper function to extract a plane equation from a set of points
-  // Assumes points are planar
-  bool CreatePlaneFromContourData( OFVector<vtkTypeFloat64>& contourData_LPS, vtkPlane* aPlane );
 
 //xBTX //TODO #210: Re-enable
   template<class T> void GetAndStoreHierarchyInformation(T* dcmtkIodObject);

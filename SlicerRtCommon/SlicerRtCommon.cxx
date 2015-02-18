@@ -453,45 +453,6 @@ bool SlicerRtCommon::AreBoundsEqual(int boundsA[6], int boundsB[6])
     boundsA[5] == boundsB [5];
 }
 
-
-//---------------------------------------------------------------------------
-bool SlicerRtCommon::OrderPlanesAlongNormal( std::vector<vtkSmartPointer<vtkPlane> > inputPlanes, std::map<double, vtkSmartPointer<vtkPlane> >& outputPlaneOrdering )
-{
-  std::map<double, vtkVector3<double> > intermediateSortMap;
-  if (inputPlanes.empty())
-  {
-    return true;
-  }
-
-  // Iterate over each plane
-  vtkVector3<double> lastNormal(0,0,0);
-  vtkVector3<double> firstNormal(
-    (*inputPlanes.begin())->GetNormal()[0],
-    (*inputPlanes.begin())->GetNormal()[1],
-    (*inputPlanes.begin())->GetNormal()[2] );
-
-  for (std::vector<vtkSmartPointer<vtkPlane> >::iterator it = inputPlanes.begin(); it != inputPlanes.end(); ++it)
-  {
-    // For each plane, re-encase it in friendly vtk classes
-    vtkVector3<double> origin((*it)->GetOrigin()[0], (*it)->GetOrigin()[1], (*it)->GetOrigin()[2]);
-    vtkVector3<double> normal((*it)->GetNormal()[0], (*it)->GetNormal()[1], (*it)->GetNormal()[2]);
-
-    // If this normal the previous normal differ, they are not co-planar
-    if (it != inputPlanes.begin() && !AreCollinear(normal, lastNormal))
-    {
-      return false;
-    }
-
-    // Project the origin point onto the normal, this is our metric for distance along the normal line
-    double mag = origin.Dot(firstNormal);
-    outputPlaneOrdering[mag] = *it;
-
-    lastNormal.Set(normal.GetX(), normal.GetY(), normal.GetZ());
-  }
-
-  return true;
-}
-
 //---------------------------------------------------------------------------
 void SlicerRtCommon::GenerateNewColor( vtkMRMLColorTableNode* colorNode, double* newColor )
 {
