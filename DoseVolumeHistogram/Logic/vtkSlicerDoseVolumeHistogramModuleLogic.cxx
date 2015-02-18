@@ -360,9 +360,14 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
 
   // The lattices of the resampled dose volume and the structure labelmap volume should match.
   // Resample indexed labelmap representation temporarily if it has a lattice different from the resampled dose volume.
+  consolidatedStructureContourNode->SetCreatedFromIndexLabelmap(true);
   if (vtkMRMLContourNode::DoVolumeLatticesMatch(structureContourNode, resampledDoseVolumeNode))
   {
-    consolidatedStructureContourNode->DeepCopy( structureContourNode );
+    consolidatedStructureContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(doseVolumeNode->GetID());
+    consolidatedStructureContourNode->CopyOrientation(doseVolumeNode);
+    vtkSmartPointer<vtkImageData> indexedLabelmapImageDataCopy = vtkSmartPointer<vtkImageData>::New();
+    indexedLabelmapImageDataCopy->DeepCopy(indexedLabelmapData);
+    consolidatedStructureContourNode->SetAndObserveLabelmapImageData(indexedLabelmapImageDataCopy);
   }
   else
   {
@@ -417,7 +422,6 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLContourNo
   // Get resampled dose volume and matching structure labelmap (the function makes sure their lattices are the same)
   vtkSmartPointer<vtkMRMLScalarVolumeNode> resampledDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   vtkSmartPointer<vtkMRMLContourNode> consolidatedStructureContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  this->GetMRMLScene()->AddNode(consolidatedStructureContourNode);
   this->GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour(structureContourNode, resampledDoseVolume, consolidatedStructureContourNode);
 
   // Create stencil for structure
