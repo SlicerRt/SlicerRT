@@ -26,6 +26,7 @@
 
 // VTK includes
 #include "vtkObject.h"
+#include <vtkMassProperties.h>
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -52,6 +53,19 @@ public:
   /// based on contour properties using fuzzy logics.
   bool CalculateOversamplingFactor();
 
+protected:
+  /// Calculate relative structure size from input contour and rasterization reference volume
+  double CalculateRelativeStructureSize();
+
+  /// Calculate complexity measure based on surface poly data in input contour
+  double CalculateComplexityMeasure();
+
+  /// Use fuzzy rules to determine oversampling factor based on relative structure size and complexity measure
+  /// \param relativeStructureSize Relative structure size calculated by \sa CalculateRelativeStructureSize
+  /// \param complexityMeasure Complexity measure calculated by \sa CalculateComplexityMeasure
+  /// \return Automatically calculated oversampling factor
+  double DetermineOversamplingFactor(double relativeStructureSize, double complexityMeasure);
+
 public:
   vtkGetObjectMacro(ContourNode, vtkMRMLContourNode);
   vtkSetObjectMacro(ContourNode, vtkMRMLContourNode);
@@ -67,6 +81,10 @@ public:
   vtkBooleanMacro(LogSpeedMeasurements, bool);
 
 protected:
+  vtkGetObjectMacro(MassPropertiesAlgorithm, vtkMassProperties);
+  vtkSetObjectMacro(MassPropertiesAlgorithm, vtkMassProperties);
+
+protected:
   /// Input contour node
   vtkMRMLContourNode* ContourNode;
 
@@ -80,6 +98,10 @@ protected:
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
+
+  /// Temporary storage for mass properties algorithm that is used in both sub-calculations
+  /// \sa CalculateRelativeStructureSize and CalculateComplexityMeasure
+  vtkMassProperties* MassPropertiesAlgorithm;
   
 protected:
   vtkCalculateOversamplingFactor();
@@ -88,7 +110,7 @@ protected:
 private:
   vtkCalculateOversamplingFactor(const vtkCalculateOversamplingFactor&); // Not implemented
   void operator=(const vtkCalculateOversamplingFactor&);               // Not implemented
-//ETX
+  //ETX
 };
 
 #endif 

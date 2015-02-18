@@ -33,6 +33,7 @@
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkTimerLog.h>
+#include <vtkPolyData.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkCalculateOversamplingFactor);
@@ -43,7 +44,9 @@ vtkCalculateOversamplingFactor::vtkCalculateOversamplingFactor()
   this->ContourNode = NULL;
   this->RasterizationReferenceVolumeNode = NULL;
   this->OutputOversamplingFactor = 1;
-  this->LogSpeedMeasurementsOff();
+  this->MassPropertiesAlgorithm = NULL;
+  //this->LogSpeedMeasurementsOff();
+  this->LogSpeedMeasurementsOn(); //TODO:
 }
 
 //----------------------------------------------------------------------------
@@ -51,6 +54,7 @@ vtkCalculateOversamplingFactor::~vtkCalculateOversamplingFactor()
 {
   this->SetContourNode(NULL);
   this->SetRasterizationReferenceVolumeNode(NULL);
+  this->SetMassPropertiesAlgorithm(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -70,39 +74,169 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
     vtkErrorMacro("CalculateOversamplingFactor: Invalid contour node!");
     return false;
   }
-  vtkMRMLScene* mrmlScene = this->ContourNode->GetScene();
-  if (!mrmlScene)
-  {
-    vtkErrorMacro("CalculateOversamplingFactor: Invalid scene!");
-    return false;
-  }
   if (!this->RasterizationReferenceVolumeNode)
   {
     vtkErrorMacro("CalculateOversamplingFactor: Invalid rasterization reference volume node!");
     return false;
   }
 
+  // Closed surface model is preferred to determine oversampling factor, because
+  // ribbon is open and provides very inaccurate surface area.
+  //TODO: When the PlanarContoursToSurface algorithm is integrated, it can be used to create closed surface directly from planar contours
+  vtkPolyData* polyDataUsedForOversamplingCalculation = NULL;
+  if (this->ContourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel))
+  {
+    polyDataUsedForOversamplingCalculation = this->ContourNode->GetClosedSurfacePolyData();
+  }
+  else if (this->ContourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel))
+  {
+    // Log warning about the drawbacks of using ribbon model
+    vtkErrorMacro("CalculateOversamplingFactor: Ribbon model is used to calculate oversampling factor for contour " << this->ContourNode->GetName() << ". Shape measurement may be inaccurate for certain structures!");
+
+    polyDataUsedForOversamplingCalculation = this->ContourNode->GetRibbonModelPolyData();
+  }
+  else
+  {
+    vtkErrorMacro("CalculateOversamplingFactor: No suitable representation has been found in contour for oversampling factor calculation!");
+    return false;
+  }
+
+  // Mark start time
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
   UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
 
-  // Resample to selected reference coordinate system if referenced anatomy was used
-  double checkpointResamplingStart = timer->GetUniversalTime();
-  UNUSED_VARIABLE(checkpointResamplingStart); // Although it is used later, a warning is logged so needs to be suppressed
+  // Create mass properties algorithm for common use
+  vtkSmartPointer<vtkMassProperties> massProperties = vtkSmartPointer<vtkMassProperties>::New();
+  this->SetMassPropertiesAlgorithm(massProperties);
+#if (VTK_MAJOR_VERSION <= 5)
+  massProperties->SetInput(polyDataUsedForOversamplingCalculation);
+#else
+  massProperties->SetInputData(polyDataUsedForOversamplingCalculation);
+#endif
+  // Run algorithm so that results can be extracted for relative structure size calculation and complexity measure
+  massProperties->Update();
+
+  // Get relative structure size
+  double relativeStructureSize = this->CalculateRelativeStructureSize();
+  if (relativeStructureSize == -1.0)
+  {
+    vtkErrorMacro("CalculateOversamplingFactor: Failed to calculate relative structure size");
+    return false;
+  }
+
+  // Get complexity measure
+  double complexityMeasure = this->CalculateComplexityMeasure();
+  if (complexityMeasure == -1.0)
+  {
+    vtkErrorMacro("CalculateOversamplingFactor: Failed to calculate complexity measure");
+    return false;
+  }
+
+  double checkpointFuzzyStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointFuzzyStart); // Although it is used later, a warning is logged so needs to be suppressed
+
+  // Determine crisp oversampling factor based on crisp inputs using fuzzy rules
+  this->OutputOversamplingFactor = this->DetermineOversamplingFactor(relativeStructureSize, complexityMeasure);
 
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
     UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
 
-    //vtkDebugMacro("CalculateOversamplingFactor: Total model-labelmap conversion time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s\n"
-    //  << "\tAccessing associated nodes and transform model: " << checkpointLabelmapConversionStart-checkpointStart << " s\n"
-    //  << "\tConverting to labelmap (to referenced series if available): " << checkpointResamplingStart-checkpointLabelmapConversionStart << " s\n"
-    //  << "\tResampling referenced series to selected reference: " << checkpointEnd-checkpointResamplingStart << " s");
+    vtkDebugMacro("CalculateOversamplingFactor: Total automatic oversampling calculation time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s\n"
+      << "\tCalcilating relative structure size and complexity measure: " << checkpointFuzzyStart-checkpointStart << " s\n"
+      << "\tDetermining oversampling factor using fuzzy rules: " << checkpointEnd-checkpointFuzzyStart << " s");
   }
 
   // Set calculated oversampling factor to contour node
   this->ContourNode->SetRasterizationOversamplingFactor(this->OutputOversamplingFactor);
 
+  // Clean up (triggers destruction of member)
+  this->SetMassPropertiesAlgorithm(NULL);
+
   return true;
+}
+
+//----------------------------------------------------------------------------
+double vtkCalculateOversamplingFactor::CalculateRelativeStructureSize()
+{
+  if (!this->ContourNode)
+  {
+    vtkErrorMacro("CalculateRelativeStructureSize: Invalid contour node!");
+    return -1.0;
+  }
+  if (!this->RasterizationReferenceVolumeNode)
+  {
+    vtkErrorMacro("CalculateRelativeStructureSize: Invalid rasterization reference volume node!");
+    return -1.0;
+  }
+  if (!this->MassPropertiesAlgorithm)
+  {
+    vtkErrorMacro("CalculateRelativeStructureSize: Invalid mass properties algorithm!");
+    return -1.0;
+  }
+
+  // Get structure volume in mm^3
+  double structureVolume = this->MassPropertiesAlgorithm->GetVolume();
+
+  // Sanity check
+  double structureProjectedVolume = this->MassPropertiesAlgorithm->GetVolumeProjected();
+  double error = (structureVolume - structureProjectedVolume);
+  if (error * 10000 > structureVolume)
+  {
+    vtkWarningMacro("CalculateRelativeStructureSize: Computed structure volume is possibly invalid for contour " << this->ContourNode->GetName());
+  }
+
+  // Calculate reference volume in mm^3
+  vtkImageData* referenceImageData = this->RasterizationReferenceVolumeNode->GetImageData();
+  if (!referenceImageData)
+  {
+    vtkErrorMacro("CalculateRelativeStructureSize: Rasterization reference volume node contains invalid image data!");
+    return -1.0;
+  }
+  int dimensions[3] = {0,0,0};
+  referenceImageData->GetDimensions(dimensions);
+  double spacing[3] = {0.0,0.0,0.0};
+  this->RasterizationReferenceVolumeNode->GetSpacing(spacing);
+  double volumeVolume = dimensions[0]*dimensions[1]*dimensions[2] * spacing[0]*spacing[1]*spacing[2]; // Number of voxels * volume of one voxel
+
+  double relativeStructureSize = structureVolume / volumeVolume;
+vtkWarningMacro("TEST: " << this->ContourNode->GetName() << " relative structure size: " << relativeStructureSize); //TODO: for test
+
+  return relativeStructureSize;
+}
+
+//----------------------------------------------------------------------------
+double vtkCalculateOversamplingFactor::CalculateComplexityMeasure()
+{
+  if (!this->ContourNode)
+  {
+    vtkErrorMacro("CalculateComplexityMeasure: Invalid contour node!");
+    return -1.0;
+  }
+  if (!this->MassPropertiesAlgorithm)
+  {
+    vtkErrorMacro("CalculateComplexityMeasure: Invalid mass properties algorithm!");
+    return -1.0;
+  }
+
+  // Normalized shape index (NSI) characterizes the deviation of the shape of an object
+  // from a sphere (from surface area and volume). A sphere's NSI is one. This number is always >= 1.0
+  double normalizedShapeIndex = this->MassPropertiesAlgorithm->GetNormalizedShapeIndex();
+vtkWarningMacro("TEST: " << this->ContourNode->GetName() << " normalized shape index: " << normalizedShapeIndex); //TODO: for test
+
+  return normalizedShapeIndex;
+}
+
+//----------------------------------------------------------------------------
+double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relativeStructureSize, double complexityMeasure)
+{
+  if (relativeStructureSize == -1.0 || complexityMeasure == -1.0)
+  {
+    vtkErrorMacro("DetermineOversamplingFactor: Invalid input measures! Returning default oversampling of 1");
+    return 1.0;
+  }
+
+  return 1.0;
 }
