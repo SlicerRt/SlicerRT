@@ -34,6 +34,10 @@
 #include <vtkObjectFactory.h>
 #include <vtkTimerLog.h>
 #include <vtkPolyData.h>
+#include <vtkPiecewiseFunction.h>
+
+// STD includes
+#include <math.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkCalculateOversamplingFactor);
@@ -202,9 +206,12 @@ double vtkCalculateOversamplingFactor::CalculateRelativeStructureSize()
   double volumeVolume = dimensions[0]*dimensions[1]*dimensions[2] * spacing[0]*spacing[1]*spacing[2]; // Number of voxels * volume of one voxel
 
   double relativeStructureSize = structureVolume / volumeVolume;
-vtkWarningMacro("TEST: " << this->ContourNode->GetName() << " relative structure size: " << relativeStructureSize); //TODO: for test
 
-  return relativeStructureSize;
+  // Map raw measurement to the fuzzy input scale
+  double sizeMeasure = (-1.0) * log10(relativeStructureSize);
+  vtkDebugMacro("CalculateRelativeStructureSize: " << this->ContourNode->GetName() << " relative structure size: " << relativeStructureSize << ", size measure: " << sizeMeasure);
+
+  return sizeMeasure;
 }
 
 //----------------------------------------------------------------------------
@@ -224,12 +231,26 @@ double vtkCalculateOversamplingFactor::CalculateComplexityMeasure()
   // Normalized shape index (NSI) characterizes the deviation of the shape of an object
   // from a sphere (from surface area and volume). A sphere's NSI is one. This number is always >= 1.0
   double normalizedShapeIndex = this->MassPropertiesAlgorithm->GetNormalizedShapeIndex();
-vtkWarningMacro("TEST: " << this->ContourNode->GetName() << " normalized shape index: " << normalizedShapeIndex); //TODO: for test
 
-  return normalizedShapeIndex;
+  // Map raw measurement to the fuzzy input scale
+  double complexityMeasure = (normalizedShapeIndex - 1.0 > 0.0 ? normalizedShapeIndex - 1.0 : 0.0); // If smaller then 0, then return 0
+  vtkDebugMacro("CalculateComplexityMeasure: " << this->ContourNode->GetName() << " normalized shape index: " << normalizedShapeIndex << ", complexity measure: " << complexityMeasure);
+
+  return complexityMeasure;
 }
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+// Fuzzy membership functions:
+// https://www.assembla.com/spaces/slicerrt/documents/bzADACUi8r5kGMdmr6bg7m/download/bzADACUi8r5kGMdmr6bg7m
+//
+// Fuzzy rules:
+// 1. If RSS is Very small, then Oversampling is High
+// 2. If RSS is Small and NSI is High, then Oversampling is High
+// 3. If RSS is Small and NSI is Low then Oversampling is Medium
+// 4. If RSS is Medium and NSI is High, then Oversampling is Medium
+// 5. If RSS is Medium and NSI is Low, then Oversampling is Low
+// 6. If RSS is Large, then Oversampling is Low
+//---------------------------------------------------------------------------
 double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relativeStructureSize, double complexityMeasure)
 {
   if (relativeStructureSize == -1.0 || complexityMeasure == -1.0)
@@ -238,5 +259,48 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
     return 1.0;
   }
 
+  // Define membership functions
+  vtkSmartPointer<vtkPiecewiseFunction> sizeLarge = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  sizeLarge->AddPoint(0.5, 1);
+  sizeLarge->AddPoint(2, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> sizeMedium = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  sizeMedium->AddPoint(0.5, 0);
+  sizeMedium->AddPoint(2, 1);
+  sizeMedium->AddPoint(2.5, 1);
+  sizeMedium->AddPoint(3, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> sizeSmall = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  sizeSmall->AddPoint(2.5, 0);
+  sizeSmall->AddPoint(3, 1);
+  sizeSmall->AddPoint(3.25, 1);
+  sizeSmall->AddPoint(3.75, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> sizeVerySmall = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  sizeVerySmall->AddPoint(3.25, 0);
+  sizeVerySmall->AddPoint(3.75, 1);
+
+  vtkSmartPointer<vtkPiecewiseFunction> complexityLow = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  complexityLow->AddPoint(0.2, 1);
+  complexityLow->AddPoint(0.6, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> complexityHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  complexityHigh->AddPoint(0.2, 0);
+  complexityHigh->AddPoint(0.6, 1);
+
+  // Fuzzify inputs
+  double sizeLargeMembership = sizeLarge->GetValue(relativeStructureSize);
+  double sizeMediumMembership = sizeMedium->GetValue(relativeStructureSize);
+  double sizeSmallMembership = sizeSmall->GetValue(relativeStructureSize);
+  double sizeVerySmallMembership = sizeVerySmall->GetValue(relativeStructureSize);
+
+  double complexityLowMembership = complexityLow->GetValue(relativeStructureSize);
+  double complexityHighMembership = complexityHigh->GetValue(relativeStructureSize);
+
+  // Apply rules and determine consequents
+
+  // Apply weights to each consequent (clipping)
+
+  // Calculate center of mass
+
+  // Defuzzify output
+
+  //TODO:
   return 1.0;
 }
