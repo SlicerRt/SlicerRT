@@ -928,9 +928,10 @@ double vtkSlicerDicomRtReader::CalculateDistanceBetweenContourPlanes(DRTROIConto
           // We reached the end of the data (comes in coordinate groups of 9)
           break;
         }
-        firstPlanePoint.Set(contourData_LPS[i], contourData_LPS[i+1], contourData_LPS[i+2]);
-        secondPlanePoint.Set(contourData_LPS[i+3], contourData_LPS[i+4], contourData_LPS[i+5]);
-        thirdPlanePoint.Set(contourData_LPS[i+6], contourData_LPS[i+7], contourData_LPS[i+8]);
+        // We want to compute the normal vector in RAS, not LPS, so we negate the first two coordinates
+        firstPlanePoint.Set(-contourData_LPS[i], -contourData_LPS[i+1], contourData_LPS[i+2]);
+        secondPlanePoint.Set(-contourData_LPS[i+3], -contourData_LPS[i+4], contourData_LPS[i+5]);
+        thirdPlanePoint.Set(-contourData_LPS[i+6], -contourData_LPS[i+7], contourData_LPS[i+8]);
 
         currentPlaneIVector = secondPlanePoint - firstPlanePoint;
         currentPlaneJVector = thirdPlanePoint - firstPlanePoint;
@@ -1627,11 +1628,8 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
   // Convert to ribbon using vtkRibbonFilter
   vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
   ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
-  // It is very strange is that the normal that is provided by the reader is the same that is computed by the ribbon filter internally,
-  // still, the result is different! May it be because the Slicer one is in this form (x,y,z) and the internal ribbon one is (-x,-y,z)?
-  // It worked well before, I wonder if this regression is due to the VTK6 upgrade - Csaba
-  //ribbonFilter->SetDefaultNormal(this->RoiSequenceVector[internalIndex].ContourPlaneNormalVector);
-  //ribbonFilter->UseDefaultNormalOn();
+  ribbonFilter->SetDefaultNormal(this->RoiSequenceVector[internalIndex].ContourPlaneNormalVector);
+  ribbonFilter->UseDefaultNormalOn();
   ribbonFilter->SetWidth(this->RoiSequenceVector[internalIndex].SliceThickness / 2.0);
   ribbonFilter->SetAngle(90.0);
   ribbonFilter->Update();
