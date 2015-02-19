@@ -1628,8 +1628,9 @@ void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex,
   // Convert to ribbon using vtkRibbonFilter
   vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
   ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
-  ribbonFilter->SetDefaultNormal(this->RoiSequenceVector[internalIndex].ContourPlaneNormalVector);
-  ribbonFilter->UseDefaultNormalOn();
+  // It is better to allow per-contour normal vectors in case the planes within a structure are not parallel
+  //ribbonFilter->SetDefaultNormal(this->RoiSequenceVector[internalIndex].ContourPlaneNormalVector);
+  //ribbonFilter->UseDefaultNormalOn();
   ribbonFilter->SetWidth(this->RoiSequenceVector[internalIndex].SliceThickness / 2.0);
   ribbonFilter->SetAngle(90.0);
   ribbonFilter->Update();
