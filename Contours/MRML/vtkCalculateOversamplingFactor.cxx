@@ -47,6 +47,7 @@ vtkCalculateOversamplingFactor::vtkCalculateOversamplingFactor()
 {
   this->ContourNode = NULL;
   this->RasterizationReferenceVolumeNode = NULL;
+  this->ComplexityScalingFactor = 1.0;
   this->OutputOversamplingFactor = 1;
   this->MassPropertiesAlgorithm = NULL;
   //this->LogSpeedMeasurementsOff();
@@ -72,6 +73,7 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
 {
   // Set a safe value to use even if the return value is not checked
   this->OutputOversamplingFactor = 1;
+  this->ComplexityScalingFactor = 1.0;
 
   if (!this->ContourNode)
   {
@@ -98,6 +100,9 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
     vtkErrorMacro("CalculateOversamplingFactor: Ribbon model is used to calculate oversampling factor for contour " << this->ContourNode->GetName() << ". Shape measurement may be inaccurate for certain structures!");
 
     polyDataUsedForOversamplingCalculation = this->ContourNode->GetRibbonModelPolyData();
+
+    // Use experimental scaling factor for ribbon model to bring the results closer to the closed surface one for complexity measure
+    this->ComplexityScalingFactor = 1.0 / 0.85;
   }
   else
   {
@@ -232,9 +237,13 @@ double vtkCalculateOversamplingFactor::CalculateComplexityMeasure()
   // from a sphere (from surface area and volume). A sphere's NSI is one. This number is always >= 1.0
   double normalizedShapeIndex = this->MassPropertiesAlgorithm->GetNormalizedShapeIndex();
 
+  // Apply experimental scaling factor for complexity measure (see ComplexityScalingFactor member)
+  double scaledNormalizedShapeIndex = normalizedShapeIndex * this->ComplexityScalingFactor;
+
   // Map raw measurement to the fuzzy input scale
-  double complexityMeasure = (normalizedShapeIndex - 1.0 > 0.0 ? normalizedShapeIndex - 1.0 : 0.0); // If smaller then 0, then return 0
-  vtkDebugMacro("CalculateComplexityMeasure: " << this->ContourNode->GetName() << " normalized shape index: " << normalizedShapeIndex << ", complexity measure: " << complexityMeasure);
+  double complexityMeasure = (scaledNormalizedShapeIndex - 1.0 > 0.0 ? scaledNormalizedShapeIndex - 1.0 : 0.0); // If smaller then 0, then return 0
+  vtkDebugMacro("CalculateComplexityMeasure: " << this->ContourNode->GetName() << " normalized shape index: " << normalizedShapeIndex <<
+    ", scaling factor: " << this->ComplexityScalingFactor << ", complexity measure: " << complexityMeasure);
 
   return complexityMeasure;
 }
@@ -290,8 +299,23 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
   double sizeSmallMembership = sizeSmall->GetValue(relativeStructureSize);
   double sizeVerySmallMembership = sizeVerySmall->GetValue(relativeStructureSize);
 
-  double complexityLowMembership = complexityLow->GetValue(relativeStructureSize);
-  double complexityHighMembership = complexityHigh->GetValue(relativeStructureSize);
+  double complexityLowMembership = complexityLow->GetValue(complexityMeasure);
+  double complexityHighMembership = complexityHigh->GetValue(complexityMeasure);
+
+//TEST clipping
+this->ClipMembershipFunction(sizeSmall, 0.5);
+
+this->ClipMembershipFunction(sizeMedium, 1.0);
+
+this->ClipMembershipFunction(sizeLarge, 0.0);
+
+this->ClipMembershipFunction(sizeVerySmall, 0.5);
+
+vtkSmartPointer<vtkPiecewiseFunction> testFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
+testFunction->AddPoint(0, 0);
+testFunction->AddPoint(1, 1);
+testFunction->AddPoint(2, 0);
+this->ClipMembershipFunction(testFunction, 0.5);
 
   // Apply rules and determine consequents
 
@@ -303,4 +327,49 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
 
   //TODO:
   return 1.0;
+}
+
+//---------------------------------------------------------------------------
+void vtkCalculateOversamplingFactor::ClipMembershipFunction(vtkPiecewiseFunction* membershipFunction, double clipValue)
+{
+  if (clipValue >= 1.0)
+  {
+    // No action needed if clip value is greater or equal to one
+    return;
+  }
+
+  // Find parameter values (strictly between nodes, not at nodes) where membership is
+  // exactly the clip value. We will need to create new nodes at those parameter values.
+  double currentNode[4] = {0.0,0.0,0.0,0.0};
+  double nextNode[4] = {0.0,0.0,0.0,0.0};
+  std::vector<double> newNodeParameterValues;
+  for (int nodeIndex=0; nodeIndex<membershipFunction->GetSize()-1; ++nodeIndex)
+  {
+    membershipFunction->GetNodeValue(nodeIndex, currentNode);
+    membershipFunction->GetNodeValue(nodeIndex+1, nextNode);
+    if ( (currentNode[1] < clipValue && nextNode[1] > clipValue)
+      || (currentNode[1] > clipValue && nextNode[1] < clipValue) )
+    {
+      double newNodeParameterValue = (((nextNode[0]-currentNode[0])*(currentNode[1]-clipValue)) / (currentNode[1]-nextNode[1])) + currentNode[0];
+      newNodeParameterValues.push_back(newNodeParameterValue);
+    }
+  }
+
+  // Move nodes down to clip value that hold value greater than clip value.
+  for (int nodeIndex=0; nodeIndex<membershipFunction->GetSize(); ++nodeIndex)
+  {
+    double currentNode[4] = {0.0,0.0,0.0,0.0};
+    membershipFunction->GetNodeValue(nodeIndex, currentNode);
+    if (currentNode[1] > clipValue)
+    {
+      currentNode[1] = clipValue;
+      membershipFunction->SetNodeValue(nodeIndex, currentNode);
+    }
+  }
+
+  // Add new nodes to the clipping points
+  for (std::vector<double>::iterator pointIt=newNodeParameterValues.begin(); pointIt!=newNodeParameterValues.end(); ++pointIt)
+  {
+    membershipFunction->AddPoint(*pointIt, clipValue);
+  }
 }

@@ -36,8 +36,7 @@
 
 #include "vtkSlicerContoursModuleMRMLExport.h"
 
-class vtkMRMLModelNode;
-class vtkMRMLScalarVolumeNode;
+class vtkPiecewiseFunction;
 
 /// \ingroup SlicerRt_QtModules_Contours
 /// \brief Calculate oversampling factor based on contour properties using fuzzy logics
@@ -66,6 +65,13 @@ protected:
   /// \return Automatically calculated oversampling factor
   double DetermineOversamplingFactor(double relativeStructureSize, double complexityMeasure);
 
+  /// Clip a membership function with the clip value
+  /// This means that the values of the membership function will be maximized at the clip value,
+  /// while the function remains the same otherwise (0 values, slopes).
+  /// \param membershipFunction Membership function to clip
+  /// \param clipValue Clip value
+  void ClipMembershipFunction(vtkPiecewiseFunction* membershipFunction, double clipValue);
+
 public:
   vtkGetObjectMacro(ContourNode, vtkMRMLContourNode);
   vtkSetObjectMacro(ContourNode, vtkMRMLContourNode);
@@ -92,6 +98,10 @@ protected:
   /// Kept separately due to the complex logic in contour conversion (temporary transformed nodes etc.)
   /// TODO: This will not be necessary when using the new segmentations infrastructure
   vtkMRMLScalarVolumeNode* RasterizationReferenceVolumeNode;
+
+  /// Experimental scaling factor used to bring the results for ribbon model closer to the closed surface one
+  /// for complexity measure. According to the experiments, the ribbon model NSI is 85% of that for closed surface.
+  double ComplexityScalingFactor;
 
   /// Calculated oversampling factor for the contour node and its reference volume
   int OutputOversamplingFactor;
