@@ -38,6 +38,7 @@
 
 // STD includes
 #include <math.h>
+#include <algorithm>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkCalculateOversamplingFactor);
@@ -97,7 +98,7 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
   else if (this->ContourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel))
   {
     // Log warning about the drawbacks of using ribbon model
-    vtkErrorMacro("CalculateOversamplingFactor: Ribbon model is used to calculate oversampling factor for contour " << this->ContourNode->GetName() << ". Shape measurement may be inaccurate for certain structures!");
+    vtkWarningMacro("CalculateOversamplingFactor: Ribbon model is used to calculate oversampling factor for contour " << this->ContourNode->GetName() << ". Shape measurement may be inaccurate for certain structures!");
 
     polyDataUsedForOversamplingCalculation = this->ContourNode->GetRibbonModelPolyData();
 
@@ -148,14 +149,28 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
   // Determine crisp oversampling factor based on crisp inputs using fuzzy rules
   this->OutputOversamplingFactor = this->DetermineOversamplingFactor(relativeStructureSize, complexityMeasure);
 
+  vtkDebugMacro("CalculateOversamplingFactor: Automatic oversampling factor of " << this->OutputOversamplingFactor << " has been calculated for contour "
+    << this->ContourNode->GetName() << " and reference volume " << this->RasterizationReferenceVolumeNode->GetName());
+ofstream test; //TODO: TEST code
+test.open("D:\\log.txt", ios::app);
+test << "Automatic oversampling factor of " << this->OutputOversamplingFactor << " has been calculated for contour "
+    << this->ContourNode->GetName() << " and reference volume " << this->RasterizationReferenceVolumeNode->GetName() << "\n";
+test.close();
+
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
     UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
 
     vtkDebugMacro("CalculateOversamplingFactor: Total automatic oversampling calculation time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s\n"
-      << "\tCalcilating relative structure size and complexity measure: " << checkpointFuzzyStart-checkpointStart << " s\n"
+      << "\tCalculating relative structure size and complexity measure: " << checkpointFuzzyStart-checkpointStart << " s\n"
       << "\tDetermining oversampling factor using fuzzy rules: " << checkpointEnd-checkpointFuzzyStart << " s");
+ofstream test; //TODO: TEST code
+test.open("D:\\log.txt", ios::app);
+test << "Total automatic oversampling calculation time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s\n"
+      << "\tCalculating relative structure size and complexity measure: " << checkpointFuzzyStart-checkpointStart << " s\n"
+      << "\tDetermining oversampling factor using fuzzy rules: " << checkpointEnd-checkpointFuzzyStart << " s\n";
+test.close();
   }
 
   // Set calculated oversampling factor to contour node
@@ -241,7 +256,7 @@ double vtkCalculateOversamplingFactor::CalculateComplexityMeasure()
   double scaledNormalizedShapeIndex = normalizedShapeIndex * this->ComplexityScalingFactor;
 
   // Map raw measurement to the fuzzy input scale
-  double complexityMeasure = (scaledNormalizedShapeIndex - 1.0 > 0.0 ? scaledNormalizedShapeIndex - 1.0 : 0.0); // If smaller then 0, then return 0
+  double complexityMeasure = std::max(scaledNormalizedShapeIndex - 1.0, 0.0); // If smaller then 0, then return 0
   vtkDebugMacro("CalculateComplexityMeasure: " << this->ContourNode->GetName() << " normalized shape index: " << normalizedShapeIndex <<
     ", scaling factor: " << this->ComplexityScalingFactor << ", complexity measure: " << complexityMeasure);
 
@@ -254,10 +269,10 @@ double vtkCalculateOversamplingFactor::CalculateComplexityMeasure()
 //
 // Fuzzy rules:
 // 1. If RSS is Very small, then Oversampling is High
-// 2. If RSS is Small and NSI is High, then Oversampling is High
-// 3. If RSS is Small and NSI is Low then Oversampling is Medium
-// 4. If RSS is Medium and NSI is High, then Oversampling is Medium
-// 5. If RSS is Medium and NSI is Low, then Oversampling is Low
+// 2. If RSS is Small and Complexity is High, then Oversampling is High
+// 3. If RSS is Small and Complexity is Low then Oversampling is Medium
+// 4. If RSS is Medium and Complexity is High, then Oversampling is Medium
+// 5. If RSS is Medium and Complexity is Low, then Oversampling is Low
 // 6. If RSS is Large, then Oversampling is Low
 //---------------------------------------------------------------------------
 double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relativeStructureSize, double complexityMeasure)
@@ -268,7 +283,7 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
     return 1.0;
   }
 
-  // Define membership functions
+  // Define input membership functions for relative structure size
   vtkSmartPointer<vtkPiecewiseFunction> sizeLarge = vtkSmartPointer<vtkPiecewiseFunction>::New();
   sizeLarge->AddPoint(0.5, 1);
   sizeLarge->AddPoint(2, 0);
@@ -286,12 +301,26 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
   sizeVerySmall->AddPoint(3.25, 0);
   sizeVerySmall->AddPoint(3.75, 1);
 
+  // Define input membership functions for complexity measure
   vtkSmartPointer<vtkPiecewiseFunction> complexityLow = vtkSmartPointer<vtkPiecewiseFunction>::New();
   complexityLow->AddPoint(0.2, 1);
   complexityLow->AddPoint(0.6, 0);
   vtkSmartPointer<vtkPiecewiseFunction> complexityHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
   complexityHigh->AddPoint(0.2, 0);
   complexityHigh->AddPoint(0.6, 1);
+
+  // Define output membership functions for oversampling power
+  // (the output oversampling factor will be 2 to the power of this number)
+  vtkSmartPointer<vtkPiecewiseFunction> oversamplingLow = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  oversamplingLow->AddPoint(-1, 1);
+  oversamplingLow->AddPoint(0.5, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> oversamplingMedium = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  oversamplingMedium->AddPoint(-1, 0);
+  oversamplingMedium->AddPoint(0.5, 1);
+  oversamplingMedium->AddPoint(2, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> oversamplingHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  oversamplingHigh->AddPoint(0.5, 0);
+  oversamplingHigh->AddPoint(2, 1);
 
   // Fuzzify inputs
   double sizeLargeMembership = sizeLarge->GetValue(relativeStructureSize);
@@ -302,31 +331,114 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
   double complexityLowMembership = complexityLow->GetValue(complexityMeasure);
   double complexityHighMembership = complexityHigh->GetValue(complexityMeasure);
 
-//TEST clipping
-this->ClipMembershipFunction(sizeSmall, 0.5);
+  // Apply rules and determine consequents (use min for t-norm)
 
-this->ClipMembershipFunction(sizeMedium, 1.0);
+  // 1. If RSS is Very small, then Oversampling is High
+  double rule1_OversamplingHighClippingValue = sizeVerySmallMembership;
+  // 2. If RSS is Small and Complexity is High, then Oversampling is High
+  double rule2_OversamplingHighClippingValue = std::min(sizeSmallMembership, complexityHighMembership);
+  // 3. If RSS is Small and Complexity is Low then Oversampling is Medium
+  double rule3_OversamplingMediumClippingValue = std::min(sizeSmallMembership, complexityLowMembership);
+  // 4. If RSS is Medium and Complexity is High, then Oversampling is Medium
+  double rule4_OversamplingMediumClippingValue = std::min(sizeMediumMembership, complexityHighMembership);
+  // 5. If RSS is Medium and Complexity is Low, then Oversampling is Low
+  double rule5_OversamplingLowClippingValue = std::min(sizeMediumMembership, complexityLowMembership);
+  // 6. If RSS is Large, then Oversampling is Low
+  double rule6_OversamplingLowClippingValue = sizeLargeMembership;
 
-this->ClipMembershipFunction(sizeLarge, 0.0);
+  // Determine consequents (clipping output membership functions with rule membership values)
+  std::vector<vtkPiecewiseFunction*> consequents;
 
-this->ClipMembershipFunction(sizeVerySmall, 0.5);
+  vtkSmartPointer<vtkPiecewiseFunction> rule1_oversamplingHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  rule1_oversamplingHigh->DeepCopy(oversamplingHigh);
+  this->ClipMembershipFunction(rule1_oversamplingHigh, rule1_OversamplingHighClippingValue);
+  consequents.push_back(rule1_oversamplingHigh);
 
-vtkSmartPointer<vtkPiecewiseFunction> testFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
-testFunction->AddPoint(0, 0);
-testFunction->AddPoint(1, 1);
-testFunction->AddPoint(2, 0);
-this->ClipMembershipFunction(testFunction, 0.5);
+  vtkSmartPointer<vtkPiecewiseFunction> rule2_OversamplingHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  rule2_OversamplingHigh->DeepCopy(oversamplingHigh);
+  this->ClipMembershipFunction(rule2_OversamplingHigh, rule2_OversamplingHighClippingValue);
+  consequents.push_back(rule2_OversamplingHigh);
 
-  // Apply rules and determine consequents
+  vtkSmartPointer<vtkPiecewiseFunction> rule3_OversamplingMedium = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  rule3_OversamplingMedium->DeepCopy(oversamplingMedium);
+  this->ClipMembershipFunction(rule3_OversamplingMedium, rule3_OversamplingMediumClippingValue);
+  consequents.push_back(rule3_OversamplingMedium);
 
-  // Apply weights to each consequent (clipping)
+  vtkSmartPointer<vtkPiecewiseFunction> rule4_OversamplingMedium = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  rule4_OversamplingMedium->DeepCopy(oversamplingMedium);
+  this->ClipMembershipFunction(rule4_OversamplingMedium, rule4_OversamplingMediumClippingValue);
+  consequents.push_back(rule4_OversamplingMedium);
 
-  // Calculate center of mass
+  vtkSmartPointer<vtkPiecewiseFunction> rule5_OversamplingLow = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  rule5_OversamplingLow->DeepCopy(oversamplingLow);
+  this->ClipMembershipFunction(rule5_OversamplingLow, rule5_OversamplingLowClippingValue);
+  consequents.push_back(rule5_OversamplingLow);
+
+  vtkSmartPointer<vtkPiecewiseFunction> rule6_OversamplingLow = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  rule6_OversamplingLow->DeepCopy(oversamplingLow);
+  this->ClipMembershipFunction(rule6_OversamplingLow, rule6_OversamplingLowClippingValue);
+  consequents.push_back(rule6_OversamplingLow);
+
+  // Calculate areas and centroids of all the sections (trapezoids) of all the consequent membership functions
+  std::vector<std::pair<double,double> > areaCentroidPairs;
+  for (std::vector<vtkPiecewiseFunction*>::iterator consequentIt=consequents.begin(); consequentIt!=consequents.end(); ++consequentIt)
+  {
+    vtkPiecewiseFunction* currentMembershipFunction = (*consequentIt);
+
+    // Calculate area and center of mass for each consequent
+    double currentNode[4] = {0.0,0.0,0.0,0.0};
+    double nextNode[4] = {0.0,0.0,0.0,0.0};
+    for (int nodeIndex=0; nodeIndex<currentMembershipFunction->GetSize()-1; ++nodeIndex)
+    {
+      // Calculate area of each trapezoid (may be triangle, rectangle, or actual trapezoid)
+      currentMembershipFunction->GetNodeValue(nodeIndex, currentNode);
+      currentMembershipFunction->GetNodeValue(nodeIndex+1, nextNode);
+
+      double bottomRectangleArea = (nextNode[0]-currentNode[0]) * std::min(nextNode[1], currentNode[1]);
+      double bottomRectangleCentroid = (nextNode[0]-currentNode[0]) / 2.0;
+
+      double topTriangleArea = 0.0;
+      double topTriangleCentroid = 0.0;
+      if (nextNode[1] > currentNode[1]) // If right node has higher membership
+      {
+        topTriangleArea = (nextNode[0]-currentNode[0]) * (nextNode[1]-currentNode[1]) / 2.0;
+        topTriangleCentroid = currentNode[0] + (nextNode[0]-currentNode[0])*2.0/3.0;
+      }
+      else if (nextNode[1] < currentNode[1]) // If left node has higher membership (if they are equal then there is no triangle)
+      {
+        topTriangleArea = (nextNode[0]-currentNode[0]) * (currentNode[1]-nextNode[1]) / 2.0;
+        topTriangleCentroid = currentNode[0] + (nextNode[0]-currentNode[0])/3.0;
+      }
+
+      double trapezoidArea = bottomRectangleArea + topTriangleArea;
+      double trapezoidCentroid = bottomRectangleCentroid;
+      if (topTriangleArea > 0.0)
+      {
+        trapezoidCentroid = ((bottomRectangleArea*bottomRectangleCentroid) + (topTriangleArea*topTriangleCentroid)) / (bottomRectangleArea+topTriangleArea);
+      }
+
+      if (trapezoidArea > 0.0) // Only add if area is non-zero
+      {
+        std::pair<double,double> areaCentroidPair(trapezoidArea,trapezoidCentroid);
+        areaCentroidPairs.push_back(areaCentroidPair);
+      }
+    }
+  }
+
+  // Calculate combined center of mass from the components
+  double nominator = 0.0;
+  double denominator = 0.0;
+  for (std::vector<std::pair<double,double> >::iterator trapezoidIt=areaCentroidPairs.begin(); trapezoidIt!=areaCentroidPairs.end(); ++trapezoidIt)
+  {
+    nominator += trapezoidIt->first * trapezoidIt->second;
+    denominator += trapezoidIt->first;
+  }
+  double centerOfMass = nominator / denominator;
 
   // Defuzzify output
+  double calculatedOversamplingFactorPower = floor(centerOfMass+0.5);
 
-  //TODO:
-  return 1.0;
+  return pow(2.0,calculatedOversamplingFactorPower);
 }
 
 //---------------------------------------------------------------------------

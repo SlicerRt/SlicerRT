@@ -79,8 +79,8 @@ public:
   vtkGetObjectMacro(RasterizationReferenceVolumeNode, vtkMRMLScalarVolumeNode);
   vtkSetObjectMacro(RasterizationReferenceVolumeNode, vtkMRMLScalarVolumeNode);
 
-  vtkGetMacro(OutputOversamplingFactor, int);
-  vtkSetMacro(OutputOversamplingFactor, int);
+  vtkGetMacro(OutputOversamplingFactor, double);
+  vtkSetMacro(OutputOversamplingFactor, double);
 
   vtkGetMacro(LogSpeedMeasurements, bool);
   vtkSetMacro(LogSpeedMeasurements, bool);
@@ -104,7 +104,7 @@ protected:
   double ComplexityScalingFactor;
 
   /// Calculated oversampling factor for the contour node and its reference volume
-  int OutputOversamplingFactor;
+  double OutputOversamplingFactor;
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
