@@ -145,16 +145,19 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
 
   double checkpointFuzzyStart = timer->GetUniversalTime();
   UNUSED_VARIABLE(checkpointFuzzyStart); // Although it is used later, a warning is logged so needs to be suppressed
+ofstream test; //TODO: TEST code
+test.open("D:\\log.txt", ios::app);
+test << "Contour: " << this->ContourNode->GetName() << "\n";
+test.close();
 
   // Determine crisp oversampling factor based on crisp inputs using fuzzy rules
   this->OutputOversamplingFactor = this->DetermineOversamplingFactor(relativeStructureSize, complexityMeasure);
 
   vtkDebugMacro("CalculateOversamplingFactor: Automatic oversampling factor of " << this->OutputOversamplingFactor << " has been calculated for contour "
     << this->ContourNode->GetName() << " and reference volume " << this->RasterizationReferenceVolumeNode->GetName());
-ofstream test; //TODO: TEST code
+test; //TODO: TEST code
 test.open("D:\\log.txt", ios::app);
-test << "Automatic oversampling factor of " << this->OutputOversamplingFactor << " has been calculated for contour "
-    << this->ContourNode->GetName() << " and reference volume " << this->RasterizationReferenceVolumeNode->GetName() << "\n";
+test << "  Automatic oversampling factor: " << this->OutputOversamplingFactor << "\n";
 test.close();
 
   if (this->LogSpeedMeasurements)
@@ -167,9 +170,9 @@ test.close();
       << "\tDetermining oversampling factor using fuzzy rules: " << checkpointEnd-checkpointFuzzyStart << " s");
 ofstream test; //TODO: TEST code
 test.open("D:\\log.txt", ios::app);
-test << "Total automatic oversampling calculation time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s\n"
-      << "\tCalculating relative structure size and complexity measure: " << checkpointFuzzyStart-checkpointStart << " s\n"
-      << "\tDetermining oversampling factor using fuzzy rules: " << checkpointEnd-checkpointFuzzyStart << " s\n";
+test << "  Total time: " << checkpointEnd-checkpointStart << " s\n"
+      << "    Measures: " << checkpointFuzzyStart-checkpointStart << " s\n"
+      << "    Fuzzy rules: " << checkpointEnd-checkpointFuzzyStart << " s\n";
 test.close();
   }
 
@@ -268,11 +271,11 @@ double vtkCalculateOversamplingFactor::CalculateComplexityMeasure()
 // https://www.assembla.com/spaces/slicerrt/documents/bzADACUi8r5kGMdmr6bg7m/download/bzADACUi8r5kGMdmr6bg7m
 //
 // Fuzzy rules:
-// 1. If RSS is Very small, then Oversampling is High
-// 2. If RSS is Small and Complexity is High, then Oversampling is High
-// 3. If RSS is Small and Complexity is Low then Oversampling is Medium
-// 4. If RSS is Medium and Complexity is High, then Oversampling is Medium
-// 5. If RSS is Medium and Complexity is Low, then Oversampling is Low
+// 1. If RSS is Very small, then Oversampling is Very high
+// 2. If RSS is Small and Complexity is High then Oversampling is High
+// 3. If RSS is Medium and Complexity is High then Oversampling is High
+// 4. If RSS is Small and Complexity is Low then Oversampling is Normal
+// 5. If RSS is Medium and Complexity is Low then Oversampling is Normal
 // 6. If RSS is Large, then Oversampling is Low
 //---------------------------------------------------------------------------
 double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relativeStructureSize, double complexityMeasure)
@@ -312,15 +315,23 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
   // Define output membership functions for oversampling power
   // (the output oversampling factor will be 2 to the power of this number)
   vtkSmartPointer<vtkPiecewiseFunction> oversamplingLow = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  oversamplingLow->AddPoint(-1, 1);
-  oversamplingLow->AddPoint(0.5, 0);
-  vtkSmartPointer<vtkPiecewiseFunction> oversamplingMedium = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  oversamplingMedium->AddPoint(-1, 0);
-  oversamplingMedium->AddPoint(0.5, 1);
-  oversamplingMedium->AddPoint(2, 0);
+  oversamplingLow->AddPoint(-1.25, 1);
+  oversamplingLow->AddPoint(-0.75, 1);
+  oversamplingLow->AddPoint(0.25, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> oversamplingNormal = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  oversamplingNormal->AddPoint(-0.75, 0);
+  oversamplingNormal->AddPoint(0.25, 1);
+  oversamplingNormal->AddPoint(0.25, 1);
+  oversamplingNormal->AddPoint(0.75, 0);
   vtkSmartPointer<vtkPiecewiseFunction> oversamplingHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  oversamplingHigh->AddPoint(0.5, 0);
-  oversamplingHigh->AddPoint(2, 1);
+  oversamplingHigh->AddPoint(0.25, 0);
+  oversamplingHigh->AddPoint(0.75, 1);
+  oversamplingHigh->AddPoint(1.25, 1);
+  oversamplingHigh->AddPoint(1.75, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> oversamplingVeryHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  oversamplingVeryHigh->AddPoint(1.25, 0);
+  oversamplingVeryHigh->AddPoint(1.75, 1);
+  oversamplingVeryHigh->AddPoint(2.25, 1);
 
   // Fuzzify inputs
   double sizeLargeMembership = sizeLarge->GetValue(relativeStructureSize);
@@ -331,48 +342,68 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
   double complexityLowMembership = complexityLow->GetValue(complexityMeasure);
   double complexityHighMembership = complexityHigh->GetValue(complexityMeasure);
 
-  // Apply rules and determine consequents (use min for t-norm)
+  // Apply rules and determine consequents
 
-  // 1. If RSS is Very small, then Oversampling is High
-  double rule1_OversamplingHighClippingValue = sizeVerySmallMembership;
-  // 2. If RSS is Small and Complexity is High, then Oversampling is High
+  // 1. If RSS is Very small, then Oversampling is Very high
+  double rule1_OversamplingVeryHighClippingValue = sizeVerySmallMembership;
+  // 2. If RSS is Small and Complexity is High then Oversampling is High
   double rule2_OversamplingHighClippingValue = std::min(sizeSmallMembership, complexityHighMembership);
-  // 3. If RSS is Small and Complexity is Low then Oversampling is Medium
-  double rule3_OversamplingMediumClippingValue = std::min(sizeSmallMembership, complexityLowMembership);
-  // 4. If RSS is Medium and Complexity is High, then Oversampling is Medium
-  double rule4_OversamplingMediumClippingValue = std::min(sizeMediumMembership, complexityHighMembership);
-  // 5. If RSS is Medium and Complexity is Low, then Oversampling is Low
-  double rule5_OversamplingLowClippingValue = std::min(sizeMediumMembership, complexityLowMembership);
+  // 3. If RSS is Medium and Complexity is High then Oversampling is High
+  double rule3_OversamplingHighClippingValue = std::min(sizeMediumMembership, complexityHighMembership);
+  // 4. If RSS is Small and Complexity is Low then Oversampling is Normal
+  double rule4_OversamplingNormalClippingValue = std::min(sizeSmallMembership, complexityLowMembership);
+  // 5. If RSS is Medium and Complexity is Low then Oversampling is Normal
+  double rule5_OversamplingNormalClippingValue = std::min(sizeMediumMembership, complexityLowMembership);
   // 6. If RSS is Large, then Oversampling is Low
   double rule6_OversamplingLowClippingValue = sizeLargeMembership;
+
+ofstream test; //TODO: TEST code
+test.open("D:\\log.txt", ios::app);
+test << "  Relative structure size: " << relativeStructureSize << "\n";
+test << "    Large membership: " << sizeLargeMembership << "\n";
+test << "    Medium membership: " << sizeMediumMembership << "\n";
+test << "    Small membership: " << sizeSmallMembership << "\n";
+test << "    Very small membership: " << sizeVerySmallMembership << "\n";
+test << "  Complexity measure: " << complexityMeasure << "\n";
+test << "    Low membership: " << complexityLowMembership << "\n";
+test << "    High membership: " << complexityHighMembership << "\n";
+test << "  Rules\n";
+test << "    1 VeryHigh: " << rule1_OversamplingVeryHighClippingValue << "\n";
+test << "    2 High: " << rule2_OversamplingHighClippingValue << "\n";
+test << "    3 High: " << rule3_OversamplingHighClippingValue << "\n";
+test << "    4 Normal: " << rule4_OversamplingNormalClippingValue << "\n";
+test << "    5 Normal: " << rule5_OversamplingNormalClippingValue << "\n";
+test << "    6 Low: " << rule6_OversamplingLowClippingValue << "\n";
+test << "  Areas\n";
+test.close();
 
   // Determine consequents (clipping output membership functions with rule membership values)
   std::vector<vtkPiecewiseFunction*> consequents;
 
-  vtkSmartPointer<vtkPiecewiseFunction> rule1_oversamplingHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  rule1_oversamplingHigh->DeepCopy(oversamplingHigh);
-  this->ClipMembershipFunction(rule1_oversamplingHigh, rule1_OversamplingHighClippingValue);
-  consequents.push_back(rule1_oversamplingHigh);
+  vtkSmartPointer<vtkPiecewiseFunction> rule1_oversamplingVeryHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  rule1_oversamplingVeryHigh->DeepCopy(oversamplingVeryHigh);
+  this->ClipMembershipFunction(rule1_oversamplingVeryHigh, rule1_OversamplingVeryHighClippingValue);
+  consequents.push_back(rule1_oversamplingVeryHigh);
 
   vtkSmartPointer<vtkPiecewiseFunction> rule2_OversamplingHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
   rule2_OversamplingHigh->DeepCopy(oversamplingHigh);
   this->ClipMembershipFunction(rule2_OversamplingHigh, rule2_OversamplingHighClippingValue);
   consequents.push_back(rule2_OversamplingHigh);
 
-  vtkSmartPointer<vtkPiecewiseFunction> rule3_OversamplingMedium = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  rule3_OversamplingMedium->DeepCopy(oversamplingMedium);
-  this->ClipMembershipFunction(rule3_OversamplingMedium, rule3_OversamplingMediumClippingValue);
-  consequents.push_back(rule3_OversamplingMedium);
+  vtkSmartPointer<vtkPiecewiseFunction> rule3_OversamplingHigh = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  rule3_OversamplingHigh->DeepCopy(oversamplingHigh);
+  this->ClipMembershipFunction(rule3_OversamplingHigh, rule3_OversamplingHighClippingValue);
+  consequents.push_back(rule3_OversamplingHigh);
 
-  vtkSmartPointer<vtkPiecewiseFunction> rule4_OversamplingMedium = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  rule4_OversamplingMedium->DeepCopy(oversamplingMedium);
-  this->ClipMembershipFunction(rule4_OversamplingMedium, rule4_OversamplingMediumClippingValue);
-  consequents.push_back(rule4_OversamplingMedium);
+  vtkSmartPointer<vtkPiecewiseFunction> rule4_OversamplingNormal = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  rule4_OversamplingNormal->DeepCopy(oversamplingNormal);
+  this->ClipMembershipFunction(rule4_OversamplingNormal, rule4_OversamplingNormalClippingValue);
+  consequents.push_back(rule4_OversamplingNormal);
 
-  vtkSmartPointer<vtkPiecewiseFunction> rule5_OversamplingLow = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  rule5_OversamplingLow->DeepCopy(oversamplingLow);
-  this->ClipMembershipFunction(rule5_OversamplingLow, rule5_OversamplingLowClippingValue);
-  consequents.push_back(rule5_OversamplingLow);
+  vtkSmartPointer<vtkPiecewiseFunction> rule5_OversamplingNormal = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  rule5_OversamplingNormal->DeepCopy(oversamplingNormal);
+  this->ClipMembershipFunction(rule5_OversamplingNormal, rule5_OversamplingNormalClippingValue);
+  consequents.push_back(rule5_OversamplingNormal);
 
   vtkSmartPointer<vtkPiecewiseFunction> rule6_OversamplingLow = vtkSmartPointer<vtkPiecewiseFunction>::New();
   rule6_OversamplingLow->DeepCopy(oversamplingLow);
@@ -395,7 +426,7 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
       currentMembershipFunction->GetNodeValue(nodeIndex+1, nextNode);
 
       double bottomRectangleArea = (nextNode[0]-currentNode[0]) * std::min(nextNode[1], currentNode[1]);
-      double bottomRectangleCentroid = (nextNode[0]-currentNode[0]) / 2.0;
+      double bottomRectangleCentroid = (nextNode[0]+currentNode[0]) / 2.0;
 
       double topTriangleArea = 0.0;
       double topTriangleCentroid = 0.0;
@@ -419,6 +450,10 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
 
       if (trapezoidArea > 0.0) // Only add if area is non-zero
       {
+//ofstream test; //TODO: TEST code
+//test.open("D:\\log.txt", ios::app);
+//test << "      Area: " << trapezoidArea << "\n";
+//test << "      Centroid: " << trapezoidCentroid << "\n";
         std::pair<double,double> areaCentroidPair(trapezoidArea,trapezoidCentroid);
         areaCentroidPairs.push_back(areaCentroidPair);
       }
@@ -434,6 +469,9 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
     denominator += trapezoidIt->first;
   }
   double centerOfMass = nominator / denominator;
+test; //TODO: TEST code
+test.open("D:\\log.txt", ios::app);
+test << "  CoM: " << centerOfMass << "\n";
 
   // Defuzzify output
   double calculatedOversamplingFactorPower = floor(centerOfMass+0.5);
