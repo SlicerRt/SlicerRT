@@ -24,6 +24,9 @@
 // MRMLWidgets includes
 #include "qMRMLWidget.h"
 
+// CTK includes
+#include <ctkVTKObject.h>
+
 // Contours includes
 #include "vtkMRMLContourNode.h"
 #include "qSlicerContoursModuleWidgetsExport.h"
@@ -42,6 +45,7 @@ class qMRMLContourSelectorWidgetPrivate;
 class Q_SLICER_MODULE_CONTOURS_WIDGETS_EXPORT qMRMLContourSelectorWidget : public qMRMLWidget
 {
   Q_OBJECT
+  QVTK_OBJECT
 
 public:
   typedef qMRMLWidget Superclass;
@@ -155,6 +159,9 @@ public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
 
 protected slots:
+  /// Handle scene close ended event
+  void onSceneCloseEnded(vtkObject* sceneObject);
+
   /// Handle change of selected contour node
   void contourNodeChanged(vtkMRMLNode* node);
 

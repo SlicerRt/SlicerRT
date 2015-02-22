@@ -736,6 +736,22 @@ void qMRMLContourSelectorWidget::setMRMLScene(vtkMRMLScene* newScene)
 
   d->MRMLNodeComboBox_Contour->setCurrentNodeID("");
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNodeID("");
+
+  // Connect scene close ended event so that caches can be cleared
+  qvtkReconnect( newScene, vtkMRMLScene::EndCloseEvent, this, SLOT( onSceneCloseEnded(vtkObject*) ) );
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLContourSelectorWidget::onSceneCloseEnded(vtkObject* sceneObject)
+{
+  vtkMRMLScene* scene = vtkMRMLScene::SafeDownCast(sceneObject);
+  if (!scene)
+    {
+    return;
+    }
+
+  Q_D(qMRMLContourSelectorWidget);
+  d->SelectedContourNodes.clear();
 }
 
 //------------------------------------------------------------------------------
