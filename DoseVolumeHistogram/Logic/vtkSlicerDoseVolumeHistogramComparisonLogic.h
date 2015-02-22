@@ -58,7 +58,6 @@ protected:
   double GetAgreementForDvhPlotPoint(vtkDoubleArray *referenceDvhPlot, vtkDoubleArray *compareDvhPlot, unsigned int compareIndex, double totalVolume); 
 
 public:
-
   vtkSetObjectMacro(Dvh1DoubleArrayNode, vtkMRMLDoubleArrayNode);
   vtkGetObjectMacro(Dvh1DoubleArrayNode, vtkMRMLDoubleArrayNode);
 
@@ -78,17 +77,22 @@ public:
   vtkGetMacro(DoseMax, double); 
 
 protected:
-  vtkMRMLDoubleArrayNode *Dvh1DoubleArrayNode;
-  vtkMRMLDoubleArrayNode *Dvh2DoubleArrayNode;
-  vtkMRMLScalarVolumeNode *DoseVolumeNode;
+  vtkMRMLDoubleArrayNode* Dvh1DoubleArrayNode;
+  vtkMRMLDoubleArrayNode* Dvh2DoubleArrayNode;
+  vtkMRMLScalarVolumeNode* DoseVolumeNode;
+
+  /// Volume-difference criterion (% of the total structure volume, totalVolume)
   double VolumeDifferenceCriterion;
+
+  /// Dose-to-agreement criterion (% of the maximum dose, maxDose)
   double DoseToAgreementCriterion;
+
+  /// Maximum dose
   double DoseMax;
 
 protected:
   vtkSlicerDoseVolumeHistogramComparisonLogic();
   virtual ~vtkSlicerDoseVolumeHistogramComparisonLogic();
-
 };
 
 #endif

@@ -51,8 +51,7 @@ vtkCalculateOversamplingFactor::vtkCalculateOversamplingFactor()
   this->ComplexityScalingFactor = 1.0;
   this->OutputOversamplingFactor = 1;
   this->MassPropertiesAlgorithm = NULL;
-  //this->LogSpeedMeasurementsOff();
-  this->LogSpeedMeasurementsOn(); //TODO:
+  this->LogSpeedMeasurementsOff();
 }
 
 //----------------------------------------------------------------------------
@@ -145,20 +144,12 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
 
   double checkpointFuzzyStart = timer->GetUniversalTime();
   UNUSED_VARIABLE(checkpointFuzzyStart); // Although it is used later, a warning is logged so needs to be suppressed
-ofstream test; //TODO: TEST code
-test.open("D:\\log.txt", ios::app);
-test << "Contour: " << this->ContourNode->GetName() << "\n";
-test.close();
 
   // Determine crisp oversampling factor based on crisp inputs using fuzzy rules
   this->OutputOversamplingFactor = this->DetermineOversamplingFactor(relativeStructureSize, complexityMeasure);
 
   vtkDebugMacro("CalculateOversamplingFactor: Automatic oversampling factor of " << this->OutputOversamplingFactor << " has been calculated for contour "
     << this->ContourNode->GetName() << " and reference volume " << this->RasterizationReferenceVolumeNode->GetName());
-test; //TODO: TEST code
-test.open("D:\\log.txt", ios::app);
-test << "  Automatic oversampling factor: " << this->OutputOversamplingFactor << "\n";
-test.close();
 
   if (this->LogSpeedMeasurements)
   {
@@ -168,12 +159,6 @@ test.close();
     vtkDebugMacro("CalculateOversamplingFactor: Total automatic oversampling calculation time for contour " << this->ContourNode->GetName() << ": " << checkpointEnd-checkpointStart << " s\n"
       << "\tCalculating relative structure size and complexity measure: " << checkpointFuzzyStart-checkpointStart << " s\n"
       << "\tDetermining oversampling factor using fuzzy rules: " << checkpointEnd-checkpointFuzzyStart << " s");
-ofstream test; //TODO: TEST code
-test.open("D:\\log.txt", ios::app);
-test << "  Total time: " << checkpointEnd-checkpointStart << " s\n"
-      << "    Measures: " << checkpointFuzzyStart-checkpointStart << " s\n"
-      << "    Fuzzy rules: " << checkpointEnd-checkpointFuzzyStart << " s\n";
-test.close();
   }
 
   // Set calculated oversampling factor to contour node
@@ -357,26 +342,6 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor(double relati
   // 6. If RSS is Large, then Oversampling is Low
   double rule6_OversamplingLowClippingValue = sizeLargeMembership;
 
-ofstream test; //TODO: TEST code
-test.open("D:\\log.txt", ios::app);
-test << "  Relative structure size: " << relativeStructureSize << "\n";
-test << "    Large membership: " << sizeLargeMembership << "\n";
-test << "    Medium membership: " << sizeMediumMembership << "\n";
-test << "    Small membership: " << sizeSmallMembership << "\n";
-test << "    Very small membership: " << sizeVerySmallMembership << "\n";
-test << "  Complexity measure: " << complexityMeasure << "\n";
-test << "    Low membership: " << complexityLowMembership << "\n";
-test << "    High membership: " << complexityHighMembership << "\n";
-test << "  Rules\n";
-test << "    1 VeryHigh: " << rule1_OversamplingVeryHighClippingValue << "\n";
-test << "    2 High: " << rule2_OversamplingHighClippingValue << "\n";
-test << "    3 High: " << rule3_OversamplingHighClippingValue << "\n";
-test << "    4 Normal: " << rule4_OversamplingNormalClippingValue << "\n";
-test << "    5 Normal: " << rule5_OversamplingNormalClippingValue << "\n";
-test << "    6 Low: " << rule6_OversamplingLowClippingValue << "\n";
-test << "  Areas\n";
-test.close();
-
   // Determine consequents (clipping output membership functions with rule membership values)
   std::vector<vtkPiecewiseFunction*> consequents;
 
@@ -450,10 +415,6 @@ test.close();
 
       if (trapezoidArea > 0.0) // Only add if area is non-zero
       {
-//ofstream test; //TODO: TEST code
-//test.open("D:\\log.txt", ios::app);
-//test << "      Area: " << trapezoidArea << "\n";
-//test << "      Centroid: " << trapezoidCentroid << "\n";
         std::pair<double,double> areaCentroidPair(trapezoidArea,trapezoidCentroid);
         areaCentroidPairs.push_back(areaCentroidPair);
       }
@@ -469,9 +430,6 @@ test.close();
     denominator += trapezoidIt->first;
   }
   double centerOfMass = nominator / denominator;
-test; //TODO: TEST code
-test.open("D:\\log.txt", ios::app);
-test << "  CoM: " << centerOfMass << "\n";
 
   // Defuzzify output
   double calculatedOversamplingFactorPower = floor(centerOfMass+0.5);
