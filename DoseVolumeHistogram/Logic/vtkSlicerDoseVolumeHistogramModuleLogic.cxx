@@ -363,7 +363,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::GetOversampledDoseVolumeAndConsoli
   consolidatedStructureContourNode->SetCreatedFromIndexLabelmap(true);
   if (vtkMRMLContourNode::DoVolumeLatticesMatch(structureContourNode, resampledDoseVolumeNode))
   {
-    consolidatedStructureContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(doseVolumeNode->GetID());
     consolidatedStructureContourNode->CopyOrientation(doseVolumeNode);
     vtkSmartPointer<vtkImageData> indexedLabelmapImageDataCopy = vtkSmartPointer<vtkImageData>::New();
     indexedLabelmapImageDataCopy->DeepCopy(indexedLabelmapData);

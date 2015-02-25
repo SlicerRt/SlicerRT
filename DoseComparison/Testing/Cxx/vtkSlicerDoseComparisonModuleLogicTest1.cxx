@@ -101,7 +101,6 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
-  // TODO: Remove when subject hierarchy is integrated into Slicer core
   vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
     vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
   subjectHierarchyLogic->SetMRMLScene(mrmlScene);

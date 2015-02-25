@@ -508,7 +508,7 @@ int vtkSlicerContoursModuleLogicTestConversions ( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  double bounds[6];
+  double bounds[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
   bodyContourNode->GetRASBounds(bounds);
 
   if( !CheckIfResultIsWithinOneTenthPercentFromBaseline(bounds[0], expectedBounds[0]) || 

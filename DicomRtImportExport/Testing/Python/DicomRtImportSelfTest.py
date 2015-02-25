@@ -87,7 +87,6 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
   def test_DicomRtImportSelfTest_FullTest1(self):
     # Check for DicomRtImportExport module
     self.assertTrue( slicer.modules.dicomrtimportexport )
-
     self.TestSection_0RetrieveInputData()
     self.TestSection_1OpenDatabase()
     self.TestSection_2ImportStudy()
@@ -194,14 +193,15 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     detailsPopup.loadCheckedLoadables()
 
     # Verify that the correct number of objects were loaded
-    scene = slicer.mrmlScene
     # Volumes: Dose, RT image, RT image texture
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == 3 )
     # Model hierarchies: Beam models (parent + individual beams)
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 6 )
     # Subject hierarchy nodes: Patient, Study, Dose, RT image (plus SH nodes automatically created for texture
     # image and displayed model), structure set, contours, beam models (both model and subject hierarchy for those)
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ) == 25 )
+    # If subject hierarchy auto creation is off, then 2 less nodes are created (the RT image plane model and texture volume)
+    autoCreateSh = slicer.modules.subjecthierarchy.widgetRepresentation().pluginLogic().autoCreateSubjectHierarchy
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ) == 23 + 2*autoCreateSh )
     # Contours: The loaded structures
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == 6 )
     # Markups: the isocenters and their derived sources (in the same markup node as the isocenter)

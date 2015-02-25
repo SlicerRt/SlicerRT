@@ -335,6 +335,7 @@ void vtkSlicerDoseComparisonModuleLogic::CreateDefaultGammaColorTable()
   nodeName = this->GetMRMLScene()->GenerateUniqueName(nodeName);
   gammaColorTable->SetName(nodeName.c_str());
   gammaColorTable->SetTypeToUser();
+  gammaColorTable->SetSingletonTag(nodeName.c_str());
   gammaColorTable->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
   gammaColorTable->HideFromEditorsOn();
   gammaColorTable->SetNumberOfColors(256);
@@ -364,6 +365,7 @@ void vtkSlicerDoseComparisonModuleLogic::LoadDefaultGammaColorTable()
     vtkMRMLColorNode* loadedColorNode = this->GetMRMLApplicationLogic()->GetColorLogic()->LoadColorFile( colorTableFilePath.c_str(),
       vtksys::SystemTools::GetFilenameWithoutExtension(SlicerRtCommon::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME).c_str() );
     colorTableNode = vtkMRMLColorTableNode::SafeDownCast(loadedColorNode);
+    colorTableNode->SetSingletonTag(colorTableNode->GetName());
     colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
     colorTableNode->HideFromEditorsOn();
     colorTableNode->SaveWithSceneOff();

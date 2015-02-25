@@ -1337,6 +1337,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::CreateDefaultDoseColorTable()
   vtkSmartPointer<vtkMRMLColorTableNode> defaultDoseColorTable = vtkSmartPointer<vtkMRMLColorTableNode>::New();
   defaultDoseColorTable->SetName(SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME);
   defaultDoseColorTable->SetTypeToUser();
+  defaultDoseColorTable->SetSingletonTag(SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME);
   defaultDoseColorTable->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
   defaultDoseColorTable->HideFromEditorsOff();
   defaultDoseColorTable->SetNumberOfColors(256);

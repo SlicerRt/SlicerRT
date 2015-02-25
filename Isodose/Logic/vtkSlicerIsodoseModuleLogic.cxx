@@ -221,6 +221,7 @@ void vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable()
   nodeName = this->GetMRMLScene()->GenerateUniqueName(nodeName);
   colorTableNode->SetName(nodeName.c_str());
   colorTableNode->SetTypeToUser();
+  colorTableNode->SetSingletonTag(nodeName.c_str());
   colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
   colorTableNode->HideFromEditorsOn();
   colorTableNode->SetNumberOfColors(6);
@@ -256,6 +257,7 @@ void vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable()
 
     colorTableNode = vtkMRMLColorTableNode::SafeDownCast(loadedColorNode);
     colorTableNode->SetTypeToUser();
+    colorTableNode->SetSingletonTag(colorTableNode->GetName());
     colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
     colorTableNode->HideFromEditorsOn();
     colorTableNode->SetNumberOfColors(tempLookupTable->GetNumberOfColors());
