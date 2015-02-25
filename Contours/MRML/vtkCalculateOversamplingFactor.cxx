@@ -97,7 +97,7 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
   else if (this->ContourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel))
   {
     // Log warning about the drawbacks of using ribbon model
-    vtkWarningMacro("CalculateOversamplingFactor: Ribbon model is used to calculate oversampling factor for contour " << this->ContourNode->GetName() << ". Shape measurement may be inaccurate for certain structures!");
+    vtkDebugMacro("CalculateOversamplingFactor: Ribbon model is used to calculate oversampling factor for contour " << this->ContourNode->GetName() << ". Shape measurement may be inaccurate for certain structures!");
 
     polyDataUsedForOversamplingCalculation = this->ContourNode->GetRibbonModelPolyData();
 
@@ -197,7 +197,7 @@ double vtkCalculateOversamplingFactor::CalculateRelativeStructureSize()
   double error = (structureVolume - structureProjectedVolume);
   if (error * 10000 > structureVolume)
   {
-    vtkWarningMacro("CalculateRelativeStructureSize: Computed structure volume is possibly invalid for contour " << this->ContourNode->GetName());
+    vtkDebugMacro("CalculateRelativeStructureSize: Computed structure volume may be invalid for contour " << this->ContourNode->GetName() << " according to difference in calculated projected and normal volumes.");
   }
 
   // Calculate reference volume in mm^3

@@ -94,7 +94,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
 
     totalVolumeChar = this->Dvh1DoubleArrayNode->GetAttribute(attributeNameStream.str().c_str());
   }
-  cout << totalVolumeChar << endl;
+
   // Read the total volume from the current node attribute
   double totalVolumeCCs = 0;
   if (totalVolumeChar != NULL)

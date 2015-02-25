@@ -47,6 +47,7 @@
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 #include <vtkLookupTable.h>
+#include <vtkTimerLog.h>
 
 // ITK includes
 #include "itkFactoryRegistration.h"
@@ -181,6 +182,26 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     else
     {
       temporaryDvhMetricCsvFileName = "";
+    }
+  }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // AutomaticOversamplingCalculation
+  bool automaticOversamplingCalculation = false;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-AutomaticOversamplingCalculation") == 0)
+    {
+      std::stringstream ss;
+      ss << argv[argIndex+1];
+      int intValue;
+      ss >> intValue;
+      automaticOversamplingCalculation = (intValue > 0 ? true : false);
+      std::cout << "Automatic oversampling calculation: " << (automaticOversamplingCalculation ? "true" : "false") << std::endl;
+      argIndex += 2;
     }
   }
   else
@@ -329,14 +350,10 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
-  // Create Contours logic
-  vtkSmartPointer<vtkSlicerContoursModuleLogic> contoursLogic =
-    vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
+  // Create Contours and Subject hierarchy logic
+  vtkSmartPointer<vtkSlicerContoursModuleLogic> contoursLogic = vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
   contoursLogic->SetMRMLScene(mrmlScene);
-
-  // TODO: Remove when subject hierarchy is integrated into Slicer core
-  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
-    vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
+  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic = vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
   subjectHierarchyLogic->SetMRMLScene(mrmlScene);
 
   // Load test scene into temporary scene
@@ -423,6 +440,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     dvhLogic->SetStepSize(dvhStepSize);
   }
 
+  // Setup time measurement
+  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
+  double checkpointStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
+
   // Get list of contours from the contour hierarchy node
   std::vector<vtkMRMLContourNode*> selectedContourNodes;
   vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(contourHierarchyNode, selectedContourNodes);
@@ -430,15 +452,31 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Compute DVH and get result nodes
   for (std::vector<vtkMRMLContourNode*>::iterator contourIt = selectedContourNodes.begin(); contourIt != selectedContourNodes.end(); ++contourIt)
   {
-    std::cout << "Computing DVH for contour '" << (*contourIt)->GetName() << "'" << std::endl;
+    vtkMRMLContourNode* currentContourNode = (*contourIt);
+    std::cout << "Computing DVH for contour '" << currentContourNode->GetName() << "'" << std::endl;
 
-    std::string errorMessage = dvhLogic->ComputeDvh((*contourIt));
+    // Set automatic oversampling if selected
+    currentContourNode->SetAutomaticOversamplingFactor(automaticOversamplingCalculation);
+
+    // Compute DVH
+    std::string errorMessage = dvhLogic->ComputeDvh(currentContourNode);
     if (!errorMessage.empty())
     {
       std::cerr << errorMessage << std::endl;
       return EXIT_FAILURE;
     }
+
+    // Print oversampling factor if automatically calculated
+    if (automaticOversamplingCalculation)
+    {
+      std::cout << "  Automatic oversampling factor calculated to be " << currentContourNode->GetRasterizationOversamplingFactor() << std::endl;
+    }
   }
+
+  // Report time measurement
+  double checkpointEnd = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
+  std::cout << "DVH computation time (including rasterization): " << checkpointEnd-checkpointStart << std::endl;
 
   dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
 

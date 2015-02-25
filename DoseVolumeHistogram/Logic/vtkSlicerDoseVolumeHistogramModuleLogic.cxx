@@ -30,7 +30,6 @@
 #include "vtkMRMLContourModelDisplayNode.h"
 #include "vtkMRMLContourNode.h"
 #include "vtkSlicerContoursModuleLogic.h"
-#include "vtkCalculateOversamplingFactor.h"
 
 // Subject Hierarchy includes
 #include "vtkMRMLSubjectHierarchyNode.h"
