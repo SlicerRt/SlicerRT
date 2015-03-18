@@ -423,8 +423,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
     std::vector<OFString>::iterator uidIt;
     for (uidIt = referencedSOPInstanceUIDs.begin(); uidIt != referencedSOPInstanceUIDs.end(); ++uidIt)
     {
-      //TODO: Reference discovery is disabled until issues regarding the pop-up window are solved.
-      //loadable->AddReferencedInstanceUID(uidIt->c_str());
+      loadable->AddReferencedInstanceUID(uidIt->c_str());
     }
     loadables->AddItem(loadable);
   }
