@@ -327,5 +327,5 @@ void vtkMRMLDoseVolumeHistogramNode::AddDvhDoubleArrayNode(vtkMRMLDoubleArrayNod
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::RemoveAllDvhDoubleArrayNodes()
 {
-  this->RemoveAllNodeReferenceIDs(DVH_DOUBLE_ARRAY_REFERENCE_ROLE);
+  this->RemoveNodeReferenceIDs(DVH_DOUBLE_ARRAY_REFERENCE_ROLE);
 }

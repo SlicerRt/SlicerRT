@@ -878,14 +878,14 @@ void vtkMRMLContourNode::OnNodeReferenceAdded( vtkMRMLNodeReference *reference )
 {
   if (std::string(reference->GetReferenceRole()) == this->DisplayNodeReferenceRole)
   {
-    vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(reference->ReferencedNode);
+    vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(reference->GetReferencedNode());
     if (modelDisplayNode)
     {
       this->SetPolyDataToDisplayNode(modelDisplayNode->GetInputPolyData(), modelDisplayNode);
     }
 
     //TODO: When 2d vis is added back in, set the image data to the vis node
-    //vtkMRMLContourLabelmapDisplayNode* labelmapDisplayNode = vtkMRMLContourLabelmapDisplayNode::SafeDownCast(reference->ReferencedNode);
+    //vtkMRMLContourLabelmapDisplayNode* labelmapDisplayNode = vtkMRMLContourLabelmapDisplayNode::SafeDownCast(reference->GetReferencedNode());
     //if (labelmapDisplayNode)
     //{
 //      this->SetImageDataToDisplayNode(labelmapDisplayNode);
@@ -898,14 +898,14 @@ void vtkMRMLContourNode::OnNodeReferenceAdded( vtkMRMLNodeReference *reference )
 //---------------------------------------------------------------------------
 void vtkMRMLContourNode::OnNodeReferenceModified( vtkMRMLNodeReference *reference )
 {
-  vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(reference->ReferencedNode);
+  vtkMRMLContourModelDisplayNode* modelDisplayNode = vtkMRMLContourModelDisplayNode::SafeDownCast(reference->GetReferencedNode());
   if (modelDisplayNode)
   {
     this->SetPolyDataToDisplayNode(modelDisplayNode->GetInputPolyData(), modelDisplayNode);
   }
 
   // When 2d vis is added back in, set the image data to the vis node
-  //vtkMRMLContourLabelmapDisplayNode* labelmapDisplayNode = vtkMRMLContourLabelmapDisplayNode::SafeDownCast(reference->ReferencedNode);
+  //vtkMRMLContourLabelmapDisplayNode* labelmapDisplayNode = vtkMRMLContourLabelmapDisplayNode::SafeDownCast(reference->GetReferencedNode());
   //if (labelmapDisplayNode)
   //{
 //    this->SetImageDataToDisplayNode(labelmapDisplayNode);
