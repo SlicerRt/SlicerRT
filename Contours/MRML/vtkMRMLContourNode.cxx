@@ -693,20 +693,19 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
     }
   }
 
-  // Initialize output color index with Gray 'invalid' color (value 1)
-  colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
-
   // Get associated subject hierarchy node and its parent
   vtkMRMLSubjectHierarchyNode* contourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, scene);
   if (!contourSubjectHierarchyNode)
   {
     vtkDebugMacro("GetColorIndex: No subject hierarchy node found for contour '" << this->Name << "'");
+    colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
   }
   vtkMRMLSubjectHierarchyNode* parentContourSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(contourSubjectHierarchyNode->GetParentNode());
   if (!parentContourSubjectHierarchyNode)
   {
     vtkDebugMacro("GetColorIndex: No contour set subject hierarchy node found for contour '" << this->Name << "'");
+    colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
   }
 
@@ -716,6 +715,7 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
   if (!colorNode)
   {
     vtkErrorMacro("GetColorIndex: No color table found for contour '" << this->Name << "'");
+    colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
   }
 
@@ -731,6 +731,7 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
   if (!structureName)
   {
     vtkErrorMacro("GetColorIndex: No structure name found for contour '" << this->Name << "'");
+    colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
     return;
   }
 
@@ -744,6 +745,7 @@ void vtkMRMLContourNode::GetColor(int &colorIndex, vtkMRMLColorTableNode* &color
   {
     vtkErrorMacro("GetColorIndex: No matching entry found in the color table '" << colorNode->GetName() << "' for contour '" << this->Name
       << "' (structure '" << structureName <<"')");
+    colorIndex = SlicerRtCommon::COLOR_INDEX_INVALID;
   }
 }
 

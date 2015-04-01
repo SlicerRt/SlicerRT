@@ -65,6 +65,7 @@ public:
   vtkSetStringMacro(FileName);
   
 protected:
+  std::string formatColorString (const double *contourColor);
   vtkSlicerDicomRtWriter();
   virtual ~vtkSlicerDicomRtWriter();
 
