@@ -76,7 +76,6 @@ bool vtkSlicerVffFileReaderLogic::ReadVffFileHeader(ifstream &readFileStream, st
   std::string currentStringFromFile = "";
   while(readFileStream.good())
   {
-    
     char nextCharacter;
     nextCharacter = readFileStream.get();
 
@@ -102,8 +101,7 @@ bool vtkSlicerVffFileReaderLogic::ReadVffFileHeader(ifstream &readFileStream, st
           parameterValue = this->TrimSpacesFromEndsOfString(parameterValue);
           if (parameterValue.size() <= 0)
           {
-            vtkErrorMacro("ReadVffFileHeader: Nothing follows the equal sign in header item: '" << parameterType << "'");
-            return false;
+            vtkWarningMacro("ReadVffFileHeader: Nothing follows the equal sign in header item: '" << parameterType << "'");
           }
           else
           {
@@ -112,19 +110,18 @@ bool vtkSlicerVffFileReaderLogic::ReadVffFileHeader(ifstream &readFileStream, st
         }
         else
         {
-          vtkErrorMacro("ReadVffFileHeader: No equal sign in header item '" << parameterType << "'");
-          return false;
+          vtkWarningMacro("ReadVffFileHeader: No equal sign in header item '" << parameterType << "'");
         }
       }
       currentStringFromFile = "";
     }
-
     else if (nextCharacter != '\n')
     {
       nextCharacter = ::tolower(nextCharacter);
       currentStringFromFile += nextCharacter;
     }
   }
+
   return true;
 }
 
@@ -454,8 +451,8 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
 
     if (parameterList["filter"].empty())
     {
-      vtkErrorMacro("LoadVffFile: Empty filter value! The value must be separated from the parameter with an '='");
-      parameterMissing = true;
+      vtkWarningMacro("LoadVffFile: Empty filter value! The value must be separated from the parameter with an '='");
+      //parameterMissing = true;
     }
     else
     {
