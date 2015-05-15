@@ -1322,6 +1322,9 @@ void vtkSlicerDicomRtImportExportModuleLogic::CreateDefaultDoseColorTable()
   if (defaultDoseColorTableNodes->GetNumberOfItems() > 0)
   {
     vtkDebugMacro("CreateDefaultDoseColorTable: Default dose color table already exists");
+    vtkMRMLColorTableNode* doseColorTable = vtkMRMLColorTableNode::SafeDownCast(
+      defaultDoseColorTableNodes->GetItemAsObject(0) );
+    this->SetDefaultDoseColorTableNodeId(doseColorTable->GetID());
     return;
   }
 
