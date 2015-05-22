@@ -96,6 +96,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
       exportable.setTag('Modality', 'CT')
       exportable.setTag('Manufacturer', 'Unknown manufacturer')
       exportable.setTag('Model', 'Unknown model')
+      exportable.setTag('SeriesUID', 'XXXXXXX')
 
     # Node is exportable as RT series
     if exportable != None:
