@@ -78,19 +78,19 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
 
     # RT dose volume
     if node.GetAssociatedNode() and SlicerRtCommon.IsDoseVolumeNode(node.GetAssociatedNode()):
-      exportable = slicer.qSlicerDICOMExportable()
+      exportable = slicer.qSlicerDICOMExportable(slicer.app)
       exportable.confidence = 1.0
       # Define type-specific required tags and default values
       exportable.setTag('Modality', 'RTDOSE')
     # RT structure set
     elif node.IsLevel(vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries()) and node.GetAttribute(contourSetIdentifierAttributeName):
-      exportable = slicer.qSlicerDICOMExportable()
+      exportable = slicer.qSlicerDICOMExportable(slicer.app)
       exportable.confidence = 1.0
       # Define type-specific required tags and default values
       exportable.setTag('Modality', 'RTSTRUCT')
     # Potential anatomical image for an RT study
     elif node.GetAssociatedNode() and node.GetAssociatedNode().IsA('vtkMRMLScalarVolumeNode'):
-      exportable = slicer.qSlicerDICOMExportable()
+      exportable = slicer.qSlicerDICOMExportable(slicer.app)
       exportable.confidence = 0.3 # Might be some other kind of scalar volume, but also anatomical volume in an RT study
       # Define type-specific required tags and default values
       exportable.setTag('Modality', 'CT')
