@@ -52,9 +52,9 @@ endif()
 # Disable OpenMP on Windows until a better solution can be found
 # http://www.na-mic.org/Bug/view.php?id=3823
 set (DISABLE_OPENMP_ON_WINDOWS "")
-if (WIN32)
-    set (DISABLE_OPENMP_ON_WINDOWS "-DPLM_CONFIG_DISABLE_OPENMP:BOOL=ON")
-endif ()
+#if (WIN32)
+#    set (DISABLE_OPENMP_ON_WINDOWS "-DPLM_CONFIG_DISABLE_OPENMP:BOOL=ON")
+#endif ()
 
 ExternalProject_Add( Plastimatch
   SOURCE_DIR "${SLICERRT_PLASTIMATCH_SOURCE_DIR}" 
