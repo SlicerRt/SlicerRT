@@ -123,7 +123,7 @@ double qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::canOwnSubjectHierarchyN
 
   // DVH
   if ( associatedNode && associatedNode->IsA("vtkMRMLDoubleArrayNode")
-    && associatedNode->GetAttribute(SlicerRtCommon::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
+    && associatedNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
     return 1.0; // Only this plugin can handle this node
   }

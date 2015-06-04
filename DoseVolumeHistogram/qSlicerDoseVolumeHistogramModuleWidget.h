@@ -29,6 +29,7 @@
 class qSlicerDoseVolumeHistogramModuleWidgetPrivate;
 class vtkMRMLNode;
 class QLineEdit;
+class QItemSelection;
 
 /// \ingroup SlicerRt_QtModules_DoseVolumeHistogram
 class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramModuleWidget :
@@ -59,7 +60,8 @@ public slots:
 
 protected slots:
   void doseVolumeNodeChanged(vtkMRMLNode*);
-  void contourSetNodeChanged(vtkMRMLNode*);
+  void segmentationNodeChanged(vtkMRMLNode*);
+  void segmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
   void chartNodeChanged(vtkMRMLNode*);
   void automaticOversampingCheckedStateChanged(int aState);
 
@@ -82,6 +84,8 @@ protected slots:
   void switchToOneUpQuantitativeLayout();
 
   void onLogicModified();
+
+  void onProgressUpdated(vtkObject*, void*, unsigned long, void*);
 
 protected:
   QScopedPointer<qSlicerDoseVolumeHistogramModuleWidgetPrivate> d_ptr;

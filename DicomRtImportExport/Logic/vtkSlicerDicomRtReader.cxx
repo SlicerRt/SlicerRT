@@ -29,14 +29,14 @@
 
 // VTK includes
 #include <vtkCellArray.h>
-#include <vtkCleanPolyData.h>
 #include <vtkMath.h>
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkRibbonFilter.h>
 #include <vtkSmartPointer.h>
+
+// STD includes
+#include <vector>
 
 // DCMTK includes
 #include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
@@ -65,77 +65,13 @@
 #include <ctkDICOMDatabase.h>
 
 //----------------------------------------------------------------------------
-namespace
-{
-  template<class T>
-  vtkVector3<T> operator -(const vtkVector3<T>& a, const vtkVector3<T>& b)
-  {
-    vtkVector3<T> result;
-    result.SetX(a.GetX() - b.GetX());
-    result.SetY(a.GetY() - b.GetY());
-    result.SetZ(a.GetZ() - b.GetZ());
-    return result;
-  }
-
-  template<class T>
-  bool operator ==(const vtkVector3<T>& a, const vtkVector3<T>& b)
-  {
-    return a.GetX() == b.GetX() && a.GetY() == b.GetY() && a.GetZ() == b.GetZ();
-  }
-
-  template<class T>
-  bool operator !=(const vtkVector3<T>& a, const vtkVector3<T>& b)
-  {
-    return !(a==b);
-  }
-
-  bool AreEqualWithTolerance(double a, double b)
-  {
-    return fabs(a - b) < EPSILON;
-  }
-
-  double MajorityValue(const std::vector<double>& spacingValues, std::string &outputMessage)
-  {
-    std::map<double, int> spacingValueFrequencies;
-    double averageTotal(0.0);
-    double averageCount(0.0);
-    for (std::vector<double>::const_iterator it = spacingValues.begin(); it != spacingValues.end(); ++it)
-    {
-      double roundedSpacingValue = vtkMath::Round((*it) / EPSILON) * EPSILON; // Round value to consider spacings within tolerance the same
-      averageTotal += *it;
-      averageCount++;
-      spacingValueFrequencies[roundedSpacingValue]++;
-    }
-    double majorityValue(0.0);
-    int majorityCount(-1);
-    std::stringstream outputStringStream;
-    for (std::map<double, int>::iterator it = spacingValueFrequencies.begin(); it != spacingValueFrequencies.end(); ++it)
-    {
-      outputStringStream << "  Planar spacing: " << it->first << ". Frequency: " << it->second << "." << std::endl;
-      if (it->second > majorityCount)
-      {
-        majorityValue = it->first;
-        majorityCount = it->second;
-      }
-    }
-    outputMessage = outputStringStream.str();
-    return majorityValue;
-  }
-
-} // namespace
-
-//----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::RoiEntry::RoiEntry()
 {
   this->Number = 0;
-  this->SliceThickness = 0.0;
   this->DisplayColor[0] = 1.0;
   this->DisplayColor[1] = 0.0;
   this->DisplayColor[2] = 0.0;
   this->PolyData = NULL;
-  this->ContourPlaneNormalVector[0] = 0.0;
-  this->ContourPlaneNormalVector[1] = 0.0;
-  this->ContourPlaneNormalVector[2] = 1.0;
 }
 
 vtkSlicerDicomRtReader::RoiEntry::~RoiEntry()
@@ -153,10 +89,6 @@ vtkSlicerDicomRtReader::RoiEntry::RoiEntry(const RoiEntry& src)
   this->DisplayColor[2] = src.DisplayColor[2];
   this->PolyData = NULL;
   this->SetPolyData(src.PolyData);
-  this->SliceThickness = src.SliceThickness;
-  this->ContourPlaneNormalVector[0] = src.ContourPlaneNormalVector[0];
-  this->ContourPlaneNormalVector[1] = src.ContourPlaneNormalVector[1];
-  this->ContourPlaneNormalVector[2] = src.ContourPlaneNormalVector[2];
   this->ReferencedSeriesUID = src.ReferencedSeriesUID;
   this->ReferencedFrameOfReferenceUID = src.ReferencedFrameOfReferenceUID;
   this->ContourIndexToSOPInstanceUIDMap = src.ContourIndexToSOPInstanceUIDMap;
@@ -171,10 +103,6 @@ vtkSlicerDicomRtReader::RoiEntry& vtkSlicerDicomRtReader::RoiEntry::operator=(co
   this->DisplayColor[1] = src.DisplayColor[1];
   this->DisplayColor[2] = src.DisplayColor[2];
   this->SetPolyData(src.PolyData);
-  this->SliceThickness = src.SliceThickness;
-  this->ContourPlaneNormalVector[0] = src.ContourPlaneNormalVector[0];
-  this->ContourPlaneNormalVector[1] = src.ContourPlaneNormalVector[1];
-  this->ContourPlaneNormalVector[2] = src.ContourPlaneNormalVector[2];
   this->ReferencedSeriesUID = src.ReferencedSeriesUID;
   this->ReferencedFrameOfReferenceUID = src.ReferencedFrameOfReferenceUID;
   this->ContourIndexToSOPInstanceUIDMap = src.ContourIndexToSOPInstanceUIDMap;
@@ -836,226 +764,6 @@ DRTContourImageSequence* vtkSlicerDicomRtReader::GetReferencedFrameOfReferenceCo
 }
 
 //----------------------------------------------------------------------------
-// Variables for calculating the distance between contour planes.
-double vtkSlicerDicomRtReader::CalculateDistanceBetweenContourPlanes(DRTROIContourSequence &rtROIContourSequenceObject)
-{
-  if (!rtROIContourSequenceObject.gotoFirstItem().good())
-  {
-    vtkErrorMacro("CalculateDistanceBetweenContourPlanes: No structure sets were found. Returning default of 1.0.");
-    return 1.0;
-  }
-
-  // Iterate over each ROI then each contour in the set until you find one that gives you a result
-  std::vector<double> planeSpacingValues;
-  bool consistentPlaneSpacing = true;
-  double distanceBetweenContourPlanes = -1.0; // The found distance between planes if consistent
-  int roiIndex = 0;
-
-  do
-  {
-    DRTROIContourSequence::Item &currentRoiObject = rtROIContourSequenceObject.getCurrentItem();
-    if (!currentRoiObject.isValid())
-    {
-      continue;
-    }
-    // Get contour sequence
-    DRTContourSequence &rtContourSequenceObject = currentRoiObject.getContourSequence();
-    if (!rtContourSequenceObject.gotoFirstItem().good())
-    {
-      vtkErrorMacro("CalculateDistanceBetweenContourPlanes: Contour sequence for ROI is empty!");
-      continue;
-    }
-
-    if (rtContourSequenceObject.isEmpty())
-    {
-      vtkErrorMacro("Empty contour. Skipping.");
-      continue;
-    }
-    if (rtContourSequenceObject.getNumberOfItems() < 2)
-    {
-      vtkDebugMacro("CalculateDistanceBetweenContourPlanes: Unable to calculate distance between contour planes, less than two planes detected. Skipping.");
-      continue;
-    }
-    if (!rtContourSequenceObject.gotoFirstItem().good())
-    {
-      vtkErrorMacro("CalculateDistanceBetweenContourPlanes: Contour sequence object is invalid. Skipping.");
-      continue;
-    }
-
-    // All contour planes in the current ROI, with their distances from the first plane
-    std::map< vtkSmartPointer<vtkPlane>, double > contourPlanes;
-    double firstNormal[3] = {0.0,0.0,0.0};
-    double firstOrigin[3] = {0.0,0.0,0.0};
-
-    // Iterate over each plane in the contour
-    do 
-    {
-      DRTContourSequence::Item &contourItem = rtContourSequenceObject.getCurrentItem();
-      if ( !contourItem.isValid())
-      {
-        continue;
-      }
-
-      OFString numberofpoints("");
-      contourItem.getNumberOfContourPoints(numberofpoints);
-
-      std::stringstream ss;
-      ss << numberofpoints;
-      int number;
-      ss >> number;
-      if (number < 3)
-      {
-        Sint32 contourNumber(-1);
-        contourItem.getContourNumber(contourNumber);
-        vtkWarningMacro("CalculateDistanceBetweenContourPlanes: Contour does not contain enough points to extract a planar equation. Skipping contour number: " << contourNumber << ".");
-        continue;
-      }
-
-      OFVector<vtkTypeFloat64> contourData_LPS;
-      contourItem.getContourData(contourData_LPS);
-      vtkVector3<vtkTypeFloat64> firstPlanePoint(0.0,0.0,0.0);
-      vtkVector3<vtkTypeFloat64> secondPlanePoint(0.0,0.0,0.0);
-      vtkVector3<vtkTypeFloat64> thirdPlanePoint(0.0,0.0,0.0);
-
-      vtkVector3<vtkTypeFloat64> currentPlaneIVector(0.0,0.0,0.0);
-      vtkVector3<vtkTypeFloat64> currentPlaneJVector(0.0,0.0,0.0);
-      vtkVector3<vtkTypeFloat64> currentPlaneKVector(0.0,0.0,0.0);
-
-      for (unsigned int i = 0; i < contourData_LPS.size(); i+=3)
-      {
-        if (i+8 >= contourData_LPS.size())
-        {
-          // We reached the end of the data (comes in coordinate groups of 9)
-          break;
-        }
-        // We want to compute the normal vector in RAS, not LPS, so we negate the first two coordinates
-        firstPlanePoint.Set(-contourData_LPS[i], -contourData_LPS[i+1], contourData_LPS[i+2]);
-        secondPlanePoint.Set(-contourData_LPS[i+3], -contourData_LPS[i+4], contourData_LPS[i+5]);
-        thirdPlanePoint.Set(-contourData_LPS[i+6], -contourData_LPS[i+7], contourData_LPS[i+8]);
-
-        currentPlaneIVector = secondPlanePoint - firstPlanePoint;
-        currentPlaneJVector = thirdPlanePoint - firstPlanePoint;
-        currentPlaneKVector = currentPlaneIVector.Cross(currentPlaneJVector);
-
-        if (!(currentPlaneKVector.GetX() == 0 && currentPlaneKVector.GetY() == 0 && currentPlaneKVector.GetZ() == 0))
-        {
-          break;
-        }
-      }
-
-      if (currentPlaneKVector.GetX() == 0 && currentPlaneKVector.GetY() == 0 && currentPlaneKVector.GetZ() == 0)
-      {
-        Sint32 planeNumber;
-        contourItem.getContourNumber(planeNumber);
-        vtkErrorMacro("CalculateDistanceBetweenContourPlanes: All points in contour plane " << planeNumber << " in contour " << this->RoiSequenceVector[roiIndex].Name << " produce co-linear vectors. Unable to determine equation of the plane.");
-        break;
-      }
-
-      currentPlaneKVector.Normalize();
-      vtkSmartPointer<vtkPlane> currentContourPlane = vtkSmartPointer<vtkPlane>::New();
-      currentContourPlane->SetNormal(currentPlaneKVector.GetX(), currentPlaneKVector.GetY(), currentPlaneKVector.GetZ());
-      currentContourPlane->SetOrigin(firstPlanePoint.GetX(), firstPlanePoint.GetY(), firstPlanePoint.GetZ());
-
-      // Store first plane parameters to compute distances
-      if (contourPlanes.empty())
-      {
-        currentContourPlane->GetNormal(firstNormal);
-        currentContourPlane->GetOrigin(firstOrigin);
-        contourPlanes[currentContourPlane] = 0.0;
-      }
-      // Compute distance from first plane (also check if they are parallel)
-      else
-      {
-        double normal[3] = {0.0,0.0,0.0};
-        currentContourPlane->GetNormal(normal);
-        // We accept normal vectors with the exact opposite direction, so we accept if their dot product is 1 or -1 (normal vectors have magnitude of 1)
-        double dotProduct = (normal[0]*firstNormal[0]) + (normal[1]*firstNormal[1]) + (normal[2]*firstNormal[2]);
-        if (!AreEqualWithTolerance(fabs(dotProduct), 1.0))
-        {
-          vtkErrorMacro("CalculateDistanceBetweenContourPlanes: Contour planes in structures set are not parallel!");
-        }
-
-        // Store distance of current plane from first plane
-        double distanceFromFirstPlane = vtkPlane::DistanceToPlane(firstOrigin, normal, currentContourPlane->GetOrigin());
-        contourPlanes[currentContourPlane] = distanceFromFirstPlane;
-      }
-    }
-    while (rtContourSequenceObject.gotoNextItem().good()); // For all contour planes
-
-    // Order planes for current ROI
-    std::map< double, vtkSmartPointer<vtkPlane> > orderedContourPlanes;
-    std::map< vtkSmartPointer<vtkPlane>, double >::iterator planesIt;
-    for (planesIt=contourPlanes.begin(); planesIt != contourPlanes.end(); ++planesIt)
-    {
-      // Swap map to have the ordering by distance from first plane
-      orderedContourPlanes[planesIt->second] = planesIt->first;
-    }
-
-    // Save contour plane normal and ordered planes to ROI entry
-    Sint32 referencedRoiNumber = -1;
-    currentRoiObject.getReferencedROINumber(referencedRoiNumber);
-    RoiEntry* roiEntry = this->FindRoiByNumber(referencedRoiNumber);
-    if (roiEntry == NULL)
-    {
-      vtkErrorMacro("CalculateDistanceBetweenContourPlanes: ROI with number " << referencedRoiNumber << " is not found!");
-    }
-    else
-    {
-      roiEntry->ContourPlaneNormalVector[0] = firstNormal[0];
-      roiEntry->ContourPlaneNormalVector[1] = firstNormal[1];
-      roiEntry->ContourPlaneNormalVector[2] = firstNormal[2];
-
-      roiEntry->OrderedContourPlanes = orderedContourPlanes;
-    }
-
-    // Compute distances between adjacent planes
-    std::map< double, vtkSmartPointer<vtkPlane> >::iterator orderedPlanesIt;
-    double previousDistance = 0.0;
-    for (orderedPlanesIt=orderedContourPlanes.begin(); orderedPlanesIt != orderedContourPlanes.end(); ++orderedPlanesIt)
-    {
-      if (orderedPlanesIt != orderedContourPlanes.begin()) // We skip the first one, just save its distance as previous
-      {
-        double currentDistance = fabs(orderedPlanesIt->first - previousDistance);
-        if (!AreEqualWithTolerance(currentDistance, 0.0))
-        {
-          // Only add spacing value if it's not 0 - multiple contours may be drawn on the same plane and it's not considered for slice thickness computation
-          planeSpacingValues.push_back(currentDistance);
-          
-          // Store current spacing as found spacing if has not been set
-          if (distanceBetweenContourPlanes == -1.0)
-          {
-            distanceBetweenContourPlanes = currentDistance;
-          }
-
-          // Check for inconsistency
-          if ( !AreEqualWithTolerance(currentDistance, distanceBetweenContourPlanes)
-            && consistentPlaneSpacing ) // Only prompt the warning once for each ROI
-          {
-            vtkWarningMacro("CalculateDistanceBetweenContourPlanes: Contour '" << this->RoiSequenceVector[roiIndex].Name << "' does not have consistent plane spacing (" << currentDistance << " != " << distanceBetweenContourPlanes << "). Using majority spacing distance.");
-            consistentPlaneSpacing = false;
-          }
-        } // If non-zero
-      }
-      previousDistance = orderedPlanesIt->first;
-    }
-
-    ++roiIndex;
-  }
-  while(rtROIContourSequenceObject.gotoNextItem().good()); // For all ROIs
-
-  // Calculate the majority value for the plane spacing from plane spacing values if inconsistent spacing was found
-  if (!consistentPlaneSpacing)
-  {
-    std::string message("");
-    distanceBetweenContourPlanes = MajorityValue(planeSpacingValues, message);
-    vtkWarningMacro("CalculateDistanceBetweenContourPlanes: Inconsistent plane spacing. Details:\n" << message << "Used contour spacing: " << distanceBetweenContourPlanes);
-  }
-
-  return distanceBetweenContourPlanes;
-} 
-
-
-//----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 {
   this->LoadRTStructureSetSuccessful = false;
@@ -1109,20 +817,8 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   // Get referenced anatomical image
   OFString referencedSeriesInstanceUID = this->GetReferencedSeriesInstanceUID(rtStructureSetObject);
 
-  // Get the slice thickness from the referenced anatomical image
-  OFString firstReferencedSOPInstanceUID("");
-
+  // Get ROI contour sequence
   DRTROIContourSequence &rtROIContourSequenceObject = rtStructureSetObject.getROIContourSequence();
-  if (!rtROIContourSequenceObject.gotoFirstItem().good())
-  {
-    vtkErrorMacro("LoadRTStructureSet: No ROIContourSequence found!");
-    return;
-  }
-
-  // Get distance between contour planes
-  // Ordered planes and normal vectors are set in this function to the ROI entries
-  double sliceThickness = this->CalculateDistanceBetweenContourPlanes(rtROIContourSequenceObject);
-
   // Reset the ROI contour sequence to the start
   if (!rtROIContourSequenceObject.gotoFirstItem().good())
   {
@@ -1134,7 +830,7 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
   std::map<int, std::string> contourToSliceInstanceUIDMap;
   std::set<std::string> referencedSopInstanceUids;
 
-  // Read ROIs (ROIContourSequence)
+  // Read ROIs, iterate over ROI contour sequence
   do 
   {
     DRTROIContourSequence::Item &currentRoiObject = rtROIContourSequenceObject.getCurrentItem();
@@ -1142,11 +838,6 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     {
       continue;
     }
-
-    // Create containers for vtkPolyData
-    vtkSmartPointer<vtkPoints> tempPoints = vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkCellArray> tempCellArray = vtkSmartPointer<vtkCellArray>::New();
-    vtkIdType pointId = 0;
 
     // Get ROI entry created for the referenced ROI
     Sint32 referencedRoiNumber = -1;
@@ -1167,7 +858,12 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       continue;
     }
 
-    // Read contour data
+    // Create containers for contour poly data
+    vtkSmartPointer<vtkPoints> currentRoiContourPoints = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkCellArray> currentRoiContourCells = vtkSmartPointer<vtkCellArray>::New();
+    vtkIdType pointId = 0;
+
+    // Read contour data, iterate over contour sequence
     do
     {
       // Get contour
@@ -1189,17 +885,17 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
       OFVector<vtkTypeFloat64> contourData_LPS;
       contourItem.getContourData(contourData_LPS);
 
-      unsigned int contourIndex = tempCellArray->InsertNextCell(numberOfPoints+1);
+      unsigned int contourIndex = currentRoiContourCells->InsertNextCell(numberOfPoints+1);
       for (int k=0; k<numberOfPoints; k++)
       {
         // Convert from DICOM LPS -> Slicer RAS
-        tempPoints->InsertPoint(pointId, -contourData_LPS[3*k], -contourData_LPS[3*k+1], contourData_LPS[3*k+2]);
-        tempCellArray->InsertCellPoint(pointId);
+        currentRoiContourPoints->InsertPoint(pointId, -contourData_LPS[3*k], -contourData_LPS[3*k+1], contourData_LPS[3*k+2]);
+        currentRoiContourCells->InsertCellPoint(pointId);
         pointId++;
       }
 
       // Close the contour
-      tempCellArray->InsertCellPoint(pointId-numberOfPoints);
+      currentRoiContourCells->InsertCellPoint(pointId-numberOfPoints);
 
       // Add map to the referenced slice instance UID
       // This is not a mandatory field so no error logged if not found. The reason why
@@ -1261,19 +957,19 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
     }
 
     // Save just loaded contour data into ROI entry
-    vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
-    tempPolyData->SetPoints(tempPoints);
-    if (tempPoints->GetNumberOfPoints() == 1)
+    vtkSmartPointer<vtkPolyData> currentRoiPolyData = vtkSmartPointer<vtkPolyData>::New();
+    currentRoiPolyData->SetPoints(currentRoiContourPoints);
+    if (currentRoiContourPoints->GetNumberOfPoints() == 1)
     {
       // Point ROI
-      tempPolyData->SetVerts(tempCellArray);
+      currentRoiPolyData->SetVerts(currentRoiContourCells);
     }
-    else if (tempPoints->GetNumberOfPoints() > 1)
+    else if (currentRoiContourPoints->GetNumberOfPoints() > 1)
     {
       // Contour ROI
-      tempPolyData->SetLines(tempCellArray);
+      currentRoiPolyData->SetLines(currentRoiContourCells);
     }
-    roiEntry->SetPolyData(tempPolyData);
+    roiEntry->SetPolyData(currentRoiPolyData);
 
     // Get structure color
     Sint32 roiDisplayColor = -1;
@@ -1285,9 +981,6 @@ void vtkSlicerDicomRtReader::LoadRTStructureSet(DcmDataset* dataset)
 
     // Set referenced series UID
     roiEntry->ReferencedSeriesUID = (std::string)referencedSeriesInstanceUID.c_str();
-
-    // Set slice thickness
-    roiEntry->SliceThickness = sliceThickness;
 
     // Set referenced SOP instance UIDs
     roiEntry->ContourIndexToSOPInstanceUIDMap = contourToSliceInstanceUIDMap;
@@ -1369,18 +1062,6 @@ const char* vtkSlicerDicomRtReader::GetRoiReferencedSeriesUid(unsigned int inter
     return NULL;
   }
   return this->RoiSequenceVector[internalIndex].ReferencedSeriesUID.c_str();
-}
-
-//---------------------------------------------------------------------------
-std::map<double, vtkSmartPointer<vtkPlane> > vtkSlicerDicomRtReader::GetRoiOrderedContourPlanes( unsigned int internalIndex )
-{
-  if (internalIndex >= this->RoiSequenceVector.size())
-  {
-    vtkErrorMacro("GetRoiOrderedContourPlanes: Cannot get ROI with internal index: " << internalIndex);
-    std::map<double, vtkSmartPointer<vtkPlane> > noPlanes;
-    return noPlanes;
-  }
-  return this->RoiSequenceVector[internalIndex].OrderedContourPlanes;
 }
 
 //----------------------------------------------------------------------------
@@ -1585,60 +1266,4 @@ vtkSlicerDicomRtReader::RoiEntry* vtkSlicerDicomRtReader::FindRoiByNumber(unsign
   // Not found
   vtkErrorMacro("FindBeamByNumber: ROI cannot be found for number " << roiNumber);
   return NULL;
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerDicomRtReader::CreateRibbonModelForRoi(unsigned int internalIndex, vtkPolyData* ribbonModelPolyData)
-{
-  if (ribbonModelPolyData == NULL)
-  {
-    vtkErrorMacro("CreateRibbonModelForRoi: Input ribbon model poly data is NULL!");
-    return;
-  }
-
-  // Get ROI entry
-  if (internalIndex >= this->RoiSequenceVector.size())
-  {
-    vtkErrorMacro("CreateRibbonModelForRoi: Cannot get ROI with internal index: " << internalIndex);
-    return;
-  }
-
-  vtkPolyData* roiPolyData = this->RoiSequenceVector[internalIndex].PolyData;
-  if (!roiPolyData || roiPolyData->GetNumberOfPoints() == 0)
-  {
-    vtkErrorMacro("CreateRibbonModelForRoi: Invalid ROI with internal index: " << internalIndex);
-    return;
-  }
-  else if (roiPolyData->GetNumberOfPoints() == 1)
-  {
-    vtkWarningMacro("CreateRibbonModelForRoi: Point ROI does not need to be ribbonized with internal index: " << internalIndex);
-    ribbonModelPolyData->DeepCopy(roiPolyData);
-    return;
-  }
-
-  // Remove coincident points (if there are multiple contour points at the same position then the ribbon filter fails)
-  vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  cleaner->SetInput(roiPolyData);
-#else
-  cleaner->SetInputData(roiPolyData);
-#endif
-
-
-  // Convert to ribbon using vtkRibbonFilter
-  vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();
-  ribbonFilter->SetInputConnection(cleaner->GetOutputPort());
-  // It is better to allow per-contour normal vectors in case the planes within a structure are not parallel
-  //ribbonFilter->SetDefaultNormal(this->RoiSequenceVector[internalIndex].ContourPlaneNormalVector);
-  //ribbonFilter->UseDefaultNormalOn();
-  ribbonFilter->SetWidth(this->RoiSequenceVector[internalIndex].SliceThickness / 2.0);
-  ribbonFilter->SetAngle(90.0);
-  ribbonFilter->Update();
-
-  vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
-  normalFilter->SetInputConnection(ribbonFilter->GetOutputPort());
-  normalFilter->ConsistencyOn();
-  normalFilter->Update();
-
-  ribbonModelPolyData->DeepCopy(normalFilter->GetOutput());
 }

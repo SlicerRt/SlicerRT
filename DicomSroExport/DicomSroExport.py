@@ -68,8 +68,6 @@ class DicomSroExportWidget(ScriptedLoadableModuleWidget):
     # fixed image (mrml input)
     self.fixedMRMLSelector = slicer.qMRMLNodeComboBox()
     self.fixedMRMLSelector.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
-    self.fixedMRMLSelector.addAttribute (
-      "vtkMRMLScalarVolumeNode", "LabelMap", 0 )
     self.fixedMRMLSelector.selectNodeUponCreation = True
     self.fixedMRMLSelector.addEnabled = False
     self.fixedMRMLSelector.removeEnabled = False

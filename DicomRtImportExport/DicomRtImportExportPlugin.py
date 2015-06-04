@@ -74,8 +74,6 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     from vtkSlicerSubjectHierarchyModuleMRMLPython import vtkMRMLSubjectHierarchyConstants
     exportable = None
 
-    contourSetIdentifierAttributeName = 'DicomRtImport.ContourHierarchy' #TODO: Use method (#350)
-
     # RT dose volume
     if node.GetAssociatedNode() and SlicerRtCommon.IsDoseVolumeNode(node.GetAssociatedNode()):
       exportable = slicer.qSlicerDICOMExportable()
@@ -83,7 +81,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
       # Define type-specific required tags and default values
       exportable.setTag('Modality', 'RTDOSE')
     # RT structure set
-    elif node.IsLevel(vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries()) and node.GetAttribute(contourSetIdentifierAttributeName):
+    elif node.GetAssociatedNode() and node.GetAssociatedNode().IsA('vtkMRMLSegmentationNode'):
       exportable = slicer.qSlicerDICOMExportable()
       exportable.confidence = 1.0
       # Define type-specific required tags and default values

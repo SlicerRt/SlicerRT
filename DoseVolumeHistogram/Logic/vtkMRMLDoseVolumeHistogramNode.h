@@ -33,6 +33,7 @@
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLChartNode;
 class vtkMRMLDoubleArrayNode;
+class vtkMRMLSegmentationNode;
 
 /// \ingroup SlicerRt_QtModules_DoseVolumeHistogram
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkMRMLDoseVolumeHistogramNode : public vtkMRMLNode
@@ -63,10 +64,10 @@ public:
   /// Set and observe dose volume node
   void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get contour set node (can be contour node or contour set (subject hierarchy) node)
-  vtkMRMLNode* GetContourSetContourNode();
-  /// Set and observe contour set node (can be contour node or contour set (subject hierarchy) node)
-  void SetAndObserveContourSetContourNode(vtkMRMLNode* node);
+  /// Get segmentation node
+  vtkMRMLSegmentationNode* GetSegmentationNode();
+  /// Set and observe segmentation node
+  void SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node);
 
   /// Get chart node
   vtkMRMLChartNode* GetChartNode();
@@ -79,6 +80,17 @@ public:
   void AddDvhDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
   /// Remove all DVH double array node references
   void RemoveAllDvhDoubleArrayNodes();
+
+  /// Get selected segment IDs
+  void GetSelectedSegmentIDs(std::vector<std::string> &selectedSegmentIDs)
+  {
+    selectedSegmentIDs = this->SelectedSegmentIDs;
+  }
+  /// Set selected segment IDs
+  void SetSelectedSegmentIDs(std::vector<std::string> selectedSegmentIDs)
+  {
+    this->SelectedSegmentIDs = selectedSegmentIDs;
+  }
 
   /// Get show in chart check states
   void GetShowInChartCheckStates(std::vector<bool> &checkboxStates)
@@ -139,6 +151,9 @@ protected:
   void operator=(const vtkMRMLDoseVolumeHistogramNode&);
 
 protected:
+  /// List of segment IDs selected in the chosen segmentation. If empty, then all segments are considered selected
+  std::vector<std::string> SelectedSegmentIDs;
+
   /// State of Show/Hide all checkbox
   int ShowHideAll;
 
@@ -169,8 +184,8 @@ protected:
   bool ShowDoseVolumesOnly;
 
   /// Flag determining whether automatic oversampling is used
-  /// If on, then oversampling is automatically determined based on the contour and dose volume, and used
-  /// for both dose and contour when computing DVH.
+  /// If on, then oversampling is automatically determined based on the segments and dose volume, and used
+  /// for both dose and segmentation when computing DVH.
   bool AutomaticOversampling;
 };
 

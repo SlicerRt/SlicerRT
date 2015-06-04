@@ -18,11 +18,9 @@
 
 ==============================================================================*/
 
-// SlicerRt includes
-#include "SlicerRtCommon.h"
-
-// RTHierarchy Plugins includes
+// DoseComparison includes
 #include "qSlicerSubjectHierarchyGammaPlugin.h"
+#include "vtkSlicerDoseComparisonModuleLogic.h"
 
 // SubjectHierarchy MRML includes
 #include "vtkMRMLSubjectHierarchyConstants.h"
@@ -108,7 +106,7 @@ double qSlicerSubjectHierarchyGammaPlugin::canOwnSubjectHierarchyNode(vtkMRMLSub
 
   // Gamma volume
   if ( associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode")
-    && associatedNode->GetAttribute(SlicerRtCommon::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME) )
+    && associatedNode->GetAttribute(vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME) )
   {
     return 1.0;
   }

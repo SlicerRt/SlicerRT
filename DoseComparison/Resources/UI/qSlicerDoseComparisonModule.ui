@@ -306,25 +306,17 @@ p, li { white-space: pre-wrap; }
       <item row="3" column="0">
        <widget class="QLabel" name="label_11">
         <property name="toolTip">
-         <string>Mask contour that defines the region that is considered for dose comparison</string>
+         <string>Mask that defines the region that is considered for dose comparison</string>
         </property>
         <property name="text">
-         <string>Mask contour:</string>
+         <string>Mask:</string>
         </property>
        </widget>
       </item>
       <item row="3" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_MaskContour">
+       <widget class="qMRMLSegmentSelectorWidget" name="SegmentSelectorWidget_Mask">
         <property name="toolTip">
-         <string>Mask contour that defines the region that is considered for dose comparison</string>
-        </property>
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLContourNode</string>
-         </stringlist>
-        </property>
-        <property name="noneEnabled">
-         <bool>true</bool>
+         <string>Mask that defines the region that is considered for dose comparison</string>
         </property>
        </widget>
       </item>
@@ -518,7 +510,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>qSlicerDoseComparisonModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_MaskContour</receiver>
+   <receiver>SegmentSelectorWidget_Mask</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">

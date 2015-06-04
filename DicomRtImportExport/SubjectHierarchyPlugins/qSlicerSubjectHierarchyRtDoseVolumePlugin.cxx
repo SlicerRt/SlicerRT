@@ -235,7 +235,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::showContextMenuActionsForNode(vt
 
   // Volume but not RT dose or labelmap
   if ( qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->canOwnSubjectHierarchyNode(node)
-    && !SlicerRtCommon::IsLabelmapVolumeNode(node->GetAssociatedNode()) && m_Name.compare(node->GetOwnerPluginName()) )
+    && !node->IsA("vtkMRMLLabelMapVolumeNode") && m_Name.compare(node->GetOwnerPluginName()) )
   {
     d->ConvertToRtDoseVolumeAction->setVisible(true);
   }

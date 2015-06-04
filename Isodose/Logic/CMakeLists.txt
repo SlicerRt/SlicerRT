@@ -21,11 +21,12 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerSubjectHierarchyModuleMRML
   vtkSlicerSubjectHierarchyModuleLogic
+  MRMLCore
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   )
 
-SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Base_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------
 SlicerMacroBuildModuleLogic(

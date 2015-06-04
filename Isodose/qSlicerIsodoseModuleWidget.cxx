@@ -583,7 +583,7 @@ void qSlicerIsodoseModuleWidget::showDoseVolumesOnlyCheckboxChanged(int aState)
   }
   else
   {
-    // The row has to be replaced, so replace with an attribute that matches all desired volumes
+    //TODO: Remove attribute when available in Slicer core
     d->MRMLNodeComboBox_DoseVolume->addAttribute("vtkMRMLScalarVolumeNode", "LabelMap", 0);
   }
 }

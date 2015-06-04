@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>376</width>
-    <height>543</height>
+    <width>409</width>
+    <height>595</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -97,14 +97,16 @@
         <property name="spacing">
          <number>4</number>
         </property>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_DoseVolume">
-          <property name="text">
-           <string>Dose volume:</string>
+        <item row="2" column="1">
+         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Segmentation">
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLSegmentationNode</string>
+           </stringlist>
           </property>
          </widget>
         </item>
-        <item row="3" column="0" colspan="2">
+        <item row="4" column="0" colspan="2">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <property name="spacing">
            <number>4</number>
@@ -280,13 +282,10 @@
           </item>
          </layout>
         </item>
-        <item row="2" column="1">
-         <widget class="qMRMLContourSelectorWidget" name="ContourSelectorWidget"/>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_ContourSet">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_DoseVolume">
           <property name="text">
-           <string>Contour (set):</string>
+           <string>Dose volume:</string>
           </property>
          </widget>
         </item>
@@ -310,7 +309,7 @@
           <item>
            <widget class="QCheckBox" name="checkBox_AutomaticOversampling">
             <property name="toolTip">
-             <string>Use or not use automatic oversampling. If checked, then oversampling factor is automatically determined for each contour, if unchecked, then a default oversampling value of 2 is used.</string>
+             <string>Use or not use automatic oversampling. If checked, then oversampling factor is automatically determined for each structure, if unchecked, then a default oversampling value of 2 is used.</string>
             </property>
             <property name="text">
              <string>A/O</string>
@@ -318,6 +317,34 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_Segmentation">
+          <property name="text">
+           <string>Segmentation:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox_Segments">
+          <property name="title">
+           <string>Select individual structures</string>
+          </property>
+          <property name="collapsed">
+           <bool>true</bool>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_8">
+           <property name="margin">
+            <number>2</number>
+           </property>
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="qMRMLSegmentsTableView" name="SegmentsTableView"/>
+           </item>
+          </layout>
+         </widget>
         </item>
        </layout>
       </item>
@@ -863,26 +890,26 @@ p, li { white-space: pre-wrap; }
    <header>qMRMLNodeComboBox.h</header>
   </customwidget>
   <customwidget>
-   <class>qMRMLWidget</class>
-   <extends>QWidget</extends>
-   <header>qMRMLWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>qMRMLContourSelectorWidget</class>
-   <extends>qMRMLWidget</extends>
-   <header>qMRMLContourSelectorWidget.h</header>
+   <class>qMRMLSegmentsTableView</class>
+   <extends>QWidget</extends>
+   <header>qMRMLSegmentsTableView.h</header>
   </customwidget>
   <customwidget>
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -901,8 +928,8 @@ p, li { white-space: pre-wrap; }
      <y>60</y>
     </hint>
     <hint type="destinationlabel">
-     <x>228</x>
-     <y>270</y>
+     <x>261</x>
+     <y>295</y>
     </hint>
    </hints>
   </connection>
@@ -917,8 +944,8 @@ p, li { white-space: pre-wrap; }
      <y>3</y>
     </hint>
     <hint type="destinationlabel">
-     <x>368</x>
-     <y>80</y>
+     <x>352</x>
+     <y>81</y>
     </hint>
    </hints>
   </connection>
@@ -941,16 +968,16 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>qSlicerDoseVolumeHistogramModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>ContourSelectorWidget</receiver>
+   <receiver>MRMLNodeComboBox_Segmentation</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>306</x>
-     <y>4</y>
+     <x>250</x>
+     <y>1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>304</x>
-     <y>92</y>
+     <x>270</x>
+     <y>95</y>
     </hint>
    </hints>
   </connection>

@@ -517,6 +517,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
       if (checked):
         self.doseVolumeSelector.addAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
       else:
+        #TODO: Remove attribute when available in Slicer core
         self.doseVolumeSelector.addAttribute("vtkMRMLScalarVolumeNode", "LabelMap", 0)
   # end showDoseVolumesOnlyCheckboxChanged
 

@@ -31,17 +31,15 @@
 // VTK includes
 #include <vtkVector.h>
 #include <vtkSmartPointer.h>
-#include <vtkPlane.h>
 
 class vtkMRMLColorTableNode;
-class vtkMRMLContourNode;
-class vtkMRMLModelNode;
 class vtkMRMLNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLScene;
 class vtkMRMLTransformableNode;
 
 class vtkImageData;
+class vtkOrientedImageData;
 class vtkGeneralTransform;
 class vtkMatrix4x4;
 
@@ -65,6 +63,16 @@ class vtkMatrix4x4;
 /// \ingroup SlicerRt_SlicerRtCommon
 class VTK_SLICERRTCOMMON_EXPORT SlicerRtCommon
 {
+  //----------------------------------------------------------------------------
+  // Events
+  //----------------------------------------------------------------------------
+public:
+  enum
+  {
+    /// Progress bar indicator event
+    ProgressUpdated = 62200
+  };
+
 public:
   //----------------------------------------------------------------------------
   // Constant strings (std::string types for easy concatenation)
@@ -73,30 +81,16 @@ public:
   // SlicerRT constants
   static const char* SLICERRT_EXTENSION_NAME;
   static const std::string SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
+  static const std::string MODEL_FILE_TYPE;
+  static const std::string VOXEL_FILE_TYPE;
+  static const std::string STORAGE_NODE_POSTFIX;
+  static const std::string DISPLAY_NODE_SUFFIX;
 
-  // Volume constants
-  static const char* VOLUME_LABELMAP_IDENTIFIER_ATTRIBUTE_NAME;
+  // Segmentation constants
+  static const std::string SEGMENTATION_NEW_SEGMENTATION_NAME;
+  static const char* SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME;
 
-  // Contour (vtkMRMLContourNode) constants
-  static const std::string CONTOUR_RIBBON_MODEL_NODE_NAME_POSTFIX;
-  static const std::string CONTOUR_INDEXED_LABELMAP_NODE_NAME_POSTFIX;
-  static const std::string CONTOUR_CLOSED_SURFACE_MODEL_NODE_NAME_POSTFIX;
-  static const std::string CONTOUR_STORAGE_NODE_POSTFIX;
-  static const std::string CONTOUR_MODEL_FILE_TYPE;
-  static const std::string CONTOUR_LABELMAP_FILE_TYPE;
-  static const std::string CONTOUR_DISPLAY_NODE_SUFFIX;
-  static const double DEFAULT_RASTERIZATION_OVERSAMPLING_FACTOR;
-  static const double DEFAULT_DECIMATION_TARGET_REDUCTION_FACTOR;
-  static const char* COLOR_NAME_BACKGROUND;
-  static const char* COLOR_NAME_INVALID;
-  static const char* COLOR_NAME_REMOVED;
-  static const int COLOR_INDEX_BACKGROUND;
-  static const int COLOR_INDEX_INVALID;
   static const double COLOR_VALUE_INVALID[4];
-
-  static const std::string CONTOUR_NEW_CONTOUR_NAME;
-  static const std::string CONTOURHIERARCHY_NEW_CONTOUR_SET_NAME;
-  static const std::string CONTOUR_SET_COLOR_TABLE_REFERENCE_ROLE;
 
   // DicomRtImport constants
   static const std::string DICOMRTIMPORT_ATTRIBUTE_PREFIX;
@@ -111,17 +105,12 @@ public:
   static const std::string DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME;
-  static const std::string DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME;
-  static const std::string DICOMRTIMPORT_STRUCTURE_NAME_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME;
 
-  static const std::string DICOMRTIMPORT_COLOR_TABLE_NODE_NAME_POSTFIX;
-  static const std::string DICOMRTIMPORT_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
-  static const std::string DICOMRTIMPORT_CONTOUR_NODE_NAME_POSTFIX;
-  static const std::string DICOMRTIMPORT_ROOT_CONTOUR_HIERARCHY_NODE_NAME_POSTFIX;
+  static const std::string DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_NO_NAME;
@@ -130,48 +119,6 @@ public:
   static const std::string DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
 
   static const char* DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME;
-
-  // DoseVolumeHistogram constants
-  static const std::string DVH_ATTRIBUTE_PREFIX;
-  static const std::string DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME;
-  static const std::string DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE;
-  static const std::string DVH_CREATED_DVH_NODE_REFERENCE_ROLE;
-  static const std::string DVH_STRUCTURE_CONTOUR_NODE_REFERENCE_ROLE;
-  static const std::string DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_NAME_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME;
-  static const std::string DVH_METRIC_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_METRIC_LIST_ATTRIBUTE_NAME;
-
-  static const char        DVH_METRIC_LIST_SEPARATOR_CHARACTER;
-  static const std::string DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
-  static const std::string DVH_METRIC_MEAN_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_METRIC_MIN_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_METRIC_MAX_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_METRIC_DOSE_ATTRIBUTE_NAME_POSTFIX;
-  static const std::string DVH_METRIC_INTENSITY_ATTRIBUTE_NAME_POSTFIX;
-  static const std::string DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX;
-  static const std::string DVH_ARRAY_NODE_NAME_POSTFIX;
-  static const std::string DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE;
-  static const std::string DVH_CSV_HEADER_VOLUME_FIELD_END;
-
-  // DoseAccumulation constants
-  static const std::string DOSEACCUMULATION_ATTRIBUTE_PREFIX;
-  static const std::string DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME;
-  static const std::string DOSEACCUMULATION_OUTPUT_BASE_NAME_PREFIX;
-
-  // Isodose constants
-  static const char* ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
-  static const std::string ISODOSE_MODEL_NODE_NAME_PREFIX;
-  static const std::string ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX;
-  static const std::string ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX;
-
-  // DoseComparison constants
-  static const char* DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME;
-  static const char* DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME;
-  static const std::string DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX;
 
   // Beams constants
   static const std::string BEAMS_ATTRIBUTE_PREFIX;
@@ -204,20 +151,8 @@ public:
   /// Returns true if the string is null or empty, returns false otherwise
   static bool IsStringNullOrEmpty(const char* aString);
 
-  /*!
-    Computes origin, extent, and spacing of a volume for an oversampling factor
-    \param inputVolumeNode Volume node that needs to be oversampled
-    \param oversamplingFactor Oversampling factor (e.g. in case of 2, the voxels will be half the size in each dimension)
-    \param outputImageDataExtent Output extent that has to be set to the reslice algorithm
-    \param outputImageDataSpacing Output spacing that has to be set to the reslice algorithm
-  */
-  static void GetExtentAndSpacingForOversamplingFactor(vtkMRMLScalarVolumeNode* inputVolumeNode, double oversamplingFactor, int outputImageDataExtent[6], double outputImageDataSpacing[3]);
-
   /// Determine if a node is a dose volume node
   static bool IsDoseVolumeNode(vtkMRMLNode* node);
-
-  /// Determine if a node is a labelmap volume node
-  static bool IsLabelmapVolumeNode(vtkMRMLNode* node);
 
   /// Stretch a discrete color table that contains a few values into a full 256-color palette that
   /// has the first and last colors the same as the input one, the intermediate colors inserted in
@@ -228,7 +163,7 @@ public:
   static bool DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtkMRMLScalarVolumeNode* volume2);
 
   /// Determine if two bounds are equal
-  static bool AreBoundsEqual(int boundsA[6], int boundsB[6]);
+  static bool AreExtentsEqual(int boundsA[6], int boundsB[6]);
 
   /// Generate a new color that is not already in use in a color table node
   /// \param colorNode Color table node to validate against
@@ -244,6 +179,16 @@ public:
   /// \param overwrite whether or not to remove an existing file before re-writing (avoids warnings)
   static void WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* imageData, const char* fileName, double dirs[3][3], double spacing[3], double origin[3], bool overwrite);
 
+  /// Compare the values (with tolerance) between two 4x4 matrices
+  /// \param lhs Left-hand side matrix to compare
+  /// \param rhs Right-hand side matrix to compare
+  static bool IsEqual(const vtkMatrix4x4& lhs, const vtkMatrix4x4& rhs);
+
+  /// Compare the values (with tolerance) between two 3-vectors
+  /// \param lhs Left-hand side vector to compare
+  /// \param rhs Right-hand side vector to compare
+  template <typename T> static bool IsEqual(const vtkVector3<T>& lhs, const vtkVector3<T>& rhs);
+
 //BTX
   /*!
     Convert volume MRML node to ITK image
@@ -254,6 +199,15 @@ public:
     \return Success
   */
   template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion, bool applyRasToLpsConversion);
+
+  /*!
+    Convert oriented image data to ITK image
+    \param inImageData Input oriented image data
+    \param outItkVolume Output ITK image
+    \param applyRasToLpsConversion Apply RAS (Slicer) to LPS (ITK, DICOM) coordinate frame conversion
+    \return Success
+  */
+  template<typename T> static bool ConvertVtkOrientedImageDataToItkImage(vtkOrientedImageData* inImageData, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion);
 
   /*!
     Convert ITK image to VTK image data. The image geometry is not considered!

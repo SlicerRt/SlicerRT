@@ -25,16 +25,15 @@
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "PlmCommon.h"
-#include "vtkMRMLContourNode.h"
 
 // Plastimatch includes
 #include "gamma_dose_comparison.h"
 
-// Subject Hierarchy includes
-#include "vtkMRMLSubjectHierarchyConstants.h"
-#include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkSlicerSubjectHierarchyModuleLogic.h"
-#include "vtkSlicerContoursModuleLogic.h"
+// Segmentations includes
+#include "vtkMRMLSegmentationNode.h"
+#include "vtkSlicerSegmentationsModuleLogic.h"
+#include "vtkOrientedImageData.h"
+#include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -43,21 +42,41 @@
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLSubjectHierarchyConstants.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
 
 // MRMLLogic includes
 #include <vtkMRMLColorLogic.h>
 #include <vtkMRMLApplicationLogic.h>
+#include <vtkSlicerSubjectHierarchyModuleLogic.h>
 
 // VTK includes
 #include <vtkNew.h>
-#include <vtkImageData.h>
 #include <vtkTimerLog.h>
 #include <vtkLookupTable.h>
+#include <vtkImageConstantPad.h>
 #include <vtkObjectFactory.h>
 #include "vtksys/SystemTools.hxx"
 
 // SlicerBase includes
 #include "vtkSlicerApplicationLogic.h"
+
+//---------------------------------------------------------------------------
+const char* vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME = "DoseComparison.GammaVolume"; // Identifier
+const char* vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME = "Gamma_ColorTable.ctbl";
+const std::string vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX = "GammaVolume_";
+const std::string vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_REFERENCE_DOSE_VOLUME_REFERENCE_ROLE = "referenceDoseVolume" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
+const std::string vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_COMPARE_DOSE_VOLUME_REFERENCE_ROLE = "compareDoseVolume" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
+
+//---------------------------------------------------------------------------
+vtkSlicerDoseComparisonModuleLogic* LogicInstance = NULL;
+void GammaProgressCallback(float progress)
+{
+  if (LogicInstance)
+  {
+    LogicInstance->GammaProgressUpdated(progress);
+  }
+}
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseComparisonModuleLogic);
@@ -67,8 +86,11 @@ vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 {
   this->DoseComparisonNode = NULL;
   this->DefaultGammaColorTableNodeId = NULL;
+  this->Progress = 0.0;
 
   this->LogSpeedMeasurementsOff();
+
+  LogicInstance = this;
 }
 
 //----------------------------------------------------------------------------
@@ -76,6 +98,8 @@ vtkSlicerDoseComparisonModuleLogic::~vtkSlicerDoseComparisonModuleLogic()
 {
   this->SetAndObserveDoseComparisonNode(NULL);
   this->SetDefaultGammaColorTableNodeId(NULL);
+
+  LogicInstance = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -181,7 +205,15 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneEndImport()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
+void vtkSlicerDoseComparisonModuleLogic::GammaProgressUpdated(float progress)
+{
+  double progressDouble = (double)progress;
+  this->Progress = progressDouble;
+  this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progressDouble);
+}
+
+//---------------------------------------------------------------------------
+std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 {
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
@@ -190,21 +222,65 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   double checkpointConvertStart = timer->GetUniversalTime();
   vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = this->DoseComparisonNode->GetReferenceDoseVolumeNode();
-  Plm_image::Pointer referenceDose = PlmCommon::ConvertVolumeNodeToPlmImage(
-    this->DoseComparisonNode->GetReferenceDoseVolumeNode());
-  Plm_image::Pointer compareDose = PlmCommon::ConvertVolumeNodeToPlmImage(
-    this->DoseComparisonNode->GetCompareDoseVolumeNode());
+  Plm_image::Pointer referenceDose = PlmCommon::ConvertVolumeNodeToPlmImage(referenceDoseVolumeNode);
+  Plm_image::Pointer compareDose = PlmCommon::ConvertVolumeNodeToPlmImage(this->DoseComparisonNode->GetCompareDoseVolumeNode());
 
   Plm_image::Pointer maskVolume;
-  vtkMRMLContourNode* maskContourNode = this->DoseComparisonNode->GetMaskContourNode();
-  if (maskContourNode)
+  vtkMRMLSegmentationNode* maskSegmentationNode = this->DoseComparisonNode->GetMaskSegmentationNode();
+  const char* maskSegmentID = this->DoseComparisonNode->GetMaskSegmentID();
+  if (maskSegmentationNode && maskSegmentID)
   {
     // Extract a labelmap for the dose comparison to use it as a mask
-    maskContourNode->SetAndObserveRasterizationReferenceVolumeNodeId(referenceDoseVolumeNode->GetID());
-    maskContourNode->SetRasterizationOversamplingFactor(1.0);
-    vtkMRMLScalarVolumeNode* maskVolumeNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(maskContourNode);
-    maskVolume = PlmCommon::ConvertVolumeNodeToPlmImage( maskVolumeNode );
-    this->GetMRMLScene()->RemoveNode(maskVolumeNode);
+    vtkSegmentation* maskSegmentation = maskSegmentationNode->GetSegmentation();
+    vtkSegment* maskSegment = maskSegmentation->GetSegment(maskSegmentID);
+    if (!maskSegment)
+    {
+      std::string errorMessage("Failed to get mask segment");
+      vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
+      return errorMessage;
+    }
+
+    // Temporarily duplicate selected segments to contain binary labelmap of a different geometry (tied to dose volume)
+    vtkSmartPointer<vtkSegmentation> segmentationCopy = vtkSmartPointer<vtkSegmentation>::New();
+    segmentationCopy->SetMasterRepresentationName(maskSegmentation->GetMasterRepresentationName());
+    segmentationCopy->CopyConversionParameters(maskSegmentation);
+    segmentationCopy->CopySegmentFromSegmentation(maskSegmentation, maskSegmentID);
+    if (!segmentationCopy->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+      std::string errorMessage("Failed to create binary labelmap representation for mask segment");
+      vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
+      return errorMessage;
+    }
+    // Get segment binary labelmap
+    vtkOrientedImageData* maskSegmentLabelmap = vtkOrientedImageData::SafeDownCast( segmentationCopy->GetSegment(maskSegmentID)->GetRepresentation(
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) );
+
+    // Apply parent transformation nodes if necessary
+    if ( maskSegmentationNode->GetParentTransformNode()
+      && (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(maskSegmentationNode, maskSegmentLabelmap)) )
+    {
+      std::string errorMessage("Failed to apply parent transform on mask segment");
+      vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
+      return errorMessage;
+    }
+
+//TODO:
+//BUG: Mask image not considered correctly, edges seem to be left out (however, the mask image seems to be correct)
+//vtkSmartPointer<vtkMRMLLabelMapVolumeNode> labelmapNode = vtkSmartPointer<vtkMRMLLabelMapVolumeNode>::New();
+//std::string name("TestMask");
+//name = this->GetMRMLScene()->GenerateUniqueName(name);
+//labelmapNode->SetName(name.c_str());
+//this->GetMRMLScene()->AddNode(labelmapNode);
+//vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData(maskSegmentLabelmap, labelmapNode);
+//maskVolume = PlmCommon::ConvertVolumeNodeToPlmImage( labelmapNode );
+    // Convert mask to Plm image
+    maskVolume = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(maskSegmentLabelmap);
+    if (!maskVolume)
+    {
+      std::string errorMessage("Failed to convert mask segment labelmap into Plm_image");
+      vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
+      return errorMessage;
+    }
   }
 
   // Compute gamma dose volume
@@ -212,7 +288,7 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   Gamma_dose_comparison gamma;
   gamma.set_reference_image(referenceDose->itk_float());
   gamma.set_compare_image(compareDose->itk_float());
-  if (maskContourNode)
+  if (maskSegmentationNode)
   {
     gamma.set_mask_image(maskVolume->itk_uchar());
   }
@@ -225,12 +301,12 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   }
   gamma.set_analysis_threshold(this->DoseComparisonNode->GetAnalysisThresholdPercent() / 100.0 );
   gamma.set_gamma_max(this->DoseComparisonNode->GetMaximumGamma());
+  gamma.set_progress_callback(&GammaProgressCallback);
 
   gamma.run();
 
   itk::Image<float, 3>::Pointer gammaVolumeItk = gamma.get_gamma_image_itk();
   this->DoseComparisonNode->SetPassFractionPercent( gamma.get_pass_fraction() * 100.0 );
-  this->DoseComparisonNode->ResultsValidOn();
   this->DoseComparisonNode->SetReportString(gamma.get_report_string().c_str());
 
   // Convert output to VTK
@@ -240,16 +316,16 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   // Set properties of output volume node
   vtkMRMLScalarVolumeNode* gammaVolumeNode = this->DoseComparisonNode->GetGammaVolumeNode();
-
   if (gammaVolumeNode == NULL)
   {
-    vtkErrorMacro("ComputeGammaDoseDifference: Invalid gamma volume node in parameter set node!");
-    return;
+    std::string errorMessage("Invalid gamma volume node in parameter set node");
+    vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
+    return errorMessage;
   }
 
   gammaVolumeNode->CopyOrientation(referenceDoseVolumeNode);
   gammaVolumeNode->SetAndObserveImageData(gammaVolume);
-  gammaVolumeNode->SetAttribute(SlicerRtCommon::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME, "1");
+  gammaVolumeNode->SetAttribute(vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME, "1");
 
   // Assign gamma volume under the transform node of the reference volume node
   if (referenceDoseVolumeNode->GetParentTransformNode())
@@ -304,7 +380,10 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   }
 
   // Add connection attribute to input dose volume nodes
-  //TODO:
+  gammaVolumeNode->AddNodeReferenceID( vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_REFERENCE_DOSE_VOLUME_REFERENCE_ROLE.c_str(), 
+    this->DoseComparisonNode->GetReferenceDoseVolumeNode()->GetID() );
+  gammaVolumeNode->AddNodeReferenceID( vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_COMPARE_DOSE_VOLUME_REFERENCE_ROLE.c_str(),
+    this->DoseComparisonNode->GetCompareDoseVolumeNode()->GetID() );
 
   // Select as active volume
   if (this->GetApplicationLogic()!=NULL)
@@ -316,6 +395,8 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
     }
   }
 
+  this->DoseComparisonNode->ResultsValidOn();
+
   if (this->LogSpeedMeasurements)
   {
     double checkpointEnd = timer->GetUniversalTime();
@@ -325,13 +406,15 @@ void vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
               << "\tGamma computation: " << checkpointVtkConvertStart-checkpointGammaStart << " s" << std::endl
               << "\tConverting back from ITK to VTK: " << checkpointEnd-checkpointVtkConvertStart << " s" << std::endl;
   }
+
+  return "";
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseComparisonModuleLogic::CreateDefaultGammaColorTable()
 {
   vtkSmartPointer<vtkMRMLColorTableNode> gammaColorTable = vtkSmartPointer<vtkMRMLColorTableNode>::New();
-  std::string nodeName = vtksys::SystemTools::GetFilenameWithoutExtension(SlicerRtCommon::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME);
+  std::string nodeName = vtksys::SystemTools::GetFilenameWithoutExtension(vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME);
   nodeName = this->GetMRMLScene()->GenerateUniqueName(nodeName);
   gammaColorTable->SetName(nodeName.c_str());
   gammaColorTable->SetTypeToUser();
@@ -358,12 +441,12 @@ void vtkSlicerDoseComparisonModuleLogic::LoadDefaultGammaColorTable()
 {
   // Load default color table file
   std::string moduleShareDirectory = this->GetModuleShareDirectory();
-  std::string colorTableFilePath = moduleShareDirectory + "/" + SlicerRtCommon::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME;
+  std::string colorTableFilePath = moduleShareDirectory + "/" + vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME;
   vtkMRMLColorTableNode* colorTableNode = NULL;
   if (vtksys::SystemTools::FileExists(colorTableFilePath.c_str()) && this->GetMRMLApplicationLogic() && this->GetMRMLApplicationLogic()->GetColorLogic())
   {
     vtkMRMLColorNode* loadedColorNode = this->GetMRMLApplicationLogic()->GetColorLogic()->LoadColorFile( colorTableFilePath.c_str(),
-      vtksys::SystemTools::GetFilenameWithoutExtension(SlicerRtCommon::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME).c_str() );
+      vtksys::SystemTools::GetFilenameWithoutExtension(vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME).c_str() );
     colorTableNode = vtkMRMLColorTableNode::SafeDownCast(loadedColorNode);
     colorTableNode->SetSingletonTag(colorTableNode->GetName());
     colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);

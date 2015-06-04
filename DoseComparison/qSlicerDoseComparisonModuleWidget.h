@@ -58,7 +58,8 @@ public slots:
 protected slots:
   void referenceDoseVolumeNodeChanged(vtkMRMLNode*);
   void compareDoseVolumeNodeChanged(vtkMRMLNode*);
-  void maskContourNodeChanged(vtkMRMLNode*);
+  void maskSegmentationNodeChanged(vtkMRMLNode*);
+  void maskSegmentChanged(QString);
   void gammaVolumeNodeChanged(vtkMRMLNode*);
 
   void dtaDistanceToleranceChanged(double);
@@ -71,6 +72,8 @@ protected slots:
   void applyClicked();
 
   void onLogicModified();
+
+  void onProgressUpdated(vtkObject*, void*, unsigned long, void*);
 
 protected:
   /// Updates button states

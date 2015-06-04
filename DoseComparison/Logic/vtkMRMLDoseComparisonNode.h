@@ -32,7 +32,7 @@
 #include "vtkSlicerDoseComparisonModuleLogicExport.h"
 
 class vtkMRMLScalarVolumeNode;
-class vtkMRMLContourNode;
+class vtkMRMLSegmentationNode;
 
 /// \ingroup SlicerRt_QtModules_DoseComparison
 class VTK_SLICER_DOSECOMPARISON_LOGIC_EXPORT vtkMRMLDoseComparisonNode : public vtkMRMLNode
@@ -68,15 +68,20 @@ public:
   /// Set and observe compare dose volume node
   void SetAndObserveCompareDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get mask contour node
-  vtkMRMLContourNode* GetMaskContourNode();
-  /// Set and observe mask contour node
-  void SetAndObserveMaskContourNode(vtkMRMLContourNode* node);
+  /// Get mask segmentation node
+  vtkMRMLSegmentationNode* GetMaskSegmentationNode();
+  /// Set and observe mask segmentation node
+  void SetAndObserveMaskSegmentationNode(vtkMRMLSegmentationNode* node);
 
   /// Get output gamma volume node
   vtkMRMLScalarVolumeNode* GetGammaVolumeNode();
   /// Set and observe output gamma volume node
   void SetAndObserveGammaVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  /// Get mask segment ID
+  vtkGetStringMacro(MaskSegmentID);
+  /// Set mask segment ID
+  vtkSetStringMacro(MaskSegmentID);
 
   /// Get distance to agreement (DTA) tolerance, in mm
   vtkGetMacro(DtaDistanceToleranceMm, double);
@@ -141,6 +146,9 @@ protected:
   void operator=(const vtkMRMLDoseComparisonNode&);
 
 protected:
+  /// Mask segment ID in mask segmentation node
+  char* MaskSegmentID;
+
   /// Distance to agreement (DTA) tolerance, in mm
   double DtaDistanceToleranceMm;
 

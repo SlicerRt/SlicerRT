@@ -19,19 +19,20 @@
 
 ==============================================================================*/
 
+// DVH comparison
 #include "vtkSlicerDoseVolumeHistogramComparisonLogic.h"
 
-#include <float.h>
-
-// SlicerRt includes
-#include "SlicerRtCommon.h"
+// DVH includes
+#include "vtkSlicerDoseVolumeHistogramModuleLogic.h"
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkDoubleArray.h>
+#include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 #include <vtkSmartPointer.h>
+#include <vtkVersion.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseVolumeHistogramComparisonLogic);
@@ -70,7 +71,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
 
   // Determine total volume from the attribute of the current double array node
   std::ostringstream attributeNameStream;
-  attributeNameStream << SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << SlicerRtCommon::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+  attributeNameStream << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
   const char* totalVolumeChar;
 
   // The vtkDoubleArray with the smallest number of tuples is the baseline
@@ -115,7 +116,6 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
   if (this->DoseVolumeNode != NULL)
   {
     vtkNew<vtkImageAccumulate> doseStat;
-    //doseStat->SetInputData(this->DoseVolumeNode->GetImageData());
 #if (VTK_MAJOR_VERSION <= 5)
     doseStat->SetInput(this->DoseVolumeNode->GetImageData());
 #else
@@ -172,7 +172,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint(
     return -1.0;
   }
 
-  double gamma = DBL_MAX;
+  double gamma = VTK_DOUBLE_MAX;
 
   // Get the dose and volume values from the current bin in the 'compare' double array.
   double *comparePlotTuple = compareDvhPlot->GetTuple(compareIndex);

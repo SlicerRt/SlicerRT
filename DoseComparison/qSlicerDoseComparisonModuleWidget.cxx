@@ -20,14 +20,20 @@
 
 // Qt includes
 #include <QDebug>
+#include <QProgressDialog>
 
 // SlicerQt includes
 #include "qSlicerDoseComparisonModuleWidget.h"
 #include "ui_qSlicerDoseComparisonModule.h"
 
+// QSlicer includes
+#include "qSlicerApplication.h"
+
 // SlicerRtCommon includes
 #include "SlicerRtCommon.h"
-#include "vtkMRMLContourNode.h"
+
+// Segmentations includes
+#include "vtkMRMLSegmentationNode.h"
 
 // DoseComparison includes
 #include "vtkSlicerDoseComparisonModuleLogic.h"
@@ -51,6 +57,9 @@ public:
   /// Using this flag prevents overriding the parameter set node contents when the
   ///   QMRMLCombobox selects the first instance of the specified node type when initializing
   bool ModuleWindowInitialized;
+
+  /// Progress dialog for tracking DVH calculation progress
+  QProgressDialog* GammaProgressDialog;
 };
 
 //-----------------------------------------------------------------------------
@@ -60,6 +69,7 @@ public:
 qSlicerDoseComparisonModuleWidgetPrivate::qSlicerDoseComparisonModuleWidgetPrivate(qSlicerDoseComparisonModuleWidget& object)
   : q_ptr(&object)
   , ModuleWindowInitialized(false)
+  , GammaProgressDialog(NULL)
 {
 }
 
@@ -187,9 +197,13 @@ void qSlicerDoseComparisonModuleWidget::setDoseComparisonNode(vtkMRMLNode *node)
     {
       paramNode->SetAndObserveCompareDoseVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_CompareDoseVolume->currentNode()));
     }
-    if (!paramNode->GetMaskContourNode() && d->MRMLNodeComboBox_MaskContour->currentNode())
+    if (!paramNode->GetMaskSegmentationNode() && d->SegmentSelectorWidget_Mask->currentNode())
     {
-      paramNode->SetAndObserveMaskContourNode(vtkMRMLContourNode::SafeDownCast(d->MRMLNodeComboBox_MaskContour->currentNode()));
+      paramNode->SetAndObserveMaskSegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(d->SegmentSelectorWidget_Mask->currentNode()));
+    }
+    if ( !paramNode->GetMaskSegmentID() && !d->SegmentSelectorWidget_Mask->currentSegmentID().isEmpty() )
+    {
+      paramNode->SetMaskSegmentID(d->SegmentSelectorWidget_Mask->currentSegmentID().toLatin1().constData());
     }
     if (!paramNode->GetGammaVolumeNode() && d->MRMLNodeComboBox_GammaVolume->currentNode())
     {
@@ -219,9 +233,13 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
     {
       d->MRMLNodeComboBox_CompareDoseVolume->setCurrentNode(paramNode->GetCompareDoseVolumeNode());
     }
-    if (paramNode->GetMaskContourNode())
+    if (paramNode->GetMaskSegmentationNode())
     {
-      d->MRMLNodeComboBox_MaskContour->setCurrentNode(paramNode->GetMaskContourNode());
+      d->SegmentSelectorWidget_Mask->setCurrentNode(paramNode->GetMaskSegmentationNode());
+    }
+    if (paramNode->GetMaskSegmentID())
+    {
+      d->SegmentSelectorWidget_Mask->setCurrentSegmentID(paramNode->GetMaskSegmentID());
     }
     if (paramNode->GetGammaVolumeNode())
     {
@@ -255,10 +273,13 @@ void qSlicerDoseComparisonModuleWidget::setup()
 
   d->label_Warning->setText("");
 
+  d->SegmentSelectorWidget_Mask->setNoneEnabled(true);
+
   // Make connections
   connect( d->MRMLNodeComboBox_ReferenceDoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceDoseVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_CompareDoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareDoseVolumeNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_MaskContour, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(maskContourNodeChanged(vtkMRMLNode*)) );
+  connect( d->SegmentSelectorWidget_Mask, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(maskSegmentationNodeChanged(vtkMRMLNode*)) );
+  connect( d->SegmentSelectorWidget_Mask, SIGNAL(currentSegmentChanged(QString)), this, SLOT(maskSegmentChanged(QString)) );
   connect( d->MRMLNodeComboBox_GammaVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(gammaVolumeNodeChanged(vtkMRMLNode*)) );
 
   connect( d->doubleSpinBox_DtaDistanceTolerance, SIGNAL(valueChanged(double)), this, SLOT(dtaDistanceToleranceChanged(double)) );
@@ -361,13 +382,13 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseComparisonModuleWidget::maskContourNodeChanged(vtkMRMLNode* node)
+void qSlicerDoseComparisonModuleWidget::maskSegmentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::maskContourNodeChanged: Invalid scene!";
+    qCritical() << "qSlicerDoseComparisonModuleWidget::maskSegmentationNodeChanged: Invalid scene!";
     return;
   }
 
@@ -378,7 +399,31 @@ void qSlicerDoseComparisonModuleWidget::maskContourNodeChanged(vtkMRMLNode* node
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveMaskContourNode(vtkMRMLContourNode::SafeDownCast(node));
+  paramNode->SetAndObserveMaskSegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(node));
+  paramNode->DisableModifiedEventOff();
+
+  this->updateButtonsState();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseComparisonModuleWidget::maskSegmentChanged(QString segmentID)
+{
+  Q_D(qSlicerDoseComparisonModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseComparisonModuleWidget::maskSegmentChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || segmentID.isEmpty() || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetMaskSegmentID(segmentID.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
@@ -576,9 +621,24 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
     return;
   }
 
+  d->label_Warning->setText("");
+
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  d->logic()->ComputeGammaDoseDifference();
+  // Initialize progress bar
+  qvtkConnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
+  d->GammaProgressDialog = new QProgressDialog((QWidget*)qSlicerApplication::application()->mainWindow());
+  d->GammaProgressDialog->setModal(true);
+  d->GammaProgressDialog->setMinimumDuration(150);
+  d->GammaProgressDialog->setLabelText("Computing gamma dose difference...");
+  d->GammaProgressDialog->show();
+  QApplication::processEvents();
+
+  std::string errorMessage = d->logic()->ComputeGammaDoseDifference();
+  if (!errorMessage.empty())
+  {
+    d->label_Warning->setText( QString(errorMessage.c_str()) );
+  }
 
   if (paramNode->GetResultsValid())
   {
@@ -586,7 +646,23 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
       QString("%1 %").arg(paramNode->GetPassFractionPercent(),0,'f',2) );
   }
 
+  qvtkDisconnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
+  delete d->GammaProgressDialog;
   QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseComparisonModuleWidget::onProgressUpdated(vtkObject* caller, void* callData, unsigned long eid, void* clientData)
+{
+  Q_D(qSlicerDoseComparisonModuleWidget);
+
+  if (!d->GammaProgressDialog)
+  {
+    return;
+  }
+
+  double* progress = reinterpret_cast<double*>(callData);
+  d->GammaProgressDialog->setValue((int)((*progress)*100.0));
 }
 
 //-----------------------------------------------------------------------------
@@ -628,7 +704,7 @@ void qSlicerDoseComparisonModuleWidget::refreshOutputBaseName()
     return;
   }
 
-  QString newBaseName(SlicerRtCommon::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX.c_str());
+  QString newBaseName(vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX.c_str());
 
   vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = paramNode->GetReferenceDoseVolumeNode();
   if (referenceDoseVolumeNode)

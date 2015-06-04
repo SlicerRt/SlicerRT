@@ -28,6 +28,10 @@
 // SlicerRt includes
 #include "SlicerRtCommon.h"
 
+// Segmentations includes
+#include "vtkMRMLSegmentationNode.h"
+#include "qMRMLSegmentsTableView.h"
+
 // SlicerQt includes
 #include "qSlicerDoseVolumeHistogramModuleWidget.h"
 #include "ui_qSlicerDoseVolumeHistogramModule.h"
@@ -45,6 +49,7 @@
 #include <vtkMRMLChartNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLLayoutNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkStringArray.h>
@@ -69,6 +74,9 @@ public:
 
   /// Flag whether show/hide all checkbox has been clicked - some operations are not necessary when it was clicked
   bool ShowHideAllClicked;
+
+  /// Progress dialog for tracking DVH calculation progress
+  QProgressDialog* ConvertProgressDialog;
 };
 
 //-----------------------------------------------------------------------------
@@ -80,6 +88,7 @@ qSlicerDoseVolumeHistogramModuleWidgetPrivate::qSlicerDoseVolumeHistogramModuleW
 {
   this->PlotCheckboxToStructureNameMap.clear();
   this->ShowHideAllClicked = false;
+  this->ConvertProgressDialog = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -221,13 +230,13 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     {
       this->doseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
     }
-    if (paramNode->GetContourSetContourNode())
+    if (paramNode->GetSegmentationNode())
     {
-      d->ContourSelectorWidget->setCurrentNode(paramNode->GetContourSetContourNode());
+      d->MRMLNodeComboBox_Segmentation->setCurrentNode(paramNode->GetSegmentationNode());
     }
     else
     {
-      this->contourSetNodeChanged(d->ContourSelectorWidget->currentNode());
+      this->segmentationNodeChanged(d->MRMLNodeComboBox_Segmentation->currentNode());
     }
     if (paramNode->GetChartNode())
     {
@@ -272,19 +281,16 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   // Show only dose volumes in the dose volume combobox by default
   d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
 
-  // Set up contour selector widget
-  d->ContourSelectorWidget->setAcceptContourHierarchies(true);
-  d->ContourSelectorWidget->setRequiredRepresentation(vtkMRMLContourNode::IndexedLabelmap);
-
-  // Set forced oversampling factor to default factor (automatic oversampling checkbox is off by default)
-  d->ContourSelectorWidget->setForcedOversamplingFactor(d->logic()->GetDefaultDoseVolumeOversamplingFactor());
+  // Set simple list mode in segments table view
+  d->SegmentsTableView->setMode(qMRMLSegmentsTableView::SimpleListMode);
 
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( setDoseVolumeHistogramNode(vtkMRMLNode*) ) );
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
   connect( d->checkBox_AutomaticOversampling, SIGNAL( stateChanged(int) ), this, SLOT( automaticOversampingCheckedStateChanged(int) ) );
-  connect( d->ContourSelectorWidget, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( contourSetNodeChanged(vtkMRMLNode*) ) );
-  connect( d->ContourSelectorWidget, SIGNAL( selectionValidityChanged() ), this, SLOT( updateButtonsState() ) );
+  connect( d->MRMLNodeComboBox_Segmentation, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( segmentationNodeChanged(vtkMRMLNode*) ) );
+  connect( d->MRMLNodeComboBox_Segmentation, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), d->SegmentsTableView, SLOT( setSegmentationNode(vtkMRMLNode*) ) );
+  connect( d->SegmentsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(segmentSelectionChanged(QItemSelection,QItemSelection) ) );
   connect( d->MRMLNodeComboBox_Chart, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( chartNodeChanged(vtkMRMLNode*) ) );
 
   connect( d->pushButton_ComputeDVH, SIGNAL( clicked() ), this, SLOT( computeDvhClicked() ) );
@@ -315,8 +321,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   {
     // Enable/disable ComputeDVH button
     bool dvhCanBeComputed = paramNode->GetDoseVolumeNode()
-                         && paramNode->GetContourSetContourNode()
-                         && d->ContourSelectorWidget->isSelectionValid();
+                         && paramNode->GetSegmentationNode();
     d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
 
     // Enable/disable Export DVH to file button
@@ -477,9 +482,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
   this->updateButtonsState();
 
   d->label_NotDoseVolumeWarning->setVisible(!d->logic()->DoseVolumeContainsDose());
-
-  // Set forced reference volume in contour selector widget to ensure this dose volume is selected as reference
-  d->ContourSelectorWidget->setForcedReferenceVolumeNodeID(node->GetID());
 }
 
 //-----------------------------------------------------------------------------
@@ -502,24 +504,16 @@ void qSlicerDoseVolumeHistogramModuleWidget::automaticOversampingCheckedStateCha
   paramNode->DisableModifiedEventOn();
   paramNode->SetAutomaticOversampling(aState);
   paramNode->DisableModifiedEventOff();
-
-  // Set forced oversampling factor based on selection of automatic oversampling
-  d->ContourSelectorWidget->setForcedAutomaticOversamplingFactor(paramNode->GetAutomaticOversampling());
-  if (!paramNode->GetAutomaticOversampling())
-  {
-    d->ContourSelectorWidget->setForcedOversamplingFactor(d->logic()->GetDefaultDoseVolumeOversamplingFactor());
-  }
-  d->ContourSelectorWidget->updateWidgetState();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::contourSetNodeChanged(vtkMRMLNode* node)
+void qSlicerDoseVolumeHistogramModuleWidget::segmentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::contourSetNodeChanged: Invalid scene!";
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::segmentationNodeChanged: Invalid scene!";
     return;
   }
   
@@ -530,10 +524,37 @@ void qSlicerDoseVolumeHistogramModuleWidget::contourSetNodeChanged(vtkMRMLNode* 
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveContourSetContourNode(node);
+  paramNode->SetAndObserveSegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::segmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+{
+  Q_UNUSED(selected);
+  Q_UNUSED(deselected);
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseVolumeHistogramModuleWidget::segmentSelectionChanged: Invalid scene!";
+    return;
+  }
+  
+  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
+  std::vector<std::string> selectedSegmentIDs;
+  foreach (QString segmentId, d->SegmentsTableView->selectedSegmentIDs())
+  {
+    selectedSegmentIDs.push_back(segmentId.toLatin1().constData());
+  }
+  paramNode->SetSelectedSegmentIDs(selectedSegmentIDs);
 }
 
 //-----------------------------------------------------------------------------
@@ -594,7 +615,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable(bool force/*=false*
   d->tableWidget_ChartStatistics->setColumnCount(0);
   d->tableWidget_ChartStatistics->clearContents();
 
-  // Clear checkbox to contour set name map
+  // Clear checkbox to segmentation name map
   QMapIterator<QCheckBox*, QString> it(d->PlotCheckboxToStructureNameMap);
   while (it.hasNext())
   {
@@ -644,7 +665,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable(bool force/*=false*
   {
     QString metricName(it->c_str());
     metricName = metricName.right( metricName.length()
-      - SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
+      - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
     headerLabels << metricName;
   }
   for (std::vector<double>::iterator it = vDoseValues.begin(); it != vDoseValues.end(); ++it)
@@ -691,7 +712,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable(bool force/*=false*
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_ChartStatistics);
     checkbox->setToolTip(tr("Show/hide DVH plot of structure '%1' in selected chart").arg(
-      QString((*dvhIt)->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
+      QString((*dvhIt)->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
     connect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
 
     // Store checkbox with the double array ID
@@ -700,10 +721,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable(bool force/*=false*
     d->tableWidget_ChartStatistics->setCellWidget(dvhIndex, 0, checkbox);
 
     d->tableWidget_ChartStatistics->setItem(dvhIndex, 1, new QTableWidgetItem(
-      QString((*dvhIt)->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));    
+      QString((*dvhIt)->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));    
 
     vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-      (*dvhIt)->GetNodeReference(SlicerRtCommon::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str()) );
+      (*dvhIt)->GetNodeReference(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str()) );
     if (volumeNode)
     {
       d->tableWidget_ChartStatistics->setItem(dvhIndex, 2, new QTableWidgetItem( QString(volumeNode->GetName()) ));    
@@ -807,37 +828,40 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  // Get selected contours
-  QList<vtkMRMLContourNode*> structureContourNodes = d->ContourSelectorWidget->selectedContourNodes();
-
   // Initialize progress bar
-  QProgressDialog *convertProgress = new QProgressDialog(qSlicerApplication::application()->mainWindow());
-  convertProgress->setModal(true);
-  convertProgress->setMinimumDuration(150);
-  convertProgress->setLabelText("Computing DVH for all selected contours...");
-  convertProgress->show();
+  qvtkConnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
+  d->ConvertProgressDialog = new QProgressDialog(qSlicerApplication::application()->mainWindow());
+  d->ConvertProgressDialog->setModal(true);
+  d->ConvertProgressDialog->setMinimumDuration(150);
+  d->ConvertProgressDialog->setLabelText("Computing DVH for all selected segments...");
+  d->ConvertProgressDialog->show();
   QApplication::processEvents();
-  unsigned int numberOfContours = structureContourNodes.size();
-  unsigned int currentContour = 0;
 
-  // Compute the DVH for each structure in the selected contour set using the selected dose volume
-  foreach (vtkMRMLContourNode* contour, structureContourNodes)
+  // Compute the DVH for each selected segment set using the selected dose volume
+  std::string errorMessage = d->logic()->ComputeDvh();
+  if (!errorMessage.empty())
   {
-    std::string errorMessage = d->logic()->ComputeDvh(contour);
-    if (!errorMessage.empty())
-    {
-      d->label_Error->setVisible(true);
-      d->label_Error->setText( QString(errorMessage.c_str()) );
-      break;
-    }
-
-    // Set progress
-    ++currentContour;
-    convertProgress->setValue(currentContour/(double)numberOfContours * 100.0);
+    d->label_Error->setVisible(true);
+    d->label_Error->setText( QString(errorMessage.c_str()) );
   }
 
-  delete convertProgress;
+  qvtkDisconnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
+  delete d->ConvertProgressDialog;
   QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::onProgressUpdated(vtkObject* caller, void* callData, unsigned long eid, void* clientData)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  if (!d->ConvertProgressDialog)
+  {
+    return;
+  }
+
+  double* progress = reinterpret_cast<double*>(callData);
+  d->ConvertProgressDialog->setValue((int)((*progress)*100.0));
 }
 
 //-----------------------------------------------------------------------------
@@ -1276,8 +1300,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDoseVolumesOnlyCheckboxChanged(
   }
   else
   {
-    // The row has to be replaced, so replace with an attribute that matches all desired volumes
-    d->MRMLNodeComboBox_DoseVolume->addAttribute("vtkMRMLScalarVolumeNode", "LabelMap", 0);
+    //TODO: Remove attribute when available in Slicer core
+    d->MRMLNodeComboBox_DoseVolume->addAttribute("vtkMRMLScalarVolumeNode", QString());
   }
 }
 

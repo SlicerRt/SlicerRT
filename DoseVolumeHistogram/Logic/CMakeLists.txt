@@ -8,7 +8,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
-  ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -22,8 +23,8 @@ set(${KIT}_SRCS
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
-  vtkSlicerContoursModuleMRML
-  vtkSlicerContoursModuleLogic
+  vtkSlicerSegmentationsModuleMRML
+  vtkSlicerSegmentationsModuleLogic
   vtkSlicerSubjectHierarchyModuleMRML
   vtkSlicerSubjectHierarchyModuleLogic
   ${ITK_LIBRARIES}

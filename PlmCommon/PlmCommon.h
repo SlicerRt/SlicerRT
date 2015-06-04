@@ -33,15 +33,10 @@
 
 #include "vtkPlmCommonWin32Header.h"
 
-class vtkMRMLTransformableNode;
 class vtkMRMLNode;
 class vtkMRMLScalarVolumeNode;
-class vtkMRMLModelNode;
-class vtkMRMLColorTableNode;
 
-class vtkImageData;
-class vtkGeneralTransform;
-class vtkMatrix4x4;
+class vtkOrientedImageData;
 
 /// \ingroup SlicerRt_PlmCommon
 class VTK_PLMCOMMON_EXPORT PlmCommon
@@ -54,6 +49,8 @@ public:
     vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform = true);
   static Plm_image::Pointer ConvertVolumeNodeToPlmImage(
     vtkMRMLNode* inNode, bool applyWorldTransform = true);
+  static Plm_image::Pointer ConvertVtkOrientedImageDataToPlmImage(
+    vtkOrientedImageData* inImageData);
 };
 
 #endif

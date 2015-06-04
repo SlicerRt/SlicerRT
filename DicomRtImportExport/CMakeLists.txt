@@ -12,6 +12,7 @@ if(NOT Plastimatch_FOUND)
 endif()
 
 #-----------------------------------------------------------------------------
+add_subdirectory(ConversionRules)
 add_subdirectory(Logic)
 add_subdirectory(SubjectHierarchyPlugins)
 
@@ -19,12 +20,14 @@ add_subdirectory(SubjectHierarchyPlugins)
 set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 
 set(MODULE_INCLUDE_DIRECTORIES
+  ${SlicerRtCommon_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
   ${vtkSlicerVolumesModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerPlanarImageModuleLogic_INCLUDE_DIRS}
+  ${vtkSegmentationCore_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/SubjectHierarchyPlugins
   ${CMAKE_CURRENT_BINARY_DIR}/SubjectHierarchyPlugins
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
@@ -48,10 +51,12 @@ set(MODULE_UI_SRCS
 
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
+  vtkSlicer${MODULE_NAME}ConversionRules
   vtkSlicerVolumesModuleLogic
   vtkSlicerBeamsModuleLogic
   vtkSlicerIsodoseModuleLogic
   vtkSlicerPlanarImageModuleLogic
+  vtkSegmentationCore
   qSlicer${MODULE_NAME}SubjectHierarchyPlugins
   )
 

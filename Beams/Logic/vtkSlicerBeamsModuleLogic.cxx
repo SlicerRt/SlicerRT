@@ -312,7 +312,7 @@ std::string vtkSlicerBeamsModuleLogic::CreateBeamModel()
   displayNode->VisibilityOn(); 
   displayNode->SetColor(0.0, 1.0, 0.0);
   displayNode->SetOpacity(this->BeamsNode->GetBeamModelOpacity());
-  // Disable backface culling to make the back side of the contour visible as well
+  // Disable backface culling to make the back side of the model visible as well
   displayNode->SetBackfaceCulling(0);
 
   beamModelNode->SetAndObservePolyData( beamModelTransformFilter->GetOutput() );

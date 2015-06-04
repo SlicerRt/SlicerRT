@@ -38,9 +38,9 @@
 class vtkSlicerVolumesLogic;
 class vtkSlicerIsodoseModuleLogic;
 class vtkSlicerPlanarImageModuleLogic;
-class vtkMRMLContourModelDisplayNode;
-class vtkMRMLHierarchyNode;
+class vtkMRMLScalarVolumeNode;
 class vtkMRMLMarkupsFiducialNode;
+class vtkMRMLSegmentationNode;
 class vtkSlicerDICOMLoadable;
 class vtkSlicerDICOMExportable;
 class vtkStringArray;
@@ -79,11 +79,11 @@ public:
   /// \return Error message, empty string if success
   std::string ExportDicomRTStudy(vtkCollection* exportables);
 
-public:
-  vtkSetMacro(AutoContourOpacity, bool);
-  vtkGetMacro(AutoContourOpacity, bool);
-  vtkBooleanMacro(AutoContourOpacity, bool);
+  /// Get referenced volume for a segmentation according to subject hierarchy attributes
+  /// \return The reference volume for the segmentation if any, NULL otherwise
+  static vtkMRMLScalarVolumeNode* GetReferencedVolumeByDicomForSegmentation(vtkMRMLSegmentationNode* segmentationNode);
 
+public:
   vtkSetMacro(BeamModelsInSeparateBranch, bool);
   vtkGetMacro(BeamModelsInSeparateBranch, bool);
   vtkBooleanMacro(BeamModelsInSeparateBranch, bool);
@@ -143,9 +143,6 @@ private:
 
   /// Planar Image logic instance
   vtkSlicerPlanarImageModuleLogic* PlanarImageLogic;
-
-  /// Flag indicating whether opacity values for the loaded contours are automatically determined
-  bool AutoContourOpacity;
 
   /// Flag determining whether the generated beam models are arranged in a separate subject hierarchy
   /// branch, or each beam model is added under its corresponding isocenter fiducial

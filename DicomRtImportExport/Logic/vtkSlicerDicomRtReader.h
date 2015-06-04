@@ -32,10 +32,8 @@
 
 // VTK includes
 #include "vtkObject.h"
-#include <vtkPlane.h>
 #include <vtkSmartPointer.h>
 #include <vtkType.h>
-#include <vtkVector.h>
 
 // CTK includes
 #include <ctkDICOMDatabase.h>
@@ -75,11 +73,6 @@ public:
   /// Do reading
   void Update();
 
-  /// Create ribbon model for an ROI using the computed plane normals
-  /// \param internalIndex the index of the ROI to access
-  /// \param ribbonModelPolyData the output polydata to produce
-  void CreateRibbonModelForRoi(unsigned int internalIndex, vtkPolyData* ribbonModelPolyData);
-
 public:
   /// Get number of created ROIs
   int GetNumberOfRois();
@@ -99,11 +92,6 @@ public:
   /// Get referenced series UID for a certain ROI by internal index
   /// \param internalIndex Internal index of ROI to get
   const char* GetRoiReferencedSeriesUid(unsigned int internalIndex);
-
-  /// Get ordered contour planes for a certain ROI by internal index, returns a copy
-  /// Passes ownership of the generated vtkPlanes to a client
-  /// \param internalIndex Internal index of ROI to get
-  std::map<double, vtkSmartPointer<vtkPlane> > GetRoiOrderedContourPlanes( unsigned int internalROIIndex );
 
   /// Get number of beams
   int GetNumberOfBeams();
@@ -280,12 +268,9 @@ protected:
     std::string Description;
     double DisplayColor[3];
     vtkPolyData* PolyData;
-    double SliceThickness;
-    double ContourPlaneNormalVector[3];
     std::string ReferencedSeriesUID;
     std::string ReferencedFrameOfReferenceUID;
     std::map<int,std::string> ContourIndexToSOPInstanceUIDMap;
-    std::map<double, vtkSmartPointer<vtkPlane> > OrderedContourPlanes;
   };
 
   /// Structure storing an RT structure set
@@ -381,13 +366,6 @@ protected:
 
   /// Find and return a ROI entry according to its ROI number
   RoiEntry* FindRoiByNumber(unsigned int roiNumber);
-
-  /// Determine distance between contour planes.
-  /// It gets contour planes, orders them along their normals, then computes the individual distances between adjacent
-  /// contours. Returns with a majority value if not all distances are equal.
-  /// Saves normal and ordered planes into ROI entries.
-  /// \param rtROIContourSequenceObject DCMTK object containing the input contour sequence
-  double CalculateDistanceBetweenContourPlanes(DRTROIContourSequence &rtROIContourSequenceObject);
 
   /// Get frame of reference for an SOP instance
   DRTRTReferencedSeriesSequence* GetReferencedSeriesSequence(DRTStructureSetIOD &rtStructureSetObject);

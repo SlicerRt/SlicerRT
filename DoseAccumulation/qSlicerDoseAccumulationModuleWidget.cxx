@@ -375,7 +375,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_Volumes);
     checkbox->setToolTip(tr("Include this volume in accumulated dose volume"));
-    checkbox->setProperty(SlicerRtCommon::DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME.c_str(), QString(volumeNode->GetName()));
+    checkbox->setProperty(vtkSlicerDoseAccumulationModuleLogic::DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME.c_str(), QString(volumeNode->GetName()));
     d->CheckboxToVolumeIdMap[checkbox] = std::pair<std::string, std::string>(volumeNode->GetID(), doseUnitStr);
 
     // Set previous checked state of the checkbox
@@ -564,7 +564,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshOutputBaseName()
     return;
   }
 
-  QString newBaseName(SlicerRtCommon::DOSEACCUMULATION_OUTPUT_BASE_NAME_PREFIX.c_str());
+  QString newBaseName(vtkSlicerDoseAccumulationModuleLogic::DOSEACCUMULATION_OUTPUT_BASE_NAME_PREFIX.c_str());
   std::map<QCheckBox*, std::pair<std::string, std::string> >::iterator it;
   for (it=d->CheckboxToVolumeIdMap.begin(); it!=d->CheckboxToVolumeIdMap.end(); ++it)
   {

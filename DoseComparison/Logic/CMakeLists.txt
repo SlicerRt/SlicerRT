@@ -7,6 +7,8 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_LOGIC_EXPORT")
 set(${KIT}_INCLUDE_DIRECTORIES
   ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
   )
 
@@ -20,10 +22,13 @@ set(${KIT}_SRCS
 set(${KIT}_TARGET_LIBRARIES
   vtkPlmCommon
   vtkSlicerRtCommon
-  vtkSlicerContoursModuleMRML
-  vtkSlicerContoursModuleLogic
+  vtkSlicerSegmentationsModuleMRML
+  vtkSlicerSegmentationsModuleLogic
+  MRMLCore
   ${PLASTIMATCH_LIBRARIES}
   )
+
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Base_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------
 SlicerMacroBuildModuleLogic(

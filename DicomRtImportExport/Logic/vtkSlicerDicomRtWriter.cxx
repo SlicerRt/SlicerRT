@@ -88,14 +88,14 @@ void vtkSlicerDicomRtWriter::SetDose(const Plm_image::Pointer& img)
 }
   
 //----------------------------------------------------------------------------
-std::string vtkSlicerDicomRtWriter::formatColorString (const double *contourColor)
+std::string vtkSlicerDicomRtWriter::formatColorString (const double *color)
 {
   std::string colorString = "";
   std::ostringstream strs;
   int value[3];
 
   for (int i = 0; i < 3; i++) {
-    value[i] = (int) (contourColor[i] * 255 + 0.5);
+    value[i] = (int) (color[i] * 255 + 0.5);
     if (value[i] > 255) value[i] = 255;
     if (value[i] < 0) value[i] = 0;
   }
@@ -106,10 +106,10 @@ std::string vtkSlicerDicomRtWriter::formatColorString (const double *contourColo
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDicomRtWriter::AddContour(UCharImageType::Pointer itk_structure, const char *contourName, double *contourColor)
+void vtkSlicerDicomRtWriter::AddStructure(UCharImageType::Pointer itk_structure, const char *name, double *color)
 {
-  std::string colorString = this->formatColorString(contourColor);
-  RtStudy.add_structure(itk_structure, contourName, colorString.c_str());
+  std::string colorString = this->formatColorString(color);
+  RtStudy.add_structure(itk_structure, name, colorString.c_str());
 }
   
 //----------------------------------------------------------------------------

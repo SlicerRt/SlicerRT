@@ -1,13 +1,13 @@
 #-----------------------------------------------------------------------------
 set(EXTENSION_TEST_PYTHON_SCRIPTS
-  BatchContourConversion.py
+  BatchStructureSetConversion.py
   )
 
 set(EXTENSION_TEST_PYTHON_RESOURCES
   )
 
 ctkMacroCompilePythonScript(
-  TARGET_NAME BatchContourConversion
+  TARGET_NAME BatchStructureSetConversion
   SCRIPTS "${EXTENSION_TEST_PYTHON_SCRIPTS}"
   RESOURCES "${EXTENSION_TEST_PYTHON_RESOURCES}"
   DESTINATION_DIR ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}
@@ -17,7 +17,7 @@ ctkMacroCompilePythonScript(
 
 #-----------------------------------------------------------------------------
 slicer_add_python_unittest(
-  SCRIPT BatchContourConversion.py
+  SCRIPT BatchStructureSetConversion.py
   SLICER_ARGS --no-main-window --additional-module-paths
                 ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}
                 ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Debug

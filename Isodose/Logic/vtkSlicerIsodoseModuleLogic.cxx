@@ -66,6 +66,12 @@
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------
+const char* vtkSlicerIsodoseModuleLogic::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME = "Isodose_ColorTable.ctbl";
+const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX = "IsodoseLevel_";
+const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX = "IsodoseParameterSet_";
+const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX = "_IsodoseSurfaces";
+
+//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 
 //----------------------------------------------------------------------------
@@ -217,7 +223,7 @@ bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
 void vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable()
 {
   vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
-  std::string nodeName = vtksys::SystemTools::GetFilenameWithoutExtension(SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME);
+  std::string nodeName = vtksys::SystemTools::GetFilenameWithoutExtension(vtkSlicerIsodoseModuleLogic::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME);
   nodeName = this->GetMRMLScene()->GenerateUniqueName(nodeName);
   colorTableNode->SetName(nodeName.c_str());
   colorTableNode->SetTypeToUser();
@@ -243,12 +249,12 @@ void vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable()
 {
   // Load default color table file
   std::string moduleShareDirectory = this->GetModuleShareDirectory();
-  std::string colorTableFilePath = moduleShareDirectory + "/" + SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
+  std::string colorTableFilePath = moduleShareDirectory + "/" + vtkSlicerIsodoseModuleLogic::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
   vtkMRMLColorTableNode* colorTableNode = NULL;
   if (vtksys::SystemTools::FileExists(colorTableFilePath.c_str()) && this->GetMRMLApplicationLogic() && this->GetMRMLApplicationLogic()->GetColorLogic())
   {
     vtkMRMLColorNode* loadedColorNode = this->GetMRMLApplicationLogic()->GetColorLogic()->LoadColorFile( colorTableFilePath.c_str(),
-      vtksys::SystemTools::GetFilenameWithoutExtension(SlicerRtCommon::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME).c_str() );
+      vtksys::SystemTools::GetFilenameWithoutExtension(vtkSlicerIsodoseModuleLogic::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME).c_str() );
 
     // Create temporary lookup table storing the color data while the type of the loaded color table is set to user
     // (workaround for bug #409)
@@ -341,11 +347,11 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     vtkErrorMacro("CreateIsodoseSurfaces: Failed to get subject hierarchy node for dose volume '" << doseVolumeNode->GetName() << "'");
   }
 
-  // Model hierarchy node for the loaded contour sets
+  // Model hierarchy node for the loaded structure set
   vtkSmartPointer<vtkMRMLModelHierarchyNode> modelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
   modelHierarchyRootNode->AllowMultipleChildrenOn();
   modelHierarchyRootNode->HideFromEditorsOff();
-  std::string modelHierarchyNodeName = std::string(doseVolumeNode->GetName()) + SlicerRtCommon::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX;
+  std::string modelHierarchyNodeName = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX;
   modelHierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(modelHierarchyNodeName);
   modelHierarchyRootNode->SetName(modelHierarchyNodeName.c_str());
   this->GetMRMLScene()->AddNode(modelHierarchyRootNode);
@@ -497,7 +503,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       displayNode->SetColor(val[0], val[1], val[2]);
       displayNode->SetOpacity(val[3]);
     
-      // Disable backface culling to make the back side of the contour visible as well
+      // Disable backface culling to make the back side of the model visible as well
       displayNode->SetBackfaceCulling(0);
 
       std::string doseUnitName("");
@@ -510,7 +516,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
 
       vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
       isodoseModelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(isodoseModelNode));
-      std::string isodoseModelNodeName = SlicerRtCommon::ISODOSE_MODEL_NODE_NAME_PREFIX + strIsoLevel + doseUnitName;
+      std::string isodoseModelNodeName = vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX + strIsoLevel + doseUnitName;
       isodoseModelNodeName = this->GetMRMLScene()->GenerateUniqueName(isodoseModelNodeName);
       isodoseModelNode->SetName(isodoseModelNodeName.c_str());
       isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());

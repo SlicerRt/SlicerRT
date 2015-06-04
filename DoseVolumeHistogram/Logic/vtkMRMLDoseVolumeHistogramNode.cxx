@@ -24,6 +24,9 @@
 // SlicerRT includes
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
+// Segmentations includes
+#include "vtkMRMLSegmentationNode.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
@@ -39,7 +42,7 @@
 
 //------------------------------------------------------------------------------
 static const char* DOSE_VOLUME_REFERENCE_ROLE = "doseVolumeRef";
-static const char* CONTOUR_SET_CONTOUR_REFERENCE_ROLE = "contourSetContourRef";
+static const char* SEGMENTATION_REFERENCE_ROLE = "segmentationRef";
 static const char* CHART_REFERENCE_ROLE = "chartRef";
 static const char* DVH_DOUBLE_ARRAY_REFERENCE_ROLE = "dvhDoubleArrayRef";
 
@@ -49,6 +52,7 @@ vtkMRMLNodeNewMacro(vtkMRMLDoseVolumeHistogramNode);
 //----------------------------------------------------------------------------
 vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 {
+  this->SelectedSegmentIDs.clear();
   this->ShowHideAll = 0;
   this->ShowInChartCheckStates.clear();
   this->VDoseValues = NULL;
@@ -66,6 +70,7 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 //----------------------------------------------------------------------------
 vtkMRMLDoseVolumeHistogramNode::~vtkMRMLDoseVolumeHistogramNode()
 {
+  this->SelectedSegmentIDs.clear();
   this->ShowInChartCheckStates.clear();
   this->SetVDoseValues(NULL);
   this->SetDVolumeValuesCc(NULL);
@@ -79,6 +84,13 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
 
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
+
+  of << indent << " SelectedSegmentIDs=\"";
+  for (std::vector<std::string>::iterator it = this->SelectedSegmentIDs.begin(); it != this->SelectedSegmentIDs.end(); ++it)
+    {
+    of << (*it) << "|";
+    }
+  of << "\"";
 
   {
     std::stringstream ss;
@@ -145,7 +157,27 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "ShowHideAll")) 
+    if (!strcmp(attName, "SelectedSegmentIDs")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      std::string valueStr = ss.str();
+      std::string separatorCharacter("|");
+
+      this->SelectedSegmentIDs.clear();
+      size_t separatorPosition = valueStr.find( separatorCharacter );
+      while (separatorPosition != std::string::npos)
+        {
+        this->SelectedSegmentIDs.push_back(valueStr.substr(0, separatorPosition));
+        valueStr = valueStr.substr( separatorPosition+1 );
+        separatorPosition = valueStr.find( separatorCharacter );
+        }
+      if (!valueStr.empty())
+        {
+        this->SelectedSegmentIDs.push_back(valueStr);
+        }
+      }
+    else if (!strcmp(attName, "ShowHideAll")) 
       {
       std::stringstream ss;
       ss << attValue;
@@ -169,7 +201,7 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
         valueStr = valueStr.substr( separatorPosition+1 );
         separatorPosition = valueStr.find( separatorCharacter );
         }
-      if (! valueStr.empty() )
+      if (!valueStr.empty())
         {
         this->ShowInChartCheckStates.push_back(
           (valueStr.compare("true") ? false : true));
@@ -228,6 +260,7 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLDoseVolumeHistogramNode *node = (vtkMRMLDoseVolumeHistogramNode *) anode;
 
+  this->SelectedSegmentIDs = node->SelectedSegmentIDs;
   this->ShowHideAll = node->ShowHideAll;
   this->ShowInChartCheckStates = node->ShowInChartCheckStates;
 
@@ -249,6 +282,13 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
+
+  os << indent << " SelectedSegmentIDs:   ";
+  for (std::vector<std::string>::iterator it = this->SelectedSegmentIDs.begin(); it != this->SelectedSegmentIDs.end(); ++it)
+    {
+    os << indent << (*it) << "|";
+    }
+  os << "\n";
 
   os << indent << "ShowHideAll:   " << this->ShowHideAll << "\n";
 
@@ -285,15 +325,15 @@ void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVo
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLDoseVolumeHistogramNode::GetContourSetContourNode()
+vtkMRMLSegmentationNode* vtkMRMLDoseVolumeHistogramNode::GetSegmentationNode()
 {
-  return this->GetNodeReference(CONTOUR_SET_CONTOUR_REFERENCE_ROLE);
+  return vtkMRMLSegmentationNode::SafeDownCast( this->GetNodeReference(SEGMENTATION_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::SetAndObserveContourSetContourNode(vtkMRMLNode* node)
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node)
 {
-  this->SetNodeReferenceID(CONTOUR_SET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------

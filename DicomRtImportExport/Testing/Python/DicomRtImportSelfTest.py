@@ -3,6 +3,7 @@ import unittest
 import util.DicomRtImportSelfTestPaths
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
+import logging
 
 #
 # DicomRtImportSelfTest
@@ -11,9 +12,9 @@ from slicer.ScriptedLoadableModule import *
 class DicomRtImportSelfTest(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "DicomRtImportSelfTest" # TODO make this more human readable by adding spaces
+    self.parent.title = "DICOM-RT Import Self Test"
     self.parent.categories = ["Testing.SlicerRT Tests"]
-    self.parent.dependencies = ["DicomRtImportExport", "Contours"]
+    self.parent.dependencies = ["DicomRtImportExport", "Segmentations"]
     self.parent.contributors = ["Csaba Pinter (Queen's)"]
     self.parent.helpText = """
     This is a self test for the DicomRtImportExport DICOM plugin module.
@@ -51,10 +52,10 @@ class DicomRtImportSelfTestLogic(ScriptedLoadableModuleLogic):
     node has valid image data
     """
     if not volumeNode:
-      print('no volume node')
+      logging.error('no volume node')
       return False
     if volumeNode.GetImageData() == None:
-      print('no image data')
+      logging.error('no image data')
       return False
     return True
 
@@ -85,8 +86,10 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.test_DicomRtImportSelfTest_FullTest1()
 
   def test_DicomRtImportSelfTest_FullTest1(self):
-    # Check for DicomRtImportExport module
+    # Check for modules
     self.assertTrue( slicer.modules.dicomrtimportexport )
+    self.assertTrue( slicer.modules.segmentations )
+
     self.TestSection_0RetrieveInputData()
     self.TestSection_1OpenDatabase()
     self.TestSection_2ImportStudy()
@@ -124,7 +127,7 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
       for url,name in downloads:
         filePath = self.dataDir + '/' + name
         if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-          print('Requesting download %s from %s...\n' % (name, url))
+          logging.info('Requesting download %s from %s...\n' % (name, url))
           urllib.urlretrieve(url, filePath)
       self.delayDisplay('Finished with download test data',self.delayMs)
 
@@ -198,12 +201,12 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     # Model hierarchies: Beam models (parent + individual beams)
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 6 )
     # Subject hierarchy nodes: Patient, Study, Dose, RT image (plus SH nodes automatically created for texture
-    # image and displayed model), structure set, contours, beam models (both model and subject hierarchy for those)
+    # image and displayed model), structure set segmentation and segment virtual nodes, beam models.
     # If subject hierarchy auto creation is off, then 2 less nodes are created (the RT image plane model and texture volume)
     autoCreateSh = slicer.modules.subjecthierarchy.widgetRepresentation().pluginLogic().autoCreateSubjectHierarchy
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ) == 23 + 2*autoCreateSh )
-    # Contours: The loaded structures
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLContourNode*') ) == 6 )
+    # Segmentation: The loaded structures
+    self.assertTrue( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ) == 1 )
     # Markups: the isocenters and their derived sources (in the same markup node as the isocenter)
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ) == 5 )
 

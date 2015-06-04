@@ -50,7 +50,7 @@ public:
   void SetDose(const Plm_image::Pointer&);
 
   /// TODO: Description, argument names and descriptions
-  void AddContour(UCharImageType::Pointer, const char*, double*);
+  void AddStructure(UCharImageType::Pointer, const char*, double*);
   
   /// TODO: Description, argument names and descriptions
   void Write();
@@ -65,7 +65,7 @@ public:
   vtkSetStringMacro(FileName);
   
 protected:
-  std::string formatColorString (const double *contourColor);
+  std::string formatColorString (const double *color);
   vtkSlicerDicomRtWriter();
   virtual ~vtkSlicerDicomRtWriter();
 

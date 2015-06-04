@@ -25,20 +25,23 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
-#include "vtkMRMLContourNode.h"
-#include "vtkSlicerContoursModuleLogic.h"
-#include "vtkSlicerSubjectHierarchyModuleLogic.h"
-#include "vtkMRMLSubjectHierarchyNode.h"
+
+// Segmentations includes
+#include "vtkMRMLSegmentationNode.h"
+#include "vtkSlicerSegmentationsModuleLogic.h"
+#include "vtkOrientedImageData.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
-#include <vtkMRMLModelHierarchyNode.h>
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLChartNode.h>
+#include <vtkMRMLScene.h>
+
+// SubjectHierarchy includes
+#include "vtkSlicerSubjectHierarchyModuleLogic.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
 
 // VTK includes
 #include <vtkDoubleArray.h>
@@ -350,11 +353,9 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
-  // Create Contours and Subject hierarchy logic
-  vtkSmartPointer<vtkSlicerContoursModuleLogic> contoursLogic = vtkSmartPointer<vtkSlicerContoursModuleLogic>::New();
-  contoursLogic->SetMRMLScene(mrmlScene);
-  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic = vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
-  subjectHierarchyLogic->SetMRMLScene(mrmlScene);
+  // Create Segmentations logic
+  vtkSmartPointer<vtkSlicerSegmentationsModuleLogic> segmentationsLogic = vtkSmartPointer<vtkSlicerSegmentationsModuleLogic>::New();
+  segmentationsLogic->SetMRMLScene(mrmlScene);
 
   // Load test scene into temporary scene
   //mrmlScene->GetCacheManager()->ClearCache();
@@ -378,30 +379,16 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
 
-  // Get contour set subject hierarchy node
-  vtkMRMLSubjectHierarchyNode* contourHierarchyNode = NULL;
-  mrmlScene->InitTraversal();
-  vtkMRMLNode *node = mrmlScene->GetNextNodeByClass("vtkMRMLSubjectHierarchyNode");
-  while (node != NULL)
-  {
-    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(node);
-    if (shNode)
-    {
-      const char* contourHierarchyIdentifier = shNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_CONTOUR_HIERARCHY_IDENTIFIER_ATTRIBUTE_NAME.c_str());
-      if (contourHierarchyIdentifier != NULL)
-      {
-        contourHierarchyNode = shNode;
-        break;
-      }
-    }
-    node = mrmlScene->GetNextNodeByClass("vtkMRMLSubjectHierarchyNode");
-  }
-  if (!contourHierarchyNode)
+  // Get segmentation node
+  vtkSmartPointer<vtkCollection> segmentationNodes = vtkSmartPointer<vtkCollection>::Take(
+    mrmlScene->GetNodesByClass("vtkMRMLSegmentationNode*") );
+  if (segmentationNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
-    std::cerr << "ERROR: Failed to get contour hierarchy node!" << std::endl;
+    std::cerr << "ERROR: Failed to get segmentation!" << std::endl;
     return EXIT_FAILURE;
   }
+  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(segmentationNodes->GetItemAsObject(0));
 
   // Determine maximum dose
   vtkNew<vtkImageAccumulate> doseStat;
@@ -428,8 +415,9 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode = vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
   paramNode->SetAndObserveDoseVolumeNode(doseScalarVolumeNode);
-  paramNode->SetAndObserveContourSetContourNode(contourHierarchyNode);
+  paramNode->SetAndObserveSegmentationNode(segmentationNode);
   paramNode->SetAndObserveChartNode(chartNode);
+  paramNode->SetAutomaticOversampling(automaticOversamplingCalculation);
   mrmlScene->AddNode(paramNode);
   dvhLogic->SetAndObserveDoseVolumeHistogramNode(paramNode);
 
@@ -445,31 +433,41 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   double checkpointStart = timer->GetUniversalTime();
   UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
 
-  // Get list of contours from the contour hierarchy node
-  std::vector<vtkMRMLContourNode*> selectedContourNodes;
-  vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(contourHierarchyNode, selectedContourNodes);
-
-  // Compute DVH and get result nodes
-  for (std::vector<vtkMRMLContourNode*>::iterator contourIt = selectedContourNodes.begin(); contourIt != selectedContourNodes.end(); ++contourIt)
+  // Compute DVH
+  std::string errorMessage = dvhLogic->ComputeDvh();
+  if (!errorMessage.empty())
   {
-    vtkMRMLContourNode* currentContourNode = (*contourIt);
-    std::cout << "Computing DVH for contour '" << currentContourNode->GetName() << "'" << std::endl;
+    std::cerr << errorMessage << std::endl;
+    return EXIT_FAILURE;
+  }
 
-    // Set automatic oversampling if selected
-    currentContourNode->SetAutomaticOversamplingFactor(automaticOversamplingCalculation);
+  // Calculate and print oversampling factors if automatically calculated
+  if (automaticOversamplingCalculation)
+  {
+    // Get spacing for dose volume
+    double doseSpacing[3] = {0.0,0.0,0.0};
+    doseScalarVolumeNode->GetSpacing(doseSpacing);
 
-    // Compute DVH
-    std::string errorMessage = dvhLogic->ComputeDvh(currentContourNode);
-    if (!errorMessage.empty())
+    // Calculate oversampling factors for all segments (need to calculate as it is not stored per segment)
+    vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
+    for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
     {
-      std::cerr << errorMessage << std::endl;
-      return EXIT_FAILURE;
-    }
+      vtkSegment* currentSegment = segmentIt->second;
+      vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
+        currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+      if (!currentBinaryLabelmap)
+      {
+        std::cerr << "Error: No binary labelmap in segment " << segmentIt->first << std::endl;
+        continue;
+      }
+      double currentSpacing[3] = {0.0,0.0,0.0};
+      currentBinaryLabelmap->GetSpacing(currentSpacing);
 
-    // Print oversampling factor if automatically calculated
-    if (automaticOversamplingCalculation)
-    {
-      std::cout << "  Automatic oversampling factor calculated to be " << currentContourNode->GetRasterizationOversamplingFactor() << std::endl;
+      double voxelSizeRatio = ((doseSpacing[0]*doseSpacing[1]*doseSpacing[2]) / (currentSpacing[0]*currentSpacing[1]*currentSpacing[2]));
+      // Round oversampling to two decimals
+      // Note: We need to round to some degree, because e.g. pow(64,1/3) is not exactly 4. It may be debated whether to round to integer or to a certain number of decimals
+      double oversamplingFactor = vtkMath::Round( pow( voxelSizeRatio, 1.0/3.0 ) * 100.0 ) / 100.0;
+      std::cout << "  Automatic oversampling factor for segment " << segmentIt->first << " calculated to be " << oversamplingFactor << std::endl;
     }
   }
 
@@ -639,10 +637,10 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
       }
     }
     
-    std::string structureName = currentStructure->GetAttribute(SlicerRtCommon::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
+    std::string structureName = currentStructure->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str());
 
     std::ostringstream volumeAttributeNameStream;
-    volumeAttributeNameStream << SlicerRtCommon::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << SlicerRtCommon::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+    volumeAttributeNameStream << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
     std::string structureVolume = currentStructure->GetAttribute(volumeAttributeNameStream.str().c_str());
 
     std::cout << "Accepted agreements per structure (" << structureName << ", " << structureVolume << " cc): " << numberOfAcceptedAgreementsPerStructure

@@ -25,7 +25,7 @@ SET (SlicerRtCommon_SRCS
   vtkSlicerAutoWindowLevelLogic.h
   )
 
-SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Libs_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Libs_INCLUDE_DIRS} ${vtkSegmentationCore_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -35,6 +35,7 @@ set(lib_name ${PROJECT_NAME})
 SET (SlicerRtCommon_LIBS ${SlicerRtCommon_LIBS}
   ${VTK_LIBRARIES}
   MRMLCore
+  vtkSegmentationCore
   )
 
 INCLUDE_DIRECTORIES( ${SlicerRtCommon_INCLUDE_DIRS} )

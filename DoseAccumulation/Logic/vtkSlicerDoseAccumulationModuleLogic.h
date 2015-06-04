@@ -40,6 +40,12 @@ class VTK_SLICER_DOSEACCUMULATION_LOGIC_EXPORT vtkSlicerDoseAccumulationModuleLo
   public vtkSlicerModuleLogic
 {
 public:
+  // DoseAccumulation constants
+  static const std::string DOSEACCUMULATION_ATTRIBUTE_PREFIX;
+  static const std::string DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME;
+  static const std::string DOSEACCUMULATION_OUTPUT_BASE_NAME_PREFIX;
+
+public:
   static vtkSlicerDoseAccumulationModuleLogic *New();
   vtkTypeMacro(vtkSlicerDoseAccumulationModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);

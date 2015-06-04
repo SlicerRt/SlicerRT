@@ -19,6 +19,13 @@
 
 ==============================================================================*/
 
+// DicomRtImportExport includes
+#include "qSlicerDicomRtImportExportModule.h"
+#include "qSlicerDicomRtImportExportModuleWidget.h"
+#include "vtkSlicerDicomRtImportExportModuleLogic.h"
+#include "vtkRibbonModelToBinaryLabelmapConversionRule.h"
+#include "vtkPlanarContourToRibbonModelConversionRule.h"
+
 // Qt includes
 #include <QDebug> 
 #include <QtPlugin>
@@ -39,10 +46,8 @@
 #include "vtkSlicerIsodoseModuleLogic.h"
 #include "vtkSlicerPlanarImageModuleLogic.h"
 
-// DicomRtImportExport includes
-#include "qSlicerDicomRtImportExportModule.h"
-#include "qSlicerDicomRtImportExportModuleWidget.h"
-#include "vtkSlicerDicomRtImportExportModuleLogic.h"
+// SegmentationCore includes
+#include "vtkSegmentationConverterFactory.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerDicomRtImportExportModule, qSlicerDicomRtImportExportModule);
@@ -164,6 +169,12 @@ void qSlicerDicomRtImportExportModule::setup()
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtDoseVolumePlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtPlanPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtBeamPlugin());
+
+  // Register converter rules
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkRibbonModelToBinaryLabelmapConversionRule>::New() );
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkPlanarContourToRibbonModelConversionRule>::New() );
 }
 
 //-----------------------------------------------------------------------------

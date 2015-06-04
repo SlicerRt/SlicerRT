@@ -29,6 +29,9 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
+// Segmentations includes
+#include "vtkOrientedImageData.h"
+
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 
@@ -45,6 +48,19 @@ convert_to_itk (vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform)
   return image;
 }
 
+//----------------------------------------------------------------------------
+template<class T> 
+static typename itk::Image<T,3>::Pointer
+convert_to_itk (vtkOrientedImageData* inImageData)
+{
+  typename itk::Image<T,3>::Pointer image = itk::Image<T,3>::New ();
+  SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage<T>(
+    inImageData, image, true);
+  return image;
+}
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 Plm_image::Pointer 
 PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform)
 {
@@ -108,16 +124,87 @@ PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode, bo
     break;
 
   default:
-    vtkWarningWithObjectMacro (inVolumeNode, "Got something else\n");
+    vtkWarningWithObjectMacro (inVolumeNode, "Unsupported scalar type!");
     break;
   }
 
   return image;
 }
 
+//----------------------------------------------------------------------------
 Plm_image::Pointer 
 PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLNode* inNode, bool applyWorldTransform)
 {
   return PlmCommon::ConvertVolumeNodeToPlmImage(
     vtkMRMLScalarVolumeNode::SafeDownCast(inNode), applyWorldTransform);
+}
+
+//----------------------------------------------------------------------------
+Plm_image::Pointer 
+PlmCommon::ConvertVtkOrientedImageDataToPlmImage(vtkOrientedImageData* inImageData)
+{
+  Plm_image::Pointer image = Plm_image::New ();
+
+  if (!inImageData)
+  {
+    std::cerr << "PlmCommon::ConvertVtkOrientedImageDataToPlmImage: Invalid input image data!";
+    return image;
+  }
+
+  int vtk_type = inImageData->GetScalarType ();
+
+  switch (vtk_type) {
+  case VTK_CHAR:
+  case VTK_SIGNED_CHAR:
+    image->set_itk (convert_to_itk<char> (inImageData));
+    break;
+  
+  case VTK_UNSIGNED_CHAR:
+    image->set_itk (convert_to_itk<unsigned char> (inImageData));
+    break;
+  
+  case VTK_SHORT:
+    image->set_itk (convert_to_itk<short> (inImageData));
+    break;
+  
+  case VTK_UNSIGNED_SHORT:
+    image->set_itk (convert_to_itk<unsigned short> (inImageData));
+    break;
+  
+#if (CMAKE_SIZEOF_UINT == 4)
+  case VTK_INT:
+  case VTK_LONG: 
+    image->set_itk (convert_to_itk<int> (inImageData));
+    break;
+  
+  case VTK_UNSIGNED_INT:
+  case VTK_UNSIGNED_LONG:
+    image->set_itk (convert_to_itk<unsigned int> (inImageData));
+    break;
+#else
+  case VTK_INT:
+  case VTK_LONG: 
+    image->set_itk (convert_to_itk<long> (inImageData));
+    break;
+  
+  case VTK_UNSIGNED_INT:
+  case VTK_UNSIGNED_LONG:
+    image->set_itk (convert_to_itk<unsigned long> (inImageData));
+    break;
+#endif
+  
+  case VTK_FLOAT:
+    image->set_itk (convert_to_itk<float> (inImageData));
+    break;
+  
+  case VTK_DOUBLE:
+    image->set_itk (convert_to_itk<double> (inImageData));
+    break;
+
+  default:
+    vtkWarningWithObjectMacro (inImageData, "Unsupported scalar type!");
+    break;
+  }
+
+  return image;
 }

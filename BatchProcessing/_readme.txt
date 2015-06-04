@@ -1,8 +1,8 @@
-BatchContourConversion
+BatchStructureSetConversion
   Purpose:
-    Convert all DICOM RTSS contours to labelmap and save them to disk
+    Convert all DICOM RTSS structures to labelmap and save them to disk
   Usage:
-    [path/]Slicer.exe --no-main-window --python-script [path/]BatchContourConversion.py --input-folder input/folder/path --output-folder output/folder/path
+    [path/]Slicer.exe --no-main-window --python-script [path/]BatchStructureSetConversion.py --input-folder input/folder/path --output-folder output/folder/path
     (Optionally use -i and -o instead of the long argument names)
   Notes:
     * The CT (or other anatomical) volume of the study needs to be present in the input folder so that the converter can use it as a reference.

@@ -35,16 +35,13 @@
 
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
-class vtkImageStencilData;
-class vtkMRMLScalarVolumeNode;
+class vtkOrientedImageData;
 class vtkMRMLDoubleArrayNode;
-class vtkMRMLContourNode;
-class vtkMRMLModelNode;
 class vtkMRMLChartViewNode;
 class vtkMRMLDoseVolumeHistogramNode;
 
 /// \ingroup SlicerRt_QtModules_DoseVolumeHistogram
-/// \brief The DoseVolumeHistogram module computes dose volume histogram (DVH) and metrics from a dose map and contour set(s).
+/// \brief The DoseVolumeHistogram module computes dose volume histogram (DVH) and metrics from a dose map and segmentation.
 ///
 /// The dimensions of the 3D elements (voxels) describing delineated structures are derived from the selected dose distribution volume,
 /// in which the voxels have width in the transverse imaging plane as described in the DICOM image header. The image set volume is
@@ -55,14 +52,39 @@ class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramMo
   public vtkSlicerModuleLogic
 {
 public:
+  // DoseVolumeHistogram constants
+  static const std::string DVH_ATTRIBUTE_PREFIX;
+  static const std::string DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME;
+  static const std::string DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE;
+  static const std::string DVH_CREATED_DVH_NODE_REFERENCE_ROLE;
+  static const std::string DVH_SEGMENTATION_NODE_REFERENCE_ROLE;
+  static const std::string DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME;
+  static const std::string DVH_STRUCTURE_NAME_ATTRIBUTE_NAME;
+  static const std::string DVH_STRUCTURE_COLOR_ATTRIBUTE_NAME;
+  static const std::string DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME;
+  static const std::string DVH_STRUCTURE_PLOT_LINE_STYLE_ATTRIBUTE_NAME;
+  static const std::string DVH_METRIC_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_LIST_ATTRIBUTE_NAME;
+
+  static const char        DVH_METRIC_LIST_SEPARATOR_CHARACTER;
+  static const std::string DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+  static const std::string DVH_METRIC_MEAN_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_MIN_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_MAX_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_METRIC_DOSE_ATTRIBUTE_NAME_POSTFIX;
+  static const std::string DVH_METRIC_INTENSITY_ATTRIBUTE_NAME_POSTFIX;
+  static const std::string DVH_METRIC_V_DOSE_ATTRIBUTE_NAME_PREFIX;
+  static const std::string DVH_ARRAY_NODE_NAME_POSTFIX;
+  static const std::string DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE;
+  static const std::string DVH_CSV_HEADER_VOLUME_FIELD_END;
+
+public:
   static vtkSlicerDoseVolumeHistogramModuleLogic *New();
   vtkTypeMacro(vtkSlicerDoseVolumeHistogramModuleLogic, vtkSlicerModuleLogic);
 
 public:
-  /// Compute DVH for the given structure contour node volume with the stenciled dose volume
-  /// (the indexed labelmap representation but with dose values instead of the labels)
-  /// \return Error message, empty string if no error
-  std::string ComputeDvh(vtkMRMLContourNode* structureContourNodes);
+  /// Compute DVH based on parameter node selections (dose volume, segmentation, segment IDs)
+  std::string ComputeDvh();
 
   /// Add dose volume histogram of a structure (ROI) to the selected chart given its double array node ID
   void AddDvhToSelectedChart(const char* dvhArrayNodeId);
@@ -137,6 +159,20 @@ public:
   vtkBooleanMacro(LogSpeedMeasurements, bool);
 
 protected:
+  /// Compute DVH for the given structure segment with the stenciled dose volume
+  /// (the labelmap representation of a segment but with dose values instead of the labels)
+  /// \param segmentLabelmap Binary representation of the labelmap representation of the segment the DVH is calculated on
+  /// \param oversampledDoseVolume Dose volume resampled to match the geometry of the segment labelmap (to allow stenciling)
+  /// \param segmentID ID of segment the DVH is calculated on
+  /// \param segmentColor Color of segment the DVH is calculated on
+  /// \param maxDoseGy Maximum dose determining the number of DVH bins (passed as argument so that it is only calculated once in \sa ComputeDvh() )
+  /// \return Error message, empty string if no error
+  std::string ComputeDvh(vtkOrientedImageData* segmentLabelmap, vtkOrientedImageData* oversampledDoseVolume, std::string segmentID, double segmentColor[3], double maxDoseGy);
+
+  /// Return the chart view node object from the layout
+  vtkMRMLChartViewNode* GetChartViewNode();
+
+protected:
   vtkSlicerDoseVolumeHistogramModuleLogic();
   virtual ~vtkSlicerDoseVolumeHistogramModuleLogic();
 
@@ -150,18 +186,6 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
-
-  /// Get the resampled dose volume and the stencil for a structure on the resampled dose volume
-  /// \param structureContourNode Input contour node containing the structure to stencil
-  /// \param resampledDoseVolumeNode Output volume node that will contain the resampled dose volume
-  /// \param consolidatedStructureContourNode Output contour containing the structure indexed labelmap if its lattice matches the resampled dose volume, or a temporarily resampled copy otherwise
-  virtual void GetOversampledDoseVolumeAndConsolidatedIndexedLabelmapForContour(vtkMRMLContourNode* structureContourNode, vtkMRMLScalarVolumeNode* resampledDoseVolumeNode, vtkMRMLContourNode* consolidatedStructureContourNode);
-
-  /// Return the chart view node object from the layout
-  vtkMRMLChartViewNode* GetChartViewNode();
-
-  /// Get selected contour nodes (expands a hierarchy node if found)
-  void GetSelectedContourNodes(std::vector<vtkMRMLContourNode*> &contourNodes);
 
 private:
   vtkSlicerDoseVolumeHistogramModuleLogic(const vtkSlicerDoseVolumeHistogramModuleLogic&); // Not implemented

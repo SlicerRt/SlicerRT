@@ -22,7 +22,7 @@
 #include "vtkMRMLDoseComparisonNode.h"
 
 // SlicerRT includes
-#include "vtkMRMLContourNode.h"
+#include "vtkMRMLSegmentationNode.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -38,7 +38,7 @@
 //------------------------------------------------------------------------------
 static const char* REFERENCE_DOSE_VOLUME_REFERENCE_ROLE = "referenceDoseVolumeRef";
 static const char* COMPARE_DOSE_VOLUME_REFERENCE_ROLE = "compareDoseVolumeRef";
-static const char* MASK_CONTOUR_REFERENCE_ROLE = "maskContourRef";
+static const char* MASK_SEGMENTATION_REFERENCE_ROLE = "maskSegmentationRef";
 static const char* GAMMA_VOLUME_REFERENCE_ROLE = "outputGammaVolumeRef";
 
 //------------------------------------------------------------------------------
@@ -47,6 +47,7 @@ vtkMRMLNodeNewMacro(vtkMRMLDoseComparisonNode);
 //----------------------------------------------------------------------------
 vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
 {
+  this->MaskSegmentID = NULL;
   this->DtaDistanceToleranceMm = 3.0;
   this->DoseDifferenceTolerancePercent = 3.0;
   this->ReferenceDoseGy = 50.0;
@@ -64,6 +65,7 @@ vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
 //----------------------------------------------------------------------------
 vtkMRMLDoseComparisonNode::~vtkMRMLDoseComparisonNode()
 {
+  this->SetMaskSegmentID(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -74,6 +76,7 @@ void vtkMRMLDoseComparisonNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
+  of << indent << " MaskSegmentID=\"" << (this->MaskSegmentID ? this->MaskSegmentID : "NULL") << "\"";
   of << indent << " DtaDistanceToleranceMm=\"" << this->DtaDistanceToleranceMm << "\"";
   of << indent << " DoseDifferenceTolerancePercent=\"" << this->DoseDifferenceTolerancePercent << "\"";
   of << indent << " ReferenceDoseGy=\"" << this->ReferenceDoseGy << "\"";
@@ -100,7 +103,13 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "DtaDistanceToleranceMm")) 
+    if (!strcmp(attName, "MaskSegmentID")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetMaskSegmentID(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "DtaDistanceToleranceMm")) 
       {
       std::stringstream ss;
       ss << attValue;
@@ -178,6 +187,7 @@ void vtkMRMLDoseComparisonNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLDoseComparisonNode *node = (vtkMRMLDoseComparisonNode *) anode;
 
+  this->SetMaskSegmentID(node->MaskSegmentID);
   this->DtaDistanceToleranceMm = node->DtaDistanceToleranceMm;
   this->DoseDifferenceTolerancePercent = node->DoseDifferenceTolerancePercent;
   this->ReferenceDoseGy = node->ReferenceDoseGy;
@@ -198,16 +208,17 @@ void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
+  os << indent << "MaskSegmentID:   " << (this->MaskSegmentID ? this->MaskSegmentID : "NULL") << "\n";
   os << indent << "DtaDistanceToleranceMm:   " << this->DtaDistanceToleranceMm << "\n";
   os << indent << "DoseDifferenceTolerancePercent:   " << this->DoseDifferenceTolerancePercent << "\n";
   os << indent << "ReferenceDoseGy:   " << this->ReferenceDoseGy << "\n";
   os << indent << "AnalysisThresholdPercent:   " << this->AnalysisThresholdPercent << "\n";
   os << indent << "MaximumGamma:   " << this->MaximumGamma << "\n";
   os << indent << "UseMaximumDose:   " << (this->UseMaximumDose ? "true" : "false") << "\n";
-  os << indent << "UseLinearInterpolation=\"" << (this->UseLinearInterpolation ? "true" : "false") << "\"";
-  os << indent << "PassFractionPercent=\"" << this->PassFractionPercent << "\"";
-  os << indent << "ResultsValid=\"" << (this->ResultsValid ? "true" : "false") << "\"";
-  os << indent << "ReportString=\"" << (this->ReportString ? this->ReportString : "") << "\"";
+  os << indent << "UseLinearInterpolation:   " << (this->UseLinearInterpolation ? "true" : "false") << "\n";
+  os << indent << "PassFractionPercent:   " << this->PassFractionPercent << "\n";
+  os << indent << "ResultsValid:   " << (this->ResultsValid ? "true" : "false") << "\n";
+  os << indent << "ReportString:   " << (this->ReportString ? this->ReportString : "") << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -235,15 +246,15 @@ void vtkMRMLDoseComparisonNode::SetAndObserveCompareDoseVolumeNode(vtkMRMLScalar
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLContourNode* vtkMRMLDoseComparisonNode::GetMaskContourNode()
+vtkMRMLSegmentationNode* vtkMRMLDoseComparisonNode::GetMaskSegmentationNode()
 {
-  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(MASK_CONTOUR_REFERENCE_ROLE) );
+  return vtkMRMLSegmentationNode::SafeDownCast( this->GetNodeReference(MASK_SEGMENTATION_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseComparisonNode::SetAndObserveMaskContourNode(vtkMRMLContourNode* node)
+void vtkMRMLDoseComparisonNode::SetAndObserveMaskSegmentationNode(vtkMRMLSegmentationNode* node)
 {
-  this->SetNodeReferenceID(MASK_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(MASK_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------

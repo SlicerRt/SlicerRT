@@ -6,10 +6,10 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_LOGIC_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
-  ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
-  ${vtkSlicerContoursModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerDICOMLibModuleLogic_INCLUDE_DIRS}
   ${PlmCommon_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
@@ -21,8 +21,6 @@ set(${KIT}_SRCS
   vtkSlicerDicomRtReader.cxx
   vtkSlicerDicomRtReader.h
   vtkSlicerDicomRtReader.txx
-  vtkTopologicalHierarchy.cxx
-  vtkTopologicalHierarchy.h
   vtkSlicerDicomRtWriter.cxx
   vtkSlicerDicomRtWriter.h
   )
@@ -31,8 +29,8 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerSubjectHierarchyModuleMRML
   vtkSlicerSubjectHierarchyModuleLogic
-  vtkSlicerContoursModuleMRML
-  vtkSlicerContoursModuleLogic
+  vtkSlicerSegmentationsModuleMRML
+  vtkSlicerSegmentationsModuleLogic
   vtkSlicerIsodoseModuleLogic
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}

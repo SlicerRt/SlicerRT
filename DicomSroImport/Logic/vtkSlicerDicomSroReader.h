@@ -229,7 +229,7 @@ protected:
 
 protected:
   vtkSlicerDicomSroReader();
-  virtual ~vtkSlicerDicomSroReader();
+  ~vtkSlicerDicomSroReader();
 
 private:
   vtkSlicerDicomSroReader(const vtkSlicerDicomSroReader&); // Not implemented

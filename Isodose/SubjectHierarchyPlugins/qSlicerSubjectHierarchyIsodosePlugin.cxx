@@ -18,12 +18,10 @@
 
 ==============================================================================*/
 
-// SlicerRt includes
-#include "SlicerRtCommon.h"
-#include "vtkMRMLIsodoseNode.h"
-
-// RTHierarchy Plugins includes
+// Isodose includes
 #include "qSlicerSubjectHierarchyIsodosePlugin.h"
+#include "vtkMRMLIsodoseNode.h"
+#include "vtkSlicerIsodoseModuleLogic.h"
 
 // SubjectHierarchy MRML includes
 #include "vtkMRMLSubjectHierarchyConstants.h"
@@ -115,7 +113,7 @@ double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyNode(vtkMRMLS
 
   // Isodose lines
   if ( associatedNode && associatedNode->IsA("vtkMRMLModelNode")
-    && parentHierarchyNodeName.contains(SlicerRtCommon::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
+    && parentHierarchyNodeName.contains(vtkSlicerIsodoseModuleLogic::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
   {
     return 1.0;
   }

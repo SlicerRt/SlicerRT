@@ -53,6 +53,11 @@
 #include <vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
+const std::string vtkSlicerDoseAccumulationModuleLogic::DOSEACCUMULATION_ATTRIBUTE_PREFIX = "DoseAccumulation.";
+const std::string vtkSlicerDoseAccumulationModuleLogic::DOSEACCUMULATION_DOSE_VOLUME_NODE_NAME_ATTRIBUTE_NAME = vtkSlicerDoseAccumulationModuleLogic::DOSEACCUMULATION_ATTRIBUTE_PREFIX + "DoseVolumeNodeName";
+const std::string vtkSlicerDoseAccumulationModuleLogic::DOSEACCUMULATION_OUTPUT_BASE_NAME_PREFIX = "Accumulated_";
+
+//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDoseAccumulationModuleLogic);
 
 //----------------------------------------------------------------------------

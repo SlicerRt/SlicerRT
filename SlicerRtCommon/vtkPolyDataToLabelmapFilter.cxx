@@ -34,7 +34,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
 #include <vtkTriangleFilter.h>
-#include <vtkVersion.h>
 
 //----------------------------------------------------------------------------
 
@@ -264,7 +263,7 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
   {
     // if same as original extent, no problem!
     calculatedExtents[2*axis+1] = ceil( (expandedBounds[2*axis+1] - expandedBounds[2*axis]) * (1/spacing[axis]));
-    if (calculatedExtents < 0)
+    if (calculatedExtents[2*axis+1] < 0)
     {
       vtkErrorMacro("Invalid extent when calculating overlap between input polydata and reference image. Were they in the IJK coordinate system when this was called?");
       return false;

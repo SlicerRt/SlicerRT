@@ -39,12 +39,24 @@ class VTK_SLICER_DOSECOMPARISON_LOGIC_EXPORT vtkSlicerDoseComparisonModuleLogic 
   public vtkSlicerModuleLogic
 {
 public:
+  // DoseComparison constants
+  static const char* DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME;
+  static const char* DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME;
+  static const std::string DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX;
+  static const std::string DOSECOMPARISON_REFERENCE_DOSE_VOLUME_REFERENCE_ROLE;
+  static const std::string DOSECOMPARISON_COMPARE_DOSE_VOLUME_REFERENCE_ROLE;
+
+public:
   static vtkSlicerDoseComparisonModuleLogic *New();
   vtkTypeMacro(vtkSlicerDoseComparisonModuleLogic,vtkSlicerModuleLogic);
 
 public:
   /// Compute gamma metric according to the selected input volumes and parameters (DoseComparison parameter set node content)
-  void ComputeGammaDoseDifference();
+  /// \return Error message, empty string if no error
+  std::string ComputeGammaDoseDifference();
+
+  /// Function called when gamma progress is updated by algorithm
+  void GammaProgressUpdated(float progress);
 
 protected:
   /// Creates default gamma color table.
@@ -64,6 +76,9 @@ public:
 
   vtkSetStringMacro(DefaultGammaColorTableNodeId);
   vtkGetStringMacro(DefaultGammaColorTableNodeId);
+
+  vtkGetMacro(Progress, double);
+  vtkSetMacro(Progress, double);
 
 protected:
   vtkSlicerDoseComparisonModuleLogic();
@@ -92,6 +107,9 @@ protected:
 
   /// Default gamma color table ID. Loaded on Slicer startup.
   char* DefaultGammaColorTableNodeId;
+
+  /// Progress value (between 0 and 1)
+  double Progress;
 };
 
 #endif
