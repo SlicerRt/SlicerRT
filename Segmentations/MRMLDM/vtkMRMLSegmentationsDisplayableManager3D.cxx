@@ -457,8 +457,6 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::UpdateDisplayNodePip
     // Update pipeline actor
     pipeline->Actor->SetVisibility(displayNodeVisible);
 
-    vtkMapper* mapper=pipeline->Actor->GetMapper();
-
     pipeline->Actor->GetProperty()->SetRepresentation(displayNode->GetRepresentation());
     pipeline->Actor->GetProperty()->SetPointSize(displayNode->GetPointSize());
     pipeline->Actor->GetProperty()->SetLineWidth(displayNode->GetLineWidth());

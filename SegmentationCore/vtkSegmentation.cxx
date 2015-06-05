@@ -427,7 +427,10 @@ void vtkSegmentation::RemoveSegment(SegmentMap::iterator segmentIt)
 }
 
 //---------------------------------------------------------------------------
-void vtkSegmentation::OnSegmentModified(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
+void vtkSegmentation::OnSegmentModified(vtkObject* caller,
+                                        unsigned long vtkNotUsed(eid),
+                                        void* clientData,
+                                        void* vtkNotUsed(callData))
 {
   vtkSegmentation* self = reinterpret_cast<vtkSegmentation*>(clientData);
   vtkSegment* callerSegment = reinterpret_cast<vtkSegment*>(caller);
@@ -468,7 +471,10 @@ void vtkSegmentation::OnSegmentModified(vtkObject* caller, unsigned long eid, vo
 }
 
 //---------------------------------------------------------------------------
-void vtkSegmentation::OnMasterRepresentationModified(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
+void vtkSegmentation::OnMasterRepresentationModified(vtkObject* vtkNotUsed(caller),
+                                                     unsigned long vtkNotUsed(eid),
+                                                     void* clientData,
+                                                     void* vtkNotUsed(callData))
 {
   vtkSegmentation* self = reinterpret_cast<vtkSegmentation*>(clientData);
   if (!self)
@@ -680,7 +686,7 @@ bool vtkSegmentation::CreateRepresentation(const std::string& targetRepresentati
 }
 
 //---------------------------------------------------------------------------
-bool vtkSegmentation::CreateRepresentation(const std::string& targetRepresentationName,
+bool vtkSegmentation::CreateRepresentation(const std::string& vtkNotUsed(targetRepresentationName),
                                            vtkSegmentationConverter::ConversionPathType path,
                                            vtkSegmentationConverterRule::ConversionParameterListType parameters)
 {
@@ -763,7 +769,6 @@ bool vtkSegmentation::ContainsRepresentation(std::string representationName)
   {
     return false;
   }
-  vtkSegment* firstSegment = this->Segments.begin()->second;
 
   std::vector<std::string> containedRepresentationNames;
   this->GetContainedRepresentationNames(containedRepresentationNames);

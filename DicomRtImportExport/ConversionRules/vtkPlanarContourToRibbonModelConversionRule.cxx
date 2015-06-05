@@ -95,7 +95,7 @@ vtkPlanarContourToRibbonModelConversionRule::~vtkPlanarContourToRibbonModelConve
 }
 
 //----------------------------------------------------------------------------
-unsigned int vtkPlanarContourToRibbonModelConversionRule::GetConversionCost(vtkDataObject* sourceRepresentation/*=NULL*/, vtkDataObject* targetRepresentation/*=NULL*/)
+unsigned int vtkPlanarContourToRibbonModelConversionRule::GetConversionCost(vtkDataObject* vtkNotUsed(sourceRepresentation)/*=NULL*/, vtkDataObject* vtkNotUsed(targetRepresentation)/*=NULL*/)
 {
   // Rough input-independent guess
   return 50;

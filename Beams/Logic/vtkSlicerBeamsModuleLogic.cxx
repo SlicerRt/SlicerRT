@@ -294,7 +294,6 @@ std::string vtkSlicerBeamsModuleLogic::CreateBeamModel()
 
   vtkSmartPointer<vtkTransform> beamModelTranslationTransform = vtkSmartPointer<vtkTransform>::New();
   beamModelTranslationTransform->Identity();
-  double isoCenterPosition[3] = {0.0,0.0,0.0};
   beamModelTranslationTransform->Translate(isocenterCoordinates[0], isocenterCoordinates[1], isocenterCoordinates[2]);
 
   beamModelTransform->PostMultiply();

@@ -410,8 +410,6 @@ void qMRMLSegmentationConversionParametersWidget::onSetReferenceImageGeometryFro
 {
   Q_D(qMRMLSegmentationConversionParametersWidget);
 
-  QPushButton* senderButton = dynamic_cast<QPushButton*>(sender());
-
   QDialog* getGeometryFromVolumeDialog = new QDialog(NULL, Qt::Dialog);
   QVBoxLayout* geometryLayout = new QVBoxLayout(getGeometryFromVolumeDialog);
   geometryLayout->setContentsMargins(6, 6, 6, 6);

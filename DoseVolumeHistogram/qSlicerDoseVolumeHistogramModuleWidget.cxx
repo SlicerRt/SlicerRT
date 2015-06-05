@@ -605,7 +605,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable(bool force/*=false*
 
   // If number of nodes is the same in the table and the list of nodes, then we don't need refreshing the table
   // (this function is called after each node event, so it cannot occur that a node has been removed and another added)
-  if (!force && d->PlotCheckboxToStructureNameMap.size() == dvhNodes.size())
+  if (!force && d->PlotCheckboxToStructureNameMap.size() == static_cast<int>(dvhNodes.size()))
   {
     return;
   }
@@ -851,7 +851,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::onProgressUpdated(vtkObject* caller, void* callData, unsigned long eid, void* clientData)
+void qSlicerDoseVolumeHistogramModuleWidget::onProgressUpdated(vtkObject* vtkNotUsed(caller), void* callData, unsigned long vtkNotUsed(eid), void* vtkNotUsed(clientData))
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 

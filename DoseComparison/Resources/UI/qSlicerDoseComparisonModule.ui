@@ -440,6 +440,11 @@ p, li { white-space: pre-wrap; }
    <header>ctkCollapsibleButton.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>qMRMLSegmentSelectorWidget</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLSegmentSelectorWidget.h</header>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections>

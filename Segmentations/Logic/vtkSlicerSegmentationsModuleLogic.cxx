@@ -143,7 +143,10 @@ void vtkSlicerSegmentationsModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerSegmentationsModuleLogic::OnSubjectHierarchyUIDAdded(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
+void vtkSlicerSegmentationsModuleLogic::OnSubjectHierarchyUIDAdded(vtkObject* caller,
+                                                                   unsigned long vtkNotUsed(eid),
+                                                                   void* clientData,
+                                                                   void* vtkNotUsed(callData))
 {
   vtkSlicerSegmentationsModuleLogic* self = reinterpret_cast<vtkSlicerSegmentationsModuleLogic*>(clientData);
   if (!self)

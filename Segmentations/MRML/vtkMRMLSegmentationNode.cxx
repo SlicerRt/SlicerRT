@@ -46,10 +46,16 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkHomogeneousTransform.h>
 #include <vtkLookupTable.h>
 
+// STD includes
+#include <algorithm>
+
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
 #include "vtkOrientedImageDataResample.h"
 #include "vtkCalculateOversamplingFactor.h"
+
+// STD includes
+#include <algorithm>
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLSegmentationNode);
@@ -261,7 +267,7 @@ void vtkMRMLSegmentationNode::SetAndObserveSegmentation(vtkSegmentation* segment
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationNode::OnMasterRepresentationModified(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
+void vtkMRMLSegmentationNode::OnMasterRepresentationModified(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eid), void* clientData, void* vtkNotUsed(callData))
 {
   vtkMRMLSegmentationNode* self = reinterpret_cast<vtkMRMLSegmentationNode*>(clientData);
   if (!self)
@@ -283,7 +289,7 @@ void vtkMRMLSegmentationNode::OnMasterRepresentationModified(vtkObject* caller, 
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationNode::OnSegmentAdded(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
+void vtkMRMLSegmentationNode::OnSegmentAdded(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eid), void* clientData, void* callData)
 {
   vtkMRMLSegmentationNode* self = reinterpret_cast<vtkMRMLSegmentationNode*>(clientData);
   if (!self)
@@ -319,7 +325,7 @@ void vtkMRMLSegmentationNode::OnSegmentAdded(vtkObject* caller, unsigned long ei
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationNode::OnSegmentRemoved(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
+void vtkMRMLSegmentationNode::OnSegmentRemoved(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eid), void* clientData, void* callData)
 {
   vtkMRMLSegmentationNode* self = reinterpret_cast<vtkMRMLSegmentationNode*>(clientData);
   if (!self)
@@ -373,7 +379,7 @@ void vtkMRMLSegmentationNode::OnSegmentRemoved(vtkObject* caller, unsigned long 
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationNode::OnSegmentModified(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
+void vtkMRMLSegmentationNode::OnSegmentModified(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eid), void* clientData, void* callData)
 {
   vtkMRMLSegmentationNode* self = reinterpret_cast<vtkMRMLSegmentationNode*>(clientData);
   if (!self)
@@ -394,7 +400,7 @@ void vtkMRMLSegmentationNode::OnSegmentModified(vtkObject* caller, unsigned long
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationNode::OnRepresentationModified(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
+void vtkMRMLSegmentationNode::OnRepresentationModified(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eid), void* clientData, void* vtkNotUsed(callData))
 {
   vtkMRMLSegmentationNode* self = reinterpret_cast<vtkMRMLSegmentationNode*>(clientData);
   if (!self)
@@ -833,7 +839,6 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
   {
     // Reference image geometry might be missing because segmentation was created from labelmaps.
     // Set reference image geometry from largest segment labelmap
-    vtkOrientedImageData* largestExtentBinaryLabelmap = NULL;
     double largestExtentMm3 = 0;
     for (std::vector<std::string>::iterator segmentIt = mergedSegmentIDs.begin(); segmentIt != mergedSegmentIDs.end(); ++segmentIt)
     {
@@ -854,7 +859,6 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
       if (extentMm3 > largestExtentMm3)
       {
         largestExtentMm3 = extentMm3;
-        largestExtentBinaryLabelmap = currentBinaryLabelmap;
       }
     }
     if (!highestResolutionLabelmap)

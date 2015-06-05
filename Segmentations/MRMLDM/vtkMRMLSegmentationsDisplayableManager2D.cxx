@@ -556,7 +556,6 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
 
     // Update pipeline actor
     vtkActor2D* actor = vtkActor2D::SafeDownCast(pipeline->Actor);
-    vtkPolyDataMapper2D* mapper = vtkPolyDataMapper2D::SafeDownCast(actor->GetMapper());
 
     actor->SetPosition(0,0);
     vtkProperty2D* actorProperties = actor->GetProperty();

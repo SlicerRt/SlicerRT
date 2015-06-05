@@ -137,8 +137,8 @@ void qSlicerSegmentationsModule::setup()
 {
   this->Superclass::setup();
 
-  vtkSlicerSegmentationsModuleLogic* segmentationsLogic =
-    vtkSlicerSegmentationsModuleLogic::SafeDownCast(this->logic());
+  //vtkSlicerSegmentationsModuleLogic* segmentationsLogic =
+  //  vtkSlicerSegmentationsModuleLogic::SafeDownCast(this->logic());
 
   // Register subject hierarchy plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchySegmentationsPlugin());
