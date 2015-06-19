@@ -253,15 +253,13 @@ bool vtkMRMLSegmentationDisplayNode::GetSegmentVisibility(std::string segmentID)
 //---------------------------------------------------------------------------
 void vtkMRMLSegmentationDisplayNode::SetSegmentVisibility(std::string segmentID, bool visible)
 {
-  SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentID);
-  if (propsIt == this->SegmentationDisplayProperties.end())
-  {
-    vtkErrorMacro("SetSegmentVisibility: No display properties found for segment with ID " << segmentID);
+  SegmentDisplayProperties properties;
+  if (!this->GetSegmentDisplayProperties(segmentID, properties))
+    {
     return;
-  }
-
-  propsIt->second.Visible = visible;
-  this->Modified();
+    }
+  properties.Visible = visible;
+  this->SetSegmentDisplayProperties(segmentID, properties);
 }
 
 //---------------------------------------------------------------------------
@@ -282,17 +280,15 @@ vtkVector3d vtkMRMLSegmentationDisplayNode::GetSegmentColor(std::string segmentI
 //---------------------------------------------------------------------------
 void vtkMRMLSegmentationDisplayNode::SetSegmentColor(std::string segmentID, vtkVector3d color)
 {
-  SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentID);
-  if (propsIt == this->SegmentationDisplayProperties.end())
-  {
-    vtkErrorMacro("SetSegmentColor: No display properties found for segment with ID " << segmentID);
+  SegmentDisplayProperties properties;
+  if (!this->GetSegmentDisplayProperties(segmentID, properties))
+    {
     return;
-  }
-
-  propsIt->second.Color[0] = color.GetX();
-  propsIt->second.Color[1] = color.GetY();
-  propsIt->second.Color[2] = color.GetZ();
-  this->Modified();
+    }
+  properties.Color[0] = color.GetX();
+  properties.Color[1] = color.GetY();
+  properties.Color[2] = color.GetZ();
+  this->SetSegmentDisplayProperties(segmentID, properties);
 }
 
 //---------------------------------------------------------------------------
@@ -310,15 +306,13 @@ double vtkMRMLSegmentationDisplayNode::GetSegmentPolyDataOpacity(std::string seg
 //---------------------------------------------------------------------------
 void vtkMRMLSegmentationDisplayNode::SetSegmentPolyDataOpacity(std::string segmentID, double opacity)
 {
-  SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentID);
-  if (propsIt == this->SegmentationDisplayProperties.end())
-  {
-    vtkErrorMacro("SetSegmentPolyDataOpacity: No display properties found for segment with ID " << segmentID);
+  SegmentDisplayProperties properties;
+  if (!this->GetSegmentDisplayProperties(segmentID, properties))
+    {
     return;
-  }
-
-  propsIt->second.PolyDataOpacity = opacity;
-  this->Modified();
+    }
+  properties.PolyDataOpacity = opacity;
+  this->SetSegmentDisplayProperties(segmentID, properties);
 }
 
 //---------------------------------------------------------------------------
