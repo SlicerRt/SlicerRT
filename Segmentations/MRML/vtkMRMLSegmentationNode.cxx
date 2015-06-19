@@ -564,12 +564,16 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
     return true;
   }
 
+  int wasModifyingDisplayNode = displayNode->StartModify();
+
   // Create color table for segmentation if does not exist
   vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(displayNode->GetColorNode());
   if (!colorTableNode)
   {
     colorTableNode = displayNode->CreateColorTableNode(this->Name);
   }
+
+ int wasModifyingColorTableNode = colorTableNode->StartModify();
 
   // Add entry in color table for segment
   int numberOfColors = colorTableNode->GetNumberOfColors();
@@ -589,6 +593,9 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
   properties.Color[2] = defaultColor[2];
   properties.PolyDataOpacity = 1.0;
   displayNode->SetSegmentDisplayProperties(segmentId, properties);
+
+  colorTableNode->EndModify(wasModifyingColorTableNode);
+  displayNode->EndModify(wasModifyingDisplayNode);
 
   return true;
 }
