@@ -479,7 +479,8 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
   vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(displayNode);
 
   // Determine which representation to show if not yet determined
-  std::string polyDataRepresenatationName(segmentationDisplayNode->GetPolyDataDisplayRepresentationName());
+  char * representationName = segmentationDisplayNode->GetPolyDataDisplayRepresentationName();
+  std::string polyDataRepresenatationName(representationName ? representationName : "");
 
   // Get segmentation
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(
