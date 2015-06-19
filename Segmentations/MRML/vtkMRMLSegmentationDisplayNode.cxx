@@ -116,12 +116,13 @@ vtkMRMLColorTableNode* vtkMRMLSegmentationDisplayNode::CreateColorTableNode(cons
 //---------------------------------------------------------------------------
 char* vtkMRMLSegmentationDisplayNode::GetPolyDataDisplayRepresentationName()
 {
+  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(this->GetDisplayableNode());
+
   bool polyDataRepresentationNeedsUpdate = (this->PolyDataDisplayRepresentationName == NULL);
 
   // Check if the currently set poly data representation (if any) exists in the segmentation
   if (!polyDataRepresentationNeedsUpdate)
   {
-    vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(this->GetDisplayableNode());
     if (!segmentationNode)
     {
       return NULL;
@@ -136,6 +137,10 @@ char* vtkMRMLSegmentationDisplayNode::GetPolyDataDisplayRepresentationName()
   // Determine poly data representation if necessary
   if (polyDataRepresentationNeedsUpdate)
   {
+    if (segmentationNode->GetSegmentation()->GetNumberOfSegments() == 0)
+    {
+      return NULL;
+    }
     const char* name = this->DeterminePolyDataDisplayRepresentationName();
     if (!name)
     {
