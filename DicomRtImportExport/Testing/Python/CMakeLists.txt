@@ -32,26 +32,27 @@ set(KIT_UNITTEST_SCRIPTS)
 SlicerMacroConfigureGenericPythonModuleTests("${MODULE_NAME}" KIT_UNITTEST_SCRIPTS)
 
 #-----------------------------------------------------------------------------
+if(CMAKE_CONFIGURATION_TYPES)
+  set(MODULE_BUILD_DIR "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/${CMAKE_CFG_INTDIR}")
+else()
+  set(MODULE_BUILD_DIR "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}")
+endif()
+
 foreach(script_name ${KIT_UNITTEST_SCRIPTS})
   slicer_add_python_unittest(
     SCRIPT ${script_name}
     SLICER_ARGS --no-main-window --disable-cli-modules
                 --additional-module-paths
+                  ${MODULE_BUILD_DIR}
                   ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}
-                  ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}
-                  ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Debug
-                  ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Release
     TESTNAME_PREFIX nomainwindow_
     )
 endforeach()
 
-#-----------------------------------------------------------------------------
 slicer_add_python_unittest(
   SCRIPT DicomRtImportSelfTest.py
   SLICER_ARGS --disable-cli-modules
               --additional-module-paths
-                ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}
-                ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Debug
-                ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Release
+                ${MODULE_BUILD_DIR}
                 ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR} 
   )

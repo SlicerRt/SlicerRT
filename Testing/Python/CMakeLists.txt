@@ -16,11 +16,15 @@ ctkMacroCompilePythonScript(
   )
 
 #-----------------------------------------------------------------------------
+if(CMAKE_CONFIGURATION_TYPES)
+  set(MODULE_BUILD_DIR "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/${CMAKE_CFG_INTDIR}")
+else()
+  set(MODULE_BUILD_DIR "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}")
+endif()
+
 slicer_add_python_unittest(
   SCRIPT IGRTWorkflow_SelfTest.py
   SLICER_ARGS --additional-module-paths
-                ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}
-                ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Debug
-                ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/Release
+                ${MODULE_BUILD_DIR}
                 ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR} 
   )
