@@ -332,7 +332,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   }
 
   vtkMRMLScalarVolumeNode* doseVolumeNode = this->IsodoseNode->GetDoseVolumeNode();
-  if (!doseVolumeNode)
+  if (!doseVolumeNode || !doseVolumeNode->GetImageData())
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Invalid dose volume!");
     return;
