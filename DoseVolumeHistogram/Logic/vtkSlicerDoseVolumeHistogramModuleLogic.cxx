@@ -598,7 +598,9 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkOrientedImage
 
   // Set array node attributes
   arrayNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-  arrayNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), segmentID.c_str());
+  std::string segmentName =
+      this->DoseVolumeHistogramNode->GetSegmentationNode()->GetSegmentation()->GetSegment(segmentID)->GetName();
+  arrayNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str(), segmentName.c_str());
   {
     std::ostringstream attributeValueStream;
     attributeValueStream << (this->DoseVolumeHistogramNode->GetAutomaticOversampling() ? (-1.0) : this->DefaultDoseVolumeOversamplingFactor);
