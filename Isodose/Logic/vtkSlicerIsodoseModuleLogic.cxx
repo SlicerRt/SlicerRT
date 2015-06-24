@@ -358,7 +358,6 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
 
   // Create display node for the model hierarchy node
   vtkSmartPointer<vtkMRMLModelDisplayNode> modelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  std::string modelHierarchyDisplayNodeName = modelHierarchyNodeName + "Display";
   modelDisplayNode->SetName(modelHierarchyNodeName.c_str());
   modelDisplayNode->SetVisibility(1);
   this->GetMRMLScene()->AddNode(modelDisplayNode);
@@ -370,8 +369,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     modelHierarchyNodeName.c_str());
 
   // Get color table
-  vtkMRMLColorTableNode* colorTableNode = this->IsodoseNode->GetColorTableNode();  
-  vtkSmartPointer<vtkLookupTable> lookupTable = colorTableNode->GetLookupTable();
+  vtkMRMLColorTableNode* colorTableNode = this->IsodoseNode->GetColorTableNode();
 
   // Reslice dose volume
   vtkSmartPointer<vtkMatrix4x4> inputIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
