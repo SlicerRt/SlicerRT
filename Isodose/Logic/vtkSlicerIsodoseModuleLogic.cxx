@@ -371,6 +371,10 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   // Get color table
   vtkMRMLColorTableNode* colorTableNode = this->IsodoseNode->GetColorTableNode();
 
+  // Progress
+  int stepCount = 1 /* reslice step */ + colorTableNode->GetNumberOfColors();
+  int currentStep = 0;
+
   // Reslice dose volume
   vtkSmartPointer<vtkMatrix4x4> inputIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   doseVolumeNode->GetIJKToRASMatrix(inputIJK2RASMatrix);
@@ -407,6 +411,11 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   reslice->SetResliceTransform(outputIJK2IJKResliceTransform);
   reslice->Update();
   vtkSmartPointer<vtkImageData> reslicedDoseVolumeImage = reslice->GetOutput(); 
+
+  // Report progress
+  ++currentStep;
+  double progress = (double)(currentStep) / (double)stepCount;
+  this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
 
   // Create isodose surfaces
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
@@ -534,6 +543,11 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
         this->GetMRMLScene(), subjectHierarchyRootNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
         isodoseModelNodeName.c_str(), isodoseModelHierarchyNode);
     }
+
+    // Report progress
+    ++currentStep;
+    progress = (double)(currentStep) / (double)stepCount;
+    this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
   }
 
   this->IsodoseNode->SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(modelHierarchyRootNode);
