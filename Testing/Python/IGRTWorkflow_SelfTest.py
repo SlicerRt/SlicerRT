@@ -76,7 +76,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.TestSection_06_ComputeGamma()
       self.TestSection_07_AccumulateDose()
       self.TestSection_08_ComputeDvh()
-      # self.TestUtility_ClearDatabase()
+      self.TestUtility_ClearDatabase()
 
     except Exception, e:
       pass
@@ -134,7 +134,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
   def TestSection_01A_OpenTempDatabase(self):
     # Open test database and empty it
     try:
-      qt.QDir().mkpath(self.dicomDatabaseDir)
+      os.mkdir(self.dicomDatabaseDir)
 
       if slicer.dicomDatabase:
         self.originalDatabaseDirectory = os.path.split(slicer.dicomDatabase.databaseFilename)[0]
