@@ -507,25 +507,21 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
     double *roiColor = rtReader->GetRoiDisplayColor(internalROIIndex);
 
     // Get structure
-    vtkPolyData* roiPolyTemp = rtReader->GetRoiPolyData(internalROIIndex);
-    if (roiPolyTemp == NULL)
+    vtkPolyData* roiPolyData = rtReader->GetRoiPolyData(internalROIIndex);
+    if (roiPolyData == NULL)
     {
       vtkWarningMacro("LoadRtStructureSet: Invalid structure ROI data for ROI named '"
         << (roiLabel?roiLabel:"Unnamed") << "' in file '" << fileName
         << "' (internal ROI index: " << internalROIIndex << ")");
       continue;
     }
-    if (roiPolyTemp->GetNumberOfPoints() == 0)
+    if (roiPolyData->GetNumberOfPoints() == 0)
     {
       vtkWarningMacro("LoadRtStructureSet: Structure ROI data does not contain any points for ROI named '"
         << (roiLabel?roiLabel:"Unnamed") << "' in file '" << fileName
         << "' (internal ROI index: " << internalROIIndex << ")");
       continue;
     }
-
-    // Make a copy the polydata for further use (set the original points before ribbonization to the contour)
-    vtkSmartPointer<vtkPolyData> roiPolyData = vtkSmartPointer<vtkPolyData>::New();
-    roiPolyData->DeepCopy(roiPolyTemp);
 
     // Get referenced series UID
     const char* roiReferencedSeriesUid = rtReader->GetRoiReferencedSeriesUid(internalROIIndex);
@@ -647,10 +643,10 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
     }
   } // for all ROIs
 
-  // Force showing ribbon model instead of contour points and calculate auto opacity values for segments
+  // Force showing closed surface model instead of contour points and calculate auto opacity values for segments
   if (segmentationDisplayNode.GetPointer())
   {
-    segmentationDisplayNode->SetPolyDataDisplayRepresentationName(SlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME);
+    segmentationDisplayNode->SetPolyDataDisplayRepresentationName(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
     segmentationDisplayNode->CalculateAutoOpacitiesForSegments();
   }
 

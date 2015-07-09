@@ -99,10 +99,6 @@ protected:
   /// Image containing the rasterization reference geometry
   vtkOrientedImageData* ReferenceGeometryImageData;
 
-  /// Experimental scaling factor used to bring the results for ribbon model closer to the closed surface one
-  /// for complexity measure. According to the experiments, the ribbon model NSI is 85% of that for closed surface.
-  double ComplexityScalingFactor;
-
   /// Calculated oversampling factor for the segmentation node and its reference volume
   double OutputOversamplingFactor;
 

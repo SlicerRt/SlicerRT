@@ -43,7 +43,6 @@ vtkCalculateOversamplingFactor::vtkCalculateOversamplingFactor()
 {
   this->InputPolyData = NULL;
   this->ReferenceGeometryImageData = NULL;
-  this->ComplexityScalingFactor = 1.0;
   this->OutputOversamplingFactor = 1;
   this->MassPropertiesAlgorithm = NULL;
   this->LogSpeedMeasurementsOff();
@@ -68,7 +67,6 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
 {
   // Set a safe value to use even if the return value is not checked
   this->OutputOversamplingFactor = 1;
-  this->ComplexityScalingFactor = 1.0;
 
   if (!this->InputPolyData)
   {
@@ -80,32 +78,6 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
     vtkErrorMacro("CalculateOversamplingFactor: Invalid rasterization reference volume node!");
     return false;
   }
-
-  //TODO: When the PlanarContoursToSurface algorithm is integrated, it can be used to create closed surface directly from planar contours
-  //      Also remove ComplexityScalingFactor member and assume it's 1
-
-  //// Closed surface model is preferred to determine oversampling factor, because
-  //// ribbon is open and provides very inaccurate surface area.
-  //vtkPolyData* polyDataUsedForOversamplingCalculation = NULL;
-  //if (this->ContourNode->HasRepresentation(vtkMRMLContourNode::ClosedSurfaceModel))
-  //{
-  //  polyDataUsedForOversamplingCalculation = this->ContourNode->GetClosedSurfacePolyData();
-  //}
-  //else if (this->ContourNode->HasRepresentation(vtkMRMLContourNode::RibbonModel))
-  //{
-  //  // Log warning about the drawbacks of using ribbon model
-  //  vtkDebugMacro("CalculateOversamplingFactor: Ribbon model is used to calculate oversampling factor for contour " << this->ContourNode->GetName() << ". Shape measurement may be inaccurate for certain structures!");
-
-  //  polyDataUsedForOversamplingCalculation = this->ContourNode->GetRibbonModelPolyData();
-
-  //  // Use experimental scaling factor for ribbon model to bring the results closer to the closed surface one for complexity measure
-  //  this->ComplexityScalingFactor = 1.0 / 0.85;
-  //}
-  //else
-  //{
-  //  vtkErrorMacro("CalculateOversamplingFactor: No suitable representation has been found in contour for oversampling factor calculation!");
-  //  return false;
-  //}
 
   // Mark start time
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
@@ -227,13 +199,9 @@ double vtkCalculateOversamplingFactor::CalculateComplexityMeasure()
   // from a sphere (from surface area and volume). A sphere's NSI is one. This number is always >= 1.0
   double normalizedShapeIndex = this->MassPropertiesAlgorithm->GetNormalizedShapeIndex();
 
-  // Apply experimental scaling factor for complexity measure (see ComplexityScalingFactor member)
-  double scaledNormalizedShapeIndex = normalizedShapeIndex * this->ComplexityScalingFactor;
-
   // Map raw measurement to the fuzzy input scale
-  double complexityMeasure = std::max(scaledNormalizedShapeIndex - 1.0, 0.0); // If smaller then 0, then return 0
-  vtkDebugMacro("CalculateComplexityMeasure: Normalized shape index: " << normalizedShapeIndex <<
-    ", scaling factor: " << this->ComplexityScalingFactor << ", complexity measure: " << complexityMeasure);
+  double complexityMeasure = std::max(normalizedShapeIndex - 1.0, 0.0); // If smaller then 0, then return 0
+  vtkDebugMacro("CalculateComplexityMeasure: Normalized shape index: " << normalizedShapeIndex << ", complexity measure: " << complexityMeasure);
 
   return complexityMeasure;
 }
