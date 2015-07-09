@@ -699,6 +699,12 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkMRML
     }
     segment->SetDefaultColor(color[0], color[1], color[2]);
 
+    // If there is only one label, then the (only) segment name will be the labelmap name
+    if (lowLabel == highLabel)
+    {
+      labelName = labelmapNode->GetName();
+    }
+
     // Set segment name
     if (!labelName)
     {

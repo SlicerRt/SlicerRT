@@ -662,9 +662,28 @@ bool vtkSegmentation::CreateRepresentation(const std::string& targetRepresentati
     }
   }
 
-  // Get conversion path with lowest cost
+  // Get conversion path with lowest cost.
+  // If always convert, then only consider conversions from master, otherwise consider all available representations
   vtkSegmentationConverter::ConversionPathAndCostListType pathCosts;
-  this->Converter->GetPossibleConversions(this->MasterRepresentationName, targetRepresentationName, pathCosts);
+  if (alwaysConvert)
+  {
+    this->Converter->GetPossibleConversions(this->MasterRepresentationName, targetRepresentationName, pathCosts);
+  }
+  else
+  {
+    vtkSegmentationConverter::ConversionPathAndCostListType currentPathCosts;
+    std::vector<std::string> representationNames;
+    this->GetContainedRepresentationNames(representationNames);
+    for (std::vector<std::string>::iterator reprIt=representationNames.begin(); reprIt!=representationNames.end(); ++reprIt)
+    {
+      this->Converter->GetPossibleConversions((*reprIt), targetRepresentationName, currentPathCosts);
+      for (vtkSegmentationConverter::ConversionPathAndCostListType::const_iterator pathIt = currentPathCosts.begin(); pathIt != currentPathCosts.end(); ++pathIt)
+      {
+        pathCosts.push_back(*pathIt);
+      }
+    }
+  }
+  // Get cheapest path from found conversion paths
   vtkSegmentationConverter::ConversionPathType cheapestPath = vtkSegmentationConverter::GetCheapestPath(pathCosts);
   if (cheapestPath.empty())
   {

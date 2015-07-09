@@ -27,6 +27,7 @@
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
+#include "vtkMRMLSegmentationDisplayNode.h"
 #include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
 #include "vtkCalculateOversamplingFactor.h"
 #include "vtkOrientedImageDataResample.h"
@@ -491,9 +492,21 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     padder->Update();
     segmentBinaryLabelmap->vtkImageData::DeepCopy(padder->GetOutput());
 
-    // Get segment color
+    // Get segment color from display node
     double segmentColor[3] = {0.0,0.0,0.0};
-    segmentIt->second->GetDefaultColor(segmentColor);
+    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
+    vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
+    if (displayNode && displayNode->GetSegmentDisplayProperties(segmentIt->first, properties))
+    {
+      segmentColor[0] = properties.Color[0];
+      segmentColor[1] = properties.Color[1];
+      segmentColor[2] = properties.Color[2];
+    }
+    else
+    {
+      // If no display node is found, use the default color from the segment
+      segmentIt->second->GetDefaultColor(segmentColor);
+    }
 
     // Calculate DVH for current segment
     std::string errorMessage = this->ComputeDvh(segmentBinaryLabelmap, oversampledDoseVolume, segmentIt->first, segmentColor, maxDose);

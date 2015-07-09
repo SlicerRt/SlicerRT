@@ -155,7 +155,7 @@ public:
 
 // Representation related methods
 public:
-  /// Get representation names present in this segment in an output string vector
+  /// Get representation names present in this segmentation in an output string vector
   /// Note: This assumes the first segment contains the same type of representations as
   ///       all segments (this should be the case by design)
   void GetContainedRepresentationNames(std::vector<std::string>& representationNames);
