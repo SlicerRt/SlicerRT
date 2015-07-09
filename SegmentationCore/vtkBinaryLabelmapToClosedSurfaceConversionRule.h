@@ -61,7 +61,7 @@ public:
   virtual unsigned int GetConversionCost(vtkDataObject* sourceRepresentation=NULL, vtkDataObject* targetRepresentation=NULL);
 
   /// Human-readable name of the converter rule
-  virtual const char* GetName(){ return "Closed surface to binary labelmap (simple image stencil)"; };
+  virtual const char* GetName() { return "Binary labelmap to closed surface"; };
   
   /// Human-readable name of the source representation
   virtual const char* GetSourceRepresentationName() { return vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(); };

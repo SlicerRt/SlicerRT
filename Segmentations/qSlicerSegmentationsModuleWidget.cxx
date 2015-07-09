@@ -219,7 +219,7 @@ void qSlicerSegmentationsModuleWidget::updateCopyMoveButtonStates()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentationsModuleWidget::populateRepresentationsCheckboxes()
+void qSlicerSegmentationsModuleWidget::populateRepresentationsCombobox()
 {
   Q_D(qSlicerSegmentationsModuleWidget);
 
@@ -242,7 +242,7 @@ void qSlicerSegmentationsModuleWidget::populateRepresentationsCheckboxes()
     d->comboBox_Representation->addItem(reprIt->c_str());
   }
 
-  // Set selection from MRML
+  // Set selection from display node
   d->comboBox_Representation->setCurrentIndex( d->comboBox_Representation->findText(
     displayNode->GetPolyDataDisplayRepresentationName() ) );
 
@@ -335,7 +335,7 @@ void qSlicerSegmentationsModuleWidget::onSegmentationNodeChanged(vtkMRMLNode* no
   qvtkDisconnect( 0, vtkCommand::ModifiedEvent, this, SLOT( updateWidgetFromMRML() ) );
   qvtkDisconnect( 0, vtkMRMLDisplayableNode::DisplayModifiedEvent, this, SLOT( updateWidgetFromDisplayNode() ) );
   qvtkDisconnect( 0, vtkSegmentation::MasterRepresentationModified, this, SLOT( updateWidgetFromMRML() ) );
-  qvtkDisconnect( 0, vtkSegmentation::RepresentationModified, this, SLOT( populateRepresentationsCheckboxes() ) );
+  qvtkDisconnect( 0, vtkSegmentation::RepresentationCreated, this, SLOT( populateRepresentationsCombobox() ) );
 
   vtkMRMLSegmentationNode* segmentationNode =  vtkMRMLSegmentationNode::SafeDownCast(node);
   if (segmentationNode)
@@ -346,10 +346,10 @@ void qSlicerSegmentationsModuleWidget::onSegmentationNodeChanged(vtkMRMLNode* no
     qvtkConnect( segmentationNode, vtkSegmentation::MasterRepresentationModified, this, SLOT( updateWidgetFromMRML() ) );
 
     // Connect current segmentation node to populate representation checkboxes function
-    qvtkConnect( segmentationNode, vtkSegmentation::RepresentationModified, this, SLOT( populateRepresentationsCheckboxes() ) );
+    qvtkConnect( segmentationNode, vtkSegmentation::RepresentationCreated, this, SLOT( populateRepresentationsCombobox() ) );
 
     // Populate model representations combobox
-    this->populateRepresentationsCheckboxes();
+    this->populateRepresentationsCombobox();
 
     if (segmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
     {

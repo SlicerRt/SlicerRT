@@ -170,7 +170,7 @@ protected:
 
   /// Callback function observing representation modified events.
   /// Forwards event from the node.
-  static void OnRepresentationModified(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
+  static void OnRepresentationCreated(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
 
 protected:
   vtkMRMLSegmentationNode();
@@ -196,8 +196,8 @@ protected:
   /// Command handling segment modified event
   vtkCallbackCommand* SegmentModifiedCallbackCommand;
 
-  /// Command handling representation modified event
-  vtkCallbackCommand* RepresentationModifiedCallbackCommand;
+  /// Command handling representation created event
+  vtkCallbackCommand* RepresentationCreatedCallbackCommand;
 };
 
 #endif // __vtkMRMLSegmentationNode_h

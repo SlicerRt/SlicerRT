@@ -79,9 +79,9 @@ vtkMRMLSegmentationNode::vtkMRMLSegmentationNode()
   this->SegmentModifiedCallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
   this->SegmentModifiedCallbackCommand->SetCallback( vtkMRMLSegmentationNode::OnSegmentModified );
 
-  this->RepresentationModifiedCallbackCommand = vtkCallbackCommand::New();
-  this->RepresentationModifiedCallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
-  this->RepresentationModifiedCallbackCommand->SetCallback( vtkMRMLSegmentationNode::OnRepresentationModified );
+  this->RepresentationCreatedCallbackCommand = vtkCallbackCommand::New();
+  this->RepresentationCreatedCallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
+  this->RepresentationCreatedCallbackCommand->SetCallback( vtkMRMLSegmentationNode::OnRepresentationCreated );
 
   this->Segmentation = NULL;
   vtkSmartPointer<vtkSegmentation> segmentation = vtkSmartPointer<vtkSegmentation>::New();
@@ -123,11 +123,11 @@ vtkMRMLSegmentationNode::~vtkMRMLSegmentationNode()
     this->SegmentModifiedCallbackCommand = NULL;
   }
 
-  if (this->RepresentationModifiedCallbackCommand)
+  if (this->RepresentationCreatedCallbackCommand)
   {
-    this->RepresentationModifiedCallbackCommand->SetClientData(NULL);
-    this->RepresentationModifiedCallbackCommand->Delete();
-    this->RepresentationModifiedCallbackCommand = NULL;
+    this->RepresentationCreatedCallbackCommand->SetClientData(NULL);
+    this->RepresentationCreatedCallbackCommand->Delete();
+    this->RepresentationCreatedCallbackCommand = NULL;
   }
 }
 
@@ -245,7 +245,7 @@ void vtkMRMLSegmentationNode::SetAndObserveSegmentation(vtkSegmentation* segment
     vtkEventBroker::GetInstance()->RemoveObservations(
       this->Segmentation, vtkSegmentation::SegmentModified, this, this->SegmentModifiedCallbackCommand );
     vtkEventBroker::GetInstance()->RemoveObservations(
-      this->Segmentation, vtkSegmentation::RepresentationModified, this, this->RepresentationModifiedCallbackCommand );
+      this->Segmentation, vtkSegmentation::RepresentationCreated, this, this->RepresentationCreatedCallbackCommand );
   }
 
   this->SetSegmentation(segmentation);
@@ -262,7 +262,7 @@ void vtkMRMLSegmentationNode::SetAndObserveSegmentation(vtkSegmentation* segment
     vtkEventBroker::GetInstance()->AddObservation(
       this->Segmentation, vtkSegmentation::SegmentModified, this, this->SegmentModifiedCallbackCommand );
     vtkEventBroker::GetInstance()->AddObservation(
-      this->Segmentation, vtkSegmentation::RepresentationModified, this, this->RepresentationModifiedCallbackCommand );
+      this->Segmentation, vtkSegmentation::RepresentationCreated, this, this->RepresentationCreatedCallbackCommand );
   }
 }
 
@@ -400,13 +400,16 @@ void vtkMRMLSegmentationNode::OnSegmentModified(vtkObject* vtkNotUsed(caller), u
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationNode::OnRepresentationModified(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eid), void* clientData, void* vtkNotUsed(callData))
+void vtkMRMLSegmentationNode::OnRepresentationCreated(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eid), void* clientData, void* callData)
 {
   vtkMRMLSegmentationNode* self = reinterpret_cast<vtkMRMLSegmentationNode*>(clientData);
   if (!self)
   {
     return;
   }
+
+  // Get created representation name
+  char* targetRepresentationName = reinterpret_cast<char*>(callData);
 
   // Re-generate merged labelmap with modified representation
   if (self->HasMergedLabelmap())
@@ -415,7 +418,7 @@ void vtkMRMLSegmentationNode::OnRepresentationModified(vtkObject* vtkNotUsed(cal
   }
 
   // Invoke node event
-  self->InvokeCustomModifiedEvent(vtkSegmentation::RepresentationModified);
+  self->InvokeCustomModifiedEvent(vtkSegmentation::RepresentationCreated, (void*)targetRepresentationName);
 
   self->Modified();
 }
@@ -729,7 +732,7 @@ vtkImageData* vtkMRMLSegmentationNode::GetImageData()
     }
     else
     {
-      // Do not merge labelmap explicitly as CreateRepresentation triggers labelmap generation via RepresentationModified
+      // Do not merge labelmap explicitly as CreateRepresentation triggers labelmap generation via RepresentationCreated
       bool success = this->Segmentation->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
       if (!success)
       {
@@ -1073,7 +1076,7 @@ void vtkMRMLSegmentationNode::ReGenerateDisplayedMergedLabelmap()
   }
   else
   {
-    // Do not call GenerateMergedLabelmap explicitly as CreateRepresentation triggers labelmap generation via RepresentationModified
+    // Do not call GenerateMergedLabelmap explicitly as CreateRepresentation triggers labelmap generation via RepresentationCreated
     bool success = this->Segmentation->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
     if (!success)
     {

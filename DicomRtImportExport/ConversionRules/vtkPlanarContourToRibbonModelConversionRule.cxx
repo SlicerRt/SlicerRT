@@ -87,6 +87,7 @@ vtkSegmentationConverterRuleNewMacro(vtkPlanarContourToRibbonModelConversionRule
 //----------------------------------------------------------------------------
 vtkPlanarContourToRibbonModelConversionRule::vtkPlanarContourToRibbonModelConversionRule()
 {
+  //this->ConversionParameters[GetXYParameterName()] = std::make_pair("value", "description");
 }
 
 //----------------------------------------------------------------------------
@@ -97,7 +98,7 @@ vtkPlanarContourToRibbonModelConversionRule::~vtkPlanarContourToRibbonModelConve
 //----------------------------------------------------------------------------
 unsigned int vtkPlanarContourToRibbonModelConversionRule::GetConversionCost(vtkDataObject* vtkNotUsed(sourceRepresentation)/*=NULL*/, vtkDataObject* vtkNotUsed(targetRepresentation)/*=NULL*/)
 {
-  // Rough input-independent guess
+  // Rough input-independent guess (ms)
   return 50;
 }
 

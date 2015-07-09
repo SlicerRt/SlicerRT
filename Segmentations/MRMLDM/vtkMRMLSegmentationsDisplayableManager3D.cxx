@@ -505,9 +505,9 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::AddObservations(vtkM
     {
     broker->AddObservation(node, vtkSegmentation::MasterRepresentationModified, this->External, this->External->GetMRMLNodesCallbackCommand() );
     }
-  if (!broker->GetObservationExist(node, vtkSegmentation::RepresentationModified, this->External, this->External->GetMRMLNodesCallbackCommand() ))
+  if (!broker->GetObservationExist(node, vtkSegmentation::RepresentationCreated, this->External, this->External->GetMRMLNodesCallbackCommand() ))
     {
-    broker->AddObservation(node, vtkSegmentation::RepresentationModified, this->External, this->External->GetMRMLNodesCallbackCommand() );
+    broker->AddObservation(node, vtkSegmentation::RepresentationCreated, this->External, this->External->GetMRMLNodesCallbackCommand() );
     }
 }
 
@@ -641,19 +641,18 @@ void vtkMRMLSegmentationsDisplayableManager3D::ProcessMRMLNodesEvents(vtkObject*
 
   vtkMRMLSegmentationNode* displayableNode = vtkMRMLSegmentationNode::SafeDownCast(caller);
 
-  if ( displayableNode )
+  if ( displayableNode && (event == vtkMRMLDisplayableNode::DisplayModifiedEvent) )
     {
     vtkMRMLNode* callDataNode = reinterpret_cast<vtkMRMLDisplayNode *> (callData);
     vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(callDataNode);
-
-    if ( displayNode && (event == vtkMRMLDisplayableNode::DisplayModifiedEvent) )
+    if (displayNode)
       {
       this->Internal->UpdateDisplayNode(displayNode);
       this->RequestRender();
       }
     else if ( (event == vtkMRMLDisplayableNode::TransformModifiedEvent)
            || (event == vtkMRMLTransformableNode::TransformModifiedEvent)
-           || (event == vtkSegmentation::RepresentationModified) )
+           || (event == vtkSegmentation::RepresentationCreated) )
       {
       this->Internal->UpdateDisplayableTransforms(displayableNode);
       this->RequestRender();

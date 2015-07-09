@@ -51,7 +51,7 @@ vtkBinaryLabelmapToClosedSurfaceConversionRule::~vtkBinaryLabelmapToClosedSurfac
 //----------------------------------------------------------------------------
 unsigned int vtkBinaryLabelmapToClosedSurfaceConversionRule::GetConversionCost(vtkDataObject* sourceRepresentation/*=NULL*/, vtkDataObject* targetRepresentation/*=NULL*/)
 {
-  // Rough input-independent guess
+  // Rough input-independent guess (ms)
   return 500;
 }
 

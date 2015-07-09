@@ -56,8 +56,8 @@ public:
     SegmentRemoved,
     /// Fired if segment is modified
     SegmentModified,
-    /// Fired if representations are modified on conversion
-    RepresentationModified
+    /// Fired if representations are created on conversion
+    RepresentationCreated
   };
 
   /// Container type for segments. Maps segment IDs to segment objects

@@ -42,6 +42,7 @@
 #include "vtkSegmentationConverterFactory.h"
 #include "vtkBinaryLabelmapToClosedSurfaceConversionRule.h"
 #include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
+#include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -162,6 +163,8 @@ void qSlicerSegmentationsModule::setup()
     vtkSmartPointer<vtkBinaryLabelmapToClosedSurfaceConversionRule>::New() );
   vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
     vtkSmartPointer<vtkClosedSurfaceToBinaryLabelmapConversionRule>::New() );
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkPlanarContourToClosedSurfaceConversionRule>::New() );
 }
 
 //-----------------------------------------------------------------------------

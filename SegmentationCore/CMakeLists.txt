@@ -37,6 +37,8 @@ SET (vtkSegmentationCore_SRCS
   vtkClosedSurfaceToBinaryLabelmapConversionRule.h
   vtkCalculateOversamplingFactor.cxx
   vtkCalculateOversamplingFactor.h
+  vtkPlanarContourToClosedSurfaceConversionRule.cxx
+  vtkPlanarContourToClosedSurfaceConversionRule.h
   )
 
 # Abstract/pure virtual classes

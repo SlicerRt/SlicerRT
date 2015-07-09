@@ -681,12 +681,13 @@ bool vtkSegmentation::CreateRepresentation(const std::string& targetRepresentati
     }
   }
 
-  this->InvokeEvent(vtkSegmentation::RepresentationModified);
+  const char* targetRepresentationNameChars = targetRepresentationName.c_str();
+  this->InvokeEvent(vtkSegmentation::RepresentationCreated, (void*)targetRepresentationNameChars);
   return true;
 }
 
 //---------------------------------------------------------------------------
-bool vtkSegmentation::CreateRepresentation(const std::string& vtkNotUsed(targetRepresentationName),
+bool vtkSegmentation::CreateRepresentation(const std::string& targetRepresentationName,
                                            vtkSegmentationConverter::ConversionPathType path,
                                            vtkSegmentationConverterRule::ConversionParameterListType parameters)
 {
@@ -718,7 +719,8 @@ bool vtkSegmentation::CreateRepresentation(const std::string& vtkNotUsed(targetR
     }
   }
 
-  this->InvokeEvent(vtkSegmentation::RepresentationModified);
+  const char* targetRepresentationNameChars = targetRepresentationName.c_str();
+  this->InvokeEvent(vtkSegmentation::RepresentationCreated, (void*)targetRepresentationNameChars);
   return true;
 }
 

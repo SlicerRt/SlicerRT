@@ -105,7 +105,7 @@ protected slots:
   void updateCopyMoveButtonStates();
 
   /// Populate checkboxes that contain representation names
-  void populateRepresentationsCheckboxes();
+  void populateRepresentationsCombobox();
 
   /// Callback function for selection changes in the main segment table view
   void onSegmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
