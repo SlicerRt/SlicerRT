@@ -253,7 +253,7 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="label_8">
+       <widget class="QLabel" name="label_ExpandIcon">
         <property name="autoFillBackground">
          <bool>true</bool>
         </property>
@@ -261,7 +261,7 @@
          <enum>Qt::AutoText</enum>
         </property>
         <property name="pixmap">
-         <pixmap>:/Icons/expand.png</pixmap>
+         <pixmap resource="../qSlicerSegmentMorphologyModule.qrc">:/Icons/Expand.png</pixmap>
         </property>
         <property name="scaledContents">
          <bool>false</bool>
@@ -275,12 +275,12 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="label_ShrinkIcon">
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap>:/Icons/shrink.png</pixmap>
+         <pixmap resource="../qSlicerSegmentMorphologyModule.qrc">:/Icons/Shrink.png</pixmap>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -309,12 +309,12 @@
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QLabel" name="label_9">
+       <widget class="QLabel" name="label_UnionIcon">
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap>:/Icons/union.png</pixmap>
+         <pixmap resource="../qSlicerSegmentMorphologyModule.qrc">:/Icons/Union.png</pixmap>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -322,12 +322,12 @@
        </widget>
       </item>
       <item row="4" column="0">
-       <widget class="QLabel" name="label_10">
+       <widget class="QLabel" name="label_IntersectIcon">
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap>:/Icons/intersect.png</pixmap>
+         <pixmap resource="../qSlicerSegmentMorphologyModule.qrc">:/Icons/Intersect.png</pixmap>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -335,12 +335,12 @@
        </widget>
       </item>
       <item row="5" column="0">
-       <widget class="QLabel" name="label_11">
+       <widget class="QLabel" name="label_SubtractIcon">
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap>:/Icons/subtract.png</pixmap>
+         <pixmap resource="../qSlicerSegmentMorphologyModule.qrc">:/Icons/Subtract.png</pixmap>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
