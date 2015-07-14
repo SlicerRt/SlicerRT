@@ -69,7 +69,7 @@ class PlmMismatchErrorWidget(ScriptedLoadableModuleWidget):
 
    # fixed landmarks (mrml input)
     self.fixedLandmarks = slicer.qMRMLNodeComboBox()
-    self.fixedLandmarks.nodeTypes = ( ("vtkMRMLMarkupsFiducialNode"), "" )
+    self.fixedLandmarks.nodeTypes = ["vtkMRMLMarkupsFiducialNode"]
     self.fixedLandmarks.selectNodeUponCreation = True
     self.fixedLandmarks.addEnabled = False
     self.fixedLandmarks.removeEnabled = False
@@ -87,7 +87,7 @@ class PlmMismatchErrorWidget(ScriptedLoadableModuleWidget):
 
     # moving landmarks (mrml input)
     self.movingLandmarks = slicer.qMRMLNodeComboBox()
-    self.movingLandmarks.nodeTypes = ( ("vtkMRMLMarkupsFiducialNode"), "" )
+    self.movingLandmarks.nodeTypes = ["vtkMRMLMarkupsFiducialNode"]
     self.movingLandmarks.selectNodeUponCreation = True
     self.movingLandmarks.addEnabled = False
     self.movingLandmarks.removeEnabled = False

@@ -64,7 +64,7 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
 
     # vf image (mrml input)
     self.vfMRMLSelector = slicer.qMRMLNodeComboBox()
-    self.vfMRMLSelector.nodeTypes = ( ("vtkMRMLVectorVolumeNode"), "" )
+    self.vfMRMLSelector.nodeTypes = ["vtkMRMLVectorVolumeNode"]
     self.vfMRMLSelector.selectNodeUponCreation = True
     self.vfMRMLSelector.addEnabled = False
     self.vfMRMLSelector.removeEnabled = False
@@ -85,7 +85,7 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
 
     # Fixed image (for geometry info)
     self.fixedImage = slicer.qMRMLNodeComboBox()
-    self.fixedImage.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
+    self.fixedImage.nodeTypes = ["vtkMRMLScalarVolumeNode"]
     self.fixedImage.setMRMLScene( slicer.mrmlScene )
     self.fixedImage.selectNodeUponCreation = True
     self.fixedImage.addEnabled = False
@@ -110,7 +110,7 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
 
     # Jacobian image (mrml output)
     self.outputJacobian = slicer.qMRMLNodeComboBox()
-    self.outputJacobian.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
+    self.outputJacobian.nodeTypes = ["vtkMRMLScalarVolumeNode"]
     self.outputJacobian.setMRMLScene( slicer.mrmlScene )
     self.outputJacobian.addEnabled = True
     self.outputJacobian.renameEnabled = True

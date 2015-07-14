@@ -31,7 +31,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     #
     self.parameterSelector = slicer.qMRMLNodeComboBox()
     self.parameterLabel = qt.QLabel("  Parameter set: ")
-    self.parameterSelector.nodeTypes = ( ("vtkMRMLScriptedModuleNode"), "" )
+    self.parameterSelector.nodeTypes = ["vtkMRMLScriptedModuleNode"]
     self.parameterSelector.removeEnabled = False
     self.parameterSelector.showHidden = True
     self.parameterSelector.setMRMLScene( slicer.mrmlScene )
@@ -54,7 +54,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     # Input first DVH selector
     #
     self.dvh1Selector = slicer.qMRMLNodeComboBox()
-    self.dvh1Selector.nodeTypes = ( ("vtkMRMLDoubleArrayNode"), "" )
+    self.dvh1Selector.nodeTypes = ["vtkMRMLDoubleArrayNode"]
     self.dvh1Selector.removeEnabled = False
     self.dvh1Selector.setMRMLScene( slicer.mrmlScene )
     inputFormLayout.addRow("DVH 1: ", self.dvh1Selector)
@@ -63,7 +63,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     # Input second DVH selector
     #
     self.dvh2Selector = slicer.qMRMLNodeComboBox()
-    self.dvh2Selector.nodeTypes = ( ("vtkMRMLDoubleArrayNode"), "" )
+    self.dvh2Selector.nodeTypes = ["vtkMRMLDoubleArrayNode"]
     self.dvh2Selector.removeEnabled = False
     self.dvh2Selector.setMRMLScene( slicer.mrmlScene )
     inputFormLayout.addRow("DVH 2: ", self.dvh2Selector)
@@ -72,7 +72,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     # Input the dose volume
     #
     self.doseVolumeSelector = slicer.qMRMLNodeComboBox()
-    self.doseVolumeSelector.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
+    self.doseVolumeSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
     self.doseVolumeSelector.addAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
     self.doseVolumeSelector.removeEnabled = False
     self.doseVolumeSelector.setMRMLScene( slicer.mrmlScene )
@@ -144,7 +144,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     # Input the chart node
     #
     self.chartNodeSelector = slicer.qMRMLNodeComboBox()
-    self.chartNodeSelector.nodeTypes = ( ("vtkMRMLChartNode"), "" )
+    self.chartNodeSelector.nodeTypes = ["vtkMRMLChartNode"]
     self.chartNodeSelector.setMRMLScene( slicer.mrmlScene )
     chartFormLayout.addRow(self.chartNodeSelector)
 

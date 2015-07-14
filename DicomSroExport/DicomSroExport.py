@@ -67,7 +67,7 @@ class DicomSroExportWidget(ScriptedLoadableModuleWidget):
 
     # fixed image (mrml input)
     self.fixedMRMLSelector = slicer.qMRMLNodeComboBox()
-    self.fixedMRMLSelector.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
+    self.fixedMRMLSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
     self.fixedMRMLSelector.selectNodeUponCreation = True
     self.fixedMRMLSelector.addEnabled = False
     self.fixedMRMLSelector.removeEnabled = False
@@ -85,9 +85,7 @@ class DicomSroExportWidget(ScriptedLoadableModuleWidget):
 
     # moving image (mrml input)
     self.movingMRMLSelector = slicer.qMRMLNodeComboBox()
-    self.movingMRMLSelector.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
-    self.movingMRMLSelector.addAttribute(
-      "vtkMRMLScalarVolumeNode", "LabelMap", 0 )
+    self.movingMRMLSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
     self.movingMRMLSelector.selectNodeUponCreation = True
     self.movingMRMLSelector.addEnabled = False
     self.movingMRMLSelector.removeEnabled = False
@@ -105,7 +103,7 @@ class DicomSroExportWidget(ScriptedLoadableModuleWidget):
 
     # transform (mrml input)
     self.xformMRMLSelector = slicer.qMRMLNodeComboBox()
-    self.xformMRMLSelector.nodeTypes = ( ("vtkMRMLLinearTransformNode"), "" )
+    self.xformMRMLSelector.nodeTypes = ["vtkMRMLLinearTransformNode"]
     self.xformMRMLSelector.selectNodeUponCreation = True
     self.xformMRMLSelector.addEnabled = False
     self.xformMRMLSelector.removeEnabled = False

@@ -148,8 +148,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
 
     # Output transform
     self.outputTransformComboBox = slicer.qMRMLNodeComboBox()
-    self.outputTransformComboBox.nodeTypes = (
-      ("vtkMRMLGridTransformNode"), "" )
+    self.outputTransformComboBox.nodeTypes = ["vtkMRMLGridTransformNode"]
     self.outputTransformComboBox.selectNodeUponCreation = True
     self.outputTransformComboBox.addEnabled = True
     self.outputTransformComboBox.removeEnabled = True
