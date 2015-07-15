@@ -23,7 +23,6 @@ class DvhComparison(ScriptedLoadableModule):
 class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
   def setup(self):
-
     ScriptedLoadableModuleWidget.setup(self)
 
     #
@@ -264,11 +263,8 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
       if (structureName != None):
         self.structureList.append(structure)
-
         self.dvhTable.insertRow(i)
-
         self.dvhTable.setCellWidget(i, 1, qt.QLabel(" " + structureName + " "))
-
         volumeNode = (structure.GetNodeReference("DoseVolumeHistogram.doseVolumeRef"))
         if (volumeNode != None):
           volumeName = (volumeNode.GetName())
@@ -308,10 +304,8 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
     if (self.updatingStatus == False):
       currentChart = self.chartNodeSelector.currentNode()
-
       if (currentChart != None):
-
-        currentChart.ClearArrays();
+        currentChart.ClearArrays()
 
         import vtkSlicerDoseVolumeHistogramModuleLogic
         chartLogic = vtkSlicerDoseVolumeHistogramModuleLogic.vtkSlicerDoseVolumeHistogramModuleLogic()
@@ -320,7 +314,6 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
         for i in range(0, len(self.checkboxList)):
           currentCheckbox = self.checkboxList[i]
           if (currentCheckbox.checkState()):
-
             currentDoubleArray =  self.structureList[i]
             chartLogic.AddDvhToChart(currentDoubleArray.GetID(), currentChart.GetID())
   # end checkBoxChanged
@@ -334,7 +327,6 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.updatingStatus = True
 
     if (node != None):
-
       # DVH Double Array 1
       dvh1Node = node.GetNodeReferenceID('dvh1')
       if (dvh1Node != None):
@@ -406,8 +398,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     and set clear the output to avoid an illegal state.
     """
 
-    self.nodeCheck();
-
+    self.nodeCheck()
     if (self.dvh1Selector.currentNode() != None and self.dvh2Selector.currentNode() != None and self.doseVolumeSelector.currentNode() != None):
       self.computeButton.setDisabled(False)
     else:
@@ -436,7 +427,6 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     arrayIds = chartNode.GetArrays()
     for arrayIndex in range(0, arrayIds.GetNumberOfValues()):
       currentArrayId = arrayIds.GetValue(arrayIndex)
-
       if (currentArrayId == dvhNodeId):
         return True
     return False
@@ -448,20 +438,14 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
     self.updatingStatus = True
     for structureIndex in range(0, len(self.structureList)):
-
       currentCheckbox = self.checkboxList[structureIndex]
-
       if (chartNode != None):
-
         currentStructure = self.structureList[structureIndex]
-
         if (self.checkChart(currentStructure.GetID(), chartNode)):
           currentCheckbox.setCheckState(2)
         else:
           currentCheckbox.setCheckState(0)
-
         currentCheckbox.setCheckable(True)
-
       else:
         currentCheckbox.setCheckState(0)
         currentCheckbox.setCheckable(False)
@@ -478,7 +462,6 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
   # end dvh1SelectorChanged
 
   def dvh2SelectorChanged(self, dvh2Node):
-
     if (self.updatingStatus == False):
       self.displayChange()
       if (dvh2Node != None):
@@ -486,7 +469,6 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
   # end dvh2SelectorChanged
 
   def doseVolumeSelectorChanged(self, doseVolumeNode):
-
     if (self.updatingStatus == False):
       self.displayChange()
       if (doseVolumeNode != None):
@@ -494,7 +476,6 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
   # end doseVolumeSelectorChanged
 
   def volumeDifferenceSpinboxChanged(self, value):
-
     if (self.updatingStatus == False):
       self.displayChange()
       volumeDifferenceCriterion = str(value)
@@ -502,7 +483,6 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
   # end volumeDifferenceSpinboxChanged
 
   def doseToAgreementSpinboxChanged(self, value):
-  
     if (self.updatingStatus == False):
       self.displayChange()
       doseToAgreementCriterion = str(value)
@@ -510,15 +490,13 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
   # end doseToAgreementSpinboxChanged
 
   def showDoseVolumesOnlyCheckboxChanged(self, checked):
-
     if (self.updatingStatus == False):
       self.displayChange()
       self.parameterSelector.currentNode().SetAttribute('DoseVolumeOnlyChecked', str(checked))
       if (checked):
         self.doseVolumeSelector.addAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
       else:
-        #TODO: Remove attribute when available in Slicer core
-        self.doseVolumeSelector.addAttribute("vtkMRMLScalarVolumeNode", "LabelMap", 0)
+        self.doseVolumeSelector.removeAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
   # end showDoseVolumesOnlyCheckboxChanged
 
   def cleanup(self):
