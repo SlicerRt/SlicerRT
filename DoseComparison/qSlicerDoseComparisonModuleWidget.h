@@ -67,6 +67,7 @@ protected slots:
   void referenceDoseUseMaximumDoseChanged(bool);
   void referenceDoseChanged(double);
   void analysisThresholdChanged(double);
+  void linearInterpolationCheckedStateChanged(int);
   void maximumGammaChanged(double);
 
   void applyClicked();

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>448</width>
-    <height>414</height>
+    <width>439</width>
+    <height>459</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,128 +52,6 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Reference dose volume:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Compare dose volume:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceDoseVolume">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_CompareDoseVolume">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="toolTip">
-         <string>Distance to agreement (DTA) tolerance, in mm</string>
-        </property>
-        <property name="text">
-         <string>DTA distance tolerance (mm):</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="toolTip">
-         <string>Dose difference tolerance, defined as percentage of the reference dose (prescription dose) value</string>
-        </property>
-        <property name="text">
-         <string>Dose difference tolerance (%):</string>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="0">
-       <widget class="QLabel" name="label_8">
-        <property name="toolTip">
-         <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
-        </property>
-        <property name="text">
-         <string>Maximum gamma:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_DtaDistanceTolerance">
-        <property name="toolTip">
-         <string>Distance to agreement (DTA) tolerance, in mm</string>
-        </property>
-        <property name="maximum">
-         <double>20.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>3.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseDifferenceTolerance">
-        <property name="toolTip">
-         <string>Dose difference tolerance. If a reference dose (prescription dose) is specified, the dose difference tolerance is treated as a percent of the reference dose. Otherwise it is treated as a percent of the maximum dose in the reference volume. To use a 3% dose tolerance, you would set this value to 0.03</string>
-        </property>
-        <property name="maximum">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>3.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_MaximumGamma">
-        <property name="toolTip">
-         <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
-        </property>
-        <property name="maximum">
-         <double>10.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>2.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_AnalysisThreshold">
-        <property name="toolTip">
-         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 10. The threshold is applied to the reference image&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="toolTip">
-         <string>Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 0.10. The threshold is applied to the reference image</string>
-        </property>
-        <property name="text">
-         <string>Analysis threshold (%):</string>
-        </property>
-       </widget>
-      </item>
       <item row="4" column="0" colspan="3">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
@@ -241,75 +119,62 @@ p, li { white-space: pre-wrap; }
         </item>
        </layout>
       </item>
-      <item row="7" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="toolTip">
-         <string>Specify the 100% value for the dose difference tolerance</string>
-        </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Reference dose:</string>
+         <string>Reference dose volume:</string>
         </property>
        </widget>
       </item>
-      <item row="7" column="2">
-       <layout class="QGridLayout" name="gridLayout_3">
-        <property name="horizontalSpacing">
-         <number>0</number>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Evaluated dose volume:</string>
         </property>
-        <property name="verticalSpacing">
-         <number>4</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QRadioButton" name="radioButton_ReferenceDose_MaximumDose">
-          <property name="toolTip">
-           <string>Use the maximum value in the reference dose volume as reference dose</string>
-          </property>
-          <property name="text">
-           <string>Use maximum dose</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QRadioButton" name="radioButton_ReferenceDose_CustomValue">
-          <property name="toolTip">
-           <string>Use a user-defined value as reference dose</string>
-          </property>
-          <property name="text">
-           <string>Use custom value (Gy):</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_ReferenceDose">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="toolTip">
-           <string>Use a user-defined value as reference dose</string>
-          </property>
-          <property name="minimum">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>99999.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>5.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_11">
+      <item row="2" column="2">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_CompareDoseVolume">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="2">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_MaximumGamma">
         <property name="toolTip">
-         <string>Mask that defines the region that is considered for dose comparison</string>
+         <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>2.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_DtaDistanceTolerance">
+        <property name="toolTip">
+         <string>Distance to agreement (DTA) tolerance, in mm</string>
+        </property>
+        <property name="maximum">
+         <double>20.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>3.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="toolTip">
+         <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
         </property>
         <property name="text">
-         <string>Mask:</string>
+         <string>Upper bound for gamma values:</string>
         </property>
        </widget>
       </item>
@@ -319,6 +184,183 @@ p, li { white-space: pre-wrap; }
          <string>Mask that defines the region that is considered for dose comparison</string>
         </property>
        </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="toolTip">
+         <string>Distance to agreement (DTA) tolerance, in mm</string>
+        </property>
+        <property name="text">
+         <string>Distance-to-agreement criteria (mm):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceDoseVolume">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0" colspan="3">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <property name="spacing">
+         <number>4</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="toolTip">
+           <string>Dose difference tolerance, defined as percentage of the reference dose (prescription dose) value</string>
+          </property>
+          <property name="text">
+           <string>Dose difference criteria:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseDifferenceTolerance">
+          <property name="toolTip">
+           <string>Dose difference tolerance. If a reference dose (prescription dose) is specified, the dose difference tolerance is treated as a percent of the reference dose. Otherwise it is treated as a percent of the maximum dose in the reference volume. To use a 3% dose tolerance, you would set this value to 0.03</string>
+          </property>
+          <property name="maximum">
+           <double>100.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>3.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>% of</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <property name="horizontalSpacing">
+           <number>0</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
+          <item row="1" column="0">
+           <widget class="QRadioButton" name="radioButton_ReferenceDose_CustomValue">
+            <property name="toolTip">
+             <string>Use a user-defined value as reference dose</string>
+            </property>
+            <property name="text">
+             <string>custom dose value (cGy):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_ReferenceDose">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="toolTip">
+             <string>Use a user-defined value as reference dose</string>
+            </property>
+            <property name="minimum">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>99999.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>5.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QRadioButton" name="radioButton_ReferenceDose_MaximumDose">
+            <property name="toolTip">
+             <string>Use the maximum value as reference dose, calculated from plan dose volume</string>
+            </property>
+            <property name="text">
+             <string>the maximum dose</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="toolTip">
+         <string>Mask that defines the region that is considered for dose comparison</string>
+        </property>
+        <property name="text">
+         <string>Mask structure:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>Use linear interpolation:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="2">
+       <widget class="QCheckBox" name="checkBox_LinearInterpolation">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="3">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="toolTip">
+             <string>Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 0.10. The threshold is applied to the reference image</string>
+            </property>
+            <property name="text">
+             <string>Do not calculate gamma values for voxels below</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_AnalysisThreshold">
+            <property name="toolTip">
+             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 10. The threshold is applied to the reference image&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_6">
+          <property name="toolTip">
+           <string>Reference dose is the maximum dose, or the custom dose value (depending on the selection above)</string>
+          </property>
+          <property name="text">
+           <string>% of the reference dose (maximum or custom dose depending on selection above)</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -400,10 +442,29 @@ p, li { white-space: pre-wrap; }
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_Apply">
+       <property name="minimumSize">
+        <size>
+         <width>112</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Apply</string>
+        <string>Calculate gamma</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </item>
@@ -429,21 +490,27 @@ p, li { white-space: pre-wrap; }
    <header>qMRMLNodeComboBox.h</header>
   </customwidget>
   <customwidget>
+   <class>qMRMLWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>qMRMLSegmentSelectorWidget</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLSegmentSelectorWidget.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLSegmentSelectorWidget</class>
-   <extends>qMRMLWidget</extends>
-   <header>qMRMLSegmentSelectorWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

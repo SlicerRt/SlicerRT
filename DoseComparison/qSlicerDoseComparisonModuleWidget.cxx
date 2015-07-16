@@ -249,6 +249,7 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
     d->doubleSpinBox_DoseDifferenceTolerance->setValue(paramNode->GetDoseDifferenceTolerancePercent());
     d->doubleSpinBox_ReferenceDose->setValue(paramNode->GetReferenceDoseGy());
     d->doubleSpinBox_AnalysisThreshold->setValue(paramNode->GetAnalysisThresholdPercent());
+    d->checkBox_LinearInterpolation->setChecked(paramNode->GetUseLinearInterpolation());
     d->doubleSpinBox_MaximumGamma->setValue(paramNode->GetMaximumGamma());
     if (paramNode->GetUseMaximumDose())
     {
@@ -286,6 +287,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
   connect( d->doubleSpinBox_DoseDifferenceTolerance, SIGNAL(valueChanged(double)), this, SLOT(doseDifferenceToleranceChanged(double)) );
   connect( d->doubleSpinBox_ReferenceDose, SIGNAL(valueChanged(double)), this, SLOT(referenceDoseChanged(double)) );
   connect( d->doubleSpinBox_AnalysisThreshold, SIGNAL(valueChanged(double)), this, SLOT(analysisThresholdChanged(double)) );
+  connect( d->checkBox_LinearInterpolation, SIGNAL(stateChanged(int)), this, SLOT(linearInterpolationCheckedStateChanged(int)) );
   connect( d->doubleSpinBox_MaximumGamma, SIGNAL(valueChanged(double)), this, SLOT(maximumGammaChanged(double)) );
   connect( d->radioButton_ReferenceDose_MaximumDose, SIGNAL(toggled(bool)), this, SLOT(referenceDoseUseMaximumDoseChanged(bool)) );
 
@@ -550,7 +552,7 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseChanged(double value)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetReferenceDoseGy(value);
+  paramNode->SetReferenceDoseGy(value / 100.0);
   paramNode->DisableModifiedEventOff();
 
   this->invalidateResults();
@@ -575,6 +577,30 @@ void qSlicerDoseComparisonModuleWidget::analysisThresholdChanged(double value)
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetAnalysisThresholdPercent(value);
+  paramNode->DisableModifiedEventOff();
+
+  this->invalidateResults();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseComparisonModuleWidget::linearInterpolationCheckedStateChanged(int state)
+{
+  Q_D(qSlicerDoseComparisonModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseComparisonModuleWidget::linearInterpolationCheckedStateChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetUseLinearInterpolation(state);
   paramNode->DisableModifiedEventOff();
 
   this->invalidateResults();
