@@ -34,6 +34,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 class vtkMRMLSegmentationNode;
 class vtkMatrix4x4;
 class vtkPolyData;
+class vtkOrientedImageData;
 class vtkSegment;
 class vtkXMLDataElement;
 
@@ -52,15 +53,12 @@ public:
 
   virtual vtkMRMLNode* CreateNodeInstance();
 
-  ///
   /// Read node attributes from XML file
   virtual void ReadXMLAttributes( const char** atts);
 
-  ///
   /// Write this node's information to a MRML file in XML format.
   virtual void WriteXML(ostream& of, int indent);
 
-  ///
   /// Copy the node's attributes to this object
   virtual void Copy(vtkMRMLNode *node);
 
@@ -73,22 +71,6 @@ public:
   /// Return true if the reference node can be read in
   virtual bool CanReadInReferenceNode(vtkMRMLNode *refNode);
 
-  ///
-  /// Center image on read
-  vtkGetMacro(CenterImage, int);
-  vtkSetMacro(CenterImage, int);
-
-  ///
-  /// whether to read single file or the whole series
-  vtkGetMacro(SingleFile, int);
-  vtkSetMacro(SingleFile, int);
-
-  ///
-  /// Whether to use orientation from file
-  vtkSetMacro(UseOrientationFromFile, int);
-  vtkGetMacro(UseOrientationFromFile, int);
-
-  ///
   /// Do a temp write to update the file list in this storage node with all
   /// file names that are written when write out the ref node
   /// If move is 1, return the directory that contains the written files and
@@ -102,10 +84,6 @@ protected:
   vtkMRMLSegmentationStorageNode(const vtkMRMLSegmentationStorageNode&);
   void operator=(const vtkMRMLSegmentationStorageNode&);
 
-  int CenterImage;
-  int SingleFile;
-  int UseOrientationFromFile;
-
   /// Initialize all the supported read file types
   virtual void InitializeSupportedReadFileTypes();
 
@@ -118,23 +96,23 @@ protected:
   /// Write data from a referenced node
   virtual int WriteDataInternal(vtkMRMLNode *refNode);
 
-  /// Write model data
-  virtual int WriteModelDataInternal(vtkPolyData* polyData, std::string& filename);
+  /// Write poly data
+  virtual int WritePolyDataInternal(vtkPolyData* polyData, std::string& filename);
 
-  /// Write image data
-  virtual int WriteImageDataInternal(vtkSegment* segment, vtkMatrix4x4* IJKToRASMatrix);
+  /// Write oriented image data
+  virtual int WriteOrientedImageDataInternal(vtkOrientedImageData* imageData);
 
   /// Write segment data
   virtual int WriteSegmentInternal(vtkXMLDataElement* segmentElement, vtkSegment* segment, const std::string& path, vtkMatrix4x4* IJKToRASMatrix);
 
-  /// Read model data
-  virtual bool ReadModelDataInternal(vtkPolyData* outModel, const char* filename, const char* suffix);
+  /// Read poly data
+  virtual bool ReadPolyDataInternal(vtkPolyData* outModel, const char* filename, const char* suffix);
 
-  /// Read image data
-  virtual bool ReadImageDataInternal(vtkSegment* segment, itk::MetaDataDictionary& OutDictionary, vtkMatrix4x4& OutIJKToRASMatrix );
+  /// Read oriented image data
+  virtual bool ReadOrientedImageDataInternal(vtkOrientedImageData* imageData, itk::MetaDataDictionary& outDictionary);
 
   /// Read segment data
-  virtual vtkSegment* ReadSegmentInternal(const std::string& path, vtkXMLDataElement* segmentElement, itk::MetaDataDictionary& OutDictionary, vtkMatrix4x4& OutIJKToRASMatrix );
+  virtual vtkSegment* ReadSegmentInternal(const std::string& path, vtkXMLDataElement* segmentElement, itk::MetaDataDictionary& outDictionary);
 
   /// Write the location of the other files to disc
   virtual vtkXMLDataElement* CreateXMLElement(vtkMRMLSegmentationNode& node, const std::string& baseFilename);

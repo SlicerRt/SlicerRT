@@ -19,8 +19,10 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
-// Segmentations
+// Segmentations includes
 #include "vtkMRMLSegmentationStorageNode.h"
+
+#include "vtkOrientedImageData.h"
 
 // MRML includes
 #include "vtkMRMLSegmentationNode.h"
@@ -30,9 +32,9 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 //#include <vtkDataFileFormatHelper.h>
 //#include <vtkDataIOManager.h>
 //#include <vtkDataSetSurfaceFilter.h>
-//#include <vtkITKArchetypeImageSeriesScalarReader.h>
+#include <vtkITKArchetypeImageSeriesScalarReader.h>
 //#include <vtkImageChangeInformation.h>
-//#include <vtkMRMLScene.h>
+#include <vtkMRMLScene.h>
 //#include <vtkMatrix4x4.h>
 //#include <vtkNew.h>
 //#include <vtkObjectFactory.h>
@@ -101,9 +103,6 @@ vtkMRMLNodeNewMacro(vtkMRMLSegmentationStorageNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLSegmentationStorageNode::vtkMRMLSegmentationStorageNode()
-: CenterImage(0)
-, SingleFile(1)
-, UseOrientationFromFile(1)
 {
   //this->InitializeSupportedWriteFileTypes();
   //this->InitializeSupportedReadFileTypes();
@@ -179,7 +178,7 @@ int vtkMRMLSegmentationStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
 }
 
 //----------------------------------------------------------------------------
-vtkSegment* vtkMRMLSegmentationStorageNode::ReadSegmentInternal(const std::string& path, vtkXMLDataElement* segmentElement, itk::MetaDataDictionary& OutDictionary, vtkMatrix4x4& OutIJKToRASMatrix)
+vtkSegment* vtkMRMLSegmentationStorageNode::ReadSegmentInternal(const std::string& path, vtkXMLDataElement* segmentElement, itk::MetaDataDictionary& outDictionary)
 {
   //vtkSmartPointer<vtkSegment> segment = vtkSmartPointer<vtkSegment>::New();
 
@@ -201,7 +200,7 @@ vtkSegment* vtkMRMLSegmentationStorageNode::ReadSegmentInternal(const std::strin
   //  {
   //    std::string origFilename(this->GetFileName());
   //    this->SetFileName(voxelFile.c_str());
-  //    this->ReadImageDataInternal(segment, OutDictionary, OutIJKToRASMatrix);
+  //    this->ReadImageDataInternal(segment, outDictionary, OutIJKToRASMatrix);
   //    this->SetFileName(origFilename.c_str());
   //  }
 
@@ -307,11 +306,12 @@ void vtkMRMLSegmentationStorageNode::InitializeSupportedWriteFileTypes()
 const char* vtkMRMLSegmentationStorageNode::GetDefaultWriteFileExtension()
 {
   //TODO:
-  return "seg";
+  //return "seg";
+  return "";
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLSegmentationStorageNode::WriteModelDataInternal( vtkPolyData* polyData, std::string& filename )
+int vtkMRMLSegmentationStorageNode::WritePolyDataInternal( vtkPolyData* polyData, std::string& filename )
 {
 //  // Write out the ribbon model data if it exists
 //  vtkNew<vtkPolyDataWriter> writer;
@@ -335,7 +335,7 @@ int vtkMRMLSegmentationStorageNode::WriteModelDataInternal( vtkPolyData* polyDat
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLSegmentationStorageNode::ReadModelDataInternal( vtkPolyData* outModel, const char* filename, const char* suffix )
+bool vtkMRMLSegmentationStorageNode::ReadPolyDataInternal( vtkPolyData* outModel, const char* filename, const char* suffix )
 {
 //  if( outModel == NULL )
 //  {
@@ -422,7 +422,7 @@ vtkXMLDataElement* vtkMRMLSegmentationStorageNode::CreateXMLElement( vtkMRMLSegm
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLSegmentationStorageNode::WriteImageDataInternal( vtkSegment* segment, vtkMatrix4x4* IJKToRASMatrix )
+int vtkMRMLSegmentationStorageNode::WriteOrientedImageDataInternal(vtkOrientedImageData* imageData)
 {
 //  int result(0);
 //  if ( !segment->HasImageData() )
@@ -790,29 +790,13 @@ std::string vtkMRMLSegmentationStorageNode::UpdateFileList(vtkSegment* segment, 
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLSegmentationStorageNode::ReadImageDataInternal( vtkSegment* segment, itk::MetaDataDictionary& OutDictionary, vtkMatrix4x4& OutIJKToRASMatrix )
+bool vtkMRMLSegmentationStorageNode::ReadOrientedImageDataInternal(vtkOrientedImageData* imageData, itk::MetaDataDictionary& outDictionary)
 {
-  //
-  // vtkMRMLVolumeNode
-  //   |
-  //   |--vtkMRMLScalarVolumeNode
-  //         |
-  //         |----vtkMRMLDiffusionWeightedVolumeNode
-  //         |
-  //         |----vtkMRMLTensorVolumeNode
-  //                  |
-  //                  |---vtkMRMLDiffusionImageVolumeNode
-  //                  |       |
-  //                  |       |---vtkMRMLDiffusionTensorVolumeNode
-  //                  |
-  //                  |---vtkMRMLVectorVolumeNode
-  //
-
 //  std::string filename = this->GetFullNameFromFileName();
 //
-//  vtkSmartPointer<vtkITKArchetypeImageSeriesReader> reader = vtkSmartPointer<vtkITKArchetypeImageSeriesScalarReader>::New();
-//  reader->SetSingleFile( this->GetSingleFile() );
-//  reader->SetUseOrientationFromFile( this->GetUseOrientationFromFile() );
+  vtkSmartPointer<vtkITKArchetypeImageSeriesReader> reader = vtkSmartPointer<vtkITKArchetypeImageSeriesScalarReader>::New();
+  reader->SetSingleFile(1);
+  reader->SetUseOrientationFromFile(1);
 //
 //  if (reader.GetPointer() == NULL)
 //  {
@@ -837,14 +821,8 @@ bool vtkMRMLSegmentationStorageNode::ReadImageDataInternal( vtkSegment* segment,
 //  // Center image
 //  reader->SetOutputScalarTypeToNative();
 //  reader->SetDesiredCoordinateOrientationToNative();
-//  if (this->CenterImage)
-//  {
-//    reader->SetUseNativeOriginOff();
-//  }
-//  else
-//  {
-//    reader->SetUseNativeOriginOn();
-//  }
+    reader->SetUseNativeOriginOn();
+//  //}
 //
 //  try
 //  {
@@ -890,7 +868,7 @@ bool vtkMRMLSegmentationStorageNode::ReadImageDataInternal( vtkSegment* segment,
 //  }
 //
 //  // Set volume attributes
-//  OutDictionary = reader->GetMetaDataDictionary();
+//  outDictionary = reader->GetMetaDataDictionary();
 //
 //  // Get all the file names from the reader
 //  if (reader->GetNumberOfFileNames() > 1)
@@ -954,59 +932,26 @@ bool vtkMRMLSegmentationStorageNode::ReadImageDataInternal( vtkSegment* segment,
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentationStorageNode::ReadXMLAttributes(const char** atts)
 {
-  //int disabledModify = this->StartModify();
+  int disabledModify = this->StartModify();
 
-  //Superclass::ReadXMLAttributes(atts);
+  Superclass::ReadXMLAttributes(atts);
 
-  //const char* attName;
-  //const char* attValue;
-  //while (*atts != NULL)
-  //{
-  //  attName = *(atts++);
-  //  attValue = *(atts++);
-  //  if (!strcmp(attName, "centerImage"))
-  //  {
-  //    std::stringstream ss;
-  //    ss << attValue;
-  //    ss >> this->CenterImage;
-  //  }
-  //  if (!strcmp(attName, "singleFile"))
-  //  {
-  //    std::stringstream ss;
-  //    ss << attValue;
-  //    ss >> this->SingleFile;
-  //  }
-  //  if (!strcmp(attName, "UseOrientationFromFile"))
-  //  {
-  //    std::stringstream ss;
-  //    ss << attValue;
-  //    ss >> this->UseOrientationFromFile;
-  //  }
-  //}
+  const char* attName;
+  const char* attValue;
+  while (*atts != NULL)
+  {
+    attName = *(atts++);
+    attValue = *(atts++);
+  }
 
-  //this->EndModify(disabledModify);
+  this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentationStorageNode::WriteXML(ostream& of, int nIndent)
 {
-  //Superclass::WriteXML(of, nIndent);
-  //vtkIndent indent(nIndent);
-  //{
-  //  std::stringstream ss;
-  //  ss << this->CenterImage;
-  //  of << indent << " centerImage=\"" << ss.str() << "\"";
-  //}
-  //{
-  //  std::stringstream ss;
-  //  ss << this->SingleFile;
-  //  of << indent << " singleFile=\"" << ss.str() << "\"";
-  //}
-  //{
-  //  std::stringstream ss;
-  //  ss << this->UseOrientationFromFile;
-  //  of << indent << " UseOrientationFromFile=\"" << ss.str() << "\"";
-  //}
+  Superclass::WriteXML(of, nIndent);
+  vtkIndent indent(nIndent);
 }
 
 //----------------------------------------------------------------------------
@@ -1014,16 +959,12 @@ void vtkMRMLSegmentationStorageNode::WriteXML(ostream& of, int nIndent)
 // Does NOT copy: ID, FilePrefix, Name, StorageID
 void vtkMRMLSegmentationStorageNode::Copy(vtkMRMLNode *anode)
 {
-  //int disabledModify = this->StartModify();
+  int disabledModify = this->StartModify();
 
-  //Superclass::Copy(anode);
-  //vtkMRMLSegmentationStorageNode *node = (vtkMRMLSegmentationStorageNode *) anode;
+  Superclass::Copy(anode);
+  vtkMRMLSegmentationStorageNode *node = (vtkMRMLSegmentationStorageNode *) anode;
 
-  //this->SetCenterImage(node->CenterImage);
-  //this->SetSingleFile(node->SingleFile);
-  //this->SetUseOrientationFromFile(node->UseOrientationFromFile);
-
-  //this->EndModify(disabledModify);
+  this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------
