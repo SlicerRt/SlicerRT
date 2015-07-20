@@ -1,27 +1,27 @@
 /*==============================================================================
 
-Program: 3D Slicer
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
-Copyright (c) Kitware Inc.
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
 
-See COPYRIGHT.txt
-or http://www.slicer.org/copyright/copyright.txt for details.
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-This file was originally developed by Adam Rankin, PerkLab, Queen's University
-and was supported through the Applied Cancer Research Unit program of Cancer Care
-Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  This file was originally developed by Adam Rankin and Csaba Pinter, PerkLab, Queen's
+  University and was supported through the Applied Cancer Research Unit program of Cancer
+  Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
 // Segmentations includes
 #include "vtkMRMLSegmentationStorageNode.h"
 
+#include "vtkSegmentation.h"
 #include "vtkOrientedImageData.h"
 
 // MRML includes
@@ -32,71 +32,42 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 //#include <vtkDataFileFormatHelper.h>
 //#include <vtkDataIOManager.h>
 //#include <vtkDataSetSurfaceFilter.h>
-#include <vtkITKArchetypeImageSeriesScalarReader.h>
+//#include <vtkITKArchetypeImageSeriesScalarReader.h>
 //#include <vtkImageChangeInformation.h>
 #include <vtkMRMLScene.h>
-//#include <vtkMatrix4x4.h>
-//#include <vtkNew.h>
-//#include <vtkObjectFactory.h>
+#include <vtkMatrix4x4.h>
+#include <vtkNew.h>
+#include <vtkObjectFactory.h>
 //#include <vtkPointData.h>
 //#include <vtkPolyData.h>
 //#include <vtkPolyDataReader.h>
 //#include <vtkPolyDataWriter.h>
-//#include <vtkStringArray.h>
+#include <vtkMultiBlockDataSet.h>
+#include <vtkXMLMultiBlockDataWriter.h>
+#include <vtkStringArray.h>
 //#include <vtkTrivialProducer.h>
 //#include <vtkUnstructuredGrid.h>
 //#include <vtkUnstructuredGridReader.h>
 //#include <vtkXMLDataElement.h>
 //#include <vtkXMLUtilities.h>
-//#include <vtksys/Directory.hxx>
-//#include <vtksys/SystemTools.hxx>
+#include <vtksys/Directory.hxx>
+#include <vtksys/SystemTools.hxx>
 
 //// VTK ITK includes
-#include "vtkITKImageWriter.h"
+//#include "vtkITKImageWriter.h"
+
+// ITK includes
+#include <itkImageFileWriter.h>
+#include <itkNrrdImageIO.h>
+#include <itkExceptionObject.h>
+#include <itkImageFileWriter.h>
+#include <itkImageFileReader.h>
+#include <itkMetaDataObject.h>
+#include <itkImageRegionIteratorWithIndex.h>
 
 // STL & C++ includes
 #include <iterator>
 #include <sstream>
-
-//----------------------------------------------------------------------------
-//namespace
-//{
-//
-//  //----------------------------------------------------------------------------
-//  void ApplyImageSeriesReaderWorkaround(vtkMRMLSegmentationStorageNode * storageNode,
-//    vtkITKArchetypeImageSeriesReader * reader,
-//    const std::string& filename)
-//  {
-//    // TODO: this is a workaround for an issue in itk::ImageSeriesReader
-//    // where is assumes that all the filenames that have been passed
-//    // to it are a dimension smaller than the image it is asked to create
-//    // (i.e. a list of .jpg files that form a volume).
-//    // In our case though, we can have file lists that include both the
-//    // header and bulk data, like .hdr/.img pairs.  So we need to
-//    // be careful not to send extra filenames to the reader if the
-//    // format is multi-file for the same volume
-//    //
-//    // check for Analyze and similar format- if the archetype is
-//    // one of those, then don't send the rest of the list
-//    //
-//    std::string fileExt=vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(filename);
-//    if ( fileExt != std::string(".hdr")
-//      && fileExt != std::string(".img")
-//      && fileExt != std::string(".mhd")
-//      && fileExt != std::string(".nhdr") )
-//    {
-//      for (int n = 0; n < storageNode->GetNumberOfFileNames(); n++)
-//      {
-//        std::string nthFileName = storageNode->GetFullNameFromNthFileName(n);
-//        vtkDebugWithObjectMacro(storageNode,
-//          "ReadData: got full name for " << n << "th file: " << nthFileName
-//          << ", adding it to reader, current num files on it = "
-//          << reader->GetNumberOfFileNames());
-//        reader->AddFileName(nthFileName.c_str());
-//      }
-//    }
-//  }
-//} // end of anonymous namespace
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLSegmentationStorageNode);
@@ -104,8 +75,8 @@ vtkMRMLNodeNewMacro(vtkMRMLSegmentationStorageNode);
 //----------------------------------------------------------------------------
 vtkMRMLSegmentationStorageNode::vtkMRMLSegmentationStorageNode()
 {
-  //this->InitializeSupportedWriteFileTypes();
-  //this->InitializeSupportedReadFileTypes();
+  this->InitializeSupportedWriteFileTypes();
+  this->InitializeSupportedReadFileTypes();
 }
 
 //----------------------------------------------------------------------------
@@ -120,40 +91,95 @@ void vtkMRMLSegmentationStorageNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLSegmentationStorageNode::ReadXMLAttributes(const char** atts)
+{
+  int disabledModify = this->StartModify();
+
+  Superclass::ReadXMLAttributes(atts);
+
+  const char* attName;
+  const char* attValue;
+  while (*atts != NULL)
+  {
+    attName = *(atts++);
+    attValue = *(atts++);
+  }
+
+  this->EndModify(disabledModify);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationStorageNode::WriteXML(ostream& of, int nIndent)
+{
+  Superclass::WriteXML(of, nIndent);
+  vtkIndent indent(nIndent);
+}
+
+//----------------------------------------------------------------------------
+// Copy the node's attributes to this object.
+// Does NOT copy: ID, FilePrefix, Name, StorageID
+void vtkMRMLSegmentationStorageNode::Copy(vtkMRMLNode *anode)
+{
+  int disabledModify = this->StartModify();
+
+  Superclass::Copy(anode);
+  vtkMRMLSegmentationStorageNode *node = (vtkMRMLSegmentationStorageNode *) anode;
+
+  this->EndModify(disabledModify);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationStorageNode::InitializeSupportedReadFileTypes()
+{
+  this->SupportedReadFileTypes->InsertNextValue("4D NRRD volume (.nrrd)");
+  this->SupportedReadFileTypes->InsertNextValue("Multi-block dataset (.vtm)");
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationStorageNode::InitializeSupportedWriteFileTypes()
+{
+  this->SupportedWriteFileTypes->InsertNextValue("4D NRRD volume (.nrrd)");
+  this->SupportedWriteFileTypes->InsertNextValue("Multi-block dataset (.vtm)");
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLSegmentationStorageNode::GetDefaultWriteFileExtension()
+{
+  return "nrrd";
+}
+
+//----------------------------------------------------------------------------
 bool vtkMRMLSegmentationStorageNode::CanReadInReferenceNode(vtkMRMLNode *refNode)
 {
   return refNode->IsA("vtkMRMLSegmentationNode");
 }
 
 //----------------------------------------------------------------------------
-// TODO : when source representation concept exists, then store the existing converted representations as xml attributes in either the segmentation node or segmentation storage node
 int vtkMRMLSegmentationStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
 {
-  //vtkMRMLSegmentationNode *segmentationNode = dynamic_cast <vtkMRMLSegmentationNode *> (refNode);
+  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(refNode);
+  if (!segmentationNode)
+  {
+    vtkErrorMacro("ReadDataInternal: Reference node is not a segmentation node");
+    return 0;
+  }
 
-  //std::string fullName = this->GetFullNameFromFileName();
-  //if (fullName == std::string(""))
-  //{
-  //  vtkErrorMacro("ReadDataInternal: File name not specified");
-  //  return 0;
-  //}
+  std::string fullName = this->GetFullNameFromFileName();
+  if (fullName == std::string(""))
+  {
+    vtkErrorMacro("ReadDataInternal: File name not specified");
+    return 0;
+  }
 
-  //// check that the file exists
-  //if (vtksys::SystemTools::FileExists(fullName.c_str()) == false)
-  //{
-  //  vtkErrorMacro("ReadDataInternal: segmentation file '" << fullName.c_str() << "' not found.");
-  //  return 0;
-  //}
+  // check that the file exists
+  if (vtksys::SystemTools::FileExists(fullName.c_str()) == false)
+  {
+    vtkErrorMacro("ReadDataInternal: segmentation file '" << fullName.c_str() << "' not found.");
+    return 0;
+  }
 
   //std::string path = vtksys::SystemTools::GetFilenamePath(fullName);
-  //vtkSmartPointer<vtkXMLDataElement> element = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fullName.c_str()));
 
-  //vtkXMLDataElement* segmentList = element->GetNestedElement(0);
-  //if(STRCASECMP(segmentList->GetName(), "Segments") != 0 )
-  //{
-  //  vtkErrorMacro("Incorrect XML structure in file: " << fullName << ". No Segments Tag under " << element->GetName());
-  //  return 0;
-  //}
   //itk::MetaDataDictionary dictionary;
   //vtkSmartPointer<vtkMatrix4x4> IJKToRASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   //// The dictionary and ijk to ras matrix are duplicated in every segment's image data (.nrrd) file
@@ -250,34 +276,48 @@ vtkSegment* vtkMRMLSegmentationStorageNode::ReadSegmentInternal(const std::strin
 }
 
 //----------------------------------------------------------------------------
-// TODO : save only source representation - this implies the source representation mechanism exists
 int vtkMRMLSegmentationStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
 {
-  //vtkMRMLSegmentationNode *segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(refNode);
+  std::string fullName = this->GetFullNameFromFileName();
+  if (fullName == std::string(""))
+  {
+    vtkErrorMacro("vtkMRMLModelNode: File name not specified");
+    return 0;
+  }
 
-  //std::string fullName = this->GetFullNameFromFileName();
-  //if (fullName == std::string(""))
-  //{
-  //  vtkErrorMacro("vtkMRMLModelNode: File name not specified");
-  //  return 0;
-  //}
+  vtkMRMLSegmentationNode *segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(refNode);
+  if (segmentationNode == NULL)
+  {
+    vtkErrorMacro("Segmentation node expected. Unable to write node to file.");
+    return 0;
+  }
 
-  //std::string path = vtksys::SystemTools::GetFilenamePath(fullName);
+  // Write only master representation
+  //TODO: Change file extension based on master representation type (by default it will be nrrd)
+  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
+  const char* masterRepresentation = segmentation->GetMasterRepresentationName();
+  if (!strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+  {
+    // Binary labelmap -> 4D NRRD volume
+    return this->WriteBinaryLabelmapRepresentation(segmentation, fullName);
+  }
+  else if ( !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName())
+         || !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()) )
+  {
+    // Closed surface or planar contours -> MultiBlock polydata
+    //TODO:
+    //return this->WritePolyDataRepresentation(segmentation, fullName);
+  }
 
-  //vtkSmartPointer<vtkXMLDataElement> element = vtkSmartPointer<vtkXMLDataElement>::Take(this->CreateXMLElement(*segmentationNode, fullName));
 
-  //vtkXMLDataElement* segmentList = element->GetNestedElement(0);
-  //// Sanity check
-  //if( segmentList->GetNumberOfNestedElements() != segmentationNode->GetNumberOfSegments() )
-  //{
-  //  vtkErrorMacro("XML segment list and segmentation node segment list do not match. Unable to write node to file.");
-  //  return 0;
-  //}
+
+
+
 
   //vtkSmartPointer<vtkMatrix4x4> IJKToRASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   //segmentationNode->GetIJKToRASMatrix(IJKToRASMatrix);
 
-  //for( int segmentIndex = 0; segmentIndex < segmentationNode->GetNumberOfSegments(); ++segmentIndex)
+  //for (int segmentIndex = 0; segmentIndex < segmentationNode->GetNumberOfSegments(); ++segmentIndex)
   //{
   //  vtkSegment* segment = segmentationNode->GetSegmentByIndex(segmentIndex);
   //  vtkXMLDataElement* segmentElement = segmentList->GetNestedElement(segmentIndex);
@@ -291,24 +331,134 @@ int vtkMRMLSegmentationStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLSegmentationStorageNode::InitializeSupportedReadFileTypes()
+int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegmentation* segmentation, std::string fullName)
 {
-  //this->SupportedReadFileTypes->InsertNextValue("Segmentation (.seg)");
+  if (!segmentation)
+  {
+    vtkErrorMacro("Invalid segmentation to write to disk");
+    return 0;
+  }
+
+  // Although internally binary labelmap representations can be of unsigned char, unsigned short
+  // or short types, the output file is always unsigned char
+  //TODO: This is a limitation for now
+  typedef itk::Image<unsigned char, 4> BinaryLabelmap4DImageType;
+  typedef BinaryLabelmap4DImageType::Pointer BinaryLabelmap4DImagePointer;
+  typedef itk::ImageRegionIteratorWithIndex<BinaryLabelmap4DImageType> BinaryLabelmap4DIteratorType;
+
+  // Determine merged labelmap dimensions and properties
+  //TODO: Do this from the labelmaps, see vtkMRMLSegmentationNode::GenerateMergedLabelmap. This is for testing
+  int dimensions[4] = {2,2,2,segmentation->GetNumberOfSegments()};
+  double originArray[4] = {0.0,0.0,0.0,0.0};
+  double spacingArray[4] = {1.0,1.0,1.0,1.0};
+  vtkSmartPointer<vtkMatrix4x4> labelmapToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  labelmapToWorldTransformMatrix->Identity(); //TODO:
+  //inVolumeToWorldTransform->GetMatrix(labelmapToWorldTransformMatrix);
+
+  // Determine ITK image properties
+  BinaryLabelmap4DImageType::SizeType regionSize;
+  BinaryLabelmap4DImageType::IndexType regionIndex;
+  BinaryLabelmap4DImageType::RegionType region;
+  BinaryLabelmap4DImageType::PointType origin;
+  BinaryLabelmap4DImageType::SpacingType spacing;
+  BinaryLabelmap4DImageType::DirectionType directions;
+  for (int dim = 0; dim < 4; dim++)
+  {
+    regionIndex[dim] = 0;
+    regionSize[dim] = dimensions[dim];
+    spacing[dim] = spacingArray[dim];
+    origin[dim] = originArray[dim];
+  }
+  region.SetSize(regionSize);
+  region.SetIndex(regionIndex);
+  // Normalize direction vectors
+  for (unsigned int col=0; col<3; col++)
+  {
+    double len = 0;
+    unsigned int row = 0;
+    for (row=0; row<3; row++)
+    {
+      len += labelmapToWorldTransformMatrix->GetElement(row, col) * labelmapToWorldTransformMatrix->GetElement(row, col);
+    }
+    if (len == 0.0)
+    {
+      len = 1.0;
+    }
+    len = sqrt(len);
+    for (row=0; row<3; row++)
+    {
+      directions[row][col] = labelmapToWorldTransformMatrix->GetElement(row, col)/len;
+    }
+  }
+  // Add fourth dimension to directions matrix
+  directions[3][3] = 1.0;
+  for (unsigned int index=0; index<3; index++)
+  {
+    directions[3][index] = 0.0;
+    directions[index][3] = 0.0;
+  }
+
+  // Create merged labelmap image and set ITK image properties
+  BinaryLabelmap4DImagePointer mergedLabelmapImage = BinaryLabelmap4DImageType::New();
+  mergedLabelmapImage->SetRegions(region);
+  mergedLabelmapImage->SetOrigin(origin);
+  mergedLabelmapImage->SetSpacing(spacing);
+  mergedLabelmapImage->SetDirection(directions);
+  mergedLabelmapImage->Allocate();
+
+  // Dimensions of the output 4D NRRD file: (i, j, k, segment)
+  vtkSegmentation::SegmentMap segmentMap = segmentation->GetSegments();
+  unsigned int segmentIndex = 0;
+  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt, ++segmentIndex)
+  {
+    BinaryLabelmap4DImageType::RegionType segmentRegion;
+    BinaryLabelmap4DImageType::SizeType segmentRegionSize;
+    BinaryLabelmap4DImageType::IndexType segmentRegionIndex;
+    segmentRegionIndex[0] = segmentRegionIndex[1] = segmentRegionIndex[2] = 0;
+    segmentRegionIndex[3] = segmentIndex;
+    segmentRegionSize = regionSize;
+    segmentRegionSize[3] = 1;
+    segmentRegion.SetIndex(segmentRegionIndex);
+    segmentRegion.SetSize(segmentRegionSize);
+
+    // Iterate through current segment labelmap and write voxel values
+    BinaryLabelmap4DIteratorType segmentLabelmapIterator(mergedLabelmapImage, segmentRegion);
+    for (segmentLabelmapIterator.GoToBegin(); !segmentLabelmapIterator.IsAtEnd(); ++segmentLabelmapIterator)
+    {
+      segmentLabelmapIterator.Set((unsigned char)segmentIndex);
+      //TODO: Write actual values. This is for testing
+    }
+  }
+
+  // Save segment IDs and members, also display colors in the NRRD header
+  //TODO: Use MetaDataDictionary
+
+  // Write image file to disk
+  itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
+  io->SetFileType(itk::ImageIOBase::Binary); //TODO: This was ASCII originally, change back if binary doesn't work
+
+  typedef itk::ImageFileWriter<BinaryLabelmap4DImageType> WriterType;
+  WriterType::Pointer nrrdWriter = WriterType::New();
+  nrrdWriter->UseInputMetaDataDictionaryOn();
+  nrrdWriter->SetInput(mergedLabelmapImage);
+  nrrdWriter->SetImageIO(io);
+  nrrdWriter->SetFileName(fullName);
+  try
+  {
+    nrrdWriter->Update();
+  }
+  catch (itk::ExceptionObject e)
+  {
+    vtkErrorMacro("Failed to write segmentation to file " << fullName);
+    return 0;
+  }
+
+  return 1;
 }
 
-//----------------------------------------------------------------------------
-void vtkMRMLSegmentationStorageNode::InitializeSupportedWriteFileTypes()
-{
-  //this->SupportedWriteFileTypes->InsertNextValue("Segmentation (.seg)");
-}
 
-//----------------------------------------------------------------------------
-const char* vtkMRMLSegmentationStorageNode::GetDefaultWriteFileExtension()
-{
-  //TODO:
-  //return "seg";
-  return "";
-}
+
+
 
 //----------------------------------------------------------------------------
 int vtkMRMLSegmentationStorageNode::WritePolyDataInternal( vtkPolyData* polyData, std::string& filename )
@@ -794,9 +944,9 @@ bool vtkMRMLSegmentationStorageNode::ReadOrientedImageDataInternal(vtkOrientedIm
 {
 //  std::string filename = this->GetFullNameFromFileName();
 //
-  vtkSmartPointer<vtkITKArchetypeImageSeriesReader> reader = vtkSmartPointer<vtkITKArchetypeImageSeriesScalarReader>::New();
-  reader->SetSingleFile(1);
-  reader->SetUseOrientationFromFile(1);
+//  vtkSmartPointer<vtkITKArchetypeImageSeriesReader> reader = vtkSmartPointer<vtkITKArchetypeImageSeriesScalarReader>::New();
+//  reader->SetSingleFile(1);
+//  reader->SetUseOrientationFromFile(1);
 //
 //  if (reader.GetPointer() == NULL)
 //  {
@@ -821,7 +971,7 @@ bool vtkMRMLSegmentationStorageNode::ReadOrientedImageDataInternal(vtkOrientedIm
 //  // Center image
 //  reader->SetOutputScalarTypeToNative();
 //  reader->SetDesiredCoordinateOrientationToNative();
-    reader->SetUseNativeOriginOn();
+//    reader->SetUseNativeOriginOn();
 //  //}
 //
 //  try
@@ -927,44 +1077,6 @@ bool vtkMRMLSegmentationStorageNode::ReadOrientedImageDataInternal(vtkOrientedIm
 //  OutIJKToRASMatrix.DeepCopy(mat);
 //
   return true;
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLSegmentationStorageNode::ReadXMLAttributes(const char** atts)
-{
-  int disabledModify = this->StartModify();
-
-  Superclass::ReadXMLAttributes(atts);
-
-  const char* attName;
-  const char* attValue;
-  while (*atts != NULL)
-  {
-    attName = *(atts++);
-    attValue = *(atts++);
-  }
-
-  this->EndModify(disabledModify);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLSegmentationStorageNode::WriteXML(ostream& of, int nIndent)
-{
-  Superclass::WriteXML(of, nIndent);
-  vtkIndent indent(nIndent);
-}
-
-//----------------------------------------------------------------------------
-// Copy the node's attributes to this object.
-// Does NOT copy: ID, FilePrefix, Name, StorageID
-void vtkMRMLSegmentationStorageNode::Copy(vtkMRMLNode *anode)
-{
-  int disabledModify = this->StartModify();
-
-  Superclass::Copy(anode);
-  vtkMRMLSegmentationStorageNode *node = (vtkMRMLSegmentationStorageNode *) anode;
-
-  this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------

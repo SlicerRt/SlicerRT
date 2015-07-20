@@ -1,21 +1,20 @@
 /*==============================================================================
 
-Program: 3D Slicer
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
-Copyright (c) Kitware Inc.
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
 
-See COPYRIGHT.txt
-or http://www.slicer.org/copyright/copyright.txt for details.
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-This file was originally developed by Adam Rankin, PerkLab, Queen's University
-and was supported through the Applied Cancer Research Unit program of Cancer Care
-Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  This file was originally developed by Adam Rankin and Csaba Pinter, PerkLab, Queen's
+  University and was supported through the Applied Cancer Research Unit program of Cancer
+  Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
@@ -35,8 +34,9 @@ class vtkMRMLSegmentationNode;
 class vtkMatrix4x4;
 class vtkPolyData;
 class vtkOrientedImageData;
+class vtkSegmentation;
 class vtkSegment;
-class vtkXMLDataElement;
+class vtkXMLDataElement; //TODO
 
 /// \brief MRML node for segmentation storage on disk.
 ///
@@ -44,7 +44,7 @@ class vtkXMLDataElement;
 class VTK_SLICER_SEGMENTATIONS_MODULE_MRML_EXPORT vtkMRMLSegmentationStorageNode : public vtkMRMLStorageNode
 {
   /// TODO : storage node needs to know about all files related to the data node
-  /// when saving to mrb, it does some fancy magic to package it all together
+  /// when saving to mrb, it does some fancy magic to package it all together (obsolete comment)
 
 public:
   static vtkMRMLSegmentationStorageNode *New();
@@ -79,11 +79,6 @@ public:
   std::string UpdateFileList(vtkSegment* segment, vtkMatrix4x4* IJKToRASMatrix, int move = 0);
 
 protected:
-  vtkMRMLSegmentationStorageNode();
-  ~vtkMRMLSegmentationStorageNode();
-  vtkMRMLSegmentationStorageNode(const vtkMRMLSegmentationStorageNode&);
-  void operator=(const vtkMRMLSegmentationStorageNode&);
-
   /// Initialize all the supported read file types
   virtual void InitializeSupportedReadFileTypes();
 
@@ -95,6 +90,12 @@ protected:
 
   /// Write data from a referenced node
   virtual int WriteDataInternal(vtkMRMLNode *refNode);
+
+  /// Write binary labelmap representation to file
+  virtual int WriteBinaryLabelmapRepresentation(vtkSegmentation* segmentation, std::string path);
+
+
+
 
   /// Write poly data
   virtual int WritePolyDataInternal(vtkPolyData* polyData, std::string& filename);
@@ -116,6 +117,14 @@ protected:
 
   /// Write the location of the other files to disc
   virtual vtkXMLDataElement* CreateXMLElement(vtkMRMLSegmentationNode& node, const std::string& baseFilename);
+
+protected:
+  vtkMRMLSegmentationStorageNode();
+  ~vtkMRMLSegmentationStorageNode();
+
+private:
+  vtkMRMLSegmentationStorageNode(const vtkMRMLSegmentationStorageNode&);  /// Not implemented.
+  void operator=(const vtkMRMLSegmentationStorageNode&);  /// Not implemented.
 };
 
 #endif
