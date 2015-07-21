@@ -481,6 +481,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode(vtkSeg
   {
     representationNode->SetName(segmentId.c_str());
   }
+  vtkMRMLTransformNode* parentTransformNode = segmentationNode->GetParentTransformNode();
 
   if (labelmapNode)
   {
@@ -502,7 +503,19 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode(vtkSeg
     // Export binary labelmap representation into labelmap volume node
     vtkOrientedImageData* orientedImageData = vtkOrientedImageData::SafeDownCast(
       segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
-    return vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData(orientedImageData, labelmapNode);
+    bool success = vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData(orientedImageData, labelmapNode);
+    if (!success)
+    {
+      return false;
+    }
+
+    // Set segmentation's parent transform to exported node
+    if (parentTransformNode)
+    {
+      labelmapNode->SetAndObserveTransformNodeID(parentTransformNode->GetID());
+    }
+
+    return true;
   }
   else if (modelNode)
   {
@@ -541,6 +554,12 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode(vtkSeg
       {
         modelDisplayNode->SetColor(properties.Color);
       }
+    }
+
+    // Set segmentation's parent transform to exported node
+    if (parentTransformNode)
+    {
+      modelNode->SetAndObserveTransformNodeID(parentTransformNode->GetID());
     }
 
     return true;
@@ -599,6 +618,13 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
     {
       labelmapNode->GetDisplayNode()->SetAndObserveColorNodeID(segmentationNode->GetDisplayNode()->GetColorNodeID());
     }
+  }
+
+  // Set segmentation's parent transform to exported node
+  vtkMRMLTransformNode* parentTransformNode = segmentationNode->GetParentTransformNode();
+  if (parentTransformNode)
+  {
+    labelmapNode->SetAndObserveTransformNodeID(parentTransformNode->GetID());
   }
 
   return true;

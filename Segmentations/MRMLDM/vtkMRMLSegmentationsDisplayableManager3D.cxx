@@ -640,15 +640,17 @@ void vtkMRMLSegmentationsDisplayableManager3D::ProcessMRMLNodesEvents(vtkObject*
     }
 
   vtkMRMLSegmentationNode* displayableNode = vtkMRMLSegmentationNode::SafeDownCast(caller);
-
-  if ( displayableNode && (event == vtkMRMLDisplayableNode::DisplayModifiedEvent) )
+  if (displayableNode)
     {
-    vtkMRMLNode* callDataNode = reinterpret_cast<vtkMRMLDisplayNode *> (callData);
-    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(callDataNode);
-    if (displayNode)
+    if (event == vtkMRMLDisplayableNode::DisplayModifiedEvent)
       {
-      this->Internal->UpdateDisplayNode(displayNode);
-      this->RequestRender();
+      vtkMRMLNode* callDataNode = reinterpret_cast<vtkMRMLDisplayNode *> (callData);
+      vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(callDataNode);
+      if (displayNode)
+        {
+        this->Internal->UpdateDisplayNode(displayNode);
+        this->RequestRender();
+        }
       }
     else if ( (event == vtkMRMLDisplayableNode::TransformModifiedEvent)
            || (event == vtkMRMLTransformableNode::TransformModifiedEvent)
