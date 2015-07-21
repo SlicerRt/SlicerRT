@@ -359,7 +359,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       day2Dose.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
       day2Dose.GetDisplayNode().AutoThresholdOff();
       day2Dose.GetDisplayNode().SetLowerThreshold(0.5 * float(doseUnitValue));
-      day2Dose.GetDisplayNode().SetApplyThreshold(1);    
+      day2Dose.GetDisplayNode().SetApplyThreshold(1);
       
       # Set CT windows
       day1CT = slicer.util.getNode(self.day1CTName)
@@ -410,7 +410,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       numOfModelNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLModelNode*') )
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
-      doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]      
+      doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]
       applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', name='Apply')[0]
       
       # Compute isodose for day 1 dose
@@ -447,7 +447,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       numOfModelNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLModelNode*') )
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
-      doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]      
+      doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]
       applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', name='Apply')[0]
 
       # Compute isodose for day 2 dose
@@ -555,7 +555,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     try:
       self.delayDisplay("Apply Day 2 CT to Day 1 CT rigid transform to Day 2 Dose",self.delayMs)
 
-      cloneNodePlugin = slicer.qSlicerSubjectHierarchyPluginHandler.instance().pluginByName('CloneNode') 
+      cloneNodePlugin = slicer.qSlicerSubjectHierarchyPluginHandler.instance().pluginByName('CloneNode')
       self.assertTrue( cloneNodePlugin != None)
 
       day2DoseSH = slicer.util.getNode(self.day2DoseName + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
@@ -1059,15 +1059,15 @@ class IGRTWorkflow_SelfTestWidget(ScriptedLoadableModuleWidget):
 #
 
 class IGRTWorkflow_SelfTestLogic(ScriptedLoadableModuleLogic):
-  """This class should implement all the actual 
-  computation done by your module.  The interface 
+  """This class should implement all the actual
+  computation done by your module.  The interface
   should be such that other python code can import
   this class and make use of the functionality without
   requiring an instance of the Widget
   """
 
   def hasImageData(self,volumeNode):
-    """This is a dummy logic method that 
+    """This is a dummy logic method that
     returns true if the passed in volume
     node has valid image data
     """
