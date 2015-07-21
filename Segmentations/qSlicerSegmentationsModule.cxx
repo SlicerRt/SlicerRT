@@ -31,7 +31,7 @@
 // Segmentations includes
 #include "qSlicerSegmentationsModule.h"
 #include "qSlicerSegmentationsModuleWidget.h"
-//#include "qSlicerSegmentationsReader.h" //TODO:
+#include "qSlicerSegmentationsReader.h"
 #include "qSlicerSubjectHierarchySegmentationsPlugin.h"
 #include "qSlicerSubjectHierarchySegmentsPlugin.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
@@ -138,18 +138,16 @@ void qSlicerSegmentationsModule::setup()
 {
   this->Superclass::setup();
 
-  //vtkSlicerSegmentationsModuleLogic* segmentationsLogic =
-  //  vtkSlicerSegmentationsModuleLogic::SafeDownCast(this->logic());
+  vtkSlicerSegmentationsModuleLogic* segmentationsLogic = vtkSlicerSegmentationsModuleLogic::SafeDownCast(this->logic());
 
   // Register subject hierarchy plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchySegmentationsPlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchySegmentsPlugin());
   
   // Register IOs
-  //TODO:
-  // qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
-  // ioManager->registerIO(new qSlicerNodeWriter("Segmentation", QString("SegmentationFile"), QStringList() << "vtkMRMLSegmentationNode", this));
-  // ioManager->registerIO(new qSlicerSegmentationsReader(segmentationsLogic, this));
+  qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
+  ioManager->registerIO(new qSlicerNodeWriter("Segmentation", QString("SegmentationFile"), QStringList() << "vtkMRMLSegmentationNode", this));
+  ioManager->registerIO(new qSlicerSegmentationsReader(segmentationsLogic, this));
 
   // Use the displayable manager class to make sure the the containing library is loaded
   vtkSmartPointer<vtkMRMLSegmentationsDisplayableManager3D> dm3d = vtkSmartPointer<vtkMRMLSegmentationsDisplayableManager3D>::New();

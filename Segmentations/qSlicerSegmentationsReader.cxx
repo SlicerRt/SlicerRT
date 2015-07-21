@@ -18,17 +18,18 @@
 
 ==============================================================================*/
 
+// Segmentations includes
+#include "qSlicerSegmentationsReader.h"
+
+#include "vtkMRMLSegmentationNode.h"
+
 // Qt includes
 #include <QFileInfo>
-
-// Module includes
-#include "qSlicerSegmentationsReader.h"
 
 // Logic includes
 #include "vtkSlicerSegmentationsModuleLogic.h"
 
 // MRML includes
-#include "vtkMRMLSegmentationNode.h"
 #include <vtkMRMLScene.h>
 
 // VTK includes
@@ -84,15 +85,12 @@ qSlicerIO::IOFileType qSlicerSegmentationsReader::fileType()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerSegmentationsReader::extensions()const
 {
-  //TODO:
-  return QStringList()
-    << "Segmentation (*.seg)";
+  return QStringList() << "Segmentation (*.seg)" << "4D NRRD volume (*.nrrd)" << "Multi-block dataset (*.vtm)";
 }
 
 //-----------------------------------------------------------------------------
 bool qSlicerSegmentationsReader::load(const IOProperties& properties)
 {
-  //TODO:
   Q_D(qSlicerSegmentationsReader);
   Q_ASSERT(properties.contains("fileName"));
   QString fileName = properties["fileName"].toString();
@@ -102,19 +100,20 @@ bool qSlicerSegmentationsReader::load(const IOProperties& properties)
   {
     return false;
   }
-  //TODO:
-  //vtkMRMLSegmentationNode* node = d->SegmentationsLogic->LoadSegmentationFromFile( fileName.toLatin1() );
-  vtkMRMLSegmentationNode* node = NULL;
+
+  vtkMRMLSegmentationNode* node = d->SegmentationsLogic->LoadSegmentationFromFile(fileName.toLatin1().constData());
   if (!node)
   {
+    this->setLoadedNodes(QStringList());
     return false;
   }
+
   this->setLoadedNodes( QStringList(QString(node->GetID())) );
   if (properties.contains("name"))
   {
-    std::string uname = this->mrmlScene()->GetUniqueNameByString(
-      properties["name"].toString().toLatin1());
+    std::string uname = this->mrmlScene()->GetUniqueNameByString(properties["name"].toString().toLatin1());
     node->SetName(uname.c_str());
   }
+
   return true;
 }

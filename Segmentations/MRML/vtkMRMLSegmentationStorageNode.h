@@ -28,7 +28,7 @@
 #include "vtkMRMLStorageNode.h"
 
 // ITK includes
-#include <itkMetaDataDictionary.h>
+#include <itkImageRegionIteratorWithIndex.h>
 
 class vtkMRMLSegmentationNode;
 class vtkMatrix4x4;
@@ -43,8 +43,11 @@ class vtkXMLDataElement; //TODO
 /// Storage nodes has methods to read/write segmentations to/from disk.
 class VTK_SLICER_SEGMENTATIONS_MODULE_MRML_EXPORT vtkMRMLSegmentationStorageNode : public vtkMRMLStorageNode
 {
-  /// TODO : storage node needs to know about all files related to the data node
-  /// when saving to mrb, it does some fancy magic to package it all together (obsolete comment)
+  // Although internally binary labelmap representations can be of unsigned char, unsigned short
+  // or short types, the output file is always unsigned char
+  //TODO: This is a limitation for now
+  typedef itk::Image<unsigned char, 4> BinaryLabelmap4DImageType;
+  typedef itk::ImageRegionIteratorWithIndex<BinaryLabelmap4DImageType> BinaryLabelmap4DIteratorType;
 
 public:
   static vtkMRMLSegmentationStorageNode *New();
@@ -71,12 +74,13 @@ public:
   /// Return true if the reference node can be read in
   virtual bool CanReadInReferenceNode(vtkMRMLNode *refNode);
 
+  //TODO:
   /// Do a temp write to update the file list in this storage node with all
   /// file names that are written when write out the ref node
   /// If move is 1, return the directory that contains the written files and
   /// only the written files, for use in a move instead of a double
   /// write. Otherwise return an empty string.
-  std::string UpdateFileList(vtkSegment* segment, vtkMatrix4x4* IJKToRASMatrix, int move = 0);
+  //std::string UpdateFileList(vtkSegment* segment, vtkMatrix4x4* IJKToRASMatrix, int move = 0);
 
 protected:
   /// Initialize all the supported read file types
@@ -85,18 +89,25 @@ protected:
   /// Initialize all the supported write file types
   virtual void InitializeSupportedWriteFileTypes();
 
-  /// Read data and set it in the referenced node
-  virtual int ReadDataInternal(vtkMRMLNode *refNode);
-
   /// Write data from a referenced node
   virtual int WriteDataInternal(vtkMRMLNode *refNode);
 
   /// Write binary labelmap representation to file
   virtual int WriteBinaryLabelmapRepresentation(vtkSegmentation* segmentation, std::string path);
 
+  /// Write a poly data representation to file
+  virtual int WritePolyDataRepresentation(vtkSegmentation* segmentation, std::string path);
 
+  /// Read data and set it in the referenced node
+  virtual int ReadDataInternal(vtkMRMLNode *refNode);
 
+  /// Read binary labelmap representation to file
+  virtual int ReadBinaryLabelmapRepresentation(vtkSegmentation* segmentation, std::string path);
 
+  /// Read a poly data representation to file
+  virtual int ReadPolyDataRepresentation(vtkSegmentation* segmentation, std::string path);
+
+  /* TODO:
   /// Write poly data
   virtual int WritePolyDataInternal(vtkPolyData* polyData, std::string& filename);
 
@@ -117,7 +128,7 @@ protected:
 
   /// Write the location of the other files to disc
   virtual vtkXMLDataElement* CreateXMLElement(vtkMRMLSegmentationNode& node, const std::string& baseFilename);
-
+  */
 protected:
   vtkMRMLSegmentationStorageNode();
   ~vtkMRMLSegmentationStorageNode();

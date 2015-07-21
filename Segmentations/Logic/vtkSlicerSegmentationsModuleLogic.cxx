@@ -43,6 +43,7 @@
 #include <vtkImageThreshold.h>
 #include <vtkDataObject.h>
 #include <vtkTransform.h>
+#include <vtksys/SystemTools.hxx>
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -221,6 +222,50 @@ vtkMRMLSegmentationNode* vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeF
   }
 
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLSegmentationNode* vtkSlicerSegmentationsModuleLogic::LoadSegmentationFromFile(const char* filename)
+{
+  if (this->GetMRMLScene() == NULL || filename == NULL)
+  {
+    return NULL;
+  }
+  vtkSmartPointer<vtkMRMLSegmentationNode> segmentationNode = vtkSmartPointer<vtkMRMLSegmentationNode>::New();
+  vtkSmartPointer<vtkMRMLSegmentationStorageNode> storageNode = vtkSmartPointer<vtkMRMLSegmentationStorageNode>::New();
+  storageNode->SetFileName(filename);
+
+  // Check to see which node can read this type of file
+  if (!storageNode->SupportedFileType(filename))
+  {
+    vtkErrorMacro("LoadSegmentationFromFile: Segmentation storage node unable to load segmentation file.");
+    return NULL;
+  }
+
+  std::string baseName = vtksys::SystemTools::GetFilenameWithoutExtension(filename);
+  std::string uname( this->GetMRMLScene()->GetUniqueNameByString(baseName.c_str()));
+  segmentationNode->SetName(uname.c_str());
+  std::string storageUName = uname + "_Storage";
+  storageNode->SetName(storageUName.c_str());
+  this->GetMRMLScene()->SaveStateForUndo();
+  this->GetMRMLScene()->AddNode(storageNode.GetPointer());
+
+  segmentationNode->SetScene(this->GetMRMLScene());
+  segmentationNode->SetAndObserveStorageNodeID(storageNode->GetID());
+
+  this->GetMRMLScene()->AddNode(segmentationNode);
+
+  // Read file
+  vtkDebugMacro("LoadSegmentationFromFile: calling read on the storage node");
+  int success = storageNode->ReadData(segmentationNode);
+  if (success != 1)
+  {
+    vtkErrorMacro("LoadSegmentationFromFile: Error reading " << filename);
+    this->GetMRMLScene()->RemoveNode(segmentationNode);
+    return NULL;
+  }
+
+  return segmentationNode.GetPointer();
 }
 
 //-----------------------------------------------------------------------------

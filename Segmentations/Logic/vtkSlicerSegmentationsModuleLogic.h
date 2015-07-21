@@ -51,7 +51,7 @@ public:
   vtkTypeMacro(vtkSlicerSegmentationsModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-//TODO:
+  //TODO:
   /// Create a segmentation node for the given segmentation node
   /// \param segmentationNode the node that requires a storage node be created
   //static vtkMRMLSegmentationStorageNode* CreateSegmentationStorageNode(vtkMRMLSegmentationNode* segmentationNode);
@@ -70,6 +70,9 @@ public:
   /// \param segmentId Output argument for the ID of the found segment
   /// \return Segmentation node containing the given segment if any, NULL otherwise
   static vtkMRMLSegmentationNode* GetSegmentationNodeForSegment(vtkMRMLScene* scene, vtkSegment* segment, std::string& segmentId);
+
+  /// Load segmentation from file
+  vtkMRMLSegmentationNode* LoadSegmentationFromFile(const char* filename);
 
   /// Create labelmap volume MRML node from oriented image data
   /// \param orientedImageData Oriented image data to create labelmap from
