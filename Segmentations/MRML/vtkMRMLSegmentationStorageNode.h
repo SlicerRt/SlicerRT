@@ -74,14 +74,6 @@ public:
   /// Return true if the reference node can be read in
   virtual bool CanReadInReferenceNode(vtkMRMLNode *refNode);
 
-  //TODO:
-  /// Do a temp write to update the file list in this storage node with all
-  /// file names that are written when write out the ref node
-  /// If move is 1, return the directory that contains the written files and
-  /// only the written files, for use in a move instead of a double
-  /// write. Otherwise return an empty string.
-  //std::string UpdateFileList(vtkSegment* segment, vtkMatrix4x4* IJKToRASMatrix, int move = 0);
-
 protected:
   /// Initialize all the supported read file types
   virtual void InitializeSupportedReadFileTypes();
@@ -108,14 +100,8 @@ protected:
   virtual int ReadPolyDataRepresentation(vtkSegmentation* segmentation, std::string path);
 
   /* TODO:
-  /// Write poly data
-  virtual int WritePolyDataInternal(vtkPolyData* polyData, std::string& filename);
-
   /// Write oriented image data
   virtual int WriteOrientedImageDataInternal(vtkOrientedImageData* imageData);
-
-  /// Write segment data
-  virtual int WriteSegmentInternal(vtkXMLDataElement* segmentElement, vtkSegment* segment, const std::string& path, vtkMatrix4x4* IJKToRASMatrix);
 
   /// Read poly data
   virtual bool ReadPolyDataInternal(vtkPolyData* outModel, const char* filename, const char* suffix);
