@@ -81,6 +81,9 @@ protected:
   /// Initialize all the supported write file types
   virtual void InitializeSupportedWriteFileTypes();
 
+  /// Get data node that is associated with this storage node
+  vtkMRMLSegmentationNode* GetAssociatedDataNode();
+
   /// Write data from a referenced node
   virtual int WriteDataInternal(vtkMRMLNode *refNode);
 

@@ -130,27 +130,81 @@ void vtkMRMLSegmentationStorageNode::Copy(vtkMRMLNode *anode)
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentationStorageNode::InitializeSupportedReadFileTypes()
 {
-  this->SupportedReadFileTypes->InsertNextValue("4D NRRD volume (.nrrd)");
-  this->SupportedReadFileTypes->InsertNextValue("Multi-block dataset (.vtm)");
-  //TODO: Use the above two (users would get confused) or always .seg?
-  this->SupportedReadFileTypes->InsertNextValue("Segmentation (.seg)");
+  this->SupportedReadFileTypes->InsertNextValue("Segmentation 4D NRRD volume (.seg.nrrd)");
+  this->SupportedReadFileTypes->InsertNextValue("Segmentation Multi-block dataset (.seg.vtm)");
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentationStorageNode::InitializeSupportedWriteFileTypes()
 {
-  this->SupportedWriteFileTypes->InsertNextValue("4D NRRD volume (.nrrd)");
-  this->SupportedWriteFileTypes->InsertNextValue("Multi-block dataset (.vtm)");
-  //TODO: Use the above two (users would get confused) or always .seg?
-  this->SupportedWriteFileTypes->InsertNextValue("Segmentation (.seg)");
+  Superclass::InitializeSupportedWriteFileTypes();
+
+  vtkMRMLSegmentationNode* segmentationNode = this->GetAssociatedDataNode();
+  if (segmentationNode)
+  {
+    const char* masterRepresentation = segmentationNode->GetSegmentation()->GetMasterRepresentationName();
+    if (!strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+      // Binary labelmap -> 4D NRRD volume
+      this->SupportedWriteFileTypes->InsertNextValue("Segmentation 4D NRRD volume (.seg.nrrd)");
+    }
+    else if ( !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName())
+           || !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()) )
+    {
+      // Closed surface or planar contours -> MultiBlock polydata
+      this->SupportedWriteFileTypes->InsertNextValue("Segmentation Multi-block dataset (.seg.vtm)");
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLSegmentationNode* vtkMRMLSegmentationStorageNode::GetAssociatedDataNode()
+{
+  if (!this->GetScene())
+  {
+    return NULL;
+  }
+
+  std::vector<vtkMRMLNode*> segmentationNodes;
+  unsigned int numberOfNodes = this->GetScene()->GetNodesByClass("vtkMRMLSegmentationNode", segmentationNodes);
+  for (unsigned int nodeIndex=0; nodeIndex<numberOfNodes; nodeIndex++)
+  {
+    vtkMRMLSegmentationNode* node = vtkMRMLSegmentationNode::SafeDownCast(segmentationNodes[nodeIndex]);
+    if (node)
+    {
+      const char* storageNodeID = node->GetStorageNodeID();
+      if (storageNodeID && !strcmp(storageNodeID, this->ID))
+      {
+        return vtkMRMLSegmentationNode::SafeDownCast(node);
+      }
+    }
+  }
+
+  return NULL;
 }
 
 //----------------------------------------------------------------------------
 const char* vtkMRMLSegmentationStorageNode::GetDefaultWriteFileExtension()
 {
-  //return "nrrd";
-  //TODO: Use two (users would get confused) or always .seg?
-  return "seg";
+  vtkMRMLSegmentationNode* segmentationNode = this->GetAssociatedDataNode();
+  if (segmentationNode)
+  {
+    const char* masterRepresentation = segmentationNode->GetSegmentation()->GetMasterRepresentationName();
+    if (!strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+      // Binary labelmap -> 4D NRRD volume
+      return "seg.nrrd";
+    }
+    else if ( !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName())
+           || !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()) )
+    {
+      // Closed surface or planar contours -> MultiBlock polydata
+      return "seg.vtm";
+    }
+  }
+
+  // Master representation is not supported for writing to file
+  return NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -158,6 +212,7 @@ bool vtkMRMLSegmentationStorageNode::CanReadInReferenceNode(vtkMRMLNode *refNode
 {
   return refNode->IsA("vtkMRMLSegmentationNode");
 }
+
 
 //TODO: Useful snippets
 //std::string extension = vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(baseFilename);
@@ -360,13 +415,17 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
   }
 
   // Determine merged labelmap dimensions and properties
-  //TODO: Do this from the labelmaps, see vtkMRMLSegmentationNode::GenerateMergedLabelmap. This is for testing
-  int dimensions[4] = {2,2,2,segmentation->GetNumberOfSegments()};
-  double originArray[4] = {0.0,0.0,0.0,0.0};
-  double spacingArray[4] = {1.0,1.0,1.0,1.0};
-  vtkSmartPointer<vtkMatrix4x4> labelmapToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); //TODO leak?
-  labelmapToWorldTransformMatrix->Identity(); //TODO:
-  //inVolumeToWorldTransform->GetMatrix(labelmapToWorldTransformMatrix);
+  std::string commonGeometryString = segmentation->DetermineCommonLabelmapGeometry();
+  vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
+  vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage);
+  int* commonGeometryDimensions = commonGeometryImage->GetDimensions();
+  int dimensions[4] = {commonGeometryDimensions[0],commonGeometryDimensions[1],commonGeometryDimensions[2],segmentation->GetNumberOfSegments()};
+  double* commonGeometryOrigin = commonGeometryImage->GetOrigin();
+  double originArray[4] = {commonGeometryOrigin[0],commonGeometryOrigin[1],commonGeometryOrigin[2],0.0};
+  double* commonGeometrySpacing = commonGeometryImage->GetSpacing();
+  double spacingArray[4] = {commonGeometrySpacing[0],commonGeometrySpacing[1],commonGeometrySpacing[2],1.0};
+  double directionsArray[3][3] = {{1.0,0.0,0.0},{0.0,1.0,0.0},{0.0,0.0,1.0}};
+  commonGeometryImage->GetDirections(directionsArray);
 
   // Determine ITK image properties
   BinaryLabelmap4DImageType::SizeType regionSize;
@@ -391,7 +450,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     unsigned int row = 0;
     for (row=0; row<3; row++)
     {
-      len += labelmapToWorldTransformMatrix->GetElement(row, col) * labelmapToWorldTransformMatrix->GetElement(row, col);
+      len += directionsArray[row][col] * directionsArray[row][col];
     }
     if (len == 0.0)
     {
@@ -400,7 +459,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     len = sqrt(len);
     for (row=0; row<3; row++)
     {
-      directions[row][col] = labelmapToWorldTransformMatrix->GetElement(row, col)/len;
+      directions[row][col] = directionsArray[row][col]/len;
     }
   }
   // Add fourth dimension to directions matrix
@@ -509,7 +568,7 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation*
   vtkSmartPointer<vtkXMLMultiBlockDataWriter> writer = vtkSmartPointer<vtkXMLMultiBlockDataWriter>::New();
   writer->SetInputData(multiBlockDataset);
   writer->SetFileName(path.c_str());
-  writer->SetDataModeToAscii(); // Apparently binary setting also writes an ASCII file
+  writer->SetDataModeToBinary();
   writer->Write();
 
   return 1;

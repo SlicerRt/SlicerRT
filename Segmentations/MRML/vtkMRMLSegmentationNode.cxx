@@ -814,87 +814,16 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
     mergedSegmentIDs = segmentIDs;
   }
 
-  // Get highest resolution reference geometry available in segments
-  vtkOrientedImageData* highestResolutionLabelmap = NULL;
-  double lowestSpacing[3] = {pow(VTK_DOUBLE_MAX,0.3), pow(VTK_DOUBLE_MAX,0.3), pow(VTK_DOUBLE_MAX,0.3)}; // We'll multiply the spacings together to get the voxel size
-  for (std::vector<std::string>::iterator segmentIt = mergedSegmentIDs.begin(); segmentIt != mergedSegmentIDs.end(); ++segmentIt)
-  {
-    vtkSegment* currentSegment = this->Segmentation->GetSegment(*segmentIt);
-    if (!currentSegment)
-    {
-      vtkWarningMacro("GenerateMergedLabelmap: Segment ID " << (*segmentIt) << " not found in segmentation " << this->GetName());
-      continue;
-    }
-    vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
-      currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
-    double currentSpacing[3] = {0.0,0.0,0.0};
-    currentBinaryLabelmap->GetSpacing(currentSpacing);
-    if (currentSpacing[0]*currentSpacing[1]*currentSpacing[2] < lowestSpacing[0]*lowestSpacing[1]*lowestSpacing[2])
-    {
-      lowestSpacing[0] = currentSpacing[0];
-      lowestSpacing[1] = currentSpacing[1];
-      lowestSpacing[2] = currentSpacing[2];
-      highestResolutionLabelmap = currentBinaryLabelmap;
-    }
-  }
-  if (!highestResolutionLabelmap)
-  {
-    vtkErrorMacro("GenerateMergedLabelmap: Unable to find highest resolution labelmap!");
-    return false;
-  }
-  
-  // Get reference image geometry conversion parameter
-  std::string referenceGeometryString = this->Segmentation->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
-  if (referenceGeometryString.empty())
-  {
-    // Reference image geometry might be missing because segmentation was created from labelmaps.
-    // Set reference image geometry from largest segment labelmap
-    double largestExtentMm3 = 0;
-    for (std::vector<std::string>::iterator segmentIt = mergedSegmentIDs.begin(); segmentIt != mergedSegmentIDs.end(); ++segmentIt)
-    {
-      vtkSegment* currentSegment = this->Segmentation->GetSegment(*segmentIt);
-      if (!currentSegment)
-      {
-        vtkWarningMacro("GenerateMergedLabelmap: Segment ID " << (*segmentIt) << " not found in segmentation " << this->GetName());
-        continue;
-      }
-      vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
-        currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
-      // Calculate extent in mm
-      int extent[6] = {0, 0, 0, 0, 0, 0};
-      currentBinaryLabelmap->GetExtent(extent);
-      double spacing[3] = {0.0,0.0,0.0};
-      currentBinaryLabelmap->GetSpacing(spacing);
-      double extentMm3 = ((extent[1]-extent[0]+1) * spacing[0]) * ((extent[3]-extent[2]+1) * spacing[1]) * ((extent[5]-extent[4]+1) * spacing[2]);
-      if (extentMm3 > largestExtentMm3)
-      {
-        largestExtentMm3 = extentMm3;
-      }
-    }
-    if (!highestResolutionLabelmap)
-    {
-      vtkErrorMacro("GenerateMergedLabelmap: Unable to find largest extent labelmap to define reference image geometry!");
-      return false;
-    }
-    referenceGeometryString = vtkSegmentationConverter::SerializeImageGeometry(highestResolutionLabelmap);
-  }
+  // Determine common labelmap geometry that will be used for the merged labelmap
+  std::string commonGeometryString = this->Segmentation->DetermineCommonLabelmapGeometry(mergedSegmentIDs);
+  vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
+  vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage);
 
-  // Oversample reference image geometry to match highest resolution labelmap's spacing
-  vtkSmartPointer<vtkOrientedImageData> referenceGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
-  vtkSegmentationConverter::DeserializeImageGeometry(referenceGeometryString, referenceGeometryImage);
-  double referenceSpacing[3] = {0.0,0.0,0.0};
-  referenceGeometryImage->GetSpacing(referenceSpacing);
-  double voxelSizeRatio = ((referenceSpacing[0]*referenceSpacing[1]*referenceSpacing[2]) / (lowestSpacing[0]*lowestSpacing[1]*lowestSpacing[2]));
-  // Round oversampling to the nearest integer
-  // Note: We need to round to some degree, because e.g. pow(64,1/3) is not exactly 4. It may be debated whether to round to integer or to a certain number of decimals
-  double oversamplingFactor = vtkMath::Round( pow( voxelSizeRatio, 1.0/3.0 ) );
-  vtkCalculateOversamplingFactor::ApplyOversamplingOnImageGeometry(referenceGeometryImage, oversamplingFactor);
-
-  referenceGeometryImage->GetImageToWorldMatrix(mergedImageToWorldMatrix);
+  commonGeometryImage->GetImageToWorldMatrix(mergedImageToWorldMatrix);
   int referenceDimensions[3] = {0,0,0};
-  referenceGeometryImage->GetDimensions(referenceDimensions);
+  commonGeometryImage->GetDimensions(referenceDimensions);
   int referenceExtent[6] = {0,-1,0,-1,0,-1};
-  referenceGeometryImage->GetExtent(referenceExtent);
+  commonGeometryImage->GetExtent(referenceExtent);
 
   // Allocate image data if empty or if reference extent changed
   int imageDataExtent[6] = {0,-1,0,-1,0,-1};
@@ -984,7 +913,7 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
 
     // If labelmap geometries (spacings and directions) do not match reference then resample temporarily
     vtkSmartPointer<vtkOrientedImageData> resampledBinaryLabelmap;
-    if (!vtkOrientedImageDataResample::DoGeometriesMatch(referenceGeometryImage, representationBinaryLabelmap))
+    if (!vtkOrientedImageDataResample::DoGeometriesMatch(commonGeometryImage, representationBinaryLabelmap))
     {
       resampledBinaryLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
 

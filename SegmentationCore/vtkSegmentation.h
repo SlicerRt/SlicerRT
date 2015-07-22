@@ -97,6 +97,16 @@ public:
   /// \sa vtkMRMLStorableNode::GetModifiedSinceRead()
   virtual bool GetModifiedSinceRead();
 
+//BTX
+  /// Determine common labelmap geometry for whole segmentation.
+  /// If the segmentation has reference image geometry conversion parameter, then oversample it to
+  /// be at least as fine resolution as the highest resolution labelmap contained, otherwise just use
+  /// the geometry of the highest resolution labelmap in the segments.
+  /// \param segmentIDs List of IDs of segments to include in the merged labelmap. If empty or missing, then all segments are included
+  /// \return Geometry string that can be deserialized using \sa vtkSegmentationConverter::SerializeImageGeometry
+  std::string DetermineCommonLabelmapGeometry(const std::vector<std::string>& segmentIDs=std::vector<std::string>());
+//ETX
+
 // Segment related methods
 public:
   /// Add a segment to this segmentation, do necessary conversions, and observe underlying

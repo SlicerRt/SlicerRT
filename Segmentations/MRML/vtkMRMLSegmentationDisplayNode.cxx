@@ -96,6 +96,7 @@ vtkMRMLColorTableNode* vtkMRMLSegmentationDisplayNode::CreateColorTableNode(cons
   segmentationColorTableNode->SetName(segmentationColorTableNodeName.c_str());
   segmentationColorTableNode->HideFromEditorsOff();
   segmentationColorTableNode->SetTypeToUser();
+  segmentationColorTableNode->NamesInitialisedOn();
   segmentationColorTableNode->SetAttribute("Category", this->GetNodeTagName());
   this->Scene->AddNode(segmentationColorTableNode);
 
