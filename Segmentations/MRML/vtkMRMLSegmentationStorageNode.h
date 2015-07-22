@@ -74,6 +74,9 @@ public:
   /// Return true if the reference node can be read in
   virtual bool CanReadInReferenceNode(vtkMRMLNode *refNode);
 
+  /// Reset supported write file types. Called when master representation is changed
+  void ResetSupportedWriteFileTypes();
+
 protected:
   /// Initialize all the supported read file types
   virtual void InitializeSupportedReadFileTypes();

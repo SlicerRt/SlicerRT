@@ -207,6 +207,13 @@ const char* vtkMRMLSegmentationStorageNode::GetDefaultWriteFileExtension()
   return NULL;
 }
 
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationStorageNode::ResetSupportedWriteFileTypes()
+{
+  this->InitializeSupportedWriteFileTypes();
+}
+
 //----------------------------------------------------------------------------
 bool vtkMRMLSegmentationStorageNode::CanReadInReferenceNode(vtkMRMLNode *refNode)
 {

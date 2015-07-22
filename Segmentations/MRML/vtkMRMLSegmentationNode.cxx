@@ -284,6 +284,13 @@ void vtkMRMLSegmentationNode::OnMasterRepresentationModified(vtkObject* vtkNotUs
   // These representations will be automatically converted later on demand.
   self->Segmentation->InvalidateNonMasterRepresentations();
 
+  // Reset supported write file types
+  vtkMRMLSegmentationStorageNode* storageNode =  vtkMRMLSegmentationStorageNode::SafeDownCast(self->GetStorageNode());
+  if (storageNode)
+  {
+    storageNode->ResetSupportedWriteFileTypes();
+  }
+
   // Invoke node event
   self->InvokeCustomModifiedEvent(vtkSegmentation::MasterRepresentationModified, self);
 }
