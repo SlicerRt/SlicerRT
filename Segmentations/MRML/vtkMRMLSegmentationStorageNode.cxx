@@ -485,6 +485,25 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
   mergedLabelmapImage->SetDirection(directions);
   mergedLabelmapImage->Allocate();
 
+  // Create metadata dictionary (keys and values assumed from itkNrrdImageIO.cxx
+  itk::MetaDataDictionary metadata;
+  std::stringstream ss0;
+  ss0 << "NRRD_" << "kinds" << 0;
+  std::string axis0KindKey = ss0.str();
+  std::stringstream ss1;
+  ss1 << "NRRD_" << "kinds" << 1;
+  std::string axis1KindKey = ss1.str();
+  std::stringstream ss2;
+  ss2 << "NRRD_" << "kinds" << 2;
+  std::string axis2KindKey = ss2.str();
+  std::stringstream ss3;
+  ss3 << "NRRD_" << "kinds" << 3;
+  std::string axis3KindKey = ss3.str();
+  itk::EncapsulateMetaData<std::string>(metadata, axis0KindKey, "space");
+  itk::EncapsulateMetaData<std::string>(metadata, axis1KindKey, "space");
+  itk::EncapsulateMetaData<std::string>(metadata, axis2KindKey, "space");
+  itk::EncapsulateMetaData<std::string>(metadata, axis3KindKey, "list");
+
   // Dimensions of the output 4D NRRD file: (i, j, k, segment)
   vtkSegmentation::SegmentMap segmentMap = segmentation->GetSegments();
   unsigned int segmentIndex = 0;
@@ -521,6 +540,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
   typedef itk::ImageFileWriter<BinaryLabelmap4DImageType> WriterType;
   WriterType::Pointer nrrdWriter = WriterType::New();
   nrrdWriter->UseInputMetaDataDictionaryOn();
+  nrrdWriter->SetMetaDataDictionary(metadata);
   nrrdWriter->SetInput(mergedLabelmapImage);
   nrrdWriter->SetImageIO(io);
   nrrdWriter->SetFileName(fullName);

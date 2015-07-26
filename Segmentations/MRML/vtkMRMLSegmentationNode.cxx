@@ -644,7 +644,8 @@ void vtkMRMLSegmentationNode::ResetSegmentDisplayProperties()
 //----------------------------------------------------------------------------
 vtkMRMLStorageNode* vtkMRMLSegmentationNode::CreateDefaultStorageNode()
 {
-  return vtkMRMLStorageNode::SafeDownCast(vtkMRMLSegmentationStorageNode::New());
+  this->StorableModified(); // Workaround to make save dialog check the segmentation node
+  return vtkMRMLSegmentationStorageNode::New();
 }
 
 //----------------------------------------------------------------------------
