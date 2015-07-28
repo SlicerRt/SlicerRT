@@ -23,6 +23,7 @@
 
 #include "vtkSegmentation.h"
 #include "vtkOrientedImageData.h"
+#include "vtkOrientedImageDataResample.h"
 
 // MRML includes
 #include "vtkMRMLSegmentationNode.h"
@@ -69,6 +70,13 @@
 // STL & C++ includes
 #include <iterator>
 #include <sstream>
+
+//----------------------------------------------------------------------------
+static const std::string SERIALIZED_ARRAY_SEPARATOR = ";";
+static const std::string SEGMENT_ID = "ID";
+static const std::string SEGMENT_NAME = "Name";
+static const std::string SEGMENT_DEFAULT_COLOR = "DefaultColor";
+static const std::string SEGMENT_TAGS = "Tags";
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLSegmentationStorageNode);
@@ -477,61 +485,109 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     directions[index][3] = 0.0;
   }
 
-  // Create merged labelmap image and set ITK image properties
-  BinaryLabelmap4DImageType::Pointer mergedLabelmapImage = BinaryLabelmap4DImageType::New();
-  mergedLabelmapImage->SetRegions(region);
-  mergedLabelmapImage->SetOrigin(origin);
-  mergedLabelmapImage->SetSpacing(spacing);
-  mergedLabelmapImage->SetDirection(directions);
-  mergedLabelmapImage->Allocate();
+  // Create 4D labelmap image and set ITK image properties
+  BinaryLabelmap4DImageType::Pointer itkLabelmapImage = BinaryLabelmap4DImageType::New();
+  itkLabelmapImage->SetRegions(region);
+  itkLabelmapImage->SetOrigin(origin);
+  itkLabelmapImage->SetSpacing(spacing);
+  itkLabelmapImage->SetDirection(directions);
+  itkLabelmapImage->Allocate();
 
   // Create metadata dictionary (keys and values assumed from itkNrrdImageIO.cxx
   itk::MetaDataDictionary metadata;
-  std::stringstream ss0;
-  ss0 << "NRRD_" << "kinds" << 0;
-  std::string axis0KindKey = ss0.str();
-  std::stringstream ss1;
-  ss1 << "NRRD_" << "kinds" << 1;
-  std::string axis1KindKey = ss1.str();
-  std::stringstream ss2;
-  ss2 << "NRRD_" << "kinds" << 2;
-  std::string axis2KindKey = ss2.str();
-  std::stringstream ss3;
-  ss3 << "NRRD_" << "kinds" << 3;
-  std::string axis3KindKey = ss3.str();
-  itk::EncapsulateMetaData<std::string>(metadata, axis0KindKey, "space");
-  itk::EncapsulateMetaData<std::string>(metadata, axis1KindKey, "space");
-  itk::EncapsulateMetaData<std::string>(metadata, axis2KindKey, "space");
-  itk::EncapsulateMetaData<std::string>(metadata, axis3KindKey, "list");
 
   // Dimensions of the output 4D NRRD file: (i, j, k, segment)
   vtkSegmentation::SegmentMap segmentMap = segmentation->GetSegments();
   unsigned int segmentIndex = 0;
   for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt, ++segmentIndex)
   {
-    BinaryLabelmap4DImageType::RegionType segmentRegion;
-    BinaryLabelmap4DImageType::SizeType segmentRegionSize;
+    std::string currentSegmentID = segmentIt->first;
+    vtkSegment* currentSegment = segmentIt->second.GetPointer();
+
+    // Set metadata for current segment
+    std::stringstream ssIdKey;
+    ssIdKey << segmentIndex << SEGMENT_ID;
+    std::string idKey = ssIdKey.str();
+    itk::EncapsulateMetaData<std::string>(metadata, idKey.c_str(), currentSegmentID);
+
+    std::stringstream ssNameKey;
+    ssNameKey << segmentIndex << SEGMENT_NAME;
+    std::string nameKey = ssNameKey.str();
+    itk::EncapsulateMetaData<std::string>(metadata, nameKey.c_str(), std::string(currentSegment->GetName()));
+
+    std::stringstream ssDefaultColorKey;
+    ssDefaultColorKey << segmentIndex << SEGMENT_DEFAULT_COLOR;
+    std::string defaultColorKey = ssDefaultColorKey.str();
+    std::stringstream ssDefaultColorValue;
+    ssDefaultColorValue << currentSegment->GetDefaultColor()[0] << SERIALIZED_ARRAY_SEPARATOR << currentSegment->GetDefaultColor()[1] << SERIALIZED_ARRAY_SEPARATOR << currentSegment->GetDefaultColor()[2];
+    std::string defaultColorValue = ssDefaultColorValue.str();
+    itk::EncapsulateMetaData<std::string>(metadata, defaultColorKey.c_str(), defaultColorValue);
+
+    //TODO: Store tags with key SEGMENT_TAGS
+
+    // Define ITK region for the current segment
     BinaryLabelmap4DImageType::IndexType segmentRegionIndex;
     segmentRegionIndex[0] = segmentRegionIndex[1] = segmentRegionIndex[2] = 0;
     segmentRegionIndex[3] = segmentIndex;
+    BinaryLabelmap4DImageType::SizeType segmentRegionSize;
     segmentRegionSize = regionSize;
     segmentRegionSize[3] = 1;
+    BinaryLabelmap4DImageType::RegionType segmentRegion;
     segmentRegion.SetIndex(segmentRegionIndex);
     segmentRegion.SetSize(segmentRegionSize);
 
+    // Get segment binary labelmap
+    vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
+      currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+    if (!currentBinaryLabelmap)
+    {
+      continue;
+    }
+    // Resample current binary labelmap representation to common geometry
+    vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
+      currentBinaryLabelmap, commonGeometryImage, currentBinaryLabelmap );
+
+    // Get scalar pointer for binary labelmap representation. Only a few scalar types are supported
+    int currentLabelScalarType = currentBinaryLabelmap->GetScalarType();
+    if ( currentLabelScalarType != VTK_UNSIGNED_CHAR
+      && currentLabelScalarType != VTK_UNSIGNED_SHORT
+      && currentLabelScalarType != VTK_SHORT )
+    {
+      vtkWarningMacro("WriteBinaryLabelmapRepresentation: Segment " << currentSegmentID << " cannot be written! Binary labelmap scalar type must be unsigned char, unsighed short, or short!");
+      continue;
+    }
+    void* voidScalarPointer = currentBinaryLabelmap->GetScalarPointer();
+    unsigned char* labelmapPtrUChar = (unsigned char*)voidScalarPointer;
+    unsigned short* labelmapPtrUShort = (unsigned short*)voidScalarPointer;
+    short* labelmapPtrShort = (short*)voidScalarPointer;
+
     // Iterate through current segment labelmap and write voxel values
-    BinaryLabelmap4DIteratorType segmentLabelmapIterator(mergedLabelmapImage, segmentRegion);
+    BinaryLabelmap4DIteratorType segmentLabelmapIterator(itkLabelmapImage, segmentRegion);
     for (segmentLabelmapIterator.GoToBegin(); !segmentLabelmapIterator.IsAtEnd(); ++segmentLabelmapIterator)
     {
-      segmentLabelmapIterator.Set((unsigned char)segmentIndex);
-      //TODO: Write actual values. This is for testing
+      // Get labelmap value at voxel
+      unsigned short label = 0;
+      if (currentLabelScalarType == VTK_UNSIGNED_CHAR)
+      {
+        label = (*labelmapPtrUChar);
+      }
+      else if (currentLabelScalarType == VTK_UNSIGNED_SHORT)
+      {
+        label = (*labelmapPtrUShort);
+      }
+      else if (currentLabelScalarType == VTK_SHORT)
+      {
+        label = (*labelmapPtrShort);
+      }
+
+      // Write voxel value to ITK image
+      segmentLabelmapIterator.Set((unsigned char)label);
+
+      ++labelmapPtrUChar;
+      ++labelmapPtrUShort;
+      ++labelmapPtrShort;
     }
-
-    // TODO: Set metadata
   }
-
-  // Save segment IDs and members, also display colors in the NRRD header
-  //TODO: Use MetaDataDictionary
 
   // Write image file to disk
   itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
@@ -541,7 +597,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
   WriterType::Pointer nrrdWriter = WriterType::New();
   nrrdWriter->UseInputMetaDataDictionaryOn();
   nrrdWriter->SetMetaDataDictionary(metadata);
-  nrrdWriter->SetInput(mergedLabelmapImage);
+  nrrdWriter->SetInput(itkLabelmapImage);
   nrrdWriter->SetImageIO(io);
   nrrdWriter->SetFileName(fullName);
   try
@@ -648,126 +704,6 @@ bool vtkMRMLSegmentationStorageNode::ReadPolyDataInternal( vtkPolyData* outModel
   }
 
   return true;
-}
-
-//----------------------------------------------------------------------------
-int vtkMRMLSegmentationStorageNode::WriteOrientedImageDataInternal(vtkOrientedImageData* imageData)
-{
-  int result(0);
-  if ( !segment->HasImageData() )
-  {
-    vtkErrorMacro("cannot write ImageData, it's NULL");
-    return result;
-  }
-
-  // update the file list
-  std::string moveFromDir = this->UpdateFileList(segment, IJKToRASMatrix, 1);
-
-  std::string fullName(this->GetFileName());
-
-  bool moveSucceeded = true;
-  if (moveFromDir != std::string(""))
-  {
-    // the temp writing went okay, just move the files from there to where
-    // they're supposed to go. It will fail if the temp dir is on a different
-    // device, so fall back to a second write in that case.
-    std::string targetDir = vtksys::SystemTools::GetParentDirectory(fullName.c_str());
-    vtkDebugMacro("WriteData: moving files from temp dir " << moveFromDir << " to target dir " << targetDir);
-
-    vtksys::Directory dir;
-    dir.Load(moveFromDir.c_str());
-    vtkDebugMacro("WriteData: tempdir " << moveFromDir.c_str() << " has " << dir.GetNumberOfFiles() << " in it");
-    size_t fileNum;
-    std::vector<std::string> targetPathComponents;
-    vtksys::SystemTools::SplitPath(targetDir.c_str(), targetPathComponents);
-    std::vector<std::string> sourcePathComponents;
-    vtksys::SystemTools::SplitPath(moveFromDir.c_str(), sourcePathComponents);
-    for (fileNum = 0; fileNum <  dir.GetNumberOfFiles(); ++fileNum)
-    {
-      const char *thisFile = dir.GetFile(static_cast<unsigned long>(fileNum));
-      // skip the dirs
-      if (strcmp(thisFile,".") &&
-        strcmp(thisFile,".."))
-      {
-        targetPathComponents.push_back(thisFile);
-        sourcePathComponents.push_back(thisFile);
-        std::string targetFile = vtksys::SystemTools::JoinPath(targetPathComponents);
-        // does the target file already exist?
-        if (vtksys::SystemTools::FileExists(targetFile.c_str(), true))
-        {
-          // remove it
-          vtkWarningMacro("WriteData: removing old version of file " << targetFile);
-          if (!vtksys::SystemTools::RemoveFile(targetFile.c_str()))
-          {
-            vtkErrorMacro("WriteData: unable to remove old version of file " << targetFile);
-          }
-        }
-        std::string sourceFile = vtksys::SystemTools::JoinPath(sourcePathComponents);
-        vtkDebugMacro("WriteData: moving file number " << fileNum << ", " << sourceFile << " to " << targetFile);
-        // thisFile needs a full path it's bare
-        int renameReturn = std::rename(sourceFile.c_str(), targetFile.c_str());
-        if (renameReturn != 0 )
-        {
-          perror( "Error renaming file" );
-          vtkErrorMacro( "WriteData: Error renaming file to " << targetFile << ", renameReturn = " << renameReturn );
-          // fall back to doing a second write
-          moveSucceeded = false;
-          break;
-        }
-        targetPathComponents.pop_back();
-        sourcePathComponents.pop_back();
-      }
-    }
-    // delete the temporary dir and all remaining contents
-    bool dirRemoved = vtksys::SystemTools::RemoveADirectory(moveFromDir.c_str());
-    if (!dirRemoved)
-    {
-      vtkWarningMacro("Failed to remove temporary write directory " << moveFromDir);
-    }
-
-  }
-  else
-  {
-    // didn't move it
-    moveSucceeded = false;
-  }
-
-  if (!moveSucceeded)
-  {
-    vtkDebugMacro("WriteData: writing out file with archetype " << fullName);
-
-    vtkNew<vtkITKImageWriter> writer;
-    writer->SetFileName(fullName.c_str());
-
-#if (VTK_MAJOR_VERSION <= 5)
-    writer->SetInput( segment->GetImageData() );
-#else
-    writer->SetInputConnection( segment->GetImageDataConnection() );
-#endif
-    writer->SetUseCompression(this->GetUseCompression());
-    if (this->GetScene() &&
-      this->GetScene()->GetDataIOManager() &&
-      this->GetScene()->GetDataIOManager()->GetFileFormatHelper())
-    {
-      writer->SetImageIOClassName(this->GetScene()->GetDataIOManager()->GetFileFormatHelper()->
-        GetClassNameFromFormatString("NRRD (.nrrd)")
-        );
-    }
-
-    // set volume attributes
-    writer->SetRasToIJKMatrix(IJKToRASMatrix);
-
-    try
-    {
-      writer->Write();
-    }
-    catch (...)
-    {
-      result = 0;
-    }
-  }
-
-  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -910,41 +846,4 @@ bool vtkMRMLSegmentationStorageNode::ReadOrientedImageDataInternal(vtkOrientedIm
   return true;
 }
 
-//----------------------------------------------------------------------------
-int vtkMRMLSegmentationStorageNode::WriteSegmentInternal(vtkXMLDataElement* segmentElement, vtkSegment* segment, const std::string& path, vtkMatrix4x4* IJKToRASMatrix)
-{
-  if( segment->HasImageData() )
-  {
-    // Back up filename, functions below mess it all up
-    std::string origFilename(this->GetFileName());
-    this->SetFileName(std::string(path + std::string("/") + std::string(segmentElement->GetAttribute("VoxelDataFilename"))).c_str());
-    if( this->WriteImageDataInternal(segment, IJKToRASMatrix) != 1 )
-    {
-      vtkErrorMacro("Unable to write image data for segment " << segment->GetUid() <<". Aborting.");
-      return 0;
-    }
-    this->SetFileName(origFilename.c_str());
-  }
-
-  if( segment->HasPolyData() )
-  {
-    std::string filename = path + std::string("/") + std::string(segmentElement->GetAttribute("ModelFilename"));
-    if( this->WriteModelDataInternal(segment->GetPolyData(), filename) != 1 )
-    {
-      vtkErrorMacro("Unable to write poly data for segment " << segment->GetUid() <<". Aborting.");
-      return 0;
-    }
-  }
-
-  if( segment->HasRtRoiPoints() )
-  {
-    std::string filename = path + std::string("/") + std::string(segmentElement->GetAttribute("RoiPointsFilename"));
-    if( this->WriteModelDataInternal(segment->GetRtRoiPoints(), filename) != 1 )
-    {
-      vtkWarningMacro("Unable to write poly data for segment " << segment->GetUid() <<".");
-    }
-  }
-
-  return 1;
-}
 */

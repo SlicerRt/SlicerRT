@@ -52,7 +52,7 @@ public:
   /// \param referenceImage Oriented image containing the desired geometry
   /// \param outputImage Output image
   /// \param linearInterpolation True if linear interpolation is requested (fractional labelmap), or false for nearest neighbor (binary labelmap). Default is false.
-  /// \param padImage If enabled then it is make sure that the input image's extent fits into the resampled reference image, so if part of the extent is transformed
+  /// \param padImage If enabled then it is made sure that the input image's extent fits into the resampled reference image, so if part of the extent is transformed
   ///          to be outside the reference extent, then it is padded. Disabled by default.
   /// \return Success flag
   static bool ResampleOrientedImageToReferenceOrientedImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* referenceImage, vtkOrientedImageData* outputImage, bool linearInterpolation=false, bool padImage=false);
