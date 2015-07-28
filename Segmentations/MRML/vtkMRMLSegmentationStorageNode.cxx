@@ -72,7 +72,7 @@
 #include <sstream>
 
 //----------------------------------------------------------------------------
-static const std::string SERIALIZED_ARRAY_SEPARATOR = ";";
+static const std::string SERIALIZED_ARRAY_SEPARATOR = " ";
 static const std::string SEGMENT_ID = "ID";
 static const std::string SEGMENT_NAME = "Name";
 static const std::string SEGMENT_DEFAULT_COLOR = "DefaultColor";
@@ -303,6 +303,9 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
   }
   BinaryLabelmap4DImageType::Pointer allSegmentLabelmapsImage = reader->GetOutput();
 
+  // Get metadata dictionary from image
+  itk::MetaDataDictionary metadata = allSegmentLabelmapsImage->GetMetaDataDictionary();
+
   // Get image properties
   BinaryLabelmap4DImageType::RegionType region = allSegmentLabelmapsImage->GetLargestPossibleRegion();
   BinaryLabelmap4DImageType::PointType origin = allSegmentLabelmapsImage->GetOrigin();
@@ -310,9 +313,38 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
   BinaryLabelmap4DImageType::DirectionType directions = allSegmentLabelmapsImage->GetDirection();
 
   // Read segment binary labelmaps
-  vtkSegmentation::SegmentMap segmentMap = segmentation->GetSegments();
   for (int segmentIndex = region.GetIndex()[3]; segmentIndex < region.GetIndex()[3]+region.GetSize()[3]; ++segmentIndex)
   {
+    // Create segment
+    vtkSmartPointer<vtkSegment> currentSegment = vtkSmartPointer<vtkSegment>::New();
+    
+    // Get metadata for current segment
+    std::stringstream ssIdKey;
+    ssIdKey << segmentIndex << SEGMENT_ID;
+    std::string idKey = ssIdKey.str();
+    std::string currentSegmentID;
+    itk::ExposeMetaData<std::string>(metadata, idKey.c_str(), currentSegmentID);
+
+    std::stringstream ssNameKey;
+    ssNameKey << segmentIndex << SEGMENT_NAME;
+    std::string nameKey = ssNameKey.str();
+    std::string currentSegmentName;
+    itk::ExposeMetaData<std::string>(metadata, nameKey.c_str(), currentSegmentName);
+
+    std::stringstream ssDefaultColorKey;
+    ssDefaultColorKey << segmentIndex << SEGMENT_DEFAULT_COLOR;
+    std::string defaultColorKey = ssDefaultColorKey.str();
+    std::string defaultColorValue;
+    itk::ExposeMetaData<std::string>(metadata, defaultColorKey.c_str(), defaultColorValue);
+    std::stringstream ssDefaultColorValue;
+    ssDefaultColorValue << defaultColorValue;
+    double currentSegmentDefaultColor[3] = {0.0,0.0,0.0};
+    ssDefaultColorValue >> currentSegmentDefaultColor[0] >> currentSegmentDefaultColor[1] >> currentSegmentDefaultColor[2];
+    currentSegment->SetDefaultColor(currentSegmentDefaultColor);
+
+    //TODO: Parse tags with key SEGMENT_TAGS
+
+    // Define ITK region for current segment
     BinaryLabelmap4DImageType::RegionType segmentRegion;
     BinaryLabelmap4DImageType::SizeType segmentRegionSize;
     BinaryLabelmap4DImageType::IndexType segmentRegionIndex;
@@ -331,6 +363,9 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
       //TODO: Use values. This is for testing
       int i=0; ++i;
     }
+
+    // Add segment to segmentation
+    segmentation->AddSegment(currentSegment, currentSegmentID);
   }
 
   return 1;
@@ -493,7 +528,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
   itkLabelmapImage->SetDirection(directions);
   itkLabelmapImage->Allocate();
 
-  // Create metadata dictionary (keys and values assumed from itkNrrdImageIO.cxx
+  // Create metadata dictionary
   itk::MetaDataDictionary metadata;
 
   // Dimensions of the output 4D NRRD file: (i, j, k, segment)
@@ -589,6 +624,9 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     }
   }
 
+  // Set metadata to ITK image
+  itkLabelmapImage->SetMetaDataDictionary(metadata);
+
   // Write image file to disk
   itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
   io->SetFileType(itk::ImageIOBase::Binary); //TODO: This was ASCII originally, change back if binary doesn't work
@@ -596,10 +634,10 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
   typedef itk::ImageFileWriter<BinaryLabelmap4DImageType> WriterType;
   WriterType::Pointer nrrdWriter = WriterType::New();
   nrrdWriter->UseInputMetaDataDictionaryOn();
-  nrrdWriter->SetMetaDataDictionary(metadata);
   nrrdWriter->SetInput(itkLabelmapImage);
   nrrdWriter->SetImageIO(io);
   nrrdWriter->SetFileName(fullName);
+  nrrdWriter->UseCompressionOn();
   try
   {
     nrrdWriter->Update();
