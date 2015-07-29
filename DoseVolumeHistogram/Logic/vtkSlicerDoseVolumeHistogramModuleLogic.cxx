@@ -482,7 +482,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 #else
     padder->SetInputData(segmentBinaryLabelmap);
 #endif
-    int extent[6] = {0, 0, 0, 0, 0, 0};
+    int extent[6] = {0,-1,0,-1,0,-1};
 #if (VTK_MAJOR_VERSION <= 5)
     oversampledDoseVolume->GetWholeExtent(extent);
 #else
@@ -571,7 +571,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkOrientedImage
   vtkSmartPointer<vtkImageStencilData> structureStencil = vtkSmartPointer<vtkImageStencilData>::New();
   structureStencil->DeepCopy(stencil->GetOutput());
 
-  int stencilExtent[6] = {0, 0, 0, 0, 0, 0};
+  int stencilExtent[6] = {0,-1,0,-1,0,-1};
   structureStencil->GetExtent(stencilExtent);
   if (stencilExtent[1]-stencilExtent[0] <= 0 || stencilExtent[3]-stencilExtent[2] <= 0 || stencilExtent[5]-stencilExtent[4] <= 0)
   {

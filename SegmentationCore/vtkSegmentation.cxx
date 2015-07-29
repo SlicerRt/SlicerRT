@@ -1031,7 +1031,7 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
       vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
         currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
       // Calculate extent in mm
-      int extent[6] = {0, 0, 0, 0, 0, 0};
+      int extent[6] = {0,-1,0,-1,0,-1};
       currentBinaryLabelmap->GetExtent(extent);
       double spacing[3] = {0.0,0.0,0.0};
       currentBinaryLabelmap->GetSpacing(spacing);

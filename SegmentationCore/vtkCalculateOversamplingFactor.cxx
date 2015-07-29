@@ -455,8 +455,8 @@ void vtkCalculateOversamplingFactor::ApplyOversamplingOnImageGeometry(vtkOriente
   else if (oversamplingFactor != 1.0)
   {
     // Calculate extent and spacing
-    int newExtent[6] = {0, 0, 0, 0, 0, 0};
-    int extent[6] = {0, 0, 0, 0, 0, 0};
+    int newExtent[6] = {0,-1,0,-1,0,-1};
+    int extent[6] = {0,-1,0,-1,0,-1};
     imageData->GetExtent(extent);
     double newSpacing[3] = {0.0,0.0,0.0};
     double spacing[3] = {0.0,0.0,0.0};

@@ -282,7 +282,7 @@ void vtkBinaryLabelmapToClosedSurfaceConversionRule::PadLabelmap(vtkOrientedImag
   padder->SetInputData(binaryLabelMap);
 #endif
 
-  int extent[6] = {0, 0, 0, 0, 0, 0};
+  int extent[6] = {0,-1,0,-1,0,-1};
 #if (VTK_MAJOR_VERSION <= 5)
   binaryLabelMap->GetWholeExtent(extent);
 #else

@@ -152,7 +152,7 @@ bool vtkClosedSurfaceToBinaryLabelmapConversionRule::Convert(vtkDataObject* sour
   else
   {
     // Set voxel values to 0
-    int extent[6] = {0,0,0,0,0,0};
+    int extent[6] = {0,-1,0,-1,0,-1};
     binaryLabelMap->GetExtent(extent);
     memset(binaryLabelMapVoxelsPointer, 0, ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1) * binaryLabelMap->GetScalarSize() * binaryLabelMap->GetNumberOfScalarComponents()));
   }
@@ -323,7 +323,7 @@ bool vtkClosedSurfaceToBinaryLabelmapConversionRule::CalculateOutputGeometry(vtk
   transformedClosedSurfacePolyData->GetPoints()->GetBounds(surfaceBounds);
 
   // Expand floating point bounds to extent integers
-  int surfaceExtent[6] = {0,0,0,0,0,0};
+  int surfaceExtent[6] = {0,-1,0,-1,0,-1};
   surfaceExtent[0] = (int)floor(surfaceBounds[0]);
   surfaceExtent[1] = (int)ceil(surfaceBounds[1]);
   surfaceExtent[2] = (int)floor(surfaceBounds[2]);
