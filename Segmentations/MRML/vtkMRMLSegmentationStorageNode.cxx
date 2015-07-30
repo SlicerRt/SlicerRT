@@ -30,7 +30,7 @@
 
 // VTK includes
 #include <vtkMRMLScene.h>
-#include <vtkMatrix4x4.h>
+//#include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 //#include <vtkPointData.h>
@@ -139,16 +139,19 @@ void vtkMRMLSegmentationStorageNode::InitializeSupportedWriteFileTypes()
   if (segmentationNode)
   {
     const char* masterRepresentation = segmentationNode->GetSegmentation()->GetMasterRepresentationName();
-    if (!strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    if (masterRepresentation)
     {
-      // Binary labelmap -> 4D NRRD volume
-      this->SupportedWriteFileTypes->InsertNextValue("Segmentation 4D NRRD volume (.seg.nrrd)");
-    }
-    else if ( !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName())
-           || !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()) )
-    {
-      // Closed surface or planar contours -> MultiBlock polydata
-      this->SupportedWriteFileTypes->InsertNextValue("Segmentation Multi-block dataset (.seg.vtm)");
+      if (!strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+      {
+        // Binary labelmap -> 4D NRRD volume
+        this->SupportedWriteFileTypes->InsertNextValue("Segmentation 4D NRRD volume (.seg.nrrd)");
+      }
+      else if ( !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName())
+             || !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()) )
+      {
+        // Closed surface or planar contours -> MultiBlock polydata
+        this->SupportedWriteFileTypes->InsertNextValue("Segmentation Multi-block dataset (.seg.vtm)");
+      }
     }
   }
 }
@@ -186,16 +189,19 @@ const char* vtkMRMLSegmentationStorageNode::GetDefaultWriteFileExtension()
   if (segmentationNode)
   {
     const char* masterRepresentation = segmentationNode->GetSegmentation()->GetMasterRepresentationName();
-    if (!strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    if (masterRepresentation)
     {
-      // Binary labelmap -> 4D NRRD volume
-      return "seg.nrrd";
-    }
-    else if ( !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName())
-           || !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()) )
-    {
-      // Closed surface or planar contours -> MultiBlock polydata
-      return "seg.vtm";
+      if (!strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+      {
+        // Binary labelmap -> 4D NRRD volume
+        return "seg.nrrd";
+      }
+      else if ( !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName())
+             || !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()) )
+      {
+        // Closed surface or planar contours -> MultiBlock polydata
+        return "seg.vtm";
+      }
     }
   }
 
@@ -391,9 +397,8 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
     BinaryLabelmap4DIteratorType segmentLabelmapIterator(allSegmentLabelmapsImage, segmentRegion);
     for (segmentLabelmapIterator.GoToBegin(); !segmentLabelmapIterator.IsAtEnd(); ++segmentLabelmapIterator)
     {
-      BinaryLabelmap4DImageType::IndexType segmentIndex = segmentLabelmapIterator.GetIndex();
-
       // Skip region outside extent of current segment (consider common extent boundaries)
+      BinaryLabelmap4DImageType::IndexType segmentIndex = segmentLabelmapIterator.GetIndex();
       if ( segmentIndex[0] + commonGeometryExtent[0] < currentSegmentExtent[0]
         || segmentIndex[0] + commonGeometryExtent[0] > currentSegmentExtent[1]
         || segmentIndex[1] + commonGeometryExtent[2] < currentSegmentExtent[2]
@@ -678,6 +683,19 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     BinaryLabelmap4DIteratorType segmentLabelmapIterator(itkLabelmapImage, segmentRegion);
     for (segmentLabelmapIterator.GoToBegin(); !segmentLabelmapIterator.IsAtEnd(); ++segmentLabelmapIterator)
     {
+      // Skip region outside extent of current segment (consider common extent boundaries)
+      BinaryLabelmap4DImageType::IndexType segmentIndex = segmentLabelmapIterator.GetIndex();
+      if ( segmentIndex[0] + commonGeometryExtent[0] < currentSegmentExtent[0]
+        || segmentIndex[0] + commonGeometryExtent[0] > currentSegmentExtent[1]
+        || segmentIndex[1] + commonGeometryExtent[2] < currentSegmentExtent[2]
+        || segmentIndex[1] + commonGeometryExtent[2] > currentSegmentExtent[3]
+        || segmentIndex[2] + commonGeometryExtent[4] < currentSegmentExtent[4]
+        || segmentIndex[2] + commonGeometryExtent[4] > currentSegmentExtent[5] )
+      {
+        segmentLabelmapIterator.Set((unsigned char)0);
+        continue;
+      }
+
       // Get labelmap value at voxel
       unsigned short label = 0;
       if (currentLabelScalarType == VTK_UNSIGNED_CHAR)
