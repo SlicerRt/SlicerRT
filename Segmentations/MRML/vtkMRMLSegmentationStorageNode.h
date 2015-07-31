@@ -36,7 +36,8 @@ class vtkPolyData;
 class vtkOrientedImageData;
 class vtkSegmentation;
 class vtkSegment;
-class vtkXMLDataElement; //TODO
+class vtkInformationStringKey;
+class vtkInformationIntegerVectorKey;
 
 /// \brief MRML node for segmentation storage on disk.
 ///
@@ -105,22 +106,6 @@ protected:
   /// Read a poly data representation to file
   virtual int ReadPolyDataRepresentation(vtkSegmentation* segmentation, std::string path);
 
-  /* TODO:
-  /// Write oriented image data
-  virtual int WriteOrientedImageDataInternal(vtkOrientedImageData* imageData);
-
-  /// Read poly data
-  virtual bool ReadPolyDataInternal(vtkPolyData* outModel, const char* filename, const char* suffix);
-
-  /// Read oriented image data
-  virtual bool ReadOrientedImageDataInternal(vtkOrientedImageData* imageData, itk::MetaDataDictionary& outDictionary);
-
-  /// Read segment data
-  virtual vtkSegment* ReadSegmentInternal(const std::string& path, vtkXMLDataElement* segmentElement, itk::MetaDataDictionary& outDictionary);
-
-  /// Write the location of the other files to disc
-  virtual vtkXMLDataElement* CreateXMLElement(vtkMRMLSegmentationNode& node, const std::string& baseFilename);
-  */
 protected:
   vtkMRMLSegmentationStorageNode();
   ~vtkMRMLSegmentationStorageNode();

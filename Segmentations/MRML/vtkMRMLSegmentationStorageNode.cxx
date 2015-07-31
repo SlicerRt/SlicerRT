@@ -30,20 +30,20 @@
 
 // VTK includes
 #include <vtkMRMLScene.h>
-//#include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
-//#include <vtkPointData.h>
-//#include <vtkPolyData.h>
-//#include <vtkPolyDataReader.h>
-//#include <vtkPolyDataWriter.h>
+#include <vtkDataObject.h>
+#include <vtkPolyData.h>
+#include <vtkFieldData.h>
+#include <vtkStringArray.h>
+#include <vtkDoubleArray.h>
 #include <vtkMultiBlockDataSet.h>
 #include <vtkXMLMultiBlockDataWriter.h>
 #include <vtkXMLMultiBlockDataReader.h>
-#include <vtkStringArray.h>
-//#include <vtkTrivialProducer.h>
-#include <vtksys/Directory.hxx>
 #include <vtksys/SystemTools.hxx>
+#include <vtkInformation.h>
+#include <vtkInformationIntegerVectorKey.h>
+#include <vtkInformationStringKey.h>
 
 // ITK includes
 #include <itkImageFileWriter.h>
@@ -65,6 +65,7 @@ static const std::string SEGMENT_NAME = "Name";
 static const std::string SEGMENT_DEFAULT_COLOR = "DefaultColor";
 static const std::string SEGMENT_TAGS = "Tags";
 static const std::string SEGMENT_EXTENT = "Extent";
+static const std::string MASTER_REPRESENTATION = "MasterRepresentation";
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLSegmentationStorageNode);
@@ -209,7 +210,6 @@ const char* vtkMRMLSegmentationStorageNode::GetDefaultWriteFileExtension()
   return NULL;
 }
 
-
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentationStorageNode::ResetSupportedWriteFileTypes()
 {
@@ -221,11 +221,6 @@ bool vtkMRMLSegmentationStorageNode::CanReadInReferenceNode(vtkMRMLNode *refNode
 {
   return refNode->IsA("vtkMRMLSegmentationNode");
 }
-
-
-//TODO: Useful snippets
-//std::string extension = vtkMRMLStorageNode::GetLowercaseExtensionFromFileName(baseFilename);
-//std::string fullNameWithoutExtension = vtksys::SystemTools::GetFilenameWithoutExtension(baseFilename);
 
 //----------------------------------------------------------------------------
 int vtkMRMLSegmentationStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
@@ -281,7 +276,6 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
     vtkErrorMacro("ReadBinaryLabelmapRepresentation: Output segmentation must exist and must be empty!");
     return 0;
   }
-  segmentation->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
 
   // Read 4D NRRD image file
   typedef itk::ImageFileReader<BinaryLabelmap4DImageType> FileReaderType;
@@ -293,10 +287,14 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
   }
   catch (itk::ImageFileReaderException &error)
   {
-    vtkErrorMacro("ReadBinaryLabelmapRepresentation: Failed to load file " << path << " as segmentation. Exception:\n" << error);
+    // Do not report error as the file might contain poly data in which case ReadPolyDataRepresentation will read it alright
+    vtkDebugMacro("ReadBinaryLabelmapRepresentation: Failed to load file " << path << " as segmentation. Exception:\n" << error);
     return 0;
   }
   BinaryLabelmap4DImageType::Pointer allSegmentLabelmapsImage = reader->GetOutput();
+
+  // Read succeeded, set master representation
+  segmentation->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
 
   // Get metadata dictionary from image, read common geometry extent
   itk::MetaDataDictionary metadata = allSegmentLabelmapsImage->GetMetaDataDictionary();
@@ -457,11 +455,47 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* 
   // Read segment poly datas
   for (int blockIndex=0; blockIndex<multiBlockDataset->GetNumberOfBlocks(); ++blockIndex)
   {
-    //TODO: This is for testing
-    int i=0; ++i;
+    // Get poly data representation
+    vtkPolyData* currentPolyData = vtkPolyData::SafeDownCast(multiBlockDataset->GetBlock(blockIndex));
 
-    // Determine if poly data is closed surface or planar contours based on whether it contains cells or not
-    //TODO:
+    // Set master representation if it has not been set yet
+    // (segment field data contains it, there is no global place to store it)
+    if (!segmentation->GetMasterRepresentationName())
+    {
+      vtkStringArray* masterRepresentationArray = vtkStringArray::SafeDownCast(
+        currentPolyData->GetFieldData()->GetAbstractArray(MASTER_REPRESENTATION.c_str()) );
+      if (!masterRepresentationArray)
+      {
+        vtkErrorMacro("ReadPolyDataRepresentation: Unable to find master representation for segmentation in file " << path);
+        return 0;
+      }
+      segmentation->SetMasterRepresentationName(masterRepresentationArray->GetValue(0).c_str());
+    }
+
+    // Create segment
+    vtkSmartPointer<vtkSegment> currentSegment = vtkSmartPointer<vtkSegment>::New();
+    currentSegment->AddRepresentation(segmentation->GetMasterRepresentationName(), currentPolyData);
+
+    // Set segment properties
+    vtkStringArray* idArray = vtkStringArray::SafeDownCast(
+      currentPolyData->GetFieldData()->GetAbstractArray(SEGMENT_ID.c_str()) );
+    vtkStringArray* nameArray = vtkStringArray::SafeDownCast(
+      currentPolyData->GetFieldData()->GetAbstractArray(SEGMENT_NAME.c_str()) );
+    vtkDoubleArray* defaultColorArray = vtkDoubleArray::SafeDownCast(
+      currentPolyData->GetFieldData()->GetArray(SEGMENT_DEFAULT_COLOR.c_str()) );
+    if (!idArray || !nameArray || !defaultColorArray)
+    {
+      vtkErrorMacro("ReadPolyDataRepresentation: Unable to find segment properties for segment number " << blockIndex << " referenced from segmentation file " << path);
+      continue;
+    }
+    std::string currentSegmentID = idArray->GetValue(0);
+    currentSegment->SetName(nameArray->GetValue(0).c_str());
+    currentSegment->SetDefaultColor(defaultColorArray->GetComponent(0,0), defaultColorArray->GetComponent(0,1), defaultColorArray->GetComponent(0,2));
+
+    //TODO: Parse tags with key SEGMENT_TAGS
+
+    // Add segment to segmentation
+    segmentation->AddSegment(currentSegment, currentSegmentID);
   }
 
   return 1;
@@ -485,7 +519,6 @@ int vtkMRMLSegmentationStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
   }
 
   // Write only master representation
-  //TODO: Change file extension based on master representation type (by default it will be nrrd)
   vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
   const char* masterRepresentation = segmentation->GetMasterRepresentationName();
   if (!strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
@@ -584,8 +617,9 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
   itkLabelmapImage->SetDirection(directions);
   itkLabelmapImage->Allocate();
 
-  // Create metadata dictionary, save extent of common geometry image
+  // Create metadata dictionary
   itk::MetaDataDictionary metadata;
+  // Save extent of common geometry image
   int commonGeometryExtent[6] = {0,-1,0,-1,0,-1};
   commonGeometryImage->GetExtent(commonGeometryExtent);
   std::stringstream ssCommonExtent;
@@ -593,6 +627,8 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     << SERIALIZED_ARRAY_SEPARATOR << commonGeometryExtent[3] << SERIALIZED_ARRAY_SEPARATOR << commonGeometryExtent[4] << SERIALIZED_ARRAY_SEPARATOR << commonGeometryExtent[5];
   std::string commonExtent = ssCommonExtent.str();
   itk::EncapsulateMetaData<std::string>(metadata, SEGMENT_EXTENT.c_str(), commonExtent);
+  // Save master representation name
+  itk::EncapsulateMetaData<std::string>(metadata, MASTER_REPRESENTATION.c_str(), masterRepresentation);
 
   // Dimensions of the output 4D NRRD file: (i, j, k, segment)
   vtkSegmentation::SegmentMap segmentMap = segmentation->GetSegments();
@@ -602,11 +638,11 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     std::string currentSegmentID = segmentIt->first;
     vtkSegment* currentSegment = segmentIt->second.GetPointer();
 
-    // Get segment binary labelmap
-    vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
-      currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+    // Get master representation from segment
+    vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(currentSegment->GetRepresentation(masterRepresentation));
     if (!currentBinaryLabelmap)
     {
+      vtkErrorMacro("WriteBinaryLabelmapRepresentation: Failed to retrieve master representation from segment " << currentSegmentID);
       continue;
     }
 
@@ -725,7 +761,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
 
   // Write image file to disk
   itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
-  io->SetFileType(itk::ImageIOBase::Binary); //TODO: This was ASCII originally, change back if binary doesn't work
+  io->SetFileType(itk::ImageIOBase::Binary);
 
   typedef itk::ImageFileWriter<BinaryLabelmap4DImageType> WriterType;
   WriterType::Pointer nrrdWriter = WriterType::New();
@@ -775,10 +811,51 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation*
   unsigned int segmentIndex = 0;
   for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt, ++segmentIndex)
   {
-    vtkDataObject* polyDataRepresentation = segmentIt->second->GetRepresentation(masterRepresentation);
-    multiBlockDataset->SetBlock(segmentIndex, polyDataRepresentation);
+    std::string currentSegmentID = segmentIt->first;
+    vtkSegment* currentSegment = segmentIt->second.GetPointer();
 
-    // TODO: Set metadata
+    // Get master representation from segment
+    vtkPolyData* currentPolyData = vtkPolyData::SafeDownCast(currentSegment->GetRepresentation(masterRepresentation));
+    if (!currentPolyData)
+    {
+      vtkErrorMacro("WritePolyDataRepresentation: Failed to retrieve master representation from segment " << currentSegmentID);
+      continue;
+    }
+    // Make temporary duplicate of the poly data so that adding the metadata does not cause invalidating the other
+    // representations (which is done when the master representation is modified)
+    vtkSmartPointer<vtkPolyData> currentPolyDataCopy = vtkSmartPointer<vtkPolyData>::New();
+    currentPolyDataCopy->ShallowCopy(currentPolyData);
+
+    // Set metadata for current segment
+    vtkSmartPointer<vtkStringArray> masterRepresentationArray = vtkSmartPointer<vtkStringArray>::New();
+    masterRepresentationArray->SetNumberOfValues(1);
+    masterRepresentationArray->SetValue(0,masterRepresentation);
+    masterRepresentationArray->SetName(MASTER_REPRESENTATION.c_str());
+    currentPolyDataCopy->GetFieldData()->AddArray(masterRepresentationArray);
+
+    vtkSmartPointer<vtkStringArray> idArray = vtkSmartPointer<vtkStringArray>::New();
+    idArray->SetNumberOfValues(1);
+    idArray->SetValue(0,currentSegmentID.c_str());
+    idArray->SetName(SEGMENT_ID.c_str());
+    currentPolyDataCopy->GetFieldData()->AddArray(idArray);
+
+    vtkSmartPointer<vtkStringArray> nameArray = vtkSmartPointer<vtkStringArray>::New();
+    nameArray->SetNumberOfValues(1);
+    nameArray->SetValue(0,currentSegment->GetName());
+    nameArray->SetName(SEGMENT_NAME.c_str());
+    currentPolyDataCopy->GetFieldData()->AddArray(nameArray);
+
+    vtkSmartPointer<vtkDoubleArray> defaultColorArray = vtkSmartPointer<vtkDoubleArray>::New();
+    defaultColorArray->SetNumberOfComponents(3);
+    defaultColorArray->SetNumberOfTuples(1);
+    defaultColorArray->SetTuple(0, currentSegment->GetDefaultColor());
+    defaultColorArray->SetName(SEGMENT_DEFAULT_COLOR.c_str());
+    currentPolyDataCopy->GetFieldData()->AddArray(defaultColorArray);
+
+    //TODO: Store tags with key SEGMENT_TAGS
+
+    // Set segment poly data to dataset
+    multiBlockDataset->SetBlock(segmentIndex, currentPolyDataCopy);
   }
 
   // Write multiblock dataset to disk
@@ -790,194 +867,3 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation*
 
   return 1;
 }
-
-
-
-
-
-
-/* TODO:
-//----------------------------------------------------------------------------
-bool vtkMRMLSegmentationStorageNode::ReadPolyDataInternal( vtkPolyData* outModel, const char* filename, const char* suffix )
-{
-  if( outModel == NULL )
-  {
-    return false;
-  }
-  vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
-  reader->SetFileName(filename);
-  vtkSmartPointer<vtkUnstructuredGridReader> unstructuredGridReader = vtkSmartPointer<vtkUnstructuredGridReader>::New();
-  vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
-
-  unstructuredGridReader->SetFileName(filename);
-  if (reader->IsFilePolyData())
-  {
-    reader->Update();
-    outModel->DeepCopy(reader->GetOutput());
-  }
-  else if (unstructuredGridReader->IsFileUnstructuredGrid())
-  {
-    unstructuredGridReader->Update();
-#if (VTK_MAJOR_VERSION <= 5)
-    surfaceFilter->SetInput(unstructuredGridReader->GetOutput());
-#else
-    surfaceFilter->SetInputData(unstructuredGridReader->GetOutput());
-#endif
-    surfaceFilter->Update();
-    outModel->DeepCopy(surfaceFilter->GetOutput());
-  }
-  else
-  {
-    vtkErrorMacro("File " << filename
-      << " is not recognized as polydata nor as an unstructured grid.");
-  }
-  if (reader->GetOutput() == NULL)
-  {
-    vtkErrorMacro("Unable to read file " << filename);
-    return false;
-  }
-
-  return true;
-}
-
-//----------------------------------------------------------------------------
-bool vtkMRMLSegmentationStorageNode::ReadOrientedImageDataInternal(vtkOrientedImageData* imageData, itk::MetaDataDictionary& outDictionary)
-{
-  std::string filename = this->GetFullNameFromFileName();
-
-  vtkSmartPointer<vtkITKArchetypeImageSeriesReader> reader = vtkSmartPointer<vtkITKArchetypeImageSeriesScalarReader>::New();
-  reader->SetSingleFile(1);
-  reader->SetUseOrientationFromFile(1);
-
-  if (reader.GetPointer() == NULL)
-  {
-    vtkErrorMacro("ReadData: Failed to instantiate a file reader");
-    return false;
-  }
-
-  reader->AddObserver( vtkCommand::ProgressEvent, this->MRMLCallbackCommand);
-
-  if ( segment->HasImageData() )
-  {
-    segment->SetImageDataConnection(NULL);
-  }
-
-  // Set the list of file names on the reader
-  reader->ResetFileNames();
-  reader->SetArchetype(filename.c_str());
-
-  // Workaround
-  ApplyImageSeriesReaderWorkaround(this, reader, filename);
-
-  // Center image
-  reader->SetOutputScalarTypeToNative();
-  reader->SetDesiredCoordinateOrientationToNative();
-    reader->SetUseNativeOriginOn();
-  //}
-
-  try
-  {
-    vtkDebugMacro("ReadData: right before reader update, reader num files = " << reader->GetNumberOfFileNames());
-    reader->Update();
-  }
-  catch (...)
-  {
-    std::string reader0thFileName;
-    if (reader->GetFileName(0) != NULL)
-    {
-      reader0thFileName = std::string("reader 0th file name = ") + std::string(reader->GetFileName(0));
-    }
-    vtkErrorMacro("ReadData: Cannot read file as a volume of type "
-      << (segment ? segment->GetUid() : "null")
-      << "[" << "fullName = " << filename << "]\n"
-      << "\tNumber of files listed in the node = "
-      << this->GetNumberOfFileNames() << ".\n"
-      << "\tFile reader says it was able to read "
-      << reader->GetNumberOfFileNames() << " files.\n"
-      << "\tFile reader used the archetype file name of " << reader->GetArchetype()
-      << " [" << reader0thFileName.c_str() << "]\n");
-    return false;
-  }
-
-  if (reader->GetOutput() == NULL || reader->GetOutput()->GetPointData() == NULL)
-  {
-    vtkErrorMacro("ReadData: Unable to read data from file: " << filename);
-    return false;
-  }
-
-  vtkPointData * pointData = reader->GetOutput()->GetPointData();
-  if (pointData->GetScalars() == NULL || pointData->GetScalars()->GetNumberOfTuples() == 0)
-  {
-    vtkErrorMacro("ReadData: Unable to read ScalarVolume data from file: " << filename );
-    return false;
-  }
-
-  if ( reader->GetNumberOfComponents() != 1 )
-  {
-    vtkErrorMacro("ReadData: Not a scalar volume file: " << filename );
-    return false;
-  }
-
-  // Set volume attributes
-  outDictionary = reader->GetMetaDataDictionary();
-
-  // Get all the file names from the reader
-  if (reader->GetNumberOfFileNames() > 1)
-  {
-    vtkDebugMacro("Number of file names = " << reader->GetNumberOfFileNames()
-      << ", number of slice location = " << reader->GetNumberOfSliceLocation());
-    if (this->FileNameList.size() == 0)
-    {
-      // It is safe to assume that the file names in reader are unique.
-      // Here we shortcut the n*log(n) unique insertion of  AddFileName().
-      this->FileNameList = reader->GetFileNames();
-    }
-    else
-    {
-      // include the archetype, file 0, in the storage node's file list
-      for (unsigned int n = 0; n < reader->GetNumberOfFileNames(); n++)
-      {
-        const char *thisFileName = reader->GetFileName(n);
-#ifndef NDEBUG
-        int currentSize =
-#endif
-          this->AddFileName(thisFileName);
-        vtkDebugMacro("After adding file " << n << ", filename = " << thisFileName
-          << " to this storage node's list, current size of the list = " << currentSize);
-      }
-    }
-  }
-
-  vtkNew<vtkImageChangeInformation> ici;
-#if (VTK_MAJOR_VERSION <= 5)
-  ici->SetInput(reader->GetOutput());
-#else
-  ici->SetInputData(reader->GetOutput());
-#endif
-  ici->SetOutputSpacing( 1, 1, 1 );
-  ici->SetOutputOrigin( 0, 0, 0 );
-  ici->Update();
-
-  if (ici->GetOutput() == NULL)
-  {
-    vtkErrorMacro("vtkMRMLVolumeArchetypeStorageNode: Cannot read file: " << filename);
-    return false;
-  }
-
-  vtkNew<vtkImageData> iciOutputCopy;
-  iciOutputCopy->ShallowCopy(ici->GetOutput());
-  vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
-  tp->SetInputDataObject(iciOutputCopy.GetPointer());
-  segment->SetImageDataConnection(tp->GetOutputPort());
-
-  vtkMatrix4x4* mat = reader->GetRasToIjkMatrix();
-  if ( mat == NULL )
-  {
-    vtkErrorMacro ("Reader returned NULL RasToIjkMatrix");
-  }
-  OutIJKToRASMatrix.DeepCopy(mat);
-
-  return true;
-}
-
-*/
