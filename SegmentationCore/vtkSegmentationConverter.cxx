@@ -35,6 +35,8 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 //----------------------------------------------------------------------------
 static const std::string SERIALIZED_GEOMETRY_SEPARATOR = ";";
+static const std::string SERIALIZATION_SEPARATOR = "&";
+static const std::string SERIALIZATION_SEPARATOR_INNER = "|";
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSegmentationConverter);
@@ -65,7 +67,7 @@ void vtkSegmentationConverter::PrintSelf(ostream& os, vtkIndent indent)
     vtkSegmentationConverterRule::ConversionParameterListType::iterator paramIt;
     for (paramIt = rule->ConversionParameters.begin(); paramIt != rule->ConversionParameters.end(); ++paramIt)
     {
-      os << indent << "\tParameter:   " << paramIt->first << " = " << paramIt->second.first << " (" << paramIt->second.second << ")\n";
+      os << indent << "  Parameter:   " << paramIt->first << " = " << paramIt->second.first << " (" << paramIt->second.second << ")\n";
     }
   }
 }
@@ -229,8 +231,17 @@ void vtkSegmentationConverter::SetConversionParameters(vtkSegmentationConverterR
 }
 
 //----------------------------------------------------------------------------
-void vtkSegmentationConverter::SetConversionParameter(const std::string& name, const std::string& value)
+void vtkSegmentationConverter::SetConversionParameter(const std::string& name, const std::string& value, const std::string& description/*=""*/)
 {
+  // Cannot set parameter if any property contains a separator character
+  if ( name.find(SERIALIZATION_SEPARATOR) != std::string::npos || name.find(SERIALIZATION_SEPARATOR_INNER) != std::string::npos
+    || value.find(SERIALIZATION_SEPARATOR) != std::string::npos || value.find(SERIALIZATION_SEPARATOR_INNER) != std::string::npos
+    || description.find(SERIALIZATION_SEPARATOR) != std::string::npos || description.find(SERIALIZATION_SEPARATOR_INNER) != std::string::npos )
+  {
+    vtkErrorMacro("SetConversionParameter: Conversion parameter '" << name << " name, value, or description contains a separator character so it cannot be set!");
+    return;
+  }
+
   // Set conversion parameter to each converter having that parameter
   bool parameterFound = false;
   ConverterRulesListType::iterator ruleIt;
@@ -238,7 +249,7 @@ void vtkSegmentationConverter::SetConversionParameter(const std::string& name, c
   {
     if ((*ruleIt)->HasConversionParameter(name))
     {
-      (*ruleIt)->SetConversionParameter(name,value);
+      (*ruleIt)->SetConversionParameter(name,value,description);
       parameterFound = true;
     }
   }
@@ -458,6 +469,55 @@ void vtkSegmentationConverter::GetConversionParametersForPath(
   ConversionPathType::const_iterator ruleIt;
   for (ruleIt = path.begin(); ruleIt != path.end(); ++ruleIt)
   {
-    (*ruleIt)->GetConversionParametersForPath(conversionParameters);
+    (*ruleIt)->GetRuleConversionParameters(conversionParameters);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkSegmentationConverter::GetAllConversionParameters(vtkSegmentationConverterRule::ConversionParameterListType& conversionParameters)
+{
+  conversionParameters.clear();
+  for (ConverterRulesListType::iterator ruleIt = this->ConverterRules.begin(); ruleIt != this->ConverterRules.end(); ++ruleIt)
+  {
+    (*ruleIt)->GetRuleConversionParameters(conversionParameters);
+  }
+}
+
+//----------------------------------------------------------------------------
+std::string vtkSegmentationConverter::SerializeAllConversionParameters()
+{
+  std::stringstream ssParameters;
+  vtkSegmentationConverterRule::ConversionParameterListType parameters;
+  this->GetAllConversionParameters(parameters);
+
+  vtkSegmentationConverterRule::ConversionParameterListType::iterator paramIt;
+  for (paramIt = parameters.begin(); paramIt != parameters.end(); ++paramIt)
+  {
+    ssParameters << paramIt->first << SERIALIZATION_SEPARATOR_INNER << paramIt->second.first << SERIALIZATION_SEPARATOR_INNER << paramIt->second.second << SERIALIZATION_SEPARATOR;
+  }
+
+  return ssParameters.str();
+}
+
+//----------------------------------------------------------------------------
+void vtkSegmentationConverter::DeserializeConversionParameters(std::string conversionParametersString)
+{
+  size_t separatorPosition = conversionParametersString.find(SERIALIZATION_SEPARATOR);
+  while (separatorPosition != std::string::npos)
+  {
+    std::string parameterString = conversionParametersString.substr(0, separatorPosition);
+
+    size_t innerSeparatorPosition = parameterString.find(SERIALIZATION_SEPARATOR_INNER);
+    std::string name = parameterString.substr(0, innerSeparatorPosition);
+    parameterString = parameterString.substr(innerSeparatorPosition+1);
+    innerSeparatorPosition = parameterString.find(SERIALIZATION_SEPARATOR_INNER);
+    std::string value = parameterString.substr(0, innerSeparatorPosition);
+    parameterString = parameterString.substr(innerSeparatorPosition+1);
+    innerSeparatorPosition = parameterString.find(SERIALIZATION_SEPARATOR_INNER);
+    std::string description = parameterString.substr(0, innerSeparatorPosition);
+    this->SetConversionParameter(name, value, description);
+
+    conversionParametersString = conversionParametersString.substr(separatorPosition+1);
+    separatorPosition = conversionParametersString.find(SERIALIZATION_SEPARATOR);
   }
 }

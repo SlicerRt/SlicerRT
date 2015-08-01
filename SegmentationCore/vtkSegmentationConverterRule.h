@@ -52,6 +52,7 @@ public:
   /// Conversion parameter list type. Maps the conversion parameter name to a pair consisting of the
   /// value of the parameter (the default value if it is defined in the converter rule) and the
   /// description of the parameter that appears as tooltip in the conversion parameters widget
+  /// ( name => (value, description) )
   typedef std::map<std::string, std::pair<std::string, std::string> > ConversionParameterListType;
 
   /// Constant to use for converter rules with "infinite" computational cost (i.e. disabled)
@@ -104,10 +105,10 @@ public:
 
   /// Get rule conversion parameters for aggregated path parameters.
   /// Existing values in the map are overwritten, missing name&values are added.
-  virtual void GetConversionParametersForPath(ConversionParameterListType& conversionParameters);
+  virtual void GetRuleConversionParameters(ConversionParameterListType& conversionParameters);
 
-  /// Set a conversion parameter (cannot change the description, only the value)
-  virtual void SetConversionParameter(const std::string& name, const std::string& value);
+  /// Set a conversion parameter
+  virtual void SetConversionParameter(const std::string& name, const std::string& value, const std::string& description="");
 
   /// Get a conversion parameter value
   virtual std::string GetConversionParameter(const std::string& name);

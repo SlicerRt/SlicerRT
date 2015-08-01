@@ -44,7 +44,7 @@ vtkSegmentationConverterRule* vtkSegmentationConverterRule::Clone()
 }
 
 //----------------------------------------------------------------------------
-void vtkSegmentationConverterRule::GetConversionParametersForPath(ConversionParameterListType& conversionParameters)
+void vtkSegmentationConverterRule::GetRuleConversionParameters(ConversionParameterListType& conversionParameters)
 {
   // Copy rule conversion parameters into aggregated path parameters
   ConversionParameterListType::iterator paramIt;
@@ -55,9 +55,14 @@ void vtkSegmentationConverterRule::GetConversionParametersForPath(ConversionPara
 }
 
 //----------------------------------------------------------------------------
-void vtkSegmentationConverterRule::SetConversionParameter(const std::string& name, const std::string& value)
+void vtkSegmentationConverterRule::SetConversionParameter(const std::string& name, const std::string& value, const std::string& description/*=""*/)
 {
   this->ConversionParameters[name].first = value;
+
+  if (!description.empty())
+  {
+    this->ConversionParameters[name].second = description;
+  }
 }
 
 //----------------------------------------------------------------------------

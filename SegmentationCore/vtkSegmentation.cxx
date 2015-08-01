@@ -1065,3 +1065,15 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
   // Serialize common geometry and return it
   return vtkSegmentationConverter::SerializeImageGeometry(commonGeometryImage);
 }
+
+//----------------------------------------------------------------------------
+std::string vtkSegmentation::SerializeAllConversionParameters()
+{
+  return this->Converter->SerializeAllConversionParameters();
+}
+
+//----------------------------------------------------------------------------
+void vtkSegmentation::DeserializeConversionParameters(std::string conversionParametersString)
+{
+  this->Converter->DeserializeConversionParameters(conversionParametersString);
+}

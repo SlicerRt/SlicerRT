@@ -110,6 +110,12 @@ protected:
   /// (multiblock dataset writes segments to individual files in a separate folder)
   void AddPolyDataFileNames(std::string path, vtkSegmentation* segmentation);
 
+  /// Serialize contained representation names in a string
+  std::string SerializeContainedRepresentationNames(vtkSegmentation* segmentation);
+
+  /// Create representations based on serialized representation names string
+  void CreateRepresentationsBySerializedNames(vtkSegmentation* segmentation, std::string representationNames);
+
 protected:
   vtkMRMLSegmentationStorageNode();
   ~vtkMRMLSegmentationStorageNode();

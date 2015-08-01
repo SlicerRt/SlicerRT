@@ -79,14 +79,17 @@ public:
   /// Get all possible conversions between two representations
   void GetPossibleConversions(const std::string& sourceRepresentationName, const std::string& targetRepresentationName, ConversionPathAndCostListType &pathsCosts);
   
-  /// Get names of all conversion parameters used by the selected conversion path
+  /// Get all conversion parameters used by the selected conversion path
   void GetConversionParametersForPath(vtkSegmentationConverterRule::ConversionParameterListType& conversionParameters, const ConversionPathType& path);
+
+  /// Get all conversion parameters in this converter. Aggregates all parameters from all rules
+  void GetAllConversionParameters(vtkSegmentationConverterRule::ConversionParameterListType& conversionParameters);
 
   /// Set a list of conversion parameters to all rules (cannot change the description, only the value)
   void SetConversionParameters(vtkSegmentationConverterRule::ConversionParameterListType parameters);
 
-  /// Set a conversion parameter to all rules having this parameter (cannot change the description, only the value)
-  void SetConversionParameter(const std::string& name, const std::string& value);
+  /// Set a conversion parameter to all rules having this parameter
+  void SetConversionParameter(const std::string& name, const std::string& value, const std::string& description="");
 
   /// Get a conversion parameter value from first rule containing this parameter
   /// Note: all parameters with the same name should contain the same value
@@ -95,6 +98,14 @@ public:
   /// Get a conversion parameter description from first rule containing this parameter
   /// Note: all parameters with the same name should contain the same value
   std::string GetConversionParameterDescription(const std::string& description);
+
+  /// Serialize all conversion parameters.
+  /// The resulting string can be parsed in a segmentation converter object using /sa DeserializeConversionParameters
+  std::string SerializeAllConversionParameters();
+
+  /// Parse conversion parameters in string and set it to the converter
+  /// Such a string can be constructed in a segmentation converter object using /sa SerializeAllConversionParameters
+  void DeserializeConversionParameters(std::string conversionParametersString);
 
 // Utility functions
 public:

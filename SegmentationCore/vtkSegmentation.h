@@ -234,6 +234,14 @@ public:
   void GetConversionParametersForPath(vtkSegmentationConverterRule::ConversionParameterListType& conversionParameters,
     const vtkSegmentationConverter::ConversionPathType& path) { this->Converter->GetConversionParametersForPath(conversionParameters, path); };
 
+  /// Serialize all conversion parameters.
+  /// The resulting string can be parsed in a segmentation object using /sa DeserializeConversionParameters
+  std::string SerializeAllConversionParameters();
+
+  /// Parse conversion parameters in string and set it to the segmentation converter
+  /// Such a string can be constructed in a segmentation object using /sa SerializeAllConversionParameters
+  void DeserializeConversionParameters(std::string conversionParametersString);
+
 // Get/set methods
 public:
   /// Get master representation name
