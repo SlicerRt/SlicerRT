@@ -62,10 +62,110 @@ vtkMRMLSegmentationDisplayNode::~vtkMRMLSegmentationDisplayNode()
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::WriteXML(ostream& of, int nIndent)
+{
+  Superclass::WriteXML(of, nIndent);
+  vtkIndent indent(nIndent);
+
+  of << indent << " PolyDataDisplayRepresentationName=\"" << (this->PolyDataDisplayRepresentationName ? this->PolyDataDisplayRepresentationName : "NULL") << "\"";
+
+  of << indent << " EnableTransparencyInColorTable=\"" << (this->EnableTransparencyInColorTable ? "true" : "false") << "\"";
+
+  of << indent << " SegmentationDisplayProperties=\"";
+  for (SegmentDisplayPropertiesMap::iterator propIt = this->SegmentationDisplayProperties.begin();
+    propIt != this->SegmentationDisplayProperties.end(); ++propIt)
+  {
+    of << propIt->first << " " << propIt->second.Color[0] << " " << propIt->second.Color[1] << " "
+       << propIt->second.Color[2] << " " << propIt->second.PolyDataOpacity
+       << " " << (propIt->second.Visible ? "true" : "false") << "|";
+  }
+  of << "\"";
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::ReadXMLAttributes(const char** atts)
+{
+  // Read all MRML node attributes from two arrays of names and values
+  int disabledModify = this->StartModify();
+
+  Superclass::ReadXMLAttributes(atts);
+
+  // Read all MRML node attributes from two arrays of names and values
+  const char* attName;
+  const char* attValue;
+
+  while (*atts != NULL) 
+  {
+    attName = *(atts++);
+    attValue = *(atts++);
+
+    if (!strcmp(attName, "PolyDataDisplayRepresentationName")) 
+    {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetPolyDataDisplayRepresentationName(ss.str().c_str());
+    }
+    else if (!strcmp(attName, "EnableTransparencyInColorTable")) 
+    {
+      this->EnableTransparencyInColorTable = (strcmp(attValue,"true") ? false : true);
+    }
+    else if (!strcmp(attName, "SegmentationDisplayProperties")) 
+    {
+      std::stringstream ss;
+      ss << attValue;
+      std::string valueStr = ss.str();
+      std::string separatorCharacter("|");
+
+      this->SegmentationDisplayProperties.clear();
+      size_t separatorPosition = valueStr.find( separatorCharacter );
+      while (separatorPosition != std::string::npos)
+      {
+        std::stringstream segmentProps;
+        segmentProps << valueStr.substr(0, separatorPosition);
+        std::string id("");
+        SegmentDisplayProperties props;
+        std::string visibleStr("");
+        segmentProps >> id >> props.Color[0] >> props.Color[1] >> props.Color[2] >> props.PolyDataOpacity >> visibleStr;
+        props.Visible = (visibleStr.compare("true") ? false : true);
+        this->SetSegmentDisplayProperties(id, props);
+
+        valueStr = valueStr.substr( separatorPosition+1 );
+        separatorPosition = valueStr.find( separatorCharacter );
+      }
+      if (!valueStr.empty())
+      {
+        std::stringstream segmentProps;
+        segmentProps << valueStr.substr(0, separatorPosition);
+        std::string id("");
+        SegmentDisplayProperties props;
+        std::string visibleStr("");
+        segmentProps >> id >> props.Color[0] >> props.Color[1] >> props.Color[2] >> props.PolyDataOpacity >> visibleStr;
+        props.Visible = (visibleStr.compare("true") ? false : true);
+        this->SetSegmentDisplayProperties(id, props);
+      }
+    }
+  }
+
+  this->EndModify(disabledModify);
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLSegmentationDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-
   Superclass::PrintSelf(os,indent);
+
+  os << indent << " PolyDataDisplayRepresentationName:   " << (this->PolyDataDisplayRepresentationName ? this->PolyDataDisplayRepresentationName : "NULL") << "\n";
+
+  os << indent << " EnableTransparencyInColorTable:   " << (this->EnableTransparencyInColorTable ? "true" : "false") << "\n";
+
+  os << indent << " SegmentationDisplayProperties:\n";
+  for (SegmentDisplayPropertiesMap::iterator propIt = this->SegmentationDisplayProperties.begin();
+    propIt != this->SegmentationDisplayProperties.end(); ++propIt)
+  {
+    os << indent << "   SegmentID=" << propIt->first << ", Color=(" << propIt->second.Color[0] << "," << propIt->second.Color[1] << ","
+       << propIt->second.Color[2] << "), PolyDataOpacity=" << propIt->second.PolyDataOpacity
+       << ", Visible=" << (propIt->second.Visible ? "true" : "false") << "\n";
+  }
 }
 
 //---------------------------------------------------------------------------

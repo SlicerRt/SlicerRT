@@ -106,9 +106,9 @@ void vtkSegmentation::WriteXML(ostream& of, int nIndent)
 {
   vtkIndent indent(nIndent);
 
-  of << indent << "MasterRepresentationName:  " << (this->MasterRepresentationName ? this->MasterRepresentationName : "NULL") << "\n";
+  of << indent << " MasterRepresentationName=\"" << (this->MasterRepresentationName ? this->MasterRepresentationName : "NULL") << "\"";
 
-  //TODO: Write segment info? Reading that out will probably need to be managed by the storage node instead.
+  // Note: Segment info is not written as it is managed by the storage node instead.
 }
 
 //----------------------------------------------------------------------------
@@ -163,6 +163,8 @@ void vtkSegmentation::CopyConversionParameters(vtkSegmentation* aSegmentation)
 void vtkSegmentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
+
+  os << indent << "MasterRepresentationName:  " << (this->MasterRepresentationName ? this->MasterRepresentationName : "NULL") << "\n";
 
   for (SegmentMap::iterator it = this->Segments.begin(); it != this->Segments.end(); ++it)
   {

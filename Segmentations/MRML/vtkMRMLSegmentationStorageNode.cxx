@@ -441,6 +441,9 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* 
     return 0;
   }
 
+  // Add all files to storage node (multiblock dataset writes segments to individual files in a separate folder)
+  this->AddPolyDataFileNames(path, segmentation);
+
   // Read multiblock dataset from disk
   vtkSmartPointer<vtkXMLMultiBlockDataReader> reader = vtkSmartPointer<vtkXMLMultiBlockDataReader>::New();
   reader->SetFileName(path.c_str());
@@ -865,5 +868,31 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation*
   writer->SetDataModeToBinary();
   writer->Write();
 
+  // Add all files to storage node (multiblock dataset writes segments to individual files in a separate folder)
+  this->AddPolyDataFileNames(path, segmentation);
+
   return 1;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationStorageNode::AddPolyDataFileNames(std::string path, vtkSegmentation* segmentation)
+{
+  if (!segmentation || segmentation->GetNumberOfSegments() == 0)
+  {
+    vtkErrorMacro("AddPolyDataFileNames: Invalid segmentation!");
+    return;
+  }
+
+  this->AddFileName(path.c_str());
+
+  std::string fileNameWithoutExtension = vtksys::SystemTools::GetFilenameWithoutLastExtension(path);
+  std::string parentDirectory = vtksys::SystemTools::GetParentDirectory(path);
+  std::string multiBlockDirectory = parentDirectory + "/" + fileNameWithoutExtension;
+  for (int segmentIndex = 0; segmentIndex < segmentation->GetNumberOfSegments(); ++segmentIndex)
+  {
+    std::stringstream ssSegmentFilePath;
+    ssSegmentFilePath << multiBlockDirectory << "/" << fileNameWithoutExtension << "_" << segmentIndex << ".vtp";
+    std::string segmentFilePath = ssSegmentFilePath.str();
+    this->AddFileName(segmentFilePath.c_str());
+  }
 }

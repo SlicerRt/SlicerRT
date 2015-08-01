@@ -57,6 +57,12 @@ public:
 
   virtual vtkMRMLNode* CreateNodeInstance();
 
+  /// Set node attributes from name/value pairs 
+  virtual void ReadXMLAttributes( const char** atts);
+
+  /// Write this node's information to a MRML file in XML format. 
+  virtual void WriteXML(ostream& of, int indent);
+
   /// Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() { return "SegmentationDisplay"; };
 

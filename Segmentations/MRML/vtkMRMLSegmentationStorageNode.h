@@ -106,6 +106,10 @@ protected:
   /// Read a poly data representation to file
   virtual int ReadPolyDataRepresentation(vtkSegmentation* segmentation, std::string path);
 
+  /// Add all files corresponding to poly data representation to the storage node
+  /// (multiblock dataset writes segments to individual files in a separate folder)
+  void AddPolyDataFileNames(std::string path, vtkSegmentation* segmentation);
+
 protected:
   vtkMRMLSegmentationStorageNode();
   ~vtkMRMLSegmentationStorageNode();
