@@ -438,6 +438,7 @@ void vtkMRMLSegmentationDisplayNode::RemoveSegmentDisplayProperties(std::string 
 void vtkMRMLSegmentationDisplayNode::ClearSegmentDisplayProperties()
 {
   this->SegmentationDisplayProperties.clear();
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------
@@ -524,6 +525,7 @@ bool vtkMRMLSegmentationDisplayNode::CalculateAutoOpacitiesForSegments()
     propIt->second.PolyDataOpacity = opacity;
   }
 
+  this->Modified();
   return true;
 }
 

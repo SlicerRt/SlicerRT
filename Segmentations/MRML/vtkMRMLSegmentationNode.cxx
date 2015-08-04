@@ -649,6 +649,24 @@ vtkMRMLStorageNode* vtkMRMLSegmentationNode::CreateDefaultStorageNode()
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLSegmentationNode::CreateDefaultDisplayNodes()
+{
+  if (vtkMRMLSegmentationDisplayNode::SafeDownCast(this->GetDisplayNode()))
+  {
+    // Display node already exists
+    return;
+  }
+  if (this->GetScene() == NULL)
+  {
+    vtkErrorMacro("vtkMRMLSegmentationNode::CreateDefaultDisplayNodes failed: Scene is invalid");
+    return;
+  }
+  vtkNew<vtkMRMLSegmentationDisplayNode> dispNode;
+  this->GetScene()->AddNode(dispNode.GetPointer());
+  this->SetAndObserveDisplayNodeID(dispNode->GetID());
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::ApplyTransform( vtkAbstractTransform* transform )
 {
   // Apply transform on merged labelmap

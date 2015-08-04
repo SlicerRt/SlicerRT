@@ -83,6 +83,9 @@ public:
   /// Create a segmentation storage node
   virtual vtkMRMLStorageNode* CreateDefaultStorageNode();
 
+  /// Create and observe a segmentation display node
+  virtual void CreateDefaultDisplayNodes();
+
   /// Reimplemented to take into account the modified time of the internal data.
   /// Returns true if the node (default behavior) or the internal data are modified
   /// since read/written.
