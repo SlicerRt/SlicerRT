@@ -537,14 +537,14 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
   vtkSmartPointer<vtkPoints> points;
   int numberOfPoints;
 
-  std::vector<vtkSmartPointer<vtkLine>> newLines;
+  std::vector<vtkSmartPointer<vtkLine> > newLines;
 
   double point1[3] = {0,0,0};
   double point2[3] = {0,0,0};
   double distance;
   int pointsOfSeperation;
 
-  std::vector<vtkSmartPointer<vtkIdList>> finishedNewLines;
+  std::vector<vtkSmartPointer<vtkIdList> > finishedNewLines;
 
   for (int lineIndex = 0; lineIndex < numberOfLines; lineIndex++)
   {
@@ -591,7 +591,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
 
     bool pointInChannel = false;
 
-    std::vector<vtkSmartPointer<vtkIdList>> rawNewLines;
+    std::vector<vtkSmartPointer<vtkIdList> > rawNewLines;
     vtkSmartPointer<vtkLine> newLine;
     vtkSmartPointer<vtkIdList> newLinePoints;
 
@@ -683,7 +683,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SetLinesClockwise(vtkPolyDat
 
   int numberOfLines = inputROIPoints->GetNumberOfLines();
 
-  std::vector<vtkSmartPointer<vtkLine>> newLines;
+  std::vector<vtkSmartPointer<vtkLine> > newLines;
 
   for(int lineIndex=0 ; lineIndex < numberOfLines; lineIndex++)
   {
