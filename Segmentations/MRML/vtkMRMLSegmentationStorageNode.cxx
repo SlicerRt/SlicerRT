@@ -470,6 +470,7 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* 
 
   // Read segment poly datas
   std::string containedRepresentationNames("");
+  std::string conversionParameters("");
   for (int blockIndex=0; blockIndex<multiBlockDataset->GetNumberOfBlocks(); ++blockIndex)
   {
     // Get poly data representation
@@ -487,14 +488,18 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* 
         return 0;
       }
       segmentation->SetMasterRepresentationName(masterRepresentationArray->GetValue(0).c_str());
-
-      // Read conversion parameters (stored in each segment file, but need to set only once)
-      std::string conversionParameters;
+    }
+    // Read conversion parameters (stored in each segment file, but need to set only once)
+    if (conversionParameters.empty())
+    {
       vtkStringArray* conversionParametersArray = vtkStringArray::SafeDownCast(
         currentPolyData->GetFieldData()->GetAbstractArray(CONVERSION_PARAMETERS.c_str()) );
-      segmentation->DeserializeConversionParameters(conversionParametersArray->GetValue(0));
-
-      // Read contained representation names
+      conversionParameters = conversionParametersArray->GetValue(0);
+      segmentation->DeserializeConversionParameters(conversionParameters);
+    }
+    // Read contained representation names
+    if (containedRepresentationNames.empty())
+    {
       containedRepresentationNames = vtkStringArray::SafeDownCast(
         currentPolyData->GetFieldData()->GetAbstractArray(CONTAINED_REPRESENTATION_NAMES.c_str()) )->GetValue(0);
     }

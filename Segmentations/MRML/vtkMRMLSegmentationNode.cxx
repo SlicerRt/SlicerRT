@@ -308,6 +308,10 @@ void vtkMRMLSegmentationNode::OnSegmentAdded(vtkObject* vtkNotUsed(caller), unsi
     vtkErrorWithObjectMacro(self, "vtkMRMLSegmentationNode::OnSegmentAdded: No segmentation in segmentation node!");
     return;
   }
+  if (self->Scene->IsImporting())
+  {
+    return;
+  }
 
   // Get segment ID
   char* segmentId = reinterpret_cast<char*>(callData);
@@ -512,36 +516,12 @@ void vtkMRMLSegmentationNode::OnSubjectHierarchyUIDAdded(vtkMRMLSubjectHierarchy
 void vtkMRMLSegmentationNode::OnNodeReferenceAdded(vtkMRMLNodeReference *reference)
 {
   Superclass::OnNodeReferenceAdded(reference);
-
-  if (!strcmp(reference->GetReferenceRole(), vtkMRMLDisplayableNode::DisplayNodeReferenceRole))
-  {
-    // If display node reference has been added
-    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-      reference->GetReferencedNode() );
-    if (displayNode)
-    {
-      // Reset segmentation display properties
-      this->ResetSegmentDisplayProperties();
-    }
-  }
 }
 
 //---------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::OnNodeReferenceModified(vtkMRMLNodeReference *reference)
 {
   Superclass::OnNodeReferenceModified(reference);
-
-  if (!strcmp(reference->GetReferenceRole(), vtkMRMLDisplayableNode::DisplayNodeReferenceRole))
-  {
-    // If display node reference has been added
-    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-      reference->GetReferencedNode() );
-    if (displayNode)
-    {
-      // Reset segmentation display properties
-      this->ResetSegmentDisplayProperties();
-    }
-  }
 }
 
 //---------------------------------------------------------------------------
@@ -626,7 +606,7 @@ void vtkMRMLSegmentationNode::ResetSegmentDisplayProperties()
     displayNode->ClearSegmentDisplayProperties();
 
     vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(displayNode->GetColorNode());
-    if (colorTableNode)
+    if (colorTableNode && colorTableNode->GetNumberOfColors() > 0)
     {
       colorTableNode->SetNumberOfColors(0);
       colorTableNode->GetLookupTable()->SetTableRange(0, 0);

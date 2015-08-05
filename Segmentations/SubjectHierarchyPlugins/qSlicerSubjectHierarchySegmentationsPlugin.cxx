@@ -356,12 +356,18 @@ void qSlicerSubjectHierarchySegmentationsPlugin::editProperties(vtkMRMLSubjectHi
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded(vtkObject* caller, void* callData)
 {
-  // Get segmentation node and associated subject hierarchy node
+  // Get segmentation node
   vtkMRMLSegmentationNode* segmentationNode = reinterpret_cast<vtkMRMLSegmentationNode*>(caller);
   if (!segmentationNode)
   {
     return;
   }
+  // Do nothing if scene is being loaded
+  if (segmentationNode->GetScene()->IsImporting())
+  {
+    return;
+  }
+  // Get associated subject hierarchy node
   vtkMRMLSubjectHierarchyNode* segmentationSubjectHierarchyNode = 
     vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(segmentationNode);
   if (!segmentationSubjectHierarchyNode)
@@ -394,12 +400,13 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded(vtkObject* calle
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentRemoved(vtkObject* caller, void* callData)
 {
-  // Get segmentation node and associated subject hierarchy node
+  // Get segmentation node
   vtkMRMLSegmentationNode* segmentationNode = reinterpret_cast<vtkMRMLSegmentationNode*>(caller);
   if (!segmentationNode)
   {
     return;
   }
+  // Get associated subject hierarchy node
   vtkMRMLSubjectHierarchyNode* segmentationSubjectHierarchyNode = 
     vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(segmentationNode);
   if (!segmentationSubjectHierarchyNode)
@@ -432,12 +439,13 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentRemoved(vtkObject* cal
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentModified(vtkObject* caller, void* callData)
 {
-  // Get segmentation node and associated subject hierarchy node
+  // Get segmentation node
   vtkMRMLSegmentationNode* segmentationNode = reinterpret_cast<vtkMRMLSegmentationNode*>(caller);
   if (!segmentationNode)
   {
     return;
   }
+  // Get associated subject hierarchy node
   vtkMRMLSubjectHierarchyNode* segmentationSubjectHierarchyNode = 
     vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(segmentationNode);
   if (!segmentationSubjectHierarchyNode)
