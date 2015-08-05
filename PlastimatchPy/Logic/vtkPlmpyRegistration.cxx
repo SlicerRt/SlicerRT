@@ -304,7 +304,7 @@ void vtkPlmpyRegistration::WarpLandmarks()
   // Clear warped landmarks
   this->WarpedLandmarks->Initialize();
 
-  for (int i=0; i < (int)warpedPointset.count(); ++i)
+  for (int i=0; i < (int)warpedPointset.get_count(); ++i)
   {
     vtkDebugMacro("[RTN] "
             << warpedPointset.point_list[i].p[0] << " "

@@ -66,7 +66,7 @@ main (int argc, char * argv [])
     parms.xf_in_fn = plmslc_xformwarp_input_xform_f.c_str();
   }
 
-  printf ("xf_in_fn = %s\n", (const char*) parms.xf_in_fn);
+  printf ("xf_in_fn = %s\n", parms.xf_in_fn.c_str());
 
   if (plmslc_output_warped != "" && plmslc_output_warped != "None") {
     command_string << 

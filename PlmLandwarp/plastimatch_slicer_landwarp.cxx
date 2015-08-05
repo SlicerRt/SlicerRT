@@ -117,8 +117,8 @@ main (int argc, char *argv[])
      pointset_add_point assumes RAS
   */
 
-  Raw_pointset *fix_ps = pointset_create ();
-  Raw_pointset *mov_ps = pointset_create ();
+  Labeled_pointset& fix_ps = lw->m_fixed_landmarks;
+  Labeled_pointset& mov_ps = lw->m_moving_landmarks;
 
   for (unsigned long i = 0; i < num_fiducials; i++) {
         
@@ -127,14 +127,14 @@ main (int argc, char *argv[])
       plmslc_landwarp_fixed_fiducials[i][1],  
       plmslc_landwarp_fixed_fiducials[i][2]
     };
-    pointset_add_point (fix_ps, lm_fix);
+    fix_ps.insert_ras (lm_fix);
         
     float lm_mov[3] = { 
       plmslc_landwarp_moving_fiducials[i][0],  
       plmslc_landwarp_moving_fiducials[i][1],  
       plmslc_landwarp_moving_fiducials[i][2]
     };
-    pointset_add_point (mov_ps, lm_mov);
+    mov_ps.insert_ras (lm_mov);
   }
 
   lw->m_fixed_landmarks = fix_ps;
