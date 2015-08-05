@@ -549,9 +549,6 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
     this->Scene->AddNode(displayNode);
     this->SetAndObserveDisplayNodeID(displayNode->GetID());
     displayNode->SetBackfaceCulling(0); //TODO: Needed only because of the ribbon model normal vectors probably
-
-    // Return because observing display node ID triggers OnNodeReferenceModified that eventually calls this function again via ResetSegmentDisplayProperties and adds the segment color on second call
-    return true;
   }
 
   int wasModifyingDisplayNode = displayNode->StartModify();
