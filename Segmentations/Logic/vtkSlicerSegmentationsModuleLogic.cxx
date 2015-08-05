@@ -93,7 +93,7 @@ void vtkSlicerSegmentationsModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newSc
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   // events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
-  // events->InsertNextValue(vtkMRMLScene::EndImportEvent);
+  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
 }
 
@@ -170,6 +170,23 @@ void vtkSlicerSegmentationsModuleLogic::OnSubjectHierarchyUIDAdded(vtkObject* ca
     if (node)
     {
       node->OnSubjectHierarchyUIDAdded(shNodeWithNewUID);
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerSegmentationsModuleLogic::OnMRMLSceneEndImport()
+{
+  // Re-generate merged labelmap for segmentation nodes after importing a scene, as their associated color table nodes
+  // might have been loaded after the segmentation node, and merged labelmap generation relies on those nodes.
+  std::vector<vtkMRMLNode*> segmentationNodes;
+  unsigned int numberOfNodes = this->GetMRMLScene()->GetNodesByClass("vtkMRMLSegmentationNode", segmentationNodes);
+  for (unsigned int nodeIndex=0; nodeIndex<numberOfNodes; nodeIndex++)
+  {
+    vtkMRMLSegmentationNode* node = vtkMRMLSegmentationNode::SafeDownCast(segmentationNodes[nodeIndex]);
+    if (node && node->HasMergedLabelmap())
+    {
+      node->ReGenerateDisplayedMergedLabelmap();
     }
   }
 }

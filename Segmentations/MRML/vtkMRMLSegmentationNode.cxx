@@ -423,7 +423,7 @@ void vtkMRMLSegmentationNode::OnRepresentationCreated(vtkObject* vtkNotUsed(call
   char* targetRepresentationName = reinterpret_cast<char*>(callData);
 
   // Re-generate merged labelmap with modified representation
-  if (self->HasMergedLabelmap())
+  if (!self->Scene->IsImporting() && self->HasMergedLabelmap())
   {
     self->ReGenerateDisplayedMergedLabelmap();
   }
@@ -877,13 +877,23 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
   // Create merged labelmap. Use color table to determine labels for segments
   for (unsigned short colorIndex = 2; colorIndex < colorTableNode->GetNumberOfColors(); ++colorIndex) // Color index starts from 2 (0 is background, 1 is invalid)
   {
-    const char* segmentId = colorTableNode->GetColorName(colorIndex);
+    std::string segmentId(colorTableNode->GetColorName(colorIndex));
     bool segmentIncluded = ( std::find(mergedSegmentIDs.begin(), mergedSegmentIDs.end(), std::string(segmentId)) != mergedSegmentIDs.end() );
-    if (!segmentIncluded || !segmentId || !strcmp(segmentId, vtkMRMLSegmentationDisplayNode::GetSegmentationColorNameRemoved()))
+    if (!segmentIncluded || segmentId.empty() || !segmentId.compare(vtkMRMLSegmentationDisplayNode::GetSegmentationColorNameRemoved()))
     {
-      // No actual segment is associated with the color index (segment was removed from segmentation),
-      // or segment is not included in the list of merged segments
-      continue;
+      // Workaround for handling color node storage limitation that it replaces spaces with underscores when saving and restores when loading,
+      // so if the segment name contains underscores then those are replaced with spaces
+      std::string segmentIdNoSpaces = colorTableNode->GetColorNameWithoutSpaces(colorIndex, "_");
+      if ( std::find(mergedSegmentIDs.begin(), mergedSegmentIDs.end(), segmentIdNoSpaces) == mergedSegmentIDs.end() )
+      {
+        // No actual segment is associated with the color index (segment was removed from segmentation),
+        // or segment is not included in the list of merged segments
+        continue;
+      }
+      else
+      {
+        segmentId = segmentIdNoSpaces;
+      }
     }
 
     // Skip segment if hidden
