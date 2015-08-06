@@ -810,7 +810,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
   nrrdWriter->SetInput(itkLabelmapImage);
   nrrdWriter->SetImageIO(io);
   nrrdWriter->SetFileName(fullName);
-  nrrdWriter->UseCompressionOn();
+  nrrdWriter->SetUseCompression(this->UseCompression);
   try
   {
     nrrdWriter->Update();
@@ -919,7 +919,16 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation*
   vtkSmartPointer<vtkXMLMultiBlockDataWriter> writer = vtkSmartPointer<vtkXMLMultiBlockDataWriter>::New();
   writer->SetInputData(multiBlockDataset);
   writer->SetFileName(path.c_str());
-  writer->SetDataModeToBinary();
+  if (this->UseCompression)
+  {
+    writer->SetDataModeToBinary();
+    writer->SetCompressorTypeToZLib();
+  }
+  else
+  {
+    writer->SetDataModeToAscii();
+    writer->SetCompressorTypeToNone();
+  }
   writer->Write();
 
   // Add all files to storage node (multiblock dataset writes segments to individual files in a separate folder)
