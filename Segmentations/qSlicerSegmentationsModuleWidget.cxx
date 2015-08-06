@@ -370,6 +370,14 @@ void qSlicerSegmentationsModuleWidget::onSegmentationNodeChanged(vtkMRMLNode* no
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentationsModuleWidget::selectSegmentationNode(vtkMRMLSegmentationNode* segmentationNode)
+{
+  Q_D(qSlicerSegmentationsModuleWidget);
+
+  d->MRMLNodeComboBox_Segmentation->setCurrentNode(segmentationNode);
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentationsModuleWidget::onSegmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
   Q_UNUSED(selected);

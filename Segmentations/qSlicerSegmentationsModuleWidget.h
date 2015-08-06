@@ -59,6 +59,9 @@ public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
 
+  /// Select segmentation node in module (workaround for issue that newly added nodes are not selected in the module)
+  void selectSegmentationNode(vtkMRMLSegmentationNode* segmentationNode);
+
 protected:
   virtual void setup();
   void onEnter();
