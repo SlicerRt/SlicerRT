@@ -292,6 +292,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneEndClose()
     return;
   }
 
+  if (this->DoseVolumeHistogramNode)
+  {
+    this->DoseVolumeHistogramNode->RemoveAllDvhDoubleArrayNodes();
+  }
+  this->SetAndObserveDoseVolumeHistogramNode(NULL);
+
   this->Modified();
 }
 
@@ -600,7 +606,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkOrientedImage
   }
 
   // Create DVH array node
-  vtkMRMLDoubleArrayNode* arrayNode = (vtkMRMLDoubleArrayNode*)( this->GetMRMLScene()->CreateNodeByClass("vtkMRMLDoubleArrayNode") );
+  vtkSmartPointer<vtkMRMLDoubleArrayNode> arrayNode = vtkSmartPointer<vtkMRMLDoubleArrayNode>::New();
   std::string dvhArrayNodeName = segmentID + vtkSlicerDoseVolumeHistogramModuleLogic::DVH_ARRAY_NODE_NAME_POSTFIX;
   dvhArrayNodeName = this->GetMRMLScene()->GenerateUniqueName(dvhArrayNodeName);
   arrayNode->SetName(dvhArrayNodeName.c_str());
