@@ -940,7 +940,7 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation*
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentationStorageNode::AddPolyDataFileNames(std::string path, vtkSegmentation* segmentation)
 {
-  if (!segmentation || segmentation->GetNumberOfSegments() == 0)
+  if (!segmentation)
   {
     vtkErrorMacro("AddPolyDataFileNames: Invalid segmentation!");
     return;

@@ -75,7 +75,7 @@ void vtkMRMLSegmentationDisplayNode::WriteXML(ostream& of, int nIndent)
   for (SegmentDisplayPropertiesMap::iterator propIt = this->SegmentationDisplayProperties.begin();
     propIt != this->SegmentationDisplayProperties.end(); ++propIt)
   {
-    of << propIt->first << " " << propIt->second.Color[0] << " " << propIt->second.Color[1] << " "
+    of << vtkMRMLNode::URLEncodeString(propIt->first.c_str()) << " " << propIt->second.Color[0] << " " << propIt->second.Color[1] << " "
        << propIt->second.Color[2] << " " << propIt->second.PolyDataOpacity
        << " " << (propIt->second.Visible ? "true" : "false") << "|";
   }
@@ -127,7 +127,7 @@ void vtkMRMLSegmentationDisplayNode::ReadXMLAttributes(const char** atts)
         std::string visibleStr("");
         segmentProps >> id >> props.Color[0] >> props.Color[1] >> props.Color[2] >> props.PolyDataOpacity >> visibleStr;
         props.Visible = (visibleStr.compare("true") ? false : true);
-        this->SetSegmentDisplayProperties(id, props);
+        this->SetSegmentDisplayProperties(vtkMRMLNode::URLDecodeString(id.c_str()), props);
 
         valueStr = valueStr.substr( separatorPosition+1 );
         separatorPosition = valueStr.find( separatorCharacter );
@@ -279,9 +279,13 @@ bool vtkMRMLSegmentationDisplayNode::SetSegmentColorTableEntry(std::string segme
   vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetColorNode());
   if (!colorTableNode)
   {
-    vtkErrorMacro("SetSegmentColorTableEntry: No color table node associated with segmentation. Maybe CreateColorTableNode was not called?");
+    if (this->Scene && !this->Scene->IsImporting())
+    {
+      vtkErrorMacro("SetSegmentColorTableEntry: No color table node associated with segmentation. Maybe CreateColorTableNode was not called?");
+    }
     return false;
   }
+
   // Look up segment color in color table node (-1 if not found)
   int colorIndex = colorTableNode->GetColorIndexByName(segmentId.c_str());
   if (colorIndex < 0)

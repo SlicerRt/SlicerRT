@@ -1,0 +1,20 @@
+# Color table file EclipseEnt_Structures_ColorTable.ctbl
+# 18 values
+0 Background 0 0 0 0
+1 Invalid 128 128 128 255
+2 BODY 0 255 0 255
+3 BRAIN 0 255 0 255
+4 BRSTEM 192 0 192 255
+5 CTV 128 255 255 255
+6 Dose_5200[cGy] 255 128 0 255
+7 GTV 255 0 0 255
+8 Lens_-_left 255 255 128 255
+9 Lens_-_right 255 128 0 255
+10 Optic_Chiasm 255 128 128 255
+11 Optic_Nerve_-_Rt 255 128 0 255
+12 Optic_Nerve-Lt 255 255 128 255
+13 Orbit_-_left 255 0 0 255
+14 Orbit_-_right 128 255 255 255
+15 PTV1 0 0 220 255
+16 optBRAIN 0 64 128 255
+17 optOptic 255 0 0 255

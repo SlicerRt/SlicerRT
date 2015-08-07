@@ -136,7 +136,7 @@ std::string vtkSegmentationConverter::SerializeImageGeometry(vtkMatrix4x4* geome
 //----------------------------------------------------------------------------
 bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryString, vtkMatrix4x4* geometryMatrix, int extent[6])
 {
-  if (!geometryMatrix)
+  if (!geometryMatrix || geometryString.empty())
   {
     return false;
   }

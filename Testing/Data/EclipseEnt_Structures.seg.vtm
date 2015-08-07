@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<VTKFile type="vtkMultiBlockDataSet" version="1.0" byte_order="LittleEndian" header_type="UInt32" compressor="vtkZLibDataCompressor">
+  <vtkMultiBlockDataSet>
+    <DataSet index="0" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_0.vtp">
+    </DataSet>
+    <DataSet index="1" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_1.vtp">
+    </DataSet>
+    <DataSet index="2" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_2.vtp">
+    </DataSet>
+    <DataSet index="3" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_3.vtp">
+    </DataSet>
+    <DataSet index="4" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_4.vtp">
+    </DataSet>
+    <DataSet index="5" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_5.vtp">
+    </DataSet>
+    <DataSet index="6" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_6.vtp">
+    </DataSet>
+    <DataSet index="7" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_7.vtp">
+    </DataSet>
+    <DataSet index="8" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_8.vtp">
+    </DataSet>
+    <DataSet index="9" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_9.vtp">
+    </DataSet>
+    <DataSet index="10" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_10.vtp">
+    </DataSet>
+    <DataSet index="11" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_11.vtp">
+    </DataSet>
+    <DataSet index="12" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_12.vtp">
+    </DataSet>
+    <DataSet index="13" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_13.vtp">
+    </DataSet>
+    <DataSet index="14" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_14.vtp">
+    </DataSet>
+    <DataSet index="15" file="EclipseEnt_Structures.seg/EclipseEnt_Structures.seg_15.vtp">
+    </DataSet>
+  </vtkMultiBlockDataSet>
+</VTKFile>

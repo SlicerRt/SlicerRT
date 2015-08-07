@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<VTKFile type="vtkMultiBlockDataSet" version="1.0" byte_order="LittleEndian" header_type="UInt32" compressor="vtkZLibDataCompressor">
+  <vtkMultiBlockDataSet>
+    <DataSet index="0" file="EclipseProstate_Structures.seg/EclipseProstate_Structures.seg_0.vtp">
+    </DataSet>
+    <DataSet index="1" file="EclipseProstate_Structures.seg/EclipseProstate_Structures.seg_1.vtp">
+    </DataSet>
+    <DataSet index="2" file="EclipseProstate_Structures.seg/EclipseProstate_Structures.seg_2.vtp">
+    </DataSet>
+    <DataSet index="3" file="EclipseProstate_Structures.seg/EclipseProstate_Structures.seg_3.vtp">
+    </DataSet>
+    <DataSet index="4" file="EclipseProstate_Structures.seg/EclipseProstate_Structures.seg_4.vtp">
+    </DataSet>
+    <DataSet index="5" file="EclipseProstate_Structures.seg/EclipseProstate_Structures.seg_5.vtp">
+    </DataSet>
+  </vtkMultiBlockDataSet>
+</VTKFile>
