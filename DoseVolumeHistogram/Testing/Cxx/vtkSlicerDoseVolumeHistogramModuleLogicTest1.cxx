@@ -25,11 +25,18 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkRibbonModelToBinaryLabelmapConversionRule.h"
+#include "vtkPlanarContourToRibbonModelConversionRule.h"
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
+
+// SegmentationCore includes
 #include "vtkOrientedImageData.h"
+#include "vtkSegmentationConverterFactory.h"
+#include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
+#include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -356,6 +363,14 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create Segmentations logic
   vtkSmartPointer<vtkSlicerSegmentationsModuleLogic> segmentationsLogic = vtkSmartPointer<vtkSlicerSegmentationsModuleLogic>::New();
   segmentationsLogic->SetMRMLScene(mrmlScene);
+  // Create Subject hierarchy logic. Needed so that the SH node type is registered. This can be removed
+  // once the subject hierarchy node is moved to MRML/Core, and is registered in vtkMRMLScene constructor.
+  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic = vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
+  subjectHierarchyLogic->SetMRMLScene(mrmlScene);
+  // Register converters to use ribbon models. Will be unnecessary when having resolved issues regarding
+  // direct planar contours to closed surface conversion https://www.assembla.com/spaces/slicerrt/tickets/751
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(vtkSmartPointer<vtkRibbonModelToBinaryLabelmapConversionRule>::New());
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(vtkSmartPointer<vtkPlanarContourToRibbonModelConversionRule>::New());
 
   // Load test scene into temporary scene
   //mrmlScene->GetCacheManager()->ClearCache();
@@ -381,7 +396,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   // Get segmentation node
   vtkSmartPointer<vtkCollection> segmentationNodes = vtkSmartPointer<vtkCollection>::Take(
-    mrmlScene->GetNodesByClass("vtkMRMLSegmentationNode*") );
+    mrmlScene->GetNodesByClass("vtkMRMLSegmentationNode") );
   if (segmentationNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
@@ -389,6 +404,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(segmentationNodes->GetItemAsObject(0));
+
+  // Create ribbon model representation so that it is used for labelmap conversion instead of direct
+  // closed surface. This makes sure that the test works the same way until resolving issues with the
+  // direct converter, see https://www.assembla.com/spaces/slicerrt/tickets/751
+  segmentationNode->GetSegmentation()->CreateRepresentation(SlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME);
 
   // Determine maximum dose
   vtkNew<vtkImageAccumulate> doseStat;
@@ -476,8 +496,6 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
   std::cout << "DVH computation time (including rasterization): " << checkpointEnd-checkpointStart << std::endl;
 
-  dvhLogic->RefreshDvhDoubleArrayNodesFromScene();
-
   std::vector<vtkMRMLNode*> dvhNodes;
   paramNode->GetDvhDoubleArrayNodes(dvhNodes);
 
@@ -491,7 +509,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
       return EXIT_FAILURE;
     }
 
-    chartNode->AddArray( (*dvhIt)->GetName(), (*dvhIt)->GetID() );    
+    chartNode->AddArray( (*dvhIt)->GetName(), (*dvhIt)->GetID() );
   }
 
   mrmlScene->Commit();

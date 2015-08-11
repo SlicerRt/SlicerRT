@@ -689,6 +689,13 @@ bool vtkMRMLSegmentationNode::GetModifiedSinceRead()
 //---------------------------------------------------------------------------
 vtkImageData* vtkMRMLSegmentationNode::GetImageData()
 {
+  if (this->Scene && this->Scene->IsImporting())
+  {
+    // Do not do conversion on this request when importing scene, just return the existing image data.
+    // Conversions when importing scene should be done explicitly by the segmentation storage node.
+    return Superclass::GetImageData();
+  }
+
   bool mergeNecessary = false;
 
   // Create image data if it does not exist

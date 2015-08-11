@@ -38,12 +38,6 @@
 #include "vtkMRMLSegmentationsDisplayableManager3D.h"
 #include "vtkMRMLSegmentationsDisplayableManager2D.h"
 
-// SegmentationCore includes
-#include "vtkSegmentationConverterFactory.h"
-#include "vtkBinaryLabelmapToClosedSurfaceConversionRule.h"
-#include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
-#include "vtkPlanarContourToClosedSurfaceConversionRule.h"
-
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 
@@ -155,14 +149,6 @@ void qSlicerSegmentationsModule::setup()
   // Register displayable managers
   vtkMRMLThreeDViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLSegmentationsDisplayableManager3D");
   vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLSegmentationsDisplayableManager2D");
-
-  // Register converter rules
-  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
-    vtkSmartPointer<vtkBinaryLabelmapToClosedSurfaceConversionRule>::New() );
-  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
-    vtkSmartPointer<vtkClosedSurfaceToBinaryLabelmapConversionRule>::New() );
-  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
-    vtkSmartPointer<vtkPlanarContourToClosedSurfaceConversionRule>::New() );
 }
 
 //-----------------------------------------------------------------------------

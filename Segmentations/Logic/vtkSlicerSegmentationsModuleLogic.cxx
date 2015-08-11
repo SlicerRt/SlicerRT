@@ -28,6 +28,9 @@
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
 #include "vtkSegmentationConverterFactory.h"
+#include "vtkBinaryLabelmapToClosedSurfaceConversionRule.h"
+#include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
+#include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // Subject Hierarchy includes
 #include <vtkMRMLSubjectHierarchyNode.h>
@@ -109,6 +112,14 @@ void vtkSlicerSegmentationsModuleLogic::RegisterNodes()
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentationNode>::New());
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentationDisplayNode>::New());
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentationStorageNode>::New());
+
+  // Register converter rules
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkBinaryLabelmapToClosedSurfaceConversionRule>::New() );
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkClosedSurfaceToBinaryLabelmapConversionRule>::New() );
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkPlanarContourToClosedSurfaceConversionRule>::New() );
 }
 
 //---------------------------------------------------------------------------
