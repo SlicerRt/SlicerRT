@@ -109,19 +109,6 @@ vtkSlicerDoseVolumeHistogramModuleLogic::vtkSlicerDoseVolumeHistogramModuleLogic
 //----------------------------------------------------------------------------
 vtkSlicerDoseVolumeHistogramModuleLogic::~vtkSlicerDoseVolumeHistogramModuleLogic()
 {
-  //// Release double array nodes to prevent memory leak
-  //if (this->GetMRMLScene() && this->DoseVolumeHistogramNode)
-  //{
-  //  std::vector<vtkMRMLNode*> dvhNodes;
-  //  this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodes(dvhNodes);
-  //  std::vector<vtkMRMLNode*>::iterator dvhIt;
-  //  int dvhIndex = 0;
-  //  for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt, ++dvhIndex)
-  //  {
-  //    (*dvhIt)->Delete();
-  //  }    
-  //}
-
   vtkSetAndObserveMRMLNodeMacro(this->DoseVolumeHistogramNode, NULL);
 }
 
@@ -1556,8 +1543,8 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AssembleDoseMetricAttributeName( s
 }
 
 //-----------------------------------------------------------------------------
-vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode(std::string csvFilename){
-  
+vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode(std::string csvFilename)
+{
   std::string csvSeparatorCharacter = ",";
   
   std::vector< vtkSmartPointer< vtkDoubleArray > > currentDvh;
@@ -1587,7 +1574,6 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
       {
         if (fieldCount%2==1)
         {
-
           // Get the structure's name
           std::string field = lineStr.substr(0, commaPosition);
           size_t middlePosition = field.find(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE);
@@ -1610,7 +1596,6 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
           {
             std::cerr << "Invalid structure volume in CSV header field " << field << std::endl;
           }
-
         }
 
         // Move to the next structure's location in the string
@@ -1619,8 +1604,31 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
         commaPosition = lineStr.find(csvSeparatorCharacter);
 
       }
-      if (! lineStr.empty() )
+      // Handle last field (if there was no comma at the end)
+      if (!lineStr.empty() )
       {
+        // Get the structure's name
+        size_t middlePosition = lineStr.find(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE);
+        structureNames.push_back(lineStr.substr(0, middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_ARRAY_NODE_NAME_POSTFIX.size()));
+
+        // Get the structure's total volume and add it to the vector
+        double volumeCCs = 0;
+        {
+          std::string structureVolumeString = lineStr.substr( middlePosition + vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(), 
+            lineStr.size() - middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
+          std::stringstream ss;
+          ss << structureVolumeString;
+          double doubleValue;
+          ss >> doubleValue;
+          volumeCCs = doubleValue;
+        }
+        structureVolumeCCs.push_back(volumeCCs);
+
+        if (volumeCCs == 0)
+        {
+          std::cerr << "Invalid structure volume in CSV header field " << lineStr << std::endl;
+        }
+
         fieldCount++;
       }
         
@@ -1639,7 +1647,6 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
     int structureNumber = 0;
     while (commaPosition != std::string::npos)
     {
-        
       // Tuple to be inserted into the vtkDoubleArray object
       double *tupleToInsert = new double[3];
       for(int j=0; j<3; ++j)
@@ -1690,10 +1697,8 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
   dvhStream.close();
   
   vtkCollection* doubleArrayNodes = vtkCollection::New();
-  
   for (unsigned int structureIndex=0; structureIndex < currentDvh.size(); structureIndex++)
   {
-
     // Create the vtkMRMLDoubleArrayNodes which will be passed to the logic function.
     vtkNew<vtkMRMLDoubleArrayNode> currentNode;
     currentNode->SetArray(currentDvh.at(structureIndex));
@@ -1712,7 +1717,6 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
 
     // add the new node to the vector
     doubleArrayNodes->AddItem(currentNode.GetPointer());
-    
   }
 
   return doubleArrayNodes;

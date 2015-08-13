@@ -1,4 +1,4 @@
-BODY_DVH Dose (Gy),BODY_DVH Value (% of 10593.0 cc),Bladder_DVH Dose (Gy),Bladder_DVH Value (% of 116.8 cc),FemoralHeadLt_DVH Dose (Gy),FemoralHeadLt_DVH Value (% of 49.2 cc),FemoralHeadRT_DVH Dose (Gy),FemoralHeadRT_DVH Value (% of 50.0 cc),PTV_DVH Dose (Gy),PTV_DVH Value (% of 48.6 cc),Rectum_DVH Dose (Gy),Rectum_DVH Value (% of 30.3 cc),
+BODY_DvhArray Dose (Gy),BODY_DvhArray Value (% of 10593.0 cc),Bladder_DvhArray Dose (Gy),Bladder_DvhArray Value (% of 116.8 cc),FemoralHeadLt_DvhArray Dose (Gy),FemoralHeadLt_DvhArray Value (% of 49.2 cc),FemoralHeadRT_DvhArray Dose (Gy),FemoralHeadRT_DvhArray Value (% of 50.0 cc),PTV_DvhArray Dose (Gy),PTV_DvhArray Value (% of 48.6 cc),Rectum_DvhArray Dose (Gy),Rectum_DvhArray Value (% of 30.3 cc),
 0,100,0,100,0,100,0,100,0,100,0,100
 0.046,100,0.046,100,0.046,100,0.046,100,0.046,100,0.046,100
 0.092,100,0.092,100,0.092,100,0.092,100,0.092,100,0.092,100

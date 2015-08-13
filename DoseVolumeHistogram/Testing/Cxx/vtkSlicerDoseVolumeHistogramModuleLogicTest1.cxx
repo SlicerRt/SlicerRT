@@ -486,7 +486,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (!(*dvhIt))
     {
-      std::cerr << "Error: Invalid DVH node!" << std::endl;
+      std::cerr << "ERROR: Invalid DVH node!" << std::endl;
       return EXIT_FAILURE;
     }
 
@@ -584,8 +584,10 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
 
   // Collections of vtkDoubleArrays, with each vtkDoubleArray representing a structure and containing
   // an array of tuples which represent the dose and volume for the bins in that structure.
-  vtkCollection* currentDvh = csvReadLogic->ReadCsvToDoubleArrayNode(dvhCsvFileName);
-  vtkCollection* baselineDvh = csvReadLogic->ReadCsvToDoubleArrayNode(baselineCsvFileName);
+  vtkSmartPointer<vtkCollection> currentDvh = 
+    vtkSmartPointer<vtkCollection>::Take( csvReadLogic->ReadCsvToDoubleArrayNode(dvhCsvFileName) );
+  vtkSmartPointer<vtkCollection> baselineDvh = 
+    vtkSmartPointer<vtkCollection>::Take( csvReadLogic->ReadCsvToDoubleArrayNode(baselineCsvFileName) );
  
   // Compare the current DVH to the baseline and determine mean and maximum difference
   agreementAcceptancePercentage = 0.0;
@@ -599,13 +601,12 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
 
   if (currentDvh->GetNumberOfItems() != baselineDvh->GetNumberOfItems())
   {
-    std::cerr << "Number of structures in the current and the baseline DVH tables do not match (" << currentDvh->GetNumberOfItems() << "<>" << baselineDvh->GetNumberOfItems() << ")!" << std::endl;
+    std::cerr << "ERROR: Number of structures in the current and the baseline DVH tables do not match (" << currentDvh->GetNumberOfItems() << "<>" << baselineDvh->GetNumberOfItems() << ")!" << std::endl;
     return 1;
   }
 
   for (int structureIndex=0; structureIndex < currentDvh->GetNumberOfItems(); structureIndex++)
   {
-
     vtkMRMLDoubleArrayNode* currentStructure = vtkMRMLDoubleArrayNode::SafeDownCast(currentDvh->GetItemAsObject(structureIndex));
     vtkMRMLDoubleArrayNode* baselineStructure = vtkMRMLDoubleArrayNode::SafeDownCast(baselineDvh->GetItemAsObject(structureIndex));
   
@@ -651,9 +652,6 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   std::cout << "Accepted structures with threshold of 95%: " << std::fixed << std::setprecision(2) << (double)numberOfAcceptedStructuresWith95 / (double)currentDvh->GetNumberOfItems() * 100.0 << std::endl;
 
   agreementAcceptancePercentage = 100.0 * (double)totalNumberOfAcceptedAgreements / (double)totalNumberOfBins;
-
-  currentDvh->Delete();
-  baselineDvh->Delete();
   
   return 0;
 }
