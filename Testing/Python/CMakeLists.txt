@@ -17,7 +17,10 @@ ctkMacroCompilePythonScript(
 
 #-----------------------------------------------------------------------------
 if(CMAKE_CONFIGURATION_TYPES)
-  set(MODULE_BUILD_DIR "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/${CMAKE_CFG_INTDIR}")
+  set(MODULE_BUILD_DIR "")
+  foreach(config ${CMAKE_CONFIGURATION_TYPES})
+    list(APPEND MODULE_BUILD_DIR "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}/${config}")
+  endforeach()
 else()
   set(MODULE_BUILD_DIR "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}")
 endif()
