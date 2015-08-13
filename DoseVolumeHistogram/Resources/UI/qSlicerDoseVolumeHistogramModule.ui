@@ -395,7 +395,11 @@
        <number>4</number>
       </property>
       <item row="2" column="0">
-       <widget class="QTableWidget" name="tableWidget_ChartStatistics"/>
+       <widget class="QTableWidget" name="tableWidget_ChartStatistics">
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_6">

@@ -306,6 +306,10 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     return errorMessage;
   }
 
+  // Fire only one modified event when the computation is done
+  this->SetDisableModifiedEvent(1);
+  int disabledNodeModify = this->DoseVolumeHistogramNode->StartModify();
+
   // Get maximum dose from dose volume for number of DVH bins
   vtkNew<vtkImageAccumulate> doseStat;
 #if (VTK_MAJOR_VERSION <= 5)
@@ -543,6 +547,11 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     double progress = (double)counter / (double)numberOfSelectedSegments;
     this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
   }
+
+  // Fire only one modified event when the computation is done
+  this->SetDisableModifiedEvent(0);
+  this->Modified();
+  this->DoseVolumeHistogramNode->EndModify(disabledNodeModify);
 
   return "";
 }

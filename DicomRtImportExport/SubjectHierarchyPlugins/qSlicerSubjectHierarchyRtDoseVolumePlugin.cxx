@@ -272,7 +272,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
 
   // Show dialogs asking about dose unit name and value
   bool ok;
-  QString defaultDoseUnitName = (doseUnitNameInStudy ? QString(doseUnitNameInStudy) : "GY");
+  QString defaultDoseUnitName = (doseUnitNameInStudy ? QString(doseUnitNameInStudy) : "Gy");
   QString doseUnitName = QInputDialog::getText(NULL, tr("RT dose volume properties (1/2)"),
     tr("Dose unit name:"), QLineEdit::Normal, defaultDoseUnitName, &ok);
   if (!ok || doseUnitName.isEmpty())
