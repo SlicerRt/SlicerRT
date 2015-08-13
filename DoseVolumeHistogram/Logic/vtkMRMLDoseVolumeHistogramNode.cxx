@@ -63,6 +63,7 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
   this->ShowDMetrics = false;
   this->ShowDoseVolumesOnly = true;
   this->AutomaticOversampling = false;
+  this->AutomaticOversamplingFactors.clear();
 
   this->HideFromEditors = false;
 }
@@ -75,6 +76,7 @@ vtkMRMLDoseVolumeHistogramNode::~vtkMRMLDoseVolumeHistogramNode()
   this->SetVDoseValues(NULL);
   this->SetDVolumeValuesCc(NULL);
   this->SetDVolumeValuesPercent(NULL);
+  this->AutomaticOversamplingFactors.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -361,7 +363,11 @@ void vtkMRMLDoseVolumeHistogramNode::GetDvhDoubleArrayNodes(std::vector<vtkMRMLN
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::AddDvhDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
 {
-  this->AddNodeReferenceID(DVH_DOUBLE_ARRAY_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  if (!node)
+  {
+    return;
+  }
+  this->AddNodeReferenceID(DVH_DOUBLE_ARRAY_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------

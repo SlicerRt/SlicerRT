@@ -27,6 +27,7 @@
 
 // STD includes
 #include <vector>
+#include <map>
 
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
@@ -101,6 +102,21 @@ public:
   void SetShowInChartCheckStates(std::vector<bool> checkboxStates)
   {
     this->ShowInChartCheckStates = checkboxStates;
+  }
+
+  /// Clear automatic oversampling factors map
+  void ClearAutomaticOversamplingFactors()
+  {
+    this->AutomaticOversamplingFactors.clear();
+  }
+  /// Add automatic oversampling factor to map
+  void AddAutomaticOversamplingFactor(std::string segmentID, double factor)
+  {
+    this->AutomaticOversamplingFactors[segmentID] = factor;
+  }
+  void GetAutomaticOversamplingFactors(std::map<std::string, double> &factors)
+  {
+    factors = this->AutomaticOversamplingFactors;
   }
 
   /// Get/Set Show/Hide all checkbox state
@@ -187,6 +203,11 @@ protected:
   /// If on, then oversampling is automatically determined based on the segments and dose volume, and used
   /// for both dose and segmentation when computing DVH.
   bool AutomaticOversampling;
+
+  /// Automatic oversampling factors stored for each selected segment.
+  /// If oversampling is automatic then they need to be stored for reporting purposes.
+  /// This property is not saved to the scene, as these are temporary values.
+  std::map<std::string, double> AutomaticOversamplingFactors;
 };
 
 #endif

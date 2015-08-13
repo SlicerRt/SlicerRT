@@ -464,30 +464,11 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Calculate and print oversampling factors if automatically calculated
   if (automaticOversamplingCalculation)
   {
-    // Get spacing for dose volume
-    double doseSpacing[3] = {0.0,0.0,0.0};
-    doseScalarVolumeNode->GetSpacing(doseSpacing);
-
-    // Calculate oversampling factors for all segments (need to calculate as it is not stored per segment)
-    vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
-    for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+    std::map<std::string, double> oversamplingFactors;
+    paramNode->GetAutomaticOversamplingFactors(oversamplingFactors);
+    for (std::map<std::string, double>::iterator factorIt = oversamplingFactors.begin(); factorIt != oversamplingFactors.end(); ++factorIt)
     {
-      vtkSegment* currentSegment = segmentIt->second;
-      vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
-        currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
-      if (!currentBinaryLabelmap)
-      {
-        std::cerr << "Error: No binary labelmap in segment " << segmentIt->first << std::endl;
-        continue;
-      }
-      double currentSpacing[3] = {0.0,0.0,0.0};
-      currentBinaryLabelmap->GetSpacing(currentSpacing);
-
-      double voxelSizeRatio = ((doseSpacing[0]*doseSpacing[1]*doseSpacing[2]) / (currentSpacing[0]*currentSpacing[1]*currentSpacing[2]));
-      // Round oversampling to two decimals
-      // Note: We need to round to some degree, because e.g. pow(64,1/3) is not exactly 4. It may be debated whether to round to integer or to a certain number of decimals
-      double oversamplingFactor = vtkMath::Round( pow( voxelSizeRatio, 1.0/3.0 ) * 100.0 ) / 100.0;
-      std::cout << "  Automatic oversampling factor for segment " << segmentIt->first << " calculated to be " << oversamplingFactor << std::endl;
+      std::cout << "  Automatic oversampling factor for segment " << factorIt->first << " calculated to be " << factorIt->second << std::endl;
     }
   }
 

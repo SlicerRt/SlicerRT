@@ -57,6 +57,7 @@
 #include <vtkStringArray.h>
 #include <vtkTimerLog.h>
 #include <vtkImageConstantPad.h>
+#include <vtkMath.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -108,18 +109,18 @@ vtkSlicerDoseVolumeHistogramModuleLogic::vtkSlicerDoseVolumeHistogramModuleLogic
 //----------------------------------------------------------------------------
 vtkSlicerDoseVolumeHistogramModuleLogic::~vtkSlicerDoseVolumeHistogramModuleLogic()
 {
-  // Release double array nodes to prevent memory leak
-  if (this->GetMRMLScene() && this->DoseVolumeHistogramNode)
-  {
-    std::vector<vtkMRMLNode*> dvhNodes;
-    this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodes(dvhNodes);
-    std::vector<vtkMRMLNode*>::iterator dvhIt;
-    int dvhIndex = 0;
-    for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt, ++dvhIndex)
-    {
-      (*dvhIt)->Delete();
-    }    
-  }
+  //// Release double array nodes to prevent memory leak
+  //if (this->GetMRMLScene() && this->DoseVolumeHistogramNode)
+  //{
+  //  std::vector<vtkMRMLNode*> dvhNodes;
+  //  this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodes(dvhNodes);
+  //  std::vector<vtkMRMLNode*>::iterator dvhIt;
+  //  int dvhIndex = 0;
+  //  for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt, ++dvhIndex)
+  //  {
+  //    (*dvhIt)->Delete();
+  //  }    
+  //}
 
   vtkSetAndObserveMRMLNodeMacro(this->DoseVolumeHistogramNode, NULL);
 }
@@ -220,16 +221,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* 
     return;
   }
 
-  if (node->IsA("vtkMRMLDoubleArrayNode") && this->DoseVolumeHistogramNode)
+  vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
+  if (doubleArrayNode && this->DoseVolumeHistogramNode)
   {
-    vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
-    if (doubleArrayNode)
+    const char* type = doubleArrayNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+    if (type)
     {
-      const char* type = doubleArrayNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str());
-      if (type)
-      {
-        this->DoseVolumeHistogramNode->AddDvhDoubleArrayNode(doubleArrayNode);
-      }
+      this->DoseVolumeHistogramNode->AddDvhDoubleArrayNode(doubleArrayNode);
     }
   }
 
@@ -311,6 +309,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     return errorMessage;
   }
 
+  this->DoseVolumeHistogramNode->ClearAutomaticOversamplingFactors();
   vtkMRMLSegmentationNode* segmentationNode = this->DoseVolumeHistogramNode->GetSegmentationNode();
   vtkMRMLScalarVolumeNode* doseVolumeNode = this->DoseVolumeHistogramNode->GetDoseVolumeNode();
   if ( !segmentationNode || !doseVolumeNode )
@@ -380,6 +379,37 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
     // If conversion failed, then resample binary labelmaps in the segments
     resamplingRequired = true;
+  }
+
+  // Calculate and store oversampling factors if automatically calculated for reporting purposes
+  if (this->DoseVolumeHistogramNode->GetAutomaticOversampling())
+  {
+    // Get spacing for dose volume
+    double doseSpacing[3] = {0.0,0.0,0.0};
+    doseVolumeNode->GetSpacing(doseSpacing);
+
+    // Calculate oversampling factors for all segments (need to calculate as it is not stored per segment)
+    vtkSegmentation::SegmentMap segmentMap = segmentationCopy->GetSegments();
+    for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+    {
+      vtkSegment* currentSegment = segmentIt->second;
+      vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
+        currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+      if (!currentBinaryLabelmap)
+      {
+        std::string errorMessage("Binary representation missing after converting with automatic oversampling factor!");
+        vtkErrorMacro("ComputeDvh: " << errorMessage);
+        return errorMessage;
+      }
+      double currentSpacing[3] = {0.0,0.0,0.0};
+      currentBinaryLabelmap->GetSpacing(currentSpacing);
+
+      double voxelSizeRatio = ((doseSpacing[0]*doseSpacing[1]*doseSpacing[2]) / (currentSpacing[0]*currentSpacing[1]*currentSpacing[2]));
+      // Round oversampling to two decimals
+      // Note: We need to round to some degree, because e.g. pow(64,1/3) is not exactly 4. It may be debated whether to round to integer or to a certain number of decimals
+      double oversamplingFactor = vtkMath::Round( pow( voxelSizeRatio, 1.0/3.0 ) * 100.0 ) / 100.0;
+      this->DoseVolumeHistogramNode->AddAutomaticOversamplingFactor(segmentIt->first, oversamplingFactor);
+    }
   }
 
   // Create oriented image data from dose volume
@@ -611,11 +641,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkOrientedImage
   dvhArrayNodeName = this->GetMRMLScene()->GenerateUniqueName(dvhArrayNodeName);
   arrayNode->SetName(dvhArrayNodeName.c_str());
 
-  // Set array node references
-  arrayNode->SetNodeReferenceID(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str(), doseVolumeNode->GetID());
-  arrayNode->SetNodeReferenceID(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_SEGMENTATION_NODE_REFERENCE_ROLE.c_str(), segmentationNode->GetID());
-
-  // Set array node attributes
+  // Set array node basic attributes
   arrayNode->SetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
   std::string segmentName =
       this->DoseVolumeHistogramNode->GetSegmentationNode()->GetSegmentation()->GetSegment(segmentID)->GetName();
@@ -776,8 +802,12 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkOrientedImage
     doubleArray->SetComponent(0,0,0);
   }
 
-  // Add DVH array node to the MRML scene
+  // Add DVH node to the scene
   this->GetMRMLScene()->AddNode(arrayNode);
+
+  // Set array node references
+  arrayNode->SetNodeReferenceID(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str(), doseVolumeNode->GetID());
+  arrayNode->SetNodeReferenceID(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_SEGMENTATION_NODE_REFERENCE_ROLE.c_str(), segmentationNode->GetID());
 
   // Add DVH to subject hierarchy
   vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
