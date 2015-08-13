@@ -117,11 +117,16 @@ protected:
   /// Seal the exterior contours of the mesh.
   void SealMesh(vtkPolyData*, vtkCellArray*, vtkCellArray*);
 
+  double GetSpacingBetweenLines(vtkPolyData*);
+
   /// Check to see if the given point is on the line
   bool IsPointOnLine(vtkIdList*, vtkIdType);
 
+  /// Create an additional contour on the exterior of the surface to compensate for slice thickness.
+  void CreateExternalLine(vtkPolyData*, vtkLine*, vtkLine*, vtkIdList*, double);
+
   /// Triangulate the interior of a contour on the xy plane.
-  void TriangulateLine(vtkPolyData*, vtkLine*, vtkCellArray*);
+  void TriangulateLine(vtkPolyData*, vtkLine*, vtkIdList*, vtkCellArray*);
 
   /// Determine if a point is on the interior of a line.
   bool IsPointInsideLine(vtkPolyData*, vtkLine*, double[]);
