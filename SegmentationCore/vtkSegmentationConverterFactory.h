@@ -52,14 +52,20 @@ public:
   void CopyConverterRules(RuleListType &rules);
 
   /// Add a converter rule.
-  /// The factory (and all converter classes it creates) will keep a references to this object,
+  /// The factory (and all converter classes it creates) will keep a reference to this rule object,
   /// and it will not be deleted until all these referring classes are deleted.
   void RegisterConverterRule(vtkSegmentationConverterRule* rule);
 
+  /// Remove a converter rule from the factory.
+  /// This does not affect converters that have already been created.
   void UnregisterConverterRule(vtkSegmentationConverterRule* rule);
 
   /// Get all registered converter rules
   const RuleListType& GetConverterRules();
+
+  /// Disable a representation, preventing it from being created. Achieved by unregistering the rules
+  /// that can create the representation.
+  void DisableRepresentation(std::string representationName);
 
   /// Constructs representation object from class name using the ConstructRepresentationObject
   /// methods in the registered conversion rules that must be able to instantiate the representation
@@ -71,6 +77,7 @@ public:
   /// classes they support.
   vtkDataObject* ConstructRepresentationObjectByRepresentation(std::string representationName);
 
+public:
   /// Return the singleton instance with no reference counting.
   static vtkSegmentationConverterFactory* GetInstance();
   

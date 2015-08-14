@@ -165,6 +165,20 @@ const vtkSegmentationConverterFactory::RuleListType& vtkSegmentationConverterFac
 }
 
 //----------------------------------------------------------------------------
+void vtkSegmentationConverterFactory::DisableRepresentation(std::string representationName)
+{
+  RuleListType rulesCopy = this->Rules;
+  for (RuleListType::iterator ruleIt = rulesCopy.begin(); ruleIt != rulesCopy.end(); ++ruleIt)
+  {
+    if ( !representationName.compare(ruleIt->GetPointer()->GetSourceRepresentationName())
+      || !representationName.compare(ruleIt->GetPointer()->GetTargetRepresentationName()) )
+    {
+      this->UnregisterConverterRule(ruleIt->GetPointer());
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
 vtkDataObject* vtkSegmentationConverterFactory::ConstructRepresentationObjectByClass(std::string className)
 {
   for (RuleListType::iterator ruleIt = this->Rules.begin(); ruleIt != this->Rules.end(); ++ruleIt)
