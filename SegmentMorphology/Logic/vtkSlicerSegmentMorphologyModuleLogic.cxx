@@ -377,12 +377,26 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
   // Expand
   case vtkMRMLSegmentMorphologyNode::Expand:
     {
-      vtkSmartPointer<vtkImageContinuousDilate3D> dilateFilter = vtkSmartPointer<vtkImageContinuousDilate3D>::New();
+      // Pad image by expansion extent (extents are fitted to the structure, dilate will reach the edge of the image)
+      vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
 #if (VTK_MAJOR_VERSION <= 5)
-      dilateFilter->SetInput(imageA);
+      padder->SetInput(imageA);
 #else
-      dilateFilter->SetInputData(imageA);
+      padder->SetInputData(imageA);
 #endif
+      int extent[6] = {0,-1,0,-1,0,-1};
+#if (VTK_MAJOR_VERSION <= 5)
+      imageA->GetWholeExtent(extent);
+#else
+      imageA->GetExtent(extent);
+#endif
+      // Now set the output extent to the new size
+      int expansionExtent[3] = { int(xSize/spacingA[0] + 1.0), int(ySize/spacingA[1] + 1.0), int(zSize/spacingA[2] + 1.0) }; // Rounding up
+      padder->SetOutputWholeExtent(extent[0]-expansionExtent[0], extent[1]+expansionExtent[0], extent[2]-expansionExtent[1], extent[3]+expansionExtent[1], extent[4]-expansionExtent[2], extent[5]+expansionExtent[2]);
+      padder->Update();
+
+      vtkSmartPointer<vtkImageContinuousDilate3D> dilateFilter = vtkSmartPointer<vtkImageContinuousDilate3D>::New();
+      dilateFilter->SetInputConnection(padder->GetOutputPort());
       dilateFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
       dilateFilter->Update();
       tempOutputImageData = dilateFilter->GetOutput();

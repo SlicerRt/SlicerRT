@@ -853,8 +853,11 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
 
   // Paint the image data background first
   unsigned short backgroundColor = vtkMRMLSegmentationDisplayNode::GetSegmentationColorIndexBackground();
-  //unsigned char* mergedImagePtr = (unsigned char*)mergedImageData->GetScalarPointer();
   unsigned char* mergedImagePtr = (unsigned char*)mergedImageData->GetScalarPointerForExtent(referenceExtent);
+  if (!mergedImagePtr)
+  {
+    return false; // Setting the extent may invoke this function again via ImageDataModified, in which case the pointer is NULL
+  }
   for (vtkIdType i=0; i<mergedImageData->GetNumberOfPoints(); ++i)
   {
     (*mergedImagePtr) = backgroundColor;
