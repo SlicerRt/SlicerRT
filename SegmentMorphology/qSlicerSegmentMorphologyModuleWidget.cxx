@@ -49,6 +49,8 @@ public:
   qSlicerSegmentMorphologyModuleWidgetPrivate(qSlicerSegmentMorphologyModuleWidget &object);
   ~qSlicerSegmentMorphologyModuleWidgetPrivate();
   vtkSlicerSegmentMorphologyModuleLogic* logic() const;
+public:
+  bool UniformExpandShrink;
 };
 
 //-----------------------------------------------------------------------------
@@ -58,6 +60,7 @@ public:
 qSlicerSegmentMorphologyModuleWidgetPrivate::qSlicerSegmentMorphologyModuleWidgetPrivate(qSlicerSegmentMorphologyModuleWidget& object)
   : q_ptr(&object)
 {
+  this->UniformExpandShrink = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -123,6 +126,15 @@ void qSlicerSegmentMorphologyModuleWidget::setup()
 
   d->label_Error->setText("");
 
+  QButtonGroup* buttonGroup = new QButtonGroup(d->CollapsibleButton_OperationParameters);
+  buttonGroup->addButton(d->radioButton_Expand);
+  buttonGroup->addButton(d->radioButton_Shrink);
+  buttonGroup->addButton(d->radioButton_Union);
+  buttonGroup->addButton(d->radioButton_Intersect);
+  buttonGroup->addButton(d->radioButton_Subtract);
+
+  d->checkBox_Uniform->setChecked(d->UniformExpandShrink);
+
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setSegmentMorphologyNode(vtkMRMLNode*)) );
 
@@ -138,6 +150,7 @@ void qSlicerSegmentMorphologyModuleWidget::setup()
   connect( d->radioButton_Intersect, SIGNAL(clicked()), this, SLOT(radioButtonIntersectClicked()) );
   connect( d->radioButton_Subtract, SIGNAL(clicked()), this, SLOT(radioButtonSubtractClicked()) );
 
+  connect( d->checkBox_Uniform, SIGNAL(stateChanged(int)), this, SLOT(checkBoxUniformCheckedStateChanged(int)) );
   connect( d->doubleSpinBox_XSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxXSizeChanged(double)) );
   connect( d->doubleSpinBox_YSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxYSizeChanged(double)) );
   connect( d->doubleSpinBox_ZSize, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxZSizeChanged(double)) );
@@ -616,6 +629,20 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonSubtractClicked()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentMorphologyModuleWidget::checkBoxUniformCheckedStateChanged(int state)
+{
+  Q_D(qSlicerSegmentMorphologyModuleWidget);
+
+  d->UniformExpandShrink = state;
+
+  if (d->UniformExpandShrink)
+  {
+    d->doubleSpinBox_YSize->setValue(d->doubleSpinBox_XSize->value());
+    d->doubleSpinBox_ZSize->setValue(d->doubleSpinBox_XSize->value());
+  }
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxXSizeChanged(double value)
 {
   Q_D(qSlicerSegmentMorphologyModuleWidget);
@@ -635,6 +662,12 @@ void qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxXSizeChanged(double valu
   paramNode->DisableModifiedEventOn();
   paramNode->SetXSize(value);
   paramNode->DisableModifiedEventOff();
+
+  if (d->UniformExpandShrink)
+  {
+    d->doubleSpinBox_YSize->setValue(value);
+    d->doubleSpinBox_ZSize->setValue(value);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -657,6 +690,12 @@ void qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxYSizeChanged(double valu
   paramNode->DisableModifiedEventOn();
   paramNode->SetYSize(value);
   paramNode->DisableModifiedEventOff();
+
+  if (d->UniformExpandShrink)
+  {
+    d->doubleSpinBox_XSize->setValue(value);
+    d->doubleSpinBox_ZSize->setValue(value);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -679,6 +718,12 @@ void qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxZSizeChanged(double valu
   paramNode->DisableModifiedEventOn();
   paramNode->SetZSize(value);
   paramNode->DisableModifiedEventOff();
+
+  if (d->UniformExpandShrink)
+  {
+    d->doubleSpinBox_XSize->setValue(value);
+    d->doubleSpinBox_YSize->setValue(value);
+  }
 }
 
 //-----------------------------------------------------------------------------

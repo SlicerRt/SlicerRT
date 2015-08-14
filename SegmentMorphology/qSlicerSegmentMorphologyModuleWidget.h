@@ -70,6 +70,7 @@ protected slots:
   void radioButtonIntersectClicked();
   void radioButtonSubtractClicked();
 
+  void checkBoxUniformCheckedStateChanged(int state);
   void doubleSpinBoxXSizeChanged(double value);
   void doubleSpinBoxYSizeChanged(double value);
   void doubleSpinBoxZSizeChanged(double value);
