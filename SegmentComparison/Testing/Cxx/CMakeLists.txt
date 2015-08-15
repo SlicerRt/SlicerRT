@@ -7,7 +7,7 @@ set(KIT_TEST_SRCS
 slicerMacroConfigureModuleCxxTestDriver(
   NAME ${KIT}
   SOURCES ${KIT_TEST_SRCS}
-  TARGET_LIBRARIES vtkSlicerSegmentComparisonModuleLogic
+  TARGET_LIBRARIES vtkSlicerSegmentComparisonModuleLogic vtkSlicerDicomRtImportExportConversionRules
   WITH_VTK_DEBUG_LEAKS_CHECK
   )
 
@@ -15,7 +15,7 @@ slicerMacroConfigureModuleCxxTestDriver(
 set(TEMP "${CMAKE_BINARY_DIR}/Testing/Temporary")
 
 macro(TEST_WITH_DATA TestName TestExecutableName
-      DataDirectoryPath InputContourReferenceFile InputContourCompareFile ReferenceVolumeFile
+      DataDirectoryPath InputSegmentationReferenceFile InputSegmentationCompareFile
       TemporarySceneFile ApplySimpleTransformToInputCompare
       HausdorffMaximumMm HausdorffAverageMm Hausdorff95PercentMm
       DiceCoefficient TruePositivesPercent TrueNegativesPercent
@@ -24,9 +24,8 @@ macro(TEST_WITH_DATA TestName TestExecutableName
     NAME ${TestName}
     COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> ${TestExecutableName} ${ARGN}
     -DataDirectoryPath ${DataDirectoryPath}
-    -InputContourReferenceFile ${InputContourReferenceFile}
-    -InputContourCompareFile ${InputContourCompareFile}
-    -ReferenceVolumeFile ${ReferenceVolumeFile}
+    -InputSegmentationReferenceFile ${InputSegmentationReferenceFile}
+    -InputSegmentationCompareFile ${InputSegmentationCompareFile}
     -TemporarySceneFile ${TemporarySceneFile}
     -ApplySimpleTransformToInputCompare ${ApplySimpleTransformToInputCompare}
     -HausdorffMaximumMm ${HausdorffMaximumMm}
@@ -45,18 +44,17 @@ TEST_WITH_DATA(
   vtkSlicerSegmentComparisonModuleLogicTest_EclipseProstate_Base
   vtkSlicerSegmentComparisonModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_Rectum.ctr
-  EclipseProstate_Expanded_5_5_5_Rectum.ctr
-  EclipseProstate_Dose.nrrd
+  EclipseProstate_Rectum.seg.vtm
+  EclipseProstate_Expanded_5_5_5_Rectum.seg.nrrd
   ${TEMP}/TestScene_SegmentComparison_EclipseProstate.mrml
   0
-  7.1807
-  5.22673
-  6.3726
-  0.520782
-  0.182964
-  99.48
-  0.336723
+  5.8768
+  5.17621
+  6.07853
+  0.542084
+  11.2075
+  69.8579
+  18.9346
   0.0
 )
 set_tests_properties(vtkSlicerSegmentComparisonModuleLogicTest_EclipseProstate_Base PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
@@ -66,17 +64,16 @@ TEST_WITH_DATA(
   vtkSlicerSegmentComparisonModuleLogicTest_EclipseProstate_SameInput
   vtkSlicerSegmentComparisonModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_Rectum.ctr
-  EclipseProstate_Rectum.ctr
-  EclipseProstate_Dose.nrrd
+  EclipseProstate_Rectum.seg.vtm
+  EclipseProstate_Rectum.seg.vtm
   ${TEMP}/TestScene_SegmentComparison_EclipseProstate_SameInput.mrml
   0
   0.0
   0.0
   0.0
   1
-  0.182964
-  99.817
+  22.0041
+  77.9959
   0.0
   0.0
 )
@@ -87,18 +84,17 @@ TEST_WITH_DATA(
   vtkSlicerSegmentComparisonModuleLogicTest_EclipseProstate_Transformed
   vtkSlicerSegmentComparisonModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/
-  EclipseProstate_Rectum.ctr
-  EclipseProstate_Rectum.ctr
-  EclipseProstate_Dose.nrrd
+  EclipseProstate_Rectum.seg.vtm
+  EclipseProstate_Rectum.seg.vtm
   ${TEMP}/TestScene_SegmentComparison_EclipseProstate_Transformed.mrml
   1
-  5.00
-  2.37532
-  5
-  0.693587
-  0.126901
-  99.761
-  0.0560625
-  0.0560625
+  4.88281
+  2.10053
+  4.63776
+  0.707201
+  13.1105
+  76.0334
+  5.26308
+  5.59302
 )
 set_tests_properties(vtkSlicerSegmentComparisonModuleLogicTest_EclipseProstate_Transformed PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )

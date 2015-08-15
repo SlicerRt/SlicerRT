@@ -23,12 +23,18 @@
 #include "vtkMRMLSegmentComparisonNode.h"
 
 // Segmentations includes
-#include "vtkMRMLSegmentationStorageNode.h"
+#include "vtkMRMLSegmentationNode.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
-#include <vtkMRMLSegmentationNode.h>
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkRibbonModelToBinaryLabelmapConversionRule.h"
+#include "vtkPlanarContourToRibbonModelConversionRule.h"
+
+// SegmentationCore includes
+#include "vtkOrientedImageData.h"
+#include "vtkOrientedImageDataResample.h"
+#include "vtkSegmentationConverterFactory.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -75,19 +81,19 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "No arguments!" << std::endl;
     return EXIT_FAILURE;
   }
-//TODO:
-  const char *inputContourReferenceFileName = NULL;
+
+  const char *inputSegmentationReferenceFileName = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-InputContourReferenceFile") == 0)
+    if (STRCASECMP(argv[argIndex], "-InputSegmentationReferenceFile") == 0)
     {
-      inputContourReferenceFileName = argv[argIndex+1];
-      std::cout << "Reference input contour file name: " << inputContourReferenceFileName << std::endl;
+      inputSegmentationReferenceFileName = argv[argIndex+1];
+      std::cout << "Reference input segmentation file name: " << inputSegmentationReferenceFileName << std::endl;
       argIndex += 2;
     }
     else
     {
-      inputContourReferenceFileName = "";
+      inputSegmentationReferenceFileName = "";
     }
   }
   else
@@ -96,38 +102,18 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *inputContourCompareFileName = NULL;
+  const char *inputSegmentationCompareFileName = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-InputContourCompareFile") == 0)
+    if (STRCASECMP(argv[argIndex], "-InputSegmentationCompareFile") == 0)
     {
-      inputContourCompareFileName = argv[argIndex+1];
-      std::cout << "Compare input contour file name: " << inputContourCompareFileName << std::endl;
+      inputSegmentationCompareFileName = argv[argIndex+1];
+      std::cout << "Compare input segmentation file name: " << inputSegmentationCompareFileName << std::endl;
       argIndex += 2;
     }
     else
     {
-      inputContourCompareFileName = "";
-    }
-  }
-  else
-  {
-    std::cerr << "No arguments!" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  const char *referenceVolumeFilename = NULL;
-  if (argc > argIndex+1)
-  {
-    if (STRCASECMP(argv[argIndex], "-ReferenceVolumeFile") == 0)
-    {
-      referenceVolumeFilename = argv[argIndex+1];
-      std::cout << "Reference volume file name: " << referenceVolumeFilename << std::endl;
-      argIndex += 2;
-    }
-    else
-    {
-      referenceVolumeFilename = "";
+      inputSegmentationCompareFileName = "";
     }
   }
   else
@@ -343,50 +329,81 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
+  // Create Segmentations logic
+  vtkSmartPointer<vtkSlicerSegmentationsModuleLogic> segmentationsLogic = vtkSmartPointer<vtkSlicerSegmentationsModuleLogic>::New();
+  segmentationsLogic->SetMRMLScene(mrmlScene);
+
+  // Register converters to use ribbon models. Will be unnecessary when having resolved issues regarding
+  // direct planar contours to closed surface conversion https://www.assembla.com/spaces/slicerrt/tickets/751
+  // (vtkSlicerDicomRtImportExportConversionRules can also be removed from CMake link targets)
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(vtkSmartPointer<vtkRibbonModelToBinaryLabelmapConversionRule>::New());
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(vtkSmartPointer<vtkPlanarContourToRibbonModelConversionRule>::New());
+  // Disable closed surface representation so that ribbon model is used for labelmap conversion instead of direct closed surface
+  vtkSegmentationConverterFactory::GetInstance()->DisableRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+
+  // Save scene to the temporary directory
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);
   mrmlScene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
   mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
-  // Create reference contour node
-  std::string inputContourReferenceFile = std::string(dataDirectoryPath) + std::string(inputContourReferenceFileName);
-  if (!vtksys::SystemTools::FileExists(inputContourReferenceFile.c_str()))
+  // Load reference segmentation node
+  std::string referenceSegmentationFile = std::string(dataDirectoryPath) + std::string(inputSegmentationReferenceFileName);
+  if (!vtksys::SystemTools::FileExists(referenceSegmentationFile.c_str()))
   {
-    std::cerr << "Loading contour from file '" << inputContourReferenceFile << "' failed - the file does not exist!" << std::endl;
+    std::cerr << "Loading segmentation from file '" << referenceSegmentationFile << "' failed - the file does not exist!" << std::endl;
     return EXIT_FAILURE;
   }
-//TODO:
-  //vtkSmartPointer<vtkMRMLContourNode> referenceContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  //mrmlScene->AddNode(referenceContourNode);
-  //referenceContourNode->SetName("Reference_Contour");
-  //vtkMRMLContourStorageNode* referenceContourStorageNode = vtkSlicerContoursModuleLogic::CreateContourStorageNode(referenceContourNode);
-  //referenceContourStorageNode->SetFileName(inputContourReferenceFile.c_str());
-  //if (!referenceContourStorageNode->ReadData(referenceContourNode))
-  //{
-  //  mrmlScene->Commit();
-  //  std::cerr << "Reading contour from file '" << inputContourReferenceFile << "' failed!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
+  vtkMRMLSegmentationNode* referenceSegmentationNode = segmentationsLogic->LoadSegmentationFromFile(referenceSegmentationFile.c_str());
+  if (!referenceSegmentationNode)
+  {
+    std::cerr << "Loading segmentation from existing file '" << referenceSegmentationFile << "' failed!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // Make sure binary labelmap representation is available
+  if (!referenceSegmentationNode->GetSegmentation()->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+  {
+    std::cerr << "Failed to create binary labelmap representation in reference segmentation!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // Get ID of only segment
+  if (referenceSegmentationNode->GetSegmentation()->GetNumberOfSegments() > 1)
+  {
+    std::cerr << "Reference segmentation should contain only one segment!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  std::vector<std::string> referenceSegmentIDs;
+  referenceSegmentationNode->GetSegmentation()->GetSegmentIDs(referenceSegmentIDs);
+  std::string referenceSegmentID = referenceSegmentIDs[0];
 
-  // Create compare contour node
-  std::string compareContourFile = std::string(dataDirectoryPath) + std::string(inputContourCompareFileName);
-  if (!vtksys::SystemTools::FileExists(compareContourFile.c_str()))
+  // Load compare segmentation node
+  std::string compareSegmentationFile = std::string(dataDirectoryPath) + std::string(inputSegmentationCompareFileName);
+  if (!vtksys::SystemTools::FileExists(compareSegmentationFile.c_str()))
   {
-    std::cerr << "Loading contour from file '" << compareContourFile << "' failed - the file does not exist!" << std::endl;
+    std::cerr << "Loading segmentation from file '" << compareSegmentationFile << "' failed - the file does not exist!" << std::endl;
     return EXIT_FAILURE;
   }
-//TODO:
-  //vtkSmartPointer<vtkMRMLContourNode> compareContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  //mrmlScene->AddNode(compareContourNode);
-  //compareContourNode->SetName("Reference_Contour");
-  //vtkMRMLContourStorageNode* compareContourStorageNode = vtkSlicerContoursModuleLogic::CreateContourStorageNode(compareContourNode);
-  //compareContourStorageNode->SetFileName(compareContourFile.c_str());
-  //if (!compareContourStorageNode->ReadData(compareContourNode))
-  //{
-  //  mrmlScene->Commit();
-  //  std::cerr << "Reading contour from file '" << compareContourFile << "' failed!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
+  vtkMRMLSegmentationNode* compareSegmentationNode = segmentationsLogic->LoadSegmentationFromFile(compareSegmentationFile.c_str());
+  if (!compareSegmentationNode)
+  {
+    std::cerr << "Loading segmentation from existing file '" << compareSegmentationFile << "' failed!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // Make sure binary labelmap representation is available
+  if (!compareSegmentationNode->GetSegmentation()->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+  {
+    std::cerr << "Failed to create binary labelmap representation in compare segmentation!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // Get ID of only segment
+  if (compareSegmentationNode->GetSegmentation()->GetNumberOfSegments() > 1)
+  {
+    std::cerr << "Compare segmentation should contain only one segment!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  std::vector<std::string> compareSegmentIDs;
+  compareSegmentationNode->GetSegmentation()->GetSegmentIDs(compareSegmentIDs);
+  std::string compareSegmentID = compareSegmentIDs[0];
 
   // Create transform if necessary
   if (applySimpleTransformToInputCompare)
@@ -398,47 +415,20 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
     vtkSmartPointer<vtkMRMLLinearTransformNode> inputCompareTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
     inputCompareTransformNode->ApplyTransformMatrix(inputCompareTransform->GetMatrix());
     mrmlScene->AddNode(inputCompareTransformNode);
-//TODO:
-    //compareContourNode->SetAndObserveTransformNodeID(inputCompareTransformNode->GetID());
+
+    compareSegmentationNode->SetAndObserveTransformNodeID(inputCompareTransformNode->GetID());
   }
-//TODO:
-  //// Create reference volume node
-  //vtkSmartPointer<vtkMRMLScalarVolumeNode> referenceVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  //mrmlScene->AddNode(referenceVolumeNode);
-  //referenceVolumeNode->SetName("Reference_Volume");
-  //referenceVolumeNode->LabelMapOn();
-
-  //// Load reference volume node
-  //std::string referenceVolumeFileName = std::string(dataDirectoryPath) + std::string(referenceVolumeFilename);
-  //if (!vtksys::SystemTools::FileExists(referenceVolumeFileName.c_str()))
-  //{
-  //  std::cerr << "Loading volume from file '" << referenceVolumeFileName << "' failed - the file does not exist!" << std::endl;
-  //}
-
-  //vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> referenceVolumeArchetypeStorageNode =
-  //  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  //mrmlScene->AddNode(referenceVolumeArchetypeStorageNode);
-  //referenceVolumeArchetypeStorageNode->SetFileName(referenceVolumeFileName.c_str());
-
-  //referenceVolumeNode->SetAndObserveStorageNodeID(referenceVolumeArchetypeStorageNode->GetID());
-
-  //if (! referenceVolumeArchetypeStorageNode->ReadData(referenceVolumeNode))
-  //{
-  //  mrmlScene->Commit();
-  //  std::cerr << "Reading volume from file '" << referenceVolumeFileName << "' failed!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLSegmentComparisonNode> paramNode = vtkSmartPointer<vtkMRMLSegmentComparisonNode>::New();
   mrmlScene->AddNode(paramNode);
-//TODO:
-  //paramNode->SetAndObserveReferenceSegmentationNode(referenceSegmentationNode);
-  //paramNode->SetAndObserveCompareSegmentationNode(compareSegmentationNode);
+  paramNode->SetAndObserveReferenceSegmentationNode(referenceSegmentationNode);
+  paramNode->SetReferenceSegmentID(referenceSegmentID.c_str());
+  paramNode->SetAndObserveCompareSegmentationNode(compareSegmentationNode);
+  paramNode->SetCompareSegmentID(compareSegmentID.c_str());
 
   // Create and set up logic
   vtkSmartPointer<vtkSlicerSegmentComparisonModuleLogic> segmentComparisonLogic = vtkSmartPointer<vtkSlicerSegmentComparisonModuleLogic>::New();
-
   segmentComparisonLogic->SetMRMLScene(mrmlScene);
   segmentComparisonLogic->SetAndObserveSegmentComparisonNode(paramNode);
 
@@ -488,16 +478,16 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "True positives (%) mismatch: " << resultTruePositivesPercent << " instead of " << truePositivesPercent << std::endl;
     result = EXIT_FAILURE;
   }
-  double resultFalsePositivesPercent = paramNode->GetFalsePositivesPercent();
-  if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultFalsePositivesPercent, falsePositivesPercent))
-  {
-    std::cerr << "False positives (%) mismatch: " << resultFalsePositivesPercent << " instead of " << falsePositivesPercent << std::endl;
-    result = EXIT_FAILURE;
-  }
   double resultTrueNegativesPercent = paramNode->GetTrueNegativesPercent();
   if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultTrueNegativesPercent, trueNegativesPercent))
   {
     std::cerr << "True negatives (%) mismatch: " << resultTrueNegativesPercent << " instead of " << trueNegativesPercent << std::endl;
+    result = EXIT_FAILURE;
+  }
+  double resultFalsePositivesPercent = paramNode->GetFalsePositivesPercent();
+  if (!CheckIfResultIsWithinOneTenthPercentFromBaseline(resultFalsePositivesPercent, falsePositivesPercent))
+  {
+    std::cerr << "False positives (%) mismatch: " << resultFalsePositivesPercent << " instead of " << falsePositivesPercent << std::endl;
     result = EXIT_FAILURE;
   }
   double resultFalseNegativesPercent = paramNode->GetFalseNegativesPercent();
