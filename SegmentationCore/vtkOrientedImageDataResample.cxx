@@ -118,11 +118,12 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
   }
   resliceFilter->Update();
 
-  // Set output
-  outputImage->DeepCopy(resliceFilter->GetOutput());
-
+  // Get reference geometry to set after copying result into output
   vtkSmartPointer<vtkMatrix4x4> referenceImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   referenceImage->GetImageToWorldMatrix(referenceImageToWorldMatrix);
+
+  // Set output
+  outputImage->DeepCopy(resliceFilter->GetOutput());
   outputImage->SetGeometryFromImageToWorldMatrix(referenceImageToWorldMatrix);
 
   return true;
