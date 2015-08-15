@@ -100,8 +100,7 @@ QStringList qSlicerDoseComparisonModule::contributors() const
 //-----------------------------------------------------------------------------
 QIcon qSlicerDoseComparisonModule::icon()const
 {
-  return this->Superclass::icon();
-  //return QIcon(":/Icons/DoseComparison.png");
+  return QIcon(":/Icons/DoseComparison.png");
 }
 
 //-----------------------------------------------------------------------------

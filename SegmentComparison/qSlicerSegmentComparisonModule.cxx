@@ -96,8 +96,7 @@ QStringList qSlicerSegmentComparisonModule::contributors() const
 //-----------------------------------------------------------------------------
 QIcon qSlicerSegmentComparisonModule::icon()const
 {
-  return this->Superclass::icon();
-  //return QIcon(":/Icons/SegmentComparison.png");
+  return QIcon(":/Icons/SegmentComparison.png");
 }
 
 //-----------------------------------------------------------------------------

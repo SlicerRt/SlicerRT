@@ -91,8 +91,7 @@ QStringList qSlicerSegmentMorphologyModule::contributors()const
 //-----------------------------------------------------------------------------
 QIcon qSlicerSegmentMorphologyModule::icon()const
 {
-  return this->Superclass::icon();
-  //return QIcon(":/Icons/SegmentMorphology.png");
+  return QIcon(":/Icons/SegmentMorphology.png");
 }
 
 //-----------------------------------------------------------------------------
