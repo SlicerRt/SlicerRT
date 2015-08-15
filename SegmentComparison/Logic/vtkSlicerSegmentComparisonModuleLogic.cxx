@@ -420,8 +420,8 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
     { compareCenterItk[0], compareCenterItk[1], compareCenterItk[2] };
   this->SegmentComparisonNode->SetCompareCenter(compareCenterArray);
 
-  this->SegmentComparisonNode->SetReferenceVolumeCc(dice.get_reference_volume() * voxelVolumeCc);
-  this->SegmentComparisonNode->SetCompareVolumeCc(dice.get_compare_volume() * voxelVolumeCc);
+  this->SegmentComparisonNode->SetReferenceVolumeCc(dice.get_reference_volume() / 1000.0);
+  this->SegmentComparisonNode->SetCompareVolumeCc(dice.get_compare_volume() / 1000.0);
   this->SegmentComparisonNode->DiceResultsValidOn();
 
   if (this->LogSpeedMeasurements)
