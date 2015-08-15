@@ -25,6 +25,8 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkRibbonModelToBinaryLabelmapConversionRule.h"
+#include "vtkPlanarContourToRibbonModelConversionRule.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -34,7 +36,11 @@
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
+
+// SegmentationCore includes
 #include "vtkOrientedImageData.h"
+#include "vtkOrientedImageDataResample.h"
+#include "vtkSegmentationConverterFactory.h"
 
 // VTK includes
 #include <vtkImageAccumulate.h>
@@ -76,18 +82,18 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *inputContourAFile = NULL;
+  const char *inputSegmentationAFile = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-InputContourAFile") == 0)
+    if (STRCASECMP(argv[argIndex], "-InputSegmentationAFile") == 0)
     {
-      inputContourAFile = argv[argIndex+1];
-      std::cout << "Input Contour A labelmap file name: " << inputContourAFile << std::endl;
+      inputSegmentationAFile = argv[argIndex+1];
+      std::cout << "Input segmentation A labelmap file name: " << inputSegmentationAFile << std::endl;
       argIndex += 2;
     }
     else
     {
-      inputContourAFile = "";
+      inputSegmentationAFile = "";
     }
   }
   else
@@ -96,18 +102,18 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *inputContourBFile = NULL;
+  const char *inputSegmentationBFile = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-InputContourBFile") == 0)
+    if (STRCASECMP(argv[argIndex], "-InputSegmentationBFile") == 0)
     {
-      inputContourBFile = argv[argIndex+1];
-      std::cout << "Input Contour B labelmap file name: " << inputContourBFile << std::endl;
+      inputSegmentationBFile = argv[argIndex+1];
+      std::cout << "Input segmentation B labelmap file name: " << inputSegmentationBFile << std::endl;
       argIndex += 2;
     }
     else
     {
-      inputContourBFile = "";
+      inputSegmentationBFile = "";
     }
   }
   else
@@ -116,38 +122,18 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *referenceVolumeFile = NULL;
+  const char *baselineSegmentationFile = NULL;
   if (argc > argIndex+1)
   {
-    if (STRCASECMP(argv[argIndex], "-ReferenceVolumeFile") == 0)
+    if (STRCASECMP(argv[argIndex], "-BaselineSegmentationFile") == 0)
     {
-      referenceVolumeFile = argv[argIndex+1];
-      std::cout << "Reference Volume file name: " << referenceVolumeFile << std::endl;
+      baselineSegmentationFile = argv[argIndex+1];
+      std::cout << "Baseline segmentation file name: " << baselineSegmentationFile << std::endl;
       argIndex += 2;
     }
     else
     {
-      referenceVolumeFile = "";
-    }
-  }
-  else
-  {
-    std::cerr << "No arguments!" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  const char *baselineContourFile = NULL;
-  if (argc > argIndex+1)
-  {
-    if (STRCASECMP(argv[argIndex], "-BaselineContourFile") == 0)
-    {
-      baselineContourFile = argv[argIndex+1];
-      std::cout << "Baseline contour file name: " << baselineContourFile << std::endl;
-      argIndex += 2;
-    }
-    else
-    {
-      baselineContourFile = "";
+      baselineSegmentationFile = "";
     }
   }
   else
@@ -274,182 +260,237 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
+  // Create Segmentations logic
+  vtkSmartPointer<vtkSlicerSegmentationsModuleLogic> segmentationsLogic = vtkSmartPointer<vtkSlicerSegmentationsModuleLogic>::New();
+  segmentationsLogic->SetMRMLScene(mrmlScene);
+
+  // Register converters to use ribbon models. Will be unnecessary when having resolved issues regarding
+  // direct planar contours to closed surface conversion https://www.assembla.com/spaces/slicerrt/tickets/751
+  // (vtkSlicerDicomRtImportExportConversionRules can also be removed from CMake link targets)
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(vtkSmartPointer<vtkRibbonModelToBinaryLabelmapConversionRule>::New());
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(vtkSmartPointer<vtkPlanarContourToRibbonModelConversionRule>::New());
+  // Disable closed surface representation so that ribbon model is used for labelmap conversion instead of direct closed surface
+  vtkSegmentationConverterFactory::GetInstance()->DisableRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+
+  // Save scene to the temporary directory
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);
   mrmlScene->SetRootDirectory( vtksys::SystemTools::GetParentDirectory(temporarySceneFileName).c_str() );
   mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
-  //// Create input contour A node
-  //std::string inputContourAVolumeFileName = std::string(dataDirectoryPath) + std::string(inputContourAFile);
-  //if (!vtksys::SystemTools::FileExists(inputContourAVolumeFileName.c_str()))
-  //{
-  //  std::cerr << "Loading contour from file '" << inputContourAVolumeFileName << "' failed - the file does not exist!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
-  //vtkSmartPointer<vtkMRMLContourNode> inputContourANode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  //mrmlScene->AddNode(inputContourANode);
-  //inputContourANode->SetName("Input_Contour_A");
-  //vtkMRMLContourStorageNode* inputContourAStorageNode = vtkSlicerContoursModuleLogic::CreateContourStorageNode(inputContourANode);
-  //inputContourAStorageNode->SetFileName(inputContourAVolumeFileName.c_str());
-  //if ( !inputContourAStorageNode->ReadData(inputContourANode) )
-  //{
-  //  mrmlScene->Commit();
-  //  std::cerr << "Reading contour from file '" << inputContourAVolumeFileName << "' failed!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
+  // Load input segmentation A node
+  std::string inputSegmentationAFileName = std::string(dataDirectoryPath) + std::string(inputSegmentationAFile);
+  if (!vtksys::SystemTools::FileExists(inputSegmentationAFileName.c_str()))
+  {
+    std::cerr << "Loading segmentation from file '" << inputSegmentationAFileName << "' failed - the file does not exist!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  vtkMRMLSegmentationNode* inputSegmentationANode = segmentationsLogic->LoadSegmentationFromFile(inputSegmentationAFileName.c_str());
+  if (!inputSegmentationANode)
+  {
+    std::cerr << "Loading segmentation from existing file '" << inputSegmentationAFileName << "' failed!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // Make sure binary labelmap representation is available
+  if (!inputSegmentationANode->GetSegmentation()->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+  {
+    std::cerr << "Failed to create binary labelmap representation in input segmentation A!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // Get ID of only segment
+  if (inputSegmentationANode->GetSegmentation()->GetNumberOfSegments() > 1)
+  {
+    std::cerr << "Input segmentation A should contain only one segment!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  std::vector<std::string> inputSegmentAIDs;
+  inputSegmentationANode->GetSegmentation()->GetSegmentIDs(inputSegmentAIDs);
+  std::string inputSegmentAID = inputSegmentAIDs[0];
 
-  //// Create input contour B node
-  //std::string inputContourBVolumeFileName = std::string(dataDirectoryPath) + std::string(inputContourBFile);
-  //if (!vtksys::SystemTools::FileExists(inputContourBVolumeFileName.c_str()))
-  //{
-  //  std::cerr << "Loading contour from file '" << inputContourBVolumeFileName << "' failed - the file does not exist!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
-  //vtkSmartPointer<vtkMRMLContourNode> inputContourBNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  //mrmlScene->AddNode(inputContourBNode);
-  //inputContourBNode->SetName("Input_Contour_B");
-  //vtkMRMLContourStorageNode* inputContourBStorageNode = vtkSlicerContoursModuleLogic::CreateContourStorageNode(inputContourBNode);
-  //inputContourBStorageNode->SetFileName(inputContourBVolumeFileName.c_str());
-  //if ( !inputContourBStorageNode->ReadData(inputContourBNode) )
-  //{
-  //  mrmlScene->Commit();
-  //  std::cerr << "Reading contour from file '" << inputContourBVolumeFileName << "' failed!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
+  // Load input segmentation B node if specified
+  vtkMRMLSegmentationNode* inputSegmentationBNode = NULL;
+  std::string inputSegmentBID("");
+  if (strlen(inputSegmentationBFile) > 0)
+  {
+    std::string inputSegmentationBFileName = std::string(dataDirectoryPath) + std::string(inputSegmentationBFile);
+    if (!vtksys::SystemTools::FileExists(inputSegmentationBFileName.c_str()))
+    {
+      std::cerr << "Loading segmentation from file '" << inputSegmentationBFileName << "' failed - the file does not exist!" << std::endl;
+      return EXIT_FAILURE;
+    }
+    inputSegmentationBNode = segmentationsLogic->LoadSegmentationFromFile(inputSegmentationBFileName.c_str());
+    if (!inputSegmentationBNode)
+    {
+      std::cerr << "Loading segmentation from existing file '" << inputSegmentationBFileName << "' failed!" << std::endl;
+      return EXIT_FAILURE;
+    }
+    // Make sure binary labelmap representation is available
+    if (!inputSegmentationBNode->GetSegmentation()->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+      std::cerr << "Failed to create binary labelmap representation in input segmentation B!" << std::endl;
+      return EXIT_FAILURE;
+    }
+    // Get ID of only segment
+    if (inputSegmentationBNode->GetSegmentation()->GetNumberOfSegments() > 1)
+    {
+      std::cerr << "Input segmentation B should contain only one segment!" << std::endl;
+      return EXIT_FAILURE;
+    }
+    std::vector<std::string> inputSegmentBIDs;
+    inputSegmentationBNode->GetSegmentation()->GetSegmentIDs(inputSegmentBIDs);
+    inputSegmentBID = inputSegmentBIDs[0];
+  }
+  else if (operation != vtkMRMLSegmentMorphologyNode::Expand && operation != vtkMRMLSegmentMorphologyNode::Shrink)
+  {
+    std::cerr << "Segmentation B file is not specified, but operation is neither Expand nor Shrink!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
-  //// Create reference volume node
-  //vtkSmartPointer<vtkMRMLScalarVolumeNode> referenceVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  //mrmlScene->AddNode(referenceVolumeNode);
-  //referenceVolumeNode->SetName("Reference_Volume");
-  //referenceVolumeNode->LabelMapOn();
+  // Apply simple transform to 
+  if (applySimpleTransformToInput == 1)
+  {
+    vtkSmartPointer<vtkTransform> simpleTransform = vtkSmartPointer<vtkTransform>::New();
+    simpleTransform->Identity();
+    simpleTransform->Translate(0.0, 0.0, -10.0);
 
-  //// Load reference volume node
-  //std::string referenceVolumeFileName = std::string(dataDirectoryPath) + std::string(referenceVolumeFile);
-  //if (!vtksys::SystemTools::FileExists(referenceVolumeFileName.c_str()))
-  //{
-  //  std::cerr << "Loading labelmap from file '" << referenceVolumeFileName << "' failed - the file does not exist!" << std::endl;
-  //}
+    vtkSmartPointer<vtkMRMLLinearTransformNode> simpleTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+    simpleTransformNode->ApplyTransformMatrix(simpleTransform->GetMatrix());
+    mrmlScene->AddNode(simpleTransformNode);
 
-  //vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> referenceVolumeArchetypeStorageNode =
-  //  vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New();
-  //mrmlScene->AddNode(referenceVolumeArchetypeStorageNode);
-  //referenceVolumeArchetypeStorageNode->SetFileName(referenceVolumeFileName.c_str());
+    inputSegmentationANode->SetAndObserveTransformNodeID(simpleTransformNode->GetID());
+  }
 
-  //referenceVolumeNode->SetAndObserveStorageNodeID(referenceVolumeArchetypeStorageNode->GetID());
+  // Create output segmentation node
+  vtkSmartPointer<vtkMRMLSegmentationNode> outputSegmentationNode = vtkSmartPointer<vtkMRMLSegmentationNode>::New();
+  outputSegmentationNode->SetName("Output_Segmentation");
+  mrmlScene->AddNode(outputSegmentationNode);
 
-  //if (! referenceVolumeArchetypeStorageNode->ReadData(referenceVolumeNode))
-  //{
-  //  mrmlScene->Commit();
-  //  std::cerr << "Reading labelmap from file '" << referenceVolumeFileName << "' failed!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
+  // Create and set up parameter set MRML node
+  vtkSmartPointer<vtkMRMLSegmentMorphologyNode> paramNode = vtkSmartPointer<vtkMRMLSegmentMorphologyNode>::New();
+  mrmlScene->AddNode(paramNode);
+  paramNode->SetAndObserveSegmentationANode(inputSegmentationANode);
+  paramNode->SetSegmentAID(inputSegmentAID.c_str());
+  paramNode->SetAndObserveSegmentationBNode(inputSegmentationBNode);
+  paramNode->SetSegmentBID(inputSegmentBID.c_str());
+  paramNode->SetAndObserveOutputSegmentationNode(outputSegmentationNode);
+  paramNode->SetOperation(operation);
+  paramNode->SetXSize(morphologicalParameter);
+  paramNode->SetYSize(morphologicalParameter);
+  paramNode->SetZSize(morphologicalParameter);
 
-  //if (applySimpleTransformToInput == 1)
-  //{
-  //  vtkSmartPointer<vtkTransform> inputCompareTransform = vtkSmartPointer<vtkTransform>::New();
-  //  inputCompareTransform->Identity();
-  //  inputCompareTransform->Translate(0.0, 0.0, -10.0);
+  // Create and set up logic
+  vtkSmartPointer<vtkSlicerSegmentMorphologyModuleLogic> segmentMorphologyLogic = vtkSmartPointer<vtkSlicerSegmentMorphologyModuleLogic>::New();
+  segmentMorphologyLogic->SetMRMLScene(mrmlScene);
+  segmentMorphologyLogic->SetAndObserveSegmentMorphologyNode(paramNode);
 
-  //  vtkSmartPointer<vtkMRMLLinearTransformNode> inputCompareTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
-  //  inputCompareTransformNode->ApplyTransformMatrix(inputCompareTransform->GetMatrix());
-  //  mrmlScene->AddNode(inputCompareTransformNode);
+  // Compute SegmentMorphology
+  segmentMorphologyLogic->ApplyMorphologyOperation();
 
-  //  inputContourANode->SetAndObserveTransformNodeID(inputCompareTransformNode->GetID());
-  //}
+  // Check output
+  outputSegmentationNode = paramNode->GetOutputSegmentationNode();  
+  if (outputSegmentationNode == NULL)
+  {
+    mrmlScene->Commit();
+    std::cerr << "Invalid output segmentation node!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // Get ID of only segment
+  if (outputSegmentationNode->GetSegmentation()->GetNumberOfSegments() > 1)
+  {
+    std::cerr << "Output segmentation should contain only one segment!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  std::vector<std::string> outputSegmentIDs;
+  outputSegmentationNode->GetSegmentation()->GetSegmentIDs(outputSegmentIDs);
+  std::string outputSegmentID = outputSegmentIDs[0];
 
-  //// Create output contour node
-  //vtkSmartPointer<vtkMRMLContourNode> outputContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  //outputContourNode->SetName("Output_Contour");
-  //mrmlScene->AddNode(outputContourNode);
+  mrmlScene->Commit();
 
-  //// Create and set up parameter set MRML node
-  //vtkSmartPointer<vtkMRMLSegmentMorphologyNode> paramNode = vtkSmartPointer<vtkMRMLSegmentMorphologyNode>::New();
-  //mrmlScene->AddNode(paramNode);
-  //paramNode->SetAndObserveContourANode(inputContourANode);
-  //paramNode->SetAndObserveContourBNode(inputContourBNode);
-  //paramNode->SetAndObserveReferenceVolumeNode(referenceVolumeNode);
-  //paramNode->SetAndObserveOutputContourNode(outputContourNode);
-  //paramNode->SetOperation(operation);
-  //paramNode->SetXSize(morphologicalParameter);
-  //paramNode->SetYSize(morphologicalParameter);
-  //paramNode->SetZSize(morphologicalParameter);
+  // Load baseline segmentation for comparison
+  std::string baselineSegmentationFileName = std::string(dataDirectoryPath) + std::string(baselineSegmentationFile);
+  if (!vtksys::SystemTools::FileExists(baselineSegmentationFileName.c_str()))
+  {
+    std::cerr << "Loading segmentation from file '" << baselineSegmentationFileName << "' failed - the file does not exist!" << std::endl;
+  }
+  vtkMRMLSegmentationNode* baselineSegmentationNode = segmentationsLogic->LoadSegmentationFromFile(baselineSegmentationFileName.c_str());
+  if (!baselineSegmentationNode)
+  {
+    std::cerr << "Loading segmentation from existing file '" << baselineSegmentationFileName << "' failed!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // Get ID of only segment
+  if (baselineSegmentationNode->GetSegmentation()->GetNumberOfSegments() > 1)
+  {
+    std::cerr << "Baseline segmentation should contain only one segment!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  std::vector<std::string> baselineSegmentIDs;
+  baselineSegmentationNode->GetSegmentation()->GetSegmentIDs(baselineSegmentIDs);
+  std::string baselineSegmentID = baselineSegmentIDs[0];
 
-  //// Create and set up logic
-  //vtkSmartPointer<vtkSlicerSegmentMorphologyModuleLogic> contourMorphologyLogic = vtkSmartPointer<vtkSlicerSegmentMorphologyModuleLogic>::New();
-  //contourMorphologyLogic->SetMRMLScene(mrmlScene);
-  //contourMorphologyLogic->SetAndObserveSegmentMorphologyNode(paramNode);
+  mrmlScene->Commit();
 
-  //// Compute SegmentMorphology
-  //contourMorphologyLogic->MorphContour();
+  // Compare output to baseline
+  vtkOrientedImageData* baselineImageData = vtkOrientedImageData::SafeDownCast(
+    baselineSegmentationNode->GetSegmentation()->GetSegment(baselineSegmentID)->GetRepresentation(
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) );
+  vtkOrientedImageData* outputImageData = vtkOrientedImageData::SafeDownCast(
+    outputSegmentationNode->GetSegmentation()->GetSegment(outputSegmentID)->GetRepresentation(
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) );
+  if (!baselineImageData || !outputImageData)
+  {
+    std::cerr << "Failed to retrieve binary labelmap representation from the baseline or the output segmentation!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
-  //outputContourNode = paramNode->GetOutputContourNode();  
-  //if (outputContourNode == NULL)
-  //{
-  //  mrmlScene->Commit();
-  //  std::cerr << "Invalid output contour node!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
+  // Check geometries and extents
+  if (!vtkOrientedImageDataResample::DoGeometriesMatch(baselineImageData, outputImageData))
+  {
+    std::cerr << "Baseline and output image data have different geometries!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  if (!vtkOrientedImageDataResample::DoExtentsMatch(baselineImageData, outputImageData))
+  {
+    std::cerr << "Baseline and output image data have different extents!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
-  //mrmlScene->Commit();
+  unsigned char* baselineImagePtr = (unsigned char*)baselineImageData->GetScalarPointer();
+  unsigned char* outputImagePtr = (unsigned char*)outputImageData->GetScalarPointer();
 
-  //// Create baseline contour for comparison
-  //std::string baselineContourFileName = std::string(dataDirectoryPath) + std::string(baselineContourFile);
-  //if (!vtksys::SystemTools::FileExists(baselineContourFileName.c_str()))
-  //{
-  //  std::cerr << "Loading contour from file '" << baselineContourFileName << "' failed - the file does not exist!" << std::endl;
-  //}
-  //vtkSmartPointer<vtkMRMLContourNode> baselineContourNode = vtkSmartPointer<vtkMRMLContourNode>::New();
-  //mrmlScene->AddNode(baselineContourNode);
-  //baselineContourNode->SetName("Baseline_Contour");
-  //vtkMRMLContourStorageNode* baselineContourStorageNode = vtkSlicerContoursModuleLogic::CreateContourStorageNode(baselineContourNode);
-  //baselineContourStorageNode->SetFileName(baselineContourFileName.c_str());
-  //if ( !baselineContourStorageNode->ReadData(baselineContourNode) )
-  //{
-  //  mrmlScene->Commit();
-  //  std::cerr << "Reading contour from file '" << baselineContourFileName << "' failed!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
-  //mrmlScene->Commit();
+  if (!baselineImageData || baselineImageData->GetScalarType() != VTK_UNSIGNED_CHAR)
+  {
+    std::cerr << "Invalid image data! Scalar type has to be unsigned char instead of '" << (baselineImageData?baselineImageData->GetScalarTypeAsString():"None") << "'" << std::endl;
+    return EXIT_FAILURE;
+  }
+  if (!outputImageData || outputImageData->GetScalarType() != VTK_UNSIGNED_CHAR)
+  {
+    std::cerr << "Invalid image data! Scalar type has to be unsigned char instead of '" << (outputImageData?outputImageData->GetScalarTypeAsString():"None") << "'" << std::endl;
+    return EXIT_FAILURE;
+  }
+  if (baselineImageData->GetNumberOfPoints() != outputImageData->GetNumberOfPoints())
+  {
+    std::cerr << "Number of points do not match. " << baselineImageData->GetNumberOfPoints() << " != " << outputImageData->GetNumberOfPoints() << std::endl;
+    return EXIT_FAILURE;
+  }
+  int mismatches(0);
+  for (long i=0; i<baselineImageData->GetNumberOfPoints(); ++i)
+  {
+    if ( ((*baselineImagePtr) != 0 && (*outputImagePtr) == 0) ||
+      ((*baselineImagePtr) == 0 && (*outputImagePtr) != 0) )
+    {
+      mismatches++;
+    }
+    ++baselineImagePtr;
+    ++outputImagePtr;
+  }
 
-  //vtkImageData* baselineImageData = baselineContourNode->GetLabelmapImageData();
-  //vtkImageData* outputImageData = outputContourNode->GetLabelmapImageData();
+  if (mismatches > volumeDifferenceToleranceVoxel)
+  {
+    std::cerr << "Segment Morphology Test: Volume difference Tolerance " << mismatches << "(Voxel) exceeds threshold!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
-  //unsigned char* baselineImagePtr = (unsigned char*)baselineImageData->GetScalarPointer();
-  //unsigned char* outputImagePtr = (unsigned char*)outputImageData->GetScalarPointer();
-
-  //if (!baselineImageData || baselineImageData->GetScalarType() != VTK_UNSIGNED_CHAR)
-  //{
-  //  std::cerr << "Invalid image data! Scalar type has to be unsigned char instead of '" << (baselineImageData?baselineImageData->GetScalarTypeAsString():"None") << "'" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
-  //if (!outputImageData || outputImageData->GetScalarType() != VTK_UNSIGNED_CHAR)
-  //{
-  //  std::cerr << "Invalid image data! Scalar type has to be unsigned char instead of '" << (outputImageData?outputImageData->GetScalarTypeAsString():"None") << "'" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
-  //if (baselineImageData->GetNumberOfPoints() != outputImageData->GetNumberOfPoints())
-  //{
-  //  std::cerr << "Number of points do not match. " << baselineImageData->GetNumberOfPoints() << " != " << outputImageData->GetNumberOfPoints() << std::endl;
-  //  return EXIT_FAILURE;
-  //}
-  //int mismatches(0);
-  //for (long i=0; i<baselineImageData->GetNumberOfPoints(); ++i)
-  //{
-  //  if ( ((*baselineImagePtr) != 0 && (*outputImagePtr) == 0) ||
-  //    ((*baselineImagePtr) == 0 && (*outputImagePtr) != 0) )
-  //  {
-  //    mismatches++;
-  //  }
-  //  ++baselineImagePtr;
-  //  ++outputImagePtr;
-  //}
-
-  //if (mismatches > volumeDifferenceToleranceVoxel)
-  //{
-  //  std::cerr << "Contour Morphology Test: Volume difference Tolerance " << mismatches << "(Voxel) exceeds threshold!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
-return EXIT_FAILURE; //TODO:
   return EXIT_SUCCESS;
 }
 

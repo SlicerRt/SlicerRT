@@ -35,8 +35,6 @@
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
 #include "vtkSegmentationConverterFactory.h"
-#include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
-#include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -367,10 +365,14 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // once the subject hierarchy node is moved to MRML/Core, and is registered in vtkMRMLScene constructor.
   vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic = vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
   subjectHierarchyLogic->SetMRMLScene(mrmlScene);
+
   // Register converters to use ribbon models. Will be unnecessary when having resolved issues regarding
   // direct planar contours to closed surface conversion https://www.assembla.com/spaces/slicerrt/tickets/751
+  // (vtkSlicerDicomRtImportExportConversionRules can also be removed from CMake link targets)
   vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(vtkSmartPointer<vtkRibbonModelToBinaryLabelmapConversionRule>::New());
   vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(vtkSmartPointer<vtkPlanarContourToRibbonModelConversionRule>::New());
+  // Disable closed surface representation so that ribbon model is used for labelmap conversion instead of direct closed surface
+  vtkSegmentationConverterFactory::GetInstance()->DisableRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
 
   // Load test scene into temporary scene
   //mrmlScene->GetCacheManager()->ClearCache();
@@ -404,11 +406,6 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(segmentationNodes->GetItemAsObject(0));
-
-  // Create ribbon model representation so that it is used for labelmap conversion instead of direct
-  // closed surface. This makes sure that the test works the same way until resolving issues with the
-  // direct converter, see https://www.assembla.com/spaces/slicerrt/tickets/751
-  segmentationNode->GetSegmentation()->CreateRepresentation(SlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME);
 
   // Determine maximum dose
   vtkNew<vtkImageAccumulate> doseStat;

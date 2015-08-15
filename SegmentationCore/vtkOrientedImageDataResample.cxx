@@ -339,6 +339,27 @@ bool vtkOrientedImageDataResample::DoGeometriesMatch(vtkOrientedImageData* image
 }
 
 //----------------------------------------------------------------------------
+bool vtkOrientedImageDataResample::DoExtentsMatch(vtkOrientedImageData* image1, vtkOrientedImageData* image2)
+{
+  if (!image1 || !image2)
+  {
+    return false;
+  }
+
+  int image1Extent[6] = {0,-1,0,-1,0,-1};
+  image1->GetExtent(image1Extent);
+  int image2Extent[6] = {0,-1,0,-1,0,-1};
+  image2->GetExtent(image2Extent);
+  if ( image1Extent[0] != image2Extent[0] || image1Extent[1] != image2Extent[1] || image1Extent[2] != image2Extent[2]
+    || image1Extent[3] != image2Extent[3] || image1Extent[4] != image2Extent[4] || image1Extent[5] != image2Extent[5] )
+  {
+    return false;
+  }
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
 bool vtkOrientedImageDataResample::DoGeometriesMatchIgnoreOrigin(vtkOrientedImageData* image1, vtkOrientedImageData* image2)
 {
   if (!image1 || !image2)

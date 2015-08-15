@@ -58,11 +58,14 @@ public:
   static bool ResampleOrientedImageToReferenceOrientedImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* referenceImage, vtkOrientedImageData* outputImage, bool linearInterpolation=false, bool padImage=false);
 
 public:
-  /// Determine if geometries of two oriented image datas match.
+  /// Determine if geometries of two oriented image data objects match.
   /// Origin, spacing and direction are considered, extent is not.
   static bool DoGeometriesMatch(vtkOrientedImageData* image1, vtkOrientedImageData* image2);
 
-  /// Determine if geometries of two oriented image datas match.
+  /// Determine if extents of two oriented image data objects match.
+  static bool DoExtentsMatch(vtkOrientedImageData* image1, vtkOrientedImageData* image2);
+
+  /// Determine if geometries of two oriented image data objects match.
   /// Only considers spacing and orientation, origin and extent may be different!
   static bool DoGeometriesMatchIgnoreOrigin(vtkOrientedImageData* image1, vtkOrientedImageData* image2);
 

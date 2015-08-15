@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<VTKFile type="vtkMultiBlockDataSet" version="1.0" byte_order="LittleEndian" header_type="UInt32" compressor="vtkZLibDataCompressor">
+  <vtkMultiBlockDataSet>
+    <DataSet index="0" file="EclipseProstate_Structures.seg/EclipseProstate_Structures.seg_4.vtp">
+    </DataSet>
+  </vtkMultiBlockDataSet>
+</VTKFile>
