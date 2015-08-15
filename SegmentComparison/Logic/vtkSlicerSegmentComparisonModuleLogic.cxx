@@ -22,9 +22,12 @@
 #include "vtkSlicerSegmentComparisonModuleLogic.h"
 #include "vtkMRMLSegmentComparisonNode.h"
 
-// Segmentation includes
+// Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
+
+// SegmentationCore includes
+#include "vtkOrientedImageDataResample.h"
 
 // SlicerRT includes
 #include "PlmCommon.h"
@@ -198,6 +201,11 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
       return errorMessage;
     }
   }
+
+  // Make sure reference image contains the extent of the compare image (workaround for Plastimatch resample issue)
+  vtkOrientedImageDataResample::PadImageToContainImage(referenceSegmentLabelmap, compareSegmentLabelmap, referenceSegmentLabelmap);
+  // Resample compare image in padded reference image geometry
+  vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(compareSegmentLabelmap, referenceSegmentLabelmap, compareSegmentLabelmap);
 
   // Convert inputs to ITK images
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();

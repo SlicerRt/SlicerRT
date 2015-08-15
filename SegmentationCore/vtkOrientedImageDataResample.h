@@ -77,6 +77,12 @@ public:
   /// Compare two floating point numbers within tolerance
   static bool AreEqualWithTolerance(double a, double b) { return fabs(a - b) < 0.0001; };
 
+  /// Calculate transform between two oriented image data
+  static bool GetTransformBetweenOrientedImages(vtkOrientedImageData* image1, vtkOrientedImageData* image2, vtkTransform* image1ToImage2Transform);
+
+  /// Pad an image to entirely contain another image
+  static bool PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage);
+
 protected:
   vtkOrientedImageDataResample();
   ~vtkOrientedImageDataResample();
