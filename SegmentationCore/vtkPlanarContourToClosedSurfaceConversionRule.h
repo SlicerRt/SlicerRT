@@ -27,6 +27,9 @@
 
 #include "vtkSegmentationCoreConfigure.h"
 
+// VTK includes
+#include "vtkPointLocator.h"
+
 class vtkPolyData;
 class vtkIdList;
 class vtkCellArray;
@@ -94,7 +97,7 @@ protected:
   void FixKeyholes(vtkPolyData*, int, int, int);
 
   /// Set all of the lines to be oriented in the clockwise direction.
-  void SetLinesClockwise(vtkPolyData*);
+  void SetLinesCounterClockwise(vtkPolyData*);
 
   /// Determine if a line runs in a clockwise orientation.
   bool IsLineClockwise(vtkPolyData*, vtkLine*);
@@ -115,7 +118,7 @@ protected:
   int GetClosestBranch(vtkPolyData*, double*, std::vector< int >);
 
   /// Seal the exterior contours of the mesh.
-  void SealMesh(vtkPolyData*, vtkCellArray*, vtkCellArray*);
+  void SealMesh(vtkPolyData*, vtkCellArray*, vtkCellArray*, std::vector< bool >, std::vector< bool >);
 
   double GetSpacingBetweenLines(vtkPolyData*);
 
