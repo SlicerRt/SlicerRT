@@ -210,7 +210,6 @@ void qSlicerSegmentComparisonModuleWidget::updateWidgetFromMRML()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::updateWidgetFromMRML: Invalid scene!";
     return;
   }
 

@@ -72,8 +72,8 @@ TEST_WITH_DATA(
   0.0
   0.0
   1
-  22.0041
-  77.9959
+  22.528
+  77.472
   0.0
   0.0
 )
@@ -89,12 +89,12 @@ TEST_WITH_DATA(
   ${TEMP}/TestScene_SegmentComparison_EclipseProstate_Transformed.mrml
   1
   4.88281
-  2.10053
-  4.63776
-  0.707201
-  13.1105
-  76.0334
-  5.26308
-  5.59302
+  2.13749
+  4.68861
+  0.700964
+  13.431
+  75.1094
+  5.72977
+  5.72977
 )
 set_tests_properties(vtkSlicerSegmentComparisonModuleLogicTest_EclipseProstate_Transformed PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )

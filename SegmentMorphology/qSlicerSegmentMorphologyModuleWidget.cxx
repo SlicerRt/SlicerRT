@@ -215,7 +215,6 @@ void qSlicerSegmentMorphologyModuleWidget::updateWidgetFromMRML()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::updateWidgetFromMRML: Invalid scene!";
     return;
   }
 
