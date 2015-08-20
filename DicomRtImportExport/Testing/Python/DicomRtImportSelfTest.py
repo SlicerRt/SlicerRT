@@ -14,7 +14,7 @@ class DicomRtImportSelfTest(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "DICOM-RT Import Self Test"
     self.parent.categories = ["Testing.SlicerRT Tests"]
-    self.parent.dependencies = ["DicomRtImportExport", "Segmentations"]
+    self.parent.dependencies = ["DicomRtImportExport", "Segmentations", "DICOM"]
     self.parent.contributors = ["Csaba Pinter (Queen's)"]
     self.parent.helpText = """
     This is a self test for the DicomRtImportExport DICOM plugin module.
@@ -89,9 +89,13 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     # Check for modules
     self.assertTrue( slicer.modules.dicomrtimportexport )
     self.assertTrue( slicer.modules.segmentations )
+    self.assertTrue( slicer.modules.dicom )
+    
+    self.dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
+    self.assertTrue( self.dicomWidget )
 
     self.TestSection_0RetrieveInputData()
-    self.TestSection_1OpenDatabase()
+    self.TestSection_1OpenTempDatabase()
     self.TestSection_2ImportStudy()
     self.TestSection_3SelectLoadables()
     self.TestSection_4LoadIntoSlicer()
@@ -131,22 +135,26 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
           urllib.urlretrieve(url, filePath)
       self.delayDisplay('Finished with download test data',self.delayMs)
 
-  def TestSection_1OpenDatabase(self):
-    self.delayDisplay("1: Open database",self.delayMs)
-
+  def TestSection_1OpenTempDatabase(self):
     # Open test database and empty it
     if not os.access(self.dicomDatabaseDir, os.F_OK):
       os.mkdir(self.dicomDatabaseDir)
 
-    dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-    dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
+    if slicer.dicomDatabase:
+      self.originalDatabaseDirectory = os.path.split(slicer.dicomDatabase.databaseFilename)[0]
+    else:
+      self.originalDatabaseDirectory = None
+      settings = qt.QSettings()
+      settings.setValue('DatabaseDirectory', self.dicomDatabaseDir)
+      
+    self.dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
     self.assertTrue( slicer.dicomDatabase.isOpen )
 
     initialized = slicer.dicomDatabase.initializeDatabase()
     self.assertTrue( initialized )
 
   def TestSection_2ImportStudy(self):
-    self.delayDisplay("2: Import study",self.delayMs)
+    self.delayDisplay("Import study",self.delayMs)
 
     indexer = ctk.ctkDICOMIndexer()
     self.assertTrue( indexer )
@@ -159,22 +167,21 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.assertTrue( slicer.dicomDatabase.patients()[0] )
 
   def TestSection_3SelectLoadables(self):
-    self.delayDisplay("3: Select loadables",self.delayMs)
+    self.delayDisplay("Select loadables",self.delayMs)
 
     # Choose first patient from the patient list
-    detailsPopup = slicer.modules.dicom.widgetRepresentation().self().detailsPopup
     patient = slicer.dicomDatabase.patients()[0]
     studies = slicer.dicomDatabase.studiesForPatient(patient)
     series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
     seriesUIDs = [uid for uidList in series for uid in uidList]
-    detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
-    detailsPopup.examineForLoading()
+    self.dicomWidget.detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
+    self.dicomWidget.detailsPopup.examineForLoading()
 
-    loadables = detailsPopup.loadableTable.loadables
+    loadables = self.dicomWidget.detailsPopup.loadableTable.loadables
     self.assertTrue( len(loadables) == 8 )
 
     # Make sure the loadables are good (RT is assigned to 4 out of 8 and they are selected)
-    loadablesByPlugin = detailsPopup.loadablesByPlugin
+    loadablesByPlugin = self.dicomWidget.detailsPopup.loadablesByPlugin
     rtFound = False
     loadablesForRt = 0
     for plugin in loadablesByPlugin:
@@ -190,10 +197,9 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.assertTrue( loadablesForRt == 4 )
 
   def TestSection_4LoadIntoSlicer(self):
-    self.delayDisplay("4: Load into Slicer",self.delayMs)
+    self.delayDisplay("Load into Slicer",self.delayMs)
 
-    detailsPopup = slicer.modules.dicom.widgetRepresentation().self().detailsPopup
-    detailsPopup.loadCheckedLoadables()
+    self.dicomWidget.detailsPopup.loadCheckedLoadables()
 
     # Verify that the correct number of objects were loaded
     # Volumes: Dose, RT image, RT image texture
@@ -211,7 +217,7 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.assertTrue( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ) == 5 )
 
   def TestSection_5SaveScene(self):
-    self.delayDisplay("5: Save scene",self.delayMs)
+    self.delayDisplay("Save scene",self.delayMs)
 
     if not os.access(self.tempDir, os.F_OK):
       os.mkdir(self.tempDir)
@@ -227,10 +233,14 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.assertTrue( readable )
 
   def TestSection_6ClearDatabase(self):
-    self.delayDisplay("6: Clear database",self.delayMs)
+    self.delayDisplay("Clear database",self.delayMs)
 
     initialized = slicer.dicomDatabase.initializeDatabase()
     self.assertTrue( initialized )
 
     slicer.dicomDatabase.closeDatabase()
     self.assertFalse( slicer.dicomDatabase.isOpen )
+
+    self.delayDisplay("Restoring original database directory",self.delayMs)
+    if self.originalDatabaseDirectory:
+      self.dicomWidget.onDatabaseDirectoryChanged(self.originalDatabaseDirectory)
