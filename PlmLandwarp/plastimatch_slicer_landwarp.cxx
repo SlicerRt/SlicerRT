@@ -137,9 +137,6 @@ main (int argc, char *argv[])
     mov_ps.insert_ras (lm_mov);
   }
 
-  lw->m_fixed_landmarks = fix_ps;
-  lw->m_moving_landmarks = mov_ps;
-
   do_landmark_warp (lw, plmslc_landwarp_rbf_type.c_str());
 
   if (lw->m_warped_img && plmslc_landwarp_warped_volume != "None") {

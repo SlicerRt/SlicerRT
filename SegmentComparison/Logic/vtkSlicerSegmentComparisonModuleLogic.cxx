@@ -202,11 +202,6 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
     }
   }
 
-  // Make sure reference image contains the extent of the compare image (workaround for Plastimatch resample issue)
-  vtkOrientedImageDataResample::PadImageToContainImage(referenceSegmentLabelmap, compareSegmentLabelmap, referenceSegmentLabelmap);
-  // Resample compare image in padded reference image geometry
-  vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(compareSegmentLabelmap, referenceSegmentLabelmap, compareSegmentLabelmap);
-
   // Convert inputs to ITK images
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   checkpointItkConvertStart = timer->GetUniversalTime();
@@ -391,11 +386,7 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
     return errorMessage;
   }
 
-  // Get voxel volume and number of voxels (the itk_image_header_compare check made sure the spacings match)
-  double voxelVolumeCc = plmRefSegmentLabelmap->spacing(0) * plmRefSegmentLabelmap->spacing(1) * plmRefSegmentLabelmap->spacing(2);
-  unsigned long numberOfVoxels = plmRefSegmentLabelmap->dim(0) * plmRefSegmentLabelmap->dim(1) * plmRefSegmentLabelmap->dim(2);
-
-  //// Compute Dice similarity metrics
+  // Compute Dice similarity metrics
   double checkpointDiceStart = timer->GetUniversalTime();
   UNUSED_VARIABLE(checkpointDiceStart); // Although it is used later, a warning is logged so needs to be suppressed
   Dice_statistics dice;
@@ -403,6 +394,10 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
   dice.set_compare_image(plmCmpSegmentLabelmap->itk_uchar());
 
   dice.run();
+
+  unsigned long numberOfVoxels = dice.get_true_positives() 
+    + dice.get_true_negatives() + dice.get_false_positives()
+    + dice.get_false_negatives();
 
   this->SegmentComparisonNode->SetDiceCoefficient(dice.get_dice());
   this->SegmentComparisonNode->SetTruePositivesPercent(dice.get_true_positives() * 100.0 / (double)numberOfVoxels);
@@ -412,12 +407,12 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
 
   itk::Vector<double, 3> referenceCenterItk = dice.get_reference_center();
   double referenceCenterArray[3] =
-    { referenceCenterItk[0], referenceCenterItk[1], referenceCenterItk[2] };
+    { - referenceCenterItk[0], - referenceCenterItk[1], referenceCenterItk[2] };
   this->SegmentComparisonNode->SetReferenceCenter(referenceCenterArray);
 
   itk::Vector<double, 3> compareCenterItk = dice.get_compare_center();
   double compareCenterArray[3] =
-    { compareCenterItk[0], compareCenterItk[1], compareCenterItk[2] };
+    { - compareCenterItk[0], - compareCenterItk[1], compareCenterItk[2] };
   this->SegmentComparisonNode->SetCompareCenter(compareCenterArray);
 
   this->SegmentComparisonNode->SetReferenceVolumeCc(dice.get_reference_volume() / 1000.0);
