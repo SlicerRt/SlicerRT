@@ -85,7 +85,7 @@ protected:
   virtual ~vtkPlanarContourToClosedSurfaceConversionRule();
 
   /// Construct a surface triangulation using a dynamic programming algorithm.
-  void TriangulateContours(vtkPolyData*, vtkIdList*, int, vtkIdList*, int, vtkCellArray*, vtkPoints*);
+  void TriangulateContours(vtkPolyData*, vtkIdList*, int, vtkIdList*, int, vtkCellArray*);
 
   /// Find the index of the last point in a contour.
   int GetEndLoop(int, int, bool);
@@ -112,10 +112,10 @@ protected:
   bool DoLinesOverlap(vtkLine*, vtkLine*);
 
   /// Create a branching pattern for overlapping contours.
-  void Branch(vtkPolyData*, vtkIdList*, int, int, std::vector< int >, vtkLine*);
+  void Branch(vtkPolyData*, vtkIdList*, int, int, std::vector< int >, std::vector<vtkSmartPointer<vtkPointLocator> >, std::vector<vtkSmartPointer<vtkIdList> >, vtkLine*);
   
   /// Find the branch closest from the point on the trunk
-  int GetClosestBranch(vtkPolyData*, double*, std::vector< int >);
+  int GetClosestBranch(vtkPolyData*, double*, std::vector< int >, std::vector<vtkSmartPointer<vtkPointLocator> >, std::vector<vtkSmartPointer<vtkIdList> >);
 
   /// Seal the exterior contours of the mesh.
   void SealMesh(vtkPolyData*, vtkCellArray*, vtkCellArray*, std::vector< bool >, std::vector< bool >);
