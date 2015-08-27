@@ -24,6 +24,9 @@
 #include "vtkOrientedImageData.h"
 #include "vtkCalculateOversamplingFactor.h"
 
+// Slicer includes
+#include "vtkLoggingMacros.h"
+
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkVersion.h>
@@ -246,9 +249,9 @@ bool vtkClosedSurfaceToBinaryLabelmapConversionRule::CalculateOutputGeometry(vtk
 
   // Get reference image geometry from parameters
   std::string geometryString = this->ConversionParameters[vtkSegmentationConverter::GetReferenceImageGeometryParameterName()].first;
-  if (!vtkSegmentationConverter::DeserializeImageGeometry(geometryString, geometryImageData))
+  if (geometryString.empty() || !vtkSegmentationConverter::DeserializeImageGeometry(geometryString, geometryImageData))
   {
-    vtkWarningMacro("CalculateOutputGeometry: No image geometry specified, default geometry is calculated with 1 mm spacing");
+    vtkInfoMacro("CalculateOutputGeometry: No image geometry specified, default geometry is calculated with 1 mm spacing");
     geometryString = this->GetDefaultImageGeometryStringForPolyData(closedSurfacePolyData);
 
     // If still not valid then return with error

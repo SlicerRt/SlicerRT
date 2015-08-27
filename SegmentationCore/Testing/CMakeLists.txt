@@ -19,3 +19,4 @@ macro(TEST_FILE TEST_NAME FILENAME)
 endmacro()
 
 simple_test( vtkSegmentationTest1 )
+simple_test( vtkSegmentationConverterTest1 )
