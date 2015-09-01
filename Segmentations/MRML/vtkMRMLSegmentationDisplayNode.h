@@ -122,16 +122,19 @@ public:
 // Python compatibility functions
 public:
   /// Get segment visibility by segment ID. Convenience function for python compatibility.
+  /// \return Segment visibility if segment found, otherwise false
   bool GetSegmentVisibility(std::string segmentID);
   /// Set segment visibility by segment ID. Convenience function for python compatibility.
   void SetSegmentVisibility(std::string segmentID, bool visible);
 
   /// Get segment color by segment ID. Convenience function for python compatibility.
+  /// \return Segment color if segment found, otherwise the pre-defined invalid color
   vtkVector3d GetSegmentColor(std::string segmentID);
   /// Set segment color by segment ID. Convenience function for python compatibility.
   void SetSegmentColor(std::string segmentID, vtkVector3d color);
 
   /// Get segment poly data opacity by segment ID. Convenience function for python compatibility.
+  /// \return Segment poly data opacity if segment found, otherwise 0
   double GetSegmentPolyDataOpacity(std::string segmentID);
   /// Set segment poly data opacity by segment ID. Convenience function for python compatibility.
   void SetSegmentPolyDataOpacity(std::string segmentID, double opacity);

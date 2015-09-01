@@ -52,14 +52,14 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       #slicer.namic_selftest_instance = self #TODO: For debugging
 
       # Check for modules
-      self.assertTrue( slicer.modules.dicomrtimportexport )
-      self.assertTrue( slicer.modules.subjecthierarchy )
-      self.assertTrue( slicer.modules.segmentations )
-      self.assertTrue( slicer.modules.isodose )
-      self.assertTrue( slicer.modules.brainsfit )
-      self.assertTrue( slicer.modules.dosecomparison )
-      self.assertTrue( slicer.modules.doseaccumulation )
-      self.assertTrue( slicer.modules.dosevolumehistogram )
+      self.assertIsNotNone( slicer.modules.dicomrtimportexport )
+      self.assertIsNotNone( slicer.modules.subjecthierarchy )
+      self.assertIsNotNone( slicer.modules.segmentations )
+      self.assertIsNotNone( slicer.modules.isodose )
+      self.assertIsNotNone( slicer.modules.brainsfit )
+      self.assertIsNotNone( slicer.modules.dosecomparison )
+      self.assertIsNotNone( slicer.modules.doseaccumulation )
+      self.assertIsNotNone( slicer.modules.dosevolumehistogram )
 
       self.TestSection_00_SetupPathsAndNames()
       self.TestSection_01A_OpenTempDatabase()
@@ -86,8 +86,8 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     # Make sure subject hierarchy auto-creation is on for this test
     subjectHierarchyWidget = slicer.modules.subjecthierarchy.widgetRepresentation()
     subjectHierarchyPluginLogic = subjectHierarchyWidget.pluginLogic()
-    self.assertTrue( subjectHierarchyWidget != None )
-    self.assertTrue( subjectHierarchyPluginLogic != None )
+    self.assertIsNotNone( subjectHierarchyWidget )
+    self.assertIsNotNone( subjectHierarchyPluginLogic )
     subjectHierarchyPluginLogic.autoCreateSubjectHierarchy = True
 
     IGRTWorkflow_SelfTestDir = slicer.app.temporaryPath + '/IGRTWorkflow_SelfTest'
@@ -134,7 +134,8 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
   def TestSection_01A_OpenTempDatabase(self):
     # Open test database and empty it
     try:
-      os.mkdir(self.dicomDatabaseDir)
+      if not os.access(self.dicomDatabaseDir, os.F_OK):
+        os.mkdir(self.dicomDatabaseDir)
 
       if slicer.dicomDatabase:
         self.originalDatabaseDirectory = os.path.split(slicer.dicomDatabase.databaseFilename)[0]
@@ -146,8 +147,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
       dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
       self.assertTrue( slicer.dicomDatabase.isOpen )
-
-      initialized = slicer.dicomDatabase.initializeDatabase()
+      slicer.dicomDatabase.initializeDatabase()
 
     except Exception, e:
       import traceback
@@ -182,7 +182,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
         self.delayDisplay("Unzipping done",self.delayMs)
 
       numOfFilesInDicomDataDirTest = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
-      self.assertTrue( numOfFilesInDicomDataDirTest == self.expectedNumOfFilesInDicomDataDir )
+      self.assertEqual( numOfFilesInDicomDataDirTest, self.expectedNumOfFilesInDicomDataDir )
 
     except Exception, e:
       import traceback
@@ -200,12 +200,12 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       # Import study to database
       dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
       indexer = ctk.ctkDICOMIndexer()
-      self.assertTrue( indexer )
+      self.assertIsNotNone( indexer )
 
       indexer.addDirectory( slicer.dicomDatabase, self.dicomDataDir )
 
-      self.assertTrue( len(slicer.dicomDatabase.patients()) == 1 )
-      self.assertTrue( slicer.dicomDatabase.patients()[0] )
+      self.assertEqual( len(slicer.dicomDatabase.patients()), 1 )
+      self.assertIsNotNone( slicer.dicomDatabase.patients()[0] )
 
     except Exception, e:
       import traceback
@@ -246,14 +246,14 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
           self.assertTrue( loadable.selected )
 
       self.assertTrue( rtFound )
-      self.assertTrue( loadablesForRt == 3 )
+      self.assertEqual( loadablesForRt, 3 )
 
       dicomWidget.detailsPopup.loadCheckedLoadables()
 
       # Verify that the correct number of objects were loaded
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == numOfModelHierarchyNodesBeforeLoad + 7 )
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ) == numOfSegmentationNodesBeforeLoad + 1 )
+      self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), numOfScalarVolumeNodesBeforeLoad + 2 )
+      self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ), numOfModelHierarchyNodesBeforeLoad + 7 )
+      self.assertEqual( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ), numOfSegmentationNodesBeforeLoad + 1 )
 
     except Exception, e:
       import traceback
@@ -290,7 +290,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
         self.delayDisplay('Downloading Day 2 input data finished',self.delayMs)
 
       # Verify that the correct number of objects were loaded
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfScalarVolumeNodesBeforeLoad + 2 )
+      self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), numOfScalarVolumeNodesBeforeLoad + 2 )
 
     except Exception, e:
       import traceback
@@ -307,7 +307,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       day1CT = slicer.util.getNode(self.day1CTName)
       ct1HierarchyNode = slicer.vtkMRMLHierarchyNode.GetAssociatedHierarchyNode(slicer.mrmlScene, day1CT.GetID())
       patientNode = ct1HierarchyNode.GetParentNode().GetParentNode()
-      self.assertTrue( patientNode != None )
+      self.assertIsNotNone( patientNode )
       
       # Add new study for the day 2 data
       studyNode = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, patientNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy(), 'Day2')
@@ -418,7 +418,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       doseVolumeMrmlNodeCombobox.setCurrentNodeID(day1Dose.GetID())
       applyButton.click()
 
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelNode*') ) == numOfModelNodesBeforeLoad + 6 )
+      self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelNode*') ), numOfModelNodesBeforeLoad + 6 )
 
       # Show day 1 isodose
       day1CT = slicer.util.getNode(self.day1CTName)
@@ -455,7 +455,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       doseVolumeMrmlNodeCombobox.setCurrentNodeID(day2Dose.GetID())
       applyButton.click()
 
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelNode*') ) == numOfModelNodesBeforeLoad + 6 )
+      self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelNode*') ), numOfModelNodesBeforeLoad + 6 )
 
       # Show day 2 isodose
       day1IsodoseSubjectHierarchy = slicer.util.getNode(self.day1IsodosesName)
@@ -515,7 +515,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
         waitCount += 1
       self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration finished",self.delayMs)
 
-      self.assertTrue( self.cliBrainsFitRigidNode.GetStatusString() == 'Completed' )
+      self.assertEqual( self.cliBrainsFitRigidNode.GetStatusString(), 'Completed' )
 
       # Register Day 2 CT to Day 1 CT using BSpline registration
       # TODO: Move this to workflow 2
@@ -542,7 +542,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
           # waitCount += 1
         # self.delayDisplay("Register Day 2 CT to Day 1 CT using BSpline registration finished",self.delayMs)
 
-        # self.assertTrue( self.cliBrainsFitBSplineNode.GetStatusString() == 'Completed' )
+        # self.assertEqual( self.cliBrainsFitBSplineNode.GetStatusString(), 'Completed' )
 
     except Exception, e:
       import traceback
@@ -556,15 +556,15 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.delayDisplay("Apply Day 2 CT to Day 1 CT rigid transform to Day 2 Dose",self.delayMs)
 
       cloneNodePlugin = slicer.qSlicerSubjectHierarchyPluginHandler.instance().pluginByName('CloneNode')
-      self.assertTrue( cloneNodePlugin != None)
+      self.assertIsNotNone( cloneNodePlugin )
 
       day2DoseSH = slicer.util.getNode(self.day2DoseName + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
       day2DoseCloneSH = cloneNodePlugin.cloneSubjectHierarchyNode(day2DoseSH, self.day2DoseRigidName)
       transformDay2ToDay1Rigid = slicer.util.getNode(self.transformDay2ToDay1RigidName)
       day2DoseCloneSH.TransformBranch(transformDay2ToDay1Rigid)
 
-      self.assertTrue( day2DoseCloneSH.GetAssociatedNode().GetParentTransformNode() == transformDay2ToDay1Rigid )
-      self.assertTrue( day2DoseCloneSH.GetAssociatedNode().GetDisplayNode() )
+      self.assertEqual( day2DoseCloneSH.GetAssociatedNode().GetParentTransformNode(), transformDay2ToDay1Rigid )
+      self.assertIsNotNone( day2DoseCloneSH.GetAssociatedNode().GetDisplayNode() )
 
       # Transform Day 2 Dose using Day 2 CT to Day 1 CT BSpline transform
       # if self.performDeformableRegistration:
@@ -574,8 +574,8 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
         # transformDay2ToDay1BSpline = slicer.util.getNode(self.transformDay2ToDay1BSplineName)
         # day2DoseCloneBSplineSH.TransformBranch(transformDay2ToDay1BSpline)
 
-        # self.assertTrue( day2DoseCloneBSplineSH.GetAssociatedNode().GetParentTransformNode() == transformDay2ToDay1BSpline )
-        # self.assertTrue( day2DoseCloneBSplineSH.GetAssociatedNode().GetDisplayNode() )
+        # self.assertEqual( day2DoseCloneBSplineSH.GetAssociatedNode().GetParentTransformNode(), transformDay2ToDay1BSpline )
+        # self.assertIsNotNone( day2DoseCloneBSplineSH.GetAssociatedNode().GetDisplayNode() )
 
     except Exception, e:
       import traceback
@@ -609,7 +609,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       compareDoseVolumeMrmlNodeCombobox.setCurrentNodeID(day2DoseRigid.GetID())
       applyButton.click()
 
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == numOfVolumeNodesBeforeLoad + 1 )
+      self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), numOfVolumeNodesBeforeLoad + 1 )
       
       self.TestUtility_ShowVolumes(gammaVolume)
       
@@ -649,8 +649,8 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       outputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Output')[0]
       outputMrmlNodeCombobox = slicer.util.findChildren(widget=outputFrame, className='qMRMLNodeComboBox')[0]
 
-      self.assertTrue( referenceVolumeCombobox != None )
-      self.assertTrue( outputMrmlNodeCombobox != None )
+      self.assertIsNotNone( referenceVolumeCombobox )
+      self.assertIsNotNone( outputMrmlNodeCombobox )
 
       # Create output volumes
       accumulatedDoseUnregistered = slicer.vtkMRMLScalarVolumeNode()
@@ -671,7 +671,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)
       doseAccumulationLogic.AccumulateDoseVolumes()
 
-      self.assertTrue( accumulatedDoseUnregistered.GetImageData() )
+      self.assertIsNotNone( accumulatedDoseUnregistered.GetImageData() )
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose finished",self.delayMs)
 
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration",self.delayMs)
@@ -680,7 +680,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseRigid)
       doseAccumulationLogic.AccumulateDoseVolumes()
       
-      self.assertTrue( accumulatedDoseRigid.GetImageData() )
+      self.assertIsNotNone( accumulatedDoseRigid.GetImageData() )
 
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration finished",self.delayMs)
       self.DoseAccumulationUtility_SelectDoseVolume(self.day2DoseRigidName, False)
@@ -728,7 +728,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseRigid)
       computeDvhButton.click()
 
-      self.assertTrue( len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') ) == numOfDoubleArrayNodesBeforeLoad + 2 )
+      self.assertEqual( len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') ), numOfDoubleArrayNodesBeforeLoad + 2 )
 
       # Create chart and show plots
       chartNodeCombobox.addNode()
@@ -777,8 +777,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
   def TestUtility_ClearDatabase(self):
     self.delayDisplay("Clear database",self.delayMs)
 
-    initialized = slicer.dicomDatabase.initializeDatabase()
-
+    slicer.dicomDatabase.initializeDatabase()
     slicer.dicomDatabase.closeDatabase()
     self.assertFalse( slicer.dicomDatabase.isOpen )
 
@@ -790,7 +789,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
   #------------------------------------------------------------------------------
   def TestUtility_ShowVolumes(self, back=None, fore=None):
     try:
-      self.assertTrue( back != None )
+      self.assertIsNotNone( back )
 
       layoutManager = slicer.app.layoutManager()
       layoutManager.setLayout(3)

@@ -87,12 +87,12 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
 
   def test_DicomRtImportSelfTest_FullTest1(self):
     # Check for modules
-    self.assertTrue( slicer.modules.dicomrtimportexport )
-    self.assertTrue( slicer.modules.segmentations )
-    self.assertTrue( slicer.modules.dicom )
+    self.assertIsNotNone( slicer.modules.dicomrtimportexport )
+    self.assertIsNotNone( slicer.modules.segmentations )
+    self.assertIsNotNone( slicer.modules.dicom )
     
     self.dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-    self.assertTrue( self.dicomWidget )
+    self.assertIsNotNone( self.dicomWidget )
 
     self.TestSection_0RetrieveInputData()
     self.TestSection_1OpenTempDatabase()
@@ -157,14 +157,14 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.delayDisplay("Import study",self.delayMs)
 
     indexer = ctk.ctkDICOMIndexer()
-    self.assertTrue( indexer )
+    self.assertIsNotNone( indexer )
 
     # Import study to database
     indexer.addDirectory( slicer.dicomDatabase, self.dataDir )
     indexer.waitForImportFinished()
 
-    self.assertTrue( len(slicer.dicomDatabase.patients()) == 1 )
-    self.assertTrue( slicer.dicomDatabase.patients()[0] )
+    self.assertEqual( len(slicer.dicomDatabase.patients()), 1 )
+    self.assertIsNotNone( slicer.dicomDatabase.patients()[0] )
 
   def TestSection_3SelectLoadables(self):
     self.delayDisplay("Select loadables",self.delayMs)
@@ -178,7 +178,7 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.dicomWidget.detailsPopup.examineForLoading()
 
     loadables = self.dicomWidget.detailsPopup.loadableTable.loadables
-    self.assertTrue( len(loadables) == 8 )
+    self.assertEqual( len(loadables), 8 )
 
     # Make sure the loadables are good (RT is assigned to 4 out of 8 and they are selected)
     loadablesByPlugin = self.dicomWidget.detailsPopup.loadablesByPlugin
@@ -194,7 +194,7 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
         self.assertTrue( loadable.selected )
 
     self.assertTrue( rtFound )
-    self.assertTrue( loadablesForRt == 4 )
+    self.assertEqual( loadablesForRt, 4 )
 
   def TestSection_4LoadIntoSlicer(self):
     self.delayDisplay("Load into Slicer",self.delayMs)
@@ -203,18 +203,18 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
 
     # Verify that the correct number of objects were loaded
     # Volumes: Dose, RT image, RT image texture
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ) == 3 )
+    self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), 3 )
     # Model hierarchies: Beam models (parent + individual beams)
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ) == 6 )
+    self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ), 6 )
     # Subject hierarchy nodes: Patient, Study, Dose, RT image (plus SH nodes automatically created for texture
     # image and displayed model), structure set segmentation and segment virtual nodes, beam models.
     # If subject hierarchy auto creation is off, then 2 less nodes are created (the RT image plane model and texture volume)
     autoCreateSh = slicer.modules.subjecthierarchy.widgetRepresentation().pluginLogic().autoCreateSubjectHierarchy
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ) == 23 + 2*autoCreateSh )
+    self.assertEqual( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ), 23 + 2*autoCreateSh )
     # Segmentation: The loaded structures
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ) == 1 )
+    self.assertEqual( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ), 1 )
     # Markups: the isocenters and their derived sources (in the same markup node as the isocenter)
-    self.assertTrue( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ) == 5 )
+    self.assertEqual( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ), 5 )
 
   def TestSection_5SaveScene(self):
     self.delayDisplay("Save scene",self.delayMs)
