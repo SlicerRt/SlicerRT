@@ -1591,7 +1591,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
           // Get the structure's total volume and add it to the vector
           double volumeCCs = 0;
           {
-            std::string structureVolumeString = field.substr( middlePosition + vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(), 
+            std::string structureVolumeString = field.substr( middlePosition + vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(),
               field.size() - middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
             std::stringstream ss;
             ss << structureVolumeString;
@@ -1611,34 +1611,37 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
         fieldCount++;
         lineStr = lineStr.substr(commaPosition+1);
         commaPosition = lineStr.find(csvSeparatorCharacter);
-
       }
+      
       // Handle last field (if there was no comma at the end)
       if (!lineStr.empty() )
       {
         // Get the structure's name
         size_t middlePosition = lineStr.find(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE);
-        structureNames.push_back(lineStr.substr(0, middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_ARRAY_NODE_NAME_POSTFIX.size()));
-
-        // Get the structure's total volume and add it to the vector
-        double volumeCCs = 0;
+        if (middlePosition != std::string::npos)
         {
-          std::string structureVolumeString = lineStr.substr( middlePosition + vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(), 
-            lineStr.size() - middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
-          std::stringstream ss;
-          ss << structureVolumeString;
-          double doubleValue;
-          ss >> doubleValue;
-          volumeCCs = doubleValue;
-        }
-        structureVolumeCCs.push_back(volumeCCs);
+          structureNames.push_back(lineStr.substr(0, middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_ARRAY_NODE_NAME_POSTFIX.size()));
 
-        if (volumeCCs == 0)
-        {
-          std::cerr << "Invalid structure volume in CSV header field " << lineStr << std::endl;
-        }
+          // Get the structure's total volume and add it to the vector
+          double volumeCCs = 0;
+          {
+            std::string structureVolumeString = lineStr.substr( middlePosition + vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(),
+              lineStr.size() - middlePosition - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
+            std::stringstream ss;
+            ss << structureVolumeString;
+            double doubleValue;
+            ss >> doubleValue;
+            volumeCCs = doubleValue;
+          }
+          structureVolumeCCs.push_back(volumeCCs);
 
-        fieldCount++;
+          if (volumeCCs == 0)
+          {
+            std::cerr << "Invalid structure volume in CSV header field " << lineStr << std::endl;
+          }
+
+          fieldCount++;
+        }
       }
         
       // Add a vtkDoubleArray for each structure into the vector
@@ -1702,7 +1705,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
     }
     lineNumber++;
   }
-  
+ 
   dvhStream.close();
   
   vtkCollection* doubleArrayNodes = vtkCollection::New();
