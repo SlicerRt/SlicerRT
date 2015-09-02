@@ -26,7 +26,7 @@
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanHierarchyNode.h"
 #include "vtkMRMLRTPlanNode.h"
-#include "vtkMRMLContourNode.h"
+#include "vtkMRMLSegmentationNode.h"
 #include "vtkRTBeamData.h"
 
 // MRML includes
@@ -100,11 +100,12 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 
   this->SourceSize = 0.0;
 
-//  this->BeamData = vtkSmartPointer<vtkRTBeamData>::New();
-  this->BeamData = new vtkRTBeamData;
+  this->BeamData = new vtkRTBeamData();
 
   this->BeamModelNode = NULL;
   this->BeamModelNodeId = NULL;
+
+  this->TargetSegmentID = NULL;
 
   this->HideFromEditorsOff();
 
@@ -118,8 +119,14 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::~vtkMRMLRTBeamNode()
 {
-  delete this->BeamData;
+  if (this->BeamData)
+  {
+    delete this->BeamData;
+    this->BeamData = NULL;
+  }
+
   this->SetAndObserveBeamModelNodeId(NULL);
+  this->SetTargetSegmentID(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -137,6 +144,10 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   if (this->BeamModelNodeId != NULL) 
   {
     of << indent << " BeamModelNodeId=\"" << this->BeamModelNodeId << "\"";
+  }
+  if (this->TargetSegmentID != NULL) 
+  {
+    of << indent << " TargetSegmentID=\"" << this->TargetSegmentID << "\"";
   }
 }
 
@@ -165,6 +176,12 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
       // Observers will be added when all the attributes are read and UpdateScene is called
       this->SetBeamModelNodeId(attValue);
     }
+    else if (!strcmp(attName, "TargetSegmentID")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetTargetSegmentID(ss.str().c_str());
+      }
   }
 }
 
@@ -183,6 +200,8 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   // Observers must be removed here, otherwise MRML updates would activate nodes on the undo stack
   this->SetAndObserveBeamModelNodeId( NULL );
   this->SetBeamModelNodeId( node->BeamModelNodeId );
+
+  this->SetTargetSegmentID(node->TargetSegmentID);
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -245,13 +264,13 @@ void vtkMRMLRTBeamNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducia
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLContourNode* vtkMRMLRTBeamNode::GetTargetContourNode()
+vtkMRMLSegmentationNode* vtkMRMLRTBeamNode::GetTargetSegmentationNode()
 {
-  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(TARGET_CONTOUR_REFERENCE_ROLE) );
+  return vtkMRMLSegmentationNode::SafeDownCast( this->GetNodeReference(TARGET_CONTOUR_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetAndObserveTargetContourNode(vtkMRMLContourNode* node)
+void vtkMRMLRTBeamNode::SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode* node)
 {
   this->SetNodeReferenceID(TARGET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }

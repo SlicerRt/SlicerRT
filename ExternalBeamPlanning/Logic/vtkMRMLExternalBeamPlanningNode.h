@@ -29,7 +29,7 @@
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLMarkupsFiducialNode;
-class vtkMRMLContourNode;
+class vtkMRMLSegmentationNode;
 class vtkMRMLDoubleArrayNode;
 
 #include "vtkSlicerExternalBeamPlanningModuleLogicExport.h"
@@ -88,6 +88,11 @@ public:
   /// Set/Get structure name
   vtkGetStringMacro(BeamDescription);
   vtkSetStringMacro(BeamDescription);
+
+  /// Get target segment ID
+  vtkGetStringMacro(TargetSegmentID)
+  /// Set target segment ID
+  vtkSetStringMacro(TargetSegmentID)
 
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(NominalEnergy, double);
@@ -182,20 +187,20 @@ public:
   /// Set and observe RT plan node
   void SetAndObserveRtPlanNode(vtkMRMLRTPlanNode* node);
 
-  /// Get contour set node (can be contour node or contour set (subject hierarchy) node)
-  vtkMRMLNode* GetPlanContourSetNode();
-  /// Set and observe contour set node (can be contour node or contour set (subject hierarchy) node)
-  void SetAndObservePlanContourSetNode(vtkMRMLNode* node);
+  /// Get plan segmentation node
+  vtkMRMLSegmentationNode* GetPlanSegmentationNode();
+  /// Set and observe plan segmentation node
+  void SetAndObservePlanSegmentationNode(vtkMRMLSegmentationNode* node);
 
   /// Get isocenter fiducial node
   vtkMRMLMarkupsFiducialNode* GetIsocenterFiducialNode();
   /// Set and observe isocenter fiducial node
   void SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node);
 
-  /// Get proton target contour node
-  vtkMRMLContourNode* GetTargetContourNode();
-  /// Set and observe proton target contour node
-  void SetAndObserveTargetContourNode(vtkMRMLContourNode* node);
+  /// Get proton target segmentation node
+  vtkMRMLSegmentationNode* GetTargetSegmentationNode();
+  /// Set and observe proton target segmentation node
+  void SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode* node);
 
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
@@ -209,10 +214,14 @@ protected:
   void operator=(const vtkMRMLExternalBeamPlanningNode&);
 
 protected:
-  /// Name of the structure that corresponds to this contour
+  /// Name of the structure that corresponds to this beam
   char* BeamName;
   int   BeamNumber;
   char* BeamDescription;
+
+  /// Target segment ID in target segmentation node
+  char* TargetSegmentID;
+
   RTRadiationType RadiationType;
 
   RTBeamType  BeamType;

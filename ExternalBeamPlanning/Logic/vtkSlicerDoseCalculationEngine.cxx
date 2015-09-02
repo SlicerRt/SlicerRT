@@ -107,12 +107,13 @@ void vtkSlicerDoseCalculationEngine::InitializeAccumulatedDose(Plm_image::Pointe
 
 //----------------------------------------------------------------------------
 void vtkSlicerDoseCalculationEngine::CalculateDose(
-                                     Plm_image::Pointer plmTgt,
-                                     double isocenter[],
-                                     double src[],
-                                     double proximalMargin,
-                                     double distalMargin,
-                                     double beamRx)
+  vtkMRMLRTBeamNode* beamNode, 
+  Plm_image::Pointer plmTgt,
+  double isocenter[],
+  double src[],
+  double proximalMargin,
+  double distalMargin,
+  double beamRx)
 {
 
   this->Internal->plmRef->print ();
@@ -124,13 +125,14 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
   int non_zero, num_vox;
   itk_image_stats (Internal->plmRef->m_itk_int32, &min_val, &max_val, &avg, &non_zero, &num_vox);
   printf ("MIN %f AVE %f MAX %f NONZERO %d NUMVOX %d\n", 
-          (float) min_val, (float) avg, (float) max_val, non_zero, num_vox);
+    (float) min_val, (float) avg, (float) max_val, non_zero, num_vox);
 #endif
 
   itk::Image<short, 3>::Pointer referenceVolumeItk = this->Internal->plmRef->itk_short();
   itk::Image<unsigned char, 3>::Pointer targetVolumeItk = plmTgt->itk_uchar();
 
-  Rt_plan ion_plan;
+  Rt_plan rt_plan;
+  Rt_beam *rt_beam;
 
   try
   {
@@ -143,82 +145,82 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
 
     printf("\n ***SETTING PARAMETERS***\n");
     printf ("Setting reference volume\n");
-    ion_plan.set_patient (referenceVolumeItk);
+    rt_plan.set_patient (referenceVolumeItk);
 
     printf ("Setting target volume\n");
-    ion_plan.set_target (targetVolumeItk);
+    rt_plan.set_target (targetVolumeItk);
+
+    // Create a beam
+    rt_beam = rt_plan.append_beam ();
 
     // the normalization dose will be added at the creation of the 
     // global dose matrix: D = N * (beam1 * w1 + beam2 * w2...)
-    ion_plan.set_normalization_dose(1.0); 
-#if defined (commentout)
-    ion_plan.beam->set_beamWeight(1.0);	 // see comment previous line
+    rt_plan.set_normalization_dose(1.0); 
 
-    ion_plan.beam->set_flavor(beamNode->GetBeamFlavor());
-    printf("Beam Flavor = %c\n", ion_plan.beam->get_flavor());
+    // see comment previous line
+    rt_beam->set_beam_weight(1.0);
 
-    ion_plan.beam->get_sobp()->set_energyResolution(beamNode->GetEnergyResolution());
-    printf("Energy resolution = %lg\n ", ion_plan.beam->get_sobp()->get_energyResolution());
+    rt_beam->set_flavor(beamNode->GetBeamFlavor());
+    printf("Beam Flavor = %c\n", rt_beam->get_flavor());
+
+    rt_beam->get_sobp()->set_energyResolution(beamNode->GetEnergyResolution());
+    printf("Energy resolution = %lg\n ", rt_beam->get_sobp()->get_energyResolution());
 
     /* APERTURE SETTINGS */
     printf("\n***APERTURE PARAMETERS***\n");
     beamNode->UpdateApertureParameters();
-    ion_plan.beam->get_aperture()->set_distance(beamNode->GetApertureOffset());
-    printf("Aperture offset = %lg\n", ion_plan.get_aperture()->get_distance());
+    rt_beam->get_aperture()->set_distance(beamNode->GetApertureOffset());
+    printf("Aperture offset = %lg\n", rt_beam->get_aperture()->get_distance());
 
     printf("SAD = %lg\n", beamNode->GetSAD() );
 
-    ion_plan.get_aperture()->set_spacing(beamNode->GetApertureSpacing());
-    printf("Aperture Spacing = %lg %lg\n", ion_plan.get_aperture()->get_spacing(0),  ion_plan.get_aperture()->get_spacing(1));
+    rt_beam->get_aperture()->set_spacing(beamNode->GetApertureSpacing());
+    printf("Aperture Spacing = %lg %lg\n", rt_beam->get_aperture()->get_spacing(0),  rt_beam->get_aperture()->get_spacing(1));
 
-    ion_plan.get_aperture()->set_origin(beamNode->GetApertureOrigin());
+    rt_beam->get_aperture()->set_origin(beamNode->GetApertureOrigin());
     printf("Aperture Origin = %lg %lg\n", beamNode->GetApertureOrigin(0), beamNode->GetApertureOrigin(1));
 
-    ion_plan.get_aperture()->set_dim(beamNode->GetApertureDim() );
-    printf("Aperture dim = %d %d\n", ion_plan.get_aperture()->get_dim(0), ion_plan.get_aperture()->get_dim(1) );
+    rt_beam->get_aperture()->set_dim(beamNode->GetApertureDim() );
+    printf("Aperture dim = %d %d\n", rt_beam->get_aperture()->get_dim(0), rt_beam->get_aperture()->get_dim(1) );
   
-    ion_plan.beam->set_source_size(beamNode->GetSourceSize());
-    printf("Source size = %lg\n", ion_plan.beam->get_source_size() );
-#endif
+    rt_beam->set_source_size(beamNode->GetSourceSize());
+    printf("Source size = %lg\n", rt_beam->get_source_size() );
 
     /* Beam Parameters */
     printf("\n***BEAM PARAMETERS***\n");
 
 
-    ion_plan.beam->set_source_position (src);
-    ion_plan.beam->set_isocenter_position (isocenter);
-    printf("Isocenter = %lg %lg %lg\n", ion_plan.beam->get_isocenter_position(0), ion_plan.beam->get_isocenter_position(1),ion_plan.beam->get_isocenter_position(2) );
-    printf("Source position = %lg %lg %lg\n", ion_plan.beam->get_source_position(0), ion_plan.beam->get_source_position(1),ion_plan.beam->get_source_position(2) );
+    rt_beam->set_source_position (src);
+    rt_beam->set_isocenter_position (isocenter);
+    printf("Isocenter = %lg %lg %lg\n", rt_beam->get_isocenter_position(0), rt_beam->get_isocenter_position(1),rt_beam->get_isocenter_position(2) );
+    printf("Source position = %lg %lg %lg\n", rt_beam->get_source_position(0), rt_beam->get_source_position(1),rt_beam->get_source_position(2) );
 
-#if defined (commentout)
-    ion_plan.set_step_length (1);
-    printf("Step length = %lg\n", ion_plan.get_step_length() );
+    rt_beam->set_step_length (1);
+    printf("Step length = %lg\n", rt_beam->get_step_length() );
 
-    ion_plan.set_smearing (beamNode->GetSmearing());
+    rt_beam->set_smearing (beamNode->GetSmearing());
     printf("Smearing = %lg\n", beamNode->GetSmearing());
-#endif
     // Distal and proximal margins are updated when the SOBP is created
     /* All the rt_beam parameters are updated to initiate the dose calculation */
 
-    if (!ion_plan.init ()) 
+    if (!rt_plan.prepare_beam_for_calc (rt_beam))
     {
       /* Failure.  How to notify the user?? */
-      std::cerr << "Sorry, ion_plan.init() failed.\n";
+      std::cerr << "Sorry, rt_plan.prepare_beam_for_calc() failed.\n";
       return;
     }
 
     /* A little warm fuzzy for the developers */
-    ion_plan.print_verif ();
+    rt_plan.print_verif ();
     printf ("Working...\n");
     fflush(stdout);
 
     /* Compute the aperture and range compensator */
-    vtkWarningMacro ("Computing beam modifier\n");
-#if defined (commentout)
-    ion_plan.compute_beam_modifiers ();
-#endif
-    vtkWarningMacro ("Computing beam modifier done!\n");
-
+    //vtkWarningMacro ("Computing beam modifier\n");
+    printf ("Computing beam modifiers\n"); fflush (stdout);
+    rt_beam->compute_beam_modifiers ();
+    //vtkWarningMacro ("Computing beam modifier done!\n");
+    printf ("Computing beam modifiers done\n"); fflush (stdout);
   }
   catch (std::exception& ex)
   {
@@ -227,36 +229,28 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
   }
 
   /* Get aperture as itk image */
-#if defined (commentout)
-  Rpl_volume *rpl_vol = ion_plan.rpl_vol;
-#endif
-  Rpl_volume *rpl_vol = 0;   // FIXME
-  Plm_image::Pointer& ap =
-    rpl_vol->get_aperture()->get_aperture_image();
-  this->Internal->apertureVolumeItk =
-    ap->itk_uchar();
+  Rpl_volume *rpl_vol = rt_beam->rpl_vol;
+  Plm_image::Pointer& ap = rpl_vol->get_aperture()->get_aperture_image();
+  this->Internal->apertureVolumeItk = ap->itk_uchar();
 
   /* Get range compensator as itk image */
   Plm_image::Pointer& rc =
     rpl_vol->get_aperture()->get_range_compensator_image();
-  this->Internal->rcVolumeItk =
-    rc->itk_float();
+  this->Internal->rcVolumeItk = rc->itk_float();
 
   /* Compute the dose */
   try
   {
     vtkWarningMacro("ComputeDose: Applying beam modifiers");
-#if defined (commentout)
-    ion_plan.apply_beam_modifiers ();
-#endif
+    rt_beam->apply_beam_modifiers ();
 
     vtkWarningMacro ("Optimizing SOBP\n");
-    ion_plan.beam->set_proximal_margin (proximalMargin);
-    ion_plan.beam->set_distal_margin (distalMargin);
-    ion_plan.beam->set_sobp_prescription_min_max (
+    rt_beam->set_proximal_margin (proximalMargin);
+    rt_beam->set_distal_margin (distalMargin);
+    rt_beam->set_sobp_prescription_min_max (
       rpl_vol->get_min_wed(), rpl_vol->get_max_wed());
-    ion_plan.beam->optimize_sobp ();
-    ion_plan.compute_dose ();
+    rt_beam->optimize_sobp ();
+    rt_plan.compute_dose (rt_beam);
   }
   catch (std::exception& ex)
   {
@@ -265,13 +259,13 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
   }
 
   /* Get dose as itk image */
-  this->Internal->doseVolumeItk = ion_plan.get_dose_itk();
+  this->Internal->doseVolumeItk = rt_plan.get_dose_itk();
 
   this->Internal->TotalRx += beamRx;
   itk_image_scale (this->Internal->doseVolumeItk, beamRx);
 
   /* Add into accumulate image */
-  itk_image_accumulate(this->Internal->accumulateVolumeItk, 1.0, this->Internal->doseVolumeItk);
+  itk_image_accumulate (this->Internal->accumulateVolumeItk, 1.0, this->Internal->doseVolumeItk);
 }
 
 //---------------------------------------------------------------------------

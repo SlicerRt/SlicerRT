@@ -36,7 +36,7 @@ class vtkMRMLDisplayableNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLModelNode;
 class vtkMRMLMarkupsFiducialNode;
-class vtkMRMLContourNode;
+class vtkMRMLSegmentationNode;
 class vtkMRMLDoubleArrayNode;
 class vtkRTBeamData;
 
@@ -197,10 +197,10 @@ public:
   /// Get beam model node ID
   vtkGetStringMacro(BeamModelNodeId);
 
-  /// Get ribbon model node
+  /// Get beam model node
   vtkMRMLModelNode* GetBeamModelNode();
 
-  /// Set and observe ribbon model node
+  /// Set and observe beam model node
   void SetAndObserveBeamModelNodeId(const char *nodeID);
 
   ///
@@ -211,10 +211,15 @@ public:
   /// Set and observe isocenter fiducial node
   void SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node);
 
-  /// Get proton target contour node
-  vtkMRMLContourNode* GetTargetContourNode();
-  /// Set and observe proton target contour node
-  void SetAndObserveTargetContourNode(vtkMRMLContourNode* node);
+  /// Get proton target segmentation node
+  vtkMRMLSegmentationNode* GetTargetSegmentationNode();
+  /// Set and observe proton target segmentation node
+  void SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode* node);
+
+  /// Get target segment ID
+  vtkGetStringMacro(TargetSegmentID);
+  /// Set target segment ID
+  vtkSetStringMacro(TargetSegmentID);
 
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
@@ -242,10 +247,11 @@ protected:
   void operator=(const vtkMRMLRTBeamNode&);
 
 protected:
-  /// Name of the structure that corresponds to this contour
-//  char* BeamName;
-//  int   BeamNumber;
-//  char* BeamDescription;
+  /// Target segment ID in target segmentation node
+  char* TargetSegmentID;
+
+  // Beam properties
+
   RTRadiationType RadiationType;
 
   RTBeamType  BeamType;
@@ -287,10 +293,11 @@ protected:
   /// Beam-specific data
   vtkRTBeamData* BeamData;
 
+  //TODO: Change these references to MRML references. No need to store neither the node pointer nor the ID
   /// Beam model representation
   vtkMRMLModelNode* BeamModelNode;
   
-  /// Ribbon model representation model node ID
+  /// Beam model node ID
   char* BeamModelNodeId;
 };
 

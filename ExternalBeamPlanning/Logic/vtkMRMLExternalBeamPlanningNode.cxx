@@ -24,7 +24,7 @@
 
 // SlicerRT includes
 #include "vtkMRMLRTPlanNode.h"
-#include "vtkMRMLContourNode.h"
+#include "vtkMRMLSegmentationNode.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -42,9 +42,9 @@
 //------------------------------------------------------------------------------
 static const char* RFERENCE_VOLUME_REFERENCE_ROLE = "referenceVolumeRef";
 static const char* RT_PLAN_REFERENCE_ROLE = "rtPlanRef";
-static const char* PLAN_CONTOUR_SET_REFERENCE_ROLE = "planContourSetRef";
+static const char* PLAN_SEGMENTATION_REFERENCE_ROLE = "planSegmentationRef";
 static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
-static const char* TARGET_CONTOUR_REFERENCE_ROLE = "targetContourRef";
+static const char* TARGET_SEGMENTATION_REFERENCE_ROLE = "targetSegmentationRef";
 static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
 
 //------------------------------------------------------------------------------
@@ -158,15 +158,15 @@ void vtkMRMLExternalBeamPlanningNode::SetAndObserveRtPlanNode(vtkMRMLRTPlanNode*
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLExternalBeamPlanningNode::GetPlanContourSetNode()
+vtkMRMLSegmentationNode* vtkMRMLExternalBeamPlanningNode::GetPlanSegmentationNode()
 {
-  return vtkMRMLNode::SafeDownCast( this->GetNodeReference(PLAN_CONTOUR_SET_REFERENCE_ROLE) );
+  return vtkMRMLSegmentationNode::SafeDownCast( this->GetNodeReference(PLAN_SEGMENTATION_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLExternalBeamPlanningNode::SetAndObservePlanContourSetNode(vtkMRMLNode* node)
+void vtkMRMLExternalBeamPlanningNode::SetAndObservePlanSegmentationNode(vtkMRMLSegmentationNode* node)
 {
-  this->SetNodeReferenceID(PLAN_CONTOUR_SET_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(PLAN_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -182,15 +182,15 @@ void vtkMRMLExternalBeamPlanningNode::SetAndObserveIsocenterFiducialNode(vtkMRML
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLContourNode* vtkMRMLExternalBeamPlanningNode::GetTargetContourNode()
+vtkMRMLSegmentationNode* vtkMRMLExternalBeamPlanningNode::GetTargetSegmentationNode()
 {
-  return vtkMRMLContourNode::SafeDownCast( this->GetNodeReference(TARGET_CONTOUR_REFERENCE_ROLE) );
+  return vtkMRMLSegmentationNode::SafeDownCast( this->GetNodeReference(TARGET_SEGMENTATION_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLExternalBeamPlanningNode::SetAndObserveTargetContourNode(vtkMRMLContourNode* node)
+void vtkMRMLExternalBeamPlanningNode::SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode* node)
 {
-  this->SetNodeReferenceID(TARGET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(TARGET_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------

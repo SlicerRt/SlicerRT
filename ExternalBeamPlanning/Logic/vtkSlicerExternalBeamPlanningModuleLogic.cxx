@@ -30,9 +30,11 @@
 // SlicerRT includes
 #include "PlmCommon.h"
 #include "SlicerRtCommon.h"
-#include "vtkMRMLContourNode.h"
 #include "vtkRTBeamData.h"
-#include "vtkSlicerContoursModuleLogic.h"
+
+// Segmentations includes
+#include "vtkMRMLSegmentationNode.h"
+#include "vtkSlicerSegmentationsModuleLogic.h"
 
 // Plastimatch includes
 #include "itk_image_accumulate.h"
@@ -578,9 +580,21 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
   
   // Make sure inputs are initialized
-  if (!rtPlanNode || !isocenterMarkupsNode || !referenceVolumeNode)
+  if (!rtPlanNode)
   {
-    vtkErrorMacro("AddBeam: Inputs are not initialized!");
+    vtkErrorMacro("AddBeam: No RT Plan Node specified");
+    return;
+  }
+
+  if (!isocenterMarkupsNode)
+  {
+    vtkErrorMacro("AddBeam: Isocenter not specified");
+    return;
+  }
+
+  if (!referenceVolumeNode)
+  {
+    vtkErrorMacro("AddBeam: Reference volume not specified");
     return;
   }
 
@@ -595,21 +609,21 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   if (MLCPositionDoubleArrayNode) 
   {
     beamModelPolyData = this->CreateBeamPolyData(
-        this->ExternalBeamPlanningNode->GetX1Jaw(),
-        this->ExternalBeamPlanningNode->GetX2Jaw(), 
-        this->ExternalBeamPlanningNode->GetY1Jaw(),
-        this->ExternalBeamPlanningNode->GetY2Jaw(),
-        this->ExternalBeamPlanningNode->GetSAD(),
-        MLCPositionDoubleArrayNode->GetArray());
+      this->ExternalBeamPlanningNode->GetX1Jaw(),
+      this->ExternalBeamPlanningNode->GetX2Jaw(), 
+      this->ExternalBeamPlanningNode->GetY1Jaw(),
+      this->ExternalBeamPlanningNode->GetY2Jaw(),
+      this->ExternalBeamPlanningNode->GetSAD(),
+      MLCPositionDoubleArrayNode->GetArray());
   }
   else
   {
     beamModelPolyData = this->CreateBeamPolyData(
-        this->ExternalBeamPlanningNode->GetX1Jaw(),
-        this->ExternalBeamPlanningNode->GetX2Jaw(), 
-        this->ExternalBeamPlanningNode->GetY1Jaw(),
-        this->ExternalBeamPlanningNode->GetY2Jaw(),
-        this->ExternalBeamPlanningNode->GetSAD());
+      this->ExternalBeamPlanningNode->GetX1Jaw(),
+      this->ExternalBeamPlanningNode->GetX2Jaw(), 
+      this->ExternalBeamPlanningNode->GetY1Jaw(),
+      this->ExternalBeamPlanningNode->GetY2Jaw(),
+      this->ExternalBeamPlanningNode->GetSAD());
   }
 
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
@@ -695,7 +709,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   RTBeamNode->SetApertureSpacingAtIso(this->ExternalBeamPlanningNode->GetApertureSpacingAtIso());
 
   RTBeamNode->SetAndObserveIsocenterFiducialNode(this->ExternalBeamPlanningNode->GetIsocenterFiducialNode());
-  RTBeamNode->SetAndObserveTargetContourNode(this->ExternalBeamPlanningNode->GetTargetContourNode());
+  RTBeamNode->SetAndObserveTargetSegmentationNode(this->ExternalBeamPlanningNode->GetTargetSegmentationNode());
 
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
   this->Modified();
@@ -728,7 +742,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveBeam(char *beamname)
   beams->InitTraversal();
   if (beams->GetNumberOfItems() < 1)
   {
-    vtkWarningMacro("RemoveBeam: Selected RTPlan node has no children contour nodes!");
+    vtkWarningMacro("RemoveBeam: Selected RTPlan node has no children nodes!");
     return;
   }
 
@@ -760,7 +774,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
 
   vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
-  //vtkMRMLContourNode* contourNode = vtkMRMLContourNode::SafeDownCast(this->ExternalBeamPlanningNode->GetPlanContourSetNode());
 
   // Make sure inputs are initialized
   if (!rtPlanNode || !referenceVolumeNode)
@@ -956,13 +969,16 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   vtkSmartPointer<vtkMRMLSliceCompositeNode> compositeSliceNode = sliceLogic->GetSliceCompositeNode();
   compositeSliceNode->SetBackgroundVolumeID(DRRImageNode->GetID());
 
-  // Get list of contours from the contour hierarchy node
-  std::vector<vtkMRMLContourNode*> selectedContourNodes;
-  vtkSlicerContoursModuleLogic::GetContourNodesFromSelectedNode(this->ExternalBeamPlanningNode->GetPlanContourSetNode(), selectedContourNodes);
+  //TODO: convert to segmentations
+  // Get list of segments from the segmentation node
+  vtkSmartPointer<vtkSegmentation> selectedSegmentation = this->ExternalBeamPlanningNode->GetTargetSegmentationNode()->GetSegmentation();
+  vtkSegmentation::SegmentMap segmentMap = selectedSegmentation->GetSegments();
+
   // Compute DVH and get result nodes
   vtkSmartPointer<vtkImageData> mergedImageData = vtkSmartPointer<vtkImageData>::New();
   unsigned int numberOfContours = 0;
-  for (std::vector<vtkMRMLContourNode*>::iterator contourIt = selectedContourNodes.begin(); contourIt != selectedContourNodes.end(); ++contourIt)
+  
+  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
   {
     numberOfContours++;
     //if (contourNode)
@@ -976,7 +992,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
 
     // Now we'll look at it.
     vtkSmartPointer<vtkPolyDataMapper> contourPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    vtkSmartPointer<vtkPolyData> polydata = (*contourIt)->GetClosedSurfacePolyData();
+    vtkSmartPointer<vtkPolyData> polydata = vtkPolyData::SafeDownCast(segmentIt->second->GetRepresentation(vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()));
 #if (VTK_MAJOR_VERSION <= 5)
     contourPolyDataMapper->SetInput(polydata);
 #else
@@ -1203,16 +1219,99 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     return;
   }
 
-  vtkMRMLContourNode* targetContourNode = beamNode->GetTargetContourNode();
+  printf ("1\n");
+  vtkMRMLSegmentationNode* targetSegmentationNode = beamNode->GetTargetSegmentationNode();
   if (!beamNode)
   {
     vtkErrorMacro("ComputeDoseByPlastimatch: Didn't get target contour node");
     return;
   }
-  vtkMRMLScalarVolumeNode* targetLabelmapNode = vtkSlicerContoursModuleLogic::ExtractLabelmapFromContour(targetContourNode);
 
-  Plm_image::Pointer plmTgt = PlmCommon::ConvertVolumeNodeToPlmImage(targetLabelmapNode);
+  printf ("2\n");
+  vtkSegmentation *segmentation = targetSegmentationNode->GetSegmentation();
+  if (!segmentation)
+  {
+    vtkErrorMacro("ComputeDoseByPlastimatch: Failed to get segmentation");
+    return;
+  }
 
+  printf ("3\n");
+  vtkSegment *segment = segmentation->GetSegment(beamNode->GetTargetSegmentID());
+  if (!segment) 
+  {
+    vtkErrorMacro("ComputeDoseByPlastimatch: Failed to get segment");
+    return;
+  }
+
+  printf ("4\n");
+  
+  //segmentationNode->GetImageData ();
+  vtkSmartPointer<vtkOrientedImageData> targetLabelmap;
+  if (segmentation->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+  {
+    targetLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
+    targetLabelmap->DeepCopy( vtkOrientedImageData::SafeDownCast(
+        segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
+  }
+  else
+  {
+    // Need to convert
+    targetLabelmap = vtkSmartPointer<vtkOrientedImageData>::Take(
+      vtkOrientedImageData::SafeDownCast(
+        vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment(
+          segmentation,
+          beamNode->GetTargetSegmentID(),
+          vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName())));
+    if (!targetLabelmap.GetPointer())
+    {
+      std::string errorMessage("Failed to convert target segment into binary labelmap");
+      vtkErrorMacro("ComputeDoseByPlastimatch: " << errorMessage);
+      return;
+    }
+  }
+
+  // Apply parent transformation nodes if necessary
+  if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(targetSegmentationNode, targetLabelmap))
+  {
+    std::string errorMessage("Failed to apply parent transformation to compare segmentation.\nMaybe it has a deformable transformation parent, which is not allowed");
+    vtkErrorMacro("ComputeDoseByPlastimatch: " << errorMessage);
+    return;
+  }
+
+  // Convert inputs to ITK images
+  Plm_image::Pointer plmTgt 
+    = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(targetLabelmap);
+  if (!plmTgt)
+  {
+    std::string errorMessage("Failed to convert reference segment labelmap into Plm_image");
+    vtkErrorMacro("ComputeDoseByPlastimatch: " << errorMessage);
+    return;
+  }
+
+  // Reference code for setting the geometry of the segmentation rasterization
+  // in case the default one (from DICOM) is not desired
+#if defined (commentout)
+  vtkSmartPointer<vtkMatrix4x4> doseIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  doseVolumeNode->GetIJKToRASMatrix(doseIjkToRasMatrix);
+  std::string doseGeometryString = vtkSegmentationConverter::SerializeImageGeometry(doseIjkToRasMatrix, doseVolumeNode->GetImageData());
+  segmentationCopy->SetConversionParameter( vtkSegmentationConverter::GetReferenceImageGeometryParameterName(),
+    doseGeometryString );
+#endif
+  
+  
+//  vtkOrientedImageData* targetLabelmap = vtkOrientedImageData::SafeDownCast(targetSegmentationNode->GetSegmentation()->GetSegmentRepresentation(beamNode->GetTargetSegmentID(), vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()));
+//  printf ("8\n");
+//  vtkSmartPointer<vtkMRMLScalarVolumeNode> targetLabelmapNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+//  printf ("9\n");
+//  targetLabelmapNode->SetAndObserveImageData(targetLabelmap);
+
+  printf ("10a\n");
+//  Plm_image::Pointer plmTgt = PlmCommon::ConvertVolumeNodeToPlmImage(
+//    targetLabelmapNode);
+  printf ("10b\n");
+  plmTgt->print ();
+
+  printf ("11\n");
   double src[3];
   double isocenter[3] = { 0, 0, 0 };
   beamNode->GetIsocenterFiducialNode()->GetNthFiducialPosition(0,isocenter);
@@ -1220,6 +1319,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   isocenter[1] = -isocenter[1];
 
   /* Adjust src according to gantry angle */
+  printf ("12\n");
   double ga_radians = 
     beamNode->GetGantryAngle() * M_PI / 180.;
   double src_dist = beamNode->GetSAD();
@@ -1227,17 +1327,22 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   src[1] = isocenter[1] - src_dist * cos(ga_radians);
   src[2] = isocenter[2];
 
+  printf ("13\n");
   double proximalMargin = this->ExternalBeamPlanningNode->GetProximalMargin();
   double distalMargin = this->ExternalBeamPlanningNode->GetDistalMargin();
 
+  printf ("14\n");
   double beamRx = this->GetExternalBeamPlanningNode()->GetRxDose() * beamNode->GetBeamWeight();
 
-  this->Internal->doseEngine->CalculateDose(plmTgt, 
-                                            isocenter, 
-                                            src, 
-                                            proximalMargin, 
-                                            distalMargin, 
-                                            beamRx);
+  printf ("Gonna try to doseEngine->CalculateDose()\n");
+  this->Internal->doseEngine->CalculateDose (
+    beamNode, 
+    plmTgt, 
+    isocenter, 
+    src, 
+    proximalMargin, 
+    distalMargin, 
+    beamRx);
 
   /* Create the MRML node for the volume */
   vtkSmartPointer<vtkMRMLScalarVolumeNode> rcVolumeNode =

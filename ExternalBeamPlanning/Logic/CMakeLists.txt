@@ -7,8 +7,8 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT
 set(${KIT}_INCLUDE_DIRECTORIES
   ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
-  ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
-  ${vtkSlicerContoursModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
   )
 
@@ -25,8 +25,8 @@ set(${KIT}_TARGET_LIBRARIES
   vtkPlmCommon
   vtkSlicerRtCommon
   vtkSlicerMarkupsModuleMRML
-  vtkSlicerContoursModuleMRML
-  vtkSlicerContoursModuleLogic
+  vtkSlicerSegmentationsModuleMRML
+  vtkSlicerSegmentationsModuleLogic
   vtkSlicer${MODULE_NAME}ModuleMRML
   )
 

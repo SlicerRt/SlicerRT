@@ -76,7 +76,7 @@ add_subdirectory(PlmRegister)
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # In development
   add_subdirectory(PlmThreshbox)
-  # add_subdirectory(ExternalBeamPlanning) #TODO: Still uses Contours, need to fix
+  add_subdirectory(ExternalBeamPlanning)
   add_subdirectory(PinnacleDvfReader)
 
   # Registration validation routines

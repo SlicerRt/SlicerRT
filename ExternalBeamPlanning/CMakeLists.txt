@@ -20,8 +20,8 @@ set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 
 set(MODULE_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
-  ${vtkSlicerContoursModuleMRML_INCLUDE_DIRS}
-  ${qSlicerContoursModuleWidgets_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
+  ${qSlicerSegmentationsModuleWidgets_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -42,8 +42,8 @@ set(MODULE_UI_SRCS
 
 set(MODULE_TARGET_LIBRARIES
   vtkSlicerRtCommon
-  vtkSlicerContoursModuleMRML
-  qSlicerContoursModuleWidgets
+  vtkSlicerSegmentationsModuleMRML
+  qSlicerSegmentationsModuleWidgets
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicer${MODULE_NAME}ModuleLogic
   )
