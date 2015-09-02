@@ -2,7 +2,10 @@ import os
 import unittest
 from __main__ import vtk, qt, ctk, slicer
 import logging
+
 import vtkSegmentationCore
+from vtkSlicerSegmentationsModuleMRML import *
+from vtkSlicerSegmentationsModuleLogic import *
 
 class SegmentationsModuleTest1(unittest.TestCase):
   def setUp(self):
@@ -51,8 +54,10 @@ class SegmentationsModuleTest1(unittest.TestCase):
     # Define variables
     self.originalDatabaseDirectory = None
     self.expectedNumOfFilesInDicomDataDir = 12
-    self.segmentationNode = None
+    self.inputSegmentationNode = None
+    self.secondSegmentationNode = None
     self.sphereSegment = None
+    self.sphereSegmentName = 'Sphere'
     self.closedSurfaceReprName = vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationClosedSurfaceRepresentationName()
     self.binaryLabelmapReprName = vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName()
 
@@ -132,11 +137,11 @@ class SegmentationsModuleTest1(unittest.TestCase):
     
     # Load into Slicer
     self.dicomWidget.detailsPopup.loadCheckedLoadables()
-    self.segmentationNode = slicer.util.getNode('vtkMRMLSegmentationNode1')
-    self.assertIsNotNone(self.segmentationNode)
+    self.inputSegmentationNode = slicer.util.getNode('vtkMRMLSegmentationNode1')
+    self.assertIsNotNone(self.inputSegmentationNode)
     
     # Change master representation to closed surface (so that conversion is possible when adding segment)
-    self.segmentationNode.GetSegmentation().SetMasterRepresentationName(self.closedSurfaceReprName)
+    self.inputSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.closedSurfaceReprName)
 
   #------------------------------------------------------------------------------
   def TestSection_1_AddRemoveSegment(self):
@@ -144,7 +149,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     logging.info('Test section 1: Add/remove segment')
 
     # Get baseline values
-    displayNode = self.segmentationNode.GetDisplayNode()
+    displayNode = self.inputSegmentationNode.GetDisplayNode()
     self.assertIsNotNone(displayNode)
     colorTableNode = displayNode.GetColorNode()
     self.assertIsNotNone(colorTableNode)
@@ -164,20 +169,20 @@ class SegmentationsModuleTest1(unittest.TestCase):
     spherePolyData.DeepCopy(sphere.GetOutput())
     
     self.sphereSegment = vtkSegmentationCore.vtkSegment()
-    self.sphereSegment.SetName('sphere1')
+    self.sphereSegment.SetName(self.sphereSegmentName)
     self.sphereSegment.SetDefaultColor(0.0,0.0,1.0)
-    self.sphereSegment.AddRepresentation(self.closedSurfaceReprName, spherePolyData);
+    self.sphereSegment.AddRepresentation(self.closedSurfaceReprName, spherePolyData)
 
     # Add segment to segmentation
-    self.segmentationNode.GetSegmentation().AddSegment(self.sphereSegment)
-    self.assertEqual(self.segmentationNode.GetSegmentation().GetNumberOfSegments(), 3)
+    self.inputSegmentationNode.GetSegmentation().AddSegment(self.sphereSegment)
+    self.assertEqual(self.inputSegmentationNode.GetSegmentation().GetNumberOfSegments(), 3)
     self.assertEqual(colorTableNode.GetNumberOfColors(), 5)
-    sphereColor = displayNode.GetSegmentColor('sphere1')
+    sphereColor = displayNode.GetSegmentColor(self.sphereSegmentName)
     self.assertTrue(sphereColor[0] == 0.0 and sphereColor[1] == 0.0 and sphereColor[2] == 1.0)
     
     # Check merged labelmap
     imageStat = vtk.vtkImageAccumulate()
-    imageStat.SetInputData(self.segmentationNode.GetImageData())
+    imageStat.SetInputData(self.inputSegmentationNode.GetImageData())
     imageStat.SetComponentExtent(0,4,0,0,0,0)
     imageStat.SetComponentOrigin(0,0,0)
     imageStat.SetComponentSpacing(1,1,1)
@@ -190,20 +195,65 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 4)
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 7)
 
-    self.segmentationNode.GetSegmentation().RemoveSegment('sphere1')
-    self.assertEqual(self.segmentationNode.GetSegmentation().GetNumberOfSegments(), 2)
+    # Remove segment from segmentation
+    self.inputSegmentationNode.GetSegmentation().RemoveSegment(self.sphereSegmentName)
+    self.assertEqual(self.inputSegmentationNode.GetSegmentation().GetNumberOfSegments(), 2)
     self.assertEqual(colorTableNode.GetNumberOfColors(), 5)
     sphereColorArray = [0]*4
     colorTableNode.GetColor(4,sphereColorArray)
-    print('ZZZ sphereColorArray: ' + repr(sphereColorArray))
     self.assertTrue(int(sphereColorArray[0]*100) == 50 and int(sphereColorArray[1]*100) == 50 and int(sphereColorArray[2]*100) == 50)
-    sphereColor = displayNode.GetSegmentColor('sphere1')
+    sphereColor = displayNode.GetSegmentColor(self.sphereSegmentName)
     self.assertTrue(sphereColor[0] == 0.5 and sphereColor[1] == 0.5 and sphereColor[2] == 0.5)
 
   #------------------------------------------------------------------------------
   def TestSection_2_MergeLabelmapWithDifferentGeometries(self):
     # Merge labelmap when segments containing labelmaps with different geometries (both same directions, different directions)
     logging.info('Test section 2: Merge labelmap with different geometries')
+
+    self.assertIsNotNone(self.sphereSegment)
+    self.sphereSegment.RemoveRepresentation(self.binaryLabelmapReprName)
+    self.assertIsNone(self.sphereSegment.GetRepresentation(self.binaryLabelmapReprName))
+
+    # Create new segmentation with sphere segment
+    self.secondSegmentationNode = vtkMRMLSegmentationNode()
+    self.secondSegmentationNode.SetName('Second')
+    self.secondSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.binaryLabelmapReprName)
+    slicer.mrmlScene.AddNode(self.secondSegmentationNode)
+
+    self.secondSegmentationNode.GetSegmentation().AddSegment(self.sphereSegment)
+
+    # Check automatically converted labelmap. It is supposed to have the default geometry
+    # (which is different than the one in the input segmentation)
+    sphereLabelmap = self.sphereSegment.GetRepresentation(self.binaryLabelmapReprName)
+    self.assertIsNotNone(sphereLabelmap)
+    sphereLabelmapSpacing = sphereLabelmap.GetSpacing()
+    self.assertTrue(sphereLabelmapSpacing[0] == 1.0 and sphereLabelmapSpacing[1] == 1.0 and sphereLabelmapSpacing[2] == 1.0)
+
+    # Copy segment to input segmentation
+    self.inputSegmentationNode.GetSegmentation().CopySegmentFromSegmentation(self.secondSegmentationNode.GetSegmentation(), self.sphereSegmentName)
+    self.assertEqual(self.inputSegmentationNode.GetSegmentation().GetNumberOfSegments(), 3)
+
+    # Check merged labelmap
+    mergedLabelmap = self.inputSegmentationNode.GetImageData()
+    self.assertIsNotNone(mergedLabelmap)
+    mergedLabelmapSpacing = sphereLabelmap.GetSpacing()
+    self.assertTrue(mergedLabelmapSpacing[0] == 1.0 and mergedLabelmapSpacing[1] == 1.0 and mergedLabelmapSpacing[2] == 1.0)
+
+    imageStat = vtk.vtkImageAccumulate()
+    imageStat.SetInputData(mergedLabelmap)
+    #imageStat.SetComponentExtent(0,4,0,0,0,0)
+    imageStat.SetComponentExtent(0,8,0,0,0,0)
+    imageStat.SetComponentOrigin(0,0,0)
+    imageStat.SetComponentSpacing(1,1,1)
+    imageStat.Update()
+    self.assertEqual(imageStat.GetVoxelCount(), 54872000)
+    imageStatResult = imageStat.GetOutput()
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 46678738)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 0)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 7618805)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 128968)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 0) # Built from color table and color four is removed in previous test section
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(5,0,0,0), 445489)
 
   #------------------------------------------------------------------------------
   def TestSection_3_ImportExportSegment(self):

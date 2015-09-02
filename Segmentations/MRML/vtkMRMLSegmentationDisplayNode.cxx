@@ -242,12 +242,12 @@ char* vtkMRMLSegmentationDisplayNode::GetPolyDataDisplayRepresentationName()
     {
       return NULL;
     }
-    const char* name = this->DeterminePolyDataDisplayRepresentationName();
-    if (!name)
+    std::string name(this->DeterminePolyDataDisplayRepresentationName());
+    if (name.empty())
     {
       return NULL;
     }
-    this->SetPolyDataDisplayRepresentationName(name);
+    this->SetPolyDataDisplayRepresentationName(name.c_str());
   }
 
   return this->PolyDataDisplayRepresentationName;
@@ -534,21 +534,21 @@ bool vtkMRMLSegmentationDisplayNode::CalculateAutoOpacitiesForSegments()
 }
 
 //---------------------------------------------------------------------------
-const char* vtkMRMLSegmentationDisplayNode::DeterminePolyDataDisplayRepresentationName()
+std::string vtkMRMLSegmentationDisplayNode::DeterminePolyDataDisplayRepresentationName()
 {
   // Get segmentation node
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(this->GetDisplayableNode());
   if (!segmentationNode)
   {
     vtkErrorMacro("DeterminePolyDataDisplayRepresentationName: No segmentation node associated to this display node!");
-    return vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName();
+    return std::string(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
   }
   // If segmentation is empty then we cannot show poly data
   vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
   if (!segmentation || segmentation->GetNumberOfSegments() == 0)
   {
     vtkWarningMacro("DeterminePolyDataDisplayRepresentationName: Empty segmentation!");
-    return vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName();
+    return std::string(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
   }
 
   // If master representation is poly data then use that
@@ -558,7 +558,7 @@ const char* vtkMRMLSegmentationDisplayNode::DeterminePolyDataDisplayRepresentati
   vtkDataObject* masterRepresentation = firstSegment->GetRepresentation(masterRepresentationName);
   if (vtkPolyData::SafeDownCast(masterRepresentation))
   {
-    return masterRepresentationName;
+    return std::string(masterRepresentationName);
   }
 
   // Otherwise return first poly data representation if any
@@ -570,13 +570,13 @@ const char* vtkMRMLSegmentationDisplayNode::DeterminePolyDataDisplayRepresentati
     vtkDataObject* currentRepresentation = firstSegment->GetRepresentation(*reprIt);
     if (vtkPolyData::SafeDownCast(currentRepresentation))
     {
-      return reprIt->c_str();
+      return (*reprIt);
     }
   }
   
   // If no poly data representations are available, then return closed surface representation name,
   // it might be able to be created from other representations
-  return vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName();
+  return std::string(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
 }
 
 //---------------------------------------------------------------------------

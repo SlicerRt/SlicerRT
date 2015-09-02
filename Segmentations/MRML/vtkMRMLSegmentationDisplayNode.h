@@ -144,7 +144,7 @@ protected:
   /// If master representation is a poly data then return master representation type.
   /// Otherwise return first poly data representation if any.
   /// Otherwise return closed surface representation (and then try to convert into it)
-  const char* DeterminePolyDataDisplayRepresentationName();
+  std::string DeterminePolyDataDisplayRepresentationName();
 
   /// Set segment color in associated color table
   /// \return Success flag
