@@ -140,7 +140,7 @@ void qSlicerSegmentationsModule::setup()
   
   // Register IOs
   qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
-  ioManager->registerIO(new qSlicerNodeWriter("Segmentation", QString("SegmentationFile"), QStringList() << "vtkMRMLSegmentationNode", this));
+  ioManager->registerIO(new qSlicerNodeWriter("Segmentation", QString("SegmentationFile"), QStringList() << "vtkMRMLSegmentationNode", true, this));
   ioManager->registerIO(new qSlicerSegmentationsReader(segmentationsLogic, this));
 
   // Use the displayable manager class to make sure the the containing library is loaded

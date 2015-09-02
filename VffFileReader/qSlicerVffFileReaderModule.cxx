@@ -110,7 +110,7 @@ void qSlicerVffFileReaderModule::setup()
   ioManager->registerIO(new qSlicerVffFileReaderPlugin(vffFileReaderLogic,this));
   ioManager->registerIO(new qSlicerNodeWriter(
     "Vff", QString("VffFile"),
-    QStringList() << "vtkMRMLScalarVolumeNode", this));
+    QStringList() << "vtkMRMLScalarVolumeNode", true, this));
 }
 
 //-----------------------------------------------------------------------------
