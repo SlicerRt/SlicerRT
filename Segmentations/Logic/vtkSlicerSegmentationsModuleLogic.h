@@ -118,6 +118,11 @@ public:
   /// \param labelmapNode Labelmap node to export the segments to
   static bool ExportSegmentsToLabelmapNode(vtkMRMLSegmentationNode* segmentationNode, std::vector<std::string>& segmentIDs, vtkMRMLLabelMapVolumeNode* labelmapNode);
 
+  /// Export all segments into a multi-label labelmap volume node
+  /// \param segmentationNode Segmentation node from which the the segments are exported
+  /// \param labelmapNode Labelmap node to export the segments to
+  static bool ExportAllSegmentsToLabelmapNode(vtkMRMLSegmentationNode* segmentationNode, vtkMRMLLabelMapVolumeNode* labelmapNode);
+
   /// Import all labels from a labelmap to a segmentation node, each label to a separate segment
   static bool ImportLabelmapToSegmentationNode(vtkMRMLLabelMapVolumeNode* labelmapNode, vtkMRMLSegmentationNode* segmentationNode);
 

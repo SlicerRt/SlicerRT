@@ -241,8 +241,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
 
     imageStat = vtk.vtkImageAccumulate()
     imageStat.SetInputData(mergedLabelmap)
-    #imageStat.SetComponentExtent(0,4,0,0,0,0)
-    imageStat.SetComponentExtent(0,8,0,0,0,0)
+    imageStat.SetComponentExtent(0,5,0,0,0,0)
     imageStat.SetComponentOrigin(0,0,0)
     imageStat.SetComponentSpacing(1,1,1)
     imageStat.Update()
@@ -259,6 +258,60 @@ class SegmentationsModuleTest1(unittest.TestCase):
   def TestSection_3_ImportExportSegment(self):
     # Import/export, both one label and all labels
     logging.info('Test section 3: Import/export segment')
+    
+    # Export single segment to model node
+    bodyModelNode = slicer.vtkMRMLModelNode()
+    bodyModelNode.SetName('BodyModel')
+    slicer.mrmlScene.AddNode(bodyModelNode)
+    
+    bodySegment = self.inputSegmentationNode.GetSegmentation().GetSegment('Body_Contour')
+    result = vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyModelNode)
+    self.assertTrue(result)
+    self.assertIsNotNone(bodyModelNode.GetPolyData())
+    self.assertEqual(bodyModelNode.GetPolyData().GetNumberOfPoints(), 302)
+    self.assertEqual(bodyModelNode.GetPolyData().GetNumberOfCells(), 588)
+
+    # Export single segment to volume node
+    bodyLabelmapNode = slicer.vtkMRMLLabelMapVolumeNode()
+    bodyLabelmapNode.SetName('BodyLabelmap')
+    slicer.mrmlScene.AddNode(bodyLabelmapNode)
+    result = vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyLabelmapNode)
+    self.assertTrue(result)
+    bodyImageData = bodyLabelmapNode.GetImageData()
+    self.assertIsNotNone(bodyImageData)
+    imageStat = vtk.vtkImageAccumulate()
+    imageStat.SetInputData(bodyImageData)
+    imageStat.Update()
+    self.assertEqual(imageStat.GetVoxelCount(), 648)
+    self.assertEqual(imageStat.GetMin()[0], 0)
+    self.assertEqual(imageStat.GetMax()[0], 1)
+
+    # Export multiple segments to volume node
+    allSegmentsLabelmapNode = slicer.vtkMRMLLabelMapVolumeNode()
+    allSegmentsLabelmapNode.SetName('AllSegmentsLabelmap')
+    slicer.mrmlScene.AddNode(allSegmentsLabelmapNode)
+    result = vtkSlicerSegmentationsModuleLogic.ExportAllSegmentsToLabelmapNode(self.inputSegmentationNode, allSegmentsLabelmapNode)
+    self.assertTrue(result)
+    allSegmentsImageData = allSegmentsLabelmapNode.GetImageData()
+    self.assertIsNotNone(allSegmentsImageData)
+    imageStat = vtk.vtkImageAccumulate()
+    imageStat.SetInputData(allSegmentsImageData)
+    imageStat.SetComponentExtent(0,5,0,0,0,0)
+    imageStat.SetComponentOrigin(0,0,0)
+    imageStat.SetComponentSpacing(1,1,1)
+    imageStat.Update()
+    self.assertEqual(imageStat.GetVoxelCount(), 54872000)
+    imageStatResult = imageStat.GetOutput()
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 46678738)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 0)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 7618805)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 128968)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 0) # Built from color table and color four is removed in previous test section
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(5,0,0,0), 445489)
+
+    # Import model to segmentation
+    
+    # Import labelmap to segmentation
 
   #------------------------------------------------------------------------------
   def TestSection_4_ConversionWithTransforms(self):

@@ -358,7 +358,7 @@ bool vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageDat
   // Make sure merged labelmap extents starts at zeros for compatibility reasons
   vtkMRMLSegmentationNode::ShiftVolumeNodeExtentToZeroStart(labelmapVolumeNode);
 
-  return labelmapVolumeNode;
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -721,6 +721,13 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::ExportAllSegmentsToLabelmapNode(vtkMRMLSegmentationNode* segmentationNode, vtkMRMLLabelMapVolumeNode* labelmapNode)
+{
+  std::vector<std::string> segmentIDs;
+  return vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(segmentationNode, segmentIDs, labelmapNode);
 }
 
 //-----------------------------------------------------------------------------
