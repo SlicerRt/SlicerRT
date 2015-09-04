@@ -110,7 +110,7 @@ void qSlicerPinnacleDvfReaderModule::setup()
   ioManager->registerIO(new qSlicerPinnacleDvfReaderPlugin(PinnacleDvfReaderLogic,this));
   ioManager->registerIO(new qSlicerNodeWriter(
     "Dvf", QString("Pinnacle DVF"),
-    QStringList() << "vtkMRMLGridTransformNode", this));
+    QStringList() << "vtkMRMLGridTransformNode", true, this));
 }
 
 //-----------------------------------------------------------------------------
