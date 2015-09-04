@@ -89,6 +89,9 @@ public:
   ///
   void GetRTBeamNodes(vtkCollection *);
 
+  /// Search for a beam of a given name.  Return NULL if beam not found
+  vtkMRMLRTBeamNode* GetRTBeamNode(const std::string& beamName);
+
   /// Set RTPlanName
   vtkSetStringMacro(RTPlanName);
 

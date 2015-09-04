@@ -61,13 +61,16 @@ public:
   /// TODO
   void SetAndObserveExternalBeamPlanningNode(vtkMRMLExternalBeamPlanningNode* node);
 
-  /// TODO
+  /// Get the EBP Node
   vtkGetObjectMacro(ExternalBeamPlanningNode, vtkMRMLExternalBeamPlanningNode);
 
-  /// TODO
-  void AddBeam();
+  /// Get the Plan associated with the EBP Node
+  vtkMRMLRTPlanNode * GetRTPlanNode();
 
-  /// TODO
+  /// Create a new beam, and add it to the plan associated with the EBP Node
+  vtkMRMLRTBeamNode * AddBeam();
+
+  /// Remove a beam with a specified beam name
   void RemoveBeam(char*);
 
   /// TODO

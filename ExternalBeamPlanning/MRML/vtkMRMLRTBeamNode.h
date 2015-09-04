@@ -40,6 +40,12 @@ class vtkMRMLSegmentationNode;
 class vtkMRMLDoubleArrayNode;
 class vtkRTBeamData;
 
+/// GCS 2015-09-04.  Why don't VTK macros support const functions?
+#define vtkGetConstMacro(name,type)             \
+  virtual type Get##name () const {             \
+    return this->name;                          \
+  }
+
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLDisplayableNode
 {
@@ -93,6 +99,11 @@ public:
   void UpdateReferences();
 
 public:
+  /// Get/Set RadiationType
+  vtkGetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
+  vtkGetConstMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
+  vtkSetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
+
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(NominalEnergy, double);
   vtkSetMacro(NominalEnergy, double);
@@ -171,6 +182,7 @@ public:
   vtkRTBeamData* GetBeamData() { return BeamData; }
 
   /// Return true if the beam name matches the argument
+  bool BeamNameIs (const std::string& beamName);
   bool BeamNameIs (const char *beamName);
 
   const double* GetIsocenterPosition ();
@@ -251,11 +263,10 @@ protected:
   char* TargetSegmentID;
 
   // Beam properties
-
-  RTRadiationType RadiationType;
-
   RTBeamType  BeamType;
+  RTRadiationType RadiationType;
   RTCollimatorType CollimatorType;
+
   double NominalEnergy;
   double NominalmA;
   double BeamOnTime;
@@ -293,7 +304,9 @@ protected:
   /// Beam-specific data
   vtkRTBeamData* BeamData;
 
-  //TODO: Change these references to MRML references. No need to store neither the node pointer nor the ID
+  //TODO: Change these references to MRML references. 
+  // No need to store neither the node pointer nor the ID.
+
   /// Beam model representation
   vtkMRMLModelNode* BeamModelNode;
   

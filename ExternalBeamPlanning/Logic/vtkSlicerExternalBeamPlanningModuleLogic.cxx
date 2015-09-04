@@ -151,18 +151,6 @@ vtkSlicerExternalBeamPlanningModuleLogic::~vtkSlicerExternalBeamPlanningModuleLo
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::SetMatlabDoseCalculationModuleLogic(vtkSlicerCLIModuleLogic* logic)
-{
-  this->Internal->MatlabDoseCalculationModuleLogic = logic;
-}
-
-//----------------------------------------------------------------------------
-vtkSlicerCLIModuleLogic* vtkSlicerExternalBeamPlanningModuleLogic::GetMatlabDoseCalculationModuleLogic()
-{
-  return this->Internal->MatlabDoseCalculationModuleLogic;
-}
-
-//----------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -567,15 +555,21 @@ vtkSmartPointer<vtkPolyData> vtkSlicerExternalBeamPlanningModuleLogic::CreateBea
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
+vtkMRMLRTPlanNode* vtkSlicerExternalBeamPlanningModuleLogic::GetRTPlanNode()
+{
+  return this->ExternalBeamPlanningNode->GetRtPlanNode();
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
   {
     vtkErrorMacro("AddBeam: Invalid MRML scene or parameter set node!");
-    return;
+    return 0;
   }
 
-  vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
+  vtkMRMLRTPlanNode* rtPlanNode = this->GetRTPlanNode();
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
   vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->ExternalBeamPlanningNode->GetIsocenterFiducialNode();
   
@@ -583,19 +577,19 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   if (!rtPlanNode)
   {
     vtkErrorMacro("AddBeam: No RT Plan Node specified");
-    return;
+    return 0;
   }
 
   if (!isocenterMarkupsNode)
   {
     vtkErrorMacro("AddBeam: Isocenter not specified");
-    return;
+    return 0;
   }
 
   if (!referenceVolumeNode)
   {
     vtkErrorMacro("AddBeam: Reference volume not specified");
-    return;
+    return 0;
   }
 
   // Get RT plan hierarchy node
@@ -713,6 +707,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
 
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
   this->Modified();
+
+  return RTBeamNode;
 }
 
 //---------------------------------------------------------------------------
@@ -1142,58 +1138,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose(vtkMRMLRTBeamNode* be
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRMLRTBeamNode* beamNode)
-{
-  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
-  {
-    vtkErrorMacro("ComputeDose: Invalid MRML scene or parameter set node!");
-    return;
-  }
-
-  vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
-  vtkMRMLScalarVolumeNode* outputDoseVolume = rtPlanNode->GetRTPlanDoseVolumeNode();
-  // Make sure inputs are initialized
-  if (!rtPlanNode || !referenceVolumeNode || !beamNode)
-  {
-    vtkErrorMacro("ComputeDoseByMatlab: Inputs are not initialized!");
-    return;
-  }
-
-  if (this->Internal->MatlabDoseCalculationModuleLogic == 0)
-    {
-      std::cerr << "ComputeDoseByMatlab: ERROR: logic is not set!";
-      return;
-    }
-
-  vtkSmartPointer<vtkMRMLCommandLineModuleNode> cmdNode = 
-    this->Internal->MatlabDoseCalculationModuleLogic->CreateNodeInScene();;
-  assert(cmdNode.GetPointer() != 0);
-
-  cmdNode->SetParameterAsString("referencevolume", referenceVolumeNode->GetID());
-  cmdNode->SetParameterAsString("outputdosevolume", outputDoseVolume->GetID());
-
-  this->Internal->MatlabDoseCalculationModuleLogic->ApplyAndWait(cmdNode);
-
-  this->GetMRMLScene()->RemoveNode(cmdNode);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::InitializeAccumulatedDose()
-{
-  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
-  {
-    vtkErrorMacro("InitializeAccumulatedDose: Invalid MRML scene or parameter set node!");
-    return;
-  }
-
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
-  Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
-
-  this->Internal->doseEngine->InitializeAccumulatedDose(plmRef);
-}
-
-//---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLRTBeamNode* beamNode)
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
@@ -1449,6 +1393,70 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
 void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 {
   /* Needs re-implmentation */
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::SetMatlabDoseCalculationModuleLogic(vtkSlicerCLIModuleLogic* logic)
+{
+  this->Internal->MatlabDoseCalculationModuleLogic = logic;
+}
+
+//----------------------------------------------------------------------------
+vtkSlicerCLIModuleLogic* vtkSlicerExternalBeamPlanningModuleLogic::GetMatlabDoseCalculationModuleLogic()
+{
+  return this->Internal->MatlabDoseCalculationModuleLogic;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRMLRTBeamNode* beamNode)
+{
+  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
+  {
+    vtkErrorMacro("ComputeDose: Invalid MRML scene or parameter set node!");
+    return;
+  }
+
+  vtkMRMLRTPlanNode* rtPlanNode = this->ExternalBeamPlanningNode->GetRtPlanNode();
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
+  vtkMRMLScalarVolumeNode* outputDoseVolume = rtPlanNode->GetRTPlanDoseVolumeNode();
+  // Make sure inputs are initialized
+  if (!rtPlanNode || !referenceVolumeNode || !beamNode)
+  {
+    vtkErrorMacro("ComputeDoseByMatlab: Inputs are not initialized!");
+    return;
+  }
+
+  if (this->Internal->MatlabDoseCalculationModuleLogic == 0)
+    {
+      std::cerr << "ComputeDoseByMatlab: ERROR: logic is not set!";
+      return;
+    }
+
+  vtkSmartPointer<vtkMRMLCommandLineModuleNode> cmdNode = 
+    this->Internal->MatlabDoseCalculationModuleLogic->CreateNodeInScene();;
+  assert(cmdNode.GetPointer() != 0);
+
+  cmdNode->SetParameterAsString("referencevolume", referenceVolumeNode->GetID());
+  cmdNode->SetParameterAsString("outputdosevolume", outputDoseVolume->GetID());
+
+  this->Internal->MatlabDoseCalculationModuleLogic->ApplyAndWait(cmdNode);
+
+  this->GetMRMLScene()->RemoveNode(cmdNode);
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::InitializeAccumulatedDose()
+{
+  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
+  {
+    vtkErrorMacro("InitializeAccumulatedDose: Invalid MRML scene or parameter set node!");
+    return;
+  }
+
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->ExternalBeamPlanningNode->GetReferenceVolumeNode();
+  Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
+
+  this->Internal->doseEngine->InitializeAccumulatedDose(plmRef);
 }
 
 //---------------------------------------------------------------------------

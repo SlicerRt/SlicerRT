@@ -327,23 +327,6 @@
       <string>Beam Parameters</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Beam Name:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="lineEdit_BeamName"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_9">
-        <property name="text">
-         <string>Machine Type:</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="1">
        <widget class="QComboBox" name="comboBox_RadiationType">
         <item>
@@ -363,18 +346,35 @@
         </item>
        </widget>
       </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Beam Name:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Machine Type:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEdit_BeamName"/>
+      </item>
       <item row="18" column="0" colspan="2">
        <widget class="QTabWidget" name="tabWidget">
         <property name="enabled">
          <bool>true</bool>
         </property>
         <property name="currentIndex">
-         <number>5</number>
+         <number>0</number>
         </property>
         <property name="tabsClosable">
          <bool>false</bool>
         </property>
-        <widget class="QWidget" name="tabWidgetPagePhotonRx">
+        <widget class="QWidget" name="tabWidgetPageRx">
          <attribute name="title">
           <string>Prescription</string>
          </attribute>
@@ -622,81 +622,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="tabWidgetPageProtonGeometry">
-         <attribute name="title">
-          <string>Geometry</string>
-         </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <layout class="QFormLayout" name="formLayout">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_5">
-              <property name="text">
-               <string>Collimator Angle:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="ctkSliderWidget" name="SliderWidget_ProtonCollimatorAngle">
-              <property name="decimals">
-               <number>0</number>
-              </property>
-              <property name="maximum">
-               <double>359.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Gantry Angle:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="ctkSliderWidget" name="SliderWidget_ProtonGantryAngle">
-              <property name="decimals">
-               <number>0</number>
-              </property>
-              <property name="singleStep">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="pageStep">
-               <double>10.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>359.000000000000000</double>
-              </property>
-              <property name="tickInterval">
-               <double>18.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Couch Angle:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="ctkSliderWidget" name="SliderWidget_ProtonCouchAngle">
-              <property name="decimals">
-               <number>0</number>
-              </property>
-              <property name="maximum">
-               <double>359.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tabWidgetPagePhotonGeometry">
+        <widget class="QWidget" name="tabWidgetPageGeometry">
          <attribute name="title">
           <string>Geometry</string>
          </attribute>
@@ -1204,38 +1130,6 @@
   <connection>
    <sender>qSlicerExternalBeamPlanningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_PhotonMLCPositionDoubleArray</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>174</x>
-     <y>744</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>513</x>
-     <y>534</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerExternalBeamPlanningModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_IsocenterFiducial</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>242</x>
-     <y>739</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>521</x>
-     <y>603</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerExternalBeamPlanningModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>SegmentSelectorWidget</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
@@ -1246,22 +1140,6 @@
     <hint type="destinationlabel">
      <x>365</x>
      <y>132</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerExternalBeamPlanningModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>SegmentSelectorWidget_TargetSegment</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>183</x>
-     <y>820</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>180</x>
-     <y>549</y>
     </hint>
    </hints>
   </connection>
@@ -1294,6 +1172,54 @@
     <hint type="destinationlabel">
      <x>305</x>
      <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerExternalBeamPlanningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_PhotonMLCPositionDoubleArray</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>174</x>
+     <y>744</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>513</x>
+     <y>534</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerExternalBeamPlanningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>SegmentSelectorWidget_TargetSegment</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>183</x>
+     <y>820</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>180</x>
+     <y>549</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerExternalBeamPlanningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_IsocenterFiducial</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>242</x>
+     <y>739</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>521</x>
+     <y>603</y>
     </hint>
    </hints>
   </connection>

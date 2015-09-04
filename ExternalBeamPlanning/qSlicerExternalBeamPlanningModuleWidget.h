@@ -146,6 +146,9 @@ protected:
   ///
   void updateRTBeamTableWidget();
 
+  /// Update widget GUI from a beam node
+  void updateWidgetFromRTBeam (const vtkMRMLRTBeamNode* beamNode);
+
   ///
   void updateBeamParameters();
 

@@ -197,6 +197,113 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam (const vtkMRMLRTBeamNode* beamNode)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  // If node is empty, remove all tabs
+  if (!beamNode) {
+    d->tabWidget->clear ();
+    return;
+  }
+
+  // Enable appropriate tabs and widgets for this beam type and set 
+  // widget values from MRML node
+  vtkMRMLRTBeamNode::RTRadiationType radType = beamNode->GetRadiationType();
+  if (radType == vtkMRMLRTBeamNode::Photon)
+  {
+    // Enable or disable widgets on the prescription tab 
+    d->label_NominalEnergy->setEnabled (true);
+    d->comboBox_NominalEnergy->setEnabled (true);
+    d->label_BeamOnTime->setEnabled (true);
+    d->lineEdit_BeamOnTime->setEnabled (true);
+    d->label_NominalmA->setEnabled (true);
+    d->lineEdit_NominalmA->setEnabled (true);
+
+    // Disable unneeded tabs
+    int index;
+    index = d->tabWidget->indexOf(d->tabWidgetPageProtonBeamModel);
+    if (index >= 0)
+    {
+      d->tabWidget->removeTab(index);
+    }
+
+    // Enable needed tabs and set widget values
+    index = d->tabWidget->indexOf(d->tabWidgetPageGeometry);
+    if (index == -1)
+    {
+      d->tabWidget->addTab(d->tabWidgetPageGeometry, "Geometry");
+    }
+
+    index = d->tabWidget->indexOf(d->tabWidgetPagePhotonBeamModel);
+    if (index == -1)
+    {
+      d->tabWidget->addTab(d->tabWidgetPagePhotonBeamModel, "Beam Model");
+    }
+  }
+  else if (radType == vtkMRMLRTBeamNode::Proton)
+  {
+    // Enable or disable widgets on the prescription tab 
+    d->label_NominalEnergy->setEnabled (false);
+    d->comboBox_NominalEnergy->setEnabled (false);
+    d->label_BeamOnTime->setEnabled (false);
+    d->lineEdit_BeamOnTime->setEnabled (false);
+    d->label_NominalmA->setEnabled (false);
+    d->lineEdit_NominalmA->setEnabled (false);
+
+    // Disable unneeded tabs
+    int index;
+    index = d->tabWidget->indexOf(d->tabWidgetPagePhotonBeamModel);
+    if (index >= 0)
+    {
+      d->tabWidget->removeTab(index);
+    }
+
+    // Enable needed tabs and set widget values
+    // N.b. Proton beam type uses photon geometry
+    index = d->tabWidget->indexOf(d->tabWidgetPageRx);
+    if (index == -1)
+    {
+      d->tabWidget->addTab(d->tabWidgetPageRx, "Prescription");
+    }
+    index = d->tabWidget->indexOf(d->tabWidgetPageProtonEnergy);
+    if (index == -1)
+    {
+      d->tabWidget->addTab(d->tabWidgetPageProtonEnergy, "Energy");
+    }
+    index = d->tabWidget->indexOf(d->tabWidgetPageGeometry);
+    if (index == -1)
+    {
+      d->tabWidget->addTab(d->tabWidgetPageGeometry, "Geometry");
+    }
+    index = d->tabWidget->indexOf(d->tabWidgetPageProtonBeamModel);
+    if (index == -1)
+    {
+      d->tabWidget->addTab(d->tabWidgetPageProtonBeamModel, "Beam Model");
+    }
+  }
+  else if (radType == vtkMRMLRTBeamNode::Electron)
+  {
+    /* Not implemented */
+    d->tabWidget->clear ();
+  }
+
+  /* GCS TODO: Here I need to set the beam tabs from the RT Beam */
+
+#if defined (commentout)
+  d->RangeWidget_PhotonXJawsPosition->setValues(-paramNode->GetX1Jaw(), paramNode->GetX2Jaw());
+  d->RangeWidget_PhotonYJawsPosition->setValues(-paramNode->GetY1Jaw(), paramNode->GetY2Jaw());
+  d->SliderWidget_PhotonGantryAngle->setValue(paramNode->GetGantryAngle());
+  d->SliderWidget_PhotonCollimatorAngle->setValue(paramNode->GetCollimatorAngle());
+  d->SliderWidget_PhotonCouchAngle->setValue(paramNode->GetCouchAngle());
+
+  d->SliderWidget_ProtonGantryAngle->setValue(paramNode->GetGantryAngle());
+  d->SliderWidget_ProtonCollimatorAngle->setValue(paramNode->GetCollimatorAngle());
+  d->SliderWidget_ProtonCouchAngle->setValue(paramNode->GetCouchAngle());
+#endif
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
@@ -250,20 +357,13 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
       this->isocenterFiducialNodeChanged(d->MRMLNodeComboBox_IsocenterFiducial->currentNode());
     }
 
+#if defined (commentout)
     if (paramNode->GetBeamName())
     {
       d->lineEdit_BeamName->setText(paramNode->GetBeamName());
     }
-
-    d->RangeWidget_PhotonXJawsPosition->setValues(-paramNode->GetX1Jaw(), paramNode->GetX2Jaw());
-    d->RangeWidget_PhotonYJawsPosition->setValues(-paramNode->GetY1Jaw(), paramNode->GetY2Jaw());
-    d->SliderWidget_PhotonGantryAngle->setValue(paramNode->GetGantryAngle());
-    d->SliderWidget_PhotonCollimatorAngle->setValue(paramNode->GetCollimatorAngle());
-    d->SliderWidget_PhotonCouchAngle->setValue(paramNode->GetCouchAngle());
-
-    d->SliderWidget_ProtonGantryAngle->setValue(paramNode->GetGantryAngle());
-    d->SliderWidget_ProtonCollimatorAngle->setValue(paramNode->GetCollimatorAngle());
-    d->SliderWidget_ProtonCouchAngle->setValue(paramNode->GetCouchAngle());
+#endif
+    /* GCS TODO: Here I still need to set the beam tabs */
 
   }
 }
@@ -328,19 +428,14 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->doubleSpinBox_ProtonProximalMargins, SIGNAL(valueChanged(double)), this, SLOT(protonProximalMarginChanged(double)) );
   this->connect( d->doubleSpinBox_ProtonDistalMargins, SIGNAL(valueChanged(double)), this, SLOT(protonDistalMarginChanged(double)) );
 
-  /* Proton Geometry page */
-  this->connect( d->SliderWidget_ProtonGantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
-  this->connect( d->SliderWidget_ProtonCollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
-  this->connect( d->SliderWidget_ProtonCouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
-  this->connect( d->doubleSpinBox_beamWeight, SIGNAL(valueChanged(double)), this, SLOT(beamWeightChanged(double)) );
-
-  /* Photon Geometry page */
+  /* Geometry page */
   this->connect( d->MRMLNodeComboBox_PhotonMLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(MLCPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
   this->connect( d->RangeWidget_PhotonXJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(XJawsPositionValuesChanged(double, double)) );
   this->connect( d->RangeWidget_PhotonYJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(YJawsPositionValuesChanged(double, double)) );
   this->connect( d->SliderWidget_PhotonGantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
   this->connect( d->SliderWidget_PhotonCollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
   this->connect( d->SliderWidget_PhotonCouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
+  this->connect( d->doubleSpinBox_beamWeight, SIGNAL(valueChanged(double)), this, SLOT(beamWeightChanged(double)) );
 
   /* Proton beam model */
   this->connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(protonSourceDistanceChanged(double)) );
@@ -361,7 +456,10 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->pushButton_ClearDose, SIGNAL(clicked()), this, SLOT(clearDoseClicked()) );
 
   /* Disable unused buttons in prescription task */
-  this->radiationTypeChanged(0);
+  //this->radiationTypeChanged(0);
+
+  /* Remove all tabs in Beam TabWidget */
+  d->tabWidget->clear ();
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -460,13 +558,12 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode(v
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   QTableWidgetItem *item = NULL;
-  char beamName[100];
   item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
   if (!item)
   {
     return NULL;
   }
-  strcpy(beamName, item->text().toStdString().c_str());
+  std::string beamName = item->text().toStdString();
 
   vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRtPlanNode();
   if (!rtPlanNode)
@@ -475,23 +572,9 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode(v
     return NULL;
   }
 
-  printf ("Searching for beams.\n");
-  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  rtPlanNode->GetRTBeamNodes(beams);
-  if (!beams) 
-  {
-    return NULL;
-  }
-  vtkMRMLRTBeamNode* beamNode = NULL;
-  for (int i=0; i<beams->GetNumberOfItems(); ++i)
-  {
-    beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-    if (beamNode && beamNode->BeamNameIs(beamName)) {
-        break;
-    }
-  }
-
+  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetRTBeamNode (beamName);
   printf ("Found beam node (%p)\n", beamNode);
+
   return beamNode;
 }
 
@@ -683,11 +766,28 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
     return;
   }
 
-  // TODO
-  std::string errorMessage;
+  // GCS FIX
+
+  // --------- Future algorithm ----------------
+  // Step 1. Find out which beam is currently highlighted
+  // Step 2. Replicate beam node (or create from default if none highlighted)
+  // Step 3. Update UI
+  // Step 4. Add node to scene
+
+  // --------- Current algorithm ---------------
+  // Step 1. Create node and add to scene
+  // Step 2. Update UI
+
+  // Create node and add to scene
+  vtkMRMLRTBeamNode *beamNode = d->logic()->AddBeam();
+
+  // Update UI
+  this->updateWidgetFromRTBeam (beamNode);
+
+  // Make new beam current in the table
   d->currentBeamRow = d->totalBeamRows;
   d->totalBeamRows ++;
-  d->logic()->AddBeam();
+  d->tableWidget_Beams->selectRow(d->currentBeamRow);
 }
 
 //-----------------------------------------------------------------------------
@@ -718,25 +818,28 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetCellClicked(int row, in
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   UNUSED_VARIABLE(column);
 
+  /* Don't do anything when clicking on selected beam */
+  if (row == d->currentBeamRow) {
+    return;
+  }
+
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
   if (!paramNode) {
     return;
   }
 
-  if (row != d->currentBeamRow)  
-  {
-    d->currentBeamRow = row;
-  }
-
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
-
   // Make sure inputs are initialized
+  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
   if (!beamNode)
   {
     qCritical() << "tableWidgetItemClicked: Inputs are not initialized!";
     return;
   }
 
+  // Copy data from beam into tabs UI
+  this->updateWidgetFromRTBeam (beamNode);
+
+#if defined (commentout)
   /* GCS FIX TODO -- use vtkRTBeamData::Copy() */
   paramNode->SetBeamName(beamNode->GetBeamData()->GetBeamName());
 
@@ -767,6 +870,7 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetCellClicked(int row, in
   paramNode->SetSmearing(beamNode->GetSmearing());
   paramNode->SetProximalMargin(beamNode->GetProximalMargin());
   paramNode->SetDistalMargin(beamNode->GetDistalMargin());
+#endif
 
   /* To be implemented */
   //paramNode->SetRadiationType
@@ -815,6 +919,11 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
     return;
   }
 
+
+  // GCS FIX: This needs to make changes to the node, then set 
+  // values from node into UI
+
+#if defined (commentout)
   QString text = d->comboBox_RadiationType->currentText();
 
   printf ("qSEBP::radiationTypeChanged (%s)\n",
@@ -833,11 +942,6 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
 
     // Make Photon pages visible and others invisible
     int index =-1;
-    index = d->tabWidget->indexOf(d->tabWidgetPageProtonGeometry);
-    if (index >=0)
-    {
-      d->tabWidget->removeTab(index);
-    }
     index = d->tabWidget->indexOf(d->tabWidgetPageProtonBeamModel);
     if (index >= 0)
     {
@@ -902,6 +1006,7 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
     //d->label_CollimatorType->setEnabled (false);
     //d->comboBox_CollimatorType->setEnabled (false);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
