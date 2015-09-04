@@ -181,6 +181,10 @@ public:
   const vtkRTBeamData* GetBeamData() const { return BeamData; }
   vtkRTBeamData* GetBeamData() { return BeamData; }
 
+  /// Get/Set beam name
+  const std::string GetBeamName() const;
+  void SetBeamName(const std::string& beamName);
+
   /// Return true if the beam name matches the argument
   bool BeamNameIs (const std::string& beamName);
   bool BeamNameIs (const char *beamName);

@@ -143,6 +143,12 @@ protected:
   ///
   void onEnter();
 
+  /// Utility functions
+  vtkMRMLExternalBeamPlanningNode* getExternalBeamPlanningNode ();
+  vtkMRMLRTBeamNode* getCurrentBeamNode (vtkMRMLExternalBeamPlanningNode*);
+  vtkMRMLRTBeamNode* getCurrentBeamNode();
+  std::string getCurrentBeamName ();
+
   ///
   void updateRTBeamTableWidget();
 
@@ -151,9 +157,6 @@ protected:
 
   ///
   void updateBeamParameters();
-
-  ///
-  vtkMRMLRTBeamNode* getCurrentBeamNode(vtkMRMLExternalBeamPlanningNode*);
 
   ///
   void UpdateBeamTransform();

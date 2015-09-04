@@ -197,6 +197,54 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 }
 
 //-----------------------------------------------------------------------------
+vtkMRMLExternalBeamPlanningNode* qSlicerExternalBeamPlanningModuleWidget::getExternalBeamPlanningNode ()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  
+  return d->logic()->GetExternalBeamPlanningNode();
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode(vtkMRMLExternalBeamPlanningNode* paramNode)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  QTableWidgetItem *item = NULL;
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+  if (!item)
+  {
+    return NULL;
+  }
+  std::string beamName = item->text().toStdString();
+
+  vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRtPlanNode();
+  if (!rtPlanNode)
+  {
+    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChanged: Invalid rtplan node!";
+    return NULL;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetRTBeamNode (beamName);
+  printf ("Found beam node (%p)\n", beamNode);
+
+  return beamNode;
+}
+
+vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode()
+{
+  return this->getCurrentBeamNode (this->getExternalBeamPlanningNode());
+}
+
+//-----------------------------------------------------------------------------
+std::string qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamName ()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  return beamNode->GetBeamName ();
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam (const vtkMRMLRTBeamNode* beamNode)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
@@ -505,6 +553,8 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
     return;
   }
 
+  printf ("*** Updating RT BEAM TABLE ***\n");
+
   // Clear the beam table
   d->tableWidget_Beams->setRowCount(0);
   d->tableWidget_Beams->setColumnCount(0);
@@ -550,32 +600,6 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
   {
     d->tableWidget_Beams->selectRow(d->currentBeamRow);
   }
-}
-
-//-----------------------------------------------------------------------------
-vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode(vtkMRMLExternalBeamPlanningNode* paramNode)
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  QTableWidgetItem *item = NULL;
-  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
-  if (!item)
-  {
-    return NULL;
-  }
-  std::string beamName = item->text().toStdString();
-
-  vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRtPlanNode();
-  if (!rtPlanNode)
-  {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChanged: Invalid rtplan node!";
-    return NULL;
-  }
-
-  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetRTBeamNode (beamName);
-  printf ("Found beam node (%p)\n", beamNode);
-
-  return beamNode;
 }
 
 //-----------------------------------------------------------------------------

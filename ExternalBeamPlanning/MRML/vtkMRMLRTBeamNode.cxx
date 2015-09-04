@@ -252,6 +252,18 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTBeamNode::GetIsocenterFiducialNode()
 }
 
 //----------------------------------------------------------------------------
+const std::string vtkMRMLRTBeamNode::GetBeamName() const
+{
+  return std::string(BeamData->GetBeamName());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetBeamName(const std::string& beamName)
+{
+  BeamData->SetBeamName(beamName.c_str());
+}
+
+//----------------------------------------------------------------------------
 bool vtkMRMLRTBeamNode::BeamNameIs (const std::string& beamName)
 {
   return BeamNameIs (beamName.c_str());

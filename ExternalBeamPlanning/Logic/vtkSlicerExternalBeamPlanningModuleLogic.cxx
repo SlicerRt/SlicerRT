@@ -664,7 +664,7 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   RTBeamModelDisplayNode->HideFromEditorsOff();
   RTBeamModelDisplayNode->VisibilityOn(); 
   RTBeamModelNode->SetAndObserveDisplayNodeID(RTBeamModelDisplayNode->GetID());
-  RTBeamModelDisplayNode->SliceIntersectionVisibilityOn();  
+  RTBeamModelDisplayNode->SliceIntersectionVisibilityOn();
 
   // Create rtbeam node
   vtkSmartPointer<vtkMRMLRTBeamNode> RTBeamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
@@ -673,6 +673,7 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   beamData->SetBeamName(rtBeamNodeName.c_str());
   RTBeamNode->SetAndObserveBeamModelNodeId(RTBeamModelNode->GetID());
   RTBeamNode->HideFromEditorsOff();
+  printf ("** Created node with beam name = %s\n", rtBeamNodeName.c_str());
 
   // Put the RTBeam node in the hierarchy
   rtPlanNode->AddRTBeamNode(RTBeamNode);
