@@ -469,6 +469,11 @@ vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(vtkMRM
     std::cerr << "vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode: Invalid model MRML node!";
     return NULL;
   }
+  if (!modelNode->GetPolyData())
+  {
+    vtkErrorWithObjectMacro(modelNode, "CreateSegmentFromModelNode: Model node does not contain poly data!");
+    return NULL;
+  }
 
   double color[3] = { vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0],
                       vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],

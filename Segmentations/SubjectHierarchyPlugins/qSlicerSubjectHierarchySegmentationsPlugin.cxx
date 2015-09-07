@@ -372,8 +372,7 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded(vtkObject* calle
     vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(segmentationNode);
   if (!segmentationSubjectHierarchyNode)
   {
-    // Debug message instead of warning because auto subject hierarchy node creation might not be enabled
-    qDebug() << "qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded: Unable to find subject hierarchy node for segmentation node " << segmentationNode->GetName() << " so per-segment subject hierarchy node cannot be created";
+    // No warning because auto subject hierarchy node creation might not be enabled
     return;
   }
 

@@ -560,7 +560,7 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
     colorTableNode = displayNode->CreateColorTableNode(this->Name);
   }
 
- int wasModifyingColorTableNode = colorTableNode->StartModify();
+  int wasModifyingColorTableNode = colorTableNode->StartModify();
 
   // Add entry in color table for segment
   int numberOfColors = colorTableNode->GetNumberOfColors();

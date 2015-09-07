@@ -309,9 +309,57 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 0) # Built from color table and color four is removed in previous test section
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(5,0,0,0), 445489)
 
-    # Import model to segmentation
-    
-    # Import labelmap to segmentation
+    # Import model to segment
+    modelImportSegmentationNode = vtkMRMLSegmentationNode()
+    modelImportSegmentationNode.SetName('ModelImport')
+    modelImportSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.closedSurfaceReprName)
+    slicer.mrmlScene.AddNode(modelImportSegmentationNode)
+    modelSegment = vtkSlicerSegmentationsModuleLogic.CreateSegmentFromModelNode(bodyModelNode)
+    modelSegment.UnRegister(None) # Need to release ownership
+    self.assertIsNotNone(modelSegment)
+    self.assertIsNotNone(modelSegment.GetRepresentation(self.closedSurfaceReprName))
+
+    # Import multi-label labelmap to segmentation
+    multiLabelImportSegmentationNode = vtkMRMLSegmentationNode()
+    multiLabelImportSegmentationNode.SetName('MultiLabelImport')
+    multiLabelImportSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.binaryLabelmapReprName)
+    slicer.mrmlScene.AddNode(multiLabelImportSegmentationNode)
+    result = vtkSlicerSegmentationsModuleLogic.ImportLabelmapToSegmentationNode(allSegmentsLabelmapNode, multiLabelImportSegmentationNode)
+    self.assertTrue(result)
+    self.assertEqual(multiLabelImportSegmentationNode.GetSegmentation().GetNumberOfSegments(), 3)
+
+    # Import labelmap into single segment
+    singleLabelImportSegmentationNode = vtkMRMLSegmentationNode()
+    singleLabelImportSegmentationNode.SetName('SingleLabelImport')
+    singleLabelImportSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.binaryLabelmapReprName)
+    slicer.mrmlScene.AddNode(singleLabelImportSegmentationNode)
+    # Should not import multi-label labelmap to segment
+    nullSegment = vtkSlicerSegmentationsModuleLogic.CreateSegmentFromLabelmapVolumeNode(allSegmentsLabelmapNode)
+    self.assertIsNone(nullSegment)
+    # Make labelmap single-label and import again
+    threshold = vtk.vtkImageThreshold()
+    threshold.ThresholdByUpper(0.5)
+    threshold.SetInValue(1)
+    threshold.SetOutValue(0)
+    threshold.SetOutputScalarType(vtk.VTK_UNSIGNED_CHAR)
+    if vtk.VTK_MAJOR_VERSION <= 5:
+      threshold.SetInput(allSegmentsLabelmapNode.GetImageData())
+    else:
+      threshold.SetInputData(allSegmentsLabelmapNode.GetImageData())
+    threshold.SetOutput(allSegmentsLabelmapNode.GetImageData())
+    threshold.Update()
+    labelSegment = vtkSlicerSegmentationsModuleLogic.CreateSegmentFromLabelmapVolumeNode(allSegmentsLabelmapNode)
+    labelSegment.UnRegister(None) # Need to release ownership
+    self.assertIsNotNone(labelSegment)
+    self.assertIsNotNone(labelSegment.GetRepresentation(self.binaryLabelmapReprName))
+
+    # Clean up temporary nodes
+    slicer.mrmlScene.RemoveNode(bodyModelNode)
+    slicer.mrmlScene.RemoveNode(bodyLabelmapNode)
+    slicer.mrmlScene.RemoveNode(allSegmentsLabelmapNode)
+    slicer.mrmlScene.RemoveNode(modelImportSegmentationNode)
+    slicer.mrmlScene.RemoveNode(multiLabelImportSegmentationNode)
+    slicer.mrmlScene.RemoveNode(singleLabelImportSegmentationNode)
 
   #------------------------------------------------------------------------------
   def TestSection_4_ConversionWithTransforms(self):

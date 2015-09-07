@@ -303,7 +303,6 @@ bool vtkMRMLSegmentationDisplayNode::GetSegmentDisplayProperties(std::string seg
   SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentId);
   if (propsIt == this->SegmentationDisplayProperties.end())
   {
-    vtkErrorMacro("GetSegmentDisplayProperties: No display properties found for segment with ID " << segmentId);
     return false;
   }
 
