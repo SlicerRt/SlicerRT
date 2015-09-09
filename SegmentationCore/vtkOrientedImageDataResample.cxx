@@ -87,7 +87,7 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
   referenceImageToInputImageTransform->Inverse();
 
   // Create clone for input image that has an identity geometry
-  //TODO: vtkOrientedImageReslice would be a better solution on the long run
+  //TODO: Creating a new vtkOrientedImageReslice class would be a better solution on the long run
   vtkSmartPointer<vtkMatrix4x4> identityMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   identityMatrix->Identity();
   vtkSmartPointer<vtkOrientedImageData> identityInputImage = vtkSmartPointer<vtkOrientedImageData>::New();

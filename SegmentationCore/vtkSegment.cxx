@@ -22,13 +22,13 @@
 #include "vtkSegment.h"
 
 #include "vtkSegmentationConverterFactory.h"
+#include "vtkOrientedImageData.h"
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkMath.h>
-#include <vtkAbstractTransform.h>
 #include <vtkDataSet.h>
 
 // STD includes
@@ -261,22 +261,6 @@ void vtkSegment::RemoveTag(std::string tag)
 void vtkSegment::GetTags(std::vector<std::string> &tags)
 {
   tags = this->Tags;
-}
-
-//---------------------------------------------------------------------------
-void vtkSegment::ApplyLinearTransform(vtkAbstractTransform* transform)
-{
-  // Harden transform on poly data, apply to directions on oriented image data
-  //TODO:
-  vtkErrorMacro("Not implemented!");
-}
-
-//---------------------------------------------------------------------------
-void vtkSegment::ApplyNonLinearTransform(vtkAbstractTransform* transform)
-{
-  // Harden transform on both image data and poly data for each segment individually
-  //TODO:
-  vtkErrorMacro("Not implemented!");
 }
 
 //---------------------------------------------------------------------------

@@ -83,10 +83,12 @@ public:
   /// Get bounding box in global RAS in the form (xmin,xmax, ymin,ymax, zmin,zmax).
   virtual void GetBounds(double bounds[6]);
 
-  /// Apply a linear transform on the segments
+  /// Apply a linear transform on the master representation of the segments. The others will be invalidated
+  /// Harden transform if poly data, apply to directions if oriented image data.
   virtual void ApplyLinearTransform(vtkAbstractTransform* transform);
 
-  /// Apply a non-linear transform on the segments
+  /// Apply a non-linear transform on the master representation of the segments. The others will be invalidated
+  /// Harden transform both if oriented image data and poly data.
   virtual void ApplyNonLinearTransform(vtkAbstractTransform* transform);
 
   /// Returns true if the node (default behavior) or the internal data are modified

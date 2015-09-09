@@ -61,7 +61,7 @@ public:
   /// Copy the entire contents of the node into this node
   virtual void DeepCopy(vtkMRMLNode* node);
 
-  /// Get unique node XML tag name (like Volume, Model) 
+  /// Get unique node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "Segmentation";};
 
   /// Get bounding box in global RAS in the form (xmin,xmax, ymin,ymax, zmin,zmax).
@@ -75,6 +75,10 @@ public:
   /// Returns true if the transformable node can apply non linear transforms
   /// \sa ApplyTransform
   virtual bool CanApplyNonLinearTransforms()const;
+
+  /// Apply a transform matrix on the segmentation
+  /// \sa SetAndObserveTransformNodeID, ApplyTransform, CanApplyNonLinearTransforms
+  virtual void ApplyTransformMatrix(vtkMatrix4x4* transformMatrix);
 
   /// Apply a transform on the segmentation
   /// \sa SetAndObserveTransformNodeID, CanApplyNonLinearTransforms

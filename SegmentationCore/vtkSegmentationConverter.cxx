@@ -29,6 +29,8 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkSmartPointer.h>
 #include <vtkMatrix4x4.h>
 #include <vtkImageData.h>
+#include <vtkTransform.h>
+#include <vtkLinearTransform.h>
 
 // STD includes
 #include <sstream>
@@ -520,4 +522,47 @@ void vtkSegmentationConverter::DeserializeConversionParameters(std::string conve
     conversionParametersString = conversionParametersString.substr(separatorPosition+1);
     separatorPosition = conversionParametersString.find(SERIALIZATION_SEPARATOR);
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkSegmentationConverter::ApplyTransformOnReferenceImageGeometry(vtkAbstractTransform* transform)
+{
+  vtkLinearTransform* linearTransform = vtkLinearTransform::SafeDownCast(transform);
+
+  // Get current reference geometry parameter
+  std::string geometryString = this->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
+
+  // Deserialize parameter string into oriented image data
+  vtkSmartPointer<vtkOrientedImageData> geometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
+  if (!vtkSegmentationConverter::DeserializeImageGeometry(geometryString, geometryImage))
+  {
+    vtkErrorMacro("ApplyTransformOnReferenceImageGeometry: Failed to get reference image geometry");
+    return;
+  }
+
+  // Linear: simply multiply the geometry matrix with the applied matrix, extent stays the same
+  if (linearTransform)
+  {
+    vtkSmartPointer<vtkTransform> newImageGeometryTransform = vtkSmartPointer<vtkTransform>::New();
+    vtkSmartPointer<vtkMatrix4x4> imageGeometryMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    geometryImage->GetImageToWorldMatrix(imageGeometryMatrix);
+    newImageGeometryTransform->Concatenate(linearTransform);
+    newImageGeometryTransform->Concatenate(imageGeometryMatrix);
+    geometryImage->SetGeometryFromImageToWorldMatrix(newImageGeometryTransform->GetMatrix());
+  }
+  // Non-linear: calculate new extents and change only the extents
+  else
+  {
+    //TODO:
+  }
+
+  // Set reference image geometry parameter from oriented image data
+  std::string newGeometryString = vtkSegmentationConverter::SerializeImageGeometry(geometryImage);
+  if (newGeometryString.empty())
+  {
+    vtkErrorMacro("ApplyTransformOnReferenceImageGeometry: Failed to serialize new image geometry");
+    return;
+  }
+  this->SetConversionParameter(
+    vtkSegmentationConverter::GetReferenceImageGeometryParameterName(), newGeometryString );
 }

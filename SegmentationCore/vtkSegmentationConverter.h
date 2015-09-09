@@ -107,6 +107,11 @@ public:
   /// Such a string can be constructed in a segmentation converter object using /sa SerializeAllConversionParameters
   void DeserializeConversionParameters(std::string conversionParametersString);
 
+  /// Apply a transform on the reference image geometry
+  /// Linear: simply multiply the geometry matrix with the applied matrix, extent stays the same
+  /// Non-linear: calculate new extents and change only the extents
+  void ApplyTransformOnReferenceImageGeometry(vtkAbstractTransform* transform);
+
 // Utility functions
 public:
   /// Return cheapest path from a list of paths with costs

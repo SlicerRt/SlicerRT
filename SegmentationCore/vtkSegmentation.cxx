@@ -34,9 +34,13 @@
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkMath.h>
-#include <vtkAbstractTransform.h>
 #include <vtkCallbackCommand.h>
 #include <vtkStringArray.h>
+#include <vtkAbstractTransform.h>
+#include <vtkMatrix4x4.h>
+#include <vtkTransform.h>
+#include <vtkPolyData.h>
+#include <vtkTransformPolyDataFilter.h>
 
 // STD includes
 #include <sstream>
@@ -492,6 +496,10 @@ void vtkSegmentation::OnMasterRepresentationModified(vtkObject* vtkNotUsed(calle
     return;
   }
 
+  // Invalidate all representations other than the master.
+  // These representations will be automatically converted later on demand.
+  self->InvalidateNonMasterRepresentations();
+
   self->InvokeEvent(vtkSegmentation::MasterRepresentationModified, self);
 
   self->Modified();
@@ -571,21 +579,67 @@ void vtkSegmentation::GetSegmentIDs(vtkStringArray* segmentIds)
 //---------------------------------------------------------------------------
 void vtkSegmentation::ApplyLinearTransform(vtkAbstractTransform* transform)
 {
+  vtkLinearTransform* linearTransform = vtkLinearTransform::SafeDownCast(transform);
+  if (!linearTransform)
+  {
+    vtkErrorMacro("ApplyLinearTransform: Given transform is not a linear transform!");
+    return;
+  }
+
+  // Apply transform on reference image geometry conversion parameter (to preserve validity of merged labelmap)
+  this->Converter->ApplyTransformOnReferenceImageGeometry(transform);
+
   // Apply linear transform for each segment:
-  // Harden transform on poly data, apply to directions on oriented image data
+  // Harden transform on master representation if poly data, apply directions if oriented image data
   for (SegmentMap::iterator it = this->Segments.begin(); it != this->Segments.end(); ++it)
   {
-    it->second->ApplyLinearTransform(transform);
+    vtkDataObject* currentMasterRepresentation = it->second->GetRepresentation(this->MasterRepresentationName);
+    if (!currentMasterRepresentation)
+    {
+      vtkErrorMacro("ApplyLinearTransform: Cannot get master representation (" << (this->MasterRepresentationName ? this->MasterRepresentationName : "NULL") << ") from segment!");
+      return;
+    }
+
+    vtkPolyData* currentMasterRepresentationPolyData = vtkPolyData::SafeDownCast(currentMasterRepresentation);
+    vtkOrientedImageData* currentMasterRepresentationOrientedImageData = vtkOrientedImageData::SafeDownCast(currentMasterRepresentation);
+    if (currentMasterRepresentationPolyData)
+    {
+      vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
+#if (VTK_MAJOR_VERSION <= 5)
+      transformFilter->SetInput(currentMasterRepresentationPolyData);
+#else
+      transformFilter->SetInputData(currentMasterRepresentationPolyData);
+#endif
+      transformFilter->SetTransform(linearTransform);
+      transformFilter->Update();
+      currentMasterRepresentationPolyData->DeepCopy(transformFilter->GetOutput());
+    }
+    else if (currentMasterRepresentationOrientedImageData)
+    {
+      vtkSmartPointer<vtkTransform> newImageGeometryTransform = vtkSmartPointer<vtkTransform>::New();
+      vtkSmartPointer<vtkMatrix4x4> imageGeometryMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      currentMasterRepresentationOrientedImageData->GetImageToWorldMatrix(imageGeometryMatrix);
+      newImageGeometryTransform->Concatenate(linearTransform);
+      newImageGeometryTransform->Concatenate(imageGeometryMatrix);
+      currentMasterRepresentationOrientedImageData->SetGeometryFromImageToWorldMatrix(newImageGeometryTransform->GetMatrix());
+    }
+    else
+    {
+      vtkErrorMacro("ApplyLinearTransform: Representation data type '" << currentMasterRepresentation->GetClassName() << "' not supported!");
+    }
   }
 }
 
 //---------------------------------------------------------------------------
 void vtkSegmentation::ApplyNonLinearTransform(vtkAbstractTransform* transform)
 {
-  // Harden transform on both image data and poly data for each segment individually
+  // Apply transform on reference image geometry conversion parameter (to preserve validity of merged labelmap)
+  this->Converter->ApplyTransformOnReferenceImageGeometry(transform);
+
+  // Harden transform on master representation (both image data and poly data) for each segment individually
   for (SegmentMap::iterator it = this->Segments.begin(); it != this->Segments.end(); ++it)
   {
-    it->second->ApplyNonLinearTransform(transform);
+    //TODO:
   }
 }
 

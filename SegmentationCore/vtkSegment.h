@@ -33,8 +33,6 @@
 // Segmentation includes
 #include "vtkSegmentationCoreConfigure.h"
 
-class vtkAbstractTransform;
-
 /// \ingroup SegmentationCore
 class vtkSegmentationCore_EXPORT vtkSegment : public vtkObject
 {
@@ -55,14 +53,6 @@ public:
 
   /// Get bounding box in global RAS in the form (xmin,xmax, ymin,ymax, zmin,zmax).
   virtual void GetBounds(double bounds[6]);
-
-  /// Apply a linear transform on the representations:
-  /// Harden transform on poly data, apply to directions on oriented image data
-  virtual void ApplyLinearTransform(vtkAbstractTransform* transform);
-
-  /// Apply a non-linear transform on the representations:
-  /// Harden transform on both image data and poly data for each segment individually
-  virtual void ApplyNonLinearTransform(vtkAbstractTransform* transform);
 
   /// Returns true if the node (default behavior) or the internal data are modified
   /// since read/written.

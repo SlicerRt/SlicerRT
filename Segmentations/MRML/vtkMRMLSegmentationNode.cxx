@@ -44,6 +44,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkMatrix4x4.h>
 #include <vtkGeneralTransform.h>
 #include <vtkHomogeneousTransform.h>
+#include <vtkTransform.h>
 #include <vtkLookupTable.h>
 
 // STD includes
@@ -279,10 +280,6 @@ void vtkMRMLSegmentationNode::OnMasterRepresentationModified(vtkObject* vtkNotUs
     vtkErrorWithObjectMacro(self, "vtkMRMLSegmentationNode::OnMasterRepresentationModified: No segmentation in segmentation node!");
     return;
   }
-
-  // Invalidate all representations other than the master.
-  // These representations will be automatically converted later on demand.
-  self->Segmentation->InvalidateNonMasterRepresentations();
 
   // Reset supported write file types
   vtkMRMLSegmentationStorageNode* storageNode =  vtkMRMLSegmentationStorageNode::SafeDownCast(self->GetStorageNode());
@@ -643,12 +640,18 @@ void vtkMRMLSegmentationNode::CreateDefaultDisplayNodes()
   this->SetAndObserveDisplayNodeID(dispNode->GetID());
 }
 
-//----------------------------------------------------------------------------
-void vtkMRMLSegmentationNode::ApplyTransform( vtkAbstractTransform* transform )
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationNode::ApplyTransformMatrix(vtkMatrix4x4* transformMatrix)
 {
-  // Apply transform on merged labelmap
-  Superclass::ApplyTransform(transform);
+  vtkTransform* transform = vtkTransform::New();
+  transform->SetMatrix(transformMatrix);
+  this->ApplyTransform(transform);
+  transform->Delete();
+}
 
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationNode::ApplyTransform(vtkAbstractTransform* transform)
+{
   // Apply transform on segmentation
   vtkHomogeneousTransform* linearTransform = vtkHomogeneousTransform::SafeDownCast(transform);
   if (linearTransform)
@@ -659,6 +662,9 @@ void vtkMRMLSegmentationNode::ApplyTransform( vtkAbstractTransform* transform )
   {
     this->Segmentation->ApplyNonLinearTransform(transform);
   }
+
+  // Make sure the merged labelmap is updated
+  this->ReGenerateDisplayedMergedLabelmap();
 }
 
 //----------------------------------------------------------------------------
