@@ -174,8 +174,9 @@ void qSlicerSegmentationsModuleWidget::updateWidgetFromDisplayNode()
   d->SliderWidget_Opacity->setValue( displayNode->GetOpacity() );
   d->checkBox_SliceIntersectionVisible->setChecked( displayNode->GetSliceIntersectionVisibility() );
   d->spinBox_SliceIntersectionThickness->setValue( displayNode->GetSliceIntersectionThickness() );
-  d->comboBox_Representation->setCurrentIndex( d->comboBox_Representation->findText(
-    displayNode->GetPolyDataDisplayRepresentationName() ) );
+
+  // Populate model representations combobox and select preferred poly data representation
+  this->populateRepresentationsCombobox();
 
   // Set display node to display widgets
   d->DisplayNodeViewComboBox->setMRMLDisplayNode(displayNode);
@@ -223,31 +224,38 @@ void qSlicerSegmentationsModuleWidget::populateRepresentationsCombobox()
 {
   Q_D(qSlicerSegmentationsModuleWidget);
 
+  // Note: This function used to collect existing poly data representations from
+  // the segmentation and was connected to events like this:
+  // qvtkConnect( segmentationNode, vtkSegmentation::RepresentationCreated, this, SLOT( populateRepresentationsCombobox() ) );
+  // It was then decided that a preferred poly data representation can be selected
+  // regardless its existence, thus the combobox is populated only once at initialization.
+
+  // Prevent selecting incrementally added representations thus changing MRML properties
+  d->comboBox_DisplayedModelRepresentation->blockSignals(true);
+  d->comboBox_DisplayedModelRepresentation->clear();
+
   vtkMRMLSegmentationDisplayNode* displayNode = this->segmentationDisplayNode();
   if (!displayNode)
   {
+    d->comboBox_DisplayedModelRepresentation->blockSignals(false);
     return;
   }
 
-  // Prevent selecting incrementally added representations thus changing MRML properties
-  d->comboBox_Representation->blockSignals(true);
-
   // Populate model representations combobox
-  d->comboBox_Representation->clear();
-  std::vector<std::string> modelRepresentationNames;
+  std::set<std::string> modelRepresentationNames;
   displayNode->GetPolyDataRepresentationNames(modelRepresentationNames);
-  for (std::vector<std::string>::iterator reprIt = modelRepresentationNames.begin();
+  for (std::set<std::string>::iterator reprIt = modelRepresentationNames.begin();
     reprIt != modelRepresentationNames.end(); ++reprIt)
   {
-    d->comboBox_Representation->addItem(reprIt->c_str());
+    d->comboBox_DisplayedModelRepresentation->addItem(reprIt->c_str());
   }
 
-  // Set selection from display node
-  d->comboBox_Representation->setCurrentIndex( d->comboBox_Representation->findText(
-    displayNode->GetPolyDataDisplayRepresentationName() ) );
-
   // Unblock signals
-  d->comboBox_Representation->blockSignals(false);
+  d->comboBox_DisplayedModelRepresentation->blockSignals(false);
+
+  // Set selection from display node
+  d->comboBox_DisplayedModelRepresentation->setCurrentIndex( d->comboBox_DisplayedModelRepresentation->findText(
+    displayNode->GetPreferredPolyDataDisplayRepresentationName() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -294,8 +302,8 @@ void qSlicerSegmentationsModuleWidget::init()
     this, SLOT(onSliceIntersectionVisibilityChanged(int)) );
   connect(d->spinBox_SliceIntersectionThickness, SIGNAL(valueChanged(int)),
     this, SLOT(onSliceIntersectionThicknessChanged(int)) );
-  connect(d->comboBox_Representation, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(onModelRepresentationChanged(int)) );
+  connect(d->comboBox_DisplayedModelRepresentation, SIGNAL(currentIndexChanged(int)),
+    this, SLOT(onDisplayedModelRepresentationChanged(int)) );
 
   connect(d->toolButton_AddLabelmap, SIGNAL(clicked()),
     this, SLOT(onAddLabelmap()) );
@@ -335,7 +343,6 @@ void qSlicerSegmentationsModuleWidget::onSegmentationNodeChanged(vtkMRMLNode* no
   qvtkDisconnect( 0, vtkCommand::ModifiedEvent, this, SLOT( updateWidgetFromMRML() ) );
   qvtkDisconnect( 0, vtkMRMLDisplayableNode::DisplayModifiedEvent, this, SLOT( updateWidgetFromDisplayNode() ) );
   qvtkDisconnect( 0, vtkSegmentation::MasterRepresentationModified, this, SLOT( updateWidgetFromMRML() ) );
-  qvtkDisconnect( 0, vtkSegmentation::RepresentationCreated, this, SLOT( populateRepresentationsCombobox() ) );
 
   vtkMRMLSegmentationNode* segmentationNode =  vtkMRMLSegmentationNode::SafeDownCast(node);
   if (segmentationNode)
@@ -344,17 +351,6 @@ void qSlicerSegmentationsModuleWidget::onSegmentationNodeChanged(vtkMRMLNode* no
     qvtkConnect( segmentationNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidgetFromMRML() ) );
     qvtkConnect( segmentationNode, vtkMRMLDisplayableNode::DisplayModifiedEvent, this, SLOT( updateWidgetFromDisplayNode() ) );
     qvtkConnect( segmentationNode, vtkSegmentation::MasterRepresentationModified, this, SLOT( updateWidgetFromMRML() ) );
-
-    // Connect current segmentation node to populate representation checkboxes function
-    qvtkConnect( segmentationNode, vtkSegmentation::RepresentationCreated, this, SLOT( populateRepresentationsCombobox() ) );
-
-    // Populate model representations combobox
-    this->populateRepresentationsCombobox();
-
-    if (segmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
-    {
-
-    }
   }
 
   // Hide the current node in the other segmentation combo box
@@ -527,7 +523,7 @@ void qSlicerSegmentationsModuleWidget::onSliceIntersectionThicknessChanged(int t
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentationsModuleWidget::onModelRepresentationChanged(int index)
+void qSlicerSegmentationsModuleWidget::onDisplayedModelRepresentationChanged(int index)
 {
   Q_D(qSlicerSegmentationsModuleWidget);
 
@@ -538,9 +534,9 @@ void qSlicerSegmentationsModuleWidget::onModelRepresentationChanged(int index)
   }
 
   // Get representation name from index
-  QString representationName = d->comboBox_Representation->itemText(index);
+  QString representationName = d->comboBox_DisplayedModelRepresentation->itemText(index);
 
-  displayNode->SetPolyDataDisplayRepresentationName(representationName.toLatin1().constData());
+  displayNode->SetPreferredPolyDataDisplayRepresentationName(representationName.toLatin1().constData());
 }
 
 //-----------------------------------------------------------------------------

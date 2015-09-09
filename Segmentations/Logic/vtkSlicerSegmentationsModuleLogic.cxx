@@ -293,8 +293,9 @@ vtkMRMLSegmentationNode* vtkSlicerSegmentationsModuleLogic::LoadSegmentationFrom
     return NULL;
   }
 
-  // Show closed surface poly data if it exists (by default the master representation is shown
-  // if it's poly data, but closed surface model is specifically for 3D visualization)
+  // Show closed surface poly data if it exist. By default the preferred representation is shown,
+  // but we do not have a display node for the segmentation here. In its absence the master representation
+  // is shown if it's poly data, but closed surface model is specifically for 3D visualization)
   if (segmentationNode->GetSegmentation()->ContainsRepresentation(
     vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName()) )
   {
@@ -305,7 +306,7 @@ vtkMRMLSegmentationNode* vtkSlicerSegmentationsModuleLogic::LoadSegmentationFrom
     vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
     if (displayNode)
     {
-      displayNode->SetPolyDataDisplayRepresentationName(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+      displayNode->SetPreferredPolyDataDisplayRepresentationName(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
 
       // If not loading segmentation from a scene (where display information is available),
       // then calculate and set auto-opacity for the displayed poly data for better visualization

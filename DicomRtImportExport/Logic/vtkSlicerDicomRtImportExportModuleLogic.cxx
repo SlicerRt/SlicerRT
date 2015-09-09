@@ -629,9 +629,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
         this->GetMRMLScene()->AddNode(segmentationDisplayNode);
         segmentationNode->SetAndObserveDisplayNodeID(segmentationDisplayNode->GetID());
         segmentationDisplayNode->SetBackfaceCulling(0);
-
-        //TODO:
-        //vtkSlicerContoursModuleLogic::CreateContourStorageNode(segmentationNode);
       }
 
       // Add segment for current structure
@@ -646,7 +643,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
   // Force showing closed surface model instead of contour points and calculate auto opacity values for segments
   if (segmentationDisplayNode.GetPointer())
   {
-    segmentationDisplayNode->SetPolyDataDisplayRepresentationName(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+    segmentationDisplayNode->SetPreferredPolyDataDisplayRepresentationName(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
     segmentationDisplayNode->CalculateAutoOpacitiesForSegments();
   }
 

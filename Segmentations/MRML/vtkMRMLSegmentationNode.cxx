@@ -663,8 +663,17 @@ void vtkMRMLSegmentationNode::ApplyTransform(vtkAbstractTransform* transform)
     this->Segmentation->ApplyNonLinearTransform(transform);
   }
 
-  // Make sure the merged labelmap is updated
-  this->ReGenerateDisplayedMergedLabelmap();
+  // Make sure preferred poly data display representation exists after transformation
+  // (it was invalidated in the process unless it is the master representation)
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(this->GetDisplayNode());
+  if (displayNode)
+  {
+    std::string preferredPolyDataDisplayRepresentation(displayNode->GetPreferredPolyDataDisplayRepresentationName());
+    if (!preferredPolyDataDisplayRepresentation.empty())
+    {
+      this->Segmentation->CreateRepresentation(preferredPolyDataDisplayRepresentation);
+    }
+  }
 }
 
 //----------------------------------------------------------------------------

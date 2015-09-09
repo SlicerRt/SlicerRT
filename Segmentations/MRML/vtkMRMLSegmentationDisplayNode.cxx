@@ -30,6 +30,7 @@
 #include "vtkSegmentation.h"
 #include "vtkOrientedImageData.h"
 #include "vtkTopologicalHierarchy.h"
+#include "vtkSegmentationConverterFactory.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -47,7 +48,7 @@ vtkMRMLNodeNewMacro(vtkMRMLSegmentationDisplayNode);
 //----------------------------------------------------------------------------
 vtkMRMLSegmentationDisplayNode::vtkMRMLSegmentationDisplayNode()
 {
-  this->PolyDataDisplayRepresentationName = NULL;
+  this->PreferredPolyDataDisplayRepresentationName = NULL;
   this->EnableTransparencyInColorTableOff();
   this->SliceIntersectionVisibilityOn();
 
@@ -57,7 +58,7 @@ vtkMRMLSegmentationDisplayNode::vtkMRMLSegmentationDisplayNode()
 //----------------------------------------------------------------------------
 vtkMRMLSegmentationDisplayNode::~vtkMRMLSegmentationDisplayNode()
 {
-  this->SetPolyDataDisplayRepresentationName(NULL);
+  this->SetPreferredPolyDataDisplayRepresentationName(NULL);
   this->SegmentationDisplayProperties.clear();
 }
 
@@ -67,7 +68,7 @@ void vtkMRMLSegmentationDisplayNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
   vtkIndent indent(nIndent);
 
-  of << indent << " PolyDataDisplayRepresentationName=\"" << (this->PolyDataDisplayRepresentationName ? this->PolyDataDisplayRepresentationName : "NULL") << "\"";
+  of << indent << " PreferredPolyDataDisplayRepresentationName=\"" << (this->PreferredPolyDataDisplayRepresentationName ? this->PreferredPolyDataDisplayRepresentationName : "NULL") << "\"";
 
   of << indent << " EnableTransparencyInColorTable=\"" << (this->EnableTransparencyInColorTable ? "true" : "false") << "\"";
 
@@ -99,11 +100,11 @@ void vtkMRMLSegmentationDisplayNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "PolyDataDisplayRepresentationName")) 
+    if (!strcmp(attName, "PreferredPolyDataDisplayRepresentationName")) 
     {
       std::stringstream ss;
       ss << attValue;
-      this->SetPolyDataDisplayRepresentationName(ss.str().c_str());
+      this->SetPreferredPolyDataDisplayRepresentationName(ss.str().c_str());
     }
     else if (!strcmp(attName, "EnableTransparencyInColorTable")) 
     {
@@ -154,7 +155,7 @@ void vtkMRMLSegmentationDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << " PolyDataDisplayRepresentationName:   " << (this->PolyDataDisplayRepresentationName ? this->PolyDataDisplayRepresentationName : "NULL") << "\n";
+  os << indent << " PreferredPolyDataDisplayRepresentationName:   " << (this->PreferredPolyDataDisplayRepresentationName ? this->PreferredPolyDataDisplayRepresentationName : "NULL") << "\n";
 
   os << indent << " EnableTransparencyInColorTable:   " << (this->EnableTransparencyInColorTable ? "true" : "false") << "\n";
 
@@ -212,45 +213,6 @@ vtkMRMLColorTableNode* vtkMRMLSegmentationDisplayNode::CreateColorTableNode(cons
   this->SetAndObserveColorNodeID(segmentationColorTableNode->GetID());
 
   return segmentationColorTableNode;
-}
-
-//---------------------------------------------------------------------------
-char* vtkMRMLSegmentationDisplayNode::GetPolyDataDisplayRepresentationName()
-{
-  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(this->GetDisplayableNode());
-
-  bool polyDataRepresentationNeedsUpdate = (this->PolyDataDisplayRepresentationName == NULL);
-
-  // Check if the currently set poly data representation (if any) exists in the segmentation
-  if (!polyDataRepresentationNeedsUpdate)
-  {
-    if (!segmentationNode)
-    {
-      return NULL;
-    }
-
-    if (!segmentationNode->GetSegmentation()->ContainsRepresentation(this->PolyDataDisplayRepresentationName))
-    {
-      polyDataRepresentationNeedsUpdate = true;
-    }
-  }
-
-  // Determine poly data representation if necessary
-  if (polyDataRepresentationNeedsUpdate)
-  {
-    if (segmentationNode->GetSegmentation()->GetNumberOfSegments() == 0)
-    {
-      return NULL;
-    }
-    std::string name(this->DeterminePolyDataDisplayRepresentationName());
-    if (name.empty())
-    {
-      return NULL;
-    }
-    this->SetPolyDataDisplayRepresentationName(name.c_str());
-  }
-
-  return this->PolyDataDisplayRepresentationName;
 }
 
 //---------------------------------------------------------------------------
@@ -457,13 +419,13 @@ bool vtkMRMLSegmentationDisplayNode::CalculateAutoOpacitiesForSegments()
 
   // Make sure the requested representation exists
   vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
-  if (!segmentation->CreateRepresentation(this->PolyDataDisplayRepresentationName))
+  if (!segmentation->CreateRepresentation(this->PreferredPolyDataDisplayRepresentationName))
   {
     return false;
   }
 
   // Determine poly data representation name if empty
-  if (this->PolyDataDisplayRepresentationName == NULL)
+  if (this->PreferredPolyDataDisplayRepresentationName == NULL)
   {
     this->DeterminePolyDataDisplayRepresentationName();
   }
@@ -483,7 +445,7 @@ bool vtkMRMLSegmentationDisplayNode::CalculateAutoOpacitiesForSegments()
 
     // Get poly data from segment
     vtkPolyData* currentPolyData = vtkPolyData::SafeDownCast(
-      currentSegment->GetRepresentation(this->PolyDataDisplayRepresentationName) );
+      currentSegment->GetRepresentation(this->PreferredPolyDataDisplayRepresentationName) );
     if (!currentPolyData)
     {
       continue;
@@ -540,19 +502,30 @@ std::string vtkMRMLSegmentationDisplayNode::DeterminePolyDataDisplayRepresentati
   if (!segmentationNode)
   {
     vtkErrorMacro("DeterminePolyDataDisplayRepresentationName: No segmentation node associated to this display node!");
-    return std::string(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+    return "";
   }
   // If segmentation is empty then we cannot show poly data
   vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
   if (!segmentation || segmentation->GetNumberOfSegments() == 0)
   {
     vtkWarningMacro("DeterminePolyDataDisplayRepresentationName: Empty segmentation!");
-    return std::string(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+    return "";
   }
 
-  // If master representation is poly data then use that
   // Assume the first segment contains the same name of representations as all segments (this should be the case by design)
   vtkSegment* firstSegment = segmentation->GetSegments().begin()->second;
+
+  // If preferred representation is defined and exists then use that (double check it is poly data)
+  if (this->PreferredPolyDataDisplayRepresentationName)
+  {
+    vtkDataObject* preferredRepresentation = firstSegment->GetRepresentation(this->PreferredPolyDataDisplayRepresentationName);
+    if (vtkPolyData::SafeDownCast(preferredRepresentation))
+    {
+      return std::string(this->PreferredPolyDataDisplayRepresentationName);
+    }
+  }
+
+  // Otherwise if master representation is poly data then use that
   char* masterRepresentationName = segmentation->GetMasterRepresentationName();
   vtkDataObject* masterRepresentation = firstSegment->GetRepresentation(masterRepresentationName);
   if (vtkPolyData::SafeDownCast(masterRepresentation))
@@ -573,43 +546,38 @@ std::string vtkMRMLSegmentationDisplayNode::DeterminePolyDataDisplayRepresentati
     }
   }
   
-  // If no poly data representations are available, then return closed surface representation name,
-  // it might be able to be created from other representations
-  return std::string(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+  // If no poly data representations are available, then return empty string
+  // meaning there is no poly data representation to display
+  return "";
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationDisplayNode::GetPolyDataRepresentationNames(std::vector<std::string> &representationNames)
+void vtkMRMLSegmentationDisplayNode::GetPolyDataRepresentationNames(std::set<std::string> &representationNames)
 {
   representationNames.clear();
 
-  // Get segmentation node
-  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(this->GetDisplayableNode());
-  if (!segmentationNode)
-  {
-    vtkErrorMacro("GetPolyDataRepresentationNames: No segmentation node associated to this display node!");
-    return;
-  }
-  // If segmentation is empty then we cannot show poly data
-  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
-  if (!segmentation || segmentation->GetNumberOfSegments() == 0)
-  {
-    vtkWarningMacro("GetPolyDataRepresentationNames: Empty segmentation!");
-    return;
-  }
+  // Note: This function used to collect existing poly data representations from the segmentation
+  // It was then decided that a preferred poly data representation can be selected regardless
+  // its existence, thus the list is populated based on supported poly data representations.
 
-  // Collect poly data representation names
-  // Assume the first segment contains the same name of representations as all segments (this should be the case by design)
-  vtkSegment* firstSegment = segmentation->GetSegments().begin()->second;
-  std::vector<std::string> containedRepresentationNames;
-  segmentation->GetContainedRepresentationNames(containedRepresentationNames);
-  for (std::vector<std::string>::iterator reprIt = containedRepresentationNames.begin();
-    reprIt != containedRepresentationNames.end(); ++reprIt)
+  // Traverse converter rules to find supported poly data representations
+  vtkSegmentationConverterFactory::RuleListType rules = vtkSegmentationConverterFactory::GetInstance()->GetConverterRules();
+  for (vtkSegmentationConverterFactory::RuleListType::iterator ruleIt = rules.begin(); ruleIt != rules.end(); ++ruleIt)
   {
-    vtkDataObject* currentRepresentation = firstSegment->GetRepresentation(*reprIt);
-    if (vtkPolyData::SafeDownCast(currentRepresentation))
+    vtkSegmentationConverterRule* currentRule = (*ruleIt);
+    vtkPolyData* sourcePolyData = vtkPolyData::SafeDownCast(
+      currentRule->ConstructRepresentationObjectByRepresentation(
+        currentRule->GetSourceRepresentationName() ) );
+    if (sourcePolyData)
     {
-      representationNames.push_back(*reprIt);
+      representationNames.insert(std::string(currentRule->GetSourceRepresentationName()));
+    }
+    vtkPolyData* targetPolyData = vtkPolyData::SafeDownCast(
+      currentRule->ConstructRepresentationObjectByRepresentation(
+        currentRule->GetTargetRepresentationName() ) );
+    if (targetPolyData)
+    {
+      representationNames.insert(std::string(currentRule->GetTargetRepresentationName()));
     }
   }
 }

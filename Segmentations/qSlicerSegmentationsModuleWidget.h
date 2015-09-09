@@ -121,7 +121,7 @@ protected slots:
   void onOpacityChanged(double);
   void onSliceIntersectionVisibilityChanged(int);
   void onSliceIntersectionThicknessChanged(int);
-  void onModelRepresentationChanged(int);
+  void onDisplayedModelRepresentationChanged(int);
 
   void onAddLabelmap();
   void onAddModel();

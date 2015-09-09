@@ -148,7 +148,7 @@
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QComboBox" name="comboBox_Representation">
+       <widget class="QComboBox" name="comboBox_DisplayedModelRepresentation">
         <property name="toolTip">
          <string>Representation that is shown as a model in 3D and as slice intersections in 2D</string>
         </property>
@@ -178,7 +178,7 @@
       <item row="5" column="0">
        <widget class="QLabel" name="label_Representation">
         <property name="toolTip">
-         <string>Representation that is shown as a model in 3D and as slice intersections in 2D</string>
+         <string>Representation that is shown as a model in 3D and as slice intersections in 2D if exists</string>
         </property>
         <property name="text">
          <string>Model representation:</string>

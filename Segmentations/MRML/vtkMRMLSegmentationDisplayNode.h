@@ -19,6 +19,8 @@
 
 #include "vtkSlicerSegmentationsModuleMRMLExport.h"
 
+#include <set>
+
 class vtkMRMLColorTableNode;
 class vtkVector3d;
 
@@ -72,10 +74,10 @@ public:
                                    void * /*callData*/ );
 
 public:
-  /// Get name of representation that is displayed as poly data (determine if empty)
-  char* GetPolyDataDisplayRepresentationName();
-  /// Set name of representation that is displayed as poly data
-  vtkSetStringMacro(PolyDataDisplayRepresentationName);
+  /// Get name of representation that is preferably displayed as poly data
+  vtkGetStringMacro(PreferredPolyDataDisplayRepresentationName);
+  /// Set name of representation that is preferably displayed as poly data
+  vtkSetStringMacro(PreferredPolyDataDisplayRepresentationName);
 
   /// Get enable transparency flag
   vtkGetMacro(EnableTransparencyInColorTable, bool);
@@ -117,7 +119,14 @@ public:
   bool CalculateAutoOpacitiesForSegments();
 
   /// Collect representation names that are stored as poly data
-  void GetPolyDataRepresentationNames(std::vector<std::string> &representationNames);
+  void GetPolyDataRepresentationNames(std::set<std::string> &representationNames);
+
+  /// Decide which poly data representation to use for 3D display
+  /// If preferred representation exists \sa PreferredPolyDataDisplayRepresentationName, then return that.
+  /// Otherwise if master representation is a poly data then return master representation type.
+  /// Otherwise return first poly data representation if any.
+  /// Otherwise return empty string meaning there is no poly data representation to display.
+  std::string DeterminePolyDataDisplayRepresentationName();
 
 // Python compatibility functions
 public:
@@ -140,12 +149,6 @@ public:
   void SetSegmentPolyDataOpacity(std::string segmentID, double opacity);
 
 protected:
-  /// Decide which poly data representation to use for 3D display
-  /// If master representation is a poly data then return master representation type.
-  /// Otherwise return first poly data representation if any.
-  /// Otherwise return closed surface representation (and then try to convert into it)
-  std::string DeterminePolyDataDisplayRepresentationName();
-
   /// Set segment color in associated color table
   /// \return Success flag
   bool SetSegmentColorTableEntry(std::string segmentId, double r, double g, double b, double a);
@@ -157,9 +160,10 @@ protected:
   void operator=(const vtkMRMLSegmentationDisplayNode&);
 
 protected:
-  /// Name of representation that is displayed as poly data
-  /// (in the 3D view and in 2D views as slice intersection)
-  char* PolyDataDisplayRepresentationName;
+  /// Name of representation that is displayed as poly data in the 3D view and in 2D views as slice
+  /// intersection if exists. If does not exist, then master representation is displayed if poly data,
+  /// otherwise the first poly data representation if any.
+  char* PreferredPolyDataDisplayRepresentationName;
 
   /// List of segment display properties for all segments in associated segmentation.
   /// Maps segment identifier string (segment name by default) to properties.
