@@ -22,6 +22,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include "vtkSegmentationConverter.h"
 #include "vtkSegmentationConverterFactory.h"
 #include "vtkOrientedImageData.h"
+#include "vtkOrientedImageDataResample.h"
 #include "vtkSegmentationConverterRule.h"
 
 // VTK includes
@@ -30,7 +31,6 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkMatrix4x4.h>
 #include <vtkImageData.h>
 #include <vtkTransform.h>
-#include <vtkLinearTransform.h>
 
 // STD includes
 #include <sstream>
@@ -527,8 +527,10 @@ void vtkSegmentationConverter::DeserializeConversionParameters(std::string conve
 //----------------------------------------------------------------------------
 void vtkSegmentationConverter::ApplyTransformOnReferenceImageGeometry(vtkAbstractTransform* transform)
 {
-  vtkLinearTransform* linearTransform = vtkLinearTransform::SafeDownCast(transform);
-
+  if (!transform)
+  {
+    return;
+  }
   // Get current reference geometry parameter
   std::string geometryString = this->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
 
@@ -540,21 +542,8 @@ void vtkSegmentationConverter::ApplyTransformOnReferenceImageGeometry(vtkAbstrac
     return;
   }
 
-  // Linear: simply multiply the geometry matrix with the applied matrix, extent stays the same
-  if (linearTransform)
-  {
-    vtkSmartPointer<vtkTransform> newImageGeometryTransform = vtkSmartPointer<vtkTransform>::New();
-    vtkSmartPointer<vtkMatrix4x4> imageGeometryMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    geometryImage->GetImageToWorldMatrix(imageGeometryMatrix);
-    newImageGeometryTransform->Concatenate(linearTransform);
-    newImageGeometryTransform->Concatenate(imageGeometryMatrix);
-    geometryImage->SetGeometryFromImageToWorldMatrix(newImageGeometryTransform->GetMatrix());
-  }
-  // Non-linear: calculate new extents and change only the extents
-  else
-  {
-    //TODO:
-  }
+  // Transform geometry image using input transform (geometry only, so the non-linear transform is not applied to the volume)
+  vtkOrientedImageDataResample::TransformOrientedImage(geometryImage, transform, true);
 
   // Set reference image geometry parameter from oriented image data
   std::string newGeometryString = vtkSegmentationConverter::SerializeImageGeometry(geometryImage);

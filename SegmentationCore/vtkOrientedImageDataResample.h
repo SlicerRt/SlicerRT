@@ -29,6 +29,7 @@
 class vtkOrientedImageData;
 class vtkMatrix4x4;
 class vtkTransform;
+class vtkAbstractTransform;
 
 /// \ingroup SegmentationCore
 /// \brief Utility functions for resampling oriented image data
@@ -57,6 +58,15 @@ public:
   /// \return Success flag
   static bool ResampleOrientedImageToReferenceOrientedImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* referenceImage, vtkOrientedImageData* outputImage, bool linearInterpolation=false, bool padImage=false);
 
+  /// Transform an oriented image data using a transform that can be linear or non-linear.
+  /// Linear: simply multiply the geometry matrix with the applied matrix, extent stays the same
+  /// Non-linear: calculate new extents and change only the extents when applying deformable transform
+  /// \param image Oriented image to transform
+  /// \param transform Input transform
+  /// \param geometryOnly Only the geometry of the image is changed according to the transform if this flag is turned on.
+  ///          This flag only has an effect if the transform is non-linear, in which case only the extent is changed. Off by default
+  static void TransformOrientedImage(vtkOrientedImageData* image, vtkAbstractTransform* transform, bool geometryOnly = false);
+
 public:
   /// Determine if geometries of two oriented image data objects match.
   /// Origin, spacing and direction are considered, extent is not.
@@ -71,6 +81,9 @@ public:
 
   /// Transform input extent to determine output extent of an image. Use all bounding box corners
   static void TransformExtent(int inputExtent[6], vtkTransform* inputToOutputTransform, int outputExtent[6]);
+
+  /// Transform bounds of oriented image data using a linear or non-linear transform
+  static void TransformOrientedImageDataBounds(vtkOrientedImageData* image, vtkAbstractTransform* transform, double transformedBounds[6]);
 
   /// Compare the values (with tolerance) between two 4x4 matrices
   /// \param lhs Left-hand side matrix to compare

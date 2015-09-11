@@ -25,6 +25,7 @@
 #include "vtkSegmentationConverterFactory.h"
 
 #include "vtkOrientedImageData.h"
+#include "vtkOrientedImageDataResample.h"
 #include "vtkCalculateOversamplingFactor.h"
 
 // MRML includes
@@ -602,9 +603,10 @@ void vtkSegmentation::ApplyLinearTransform(vtkAbstractTransform* transform)
 
     vtkPolyData* currentMasterRepresentationPolyData = vtkPolyData::SafeDownCast(currentMasterRepresentation);
     vtkOrientedImageData* currentMasterRepresentationOrientedImageData = vtkOrientedImageData::SafeDownCast(currentMasterRepresentation);
+    // Poly data
     if (currentMasterRepresentationPolyData)
     {
-      vtkTransformPolyDataFilter* transformFilter = vtkTransformPolyDataFilter::New();
+      vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 #if (VTK_MAJOR_VERSION <= 5)
       transformFilter->SetInput(currentMasterRepresentationPolyData);
 #else
@@ -614,6 +616,7 @@ void vtkSegmentation::ApplyLinearTransform(vtkAbstractTransform* transform)
       transformFilter->Update();
       currentMasterRepresentationPolyData->DeepCopy(transformFilter->GetOutput());
     }
+    // Oriented image data
     else if (currentMasterRepresentationOrientedImageData)
     {
       vtkSmartPointer<vtkTransform> newImageGeometryTransform = vtkSmartPointer<vtkTransform>::New();
@@ -639,7 +642,37 @@ void vtkSegmentation::ApplyNonLinearTransform(vtkAbstractTransform* transform)
   // Harden transform on master representation (both image data and poly data) for each segment individually
   for (SegmentMap::iterator it = this->Segments.begin(); it != this->Segments.end(); ++it)
   {
-    //TODO:
+    vtkDataObject* currentMasterRepresentation = it->second->GetRepresentation(this->MasterRepresentationName);
+    if (!currentMasterRepresentation)
+    {
+      vtkErrorMacro("ApplyNonLinearTransform: Cannot get master representation (" << (this->MasterRepresentationName ? this->MasterRepresentationName : "NULL") << ") from segment!");
+      return;
+    }
+
+    vtkPolyData* currentMasterRepresentationPolyData = vtkPolyData::SafeDownCast(currentMasterRepresentation);
+    vtkOrientedImageData* currentMasterRepresentationOrientedImageData = vtkOrientedImageData::SafeDownCast(currentMasterRepresentation);
+    // Poly data
+    if (currentMasterRepresentationPolyData)
+    {
+      vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+      transformFilter->SetInput(currentMasterRepresentationPolyData);
+#else
+      transformFilter->SetInputData(currentMasterRepresentationPolyData);
+#endif
+      transformFilter->SetTransform(transform);
+      transformFilter->Update();
+      currentMasterRepresentationPolyData->DeepCopy(transformFilter->GetOutput());
+    }
+    // Oriented image data
+    else if (currentMasterRepresentationOrientedImageData)
+    {
+      vtkOrientedImageDataResample::TransformOrientedImage(currentMasterRepresentationOrientedImageData, transform);
+    }
+    else
+    {
+      vtkErrorMacro("ApplyLinearTransform: Representation data type '" << currentMasterRepresentation->GetClassName() << "' not supported!");
+    }
   }
 }
 

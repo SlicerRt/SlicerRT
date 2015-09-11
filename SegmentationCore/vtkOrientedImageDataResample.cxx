@@ -32,6 +32,10 @@
 #include <vtkTransform.h>
 #include <vtkImageReslice.h>
 #include <vtkImageConstantPad.h>
+#include <vtkGeneralTransform.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkPlaneSource.h>
+#include <vtkAppendPolyData.h>
 
 vtkStandardNewMacro(vtkOrientedImageDataResample);
 
@@ -386,6 +390,12 @@ bool vtkOrientedImageDataResample::DoGeometriesMatchIgnoreOrigin(vtkOrientedImag
 //----------------------------------------------------------------------------
 void vtkOrientedImageDataResample::TransformExtent(int inputExtent[6], vtkTransform* inputToOutputTransform, int outputExtent[6])
 {
+  if (!inputToOutputTransform)
+  {
+    return;
+  }
+
+  // Apply transform on all eight corners and determine output extent based on these transformed corners
   double outputIjkExtentCorner[3] = {0.0, 0.0, 0.0};
   double outputExtentDouble[6] = {VTK_DOUBLE_MAX, VTK_DOUBLE_MIN, VTK_DOUBLE_MAX, VTK_DOUBLE_MIN, VTK_DOUBLE_MAX, VTK_DOUBLE_MIN};
   for (int i=0; i<2; ++i)
@@ -430,6 +440,66 @@ void vtkOrientedImageDataResample::TransformExtent(int inputExtent[6], vtkTransf
   outputExtent[3] = (int)ceil(outputExtentDouble[3]);
   outputExtent[4] = (int)floor(outputExtentDouble[4]);
   outputExtent[5] = (int)ceil(outputExtentDouble[5]);
+}
+
+//----------------------------------------------------------------------------
+void vtkOrientedImageDataResample::TransformOrientedImageDataBounds(vtkOrientedImageData* image, vtkAbstractTransform* transform, double transformedBounds[6])
+{
+  if (!image || !transform)
+  {
+    return;
+  }
+
+  // Get input image properties
+  vtkSmartPointer<vtkMatrix4x4> imageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  image->GetImageToWorldMatrix(imageToWorldMatrix);
+  int* imageExtent = image->GetExtent();
+
+  // Append transformed side planes poly data to one model and get bounds
+  vtkNew<vtkAppendPolyData> appendPolyData;
+  for (int i=0; i<6; i++)
+  {
+    int normalAxis = i/2; // Axis along which the plane is constant
+    double currentPlaneOriginImage[4] = {0.0, 0.0, 0.0, 1.0};
+    currentPlaneOriginImage[normalAxis] += imageExtent[i];
+    double currentPlaneOriginWorld[4] = {0.0, 0.0, 0.0, 1.0};
+    imageToWorldMatrix->MultiplyPoint(currentPlaneOriginImage, currentPlaneOriginWorld);
+
+    double currentPlanePoint1Image[4] = {currentPlaneOriginImage[0], currentPlaneOriginImage[1], currentPlaneOriginImage[2], 1.0};
+    int point1Axis = (normalAxis + 1) % 3; // Axis different from normal axis
+    currentPlanePoint1Image[point1Axis] = imageExtent[point1Axis * 2 + 1];
+    double currentPlanePoint1World[4] = {0.0, 0.0, 0.0, 1.0};
+    imageToWorldMatrix->MultiplyPoint(currentPlanePoint1Image, currentPlanePoint1World);
+
+    double currentPlanePoint2Image[4] = {currentPlaneOriginImage[0], currentPlaneOriginImage[1], currentPlaneOriginImage[2], 1.0};
+    int point2Axis = 3 - normalAxis - point1Axis; // Axis different from both normal axis and point 1 axis
+    currentPlanePoint2Image[point2Axis] = imageExtent[point2Axis * 2 + 1];
+    double currentPlanePoint2World[4] = {0.0, 0.0, 0.0, 1.0};
+    imageToWorldMatrix->MultiplyPoint(currentPlanePoint2Image, currentPlanePoint2World);
+
+    vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+    planeSource->SetOrigin(currentPlaneOriginWorld);
+    planeSource->SetPoint1(currentPlanePoint1World);
+    planeSource->SetPoint2(currentPlanePoint2World);
+    planeSource->SetResolution(5,5); // Use only three subdivision points along each axis
+    planeSource->Update();
+
+#if (VTK_MAJOR_VERSION <= 5)
+    appendPolyData->AddInput(planeSource->GetOutput());
+#else
+    appendPolyData->AddInputData(planeSource->GetOutput());
+#endif
+  }
+
+  // Transform boundary poly data
+  vtkNew<vtkTransformPolyDataFilter> transformFilter;
+  transformFilter->SetInputConnection(appendPolyData->GetOutputPort());
+  transformFilter->SetTransform(transform);
+  transformFilter->Update();
+
+  // Get bounds of transformed boundary poly data
+  transformFilter->GetOutput()->ComputeBounds();
+  transformFilter->GetOutput()->GetBounds(transformedBounds);
 }
 
 //----------------------------------------------------------------------------
@@ -506,4 +576,94 @@ bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* 
   outputImage->SetGeometryFromImageToWorldMatrix(inputImageToWorldMatrix);
 
   return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkOrientedImageDataResample::TransformOrientedImage(vtkOrientedImageData* image, vtkAbstractTransform* transform, bool geometryOnly/* = false*/)
+{
+  if (!image || !transform)
+  {
+    return;
+  }
+
+  // Linear: simply multiply the geometry matrix with the applied matrix, extent stays the same
+  vtkLinearTransform* worldToTransformedWorldLinearTransform = vtkLinearTransform::SafeDownCast(transform);
+  if (worldToTransformedWorldLinearTransform)
+  {
+    vtkSmartPointer<vtkMatrix4x4> imageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    image->GetImageToWorldMatrix(imageToWorldMatrix);
+
+    vtkSmartPointer<vtkTransform> imageToTransformedWorldTransform = vtkSmartPointer<vtkTransform>::New();
+    imageToTransformedWorldTransform->Concatenate(worldToTransformedWorldLinearTransform);
+    imageToTransformedWorldTransform->Concatenate(imageToWorldMatrix);
+
+    image->SetGeometryFromImageToWorldMatrix(imageToTransformedWorldTransform->GetMatrix());
+  }
+  // Non-linear: calculate new extents and change only the extents when applying deformable transform
+  else
+  {
+    // Get geometry transform and its inverse
+    vtkNew<vtkMatrix4x4> imageToWorldMatrix;
+    image->GetImageToWorldMatrix(imageToWorldMatrix.GetPointer());
+
+    vtkNew<vtkMatrix4x4> worldToImageMatrix;
+    worldToImageMatrix->DeepCopy(imageToWorldMatrix.GetPointer());
+    worldToImageMatrix->Invert();
+
+    // Calculate output extent
+    double transformedBoundsWorld[6] = {0.0, -1.0, 0.0, -1.0, 0.0, -1.0};
+    vtkOrientedImageDataResample::TransformOrientedImageDataBounds(image, transform, transformedBoundsWorld);
+    double transformedBoundsWorldCorner1[4] = {transformedBoundsWorld[0], transformedBoundsWorld[2], transformedBoundsWorld[4], 1.0};
+    double transformedBoundsWorldCorner2[4] = {transformedBoundsWorld[1], transformedBoundsWorld[3], transformedBoundsWorld[5], 1.0};
+    double transformedBoundsImageCorner1[4] = {0.0, 0.0, 0.0, 1.0};
+    double transformedBoundsImageCorner2[4] = {0.0, 0.0, 0.0, 1.0};
+    worldToImageMatrix->MultiplyPoint(transformedBoundsWorldCorner1, transformedBoundsImageCorner1);
+    worldToImageMatrix->MultiplyPoint(transformedBoundsWorldCorner2, transformedBoundsImageCorner2);
+    int outputExtent[6] = { // Bounds and extent might be in different order if transform also mirrors (it usually does due to LPS->RAS mapping)
+      (int)floor( std::min(transformedBoundsImageCorner1[0], transformedBoundsImageCorner2[0]) ),
+      (int)ceil( std::max(transformedBoundsImageCorner1[0], transformedBoundsImageCorner2[0]) ),
+      (int)floor( std::min(transformedBoundsImageCorner1[1], transformedBoundsImageCorner2[1]) ),
+      (int)ceil( std::max(transformedBoundsImageCorner1[1], transformedBoundsImageCorner2[1]) ),
+      (int)floor( std::min(transformedBoundsImageCorner1[2], transformedBoundsImageCorner2[2]) ),
+      (int)ceil( std::max(transformedBoundsImageCorner1[2], transformedBoundsImageCorner2[2]) )
+    };
+
+    // It becomes transformedWorldToWorld transform
+    transform->Inverse();
+
+    // Create reslice transform
+    vtkNew<vtkGeneralTransform> resliceTransform;
+    resliceTransform->Identity();
+    resliceTransform->PostMultiply();
+    resliceTransform->Concatenate(imageToWorldMatrix.GetPointer());
+    resliceTransform->Concatenate(transform);
+    resliceTransform->Concatenate(worldToImageMatrix.GetPointer());
+
+    // Perform resampling
+    vtkNew<vtkImageReslice> reslice;
+    reslice->GenerateStencilOutputOn();
+    reslice->SetResliceTransform(resliceTransform.GetPointer());
+#if (VTK_MAJOR_VERSION <= 5)
+    reslice->SetInput(image);
+#else
+    reslice->SetInputData(image);
+#endif
+    reslice->SetInterpolationModeToLinear();
+    reslice->SetBackgroundColor(0, 0, 0, 0);
+    reslice->AutoCropOutputOff();
+    reslice->SetOptimization(1);
+    reslice->SetOutputOrigin(image->GetOrigin());
+    reslice->SetOutputSpacing(image->GetSpacing());
+    reslice->SetOutputDimensionality(3);
+    reslice->SetOutputExtent(image->GetExtent());//outputExtent);
+    reslice->Update();
+#if (VTK_MAJOR_VERSION <= 5)
+    if (reslice->GetOutput(1))
+    {
+      reslice->GetOutput(1)->SetUpdateExtentToWholeExtent();
+    }
+#endif
+    image->DeepCopy(reslice->GetOutput());
+    image->SetGeometryFromImageToWorldMatrix(imageToWorldMatrix.GetPointer());
+  }
 }
