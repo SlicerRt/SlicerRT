@@ -122,6 +122,13 @@ public:
   /// Set use linear interpolation flag
   vtkBooleanMacro(UseLinearInterpolation, bool);
 
+  /// Get dose threshold on reference flag
+  vtkGetMacro(DoseThresholdOnReferenceOnly, bool);
+  /// Set dose threshold on reference flag
+  vtkSetMacro(DoseThresholdOnReferenceOnly, bool);
+  /// Set dose threshold on reference flag
+  vtkBooleanMacro(DoseThresholdOnReferenceOnly, bool);
+
   /// Get valid flag
   vtkGetMacro(ResultsValid, bool);
   /// Set valid flag
@@ -176,6 +183,10 @@ protected:
   /// Flag determining whether linear interpolation is used when resampling the compare dose volume to reference grid.
   /// Default value is true. On false value nearest neighbor is used.
   bool UseLinearInterpolation;
+  
+  /// Flag determining whether dose thresholding should be performed using only the reference image
+  /// Default value is false, meaning that both images will be used
+  bool DoseThresholdOnReferenceOnly;
   
   /// Percentage of voxels that passed (output)
   double PassFractionPercent;

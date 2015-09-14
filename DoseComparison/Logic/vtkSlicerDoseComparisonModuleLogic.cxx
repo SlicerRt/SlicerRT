@@ -301,6 +301,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   }
   gamma.set_analysis_threshold(this->DoseComparisonNode->GetAnalysisThresholdPercent() / 100.0 );
   gamma.set_gamma_max(this->DoseComparisonNode->GetMaximumGamma());
+  gamma.set_ref_only_threshold(this->DoseComparisonNode->GetDoseThresholdOnReferenceOnly());
   gamma.set_progress_callback(&GammaProgressCallback);
 
   gamma.run();

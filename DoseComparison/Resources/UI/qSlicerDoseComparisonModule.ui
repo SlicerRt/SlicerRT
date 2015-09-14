@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>439</width>
-    <height>459</height>
+    <width>549</width>
+    <height>515</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,6 +52,142 @@
       <property name="spacing">
        <number>4</number>
       </property>
+      <item row="7" column="0" colspan="3">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="bottomMargin">
+         <number>6</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="toolTip">
+             <string>Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 0.10. The threshold is applied to the reference image</string>
+            </property>
+            <property name="text">
+             <string>Do not calculate gamma values for voxels below</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_AnalysisThreshold">
+            <property name="toolTip">
+             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 10. The threshold is applied to the reference image&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_6">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Reference dose is the maximum dose, or the custom dose value (depending on the selection above)</string>
+          </property>
+          <property name="text">
+           <string>% of the reference dose (maximum or custom dose depending on selection above)</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="2">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_CompareDoseVolume">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="2">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_MaximumGamma">
+        <property name="toolTip">
+         <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>2.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="toolTip">
+         <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
+        </property>
+        <property name="text">
+         <string>Upper bound for gamma values:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="2">
+       <widget class="QCheckBox" name="checkBox_LinearInterpolation">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="toolTip">
+         <string>Distance to agreement (DTA) tolerance, in mm</string>
+        </property>
+        <property name="text">
+         <string>Distance-to-agreement criteria (mm):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceDoseVolume">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Reference dose volume:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="qMRMLSegmentSelectorWidget" name="SegmentSelectorWidget_Mask">
+        <property name="toolTip">
+         <string>Mask that defines the region that is considered for dose comparison</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>Use linear interpolation:</string>
+        </property>
+       </widget>
+      </item>
       <item row="4" column="0" colspan="3">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
@@ -119,13 +255,6 @@
         </item>
        </layout>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Reference dose volume:</string>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
@@ -133,25 +262,13 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_CompareDoseVolume">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="2">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_MaximumGamma">
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_11">
         <property name="toolTip">
-         <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
+         <string>Mask that defines the region that is considered for dose comparison</string>
         </property>
-        <property name="maximum">
-         <double>10.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>2.000000000000000</double>
+        <property name="text">
+         <string>Mask structure:</string>
         </property>
        </widget>
       </item>
@@ -165,42 +282,6 @@
         </property>
         <property name="value">
          <double>3.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="0">
-       <widget class="QLabel" name="label_8">
-        <property name="toolTip">
-         <string>Maximum gamma computed by the class. This is used to speed up computation. A typical value is 2 or 3</string>
-        </property>
-        <property name="text">
-         <string>Upper bound for gamma values:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="qMRMLSegmentSelectorWidget" name="SegmentSelectorWidget_Mask">
-        <property name="toolTip">
-         <string>Mask that defines the region that is considered for dose comparison</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="toolTip">
-         <string>Distance to agreement (DTA) tolerance, in mm</string>
-        </property>
-        <property name="text">
-         <string>Distance-to-agreement criteria (mm):</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceDoseVolume">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
-         </stringlist>
         </property>
        </widget>
       </item>
@@ -293,86 +374,22 @@
         </item>
        </layout>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_11">
+      <item row="13" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>Dose threshold on reference only</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="2">
+       <widget class="QCheckBox" name="checkBox_ThresholdReferenceOnly">
         <property name="toolTip">
-         <string>Mask that defines the region that is considered for dose comparison</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If not checked, dose values over threshold on either image will be considered.  If checked, dose values over threshold on reference image will be considered.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
-        <property name="text">
-         <string>Mask structure:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="0">
-       <widget class="QLabel" name="label_13">
-        <property name="text">
-         <string>Use linear interpolation:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="2">
-       <widget class="QCheckBox" name="checkBox_LinearInterpolation">
         <property name="text">
          <string/>
         </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
        </widget>
-      </item>
-      <item row="7" column="0" colspan="3">
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <property name="bottomMargin">
-         <number>6</number>
-        </property>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
-           <widget class="QLabel" name="label_7">
-            <property name="toolTip">
-             <string>Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 0.10. The threshold is applied to the reference image</string>
-            </property>
-            <property name="text">
-             <string>Do not calculate gamma values for voxels below</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_AnalysisThreshold">
-            <property name="toolTip">
-             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Dose threshold for gamma analysis. This is used to ignore voxels which have dose below a certain value. For example, to consider only voxels which have dose greater than 10% of the prescription dose, set the analysis threshold to 10. The threshold is applied to the reference image&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_6">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Reference dose is the maximum dose, or the custom dose value (depending on the selection above)</string>
-          </property>
-          <property name="text">
-           <string>% of the reference dose (maximum or custom dose depending on selection above)</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </item>
      </layout>
     </widget>

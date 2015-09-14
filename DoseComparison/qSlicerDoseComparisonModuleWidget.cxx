@@ -259,6 +259,7 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
     {
       d->radioButton_ReferenceDose_CustomValue->setChecked(true);
     }
+    d->checkBox_ThresholdReferenceOnly->setChecked(paramNode->GetDoseThresholdOnReferenceOnly());
   }
 
   this->refreshOutputBaseName();
@@ -290,6 +291,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
   connect( d->checkBox_LinearInterpolation, SIGNAL(stateChanged(int)), this, SLOT(linearInterpolationCheckedStateChanged(int)) );
   connect( d->doubleSpinBox_MaximumGamma, SIGNAL(valueChanged(double)), this, SLOT(maximumGammaChanged(double)) );
   connect( d->radioButton_ReferenceDose_MaximumDose, SIGNAL(toggled(bool)), this, SLOT(referenceDoseUseMaximumDoseChanged(bool)) );
+  connect( d->checkBox_ThresholdReferenceOnly, SIGNAL(stateChanged(int)), this, SLOT(doseThresholdOnReferenceOnlyCheckedStateChanged(int)) );
 
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
@@ -625,6 +627,30 @@ void qSlicerDoseComparisonModuleWidget::maximumGammaChanged(double value)
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetMaximumGamma(value);
+  paramNode->DisableModifiedEventOff();
+
+  this->invalidateResults();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseComparisonModuleWidget::doseThresholdOnReferenceOnlyCheckedStateChanged(int state)
+{
+  Q_D(qSlicerDoseComparisonModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << "qSlicerDoseComparisonModuleWidget::doseThresholdOnReferenceOnlyCheckedStateChanged: Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetDoseThresholdOnReferenceOnly(state);
   paramNode->DisableModifiedEventOff();
 
   this->invalidateResults();
