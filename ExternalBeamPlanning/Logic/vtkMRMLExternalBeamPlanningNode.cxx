@@ -58,7 +58,7 @@ vtkMRMLExternalBeamPlanningNode::vtkMRMLExternalBeamPlanningNode()
   this->BeamNumber = 0;
   this->BeamDescription = NULL;
   this->RadiationType = Proton;
-
+  this->TargetSegmentID = NULL;
   this->BeamType = Static;
   this->CollimatorType = SquareHalfMM;
   this->NominalEnergy = 80.0;

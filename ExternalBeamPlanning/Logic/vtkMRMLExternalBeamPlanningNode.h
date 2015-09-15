@@ -90,9 +90,9 @@ public:
   vtkSetStringMacro(BeamDescription);
 
   /// Get target segment ID
-  vtkGetStringMacro(TargetSegmentID)
+  vtkGetStringMacro(TargetSegmentID);
   /// Set target segment ID
-  vtkSetStringMacro(TargetSegmentID)
+  vtkSetStringMacro(TargetSegmentID);
 
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(NominalEnergy, double);
@@ -219,10 +219,10 @@ protected:
   int   BeamNumber;
   char* BeamDescription;
 
+  RTRadiationType RadiationType;
+
   /// Target segment ID in target segmentation node
   char* TargetSegmentID;
-
-  RTRadiationType RadiationType;
 
   RTBeamType  BeamType;
   RTCollimatorType CollimatorType;
