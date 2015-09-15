@@ -231,8 +231,10 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
   if ( inputSegmentationANode->GetSegmentation()->ContainsRepresentation(
     vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
   {
-    imageA = vtkOrientedImageData::SafeDownCast(
-      segmentA->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+    // Make a copy in case the parent transform has to be hardened on it
+    imageA = vtkSmartPointer<vtkOrientedImageData>::New();
+    imageA->DeepCopy( vtkOrientedImageData::SafeDownCast(
+      segmentA->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
   }
   else // Need to convert
   {
@@ -253,7 +255,7 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
   {
     if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(inputSegmentationANode, imageA))
     {
-      std::string errorMessage("Failed to apply parent transformation to segmentation A.\nMaybe it has a deformable transformation parent, which is not allowed");
+      std::string errorMessage("Failed to apply parent transformation to segmentation A!");
       vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
       return errorMessage;
     }
@@ -310,7 +312,7 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
     {
       if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(inputSegmentationBNode, imageB))
       {
-        std::string errorMessage("Failed to apply parent transformation to segmentation B.\nMaybe it has a deformable transformation parent, which is not allowed");
+        std::string errorMessage("Failed to apply parent transformation to segmentation B!");
         vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
         return errorMessage;
       }

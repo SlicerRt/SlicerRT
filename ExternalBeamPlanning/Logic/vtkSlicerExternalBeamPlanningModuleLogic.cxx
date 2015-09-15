@@ -1216,7 +1216,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   // Apply parent transformation nodes if necessary
   if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(targetSegmentationNode, targetLabelmap))
   {
-    std::string errorMessage("Failed to apply parent transformation to compare segmentation.\nMaybe it has a deformable transformation parent, which is not allowed");
+    std::string errorMessage("Failed to apply parent transformation to target segment!");
     vtkErrorMacro("ComputeDoseByPlastimatch: " << errorMessage);
     return;
   }

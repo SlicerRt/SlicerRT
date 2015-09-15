@@ -417,7 +417,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
   {
     if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(doseVolumeNode, doseImageData))
     {
-      std::string errorMessage("Failed to apply parent transformation to dose.\nMaybe it has a deformable transformation parent, which is not allowed");
+      std::string errorMessage("Failed to apply parent transformation to dose!");
       vtkErrorMacro("ComputeDvh: " << errorMessage);
       return errorMessage;
     }
@@ -463,7 +463,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     {
       if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, segmentBinaryLabelmap))
       {
-        std::string errorMessage("Failed to apply parent transformation to segment.\nMaybe it has a deformable transformation parent, which is not allowed");
+        std::string errorMessage("Failed to apply parent transformation to segment!");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
         return errorMessage;
       }

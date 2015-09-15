@@ -190,13 +190,13 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
   {
     if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(referenceSegmentationNode, referenceSegmentLabelmap))
     {
-      std::string errorMessage("Failed to apply parent transformation to compare segmentation.\nMaybe it has a deformable transformation parent, which is not allowed");
+      std::string errorMessage("Failed to apply parent transformation to compare segment!");
       vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
       return errorMessage;
     }
     if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(compareSegmentationNode, compareSegmentLabelmap))
     {
-      std::string errorMessage("Failed to apply parent transformation to reference segmentation.\nMaybe it has a deformable transformation parent, which is not allowed");
+      std::string errorMessage("Failed to apply parent transformation to reference segment!");
       vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
       return errorMessage;
     }

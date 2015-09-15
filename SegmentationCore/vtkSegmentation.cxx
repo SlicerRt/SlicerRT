@@ -644,12 +644,7 @@ void vtkSegmentation::ApplyLinearTransform(vtkAbstractTransform* transform)
     // Oriented image data
     else if (currentMasterRepresentationOrientedImageData)
     {
-      vtkSmartPointer<vtkTransform> newImageGeometryTransform = vtkSmartPointer<vtkTransform>::New();
-      vtkSmartPointer<vtkMatrix4x4> imageGeometryMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      currentMasterRepresentationOrientedImageData->GetImageToWorldMatrix(imageGeometryMatrix);
-      newImageGeometryTransform->Concatenate(linearTransform);
-      newImageGeometryTransform->Concatenate(imageGeometryMatrix);
-      currentMasterRepresentationOrientedImageData->SetGeometryFromImageToWorldMatrix(newImageGeometryTransform->GetMatrix());
+      vtkOrientedImageDataResample::TransformOrientedImage(currentMasterRepresentationOrientedImageData, linearTransform);
     }
     else
     {

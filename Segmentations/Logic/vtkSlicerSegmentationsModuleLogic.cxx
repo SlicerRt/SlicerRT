@@ -27,6 +27,7 @@
 
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
+#include "vtkOrientedImageDataResample.h"
 #include "vtkSegmentationConverterFactory.h"
 #include "vtkBinaryLabelmapToClosedSurfaceConversionRule.h"
 #include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
@@ -47,6 +48,7 @@
 #include <vtkDataObject.h>
 #include <vtkTransform.h>
 #include <vtksys/SystemTools.hxx>
+#include <vtkGeneralTransform.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -902,21 +904,12 @@ bool vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(
     return false;
   }
 
-  // Get world to reference RAS transform matrix
-  vtkSmartPointer<vtkMatrix4x4> nodeToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  nodeToWorldTransformMatrix->Identity();
+  // Get world to reference RAS transform
+  vtkSmartPointer<vtkGeneralTransform> nodeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   vtkMRMLTransformNode* parentTransformNode = transformableNode->GetParentTransformNode();
   if (parentTransformNode)
   {
-    if (!parentTransformNode->IsTransformToWorldLinear())
-    {
-      vtkErrorWithObjectMacro(transformableNode, "ApplyParentTransformToOrientedImageData: Segmentation " << transformableNode->GetName() << " has a deformable transformation applied, which is not allowed for this operation");
-      return false;
-    }
-    else
-    {
-      parentTransformNode->GetMatrixTransformToWorld(nodeToWorldTransformMatrix);
-    }
+    parentTransformNode->GetTransformToWorld(nodeToWorldTransform);
   }
   else
   {
@@ -924,20 +917,8 @@ bool vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(
     return true;
   }
 
-  // Get image data IJK to segmentation transform matrix
-  vtkSmartPointer<vtkMatrix4x4> imageDataIjkToSegmentationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  orientedImageData->GetImageToWorldMatrix(imageDataIjkToSegmentationMatrix);
-
-  // Apply transform on oriented image data to transform it to world space
-  vtkSmartPointer<vtkTransform> imageDataToWorldTransform = vtkSmartPointer<vtkTransform>::New();
-  imageDataToWorldTransform->Identity();
-  imageDataToWorldTransform->PostMultiply();
-  imageDataToWorldTransform->Concatenate(imageDataIjkToSegmentationMatrix);
-  imageDataToWorldTransform->Concatenate(nodeToWorldTransformMatrix);
-
-  vtkSmartPointer<vtkMatrix4x4> imageDataToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  imageDataToWorldTransform->GetMatrix(imageDataToWorldTransformMatrix);
-  orientedImageData->SetGeometryFromImageToWorldMatrix(imageDataToWorldTransformMatrix);
+  // Transform oriented image data
+  vtkOrientedImageDataResample::TransformOrientedImage(orientedImageData, nodeToWorldTransform);
 
   return true;
 }

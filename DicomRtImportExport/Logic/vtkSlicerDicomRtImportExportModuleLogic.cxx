@@ -1756,7 +1756,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
       {
         if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, binaryLabelmapCopy))
         {
-          std::string errorMessage("Failed to apply parent transformation to exported segment.\nMaybe it has a deformable transformation parent, which is not allowed");
+          std::string errorMessage("Failed to apply parent transformation to exported segment!");
           vtkErrorMacro("ExportDicomRTStudy: " << errorMessage);
           return errorMessage;
         }
