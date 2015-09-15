@@ -30,7 +30,6 @@
 // SlicerRT includes
 #include "PlmCommon.h"
 #include "SlicerRtCommon.h"
-#include "vtkRTBeamData.h"
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
@@ -669,8 +668,7 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
   // Create rtbeam node
   vtkSmartPointer<vtkMRMLRTBeamNode> RTBeamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
   RTBeamNode = vtkMRMLRTBeamNode::SafeDownCast(this->GetMRMLScene()->AddNode(RTBeamNode));
-  vtkRTBeamData *beamData = RTBeamNode->GetBeamData();
-  beamData->SetBeamName(rtBeamNodeName.c_str());
+  RTBeamNode->SetBeamName(rtBeamNodeName.c_str());
   RTBeamNode->SetAndObserveBeamModelNodeId(RTBeamModelNode->GetID());
   RTBeamNode->HideFromEditorsOff();
   printf ("** Created node with beam name = %s\n", rtBeamNodeName.c_str());
@@ -680,7 +678,7 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::AddBeam()
 
   // TODO GCS FIX --- this will be enveloped into the BeamData::Copy() function
   //RTBeamNode->SetBeamName(this->ExternalBeamPlanningNode->GetBeamName());
-  this->ExternalBeamPlanningNode->SetBeamName(beamData->GetBeamName());
+  this->ExternalBeamPlanningNode->SetBeamName(RTBeamNode->GetBeamName());
 
   /* Copy all appropriate settings from EBP node into beam node */
   RTBeamNode->SetX1Jaw(this->ExternalBeamPlanningNode->GetX1Jaw());

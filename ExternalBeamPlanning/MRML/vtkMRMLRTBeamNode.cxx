@@ -27,7 +27,6 @@
 #include "vtkMRMLRTPlanHierarchyNode.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLSegmentationNode.h"
-#include "vtkRTBeamData.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -100,8 +99,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 
   this->SourceSize = 0.0;
 
-  this->BeamData = new vtkRTBeamData();
-
   this->BeamModelNode = NULL;
   this->BeamModelNodeId = NULL;
 
@@ -119,12 +116,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::~vtkMRMLRTBeamNode()
 {
-  if (this->BeamData)
-  {
-    delete this->BeamData;
-    this->BeamData = NULL;
-  }
-
   this->SetAndObserveBeamModelNodeId(NULL);
   this->SetTargetSegmentID(NULL);
 }
@@ -137,9 +128,9 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  if (this->BeamData->GetBeamName() != NULL) 
+  if (this->GetBeamName() != NULL) 
   {
-    of << indent << " BeamName=\"" << this->BeamData->GetBeamName() << "\"";
+    of << indent << " BeamName=\"" << this->GetBeamName() << "\"";
   }
   if (this->BeamModelNodeId != NULL) 
   {
@@ -167,7 +158,7 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "BeamName")) 
     {
-      this->BeamData->SetBeamName(attValue);
+      this->SetBeamName(attValue);
     }
     else if (!strcmp(attName, "BeamModelNodeId")) 
     {
@@ -195,7 +186,7 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLRTBeamNode *node = (vtkMRMLRTBeamNode *) anode;
 
-  this->BeamData->SetBeamName( node->BeamData->GetBeamName() );
+  this->SetBeamName( node->GetBeamName() );
 
   // Observers must be removed here, otherwise MRML updates would activate nodes on the undo stack
   this->SetAndObserveBeamModelNodeId( NULL );
@@ -252,18 +243,6 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTBeamNode::GetIsocenterFiducialNode()
 }
 
 //----------------------------------------------------------------------------
-const std::string vtkMRMLRTBeamNode::GetBeamName() const
-{
-  return std::string(BeamData->GetBeamName());
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetBeamName(const std::string& beamName)
-{
-  BeamData->SetBeamName(beamName.c_str());
-}
-
-//----------------------------------------------------------------------------
 bool vtkMRMLRTBeamNode::BeamNameIs (const std::string& beamName)
 {
   return BeamNameIs (beamName.c_str());
@@ -272,7 +251,10 @@ bool vtkMRMLRTBeamNode::BeamNameIs (const std::string& beamName)
 //----------------------------------------------------------------------------
 bool vtkMRMLRTBeamNode::BeamNameIs (const char *beamName)
 {
-  return !strcmp(BeamData->GetBeamName(), beamName);
+  if (this->GetBeamName() == NULL || beamName == NULL) {
+    return false;
+  }
+  return !strcmp(this->GetBeamName(), beamName);
 }
 
 //----------------------------------------------------------------------------

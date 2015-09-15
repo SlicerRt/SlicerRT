@@ -41,7 +41,6 @@
 #include "vtkMRMLExternalBeamPlanningNode.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
-#include "vtkRTBeamData.h"
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 
 // MRML includes
@@ -593,7 +592,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
     vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
     if (beamNode)
     {
-      d->tableWidget_Beams->setItem(i, 1, new QTableWidgetItem( QString(beamNode->GetBeamData()->GetBeamName()) ) );
+      d->tableWidget_Beams->setItem(i, 1, new QTableWidgetItem( QString(beamNode->GetBeamName()) ) );
     }
   }
   if (d->currentBeamRow >=0)
@@ -926,8 +925,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString &tex
   if (!beamNode) {
     return;
   }
-  vtkRTBeamData *beamData = beamNode->GetBeamData();
-  beamData->SetBeamName(text.toStdString().c_str());
+  beamNode->SetBeamName(text.toStdString().c_str());
 
   // Update in table
   this->updateRTBeamTableWidget();

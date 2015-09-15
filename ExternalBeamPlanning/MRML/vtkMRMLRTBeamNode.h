@@ -28,7 +28,6 @@
 #include <vtkMRMLScene.h>
 
 // SlicerRT includes
-//#include "vtkRTBeamData.h"
 #include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
@@ -38,7 +37,6 @@ class vtkMRMLModelNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLSegmentationNode;
 class vtkMRMLDoubleArrayNode;
-class vtkRTBeamData;
 
 /// GCS 2015-09-04.  Why don't VTK macros support const functions?
 #define vtkGetConstMacro(name,type)             \
@@ -99,6 +97,23 @@ public:
   void UpdateReferences();
 
 public:
+  /// Set/Get structure name
+  vtkGetStringMacro(BeamName);
+  vtkSetStringMacro(BeamName);
+
+  /// Get/Set Save labelmaps checkbox state
+  vtkGetMacro(BeamNumber, int);
+  vtkSetMacro(BeamNumber, int);
+
+  /// Set/Get structure name
+  vtkGetStringMacro(BeamDescription);
+  vtkSetStringMacro(BeamDescription);
+
+  /// Get target segment ID
+  vtkGetStringMacro(TargetSegmentID);
+  /// Set target segment ID
+  vtkSetStringMacro(TargetSegmentID);
+
   /// Get/Set RadiationType
   vtkGetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
   vtkGetConstMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
@@ -177,14 +192,6 @@ public:
   vtkGetMacro(SourceSize, double);
   vtkSetMacro(SourceSize, double);
 
-  /// Get/Set beam data
-  const vtkRTBeamData* GetBeamData() const { return BeamData; }
-  vtkRTBeamData* GetBeamData() { return BeamData; }
-
-  /// Get/Set beam name
-  const std::string GetBeamName() const;
-  void SetBeamName(const std::string& beamName);
-
   /// Return true if the beam name matches the argument
   bool BeamNameIs (const std::string& beamName);
   bool BeamNameIs (const char *beamName);
@@ -232,11 +239,6 @@ public:
   /// Set and observe proton target segmentation node
   void SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode* node);
 
-  /// Get target segment ID
-  vtkGetStringMacro(TargetSegmentID);
-  /// Set target segment ID
-  vtkSetStringMacro(TargetSegmentID);
-
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
   /// Set and observe MLC position double array node
@@ -263,6 +265,10 @@ protected:
   void operator=(const vtkMRMLRTBeamNode&);
 
 protected:
+  char* BeamName;
+  int   BeamNumber;
+  char* BeamDescription;
+
   /// Target segment ID in target segmentation node
   char* TargetSegmentID;
 
@@ -304,9 +310,6 @@ protected:
   int ApertureDim[2];
 
   double SourceSize;
-
-  /// Beam-specific data
-  vtkRTBeamData* BeamData;
 
   //TODO: Change these references to MRML references. 
   // No need to store neither the node pointer nor the ID.
