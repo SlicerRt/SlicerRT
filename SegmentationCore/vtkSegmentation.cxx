@@ -219,6 +219,20 @@ void vtkSegmentation::SetMasterRepresentationName(const char* representationName
   vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting MasterRepresentationName to " << (representationName?representationName:"(null)") );
   if ( this->MasterRepresentationName == NULL && representationName == NULL) { return;}
   if ( this->MasterRepresentationName && representationName && (!strcmp(this->MasterRepresentationName,representationName))) { return;}
+
+  // Remove observation of old master representation in all segments
+  for (SegmentMap::iterator segmentIt = this->Segments.begin(); segmentIt != this->Segments.end(); ++segmentIt)
+  {
+    vtkDataObject* masterRepresentation = segmentIt->second->GetRepresentation(this->MasterRepresentationName);
+    if (masterRepresentation)
+    {
+      vtkEventBroker::GetInstance()->RemoveObservations(
+        masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
+      masterRepresentation->UnRegister(this);
+    }
+  }
+
+  // Set master representation name
   delete [] this->MasterRepresentationName;
   if (representationName)
   {
@@ -232,6 +246,20 @@ void vtkSegmentation::SetMasterRepresentationName(const char* representationName
   {
     this->MasterRepresentationName = NULL;
   }
+
+  // Add observation of new master representation in all segments
+  for (SegmentMap::iterator segmentIt = this->Segments.begin(); segmentIt != this->Segments.end(); ++segmentIt)
+  {
+    vtkDataObject* masterRepresentation = segmentIt->second->GetRepresentation(this->MasterRepresentationName);
+    if (masterRepresentation)
+    {
+      vtkEventBroker::GetInstance()->AddObservation(
+        masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
+      masterRepresentation->Register(this);
+    }
+  }
+
+  // Invoke events
   this->Modified();
   this->InvokeEvent(vtkSegmentation::MasterRepresentationModified, this);
 }
@@ -277,6 +305,15 @@ bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""
   // Observe segment underlying data for changes
   vtkEventBroker::GetInstance()->AddObservation(
     segment, vtkCommand::ModifiedEvent, this, this->SegmentCallbackCommand );
+  // Add observation of master representation in new segment
+  vtkDataObject* masterRepresentation = segment->GetRepresentation(this->MasterRepresentationName);
+  if (masterRepresentation)
+  {
+    // Observe segment's master representation
+    vtkEventBroker::GetInstance()->AddObservation(
+      masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
+    masterRepresentation->Register(this);
+  }
 
   // Get representation names contained by the added segment
   std::vector<std::string> containedRepresentationNamesInAddedSegment;
@@ -421,9 +458,17 @@ void vtkSegmentation::RemoveSegment(SegmentMap::iterator segmentIt)
 
   std::string segmentId(segmentIt->first);
 
-  // Remove observations
+  // Remove observation of segment modified event
   vtkEventBroker::GetInstance()->RemoveObservations(
     segmentIt->second.GetPointer(), vtkCommand::ModifiedEvent, this, this->SegmentCallbackCommand );
+  // Remove observation of master representation of removed segment
+  vtkDataObject* masterRepresentation = segmentIt->second->GetRepresentation(this->MasterRepresentationName);
+  if (masterRepresentation)
+  {
+    vtkEventBroker::GetInstance()->RemoveObservations(
+      masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
+    masterRepresentation->UnRegister(this);
+  }
 
   // Remove segment
   this->Segments.erase(segmentIt);
@@ -452,26 +497,6 @@ void vtkSegmentation::OnSegmentModified(vtkObject* caller,
   if (!self || !callerSegment)
   {
     return;
-  }
-  if (!self->MasterRepresentationName)
-  {
-    vtkErrorWithObjectMacro(self, "vtkSegmentation::OnSegmentModified: Master representation not specified!");
-    return;
-  }
-
-  // Get master representation of caller segment to renew its observation
-  vtkDataObject* masterRepresentation = callerSegment->GetRepresentation(self->MasterRepresentationName);
-  if (masterRepresentation)
-  {
-    // Remove observation from segment's master representation (in case it has changed)
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      masterRepresentation, vtkCommand::ModifiedEvent, self, self->MasterRepresentationCallbackCommand );
-    masterRepresentation->UnRegister(self);
-
-    // Observe segment's master representation
-    vtkEventBroker::GetInstance()->AddObservation(
-      masterRepresentation, vtkCommand::ModifiedEvent, self, self->MasterRepresentationCallbackCommand );
-    masterRepresentation->Register(self);
   }
 
   // Invoke segment modified event, but do not invoke general modified event
