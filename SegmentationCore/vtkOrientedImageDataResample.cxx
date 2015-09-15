@@ -603,11 +603,11 @@ void vtkOrientedImageDataResample::TransformOrientedImage(vtkOrientedImageData* 
   else
   {
     // Get geometry transform and its inverse
-    vtkNew<vtkMatrix4x4> imageToWorldMatrix;
-    image->GetImageToWorldMatrix(imageToWorldMatrix.GetPointer());
+    vtkSmartPointer<vtkMatrix4x4> imageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    image->GetImageToWorldMatrix(imageToWorldMatrix);
 
-    vtkNew<vtkMatrix4x4> worldToImageMatrix;
-    worldToImageMatrix->DeepCopy(imageToWorldMatrix.GetPointer());
+    vtkSmartPointer<vtkMatrix4x4> worldToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    worldToImageMatrix->DeepCopy(imageToWorldMatrix);
     worldToImageMatrix->Invert();
 
     // Calculate output extent
@@ -628,42 +628,50 @@ void vtkOrientedImageDataResample::TransformOrientedImage(vtkOrientedImageData* 
       (int)ceil( std::max(transformedBoundsImageCorner1[2], transformedBoundsImageCorner2[2]) )
     };
 
-    // It becomes transformedWorldToWorld transform
+    // If only transform of the image's geometry was requested, then set the newly calculated extent and return
+    if (geometryOnly)
+    {
+      image->SetExtent(outputExtent);
+      return;
+    }
+
+    // Create clone for input image that has an identity geometry
+    vtkSmartPointer<vtkMatrix4x4> identityMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    identityMatrix->Identity();
+    vtkSmartPointer<vtkOrientedImageData> identityInputImage = vtkSmartPointer<vtkOrientedImageData>::New();
+    identityInputImage->ShallowCopy(image);
+    identityInputImage->SetGeometryFromImageToWorldMatrix(identityMatrix);
+
+    // Invert input transform, so it becomes transformedWorldToWorld transform
     transform->Inverse();
 
     // Create reslice transform
-    vtkNew<vtkGeneralTransform> resliceTransform;
+    vtkSmartPointer<vtkGeneralTransform> resliceTransform = vtkSmartPointer<vtkGeneralTransform>::New();
     resliceTransform->Identity();
     resliceTransform->PostMultiply();
-    resliceTransform->Concatenate(imageToWorldMatrix.GetPointer());
+    resliceTransform->Concatenate(imageToWorldMatrix);
     resliceTransform->Concatenate(transform);
-    resliceTransform->Concatenate(worldToImageMatrix.GetPointer());
+    resliceTransform->Concatenate(worldToImageMatrix);
 
     // Perform resampling
     vtkNew<vtkImageReslice> reslice;
-    reslice->GenerateStencilOutputOn();
-    reslice->SetResliceTransform(resliceTransform.GetPointer());
 #if (VTK_MAJOR_VERSION <= 5)
-    reslice->SetInput(image);
+    reslice->SetInput(identityInputImage);
 #else
-    reslice->SetInputData(image);
+    reslice->SetInputData(identityInputImage);
 #endif
-    reslice->SetInterpolationModeToLinear();
+    // reslice->SetInterpolationModeToLinear(); //TODO: Use this option for fractional labelmaps
+    reslice->SetInterpolationModeToNearestNeighbor();
     reslice->SetBackgroundColor(0, 0, 0, 0);
     reslice->AutoCropOutputOff();
     reslice->SetOptimization(1);
-    reslice->SetOutputOrigin(image->GetOrigin());
-    reslice->SetOutputSpacing(image->GetSpacing());
-    reslice->SetOutputDimensionality(3);
-    reslice->SetOutputExtent(image->GetExtent());//outputExtent);
+    reslice->SetOutputOrigin(0, 0, 0);
+    reslice->SetOutputSpacing(1, 1, 1);
+    reslice->SetOutputExtent(outputExtent);
+    reslice->SetResliceTransform(resliceTransform);
     reslice->Update();
-#if (VTK_MAJOR_VERSION <= 5)
-    if (reslice->GetOutput(1))
-    {
-      reslice->GetOutput(1)->SetUpdateExtentToWholeExtent();
-    }
-#endif
+
     image->DeepCopy(reslice->GetOutput());
-    image->SetGeometryFromImageToWorldMatrix(imageToWorldMatrix.GetPointer());
+    image->SetGeometryFromImageToWorldMatrix(imageToWorldMatrix);
   }
 }

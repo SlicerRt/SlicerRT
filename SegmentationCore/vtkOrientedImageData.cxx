@@ -203,6 +203,7 @@ void vtkOrientedImageData::SetGeometryFromImageToWorldMatrix(vtkMatrix4x4* argMa
     }
   vtkNew<vtkMatrix4x4> mat;
   mat->DeepCopy(argMat);
+  bool isModified = false;
 
   // normalize direction vectors
   int col=0;
@@ -215,27 +216,44 @@ void vtkOrientedImageData::SetGeometryFromImageToWorldMatrix(vtkMatrix4x4* argMa
       len += mat->GetElement(row, col) * mat->GetElement(row, col);
       }
     len = sqrt(len);
-    this->Spacing[col] = len;
+
+    // Set spacing
+    if (!vtkMathUtilities::FuzzyCompare<double>(this->Spacing[col], len))
+      {
+      this->Spacing[col] = len;
+      isModified = true;
+      }
+
     for (row=0; row<3; row++)
       {
       mat->SetElement(row, col,  mat->GetElement(row, col)/len);
       }
     }
 
-  double dirs[3][3] = {{0.0, 0.0, 0.0},
-                       {0.0, 0.0, 0.0},
-                       {0.0, 0.0, 0.0}};
   for (int row=0; row<3; row++)
     {
     for (int col=0; col<3; col++)
       {
-      dirs[row][col] = mat->GetElement(row, col);
+      if (!vtkMathUtilities::FuzzyCompare<double>(this->Directions[row][col], mat->GetElement(row, col)))
+        {
+        this->Directions[row][col] = mat->GetElement(row, col);
+        isModified = true;
+        }
       }
-    this->Origin[row] = mat->GetElement(row, 3);
+
+      // Set origin
+      if (!vtkMathUtilities::FuzzyCompare<double>(this->Origin[row], mat->GetElement(row, 3)))
+        {
+        this->Origin[row] = mat->GetElement(row, 3);
+        isModified = true;
+        }
     }
 
-  // Only one Modified event, Origin and Spacing was set above
-  this->SetDirections(dirs);
+  // Only one Modified event
+  if (isModified)
+    {
+    this->Modified();
+    }
 }
 
 //----------------------------------------------------------------------------
