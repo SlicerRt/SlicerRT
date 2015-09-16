@@ -31,7 +31,6 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.TestSection_1_AddRemoveSegment()
     self.TestSection_2_MergeLabelmapWithDifferentGeometries()
     self.TestSection_3_ImportExportSegment()
-    self.TestSection_4_ConversionWithTransforms()
     self.TestSection_Z_ClearDatabase()
 
   #------------------------------------------------------------------------------
@@ -336,6 +335,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     # Should not import multi-label labelmap to segment
     nullSegment = vtkSlicerSegmentationsModuleLogic.CreateSegmentFromLabelmapVolumeNode(allSegmentsLabelmapNode)
     self.assertIsNone(nullSegment)
+    logging.info('(This error message tests an impossible scenario, it is supposed to appear)')
     # Make labelmap single-label and import again
     threshold = vtk.vtkImageThreshold()
     threshold.ThresholdByUpper(0.5)
@@ -353,6 +353,57 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertIsNotNone(labelSegment)
     self.assertIsNotNone(labelSegment.GetRepresentation(self.binaryLabelmapReprName))
 
+    # Import/export with transforms
+    logging.info('Test section 4/2: Import/export with transforms')
+
+    # Create transform node that will be used to transform the tested nodes
+    bodyModelTransformNode = slicer.vtkMRMLLinearTransformNode()
+    slicer.mrmlScene.AddNode(bodyModelTransformNode)
+    bodyModelTransform = vtk.vtkTransform()
+    bodyModelTransform.Translate(1000.0, 0.0, 0.0)
+    bodyModelTransformNode.ApplyTransformMatrix(bodyModelTransform.GetMatrix())
+    
+    # Set transform as parent to input segmentation node
+    self.inputSegmentationNode.SetAndObserveTransformNodeID(bodyModelTransformNode.GetID())
+
+    # Export single segment to model node from transformed segmentation
+    bodyModelNodeTransformed = slicer.vtkMRMLModelNode()
+    bodyModelNodeTransformed.SetName('BodyModelTransformed')
+    slicer.mrmlScene.AddNode(bodyModelNodeTransformed)
+    bodySegment = self.inputSegmentationNode.GetSegmentation().GetSegment('Body_Contour')
+    result = vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyModelNodeTransformed)
+    self.assertTrue(result)
+    self.assertIsNotNone(bodyModelNodeTransformed.GetParentTransformNode())
+
+    # Export single segment to volume node from transformed segmentation
+    bodyLabelmapNodeTransformed = slicer.vtkMRMLLabelMapVolumeNode()
+    bodyLabelmapNodeTransformed.SetName('BodyLabelmapTransformed')
+    slicer.mrmlScene.AddNode(bodyLabelmapNodeTransformed)
+    result = vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyLabelmapNodeTransformed)
+    self.assertTrue(result)
+    self.assertIsNotNone(bodyLabelmapNodeTransformed.GetParentTransformNode())
+
+    # Create transform node that will be used to transform the tested nodes
+    modelTransformedImportSegmentationTransformNode = slicer.vtkMRMLLinearTransformNode()
+    slicer.mrmlScene.AddNode(modelTransformedImportSegmentationTransformNode)
+    modelTransformedImportSegmentationTransform = vtk.vtkTransform()
+    modelTransformedImportSegmentationTransform.Translate(-500.0, 0.0, 0.0)
+    modelTransformedImportSegmentationTransformNode.ApplyTransformMatrix(modelTransformedImportSegmentationTransform.GetMatrix())
+
+    # Import transformed model to segment in transformed segmentation
+    modelTransformedImportSegmentationNode = vtkMRMLSegmentationNode()
+    modelTransformedImportSegmentationNode.SetName('ModelImportTransformed')
+    modelTransformedImportSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.closedSurfaceReprName)
+    slicer.mrmlScene.AddNode(modelTransformedImportSegmentationNode)
+    modelTransformedImportSegmentationNode.SetAndObserveTransformNodeID(modelTransformedImportSegmentationTransformNode.GetID())
+    modelSegmentTranformed = vtkSlicerSegmentationsModuleLogic.CreateSegmentFromModelNode(bodyModelNodeTransformed, modelTransformedImportSegmentationNode)
+    modelSegmentTranformed.UnRegister(None) # Need to release ownership
+    self.assertIsNotNone(modelSegmentTranformed)
+    modelSegmentTransformedPolyData = modelSegmentTranformed.GetRepresentation(self.closedSurfaceReprName)
+    self.assertIsNotNone(modelSegmentTransformedPolyData)
+    self.assertEqual(int(modelSegmentTransformedPolyData.GetBounds()[0]), 1332)
+    self.assertEqual(int(modelSegmentTransformedPolyData.GetBounds()[1]), 1675)
+
     # Clean up temporary nodes
     slicer.mrmlScene.RemoveNode(bodyModelNode)
     slicer.mrmlScene.RemoveNode(bodyLabelmapNode)
@@ -360,11 +411,10 @@ class SegmentationsModuleTest1(unittest.TestCase):
     slicer.mrmlScene.RemoveNode(modelImportSegmentationNode)
     slicer.mrmlScene.RemoveNode(multiLabelImportSegmentationNode)
     slicer.mrmlScene.RemoveNode(singleLabelImportSegmentationNode)
-
-  #------------------------------------------------------------------------------
-  def TestSection_4_ConversionWithTransforms(self):
-    # Conversion rules with all kinds of transformed scenarios
-    logging.info('Test section 4: Conversion with transformed scenarios')
+    slicer.mrmlScene.RemoveNode(bodyModelTransformNode)
+    slicer.mrmlScene.RemoveNode(bodyModelNodeTransformed)
+    slicer.mrmlScene.RemoveNode(bodyLabelmapNodeTransformed)
+    slicer.mrmlScene.RemoveNode(modelTransformedImportSegmentationNode)
 
   #------------------------------------------------------------------------------
   def TestSection_Z_ClearDatabase(self):
