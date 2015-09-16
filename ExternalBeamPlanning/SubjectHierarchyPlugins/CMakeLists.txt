@@ -9,6 +9,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
   ${Slicer_Libs_INCLUDE_DIRS}
+  ${Slicer_Base_INCLUDE_DIRS}
   ${MRMLLogic_INCLUDE_DIRS}
   ${qMRMLWidgets_INCLUDE_DIRS}
   ${MRMLCLI_INCLUDE_DIRS}

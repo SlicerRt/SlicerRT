@@ -46,7 +46,7 @@
 #include <QIcon>
 
 // SlicerQt includes
-//#include "qSlicerAbstractModuleWidget.h"
+#include "qSlicerAbstractModuleWidget.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RtHierarchy
