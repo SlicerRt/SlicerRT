@@ -264,15 +264,6 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
       return errorMessage;
     }
 
-//TODO:
-//BUG: Mask image not considered correctly, edges seem to be left out (however, the mask image seems to be correct)
-//vtkSmartPointer<vtkMRMLLabelMapVolumeNode> labelmapNode = vtkSmartPointer<vtkMRMLLabelMapVolumeNode>::New();
-//std::string name("TestMask");
-//name = this->GetMRMLScene()->GenerateUniqueName(name);
-//labelmapNode->SetName(name.c_str());
-//this->GetMRMLScene()->AddNode(labelmapNode);
-//vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData(maskSegmentLabelmap, labelmapNode);
-//maskVolume = PlmCommon::ConvertVolumeNodeToPlmImage( labelmapNode );
     // Convert mask to Plm image
     maskVolume = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(maskSegmentLabelmap);
     if (!maskVolume)

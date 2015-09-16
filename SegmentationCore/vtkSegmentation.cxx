@@ -259,6 +259,10 @@ void vtkSegmentation::SetMasterRepresentationName(const char* representationName
     }
   }
 
+  // Invalidate all representations other than the master.
+  // These representations will be automatically converted later on demand.
+  this->InvalidateNonMasterRepresentations();
+
   // Invoke events
   this->Modified();
   this->InvokeEvent(vtkSegmentation::MasterRepresentationModified, this);

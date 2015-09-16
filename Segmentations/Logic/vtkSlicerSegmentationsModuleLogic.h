@@ -36,6 +36,7 @@
 class vtkCallbackCommand;
 class vtkOrientedImageData;
 class vtkDataObject;
+class vtkGeneralTransform;
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationStorageNode;
@@ -92,12 +93,24 @@ public:
   /// Create segment from labelmap volume MRML node. The contents are set as binary labelmap representation in the segment.
   /// Returns NULL if labelmap contains more than one label. In that case \sa ImportLabelmapToSegmentationNode needs to be used.
   /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkSegment>::Take
-  static vtkSegment* CreateSegmentFromLabelmapVolumeNode(vtkMRMLLabelMapVolumeNode* labelmapVolumeNode);
+  /// \param labelmapVolumeNode Model node containing image data that will be the binary labelmap representation in the created segment
+  /// \param segmentationNode Segmentation node that will be the container of the segment. It is used to get parent transform to
+  ///   make sure the created segment will be located the same place the image was, considering all transforms involved. NULL value
+  ///   means that this consideration is not needed. Default value is NULL.
+  /// \return Created segment that then can be added to the segmentation if needed. Need to take ownership of the created
+  ///   object! For example using vtkSmartPointer<vtkSegment>::Take
+  static vtkSegment* CreateSegmentFromLabelmapVolumeNode(vtkMRMLLabelMapVolumeNode* labelmapVolumeNode, vtkMRMLSegmentationNode* segmentationNode=NULL);
 
   /// Create segment from model MRML node.
   /// The contents are set as closed surface model representation in the segment.
   /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkSegment>::Take
-  static vtkSegment* CreateSegmentFromModelNode(vtkMRMLModelNode* modelNode);
+  /// \param modelNode Model node containing poly data that will be the closed surface representation in the created segment
+  /// \param segmentationNode Segmentation node that will be the container of the segment. It is used to get parent transform to
+  ///   make sure the created segment will be located the same place the model was, considering all transforms involved. NULL value
+  ///   means that this consideration is not needed. Default value is NULL.
+  /// \return Created segment that then can be added to the segmentation if needed. Need to take ownership of the created
+  ///   object! For example using vtkSmartPointer<vtkSegment>::Take
+  static vtkSegment* CreateSegmentFromModelNode(vtkMRMLModelNode* modelNode, vtkMRMLSegmentationNode* segmentationNode=NULL);
 
   /// Utility function for getting the segmentation node for a segment subject hierarchy node
   static vtkMRMLSegmentationNode* GetSegmentationNodeForSegmentSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* segmentShNode);
@@ -137,6 +150,18 @@ public:
   /// Useful if we want to get a labelmap representation of a segmentation in the proper geometry for processing.
   /// \return Success flag
   static bool ApplyParentTransformToOrientedImageData(vtkMRMLTransformableNode* transformableNode, vtkOrientedImageData* orientedImageData);
+
+  /// Get transform between a representation node (e.g. labelmap or model) and a segmentation node.
+  /// Useful if we want to add a representation to a segment, and we want to make sure that the segment will be located the same place
+  /// the representation node was. The output transform is the representation node's parent transform concatenated with the inverse
+  /// of the segmentation's parent transform. It needs to be applied on the representation.
+  /// \param representationNode Transformable node which contains the representation we want to add to the segment
+  /// \param segmentationNode Segmentation node that will contain the segment to which the representation is added. It is the
+  ///   representation node's parent transform concatenated with the inverse of the segmentation's parent transform. If this
+  ///   parameter is NULL, then it will not be considered
+  /// \param representationToSegmentationTransform General transform between the representation node and the segmentation node. 
+  /// \return Success flag
+  static bool GetTransformBetweenRepresentationAndSegmentation(vtkMRMLTransformableNode* representationNode, vtkMRMLSegmentationNode* segmentationNode, vtkGeneralTransform* representationToSegmentationTransform);
 
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);

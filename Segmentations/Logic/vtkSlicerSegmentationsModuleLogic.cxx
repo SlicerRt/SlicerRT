@@ -49,6 +49,7 @@
 #include <vtkTransform.h>
 #include <vtksys/SystemTools.hxx>
 #include <vtkGeneralTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -380,6 +381,9 @@ vtkOrientedImageData* vtkSlicerSegmentationsModuleLogic::CreateOrientedImageData
   volumeNode->GetIJKToRASMatrix(ijkToRasMatrix);
   orientedImageData->SetGeometryFromImageToWorldMatrix(ijkToRasMatrix);
 
+  // Apply parent transform of the volume node if any
+  vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(volumeNode, orientedImageData);
+
   return orientedImageData;
 }
 
@@ -417,7 +421,7 @@ int vtkSlicerSegmentationsModuleLogic::DoesLabelmapContainSingleLabel(vtkMRMLLab
 }
 
 //-----------------------------------------------------------------------------
-vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromLabelmapVolumeNode(vtkMRMLLabelMapVolumeNode* labelmapVolumeNode)
+vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromLabelmapVolumeNode(vtkMRMLLabelMapVolumeNode* labelmapVolumeNode, vtkMRMLSegmentationNode* segmentationNode/*=NULL*/)
 {
   if (!labelmapVolumeNode)
   {
@@ -456,6 +460,14 @@ vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromLabelmapVolumeNo
   vtkSmartPointer<vtkOrientedImageData> orientedImageData = vtkSmartPointer<vtkOrientedImageData>::Take(
     vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(labelmapVolumeNode) );
 
+  // Apply parent transforms if any
+  if (labelmapVolumeNode->GetParentTransformNode() || (segmentationNode && segmentationNode->GetParentTransformNode()))
+  {
+    vtkSmartPointer<vtkGeneralTransform> labelmapToSegmentationTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation(labelmapVolumeNode, segmentationNode, labelmapToSegmentationTransform);
+    vtkOrientedImageDataResample::TransformOrientedImage(orientedImageData, labelmapToSegmentationTransform);
+  }
+
   // Add oriented image data as binary labelmap representation
   segment->AddRepresentation(
     vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(),
@@ -465,7 +477,7 @@ vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromLabelmapVolumeNo
 }
 
 //-----------------------------------------------------------------------------
-vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(vtkMRMLModelNode* modelNode)
+vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(vtkMRMLModelNode* modelNode, vtkMRMLSegmentationNode* segmentationNode/*=NULL*/)
 {
   if (!modelNode)
   {
@@ -494,10 +506,33 @@ vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(vtkMRM
     segment->SetDefaultColor(color);
   }
 
+  // Make a copy of the model's poly data to set it in the segment
+  vtkSmartPointer<vtkPolyData> polyDataCopy = vtkSmartPointer<vtkPolyData>::New();
+
+  // Apply parent transforms if any
+  vtkSmartPointer<vtkGeneralTransform> modelToSegmentationTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation(modelNode, segmentationNode, modelToSegmentationTransform);
+  if (modelNode->GetParentTransformNode() || (segmentationNode && segmentationNode->GetParentTransformNode()))
+  {
+    vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+    transformFilter->SetInput(modelNode->GetPolyData());
+#else
+    transformFilter->SetInputData(modelNode->GetPolyData());
+#endif
+    transformFilter->SetTransform(modelToSegmentationTransform);
+    transformFilter->Update();
+    polyDataCopy->DeepCopy(transformFilter->GetOutput());
+  }
+  else
+  {
+    polyDataCopy->DeepCopy(modelNode->GetPolyData());
+  }
+
   // Add model poly data as closed surface representation
   segment->AddRepresentation(
     vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(),
-    modelNode->GetPolyData() );
+    polyDataCopy );
   
   return segment;
 }
@@ -848,6 +883,14 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkMRML
     }
     segment->SetName(labelName);
   
+    // Apply parent transforms if any
+    if (labelmapNode->GetParentTransformNode() || (segmentationNode && segmentationNode->GetParentTransformNode()))
+    {
+      vtkSmartPointer<vtkGeneralTransform> labelmapToSegmentationTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+      vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation(labelmapNode, segmentationNode, labelmapToSegmentationTransform);
+      vtkOrientedImageDataResample::TransformOrientedImage(labelOrientedImageData, labelmapToSegmentationTransform);
+    }
+
     // Add oriented image data as binary labelmap representation
     segment->AddRepresentation(
       vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(),
@@ -919,6 +962,42 @@ bool vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(
 
   // Transform oriented image data
   vtkOrientedImageDataResample::TransformOrientedImage(orientedImageData, nodeToWorldTransform);
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation(vtkMRMLTransformableNode* representationNode, vtkMRMLSegmentationNode* segmentationNode, vtkGeneralTransform* representationToSegmentationTransform)
+{
+  if (!representationNode || !representationToSegmentationTransform)
+  {
+    std::cerr << "vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation: Invalid inputs!";
+    return false;
+  }
+
+  // Get parent transforms
+  vtkSmartPointer<vtkGeneralTransform> representationToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkMRMLTransformNode* representationParentTransformNode = representationNode->GetParentTransformNode();
+  if (representationParentTransformNode)
+  {
+    representationParentTransformNode->GetTransformToWorld(representationToWorldTransform);
+  }
+  vtkSmartPointer<vtkGeneralTransform> worldToSegmentationTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  if (segmentationNode)
+  {
+    vtkMRMLTransformNode* segmentationParentTransformNode = segmentationNode->GetParentTransformNode();
+    if (segmentationParentTransformNode)
+    {
+      segmentationParentTransformNode->GetTransformToWorld(worldToSegmentationTransform);
+    }
+    worldToSegmentationTransform->Inverse();
+  }
+
+  // P[s] = T[s2w]^-1 * T[r2w] * P[r] (where s=segmentation, r=representation, w=world, square brackets for subscript)
+  representationToSegmentationTransform->Identity();
+  representationToSegmentationTransform->PreMultiply();
+  representationToSegmentationTransform->Concatenate(worldToSegmentationTransform);
+  representationToSegmentationTransform->Concatenate(representationToWorldTransform);
 
   return true;
 }
