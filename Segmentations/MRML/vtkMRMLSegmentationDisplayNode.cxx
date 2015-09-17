@@ -565,16 +565,18 @@ void vtkMRMLSegmentationDisplayNode::GetPolyDataRepresentationNames(std::set<std
   for (vtkSegmentationConverterFactory::RuleListType::iterator ruleIt = rules.begin(); ruleIt != rules.end(); ++ruleIt)
   {
     vtkSegmentationConverterRule* currentRule = (*ruleIt);
-    vtkPolyData* sourcePolyData = vtkPolyData::SafeDownCast(
-      currentRule->ConstructRepresentationObjectByRepresentation(
-        currentRule->GetSourceRepresentationName() ) );
+
+    vtkSmartPointer<vtkDataObject> sourceObject = vtkSmartPointer<vtkDataObject>::Take(
+      currentRule->ConstructRepresentationObjectByRepresentation(currentRule->GetSourceRepresentationName()) );
+    vtkPolyData* sourcePolyData = vtkPolyData::SafeDownCast(sourceObject);
     if (sourcePolyData)
     {
       representationNames.insert(std::string(currentRule->GetSourceRepresentationName()));
     }
-    vtkPolyData* targetPolyData = vtkPolyData::SafeDownCast(
-      currentRule->ConstructRepresentationObjectByRepresentation(
-        currentRule->GetTargetRepresentationName() ) );
+
+    vtkSmartPointer<vtkDataObject> targetObject = vtkSmartPointer<vtkDataObject>::Take(
+      currentRule->ConstructRepresentationObjectByRepresentation(currentRule->GetTargetRepresentationName()) );
+    vtkPolyData* targetPolyData = vtkPolyData::SafeDownCast(targetObject);
     if (targetPolyData)
     {
       representationNames.insert(std::string(currentRule->GetTargetRepresentationName()));
