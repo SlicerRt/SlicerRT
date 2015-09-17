@@ -204,6 +204,8 @@ class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
 
 
   def TestSection_0SetupPathsAndNames(self):
+    if not os.access(self.logic.dataDir, os.F_OK):
+      os.mkdir(self.logic.dataDir)
     self.dicomDataDir = self.logic.dataDir + '/TinyRtStudy'
     if not os.access(self.dicomDataDir, os.F_OK):
       os.mkdir(self.dicomDataDir)
@@ -216,14 +218,14 @@ class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
     try:
       import urllib
       downloads = (
-          ('http://slicer.kitware.com/midas3/download/folder/2478/TinyRtStudy.zip', self.dicomZipFilePath),
+          ('http://slicer.kitware.com/midas3/download/folder/2822/TinyRtStudy.zip', self.dicomZipFilePath),
           )
 
       downloaded = 0
       for url,filePath in downloads:
         if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
           if downloaded == 0:
-            logging.info('Downloading input data to folder\n' + self.dicomZipFilePath + '.\n\n  It may take a few minutes...',self.delayMs)
+            logging.info('Downloading input data to folder\n' + self.dicomZipFilePath + '.\n\n  It may take a few minutes...')
           logging.info('Requesting download from %s...' % (url))
           urllib.urlretrieve(url, filePath)
           downloaded += 1
