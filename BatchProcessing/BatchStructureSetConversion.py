@@ -64,17 +64,26 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
     if not os.access(self.dataDir, os.F_OK):
       os.mkdir(self.dataDir)
 
+    self.originalDatabaseDirectory = None
     self.dicomDatabaseDir = self.dataDir + '/CtkDicomDatabase'
+    self.dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
 
   def OpenDatabase(self):
-    # Open test database and empty it
-    if not os.access(self.dicomDatabaseDir, os.F_OK):
-      os.mkdir(self.dicomDatabaseDir)
-
-    dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-    dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
-
-    slicer.dicomDatabase.initializeDatabase()
+    # Open temporary database and empty it
+    try:
+      if not os.access(self.dicomDatabaseDir, os.F_OK):
+        os.mkdir(self.dicomDatabaseDir)
+      if slicer.dicomDatabase:
+        self.originalDatabaseDirectory = os.path.split(slicer.dicomDatabase.databaseFilename)[0]
+      else:
+        settings = qt.QSettings()
+        settings.setValue('DatabaseDirectory', self.dicomDatabaseDir)
+      self.dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
+      slicer.dicomDatabase.initializeDatabase()
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      logging.error('Failed to open temporary DICOM database')
 
   def ImportStudy(self,dicomDataDir):
     indexer = ctk.ctkDICOMIndexer()
@@ -210,10 +219,11 @@ class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
     if not os.access(self.dicomDataDir, os.F_OK):
       os.mkdir(self.dicomDataDir)
 
+    # Define variables
     self.dicomZipFilePath = self.logic.dataDir + '/TinyRtStudy.zip'
     self.expectedNumOfFilesInDicomDataDir = 12
     self.outputDir = self.logic.dataDir + '/Output'
-    
+
   def TestSection_1RetrieveInputData(self):
     try:
       import urllib
@@ -290,13 +300,17 @@ class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
   def TestSection_0Clear(self):
     self.delayDisplay("Clear database and scene",self.delayMs)
 
-    initialized = slicer.dicomDatabase.initializeDatabase()
-    self.assertTrue( initialized )
+    slicer.dicomDatabase.initializeDatabase()
 
     slicer.dicomDatabase.closeDatabase()
     self.assertFalse( slicer.dicomDatabase.isOpen )
 
-    #slicer.mrmlScene.Clear(0) #TODO
+    slicer.mrmlScene.Clear(0)
+
+    if self.logic.originalDatabaseDirectory:
+      self.logic.dicomWidget.onDatabaseDirectoryChanged(self.logic.originalDatabaseDirectory)
+
+    logging.info('Test finished')
 
 
 def main(argv):
