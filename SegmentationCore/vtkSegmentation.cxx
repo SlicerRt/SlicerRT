@@ -613,8 +613,9 @@ void vtkSegmentation::GetSegmentIDs(vtkStringArray* segmentIds)
 //---------------------------------------------------------------------------
 void vtkSegmentation::ApplyLinearTransform(vtkAbstractTransform* transform)
 {
-  vtkLinearTransform* linearTransform = vtkLinearTransform::SafeDownCast(transform);
-  if (!linearTransform)
+  // Check if input transform is indeed linear
+  vtkSmartPointer<vtkTransform> linearTransform = vtkSmartPointer<vtkTransform>::New();
+  if (!vtkOrientedImageDataResample::IsTransformLinear(transform, linearTransform))
   {
     vtkErrorMacro("ApplyLinearTransform: Given transform is not a linear transform!");
     return;
@@ -664,6 +665,14 @@ void vtkSegmentation::ApplyLinearTransform(vtkAbstractTransform* transform)
 //---------------------------------------------------------------------------
 void vtkSegmentation::ApplyNonLinearTransform(vtkAbstractTransform* transform)
 {
+  // Check if input transform is indeed non-linear. Report warning if linear, as this function should
+  // only be called with non-linear transforms.
+  vtkSmartPointer<vtkTransform> linearTransform = vtkSmartPointer<vtkTransform>::New();
+  if (vtkOrientedImageDataResample::IsTransformLinear(transform, linearTransform))
+  {
+    vtkWarningMacro("ApplyNonLinearTransform: Linear input transform is detected in function that should only handle non-linear transforms!");
+  }
+
   // Apply transform on reference image geometry conversion parameter (to preserve validity of merged labelmap)
   this->Converter->ApplyTransformOnReferenceImageGeometry(transform);
 

@@ -460,8 +460,8 @@ void vtkOrientedImageDataResample::TransformOrientedImageDataBounds(vtkOrientedI
   for (int i=0; i<6; i++)
   {
     int normalAxis = i/2; // Axis along which the plane is constant
-    double currentPlaneOriginImage[4] = {0.0, 0.0, 0.0, 1.0};
-    currentPlaneOriginImage[normalAxis] += imageExtent[i];
+    double currentPlaneOriginImage[4] = {imageExtent[0], imageExtent[2], imageExtent[4], 1.0};
+    currentPlaneOriginImage[normalAxis] += (imageExtent[i] - imageExtent[normalAxis*2]);
     double currentPlaneOriginWorld[4] = {0.0, 0.0, 0.0, 1.0};
     imageToWorldMatrix->MultiplyPoint(currentPlaneOriginImage, currentPlaneOriginWorld);
 
@@ -510,7 +510,7 @@ bool vtkOrientedImageDataResample::GetTransformBetweenOrientedImages(vtkOriented
     return false;
   }
 
-  // Assemble transform
+  // Assemble inputTransform
   image1ToImage2Transform->Identity();
   image1ToImage2Transform->PostMultiply();
 
@@ -527,6 +527,52 @@ bool vtkOrientedImageDataResample::GetTransformBetweenOrientedImages(vtkOriented
   image1ToImage2Transform->Concatenate(worldToReferenceImageMatrix);
 
   return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkOrientedImageDataResample::IsTransformLinear(vtkAbstractTransform* inputTransform, vtkTransform* outputLinearTransform)
+{
+  if (!inputTransform || !outputLinearTransform)
+  {
+    return false;
+  }
+
+  // Reset output transform
+  outputLinearTransform->Identity();
+
+  // Simply concatenate if type is homogeneous transform
+  vtkLinearTransform* linearTransform = vtkLinearTransform::SafeDownCast(inputTransform);
+  if (linearTransform)
+  {
+    outputLinearTransform->Concatenate(linearTransform);
+    return true;
+  }
+
+  // If general transform then check included concatenated transforms and concatenate them to output transform if all linear
+  vtkGeneralTransform* generalTransform = vtkGeneralTransform::SafeDownCast(inputTransform);
+  if (generalTransform)
+  {
+    for (int transformIndex=0; transformIndex<generalTransform->GetNumberOfConcatenatedTransforms(); ++transformIndex)
+    {
+      vtkLinearTransform* currentLinearTransform = vtkLinearTransform::SafeDownCast(
+        generalTransform->GetConcatenatedTransform(transformIndex) );
+      if (currentLinearTransform)
+      {
+        outputLinearTransform->Concatenate(currentLinearTransform);
+      }
+      else
+      {
+        outputLinearTransform->Identity();
+        return false;
+      }
+    }
+
+    // All concatenated transforms were linear
+    return true;
+  }
+
+  vtkErrorWithObjectMacro(inputTransform, "vtkOrientedImageDataResample::IsTransformLinear: Unsupported input transform with type " << inputTransform->GetClassName());
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -587,8 +633,8 @@ void vtkOrientedImageDataResample::TransformOrientedImage(vtkOrientedImageData* 
   }
 
   // Linear: simply multiply the geometry matrix with the applied matrix, extent stays the same
-  vtkLinearTransform* worldToTransformedWorldLinearTransform = vtkLinearTransform::SafeDownCast(transform);
-  if (worldToTransformedWorldLinearTransform)
+  vtkSmartPointer<vtkTransform> worldToTransformedWorldLinearTransform = vtkSmartPointer<vtkTransform>::New();
+  if (vtkOrientedImageDataResample::IsTransformLinear(transform, worldToTransformedWorldLinearTransform))
   {
     vtkSmartPointer<vtkMatrix4x4> imageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     image->GetImageToWorldMatrix(imageToWorldMatrix);

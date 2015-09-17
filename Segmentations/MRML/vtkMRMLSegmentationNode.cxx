@@ -653,8 +653,8 @@ void vtkMRMLSegmentationNode::ApplyTransformMatrix(vtkMatrix4x4* transformMatrix
 void vtkMRMLSegmentationNode::ApplyTransform(vtkAbstractTransform* transform)
 {
   // Apply transform on segmentation
-  vtkHomogeneousTransform* linearTransform = vtkHomogeneousTransform::SafeDownCast(transform);
-  if (linearTransform)
+  vtkSmartPointer<vtkTransform> linearTransform = vtkSmartPointer<vtkTransform>::New();
+  if (vtkOrientedImageDataResample::IsTransformLinear(transform, linearTransform))
   {
     this->Segmentation->ApplyLinearTransform(transform);
   }

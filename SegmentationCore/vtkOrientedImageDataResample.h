@@ -99,6 +99,13 @@ public:
   /// Pad an image to entirely contain another image
   static bool PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage);
 
+  /// Determine if a transform is linear and return it if it is. A simple downcast is not enough, as the transform may be
+  /// a general transform, which can be linear if the concatenation it contains consist of all linear transforms.
+  /// \param transform Input transform to assess
+  /// \param linearTransform Output transform in case transform is linear
+  /// \return True if input is linear, false otherwise. 
+  static bool IsTransformLinear(vtkAbstractTransform* transform, vtkTransform* linearTransform);
+
 protected:
   vtkOrientedImageDataResample();
   ~vtkOrientedImageDataResample();
