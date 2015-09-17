@@ -149,6 +149,9 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
   paramNode->SetAndObserveCompareDoseVolumeNode(day2DoseScalarVolumeNode);
   paramNode->SetAndObserveGammaVolumeNode(outputGammaVolumeNode);
 
+  // Disable symmetric dose threshold (it is the new default)
+  paramNode->SetDoseThresholdOnReferenceOnly(true);
+
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseComparisonModuleLogic> doseComparisonLogic = vtkSmartPointer<vtkSlicerDoseComparisonModuleLogic>::New();
   doseComparisonLogic->SetMRMLScene(mrmlScene);

@@ -32,9 +32,3 @@ TEST_WITH_DATA(
   ${TEMP}/TestScene_DoseComparison_EclipseEnt.mrml
 )
 set_tests_properties(vtkSlicerDoseComparisonModuleLogicTest_EclipseEnt PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
-
-#ADD_TEST(vtkSlicerDoseAccumulationModuleCompareToBaselineTest
-#   ${CMAKE_COMMAND} -E compare_files 
-#   ${CMAKE_CURRENT_SOURCE_DIR}/../../Data/EclipseProstate/Dose.nrrd 
-#   ${TEMP}/AccumulatedDose.nrrd
-#  )
