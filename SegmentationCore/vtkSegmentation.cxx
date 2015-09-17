@@ -261,7 +261,10 @@ void vtkSegmentation::SetMasterRepresentationName(const char* representationName
 
   // Invalidate all representations other than the master.
   // These representations will be automatically converted later on demand.
-  this->InvalidateNonMasterRepresentations();
+  if (this->MasterRepresentationName)
+  {
+    this->InvalidateNonMasterRepresentations();
+  }
 
   // Invoke events
   this->Modified();
@@ -309,15 +312,6 @@ bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""
   // Observe segment underlying data for changes
   vtkEventBroker::GetInstance()->AddObservation(
     segment, vtkCommand::ModifiedEvent, this, this->SegmentCallbackCommand );
-  // Add observation of master representation in new segment
-  vtkDataObject* masterRepresentation = segment->GetRepresentation(this->MasterRepresentationName);
-  if (masterRepresentation)
-  {
-    // Observe segment's master representation
-    vtkEventBroker::GetInstance()->AddObservation(
-      masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
-    masterRepresentation->Register(this);
-  }
 
   // Get representation names contained by the added segment
   std::vector<std::string> containedRepresentationNamesInAddedSegment;
@@ -407,6 +401,16 @@ bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""
     key = this->GenerateUniqueSegmentId(key);
   }
   this->Segments[key] = segment;
+
+  // Add observation of master representation in new segment
+  vtkDataObject* masterRepresentation = segment->GetRepresentation(this->MasterRepresentationName);
+  if (masterRepresentation)
+  {
+    // Observe segment's master representation
+    vtkEventBroker::GetInstance()->AddObservation(
+      masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
+    masterRepresentation->Register(this);
+  }
 
   // Fire segment added event
   const char* segmentIdChars = key.c_str();
