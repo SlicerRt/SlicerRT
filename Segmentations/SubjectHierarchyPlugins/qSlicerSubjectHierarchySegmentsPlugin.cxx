@@ -133,7 +133,7 @@ bool qSlicerSubjectHierarchySegmentsPlugin::reparentNodeInsideSubjectHierarchy(v
   }
 
   // Get segment ID
-  const char* segmentId = nodeToReparent->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
+  std::string segmentId(nodeToReparent->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName()));
 
   // Perform reparenting
   // Note: No actual subject hierarchy reparenting is done, because the function call below triggers
@@ -145,8 +145,17 @@ bool qSlicerSubjectHierarchySegmentsPlugin::reparentNodeInsideSubjectHierarchy(v
   // Notify user if failed to reparent
   if (!success)
   {
+    // If the two master representations are the same, then probably the segment IDs were duplicate
+    if (!strcmp(fromSegmentationNode->GetSegmentation()->GetMasterRepresentationName(), toSegmentationNode->GetSegmentation()->GetMasterRepresentationName()))
+    {
+      QString message = QString("Segment ID of the moved segment (%1) might exist in the target segmentation.\nPlease check the error window for details.").arg(segmentId.c_str());
+      QMessageBox::information(NULL, tr("Failed to move segment between segmentations"), message);
+      return false;
+    }
+
+    // Otherwise master representation has to be changed
     QString message = QString("Cannot convert source master representation '%1' into target master '%2', thus unable to move segment '%3' from segmentation '%4' to '%5'.\n\nWould you like to change the master representation of '%5' to '%1'?\n\nNote: This may result in unwanted data loss in %5.")
-      .arg(fromSegmentationNode->GetSegmentation()->GetMasterRepresentationName()).arg(toSegmentationNode->GetSegmentation()->GetMasterRepresentationName()).arg(segmentId).arg(fromSegmentationNode->GetName()).arg(toSegmentationNode->GetName());
+      .arg(fromSegmentationNode->GetSegmentation()->GetMasterRepresentationName()).arg(toSegmentationNode->GetSegmentation()->GetMasterRepresentationName()).arg(segmentId.c_str()).arg(fromSegmentationNode->GetName()).arg(toSegmentationNode->GetName());
     QMessageBox::StandardButton answer =
       QMessageBox::question(NULL, tr("Failed to move segment between segmentations"), message,
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
