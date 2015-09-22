@@ -84,10 +84,9 @@ vtkMRMLSegmentationNode::vtkMRMLSegmentationNode()
   this->RepresentationCreatedCallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
   this->RepresentationCreatedCallbackCommand->SetCallback( vtkMRMLSegmentationNode::OnRepresentationCreated );
 
+  // Create empty segmentations object
   this->Segmentation = NULL;
   vtkSmartPointer<vtkSegmentation> segmentation = vtkSmartPointer<vtkSegmentation>::New();
-  //TODO: Set default master representation?
-  //segmentation->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
   this->SetAndObserveSegmentation(segmentation);
 }
 
@@ -156,14 +155,12 @@ void vtkMRMLSegmentationNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLSegmentationNode::Copy(vtkMRMLNode *anode)
 {
-  this->DisableModifiedEventOn();
-
-  Superclass::Copy(anode);
+  //this->DisableModifiedEventOn();
 
   vtkMRMLSegmentationNode* otherNode = vtkMRMLSegmentationNode::SafeDownCast(anode);
 
-  // Copy segmentation link
-  this->SetSegmentation(otherNode->GetSegmentation());
+  // Deep copy segmentation (containing the same segments from two segmentations is unstable)
+  this->Segmentation->DeepCopy(otherNode->GetSegmentation());
 
   // Copy other parameters
   if (otherNode->GetAddToScene())
@@ -171,23 +168,21 @@ void vtkMRMLSegmentationNode::Copy(vtkMRMLNode *anode)
     this->CopyOrientation(otherNode);
   }
 
-  this->DisableModifiedEventOff();
-  this->InvokePendingModifiedEvent();
+  Superclass::Copy(anode);
+
+  //this->DisableModifiedEventOff();
+  //this->InvokePendingModifiedEvent(); // This call loses event parameters (i.e. callData)
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::DeepCopy(vtkMRMLNode* aNode)
 {
-  this->DisableModifiedEventOn();
-
-  Superclass::Copy(aNode);
+  //this->DisableModifiedEventOn();
 
   vtkMRMLSegmentationNode *otherNode = vtkMRMLSegmentationNode::SafeDownCast(aNode);
 
   // Deep copy segmentation
-  vtkSmartPointer<vtkSegmentation> segmentation = vtkSmartPointer<vtkSegmentation>::New();
-  segmentation->DeepCopy(otherNode->Segmentation);
-  this->SetSegmentation(segmentation);
+  this->Segmentation->DeepCopy(otherNode->Segmentation);
 
   // Copy other parameters
   if (otherNode->GetAddToScene())
@@ -195,8 +190,10 @@ void vtkMRMLSegmentationNode::DeepCopy(vtkMRMLNode* aNode)
     this->CopyOrientation(otherNode);
   }
 
-  this->DisableModifiedEventOff();
-  this->InvokePendingModifiedEvent();
+  Superclass::Copy(aNode);
+
+  //this->DisableModifiedEventOff();
+  //this->InvokePendingModifiedEvent(); // This call loses event parameters (i.e. callData)
 }
 
 //----------------------------------------------------------------------------
@@ -305,7 +302,7 @@ void vtkMRMLSegmentationNode::OnSegmentAdded(vtkObject* vtkNotUsed(caller), unsi
     vtkErrorWithObjectMacro(self, "vtkMRMLSegmentationNode::OnSegmentAdded: No segmentation in segmentation node!");
     return;
   }
-  if (self->Scene->IsImporting())
+  if (self->Scene && self->Scene->IsImporting())
   {
     return;
   }
@@ -420,7 +417,7 @@ void vtkMRMLSegmentationNode::OnRepresentationCreated(vtkObject* vtkNotUsed(call
   char* targetRepresentationName = reinterpret_cast<char*>(callData);
 
   // Re-generate merged labelmap with modified representation
-  if (!self->Scene->IsImporting() && self->HasMergedLabelmap())
+  if (!(self->Scene && self->Scene->IsImporting()) && self->HasMergedLabelmap())
   {
     self->ReGenerateDisplayedMergedLabelmap();
   }
