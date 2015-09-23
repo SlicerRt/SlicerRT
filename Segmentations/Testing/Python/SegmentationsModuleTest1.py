@@ -270,7 +270,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertEqual(bodyModelNode.GetPolyData().GetNumberOfPoints(), 302)
     #TODO: On Linux and Windows it is 588, on Mac it is 580. Need to investigate
     # self.assertEqual(bodyModelNode.GetPolyData().GetNumberOfCells(), 588)
-    self.assertTrue(bodyModelNode.GetPolyData().GetNumberOfCells() == 588 || bodyModelNode.GetPolyData().GetNumberOfCells() == 580)
+    self.assertTrue(bodyModelNode.GetPolyData().GetNumberOfCells() == 588 or bodyModelNode.GetPolyData().GetNumberOfCells() == 580)
 
     # Export single segment to volume node
     bodyLabelmapNode = slicer.vtkMRMLLabelMapVolumeNode()
