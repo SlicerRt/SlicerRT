@@ -471,7 +471,7 @@ bool vtkMRMLSegmentationDisplayNode::CalculateAutoOpacitiesForSegments()
     }
   }
   // Sanity check
-  if (this->SegmentationDisplayProperties.size() != levels->GetNumberOfTuples())
+  if (static_cast<vtkIdType>(this->SegmentationDisplayProperties.size()) != levels->GetNumberOfTuples())
   {
     vtkErrorMacro("CalculateAutoOpacitiesForSegments: Number of poly data colors does not match number of segment display properties!");
     return false;
