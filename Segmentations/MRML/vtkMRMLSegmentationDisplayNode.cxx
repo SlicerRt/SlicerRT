@@ -49,8 +49,8 @@ vtkMRMLNodeNewMacro(vtkMRMLSegmentationDisplayNode);
 vtkMRMLSegmentationDisplayNode::vtkMRMLSegmentationDisplayNode()
 {
   this->PreferredPolyDataDisplayRepresentationName = NULL;
-  this->EnableTransparencyInColorTableOff();
-  this->SliceIntersectionVisibilityOn();
+  this->EnableTransparencyInColorTable = false;
+  this->SliceIntersectionVisibility = true;
 
   this->SegmentationDisplayProperties.clear();
 }
