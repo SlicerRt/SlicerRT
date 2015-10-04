@@ -109,7 +109,7 @@ vtkSlicerDicomRtImportExportModuleLogic::vtkSlicerDicomRtImportExportModuleLogic
   this->IsodoseLogic = NULL;
   this->PlanarImageLogic = NULL;
 
-  this->BeamModelsInSeparateBranchOn();
+  this->BeamModelsInSeparateBranch = true;
   this->DefaultDoseColorTableNodeId = NULL;
 }
 
