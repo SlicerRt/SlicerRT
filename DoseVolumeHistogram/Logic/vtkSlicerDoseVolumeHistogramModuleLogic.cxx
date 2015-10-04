@@ -103,7 +103,7 @@ vtkSlicerDoseVolumeHistogramModuleLogic::vtkSlicerDoseVolumeHistogramModuleLogic
   this->NumberOfSamplesForNonDoseVolumes = 100;
   this->DefaultDoseVolumeOversamplingFactor = 2.0;
 
-  this->LogSpeedMeasurementsOff();
+  this->LogSpeedMeasurements = false;
 }
 
 //----------------------------------------------------------------------------
