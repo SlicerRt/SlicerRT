@@ -26,6 +26,12 @@
 #include "vtkSlicerDicomRtReader.h"
 #include "vtkSlicerDicomRtWriter.h"
 
+// Qt includes
+#include <QSettings>
+
+// CTK includes
+#include <ctkDICOMDatabase.h>
+
 // SubjectHierarchy includes
 #include "vtkMRMLSubjectHierarchyConstants.h"
 #include "vtkMRMLSubjectHierarchyNode.h"

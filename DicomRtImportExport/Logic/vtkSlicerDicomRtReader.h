@@ -35,9 +35,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkType.h>
 
-// CTK includes
-#include <ctkDICOMDatabase.h>
-
 // STD includes
 #include <vector>
 #include <map>
