@@ -22,12 +22,19 @@
 // Qt includes
 #include <QtPlugin>
 
+// Slicer includes
+#include <qSlicerSubjectHierarchyPluginHandler.h>
+
 // ExtensionTemplate Logic includes
 #include <vtkSlicerExternalBeamPlanningModuleLogic.h>
 
 // ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModule.h"
 #include "qSlicerExternalBeamPlanningModuleWidget.h"
+
+// SubjectHierarchy Plugins includes
+#include "qSlicerSubjectHierarchyRTPlanPlugin.h"
+#include "qSlicerSubjectHierarchyRTBeamPlugin.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerExternalBeamPlanningModule, qSlicerExternalBeamPlanningModule);
@@ -105,6 +112,10 @@ QIcon qSlicerExternalBeamPlanningModule::icon()const
 void qSlicerExternalBeamPlanningModule::setup()
 {
   this->Superclass::setup();
+
+  // Register Subject Hierarchy plugins
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRTPlanPlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRTBeamPlugin());
 }
 
 //-----------------------------------------------------------------------------
