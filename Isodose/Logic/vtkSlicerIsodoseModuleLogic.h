@@ -35,6 +35,8 @@
 
 // MRML includes
 class vtkMRMLIsodoseNode;
+class vtkMRMLModelHierarchyNode;
+class vtkMRMLModelDisplayNode;
 
 /// \ingroup SlicerRt_QtModules_Isodose
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :
@@ -47,6 +49,7 @@ public:
   static const std::string ISODOSE_MODEL_NODE_NAME_PREFIX;
   static const std::string ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX;
   static const std::string ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX;
+  static const std::string ISODOSE_ROOT_SUBJECT_HIERARCHY_NODE_NAME;
 
 public:
   static vtkSlicerIsodoseModuleLogic *New();
@@ -103,6 +106,12 @@ private:
 protected:
   /// Parameter set MRML node
   vtkMRMLIsodoseNode* IsodoseNode;
+
+  /// Model Hierarchy MRML node
+  vtkMRMLModelHierarchyNode* ModelHierarchyRootNode;
+
+  /// Model Hierarchy MRML display node
+  vtkMRMLModelDisplayNode* ModelHierarchyRootDisplayNode;
 
   /// Default isodose color table ID. Loaded on Slicer startup.
   char* DefaultIsodoseColorTableNodeId;
