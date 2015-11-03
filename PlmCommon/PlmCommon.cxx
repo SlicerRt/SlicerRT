@@ -62,7 +62,7 @@ convert_to_itk (vtkOrientedImageData* inImageData)
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 Plm_image::Pointer 
-PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform)
+PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform/* = true*/)
 {
   Plm_image::Pointer image = Plm_image::New ();
 
@@ -133,7 +133,7 @@ PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode, bo
 
 //----------------------------------------------------------------------------
 Plm_image::Pointer 
-PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLNode* inNode, bool applyWorldTransform)
+PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLNode* inNode, bool applyWorldTransform/* = true*/)
 {
   return PlmCommon::ConvertVolumeNodeToPlmImage(
     vtkMRMLScalarVolumeNode::SafeDownCast(inNode), applyWorldTransform);

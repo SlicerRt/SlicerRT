@@ -60,7 +60,7 @@ template<typename T> bool SlicerRtCommon::IsEqual( const vtkVector3<T>& lhs, con
 }
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion, bool applyRasToLpsConversion)
+template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion, bool applyRasToLpsConversion/*=true*/)
 {
   if ( inVolumeNode == NULL )
   {
@@ -109,6 +109,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
   vtkSmartPointer<vtkMatrix4x4> inVolumeToRasTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   inVolumeNode->GetIJKToRASMatrix(inVolumeToRasTransformMatrix);
 
+  // RAS (Slicer) to LPS (ITK) transform matrix
   vtkSmartPointer<vtkMatrix4x4> ras2LpsTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   ras2LpsTransformMatrix->SetElement(0,0,-1.0);
   ras2LpsTransformMatrix->SetElement(1,1,-1.0);
@@ -205,7 +206,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
 }
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage(vtkOrientedImageData* inImageData, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion)
+template<typename T> bool SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage(vtkOrientedImageData* inImageData, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion/*=true*/)
 {
   if ( inImageData == NULL )
   {
@@ -236,6 +237,7 @@ template<typename T> bool SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage(
   vtkSmartPointer<vtkMatrix4x4> inImageToWorldRasMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   inImageData->GetImageToWorldMatrix(inImageToWorldRasMatrix);
 
+  // RAS (Slicer) to LPS (ITK) transform matrix
   vtkSmartPointer<vtkMatrix4x4> ras2LpsTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   ras2LpsTransformMatrix->SetElement(0,0,-1.0);
   ras2LpsTransformMatrix->SetElement(1,1,-1.0);
@@ -364,6 +366,83 @@ template<typename T> bool SlicerRtCommon::ConvertItkImageToVtkImageData(typename
     typename itk::Image<T, 3>::IndexType i = itInItkImage.GetIndex();
     (*outVtkImageDataPtr) = inItkImage->GetPixel(i);
     outVtkImageDataPtr++;
+  }
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+template<typename T> bool SlicerRtCommon::ConvertItkImageToVolumeNode(typename itk::Image<T, 3>::Pointer inItkImage, vtkMRMLScalarVolumeNode* outVolumeNode, int vtkType, bool applyLpsToRasConversion/*=true*/)
+{
+  if (outVolumeNode == NULL)
+  {
+    std::cerr << "SlicerRtCommon::ConvertItkImageToVolumeNode: Failed to convert itk image to volume node - output MRML volume node is NULL!" << std::endl;
+    return false; 
+  }
+  if (inItkImage.IsNull())
+  {
+    vtkErrorWithObjectMacro(outVolumeNode, "ConvertItkImageToVolumeNode: Failed to convert itk image to volume node - input image is NULL!");
+    return false; 
+  }
+
+  // Create image data if does not exist
+  vtkImageData* outImageData = outVolumeNode->GetImageData();
+  if (outImageData == NULL)
+  {
+    vtkSmartPointer<vtkImageData> newImageData = vtkSmartPointer<vtkImageData>::New();
+	outVolumeNode->SetAndObserveImageData(newImageData);
+	outImageData = newImageData.GetPointer();
+  }
+
+  // Get input image properties
+  itk::Image<T, 3>::RegionType itkRegion = inItkImage->GetLargestPossibleRegion();
+  itk::Image<T, 3>::PointType itkOrigin = inItkImage->GetOrigin();
+  itk::Image<T, 3>::SpacingType itkSpacing = inItkImage->GetSpacing();
+  itk::Image<T, 3>::DirectionType itkDirections = inItkImage->GetDirection();
+  // Make image properties accessible for VTK
+  double origin[3] = {itkOrigin[0], itkOrigin[1], itkOrigin[2]};
+  double spacing[3] = {itkSpacing[0], itkSpacing[1], itkSpacing[2]};
+  double directions[3][3] = {{1.0,0.0,0.0},{0.0,1.0,0.0},{0.0,0.0,1.0}};
+  for (unsigned int col=0; col<3; col++)
+  {
+    for (unsigned int row=0; row<3; row++)
+    {
+      directions[row][col] = itkDirections[row][col];
+    }
+  }
+  
+  // Convert ITK image to the VTK image data member of the output volume node
+  if (!SlicerRtCommon::ConvertItkImageToVtkImageData<T>(inItkImage, outImageData, vtkType))
+  {
+    vtkErrorWithObjectMacro(outVolumeNode, "ConvertItkImageToVolumeNode: Failed to convert ITK image to VTK image data");
+    return false; 
+  }
+  
+  // Apply ITK geometry to volume node
+  outVolumeNode->SetOrigin(origin);
+  outVolumeNode->SetSpacing(spacing);
+  outVolumeNode->SetIJKToRASDirections(directions);
+
+  // Apply LPS to RAS conversion if requested
+  if (applyLpsToRasConversion)
+  {
+	//  LPS (ITK)to RAS (Slicer) transform matrix
+	vtkSmartPointer<vtkMatrix4x4> lps2RasTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	lps2RasTransformMatrix->SetElement(0,0,-1.0);
+	lps2RasTransformMatrix->SetElement(1,1,-1.0);
+	lps2RasTransformMatrix->SetElement(2,2, 1.0);
+	lps2RasTransformMatrix->SetElement(3,3, 1.0);
+
+	vtkSmartPointer<vtkMatrix4x4> outVolumeImageToLpsWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	outVolumeNode->GetIJKToRASMatrix(outVolumeImageToLpsWorldTransformMatrix);
+
+	vtkSmartPointer<vtkTransform> imageToWorldTransform = vtkSmartPointer<vtkTransform>::New();
+	imageToWorldTransform->Identity();
+	imageToWorldTransform->PostMultiply();
+	imageToWorldTransform->Concatenate(outVolumeImageToLpsWorldTransformMatrix);
+	imageToWorldTransform->Concatenate(lps2RasTransformMatrix);
+
+	outVolumeNode->SetIJKToRASMatrix(imageToWorldTransform->GetMatrix());
   }
 
   return true;

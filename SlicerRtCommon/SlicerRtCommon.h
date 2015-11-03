@@ -195,19 +195,19 @@ public:
     \param inVolumeNode Input volume node
     \param outItkVolume Output ITK image
     \param applyRasToWorldConversion Apply parent linear transform to image
-    \param applyRasToLpsConversion Apply RAS (Slicer) to LPS (ITK, DICOM) coordinate frame conversion
+    \param applyRasToLpsConversion Apply RAS (Slicer) to LPS (ITK, DICOM) coordinate frame conversion. True by default
     \return Success
   */
-  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion, bool applyRasToLpsConversion);
+  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion, bool applyRasToLpsConversion=true);
 
   /*!
     Convert oriented image data to ITK image
     \param inImageData Input oriented image data
     \param outItkVolume Output ITK image
-    \param applyRasToLpsConversion Apply RAS (Slicer) to LPS (ITK, DICOM) coordinate frame conversion
+    \param applyRasToLpsConversion Apply RAS (Slicer) to LPS (ITK, DICOM) coordinate frame conversion. True by default
     \return Success
   */
-  template<typename T> static bool ConvertVtkOrientedImageDataToItkImage(vtkOrientedImageData* inImageData, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion);
+  template<typename T> static bool ConvertVtkOrientedImageDataToItkImage(vtkOrientedImageData* inImageData, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion=true);
 
   /*!
     Convert ITK image to VTK image data. The image geometry is not considered!
@@ -217,6 +217,16 @@ public:
     \return Success
   */
   template<typename T> static bool ConvertItkImageToVtkImageData(typename itk::Image<T, 3>::Pointer inItkImage, vtkImageData* outVtkImageData, int vtkType);
+
+  /*!
+    Convert ITK image to MRML volume node. Image geometry is transferred.
+    \param inItkImage Input ITK image
+    \param outVolumeNode Output MRML scalar volume node
+    \param vtkType Data scalar type (i.e VTK_FLOAT)
+    \param applyLpsToRasConversion Apply LPS (ITK, DICOM) to RAS (Slicer) coordinate frame conversion. True by default
+    \return Success
+  */
+  template<typename T> static bool ConvertItkImageToVolumeNode(typename itk::Image<T, 3>::Pointer inItkImage, vtkMRMLScalarVolumeNode* outVolumeNode, int vtkType, bool applyLpsToRasConversion=true);
 
 //ETX
 };

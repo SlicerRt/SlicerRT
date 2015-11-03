@@ -45,12 +45,18 @@ class VTK_PLMCOMMON_EXPORT PlmCommon
   // Utility functions
   //----------------------------------------------------------------------------
 public:
-  static Plm_image::Pointer ConvertVolumeNodeToPlmImage(
-    vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform = true);
-  static Plm_image::Pointer ConvertVolumeNodeToPlmImage(
-    vtkMRMLNode* inNode, bool applyWorldTransform = true);
-  static Plm_image::Pointer ConvertVtkOrientedImageDataToPlmImage(
-    vtkOrientedImageData* inImageData);
+  /// Convert MRML volume node to Plm image using typed scalar volume node
+  /// \param inVolumeNode Scalar volume node to convert
+  /// \param applyWorldTransform Flag determining if parent transform is applied to volume node when converting to Plm image. True by default
+  static Plm_image::Pointer ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform = true);
+
+  /// Convert MRML volume node to Plm image using generic MRML node type
+  /// \param inNode Node to convert (must be scalar volume node type)
+  /// \param applyWorldTransform Flag determining if parent transform is applied to volume node when converting to Plm image. True by default
+  static Plm_image::Pointer ConvertVolumeNodeToPlmImage(vtkMRMLNode* inNode, bool applyWorldTransform = true);
+
+  /// Convert VTK oriented image data to Plm image
+  static Plm_image::Pointer ConvertVtkOrientedImageDataToPlmImage(vtkOrientedImageData* inImageData);
 };
 
 #endif

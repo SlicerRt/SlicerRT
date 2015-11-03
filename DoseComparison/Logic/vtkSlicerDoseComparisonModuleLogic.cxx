@@ -303,10 +303,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   // Convert output to VTK
   double checkpointVtkConvertStart = timer->GetUniversalTime();
-  vtkSmartPointer<vtkImageData> gammaVolume = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(gammaVolumeItk, gammaVolume, VTK_FLOAT);
 
-  // Set properties of output volume node
   vtkMRMLScalarVolumeNode* gammaVolumeNode = this->DoseComparisonNode->GetGammaVolumeNode();
   if (gammaVolumeNode == NULL)
   {
@@ -315,15 +312,8 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
     return errorMessage;
   }
 
-  gammaVolumeNode->CopyOrientation(referenceDoseVolumeNode);
-  gammaVolumeNode->SetAndObserveImageData(gammaVolume);
+  SlicerRtCommon::ConvertItkImageToVolumeNode<float>(gammaVolumeItk, gammaVolumeNode, VTK_FLOAT);
   gammaVolumeNode->SetAttribute(vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME, "1");
-
-  // Assign gamma volume under the transform node of the reference volume node
-  if (referenceDoseVolumeNode->GetParentTransformNode())
-  {
-    gammaVolumeNode->SetAndObserveTransformNodeID(referenceDoseVolumeNode->GetParentTransformNode()->GetID());
-  }
 
   // Set default colormap to red
   if (gammaVolumeNode->GetVolumeDisplayNode() == NULL)
