@@ -404,14 +404,14 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   if (numNodes == 0)
   {
     subjectHierarchyRootNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
+      this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder(),
       vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_SUBJECT_HIERARCHY_NODE_NAME.c_str());
   }
   else if (numNodes >= 1)
   {
     doseVolumeSubjectHierarchyNode->RemoveAllHierarchyChildrenNodes();
     subjectHierarchyRootNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
+      this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder(),
       vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_SUBJECT_HIERARCHY_NODE_NAME.c_str());
   }
 
@@ -576,6 +576,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
       isodoseModelNode->SetAndObservePolyData(transformPolyData->GetOutput());
       isodoseModelNode->SetSelectable(1);
+      isodoseModelNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
       // Put the new node in the model hierarchy
       vtkSmartPointer<vtkMRMLModelHierarchyNode> isodoseModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();

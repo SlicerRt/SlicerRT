@@ -109,6 +109,7 @@ public:
   static const std::string DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME;
   static const std::string DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME;
+  static const std::string DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME;
 
   static const std::string DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
@@ -153,6 +154,9 @@ public:
 
   /// Determine if a node is a dose volume node
   static bool IsDoseVolumeNode(vtkMRMLNode* node);
+
+  /// Determine if a node is a isodose model node
+  static bool IsIsodoseModelNode(vtkMRMLNode* node);
 
   /// Stretch a discrete color table that contains a few values into a full 256-color palette that
   /// has the first and last colors the same as the input one, the intermediate colors inserted in

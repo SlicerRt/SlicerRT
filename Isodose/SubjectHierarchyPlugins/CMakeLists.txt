@@ -5,6 +5,7 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_${MODULE_NAME_UPPER}_SUBJECT_HIERARCHY_PLUGINS_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
+  ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}

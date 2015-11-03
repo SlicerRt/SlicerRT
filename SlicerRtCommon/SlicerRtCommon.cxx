@@ -78,6 +78,7 @@ const std::string SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAM
 const std::string SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImageReferencedPlanUid"; // DICOM connection
 const std::string SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImageSid";
 const std::string SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImagePosition";
+const std::string SlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "IsodoseModel"; // Identifier
 
 const std::string SlicerRtCommon::DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX = "_Fiducials";
 const std::string SlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX = "_ModelHierarchy";
@@ -121,7 +122,7 @@ namespace
       return true;
     }
 
-    return AreEqualWithTolerance(1.0L, abs(a.Dot(b)));
+    return AreEqualWithTolerance(1.0L, std::abs(a.Dot(b)));
   }
 }
 
@@ -200,6 +201,27 @@ bool SlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
   {
     const char* doseVolumeIdentifier = node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
     if (doseVolumeIdentifier != NULL)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+//---------------------------------------------------------------------------
+bool SlicerRtCommon::IsIsodoseModelNode(vtkMRMLNode* node)
+{
+  if (!node)
+  {
+    std::cerr << "SlicerRtCommon::IsIsoDoseModelNode: Invalid input arguments!" << std::endl;
+    return false;
+  }
+
+  if (node->IsA("vtkMRMLModelNode"))
+  {
+    const char* isodoseModelIdentifier = node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+    if (isodoseModelIdentifier != NULL)
     {
       return true;
     }
