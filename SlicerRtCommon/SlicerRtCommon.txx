@@ -395,10 +395,10 @@ template<typename T> bool SlicerRtCommon::ConvertItkImageToVolumeNode(typename i
   }
 
   // Get input image properties
-  itk::Image<T, 3>::RegionType itkRegion = inItkImage->GetLargestPossibleRegion();
-  itk::Image<T, 3>::PointType itkOrigin = inItkImage->GetOrigin();
-  itk::Image<T, 3>::SpacingType itkSpacing = inItkImage->GetSpacing();
-  itk::Image<T, 3>::DirectionType itkDirections = inItkImage->GetDirection();
+  typename itk::Image<T, 3>::RegionType itkRegion = inItkImage->GetLargestPossibleRegion();
+  typename itk::Image<T, 3>::PointType itkOrigin = inItkImage->GetOrigin();
+  typename itk::Image<T, 3>::SpacingType itkSpacing = inItkImage->GetSpacing();
+  typename itk::Image<T, 3>::DirectionType itkDirections = inItkImage->GetDirection();
   // Make image properties accessible for VTK
   double origin[3] = {itkOrigin[0], itkOrigin[1], itkOrigin[2]};
   double spacing[3] = {itkSpacing[0], itkSpacing[1], itkSpacing[2]};
