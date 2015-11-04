@@ -28,7 +28,7 @@
 #include <vtkMRMLScene.h>
 
 // SlicerRT includes
-#include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
+#include "vtkSlicerBeamsModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLDisplayableNode;
@@ -44,8 +44,8 @@ class vtkMRMLDoubleArrayNode;
     return this->name;                          \
   }
 
-/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
-class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLDisplayableNode
+/// \ingroup SlicerRt_QtModules_Beams
+class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLDisplayableNode
 {
 public:
   enum RTBeamType

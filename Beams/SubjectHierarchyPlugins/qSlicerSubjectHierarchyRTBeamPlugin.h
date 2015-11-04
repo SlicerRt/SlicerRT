@@ -24,7 +24,7 @@
 // SlicerRt includes
 #include "qSlicerSubjectHierarchyAbstractPlugin.h"
 
-#include "qSlicerExternalBeamPlanningSubjectHierarchyPluginsExport.h"
+#include "qSlicerBeamsSubjectHierarchyPluginsExport.h"
 
 class qSlicerSubjectHierarchyRTBeamPluginPrivate;
 class vtkMRMLNode;
@@ -35,8 +35,8 @@ class vtkMRMLSubjectHierarchyNode;
 // TODO #210: investigate why the wrapping fails
 //BTX
 
-/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
-class Q_SLICER_EXTERNALBEAMPLANNING_SUBJECT_HIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyRTBeamPlugin : public qSlicerSubjectHierarchyAbstractPlugin
+/// \ingroup SlicerRt_QtModules_Beams
+class Q_SLICER_BEAMS_SUBJECT_HIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyRTBeamPlugin : public qSlicerSubjectHierarchyAbstractPlugin
 {
 public:
   Q_OBJECT

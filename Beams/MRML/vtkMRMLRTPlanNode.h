@@ -27,7 +27,7 @@
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
 
-#include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
+#include "vtkSlicerBeamsModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
@@ -35,8 +35,8 @@ class vtkMRMLColorTableNode;
 class vtkMRMLRTBeamNode;
 class vtkCollection;
 
-/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
-class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLDisplayableNode
+/// \ingroup SlicerRt_QtModules_Beams
+class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLDisplayableNode
 {
 public:
   enum DoseEngineType

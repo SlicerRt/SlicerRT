@@ -27,14 +27,14 @@
 #include <vtkMRMLDisplayableHierarchyNode.h>
 #include <vtkMRMLScene.h>
 
-#include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
+#include "vtkSlicerBeamsModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 class vtkMRMLColorTableNode;
 
-/// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
-class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTPlanHierarchyNode : public vtkMRMLDisplayableHierarchyNode
+/// \ingroup SlicerRt_QtModules_Beams
+class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTPlanHierarchyNode : public vtkMRMLDisplayableHierarchyNode
 {
 public:
   static vtkMRMLRTPlanHierarchyNode *New();
