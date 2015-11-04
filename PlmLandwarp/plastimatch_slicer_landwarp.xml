@@ -13,7 +13,7 @@
     <description>Input/output parameters</description>
     <image>
       <name>plmslc_landwarp_fixed_volume</name>
-      <label>Fixed Volume</label>
+      <label>Fixed volume</label>
       <channel>input</channel>
       <index>0</index>
       <default>None</default>
@@ -21,7 +21,7 @@
     </image>
     <image>
       <name>plmslc_landwarp_moving_volume</name>
-      <label>Moving Volume</label>
+      <label>Moving volume</label>
       <channel>input</channel>
       <index>1</index>
       <default>None</default>
@@ -29,7 +29,7 @@
     </image>
     <point coordinateSystem="ras" multiple="true">
       <name>plmslc_landwarp_fixed_fiducials</name>
-      <label>Fixed Fiducials</label>
+      <label>Fixed fiducials</label>
       <channel>input</channel>
       <description>Fiducials in fixed volume</description>
       <default>0,0,0</default>
@@ -37,7 +37,7 @@
     </point>
     <point coordinateSystem="ras" multiple="true">
       <name>plmslc_landwarp_moving_fiducials</name>
-      <label>Moving Fiducials</label>
+      <label>Moving fiducials</label>
       <channel>input</channel>
       <description>Fiducials in moving volume</description>
       <default>0,0,0</default>
@@ -45,18 +45,26 @@
     </point>
     <image>
       <name>plmslc_landwarp_warped_volume</name>
-      <label>Output Volume</label>
+      <longflag>plmslc_landwarp_warped_volume</longflag>
+      <label>Output volume</label>
       <channel>output</channel>
-      <index>2</index>
       <default>None</default>
       <description>Warped output image</description>
     </image>
+    <transform fileExtensions=".nrrd" type="nonlinear">
+      <name>plmslc_landwarp_output_vf</name>
+      <longflag>--plmslc_output_vf</longflag>
+      <description>Deformation field created by registration</description>
+      <label>Output vector field (MRML)</label>
+      <default>None</default>
+      <channel>output</channel>
+    </transform>
     <string>
-      <name>plmslc_landwarp_vector_field</name>
+      <name>plmslc_landwarp_output_vf_f</name>
       <label>Output file for vector field [full path]</label>
       <longflag>outputvf</longflag>
       <default></default>
-      <description>Output file for vector field</description>
+      <description>Output vector field (file)</description>
     </string>
     <string-enumeration>
       <name>plmslc_landwarp_rbf_type</name>
@@ -94,7 +102,7 @@
       <label>Default Pixel Value</label>
       <longflag>defaultvalue</longflag>
       <default>-1000.0</default>
-      <description>Default Pixel Intensity</description>
+      <description>Default pixel intensity</description>
     </float>
     </parameters>
 </executable>

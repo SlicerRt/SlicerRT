@@ -54,7 +54,7 @@
     <point coordinateSystem="ras" multiple="true">
       <name>plmslc_fixed_fiducials</name>
       <longflag>--plmslc_fixed_fiducials</longflag>
-      <label>Fixed Fiducials</label>
+      <label>Fixed fiducials</label>
       <channel>input</channel>
       <description>Fiducials in fixed volume</description>
       <default>0,0,0</default>
@@ -62,7 +62,7 @@
     <point coordinateSystem="ras" multiple="true">
       <name>plmslc_moving_fiducials</name>
       <longflag>--plmslc_moving_fiducials</longflag>
-      <label>Moving Fiducials</label>
+      <label>Moving fiducials</label>
       <channel>input</channel>
       <description>Fiducials in moving volume</description>
       <default>0,0,0</default>
