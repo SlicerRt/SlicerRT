@@ -163,8 +163,10 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
     rt_beam->set_flavor(beamNode->GetBeamFlavor());
     printf("Beam Flavor = %c\n", rt_beam->get_flavor());
 
-    rt_beam->get_sobp()->set_energyResolution(beamNode->GetEnergyResolution());
-    printf("Energy resolution = %lg\n ", rt_beam->get_sobp()->get_energyResolution());
+    rt_beam->get_sobp()->set_energy_resolution (
+      beamNode->GetEnergyResolution());
+    printf("Energy resolution = %lg\n ", 
+      rt_beam->get_sobp()->get_energy_resolution());
 
     /* APERTURE SETTINGS */
     printf("\n***APERTURE PARAMETERS***\n");
