@@ -24,7 +24,6 @@
 #include "vtkPolyDataToLabelmapFilter.h"
 #include "vtkLabelmapToModelFilter.h"
 #include "vtkMRMLRTBeamNode.h"
-#include "vtkMRMLRTPlanHierarchyNode.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLSegmentationNode.h"
 
@@ -38,6 +37,7 @@
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -316,29 +316,29 @@ vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetRTPlanNode()
 {
   vtkMRMLScene *scene = this->GetScene();
   vtkMRMLNode *mnode = NULL;
-  vtkMRMLRTPlanHierarchyNode *phnode = NULL;
-  vtkMRMLRTPlanHierarchyNode *phrootnode = NULL;
-  vtkMRMLRTPlanNode *pnode = NULL; 
+  vtkMRMLSubjectHierarchyNode *shnode = NULL;
+  vtkMRMLSubjectHierarchyNode *shparentnode = NULL;
+
   for (int n=0; n < scene->GetNumberOfNodes(); n++) 
   {
     mnode = scene->GetNthNode(n);
-    if (mnode->IsA("vtkMRMLRTPlanHierachyNode"))
+    if (mnode->IsA("vtkMRMLSubjectHierarchyNode"))
     {
-      phnode = vtkMRMLRTPlanHierarchyNode::SafeDownCast(mnode);
-      vtkMRMLRTBeamNode* pnode = vtkMRMLRTBeamNode::SafeDownCast(this->GetScene()->GetNodeByID(phnode->GetAssociatedNodeID()));
-      if (pnode == this) 
+      shnode = vtkMRMLSubjectHierarchyNode::SafeDownCast(mnode);
+      vtkMRMLRTBeamNode *bnode = vtkMRMLRTBeamNode::SafeDownCast(shnode->GetAssociatedNode());
+      if (bnode && bnode == this)
       {
-        phrootnode = phnode;
-        break;
-      }
+        shparentnode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shnode->GetParentNode());
+        vtkMRMLRTPlanNode *pnode = vtkMRMLRTPlanNode::SafeDownCast(shparentnode->GetAssociatedNode());
+        if (pnode) 
+        {
+          return pnode;
+        }
+      }// end if
     }// end if
   }// end for
-  if (phrootnode)
-  {
-    pnode = vtkMRMLRTPlanNode::SafeDownCast(
-        scene->GetNodeByID(vtkMRMLRTPlanHierarchyNode::SafeDownCast(phrootnode->GetParentNode())->GetAssociatedNodeID()));
-  }
-  return pnode;
+
+  return NULL;
 }
 
 //----------------------------------------------------------------------------

@@ -33,6 +33,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
 class vtkMRMLColorTableNode;
 class vtkMRMLRTBeamNode;
+class vtkMRMLSubjectHierarchyNode;
 class vtkCollection;
 
 /// \ingroup SlicerRt_QtModules_Beams
@@ -71,6 +72,14 @@ public:
   /// - Follows parent transform changes
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
+public:
+  /// Create a RTPlanNode if it has not been created before
+  /// and set up the SubjectHierarchyNode for it
+  static vtkMRMLRTPlanNode* CreateRTPlanNodeInSubjectHierarchy(vtkMRMLSubjectHierarchyNode* parentSHNode, 
+                                             const char* nodeName,
+                                             vtkMRMLRTPlanNode* rtPlanNode=NULL);
+
+public:
   /// Get RT Plan Dose volume node
   vtkMRMLScalarVolumeNode* GetRTPlanDoseVolumeNode();
   /// Set and observe proton target contour node
