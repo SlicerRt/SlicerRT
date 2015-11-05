@@ -29,6 +29,7 @@
 #include <vtkVersion.h>
 #include <vtkMarchingCubes.h>
 #include <vtkDecimatePro.h>
+#include <vtkSmoothPolyDataFilter.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkImageConstantPad.h>
@@ -41,6 +42,7 @@ vtkSegmentationConverterRuleNewMacro(vtkBinaryLabelmapToClosedSurfaceConversionR
 vtkBinaryLabelmapToClosedSurfaceConversionRule::vtkBinaryLabelmapToClosedSurfaceConversionRule()
 {
   this->ConversionParameters[GetDecimationFactorParameterName()] = std::make_pair("0.0", "Desired reduction in the total number of polygons (e.g., if set to 0.9, then reduce the data set to 10% of its original size)");
+  this->ConversionParameters[GetSmoothingFactorParameterName()] = std::make_pair("0.1", "Relaxation factor for Laplacian smoothing. Value of 0 results in no smoothing, while 1 means significant smoothing.");
 }
 
 //----------------------------------------------------------------------------
@@ -119,6 +121,8 @@ bool vtkBinaryLabelmapToClosedSurfaceConversionRule::Convert(vtkDataObject* sour
   // Get conversion parameters
   double decimationFactor = vtkSegmentationConverter::DeserializeFloatingPointConversionParameter(
     this->ConversionParameters[GetDecimationFactorParameterName()].first );
+  double smoothingFactor = vtkSegmentationConverter::DeserializeFloatingPointConversionParameter(
+    this->ConversionParameters[GetSmoothingFactorParameterName()].first );
 
   // Save geometry of oriented image data before conversion so that it can be applied on the poly data afterwards
   vtkSmartPointer<vtkMatrix4x4> labelmapImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -180,19 +184,25 @@ bool vtkBinaryLabelmapToClosedSurfaceConversionRule::Convert(vtkDataObject* sour
     }
   }
 
+  // Perform smoothing using specified factor
+  vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+  if (decimationFactor > 0.0)
+  {
+    smoothFilter->SetInputConnection(decimator->GetOutputPort());
+  }
+  else
+  {
+    smoothFilter->SetInputConnection(marchingCubes->GetOutputPort());
+  }
+  smoothFilter->SetRelaxationFactor(smoothingFactor);
+  smoothFilter->Update();
+
   // Transform the result surface from labelmap IJK to world coordinate system
   vtkSmartPointer<vtkTransform> labelmapGeometryTransform = vtkSmartPointer<vtkTransform>::New();
   labelmapGeometryTransform->SetMatrix(labelmapImageToWorldMatrix);
 
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  if (decimationFactor > 0.0)
-  {
-    transformPolyDataFilter->SetInputConnection(decimator->GetOutputPort());
-  }
-  else
-  {
-    transformPolyDataFilter->SetInputConnection(marchingCubes->GetOutputPort());
-  }
+  transformPolyDataFilter->SetInputConnection(smoothFilter->GetOutputPort());
   transformPolyDataFilter->SetTransform(labelmapGeometryTransform);
   transformPolyDataFilter->Update();
 

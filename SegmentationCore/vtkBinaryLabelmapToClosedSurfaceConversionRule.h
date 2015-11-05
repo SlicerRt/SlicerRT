@@ -38,6 +38,8 @@ class vtkSegmentationCore_EXPORT vtkBinaryLabelmapToClosedSurfaceConversionRule
 public:
   /// Conversion parameter: decimation factor
   static const std::string GetDecimationFactorParameterName() { return "Decimation factor"; };
+  /// Conversion parameter: smoothing factor
+  static const std::string GetSmoothingFactorParameterName() { return "Smoothing factor"; };
 
 public:
   static vtkBinaryLabelmapToClosedSurfaceConversionRule* New();
