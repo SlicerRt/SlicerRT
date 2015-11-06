@@ -162,6 +162,7 @@ void vtkSegment::GetBounds(double bounds[6])
     {
       double representationBounds[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
       vtkMath::UninitializeBounds(representationBounds);
+      representationDataSet->GetBounds(representationBounds);
       vtkSegment::ExtendBounds(representationBounds, bounds);
     }
   }
