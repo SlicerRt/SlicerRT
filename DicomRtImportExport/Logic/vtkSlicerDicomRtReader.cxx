@@ -1203,8 +1203,12 @@ void vtkSlicerDicomRtReader::LoadRTDose(DcmDataset* dataset)
     vtkErrorMacro("LoadRTDose: Failed to get Pixel Spacing for dose object");
     return; // mandatory DICOM value
   }
-  this->SetPixelSpacing(pixelSpacingOFVector[0], pixelSpacingOFVector[1]);
-  vtkDebugMacro("Pixel Spacing: (" << pixelSpacingOFVector[0] << ", " << pixelSpacingOFVector[1] << ")");
+  // According to the DICOM standard:
+  // Physical distance in the patient between the center of each pixel,specified by a numeric pair -
+  // adjacent row spacing (delimiter) adjacent column spacing in mm. See Section 10.7.1.3 for further explanation.
+  // So X spacing is the second element of the vector, while Y spacing is the first.
+  this->SetPixelSpacing(pixelSpacingOFVector[1], pixelSpacingOFVector[0]);
+  vtkDebugMacro("Pixel Spacing: (" << pixelSpacingOFVector[1] << ", " << pixelSpacingOFVector[0] << ")");
 
   // Get referenced RTPlan instance UID
   DRTReferencedRTPlanSequence &referencedRTPlanSequence = rtDoseObject.getReferencedRTPlanSequence();

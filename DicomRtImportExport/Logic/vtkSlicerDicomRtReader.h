@@ -126,7 +126,7 @@ public:
   /// Set referenced SOP instance UID list for the loaded structure set
   vtkSetStringMacro(RTStructureSetReferencedSOPInstanceUIDs);
 
-  /// Get pixel spacing
+  /// Get pixel spacing for dose volume
   vtkGetVector2Macro(PixelSpacing, double); 
 
   /// Get dose units
@@ -324,7 +324,7 @@ protected:
   void LoadRTImage(DcmDataset* dataset);
 
 protected:
-  /// Set pixel spacing
+  /// Set pixel spacing for dose volume
   vtkSetVector2Macro(PixelSpacing, double);
 
   /// Set patient name
@@ -390,7 +390,7 @@ protected:
   /// List of loaded contour ROIs from structure set
   std::vector<BeamEntry> BeamSequenceVector;
 
-  /// Pixel spacing - for RTDOSE
+  /// Pixel spacing - for RTDOSE. First element for X spacing, second for Y spacing.
   double PixelSpacing[2];
 
   /// Dose units (e.g., Gy) - for RTDOSE
