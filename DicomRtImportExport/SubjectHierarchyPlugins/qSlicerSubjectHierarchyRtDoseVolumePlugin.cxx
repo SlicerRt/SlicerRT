@@ -265,7 +265,9 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   vtkMRMLSubjectHierarchyNode* studyNode = currentNode->GetAncestorAtLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
   if (!studyNode)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume: Failed to find study node among the ancestors of current node '" << currentNode->GetNameWithoutPostfix().c_str() << "'!";
+    QString message("The volume must be under a study in order to be converted to dose. Please drag&drop the volume under a study. If there is no study, it can be created under a subject. Consult the help window for more details.");
+    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume: Failed to find study node among the ancestors of current node '" << currentNode->GetNameWithoutPostfix().c_str() << "'! " << message;
+    QMessageBox::warning(NULL, tr("Failed to convert volume to dose"), message);
     return;
   }
   const char* doseUnitNameInStudy = studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
