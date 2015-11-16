@@ -69,8 +69,8 @@
 const char* vtkSlicerIsodoseModuleLogic::ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME = "Isodose_ColorTable.ctbl";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX = "IsodoseLevel_";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX = "IsodoseParameterSet_";
-const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX = "_IsodoseModels";
-const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_SUBJECT_HIERARCHY_NODE_NAME = "ISODOSE";
+const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX = "_IsodoseModels";
+const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_SUBJECT_HIERARCHY_NODE_NAME_POSTFIX = "_IsodoseSurfaces";
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
@@ -374,11 +374,11 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     this->GetMRMLScene()->AddNode(this->ModelHierarchyRootNode);
     this->ModelHierarchyRootNode->Delete();    
   }
-  ModelHierarchyRootNode->AllowMultipleChildrenOn();
-  ModelHierarchyRootNode->HideFromEditorsOff();
-  std::string modelHierarchyNodeName = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_ISODOSE_SURFACES_HIERARCHY_NODE_NAME_POSTFIX;
+  this->ModelHierarchyRootNode->AllowMultipleChildrenOn();
+  this->ModelHierarchyRootNode->HideFromEditorsOff();
+  std::string modelHierarchyNodeName = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
   modelHierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(modelHierarchyNodeName);
-  ModelHierarchyRootNode->SetName(modelHierarchyNodeName.c_str());
+  this->ModelHierarchyRootNode->SetName(modelHierarchyNodeName.c_str());
  
   // Create display node for the model hierarchy node
   if (!this->ModelHierarchyRootDisplayNode)
@@ -394,26 +394,19 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     this->GetMRMLScene()->AddNode(ModelHierarchyRootDisplayNode);
     this->ModelHierarchyRootDisplayNode->Delete();
   }
-  ModelHierarchyRootDisplayNode->SetName(modelHierarchyNodeName.c_str());
-  ModelHierarchyRootDisplayNode->SetVisibility(1);
-  ModelHierarchyRootNode->SetAndObserveDisplayNodeID( ModelHierarchyRootDisplayNode->GetID() );
+  this->ModelHierarchyRootDisplayNode->SetName(modelHierarchyNodeName.c_str());
+  this->ModelHierarchyRootDisplayNode->SetVisibility(1);
+  this->ModelHierarchyRootNode->SetAndObserveDisplayNodeID( ModelHierarchyRootDisplayNode->GetID() );
 
   // Subject hierarchy node for the isodose surfaces
-  int numNodes = doseVolumeSubjectHierarchyNode->GetNumberOfChildrenNodes();
-  vtkMRMLSubjectHierarchyNode* subjectHierarchyRootNode;
-  if (numNodes == 0)
-  {
-    subjectHierarchyRootNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder(),
-      vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_SUBJECT_HIERARCHY_NODE_NAME.c_str());
-  }
-  else if (numNodes >= 1)
+  if (doseVolumeSubjectHierarchyNode->GetNumberOfChildrenNodes() >= 1)
   {
     doseVolumeSubjectHierarchyNode->RemoveAllHierarchyChildrenNodes();
-    subjectHierarchyRootNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder(),
-      vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_SUBJECT_HIERARCHY_NODE_NAME.c_str());
   }
+  std::string isodoseShNodeName = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_SUBJECT_HIERARCHY_NODE_NAME_POSTFIX;
+  vtkMRMLSubjectHierarchyNode* subjectHierarchyRootNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+    this->GetMRMLScene(), doseVolumeSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder(),
+    isodoseShNodeName.c_str());
 
   // Get color table
   vtkMRMLColorTableNode* colorTableNode = this->IsodoseNode->GetColorTableNode();
