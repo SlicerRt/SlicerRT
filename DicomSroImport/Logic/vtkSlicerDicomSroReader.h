@@ -60,16 +60,16 @@ public:
 
 public:
   /// Get spatial registration matrix
-  vtkMatrix4x4* GetSpatialRegistrationMatrix();
+  vtkGetObjectMacro(SpatialRegistrationMatrix, vtkMatrix4x4);
 
   /// Get post deformation registration matrix
-  vtkMatrix4x4* GetPostDeformationRegistrationMatrix();
+  vtkGetObjectMacro(PostDeformationRegistrationMatrix, vtkMatrix4x4);
 
   /// Get deformable registration grid (displacment vector field)
-  vtkImageData* GetDeformableRegistrationGrid();
+  vtkGetObjectMacro(DeformableRegistrationGrid, vtkImageData);
 
   /// Get deformable registration grid orientation matrix
-  vtkMatrix4x4* GetDeformableRegistrationGridOrientationMatrix();
+  vtkGetObjectMacro(DeformableRegistrationGridOrientationMatrix, vtkMatrix4x4);
 
   /// Set input file name
   vtkSetStringMacro(FileName);
@@ -235,6 +235,7 @@ private:
   vtkSlicerDicomSroReader(const vtkSlicerDicomSroReader&); // Not implemented
   void operator=(const vtkSlicerDicomSroReader&);         // Not implemented
 };
+
 //ETX
 
 #endif

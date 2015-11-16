@@ -30,11 +30,6 @@ class qSlicerSubjectHierarchyGammaPluginPrivate;
 class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
-
 /// \ingroup SlicerRt_QtModules_RtHierarchy
 class Q_SLICER_DOSECOMPARISON_SUBJECT_HIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyGammaPlugin : public qSlicerSubjectHierarchyAbstractPlugin
 {
@@ -83,7 +78,5 @@ private:
   Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyGammaPlugin);
   Q_DISABLE_COPY(qSlicerSubjectHierarchyGammaPlugin);
 };
-
-//ETX
 
 #endif

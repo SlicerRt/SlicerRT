@@ -19,7 +19,6 @@
 
 ==============================================================================*/
 
-
 // .NAME vtkSlicerDoseCalculationEngine - 
 // .SECTION Description
 // This class represents the dose calculation algorithm that can be used in SlicerRT modules
@@ -40,11 +39,6 @@
 #include "vtkObject.h"
 
 class vtkImageData;
-
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
 
 /// \ingroup SlicerRt_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkSlicerDoseCalculationEngine : public vtkObject
@@ -96,6 +90,5 @@ private:
   class vtkInternal;
   vtkInternal* Internal;
 };
-//ETX
 
 #endif

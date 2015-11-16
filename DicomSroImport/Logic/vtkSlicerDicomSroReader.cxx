@@ -546,28 +546,3 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
     this->LoadDeformableSpatialRegistrationSuccessful = true; 
   }
 }
-
-//----------------------------------------------------------------------------
-vtkMatrix4x4* vtkSlicerDicomSroReader::GetSpatialRegistrationMatrix()
-{
-  return this->SpatialRegistrationMatrix;
-}
-
-//----------------------------------------------------------------------------
-vtkMatrix4x4* vtkSlicerDicomSroReader::GetPostDeformationRegistrationMatrix()
-{
-  return this->PostDeformationRegistrationMatrix;
-}
-
-//----------------------------------------------------------------------------
-vtkImageData* vtkSlicerDicomSroReader::GetDeformableRegistrationGrid()
-{
-  return this->DeformableRegistrationGrid;
-}
-
-//----------------------------------------------------------------------------
-vtkMatrix4x4* vtkSlicerDicomSroReader::GetDeformableRegistrationGridOrientationMatrix()
-{
-  return this->DeformableRegistrationGridOrientationMatrix;
-}
-

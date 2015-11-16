@@ -31,11 +31,6 @@ class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 class vtkMRMLDoseVolumeHistogramNode;
 
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
-
 /// \ingroup SlicerRt_QtModules_RtHierarchy
 class Q_SLICER_DOSEVOLUMEHISTOGRAM_SUBJECT_HIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyDoseVolumeHistogramPlugin : public qSlicerSubjectHierarchyAbstractPlugin
 {
@@ -91,7 +86,5 @@ private:
   Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyDoseVolumeHistogramPlugin);
   Q_DISABLE_COPY(qSlicerSubjectHierarchyDoseVolumeHistogramPlugin);
 };
-
-//ETX
 
 #endif

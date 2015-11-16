@@ -30,10 +30,8 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-//BTX
 // STD includes
 #include <vector>
-//ETX
 
 #include "vtkSlicerDicomSroImportModuleLogicExport.h"
 

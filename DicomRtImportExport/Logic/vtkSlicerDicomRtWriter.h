@@ -32,8 +32,12 @@
 
 #include "vtkObject.h"
 
-//BTX // comment out since it is giving python wrapping errors
 #include "rt_study.h"
+
+// Due to some reason the Python wrapping of this class fails, therefore
+// put everything between BTX/ETX to exclude from wrapping.
+// TODO #210: investigate why the wrapping fails
+//BTX
 
 /// \ingroup SlicerRt_QtModules_DicomRtExport
 class VTK_SLICER_DICOMRTIMPORTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtWriter :  public vtkObject
@@ -86,6 +90,7 @@ private:
   vtkSlicerDicomRtWriter(const vtkSlicerDicomRtWriter&); // Not implemented
   void operator=(const vtkSlicerDicomRtWriter&);               // Not implemented
 };
+
 //ETX
 
 #endif

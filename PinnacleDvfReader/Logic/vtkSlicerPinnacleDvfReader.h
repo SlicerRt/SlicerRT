@@ -37,11 +37,6 @@
 class vtkMatrix4x4;
 class vtkImageData;
 
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
-
 /// \ingroup SlicerRt_DicomSroImport
 class VTK_SLICER_PINNACLEDVFREADER_LOGIC_EXPORT vtkSlicerPinnacleDvfReader : public vtkObject
 {
@@ -103,6 +98,5 @@ private:
   vtkSlicerPinnacleDvfReader(const vtkSlicerPinnacleDvfReader&); // Not implemented
   void operator=(const vtkSlicerPinnacleDvfReader&);         // Not implemented
 };
-//ETX
 
 #endif

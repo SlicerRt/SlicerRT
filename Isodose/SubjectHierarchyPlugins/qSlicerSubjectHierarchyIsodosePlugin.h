@@ -30,11 +30,6 @@ class qSlicerSubjectHierarchyIsodosePluginPrivate;
 class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
-
 /// \ingroup SlicerRt_QtModules_RtHierarchy
 class Q_SLICER_ISODOSE_SUBJECT_HIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyIsodosePlugin : public qSlicerSubjectHierarchyAbstractPlugin
 {
@@ -76,7 +71,5 @@ private:
   Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyIsodosePlugin);
   Q_DISABLE_COPY(qSlicerSubjectHierarchyIsodosePlugin);
 };
-
-//ETX
 
 #endif

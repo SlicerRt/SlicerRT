@@ -33,11 +33,6 @@ class vtkMRMLSubjectHierarchyNode;
 // TODO: Move this to External Beam Planning (or other) module when beam
 //   and plan nodes are unified: #425 #553
 
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
-
 /// \ingroup SlicerRt_QtModules_DicomRtImport
 class Q_SLICER_DICOMRTIMPORTEXPORT_SUBJECT_HIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyRtPlanPlugin : public qSlicerSubjectHierarchyAbstractPlugin
 {
@@ -79,7 +74,5 @@ private:
   Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyRtPlanPlugin);
   Q_DISABLE_COPY(qSlicerSubjectHierarchyRtPlanPlugin);
 };
-
-//ETX
 
 #endif

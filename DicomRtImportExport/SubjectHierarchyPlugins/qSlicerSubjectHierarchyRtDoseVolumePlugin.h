@@ -30,11 +30,6 @@ class qSlicerSubjectHierarchyRtDoseVolumePluginPrivate;
 class vtkMRMLNode;
 class vtkMRMLSubjectHierarchyNode;
 
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
-
 /// \ingroup SlicerRt_QtModules_DicomRtImport
 class Q_SLICER_DICOMRTIMPORTEXPORT_SUBJECT_HIERARCHY_PLUGINS_EXPORT qSlicerSubjectHierarchyRtDoseVolumePlugin : public qSlicerSubjectHierarchyAbstractPlugin
 {
@@ -97,7 +92,5 @@ private:
   Q_DECLARE_PRIVATE(qSlicerSubjectHierarchyRtDoseVolumePlugin);
   Q_DISABLE_COPY(qSlicerSubjectHierarchyRtDoseVolumePlugin);
 };
-
-//ETX
 
 #endif
