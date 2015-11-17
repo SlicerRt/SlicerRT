@@ -557,8 +557,9 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       vtkMRMLSubjectHierarchyNode* doseSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
       if (doseSubjectHierarchyNode)
       {
-        doseUnitName = std::string( doseSubjectHierarchyNode->GetAttributeFromAncestor(
-          SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy()) );
+        const char* doseUnitattributeValue = doseSubjectHierarchyNode->GetAttributeFromAncestor(
+          SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+        doseUnitName = std::string(doseUnitattributeValue ? doseUnitattributeValue : "");
       }
 
       vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
