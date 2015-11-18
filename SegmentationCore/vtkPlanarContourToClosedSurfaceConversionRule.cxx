@@ -925,7 +925,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::Branch(vtkPolyData* inputROI
 //----------------------------------------------------------------------------
 int vtkPlanarContourToClosedSurfaceConversionRule::GetClosestBranch(vtkPolyData* inputROIPoints, double* originalPoint, std::vector< int > overlappingLines,  std::vector<vtkSmartPointer<vtkPointLocator> > pointLocators, std::vector<vtkSmartPointer<vtkIdList> > lineIdLists)
 {
-
   if (!inputROIPoints)
   {
     vtkErrorMacro("GetClosestBranch: Invalid vtkPolyData!");
@@ -960,7 +959,6 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetClosestBranch(vtkPolyData*
   }
 
   return closestLineIndex;
-
 }
 
 //----------------------------------------------------------------------------
@@ -1021,15 +1019,20 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputR
                                 outputPolygons);
     }
   }
-
 }
 
+//----------------------------------------------------------------------------
 double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtkPolyData* inputROIPoints)
 {
   if (!inputROIPoints)
   {
     vtkErrorMacro("GetSpacingBetweenLines: Invalid vtkPolyData!");
-    return 0;
+    return 0.0;
+  }
+  if (inputROIPoints->GetNumberOfCells() < 2)
+  {
+    vtkErrorMacro("GetSpacingBetweenLines: Input polydata has less than two cells! Unable to calculate spacing.");
+    return 0.0;
   }
 
   vtkSmartPointer<vtkLine> line1 = vtkSmartPointer<vtkLine>::New();
@@ -1043,7 +1046,6 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
   inputROIPoints->GetPoint(line2->GetPointId(0), pointOnLine2);
 
   return std::abs(pointOnLine1[2] - pointOnLine2[2]);
-
 }
 
 //----------------------------------------------------------------------------
