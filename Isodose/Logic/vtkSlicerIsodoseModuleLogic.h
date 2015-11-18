@@ -107,12 +107,6 @@ protected:
   /// Parameter set MRML node
   vtkMRMLIsodoseNode* IsodoseNode;
 
-  /// Model Hierarchy MRML node
-  vtkMRMLModelHierarchyNode* ModelHierarchyRootNode;
-
-  /// Model Hierarchy MRML display node
-  vtkMRMLModelDisplayNode* ModelHierarchyRootDisplayNode;
-
   /// Default isodose color table ID. Loaded on Slicer startup.
   char* DefaultIsodoseColorTableNodeId;
 };

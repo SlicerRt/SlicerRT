@@ -72,6 +72,9 @@ const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_PARAMETER_SET_BASE_NAME_P
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX = "_IsodoseModels";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_SUBJECT_HIERARCHY_NODE_NAME_POSTFIX = "_IsodoseSurfaces";
 
+static const char* ISODOSE_ROOT_MODEL_HIERARCHY_REFERENCE_ROLE = "isodoseRootModelHierarchyRef";
+static const char* ISODOSE_ROOT_MODEL_HIERARCHY_DISPLAY_REFERENCE_ROLE = "isodoseRootModelHierarchyDisplayRef";
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 
@@ -79,8 +82,6 @@ vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 vtkSlicerIsodoseModuleLogic::vtkSlicerIsodoseModuleLogic()
 {
   this->IsodoseNode = NULL;
-  this->ModelHierarchyRootNode = NULL;
-  this->ModelHierarchyRootDisplayNode = NULL;
   this->DefaultIsodoseColorTableNodeId = NULL;
 }
 
@@ -353,15 +354,16 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   }
 
   // Model hierarchy node for the loaded structure set
-  if (!this->ModelHierarchyRootNode)
+  vtkMRMLModelHierarchyNode* RootModelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast( doseVolumeNode->GetNodeReference(ISODOSE_ROOT_MODEL_HIERARCHY_REFERENCE_ROLE) );
+  if (!RootModelHierarchyNode)
   {
-    this->ModelHierarchyRootNode = vtkMRMLModelHierarchyNode::New();
-    this->GetMRMLScene()->AddNode(this->ModelHierarchyRootNode);
-    this->ModelHierarchyRootNode->Delete();
+    RootModelHierarchyNode = vtkMRMLModelHierarchyNode::New();
+    this->GetMRMLScene()->AddNode(RootModelHierarchyNode);
+    RootModelHierarchyNode->Delete();
   }
   else 
   {
-    std::vector< vtkMRMLHierarchyNode *> children = this->ModelHierarchyRootNode->GetChildrenNodes(); 
+    std::vector< vtkMRMLHierarchyNode *> children = RootModelHierarchyNode->GetChildrenNodes(); 
     for (unsigned int i=0; i<children.size(); i++)
     {
       vtkMRMLHierarchyNode *child = children[i];
@@ -369,34 +371,37 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       this->GetMRMLScene()->RemoveNode(mnode);
       this->GetMRMLScene()->RemoveNode(child);
     }
-    this->GetMRMLScene()->RemoveNode(this->ModelHierarchyRootNode);
-    this->ModelHierarchyRootNode = vtkMRMLModelHierarchyNode::New();
-    this->GetMRMLScene()->AddNode(this->ModelHierarchyRootNode);
-    this->ModelHierarchyRootNode->Delete();    
+    this->GetMRMLScene()->RemoveNode(RootModelHierarchyNode);
+    RootModelHierarchyNode = vtkMRMLModelHierarchyNode::New();
+    this->GetMRMLScene()->AddNode(RootModelHierarchyNode);
+    RootModelHierarchyNode->Delete();    
   }
-  this->ModelHierarchyRootNode->AllowMultipleChildrenOn();
-  this->ModelHierarchyRootNode->HideFromEditorsOff();
+  RootModelHierarchyNode->AllowMultipleChildrenOn();
+  RootModelHierarchyNode->HideFromEditorsOff();
   std::string modelHierarchyNodeName = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
   modelHierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(modelHierarchyNodeName);
-  this->ModelHierarchyRootNode->SetName(modelHierarchyNodeName.c_str());
+  RootModelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
+  doseVolumeNode->SetNodeReferenceID(ISODOSE_ROOT_MODEL_HIERARCHY_REFERENCE_ROLE, RootModelHierarchyNode->GetID());
  
   // Create display node for the model hierarchy node
-  if (!this->ModelHierarchyRootDisplayNode)
+  vtkMRMLModelDisplayNode* RootModelHierarchyDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast( doseVolumeNode->GetNodeReference(ISODOSE_ROOT_MODEL_HIERARCHY_DISPLAY_REFERENCE_ROLE) );
+  if (RootModelHierarchyDisplayNode)
   {
-    this->ModelHierarchyRootDisplayNode = vtkMRMLModelDisplayNode::New();
-    this->GetMRMLScene()->AddNode(ModelHierarchyRootDisplayNode);
-    this->ModelHierarchyRootDisplayNode->Delete();
+    RootModelHierarchyDisplayNode = vtkMRMLModelDisplayNode::New();
+    this->GetMRMLScene()->AddNode(RootModelHierarchyDisplayNode);
+    RootModelHierarchyDisplayNode->Delete();
   }
   else
   {
-    this->GetMRMLScene()->RemoveNode(this->ModelHierarchyRootDisplayNode);
-    this->ModelHierarchyRootDisplayNode = vtkMRMLModelDisplayNode::New();
-    this->GetMRMLScene()->AddNode(ModelHierarchyRootDisplayNode);
-    this->ModelHierarchyRootDisplayNode->Delete();
+    this->GetMRMLScene()->RemoveNode(RootModelHierarchyDisplayNode);
+    RootModelHierarchyDisplayNode = vtkMRMLModelDisplayNode::New();
+    this->GetMRMLScene()->AddNode(RootModelHierarchyDisplayNode);
+    RootModelHierarchyDisplayNode->Delete();
   }
-  this->ModelHierarchyRootDisplayNode->SetName(modelHierarchyNodeName.c_str());
-  this->ModelHierarchyRootDisplayNode->SetVisibility(1);
-  this->ModelHierarchyRootNode->SetAndObserveDisplayNodeID( ModelHierarchyRootDisplayNode->GetID() );
+  RootModelHierarchyDisplayNode->SetName(modelHierarchyNodeName.c_str());
+  RootModelHierarchyDisplayNode->SetVisibility(1);
+  RootModelHierarchyNode->SetAndObserveDisplayNodeID( RootModelHierarchyDisplayNode->GetID() );
+  doseVolumeNode->SetNodeReferenceID(ISODOSE_ROOT_MODEL_HIERARCHY_DISPLAY_REFERENCE_ROLE, RootModelHierarchyDisplayNode->GetID() );
 
   // Subject hierarchy node for the isodose surfaces
   if (doseVolumeSubjectHierarchyNode->GetNumberOfChildrenNodes() >= 1)
@@ -577,7 +582,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       this->GetMRMLScene()->AddNode(isodoseModelHierarchyNode);
       std::string modelHierarchyNodeName = std::string(isodoseModelNodeName) + SlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
       isodoseModelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
-      isodoseModelHierarchyNode->SetParentNodeID( ModelHierarchyRootNode->GetID() );
+      isodoseModelHierarchyNode->SetParentNodeID( RootModelHierarchyNode->GetID() );
       isodoseModelHierarchyNode->SetModelNodeID( isodoseModelNode->GetID() );
       isodoseModelHierarchyNode->HideFromEditorsOn();
 
@@ -594,7 +599,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
   }
 
-  this->IsodoseNode->SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(ModelHierarchyRootNode);
+  //this->IsodoseNode->SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(ModelHierarchyRootNode);
     
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 }
