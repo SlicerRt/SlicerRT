@@ -62,11 +62,6 @@ public:
   /// Set and observe dose volume node
   void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get isodose surface models parent hierarchy node
-  vtkMRMLModelHierarchyNode* GetIsodoseSurfaceModelsParentHierarchyNode();
-  /// Set and observe isodose surface models parent hierarchy node
-  void SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(vtkMRMLModelHierarchyNode* node);
-
   /// Get color table node
   vtkMRMLColorTableNode* GetColorTableNode();
   /// Set and observe color table node

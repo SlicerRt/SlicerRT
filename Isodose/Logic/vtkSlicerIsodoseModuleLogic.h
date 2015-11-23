@@ -85,6 +85,9 @@ public:
   // Set default isodose color table ID
   vtkSetStringMacro(DefaultIsodoseColorTableNodeId);
 
+  /// Get dose volume node
+  vtkMRMLModelHierarchyNode* GetRootModelHierarchyNode();
+
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
 

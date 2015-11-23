@@ -183,7 +183,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
     vtkSmartPointer<vtkSlicerIsodoseModuleLogic>::New();
   isodoseLogic->SetMRMLScene(mrmlScene);
 
-  // TODO: @Kevin: Why is the number of colors set to 1 here?
+  // Set the number of Isodose level to 1 by setting number of color to 1
   vtkMRMLColorTableNode* isodoseColorNode = vtkMRMLColorTableNode::SafeDownCast(
     mrmlScene->GetNodeByID(isodoseLogic->GetDefaultIsodoseColorTableNodeId()));
   isodoseColorNode->SetNumberOfColors(1);
@@ -198,7 +198,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   // Compute isodose
   isodoseLogic->CreateIsodoseSurfaces();
 
-  vtkMRMLModelHierarchyNode* modelHierarchyRootNode = paramNode->GetIsodoseSurfaceModelsParentHierarchyNode();  
+  vtkMRMLModelHierarchyNode* modelHierarchyRootNode = isodoseLogic->GetRootModelHierarchyNode();
   if (modelHierarchyRootNode == NULL)
   {
     mrmlScene->Commit();
@@ -208,9 +208,15 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   
   mrmlScene->Commit();
 
-  vtkSmartPointer<vtkCollection> collection = vtkSmartPointer<vtkCollection>::New();
-  modelHierarchyRootNode->GetChildrenModelNodes(collection);
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+  // Temp fix: the following code is problematic and needs to be fixed
+  // Now using the modelHierarchyRootNode->GetChildrenNodes() to get the children nodes instead.
+  // wangk 20151123
+  // vtkSmartPointer<vtkCollection> collection = vtkSmartPointer<vtkCollection>::New();
+  // modelHierarchyRootNode->GetChildrenModelNodes(collection);
+  // vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+  std::vector< vtkMRMLHierarchyNode* > childrenNodes;
+  childrenNodes = modelHierarchyRootNode->GetChildrenNodes();
+  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(childrenNodes[0]->GetAssociatedNode());
   if (modelNode == NULL)
   {
     std::cerr << "No model node in output model hierarchy node!" << std::endl;

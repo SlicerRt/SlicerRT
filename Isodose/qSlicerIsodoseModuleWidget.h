@@ -65,9 +65,6 @@ protected slots:
   /// Slot handling change of dose volume node
   void doseVolumeNodeChanged(vtkMRMLNode*);
 
-  /// Slot handling change of output hierarchy node
-  void outputHierarchyNodeChanged(vtkMRMLNode*);
-
   /// Slot handling change of show dose only checkbox
   void showDoseVolumesOnlyCheckboxChanged(int);
 

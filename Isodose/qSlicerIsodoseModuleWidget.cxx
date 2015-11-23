@@ -535,28 +535,6 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerIsodoseModuleWidget::outputHierarchyNodeChanged(vtkMRMLNode* node)
-{
-  Q_D(qSlicerIsodoseModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << "qSlicerIsodoseModuleWidget::outputHierarchyNodeChanged: Invalid scene!";
-    return;
-  }
-
-  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
-  if (!paramNode || !node)
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveIsodoseSurfaceModelsParentHierarchyNode(vtkMRMLModelHierarchyNode::SafeDownCast(node));
-  paramNode->DisableModifiedEventOff();
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerIsodoseModuleWidget::showDoseVolumesOnlyCheckboxChanged(int aState)
 {
   Q_D(qSlicerIsodoseModuleWidget);
@@ -616,7 +594,7 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
   paramNode->SetShowIsodoseLines(visible);
   paramNode->DisableModifiedEventOff();
 
-  vtkMRMLModelHierarchyNode* modelHierarchyNode = paramNode->GetIsodoseSurfaceModelsParentHierarchyNode();
+  vtkMRMLModelHierarchyNode* modelHierarchyNode = d->logic()->GetRootModelHierarchyNode();
   if(!modelHierarchyNode)
   {
     qCritical() << "qSlicerIsodoseModuleWidget::setIsolineVisibility: Invalid isodose surface models parent hierarchy node!";
@@ -654,7 +632,7 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
   paramNode->SetShowIsodoseSurfaces(visible);
   paramNode->DisableModifiedEventOff();
 
-  vtkMRMLModelHierarchyNode* modelHierarchyNode = paramNode->GetIsodoseSurfaceModelsParentHierarchyNode();
+  vtkMRMLModelHierarchyNode* modelHierarchyNode = d->logic()->GetRootModelHierarchyNode();
   if(!modelHierarchyNode)
   {
     return;
