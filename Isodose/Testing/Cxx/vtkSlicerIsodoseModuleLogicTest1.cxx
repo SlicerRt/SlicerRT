@@ -208,9 +208,8 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   
   mrmlScene->Commit();
 
-  // Temp fix: the following code is problematic and needs to be fixed
-  // Now using the modelHierarchyRootNode->GetChildrenNodes() to get the children nodes instead.
-  // wangk 20151123
+  // TODO: the following code is problematic and needs to be fixed
+  // Now using the modelHierarchyRootNode->GetChildrenNodes() to get the children nodes instead. wangk 20151123
   // vtkSmartPointer<vtkCollection> collection = vtkSmartPointer<vtkCollection>::New();
   // modelHierarchyRootNode->GetChildrenModelNodes(collection);
   // vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
