@@ -684,7 +684,7 @@ bool vtkMRMLSegmentationNode::CanApplyNonLinearTransforms() const
 //---------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::GetRASBounds(double bounds[6])
 {
-  vtkMath::UninitializeBounds(bounds);
+  vtkOrientedImageData::UninitializeBounds(bounds);
   this->Segmentation->GetBounds(bounds);
 }
 

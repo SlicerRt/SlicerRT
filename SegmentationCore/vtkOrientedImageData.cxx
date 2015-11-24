@@ -326,7 +326,7 @@ void vtkOrientedImageData::ComputeBounds()
     return;
     }
 
-  vtkMath::UninitializeBounds(this->Bounds);
+  vtkOrientedImageData::UninitializeBounds(this->Bounds);
 
   // Sanity check
   const int* extent = this->Extent;

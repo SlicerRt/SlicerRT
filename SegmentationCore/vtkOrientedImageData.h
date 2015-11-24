@@ -77,6 +77,20 @@ public:
   /// Get the inverse of the geometry matrix
   void GetWorldToImageMatrix(vtkMatrix4x4* mat);
 
+public:
+  /// Set bounds to an uninitialized state. \sa vtkMath::UninitializeBounds works incorrectly in cases where
+  /// the maximum bound of an object along an axis is smaller than -1. In that case \sa vtkSegment::ExtendBounds
+  /// keeps -1 as the upper bound, which is incorrect.
+  static void UninitializeBounds(double bounds[6])
+  {
+    bounds[0] = VTK_DOUBLE_MAX;
+    bounds[1] = VTK_DOUBLE_MIN;
+    bounds[2] = VTK_DOUBLE_MAX;
+    bounds[3] = VTK_DOUBLE_MIN;
+    bounds[4] = VTK_DOUBLE_MAX;
+    bounds[5] = VTK_DOUBLE_MIN;
+  };
+
 protected:
   vtkOrientedImageData();
   ~vtkOrientedImageData();

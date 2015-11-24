@@ -152,7 +152,7 @@ void vtkSegment::DeepCopy(vtkSegment* aSegment)
 //---------------------------------------------------------------------------
 void vtkSegment::GetBounds(double bounds[6])
 {
-  vtkMath::UninitializeBounds(bounds);
+  vtkOrientedImageData::UninitializeBounds(bounds);
 
   RepresentationMap::iterator reprIt;
   for (reprIt=this->Representations.begin(); reprIt!=this->Representations.end(); ++reprIt)
@@ -161,7 +161,7 @@ void vtkSegment::GetBounds(double bounds[6])
     if (representationDataSet)
     {
       double representationBounds[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
-      vtkMath::UninitializeBounds(representationBounds);
+      vtkOrientedImageData::UninitializeBounds(representationBounds);
       representationDataSet->GetBounds(representationBounds);
       vtkSegment::ExtendBounds(representationBounds, bounds);
     }

@@ -184,12 +184,12 @@ void vtkSegmentation::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkSegmentation::GetBounds(double bounds[6])
 {
-  vtkMath::UninitializeBounds(bounds);
+  vtkOrientedImageData::UninitializeBounds(bounds);
 
   for (SegmentMap::iterator it = this->Segments.begin(); it != this->Segments.end(); ++it)
   {
     double segmentBounds[6];
-    vtkMath::UninitializeBounds(segmentBounds);
+    vtkOrientedImageData::UninitializeBounds(segmentBounds);
 
     vtkSegment* segment = it->second;
     segment->GetBounds(segmentBounds);
