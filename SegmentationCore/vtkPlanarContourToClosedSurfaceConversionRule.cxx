@@ -556,9 +556,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
   }
 
   vtkSmartPointer<vtkLine> originalLine;
-
   std::vector<vtkSmartPointer<vtkLine> > newLines;
-
   int pointsOfSeperation;
 
   for (int lineIndex = 0; lineIndex < numberOfLines; ++lineIndex)
@@ -620,7 +618,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
     }
     else
     {
-
       int currentLayer = 0;
       bool pointInChannel = false;
 
@@ -630,7 +627,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
       // Loop through all of the points in the line
       for (int currentPointIndex = 0; currentPointIndex < numberOfPointsInLine; ++currentPointIndex)
       {
-        // Add a new line if neccessary
+        // Add a new line if necessary
         if (currentLayer == rawLinePointIds.size())
         {
           vtkSmartPointer<vtkLine> newLine = vtkSmartPointer<vtkLine>::New();
@@ -669,7 +666,10 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
             rawLinePointIds[currentLayer]->InsertNextId(originalLine->GetPointId(currentPointIndex));
             finishedLinePointIds.push_back(rawLinePointIds[currentLayer]);
             rawLinePointIds.pop_back();
-            --currentLayer;
+            if (currentLayer > 0)
+            {
+              --currentLayer;
+            }
             pointInChannel = true;
           }
         }
@@ -688,7 +688,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
         {
           finishedLinePointIds[currentLineIndex]->InsertNextId(finishedLinePointIds[currentLineIndex]->GetId(0));
         }
-
       }
     }
   }
