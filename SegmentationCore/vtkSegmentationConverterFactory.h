@@ -63,6 +63,11 @@ public:
   /// Get all registered converter rules
   const RuleListType& GetConverterRules();
 
+  /// Disable a converter rule, preventing it from being used. Achieved by unregistering the rule
+  /// that can create the representation.
+  /// \return Success flag indicating whether a rule with the specified representations was found and disabled
+  bool DisableConverterRule(std::string sourceRepresentationName, std::string targetRepresentationName);
+
   /// Disable a representation, preventing it from being created. Achieved by unregistering the rules
   /// that can create the representation.
   void DisableRepresentation(std::string representationName);

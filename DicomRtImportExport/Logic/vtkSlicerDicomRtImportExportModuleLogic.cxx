@@ -503,6 +503,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
 
   // Get referenced SOP instance UIDs
   const char* referencedSopInstanceUids = rtReader->GetRTStructureSetReferencedSOPInstanceUIDs();
+  // Number of loaded points. Used to prevent unreasonably long loading times with the downside of a less nice initial representation
+  long maximumNumberOfPoints = -1;
+  long totalNumberOfPoints = 0;
 
   // Add ROIs
   int numberOfRois = rtReader->GetNumberOfRois();
@@ -528,6 +531,11 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
         << "' (internal ROI index: " << internalROIIndex << ")");
       continue;
     }
+    if (maximumNumberOfPoints < roiPolyData->GetNumberOfPoints())
+    {
+      maximumNumberOfPoints = roiPolyData->GetNumberOfPoints();
+    }
+    totalNumberOfPoints += roiPolyData->GetNumberOfPoints();
 
     // Get referenced series UID
     const char* roiReferencedSeriesUid = rtReader->GetRoiReferencedSeriesUid(internalROIIndex);
@@ -647,10 +655,19 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
   } // for all ROIs
 
   // Force showing closed surface model instead of contour points and calculate auto opacity values for segments
+  // Do not set closed surface display in case of extremely large structures, to prevent unreasonably long load times
   if (segmentationDisplayNode.GetPointer())
   {
-    segmentationDisplayNode->SetPreferredPolyDataDisplayRepresentationName(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
-    segmentationDisplayNode->CalculateAutoOpacitiesForSegments();
+    // Arbitrary thresholds, can revisit
+    if (maximumNumberOfPoints < 800000 && totalNumberOfPoints < 3000000)
+    {
+      segmentationDisplayNode->SetPreferredPolyDataDisplayRepresentationName(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+      segmentationDisplayNode->CalculateAutoOpacitiesForSegments();
+    }
+    else
+    {
+      vtkWarningMacro("LoadRtStructureSet: Structure set contains extremely large contours that will most likely take an unreasonably long time to load. No closed surface representation is thus created for nicer display, but the raw RICOM-RT planar contours are shown. It is possible to create nicer models in Segmentations module by converting to the lighter Ribbon model or the nicest Closed surface.");
+    }
   }
 
   // Insert series in subject hierarchy
