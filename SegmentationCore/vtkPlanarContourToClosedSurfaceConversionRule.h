@@ -94,7 +94,7 @@ protected:
   int GetClosestPoint(vtkPolyData*, double*, vtkIdList*, int);
 
   /// Remove the keyholes from the contours.
-  void FixKeyholes(vtkPolyData*, int, int, int);
+  void FixKeyholes(vtkPolyData*, int, double, int);
 
   /// Set all of the lines to be oriented in the clockwise direction.
   void SetLinesCounterClockwise(vtkPolyData*);
