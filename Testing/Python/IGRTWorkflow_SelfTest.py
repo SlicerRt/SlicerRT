@@ -301,8 +301,6 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
   #------------------------------------------------------------------------------
   def TestSection_01F_AddDay2DataToSubjectHierarchy(self):
     try:
-      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
-
       # Get patient node
       day1CT = slicer.util.getNode(self.day1CTName)
       ct1HierarchyNode = slicer.vtkMRMLHierarchyNode.GetAssociatedHierarchyNode(slicer.mrmlScene, day1CT.GetID())
@@ -310,7 +308,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.assertIsNotNone( patientNode )
       
       # Add new study for the day 2 data
-      studyNode = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, patientNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy(), 'Day2')
+      studyNode = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, patientNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy(), 'Day2')
       studyNode.AddUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(),'Day2Study_UID')
       
       # Add dose unit attributes to the new study node
@@ -322,7 +320,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
       # Add day 2 CT series
       day2CT = slicer.util.getNode(self.day2CTName)
-      seriesNodeCT = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, studyNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.day2CTName, day2CT)
+      seriesNodeCT = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, studyNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.day2CTName, day2CT)
       seriesNodeCT.AddUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(),'Day2CT_UID')
 
       # Set dose attributes for day 2 dose
@@ -331,7 +329,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
       # Add day 2 dose series
       day2Dose = slicer.util.getNode(self.day2DoseName)
-      seriesNodeDose = vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, studyNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.day2DoseName, day2Dose)
+      seriesNodeDose = slicer.vtkMRMLSubjectHierarchyNode.CreateSubjectHierarchyNode(slicer.mrmlScene, studyNode, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelSeries(), self.day2DoseName, day2Dose)
       seriesNodeDose.AddUID(slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(),'Day2Dose_UID')
 
     except Exception, e:
@@ -345,15 +343,13 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     self.delayDisplay('Setting display options for loaded data',self.delayMs)
 
     try:
-      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
-
       # Set default dose color map and W/L
       defaultDoseColorTable = slicer.util.getNode('Dose_ColorTable')
       day2Dose = slicer.util.getNode(self.day2DoseName)
       day2Dose.GetDisplayNode().SetAndObserveColorNodeID(defaultDoseColorTable.GetID())
 
       day1Dose = slicer.util.getNode(self.day1DoseName)
-      day1DoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day1Dose)
+      day1DoseSubjectHierarchy = slicer.vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day1Dose)
       doseUnitValue = day1DoseSubjectHierarchy.GetAttributeFromAncestor(self.doseUnitValueAttributeName, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy())
       day2Dose.GetDisplayNode().SetAutoWindowLevel(0)
       day2Dose.GetDisplayNode().SetWindowLevel(day1Dose.GetDisplayNode().GetWindow(),day1Dose.GetDisplayNode().GetLevel())
@@ -399,8 +395,6 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     self.delayDisplay('Computing isodose for day 1',self.delayMs)
 
     try:
-      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
-
       # Hide beams
       beamsSubjectHierarchy = slicer.util.getNode(self.day1BeamsName)
       beamsSubjectHierarchy.SetDisplayVisibilityForBranch(0)
@@ -440,8 +434,6 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     self.delayDisplay('Computing isodose for day 2',self.delayMs)
 
     try:
-      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
-
       scene = slicer.mrmlScene
       slicer.util.selectModule('Isodose')
       numOfModelNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLModelNode*') )
@@ -465,7 +457,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.TestUtility_ShowVolumes(day2CT)
 
       day2Isodose = slicer.util.getNode(self.day2IsodosesName)
-      day2IsodoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day2Isodose)
+      day2IsodoseSubjectHierarchy = slicer.vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day2Isodose)
       day2IsodoseSubjectHierarchy.SetDisplayVisibilityForBranch(1)
       
     except Exception, e:
@@ -477,8 +469,6 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
   #------------------------------------------------------------------------------
   def TestSection_04_RegisterDay2CTToDay1CT(self):
     try:
-      from vtkSlicerSubjectHierarchyModuleMRML import vtkMRMLSubjectHierarchyNode
-
       scene = slicer.mrmlScene
       slicer.util.selectModule('BRAINSFit')
       brainsFit = slicer.modules.brainsfit
@@ -486,7 +476,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       # Hide isodose
       day2Isodose = slicer.util.getNode(self.day2IsodosesName)
       if (day2Isodose != None):
-        day2IsodoseSubjectHierarchy = vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day2Isodose)
+        day2IsodoseSubjectHierarchy = slicer.vtkMRMLSubjectHierarchyNode.GetAssociatedSubjectHierarchyNode(day2Isodose)
         day2IsodoseSubjectHierarchy.SetDisplayVisibilityForBranch(0)
 
       # Register Day 2 CT to Day 1 CT using rigid registration

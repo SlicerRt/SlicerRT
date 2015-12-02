@@ -6,8 +6,6 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_LOGIC_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
-  # ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
-  # ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -17,8 +15,6 @@ set(${KIT}_SRCS
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleMRML
-  # vtkSlicerSubjectHierarchyModuleMRML
-  # vtkSlicerSubjectHierarchyModuleLogic
   )
 
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSegmentationCore_INCLUDE_DIRS} ${Slicer_Base_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)

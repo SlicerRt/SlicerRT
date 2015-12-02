@@ -8,7 +8,6 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSegmentationCore_INCLUDE_DIRS}
   ${MRMLCore_INCLUDE_DIRS}
   ${Slicer_Base_INCLUDE_DIRS}
-  ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
   )
 
@@ -32,7 +31,6 @@ SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
 set(${KIT}_TARGET_LIBRARIES
   MRMLCore
   vtkSegmentationCore
-  vtkSlicerSubjectHierarchyModuleMRML
   vtkSlicerSubjectHierarchyModuleLogic
   )
 

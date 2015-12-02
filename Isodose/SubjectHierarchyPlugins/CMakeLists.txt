@@ -7,9 +7,9 @@ set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_${MODULE_NAME_UPPER}_SUBJECT_HIERARCHY_PLU
 set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
-  ${vtkSlicerSubjectHierarchyModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
+  ${MRMLCore_INCLUDE_DIRS}
   ${MRMLLogic_INCLUDE_DIRS}
   ${qMRMLWidgets_INCLUDE_DIRS}
   ${MRMLCLI_INCLUDE_DIRS}
@@ -37,7 +37,6 @@ SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
 #-----------------------------------------------------------------------------
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerIsodoseModuleLogic
-  vtkSlicerSubjectHierarchyModuleMRML
   vtkSlicerSubjectHierarchyModuleLogic
   qSlicerSubjectHierarchyModuleWidgets
   MRMLCore

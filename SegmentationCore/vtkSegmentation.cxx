@@ -35,6 +35,7 @@
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkMath.h>
+#include <vtkVersion.h>
 #include <vtkCallbackCommand.h>
 #include <vtkStringArray.h>
 #include <vtkAbstractTransform.h>
@@ -1141,7 +1142,7 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
   if (!highestResolutionLabelmap)
   {
     vtkErrorMacro("GenerateMergedLabelmap: Unable to find highest resolution labelmap!");
-    return false;
+    return std::string("");
   }
   
   // Get reference image geometry conversion parameter
@@ -1175,7 +1176,7 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
     if (!highestResolutionLabelmap)
     {
       vtkErrorMacro("GenerateMergedLabelmap: Unable to find largest extent labelmap to define reference image geometry!");
-      return false;
+      return std::string("");
     }
     referenceGeometryString = vtkSegmentationConverter::SerializeImageGeometry(highestResolutionLabelmap);
   }
