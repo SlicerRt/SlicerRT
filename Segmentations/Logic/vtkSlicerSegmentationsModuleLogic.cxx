@@ -396,11 +396,7 @@ int vtkSlicerSegmentationsModuleLogic::DoesLabelmapContainSingleLabel(vtkMRMLLab
     return 0;
   }
   vtkSmartPointer<vtkImageAccumulate> imageAccumulate = vtkSmartPointer<vtkImageAccumulate>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-    imageAccumulate->SetInput(labelmapVolumeNode->GetImageData());
-#else
-    imageAccumulate->SetInputConnection(labelmapVolumeNode->GetImageDataConnection());
-#endif
+  imageAccumulate->SetInputConnection(labelmapVolumeNode->GetImageDataConnection());
   imageAccumulate->Update();
   int highLabel = (int)imageAccumulate->GetMax()[0];
   if (highLabel == 0)
@@ -515,11 +511,7 @@ vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(vtkMRM
   if (modelNode->GetParentTransformNode() || (segmentationNode && segmentationNode->GetParentTransformNode()))
   {
     vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-    transformFilter->SetInput(modelNode->GetPolyData());
-#else
     transformFilter->SetInputData(modelNode->GetPolyData());
-#endif
     transformFilter->SetTransform(modelToSegmentationTransform);
     transformFilter->Update();
     polyDataCopy->DeepCopy(transformFilter->GetOutput());
@@ -811,11 +803,7 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkMRML
 
   // Split labelmap node into per-label image data
   vtkSmartPointer<vtkImageAccumulate> imageAccumulate = vtkSmartPointer<vtkImageAccumulate>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-    imageAccumulate->SetInput(labelmapNode->GetImageData());
-#else
-    imageAccumulate->SetInputConnection(labelmapNode->GetImageDataConnection());
-#endif
+  imageAccumulate->SetInputConnection(labelmapNode->GetImageDataConnection());
   imageAccumulate->IgnoreZeroOn(); // Do not create segment from background
   imageAccumulate->Update();
   int lowLabel = (int)imageAccumulate->GetMin()[0];
@@ -830,11 +818,7 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkMRML
   threshold->SetNumberOfThreads(1);
   for (int label = lowLabel; label <= highLabel; ++label)
   {
-#if (VTK_MAJOR_VERSION <= 5)
-    threshold->SetInput(labelmapNode->GetImageData());
-#else
     threshold->SetInputConnection(labelmapNode->GetImageDataConnection());
-#endif
     threshold->SetInValue(label);
     threshold->SetOutValue(0);
     threshold->ReplaceInOn();

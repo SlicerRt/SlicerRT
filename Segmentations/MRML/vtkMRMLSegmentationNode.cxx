@@ -854,13 +854,7 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
     || imageDataExtent[3] != referenceExtent[3] || imageDataExtent[4] != referenceExtent[4] || imageDataExtent[5] != referenceExtent[5] )
   {
     mergedImageData->SetExtent(referenceExtent);
-#if (VTK_MAJOR_VERSION <= 5)
-    mergedImageData->SetScalarType(VTK_UNSIGNED_CHAR);
-    mergedImageData->SetNumberOfScalarComponents(1);
-    mergedImageData->AllocateScalars();
-#else
     mergedImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-#endif
   }
 
   // Paint the image data background first

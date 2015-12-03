@@ -145,17 +145,10 @@ void vtkSlicerPlanarImageModuleLogic::OnMRMLSceneEndImport()
       // Apply the texture if it has a reference to it
       vtkMRMLScalarVolumeNode* textureNode = vtkMRMLScalarVolumeNode::SafeDownCast(
         modelNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str()) );
-#if (VTK_MAJOR_VERSION <= 5)
-      if (textureNode)
-      {
-        modelNode->GetModelDisplayNode()->SetAndObserveTextureImageData(textureNode->GetImageData());
-      }
-#else
       if (textureNode && modelNode->GetModelDisplayNode())
       {
         modelNode->GetModelDisplayNode()->SetTextureImageDataConnection(textureNode->GetImageDataConnection());
       }
-#endif
     }
   }
 }
@@ -287,11 +280,7 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
   if (planarImageVolumeNode->GetScalarVolumeDisplayNode())
   {
     vtkSmartPointer<vtkImageMapToWindowLevelColors> mapToWindowLevelColors = vtkSmartPointer<vtkImageMapToWindowLevelColors>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-    mapToWindowLevelColors->SetInput(textureImageData);
-#else
     mapToWindowLevelColors->SetInputData(textureImageData);
-#endif
     mapToWindowLevelColors->SetOutputFormatToLuminance();
     mapToWindowLevelColors->SetWindow(planarImageVolumeNode->GetScalarVolumeDisplayNode()->GetWindow());
     mapToWindowLevelColors->SetLevel(planarImageVolumeNode->GetScalarVolumeDisplayNode()->GetLevel());
@@ -302,15 +291,10 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
 
   // Set texture image data to its volume node and to the planar image model node as texture
   textureVolumeNode->SetAndObserveImageData(textureImageData);
-#if (VTK_MAJOR_VERSION <= 5)
-  displayedModelNode->GetModelDisplayNode()->SetAndObserveTextureImageData(textureImageData);
-#else
   if (displayedModelNode->GetModelDisplayNode())
   {
     displayedModelNode->GetModelDisplayNode()->SetTextureImageDataConnection(textureVolumeNode->GetImageDataConnection());
   }
-#endif
-
 }
 
 //----------------------------------------------------------------------------
@@ -390,11 +374,7 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
 
   // Create plane
   vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  displayedModelNode->SetAndObservePolyData(plane->GetOutput());
-#else
   displayedModelNode->SetPolyDataConnection(plane->GetOutputPort());
-#endif
 
   // Compute the image plane corners in world coordinate system
   this->ComputeImagePlaneCorners(planarImageVolume, displayedModelNode->GetPolyData()->GetPoints());

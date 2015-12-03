@@ -312,11 +312,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
   // Get maximum dose from dose volume for number of DVH bins
   vtkNew<vtkImageAccumulate> doseStat;
-#if (VTK_MAJOR_VERSION <= 5)
-  doseStat->SetInput(doseVolumeNode->GetImageData());
-#else
   doseStat->SetInputData(doseVolumeNode->GetImageData());
-#endif
   doseStat->Update();
   double maxDose = doseStat->GetMax()[0];
 
@@ -504,17 +500,9 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
 
     // Make sure the segment labelmap is the same dimension as the dose volume
     vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-    padder->SetInput(segmentBinaryLabelmap);
-#else
     padder->SetInputData(segmentBinaryLabelmap);
-#endif
     int extent[6] = {0,-1,0,-1,0,-1};
-#if (VTK_MAJOR_VERSION <= 5)
-    oversampledDoseVolume->GetWholeExtent(extent);
-#else
     oversampledDoseVolume->GetExtent(extent);
-#endif
     padder->SetOutputWholeExtent(extent);
     padder->Update();
     segmentBinaryLabelmap->vtkImageData::DeepCopy(padder->GetOutput());
@@ -592,11 +580,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkOrientedImage
 
   // Create stencil for structure
   vtkNew<vtkImageToImageStencil> stencil;
-#if (VTK_MAJOR_VERSION <= 5)
-  stencil->SetInput(segmentLabelmap);
-#else
   stencil->SetInputData(segmentLabelmap);
-#endif
   stencil->ThresholdByUpper(0.5); // Thresholds only the labelmap, so the point is to keep the ones bigger than 0
   stencil->Update();
 
@@ -614,13 +598,8 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkOrientedImage
 
   // Compute statistics
   vtkNew<vtkImageAccumulate> structureStat;
-#if (VTK_MAJOR_VERSION <= 5)
-  structureStat->SetInput(oversampledDoseVolume);
-  structureStat->SetStencil(structureStencil);
-#else
   structureStat->SetInputData(oversampledDoseVolume);
   structureStat->SetStencilData(structureStencil);
-#endif
   structureStat->Update();
 
   // Report error if there are no voxels in the stenciled dose volume (no non-zero voxels in the resampled labelmap)

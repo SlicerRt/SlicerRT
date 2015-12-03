@@ -96,11 +96,7 @@ void vtkSlicerPinnacleDvfReaderLogic::LoadPinnacleDvf(char *filename, double gri
 
   // vtkOrientedGridTransform
   vtkSmartPointer<vtkOrientedGridTransform> gridTransform = vtkSmartPointer<vtkOrientedGridTransform>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  gridTransform->SetDisplacementGrid(pinnacleDvfReader->GetDeformableRegistrationGrid());
-#else
   gridTransform->SetDisplacementGridData(pinnacleDvfReader->GetDeformableRegistrationGrid());
-#endif
   gridTransform->SetDisplacementScale(1);
   gridTransform->SetDisplacementShift(0);
   gridTransform->SetInterpolationModeToLinear();

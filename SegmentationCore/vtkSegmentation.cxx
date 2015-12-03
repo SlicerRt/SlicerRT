@@ -642,11 +642,7 @@ void vtkSegmentation::ApplyLinearTransform(vtkAbstractTransform* transform)
     if (currentMasterRepresentationPolyData)
     {
       vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-      transformFilter->SetInput(currentMasterRepresentationPolyData);
-#else
       transformFilter->SetInputData(currentMasterRepresentationPolyData);
-#endif
       transformFilter->SetTransform(linearTransform);
       transformFilter->Update();
       currentMasterRepresentationPolyData->DeepCopy(transformFilter->GetOutput());
@@ -693,11 +689,7 @@ void vtkSegmentation::ApplyNonLinearTransform(vtkAbstractTransform* transform)
     if (currentMasterRepresentationPolyData)
     {
       vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-      transformFilter->SetInput(currentMasterRepresentationPolyData);
-#else
       transformFilter->SetInputData(currentMasterRepresentationPolyData);
-#endif
       transformFilter->SetTransform(transform);
       transformFilter->Update();
       currentMasterRepresentationPolyData->DeepCopy(transformFilter->GetOutput());

@@ -116,11 +116,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
   if (this->DoseVolumeNode != NULL)
   {
     vtkNew<vtkImageAccumulate> doseStat;
-#if (VTK_MAJOR_VERSION <= 5)
-    doseStat->SetInput(this->DoseVolumeNode->GetImageData());
-#else
     doseStat->SetInputData(this->DoseVolumeNode->GetImageData());
-#endif
     doseStat->Update();
     this->SetDoseMax(doseStat->GetMax()[0]);
   }

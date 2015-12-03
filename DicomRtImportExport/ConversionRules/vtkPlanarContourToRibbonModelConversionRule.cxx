@@ -157,11 +157,7 @@ bool vtkPlanarContourToRibbonModelConversionRule::Convert(vtkDataObject* sourceR
 
   // Remove coincident points (if there are multiple contour points at the same position then the ribbon filter fails)
   vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  cleaner->SetInput(planarContourPolyData);
-#else
   cleaner->SetInputData(planarContourPolyData);
-#endif
 
   // Convert to ribbon using vtkRibbonFilter
   vtkSmartPointer<vtkRibbonFilter> ribbonFilter = vtkSmartPointer<vtkRibbonFilter>::New();

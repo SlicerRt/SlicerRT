@@ -530,12 +530,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       }
 
     //polyData->Modified(); // If we call modified on the master representation, then it causes deletion of all others
-#if (VTK_MAJOR_VERSION <= 5)
-    pipeline->ModelWarper->SetInput(polyData);
-#else
     pipeline->ModelWarper->SetInputData(polyData);
-#endif
-
     pipeline->ModelWarper->SetTransform(pipeline->NodeToWorld);
 
     // Set Plane Transform

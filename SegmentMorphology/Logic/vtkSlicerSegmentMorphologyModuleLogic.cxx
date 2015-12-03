@@ -332,19 +332,11 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
     int unionExtent[6] = { std::min(aExtent[0],bExtent[0]), std::max(aExtent[1],bExtent[1]), std::min(aExtent[2],bExtent[2]), std::max(aExtent[3],bExtent[3]), std::min(aExtent[4],bExtent[4]), std::max(aExtent[5],bExtent[5]) };
 
     vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-    padder->SetInput(imageA);
-#else
     padder->SetInputData(imageA);
-#endif
     padder->SetOutputWholeExtent(unionExtent);
     padder->Update();
     imageA->vtkImageData::DeepCopy(padder->GetOutput());
-#if (VTK_MAJOR_VERSION <= 5)
-    padder->SetInput(imageB);
-#else
     padder->SetInputData(imageB);
-#endif
     padder->Update();
     imageB->vtkImageData::DeepCopy(padder->GetOutput());
   }
@@ -364,12 +356,7 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
 
   // Apply operation on image data
   vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  histogram->SetInput(imageA);
-#else
   histogram->SetInputData(imageA);
-#endif
-
   histogram->Update();
   double valueMax = histogram->GetMax()[0];
 
@@ -379,113 +366,83 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
   // Expand
   case vtkMRMLSegmentMorphologyNode::Expand:
     {
-      // Pad image by expansion extent (extents are fitted to the structure, dilate will reach the edge of the image)
-      vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-      padder->SetInput(imageA);
-#else
-      padder->SetInputData(imageA);
-#endif
-      int extent[6] = {0,-1,0,-1,0,-1};
-#if (VTK_MAJOR_VERSION <= 5)
-      imageA->GetWholeExtent(extent);
-#else
-      imageA->GetExtent(extent);
-#endif
-      // Now set the output extent to the new size
-      int expansionExtent[3] = { int(xSize/spacingA[0] + 1.0), int(ySize/spacingA[1] + 1.0), int(zSize/spacingA[2] + 1.0) }; // Rounding up
-      padder->SetOutputWholeExtent(extent[0]-expansionExtent[0], extent[1]+expansionExtent[0], extent[2]-expansionExtent[1], extent[3]+expansionExtent[1], extent[4]-expansionExtent[2], extent[5]+expansionExtent[2]);
-      padder->Update();
+    // Pad image by expansion extent (extents are fitted to the structure, dilate will reach the edge of the image)
+    vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
+    padder->SetInputData(imageA);
+    int extent[6] = {0,-1,0,-1,0,-1};
+    imageA->GetExtent(extent);
 
-      vtkSmartPointer<vtkImageContinuousDilate3D> dilateFilter = vtkSmartPointer<vtkImageContinuousDilate3D>::New();
-      dilateFilter->SetInputConnection(padder->GetOutputPort());
-      dilateFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
-      dilateFilter->Update();
-      tempOutputImageData = dilateFilter->GetOutput();
-      break;
+    // Now set the output extent to the new size
+    int expansionExtent[3] = { int(xSize/spacingA[0] + 1.0), int(ySize/spacingA[1] + 1.0), int(zSize/spacingA[2] + 1.0) }; // Rounding up
+    padder->SetOutputWholeExtent(extent[0]-expansionExtent[0], extent[1]+expansionExtent[0], extent[2]-expansionExtent[1], extent[3]+expansionExtent[1], extent[4]-expansionExtent[2], extent[5]+expansionExtent[2]);
+    padder->Update();
+
+    vtkSmartPointer<vtkImageContinuousDilate3D> dilateFilter = vtkSmartPointer<vtkImageContinuousDilate3D>::New();
+    dilateFilter->SetInputConnection(padder->GetOutputPort());
+    dilateFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
+    dilateFilter->Update();
+    tempOutputImageData = dilateFilter->GetOutput();
+    break;
     }
 
   // Shrink
   case vtkMRMLSegmentMorphologyNode::Shrink:
     {
-      vtkSmartPointer<vtkImageContinuousErode3D> erodeFilter = vtkSmartPointer<vtkImageContinuousErode3D>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-      erodeFilter->SetInput(imageA);
-#else
-      erodeFilter->SetInputData(imageA);
-#endif
-      erodeFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
-      erodeFilter->Update();
-      tempOutputImageData = erodeFilter->GetOutput();
-      break;
+    vtkSmartPointer<vtkImageContinuousErode3D> erodeFilter = vtkSmartPointer<vtkImageContinuousErode3D>::New();
+    erodeFilter->SetInputData(imageA);
+    erodeFilter->SetKernelSize(kernelSize[0], kernelSize[1], kernelSize[2]);
+    erodeFilter->Update();
+    tempOutputImageData = erodeFilter->GetOutput();
+    break;
     }
 
   // Union
   case vtkMRMLSegmentMorphologyNode::Union:
     {
-      vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-      logicFilter->SetInput1(imageA);
-      logicFilter->SetInput2(imageB);
-#else
-      logicFilter->SetInput1Data(imageA);
-      logicFilter->SetInput2Data(imageB);
-#endif
-      logicFilter->SetOperationToOr();
-      logicFilter->SetOutputTrueValue(valueMax);
-      logicFilter->Update();
-      tempOutputImageData = logicFilter->GetOutput();
-      break;
+    vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
+    logicFilter->SetInput1Data(imageA);
+    logicFilter->SetInput2Data(imageB);
+    logicFilter->SetOperationToOr();
+    logicFilter->SetOutputTrueValue(valueMax);
+    logicFilter->Update();
+    tempOutputImageData = logicFilter->GetOutput();
+    break;
     }
 
   // Intersect
   case vtkMRMLSegmentMorphologyNode::Intersect:
     {
-      vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-      logicFilter->SetInput1(imageA);
-      logicFilter->SetInput2(imageB);
-#else
-      logicFilter->SetInput1Data(imageA);
-      logicFilter->SetInput2Data(imageB);
-#endif
-      logicFilter->SetOperationToAnd();
-      logicFilter->SetOutputTrueValue(valueMax);
-      logicFilter->Update();
-      tempOutputImageData = logicFilter->GetOutput();
-      break;
+    vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
+    logicFilter->SetInput1Data(imageA);
+    logicFilter->SetInput2Data(imageB);
+    logicFilter->SetOperationToAnd();
+    logicFilter->SetOutputTrueValue(valueMax);
+    logicFilter->Update();
+    tempOutputImageData = logicFilter->GetOutput();
+    break;
     }
 
   // Subtract
   case vtkMRMLSegmentMorphologyNode::Subtract:
     {
-      vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-      logicFilter->SetInput1(imageB);
-#else
-      logicFilter->SetInput1Data(imageB);
-#endif
-      logicFilter->SetOperationToNot();
-      logicFilter->SetOutputTrueValue(valueMax);
-      logicFilter->Update();
+    vtkSmartPointer<vtkImageLogic> logicFilter = vtkSmartPointer<vtkImageLogic>::New();
+    logicFilter->SetInput1Data(imageB);
+    logicFilter->SetOperationToNot();
+    logicFilter->SetOutputTrueValue(valueMax);
+    logicFilter->Update();
 
-      vtkSmartPointer<vtkImageLogic> logicFilter2 = vtkSmartPointer<vtkImageLogic>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-      logicFilter2->SetInput1(imageA);
-      logicFilter2->SetInput2(logicFilter->GetOutput());
-#else
-      logicFilter2->SetInput1Data(imageA);
-      logicFilter2->SetInput2Data(logicFilter->GetOutput());
-#endif
-      logicFilter2->SetOperationToAnd();
-      logicFilter2->SetOutputTrueValue(valueMax);
-      logicFilter2->Update();
-      tempOutputImageData = logicFilter2->GetOutput();
-      break;
+    vtkSmartPointer<vtkImageLogic> logicFilter2 = vtkSmartPointer<vtkImageLogic>::New();
+    logicFilter2->SetInput1Data(imageA);
+    logicFilter2->SetInput2Data(logicFilter->GetOutput());
+    logicFilter2->SetOperationToAnd();
+    logicFilter2->SetOutputTrueValue(valueMax);
+    logicFilter2->Update();
+    tempOutputImageData = logicFilter2->GetOutput();
+    break;
     }
   default:
     vtkErrorMacro("ApplyMorphologyOperation: Invalid operation!")
-      break;
+    break;
   }
 
   // Clear output segmentation and make sure master is binary labelmap

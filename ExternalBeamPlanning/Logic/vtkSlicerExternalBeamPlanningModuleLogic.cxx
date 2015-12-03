@@ -806,11 +806,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
 
   // Cast image data to uchar for faster rendering (this is for CT data only now)
   vtkSmartPointer<vtkImageShiftScale> cast = vtkSmartPointer<vtkImageShiftScale>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  cast->SetInput(referenceVolumeNode->GetImageData());
-#else
   cast->SetInputData(referenceVolumeNode->GetImageData());
-#endif
   cast->SetOutputScalarTypeToUnsignedChar();
   cast->SetShift(1000);
   cast->SetScale(255./2000.);
@@ -832,11 +828,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
   //vtkSmartPointer<vtkVolumeTextureMapper3D> mapper = vtkSmartPointer<vtkVolumeTextureMapper3D>::New();
   //vtkSmartPointer<vtkVolumeTextureMapper2D> mapper = vtkSmartPointer<vtkVolumeTextureMapper2D>::New();
   //vtkSmartPointer<vtkGPUVolumeRayCastMapper> mapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  mapper->SetInput( cast->GetOutput() );
-#else
   mapper->SetInputData( cast->GetOutput() );
-#endif
   mapper->SetBlendModeToComposite();
   volume->SetMapper( mapper );
 
@@ -985,14 +977,10 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
     renWin2->SetOffScreenRendering(1);
     renWin2->AddRenderer(renderer2);
 
-    // Now we'll look at it.
+    // Now we'll look at it. //TODO: This comment is meaningless
     vtkSmartPointer<vtkPolyDataMapper> contourPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     vtkSmartPointer<vtkPolyData> polydata = vtkPolyData::SafeDownCast(segmentIt->second->GetRepresentation(vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()));
-#if (VTK_MAJOR_VERSION <= 5)
-    contourPolyDataMapper->SetInput(polydata);
-#else
     contourPolyDataMapper->SetInputData(polydata);
-#endif
     //contourPolyDataMapper->SetScalarRange(0,255);
     vtkSmartPointer<vtkActor> contourPolyDataActor = vtkSmartPointer<vtkActor>::New();
     contourPolyDataActor->SetMapper(contourPolyDataMapper);
@@ -1046,13 +1034,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(char *beamname)
     if (numberOfContours > 1)
     {
       vtkSmartPointer<vtkImageMathematics> addFilter = vtkSmartPointer<vtkImageMathematics>::New(); 
-#if (VTK_MAJOR_VERSION <= 5)
-      addFilter->SetInput1(mergedImageData);
-      addFilter->SetInput2(magnitude->GetOutput());
-#else
       addFilter->SetInput1Data(mergedImageData);
       addFilter->SetInput2Data(magnitude->GetOutput());
-#endif
       addFilter->SetOperationToAdd();
       addFilter->Update();
       mergedImageData->DeepCopy(addFilter->GetOutput());

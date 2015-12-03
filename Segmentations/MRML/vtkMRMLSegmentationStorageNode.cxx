@@ -381,13 +381,7 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
     currentBinaryLabelmap->SetSpacing(spacing);
     currentBinaryLabelmap->SetDirections(directions);
     currentBinaryLabelmap->SetExtent(currentSegmentExtent);
-#if (VTK_MAJOR_VERSION <= 5)
-    currentBinaryLabelmap->SetScalarType(VTK_UNSIGNED_CHAR);
-    currentBinaryLabelmap->SetNumberOfScalarComponents(1);
-    currentBinaryLabelmap->AllocateScalars();
-#else
     currentBinaryLabelmap->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-#endif
     unsigned char* labelmapPtr = (unsigned char*)currentBinaryLabelmap->GetScalarPointerForExtent(currentSegmentExtent);
     
     // Define ITK region for current segment

@@ -290,13 +290,8 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
     if (inputVolumeIndex > 0)
     {
       vtkSmartPointer<vtkImageMathematics> addFilter = vtkSmartPointer<vtkImageMathematics>::New(); 
-#if (VTK_MAJOR_VERSION <= 5)
-      addFilter->SetInput1(accumulatedImageData);
-      addFilter->SetInput2(multiplyFilter->GetOutput());
-#else
       addFilter->SetInput1Data(accumulatedImageData);
       addFilter->SetInput2Data(multiplyFilter->GetOutput());
-#endif
       addFilter->SetOperationToAdd();
       addFilter->Update();
 

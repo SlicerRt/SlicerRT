@@ -87,11 +87,7 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
   // Create mass properties algorithm for common use
   vtkSmartPointer<vtkMassProperties> massProperties = vtkSmartPointer<vtkMassProperties>::New();
   this->SetMassPropertiesAlgorithm(massProperties);
-#if (VTK_MAJOR_VERSION <= 5)
-  massProperties->SetInput(this->InputPolyData);
-#else
   massProperties->SetInputData(this->InputPolyData);
-#endif
   // Run algorithm so that results can be extracted for relative structure size calculation and complexity measure
   massProperties->Update();
 

@@ -96,11 +96,7 @@ int vtkSegmentationTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
   }
   vtkNew<vtkImageAccumulate> imageAccumulate;
-#if (VTK_MAJOR_VERSION <= 5)
-  imageAccumulate->SetInput(defaultImageData);
-#else
   imageAccumulate->SetInputData(defaultImageData);
-#endif
   imageAccumulate->Update();
   if (imageAccumulate->GetMax()[0] != 1)
   {
@@ -148,11 +144,7 @@ int vtkSegmentationTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     std::cerr << __LINE__ << ": Failed to convert closed surface representation to binary labelmap with custom reference geometry!" << std::endl;
     return EXIT_FAILURE;
   }
-#if (VTK_MAJOR_VERSION <= 5)
-  imageAccumulate->SetInput(customImageData);
-#else
   imageAccumulate->SetInputData(customImageData);
-#endif
   imageAccumulate->Update();
   if (imageAccumulate->GetMax()[0] != 1)
   {
@@ -328,13 +320,7 @@ void CreateCubeLabelmap(vtkOrientedImageData* imageData)
   // Create new one because by default the direction is identity, origin is zeros and spacing is ones
   vtkNew<vtkOrientedImageData> identityImageData;
   identityImageData->SetExtent(0,size-1,0,size,0,size-1);
-#if (VTK_MAJOR_VERSION <= 5)
-  identityImageData->SetScalarType(VTK_UNSIGNED_CHAR);
-  identityImageData->SetNumberOfScalarComponents(1);
-  identityImageData->AllocateScalars();
-#else
   identityImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-#endif
 
   unsigned char* imagePtr = (unsigned char*)identityImageData->GetScalarPointer();
   for (unsigned int x=0; x<size; ++x)

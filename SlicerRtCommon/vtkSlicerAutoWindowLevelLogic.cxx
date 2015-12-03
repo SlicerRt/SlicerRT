@@ -63,21 +63,11 @@ void vtkSlicerAutoWindowLevelLogic::ComputeWindowLevel(vtkMRMLScalarVolumeNode* 
   histogramImageData->Initialize();
   histogramImageData->SetExtent(minScalar, maxScalar, 0, 0, 0, 0);
   histogramImageData->SetOrigin(0, 0, 0);
-#if (VTK_MAJOR_VERSION <= 5)
-  histogramImageData->SetScalarTypeToInt();
-  histogramImageData->SetNumberOfScalarComponents(1);
-  histogramImageData->AllocateScalars();
-#else
   histogramImageData->AllocateScalars(VTK_INT, 1);
-#endif
 
   // Build the histogram for the scalar image values.
   vtkSmartPointer<vtkImageAccumulate> imageAccumulator = vtkSmartPointer<vtkImageAccumulate>::New();
-#if(VTK_MAJOR_VERSION <= 5)
-  imageAccumulator->SetInput(inputImageData);
-#else
   imageAccumulator->SetInputData(inputImageData);
-#endif
   imageAccumulator->SetComponentExtent(histogramImageData->GetExtent());
   imageAccumulator->SetComponentOrigin(histogramImageData->GetOrigin());
   imageAccumulator->SetOutput(histogramImageData);

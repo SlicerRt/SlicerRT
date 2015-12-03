@@ -1159,14 +1159,8 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateLine(vtkPolyData*
 
   // Use vtkDelaunay2D to triangulate the line and produce new polygons
   vtkSmartPointer<vtkDelaunay2D> delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
-
-#if (VTK_MAJOR_VERSION <= 5)
-  delaunay->SetInput(linePolyData);
-  delaunay->SetSource(boundary);
-#else
   delaunay->SetInputData(linePolyData);
   delaunay->SetSourceData(boundary);
-#endif
   delaunay->Update();
 
   vtkSmartPointer<vtkPolyData> output = delaunay->GetOutput();

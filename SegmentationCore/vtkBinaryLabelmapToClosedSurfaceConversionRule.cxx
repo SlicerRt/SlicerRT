@@ -138,11 +138,7 @@ bool vtkBinaryLabelmapToClosedSurfaceConversionRule::Convert(vtkDataObject* sour
 
   // Run marching cubes
   vtkSmartPointer<vtkMarchingCubes> marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  marchingCubes->SetInput(binaryLabelmapWithIdentityGeometry);
-#else
   marchingCubes->SetInputData(binaryLabelmapWithIdentityGeometry);
-#endif
   marchingCubes->SetNumberOfContours(1);
   marchingCubes->SetValue(0, 0.5); //TODO: In the vtkLabelmapToModelFilter class this is LabelValue/2.0. If we know why, it would make sense to explain it here.
   marchingCubes->ComputeScalarsOff();
@@ -286,22 +282,11 @@ bool vtkBinaryLabelmapToClosedSurfaceConversionRule::IsLabelmapPaddingNecessary(
 void vtkBinaryLabelmapToClosedSurfaceConversionRule::PadLabelmap(vtkOrientedImageData* binaryLabelMap)
 {
   vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  padder->SetInput(binaryLabelMap);
-#else
   padder->SetInputData(binaryLabelMap);
-#endif
-
   int extent[6] = {0,-1,0,-1,0,-1};
-#if (VTK_MAJOR_VERSION <= 5)
-  binaryLabelMap->GetWholeExtent(extent);
-#else
   binaryLabelMap->GetExtent(extent);
-#endif
-
-  // Now set the output extent to the new size
+  // Set the output extent to the new size
   padder->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
-
   padder->Update();
   binaryLabelMap->vtkImageData::DeepCopy(padder->GetOutput());
 }

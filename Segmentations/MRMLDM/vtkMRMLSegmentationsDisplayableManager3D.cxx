@@ -307,11 +307,7 @@ vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::CreateSegmentPipeline(std
   pipeline->InputPolyData = vtkSmartPointer<vtkPolyData>::New();
   pipeline->ModelWarper = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   pipeline->NodeToWorld = vtkSmartPointer<vtkGeneralTransform>::New();
-#if VTK_MAJOR_VERSION <= 5
-  pipeline->ModelWarper->SetInput(pipeline->InputPolyData);
-#else
   pipeline->ModelWarper->SetInputData(pipeline->InputPolyData);
-#endif
   mapper->SetInputConnection(pipeline->ModelWarper->GetOutputPort());
 
   // Add actor to Renderer and local cache

@@ -138,13 +138,7 @@ bool vtkClosedSurfaceToBinaryLabelmapConversionRule::Convert(vtkDataObject* sour
   }
 
   // Allocate output image data
-#if (VTK_MAJOR_VERSION <= 5)
-  binaryLabelMap->SetScalarType(VTK_UNSIGNED_CHAR);
-  binaryLabelMap->SetNumberOfScalarComponents(1);
-  binaryLabelMap->AllocateScalars();
-#else
   binaryLabelMap->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-#endif
 
   void* binaryLabelMapVoxelsPointer = binaryLabelMap->GetScalarPointerForExtent(binaryLabelMap->GetExtent());
   if (!binaryLabelMapVoxelsPointer)
@@ -178,11 +172,7 @@ bool vtkClosedSurfaceToBinaryLabelmapConversionRule::Convert(vtkDataObject* sour
 
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataFilter =
     vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  transformPolyDataFilter->SetInput(closedSurfacePolyData);
-#else
   transformPolyDataFilter->SetInputData(closedSurfacePolyData);
-#endif
   transformPolyDataFilter->SetTransform(inverseOutputLabelmapGeometryTransform);
 
   // Compute polydata normals
@@ -207,15 +197,8 @@ bool vtkClosedSurfaceToBinaryLabelmapConversionRule::Convert(vtkDataObject* sour
 
   // Convert stencil to image
   vtkNew<vtkImageStencil> stencil;
-#if (VTK_MAJOR_VERSION <= 5)
-  polyDataToImageStencil->Update();
-  stencil->SetInput(binaryLabelMap);
-  stencil->SetStencil(polyDataToImageStencil->GetOutput());
-#else
   stencil->SetInputData(binaryLabelMap);
   stencil->SetStencilConnection(polyDataToImageStencil->GetOutputPort());
-#endif
-
   stencil->ReverseStencilOn();
   stencil->SetBackgroundValue(1); // General foreground value is 1 (background value because of reverse stencil)
 
@@ -312,11 +295,7 @@ bool vtkClosedSurfaceToBinaryLabelmapConversionRule::CalculateOutputGeometry(vtk
 
   vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataFilter =
   vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  transformPolyDataFilter->SetInput(closedSurfacePolyData);
-#else
   transformPolyDataFilter->SetInputData(closedSurfacePolyData);
-#endif
   transformPolyDataFilter->SetTransform(inverseImageGeometryTransform);
   transformPolyDataFilter->Update();
   vtkPolyData* transformedClosedSurfacePolyData = transformPolyDataFilter->GetOutput();

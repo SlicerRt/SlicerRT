@@ -92,43 +92,37 @@ void vtkPlmpyVectorFieldAnalysis::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 //---------------------------------------------------------------------------
 void vtkPlmpyVectorFieldAnalysis::RunJacobian()
 {
+  //TODO: Use VTK info/warning/error macro instead of cout
+  cout << "started RunJacobian from C++ module\n";
+  if ( this->VFImageID == NULL )
+  {
+    cout << "ERRROR: NULL input VF";
+  } 
 
-cout << "started RunJacobian from C++ module\n";
-if ( this->VFImageID == NULL ) { cout << "ERRROR: NULL input VF"; } 
+  // vtk to itk transform derived from SlicerRtCommon.txx
+  vtkMRMLVectorVolumeNode* VFImage = vtkMRMLVectorVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->VFImageID));
 
-// vtk to itk transform derived from SlicerRtCommon.txx
+  DeformationFieldType::Pointer vol = itk::Image<itk::Vector<float,3> ,3>::New();
 
-vtkMRMLVectorVolumeNode* VFImage = vtkMRMLVectorVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->VFImageID));
-
-
-DeformationFieldType::Pointer vol = itk::Image<itk::Vector<float,3> ,3>::New();
-
-vtkImageData* inVolume = VFImage->GetImageData();
+  vtkImageData* inVolume = VFImage->GetImageData();
   if ( inVolume == NULL )
   {
     vtkErrorWithObjectMacro(VFImage, "ConvertVolumeNodeToItkImage: Failed to convert volume node to itk image - image in input MRML volume node is NULL!");
     return;
   }
 
-cout << "got image data";
+  cout << "got image data";
 
-
-
-vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  imageExport->SetInput(inVolume);
-#else
+  vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
   imageExport->SetInputData(inVolume);
-#endif
 
-cout << "gone past set input";
+  cout << "gone past set input";
 
+  imageExport->Update();
 
-imageExport->Update();
+  cout << "gone past Update";
 
-cout << "gone past Update";
-
-//--
+  //--
   vtkSmartPointer<vtkMatrix4x4> rasToWorldTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   vtkMRMLTransformNode* inTransformNode=VFImage->GetParentTransformNode();
   if (inTransformNode!=NULL)
@@ -178,9 +172,8 @@ cout << "gone past Update";
   }
   vol->SetDirection(outputDirectionMatrix);
 
-//---
-
-
+  //---
+  
   int inputExtent[6]={0,0,0,0,0,0};
   inVolume->GetExtent(inputExtent);
   itk::Image<float, 3>::SizeType inputSize;
@@ -195,8 +188,7 @@ cout << "gone past Update";
   region.SetSize(inputSize);
   region.SetIndex(start);   
   vol->SetRegions(region);
-
-
+  
   try
   {  
     vol->Allocate();
@@ -207,32 +199,31 @@ cout << "gone past Update";
     return;
   }
 
-imageExport->Export( vol->GetBufferPointer() );
+  imageExport->Export( vol->GetBufferPointer() );
+  
+  // modeled after pcmd_jacobian
+  FloatImageType::Pointer jacimage;
 
+  std::cout << "...loaded xf!" << std::endl;
 
-// modeled after pcmd_jacobian
-    FloatImageType::Pointer jacimage;
+  /* Make jacobian */
+  Jacobian jacobian;
+  jacobian.set_input_vf (vol);    
+  jacimage=jacobian.make_jacobian();
 
-    std::cout << "...loaded xf!" << std::endl;
+  printf("min/max jacobian values to output: %lf %lf\n", jacobian.jacobian_min, jacobian.jacobian_max); 
 
-    /* Make jacobian */
-    Jacobian jacobian;
-    jacobian.set_input_vf (vol);    
-    jacimage=jacobian.make_jacobian();
+  // The Python code can only access strings via GetJacobianMainString(), GetJacobianMaxString() macros
+  sprintf(this->JacobianMinString, "%f", jacobian.jacobian_min);
+  sprintf(this->JacobianMaxString, "%f", jacobian.jacobian_max);
 
-    printf("min/max jacobian values to output: %lf %lf\n", jacobian.jacobian_min, jacobian.jacobian_max); 
-
-    // The Python code can only access strings via GetJacobianMainString(), GetJacobianMaxString() macros
-    sprintf(this->JacobianMinString, "%f", jacobian.jacobian_min);
-    sprintf(this->JacobianMaxString, "%f", jacobian.jacobian_max);
-
-    Plm_image::Pointer jacobianImage = Plm_image::New();
+  Plm_image::Pointer jacobianImage = Plm_image::New();
   jacobianImage->set_itk(jacimage);
   jacobianImage->convert_to_itk();
   this->SetImageIntoVolumeNode(jacobianImage); // this also needs FixedImageID set to add geometry
-
 }
 
+//---------------------------------------------------------------------------
 void vtkPlmpyVectorFieldAnalysis::SetImageIntoVolumeNode(Plm_image::Pointer& plastimatchImage)
 {
   if (!plastimatchImage || !plastimatchImage->itk_float())

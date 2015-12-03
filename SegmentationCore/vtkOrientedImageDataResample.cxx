@@ -100,11 +100,7 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
 
   // Perform resampling
   vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  resliceFilter->SetInput(identityInputImage);
-#else
   resliceFilter->SetInputData(identityInputImage);
-#endif
   resliceFilter->SetOutputOrigin(0, 0, 0);
   resliceFilter->SetOutputSpacing(1, 1, 1);
   resliceFilter->SetOutputExtent(unionExtent);
@@ -275,11 +271,7 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceGeometry(vtkO
 
   // Perform resampling
   vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  resliceFilter->SetInput(identityInputImage);
-#else
   resliceFilter->SetInputData(identityInputImage);
-#endif
   resliceFilter->SetOutputOrigin(0, 0, 0);
   resliceFilter->SetOutputSpacing(1, 1, 1);
   resliceFilter->SetOutputExtent(outputExtent);
@@ -484,11 +476,7 @@ void vtkOrientedImageDataResample::TransformOrientedImageDataBounds(vtkOrientedI
     planeSource->SetResolution(5,5); // Use only three subdivision points along each axis
     planeSource->Update();
 
-#if (VTK_MAJOR_VERSION <= 5)
-    appendPolyData->AddInput(planeSource->GetOutput());
-#else
     appendPolyData->AddInputData(planeSource->GetOutput());
-#endif
   }
 
   // Transform boundary poly data
@@ -606,11 +594,7 @@ bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* 
 
   // Pad image by expansion extent (extents are fitted to the structure, dilate will reach the edge of the image)
   vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  padder->SetInput(inputImage);
-#else
   padder->SetInputData(inputImage);
-#endif
   padder->SetOutputWholeExtent(unionExtent);
   padder->Update();
 
@@ -701,11 +685,7 @@ void vtkOrientedImageDataResample::TransformOrientedImage(vtkOrientedImageData* 
 
     // Perform resampling
     vtkNew<vtkImageReslice> reslice;
-#if (VTK_MAJOR_VERSION <= 5)
-    reslice->SetInput(identityInputImage);
-#else
     reslice->SetInputData(identityInputImage);
-#endif
     // reslice->SetInterpolationModeToLinear(); //TODO: Use this option for fractional labelmaps
     reslice->SetInterpolationModeToNearestNeighbor();
     reslice->SetBackgroundColor(0, 0, 0, 0);
