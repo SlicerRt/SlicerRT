@@ -38,6 +38,8 @@
 #include <QDebug>
 #include <QIcon>
 #include <QMessageBox>
+#include <QAction>
+#include <QMenu>
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
@@ -58,6 +60,9 @@ public:
   void init();
 public:
   QIcon SegmentIcon;
+
+  QAction* ShowOnlyCurrentSegmentAction;
+  QAction* ShowAllSegmentsAction;
 };
 
 //-----------------------------------------------------------------------------
@@ -68,11 +73,22 @@ qSlicerSubjectHierarchySegmentsPluginPrivate::qSlicerSubjectHierarchySegmentsPlu
 : q_ptr(&object)
 , SegmentIcon(QIcon(":Icons/Segment.png"))
 {
+  this->ShowOnlyCurrentSegmentAction = NULL;
+  this->ShowAllSegmentsAction = NULL;
 }
 
 //------------------------------------------------------------------------------
 void qSlicerSubjectHierarchySegmentsPluginPrivate::init()
 {
+  Q_Q(qSlicerSubjectHierarchySegmentsPlugin);
+
+  // Show only current segment action
+  this->ShowOnlyCurrentSegmentAction = new QAction("Show only this segment",q);
+  QObject::connect(this->ShowOnlyCurrentSegmentAction, SIGNAL(triggered()), q, SLOT(showOnlyCurrentSegment()));
+
+  // Show all segments action
+  this->ShowAllSegmentsAction = new QAction("Show all segments",q);
+  QObject::connect(this->ShowAllSegmentsAction, SIGNAL(triggered()), q, SLOT(showAllSegments()));
 }
 
 //-----------------------------------------------------------------------------
@@ -324,16 +340,16 @@ void qSlicerSubjectHierarchySegmentsPlugin::setDisplayVisibility(vtkMRMLSubjectH
     vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyNode(node);
   if (!segmentationNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::getDisplayVisibility: Unable to find segmentation node for segment subject hierarchy node " << node->GetName();
+    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::setDisplayVisibility: Unable to find segmentation node for segment subject hierarchy node " << node->GetName();
     return;
   }
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
     segmentationNode->GetDisplayNode() );
   if (!displayNode)
-    {
-    qCritical() << "qMRMLSegmentsTableView::onSegmentTableItemChanged: No display node for segmentation!";
+  {
+    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::setDisplayVisibility: No display node for segmentation!";
     return;
-    }
+  }
 
   // Get segment ID
   const char* segmentId = node->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
@@ -365,10 +381,10 @@ int qSlicerSubjectHierarchySegmentsPlugin::getDisplayVisibility(vtkMRMLSubjectHi
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
     segmentationNode->GetDisplayNode() );
   if (!displayNode)
-    {
-    qCritical() << "qMRMLSegmentsTableView::onSegmentTableItemChanged: No display node for segmentation!";
+  {
+    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::getDisplayVisibility: No display node for segmentation!";
     return -1;
-    }
+  }
 
   // Get segment ID
   const char* segmentId = node->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
@@ -383,17 +399,27 @@ QList<QAction*> qSlicerSubjectHierarchySegmentsPlugin::nodeContextMenuActions()c
   Q_D(const qSlicerSubjectHierarchySegmentsPlugin);
 
   QList<QAction*> actions;
+  actions << d->ShowOnlyCurrentSegmentAction << d->ShowAllSegmentsAction;
   return actions;
 }
 
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchySegmentsPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
+  Q_D(const qSlicerSubjectHierarchySegmentsPlugin);
+
   qSlicerSubjectHierarchySegmentationsPlugin* segmentationsPlugin = qobject_cast<qSlicerSubjectHierarchySegmentationsPlugin*>(
     qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Segmentations") );
 
   // Segments plugin shows all segmentations plugin functions in segment context menu
   segmentationsPlugin->showContextMenuActionsForNode(node);
+
+  // Owned Segment
+  if (this->canOwnSubjectHierarchyNode(node) && this->isThisPluginOwnerOfNode(node))
+  {
+    d->ShowOnlyCurrentSegmentAction->setVisible(true);
+    d->ShowAllSegmentsAction->setVisible(true);
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -418,5 +444,94 @@ void qSlicerSubjectHierarchySegmentsPlugin::editProperties(vtkMRMLSubjectHierarc
     {
       nodeSelector->setCurrentNode(segmentationNode);
     }
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchySegmentsPlugin::showOnlyCurrentSegment()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+
+  // Get segmentation node and display node
+  vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(currentNode->GetParentNode());
+  if (!parentNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showOnlyCurrentSegment: Segment subject hierarchy node has no segmentation parent!";
+    return;
+  }
+  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(parentNode->GetAssociatedNode());
+  if (!segmentationNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showOnlyCurrentSegment: Unable to find segmentation node for segment subject hierarchy node " << currentNode->GetName();
+    return;
+  }
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+    segmentationNode->GetDisplayNode() );
+  if (!displayNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showOnlyCurrentSegment: No display node for segmentation!";
+    return;
+  }
+
+  // Hide all segments except the current one
+  std::vector<vtkMRMLHierarchyNode*> segmentSubjectHierarchyNodes = parentNode->GetChildrenNodes();
+  for (std::vector<vtkMRMLHierarchyNode*>::iterator segmentShIt = segmentSubjectHierarchyNodes.begin(); segmentShIt != segmentSubjectHierarchyNodes.end(); ++segmentShIt)
+  {
+    vtkMRMLSubjectHierarchyNode* segmentShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*segmentShIt);
+
+    bool visible = false;
+    if (segmentShNode == currentNode)
+    {
+      visible = true;
+    }
+
+    // Get segment ID
+    const char* segmentIdChars = segmentShNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
+    std::string segmentId(segmentIdChars ? segmentIdChars : "");
+    // Set visibility
+    displayNode->SetSegmentVisibility(segmentId, visible);
+    // Trigger update of visibility icon
+    segmentShNode->Modified();
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchySegmentsPlugin::showAllSegments()
+{
+  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
+
+  // Get segmentation node and display node
+  vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(currentNode->GetParentNode());
+  if (!parentNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showAllSegments: Segment subject hierarchy node has no segmentation parent!";
+    return;
+  }
+  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(parentNode->GetAssociatedNode());
+  if (!segmentationNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showAllSegments: Unable to find segmentation node for segment subject hierarchy node " << currentNode->GetName();
+    return;
+  }
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+    segmentationNode->GetDisplayNode() );
+  if (!displayNode)
+  {
+    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showAllSegments: No display node for segmentation!";
+    return;
+  }
+
+  // Hide all segments except the current one
+  std::vector<vtkMRMLHierarchyNode*> segmentSubjectHierarchyNodes = parentNode->GetChildrenNodes();
+  for (std::vector<vtkMRMLHierarchyNode*>::iterator segmentShIt = segmentSubjectHierarchyNodes.begin(); segmentShIt != segmentSubjectHierarchyNodes.end(); ++segmentShIt)
+  {
+    vtkMRMLSubjectHierarchyNode* segmentShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*segmentShIt);
+    // Get segment ID
+    const char* segmentIdChars = segmentShNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
+    std::string segmentId(segmentIdChars ? segmentIdChars : "");
+    // Set visibility
+    displayNode->SetSegmentVisibility(segmentId, true);
+    // Trigger update of visibility icon
+    segmentShNode->Modified();
   }
 }

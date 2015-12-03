@@ -97,6 +97,13 @@ public:
   /// \param node Subject Hierarchy node to show the context menu items for. If NULL, then shows menu items for the scene
   virtual void showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node);
 
+protected slots:
+  /// Show only selected segment, hide all others in segmentation
+  void showOnlyCurrentSegment();
+
+  /// Show all segments in segmentation
+  void showAllSegments();
+
 protected:
   QScopedPointer<qSlicerSubjectHierarchySegmentsPluginPrivate> d_ptr;
 
