@@ -422,6 +422,18 @@ void vtkMRMLSegmentationNode::OnRepresentationCreated(vtkObject* vtkNotUsed(call
     self->ReGenerateDisplayedMergedLabelmap();
   }
 
+  // Show new representation if model
+  vtkSmartPointer<vtkMRMLSegmentationDisplayNode> displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(self->GetDisplayNode());
+  if (displayNode)
+  {
+    std::set<std::string> modelRepresentationNames;
+    displayNode->GetPolyDataRepresentationNames(modelRepresentationNames);
+    if (modelRepresentationNames.find(std::string(targetRepresentationName)) != modelRepresentationNames.end())
+    {
+      displayNode->SetPreferredPolyDataDisplayRepresentationName(targetRepresentationName);
+    }
+  }
+
   // Invoke node event
   self->InvokeCustomModifiedEvent(vtkSegmentation::RepresentationCreated, (void*)targetRepresentationName);
 
