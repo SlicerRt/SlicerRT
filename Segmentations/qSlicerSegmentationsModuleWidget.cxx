@@ -36,6 +36,7 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLLabelMapVolumeNode.h"
 #include "vtkMRMLModelNode.h"
+#include "vtkMRMLSubjectHierarchyNode.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -698,6 +699,13 @@ bool qSlicerSegmentationsModuleWidget::copyFromCurrentSegmentation(bool removeFr
       {
         // Remove segment from current segmentation if export was successful
         currentSegmentationNode->GetSegmentation()->RemoveSegment(firstSegmentId.toLatin1().constData());
+      }
+      // Add representation node into the same subject hierarchy branch as the segmentation
+      vtkMRMLSubjectHierarchyNode* currentSegmentationShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(currentSegmentationNode);
+      vtkMRMLSubjectHierarchyNode* otherRepresentationShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(otherRepresentationNode);
+      if (otherRepresentationShNode && currentSegmentationShNode->GetParentNodeID())
+      {
+        otherRepresentationShNode->SetParentNodeID(currentSegmentationShNode->GetParentNodeID());
       }
     }
     // Multiple selection is only allowed for exporting to labelmap volume
