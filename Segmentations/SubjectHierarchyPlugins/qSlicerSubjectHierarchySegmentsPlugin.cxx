@@ -407,6 +407,7 @@ QList<QAction*> qSlicerSubjectHierarchySegmentsPlugin::nodeContextMenuActions()c
 void qSlicerSubjectHierarchySegmentsPlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
 {
   Q_D(const qSlicerSubjectHierarchySegmentsPlugin);
+  this->hideAllContextMenuActions();
 
   qSlicerSubjectHierarchySegmentationsPlugin* segmentationsPlugin = qobject_cast<qSlicerSubjectHierarchySegmentationsPlugin*>(
     qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Segmentations") );

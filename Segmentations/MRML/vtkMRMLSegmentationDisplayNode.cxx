@@ -151,6 +151,23 @@ void vtkMRMLSegmentationDisplayNode::ReadXMLAttributes(const char** atts)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::Copy(vtkMRMLNode *anode)
+{
+  bool wasModifying = this->StartModify();
+  this->Superclass::Copy(anode);
+
+  vtkMRMLSegmentationDisplayNode *node = vtkMRMLSegmentationDisplayNode::SafeDownCast(anode);
+  if (node)
+  {
+    this->SetPreferredPolyDataDisplayRepresentationName(node->GetPreferredPolyDataDisplayRepresentationName());
+    this->SegmentationDisplayProperties = node->SegmentationDisplayProperties;
+    this->EnableTransparencyInColorTable = node->EnableTransparencyInColorTable;
+  }
+
+  this->EndModify(wasModifying);
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLSegmentationDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);

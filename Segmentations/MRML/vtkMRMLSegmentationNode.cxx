@@ -310,7 +310,7 @@ void vtkMRMLSegmentationNode::OnSegmentAdded(vtkObject* vtkNotUsed(caller), unsi
   // Get segment ID
   char* segmentId = reinterpret_cast<char*>(callData);
 
-  // Add segment display properties
+  // Add segment display properties if not present (can be present if node is cloned or scene loaded)
   if (!self->AddSegmentDisplayProperties(segmentId))
   {
     vtkErrorWithObjectMacro(self, "vtkMRMLSegmentationNode::OnSegmentAdded: Failed to add display properties for segment " << segmentId);
@@ -527,7 +527,7 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
     return false;
   }
 
-  // Get segment ID and segment
+  // Get segment
   vtkSegment* segment = this->Segmentation->GetSegment(segmentId);
   if (!segment)
   {
@@ -535,6 +535,7 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
     return false;
   }
 
+  // Get display node and create it if does not exist
   vtkSmartPointer<vtkMRMLSegmentationDisplayNode> displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(this->GetDisplayNode());
   if (!displayNode)
   {
@@ -543,6 +544,16 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
     this->Scene->AddNode(displayNode);
     this->SetAndObserveDisplayNodeID(displayNode->GetID());
     displayNode->SetBackfaceCulling(0); //TODO: Needed only because of the ribbon model normal vectors probably
+  }
+  else
+  {
+    // Do not add segment display properties if already present (can be present if node is cloned or scene loaded)
+    vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
+    if (displayNode->GetSegmentDisplayProperties(segmentId, properties))
+    {
+      vtkDebugMacro("AddSegmentDisplayProperties: Display properties for segment " << segmentId << " was already present, leaving it unchanged");
+      return true;
+    }
   }
 
   int wasModifyingDisplayNode = displayNode->StartModify();
