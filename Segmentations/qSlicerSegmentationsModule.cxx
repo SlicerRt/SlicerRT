@@ -238,28 +238,17 @@ void qSlicerSegmentationsModule::onNodeAboutToBeRemoved(vtkObject* sceneObject, 
   }
 
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nodeObject);
-  if (subjectHierarchyNode)
+  if (subjectHierarchyNode && subjectHierarchyNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName()))
   {
-    // Remove segmentation node if its associated subject hierarchy node is being removed
-    vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(
-      subjectHierarchyNode->GetAssociatedNode());
+    std::string segmentId = subjectHierarchyNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
+
+    segmentationNode = vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyNode(subjectHierarchyNode);
     if (segmentationNode)
     {
-      scene->RemoveNode(segmentationNode);
-    }
-    // Remove segment from parent segmentation if its subject hierarchy node is being removed
-    else if (subjectHierarchyNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName()))
-    {
-      std::string segmentId = subjectHierarchyNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
-
-      segmentationNode = vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyNode(subjectHierarchyNode);
-      if (segmentationNode)
+      // Segment might have been removed first, and subject hierarchy second, in which case we should not try to remove segment again
+      if (segmentationNode->GetSegmentation()->GetSegment(segmentId))
       {
-        // Segment might have been removed first, and subject hierarchy second, in which case we should not try to remove segment again
-        if (segmentationNode->GetSegmentation()->GetSegment(segmentId))
-        {
-          segmentationNode->GetSegmentation()->RemoveSegment(segmentId);
-        }
+        segmentationNode->GetSegmentation()->RemoveSegment(segmentId);
       }
     }
   }
