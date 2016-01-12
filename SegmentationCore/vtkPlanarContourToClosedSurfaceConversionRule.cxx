@@ -684,7 +684,8 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
       // Seal the lines.
       for (int currentLineIndex = 0; currentLineIndex < finishedLinePointIds.size(); ++currentLineIndex)
       {
-        if (finishedLinePointIds[currentLineIndex]->GetId(0) != finishedLinePointIds[currentLineIndex]->GetId(finishedLinePointIds[currentLineIndex]->GetNumberOfIds()-1))
+        if ( finishedLinePointIds[currentLineIndex]->GetNumberOfIds() > 0
+          && finishedLinePointIds[currentLineIndex]->GetId(0) != finishedLinePointIds[currentLineIndex]->GetId(finishedLinePointIds[currentLineIndex]->GetNumberOfIds()-1) )
         {
           finishedLinePointIds[currentLineIndex]->InsertNextId(finishedLinePointIds[currentLineIndex]->GetId(0));
         }

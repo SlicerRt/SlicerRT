@@ -553,20 +553,12 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
     //
     if (roiPolyData->GetNumberOfPoints() == 1)
     {
-      // Do not allow both fiducial and contour type structures to be loaded
-      if (segmentationSubjectHierarchyNode)
-      {
-        vtkWarningMacro("LoadRtStructureSet: Structure set contains both contour and fiducial type structures. The first structure being a contour, fiducials will be skipped!");
-        continue;
-      }
-
       // Create subject hierarchy node for the series, if it has not been created yet.
       // Only create it for fiducials, as all structures are stored in a single segmentation node
       if (fiducialsSeriesSubjectHierarchyNode == NULL)
       {
         std::string fiducialsSeriesNodeName(seriesName);
         fiducialsSeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX);
-        fiducialsSeriesNodeName.append(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix());
         fiducialsSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(fiducialsSeriesNodeName);
         fiducialsSeriesSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
           this->GetMRMLScene(), NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(),
@@ -591,13 +583,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
     //
     else
     {
-      // Do not allow both fiducial and contour type structures to be loaded
-      if (fiducialsSeriesSubjectHierarchyNode)
-      {
-        vtkWarningMacro("LoadRtStructureSet: Structure set contains both contour and fiducial type structures. The first structure being a fiducial, contours will be skipped!");
-        continue;
-      }
-
       // Create segmentation node for the structure set series, if not created yet
       if (segmentationNode.GetPointer() == NULL)
       {
