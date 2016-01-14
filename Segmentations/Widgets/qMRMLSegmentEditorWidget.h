@@ -31,6 +31,9 @@
 // CTK includes
 #include <ctkPimpl.h>
 
+// STD includes
+#include <cstdlib>
+
 class vtkMRMLNode;
 class vtkPolyData;
 class vtkObject;

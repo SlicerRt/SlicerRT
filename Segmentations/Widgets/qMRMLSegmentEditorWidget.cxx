@@ -70,6 +70,9 @@ public:
   ~qMRMLSegmentEditorWidgetPrivate();
   void init();
 
+  void cursorOff();
+  void cursorOn();
+
 public:
   /// Selected segmentation MRML node
   vtkMRMLSegmentationNode* SegmentationNode;
@@ -86,6 +89,9 @@ public:
   /// Active effect
   //TODO: Create effect base class and use this with that
   vtkSlicerSegmentEditorPaintEffect* ActiveEffect;
+
+  /// TODO
+  QCursor SavedCursor;
 };
 
 //-----------------------------------------------------------------------------
@@ -142,6 +148,21 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   this->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
 }
 
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::cursorOff()
+{
+  //this->SavedCursor = self.sliceWidget.cursor
+  //sliceWidget.setCursor(QCursor(Qt::BlankCursor))
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::cursorOn()
+{
+  //if self.savedCursor:
+  //  self.sliceWidget.setCursor(self.savedCursor)
+  //else:
+  //  self.sliceWidget.unsetCursor()
+}
 
 //-----------------------------------------------------------------------------
 
@@ -361,14 +382,25 @@ void qMRMLSegmentEditorWidget::processInteractionEvents(vtkObject* caller,
                                         void* vtkNotUsed(callData))
 {
   vtkMRMLSliceNode* sliceNode = reinterpret_cast<vtkMRMLSliceNode*>(clientData);
-//  vtkSegment* callerSegment = reinterpret_cast<vtkSegment*>(caller);
-//  if (!self || !callerSegment)
-//  {
-//    return;
-//  }
+  vtkRenderWindowInteractor* callerInteractor = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
+  if (!sliceNode || !callerInteractor)
+  {
+    return;
+  }
+
+  qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
+  qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceNode->GetLayoutName());
 
   if (eid == vtkCommand::LeftButtonPressEvent)
   {
+      //self.actionState = "painting"
+      //if not self.pixelMode:
+      //  self.cursorOff()
+      //xy = self.interactor.GetEventPosition()
+      //if self.smudge:
+      //  EditUtil.setLabel(self.getLabelPixel(xy))
+      //self.paintAddPoint(xy[0], xy[1])
+      //self.abortEvent(event)
   }
   else if (eid == vtkCommand::LeftButtonReleaseEvent)
   {

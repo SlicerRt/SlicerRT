@@ -26,6 +26,9 @@
 #include <vtkMRML.h>
 #include <vtkMRMLLabelMapVolumeNode.h>
 
+// STD includes
+#include <cstdlib>
+
 // Segmentation includes
 #include "vtkSegmentation.h"
 
