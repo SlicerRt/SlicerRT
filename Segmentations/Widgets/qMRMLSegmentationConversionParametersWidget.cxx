@@ -455,21 +455,12 @@ void qMRMLSegmentationConversionParametersWidget::setReferenceImageGeometryParam
 
   // If selection is 'None', then do not change reference image geometry parameter
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
-  if (!volumeNode)
+  if (!volumeNode || !volumeNode->GetImageData())
   {
     return;
   }
 
-  // Get serialized geometry of selected volume
-  vtkSmartPointer<vtkMatrix4x4> referenceImageGeometryMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  volumeNode->GetIJKToRASMatrix(referenceImageGeometryMatrix);
-  std::string serializedImageGeometry = vtkSegmentationConverter::SerializeImageGeometry(
-    referenceImageGeometryMatrix, volumeNode->GetImageData() );
-
-  // Set parameter
-  vtkSegmentation* segmentation = d->SegmentationNode->GetSegmentation();
-  segmentation->SetConversionParameter(
-    vtkSegmentationConverter::GetReferenceImageGeometryParameterName(), serializedImageGeometry);
+  d->SegmentationNode->SetReferenceImageGeometryParameterFromVolumeNode(volumeNode);
 }
 
 //-----------------------------------------------------------------------------

@@ -71,7 +71,6 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     data into DICOM data
     """
     from vtkSlicerRtCommon import SlicerRtCommon
-    from vtkSlicerSubjectHierarchyModuleMRMLPython import vtkMRMLSubjectHierarchyConstants
     exportable = None
 
     # RT dose volume

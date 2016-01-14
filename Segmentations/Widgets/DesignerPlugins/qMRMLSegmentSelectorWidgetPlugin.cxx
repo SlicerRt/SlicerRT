@@ -39,7 +39,7 @@ QWidget *qMRMLSegmentSelectorWidgetPlugin::createWidget(QWidget* parentWidget)
 QString qMRMLSegmentSelectorWidgetPlugin::domXml() const
 {
   return "<widget class=\"qMRMLSegmentSelectorWidget\" \
-          name=\"SegmentsSelectorWidget\">\n"
+          name=\"SegmentSelectorWidget\">\n"
           "</widget>\n";
 }
 

@@ -19,6 +19,8 @@ set(${KIT}_SRCS
   qMRMLSegmentSelectorWidget.h
   qMRMLDoubleSpinBoxDelegate.cxx
   qMRMLDoubleSpinBoxDelegate.h
+  qMRMLSegmentEditorWidget.cxx
+  qMRMLSegmentEditorWidget.h
   )
 
 set(${KIT}_MOC_SRCS
@@ -27,6 +29,7 @@ set(${KIT}_MOC_SRCS
   qMRMLSegmentationConversionParametersWidget.h
   qMRMLSegmentSelectorWidget.h
   qMRMLDoubleSpinBoxDelegate.h
+  qMRMLSegmentEditorWidget.h
   )
 
 set(${KIT}_UI_SRCS
@@ -34,6 +37,7 @@ set(${KIT}_UI_SRCS
   Resources/UI/qMRMLSegmentationRepresentationsListView.ui
   Resources/UI/qMRMLSegmentationConversionParametersWidget.ui
   Resources/UI/qMRMLSegmentSelectorWidget.ui
+  Resources/UI/qMRMLSegmentEditorWidget.ui
   )
 
 set(${KIT}_RESOURCES

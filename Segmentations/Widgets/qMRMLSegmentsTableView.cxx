@@ -275,6 +275,15 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
     }
+  else if (mode == EditorMode) //TODO: Add to header doxy
+    {
+    d->SegmentsTable->horizontalHeader()->setVisible(true);
+    d->SegmentsTable->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), false);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
+    }
   else
     {
     qWarning() << "qMRMLSegmentsTableView::setMode: Invalid mode";

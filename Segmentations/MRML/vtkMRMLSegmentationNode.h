@@ -127,6 +127,11 @@ public:
   /// This needs to be done for compatibility reasons, as many components assume the extent has a form of
   /// (0,dim[0],0,dim[1],0,dim[2]), which is not the case many times for segmentation merged labelmaps.
   static void ShiftVolumeNodeExtentToZeroStart(vtkMRMLScalarVolumeNode* volumeNode);
+  
+  /// Expose reference identifier to get the volume node defining the reference image geometry if any
+  static std::string GetReferenceImageGeometryReferenceRole() { return "referenceImageGeometryRef"; };
+  /// Set reference image geometry conversion parameter from the volume node, keeping reference
+  void SetReferenceImageGeometryParameterFromVolumeNode(vtkMRMLScalarVolumeNode* volumeNode);
 
 public:
   /// Get segmentation object

@@ -52,11 +52,6 @@ public:
   vtkTypeMacro(vtkSlicerSegmentationsModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  //TODO:
-  /// Create a segmentation node for the given segmentation node
-  /// \param segmentationNode the node that requires a storage node be created
-  //static vtkMRMLSegmentationStorageNode* CreateSegmentationStorageNode(vtkMRMLSegmentationNode* segmentationNode);
-
   /// Get segmentation node containing a segmentation object. As segmentation objects are out-of-MRML
   /// VTK objects, there is no direct link from it to its parent node, so must be found from the MRML scene.
   /// \param scene MRML scene

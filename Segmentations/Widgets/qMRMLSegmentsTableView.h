@@ -61,7 +61,9 @@ public:
     /// Only show segment name and allow multiple selection, no header is visible
     SimpleListMode,
     /// Only show name, do not allow selection, no header is visible
-    RepresentationMode
+    RepresentationMode,
+    /// TODO:
+    EditorMode
     };
 
   Q_PROPERTY(int mode READ mode WRITE setMode)
@@ -86,6 +88,8 @@ public:
   /// Set mode of segment table. There are two modes:
   /// 1. VisibilityOptionsMode: Not selectable table with visibility options
   /// 2. SelectableSimpleListMode: Selectable list with only segment names, no header is visible
+  /// 3. RepresentationMode: Not selectable list with only names, no header is visible
+  /// 4. EditorMode: TODO:
   void setMode(SegmentTableMode mode);
   /// Set segment table mode. Python compatibility function.
   void setMode(int mode);

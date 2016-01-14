@@ -1094,7 +1094,7 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSegmentationNode::GetSegmentSubjectHierarchy
 //---------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::ShiftVolumeNodeExtentToZeroStart(vtkMRMLScalarVolumeNode* volumeNode)
 {
-  if (!volumeNode || !volumeNode->vtkMRMLScalarVolumeNode::GetImageData())
+  if (!volumeNode || !volumeNode->GetImageData())
   {
     return;
   }
@@ -1127,4 +1127,27 @@ void vtkMRMLSegmentationNode::ShiftVolumeNodeExtentToZeroStart(vtkMRMLScalarVolu
 
   imageData->SetExtent(extent);
   volumeNode->SetOrigin(origin);
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationNode::SetReferenceImageGeometryParameterFromVolumeNode(vtkMRMLScalarVolumeNode* volumeNode)
+{
+  if (!volumeNode || !volumeNode->GetImageData())
+  {
+    return;
+  }
+
+  // Get serialized geometry of selected volume
+  vtkSmartPointer<vtkMatrix4x4> referenceImageGeometryMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  volumeNode->GetIJKToRASMatrix(referenceImageGeometryMatrix);
+  std::string serializedImageGeometry = vtkSegmentationConverter::SerializeImageGeometry(
+    referenceImageGeometryMatrix, volumeNode->GetImageData() );
+
+  // Set parameter
+  this->Segmentation->SetConversionParameter(
+    vtkSegmentationConverter::GetReferenceImageGeometryParameterName(), serializedImageGeometry);
+  
+  // Set node reference from segmentation to reference geometry volume
+  this->SetNodeReferenceID(
+    vtkMRMLSegmentationNode::GetReferenceImageGeometryReferenceRole().c_str(), volumeNode->GetID() );
 }

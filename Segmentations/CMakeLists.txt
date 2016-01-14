@@ -9,6 +9,7 @@ add_subdirectory(MRML)
 add_subdirectory(Logic)
 add_subdirectory(MRMLDM)
 add_subdirectory(SubjectHierarchyPlugins)
+#add_subdirectory(EditorEffects)
 add_subdirectory(Widgets)
 
 #-----------------------------------------------------------------------------
@@ -45,6 +46,7 @@ set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicer${MODULE_NAME}ModuleLogic
   vtkSlicer${MODULE_NAME}ModuleMRMLDisplayableManager
+  #vtkSlicer${MODULE_NAME}EditorEffects
   qSlicer${MODULE_NAME}ModuleWidgets
   qSlicer${MODULE_NAME}SubjectHierarchyPlugins
   )
