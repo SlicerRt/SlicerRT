@@ -18,62 +18,55 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerSegmentEditorPaintEffect - Logic class for segmentation handling
+// .NAME qSlicerSegmentEditorPaintEffect - Logic class for segmentation handling
 // .SECTION Description
 // TODO
 
-#ifndef __vtkSlicerSegmentEditorPaintEffect_h
-#define __vtkSlicerSegmentEditorPaintEffect_h
+#ifndef __qSlicerSegmentEditorPaintEffect_h
+#define __qSlicerSegmentEditorPaintEffect_h
 
-// Slicer includes
-#include "vtkMRMLAbstractLogic.h"
+// Segmentations Widgets includes
+#include "qSlicerSegmentationsModuleWidgetsExport.h"
 
-#include "vtkSlicerSegmentationsModuleMRMLExport.h"
+#include "qSlicerSegmentEditorAbstractEffect.h"
 
-class vtkCollection;
+class qSlicerSegmentEditorPaintEffectPrivate;
 class vtkPolyData;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-class VTK_SLICER_SEGMENTATIONS_MODULE_MRML_EXPORT vtkSlicerSegmentEditorPaintEffect :
-  public vtkMRMLAbstractLogic
+class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorPaintEffect :
+  public qSlicerSegmentEditorAbstractEffect
 {
 public:
-  static vtkSlicerSegmentEditorPaintEffect *New();
-  vtkTypeMacro(vtkSlicerSegmentEditorPaintEffect,vtkMRMLAbstractLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  Q_OBJECT
+  QVTK_OBJECT
 
+public:
+  typedef qSlicerSegmentEditorAbstractEffect Superclass;
+  qSlicerSegmentEditorPaintEffect(QObject* parent = NULL);
+  virtual ~qSlicerSegmentEditorPaintEffect(); 
+
+public:  
 //TODO: Create abstract functions in base effect class
   /// Activate paint effect
-  void Activate();
+  virtual void activate();
 
   /// Draw paint circle glyph
-  void CreateGlyph(vtkPolyData* polyData);
+  void createGlyph(vtkPolyData* polyData);
   
   /// Apply paint operation
-  void Apply();
-
-  /// TODO
-//  vtkCollection* GetInteractionCallbackCommandCollection() { return this->InteractionCallbackCommandCollection; };
+  void apply();
 
 protected:
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
-
-  /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
-
   /// Callback function invoked when interaction happens
 //  static void ProcessEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
 
 protected:
-  vtkSlicerSegmentEditorPaintEffect();
-  virtual ~vtkSlicerSegmentEditorPaintEffect();
-
-  /// TODO:
-  vtkPolyData* Brush;
+  QScopedPointer<qSlicerSegmentEditorPaintEffectPrivate> d_ptr;
 
 private:
-  vtkSlicerSegmentEditorPaintEffect(const vtkSlicerSegmentEditorPaintEffect&); // Not implemented
-  void operator=(const vtkSlicerSegmentEditorPaintEffect&);               // Not implemented
+  Q_DECLARE_PRIVATE(qSlicerSegmentEditorPaintEffect);
+  Q_DISABLE_COPY(qSlicerSegmentEditorPaintEffect);
 };
 
 #endif

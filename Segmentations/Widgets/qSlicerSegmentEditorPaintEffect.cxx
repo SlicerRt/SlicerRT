@@ -19,7 +19,10 @@
 ==============================================================================*/
 
 // Segmentations includes
-#include "vtkSlicerSegmentEditorPaintEffect.h"
+#include "qSlicerSegmentEditorPaintEffect.h"
+
+// Qt includes
+#include <QDebug.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -43,13 +46,35 @@
 // Slicer includes
 //#include "vtkMRMLSliceLogic.h"
 
-//----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerSegmentEditorPaintEffect);
+//-----------------------------------------------------------------------------
+class qSlicerSegmentEditorPaintEffectPrivate: public QObject
+{
+  Q_DECLARE_PUBLIC(qSlicerSegmentEditorPaintEffect);
+protected:
+  qSlicerSegmentEditorPaintEffect* const q_ptr;
+public:
+  qSlicerSegmentEditorPaintEffectPrivate(qSlicerSegmentEditorPaintEffect& object);
+  ~qSlicerSegmentEditorPaintEffectPrivate();
+
+};
+
+//-----------------------------------------------------------------------------
+qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(qSlicerSegmentEditorPaintEffect& object)
+  : q_ptr(&object)
+{
+}
+
+//-----------------------------------------------------------------------------
+qSlicerSegmentEditorPaintEffectPrivate::~qSlicerSegmentEditorPaintEffectPrivate()
+{
+}
 
 //----------------------------------------------------------------------------
-vtkSlicerSegmentEditorPaintEffect::vtkSlicerSegmentEditorPaintEffect()
+qSlicerSegmentEditorPaintEffect::qSlicerSegmentEditorPaintEffect(QObject* parent)
+ : Superclass(parent)
+ , d_ptr( new qSlicerSegmentEditorPaintEffectPrivate(*this) )
 {
-  this->Brush = vtkPolyData::New();
+  //this->Brush = vtkPolyData::New();
   /*
     self.createGlyph(self.brush)
     self.mapper = vtk.vtkPolyDataMapper2D()
@@ -64,47 +89,29 @@ vtkSlicerSegmentEditorPaintEffect::vtkSlicerSegmentEditorPaintEffect()
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerSegmentEditorPaintEffect::~vtkSlicerSegmentEditorPaintEffect()
+qSlicerSegmentEditorPaintEffect::~qSlicerSegmentEditorPaintEffect()
 {
-  if (this->Brush)
-  {
-    this->Brush->Delete();
-    this->Brush = NULL;
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerSegmentEditorPaintEffect::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os, indent);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerSegmentEditorPaintEffect::SetMRMLSceneInternal(vtkMRMLScene* newScene)
-{
-  vtkNew<vtkIntArray> events;
-  this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
+  //if (this->Brush)
+  //{
+  //  this->Brush->Delete();
+  //  this->Brush = NULL;
+  //}
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerSegmentEditorPaintEffect::RegisterNodes()
+void qSlicerSegmentEditorPaintEffect::activate()
 {
-}
-
-//-----------------------------------------------------------------------------
-void vtkSlicerSegmentEditorPaintEffect::Activate()
-{
-  vtkMRMLScene* scene = this->GetMRMLScene();
-  if (!scene)
-  {
-    vtkErrorMacro("Activate: Invalid MRML scene!");
-    return;
-  }
+  // vtkMRMLScene* scene = this->mrmlScene();
+  // if (!scene)
+  // {
+    // qCritical() << "qSlicerSegmentEditorPaintEffect::activate: Invalid MRML scene!";
+    // return;
+  // }
 
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerSegmentEditorPaintEffect::CreateGlyph(vtkPolyData* polyData)
+void qSlicerSegmentEditorPaintEffect::createGlyph(vtkPolyData* polyData)
 {
   /*
     sliceNode = self.sliceWidget.sliceLogic().GetSliceNode()
@@ -158,12 +165,12 @@ void vtkSlicerSegmentEditorPaintEffect::CreateGlyph(vtkPolyData* polyData)
 }
   
 //-----------------------------------------------------------------------------
-void vtkSlicerSegmentEditorPaintEffect::Apply()
+void qSlicerSegmentEditorPaintEffect::apply()
 {
 }
 
 //---------------------------------------------------------------------------
-//void vtkSlicerSegmentEditorPaintEffect::ProcessEvents(vtkObject* caller,
+//void qSlicerSegmentEditorPaintEffect::ProcessEvents(vtkObject* caller,
 //                                        unsigned long eid,
 //                                        void* clientData,
 //                                        void* vtkNotUsed(callData))

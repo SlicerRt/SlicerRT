@@ -29,7 +29,7 @@
 #include "vtkSegmentation.h"
 #include "vtkSegment.h"
 
-#include "vtkSlicerSegmentEditorPaintEffect.h"
+#include "qSlicerSegmentEditorPaintEffect.h"
 
 // VTK includes
 #include <vtkRenderWindowInteractor.h>
@@ -84,11 +84,10 @@ public:
   std::vector<vtkCallbackCommand*> InteractionCallbackCommands;
   
   /// Effects
-  vtkSlicerSegmentEditorPaintEffect* PaintEffect;
+  qSlicerSegmentEditorPaintEffect* PaintEffect;
   
   /// Active effect
-  //TODO: Create effect base class and use this with that
-  vtkSlicerSegmentEditorPaintEffect* ActiveEffect;
+  qSlicerSegmentEditorAbstractEffect* ActiveEffect;
 
   /// TODO
   QCursor SavedCursor;
@@ -101,7 +100,7 @@ qMRMLSegmentEditorWidgetPrivate::qMRMLSegmentEditorWidgetPrivate(qMRMLSegmentEdi
   , SegmentationNode(NULL)
   , ActiveEffect(NULL)
 {
-  this->PaintEffect = vtkSlicerSegmentEditorPaintEffect::New();
+  this->PaintEffect = new qSlicerSegmentEditorPaintEffect();
   
   this->InteractionCallbackCommands.clear();
 }
@@ -111,7 +110,7 @@ qMRMLSegmentEditorWidgetPrivate::~qMRMLSegmentEditorWidgetPrivate()
 {
   if (this->PaintEffect)
   {
-    this->PaintEffect->Delete();
+    delete this->PaintEffect;
     this->PaintEffect = NULL;
   }
 
@@ -334,6 +333,7 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
   d->InteractionCallbackCommands.clear();
 
   // Set up interactor observations
+  //TODO: Include 3D view too
   qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
   int sliceNodeCount = scene->GetNumberOfNodesByClass("vtkMRMLSliceNode");
   for (int nodeIndex=0; nodeIndex<sliceNodeCount; ++nodeIndex)
@@ -372,7 +372,7 @@ void qMRMLSegmentEditorWidget::activatePaint()
   Q_D(qMRMLSegmentEditorWidget);
 
   d->ActiveEffect = d->PaintEffect;
-  d->PaintEffect->Activate();
+  d->PaintEffect->activate();
 }
 
 //---------------------------------------------------------------------------

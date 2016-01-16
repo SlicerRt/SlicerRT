@@ -21,6 +21,10 @@ set(${KIT}_SRCS
   qMRMLDoubleSpinBoxDelegate.h
   qMRMLSegmentEditorWidget.cxx
   qMRMLSegmentEditorWidget.h
+  qSlicerSegmentEditorAbstractEffect.cxx
+  qSlicerSegmentEditorAbstractEffect.h
+  qSlicerSegmentEditorPaintEffect.cxx
+  qSlicerSegmentEditorPaintEffect.h
   )
 
 set(${KIT}_MOC_SRCS
@@ -30,7 +34,9 @@ set(${KIT}_MOC_SRCS
   qMRMLSegmentSelectorWidget.h
   qMRMLDoubleSpinBoxDelegate.h
   qMRMLSegmentEditorWidget.h
-  )
+  qSlicerSegmentEditorAbstractEffect.h
+  qSlicerSegmentEditorPaintEffect.h
+)
 
 set(${KIT}_UI_SRCS
   Resources/UI/qMRMLSegmentsTableView.ui
