@@ -47,10 +47,16 @@ public:
   virtual ~qSlicerSegmentEditorPaintEffect(); 
 
 public:  
-//TODO: Create abstract functions in base effect class
+  /// Get name of effect
+  virtual QString name();
+
+  /// Get icon for effect to be displayed in segment editor
+  virtual QIcon icon();
+
   /// Activate paint effect
   virtual void activate();
 
+//TODO: Create abstract functions in base effect class
   /// Draw paint circle glyph
   void createGlyph(vtkPolyData* polyData);
   

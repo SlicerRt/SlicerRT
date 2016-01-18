@@ -37,6 +37,9 @@
 #include "vtkSlicerSegmentationsModuleLogic.h"
 #include "vtkMRMLSegmentationsDisplayableManager3D.h"
 #include "vtkMRMLSegmentationsDisplayableManager2D.h"
+// Segment editor effects includes
+#include "qSlicerSegmentEditorEffectHandler.h"
+#include "qSlicerSegmentEditorPaintEffect.h"
 
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -149,6 +152,9 @@ void qSlicerSegmentationsModule::setup()
   // Register displayable managers
   vtkMRMLThreeDViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLSegmentationsDisplayableManager3D");
   vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLSegmentationsDisplayableManager2D");
+
+  // Register default segment editor effects
+  qSlicerSegmentEditorEffectHandler::instance()->registerEffect(new qSlicerSegmentEditorPaintEffect()); 
 }
 
 //-----------------------------------------------------------------------------

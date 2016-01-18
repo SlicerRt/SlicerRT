@@ -32,6 +32,9 @@
 #include <ctkPimpl.h>
 #include <ctkVTKObject.h>
 
+// Qt includes
+#include <QIcon>
+
 class vtkRenderWindowInteractor;
 class vtkMRMLSliceNode;
 
@@ -48,7 +51,13 @@ public:
   virtual ~qSlicerSegmentEditorAbstractEffect(); 
 
 public:  
-  /// Activate paint effect
+  /// Get name of effect
+  virtual QString name() = 0;
+
+  /// Get icon for effect to be displayed in segment editor
+  virtual QIcon icon() { return QIcon(); };
+
+  /// Activate effect
   virtual void activate() = 0;
 
 protected:

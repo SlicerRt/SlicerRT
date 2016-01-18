@@ -29,7 +29,9 @@
 #include "vtkSegmentation.h"
 #include "vtkSegment.h"
 
-#include "qSlicerSegmentEditorPaintEffect.h"
+// Segment editor effects includes
+#include "qSlicerSegmentEditorAbstractEffect.h"
+#include "qSlicerSegmentEditorEffectHandler.h"
 
 // VTK includes
 #include <vtkRenderWindowInteractor.h>
@@ -57,6 +59,7 @@
 
 // Qt includes
 #include <QDebug>
+#include <QPushButton>
 
 //-----------------------------------------------------------------------------
 class qMRMLSegmentEditorWidgetPrivate: public Ui_qMRMLSegmentEditorWidget
@@ -69,6 +72,7 @@ public:
   qMRMLSegmentEditorWidgetPrivate(qMRMLSegmentEditorWidget& object);
   ~qMRMLSegmentEditorWidgetPrivate();
   void init();
+  void createEffects();
 
   void cursorOff();
   void cursorOn();
@@ -82,9 +86,6 @@ public:
   
   /// Commands for each slice view handling interactions
   std::vector<vtkCallbackCommand*> InteractionCallbackCommands;
-  
-  /// Effects
-  qSlicerSegmentEditorPaintEffect* PaintEffect;
   
   /// Active effect
   qSlicerSegmentEditorAbstractEffect* ActiveEffect;
@@ -100,20 +101,12 @@ qMRMLSegmentEditorWidgetPrivate::qMRMLSegmentEditorWidgetPrivate(qMRMLSegmentEdi
   , SegmentationNode(NULL)
   , ActiveEffect(NULL)
 {
-  this->PaintEffect = new qSlicerSegmentEditorPaintEffect();
-  
   this->InteractionCallbackCommands.clear();
 }
 
 //-----------------------------------------------------------------------------
 qMRMLSegmentEditorWidgetPrivate::~qMRMLSegmentEditorWidgetPrivate()
 {
-  if (this->PaintEffect)
-  {
-    delete this->PaintEffect;
-    this->PaintEffect = NULL;
-  }
-
   std::vector<vtkCallbackCommand*>::iterator commandIt;
   for (commandIt = this->InteractionCallbackCommands.begin(); commandIt != this->InteractionCallbackCommands.end(); ++commandIt)
   {
@@ -139,12 +132,12 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   QObject::connect( this->SegmentsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
     q, SLOT(segmentSelectionChanged(QItemSelection,QItemSelection) ) );
   
-  QObject::connect( this->PaintButton, SIGNAL(clicked()),
-    q, SLOT(activatePaint() ) );
-  
   // Widget properties
   this->SegmentsTableView->setMode(qMRMLSegmentsTableView::EditorMode);
   this->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
+
+  // Instantiate and expose effects
+  this->createEffects();
 }
 
 //-----------------------------------------------------------------------------
@@ -161,6 +154,34 @@ void qMRMLSegmentEditorWidgetPrivate::cursorOn()
   //  self.sliceWidget.setCursor(self.savedCursor)
   //else:
   //  self.sliceWidget.unsetCursor()
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::createEffects()
+{
+  Q_Q(qMRMLSegmentEditorWidget);
+
+  // Setup layout
+  QHBoxLayout* effectsGroupLayout = new QHBoxLayout();
+  effectsGroupLayout->setContentsMargins(4,4,4,4);
+  effectsGroupLayout->setSpacing(4);
+  this->EffectsGroupBox->setLayout(effectsGroupLayout);
+
+  // Instantiate effects and create buttons for activating effects
+  QList<qSlicerSegmentEditorAbstractEffect*> effects =
+    qSlicerSegmentEditorEffectHandler::instance()->registeredEffects();
+  foreach (qSlicerSegmentEditorAbstractEffect* currentEffect, effects)
+  {
+    QPushButton* effectButton = new QPushButton(this->EffectsGroupBox);
+    effectButton->setObjectName(currentEffect->name());
+    effectButton->setCheckable(true);
+    effectButton->setAutoExclusive(true);
+    effectButton->setIcon(currentEffect->icon());
+    effectButton->setProperty("Effect", QVariant::fromValue<QObject*>(currentEffect));
+    QObject::connect(effectButton, SIGNAL(clicked()), q, SLOT(activateEffect() ) );
+
+    effectsGroupLayout->addWidget(effectButton);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -366,13 +387,16 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
 }
 
 //-----------------------------------------------------------------------------
-//TODO: Create function with effect base class as argument
-void qMRMLSegmentEditorWidget::activatePaint()
+void qMRMLSegmentEditorWidget::activateEffect()
 {
   Q_D(qMRMLSegmentEditorWidget);
 
-  d->ActiveEffect = d->PaintEffect;
-  d->PaintEffect->activate();
+  QPushButton* selectedEffectButton = dynamic_cast<QPushButton*>(sender());
+  qSlicerSegmentEditorAbstractEffect* selectedEffect = qobject_cast<qSlicerSegmentEditorAbstractEffect*>(
+        selectedEffectButton->property("Effect").value<QObject*>() );
+  d->ActiveEffect = selectedEffect;
+  d->ActiveEffect->activate();
+  //TODO: Activate current, deactivate previous effect. Change active effect label
 }
 
 //---------------------------------------------------------------------------
@@ -393,65 +417,49 @@ void qMRMLSegmentEditorWidget::processInteractionEvents(vtkObject* caller,
 
   if (eid == vtkCommand::LeftButtonPressEvent)
   {
-      //self.actionState = "painting"
-      //if not self.pixelMode:
-      //  self.cursorOff()
-      //xy = self.interactor.GetEventPosition()
-      //if self.smudge:
-      //  EditUtil.setLabel(self.getLabelPixel(xy))
-      //self.paintAddPoint(xy[0], xy[1])
-      //self.abortEvent(event)
+    //self.actionState = "painting"
+    //if not self.pixelMode:
+    //  self.cursorOff()
+    //xy = self.interactor.GetEventPosition()
+    //if self.smudge:
+    //  EditUtil.setLabel(self.getLabelPixel(xy))
+    //self.paintAddPoint(xy[0], xy[1])
+    //self.abortEvent(event)
   }
   else if (eid == vtkCommand::LeftButtonReleaseEvent)
   {
+    //self.paintApply()
+    //self.actionState = None
+    //self.cursorOn()
   }
   else if (eid == vtkCommand::MouseMoveEvent)
   {
+    //self.actor.VisibilityOn()
+    //if self.actionState == "painting":
+    //  xy = self.interactor.GetEventPosition()
+    //  self.paintAddPoint(xy[0], xy[1])
+    //  self.abortEvent(event)
   }
   else if (eid == vtkCommand::EnterEvent)
   {
+    //self.actor.VisibilityOn()
   }
   else if (eid == vtkCommand::LeaveEvent)
   {
+    //self.actor.VisibilityOff()
   }
-  /*
-    if event == "LeftButtonPressEvent":
-      self.actionState = "painting"
-      if not self.pixelMode:
-        self.cursorOff()
-      xy = self.interactor.GetEventPosition()
-      if self.smudge:
-        EditUtil.setLabel(self.getLabelPixel(xy))
-      self.paintAddPoint(xy[0], xy[1])
-      self.abortEvent(event)
-    elif event == "LeftButtonReleaseEvent":
-      self.paintApply()
-      self.actionState = None
-      self.cursorOn()
-    elif event == "MouseMoveEvent":
-      self.actor.VisibilityOn()
-      if self.actionState == "painting":
-        xy = self.interactor.GetEventPosition()
-        self.paintAddPoint(xy[0], xy[1])
-        self.abortEvent(event)
-    elif event == "EnterEvent":
-      self.actor.VisibilityOn()
-    elif event == "LeaveEvent":
-      self.actor.VisibilityOff()
-    elif event == "KeyPressEvent":
-      key = self.interactor.GetKeySym()
-      if key == 'plus' or key == 'equal':
-        self.scaleRadius(1.2)
-      if key == 'minus' or key == 'underscore':
-        self.scaleRadius(0.8)
-    else:
-      pass
+  else if (eid == vtkCommand::KeyPressEvent)
+  {
+    //key = self.interactor.GetKeySym()
+    //if key == 'plus' or key == 'equal':
+    //  self.scaleRadius(1.2)
+    //if key == 'minus' or key == 'underscore':
+    //  self.scaleRadius(0.8)
+  }
 
-    # events from the slice node
-    if caller and caller.IsA('vtkMRMLSliceNode'):
-      if hasattr(self,'brush'):
-        self.createGlyph(self.brush)
+  //if caller and caller.IsA('vtkMRMLSliceNode'):
+  //  if hasattr(self,'brush'):
+  //    self.createGlyph(self.brush)
 
-    self.positionActors()
-  */
+  //self.positionActors()
 }

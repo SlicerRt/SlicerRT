@@ -77,8 +77,8 @@ protected slots:
   /// Handles segment selection changes
   void segmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
-  /// Activate paint effect
-  void activatePaint();
+  /// Activate effect by using its button
+  void activateEffect();
 
 protected:
   /// Create observations between slice view interactor and the widget.

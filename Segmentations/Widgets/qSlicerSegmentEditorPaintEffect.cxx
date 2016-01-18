@@ -55,13 +55,15 @@ protected:
 public:
   qSlicerSegmentEditorPaintEffectPrivate(qSlicerSegmentEditorPaintEffect& object);
   ~qSlicerSegmentEditorPaintEffectPrivate();
-
+public:
+  QIcon EffectIcon;
 };
 
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(qSlicerSegmentEditorPaintEffect& object)
   : q_ptr(&object)
 {
+  this->EffectIcon = QIcon(":Icons/Paint.png");
 }
 
 //-----------------------------------------------------------------------------
@@ -96,6 +98,20 @@ qSlicerSegmentEditorPaintEffect::~qSlicerSegmentEditorPaintEffect()
   //  this->Brush->Delete();
   //  this->Brush = NULL;
   //}
+}
+
+//---------------------------------------------------------------------------
+QString qSlicerSegmentEditorPaintEffect::name()
+{
+  return QString("Paint");
+}
+
+//---------------------------------------------------------------------------
+QIcon qSlicerSegmentEditorPaintEffect::icon()
+{
+  Q_D(qSlicerSegmentEditorPaintEffect);
+
+  return d->EffectIcon;
 }
 
 //-----------------------------------------------------------------------------
