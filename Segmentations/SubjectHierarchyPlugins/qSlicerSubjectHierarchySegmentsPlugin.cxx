@@ -161,6 +161,12 @@ bool qSlicerSubjectHierarchySegmentsPlugin::reparentNodeInsideSubjectHierarchy(v
   // Notify user if failed to reparent
   if (!success)
   {
+    // If a segmentation has no master representation, then it's a problem
+    if (!fromSegmentationNode->GetSegmentation()->GetMasterRepresentationName() || !toSegmentationNode->GetSegmentation()->GetMasterRepresentationName())
+    {
+      qCritical() << "The source or the target segmentation has no master representation! This is an internal error, please report to the developers";
+      return false;
+    }
     // If the two master representations are the same, then probably the segment IDs were duplicate
     if (!strcmp(fromSegmentationNode->GetSegmentation()->GetMasterRepresentationName(), toSegmentationNode->GetSegmentation()->GetMasterRepresentationName()))
     {

@@ -151,6 +151,10 @@ double qSlicerSubjectHierarchySegmentationsPlugin::canOwnSubjectHierarchyNode(vt
   vtkMRMLNode* associatedNode = node->GetAssociatedNode();
   if (associatedNode && associatedNode->IsA("vtkMRMLSegmentationNode"))
     {
+    // Make sure the segmentation subject hierarchy node indicates its virtual branch
+    node->SetAttribute(
+      vtkMRMLSubjectHierarchyConstants::GetVirtualBranchSubjectHierarchyNodeAttributeName().c_str(), "1");
+
     return 0.9;
     }
 
@@ -375,10 +379,6 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded(vtkObject* calle
     // No warning because auto subject hierarchy node creation might not be enabled
     return;
   }
-
-  // Make sure the segmentation subject hierarchy node indicates its virtual branch
-  segmentationSubjectHierarchyNode->SetAttribute(
-    vtkMRMLSubjectHierarchyConstants::GetVirtualBranchSubjectHierarchyNodeAttributeName().c_str(), "1");
 
   // Get segment ID and segment
   char* segmentId = reinterpret_cast<char*>(callData);

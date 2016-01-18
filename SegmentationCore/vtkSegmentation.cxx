@@ -1055,6 +1055,17 @@ bool vtkSegmentation::CopySegmentFromSegmentation(vtkSegmentation* fromSegmentat
     return false;
   }
 
+  // If segmentation has no master representation defined, then set it to be the same as in source
+  if (!fromSegmentation->GetMasterRepresentationName())
+  {
+    vtkErrorMacro("CopySegmentFromSegmentation: Source segmentation has no master representation defined!");
+    return false;
+  }
+  if (!this->MasterRepresentationName)
+  {
+    this->SetMasterRepresentationName(fromSegmentation->GetMasterRepresentationName());
+  }
+
   // If source segmentation contains reference image geometry conversion parameter,
   // but target segmentation does not, then, then copy that parameter from the source segmentation
   // TODO: Do this with all parameters? (so those which have non-default values are replaced)
