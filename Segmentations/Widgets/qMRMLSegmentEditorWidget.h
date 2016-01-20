@@ -39,6 +39,7 @@ class vtkPolyData;
 class vtkObject;
 class qMRMLSegmentEditorWidgetPrivate;
 class QItemSelection;
+class QAbstractButton;
 
 /// \brief Qt widget for editing a segment from a segmentation using Editor effects.
 /// \ingroup SlicerRt_QtModules_Segmentations_Widgets
@@ -77,8 +78,8 @@ protected slots:
   /// Handles segment selection changes
   void segmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
-  /// Activate effect by using its button
-  void activateEffect();
+  /// Activate/deactivate effect on clicking its button
+  void onEffectButtonClicked(QAbstractButton* button);
 
 protected:
   /// Create observations between slice view interactor and the widget.

@@ -60,6 +60,7 @@
 // Qt includes
 #include <QDebug>
 #include <QPushButton>
+#include <QButtonGroup>
 
 //-----------------------------------------------------------------------------
 class qMRMLSegmentEditorWidgetPrivate: public Ui_qMRMLSegmentEditorWidget
@@ -89,6 +90,9 @@ public:
   
   /// Active effect
   qSlicerSegmentEditorAbstractEffect* ActiveEffect;
+
+  /// Button group for the effects
+  QButtonGroup EffectButtonGroup;
 
   /// TODO
   QCursor SavedCursor;
@@ -136,6 +140,9 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   this->SegmentsTableView->setMode(qMRMLSegmentsTableView::EditorMode);
   this->MRMLNodeComboBox_ReferenceVolume->setEnabled(false);
 
+  this->EffectButtonGroup.setExclusive(true);
+  QObject::connect(&this->EffectButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)), q, SLOT(onEffectButtonClicked(QAbstractButton*) ) );
+
   // Instantiate and expose effects
   this->createEffects();
 }
@@ -161,6 +168,14 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
 {
   Q_Q(qMRMLSegmentEditorWidget);
 
+  // Clear possible previous buttons
+  QList<QAbstractButton*> effectButtons = this->EffectButtonGroup.buttons();
+  foreach (QAbstractButton* button, effectButtons)
+  {
+    this->EffectButtonGroup.removeButton(button);
+    button->deleteLater();
+  }
+
   // Setup layout
   QHBoxLayout* effectsGroupLayout = new QHBoxLayout();
   effectsGroupLayout->setContentsMargins(4,4,4,4);
@@ -175,11 +190,10 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
     QPushButton* effectButton = new QPushButton(this->EffectsGroupBox);
     effectButton->setObjectName(currentEffect->name());
     effectButton->setCheckable(true);
-    effectButton->setAutoExclusive(true);
     effectButton->setIcon(currentEffect->icon());
     effectButton->setProperty("Effect", QVariant::fromValue<QObject*>(currentEffect));
-    QObject::connect(effectButton, SIGNAL(clicked()), q, SLOT(activateEffect() ) );
 
+    this->EffectButtonGroup.addButton(effectButton);
     effectsGroupLayout->addWidget(effectButton);
   }
 }
@@ -387,15 +401,27 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
 }
 
 //-----------------------------------------------------------------------------
-void qMRMLSegmentEditorWidget::activateEffect()
+void qMRMLSegmentEditorWidget::onEffectButtonClicked(QAbstractButton* button)
 {
   Q_D(qMRMLSegmentEditorWidget);
 
-  QPushButton* selectedEffectButton = dynamic_cast<QPushButton*>(sender());
   qSlicerSegmentEditorAbstractEffect* selectedEffect = qobject_cast<qSlicerSegmentEditorAbstractEffect*>(
-        selectedEffectButton->property("Effect").value<QObject*>() );
+    button->property("Effect").value<QObject*>() );
 
-  if (selectedEffectButton->isChecked())
+  // If the selected effect was clicked again, then de-select
+  if (d->ActiveEffect == selectedEffect)
+  {
+    d->EffectButtonGroup.setExclusive(false);
+    button->blockSignals(true);
+
+    button->setChecked(false);
+    d->ActiveEffect = NULL;
+    d->ActiveEffectLabel->setText("None");
+
+    button->blockSignals(false);
+    d->EffectButtonGroup.setExclusive(true);
+  }
+  else
   {
     // Deactivate previously selected effect
     //d->ActiveEffect->deactivate(); //TODO: needed?
