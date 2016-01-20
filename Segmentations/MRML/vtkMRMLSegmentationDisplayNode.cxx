@@ -92,8 +92,8 @@ void vtkMRMLSegmentationDisplayNode::ReadXMLAttributes(const char** atts)
   Superclass::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName;
-  const char* attValue;
+  const char* attName = NULL;
+  const char* attValue = NULL;
 
   while (*atts != NULL) 
   {

@@ -137,27 +137,35 @@ public:
   vtkSetMacro(ShowVMetricsPercent, bool);
   vtkBooleanMacro(ShowVMetricsPercent, bool);
 
-  /// Get/Set input volume cc values for D metrics
+  /// Get input volume cc values for D metrics
   vtkGetStringMacro(DVolumeValuesCc);
+  /// Set input volume cc values for D metrics
   vtkSetStringMacro(DVolumeValuesCc);
 
-  /// Get/Set input volume % values for D metrics
+  /// Get input volume % values for D metrics
   vtkGetStringMacro(DVolumeValuesPercent);
+  /// Set input volume % values for D metrics
   vtkSetStringMacro(DVolumeValuesPercent);
 
-  /// Get/Set show Gy for D metrics checkbox state
+  /// Get show Gy for D metrics checkbox state
   vtkGetMacro(ShowDMetrics, bool);
+  /// Set show Gy for D metrics checkbox state
   vtkSetMacro(ShowDMetrics, bool);
+  /// Set show Gy for D metrics checkbox state
   vtkBooleanMacro(ShowDMetrics, bool);
 
-  /// Get/Set show dose volumes only checkbox state
+  /// Get show dose volumes only checkbox state
   vtkGetMacro(ShowDoseVolumesOnly, bool);
+  /// Set show dose volumes only checkbox state
   vtkSetMacro(ShowDoseVolumesOnly, bool);
+  /// Set show dose volumes only checkbox state
   vtkBooleanMacro(ShowDoseVolumesOnly, bool);
 
-  /// Get/Set automatic oversampling flag
+  /// Get automatic oversampling flag
   vtkGetMacro(AutomaticOversampling, bool);
+  /// Set automatic oversampling flag
   vtkSetMacro(AutomaticOversampling, bool);
+  /// Set automatic oversampling flag
   vtkBooleanMacro(AutomaticOversampling, bool);
 
 protected:

@@ -81,8 +81,8 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
   vtkMRMLNode::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName;
-  const char* attValue;
+  const char* attName = NULL;
+  const char* attValue = NULL;
 
   while (*atts != NULL) 
     {
@@ -91,7 +91,7 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "RTPlanName")) 
       {
-      strcpy(this->RTPlanName, attValue);
+      this->SetRTPlanName(attValue);
       }
     }
 }

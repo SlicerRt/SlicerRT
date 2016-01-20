@@ -24,6 +24,11 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include "vtkMRMLSegmentationDisplayNode.h"
 #include "vtkMRMLSegmentationStorageNode.h"
 
+// SegmentationCore includes
+#include "vtkOrientedImageData.h"
+#include "vtkOrientedImageDataResample.h"
+#include "vtkCalculateOversamplingFactor.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLTransformNode.h>
@@ -46,14 +51,6 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkHomogeneousTransform.h>
 #include <vtkTransform.h>
 #include <vtkLookupTable.h>
-
-// STD includes
-#include <algorithm>
-
-// SegmentationCore includes
-#include "vtkOrientedImageData.h"
-#include "vtkOrientedImageDataResample.h"
-#include "vtkCalculateOversamplingFactor.h"
 
 // STD includes
 #include <algorithm>
@@ -151,11 +148,9 @@ void vtkMRMLSegmentationNode::ReadXMLAttributes(const char** atts)
 }
 
 //----------------------------------------------------------------------------
-// Copy the node's attributes to this object.
-// Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLSegmentationNode::Copy(vtkMRMLNode *anode)
 {
-  //this->DisableModifiedEventOn();
+  this->DisableModifiedEventOn();
 
   vtkMRMLSegmentationNode* otherNode = vtkMRMLSegmentationNode::SafeDownCast(anode);
 
@@ -170,14 +165,14 @@ void vtkMRMLSegmentationNode::Copy(vtkMRMLNode *anode)
 
   Superclass::Copy(anode);
 
-  //this->DisableModifiedEventOff();
-  //this->InvokePendingModifiedEvent(); // This call loses event parameters (i.e. callData)
+  this->DisableModifiedEventOff();
+  this->InvokePendingModifiedEvent(); // This call loses event parameters (i.e. callData)
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::DeepCopy(vtkMRMLNode* aNode)
 {
-  //this->DisableModifiedEventOn();
+  this->DisableModifiedEventOn();
 
   vtkMRMLSegmentationNode *otherNode = vtkMRMLSegmentationNode::SafeDownCast(aNode);
 
@@ -192,8 +187,8 @@ void vtkMRMLSegmentationNode::DeepCopy(vtkMRMLNode* aNode)
 
   Superclass::Copy(aNode);
 
-  //this->DisableModifiedEventOff();
-  //this->InvokePendingModifiedEvent(); // This call loses event parameters (i.e. callData)
+  this->DisableModifiedEventOff();
+  this->InvokePendingModifiedEvent(); // This call loses event parameters (i.e. callData)
 }
 
 //----------------------------------------------------------------------------
@@ -201,26 +196,6 @@ void vtkMRMLSegmentationNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
   this->Segmentation->PrintSelf(os, indent);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLSegmentationNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData)
-{
-  Superclass::ProcessMRMLEvents(caller, eventID, callData);
-
-  if (!this->Scene)
-  {
-    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene!");
-    return;
-  }
-  if (this->Scene->IsBatchProcessing())
-  {
-    return;
-  }
-
-  //if (eventID == vtkCommand::ModifiedEvent)
-  //{
-  //}
 }
 
 //----------------------------------------------------------------------------
@@ -516,18 +491,6 @@ void vtkMRMLSegmentationNode::OnSubjectHierarchyUIDAdded(vtkMRMLSubjectHierarchy
       warningLogged = true;
     }
   }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLSegmentationNode::OnNodeReferenceAdded(vtkMRMLNodeReference *reference)
-{
-  Superclass::OnNodeReferenceAdded(reference);
-}
-
-//---------------------------------------------------------------------------
-void vtkMRMLSegmentationNode::OnNodeReferenceModified(vtkMRMLNodeReference *reference)
-{
-  Superclass::OnNodeReferenceModified(reference);
 }
 
 //---------------------------------------------------------------------------

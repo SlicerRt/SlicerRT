@@ -120,8 +120,8 @@ void vtkSegmentation::WriteXML(ostream& of, int nIndent)
 //----------------------------------------------------------------------------
 void vtkSegmentation::ReadXMLAttributes(const char** atts)
 {
-  const char* attName;
-  const char* attValue;
+  const char* attName = NULL;
+  const char* attValue = NULL;
   while (*atts != NULL)
   {
     attName = *(atts++);

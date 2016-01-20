@@ -97,8 +97,8 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
   vtkMRMLNode::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName;
-  const char* attValue;
+  const char* attName = NULL;
+  const char* attValue = NULL;
 
   while (*atts != NULL) 
     {

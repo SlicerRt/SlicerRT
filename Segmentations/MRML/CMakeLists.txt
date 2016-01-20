@@ -21,6 +21,8 @@ set(${KIT}_SRCS
   vtkMRMLSegmentationDisplayNode.h
   vtkMRMLSegmentationStorageNode.cxx
   vtkMRMLSegmentationStorageNode.h
+  vtkMRMLSegmentEditorEffectNode.cxx
+  vtkMRMLSegmentEditorEffectNode.h
   )
 
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSegmentationCore_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)

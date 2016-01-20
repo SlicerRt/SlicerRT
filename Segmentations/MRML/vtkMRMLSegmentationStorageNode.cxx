@@ -95,8 +95,8 @@ void vtkMRMLSegmentationStorageNode::ReadXMLAttributes(const char** atts)
 
   Superclass::ReadXMLAttributes(atts);
 
-  const char* attName;
-  const char* attValue;
+  const char* attName = NULL;
+  const char* attValue = NULL;
   while (*atts != NULL)
   {
     attName = *(atts++);

@@ -70,11 +70,6 @@ public:
   /// Get bounding box in global RAS in the form (xmin,xmax, ymin,ymax, zmin,zmax).
   virtual void GetRASBounds(double bounds[6]);
 
-  /// Handles events registered in the observer manager
-  /// - Invalidates (deletes) all non-active representations when the active is modified
-  /// - Follows parent transform changes
-  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
-
   /// Returns true if the transformable node can apply non linear transforms
   /// \sa ApplyTransform
   virtual bool CanApplyNonLinearTransforms()const;
@@ -160,12 +155,6 @@ protected:
 protected:
   /// Set segmentation object
   vtkSetObjectMacro(Segmentation, vtkSegmentation);
-
-  /// Called when a node reference ID is added (list size increased).
-  virtual void OnNodeReferenceAdded(vtkMRMLNodeReference *reference);
-
-  /// Called when a node reference ID is modified.
-  virtual void OnNodeReferenceModified(vtkMRMLNodeReference *reference);
 
   /// Callback function observing the master representation of the segmentation (and each segment within)
   /// Invalidates all representations other than the master. These representations will be automatically converted later on demand.

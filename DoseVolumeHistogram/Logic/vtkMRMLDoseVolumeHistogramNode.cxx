@@ -151,8 +151,8 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
   vtkMRMLNode::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName;
-  const char* attValue;
+  const char* attName = NULL;
+  const char* attValue = NULL;
 
   while (*atts != NULL) 
     {
@@ -303,12 +303,12 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
     os << "\n";
   }
 
-  os << indent << "VDoseValues:   " << this->VDoseValues << "\n";
+  os << indent << "VDoseValues:   " << (this->VDoseValues ? this->VDoseValues : "") << "\n";
   os << indent << "ShowVMetricsCc:   " << (this->ShowVMetricsCc ? "true" : "false") << "\n";
   os << indent << "ShowVMetricsPercent:   " << (this->ShowVMetricsPercent ? "true" : "false") << "\n";
 
-  os << indent << "DVolumeValuesCc:   " << this->DVolumeValuesCc << "\n";
-  os << indent << "DVolumeValuesPercent:   " << this->DVolumeValuesPercent << "\n";
+  os << indent << "DVolumeValuesCc:   " << (this->DVolumeValuesCc ? this->DVolumeValuesCc : "") << "\n";
+  os << indent << "DVolumeValuesPercent:   " << (this->DVolumeValuesPercent ? this->DVolumeValuesPercent : "") << "\n";
   os << indent << "ShowDMetrics:   " << (this->ShowDMetrics ? "true" : "false") << "\n";
   os << indent << "ShowDoseVolumesOnly:   " << (this->ShowDoseVolumesOnly ? "true" : "false") << "\n";
   os << indent << "AutomaticOversampling:   " << (this->AutomaticOversampling ? "true" : "false") << "\n";
