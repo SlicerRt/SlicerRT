@@ -394,9 +394,22 @@ void qMRMLSegmentEditorWidget::activateEffect()
   QPushButton* selectedEffectButton = dynamic_cast<QPushButton*>(sender());
   qSlicerSegmentEditorAbstractEffect* selectedEffect = qobject_cast<qSlicerSegmentEditorAbstractEffect*>(
         selectedEffectButton->property("Effect").value<QObject*>() );
-  d->ActiveEffect = selectedEffect;
-  d->ActiveEffect->activate();
-  //TODO: Activate current, deactivate previous effect. Change active effect label
+
+  if (selectedEffectButton->isChecked())
+  {
+    // Deactivate previously selected effect
+    //d->ActiveEffect->deactivate(); //TODO: needed?
+
+    // Set selected effect as current and activate it
+    d->ActiveEffect = selectedEffect;
+    //d->ActiveEffect->activate(); //TODO: needed?
+    //TODO: Setup parameter node: set current effect name, allow effect to populate parameter set node with (default) parameters
+    d->ActiveEffectLabel->setText(d->ActiveEffect->name());
+
+    // Create effect options widget
+    //TODO:
+    //d->EffectOptionsFrame
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -414,6 +427,8 @@ void qMRMLSegmentEditorWidget::processInteractionEvents(vtkObject* caller,
 
   qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
   qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceNode->GetLayoutName());
+
+
 
   if (eid == vtkCommand::LeftButtonPressEvent)
   {
