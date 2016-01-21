@@ -189,10 +189,12 @@ void qSlicerSegmentEditorPaintEffect::apply()
 void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   vtkRenderWindowInteractor* callerInteractor,
   unsigned long eid,
-  qMRMLSliceWidget* sliceWidget/*, //TODO 3D view*/)
+  qMRMLSliceWidget* sliceWidget,
+  qMRMLThreeDWidget* threeDWidget )
 {
   if (eid == vtkCommand::LeftButtonPressEvent)
   {
+    int i=0; ++i;
     //self.actionState = "painting"
     //if not self.pixelMode:
     //  self.cursorOff()

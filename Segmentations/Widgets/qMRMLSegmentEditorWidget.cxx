@@ -49,7 +49,8 @@
 #include "qSlicerLayoutManager.h"
 #include "qMRMLSliceWidget.h"
 #include "qMRMLSliceView.h"
-#include "vtkMRMLSliceLogic.h"
+#include "qMRMLThreeDWidget.h"
+#include "qMRMLThreeDView.h"
 
 // MRML includes
 #include <vtkMRMLLabelMapVolumeNode.h>
@@ -343,26 +344,40 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
   d->InteractionCallbackCommands.clear();
 
   // Set up interactor observations
-  //TODO: Include 3D view too
   qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
-  int sliceNodeCount = scene->GetNumberOfNodesByClass("vtkMRMLSliceNode");
-  for (int nodeIndex=0; nodeIndex<sliceNodeCount; ++nodeIndex)
-  {
-    vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(
-      scene->GetNthNodeByClass(nodeIndex, "vtkMRMLSliceNode") );
-    qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceNode->GetLayoutName());
 
-//    vtkMRMLSliceLogic* sliceLogic = sliceWidget->sliceLogic();
+  // Slice views
+  foreach (QString sliceViewName, layoutManager->sliceViewNames())
+  {
+    qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceViewName);
     qMRMLSliceView* sliceView = sliceWidget->sliceView();
-    
     vtkRenderWindowInteractor* interactor = sliceView->interactorStyle()->GetInteractor();
-//    vtkRenderWindow* renderWindow = sliceView->renderWindow();
-//    vtkRenderer* renderer = vtkRenderer::SafeDownCast(
-//      renderWindow->GetRenderers()->GetItemAsObject(0) );
 
     // Create command for slice view
     vtkCallbackCommand* interactionCallbackCommand = vtkCallbackCommand::New();
     interactionCallbackCommand->SetClientData( reinterpret_cast<void*>(sliceWidget) );
+    interactionCallbackCommand->SetCallback( qMRMLSegmentEditorWidget::processInteractionEvents );
+
+    // Connect events
+    unsigned long leftButtonPressTag = interactor->AddObserver(vtkCommand::LeftButtonPressEvent, interactionCallbackCommand, 1.0);
+    unsigned long leftButtonReleaseTag = interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, interactionCallbackCommand, 1.0);
+    unsigned long mouseMoveReleaseTag = interactor->AddObserver(vtkCommand::MouseMoveEvent, interactionCallbackCommand, 1.0);
+    unsigned long enterTag = interactor->AddObserver(vtkCommand::EnterEvent, interactionCallbackCommand, 1.0);
+    unsigned long leaveTag = interactor->AddObserver(vtkCommand::LeaveEvent, interactionCallbackCommand, 1.0);
+    
+    d->InteractionCallbackCommands.push_back(interactionCallbackCommand);
+  }
+
+  // 3D views
+  for (int threeDViewId=0; threeDViewId<layoutManager->threeDViewCount(); ++threeDViewId)
+  {
+    qMRMLThreeDWidget* threeDWidget = layoutManager->threeDWidget(threeDViewId);
+    qMRMLThreeDView* threeDView = threeDWidget->threeDView();
+    vtkRenderWindowInteractor* interactor = threeDView->interactor();
+
+    // Create command for slice view
+    vtkCallbackCommand* interactionCallbackCommand = vtkCallbackCommand::New();
+    interactionCallbackCommand->SetClientData( reinterpret_cast<void*>(threeDWidget) );
     interactionCallbackCommand->SetCallback( qMRMLSegmentEditorWidget::processInteractionEvents );
 
     // Connect events
@@ -429,14 +444,16 @@ void qMRMLSegmentEditorWidget::processInteractionEvents(vtkObject* caller,
   {
     return;
   }
-  // Get slice widget and interactor for slice view where the event happened
-  qMRMLSliceWidget* sliceWidget = reinterpret_cast<qMRMLSliceWidget*>(clientData);
+  // Get view widget and interactor for the view where the event happened
+  qMRMLWidget* viewWidget = reinterpret_cast<qMRMLWidget*>(clientData);
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
   vtkRenderWindowInteractor* callerInteractor = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
-  if (!sliceWidget || !callerInteractor)
+  if ((!sliceWidget && !threeDWidget) || !callerInteractor)
   {
     return;
   }
 
   // Call processing function of active effect if any
-  activeEffect->processInteractionEvents(callerInteractor, eid, sliceWidget);
+  activeEffect->processInteractionEvents(callerInteractor, eid, sliceWidget, threeDWidget);
 }

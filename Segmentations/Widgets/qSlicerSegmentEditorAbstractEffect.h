@@ -40,6 +40,7 @@ class qSlicerSegmentEditorAbstractEffectPrivate;
 class vtkRenderWindowInteractor;
 class vtkMRMLSegmentEditorEffectNode;
 class qMRMLSliceWidget;
+class qMRMLThreeDWidget;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorAbstractEffect : public QObject
@@ -66,8 +67,7 @@ public:
   virtual void activate() = 0;
 
   /// Callback function invoked when interaction happens
-  //TODO: Support events form 3D view with extra parameter
-  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLSliceWidget* sliceWidget/*, 3D view*/) { };
+  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLSliceWidget* sliceWidget, qMRMLThreeDWidget* threeDWidget) { };
 
 // Effect parameter functions
 public:

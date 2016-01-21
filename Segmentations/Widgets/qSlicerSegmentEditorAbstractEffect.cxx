@@ -30,6 +30,7 @@
 
 // Slicer includes
 #include "qMRMLSliceWidget.h"
+#include "qMRMLThreeDWidget.h"
 
 // MRML includes
 #include "vtkMRMLScene.h"
