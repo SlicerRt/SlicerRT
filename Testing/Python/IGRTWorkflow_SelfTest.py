@@ -551,7 +551,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       day2DoseSH = slicer.util.getNode(self.day2DoseName + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
       day2DoseCloneSH = cloneNodePlugin.cloneSubjectHierarchyNode(day2DoseSH, self.day2DoseRigidName)
       transformDay2ToDay1Rigid = slicer.util.getNode(self.transformDay2ToDay1RigidName)
-      day2DoseCloneSH.TransformBranch(transformDay2ToDay1Rigid)
+      slicer.vtkSlicerSubjectHierarchyModuleLogic.TransformBranch(day2DoseCloneSH, transformDay2ToDay1Rigid)
 
       self.assertEqual( day2DoseCloneSH.GetAssociatedNode().GetParentTransformNode(), transformDay2ToDay1Rigid )
       self.assertIsNotNone( day2DoseCloneSH.GetAssociatedNode().GetDisplayNode() )
@@ -562,7 +562,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
         # day2DoseCloneBSplineSH = cloneNodePlugin.cloneSubjectHierarchyNode(day2DoseSH, self.day2DoseRigidName)
         # transformDay2ToDay1BSpline = slicer.util.getNode(self.transformDay2ToDay1BSplineName)
-        # day2DoseCloneBSplineSH.TransformBranch(transformDay2ToDay1BSpline)
+        # slicer.vtkSlicerSubjectHierarchyModuleLogic.TransformBranch(day2DoseCloneBSplineSH, transformDay2ToDay1BSpline)
 
         # self.assertEqual( day2DoseCloneBSplineSH.GetAssociatedNode().GetParentTransformNode(), transformDay2ToDay1BSpline )
         # self.assertIsNotNone( day2DoseCloneBSplineSH.GetAssociatedNode().GetDisplayNode() )
