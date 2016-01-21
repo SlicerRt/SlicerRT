@@ -31,6 +31,7 @@
 #include <QList>
 #include <QString>
 
+class vtkMRMLScene;
 class qSlicerSegmentEditorAbstractEffect;
 class qSlicerSegmentEditorEffectHandlerCleanup;
 
@@ -43,6 +44,9 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorEffectHan
   Q_OBJECT
 
 public:
+  Q_PROPERTY(qSlicerSegmentEditorAbstractEffect* activeEffect READ activeEffect WRITE setActiveEffect)
+
+public:
   /// Instance getter for the singleton class
   /// \return Instance object
   Q_INVOKABLE static qSlicerSegmentEditorEffectHandler* instance();
@@ -51,10 +55,10 @@ public:
   static void setInstance(qSlicerSegmentEditorEffectHandler* instance);
 
   /// Set MRML scene
-  //void setScene(vtkMRMLScene* scene);
+  void setScene(vtkMRMLScene* scene);
 
   /// Get MRML scene
-  //vtkMRMLScene* scene();
+  vtkMRMLScene* scene();
 
 public:
   /// Register a effect
@@ -68,12 +72,22 @@ public:
   /// \return The effect instance if exists, NULL otherwise
   Q_INVOKABLE qSlicerSegmentEditorAbstractEffect* effectByName(QString name);
 
+  /// Return active effect if selected, NULL otherwise
+  /// \sa m_ActiveEffect, setActiveEffect()
+  qSlicerSegmentEditorAbstractEffect* activeEffect()const;
+  /// Set active effect
+  /// \sa m_ActiveEffect, activeEffect()
+  void setActiveEffect(qSlicerSegmentEditorAbstractEffect* effect);
+
 protected:
   /// List of registered effect instances
   QList<qSlicerSegmentEditorAbstractEffect*> m_RegisteredEffects;
 
+  /// Active effect
+  qSlicerSegmentEditorAbstractEffect* m_ActiveEffect;
+
   /// MRML scene
-  //vtkMRMLScene* m_Scene;
+  vtkMRMLScene* m_Scene;
 
 public:
   /// Private constructor made public to enable python wrapping

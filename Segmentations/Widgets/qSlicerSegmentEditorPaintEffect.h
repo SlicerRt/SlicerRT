@@ -63,9 +63,9 @@ public:
   /// Apply paint operation
   void apply();
 
-protected:
   /// Callback function invoked when interaction happens
-//  static void ProcessEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
+  //TODO: Support events form 3D view with extra parameter
+  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLSliceWidget* sliceWidget/*, 3D view*/);
 
 protected:
   QScopedPointer<qSlicerSegmentEditorPaintEffectPrivate> d_ptr;

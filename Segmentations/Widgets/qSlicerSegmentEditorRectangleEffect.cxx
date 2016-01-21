@@ -22,7 +22,7 @@
 #include "qSlicerSegmentEditorRectangleEffect.h"
 
 // Qt includes
-#include <QDebug.h>
+#include <QDebug>
 
 // VTK includes
 #include <vtkNew.h>

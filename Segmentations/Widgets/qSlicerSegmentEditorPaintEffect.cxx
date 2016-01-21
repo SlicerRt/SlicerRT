@@ -22,7 +22,7 @@
 #include "qSlicerSegmentEditorPaintEffect.h"
 
 // Qt includes
-#include <QDebug.h>
+#include <QDebug>
 
 // VTK includes
 #include <vtkNew.h>
@@ -41,10 +41,7 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkEventBroker.h>
-//#include <vtkMRMLSliceNode.h>
-
-// Slicer includes
-//#include "vtkMRMLSliceLogic.h"
+#include <vtkMRMLSliceNode.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerSegmentEditorPaintEffectPrivate: public QObject
@@ -57,11 +54,14 @@ public:
   ~qSlicerSegmentEditorPaintEffectPrivate();
 public:
   QIcon EffectIcon;
+  bool PixelMode;
+  bool DelayedPaint;
 };
 
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(qSlicerSegmentEditorPaintEffect& object)
   : q_ptr(&object)
+  , DelayedPaint(true)
 {
   this->EffectIcon = QIcon(":Icons/Paint.png");
 }
@@ -186,9 +186,56 @@ void qSlicerSegmentEditorPaintEffect::apply()
 }
 
 //---------------------------------------------------------------------------
-//void qSlicerSegmentEditorPaintEffect::ProcessEvents(vtkObject* caller,
-//                                        unsigned long eid,
-//                                        void* clientData,
-//                                        void* vtkNotUsed(callData))
-//{
-//}
+void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
+  vtkRenderWindowInteractor* callerInteractor,
+  unsigned long eid,
+  qMRMLSliceWidget* sliceWidget/*, //TODO 3D view*/)
+{
+  if (eid == vtkCommand::LeftButtonPressEvent)
+  {
+    //self.actionState = "painting"
+    //if not self.pixelMode:
+    //  self.cursorOff()
+    //xy = self.interactor.GetEventPosition()
+    //if self.smudge:
+    //  EditUtil.setLabel(self.getLabelPixel(xy))
+    //self.paintAddPoint(xy[0], xy[1])
+    //self.abortEvent(event)
+  }
+  else if (eid == vtkCommand::LeftButtonReleaseEvent)
+  {
+    //self.paintApply()
+    //self.actionState = None
+    //self.cursorOn()
+  }
+  else if (eid == vtkCommand::MouseMoveEvent)
+  {
+    //self.actor.VisibilityOn()
+    //if self.actionState == "painting":
+    //  xy = self.interactor.GetEventPosition()
+    //  self.paintAddPoint(xy[0], xy[1])
+    //  self.abortEvent(event)
+  }
+  else if (eid == vtkCommand::EnterEvent)
+  {
+    //self.actor.VisibilityOn()
+  }
+  else if (eid == vtkCommand::LeaveEvent)
+  {
+    //self.actor.VisibilityOff()
+  }
+  else if (eid == vtkCommand::KeyPressEvent)
+  {
+    //key = self.interactor.GetKeySym()
+    //if key == 'plus' or key == 'equal':
+    //  self.scaleRadius(1.2)
+    //if key == 'minus' or key == 'underscore':
+    //  self.scaleRadius(0.8)
+  }
+
+  //if caller and caller.IsA('vtkMRMLSliceNode'):
+  //  if hasattr(self,'brush'):
+  //    self.createGlyph(self.brush)
+
+  //self.positionActors()
+}

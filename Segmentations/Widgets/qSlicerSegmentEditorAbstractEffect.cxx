@@ -21,16 +21,144 @@
 // Segmentations includes
 #include "qSlicerSegmentEditorAbstractEffect.h"
 
+#include "qSlicerSegmentEditorEffectHandler.h"
+#include "vtkMRMLSegmentEditorEffectNode.h"
+
 // Qt includes
-#include <QDebug.h>
+#include <QDebug>
+#include <QCursor>
+
+// Slicer includes
+#include "qMRMLSliceWidget.h"
+
+// MRML includes
+#include "vtkMRMLScene.h"
+
+//-----------------------------------------------------------------------------
+class qSlicerSegmentEditorAbstractEffectPrivate: public QObject
+{
+  Q_DECLARE_PUBLIC(qSlicerSegmentEditorAbstractEffect);
+protected:
+  qSlicerSegmentEditorAbstractEffect* const q_ptr;
+public:
+  qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object);
+  ~qSlicerSegmentEditorAbstractEffectPrivate();
+public:
+  QCursor* SavedCursor;
+  QString ParameterSetNodeID;
+};
+
+//-----------------------------------------------------------------------------
+qSlicerSegmentEditorAbstractEffectPrivate::qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object)
+  : q_ptr(&object)
+  , SavedCursor(NULL)
+{
+}
+
+//-----------------------------------------------------------------------------
+qSlicerSegmentEditorAbstractEffectPrivate::~qSlicerSegmentEditorAbstractEffectPrivate()
+{
+}
 
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffect::qSlicerSegmentEditorAbstractEffect(QObject* parent)
  : Superclass(parent)
+ , d_ptr( new qSlicerSegmentEditorAbstractEffectPrivate(*this) )
 {
 }
 
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffect::~qSlicerSegmentEditorAbstractEffect()
 {
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::cursorOff(qMRMLSliceWidget* sliceWidget)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  d->SavedCursor = &(sliceWidget->cursor());
+  sliceWidget->setCursor(QCursor(Qt::BlankCursor));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::cursorOn(qMRMLSliceWidget* sliceWidget)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  if (d->SavedCursor)
+  {
+    sliceWidget->setCursor(*(d->SavedCursor));
+  }
+  else
+  {
+    sliceWidget->unsetCursor();
+  }
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSetNode()
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  vtkMRMLScene* scene = qSlicerSegmentEditorEffectHandler::instance()->scene();
+  if (!scene)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::parameterSetNode: Invalid MRML scene!";
+    return NULL;
+  }
+
+  // Create if does not yet exist
+  if (d->ParameterSetNodeID.isEmpty())
+  {
+    vtkMRMLSegmentEditorEffectNode* node = vtkMRMLSegmentEditorEffectNode::New();
+    QString nodeName = QString("%1_ParameterSet").arg(this->name());
+    node->SetName(nodeName.toLatin1().constData());
+    node->HideFromEditorsOn();
+    scene->AddNode(node);
+    node->Delete(); // Pass ownership to MRML scene only
+    return node;
+  }
+
+  // Find and return if already exists
+  vtkMRMLSegmentEditorEffectNode* node = vtkMRMLSegmentEditorEffectNode::SafeDownCast(
+    scene->GetNodeByID(d->ParameterSetNodeID.toLatin1().constData()) );
+  if (!node)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::parameterSetNode: Unable to find node in scene with ID " << d->ParameterSetNodeID;
+  }
+  return node;
+}
+
+//-----------------------------------------------------------------------------
+QString qSlicerSegmentEditorAbstractEffect::parameter(QString name)
+{
+  vtkMRMLSegmentEditorEffectNode* node = this->parameterSetNode();
+  if (!node)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::parameter: Unable to find effect parameter node for effect " << this->name();
+    return QString();
+  }
+
+  const char* value = node->GetAttribute(name.toLatin1().constData());
+  if (!value)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::parameter: Parameter named " << name << " cannot be found for effect " << this->name();
+    return QString();
+  }
+
+  return QString(value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString value)
+{
+  vtkMRMLSegmentEditorEffectNode* node = this->parameterSetNode();
+  if (!node)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::parameter: Unable to find effect parameter node for effect " << this->name();
+    return;
+  }
+
+  node->SetAttribute(name.toLatin1().constData(), value.toLatin1().constData());
 }

@@ -28,6 +28,9 @@
 #include <QDebug>
 #include <QStringList>
 
+// MRML includes
+#include "vtkMRMLScene.h"
+
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorEffectHandler *qSlicerSegmentEditorEffectHandler::m_Instance = NULL;
 
@@ -86,6 +89,7 @@ void qSlicerSegmentEditorEffectHandler::setInstance(qSlicerSegmentEditorEffectHa
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorEffectHandler::qSlicerSegmentEditorEffectHandler(QObject* parent)
   : QObject(parent)
+  , m_ActiveEffect(NULL)
 {
   this->m_RegisteredEffects.clear();
 }
@@ -99,6 +103,20 @@ qSlicerSegmentEditorEffectHandler::~qSlicerSegmentEditorEffectHandler()
     delete (*pluginIt);
     }
   this->m_RegisteredEffects.clear();
+
+  this->m_ActiveEffect = NULL;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorEffectHandler::setScene(vtkMRMLScene* scene)
+{
+  m_Scene = scene;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLScene* qSlicerSegmentEditorEffectHandler::scene()
+{
+  return m_Scene;
 }
 
 //---------------------------------------------------------------------------
@@ -154,16 +172,15 @@ qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorEffectHandler::effectByN
   qWarning() << "qSlicerSegmentEditorEffectHandler::effectByName: Effect named '" << name << "' cannot be found!";
   return NULL;
 }
-/*
+
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorEffectHandler::setScene(vtkMRMLScene* scene)
+qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorEffectHandler::activeEffect()const
 {
-  m_Scene = scene;
+  return m_ActiveEffect;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLScene* qSlicerSegmentEditorEffectHandler::scene()
+void qSlicerSegmentEditorEffectHandler::setActiveEffect(qSlicerSegmentEditorAbstractEffect* effect)
 {
-  return m_Scene;
+  m_ActiveEffect = effect;
 }
-*/

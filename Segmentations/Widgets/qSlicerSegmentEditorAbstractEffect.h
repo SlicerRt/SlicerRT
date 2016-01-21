@@ -35,8 +35,11 @@
 // Qt includes
 #include <QIcon>
 
+class qSlicerSegmentEditorAbstractEffectPrivate;
+
 class vtkRenderWindowInteractor;
-class vtkMRMLSliceNode;
+class vtkMRMLSegmentEditorEffectNode;
+class qMRMLSliceWidget;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorAbstractEffect : public QObject
@@ -50,6 +53,7 @@ public:
   qSlicerSegmentEditorAbstractEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorAbstractEffect(); 
 
+// API
 public:  
   /// Get name of effect
   virtual QString name() = 0;
@@ -58,18 +62,35 @@ public:
   virtual QIcon icon() { return QIcon(); };
 
   /// Activate effect
+  //TODO: Needed? If yes, how about deactivate?
   virtual void activate() = 0;
-
-protected:
-  // virtual void setMRMLScene(vtkMRMLScene* newScene);
 
   /// Callback function invoked when interaction happens
   //TODO: Support events form 3D view with extra parameter
-  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, vtkMRMLSliceNode* sliceNode/*, 3D view*/) { };
+  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLSliceWidget* sliceWidget/*, 3D view*/) { };
+
+// Effect parameter functions
+public:
+  /// Get effect parameter set node
+  vtkMRMLSegmentEditorEffectNode* parameterSetNode();
+
+  /// Get effect parameter from effect parameter set node
+  QString parameter(QString name);
+
+  /// Set effect parameter in effect parameter set node
+  void setParameter(QString name, QString value);
+
+// Utility functions
+public:
+  void cursorOff(qMRMLSliceWidget* sliceWidget);
+  void cursorOn(qMRMLSliceWidget* sliceWidget);
+
+protected:
+  QScopedPointer<qSlicerSegmentEditorAbstractEffectPrivate> d_ptr;
 
 private:
-  qSlicerSegmentEditorAbstractEffect(const qSlicerSegmentEditorAbstractEffect&); // Not implemented
-  void operator=(const qSlicerSegmentEditorAbstractEffect&); // Not implemented 
+  Q_DECLARE_PRIVATE(qSlicerSegmentEditorAbstractEffect);
+  Q_DISABLE_COPY(qSlicerSegmentEditorAbstractEffect);
 };
 
 #endif
