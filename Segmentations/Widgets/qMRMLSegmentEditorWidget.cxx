@@ -28,6 +28,7 @@
 #include "vtkMRMLSegmentationDisplayNode.h"
 #include "vtkSegmentation.h"
 #include "vtkSegment.h"
+#include "vtkOrientedImageData.h"
 
 // Segment editor effects includes
 #include "qSlicerSegmentEditorAbstractEffect.h"
@@ -62,6 +63,7 @@
 #include <QDebug>
 #include <QPushButton>
 #include <QButtonGroup>
+#include <QMessageBox>
 
 //-----------------------------------------------------------------------------
 class SegmentEditorInteractionEventInfo: public QObject
@@ -87,8 +89,15 @@ public:
   qMRMLSegmentEditorWidgetPrivate(qMRMLSegmentEditorWidget& object);
   ~qMRMLSegmentEditorWidgetPrivate();
   void init();
+
+  /// Create local effect clones for per-editor effect handling and create effect buttons
   void createEffects();
+
+  /// Set MRML scene to all local effects
   void setSceneToEffects(vtkMRMLScene* scene);
+
+  /// Set edited labelmap to all local effects
+  void setLabelmapToEffects(vtkOrientedImageData* labelmap);
 
 public:
   /// Selected segmentation MRML node
@@ -100,7 +109,7 @@ public:
   /// List of registered effect instances
   QList<qSlicerSegmentEditorAbstractEffect*> RegisteredEffects;
 
-  /// Active effect.
+  /// Active effect
   qSlicerSegmentEditorAbstractEffect* ActiveEffect;
 
   /// Commands for each slice and 3D view handling interactions
@@ -184,7 +193,7 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
     button->deleteLater();
   }
 
-  // Create local copy of effect handler, so that
+  // Create local copy of factory effects, so that
   // - Effects can have different parameters
   // - Segment editors can have different active effects
   qSlicerSegmentEditorEffectFactory::instance()->copyEffects(this->RegisteredEffects);
@@ -215,6 +224,15 @@ void qMRMLSegmentEditorWidgetPrivate::setSceneToEffects(vtkMRMLScene* scene)
   foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
   {
     effect->setScene(scene);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::setLabelmapToEffects(vtkOrientedImageData* labelmap)
+{
+  foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
+  {
+    effect->setEditedLabelmap(labelmap);
   }
 }
 
@@ -291,6 +309,20 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
   }
 
+  // Make sure binary labelmap representation exists
+  if (d->SegmentationNode)
+  {
+    if (!d->SegmentationNode->GetSegmentation()->CreateRepresentation(
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) )
+    {
+      QString message = QString("Failed to create binary labelmap representation in segmentation %1 for editing!\nPlease see Segmentations module for details.").
+        arg(d->SegmentationNode->GetName());
+      QMessageBox::critical(NULL, tr("Failed to create binary labelmap for editing"), message);
+      qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: " << message;
+      return;
+    }
+  }
+
   // Select first segment
   if ( d->SegmentationNode
     && d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0 )
@@ -358,7 +390,15 @@ void qMRMLSegmentEditorWidget::segmentSelectionChanged(const QItemSelection &sel
   qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
  
   // Set binary labelmap representation to effects
-  //TODO:
+  vtkSegment* selectedSegment = d->SegmentationNode->GetSegmentation()->GetSegment(d->SelectedSegmentID.toLatin1().constData());
+  vtkOrientedImageData* labelmap = vtkOrientedImageData::SafeDownCast(
+    selectedSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+  if (!labelmap)
+  {
+    qCritical() << "qMRMLSegmentEditorWidget::segmentSelectionChanged: Failed to get binary labelmap representation in segmentation " << d->SegmentationNode->GetName();
+    return;
+  }
+  d->setLabelmapToEffects(labelmap);
 }
 
 //-----------------------------------------------------------------------------

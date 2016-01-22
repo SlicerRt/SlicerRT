@@ -44,7 +44,10 @@ public:
   qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object);
   ~qSlicerSegmentEditorAbstractEffectPrivate();
 public:
+  /// Cursor to restore after custom cursor is not needed any more
   QCursor* SavedCursor;
+
+  /// MRML ID of the parameter set node corresponding to the effect
   QString ParameterSetNodeID;
 };
 
@@ -64,6 +67,8 @@ qSlicerSegmentEditorAbstractEffectPrivate::~qSlicerSegmentEditorAbstractEffectPr
 qSlicerSegmentEditorAbstractEffect::qSlicerSegmentEditorAbstractEffect(QObject* parent)
  : Superclass(parent)
  , d_ptr( new qSlicerSegmentEditorAbstractEffectPrivate(*this) )
+ , m_Scene(NULL)
+ , m_EditedLabelmap(NULL)
 {
 }
 

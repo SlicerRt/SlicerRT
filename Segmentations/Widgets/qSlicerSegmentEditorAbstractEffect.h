@@ -39,6 +39,7 @@ class qSlicerSegmentEditorAbstractEffectPrivate;
 class vtkMRMLScene;
 class vtkMRMLSegmentEditorEffectNode;
 class vtkRenderWindowInteractor;
+class vtkOrientedImageData;
 class qMRMLSliceWidget;
 class qMRMLThreeDWidget;
 
@@ -67,11 +68,15 @@ public:
   /// Clone editor effect
   virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
 
-// Effect parameter functions
-public:
+// Get/set
   /// Set MRML scene
   void setScene(vtkMRMLScene* scene) { m_Scene = scene; };
 
+  /// Set edited labelmap
+  void setEditedLabelmap(vtkOrientedImageData* labelmap) { m_EditedLabelmap = labelmap; };
+
+// Effect parameter functions
+public:
   /// Get effect parameter set node
   vtkMRMLSegmentEditorEffectNode* parameterSetNode();
 
@@ -83,12 +88,17 @@ public:
 
 // Utility functions
 public:
+  /// Turn off cursor and save cursor to restore later
   void cursorOff(qMRMLSliceWidget* sliceWidget);
+  /// Restore saved cursor
   void cursorOn(qMRMLSliceWidget* sliceWidget);
 
 protected:
   /// MRML scene
   vtkMRMLScene* m_Scene;
+
+  /// Edited binary labelmap
+  vtkOrientedImageData* m_EditedLabelmap;
  
 protected:
   QScopedPointer<qSlicerSegmentEditorAbstractEffectPrivate> d_ptr;
