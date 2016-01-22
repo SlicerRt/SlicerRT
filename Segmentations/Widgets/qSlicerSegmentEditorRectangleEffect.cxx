@@ -115,74 +115,9 @@ QIcon qSlicerSegmentEditorRectangleEffect::icon()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorRectangleEffect::activate()
+qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorRectangleEffect::clone()
 {
-  // vtkMRMLScene* scene = this->mrmlScene();
-  // if (!scene)
-  // {
-    // qCritical() << "qSlicerSegmentEditorRectangleEffect::activate: Invalid MRML scene!";
-    // return;
-  // }
-
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerSegmentEditorRectangleEffect::createGlyph(vtkPolyData* polyData)
-{
-  /*
-    sliceNode = self.sliceWidget.sliceLogic().GetSliceNode()
-    self.rasToXY.DeepCopy(sliceNode.GetXYToRAS())
-    self.rasToXY.Invert()
-    maximum, maxIndex = 0,0
-    for index in range(3):
-      if abs(self.rasToXY.GetElement(0, index)) > maximum:
-        maximum = abs(self.rasToXY.GetElement(0, index))
-        maxIndex = index
-    point = [0, 0, 0, 0]
-    point[maxIndex] = self.radius
-    xyRadius = self.rasToXY.MultiplyPoint(point)
-    import math
-    xyRadius = math.sqrt( xyRadius[0]**2 + xyRadius[1]**2 + xyRadius[2]**2 )
-
-    if self.pixelMode:
-      xyRadius = 0.01
-
-    # make a circle paint brush
-    points = vtk.vtkPoints()
-    lines = vtk.vtkCellArray()
-    polyData.SetPoints(points)
-    polyData.SetLines(lines)
-    PI = 3.1415926
-    TWOPI = PI * 2
-    PIoverSIXTEEN = PI / 16
-    prevPoint = -1
-    firstPoint = -1
-    angle = 0
-    while angle <= TWOPI:
-      x = xyRadius * math.cos(angle)
-      y = xyRadius * math.sin(angle)
-      p = points.InsertNextPoint( x, y, 0 )
-      if prevPoint != -1:
-        idList = vtk.vtkIdList()
-        idList.InsertNextId(prevPoint)
-        idList.InsertNextId(p)
-        polyData.InsertNextCell( vtk.VTK_LINE, idList )
-      prevPoint = p
-      if firstPoint == -1:
-        firstPoint = p
-      angle = angle + PIoverSIXTEEN
-
-    # make the last line in the circle
-    idList = vtk.vtkIdList()
-    idList.InsertNextId(p)
-    idList.InsertNextId(firstPoint)
-    polyData.InsertNextCell( vtk.VTK_LINE, idList )
-  */
-}
-  
-//-----------------------------------------------------------------------------
-void qSlicerSegmentEditorRectangleEffect::apply()
-{
+  return new qSlicerSegmentEditorRectangleEffect();
 }
 
 //---------------------------------------------------------------------------

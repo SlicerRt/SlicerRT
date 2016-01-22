@@ -115,15 +115,9 @@ QIcon qSlicerSegmentEditorPaintEffect::icon()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffect::activate()
+qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorPaintEffect::clone()
 {
-  // vtkMRMLScene* scene = this->mrmlScene();
-  // if (!scene)
-  // {
-    // qCritical() << "qSlicerSegmentEditorPaintEffect::activate: Invalid MRML scene!";
-    // return;
-  // }
-
+  return new qSlicerSegmentEditorPaintEffect();
 }
 
 //-----------------------------------------------------------------------------
@@ -194,7 +188,6 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
 {
   if (eid == vtkCommand::LeftButtonPressEvent)
   {
-    int i=0; ++i;
     //self.actionState = "painting"
     //if not self.pixelMode:
     //  self.cursorOff()

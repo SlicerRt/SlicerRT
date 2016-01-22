@@ -39,7 +39,6 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorRectangle
 {
 public:
   Q_OBJECT
-  QVTK_OBJECT
 
 public:
   typedef qSlicerSegmentEditorAbstractEffect Superclass;
@@ -53,19 +52,11 @@ public:
   /// Get icon for effect to be displayed in segment editor
   virtual QIcon icon();
 
-  /// Activate paint effect
-  virtual void activate();
+  /// Clone editor effect
+  virtual qSlicerSegmentEditorAbstractEffect* clone();
 
-//TODO: Create abstract functions in base effect class
-  /// Draw paint circle glyph
-  void createGlyph(vtkPolyData* polyData);
-  
-  /// Apply paint operation
-  void apply();
-
-protected:
   /// Callback function invoked when interaction happens
-//  static void ProcessEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
+  //  static void ProcessEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
 
 protected:
   QScopedPointer<qSlicerSegmentEditorRectangleEffectPrivate> d_ptr;

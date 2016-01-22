@@ -31,7 +31,7 @@
 
 // Segment editor effects includes
 #include "qSlicerSegmentEditorAbstractEffect.h"
-#include "qSlicerSegmentEditorEffectHandler.h"
+#include "qSlicerSegmentEditorEffectFactory.h"
 
 // VTK includes
 #include <vtkRenderWindowInteractor.h>
@@ -64,6 +64,19 @@
 #include <QButtonGroup>
 
 //-----------------------------------------------------------------------------
+class SegmentEditorInteractionEventInfo: public QObject
+{
+public:
+  /// Segment editor widget observing the event
+  qMRMLSegmentEditorWidget* EditorWidget;
+  /// Slice widget or 3D widget
+  qMRMLWidget* ViewWidget;
+};
+
+//-----------------------------------------------------------------------------
+// qMRMLSegmentEditorWidgetPrivate methods
+
+//-----------------------------------------------------------------------------
 class qMRMLSegmentEditorWidgetPrivate: public Ui_qMRMLSegmentEditorWidget
 {
   Q_DECLARE_PUBLIC(qMRMLSegmentEditorWidget);
@@ -75,6 +88,7 @@ public:
   ~qMRMLSegmentEditorWidgetPrivate();
   void init();
   void createEffects();
+  void setSceneToEffects(vtkMRMLScene* scene);
 
 public:
   /// Selected segmentation MRML node
@@ -83,8 +97,17 @@ public:
   /// Selected segment ID
   QString SelectedSegmentID;
   
-  /// Commands for each slice view handling interactions
-  std::vector<vtkCallbackCommand*> InteractionCallbackCommands;
+  /// List of registered effect instances
+  QList<qSlicerSegmentEditorAbstractEffect*> RegisteredEffects;
+
+  /// Active effect.
+  qSlicerSegmentEditorAbstractEffect* ActiveEffect;
+
+  /// Commands for each slice and 3D view handling interactions
+  QList<vtkCallbackCommand*> InteractionCallbackCommands;
+
+  /// Structure containing necessary objects for each slice and 3D view handling interactions
+  QList<SegmentEditorInteractionEventInfo*> InteractionCallbackEventInfos;
   
   /// Button group for the effects
   QButtonGroup EffectButtonGroup;
@@ -95,20 +118,32 @@ qMRMLSegmentEditorWidgetPrivate::qMRMLSegmentEditorWidgetPrivate(qMRMLSegmentEdi
   : q_ptr(&object)
   , SelectedSegmentID(QString())
   , SegmentationNode(NULL)
+  , ActiveEffect(NULL)
 {
   this->InteractionCallbackCommands.clear();
+  this->InteractionCallbackEventInfos.clear();
 }
 
 //-----------------------------------------------------------------------------
 qMRMLSegmentEditorWidgetPrivate::~qMRMLSegmentEditorWidgetPrivate()
 {
-  std::vector<vtkCallbackCommand*>::iterator commandIt;
-  for (commandIt = this->InteractionCallbackCommands.begin(); commandIt != this->InteractionCallbackCommands.end(); ++commandIt)
+  foreach (vtkCallbackCommand* command, this->InteractionCallbackCommands)
   {
-    vtkCallbackCommand* command = (*commandIt);
     command->Delete();
   }
   this->InteractionCallbackCommands.clear();
+
+  foreach (SegmentEditorInteractionEventInfo* eventInfo, this->InteractionCallbackEventInfos)
+  {
+    delete eventInfo;
+  }
+  this->InteractionCallbackEventInfos.clear();
+
+  foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
+  {
+    delete effect;
+  }
+  this->RegisteredEffects.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -149,6 +184,11 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
     button->deleteLater();
   }
 
+  // Create local copy of effect handler, so that
+  // - Effects can have different parameters
+  // - Segment editors can have different active effects
+  qSlicerSegmentEditorEffectFactory::instance()->copyEffects(this->RegisteredEffects);
+
   // Setup layout
   QHBoxLayout* effectsGroupLayout = new QHBoxLayout();
   effectsGroupLayout->setContentsMargins(4,4,4,4);
@@ -156,18 +196,25 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
   this->EffectsGroupBox->setLayout(effectsGroupLayout);
 
   // Instantiate effects and create buttons for activating effects
-  QList<qSlicerSegmentEditorAbstractEffect*> effects =
-    qSlicerSegmentEditorEffectHandler::instance()->registeredEffects();
-  foreach (qSlicerSegmentEditorAbstractEffect* currentEffect, effects)
+  foreach (qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
   {
     QPushButton* effectButton = new QPushButton(this->EffectsGroupBox);
-    effectButton->setObjectName(currentEffect->name());
+    effectButton->setObjectName(effect->name());
     effectButton->setCheckable(true);
-    effectButton->setIcon(currentEffect->icon());
-    effectButton->setProperty("Effect", QVariant::fromValue<QObject*>(currentEffect));
+    effectButton->setIcon(effect->icon());
+    effectButton->setProperty("Effect", QVariant::fromValue<QObject*>(effect));
 
     this->EffectButtonGroup.addButton(effectButton);
     effectsGroupLayout->addWidget(effectButton);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::setSceneToEffects(vtkMRMLScene* scene)
+{
+  foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
+  {
+    effect->setScene(scene);
   }
 }
 
@@ -194,14 +241,32 @@ qMRMLSegmentEditorWidget::~qMRMLSegmentEditorWidget()
 //-----------------------------------------------------------------------------
 void qMRMLSegmentEditorWidget::setMRMLScene(vtkMRMLScene* newScene)
 {
-  qMRMLWidget::setMRMLScene(newScene);
+  Q_D(qMRMLSegmentEditorWidget);
+
+  Superclass::setMRMLScene(newScene);
   
   // Set scene to effect handler
-  qSlicerSegmentEditorEffectHandler::instance()->setScene(newScene);
+  d->setSceneToEffects(newScene);
 
   // Create observations between slice view interactor and the widget.
   // The captured events are propagated to the active effect if any.
   this->setupSliceObservations();
+}
+
+//-----------------------------------------------------------------------------
+qSlicerSegmentEditorAbstractEffect* qMRMLSegmentEditorWidget::activeEffect()const
+{
+  Q_D(const qMRMLSegmentEditorWidget);
+
+  return d->ActiveEffect;
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::setActiveEffect(qSlicerSegmentEditorAbstractEffect* effect)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  d->ActiveEffect = effect;
 }
 
 //-----------------------------------------------------------------------------
@@ -323,6 +388,30 @@ QString qMRMLSegmentEditorWidget::currentSegmentID()
 }
 
 //---------------------------------------------------------------------------
+qSlicerSegmentEditorAbstractEffect* qMRMLSegmentEditorWidget::effectByName(QString name)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  if (name.isEmpty())
+    {
+    return NULL;
+    }
+
+  // Find effect with name
+  qSlicerSegmentEditorAbstractEffect* currentEffect = NULL;
+  foreach (currentEffect, d->RegisteredEffects)
+    {
+    if (currentEffect->name().compare(name) == 0)
+      {
+      return currentEffect;
+      }
+    }
+
+  qWarning() << "qMRMLSegmentEditorWidget::effectByName: Effect named '" << name << "' cannot be found!";
+  return NULL;
+}
+
+//---------------------------------------------------------------------------
 void qMRMLSegmentEditorWidget::setupSliceObservations()
 {
   Q_D(qMRMLSegmentEditorWidget);
@@ -335,13 +424,16 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
   }
 
   // Clear previous observations before setting up the new ones
-  std::vector<vtkCallbackCommand*>::iterator commandIt;
-  for (commandIt = d->InteractionCallbackCommands.begin(); commandIt != d->InteractionCallbackCommands.end(); ++commandIt)
+  foreach (vtkCallbackCommand* command, d->InteractionCallbackCommands)
   {
-    vtkCallbackCommand* command = (*commandIt);
     command->Delete();
   }
   d->InteractionCallbackCommands.clear();
+  foreach (SegmentEditorInteractionEventInfo* eventInfo, d->InteractionCallbackEventInfos)
+  {
+    delete eventInfo;
+  }
+  d->InteractionCallbackEventInfos.clear();
 
   // Set up interactor observations
   qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
@@ -354,8 +446,11 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
     vtkRenderWindowInteractor* interactor = sliceView->interactorStyle()->GetInteractor();
 
     // Create command for slice view
+    SegmentEditorInteractionEventInfo* eventInfo = new SegmentEditorInteractionEventInfo();
+    eventInfo->EditorWidget = this;
+    eventInfo->ViewWidget = sliceWidget;
     vtkCallbackCommand* interactionCallbackCommand = vtkCallbackCommand::New();
-    interactionCallbackCommand->SetClientData( reinterpret_cast<void*>(sliceWidget) );
+    interactionCallbackCommand->SetClientData( reinterpret_cast<void*>(eventInfo) );
     interactionCallbackCommand->SetCallback( qMRMLSegmentEditorWidget::processInteractionEvents );
 
     // Connect events
@@ -365,7 +460,8 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
     unsigned long enterTag = interactor->AddObserver(vtkCommand::EnterEvent, interactionCallbackCommand, 1.0);
     unsigned long leaveTag = interactor->AddObserver(vtkCommand::LeaveEvent, interactionCallbackCommand, 1.0);
     
-    d->InteractionCallbackCommands.push_back(interactionCallbackCommand);
+    d->InteractionCallbackCommands << interactionCallbackCommand;
+    d->InteractionCallbackEventInfos << eventInfo;
   }
 
   // 3D views
@@ -376,8 +472,11 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
     vtkRenderWindowInteractor* interactor = threeDView->interactor();
 
     // Create command for slice view
+    SegmentEditorInteractionEventInfo* eventInfo = new SegmentEditorInteractionEventInfo();
+    eventInfo->EditorWidget = this;
+    eventInfo->ViewWidget = threeDWidget;
     vtkCallbackCommand* interactionCallbackCommand = vtkCallbackCommand::New();
-    interactionCallbackCommand->SetClientData( reinterpret_cast<void*>(threeDWidget) );
+    interactionCallbackCommand->SetClientData( reinterpret_cast<void*>(eventInfo) );
     interactionCallbackCommand->SetCallback( qMRMLSegmentEditorWidget::processInteractionEvents );
 
     // Connect events
@@ -399,17 +498,15 @@ void qMRMLSegmentEditorWidget::onEffectButtonClicked(QAbstractButton* button)
   // Get effect that was just clicked
   qSlicerSegmentEditorAbstractEffect* clickedEffect = qobject_cast<qSlicerSegmentEditorAbstractEffect*>(
     button->property("Effect").value<QObject*>() );
-  // Get currently active effect
-  qSlicerSegmentEditorAbstractEffect* activeEffect = qSlicerSegmentEditorEffectHandler::instance()->activeEffect();
 
   // If the selected effect was clicked again, then de-select
-  if (activeEffect == clickedEffect)
+  if (d->ActiveEffect == clickedEffect)
   {
     d->EffectButtonGroup.setExclusive(false);
     button->blockSignals(true);
 
     button->setChecked(false);
-    qSlicerSegmentEditorEffectHandler::instance()->setActiveEffect(NULL);
+    d->ActiveEffect = NULL;
     d->ActiveEffectLabel->setText("None");
 
     button->blockSignals(false);
@@ -417,14 +514,9 @@ void qMRMLSegmentEditorWidget::onEffectButtonClicked(QAbstractButton* button)
   }
   else
   {
-    // Deactivate previously selected effect
-    //activeEffect->deactivate(); //TODO: needed?
-
     // Set selected effect as current and activate it
-    qSlicerSegmentEditorEffectHandler::instance()->setActiveEffect(clickedEffect);
-    //d->ActiveEffect->activate(); //TODO: needed?
-    //TODO: Setup parameter node: set current effect name, allow effect to populate parameter set node with (default) parameters
-    d->ActiveEffectLabel->setText(clickedEffect->name());
+    d->ActiveEffect = clickedEffect;
+    d->ActiveEffectLabel->setText(d->ActiveEffect->name());
 
     // Create effect options widget
     //TODO:
@@ -438,18 +530,21 @@ void qMRMLSegmentEditorWidget::processInteractionEvents(vtkObject* caller,
                                         void* clientData,
                                         void* vtkNotUsed(callData))
 {
-  // Get active effect
-  qSlicerSegmentEditorAbstractEffect* activeEffect = qSlicerSegmentEditorEffectHandler::instance()->activeEffect();
-  if (!activeEffect)
+  // Get and parse client data
+  SegmentEditorInteractionEventInfo* eventInfo = reinterpret_cast<SegmentEditorInteractionEventInfo*>(clientData);
+  qMRMLSegmentEditorWidget* editorWidget = eventInfo->EditorWidget;
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(eventInfo->ViewWidget);
+  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(eventInfo->ViewWidget);
+  vtkRenderWindowInteractor* callerInteractor = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
+  if (!editorWidget || (!sliceWidget && !threeDWidget) || !callerInteractor)
   {
+    qCritical() << "qMRMLSegmentEditorWidget::processInteractionEvents: Invalid event data!";
     return;
   }
-  // Get view widget and interactor for the view where the event happened
-  qMRMLWidget* viewWidget = reinterpret_cast<qMRMLWidget*>(clientData);
-  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
-  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
-  vtkRenderWindowInteractor* callerInteractor = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
-  if ((!sliceWidget && !threeDWidget) || !callerInteractor)
+
+  // Get active effect
+  qSlicerSegmentEditorAbstractEffect* activeEffect = editorWidget->activeEffect();
+  if (!activeEffect)
   {
     return;
   }

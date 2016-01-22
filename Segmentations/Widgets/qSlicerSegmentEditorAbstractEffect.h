@@ -30,15 +30,15 @@
 
 // CTK includes
 #include <ctkPimpl.h>
-#include <ctkVTKObject.h>
 
 // Qt includes
 #include <QIcon>
 
 class qSlicerSegmentEditorAbstractEffectPrivate;
 
-class vtkRenderWindowInteractor;
+class vtkMRMLScene;
 class vtkMRMLSegmentEditorEffectNode;
+class vtkRenderWindowInteractor;
 class qMRMLSliceWidget;
 class qMRMLThreeDWidget;
 
@@ -47,7 +47,6 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorAbstractE
 {
 public:
   Q_OBJECT
-  QVTK_OBJECT
 
 public:
   typedef QObject Superclass;
@@ -62,15 +61,17 @@ public:
   /// Get icon for effect to be displayed in segment editor
   virtual QIcon icon() { return QIcon(); };
 
-  /// Activate effect
-  //TODO: Needed? If yes, how about deactivate?
-  virtual void activate() = 0;
-
   /// Callback function invoked when interaction happens
   virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLSliceWidget* sliceWidget, qMRMLThreeDWidget* threeDWidget) { };
 
+  /// Clone editor effect
+  virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
+
 // Effect parameter functions
 public:
+  /// Set MRML scene
+  void setScene(vtkMRMLScene* scene) { m_Scene = scene; };
+
   /// Get effect parameter set node
   vtkMRMLSegmentEditorEffectNode* parameterSetNode();
 
@@ -85,6 +86,10 @@ public:
   void cursorOff(qMRMLSliceWidget* sliceWidget);
   void cursorOn(qMRMLSliceWidget* sliceWidget);
 
+protected:
+  /// MRML scene
+  vtkMRMLScene* m_Scene;
+ 
 protected:
   QScopedPointer<qSlicerSegmentEditorAbstractEffectPrivate> d_ptr;
 

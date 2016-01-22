@@ -21,7 +21,6 @@
 // Segmentations includes
 #include "qSlicerSegmentEditorAbstractEffect.h"
 
-#include "qSlicerSegmentEditorEffectHandler.h"
 #include "vtkMRMLSegmentEditorEffectNode.h"
 
 // Qt includes
@@ -102,8 +101,7 @@ vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSet
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
 
-  vtkMRMLScene* scene = qSlicerSegmentEditorEffectHandler::instance()->scene();
-  if (!scene)
+  if (!m_Scene)
   {
     qCritical() << "qSlicerSegmentEditorAbstractEffect::parameterSetNode: Invalid MRML scene!";
     return NULL;
@@ -114,19 +112,22 @@ vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSet
   {
     vtkMRMLSegmentEditorEffectNode* node = vtkMRMLSegmentEditorEffectNode::New();
     QString nodeName = QString("%1_ParameterSet").arg(this->name());
-    node->SetName(nodeName.toLatin1().constData());
+    std::string uniqueNodeName = m_Scene->GenerateUniqueName(nodeName.toLatin1().constData());
+    node->SetName(uniqueNodeName.c_str());
     node->HideFromEditorsOn();
-    scene->AddNode(node);
+    m_Scene->AddNode(node);
     node->Delete(); // Pass ownership to MRML scene only
     return node;
   }
 
   // Find and return if already exists
   vtkMRMLSegmentEditorEffectNode* node = vtkMRMLSegmentEditorEffectNode::SafeDownCast(
-    scene->GetNodeByID(d->ParameterSetNodeID.toLatin1().constData()) );
+    m_Scene->GetNodeByID(d->ParameterSetNodeID.toLatin1().constData()) );
   if (!node)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::parameterSetNode: Unable to find node in scene with ID " << d->ParameterSetNodeID;
+    qWarning() << "qSlicerSegmentEditorAbstractEffect::parameterSetNode: Unable to find node in scene with ID " << d->ParameterSetNodeID << ", creating a new one";
+    d->ParameterSetNodeID = QString();
+    return this->parameterSetNode();
   }
   return node;
 }

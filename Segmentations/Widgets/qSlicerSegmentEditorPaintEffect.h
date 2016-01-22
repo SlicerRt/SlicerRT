@@ -39,32 +39,31 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorPaintEffe
 {
 public:
   Q_OBJECT
-  QVTK_OBJECT
 
 public:
   typedef qSlicerSegmentEditorAbstractEffect Superclass;
   qSlicerSegmentEditorPaintEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorPaintEffect(); 
 
-public:  
+public:
   /// Get name of effect
   virtual QString name();
 
   /// Get icon for effect to be displayed in segment editor
   virtual QIcon icon();
 
-  /// Activate paint effect
-  virtual void activate();
+  /// Callback function invoked when interaction happens
+  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLSliceWidget* sliceWidget, qMRMLThreeDWidget* threeDWidget);
 
-//TODO: Create abstract functions in base effect class
+  /// Clone editor effect
+  virtual qSlicerSegmentEditorAbstractEffect* clone();
+
+public:
   /// Draw paint circle glyph
   void createGlyph(vtkPolyData* polyData);
   
   /// Apply paint operation
   void apply();
-
-  /// Callback function invoked when interaction happens
-  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLSliceWidget* sliceWidget, qMRMLThreeDWidget* threeDWidget);
 
 protected:
   QScopedPointer<qSlicerSegmentEditorPaintEffectPrivate> d_ptr;

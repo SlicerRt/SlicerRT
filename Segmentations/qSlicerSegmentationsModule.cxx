@@ -38,7 +38,7 @@
 #include "vtkMRMLSegmentationsDisplayableManager3D.h"
 #include "vtkMRMLSegmentationsDisplayableManager2D.h"
 // Segment editor effects includes
-#include "qSlicerSegmentEditorEffectHandler.h"
+#include "qSlicerSegmentEditorEffectFactory.h"
 #include "qSlicerSegmentEditorPaintEffect.h"
 #include "qSlicerSegmentEditorRectangleEffect.h"
 
@@ -155,8 +155,8 @@ void qSlicerSegmentationsModule::setup()
   vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLSegmentationsDisplayableManager2D");
 
   // Register default segment editor effects
-  qSlicerSegmentEditorEffectHandler::instance()->registerEffect(new qSlicerSegmentEditorPaintEffect()); 
-  qSlicerSegmentEditorEffectHandler::instance()->registerEffect(new qSlicerSegmentEditorRectangleEffect());
+  qSlicerSegmentEditorEffectFactory::instance()->registerEffect(new qSlicerSegmentEditorPaintEffect()); 
+  qSlicerSegmentEditorEffectFactory::instance()->registerEffect(new qSlicerSegmentEditorRectangleEffect());
 }
 
 //-----------------------------------------------------------------------------

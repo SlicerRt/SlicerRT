@@ -35,11 +35,11 @@
 #include <cstdlib>
 
 class vtkMRMLNode;
-class vtkPolyData;
 class vtkObject;
 class qMRMLSegmentEditorWidgetPrivate;
 class QItemSelection;
 class QAbstractButton;
+class qSlicerSegmentEditorAbstractEffect;
 
 /// \brief Qt widget for editing a segment from a segmentation using Editor effects.
 /// \ingroup SlicerRt_QtModules_Segmentations_Widgets
@@ -48,6 +48,10 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentEditorWidget : pu
   Q_OBJECT
 
 public:
+  Q_PROPERTY(qSlicerSegmentEditorAbstractEffect* activeEffect READ activeEffect WRITE setActiveEffect)
+
+public:
+  typedef qMRMLWidget Superclass;
   /// Constructor
   explicit qMRMLSegmentEditorWidget(QWidget* parent = 0);
   /// Destructor
@@ -55,11 +59,22 @@ public:
 
   /// Get currently selected segmentation MRML node
   Q_INVOKABLE vtkMRMLNode* segmentationNode();
-  /// Get currently selected Segmentationsegmentation node's ID
+  /// Get ID of currently selected segmentation node
   Q_INVOKABLE QString segmentationNodeID();
 
   /// Get segment ID of selected segment
   Q_INVOKABLE QString currentSegmentID();
+
+  /// Return active effect if selected, NULL otherwise
+  /// \sa m_ActiveEffect, setActiveEffect()
+  qSlicerSegmentEditorAbstractEffect* activeEffect()const;
+  /// Set active effect
+  /// \sa m_ActiveEffect, activeEffect()
+  void setActiveEffect(qSlicerSegmentEditorAbstractEffect* effect);
+
+  /// Get an effect object by name
+  /// \return The effect instance if exists, NULL otherwise
+  Q_INVOKABLE qSlicerSegmentEditorAbstractEffect* effectByName(QString name);
 
 public slots:
   /// Set the MRML \a scene associated with the widget

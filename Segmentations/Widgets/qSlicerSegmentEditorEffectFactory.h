@@ -20,8 +20,8 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSegmentEditorEffectHandler_h
-#define __qSlicerSegmentEditorEffectHandler_h
+#ifndef __qSlicerSegmentEditorEffectFactory_h
+#define __qSlicerSegmentEditorEffectFactory_h
 
 // SubjectHierarchy includes
 #include "qSlicerSegmentationsModuleWidgetsExport.h"
@@ -29,36 +29,24 @@
 // Qt includes
 #include <QObject>
 #include <QList>
-#include <QString>
 
-class vtkMRMLScene;
 class qSlicerSegmentEditorAbstractEffect;
-class qSlicerSegmentEditorEffectHandlerCleanup;
-
+class qSlicerSegmentEditorEffectFactoryCleanup;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-/// \class qSlicerSegmentEditorEffectHandler
+/// \class qSlicerSegmentEditorEffectFactory
 /// \brief Singleton class managing segment editor effect plugins
-class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorEffectHandler : public QObject
+class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorEffectFactory : public QObject
 {
   Q_OBJECT
 
 public:
-  Q_PROPERTY(qSlicerSegmentEditorAbstractEffect* activeEffect READ activeEffect WRITE setActiveEffect)
-
-public:
   /// Instance getter for the singleton class
   /// \return Instance object
-  Q_INVOKABLE static qSlicerSegmentEditorEffectHandler* instance();
+  Q_INVOKABLE static qSlicerSegmentEditorEffectFactory* instance();
 
   /// Allows cleanup of the singleton at application exit
-  static void setInstance(qSlicerSegmentEditorEffectHandler* instance);
-
-  /// Set MRML scene
-  void setScene(vtkMRMLScene* scene);
-
-  /// Get MRML scene
-  vtkMRMLScene* scene();
+  static void setInstance(qSlicerSegmentEditorEffectFactory* instance);
 
 public:
   /// Register a effect
@@ -68,43 +56,28 @@ public:
   /// Get list of registered effects
   Q_INVOKABLE QList<qSlicerSegmentEditorAbstractEffect*> registeredEffects() { return m_RegisteredEffects; };
 
-  /// Get an effect object by name
-  /// \return The effect instance if exists, NULL otherwise
-  Q_INVOKABLE qSlicerSegmentEditorAbstractEffect* effectByName(QString name);
-
-  /// Return active effect if selected, NULL otherwise
-  /// \sa m_ActiveEffect, setActiveEffect()
-  qSlicerSegmentEditorAbstractEffect* activeEffect()const;
-  /// Set active effect
-  /// \sa m_ActiveEffect, activeEffect()
-  void setActiveEffect(qSlicerSegmentEditorAbstractEffect* effect);
+  /// Copy list of registered effects to the container in a segment editor widget
+  Q_INVOKABLE void copyEffects(QList<qSlicerSegmentEditorAbstractEffect*>& effects);
 
 protected:
   /// List of registered effect instances
   QList<qSlicerSegmentEditorAbstractEffect*> m_RegisteredEffects;
 
-  /// Active effect
-  qSlicerSegmentEditorAbstractEffect* m_ActiveEffect;
-
-  /// MRML scene
-  vtkMRMLScene* m_Scene;
-
 public:
   /// Private constructor made public to enable python wrapping
   /// IMPORTANT: Should not be used for creating effect handler! Use instance() instead.
-  qSlicerSegmentEditorEffectHandler(QObject* parent=NULL);
+  qSlicerSegmentEditorEffectFactory(QObject* parent=NULL);
 
   /// Private destructor made public to enable python wrapping
-  virtual ~qSlicerSegmentEditorEffectHandler();
+  virtual ~qSlicerSegmentEditorEffectFactory();
 
 private:
-  Q_DISABLE_COPY(qSlicerSegmentEditorEffectHandler);
-  friend class qSlicerSegmentEditorEffectHandlerCleanup;
-  friend class qSlicerSubjectHierarchyModule;
+  Q_DISABLE_COPY(qSlicerSegmentEditorEffectFactory);
+  friend class qSlicerSegmentEditorEffectFactoryCleanup;
 
 private:
   /// Instance of the singleton
-  static qSlicerSegmentEditorEffectHandler* m_Instance;
+  static qSlicerSegmentEditorEffectFactory* m_Instance;
 };
 
 #endif
