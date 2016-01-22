@@ -58,11 +58,11 @@ public:
     {
     /// Show visibility options and allow multiple selections
     VisibilityOptionsMode = 0,
-    /// Only show segment name and allow multiple selection, no header is visible
+    /// Only show name and allow multiple selection, no header is visible
     SimpleListMode,
     /// Only show name, do not allow selection, no header is visible
     RepresentationMode,
-    /// TODO:
+    /// Show name and color, allow single selection
     EditorMode
     };
 
@@ -89,7 +89,7 @@ public:
   /// 1. VisibilityOptionsMode: Not selectable table with visibility options
   /// 2. SelectableSimpleListMode: Selectable list with only segment names, no header is visible
   /// 3. RepresentationMode: Not selectable list with only names, no header is visible
-  /// 4. EditorMode: TODO:
+  /// 4. EditorMode: Table with single selection, showing name and color
   void setMode(SegmentTableMode mode);
   /// Set segment table mode. Python compatibility function.
   void setMode(int mode);

@@ -54,14 +54,28 @@ public:
   ~qSlicerSegmentEditorPaintEffectPrivate();
 public:
   QIcon EffectIcon;
-  bool PixelMode;
+
   bool DelayedPaint;
+  bool PixelMode;
+  bool IsPainting;
+  bool Smudge;
+  bool Sphere;
+  double Radius;
+  double MinimumRadius;
+  double MaximumRadius;
 };
 
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(qSlicerSegmentEditorPaintEffect& object)
   : q_ptr(&object)
   , DelayedPaint(true)
+  , PixelMode(false)
+  , IsPainting(false)
+  , Smudge(false)
+  , Sphere(false)
+  , Radius(0.0)
+  , MinimumRadius(0.0)
+  , MaximumRadius(0.0)
 {
   this->EffectIcon = QIcon(":Icons/Paint.png");
 }
@@ -186,12 +200,22 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   qMRMLSliceWidget* sliceWidget,
   qMRMLThreeDWidget* threeDWidget )
 {
+  Q_D(qSlicerSegmentEditorPaintEffect);
+
+  // This effect only supports interactions in the 2D slice views currently
+  if (!sliceWidget)
+  {
+    return;
+  }
+
   if (eid == vtkCommand::LeftButtonPressEvent)
   {
-    //self.actionState = "painting"
-    //if not self.pixelMode:
-    //  self.cursorOff()
-    //xy = self.interactor.GetEventPosition()
+    d->IsPainting = true;
+    if (!d->PixelMode)
+    {
+      this->cursorOff(sliceWidget);
+    }
+    //xy = callerInteractor->GetEventPosition()
     //if self.smudge:
     //  EditUtil.setLabel(self.getLabelPixel(xy))
     //self.paintAddPoint(xy[0], xy[1])
@@ -207,7 +231,7 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   {
     //self.actor.VisibilityOn()
     //if self.actionState == "painting":
-    //  xy = self.interactor.GetEventPosition()
+    //  xy = callerInteractor->GetEventPosition()
     //  self.paintAddPoint(xy[0], xy[1])
     //  self.abortEvent(event)
   }
@@ -221,7 +245,7 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   }
   else if (eid == vtkCommand::KeyPressEvent)
   {
-    //key = self.interactor.GetKeySym()
+    //key = callerInteractor->GetKeySym()
     //if key == 'plus' or key == 'equal':
     //  self.scaleRadius(1.2)
     //if key == 'minus' or key == 'underscore':

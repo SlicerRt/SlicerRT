@@ -290,6 +290,17 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(refereceVolumeNode);
     d->MRMLNodeComboBox_ReferenceVolume->blockSignals(false);
   }
+
+  // Select first segment
+  if ( d->SegmentationNode
+    && d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0 )
+  {
+    std::vector<std::string> segmentIDs;
+    d->SegmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
+    QStringList firstSegmentID;
+    firstSegmentID << QString(segmentIDs[0].c_str());
+    d->SegmentsTableView->setSelectedSegmentIDs(firstSegmentID);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -327,14 +338,14 @@ void qMRMLSegmentEditorWidget::segmentSelectionChanged(const QItemSelection &sel
   Q_UNUSED(deselected);
   Q_D(qMRMLSegmentEditorWidget);
 
-  std::vector<std::string> selectedSegmentIDs;
+  QStringList selectedSegmentIDs = d->SegmentsTableView->selectedSegmentIDs();
   if (selectedSegmentIDs.size() != 1)
   {
     qCritical() << "qMRMLSegmentEditorWidget::segmentSelectionChanged: One segment should be selected!";
     return;
   }
 
-  d->SelectedSegmentID = QString(selectedSegmentIDs[0].c_str());
+  d->SelectedSegmentID = selectedSegmentIDs[0];
   
   // Show segmentation in label layer of slice viewers
   vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();

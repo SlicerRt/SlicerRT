@@ -603,10 +603,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
             referencedVolumeShNode->GetAssociatedNode() );
           if (referencedVolumeNode)
           {
-            vtkSmartPointer<vtkMatrix4x4> referenceImageGeometryMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-            referencedVolumeNode->GetIJKToRASMatrix(referenceImageGeometryMatrix);
-            std::string serializedImageGeometry = vtkSegmentationConverter::SerializeImageGeometry(referenceImageGeometryMatrix, referencedVolumeNode->GetImageData());
-            segmentationNode->GetSegmentation()->SetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName(), serializedImageGeometry);
+            segmentationNode->SetReferenceImageGeometryParameterFromVolumeNode(referencedVolumeNode);
           }
           else
           {

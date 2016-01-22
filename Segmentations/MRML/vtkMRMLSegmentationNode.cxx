@@ -475,10 +475,7 @@ void vtkMRMLSegmentationNode::OnSubjectHierarchyUIDAdded(vtkMRMLSubjectHierarchy
       if (!referencedVolumeFound)
       {
         // Set reference image geometry parameter if volume node is found
-        vtkSmartPointer<vtkMatrix4x4> referenceImageGeometryMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-        referencedVolumeNode->GetIJKToRASMatrix(referenceImageGeometryMatrix);
-        std::string serializedImageGeometry = vtkSegmentationConverter::SerializeImageGeometry(referenceImageGeometryMatrix, referencedVolumeNode->GetImageData());
-        this->Segmentation->SetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName(), serializedImageGeometry);
+        this->SetReferenceImageGeometryParameterFromVolumeNode(referencedVolumeNode);
         referencedVolumeFound = true;
       }
     }
@@ -1057,7 +1054,7 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLSegmentationNode::GetSegmentSubjectHierarchy
 //---------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::ShiftVolumeNodeExtentToZeroStart(vtkMRMLScalarVolumeNode* volumeNode)
 {
-  if (!volumeNode || !volumeNode->GetImageData())
+  if (!volumeNode || !volumeNode->vtkMRMLScalarVolumeNode::GetImageData())
   {
     return;
   }
