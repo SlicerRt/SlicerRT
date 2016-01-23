@@ -49,19 +49,25 @@ public:
   /// Get name of effect
   virtual QString name();
 
-  /// Get icon for effect to be displayed in segment editor
-  virtual QIcon icon();
-
-  /// Callback function invoked when interaction happens
-  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLSliceWidget* sliceWidget, qMRMLThreeDWidget* threeDWidget);
-
   /// Clone editor effect
   virtual qSlicerSegmentEditorAbstractEffect* clone();
 
-public:
-  /// Draw paint circle glyph
-  void createGlyph(vtkPolyData* polyData);
-  
+  /// Get icon for effect to be displayed in segment editor
+  virtual QIcon icon();
+
+  /// Perform actions to deactivate the effect (such as destroy actors, etc.)
+  virtual void deactivate();
+
+  /// Callback function invoked when interaction happens
+  /// \param callerInteractor Interactor object that was observed to catch the event
+  /// \param eid Event identifier
+  /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
+  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget);
+
+  /// Update user interface from parameter set node
+  virtual void updateGUIFromMRML(vtkObject* caller, void* callData);
+
+public:  
   /// Apply paint operation
   void apply();
 

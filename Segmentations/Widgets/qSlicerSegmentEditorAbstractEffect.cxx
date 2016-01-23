@@ -29,10 +29,24 @@
 
 // Slicer includes
 #include "qMRMLSliceWidget.h"
+#include "qMRMLSliceView.h"
 #include "qMRMLThreeDWidget.h"
+#include "qMRMLThreeDView.h"
+#include "vtkMRMLSliceLogic.h"
 
 // MRML includes
 #include "vtkMRMLScene.h"
+#include "vtkMRMLSliceNode.h"
+#include "vtkMRMLViewNode.h"
+
+// VTK includes
+#include <vtkSmartPointer.h>
+#include <vtkCommand.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkMatrix4x4.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerSegmentEditorAbstractEffectPrivate: public QObject
@@ -78,30 +92,6 @@ qSlicerSegmentEditorAbstractEffect::~qSlicerSegmentEditorAbstractEffect()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::cursorOff(qMRMLSliceWidget* sliceWidget)
-{
-  Q_D(qSlicerSegmentEditorAbstractEffect);
-
-  d->SavedCursor = &(sliceWidget->cursor());
-  sliceWidget->setCursor(QCursor(Qt::BlankCursor));
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::cursorOn(qMRMLSliceWidget* sliceWidget)
-{
-  Q_D(qSlicerSegmentEditorAbstractEffect);
-
-  if (d->SavedCursor)
-  {
-    sliceWidget->setCursor(*(d->SavedCursor));
-  }
-  else
-  {
-    sliceWidget->unsetCursor();
-  }
-}
-
-//-----------------------------------------------------------------------------
 vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSetNode()
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
@@ -122,6 +112,10 @@ vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSet
     node->HideFromEditorsOn();
     m_Scene->AddNode(node);
     node->Delete(); // Pass ownership to MRML scene only
+
+    // Connect node modified event to update user interface
+    qvtkConnect(node, vtkCommand::ModifiedEvent, this, SLOT( updateGUIFromMRML(vtkObject*,void*) ) );
+
     return node;
   }
 
@@ -168,4 +162,150 @@ void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString valu
   }
 
   node->SetAttribute(name.toLatin1().constData(), value.toLatin1().constData());
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::cursorOff(qMRMLWidget* viewWidget)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  d->SavedCursor = &(viewWidget->cursor());
+  viewWidget->setCursor(QCursor(Qt::BlankCursor));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::cursorOn(qMRMLWidget* viewWidget)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  if (d->SavedCursor)
+  {
+    viewWidget->setCursor(*(d->SavedCursor));
+  }
+  else
+  {
+    viewWidget->unsetCursor();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::abortEvent(vtkRenderWindowInteractor* interactor, unsigned long eventId, qMRMLWidget* viewWidget)
+{
+  if (!interactor || !viewWidget)
+  {
+    return;
+  }
+
+  QVariant tagsVariant = viewWidget->property(qSlicerSegmentEditorAbstractEffect::observerTagIdentifier());
+  QList<QVariant> tagsList = tagsVariant.toList();
+  foreach(QVariant tagVariant, tagsList)
+  {
+    unsigned long tag = tagVariant.toULongLong();
+    vtkCommand* command = interactor->GetCommand(tag);
+    command->SetAbortFlag(1);
+  }
+}
+
+//-----------------------------------------------------------------------------
+vtkRenderWindow* qSlicerSegmentEditorAbstractEffect::renderWindow(qMRMLWidget* viewWidget)
+{
+  if (!viewWidget)
+  {
+    return NULL;
+  }
+
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+  if (sliceWidget)
+  {
+    return sliceWidget->sliceView()->renderWindow();
+  }
+  else if (threeDWidget)
+  {
+    return threeDWidget->threeDView()->renderWindow();
+  }
+
+  qCritical() << "qSlicerSegmentEditorAbstractEffect::renderWindow: Unsupported view widget type!";
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+vtkRenderer* qSlicerSegmentEditorAbstractEffect::renderer(qMRMLWidget* viewWidget)
+{
+  vtkRenderWindow* renderWindow = qSlicerSegmentEditorAbstractEffect::renderWindow(viewWidget);
+  if (!renderWindow)
+  {
+    return NULL;
+  }
+
+  return vtkRenderer::SafeDownCast(renderWindow->GetRenderers()->GetItemAsObject(0));
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLAbstractViewNode* qSlicerSegmentEditorAbstractEffect::viewNode(qMRMLWidget* viewWidget)
+{
+  if (!viewWidget)
+  {
+    return NULL;
+  }
+
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+  if (sliceWidget)
+  {
+    return sliceWidget->sliceLogic()->GetSliceNode();
+  }
+  else if (threeDWidget)
+  {
+    return threeDWidget->mrmlViewNode();
+  }
+
+  qCritical() << "qSlicerSegmentEditorAbstractEffect::renderWindow: Unsupported view widget type!";
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+QPoint qSlicerSegmentEditorAbstractEffect::rasToXy(double ras[3], qMRMLSliceWidget* sliceWidget)
+{
+  QPoint xy(0,0);
+
+  vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(
+    qSlicerSegmentEditorAbstractEffect::viewNode(sliceWidget) );
+  if (!sliceNode)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::rasToXy: Failed to get slice node!";
+    return xy;
+  }
+
+  double rast[4] = {ras[0], ras[1], ras[2], 1.0};
+  double xyzw[4] = {0.0, 0.0, 0.0, 1.0};
+  vtkSmartPointer<vtkMatrix4x4> rasToXyMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  rasToXyMatrix->DeepCopy(sliceNode->GetXYToRAS());
+  rasToXyMatrix->Invert();
+  rasToXyMatrix->MultiplyPoint(rast, xyzw);
+
+  xy.setX(xyzw[0]);
+  xy.setY(xyzw[1]);
+  return xy;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget)
+{
+  outputRas[0] = outputRas[1] = outputRas[2] = 0.0;
+
+  vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(
+    qSlicerSegmentEditorAbstractEffect::viewNode(sliceWidget) );
+  if (!sliceNode)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::xyToRas: Failed to get slice node!";
+    return;
+  }
+  
+  double xyzw[4] = {xy.x(), xy.y(), 0.0, 1.0};
+  double rast[4] = {0.0, 0.0, 0.0, 1.0};
+  sliceNode->GetXYToRAS()->MultiplyPoint(xyzw, rast);
+  outputRas[0] = rast[0];
+  outputRas[1] = rast[1];
+  outputRas[2] = rast[2];
 }

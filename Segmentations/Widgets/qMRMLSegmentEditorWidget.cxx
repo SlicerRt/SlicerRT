@@ -505,11 +505,14 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
     interactionCallbackCommand->SetCallback( qMRMLSegmentEditorWidget::processInteractionEvents );
 
     // Connect events
-    unsigned long leftButtonPressTag = interactor->AddObserver(vtkCommand::LeftButtonPressEvent, interactionCallbackCommand, 1.0);
-    unsigned long leftButtonReleaseTag = interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, interactionCallbackCommand, 1.0);
-    unsigned long mouseMoveReleaseTag = interactor->AddObserver(vtkCommand::MouseMoveEvent, interactionCallbackCommand, 1.0);
-    unsigned long enterTag = interactor->AddObserver(vtkCommand::EnterEvent, interactionCallbackCommand, 1.0);
-    unsigned long leaveTag = interactor->AddObserver(vtkCommand::LeaveEvent, interactionCallbackCommand, 1.0);
+    QList<QVariant> tags;
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeftButtonPressEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::MouseMoveEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::EnterEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeaveEvent, interactionCallbackCommand, 1.0));
+    // Save tags in slice widget
+    sliceWidget->setProperty(qSlicerSegmentEditorAbstractEffect::observerTagIdentifier(), QVariant(tags));
     
     d->InteractionCallbackCommands << interactionCallbackCommand;
     d->InteractionCallbackEventInfos << eventInfo;
@@ -522,7 +525,7 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
     qMRMLThreeDView* threeDView = threeDWidget->threeDView();
     vtkRenderWindowInteractor* interactor = threeDView->interactor();
 
-    // Create command for slice view
+    // Create command for view
     SegmentEditorInteractionEventInfo* eventInfo = new SegmentEditorInteractionEventInfo();
     eventInfo->EditorWidget = this;
     eventInfo->ViewWidget = threeDWidget;
@@ -531,11 +534,14 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
     interactionCallbackCommand->SetCallback( qMRMLSegmentEditorWidget::processInteractionEvents );
 
     // Connect events
-    unsigned long leftButtonPressTag = interactor->AddObserver(vtkCommand::LeftButtonPressEvent, interactionCallbackCommand, 1.0);
-    unsigned long leftButtonReleaseTag = interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, interactionCallbackCommand, 1.0);
-    unsigned long mouseMoveReleaseTag = interactor->AddObserver(vtkCommand::MouseMoveEvent, interactionCallbackCommand, 1.0);
-    unsigned long enterTag = interactor->AddObserver(vtkCommand::EnterEvent, interactionCallbackCommand, 1.0);
-    unsigned long leaveTag = interactor->AddObserver(vtkCommand::LeaveEvent, interactionCallbackCommand, 1.0);
+    QList<QVariant> tags;
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeftButtonPressEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::MouseMoveEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::EnterEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeaveEvent, interactionCallbackCommand, 1.0));
+    // Save tags in view widget
+    threeDWidget->setProperty(qSlicerSegmentEditorAbstractEffect::observerTagIdentifier(), QVariant(tags));
     
     d->InteractionCallbackCommands.push_back(interactionCallbackCommand);
   }
@@ -557,6 +563,7 @@ void qMRMLSegmentEditorWidget::onEffectButtonClicked(QAbstractButton* button)
     button->blockSignals(true);
 
     button->setChecked(false);
+    d->ActiveEffect->deactivate();
     d->ActiveEffect = NULL;
     d->ActiveEffectLabel->setText("None");
 
@@ -565,9 +572,13 @@ void qMRMLSegmentEditorWidget::onEffectButtonClicked(QAbstractButton* button)
   }
   else
   {
+    // Deactivate previously selected effect
+    d->ActiveEffect->deactivate();
+
     // Set selected effect as current and activate it
     d->ActiveEffect = clickedEffect;
     d->ActiveEffectLabel->setText(d->ActiveEffect->name());
+    d->ActiveEffect->activate();
 
     // Create effect options widget
     //TODO:
@@ -584,10 +595,9 @@ void qMRMLSegmentEditorWidget::processInteractionEvents(vtkObject* caller,
   // Get and parse client data
   SegmentEditorInteractionEventInfo* eventInfo = reinterpret_cast<SegmentEditorInteractionEventInfo*>(clientData);
   qMRMLSegmentEditorWidget* editorWidget = eventInfo->EditorWidget;
-  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(eventInfo->ViewWidget);
-  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(eventInfo->ViewWidget);
+  qMRMLWidget* viewWidget = eventInfo->ViewWidget;
   vtkRenderWindowInteractor* callerInteractor = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
-  if (!editorWidget || (!sliceWidget && !threeDWidget) || !callerInteractor)
+  if (!editorWidget || !viewWidget || !callerInteractor)
   {
     qCritical() << "qMRMLSegmentEditorWidget::processInteractionEvents: Invalid event data!";
     return;
@@ -601,5 +611,5 @@ void qMRMLSegmentEditorWidget::processInteractionEvents(vtkObject* caller,
   }
 
   // Call processing function of active effect if any
-  activeEffect->processInteractionEvents(callerInteractor, eid, sliceWidget, threeDWidget);
+  activeEffect->processInteractionEvents(callerInteractor, eid, viewWidget);
 }

@@ -32,7 +32,7 @@
 #include <vtkCallbackCommand.h>
 #include <vtkPolyData.h>
 #include <vtkCollection.h>
-//#include <vtkRenderWindowInteractor.h>
+#include <vtkRenderWindowInteractor.h>
 //#include <vtkInteractorObserver.h>
 //#include <vtkRenderWindow.h>
 //#include <vtkRendererCollection.h>
@@ -44,7 +44,7 @@
 //#include <vtkMRMLSliceNode.h>
 
 // Slicer includes
-//#include "vtkMRMLSliceLogic.h"
+#include "qMRMLSliceWidget.h"
 
 //-----------------------------------------------------------------------------
 class qSlicerSegmentEditorRectangleEffectPrivate: public QObject
@@ -121,9 +121,23 @@ qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorRectangleEffect::clone()
 }
 
 //---------------------------------------------------------------------------
-//void qSlicerSegmentEditorRectangleEffect::ProcessEvents(vtkObject* caller,
-//                                        unsigned long eid,
-//                                        void* clientData,
-//                                        void* vtkNotUsed(callData))
-//{
-//}
+void qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
+  vtkRenderWindowInteractor* callerInteractor,
+  unsigned long eid,
+  qMRMLWidget* viewWidget )
+{
+  //TODO:
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorRectangleEffect::updateGUIFromMRML(vtkObject* caller, void* callData)
+{
+  // Get parameter set node
+  vtkMRMLSegmentEditorEffectNode* parameterNode = reinterpret_cast<vtkMRMLSegmentEditorEffectNode*>(caller);
+  if (!parameterNode)
+  {
+    return;
+  }
+
+  //TODO:
+}

@@ -49,14 +49,20 @@ public:
   /// Get name of effect
   virtual QString name();
 
-  /// Get icon for effect to be displayed in segment editor
-  virtual QIcon icon();
-
   /// Clone editor effect
   virtual qSlicerSegmentEditorAbstractEffect* clone();
 
+  /// Get icon for effect to be displayed in segment editor
+  virtual QIcon icon();
+
   /// Callback function invoked when interaction happens
-  //  static void ProcessEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
+  /// \param callerInteractor Interactor object that was observed to catch the event
+  /// \param eid Event identifier
+  /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
+  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget);
+
+  /// Update user interface from parameter set node
+  virtual void updateGUIFromMRML(vtkObject* caller, void* callData);
 
 protected:
   QScopedPointer<qSlicerSegmentEditorRectangleEffectPrivate> d_ptr;
