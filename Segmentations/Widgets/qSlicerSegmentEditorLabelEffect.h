@@ -18,58 +18,60 @@
 
 ==============================================================================*/
 
-// .NAME qSlicerSegmentEditorRectangleEffect - Logic class for segmentation handling
+// .NAME qSlicerSegmentEditorLabelEffect - Logic class for segmentation handling
 // .SECTION Description
 // TODO
 
-#ifndef __qSlicerSegmentEditorRectangleEffect_h
-#define __qSlicerSegmentEditorRectangleEffect_h
+#ifndef __qSlicerSegmentEditorLabelEffect_h
+#define __qSlicerSegmentEditorLabelEffect_h
 
 // Segmentations Widgets includes
 #include "qSlicerSegmentationsModuleWidgetsExport.h"
 
-#include "qSlicerSegmentEditorLabelEffect.h"
+#include "qSlicerSegmentEditorAbstractEffect.h"
 
-class qSlicerSegmentEditorRectangleEffectPrivate;
-class vtkPolyData;
+class qSlicerSegmentEditorLabelEffectPrivate;
+
+class vtkMatrix4x4;
+class vtkOrientedImageData;
+class vtkMRMLVolumeNode;
+class vtkMRMLSegmentationNode;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorRectangleEffect :
-  public qSlicerSegmentEditorLabelEffect
+class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorLabelEffect :
+  public qSlicerSegmentEditorAbstractEffect
 {
 public:
   Q_OBJECT
 
 public:
-  typedef qSlicerSegmentEditorLabelEffect Superclass;
-  qSlicerSegmentEditorRectangleEffect(QObject* parent = NULL);
-  virtual ~qSlicerSegmentEditorRectangleEffect(); 
+  typedef qSlicerSegmentEditorAbstractEffect Superclass;
+  qSlicerSegmentEditorLabelEffect(QObject* parent = NULL);
+  virtual ~qSlicerSegmentEditorLabelEffect(); 
 
 public:  
   /// Get name of effect
-  virtual QString name();
+  virtual QString name() = 0;
 
   /// Clone editor effect
-  virtual qSlicerSegmentEditorAbstractEffect* clone();
-
-  /// Get icon for effect to be displayed in segment editor
-  virtual QIcon icon();
-
-  /// Callback function invoked when interaction happens
-  /// \param callerInteractor Interactor object that was observed to catch the event
-  /// \param eid Event identifier
-  /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
-  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget);
+  virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
 
   /// Update user interface from parameter set node
   virtual void updateGUIFromMRML(vtkObject* caller, void* callData);
 
-protected:
-  QScopedPointer<qSlicerSegmentEditorRectangleEffectPrivate> d_ptr;
+// Utility functions
+public:
+  /// Return matrix for volume node that takes into account the IJKToRAS
+  /// and any linear transforms that have been applied
+  static void ijkToRasMatrix(vtkMRMLVolumeNode* node, vtkMatrix4x4* ijkToRas);
+
+  /// Return matrix for volume node that takes into account the IJKToRAS
+  /// and any linear transforms that have been applied
+  static void ijkToRasMatrix(vtkOrientedImageData* image, vtkMRMLSegmentationNode* node, vtkMatrix4x4* ijkToRas);
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSegmentEditorRectangleEffect);
-  Q_DISABLE_COPY(qSlicerSegmentEditorRectangleEffect);
+  Q_DECLARE_PRIVATE(qSlicerSegmentEditorLabelEffect);
+  Q_DISABLE_COPY(qSlicerSegmentEditorLabelEffect);
 };
 
 #endif

@@ -22,6 +22,7 @@
 #include "qSlicerSegmentEditorAbstractEffect.h"
 
 #include "vtkMRMLSegmentEditorEffectNode.h"
+#include "vtkOrientedImageData.h"
 
 // Qt includes
 #include <QDebug>
@@ -308,4 +309,31 @@ void qSlicerSegmentEditorAbstractEffect::xyToRas(QPoint xy, double outputRas[3],
   outputRas[0] = rast[0];
   outputRas[1] = rast[1];
   outputRas[2] = rast[2];
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image)
+{
+  outputIjk[0] = outputIjk[1] = outputIjk[2] = 0;
+
+  if (!sliceWidget || !image)
+  {
+    return;
+  }
+
+  // Convert from XY to RAS first
+  double ras[3] = {0.0, 0.0, 0.0};
+  qSlicerSegmentEditorAbstractEffect::xyToRas(xy, ras, sliceWidget);
+
+  // Convert RAS to image IJK
+  double rast[4] = {ras[0], ras[1], ras[2], 1.0};
+  double ijkl[4] = {0.0, 0.0, 0.0, 1.0};
+  vtkSmartPointer<vtkMatrix4x4> rasToIjkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  image->GetImageToWorldMatrix(rasToIjkMatrix);
+  rasToIjkMatrix->Invert();
+  rasToIjkMatrix->MultiplyPoint(rast, ijkl);
+
+  outputIjk[0] = (int)(ijkl[0] + 0.5); //TODO: Is rounding ok?
+  outputIjk[1] = (int)(ijkl[1] + 0.5);
+  outputIjk[2] = (int)(ijkl[2] + 0.5);
 }

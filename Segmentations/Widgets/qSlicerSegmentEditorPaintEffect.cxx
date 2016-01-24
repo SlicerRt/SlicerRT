@@ -21,6 +21,9 @@
 // Segmentations includes
 #include "qSlicerSegmentEditorPaintEffect.h"
 
+#include "vtkOrientedImageData.h"
+#include "vtkMRMLSegmentationNode.h"
+
 // Qt includes
 #include <QDebug>
 
@@ -38,15 +41,17 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
-//#include <vtkInteractorObserver.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkEventBroker.h>
 #include <vtkMRMLSliceNode.h>
+#include <vtkMRMLVolumeNode.h>
 
 // Slicer includes
 #include "qMRMLSliceWidget.h"
+#include "vtkMRMLSliceLogic.h"
+#include "vtkMRMLSliceLayerLogic.h"
 
 //-----------------------------------------------------------------------------
 /// Container class handling objects for painting for each slice view
@@ -112,10 +117,10 @@ protected:
   /// (could be stretched or rotate when transformed to IJK)
   /// - Make sure to hit every pixel in IJK space
   /// - Apply the threshold if selected
-  void paintBrush(QPoint xy);
+  void paintBrush(qMRMLSliceWidget* sliceWidget, QPoint xy);
 
   /// Paint one pixel to coordinate
-  void paintPixel(QPoint xy);
+  void paintPixel(qMRMLSliceWidget* sliceWidget, QPoint xy);
 
 public:
   QIcon EffectIcon;
@@ -264,11 +269,11 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLSliceWidget* sliceW
   {
     if (this->PixelMode)
     {
-      this->paintPixel(xy);
+      this->paintPixel(sliceWidget, xy);
     }
     else
     {
-      this->paintBrush(xy);
+      this->paintBrush(sliceWidget, xy);
     }
     this->PaintCoordinates.clear();
     this->paintFeedback(sliceWidget);
@@ -285,107 +290,114 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLSliceWidget* sliceW
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(QPoint xy)
+void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceWidget, QPoint xy)
 {
+  Q_Q(qSlicerSegmentEditorPaintEffect);
+
+  vtkOrientedImageData* labelImage = q->m_EditedLabelmap;
+  if (!labelImage)
+  {
+    return;
+  }
+  
+  int x = xy.x();
+  int y = xy.y();
+
+  // Get brush for slice widget
+  PaintEffectBrush* brush = this->brushForWidget(sliceWidget);
+
+  // Get the brush bounding box in IJK coordinates
+  // - Get the xy bounds
+  // - Transform to IJK
+  // - Clamp the bounds to the dimensions of the label image
+  double brushBounds[6];
+  vtkOrientedImageData::UninitializeBounds(brushBounds);
+  brush->PolyData->GetPoints()->GetBounds(brushBounds);
+
+  int left =   x + int(brushBounds[0] + 0.5);
+  int right =  x + int(brushBounds[1] + 0.5);
+  int bottom = y + int(brushBounds[2] + 0.5);
+  int top =    y + int(brushBounds[3] + 0.5);
+  int topLeftIjk[3] =     {0, 0, 0};
+  int topRightIjk[3] =    {0, 0, 0};
+  int bottomLeftIjk[3] =  {0, 0, 0};
+  int bottomRightIjk[3] = {0, 0, 0};
+  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(left, top),     topLeftIjk, sliceWidget, labelImage);
+  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(right, top),    topRightIjk, sliceWidget, labelImage);
+  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(left, bottom),  bottomLeftIjk, sliceWidget, labelImage);
+  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(right, bottom), bottomRightIjk, sliceWidget, labelImage);
+
+  // Clamp the top, bottom, left, right to the valid dimensions of the label image
+  int dims[3] = {0, 0, 0};
+  labelImage->GetDimensions(dims);
+
+  int topLeft[3] =     {0, 0, 0};
+  int topRight[3] =    {0, 0, 0};
+  int bottomLeft[3] =  {0, 0, 0};
+  int bottomRight[3] = {0, 0, 0};
+  for (int i=0; i<3; ++i)
+  {
+    topLeft[i] = std::max(topLeftIjk[i], 0);
+    topLeft[i] = std::min(topLeftIjk[i], dims[i]-1);
+    topRight[i] = std::max(topRightIjk[i], 0);
+    topRight[i] = std::min(topRightIjk[i], dims[i]-1);
+    bottomLeft[i] = std::max(bottomLeftIjk[i], 0);
+    bottomLeft[i] = std::min(bottomLeftIjk[i], dims[i]-1);
+    bottomRight[i] = std::max(bottomRightIjk[i], 0);
+    bottomRight[i] = std::min(bottomRightIjk[i], dims[i]-1);
+  }
+
+  // If the region is smaller than a pixel then paint it using paintPixel mode,
+  // to make sure at least one pixel is filled on each click
+  int maxRowDelta = 0;
+  int maxColumnDelta = 0;
+  for (int i=0; i<3; ++i)
+  {
+    int d = abs(topRight[i] - topLeft[i]);
+    if (d > maxColumnDelta)
+    {
+      maxColumnDelta = d;
+    }
+    d = abs(bottomRight[i] - bottomLeft[i]);
+    if (d > maxColumnDelta)
+    {
+      maxColumnDelta = d;
+    }
+    d = abs(bottomLeft[i] - topLeft[i]);
+    if (d > maxRowDelta)
+    {
+      maxRowDelta = d;
+    }
+    d = abs(bottomRight[i] - topRight[i]);
+    if (d > maxRowDelta)
+    {
+      maxRowDelta = d;
+    }
+    if (maxRowDelta <= 1 || maxColumnDelta <= 1)
+    {
+      this->paintPixel(sliceWidget, xy);
+      return;
+    }
+  }
+
+  // Get IJK to RAS transform matrices for edited labelmap and background volume
+  vtkMRMLSliceLogic* sliceLogic = sliceWidget->sliceLogic();
+  vtkMRMLSliceNode* sliceNode = sliceLogic->GetSliceNode();
+
+  vtkMRMLSliceLayerLogic* backgroundLogic = sliceLogic->GetBackgroundLayer();
+  vtkMRMLVolumeNode* backgroundNode = backgroundLogic->GetVolumeNode();
+  vtkSmartPointer<vtkMatrix4x4> backgroundIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(backgroundNode, backgroundIjkToRasMatrix);
+
+  vtkMRMLSliceLayerLogic* labelLogic = sliceLogic->GetLabelLayer();
+  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(labelLogic->GetVolumeNode());
+  vtkSmartPointer<vtkMatrix4x4> labelIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(labelImage, segmentationNode, labelIjkToRasMatrix);
+
+  double brushCenterRas[3] = {0.0, 0.0, 0.0};
+  q->xyToRas(xy, brushCenterRas, sliceWidget);
+
   /*
-    sliceLogic = self.sliceWidget.sliceLogic()
-    sliceNode = sliceLogic.GetSliceNode()
-    labelLogic = sliceLogic.GetLabelLayer()
-    labelNode = labelLogic.GetVolumeNode()
-    labelImage = labelNode.GetImageData()
-    backgroundLogic = sliceLogic.GetBackgroundLayer()
-    backgroundNode = backgroundLogic.GetVolumeNode()
-    backgroundImage = backgroundNode.GetImageData()
-
-    if not labelNode:
-      # if there's no label, we can't paint
-      return
-
-    #
-    # get the brush bounding box in ijk coordinates
-    # - get the xy bounds
-    # - transform to ijk
-    # - clamp the bounds to the dimensions of the label image
-    #
-    bounds = self.brush.GetPoints().GetBounds()
-    left = x + bounds[0]
-    right = x + bounds[1]
-    bottom = y + bounds[2]
-    top = y + bounds[3]
-
-    xyToIJK = labelLogic.GetXYToIJKTransform()
-    tlIJK = xyToIJK.TransformDoublePoint( (left, top, 0) )
-    trIJK = xyToIJK.TransformDoublePoint( (right, top, 0) )
-    blIJK = xyToIJK.TransformDoublePoint( (left, bottom, 0) )
-    brIJK = xyToIJK.TransformDoublePoint( (right, bottom, 0) )
-
-    dims = labelImage.GetDimensions()
-
-    # clamp the top, bottom, left, right to the
-    # valid dimensions of the label image
-    tl = [0,0,0]
-    tr = [0,0,0]
-    bl = [0,0,0]
-    br = [0,0,0]
-    for i in xrange(3):
-      tl[i] = int(round(tlIJK[i]))
-      if tl[i] < 0:
-        tl[i] = 0
-      if tl[i] >= dims[i]:
-        tl[i] = dims[i] - 1
-      tr[i] = int(round(trIJK[i]))
-      if tr[i] < 0:
-        tr[i] = 0
-      if tr[i] > dims[i]:
-        tr[i] = dims[i] - 1
-      bl[i] = int(round(blIJK[i]))
-      if bl[i] < 0:
-        bl[i] = 0
-      if bl[i] > dims[i]:
-        bl[i] = dims[i] - 1
-      br[i] = int(round(brIJK[i]))
-      if br[i] < 0:
-        br[i] = 0
-      if br[i] > dims[i]:
-        br[i] = dims[i] - 1
-
-    # If the region is smaller than a pixel then paint it using paintPixel mode,
-    # to make sure at least one pixel is filled on each click
-    maxRowDelta = 0
-    maxColumnDelta = 0
-    for i in xrange(3):
-      d = abs(tr[i] - tl[i])
-      if d > maxColumnDelta:
-        maxColumnDelta = d
-      d = abs(br[i] - bl[i])
-      if d > maxColumnDelta:
-        maxColumnDelta = d
-      d = abs(bl[i] - tl[i])
-      if d > maxRowDelta:
-        maxRowDelta = d
-      d = abs(br[i] - tr[i])
-      if d > maxRowDelta:
-        maxRowDelta = d
-    if maxRowDelta<=1 or maxColumnDelta<=1 :
-      self.paintPixel(x,y)
-      return
-
-    #
-    # get the layers and nodes
-    # and ijk to ras matrices including transforms
-    #
-    labelLogic = self.sliceLogic.GetLabelLayer()
-    labelNode = labelLogic.GetVolumeNode()
-    backgroundLogic = self.sliceLogic.GetLabelLayer()
-    backgroundNode = backgroundLogic.GetVolumeNode()
-    backgroundIJKToRAS = self.logic.getIJKToRASMatrix(backgroundNode)
-    labelIJKToRAS = self.logic.getIJKToRASMatrix(labelNode)
-
-
-    xyToRAS = sliceNode.GetXYToRAS()
-    brushCenter = xyToRAS.MultiplyPoint( (x, y, 0, 1) )[:3]
-
-
     brushRadius = self.radius
     bSphere = self.sphere
 
@@ -508,7 +520,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(QPoint xy)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(QPoint xy)
+void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceWidget, QPoint xy)
 {
   /*
     sliceLogic = self.sliceWidget.sliceLogic()

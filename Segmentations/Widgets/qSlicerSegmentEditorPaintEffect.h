@@ -28,20 +28,20 @@
 // Segmentations Widgets includes
 #include "qSlicerSegmentationsModuleWidgetsExport.h"
 
-#include "qSlicerSegmentEditorAbstractEffect.h"
+#include "qSlicerSegmentEditorLabelEffect.h"
 
 class qSlicerSegmentEditorPaintEffectPrivate;
 class vtkPolyData;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorPaintEffect :
-  public qSlicerSegmentEditorAbstractEffect
+  public qSlicerSegmentEditorLabelEffect
 {
 public:
   Q_OBJECT
 
 public:
-  typedef qSlicerSegmentEditorAbstractEffect Superclass;
+  typedef qSlicerSegmentEditorLabelEffect Superclass;
   qSlicerSegmentEditorPaintEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorPaintEffect(); 
 

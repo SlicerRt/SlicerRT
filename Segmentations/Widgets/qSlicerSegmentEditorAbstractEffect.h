@@ -131,6 +131,8 @@ public:
   static QPoint rasToXy(double ras[3], qMRMLSliceWidget* sliceWidget);
   /// Convert XY in-slice position to RAS position
   static void xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget);
+  /// Convert XY in-slice position to image IJK position
+  static void xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
 
 protected:
   /// MRML scene
