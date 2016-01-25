@@ -18,23 +18,23 @@
 
 ==============================================================================*/
 
-// .NAME qSlicerSegmentEditorRectangleEffect - Logic class for segmentation handling
+// .NAME qSlicerSegmentEditorPaintEffect - Logic class for segmentation handling
 // .SECTION Description
 // TODO
 
-#ifndef __qSlicerSegmentEditorRectangleEffect_h
-#define __qSlicerSegmentEditorRectangleEffect_h
+#ifndef __qSlicerSegmentEditorPaintEffect_h
+#define __qSlicerSegmentEditorPaintEffect_h
 
 // Segmentations Widgets includes
 #include "qSlicerSegmentationsModuleWidgetsExport.h"
 
 #include "qSlicerSegmentEditorLabelEffect.h"
 
-class qSlicerSegmentEditorRectangleEffectPrivate;
+class qSlicerSegmentEditorPaintEffectPrivate;
 class vtkPolyData;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorRectangleEffect :
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorPaintEffect :
   public qSlicerSegmentEditorLabelEffect
 {
 public:
@@ -42,10 +42,10 @@ public:
 
 public:
   typedef qSlicerSegmentEditorLabelEffect Superclass;
-  qSlicerSegmentEditorRectangleEffect(QObject* parent = NULL);
-  virtual ~qSlicerSegmentEditorRectangleEffect(); 
+  qSlicerSegmentEditorPaintEffect(QObject* parent = NULL);
+  virtual ~qSlicerSegmentEditorPaintEffect(); 
 
-public:  
+public:
   /// Get name of effect
   virtual QString name();
 
@@ -54,6 +54,9 @@ public:
 
   /// Get icon for effect to be displayed in segment editor
   virtual QIcon icon();
+
+  /// Perform actions to deactivate the effect (such as destroy actors, etc.)
+  virtual void deactivate();
 
   /// Callback function invoked when interaction happens
   /// \param callerInteractor Interactor object that was observed to catch the event
@@ -64,12 +67,19 @@ public:
   /// Update user interface from parameter set node
   virtual void updateGUIFromMRML(vtkObject* caller, void* callData);
 
+  /// Update parameter set node from user interface
+  virtual void updateMRMLFromGUI();
+
+public:  
+  /// Apply paint operation
+  void apply();
+
 protected:
-  QScopedPointer<qSlicerSegmentEditorRectangleEffectPrivate> d_ptr;
+  QScopedPointer<qSlicerSegmentEditorPaintEffectPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSegmentEditorRectangleEffect);
-  Q_DISABLE_COPY(qSlicerSegmentEditorRectangleEffect);
+  Q_DECLARE_PRIVATE(qSlicerSegmentEditorPaintEffect);
+  Q_DISABLE_COPY(qSlicerSegmentEditorPaintEffect);
 };
 
 #endif

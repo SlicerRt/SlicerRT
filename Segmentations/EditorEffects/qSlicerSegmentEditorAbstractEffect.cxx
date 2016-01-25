@@ -48,6 +48,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkMatrix4x4.h>
+#include <vtkProp.h>
 
 //-----------------------------------------------------------------------------
 class qSlicerSegmentEditorAbstractEffectPrivate: public QObject
@@ -64,6 +65,9 @@ public:
 
   /// MRML ID of the parameter set node corresponding to the effect
   QString ParameterSetNodeID;
+
+  /// List of actors used by the effect. Removed when effect is deactivated
+  QMap<qMRMLWidget*, QList<vtkProp*> > Actors;
 };
 
 //-----------------------------------------------------------------------------
@@ -90,6 +94,69 @@ qSlicerSegmentEditorAbstractEffect::qSlicerSegmentEditorAbstractEffect(QObject* 
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffect::~qSlicerSegmentEditorAbstractEffect()
 {
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::deactivate()
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  // Remove actors from container
+  QMapIterator<qMRMLWidget*, QList<vtkProp*> > actorsIterator(d->Actors);
+  while (actorsIterator.hasNext())
+  {
+    actorsIterator.next();
+    qMRMLWidget* viewWidget = actorsIterator.key();
+    foreach (vtkProp* actor, actorsIterator.value())
+    {
+      vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
+      if (!renderer)
+      {
+        qCritical() << "qSlicerSegmentEditorAbstractEffect::deactivate: Failed to get renderer for view widget!";
+        continue;
+      }
+
+      // Call both actor removal functions to support both slice and 3D views
+      // (the 2D actors are members of vtkViewport, base class of vtkRenderer,
+      // while vtkRenderer has another, general actor list)
+      renderer->RemoveActor(actor);
+      renderer->RemoveActor2D(actor);
+    }
+
+    // Schedule render
+    qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+    qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+    if (sliceWidget)
+    {
+      sliceWidget->sliceView()->scheduleRender();
+    }
+    else if (threeDWidget)
+    {
+      threeDWidget->threeDView()->scheduleRender();
+    }
+    else
+    {
+      qCritical() << "qSlicerSegmentEditorAbstractEffect::deactivate: Unsupported view widget!";
+      continue;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::addActor(qMRMLWidget* viewWidget, vtkProp* actor)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  if (d->Actors.contains(viewWidget))
+  {
+    d->Actors[viewWidget] << actor;
+  }
+  else
+  {
+    QList<vtkProp*> actorList;
+    actorList << actor;
+    d->Actors[viewWidget] = actorList;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -291,7 +358,7 @@ QPoint qSlicerSegmentEditorAbstractEffect::rasToXy(double ras[3], qMRMLSliceWidg
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget)
+void qSlicerSegmentEditorAbstractEffect::xyzToRas(double inputXyz[3], double outputRas[3], qMRMLSliceWidget* sliceWidget)
 {
   outputRas[0] = outputRas[1] = outputRas[2] = 0.0;
 
@@ -303,7 +370,10 @@ void qSlicerSegmentEditorAbstractEffect::xyToRas(QPoint xy, double outputRas[3],
     return;
   }
   
-  double xyzw[4] = {xy.x(), xy.y(), 0.0, 1.0};
+  // x,y uses slice (canvas) coordinate system and actually has a 3rd z component (index into the
+  // slice you're looking at), hence xyToRAS is really performing xyzToRAS. RAS is patient world
+  // coordinate system. Note the 1 is because the transform uses homogeneous coordinates.
+  double xyzw[4] = {inputXyz[0], inputXyz[1], inputXyz[2], 1.0};
   double rast[4] = {0.0, 0.0, 0.0, 1.0};
   sliceNode->GetXYToRAS()->MultiplyPoint(xyzw, rast);
   outputRas[0] = rast[0];
@@ -312,7 +382,14 @@ void qSlicerSegmentEditorAbstractEffect::xyToRas(QPoint xy, double outputRas[3],
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image)
+void qSlicerSegmentEditorAbstractEffect::xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget)
+{
+  double xyz[3] = {xy.x(), xy.y(), 0.0};
+  qSlicerSegmentEditorAbstractEffect::xyzToRas(xyz, outputRas, sliceWidget);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::xyzToIjk(double inputXyz[3], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image)
 {
   outputIjk[0] = outputIjk[1] = outputIjk[2] = 0;
 
@@ -323,7 +400,7 @@ void qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint xy, int outputIjk[3], qM
 
   // Convert from XY to RAS first
   double ras[3] = {0.0, 0.0, 0.0};
-  qSlicerSegmentEditorAbstractEffect::xyToRas(xy, ras, sliceWidget);
+  qSlicerSegmentEditorAbstractEffect::xyzToRas(inputXyz, ras, sliceWidget);
 
   // Convert RAS to image IJK
   double rast[4] = {ras[0], ras[1], ras[2], 1.0};
@@ -333,7 +410,14 @@ void qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint xy, int outputIjk[3], qM
   rasToIjkMatrix->Invert();
   rasToIjkMatrix->MultiplyPoint(rast, ijkl);
 
-  outputIjk[0] = (int)(ijkl[0] + 0.5); //TODO: Is rounding ok?
+  outputIjk[0] = (int)(ijkl[0] + 0.5);
   outputIjk[1] = (int)(ijkl[1] + 0.5);
   outputIjk[2] = (int)(ijkl[2] + 0.5);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image)
+{
+  double xyz[3] = {xy.x(), xy.y(), 0.0};
+  qSlicerSegmentEditorAbstractEffect::xyzToIjk(xyz, outputIjk, sliceWidget, image);
 }

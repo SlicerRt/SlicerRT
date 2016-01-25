@@ -52,6 +52,7 @@
 #include "qMRMLSliceWidget.h"
 #include "vtkMRMLSliceLogic.h"
 #include "vtkMRMLSliceLayerLogic.h"
+#include "vtkImageSlicePaint.h"
 
 //-----------------------------------------------------------------------------
 /// Container class handling objects for painting for each slice view
@@ -126,8 +127,9 @@ public:
   QIcon EffectIcon;
 
   QList<QPoint> PaintCoordinates;
-  QList<vtkActor2D*>  FeedbackActors;
+  QList<vtkActor2D*> FeedbackActors;
   QMap<qMRMLWidget*, PaintEffectBrush*> Brushes;
+  vtkImageSlicePaint* Painter;
   bool DelayedPaint;
   bool PixelMode;
   bool IsPainting;
@@ -141,6 +143,7 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(qSlicerSegmentEditorPaintEffect& object)
   : q_ptr(&object)
+  , Painter(NULL)
   , DelayedPaint(true)
   , PixelMode(false)
   , IsPainting(false)
@@ -152,17 +155,7 @@ qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(q
 {
   this->EffectIcon = QIcon(":Icons/Paint.png");
 
-  /*
-    self.createGlyph(self.brush)
-    self.mapper = vtk.vtkPolyDataMapper2D()
-    self.actor = vtk.vtkActor2D()
-    self.mapper.SetInputData(self.brush)
-    self.actor.SetMapper(self.mapper)
-    self.actor.VisibilityOff()
-
-    self.renderer.AddActor2D(self.actor)
-    self.actors.append(self.actor)
-  */
+  this->Painter = vtkImageSlicePaint::New();
 
   this->PaintCoordinates.clear();
   this->FeedbackActors.clear();
@@ -172,6 +165,11 @@ qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(q
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorPaintEffectPrivate::~qSlicerSegmentEditorPaintEffectPrivate()
 {
+  if (this->Painter)
+  {
+    this->Painter->Delete();
+    this->Painter = NULL;
+  }
   this->PaintCoordinates.clear();
   this->FeedbackActors.clear();
 
@@ -185,6 +183,8 @@ qSlicerSegmentEditorPaintEffectPrivate::~qSlicerSegmentEditorPaintEffectPrivate(
 //-----------------------------------------------------------------------------
 PaintEffectBrush* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLSliceWidget* sliceWidget)
 {
+  Q_Q(qSlicerSegmentEditorPaintEffect);
+
   if (this->Brushes.contains(sliceWidget))
   {
     return this->Brushes[sliceWidget];
@@ -201,6 +201,7 @@ PaintEffectBrush* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLSl
   else
   {
     renderer->AddActor2D(brush->Actor);
+    q->addActor(sliceWidget, brush->Actor);
   }
 
   this->Brushes[sliceWidget] = brush;
@@ -261,9 +262,10 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintFeedback(qMRMLSliceWidget* sli
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLSliceWidget* sliceWidget)
 {
-    //if self.paintCoordinates != []:
-    //  if self.undoRedo:
-    //    self.undoRedo.saveState()
+  //TODO:
+  //if self.paintCoordinates != []:
+  //  if self.undoRedo:
+  //    self.undoRedo.saveState()
 
   foreach (QPoint xy, this->PaintCoordinates)
   {
@@ -397,126 +399,129 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   double brushCenterRas[3] = {0.0, 0.0, 0.0};
   q->xyToRas(xy, brushCenterRas, sliceWidget);
 
-  /*
-    brushRadius = self.radius
-    bSphere = self.sphere
+  QString paintOverStr = q->parameter(qSlicerSegmentEditorLabelEffect::paintOverParameterName());
+  bool paintOver(paintOverStr.toInt());
+  QString paintThresholdStr = q->parameter(qSlicerSegmentEditorLabelEffect::paintThresholdParameterName());
+  int paintThreshold(paintThresholdStr.toInt());
+  QString paintThresholdMinStr = q->parameter(qSlicerSegmentEditorLabelEffect::paintThresholdMinParameterName());
+  int paintThresholdMin(paintThresholdMinStr.toInt());
+  QString paintThresholdMaxStr = q->parameter(qSlicerSegmentEditorLabelEffect::paintThresholdMaxParameterName());
+  int paintThresholdMax(paintThresholdMaxStr.toInt());
 
-    parameterNode = EditUtil.getParameterNode()
-    paintLabel = int(parameterNode.GetParameter("label"))
-    paintOver = int(parameterNode.GetParameter("LabelEffect,paintOver"))
-    paintThreshold = int(parameterNode.GetParameter("LabelEffect,paintThreshold"))
-    paintThresholdMin = float(
-        parameterNode.GetParameter("LabelEffect,paintThresholdMin"))
-    paintThresholdMax = float(
-        parameterNode.GetParameter("LabelEffect,paintThresholdMax"))
+  this->Painter->SetBackgroundImage(backgroundNode->GetImageData());
+  this->Painter->SetBackgroundIJKToWorld(backgroundIjkToRasMatrix);
+  this->Painter->SetWorkingImage(labelImage);
+  this->Painter->SetWorkingIJKToWorld(labelIjkToRasMatrix);
+  this->Painter->SetTopLeft(topLeft);
+  this->Painter->SetTopRight(topRight);
+  this->Painter->SetBottomLeft(bottomLeft);
+  this->Painter->SetBottomRight(bottomRight);
+  this->Painter->SetBrushCenter(brushCenterRas);
+  this->Painter->SetBrushRadius(this->Radius);
+  this->Painter->SetPaintLabel(1); // Segment binary labelmaps all have voxel values of 1 for foreground
+  this->Painter->SetPaintOver(paintOver);
+  this->Painter->SetThresholdPaint(paintThreshold);
+  this->Painter->SetThresholdPaintRange(paintThresholdMin, paintThresholdMax);
+  
+  // Fill volume of a sphere rather than a circle on the currently displayed image slice
+  if (this->Sphere)
+  {
+    // Algorithm:
+    //   Assume brush radius is in mm
+    //   Estimate zVoxelSize
+    //   Compute number of slices spanned by sphere, that are still within the volume
+    //   For each spanned slice
+    //     Reposition the brush center using xy(z)ToRAS transform: i.e. canvas to patient world coordinates
+    //     Resize the radius: brushRadiusOffset=sqrt(brushRadius*brushRadius - zOffset_mm*zOffset_mm)
+    //     Invoke Paint()
+    //   Finally paint on the center slice, leaving the GUI on the center slice being most visibly edited
 
-    #
-    # set up the painter class and let 'r rip!
-    #
-    if not hasattr(self,"painter"):
-      self.painter = slicer.vtkImageSlicePaint()
+    // Estimate Z voxel size
+    double zVoxelSizeMm = 1.0;
+    double brushCenter1Xyz[3] = {xy.x(), xy.y(), 0.0};
+    double brushCenter1Ras[3] = {0.0, 0.0, 0.0};
+    q->xyzToRas(brushCenter1Xyz, brushCenter1Ras, sliceWidget);
+    double brushCenter2Xyz[3] = {xy.x(), xy.y(), 100.0};
+    double brushCenter2Ras[3] = {0.0, 0.0, 0.0};
+    q->xyzToRas(brushCenter2Xyz, brushCenter2Ras, sliceWidget);
+    double dx1 = brushCenter1Ras[0] - brushCenter2Ras[0];
+    double dx2 = brushCenter1Ras[1] - brushCenter2Ras[1];
+    double dx3 = brushCenter1Ras[2] - brushCenter2Ras[2];
+    double distanceSpannedBy100Slices = sqrt(dx1*dx1+dx2*dx2+dx3*dx3);  // Compute L2 norm
+    if (distanceSpannedBy100Slices > 0)
+    {
+      zVoxelSizeMm = distanceSpannedBy100Slices / 100.0;
+    }
 
-    self.painter.SetBackgroundImage(backgroundImage)
-    self.painter.SetBackgroundIJKToWorld(backgroundIJKToRAS)
-    self.painter.SetWorkingImage(labelImage)
-    self.painter.SetWorkingIJKToWorld(labelIJKToRAS)
-    self.painter.SetTopLeft( tl[0], tl[1], tl[2] )
-    self.painter.SetTopRight( tr[0], tr[1], tr[2] )
-    self.painter.SetBottomLeft( bl[0], bl[1], bl[2] )
-    self.painter.SetBottomRight( br[0], br[1], br[2] )
-    self.painter.SetBrushCenter( brushCenter[0], brushCenter[1], brushCenter[2] )
-    self.painter.SetBrushRadius( brushRadius )
-    self.painter.SetPaintLabel(paintLabel)
-    self.painter.SetPaintOver(paintOver)
-    self.painter.SetThresholdPaint(paintThreshold)
-    self.painter.SetThresholdPaintRange(paintThresholdMin, paintThresholdMax)
+    // Compute number of slices spanned by sphere
+    int numberOfSlicesInEachDirection = (int)((this->Radius / zVoxelSizeMm) - 1); // Floor instead of round as in the original PaintEffect code
+    for (int sliceNumber=1; sliceNumber<=numberOfSlicesInEachDirection; ++sliceNumber)
+    {
+      // Each slice in both directions
+      for (int direction=-1; direction<=1; direction+=2)
+      {
+        int sliceOffset = sliceNumber * direction;
 
-    if bSphere:  # fill volume of a sphere rather than a circle on the currently displayed image slice
-        # Algorithm:
-        ###########################
-        # Assume brushRadius is in mm
-        # Estimate zVoxelSize
-        # Compute number of slices spanned by sphere, that are still within the volume
-        # For each spanned slice
-        #    reposition the brushCenter using xy(z)ToRAS transform: i.e. canvas to patient world coordinates
-        #    resize the radius: brushRadiusOffset=sqrt(brushRadius*brushRadius - zOffset_mm*zOffset_mm)
-        #    invoke Paint()
-        # Finally paint on the center slice, leaving the gui on the center slice being most visibly edited
-        #------------------
-        # Estimate zVoxelSize_mm
-        brushCenter1 = xyToRAS.MultiplyPoint( (x, y, 0, 1) )[:3]
-        brushCenter2 = xyToRAS.MultiplyPoint( (x, y, 100, 1) )[:3]
-        dx1=brushCenter1[0]-brushCenter2[0]
-        dx2=brushCenter1[1]-brushCenter2[1]
-        dx3=brushCenter1[2]-brushCenter2[2]
-        distanceSpannedBy100Slices = sqrt(dx1*dx1+dx2*dx2+dx3*dx3)  # compute L2 norm
-        if distanceSpannedBy100Slices==0:
-            zVoxelSize_mm=1
-        else:
-            zVoxelSize_mm = distanceSpannedBy100Slices/100
-        # --
-        # Compute number of slices spanned by sphere
-        nNumSlicesInEachDirection=brushRadius / zVoxelSize_mm;
-        nNumSlicesInEachDirection=nNumSlicesInEachDirection-1
-        sliceOffsetArray=numpy.concatenate((-1*numpy.arange(1,nNumSlicesInEachDirection+1,),  numpy.arange(1,nNumSlicesInEachDirection+1)))
-        for iSliceOffset in sliceOffsetArray:
-            # x,y uses slice (canvas) coordinate system and actually has a 3rd z component (index into the slice you're looking at)
-            # hence xyToRAS is really performing xyzToRAS.   RAS is patient world coordinate system. Note the 1 is because the trasform uses homogeneous coordinates
-            iBrushCenter = xyToRAS.MultiplyPoint( (x, y, iSliceOffset, 1) )[:3]
-            self.painter.SetBrushCenter( iBrushCenter[0], iBrushCenter[1], iBrushCenter[2] )
-            # [ ] Need to just continue (pass this loop iteration if the brush center is not within the volume
-            zOffset_mm=zVoxelSize_mm*iSliceOffset;
-            brushRadiusOffset=sqrt(brushRadius*brushRadius - zOffset_mm*zOffset_mm)
-            self.painter.SetBrushRadius( brushRadiusOffset )
+        // x,y uses slice (canvas) coordinate system and actually has a 3rd z component (index into the
+        // slice you're looking at), hence xyToRAS is really performing xyzToRAS. RAS is patient world
+        // coordinate system. Note the 1 is because the transform uses homogeneous coordinates.
+        double currentBrushCenterXyz[3] = {xy.x(), xy.y(), sliceOffset};
+        double currentBrushCenterRas[3] = {0.0, 0.0, 0.0};
+        q->xyzToRas(currentBrushCenterXyz, currentBrushCenterRas, sliceWidget);
+        this->Painter->SetBrushCenter(currentBrushCenterRas);
 
-            # --
-            tlIJKtemp = xyToIJK.TransformDoublePoint( (left, top, iSliceOffset) )
-            trIJKtemp = xyToIJK.TransformDoublePoint( (right, top, iSliceOffset) )
-            blIJKtemp = xyToIJK.TransformDoublePoint( (left, bottom, iSliceOffset) )
-            brIJKtemp = xyToIJK.TransformDoublePoint( (right, bottom, iSliceOffset) )
-            # clamp the top, bottom, left, right to the
-            # valid dimensions of the label image
-            tltemp = [0,0,0]
-            trtemp = [0,0,0]
-            bltemp = [0,0,0]
-            brtemp = [0,0,0]
-            for i in xrange(3):
-              tltemp[i] = int(round(tlIJKtemp[i]))
-              if tltemp[i] < 0:
-                tltemp[i] = 0
-              if tltemp[i] >= dims[i]:
-                tltemp[i] = dims[i] - 1
-              trtemp[i] = int(round(trIJKtemp[i]))
-              if trtemp[i] < 0:
-                trtemp[i] = 0
-              if trtemp[i] > dims[i]:
-                trtemp[i] = dims[i] - 1
-              bltemp[i] = int(round(blIJKtemp[i]))
-              if bltemp[i] < 0:
-                bltemp[i] = 0
-              if bltemp[i] > dims[i]:
-                bltemp[i] = dims[i] - 1
-              brtemp[i] = int(round(brIJKtemp[i]))
-              if brtemp[i] < 0:
-                brtemp[i] = 0
-              if brtemp[i] > dims[i]:
-                brtemp[i] = dims[i] - 1
-            self.painter.SetTopLeft( tltemp[0], tltemp[1], tltemp[2] )
-            self.painter.SetTopRight( trtemp[0], trtemp[1], trtemp[2] )
-            self.painter.SetBottomLeft( bltemp[0], bltemp[1], bltemp[2] )
-            self.painter.SetBottomRight( brtemp[0], brtemp[1], brtemp[2] )
+        double zOffsetMm = zVoxelSizeMm * sliceOffset;
+        double brushRadiusOffset = sqrt(this->Radius*this->Radius - zOffsetMm*zOffsetMm);
+        this->Painter->SetBrushRadius(brushRadiusOffset);
 
-            self.painter.Paint()
+        double topLeftXyz[3] = {left, top, sliceOffset};
+        int currentTopLeftIjk[3] = {0, 0, 0};
+        q->xyzToIjk(topLeftXyz, currentTopLeftIjk, sliceWidget, labelImage);
+        double topRightXyz[3] = {right, top, sliceOffset};
+        int currentTopRightIjk[3] = {0, 0, 0};
+        q->xyzToIjk(topRightXyz, currentTopRightIjk, sliceWidget, labelImage);
+        double bottomLeftXyz[3] = {left, bottom, sliceOffset};
+        int currentBottomLeftIjk[3] = {0, 0, 0};
+        q->xyzToIjk(bottomLeftXyz, currentBottomLeftIjk, sliceWidget, labelImage);
+        double bottomRightXyz[3] = {right, bottom, sliceOffset};
+        int currentBottomRightIjk[3] = {0, 0, 0};
+        q->xyzToIjk(bottomRightXyz, currentBottomRightIjk, sliceWidget, labelImage);
 
-    # paint the slice: same for circular and spherical brush modes
-    self.painter.SetTopLeft( tl[0], tl[1], tl[2] )
-    self.painter.SetTopRight( tr[0], tr[1], tr[2] )
-    self.painter.SetBottomLeft( bl[0], bl[1], bl[2] )
-    self.painter.SetBottomRight( br[0], br[1], br[2] )
-    self.painter.SetBrushCenter( brushCenter[0], brushCenter[1], brushCenter[2] )
-    self.painter.SetBrushRadius( brushRadius )
-    self.painter.Paint()
-  */
+        // Clamp the top, bottom, left, right to the valid dimensions of the label image
+        int currentTopLeft[3] =     {0, 0, 0};
+        int currentTopRight[3] =    {0, 0, 0};
+        int currentBottomLeft[3] =  {0, 0, 0};
+        int currentBottomRight[3] = {0, 0, 0};
+        for (int i=0; i<3; ++i)
+        {
+          currentTopLeft[i] = std::max(currentTopLeftIjk[i], 0);
+          currentTopLeft[i] = std::min(currentTopLeftIjk[i], dims[i]-1);
+          currentTopRight[i] = std::max(currentTopRightIjk[i], 0);
+          currentTopRight[i] = std::min(currentTopRightIjk[i], dims[i]-1);
+          currentBottomLeft[i] = std::max(currentBottomLeftIjk[i], 0);
+          currentBottomLeft[i] = std::min(currentBottomLeftIjk[i], dims[i]-1);
+          currentBottomRight[i] = std::max(currentBottomRightIjk[i], 0);
+          currentBottomRight[i] = std::min(currentBottomRightIjk[i], dims[i]-1);
+        }
+        this->Painter->SetTopLeft(currentTopLeft);
+        this->Painter->SetTopRight(currentTopRight);
+        this->Painter->SetBottomLeft(currentBottomLeft);
+        this->Painter->SetBottomRight(currentBottomRight);
+
+        this->Painter->Paint();
+      } // For each slice to paint
+    }
+  } // If spherical brush
+
+  // Paint the slice: same for circular and spherical brush modes
+  this->Painter->SetBrushCenter(brushCenterRas);
+  this->Painter->SetBrushRadius(this->Radius);
+  this->Painter->SetTopLeft(topLeft);
+  this->Painter->SetTopRight(topRight);
+  this->Painter->SetBottomLeft(bottomLeft);
+  this->Painter->SetBottomRight(bottomRight);
+
+  this->Painter->Paint();
 }
 
 //-----------------------------------------------------------------------------
@@ -649,11 +654,7 @@ qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorPaintEffect::clone()
 //---------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::deactivate()
 {
-  /*
-    for a in self.feedbackActors:
-      self.renderer.RemoveActor2D(a)
-    self.sliceView.scheduleRender()
-  */
+  Superclass::deactivate();
 }
 
 //---------------------------------------------------------------------------
@@ -742,6 +743,12 @@ void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML(vtkObject* caller, void*
 
   // Update brushes
   //d->updateBrushes(); //TODO:
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
+{
+  //TODO:
 }
 
 //-----------------------------------------------------------------------------

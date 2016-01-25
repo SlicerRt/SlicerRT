@@ -23,8 +23,8 @@
 #ifndef __qSlicerSegmentEditorEffectFactory_h
 #define __qSlicerSegmentEditorEffectFactory_h
 
-// SubjectHierarchy includes
-#include "qSlicerSegmentationsModuleWidgetsExport.h"
+// Segmentations Editor Effects includes
+#include "qSlicerSegmentationsEditorEffectsExport.h"
 
 // Qt includes
 #include <QObject>
@@ -36,7 +36,7 @@ class qSlicerSegmentEditorEffectFactoryCleanup;
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \class qSlicerSegmentEditorEffectFactory
 /// \brief Singleton class managing segment editor effect plugins
-class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorEffectFactory : public QObject
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorEffectFactory : public QObject
 {
   Q_OBJECT
 

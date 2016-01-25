@@ -25,8 +25,8 @@
 #ifndef __qSlicerSegmentEditorLabelEffect_h
 #define __qSlicerSegmentEditorLabelEffect_h
 
-// Segmentations Widgets includes
-#include "qSlicerSegmentationsModuleWidgetsExport.h"
+// Segmentations Editor Effects includes
+#include "qSlicerSegmentationsEditorEffectsExport.h"
 
 #include "qSlicerSegmentEditorAbstractEffect.h"
 
@@ -38,7 +38,7 @@ class vtkMRMLVolumeNode;
 class vtkMRMLSegmentationNode;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorLabelEffect :
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorLabelEffect :
   public qSlicerSegmentEditorAbstractEffect
 {
 public:
@@ -49,15 +49,25 @@ public:
   qSlicerSegmentEditorLabelEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorLabelEffect(); 
 
-public:  
+  static QString paintOverParameterName() { return QString("PaintOver"); };
+  static QString paintThresholdParameterName() { return QString("PaintThreshold"); };
+  static QString paintThresholdMinParameterName() { return QString("PaintThresholdMin"); };
+  static QString paintThresholdMaxParameterName() { return QString("PaintThresholdMax"); };
+
+public:
   /// Get name of effect
+  /// (redefinition of pure virtual function to allow python wrapper to identify this as abstract class)
   virtual QString name() = 0;
 
   /// Clone editor effect
+  /// (redefinition of pure virtual function to allow python wrapper to identify this as abstract class)
   virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
 
   /// Update user interface from parameter set node
   virtual void updateGUIFromMRML(vtkObject* caller, void* callData);
+
+  /// Update parameter set node from user interface
+  virtual void updateMRMLFromGUI();
 
 // Utility functions
 public:

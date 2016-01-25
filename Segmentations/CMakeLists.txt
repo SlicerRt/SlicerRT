@@ -8,9 +8,9 @@ string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 add_subdirectory(MRML)
 add_subdirectory(Logic)
 add_subdirectory(MRMLDM)
-add_subdirectory(SubjectHierarchyPlugins)
-#add_subdirectory(EditorEffects)
 add_subdirectory(Widgets)
+add_subdirectory(EditorEffects)
+add_subdirectory(SubjectHierarchyPlugins)
 
 #-----------------------------------------------------------------------------
 set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
@@ -20,6 +20,7 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleMRMLDisplayableManager_INCLUDE_DIRS}
   ${qSlicerSegmentationsModuleWidgets_INCLUDE_DIRS}
+  ${qSlicerSegmentationsEditorEffects_INCLUDE_DIRS}
   ${qSlicerSegmentationsSubjectHierarchyPlugins_INCLUDE_DIRS}
   )
 
@@ -46,9 +47,9 @@ set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicer${MODULE_NAME}ModuleLogic
   vtkSlicer${MODULE_NAME}ModuleMRMLDisplayableManager
-  #vtkSlicer${MODULE_NAME}EditorEffects
   qSlicer${MODULE_NAME}ModuleWidgets
   qSlicer${MODULE_NAME}SubjectHierarchyPlugins
+  qSlicer${MODULE_NAME}EditorEffects
   )
 
 set(MODULE_RESOURCES

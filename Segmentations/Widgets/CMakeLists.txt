@@ -19,18 +19,6 @@ set(${KIT}_SRCS
   qMRMLSegmentSelectorWidget.h
   qMRMLDoubleSpinBoxDelegate.cxx
   qMRMLDoubleSpinBoxDelegate.h
-  qMRMLSegmentEditorWidget.cxx
-  qMRMLSegmentEditorWidget.h
-  qSlicerSegmentEditorEffectFactory.cxx
-  qSlicerSegmentEditorEffectFactory.h
-  qSlicerSegmentEditorAbstractEffect.cxx
-  qSlicerSegmentEditorAbstractEffect.h
-  qSlicerSegmentEditorLabelEffect.cxx
-  qSlicerSegmentEditorLabelEffect.h
-  qSlicerSegmentEditorPaintEffect.cxx
-  qSlicerSegmentEditorPaintEffect.h
-  qSlicerSegmentEditorRectangleEffect.cxx
-  qSlicerSegmentEditorRectangleEffect.h
   )
 
 set(${KIT}_MOC_SRCS
@@ -39,12 +27,6 @@ set(${KIT}_MOC_SRCS
   qMRMLSegmentationConversionParametersWidget.h
   qMRMLSegmentSelectorWidget.h
   qMRMLDoubleSpinBoxDelegate.h
-  qMRMLSegmentEditorWidget.h
-  qSlicerSegmentEditorEffectFactory.h
-  qSlicerSegmentEditorAbstractEffect.h
-  qSlicerSegmentEditorLabelEffect.h
-  qSlicerSegmentEditorPaintEffect.h
-  qSlicerSegmentEditorRectangleEffect.h
 )
 
 set(${KIT}_UI_SRCS
@@ -52,7 +34,6 @@ set(${KIT}_UI_SRCS
   Resources/UI/qMRMLSegmentationRepresentationsListView.ui
   Resources/UI/qMRMLSegmentationConversionParametersWidget.ui
   Resources/UI/qMRMLSegmentSelectorWidget.ui
-  Resources/UI/qMRMLSegmentEditorWidget.ui
   )
 
 set(${KIT}_RESOURCES

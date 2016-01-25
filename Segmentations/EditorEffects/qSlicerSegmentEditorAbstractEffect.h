@@ -18,15 +18,11 @@
 
 ==============================================================================*/
 
-// .NAME qSlicerSegmentEditorAbstractEffect - Logic class for segmentation handling
-// .SECTION Description
-// TODO
-
 #ifndef __qSlicerSegmentEditorAbstractEffect_h
 #define __qSlicerSegmentEditorAbstractEffect_h
 
-// Segmentations Widgets includes
-#include "qSlicerSegmentationsModuleWidgetsExport.h"
+// Segmentations Editor Effects includes
+#include "qSlicerSegmentationsEditorEffectsExport.h"
 
 // CTK includes
 #include "ctkVTKObject.h"
@@ -46,11 +42,13 @@ class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
 class vtkOrientedImageData;
+class vtkProp;
 class qMRMLWidget;
 class qMRMLSliceWidget;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qSlicerSegmentEditorAbstractEffect : public QObject
+/// \brief Abstract class for segment editor effects
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorAbstractEffect : public QObject
 {
 public:
   Q_OBJECT
@@ -80,7 +78,7 @@ public:
   virtual void activate() { };
 
   /// Perform actions to deactivate the effect (such as destroy actors, etc.)
-  virtual void deactivate() { };
+  virtual void deactivate();
 
   /// Callback function invoked when interaction happens
   /// \param callerInteractor Interactor object that was observed to catch the event
@@ -88,8 +86,17 @@ public:
   /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
   virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget) { };
 
+  /// Callback function invoked when view node is modified
+  /// \param callerViewNode View node that was observed to catch the event. Can be either \sa vtkMRMLSliceNode or \sa vtkMRMLViewNode
+  /// \param eid Event identifier
+  /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
+  virtual void processViewNodeEvents(vtkMRMLAbstractViewNode* callerViewNode, unsigned long eid, qMRMLWidget* viewWidget) { };
+
   /// Update user interface from parameter set node
   virtual void updateGUIFromMRML(vtkObject* caller, void* callData) = 0;
+
+  /// Update parameter set node from user interface
+  virtual void updateMRMLFromGUI() = 0;
 
 // Get/set methods
   /// Set MRML scene
@@ -97,6 +104,9 @@ public:
 
   /// Set edited labelmap
   void setEditedLabelmap(vtkOrientedImageData* labelmap) { m_EditedLabelmap = labelmap; };
+
+  /// Add actor to container that needs to be cleared on deactivation
+  void addActor(qMRMLWidget* viewWidget, vtkProp* actor);
 
 // Effect parameter functions
 public:
@@ -129,8 +139,15 @@ public:
 
   /// Convert RAS position to XY in-slice position
   static QPoint rasToXy(double ras[3], qMRMLSliceWidget* sliceWidget);
+  /// Convert XYZ slice view position to RAS position:
+  /// x,y uses slice (canvas) coordinate system and actually has a 3rd z component (index into the
+  /// slice you're looking at), hence xyToRAS is really performing xyzToRAS. RAS is patient world
+  /// coordinate system. Note the 1 is because the transform uses homogeneous coordinates.
+  static void xyzToRas(double inputXyz[3], double outputRas[3], qMRMLSliceWidget* sliceWidget);
   /// Convert XY in-slice position to RAS position
   static void xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget);
+  /// Convert XYZ slice view position to image IJK position, \sa xyzToRas
+  static void xyzToIjk(double inputXyz[3], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
   /// Convert XY in-slice position to image IJK position
   static void xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
 

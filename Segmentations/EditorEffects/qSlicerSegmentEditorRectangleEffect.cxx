@@ -141,3 +141,9 @@ void qSlicerSegmentEditorRectangleEffect::updateGUIFromMRML(vtkObject* caller, v
 
   //TODO:
 }
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorRectangleEffect::updateMRMLFromGUI()
+{
+  //TODO: Common label effect parameters (paintOver, paintThreshold, paintThresholdMin, paintThresholdMax)
+}

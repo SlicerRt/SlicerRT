@@ -23,10 +23,11 @@
 #ifndef __qMRMLSegmentEditorWidget_h
 #define __qMRMLSegmentEditorWidget_h
 
+// Segmentations Editor Effects includes
+#include "qSlicerSegmentationsEditorEffectsExport.h"
+
 // MRMLWidgets includes
 #include "qMRMLWidget.h"
-
-#include "qSlicerSegmentationsModuleWidgetsExport.h"
 
 // CTK includes
 #include <ctkPimpl.h>
@@ -43,7 +44,15 @@ class qSlicerSegmentEditorAbstractEffect;
 
 /// \brief Qt widget for editing a segment from a segmentation using Editor effects.
 /// \ingroup SlicerRt_QtModules_Segmentations_Widgets
-class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentEditorWidget : public qMRMLWidget
+/// 
+/// Widget for editing segmentations that can be re-used in any module.
+/// 
+/// IMPORTANT: The embedding module is responsible to call \sa setupSliceObservations
+///   in e.g. the enter function to set up observations enabling interaction event
+///   processing, and to call \sa removeSliceObservations in e.g. the exit function to
+///   clear the observations to prevent unnecessary function calls.
+/// 
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qMRMLSegmentEditorWidget : public qMRMLWidget
 {
   Q_OBJECT
 
@@ -76,6 +85,17 @@ public:
   /// \return The effect instance if exists, NULL otherwise
   Q_INVOKABLE qSlicerSegmentEditorAbstractEffect* effectByName(QString name);
 
+  /// Create observations between slice view interactor and the widget.
+  /// The captured events are propagated to the active effect if any.
+  /// NOTE: This method should be called from the enter function of the
+  ///   embedding module widget so that the events are correctly processed.
+  void setupSliceObservations();
+
+  /// Remove observations
+  /// NOTE: This method should be called from the exit function of the
+  ///   embedding module widget so that events are not processed unnecessarily.
+  void removeSliceObservations();
+
 public slots:
   /// Set the MRML \a scene associated with the widget
   virtual void setMRMLScene(vtkMRMLScene* newScene);
@@ -96,13 +116,9 @@ protected slots:
   /// Activate/deactivate effect on clicking its button
   void onEffectButtonClicked(QAbstractButton* button);
 
-protected:
-  /// Create observations between slice view interactor and the widget.
-  /// The captured events are propagated to the active effect if any.
-  void setupSliceObservations();
-  
+protected:  
   /// Callback function invoked when interaction happens
-  static void processInteractionEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
+  static void processEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
 
 protected:
   QScopedPointer<qMRMLSegmentEditorWidgetPrivate> d_ptr;
