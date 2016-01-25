@@ -54,6 +54,9 @@ public:
   /// Return the categories for the module
   virtual QStringList categories()const;
 
+  /// List dependencies
+  virtual QStringList dependencies()const;
+
   /// Make this module hidden
   virtual bool isHidden()const { return true; };
  

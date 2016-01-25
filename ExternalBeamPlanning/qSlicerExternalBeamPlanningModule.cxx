@@ -112,10 +112,6 @@ QIcon qSlicerExternalBeamPlanningModule::icon()const
 void qSlicerExternalBeamPlanningModule::setup()
 {
   this->Superclass::setup();
-
-  // Register Subject Hierarchy plugins
-  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRTPlanPlugin());
-  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRTBeamPlugin());
 }
 
 //-----------------------------------------------------------------------------

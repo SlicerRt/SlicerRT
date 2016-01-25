@@ -33,6 +33,7 @@
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLModelNode.h>
+#include <vtkMRMLRTBeamNode.h>
 
 // MRML Widgets includes
 #include <qMRMLNodeComboBox.h>
@@ -143,6 +144,71 @@ QIcon qSlicerSubjectHierarchyRTBeamPlugin::visibilityIcon(int visible)
 {
   // Have the default plugin (which is not registered) take care of this
   return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->visibilityIcon(visible);
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyRTBeamPlugin::setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible)
+{
+  if (!node)
+  {
+    qCritical() << "qSlicerSubjectHierarchyRTBeamPlugin::setDisplayVisibility: NULL node!";
+    return;
+  }
+
+  vtkMRMLRTBeamNode* associatedRTBeamNode = vtkMRMLRTBeamNode::SafeDownCast(node->GetAssociatedNode());
+  // RTBeam
+  if (associatedRTBeamNode)
+  {
+    if (this->canOwnSubjectHierarchyNode(node))
+    {
+      vtkMRMLModelNode* beamModelNode = associatedRTBeamNode->GetBeamModelNode();
+      if (!beamModelNode)
+      {
+        qCritical() << "qSlicerSubjectHierarchyRTBeamPlugin::setDisplayVisibility: No displayed model found for RTBeam '" << associatedRTBeamNode->GetName() << "'!";
+        return;
+      }
+      beamModelNode->SetDisplayVisibility(visible);
+      node->Modified(); // Triggers icon refresh in subject hierarchy tree
+    }
+    // Default
+    else
+    {
+      qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDisplayVisibility(node, visible);
+    }
+  }
+  // Default
+  else
+  {
+    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDisplayVisibility(node, visible);
+  }
+}
+
+//---------------------------------------------------------------------------
+int qSlicerSubjectHierarchyRTBeamPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const
+{
+  if (!node)
+  {
+    qCritical() << "qSlicerSubjectHierarchyRTBeamPlugin::getDisplayVisibility: NULL node!";
+    return -1;
+  }
+
+  vtkMRMLRTBeamNode* associatedRTBeamNode = vtkMRMLRTBeamNode::SafeDownCast(node->GetAssociatedNode());
+  if (associatedRTBeamNode)
+  {
+    if (this->canOwnSubjectHierarchyNode(node))
+    {
+      vtkMRMLModelNode* beamModelNode = associatedRTBeamNode->GetBeamModelNode();
+      if (!beamModelNode)
+      {
+        qCritical() << "qSlicerSubjectHierarchyRTBeamPlugin::getDisplayVisibility: No displayed model found for RTBeam '" << associatedRTBeamNode->GetName() << "'!";
+        return -1;
+      }
+      return beamModelNode->GetDisplayVisibility();
+    }
+  }
+
+  // Default
+  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->getDisplayVisibility(node);
 }
 
 //---------------------------------------------------------------------------

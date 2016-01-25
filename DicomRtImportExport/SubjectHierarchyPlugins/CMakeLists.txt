@@ -19,17 +19,11 @@ set(${KIT}_SRCS
   qSlicerSubjectHierarchyRtImagePlugin.h
   qSlicerSubjectHierarchyRtDoseVolumePlugin.cxx
   qSlicerSubjectHierarchyRtDoseVolumePlugin.h
-  qSlicerSubjectHierarchyRtPlanPlugin.cxx
-  qSlicerSubjectHierarchyRtPlanPlugin.h
-  qSlicerSubjectHierarchyRtBeamPlugin.cxx
-  qSlicerSubjectHierarchyRtBeamPlugin.h
   )
 
 set(${KIT}_MOC_SRCS
   qSlicerSubjectHierarchyRtImagePlugin.h
   qSlicerSubjectHierarchyRtDoseVolumePlugin.h
-  qSlicerSubjectHierarchyRtPlanPlugin.h
-  qSlicerSubjectHierarchyRtBeamPlugin.h
   )
 
 

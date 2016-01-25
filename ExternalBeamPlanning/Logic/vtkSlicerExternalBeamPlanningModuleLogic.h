@@ -30,6 +30,7 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
+#include "vtkOrientedImageData.h"
 
 // MRML includes
 
@@ -65,28 +66,31 @@ public:
   vtkGetObjectMacro(ExternalBeamPlanningNode, vtkMRMLExternalBeamPlanningNode);
 
   /// Get the Plan associated with the EBP Node
-  vtkMRMLRTPlanNode * GetRTPlanNode();
+  vtkMRMLRTPlanNode* GetRTPlanNode();
 
   /// Create a new beam, and add it to the plan associated with the EBP Node
-  vtkMRMLRTBeamNode * AddBeam();
+  vtkMRMLRTBeamNode* AddBeam(vtkMRMLRTBeamNode* copyFrom);
 
-  /// Remove a beam with a specified beam name
-  void RemoveBeam(char*);
+  /// Remove a specific beam
+  void RemoveBeam(vtkMRMLRTBeamNode *beam);
 
-  /// TODO
-  void UpdateBeamTransform(char*);
+  // Update the beam model for a new isocenter, gantry angle, etc.
+  void UpdateBeamTransform(vtkMRMLRTBeamNode *beamNode);
 
   /// TODO
   void UpdateBeamGeometryModel(char*);
 
   /// TODO
+  bool ComputeTargetVolumeCenter (vtkMRMLRTBeamNode *beam, double* center);
+
+  /// TODO
+  void SetBeamIsocenterToTargetCenter (vtkMRMLRTBeamNode *beam);
+
+  /// TODO
   void UpdateDRR(char*);
 
-  /// TODO
-  vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double, vtkDoubleArray*);
-
-  /// TODO
-  vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double);
+  /// Get labelmap from target segment of beam node
+  vtkSmartPointer<vtkOrientedImageData> GetTargetLabelmap(vtkMRMLRTBeamNode* beamNode);
 
   /// TODO
   void ComputeDose (vtkMRMLRTBeamNode*);

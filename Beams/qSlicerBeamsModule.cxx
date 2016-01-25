@@ -25,6 +25,11 @@
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
+// SubjectHierarchy Plugins includes
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyRTPlanPlugin.h"
+#include "qSlicerSubjectHierarchyRTBeamPlugin.h"
+
 // Beams Logic includes
 #include <vtkSlicerBeamsModuleLogic.h>
 
@@ -73,6 +78,12 @@ qSlicerBeamsModule::~qSlicerBeamsModule()
 }
 
 //-----------------------------------------------------------------------------
+QStringList qSlicerBeamsModule::dependencies()const
+{
+  return QStringList() << "Models";
+}
+
+//-----------------------------------------------------------------------------
 QString qSlicerBeamsModule::helpText()const
 {
   QString help = 
@@ -92,6 +103,7 @@ QStringList qSlicerBeamsModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Csaba Pinter (Queen's)");
+  moduleContributors << QString("Kevin Wang (Techna, UHN)");
   return moduleContributors;
 }
 
@@ -99,6 +111,10 @@ QStringList qSlicerBeamsModule::contributors()const
 void qSlicerBeamsModule::setup()
 {
   this->Superclass::setup();
+
+  // Register Subject Hierarchy plugins
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRTPlanPlugin());
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRTBeamPlugin());
 }
 
 //-----------------------------------------------------------------------------

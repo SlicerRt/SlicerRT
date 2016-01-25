@@ -5,6 +5,13 @@ set(MODULE_TITLE "Beams")
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
+find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} NO_DEFAULT_PATH)
+if(NOT Plastimatch_FOUND)
+  message("Plastimatch library is not found. SegmentComparison module will not be built.")
+  return()
+endif() 
+
+#-----------------------------------------------------------------------------
 add_subdirectory(MRML)
 add_subdirectory(Logic)
 add_subdirectory(SubjectHierarchyPlugins)
@@ -20,6 +27,7 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_SOURCE_DIR}/SubjectHierarchyPlugins
   ${CMAKE_CURRENT_BINARY_DIR}/SubjectHierarchyPlugins
   ${SlicerRtCommon_INCLUDE_DIRS}
+  ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS

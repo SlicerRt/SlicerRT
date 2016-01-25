@@ -39,8 +39,6 @@
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyRtImagePlugin.h"
 #include "qSlicerSubjectHierarchyRtDoseVolumePlugin.h"
-#include "qSlicerSubjectHierarchyRtPlanPlugin.h"
-#include "qSlicerSubjectHierarchyRtBeamPlugin.h"
 
 // SlicerRT includes
 #include "vtkSlicerIsodoseModuleLogic.h"
@@ -167,8 +165,6 @@ void qSlicerDicomRtImportExportModule::setup()
   // Register Subject Hierarchy plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtImagePlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtDoseVolumePlugin());
-  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtPlanPlugin());
-  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtBeamPlugin());
 
   // Register converter rules
   vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(

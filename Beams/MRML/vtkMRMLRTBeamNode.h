@@ -22,13 +22,16 @@
 #ifndef __vtkMRMLRTBeamNode_h
 #define __vtkMRMLRTBeamNode_h
 
+// SlicerRT includes
+#include "vtkSlicerBeamsModuleMRMLExport.h"
+
 // MRML includes
 #include <vtkMRML.h>
 #include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
 
-// SlicerRT includes
-#include "vtkSlicerBeamsModuleMRMLExport.h"
+// Slicer includes
+#include "vtkOrientedImageData.h"
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLDisplayableNode;
@@ -65,11 +68,19 @@ public:
     SquareOneMM = 1,
     SquareTwoMM = 2
   };
+  enum IsocenterSpecification
+  {
+    CenterOfTarget,
+    ArbitraryPoint
+  };
 
 public:
   static vtkMRMLRTBeamNode *New();
   vtkTypeMacro(vtkMRMLRTBeamNode,vtkMRMLDisplayableNode);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  /// Handles events registered in the observer manager
+  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -103,15 +114,15 @@ public:
 
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(BeamNumber, int);
+  vtkGetConstMacro(BeamNumber, int);
   vtkSetMacro(BeamNumber, int);
 
   /// Set/Get structure name
   vtkGetStringMacro(BeamDescription);
   vtkSetStringMacro(BeamDescription);
 
-  /// Get target segment ID
+  /// Get/Set target segment ID
   vtkGetStringMacro(TargetSegmentID);
-  /// Set target segment ID
   vtkSetStringMacro(TargetSegmentID);
 
   /// Get/Set RadiationType
@@ -119,103 +130,88 @@ public:
   vtkGetConstMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
   vtkSetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
 
+  /// Get/Set RadiationType
+  vtkGetMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
+  vtkGetConstMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
+  vtkSetMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
+
+  /// Get/Set IsocenterSpec
+  vtkGetMacro(IsocenterSpec, vtkMRMLRTBeamNode::IsocenterSpecification);
+  vtkGetConstMacro(IsocenterSpec, vtkMRMLRTBeamNode::IsocenterSpecification);
+
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(NominalEnergy, double);
+  vtkGetConstMacro(NominalEnergy, double);
   vtkSetMacro(NominalEnergy, double);
 
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(NominalmA, double);
+  vtkGetConstMacro(NominalmA, double);
   vtkSetMacro(NominalmA, double);
 
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(BeamOnTime, double);
+  vtkGetConstMacro(BeamOnTime, double);
   vtkSetMacro(BeamOnTime, double);
 
   vtkGetMacro(X1Jaw, double);
+  vtkGetConstMacro(X1Jaw, double);
   vtkSetMacro(X1Jaw, double);
+
   vtkGetMacro(X2Jaw, double);
+  vtkGetConstMacro(X2Jaw, double);
   vtkSetMacro(X2Jaw, double);
+
   vtkGetMacro(Y1Jaw, double);
+  vtkGetConstMacro(Y1Jaw, double);
   vtkSetMacro(Y1Jaw, double);
+
   vtkGetMacro(Y2Jaw, double);
+  vtkGetConstMacro(Y2Jaw, double);
   vtkSetMacro(Y2Jaw, double);
 
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(GantryAngle, double);
+  vtkGetConstMacro(GantryAngle, double);
   vtkSetMacro(GantryAngle, double);
 
-  /// 
+  ///
   vtkGetMacro(CollimatorAngle, double);
+  vtkGetConstMacro(CollimatorAngle, double);
   vtkSetMacro(CollimatorAngle, double);
 
   ///
   vtkGetMacro(CouchAngle, double);
+  vtkGetConstMacro(CouchAngle, double);
   vtkSetMacro(CouchAngle, double);
 
-  ///
+  /// Set/Get smearing
   vtkGetMacro(Smearing, double);
   vtkSetMacro(Smearing, double);
-  
-  ///
-  vtkGetMacro(ProximalMargin, double);
-  vtkSetMacro(ProximalMargin, double);
-  
-  ///
-  vtkGetMacro(DistalMargin, double);
-  vtkSetMacro(DistalMargin, double);
- 
+
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(SAD, double);
+  vtkGetConstMacro(SAD, double);
   vtkSetMacro(SAD, double);
 
   /// Get/Set beam weight
   vtkGetMacro(BeamWeight, double);
+  vtkGetConstMacro(BeamWeight, double);
   vtkSetMacro(BeamWeight, double);
-
-  /// Get/Set energy resolution
-  vtkGetMacro(EnergyResolution, float);
-  vtkSetMacro(EnergyResolution, float);
-
-  ///
-  vtkGetMacro(BeamFlavor, char);
-  vtkSetMacro(BeamFlavor, char);
-
-  /// Get/Set aperture offset
-  vtkGetMacro(ApertureOffset, double);
-  vtkSetMacro(ApertureOffset, double);
-
-  /// Get/Set aperture offset
-  vtkGetMacro(ApertureSpacingAtIso, double);
-  vtkSetMacro(ApertureSpacingAtIso, double);
-
-  /// Get/Set source size
-  vtkGetMacro(SourceSize, double);
-  vtkSetMacro(SourceSize, double);
 
   /// Return true if the beam name matches the argument
   bool BeamNameIs (const std::string& beamName);
   bool BeamNameIs (const char *beamName);
 
-  const double* GetIsocenterPosition ();
-  double GetIsocenterPosition (int dim);
-  void SetIsocenterPosition (const float* position);
-  void SetIsocenterPosition (const double* position);
+  void SetIsocenterSpec (vtkMRMLRTBeamNode::IsocenterSpecification);
+  void SetIsocenterToTargetCenter ();
+  void GetIsocenterPosition (double*);
+  void SetIsocenterPosition (double*);
 
-  const double* GetApertureSpacing ();
-  double GetApertureSpacing (int dim);
-  void SetApertureSpacing (const float* spacing);
-  void SetApertureSpacing (const double* spacing);
-
-  const double* GetApertureOrigin ();
-  double GetApertureOrigin (int dim);
-  void SetApertureOrigin (const float* origin);
-  void SetApertureOrigin (const double* origin);
-
-  const int* GetApertureDim ();
-  int GetApertureDim (int dim);
-  void SetApertureDim (const int* dim);
-
-  void UpdateApertureParameters();
+  const double* GetReferenceDosePointPosition ();
+  double GetReferenceDosePointPosition (int dim);
+  void SetReferenceDosePointPosition (const float* position);
+  void SetReferenceDosePointPosition (const double* position);
 
   /// Get beam model node ID
   vtkGetStringMacro(BeamModelNodeId);
@@ -239,6 +235,13 @@ public:
   /// Set and observe proton target segmentation node
   void SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode* node);
 
+  /// Get target segment as a labelmap
+  vtkSmartPointer<vtkOrientedImageData> GetTargetLabelmap();
+
+  /// Get center of gravity of target segment, return true if successful
+  /// or false if no target segment has been specified
+  bool ComputeTargetVolumeCenter (double* center);
+
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
   /// Set and observe MLC position double array node
@@ -253,6 +256,16 @@ public:
   vtkMRMLScalarVolumeNode* GetContourBEVVolumeNode();
   /// Set and observe contour BEV node
   void SetAndObserveContourBEVVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  // Update the beam model for a new isocenter, gantry angle, etc.
+  void UpdateBeamTransform();
+
+protected:
+  /// Copy isocenter coordinates into fiducial
+  void CopyIsocenterCoordinatesToMarkups (double*);
+
+  /// Copy isocenter coordinates from fiducial
+  void CopyIsocenterCoordinatesFromMarkups (double*);
 
 protected:
   /// Set beam model node ID
@@ -281,8 +294,9 @@ protected:
   double NominalmA;
   double BeamOnTime;
 
+  IsocenterSpecification IsocenterSpec;
   double Isocenter[3];
-  double dosePoint[3];
+  double ReferenceDosePoint[3];
 
   double X1Jaw;
   double X2Jaw;
@@ -292,24 +306,10 @@ protected:
   double GantryAngle;
   double CollimatorAngle;
   double CouchAngle;
-
   double Smearing;
-  double ProximalMargin;
-  double DistalMargin;
+
   double SAD;
   double BeamWeight;
-
-  float EnergyResolution;
-
-  char BeamFlavor;
-
-  double ApertureOffset;
-  double ApertureSpacing[2];
-  double ApertureSpacingAtIso;
-  double ApertureOrigin[2];
-  int ApertureDim[2];
-
-  double SourceSize;
 
   //TODO: Change these references to MRML references. 
   // No need to store neither the node pointer nor the ID.

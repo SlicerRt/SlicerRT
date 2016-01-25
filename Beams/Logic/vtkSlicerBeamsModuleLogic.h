@@ -35,7 +35,11 @@
 
 class vtkTransform;
 class vtkPolyData;
+class vtkDoubleArray;
 class vtkMRMLBeamsNode;
+class vtkMRMLRTPlanNode;
+class vtkMRMLRTBeamNode;
+class vtkMRMLSubjectHierarchyNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerBeamsModuleLogic :
@@ -54,14 +58,53 @@ public:
   /// Create beam vtkpolydata from beam parameters
   /// \param x/y jaw positions and SAD
   /// \return polydata, null if it fails to create polydata
-  vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double);
+  // vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double);
 
+public:
 public:
   /// Set and observe dose accumulation parameter node 
   void SetAndObserveBeamsNode(vtkMRMLBeamsNode* node);
 
   /// Get dose accumulation parameter node 
   vtkGetObjectMacro(BeamsNode, vtkMRMLBeamsNode);
+
+  /// TODO
+  void SetAndObserveRTPlanNode(vtkMRMLRTPlanNode* node);
+
+  /// Get the EBP Node
+  vtkGetObjectMacro(RTPlanNode, vtkMRMLRTPlanNode);
+
+  /// Create a RTPlanNode if it has not been created before
+  /// and set up the SubjectHierarchyNode for it
+  vtkMRMLRTPlanNode* CreateDefaultRTPlanNode(const char* nodeName);
+
+  /// Create a new beam of default type
+  vtkMRMLRTBeamNode* CreateDefaultRTBeamNode(const char*);
+
+  // Create a default model, and attach to the supplied beam node
+  static void AddDefaultModelToRTBeamNode(vtkMRMLScene*, vtkMRMLRTBeamNode*);
+
+  /// Remove a beam with a specified beam name
+  void RemoveRTBeamNodeInSubjectHierarchyByID(const char*);
+
+  // Update the beam model for a new isocenter, gantry angle, etc.
+  static void UpdateBeamTransform(vtkMRMLScene*, vtkMRMLRTBeamNode*);
+
+  /// TODO
+  void UpdateBeamTransformByID(const char*);
+
+  /// TODO
+  void UpdateBeamGeometryModelByID(const char*);
+
+  /// Create beam vtkpolydata from beam parameters
+  /// \param x/y jaw positions and SAD
+  /// \return polydata, null if it fails to create polydata
+  static vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double, vtkDoubleArray*);
+
+  /// Create beam vtkpolydata from beam parameters
+  /// \param x/y jaw positions and SAD
+  /// \return polydata, null if it fails to create polydata
+  static vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double);
 
 protected:
   vtkSlicerBeamsModuleLogic();
@@ -85,6 +128,8 @@ private:
 protected:
   /// Parameter set MRML node
   vtkMRMLBeamsNode* BeamsNode;
+  /// RTPlan node
+  vtkMRMLRTPlanNode* RTPlanNode;
 };
 
 #endif

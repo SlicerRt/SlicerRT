@@ -5,6 +5,8 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_${MODULE_NAME_UPPER}_SUBJECT_HIERARCHY_PLUGINS_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
+  ${SlicerRtCommon_INCLUDE_DIRS}
+  ${vtkSlicerBeamsModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
   ${Slicer_Libs_INCLUDE_DIRS}
@@ -40,6 +42,7 @@ SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerSubjectHierarchyModuleLogic
   qSlicerSubjectHierarchyModuleWidgets
+  vtkSlicerBeamsModuleMRML
   MRMLCore
   MRMLLogic
   MRMLCLI

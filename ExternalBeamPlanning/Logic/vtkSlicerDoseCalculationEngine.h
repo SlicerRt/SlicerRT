@@ -32,7 +32,7 @@
 #include "plm_image_header.h"
 
 // ExternalBeamPlanning includes
-#include "vtkMRMLRTBeamNode.h"
+#include "vtkMRMLRTProtonBeamNode.h"
 #include "vtkSlicerExternalBeamPlanningModuleLogicExport.h"
 
 // VTK includes
@@ -54,12 +54,10 @@ public:
   /// Do dose calculation
   void CalculateDose(
     vtkMRMLRTBeamNode* beamNode, 
-    Plm_image::Pointer plmTgt,
+    Plm_image::Pointer& plmTgt,
     double isocenter[],
-    double src[],
-    double proximalMargin,
-    double distalMargin,
-    double beamRx);
+    double src[], 
+    double RxDose);
 
   /// Do dose calculation
   itk::Image<float, 3>::Pointer GetRangeCompensatorVolume();

@@ -20,12 +20,18 @@
 ==============================================================================*/
 
 // SlicerRtCommon includes
+#include "PlmCommon.h"
 #include "SlicerRtCommon.h"
 #include "vtkPolyDataToLabelmapFilter.h"
 #include "vtkLabelmapToModelFilter.h"
+#include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLSegmentationNode.h"
+#include "vtkSlicerSegmentationsModuleLogic.h"
+
+// Plastimatch includes
+#include "image_center.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -61,16 +67,29 @@ vtkMRMLNodeNewMacro(vtkMRMLRTBeamNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 {
-  this->RadiationType = Proton;
+  this->BeamName = 0;
+  this->SetBeamName ("Beam");
+  this->BeamNumber = -1;
+  this->BeamDescription = 0;
+
+  this->TargetSegmentID = 0;
 
   this->BeamType = Static;
-  this->Isocenter[0] = 0.0;
-  this->Isocenter[1] = 0.0;
-  this->Isocenter[2] = 0.0;  
+  this->RadiationType = Proton;
+  this->CollimatorType = SquareHalfMM;
 
   this->NominalEnergy = 80.0;
   this->NominalmA = 1.0;
   this->BeamOnTime = 0.0;
+
+  this->IsocenterSpec = CenterOfTarget;
+  this->Isocenter[0] = 0.0;
+  this->Isocenter[1] = 0.0;
+  this->Isocenter[2] = 0.0;  
+  this->ReferenceDosePoint[0] = 0.0;
+  this->ReferenceDosePoint[1] = 0.0;
+  this->ReferenceDosePoint[2] = 0.0;  
+
   this->X1Jaw = 100;
   this->X2Jaw = 100;
   this->Y1Jaw = 100;
@@ -79,30 +98,13 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->GantryAngle = 0;
   this->CollimatorAngle = 0;
   this->CouchAngle = 0;
-  this->BeamWeight = 1.0;
-
-  this->CollimatorType = SquareHalfMM;
+  this->Smearing = 0;
 
   this->SAD = 2000.0;
-
-  this->EnergyResolution = 2.0;
-  this->BeamFlavor = 'a';
-
-  this->ApertureOffset = 1500.0;
-  this->ApertureSpacingAtIso = 2.0;
-  this->ApertureSpacing[0] = this->ApertureSpacingAtIso * this->ApertureOffset / this->SAD;
-  this->ApertureSpacing[1] = this->ApertureSpacingAtIso * this->ApertureOffset / this->SAD;
-  this->ApertureOrigin[0] = this->X1Jaw * this->ApertureOffset / this->SAD;
-  this->ApertureOrigin[1] = this->Y1Jaw * this->ApertureOffset / this->SAD;
-  this->ApertureDim[0] = (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso + 1);
-  this->ApertureDim[1] = (int) ((this->Y2Jaw + this->Y1Jaw) / this->ApertureSpacingAtIso + 1);
-
-  this->SourceSize = 0.0;
+  this->BeamWeight = 1.0;
 
   this->BeamModelNode = NULL;
   this->BeamModelNodeId = NULL;
-
-  this->TargetSegmentID = NULL;
 
   this->HideFromEditorsOff();
 
@@ -116,6 +118,9 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::~vtkMRMLRTBeamNode()
 {
+  delete[] this->BeamName;
+  delete[] this->BeamDescription;
+  delete[] this->TargetSegmentID;
   this->SetAndObserveBeamModelNodeId(NULL);
   this->SetTargetSegmentID(NULL);
 }
@@ -187,12 +192,21 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   vtkMRMLRTBeamNode *node = (vtkMRMLRTBeamNode *) anode;
 
   this->SetBeamName( node->GetBeamName() );
+  this->SetSmearing( node->GetSmearing() );
+  this->SetSAD(node->GetSAD());
+  double iso[3];
+  node->GetIsocenterPosition (iso);
+  this->Isocenter[0] = iso[0];
+  this->Isocenter[1] = iso[1];
+  this->Isocenter[2] = iso[2];
 
   // Observers must be removed here, otherwise MRML updates would activate nodes on the undo stack
   this->SetAndObserveBeamModelNodeId( NULL );
   this->SetBeamModelNodeId( node->BeamModelNodeId );
 
   this->SetTargetSegmentID(node->TargetSegmentID);
+
+  this->SetIsocenterSpec(node->GetIsocenterSpec());
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -237,6 +251,29 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData)
+{
+  Superclass::ProcessMRMLEvents(caller, eventID, callData);
+
+  if (!this->Scene)
+  {
+    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene!");
+    return;
+  }
+  if (this->Scene->IsBatchProcessing())
+  {
+    return;
+  }
+
+  if (eventID == vtkMRMLMarkupsNode::PointModifiedEvent)
+  {
+    // Update the model
+    this->UpdateBeamTransform();
+    this->Modified();
+  }
+}
+
+//----------------------------------------------------------------------------
 vtkMRMLMarkupsFiducialNode* vtkMRMLRTBeamNode::GetIsocenterFiducialNode()
 {
   return vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference(ISOCENTER_FIDUCIAL_REFERENCE_ROLE) );
@@ -261,6 +298,13 @@ bool vtkMRMLRTBeamNode::BeamNameIs (const char *beamName)
 void vtkMRMLRTBeamNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node)
 {
   this->SetNodeReferenceID(ISOCENTER_FIDUCIAL_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+
+  if (node)
+  {
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkMRMLMarkupsNode::PointModifiedEvent);
+    vtkSetAndObserveMRMLObjectEventsMacro(node, node, events);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -273,6 +317,104 @@ vtkMRMLSegmentationNode* vtkMRMLRTBeamNode::GetTargetSegmentationNode()
 void vtkMRMLRTBeamNode::SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode* node)
 {
   this->SetNodeReferenceID(TARGET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTBeamNode::GetTargetLabelmap()
+{
+  vtkSmartPointer<vtkOrientedImageData> targetLabelmap;
+  vtkMRMLSegmentationNode* targetSegmentationNode = this->GetTargetSegmentationNode();
+  if (!targetSegmentationNode)
+  {
+    vtkErrorMacro("GetTargetLabelmap: Didn't get target segmentation node");
+    return targetLabelmap;
+  }
+
+  vtkSegmentation *segmentation = targetSegmentationNode->GetSegmentation();
+  if (!segmentation)
+  {
+    vtkErrorMacro("GetTargetLabelmap: Failed to get segmentation");
+    return targetLabelmap;
+  }
+
+  vtkSegment *segment = segmentation->GetSegment(this->GetTargetSegmentID());
+  if (!segment) 
+  {
+    vtkErrorMacro("GetTargetLabelmap: Failed to get segment");
+    return targetLabelmap;
+  }
+
+  //segmentationNode->GetImageData ();
+  if (segmentation->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+  {
+    targetLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
+    targetLabelmap->DeepCopy( vtkOrientedImageData::SafeDownCast(
+        segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
+  }
+  else
+  {
+    // Need to convert
+    targetLabelmap = vtkSmartPointer<vtkOrientedImageData>::Take(
+      vtkOrientedImageData::SafeDownCast(
+        vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment(
+          segmentation,
+          this->GetTargetSegmentID(),
+          vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName())));
+    if (!targetLabelmap.GetPointer())
+    {
+      std::string errorMessage("Failed to convert target segment into binary labelmap");
+      vtkErrorMacro("GetTargetLabelmap: " << errorMessage);
+      return targetLabelmap;
+    }
+  }
+
+  // Apply parent transformation nodes if necessary
+  if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(targetSegmentationNode, targetLabelmap))
+  {
+    std::string errorMessage("Failed to apply parent transformation to target segment!");
+    vtkErrorMacro("GetTargetLabelmap: " << errorMessage);
+    return targetLabelmap;
+  }
+  return targetLabelmap;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLRTBeamNode::ComputeTargetVolumeCenter (double* center)
+{
+  if (!this->Scene)
+  {
+    vtkErrorMacro("ComputeTargetVolumeCenter: Invalid MRML scene");
+    return false;
+  }
+
+  // Get a labelmap for the target
+  vtkSmartPointer<vtkOrientedImageData> targetLabelmap = this->GetTargetLabelmap();
+  if (targetLabelmap == NULL)
+  {
+    return false;
+  }
+
+  // Convert inputs to plm image
+  Plm_image::Pointer plmTgt 
+    = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(targetLabelmap);
+  if (!plmTgt)
+  {
+    std::string errorMessage("Failed to convert reference segment labelmap into Plm_image");
+    vtkErrorMacro("ComputeTargetVolumeCenter: " << errorMessage);
+    return false;
+  }
+
+  // Compute image center
+  Image_center ic;
+  ic.set_image(plmTgt);
+  ic.run();
+  itk::Vector<double,3> com = ic.get_image_center_of_mass();
+
+  // Copy to output argument, and convert LPS -> RAS
+  center[0] = -com[0];
+  center[1] = -com[1];
+  center[2] = com[2];
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -371,7 +513,7 @@ void vtkMRMLRTBeamNode::SetAndObserveBeamModelNodeId(const char *nodeID)
 vtkMRMLModelNode* vtkMRMLRTBeamNode::GetBeamModelNode()
 {
   vtkMRMLModelNode* node = NULL;
-  if (this->Scene && this->BeamModelNodeId != NULL )
+  if (this->Scene && this->BeamModelNodeId)
   {
     vtkMRMLNode* snode = this->Scene->GetNodeByID(this->BeamModelNodeId);
     node = vtkMRMLModelNode::SafeDownCast(snode);
@@ -381,125 +523,126 @@ vtkMRMLModelNode* vtkMRMLRTBeamNode::GetBeamModelNode()
 }
 
 //----------------------------------------------------------------------------
-const double* vtkMRMLRTBeamNode::GetIsocenterPosition ()
+void vtkMRMLRTBeamNode::SetIsocenterSpec (vtkMRMLRTBeamNode::IsocenterSpecification isoSpec)
 {
-  return this->Isocenter;
+  if (isoSpec == this->GetIsocenterSpec())
+  {
+    return;
+  }
+  if (isoSpec == CenterOfTarget)
+  {
+    this->SetIsocenterToTargetCenter();
+  }
+
+  this->IsocenterSpec = isoSpec;
 }
 
 //----------------------------------------------------------------------------
-double vtkMRMLRTBeamNode::GetIsocenterPosition (int dim)
+void vtkMRMLRTBeamNode::SetIsocenterToTargetCenter ()
 {
-  return this->Isocenter[dim];
+    double center[3];
+    if (this->ComputeTargetVolumeCenter (center))
+    {
+      this->CopyIsocenterCoordinatesToMarkups (center);
+    }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetIsocenterPosition (const float* position)
+void vtkMRMLRTBeamNode::GetIsocenterPosition (double* iso)
+{
+  this->CopyIsocenterCoordinatesFromMarkups (iso);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetIsocenterPosition (double* iso)
+{
+  this->CopyIsocenterCoordinatesToMarkups (iso);
+}
+
+//----------------------------------------------------------------------------
+const double* vtkMRMLRTBeamNode::GetReferenceDosePointPosition ()
+{
+  return this->ReferenceDosePoint;
+}
+
+//----------------------------------------------------------------------------
+double vtkMRMLRTBeamNode::GetReferenceDosePointPosition (int dim)
+{
+  return this->ReferenceDosePoint[dim];
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetReferenceDosePointPosition (const float* position)
 {
   for (int d = 0; d < 3; d++) 
   {
-    this->Isocenter[d] = position[d];
+    this->ReferenceDosePoint[d] = position[d];
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetIsocenterPosition (const double* position)
+void vtkMRMLRTBeamNode::SetReferenceDosePointPosition (const double* position)
 {
   for (int d = 0; d < 3; d++) 
   {
-    this->Isocenter[d] = position[d];
+    this->ReferenceDosePoint[d] = position[d];
   }
 }
 
 //----------------------------------------------------------------------------
-const double* vtkMRMLRTBeamNode::GetApertureSpacing ()
+void vtkMRMLRTBeamNode::UpdateBeamTransform()
 {
-  return this->ApertureSpacing;
-}
-
-//----------------------------------------------------------------------------
-double vtkMRMLRTBeamNode::GetApertureSpacing (int dim)
-{
-  return this->ApertureSpacing[dim];
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetApertureSpacing (const float* spacing)
-{
-  for (int d = 0; d < 2; d++) 
+  if (!this->Scene)
   {
-    this->ApertureSpacing[d] = spacing[d];
+    vtkErrorMacro ("UpdateBeamTransform: Invalid MRML scene");
+    return;
   }
-}
 
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetApertureSpacing (const double* spacing)
-{
-  for (int d = 0; d < 2; d++) 
+  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->GetIsocenterFiducialNode();
+  if (!isocenterMarkupsNode)
   {
-    this->ApertureSpacing[d] = spacing[d];
+    vtkErrorMacro ("UpdateBeamTransform: isocenterMarkupNode is not initialized");
+    return;
   }
-}
 
-//----------------------------------------------------------------------------
-const double* vtkMRMLRTBeamNode::GetApertureOrigin ()
-{
-  return this->ApertureOrigin;
-}
+  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+  transform->Identity();
+  transform->RotateZ(this->GetGantryAngle());
+  transform->RotateY(this->GetCollimatorAngle());
+  transform->RotateX(-90);
 
-//----------------------------------------------------------------------------
-double vtkMRMLRTBeamNode::GetApertureOrigin (int dim)
-{
-  return this->ApertureOrigin[dim];
-}
+  vtkDebugMacro ("Gantry angle update to " << this->GetGantryAngle());
 
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetApertureOrigin (const float* position)
-{
-  for (int d = 0; d < 2; d++) 
+  vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
+  transform2->Identity();
+  double isoCenterPosition[3] = {0.0,0.0,0.0};
+  isocenterMarkupsNode->GetNthFiducialPosition(0,isoCenterPosition);
+  transform2->Translate(isoCenterPosition[0], isoCenterPosition[1], isoCenterPosition[2]);
+
+  transform->PostMultiply();
+  transform->Concatenate(transform2->GetMatrix());
+
+  vtkSmartPointer<vtkMRMLModelNode> beamModelNode = this->GetBeamModelNode();
+
+  vtkMRMLLinearTransformNode *transformNode 
+    = vtkMRMLLinearTransformNode::SafeDownCast(
+      this->Scene->GetNodeByID(beamModelNode->GetTransformNodeID()));
+  if (transformNode)
   {
-    this->ApertureOrigin[d] = position[d];
+    transformNode->SetMatrixTransformToParent(transform->GetMatrix());
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetApertureOrigin (const double* position)
+void vtkMRMLRTBeamNode::CopyIsocenterCoordinatesToMarkups (double* iso)
 {
-  for (int d = 0; d < 2; d++) 
-  {
-    this->ApertureOrigin[d] = position[d];
-  }
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
+  fiducialNode->SetNthFiducialPositionFromArray(0,iso);
 }
 
 //----------------------------------------------------------------------------
-const int* vtkMRMLRTBeamNode::GetApertureDim ()
+void vtkMRMLRTBeamNode::CopyIsocenterCoordinatesFromMarkups (double* iso)
 {
-  return this->ApertureDim;
-}
-
-//----------------------------------------------------------------------------
-int vtkMRMLRTBeamNode::GetApertureDim (int dim)
-{
-  return this->ApertureDim[dim];
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetApertureDim (const int* dim)
-{
-  for (int d = 0; d < 2; d++) 
-  {
-    this->ApertureDim[d] = dim[d];
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::UpdateApertureParameters()
-{
-  double origin[2] = {-this->X1Jaw * this->ApertureOffset / this->SAD , -this->Y1Jaw * this->ApertureOffset / this->SAD };
-  this->SetApertureOrigin(origin);
-
-  double spacing_at_aperture[2] = {this->ApertureSpacingAtIso * this->ApertureOffset / this->SAD, this->ApertureSpacingAtIso * this->ApertureOffset / this->SAD};
-  this->SetApertureSpacing(spacing_at_aperture);
-
-  int dim[2] = { (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso + 1 ), (int) ((this->X2Jaw + this->X1Jaw) / this->ApertureSpacingAtIso + 1 )};
-  this->SetApertureDim(dim);
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
+  fiducialNode->GetNthFiducialPosition(0,iso);
 }

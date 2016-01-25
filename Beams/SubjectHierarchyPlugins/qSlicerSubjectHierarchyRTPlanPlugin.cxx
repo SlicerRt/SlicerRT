@@ -18,6 +18,9 @@
 
 ==============================================================================*/
 
+// SlicerRt includes
+#include "SlicerRtCommon.h"
+
 // ExternalBeamPlanning includes
 #include "qSlicerSubjectHierarchyRTPlanPlugin.h"
 
@@ -59,6 +62,7 @@ public:
   qSlicerSubjectHierarchyRTPlanPluginPrivate(qSlicerSubjectHierarchyRTPlanPlugin& object);
   ~qSlicerSubjectHierarchyRTPlanPluginPrivate();
 public:
+  QIcon IsocenterIcon;
   QIcon PlanIcon;
 };
 
@@ -69,6 +73,7 @@ public:
 qSlicerSubjectHierarchyRTPlanPluginPrivate::qSlicerSubjectHierarchyRTPlanPluginPrivate(qSlicerSubjectHierarchyRTPlanPlugin& object)
  : q_ptr(&object)
 {
+  this->IsocenterIcon = QIcon(":Icons/Isocenter.png");
   this->PlanIcon = QIcon(":Icons/Plan.png");
 }
 
@@ -103,6 +108,19 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyNode(vtkMRMLSu
 
   // RT plan
   if ( associatedNode && associatedNode->IsA("vtkMRMLRTPlanNode") )
+  {
+    return 1.0;
+  }
+
+  // Isocenter for RT Plan
+  QString parentHierarchyNodeName("");
+  if (node->GetParentNode())
+  {
+    parentHierarchyNodeName = QString(node->GetParentNode()->GetName());
+  }
+  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries())
+    && associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode")
+    && parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
   {
     return 1.0;
   }
@@ -148,6 +166,15 @@ void qSlicerSubjectHierarchyRTPlanPlugin::editProperties(vtkMRMLSubjectHierarchy
 {
   Q_UNUSED(node);
 
-  // Switch to External Beam Planning module
-  qSlicerSubjectHierarchyAbstractPlugin::switchToModule("ExternalBeamPlanning");
+  // For the time being switch to the Markups module if the node is an isocenter markup fiducial
+  vtkMRMLNode* associatedNode = node->GetAssociatedNode();
+  if (associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode"))
+  {
+    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Markups")->editProperties(node);
+  }
+  else if (associatedNode && associatedNode->IsA("vtkMRMLRTPlanNode"))
+  {
+    // Switch to External Beam Planning module
+    qSlicerSubjectHierarchyAbstractPlugin::switchToModule("ExternalBeamPlanning");  
+  }
 }
