@@ -635,7 +635,10 @@ void qMRMLSegmentEditorWidget::onEffectButtonClicked(QAbstractButton* button)
   else
   {
     // Deactivate previously selected effect
-    d->ActiveEffect->deactivate();
+    if (d->ActiveEffect)
+    {
+      d->ActiveEffect->deactivate();
+    }
 
     // Set selected effect as current and activate it
     d->ActiveEffect = clickedEffect;

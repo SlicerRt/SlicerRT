@@ -30,14 +30,17 @@
 // VTK includes
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
-#include <vtkTrivialProducer.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPolyData.h>
 #include <vtkCollection.h>
 #include <vtkActor2D.h>
 #include <vtkPolyDataMapper2D.h>
 #include <vtkProperty2D.h>
+#include <vtkPoints.h>
+#include <vtkIdList.h>
+#include <vtkCellArray.h>
 #include <vtkCommand.h>
+#include <vtkMath.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
@@ -50,6 +53,7 @@
 
 // Slicer includes
 #include "qMRMLSliceWidget.h"
+#include "qMRMLSliceView.h"
 #include "vtkMRMLSliceLogic.h"
 #include "vtkMRMLSliceLayerLogic.h"
 #include "vtkImageSlicePaint.h"
@@ -101,7 +105,7 @@ public:
   void paintAddPoint(qMRMLSliceWidget* sliceWidget, int x, int y);
 
   /// Draw paint circle glyph
-  void createBrushGlyph(qMRMLSliceWidget* sliceWidget);
+  void createBrushGlyph(qMRMLSliceWidget* sliceWidget, PaintEffectBrush* brush);
 
 protected:
   /// Get brush object for widget. Create if does not exist
@@ -123,6 +127,9 @@ protected:
   /// Paint one pixel to coordinate
   void paintPixel(qMRMLSliceWidget* sliceWidget, QPoint xy);
 
+  /// Scale brush radius and save it in parameter node
+  void scaleRadius(double scaleFactor);
+
 public:
   QIcon EffectIcon;
 
@@ -131,6 +138,7 @@ public:
   QMap<qMRMLWidget*, PaintEffectBrush*> Brushes;
   vtkImageSlicePaint* Painter;
   bool DelayedPaint;
+  //TODO: Remove members, add set/get functions that work directly with parameter node (PaintEffect:263)
   bool PixelMode;
   bool IsPainting;
   bool Smudge;
@@ -192,6 +200,7 @@ PaintEffectBrush* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLSl
 
   // Create brush if does not yet exist
   PaintEffectBrush* brush = new PaintEffectBrush();
+  this->createBrushGlyph(sliceWidget, brush);
 
   vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(sliceWidget);
   if (!renderer)
@@ -205,7 +214,6 @@ PaintEffectBrush* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLSl
   }
 
   this->Brushes[sliceWidget] = brush;
-  this->createBrushGlyph(sliceWidget);
   return brush;
 }
 
@@ -527,89 +535,122 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceWidget, QPoint xy)
 {
+  Q_Q(qSlicerSegmentEditorPaintEffect);
+
+  vtkOrientedImageData* labelImage = q->m_EditedLabelmap;
+  if (!labelImage)
+  {
+    return;
+  }
+
+  vtkMRMLSliceLogic* sliceLogic = sliceWidget->sliceLogic();
+
+  vtkMRMLSliceLayerLogic* labelLogic = sliceLogic->GetLabelLayer();
+  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(labelLogic->GetVolumeNode());
+  vtkSmartPointer<vtkMatrix4x4> labelIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(labelImage, segmentationNode, labelIjkToRasMatrix);
+
+  int ijk[3] = {0, 0, 0};
+  q->xyToIjk(xy, ijk, sliceWidget, labelImage);
+
+  // Clamp to image extent
+  int dims[3] = {0, 0, 0};
+  labelImage->GetDimensions(dims);
+  for (int i=0; i<3; ++i)
+  {
+    if (ijk[i] < 0 || ijk[i] >= dims[i])
+    {
+      return;
+    }
+  }
+
+  labelImage->SetScalarComponentFromFloat(ijk[0],ijk[1],ijk[2], 0, 1); // Segment binary labelmaps all have voxel values of 1 for foreground
   /*
-    sliceLogic = self.sliceWidget.sliceLogic()
-    labelLogic = sliceLogic.GetLabelLayer()
-    labelNode = labelLogic.GetVolumeNode()
-    labelImage = labelNode.GetImageData()
-
-    if not labelNode:
-      # if there's no label, we can't paint
-      return
-
-    xyToIJK = labelLogic.GetXYToIJKTransform()
-    ijkFloat = xyToIJK.TransformDoublePoint( (x, y, 0) )
-    ijk = []
-    for e in ijkFloat:
-      try:
-        index = int(round(e))
-      except ValueError:
-        return
-      ijk.append(index)
-    dims = labelImage.GetDimensions()
-    for e,d in zip(ijk,dims): # clamp to volume extent
-      if e < 0 or e >= d:
-        return
-
-    parameterNode = EditUtil.getParameterNode()
-    paintLabel = int(parameterNode.GetParameter("label"))
-    labelImage.SetScalarComponentFromFloat(ijk[0],ijk[1],ijk[2],0, paintLabel)
+    TODO:
     EditUtil.markVolumeNodeAsModified(labelNode)
   */
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::createBrushGlyph(qMRMLSliceWidget* sliceWidget)
+void qSlicerSegmentEditorPaintEffectPrivate::scaleRadius(double scaleFactor)
 {
-  /*
-    sliceNode = self.sliceWidget.sliceLogic().GetSliceNode()
-    self.rasToXY.DeepCopy(sliceNode.GetXYToRAS())
-    self.rasToXY.Invert()
-    maximum, maxIndex = 0,0
-    for index in range(3):
-      if abs(self.rasToXY.GetElement(0, index)) > maximum:
-        maximum = abs(self.rasToXY.GetElement(0, index))
-        maxIndex = index
-    point = [0, 0, 0, 0]
-    point[maxIndex] = self.radius
-    xyRadius = self.rasToXY.MultiplyPoint(point)
-    import math
-    xyRadius = math.sqrt( xyRadius[0]**2 + xyRadius[1]**2 + xyRadius[2]**2 )
+  this->Radius *= scaleFactor;
+  //TODO:
+    //radius = float(self.parameterNode.GetParameter("PaintEffect,radius"))
+    //self.parameterNode.SetParameter( "PaintEffect,radius", str(radius * scaleFactor) )
+}
 
-    if self.pixelMode:
-      xyRadius = 0.01
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorPaintEffectPrivate::createBrushGlyph(qMRMLSliceWidget* sliceWidget, PaintEffectBrush* brush)
+{
+  // Create a brush circle of the right radius in XY space.
+  // Assume uniform scaling between XY and RAS which is enforced by the view interactors
+  Q_Q(qSlicerSegmentEditorPaintEffect);
 
-    # make a circle paint brush
-    points = vtk.vtkPoints()
-    lines = vtk.vtkCellArray()
-    polyData.SetPoints(points)
-    polyData.SetLines(lines)
-    PI = 3.1415926
-    TWOPI = PI * 2
-    PIoverSIXTEEN = PI / 16
-    prevPoint = -1
-    firstPoint = -1
-    angle = 0
-    while angle <= TWOPI:
-      x = xyRadius * math.cos(angle)
-      y = xyRadius * math.sin(angle)
-      p = points.InsertNextPoint( x, y, 0 )
-      if prevPoint != -1:
-        idList = vtk.vtkIdList()
-        idList.InsertNextId(prevPoint)
-        idList.InsertNextId(p)
-        polyData.InsertNextCell( vtk.VTK_LINE, idList )
-      prevPoint = p
-      if firstPoint == -1:
-        firstPoint = p
-      angle = angle + PIoverSIXTEEN
+  double xyRadius = 0.01; // Default value for pixel mode
+  if (!this->PixelMode)
+  {
+    // Calculate radius if not in pixel mode
+    vtkMRMLSliceLogic* sliceLogic = sliceWidget->sliceLogic();
+    vtkMRMLSliceNode* sliceNode = sliceLogic->GetSliceNode();
+    vtkSmartPointer<vtkMatrix4x4> rasToXyMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    rasToXyMatrix->DeepCopy(sliceNode->GetXYToRAS());
+    rasToXyMatrix->Invert();
 
-    # make the last line in the circle
-    idList = vtk.vtkIdList()
-    idList.InsertNextId(p)
-    idList.InsertNextId(firstPoint)
-    polyData.InsertNextCell( vtk.VTK_LINE, idList )
-  */
+    //TODO: What does this do exactly?
+    double maximum = 0.0;
+    int maxIndex = 0;
+    for (int index=0; index<3; ++index)
+    {
+      if (fabs(rasToXyMatrix->GetElement(0, index)) > maximum)
+      {
+        maximum = fabs(rasToXyMatrix->GetElement(0, index));
+        maxIndex = index;
+      }
+    }
+
+    double point[4] = {0.0, 0.0, 0.0, 0.0};
+    point[maxIndex] = this->Radius;
+    double radiusPoint[4] = {0.0, 0.0, 0.0, 0.0};
+    rasToXyMatrix->MultiplyPoint(point, radiusPoint);
+    xyRadius = sqrt(radiusPoint[0]*radiusPoint[0] + radiusPoint[1]*radiusPoint[1] + radiusPoint[2]*radiusPoint[2]);
+  }
+
+  // Make a circle paint brush
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+  brush->PolyData->SetPoints(points);
+  brush->PolyData->SetLines(lines);
+  double twoPi = vtkMath::Pi() * 2.0;
+  double piOverSixteen = vtkMath::Pi() / 16.0;
+  int previousPointId = -1;
+  int firstPointId = -1;
+  int currentPointId = -1;
+  double angle = 0.0;
+  while (angle <= twoPi)
+  {
+    double x = xyRadius * cos(angle);
+    double y = xyRadius * sin(angle);
+    currentPointId = points->InsertNextPoint(x, y, 0.0);
+    if (previousPointId != -1)
+    {
+      vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+      idList->InsertNextId(previousPointId);
+      idList->InsertNextId(currentPointId);
+      brush->PolyData->InsertNextCell(VTK_LINE, idList);
+    }
+    if (firstPointId == -1)
+    {
+      firstPointId = currentPointId;
+    }
+    angle += piOverSixteen;
+  }
+
+  // Make the last line in the circle
+  vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+  idList->InsertNextId(currentPointId);
+  idList->InsertNextId(firstPointId);
+  brush->PolyData->InsertNextCell(VTK_LINE, idList);
 }
 
 
@@ -671,6 +712,12 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   {
     return;
   }
+  PaintEffectBrush* brush = d->brushForWidget(sliceWidget);
+  if (!brush)
+  {
+    qCritical() << "qSlicerSegmentEditorPaintEffect::processInteractionEvents: Failed to create brush!";
+    return;
+  }
 
   if (eid == vtkCommand::LeftButtonPressEvent)
   {
@@ -684,6 +731,7 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
     callerInteractor->GetEventPosition(x, y);
     if (d->Smudge)
     {
+      //TODO:
       //EditUtil.setLabel(self.getLabelPixel(xy))
     }
     d->paintAddPoint(sliceWidget, x, y);
@@ -691,40 +739,52 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   }
   else if (eid == vtkCommand::LeftButtonReleaseEvent)
   {
-    //self.paintApply()
-    //self.actionState = None
-    //self.cursorOn()
+    d->paintApply(sliceWidget);
+    d->IsPainting = false;
+    this->cursorOn(sliceWidget);
   }
   else if (eid == vtkCommand::MouseMoveEvent)
   {
-    //self.actor.VisibilityOn()
-    //if self.actionState == "painting":
-    //  xy = callerInteractor->GetEventPosition()
-    //  self.paintAddPoint(xy[0], xy[1])
-    //  self.abortEvent(event)
+    brush->Actor->VisibilityOn();
+    if (d->IsPainting)
+    {
+      int eventPosition[2] = {0,0};
+      callerInteractor->GetEventPosition(eventPosition);
+      d->paintAddPoint(sliceWidget, eventPosition[0], eventPosition[1]);
+      this->abortEvent(callerInteractor, eid, sliceWidget);
+    }
   }
   else if (eid == vtkCommand::EnterEvent)
   {
-    //self.actor.VisibilityOn()
+    brush->Actor->VisibilityOn();
   }
   else if (eid == vtkCommand::LeaveEvent)
   {
-    //self.actor.VisibilityOff()
+    brush->Actor->VisibilityOff();
   }
   else if (eid == vtkCommand::KeyPressEvent)
   {
-    //key = callerInteractor->GetKeySym()
-    //if key == 'plus' or key == 'equal':
-    //  self.scaleRadius(1.2)
-    //if key == 'minus' or key == 'underscore':
-    //  self.scaleRadius(0.8)
+    const char* key = callerInteractor->GetKeySym();
+    if (!strcmp(key, "plus") || !strcmp(key, "equal"))
+    {
+      d->scaleRadius(1.2);
+    }
+    if (!strcmp(key, "minus") || !strcmp(key, "underscore"))
+    {
+      d->scaleRadius(0.8);
+    }
   }
 
+  //TODO:
   //if caller and caller.IsA('vtkMRMLSliceNode'):
   //  if hasattr(self,'brush'):
   //    self.createGlyph(self.brush)
 
-  //self.positionActors()
+  // Update paint feedback glyph to follow mouse
+  int eventPosition[2] = {0,0};
+  callerInteractor->GetEventPosition(eventPosition);
+  brush->Actor->SetPosition(eventPosition[0], eventPosition[1]);
+  sliceWidget->sliceView()->scheduleRender();
 }
 
 //-----------------------------------------------------------------------------
