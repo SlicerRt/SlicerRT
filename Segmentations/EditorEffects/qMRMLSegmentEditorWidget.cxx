@@ -66,6 +66,7 @@
 #include <QPushButton>
 #include <QButtonGroup>
 #include <QMessageBox>
+#include <QVBoxLayout>
 
 //-----------------------------------------------------------------------------
 class SegmentEditorInteractionEventInfo: public QObject
@@ -178,6 +179,11 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   this->EffectButtonGroup.setExclusive(true);
   QObject::connect(&this->EffectButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)), q, SLOT(onEffectButtonClicked(QAbstractButton*) ) );
 
+  // Create layout for effect options
+  QVBoxLayout* layout = new QVBoxLayout(this->EffectOptionsFrame);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(0);
+
   // Instantiate and expose effects
   this->createEffects();
 }
@@ -206,9 +212,10 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
   effectsGroupLayout->setSpacing(4);
   this->EffectsGroupBox->setLayout(effectsGroupLayout);
 
-  // Instantiate effects and create buttons for activating effects
+  // Initialize effects
   foreach (qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
   {
+    // Create button for activating effect
     QPushButton* effectButton = new QPushButton(this->EffectsGroupBox);
     effectButton->setObjectName(effect->name());
     effectButton->setCheckable(true);
@@ -217,6 +224,15 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
 
     this->EffectButtonGroup.addButton(effectButton);
     effectsGroupLayout->addWidget(effectButton);
+
+    // Set default parameters in the parameter MRML node
+    effect->setMRMLDefaults();
+
+    // Add effect options frame to the options widget and hide them
+    effect->setupOptionsFrame();
+    QFrame* effectOptionsFrame = effect->optionsFrame();
+    this->EffectOptionsFrame->layout()->addWidget(effectOptionsFrame);
+    effectOptionsFrame->setVisible(false);
   }
 }
 
@@ -286,7 +302,23 @@ void qMRMLSegmentEditorWidget::setActiveEffect(qSlicerSegmentEditorAbstractEffec
 {
   Q_D(qMRMLSegmentEditorWidget);
 
+  // Deactivate previously selected effect
+  if (d->ActiveEffect)
+  {
+    d->ActiveEffect->deactivate();
+  }
+
   d->ActiveEffect = effect;
+  if (d->ActiveEffect)
+  {
+    // Activate newly selected effect
+    d->ActiveEffect->activate();
+    d->ActiveEffectLabel->setText(d->ActiveEffect->name());
+  }
+  else
+  {
+    d->ActiveEffectLabel->setText("None");
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -625,29 +657,14 @@ void qMRMLSegmentEditorWidget::onEffectButtonClicked(QAbstractButton* button)
     button->blockSignals(true);
 
     button->setChecked(false);
-    d->ActiveEffect->deactivate();
-    d->ActiveEffect = NULL;
-    d->ActiveEffectLabel->setText("None");
+    this->setActiveEffect(NULL);
 
     button->blockSignals(false);
     d->EffectButtonGroup.setExclusive(true);
   }
   else
   {
-    // Deactivate previously selected effect
-    if (d->ActiveEffect)
-    {
-      d->ActiveEffect->deactivate();
-    }
-
-    // Set selected effect as current and activate it
-    d->ActiveEffect = clickedEffect;
-    d->ActiveEffectLabel->setText(d->ActiveEffect->name());
-    d->ActiveEffect->activate();
-
-    // Create effect options widget
-    //TODO:
-    //d->EffectOptionsFrame
+     this->setActiveEffect(clickedEffect);
   }
 }
 

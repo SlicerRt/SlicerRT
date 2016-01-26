@@ -63,8 +63,14 @@ public:
   /// (redefinition of pure virtual function to allow python wrapper to identify this as abstract class)
   virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
 
+  /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
+  virtual void setupOptionsFrame();
+
+  /// Set default parameters in the parameter MRML node
+  virtual void setMRMLDefaults();
+
   /// Update user interface from parameter set node
-  virtual void updateGUIFromMRML(vtkObject* caller, void* callData);
+  virtual void updateGUIFromMRML();
 
   /// Update parameter set node from user interface
   virtual void updateMRMLFromGUI();

@@ -46,15 +46,22 @@ qSlicerSegmentEditorLabelEffect::~qSlicerSegmentEditorLabelEffect()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::updateGUIFromMRML(vtkObject* caller, void* callData)
+void qSlicerSegmentEditorLabelEffect::setupOptionsFrame()
 {
-  // Get parameter set node
-  vtkMRMLSegmentEditorEffectNode* parameterNode = reinterpret_cast<vtkMRMLSegmentEditorEffectNode*>(caller);
-  if (!parameterNode)
-  {
-    return;
-  }
+  //TODO: Common label effect parameters (paintOver, paintThreshold, paintThresholdMin, paintThresholdMax)
 
+  //this->addOptionsWidget( each row );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffect::setMRMLDefaults()
+{
+  //TODO: Common label effect parameters (paintOver, paintThreshold, paintThresholdMin, paintThresholdMax)
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffect::updateGUIFromMRML()
+{
   //TODO: Common label effect parameters (paintOver, paintThreshold, paintThresholdMin, paintThresholdMax)
 }
 

@@ -61,12 +61,6 @@ public:
   /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
   virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget);
 
-  /// Update user interface from parameter set node
-  virtual void updateGUIFromMRML(vtkObject* caller, void* callData);
-
-  /// Update parameter set node from user interface
-  virtual void updateMRMLFromGUI();
-
 protected:
   QScopedPointer<qSlicerSegmentEditorRectangleEffectPrivate> d_ptr;
 

@@ -45,6 +45,7 @@ class vtkOrientedImageData;
 class vtkProp;
 class qMRMLWidget;
 class qMRMLSliceWidget;
+class QFrame;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \brief Abstract class for segment editor effects
@@ -74,10 +75,10 @@ public:
   /// Get icon for effect to be displayed in segment editor
   virtual QIcon icon() { return QIcon(); };
 
-  /// Perform actions to activate the effect
-  virtual void activate() { };
+  /// Perform actions to activate the effect (show options frame, etc.)
+  virtual void activate();
 
-  /// Perform actions to deactivate the effect (such as destroy actors, etc.)
+  /// Perform actions to deactivate the effect (hide options frame, destroy actors, etc.)
   virtual void deactivate();
 
   /// Callback function invoked when interaction happens
@@ -92,21 +93,37 @@ public:
   /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
   virtual void processViewNodeEvents(vtkMRMLAbstractViewNode* callerViewNode, unsigned long eid, qMRMLWidget* viewWidget) { };
 
+  /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
+  virtual void setupOptionsFrame() { };
+
+  /// Set default parameters in the parameter MRML node
+  virtual void setMRMLDefaults() = 0;
+
   /// Update user interface from parameter set node
-  virtual void updateGUIFromMRML(vtkObject* caller, void* callData) = 0;
+  virtual void updateGUIFromMRML() = 0;
 
   /// Update parameter set node from user interface
   virtual void updateMRMLFromGUI() = 0;
 
 // Get/set methods
+public:
+  /// Set edited labelmap. Can be overridden to perform additional actions.
+  virtual void setEditedLabelmap(vtkOrientedImageData* labelmap) { m_EditedLabelmap = labelmap; };
+
   /// Set MRML scene
   void setScene(vtkMRMLScene* scene) { m_Scene = scene; };
 
-  /// Set edited labelmap
-  void setEditedLabelmap(vtkOrientedImageData* labelmap) { m_EditedLabelmap = labelmap; };
-
   /// Add actor to container that needs to be cleared on deactivation
   void addActor(qMRMLWidget* viewWidget, vtkProp* actor);
+
+  /// Get effect options frame
+  QFrame* optionsFrame();
+
+protected:
+  /// Add effect options widget to options frame layout
+  /// The implemented effects need to create their options UI widget, make the connections,
+  /// then call this function to add the options UI to the effect options frame
+  void addOptionsWidget(QWidget* newOptionsWidget);
 
 // Effect parameter functions
 public:
@@ -116,8 +133,20 @@ public:
   /// Get effect parameter from effect parameter set node
   QString parameter(QString name);
 
+  /// Convenience function to get integer parameter
+  int integerParameter(QString name);
+
+  /// Convenience function to get double parameter
+  double doubleParameter(QString name);
+
   /// Set effect parameter in effect parameter set node
   void setParameter(QString name, QString value);
+
+  /// Convenience function to set integer parameter
+  void setParameter(QString name, int value);
+
+  /// Convenience function to set double parameter
+  void setParameter(QString name, double value);
 
 // Utility functions
 public:

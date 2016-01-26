@@ -27,6 +27,8 @@
 // Qt includes
 #include <QDebug>
 #include <QCursor>
+#include <QFrame>
+#include <QVBoxLayout>
 
 // Slicer includes
 #include "qMRMLSliceWidget.h"
@@ -61,25 +63,39 @@ public:
   ~qSlicerSegmentEditorAbstractEffectPrivate();
 public:
   /// Cursor to restore after custom cursor is not needed any more
-  QCursor* SavedCursor;
+  QCursor SavedCursor;
 
   /// MRML ID of the parameter set node corresponding to the effect
   QString ParameterSetNodeID;
 
   /// List of actors used by the effect. Removed when effect is deactivated
   QMap<qMRMLWidget*, QList<vtkProp*> > Actors;
+
+  /// Frame containing the effect options UI.
+  /// Populating the frame is possible using the \sa addOptionsWidget method from the base classes
+  QFrame* OptionsFrame;
 };
 
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffectPrivate::qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object)
   : q_ptr(&object)
-  , SavedCursor(NULL)
+  , SavedCursor(QCursor(Qt::ArrowCursor))
+  , OptionsFrame(NULL)
 {
+  this->OptionsFrame = new QFrame();
+  QVBoxLayout* layout = new QVBoxLayout(this->OptionsFrame);
+  layout->setContentsMargins(4, 4, 4, 4);
+  layout->setSpacing(4);
 }
 
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffectPrivate::~qSlicerSegmentEditorAbstractEffectPrivate()
 {
+  if (this->OptionsFrame)
+  {
+    delete this->OptionsFrame;
+    this->OptionsFrame = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -97,9 +113,21 @@ qSlicerSegmentEditorAbstractEffect::~qSlicerSegmentEditorAbstractEffect()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::activate()
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  // Show options frame
+  d->OptionsFrame->setVisible(true);
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::deactivate()
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  // Hide options frame
+  d->OptionsFrame->setVisible(false);
 
   // Remove actors from container
   QMapIterator<qMRMLWidget*, QList<vtkProp*> > actorsIterator(d->Actors);
@@ -160,6 +188,23 @@ void qSlicerSegmentEditorAbstractEffect::addActor(qMRMLWidget* viewWidget, vtkPr
 }
 
 //-----------------------------------------------------------------------------
+QFrame* qSlicerSegmentEditorAbstractEffect::optionsFrame()
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  return d->OptionsFrame;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::addOptionsWidget(QWidget* newOptionsWidget)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  newOptionsWidget->setParent(d->OptionsFrame);
+  d->OptionsFrame->layout()->addWidget(newOptionsWidget);
+}
+
+//-----------------------------------------------------------------------------
 vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSetNode()
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
@@ -182,7 +227,7 @@ vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSet
     node->Delete(); // Pass ownership to MRML scene only
 
     // Connect node modified event to update user interface
-    qvtkConnect(node, vtkCommand::ModifiedEvent, this, SLOT( updateGUIFromMRML(vtkObject*,void*) ) );
+    qvtkConnect(node, vtkCommand::ModifiedEvent, this, SLOT( updateGUIFromMRML() ) );
 
     return node;
   }
@@ -220,6 +265,36 @@ QString qSlicerSegmentEditorAbstractEffect::parameter(QString name)
 }
 
 //-----------------------------------------------------------------------------
+int qSlicerSegmentEditorAbstractEffect::integerParameter(QString name)
+{
+  QString parameterStr = this->parameter(name);
+  bool ok = false;
+  int parameterInt = parameterStr.toInt(&ok);
+  if (!ok)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::integerParameter: Parameter named " << name << " cannot be converted to integer!";
+    return 0;
+  }
+
+  return parameterInt;
+}
+
+//-----------------------------------------------------------------------------
+double qSlicerSegmentEditorAbstractEffect::doubleParameter(QString name)
+{
+  QString parameterStr = this->parameter(name);
+  bool ok = false;
+  double parameterDouble = parameterStr.toDouble(&ok);
+  if (!ok)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::doubleParameter: Parameter named " << name << " cannot be converted to floating point number!";
+    return 0.0;
+  }
+
+  return parameterDouble;
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString value)
 {
   vtkMRMLSegmentEditorEffectNode* node = this->parameterSetNode();
@@ -233,12 +308,23 @@ void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString valu
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, int value)
+{
+  this->setParameter(name, QString::number(value));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, double value)
+{
+  this->setParameter(name, QString::number(value));
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::cursorOff(qMRMLWidget* viewWidget)
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
 
-  QCursor cursor(viewWidget->cursor());
-  d->SavedCursor = &cursor;
+  d->SavedCursor = QCursor(viewWidget->cursor());
   viewWidget->setCursor(QCursor(Qt::BlankCursor));
 }
 
@@ -247,14 +333,7 @@ void qSlicerSegmentEditorAbstractEffect::cursorOn(qMRMLWidget* viewWidget)
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
 
-  if (d->SavedCursor)
-  {
-    viewWidget->setCursor(*(d->SavedCursor));
-  }
-  else
-  {
-    viewWidget->unsetCursor();
-  }
+  viewWidget->setCursor(d->SavedCursor);
 }
 
 //-----------------------------------------------------------------------------

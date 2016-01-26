@@ -64,13 +64,22 @@ public:
   /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
   virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget);
 
+  /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
+  virtual void setupOptionsFrame();
+
+  /// Set default parameters in the parameter MRML node
+  virtual void setMRMLDefaults();
+
   /// Update user interface from parameter set node
-  virtual void updateGUIFromMRML(vtkObject* caller, void* callData);
+  virtual void updateGUIFromMRML();
 
   /// Update parameter set node from user interface
   virtual void updateMRMLFromGUI();
 
-public:  
+  /// Set edited labelmap. Can be overridden to perform additional actions.
+  virtual void setEditedLabelmap(vtkOrientedImageData* labelmap);
+
+public:
   /// Apply paint operation
   void apply();
 
