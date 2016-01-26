@@ -237,7 +237,8 @@ void qSlicerSegmentEditorAbstractEffect::cursorOff(qMRMLWidget* viewWidget)
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
 
-  d->SavedCursor = &(viewWidget->cursor());
+  QCursor cursor(viewWidget->cursor());
+  d->SavedCursor = &cursor;
   viewWidget->setCursor(QCursor(Qt::BlankCursor));
 }
 
