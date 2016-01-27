@@ -23,6 +23,7 @@
 
 #include "vtkOrientedImageData.h"
 #include "vtkMRMLSegmentationNode.h"
+#include "vtkMRMLSegmentEditorEffectNode.h"
 
 // Qt includes
 #include <QDebug>
@@ -116,6 +117,9 @@ public:
   /// Draw paint circle glyph
   void createBrushGlyph(qMRMLSliceWidget* sliceWidget, PaintEffectBrush* brush);
 
+  /// Update brushes
+  void updateBrushes();
+
 protected:
   /// Get brush object for widget. Create if does not exist
   PaintEffectBrush* brushForWidget(qMRMLSliceWidget* sliceWidget);
@@ -140,7 +144,7 @@ protected:
   void scaleRadius(double scaleFactor);
 
 public slots:
-  void onRadiusUnitsToggled();
+  void onRadiusUnitsToggled(bool checked);
   void onQuickRadiusButtonClicked();
   void onRadiusValueChanged(double value);
 
@@ -149,10 +153,17 @@ public:
 
   QList<QPoint> PaintCoordinates;
   QList<vtkActor2D*> FeedbackActors;
-  QMap<qMRMLWidget*, PaintEffectBrush*> Brushes;
+  QMap<qMRMLSliceWidget*, PaintEffectBrush*> Brushes;
   vtkImageSlicePaint* Painter;
   bool DelayedPaint;
   bool IsPainting;
+
+  QFrame* RadiusFrame;
+  qMRMLSpinBox* RadiusSpinBox;
+  ctkDoubleSlider* RadiusSlider; 
+  QCheckBox* SphereCheckbox;
+  QCheckBox* SmudgeCheckbox;
+  QCheckBox* PixelModeCheckbox;
 };
 
 //-----------------------------------------------------------------------------
@@ -161,6 +172,12 @@ qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(q
   , Painter(NULL)
   , DelayedPaint(true)
   , IsPainting(false)
+  , RadiusFrame(NULL)
+  , RadiusSpinBox(NULL)
+  , RadiusSlider(NULL)
+  , SphereCheckbox(NULL)
+  , SmudgeCheckbox(NULL)
+  , PixelModeCheckbox(NULL)
 {
   this->EffectIcon = QIcon(":Icons/Paint.png");
 
@@ -294,14 +311,14 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLSliceWidget* sliceW
     this->paintFeedback(sliceWidget);
   }
 
-    //# TODO: workaround for new pipeline in slicer4
-    //# - editing image data of the calling modified on the node
-    //#   does not pull the pipeline chain
-    //# - so we trick it by changing the image data first
-    //sliceLogic = self.sliceWidget.sliceLogic()
-    //labelLogic = sliceLogic.GetLabelLayer()
-    //labelNode = labelLogic.GetVolumeNode()
-    //EditUtil.markVolumeNodeAsModified(labelNode)
+  //# TODO: workaround for new pipeline in slicer4
+  //# - editing image data of the calling modified on the node
+  //#   does not pull the pipeline chain
+  //# - so we trick it by changing the image data first
+  //sliceLogic = self.sliceWidget.sliceLogic()
+  //labelLogic = sliceLogic.GetLabelLayer()
+  //labelNode = labelLogic.GetVolumeNode()
+  //EditUtil.markVolumeNodeAsModified(labelNode)
 }
 
 //-----------------------------------------------------------------------------
@@ -586,16 +603,16 @@ void qSlicerSegmentEditorPaintEffectPrivate::scaleRadius(double scaleFactor)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::onRadiusUnitsToggled()
+void qSlicerSegmentEditorPaintEffectPrivate::onRadiusUnitsToggled(bool checked)
 {
   QPushButton* senderButton = dynamic_cast<QPushButton*>(sender());
-  if (senderButton->text().compare("mm:"))
+  if (checked)
   {
-    senderButton->setText("px:");
+    senderButton->setText("mm:");
   }
   else
   {
-    senderButton->setText("mm:");
+    senderButton->setText("px:");
   }
 }
 
@@ -641,10 +658,13 @@ void qSlicerSegmentEditorPaintEffectPrivate::onRadiusValueChanged(double value)
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffectPrivate::createBrushGlyph(qMRMLSliceWidget* sliceWidget, PaintEffectBrush* brush)
 {
-  // Create a brush circle of the right radius in XY space.
-  // Assume uniform scaling between XY and RAS which is enforced by the view interactors
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
+  // Clear brush glyph in case it was already created
+  brush->PolyData->Initialize();
+
+  // Create a brush circle of the right radius in XY space.
+  // Assume uniform scaling between XY and RAS which is enforced by the view interactors
   double xyRadius = 0.01; // Default value for pixel mode
   if (!q->integerParameter("PixelMode"))
   {
@@ -709,6 +729,17 @@ void qSlicerSegmentEditorPaintEffectPrivate::createBrushGlyph(qMRMLSliceWidget* 
   idList->InsertNextId(currentPointId);
   idList->InsertNextId(firstPointId);
   brush->PolyData->InsertNextCell(VTK_LINE, idList);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorPaintEffectPrivate::updateBrushes()
+{
+  QMapIterator<qMRMLSliceWidget*, PaintEffectBrush*> brushIt(this->Brushes);
+  while (brushIt.hasNext())
+  {
+    brushIt.next();
+    this->createBrushGlyph(brushIt.key(), brushIt.value());
+  }
 }
 
 
@@ -833,16 +864,32 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
     }
   }
 
-  //TODO:
-  //if caller and caller.IsA('vtkMRMLSliceNode'):
-  //  if hasattr(self,'brush'):
-  //    self.createGlyph(self.brush)
-
   // Update paint feedback glyph to follow mouse
   int eventPosition[2] = {0,0};
   callerInteractor->GetEventPosition(eventPosition);
   brush->Actor->SetPosition(eventPosition[0], eventPosition[1]);
   sliceWidget->sliceView()->scheduleRender();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorPaintEffect::processViewNodeEvents(vtkMRMLAbstractViewNode* callerViewNode, unsigned long eid, qMRMLWidget* viewWidget)
+{
+  Q_D(qSlicerSegmentEditorPaintEffect);
+
+  // This effect only supports interactions in the 2D slice views currently
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+  if (!sliceWidget)
+  {
+    return;
+  }
+  PaintEffectBrush* brush = d->brushForWidget(sliceWidget);
+  if (!brush)
+  {
+    qCritical() << "qSlicerSegmentEditorPaintEffect::processViewNodeEvents: Failed to create brush!";
+    return;
+  }
+
+  d->createBrushGlyph(sliceWidget, brush);
 }
 
 //-----------------------------------------------------------------------------
@@ -854,32 +901,24 @@ void qSlicerSegmentEditorPaintEffect::setupOptionsFrame()
   Q_D(qSlicerSegmentEditorPaintEffect);
 
   // Create options frame for this effect
-  QFrame* radiusFrame = new QFrame();
-  radiusFrame->setLayout(new QHBoxLayout());
-  this->addOptionsWidget(radiusFrame);
+  d->RadiusFrame = new QFrame();
+  d->RadiusFrame->setLayout(new QHBoxLayout());
+  this->addOptionsWidget(d->RadiusFrame);
 
-  QLabel* radiusLabel = new QLabel("Radius:", radiusFrame);
+  QLabel* radiusLabel = new QLabel("Radius:", d->RadiusFrame);
   radiusLabel->setToolTip("Set the radius of the paint brush in millimeters");
-  radiusFrame->layout()->addWidget(radiusLabel);
+  d->RadiusFrame->layout()->addWidget(radiusLabel);
 
-  qMRMLSpinBox* radiusSpinBox = new qMRMLSpinBox(radiusFrame);
-  radiusSpinBox->setToolTip("Set the radius of the paint brush in millimeters");
-  radiusSpinBox->setQuantity("length");
-  radiusSpinBox->setUnitAwareProperties(qMRMLSpinBox::Prefix | qMRMLSpinBox::Suffix);
-  radiusSpinBox->setMinimum(this->integerParameter("MinimumRadius"));
-  radiusSpinBox->setMaximum(this->integerParameter("MaximumRadius"));
-  radiusSpinBox->setMRMLScene(this->m_Scene);
-  int decimals = (int)(log10(this->integerParameter("MinimumRadius")));
-  if (decimals < 0)
-  {
-    radiusSpinBox->setDecimals(-decimals * 2);
-  }
-  radiusFrame->layout()->addWidget(radiusSpinBox);
+  d->RadiusSpinBox = new qMRMLSpinBox(d->RadiusFrame);
+  d->RadiusSpinBox->setToolTip("Set the radius of the paint brush in millimeters");
+  d->RadiusSpinBox->setQuantity("length");
+  d->RadiusSpinBox->setUnitAwareProperties(qMRMLSpinBox::Prefix | qMRMLSpinBox::Suffix);
+  d->RadiusFrame->layout()->addWidget(d->RadiusSpinBox);
 
   QPushButton* radiusUnitsToggle = new QPushButton("px:");
   radiusUnitsToggle->setToolTip("Toggle radius quick set buttons between mm and label volume pixel size units");
   radiusUnitsToggle->setFixedWidth(35);
-  radiusFrame->layout()->addWidget(radiusUnitsToggle);
+  d->RadiusFrame->layout()->addWidget(radiusUnitsToggle);
 
   QList<int> quickRadii;
   quickRadii << 2 << 3 << 4 << 5 << 10 << 20;
@@ -889,39 +928,40 @@ void qSlicerSegmentEditorPaintEffect::setupOptionsFrame()
     quickRadiusButton->setProperty("Radius", QVariant(radius));
     quickRadiusButton->setFixedWidth(25);
     quickRadiusButton->setToolTip("Set radius based on mm or label voxel size units depending on toggle value");
-    radiusFrame->layout()->addWidget(quickRadiusButton);
+    d->RadiusFrame->layout()->addWidget(quickRadiusButton);
     QObject::connect(quickRadiusButton, SIGNAL(clicked()), d, SLOT(onQuickRadiusButtonClicked()));
   }
 
-  ctkDoubleSlider* radiusSlider = new ctkDoubleSlider();
-  radiusSlider->setMinimum(this->integerParameter("MinimumRadius"));
-  radiusSlider->setMaximum(this->integerParameter("MaximumRadius"));
-  radiusSlider->setOrientation(Qt::Horizontal);
-  radiusSlider->setSingleStep(this->integerParameter("MinimumRadius"));
-  this->addOptionsWidget(radiusSlider);
+  d->RadiusSlider = new ctkDoubleSlider();
+  d->RadiusSlider->setOrientation(Qt::Horizontal);
+  this->addOptionsWidget(d->RadiusSlider);
 
-  QCheckBox* sphereCheckbox = new QCheckBox();
-  sphereCheckbox->setToolTip("Use a 3D spherical brush rather than a 2D circular brush.");
-  this->addOptionsWidget(sphereCheckbox);
+  d->SphereCheckbox = new QCheckBox("Sphere");
+  d->SphereCheckbox->setToolTip("Use a 3D spherical brush rather than a 2D circular brush.");
+  this->addOptionsWidget(d->SphereCheckbox);
 
-  QCheckBox* smudgeCheckbox = new QCheckBox();
-  smudgeCheckbox->setToolTip("Set the label number automatically by sampling the pixel location where the brush stroke starts.");
-  this->addOptionsWidget(smudgeCheckbox);
+  d->SmudgeCheckbox = new QCheckBox("Smudge");
+  //TODO: Smudge is not yet implemented. It is now a more complex function,
+  //  as it involves switching segment instead of simply changing label color.
+  //d->SmudgeCheckbox->setToolTip("Set the label number automatically by sampling the pixel location where the brush stroke starts.");
+  d->SmudgeCheckbox->setToolTip("Smudge function is not yet implemented!");
+  d->SmudgeCheckbox->setEnabled(false);
+  this->addOptionsWidget(d->SmudgeCheckbox);
 
-  QCheckBox* pixelModeCheckbox = new QCheckBox();
-  pixelModeCheckbox->setToolTip("Paint exactly the pixel under the cursor, ignoring the radius, threshold, and paint over.");
-  this->addOptionsWidget(pixelModeCheckbox);
+  d->PixelModeCheckbox = new QCheckBox("Pixel mode");
+  d->PixelModeCheckbox->setToolTip("Paint exactly the pixel under the cursor, ignoring the radius, threshold, and paint over.");
+  this->addOptionsWidget(d->PixelModeCheckbox);
 
   /* TODO:
     HelpButton(self.frame, "Use this tool to paint with a round brush of the selected radius")
   */
 
-  QObject::connect(radiusUnitsToggle, SIGNAL(clicked()), d, SLOT(onRadiusUnitsToggled()));
-  QObject::connect(sphereCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
-  QObject::connect(smudgeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
-  QObject::connect(pixelModeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
-  QObject::connect(radiusSlider, SIGNAL(valueChanged(double)), d, SLOT(onRadiusValueChanged(double)));
-  QObject::connect(radiusSpinBox, SIGNAL(valueChanged(double)), d, SLOT(onRadiusValueChanged(double)));
+  QObject::connect(radiusUnitsToggle, SIGNAL(toggled(bool)), d, SLOT(onRadiusUnitsToggled(bool)));
+  QObject::connect(d->SphereCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
+  QObject::connect(d->SmudgeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
+  QObject::connect(d->PixelModeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
+  QObject::connect(d->RadiusSlider, SIGNAL(valueChanged(double)), d, SLOT(onRadiusValueChanged(double)));
+  QObject::connect(d->RadiusSpinBox, SIGNAL(valueChanged(double)), d, SLOT(onRadiusValueChanged(double)));
 }
 
 //-----------------------------------------------------------------------------
@@ -938,12 +978,57 @@ void qSlicerSegmentEditorPaintEffect::setMRMLDefaults()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
 {
+  Q_D(qSlicerSegmentEditorPaintEffect);
+
+  if (!m_Scene)
+  {
+    return;
+  }
+
+  d->SphereCheckbox->blockSignals(true);
+  d->SphereCheckbox->setChecked(this->integerParameter("Sphere"));
+  d->SphereCheckbox->blockSignals(false);
+
+  d->SmudgeCheckbox->blockSignals(true);
+  d->SmudgeCheckbox->setChecked(this->integerParameter("Smudge"));
+  d->SmudgeCheckbox->blockSignals(false);
+
+  bool pixelMode = this->integerParameter("PixelMode");
+  d->PixelModeCheckbox->blockSignals(true);
+  d->PixelModeCheckbox->setChecked(pixelMode);
+  d->PixelModeCheckbox->blockSignals(false);
+
+  // Pixel mode prevents using threshold and paint over functions
+  this->setParameter("ThresholdEnabled", !pixelMode);
+  this->setParameter("PaintOverEnabled", !pixelMode);
+
+  // Update label options based on constraints set by pixel mode
   Superclass::updateGUIFromMRML();
 
-  //TODO: Update effect options widgets
+  // Radius is also disabled if pixel mode is on
+  d->RadiusFrame->setVisible(!pixelMode);
+
+  d->RadiusSlider->blockSignals(true);
+  d->RadiusSlider->setValue(this->doubleParameter("Radius"));
+  d->RadiusSlider->setMinimum(this->doubleParameter("MinimumRadius"));
+  d->RadiusSlider->setMaximum(this->doubleParameter("MaximumRadius"));
+  d->RadiusSlider->setSingleStep(this->doubleParameter("MinimumRadius"));
+  d->RadiusSlider->blockSignals(false);
+
+  d->RadiusSpinBox->blockSignals(true);
+  d->RadiusSpinBox->setValue(this->doubleParameter("Radius"));
+  d->RadiusSpinBox->setMinimum(this->doubleParameter("MinimumRadius"));
+  d->RadiusSpinBox->setMaximum(this->doubleParameter("MaximumRadius"));
+  d->RadiusSpinBox->setMRMLScene(this->m_Scene);
+  int decimals = (int)(log10(this->doubleParameter("MinimumRadius")));
+  if (decimals < 0)
+  {
+    d->RadiusSpinBox->setDecimals(-decimals * 2);
+  }
+  d->RadiusSpinBox->blockSignals(false);
 
   // Update brushes
-  //d->updateBrushes(); //TODO:
+  d->updateBrushes();
 }
 
 //-----------------------------------------------------------------------------
@@ -951,7 +1036,24 @@ void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
 {
   Superclass::updateMRMLFromGUI();
 
-  //TODO:
+  Q_D(qSlicerSegmentEditorPaintEffect);
+
+  // Disable modified events
+  vtkMRMLSegmentEditorEffectNode* parameterNode = this->parameterSetNode();
+  int disableState = parameterNode->GetDisableModifiedEvent();
+  parameterNode->SetDisableModifiedEvent(1);
+
+  this->setParameter("Sphere", (int)d->SphereCheckbox->isChecked());
+  this->setParameter("Smudge", (int)d->SmudgeCheckbox->isChecked());
+  this->setParameter("PixelMode", (int)d->PixelModeCheckbox->isChecked());
+  this->setParameter("Radius", d->RadiusSlider->value());
+
+  // Re-enable modified events
+  parameterNode->SetDisableModifiedEvent(disableState);
+  if (!disableState)
+  {
+    parameterNode->InvokePendingModifiedEvent();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -961,16 +1063,19 @@ void qSlicerSegmentEditorPaintEffect::setEditedLabelmap(vtkOrientedImageData* la
 
   if (labelmap)
   {
-    //TODO:
-    /*
-      spacing = labelVolume.GetSpacing()
-      dimensions = labelVolume.GetImageData().GetDimensions()
-      self.minimumRadius = 0.5 * min(spacing)
-      bounds = [a*b for a,b in zip(spacing,dimensions)]
-      self.maximumRadius = 0.5 * max(bounds)
+    double spacing[3] = {0.0, 0.0, 0.0};
+    labelmap->GetSpacing(spacing);
+    double minimumSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    double minimumRadius = 0.5 * minimumSpacing;
+    this->setParameter("MinimumRadius", minimumRadius);
 
-      ("radius", str(self.minimumRadius * 50)),
-    */
+    int dimensions[3] = {0, 0, 0};
+    labelmap->GetDimensions(dimensions);
+    double bounds[3] = {spacing[0]*dimensions[0], spacing[1]*dimensions[1], spacing[2]*dimensions[2]};
+    double maximumBounds = std::max(bounds[0], std::max(bounds[1], bounds[2]));
+    this->setParameter("MaximumRadius", 0.5 * maximumBounds);
+
+    this->setParameter("Radius", 50.0 * minimumRadius);
 
     this->updateGUIFromMRML();
   }

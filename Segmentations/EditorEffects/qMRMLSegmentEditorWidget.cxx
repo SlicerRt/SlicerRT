@@ -225,9 +225,6 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
     this->EffectButtonGroup.addButton(effectButton);
     effectsGroupLayout->addWidget(effectButton);
 
-    // Set default parameters in the parameter MRML node
-    effect->setMRMLDefaults();
-
     // Add effect options frame to the options widget and hide them
     effect->setupOptionsFrame();
     QFrame* effectOptionsFrame = effect->optionsFrame();
@@ -242,6 +239,7 @@ void qMRMLSegmentEditorWidgetPrivate::setSceneToEffects(vtkMRMLScene* scene)
   foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
   {
     effect->setScene(scene);
+    effect->setMRMLDefaults();
   }
 }
 

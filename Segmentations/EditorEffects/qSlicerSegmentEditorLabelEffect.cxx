@@ -63,6 +63,8 @@ void qSlicerSegmentEditorLabelEffect::setMRMLDefaults()
 void qSlicerSegmentEditorLabelEffect::updateGUIFromMRML()
 {
   //TODO: Common label effect parameters (paintOver, paintThreshold, paintThresholdMin, paintThresholdMax)
+  // "ThresholdEnabled": show/hide threshold widgets
+  // "PaintOverEnabled": show/hide paint over widgets
 }
 
 //-----------------------------------------------------------------------------

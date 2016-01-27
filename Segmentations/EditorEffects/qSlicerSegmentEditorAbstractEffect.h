@@ -64,7 +64,7 @@ public:
   qSlicerSegmentEditorAbstractEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorAbstractEffect();
 
-// API methods
+// API: Methods that are to be reimplemented in the effect subclasses
 public:  
   /// Get name of effect
   virtual QString name() = 0;

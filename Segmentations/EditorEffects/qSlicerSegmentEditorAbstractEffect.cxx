@@ -211,7 +211,6 @@ vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSet
 
   if (!m_Scene)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::parameterSetNode: Invalid MRML scene!";
     return NULL;
   }
 
@@ -222,6 +221,7 @@ vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSet
     QString nodeName = QString("%1_ParameterSet").arg(this->name());
     std::string uniqueNodeName = m_Scene->GenerateUniqueName(nodeName.toLatin1().constData());
     node->SetName(uniqueNodeName.c_str());
+    node->SetEffectName(this->name().toLatin1().constData());
     node->HideFromEditorsOn();
     m_Scene->AddNode(node);
     node->Delete(); // Pass ownership to MRML scene only
@@ -250,7 +250,6 @@ QString qSlicerSegmentEditorAbstractEffect::parameter(QString name)
   vtkMRMLSegmentEditorEffectNode* node = this->parameterSetNode();
   if (!node)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::parameter: Unable to find effect parameter node for effect " << this->name();
     return QString();
   }
 
@@ -267,6 +266,11 @@ QString qSlicerSegmentEditorAbstractEffect::parameter(QString name)
 //-----------------------------------------------------------------------------
 int qSlicerSegmentEditorAbstractEffect::integerParameter(QString name)
 {
+  if (!this->parameterSetNode())
+  {
+    return 0;
+  }
+
   QString parameterStr = this->parameter(name);
   bool ok = false;
   int parameterInt = parameterStr.toInt(&ok);
@@ -282,6 +286,11 @@ int qSlicerSegmentEditorAbstractEffect::integerParameter(QString name)
 //-----------------------------------------------------------------------------
 double qSlicerSegmentEditorAbstractEffect::doubleParameter(QString name)
 {
+  if (!this->parameterSetNode())
+  {
+    return 0.0;
+  }
+
   QString parameterStr = this->parameter(name);
   bool ok = false;
   double parameterDouble = parameterStr.toDouble(&ok);
