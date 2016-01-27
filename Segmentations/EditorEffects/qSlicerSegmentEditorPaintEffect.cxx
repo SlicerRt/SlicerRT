@@ -20,6 +20,7 @@
 
 // Segmentations includes
 #include "qSlicerSegmentEditorPaintEffect.h"
+#include "qSlicerSegmentEditorPaintEffect_p.h"
 
 #include "vtkOrientedImageData.h"
 #include "vtkMRMLSegmentationNode.h"
@@ -99,72 +100,6 @@ public:
 
 //-----------------------------------------------------------------------------
 // qSlicerSegmentEditorPaintEffectPrivate methods
-
-//-----------------------------------------------------------------------------
-class qSlicerSegmentEditorPaintEffectPrivate: public QObject
-{
-  Q_DECLARE_PUBLIC(qSlicerSegmentEditorPaintEffect);
-protected:
-  qSlicerSegmentEditorPaintEffect* const q_ptr;
-public:
-  qSlicerSegmentEditorPaintEffectPrivate(qSlicerSegmentEditorPaintEffect& object);
-  ~qSlicerSegmentEditorPaintEffectPrivate();
-
-  /// Depending on the \sa DelayedPaint mode, either paint the given point or queue
-  /// it up with a marker for later painting
-  void paintAddPoint(qMRMLSliceWidget* sliceWidget, int x, int y);
-
-  /// Draw paint circle glyph
-  void createBrushGlyph(qMRMLSliceWidget* sliceWidget, PaintEffectBrush* brush);
-
-  /// Update brushes
-  void updateBrushes();
-
-protected:
-  /// Get brush object for widget. Create if does not exist
-  PaintEffectBrush* brushForWidget(qMRMLSliceWidget* sliceWidget);
-
-  /// Add a feedback actor (copy of the paint radius actor) for any points that don't
-  /// have one yet. If the list is empty, clear out the old actors
-  void paintFeedback(qMRMLSliceWidget* sliceWidget);
-
-  /// Paint labelmap
-  void paintApply(qMRMLSliceWidget* sliceWidget);
-
-  /// Paint with a brush that is circular (or optionally spherical) in XY space
-  /// (could be stretched or rotate when transformed to IJK)
-  /// - Make sure to hit every pixel in IJK space
-  /// - Apply the threshold if selected
-  void paintBrush(qMRMLSliceWidget* sliceWidget, QPoint xy);
-
-  /// Paint one pixel to coordinate
-  void paintPixel(qMRMLSliceWidget* sliceWidget, QPoint xy);
-
-  /// Scale brush radius and save it in parameter node
-  void scaleRadius(double scaleFactor);
-
-public slots:
-  void onRadiusUnitsToggled(bool checked);
-  void onQuickRadiusButtonClicked();
-  void onRadiusValueChanged(double value);
-
-public:
-  QIcon EffectIcon;
-
-  QList<QPoint> PaintCoordinates;
-  QList<vtkActor2D*> FeedbackActors;
-  QMap<qMRMLSliceWidget*, PaintEffectBrush*> Brushes;
-  vtkImageSlicePaint* Painter;
-  bool DelayedPaint;
-  bool IsPainting;
-
-  QFrame* RadiusFrame;
-  qMRMLSpinBox* RadiusSpinBox;
-  ctkDoubleSlider* RadiusSlider; 
-  QCheckBox* SphereCheckbox;
-  QCheckBox* SmudgeCheckbox;
-  QCheckBox* PixelModeCheckbox;
-};
 
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(qSlicerSegmentEditorPaintEffect& object)
@@ -553,6 +488,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   this->Painter->SetBottomRight(bottomRight);
 
   this->Painter->Paint();
+  labelImage->Modified(); //TODO: needed?
 }
 
 //-----------------------------------------------------------------------------
@@ -588,6 +524,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceW
   }
 
   labelImage->SetScalarComponentFromFloat(ijk[0],ijk[1],ijk[2], 0, 1); // Segment binary labelmaps all have voxel values of 1 for foreground
+  labelImage->Modified(); //TODO: needed?
   /*
     TODO:
     EditUtil.markVolumeNodeAsModified(labelNode)
@@ -967,12 +904,12 @@ void qSlicerSegmentEditorPaintEffect::setupOptionsFrame()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::setMRMLDefaults()
 {
-  this->setParameter("MinimumRadius", 0.01);
-  this->setParameter("MaximumRadius", 100.0);
-  this->setParameter("Radius", 0.5);
-  this->setParameter("Sphere", 0);
-  this->setParameter("Smudge", 0);
-  this->setParameter("PixelMode", 0);
+  this->setParameter("MinimumRadius", 0.01, true);
+  this->setParameter("MaximumRadius", 100.0, true);
+  this->setParameter("Radius", 0.5, true);
+  this->setParameter("Sphere", 0, true);
+  this->setParameter("Smudge", 0, true);
+  this->setParameter("PixelMode", 0, true);
 }
 
 //-----------------------------------------------------------------------------
@@ -999,14 +936,13 @@ void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
   d->PixelModeCheckbox->blockSignals(false);
 
   // Pixel mode prevents using threshold and paint over functions
-  this->setParameter("ThresholdEnabled", !pixelMode);
-  this->setParameter("PaintOverEnabled", !pixelMode);
-
+  this->setParameter("ThresholdEnabled", !pixelMode, true);
+  this->setParameter("PaintOverEnabled", !pixelMode, true);
   // Update label options based on constraints set by pixel mode
   Superclass::updateGUIFromMRML();
 
   // Radius is also disabled if pixel mode is on
-  d->RadiusFrame->setVisible(!pixelMode);
+  d->RadiusFrame->setEnabled(!pixelMode);
 
   d->RadiusSlider->blockSignals(true);
   d->RadiusSlider->setValue(this->doubleParameter("Radius"));
@@ -1038,21 +974,23 @@ void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
 
   Q_D(qSlicerSegmentEditorPaintEffect);
 
-  // Disable modified events
-  vtkMRMLSegmentEditorEffectNode* parameterNode = this->parameterSetNode();
-  int disableState = parameterNode->GetDisableModifiedEvent();
-  parameterNode->SetDisableModifiedEvent(1);
+  this->setParameter("Sphere", (int)d->SphereCheckbox->isChecked(), true);
+  this->setParameter("Smudge", (int)d->SmudgeCheckbox->isChecked(), true);
+  bool pixelMode = d->PixelModeCheckbox->isChecked();
+  bool pixelModeChanged = (pixelMode != (bool)this->integerParameter("PixelMode"));
+  this->setParameter("PixelMode", (int)pixelMode, true);
+  this->setParameter("Radius", d->RadiusSlider->value(), true);
 
-  this->setParameter("Sphere", (int)d->SphereCheckbox->isChecked());
-  this->setParameter("Smudge", (int)d->SmudgeCheckbox->isChecked());
-  this->setParameter("PixelMode", (int)d->PixelModeCheckbox->isChecked());
-  this->setParameter("Radius", d->RadiusSlider->value());
-
-  // Re-enable modified events
-  parameterNode->SetDisableModifiedEvent(disableState);
-  if (!disableState)
+  // If pixel mode changed, then other GUI changes are due
+  if (pixelModeChanged)
   {
-    parameterNode->InvokePendingModifiedEvent();
+    // Pixel mode prevents using threshold and paint over functions
+    this->setParameter("ThresholdEnabled", !pixelMode, true);
+    this->setParameter("PaintOverEnabled", !pixelMode, true);
+    // Update label options based on constraints set by pixel mode
+    Superclass::updateGUIFromMRML();
+
+    d->RadiusFrame->setEnabled(!pixelMode);
   }
 }
 

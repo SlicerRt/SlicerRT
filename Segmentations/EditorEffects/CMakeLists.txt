@@ -26,6 +26,7 @@ set(${KIT}_SRCS
   qSlicerSegmentEditorLabelEffect.h
   qSlicerSegmentEditorPaintEffect.cxx
   qSlicerSegmentEditorPaintEffect.h
+  qSlicerSegmentEditorPaintEffect_p.h
   qSlicerSegmentEditorRectangleEffect.cxx
   qSlicerSegmentEditorRectangleEffect.h
   )
@@ -36,6 +37,7 @@ set(${KIT}_MOC_SRCS
   qSlicerSegmentEditorAbstractEffect.h
   qSlicerSegmentEditorLabelEffect.h
   qSlicerSegmentEditorPaintEffect.h
+  qSlicerSegmentEditorPaintEffect_p.h
   qSlicerSegmentEditorRectangleEffect.h
   )
 

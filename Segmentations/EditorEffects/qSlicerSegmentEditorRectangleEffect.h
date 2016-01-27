@@ -18,10 +18,6 @@
 
 ==============================================================================*/
 
-// .NAME qSlicerSegmentEditorRectangleEffect - Logic class for segmentation handling
-// .SECTION Description
-// TODO
-
 #ifndef __qSlicerSegmentEditorRectangleEffect_h
 #define __qSlicerSegmentEditorRectangleEffect_h
 
@@ -34,6 +30,7 @@ class qSlicerSegmentEditorRectangleEffectPrivate;
 class vtkPolyData;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
+/// \brief TODO:
 class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorRectangleEffect :
   public qSlicerSegmentEditorLabelEffect
 {

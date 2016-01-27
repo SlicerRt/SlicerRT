@@ -83,6 +83,7 @@ qSlicerSegmentEditorAbstractEffectPrivate::qSlicerSegmentEditorAbstractEffectPri
   , OptionsFrame(NULL)
 {
   this->OptionsFrame = new QFrame();
+  //this->OptionsFrame->setFrameShape(QFrame::NoFrame);
   QVBoxLayout* layout = new QVBoxLayout(this->OptionsFrame);
   layout->setContentsMargins(4, 4, 4, 4);
   layout->setSpacing(4);
@@ -224,6 +225,7 @@ vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSet
     node->SetEffectName(this->name().toLatin1().constData());
     node->HideFromEditorsOn();
     m_Scene->AddNode(node);
+    d->ParameterSetNodeID = QString(node->GetID());
     node->Delete(); // Pass ownership to MRML scene only
 
     // Connect node modified event to update user interface
@@ -304,28 +306,42 @@ double qSlicerSegmentEditorAbstractEffect::doubleParameter(QString name)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString value)
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString value, bool noModifiedEvent/*=false*/)
 {
   vtkMRMLSegmentEditorEffectNode* node = this->parameterSetNode();
   if (!node)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::parameter: Unable to find effect parameter node for effect " << this->name();
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::setParameter: Unable to find effect parameter node for effect " << this->name();
     return;
   }
 
+  // Disable modified events if requested
+  int disableState = node->GetDisableModifiedEvent();
+  if (noModifiedEvent)
+  {
+    node->SetDisableModifiedEvent(1);
+  }
+
+  // Set parameter as attribute
   node->SetAttribute(name.toLatin1().constData(), value.toLatin1().constData());
+
+  // Re-enable modified events for parameter node if disabling it for this set operation was requested
+  if (noModifiedEvent)
+  {
+    node->SetDisableModifiedEvent(disableState);
+  }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, int value)
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, int value, bool noModifiedEvent/*=false*/)
 {
-  this->setParameter(name, QString::number(value));
+  this->setParameter(name, QString::number(value), noModifiedEvent);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, double value)
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, double value, bool noModifiedEvent/*=false*/)
 {
-  this->setParameter(name, QString::number(value));
+  this->setParameter(name, QString::number(value), noModifiedEvent);
 }
 
 //-----------------------------------------------------------------------------

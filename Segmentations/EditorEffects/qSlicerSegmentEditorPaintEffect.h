@@ -18,10 +18,6 @@
 
 ==============================================================================*/
 
-// .NAME qSlicerSegmentEditorPaintEffect - Logic class for segmentation handling
-// .SECTION Description
-// TODO
-
 #ifndef __qSlicerSegmentEditorPaintEffect_h
 #define __qSlicerSegmentEditorPaintEffect_h
 
@@ -34,6 +30,7 @@ class qSlicerSegmentEditorPaintEffectPrivate;
 class vtkPolyData;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
+/// \brief TODO:
 class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorPaintEffect :
   public qSlicerSegmentEditorLabelEffect
 {
@@ -76,14 +73,15 @@ public:
   /// Set default parameters in the parameter MRML node
   virtual void setMRMLDefaults();
 
+  /// Set edited labelmap. Can be overridden to perform additional actions.
+  virtual void setEditedLabelmap(vtkOrientedImageData* labelmap);
+
+public slots:
   /// Update user interface from parameter set node
   virtual void updateGUIFromMRML();
 
   /// Update parameter set node from user interface
   virtual void updateMRMLFromGUI();
-
-  /// Set edited labelmap. Can be overridden to perform additional actions.
-  virtual void setEditedLabelmap(vtkOrientedImageData* labelmap);
 
 public:
   /// Apply paint operation

@@ -101,7 +101,7 @@
       <item row="1" column="0" colspan="2">
        <widget class="QFrame" name="EffectOptionsFrame">
         <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>

@@ -18,10 +18,6 @@
 
 ==============================================================================*/
 
-// .NAME qSlicerSegmentEditorLabelEffect - Logic class for segmentation handling
-// .SECTION Description
-// TODO
-
 #ifndef __qSlicerSegmentEditorLabelEffect_h
 #define __qSlicerSegmentEditorLabelEffect_h
 
@@ -38,6 +34,7 @@ class vtkMRMLVolumeNode;
 class vtkMRMLSegmentationNode;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
+/// \brief TODO:
 class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorLabelEffect :
   public qSlicerSegmentEditorAbstractEffect
 {

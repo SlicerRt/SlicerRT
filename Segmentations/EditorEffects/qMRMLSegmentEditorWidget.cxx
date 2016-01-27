@@ -180,7 +180,7 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   QObject::connect(&this->EffectButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)), q, SLOT(onEffectButtonClicked(QAbstractButton*) ) );
 
   // Create layout for effect options
-  QVBoxLayout* layout = new QVBoxLayout(this->EffectOptionsFrame);
+  QVBoxLayout* layout = new QVBoxLayout(this->EffectsOptionsFrame);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0);
 
@@ -228,7 +228,7 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
     // Add effect options frame to the options widget and hide them
     effect->setupOptionsFrame();
     QFrame* effectOptionsFrame = effect->optionsFrame();
-    this->EffectOptionsFrame->layout()->addWidget(effectOptionsFrame);
+    this->EffectsOptionsFrame->layout()->addWidget(effectOptionsFrame);
     effectOptionsFrame->setVisible(false);
   }
 }
@@ -277,10 +277,11 @@ void qMRMLSegmentEditorWidget::setMRMLScene(vtkMRMLScene* newScene)
 {
   Q_D(qMRMLSegmentEditorWidget);
 
-  Superclass::setMRMLScene(newScene);
-  
-  // Set scene to effect handler
+  // Set scene to effects
   d->setSceneToEffects(newScene);
+  // Call base class method second, as it emits scene changed event, which resets MRML selections
+  // and ultimately causes effects to perform updates before having access to the new scene.
+  Superclass::setMRMLScene(newScene);
 
   // Create observations between view interactors and the editor widget.
   // The captured events are propagated to the active effect if any.

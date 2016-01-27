@@ -25,7 +25,7 @@
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
 // CTK includes
-#include "ctkVTKObject.h"
+#include <ctkVTKObject.h>
 #include <ctkPimpl.h>
 
 // Qt includes
@@ -99,6 +99,7 @@ public:
   /// Set default parameters in the parameter MRML node
   virtual void setMRMLDefaults() = 0;
 
+public slots:
   /// Update user interface from parameter set node
   virtual void updateGUIFromMRML() = 0;
 
@@ -140,13 +141,13 @@ public:
   double doubleParameter(QString name);
 
   /// Set effect parameter in effect parameter set node
-  void setParameter(QString name, QString value);
+  void setParameter(QString name, QString value, bool noModifiedEvent=false);
 
   /// Convenience function to set integer parameter
-  void setParameter(QString name, int value);
+  void setParameter(QString name, int value, bool noModifiedEvent=false);
 
   /// Convenience function to set double parameter
-  void setParameter(QString name, double value);
+  void setParameter(QString name, double value, bool noModifiedEvent=false);
 
 // Utility functions
 public:
