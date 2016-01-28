@@ -150,72 +150,14 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceGeometry(vtkO
   // Determine IJK extent of contained data (non-zero voxels) in the input image
   int inputExtent[6] = {0,-1,0,-1,0,-1};
   inputImage->GetExtent(inputExtent);
-  int inputDimensions[3] = {0, 0, 0};
-  inputImage->GetDimensions(inputDimensions);
-  int effectiveInputExtent[6] = {inputExtent[1], inputExtent[0], inputExtent[3], inputExtent[2], inputExtent[5], inputExtent[4]};
-  // Handle three scalar types
-  unsigned char* imagePtrUChar = (unsigned char*)inputImage->GetScalarPointerForExtent(inputExtent);
-  unsigned short* imagePtrUShort = (unsigned short*)inputImage->GetScalarPointerForExtent(inputExtent);
-  short* imagePtrShort = (short*)inputImage->GetScalarPointerForExtent(inputExtent);
-
-  for (int i=0; i<inputDimensions[0]; ++i)
+  int effectiveInputExtent[6] = {0,-1,0,-1,0,-1};
+  if (!vtkOrientedImageDataResample::CalculateEffectiveExtent(inputImage, effectiveInputExtent))
   {
-    for (int j=0; j<inputDimensions[1]; ++j)
-    {
-      for (int k=0; k<inputDimensions[2]; ++k)
-      {
-        int voxelValue = 0;
-        if (inputImageScalarType == VTK_UNSIGNED_CHAR)
-        {
-          voxelValue = (*(imagePtrUChar + i + j*inputDimensions[0] + k*inputDimensions[0]*inputDimensions[1]));
-        }
-        else if (inputImageScalarType == VTK_UNSIGNED_SHORT)
-        {
-          voxelValue = (*(imagePtrUShort + i + j*inputDimensions[0] + k*inputDimensions[0]*inputDimensions[1]));
-        }
-        else if (inputImageScalarType == VTK_SHORT)
-        {
-          voxelValue = (*(imagePtrShort + i + j*inputDimensions[0] + k*inputDimensions[0]*inputDimensions[1]));
-        }
-
-        if (voxelValue != 0)
-        {
-          if (i < effectiveInputExtent[0])
-          {
-            effectiveInputExtent[0] = i;
-          }
-          if (i > effectiveInputExtent[1])
-          {
-            effectiveInputExtent[1] = i;
-          }
-          if (j < effectiveInputExtent[2])
-          {
-            effectiveInputExtent[2] = j;
-          }
-          if (j > effectiveInputExtent[3])
-          {
-            effectiveInputExtent[3] = j;
-          }
-          if (k < effectiveInputExtent[4])
-          {
-            effectiveInputExtent[4] = k;
-          }
-          if (k > effectiveInputExtent[5])
-          {
-            effectiveInputExtent[5] = k;
-          }
-        }
-      }
-    }
-  }
-
-  // Return with failure if effective input extent is empty
-  if ( effectiveInputExtent[0] == effectiveInputExtent[1] || effectiveInputExtent[2] == effectiveInputExtent[3] || effectiveInputExtent[4] == effectiveInputExtent[5] )
-  {
+    // Return if effective extent is empty
     return false;
   }
 
-  // Apply extent offset on calculated effective extent
+  // Apply extent offset on calculated effective extent (in case the input extent does not start at 0)
   effectiveInputExtent[0] = effectiveInputExtent[0] + inputExtent[0];
   effectiveInputExtent[1] = effectiveInputExtent[1] + inputExtent[0];
   effectiveInputExtent[2] = effectiveInputExtent[2] + inputExtent[2];
@@ -315,6 +257,111 @@ bool vtkOrientedImageDataResample::IsEqual( const vtkMatrix4x4& lhs, const vtkMa
           AreEqualWithTolerance(lhs.GetElement(3,1), rhs.GetElement(3,1)) &&
           AreEqualWithTolerance(lhs.GetElement(3,2), rhs.GetElement(3,2)) &&
           AreEqualWithTolerance(lhs.GetElement(3,3), rhs.GetElement(3,3));
+}
+
+#include <vtkImageAccumulate.h> //TODO: remove
+//----------------------------------------------------------------------------
+bool vtkOrientedImageDataResample::CalculateEffectiveExtent(vtkOrientedImageData* image, int effectiveExtent[6])
+{
+  if (!image)
+  {
+    return false;
+  }
+
+  int imageScalarType = image->GetScalarType();
+  if ( imageScalarType != VTK_UNSIGNED_CHAR
+    && imageScalarType != VTK_UNSIGNED_SHORT
+    && imageScalarType != VTK_SHORT )
+  {
+    vtkErrorWithObjectMacro(image, "CalculateEffectiveExtent: Input image scalar type must be unsigned char, unsighed short, or short!");
+    return false;
+  }
+
+vtkSmartPointer<vtkImageAccumulate> imageAccumulator = vtkSmartPointer<vtkImageAccumulate>::New();
+imageAccumulator->SetInputData(image);
+imageAccumulator->SetIgnoreZero(1);
+imageAccumulator->Update();
+long c1 = imageAccumulator->GetVoxelCount();
+double m1[3] = {0,0,0};
+imageAccumulator->GetMean(m1);
+const char* type = image->GetScalarTypeAsString();
+
+  // Start from a reverse invalid extent
+  int extent[6] = {0,-1,0,-1,0,-1};
+  image->GetExtent(extent);
+  effectiveExtent[0] = extent[1];
+  effectiveExtent[1] = extent[0];
+  effectiveExtent[2] = extent[3];
+  effectiveExtent[3] = extent[2];
+  effectiveExtent[4] = extent[5];
+  effectiveExtent[5] = extent[4];
+
+  // Determine IJK extent of contained data (non-zero voxels) in the input image
+  int dimensions[3] = {0, 0, 0};
+  image->GetDimensions(dimensions);
+  // Handle three scalar types
+  unsigned char* imagePtrUChar = (unsigned char*)image->GetScalarPointerForExtent(effectiveExtent);
+  unsigned short* imagePtrUShort = (unsigned short*)image->GetScalarPointerForExtent(effectiveExtent);
+  short* imagePtrShort = (short*)image->GetScalarPointerForExtent(effectiveExtent);
+
+  for (int i=0; i<dimensions[0]; ++i)
+  {
+    for (int j=0; j<dimensions[1]; ++j)
+    {
+      for (int k=0; k<dimensions[2]; ++k)
+      {
+        int voxelValue = 0;
+        if (imageScalarType == VTK_UNSIGNED_CHAR)
+        {
+          voxelValue = (int)(*(imagePtrUChar + i + j*dimensions[0] + k*dimensions[0]*dimensions[1]));
+        }
+        else if (imageScalarType == VTK_UNSIGNED_SHORT)
+        {
+          voxelValue = (int)(*(imagePtrUShort + i + j*dimensions[0] + k*dimensions[0]*dimensions[1]));
+        }
+        else if (imageScalarType == VTK_SHORT)
+        {
+          voxelValue = (int)(*(imagePtrShort + i + j*dimensions[0] + k*dimensions[0]*dimensions[1]));
+        }
+
+        if (voxelValue != 0)
+        {
+          if (i < effectiveExtent[0])
+          {
+            effectiveExtent[0] = i;
+          }
+          if (i > effectiveExtent[1])
+          {
+            effectiveExtent[1] = i;
+          }
+          if (j < effectiveExtent[2])
+          {
+            effectiveExtent[2] = j;
+          }
+          if (j > effectiveExtent[3])
+          {
+            effectiveExtent[3] = j;
+          }
+          if (k < effectiveExtent[4])
+          {
+            effectiveExtent[4] = k;
+          }
+          if (k > effectiveExtent[5])
+          {
+            effectiveExtent[5] = k;
+          }
+        }
+      }
+    }
+  }
+
+  // Return with failure if effective input extent is empty
+  if ( effectiveExtent[0] == effectiveExtent[1] || effectiveExtent[2] == effectiveExtent[3] || effectiveExtent[4] == effectiveExtent[5] )
+  {
+    return false;
+  }
+
+  return true;
 }
 
 //----------------------------------------------------------------------------

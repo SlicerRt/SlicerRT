@@ -106,6 +106,11 @@ public slots:
   /// Update parameter set node from user interface
   virtual void updateMRMLFromGUI() = 0;
 
+signals:
+  /// Signal that needs to be emitted from the effects when the edited labelmap is to be applied to the currently
+  /// edited segment. Connected to \sa qMRMLSegmentEditorWidget::applyChangesToSelectedSegment
+  void apply();
+
 // Get/set methods
 public:
   /// Set edited labelmap. Can be overridden to perform additional actions.

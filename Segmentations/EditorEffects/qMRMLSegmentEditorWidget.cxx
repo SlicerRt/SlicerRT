@@ -45,6 +45,11 @@
 #include <vtkCallbackCommand.h>
 #include <vtkCollection.h>
 #include <vtkSmartPointer.h>
+#include <vtkImageConstantPad.h>
+#include <vtkAlgorithmOutput.h>
+#include <vtkTrivialProducer.h>
+#include <vtkPointData.h>
+#include <vtkDataArray.h>
 
 // Slicer includes
 #include "qSlicerApplication.h"
@@ -258,6 +263,9 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
     this->EffectButtonGroup.addButton(effectButton);
     effectsGroupLayout->addWidget(effectButton);
 
+    // Connect effect apply signal to commit changes to selected segment
+    QObject::connect(effect, SIGNAL(apply()), q, SLOT(applyChangesToSelectedSegment()));
+
     // Add effect options frame to the options widget and hide them
     effect->setupOptionsFrame();
     QFrame* effectOptionsFrame = effect->optionsFrame();
@@ -406,32 +414,58 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     d->SegmentationNode = segmentationNode;
   }
   
-  // Select master volume node in combobox if any
+  // Only enable master volume combobox if segmentation selection is valid
   d->MRMLNodeComboBox_MasterVolume->setEnabled(d->SegmentationNode != NULL);
-  if (d->SegmentationNode)
+
+  // The below functions only apply to valid segmentation node selection
+  if (!d->SegmentationNode)
   {
-    vtkMRMLNode* refereceVolumeNode = d->SegmentationNode->GetNodeReference(
-      vtkMRMLSegmentationNode::GetReferenceImageGeometryReferenceRole().c_str() );
-    d->MRMLNodeComboBox_MasterVolume->setCurrentNode(refereceVolumeNode);
+    return;
   }
 
-  // Make sure binary segmentLabelmap representation exists
-  if (d->SegmentationNode)
+  // Select master volume node in combobox if any
+  vtkMRMLNode* refereceVolumeNode = d->SegmentationNode->GetNodeReference(
+    vtkMRMLSegmentationNode::GetReferenceImageGeometryReferenceRole().c_str() );
+  d->MRMLNodeComboBox_MasterVolume->setCurrentNode(refereceVolumeNode);
+
+  // Make sure binary labelmap representation exists
+  if (!d->SegmentationNode->GetSegmentation()->CreateRepresentation(
+    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) )
   {
-    if (!d->SegmentationNode->GetSegmentation()->CreateRepresentation(
-      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) )
+    QString message = QString("Failed to create binary segmentLabelmap representation in segmentation %1 for editing!\nPlease see Segmentations module for details.").
+      arg(d->SegmentationNode->GetName());
+    QMessageBox::critical(NULL, tr("Failed to create binary segmentLabelmap for editing"), message);
+    qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: " << message;
+    return;
+  }
+
+  // Editing is only possible if binary labelmap is the master representation
+  if ( strcmp(d->SegmentationNode->GetSegmentation()->GetMasterRepresentationName(),
+    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) )
+  {
+    // If master is not binary labelmap, then ask the user if they wants to make it master
+    QString message = QString("Editing is only possible if the master representation is binary labelmap, but currently the master representation is %1.\n\n"
+      "Changing the master may mean losing important data that cannot be created again from the new master representation, "
+      "such as nuance details in the model that is too fine to be represented in the labelmap grid.\n\n"
+      "(Reminder: Master representation is the data type which is saved to disk, and which is used as input when creating other representations)\n\n").
+      arg(d->SegmentationNode->GetSegmentation()->GetMasterRepresentationName());
+    QMessageBox::StandardButton answer =
+      QMessageBox::question(NULL, tr("Change master representation to binary labelmap?"), message,
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (answer == QMessageBox::Yes)
     {
-      QString message = QString("Failed to create binary segmentLabelmap representation in segmentation %1 for editing!\nPlease see Segmentations module for details.").
-        arg(d->SegmentationNode->GetName());
-      QMessageBox::critical(NULL, tr("Failed to create binary segmentLabelmap for editing"), message);
-      qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: " << message;
+      d->SegmentationNode->GetSegmentation()->SetMasterRepresentationName(
+        vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
+    }
+    else
+    {
+      d->MRMLNodeComboBox_Segmentation->setCurrentNode(NULL);
       return;
     }
   }
 
   // Select first segment
-  if ( d->SegmentationNode
-    && d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0 )
+  if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
   {
     std::vector<std::string> segmentIDs;
     d->SegmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
@@ -752,6 +786,68 @@ void qMRMLSegmentEditorWidget::onEffectButtonClicked(QAbstractButton* button)
   {
      this->setActiveEffect(clickedEffect);
   }
+}
+
+//---------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  if (!d->SegmentationNode || d->SelectedSegmentID.isEmpty())
+  {
+    qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Invalid segment selection!";
+    return;
+  }
+
+  // Get binary labelmap representation of selected segment
+  vtkSegment* selectedSegment = d->SegmentationNode->GetSegmentation()->GetSegment(
+    d->SelectedSegmentID.toLatin1().constData() );
+  vtkOrientedImageData* segmentLabelmap = vtkOrientedImageData::SafeDownCast(
+    selectedSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+  if (!segmentLabelmap)
+  {
+    qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Failed to get binary labelmap representation in segmentation " << d->SegmentationNode->GetName();
+    return;
+  }
+
+  // First copy the temporary padded edited labelmap to the segment
+  //TODO: this will emit MasterRepresentationModified event that causes removal of all other representations,
+  //  and re-conversion of all segments if necessary. That takes a long time, it would be much better to allow
+  //  doing this for this individual segment
+  //IDEA: Maybe simply disable that event and do the conversions here?
+  segmentLabelmap->DeepCopy(d->EditedLabelmap);
+
+  // Then shrink the image data extent to only contain the effective data (extent of non-zero voxels)
+  int effectiveExtent[6] = {0,-1,0,-1,0,-1};
+  vtkOrientedImageDataResample::CalculateEffectiveExtent(segmentLabelmap, effectiveExtent);
+
+  vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
+  padder->SetInputData(segmentLabelmap);
+  padder->SetOutputWholeExtent(effectiveExtent);
+  padder->Update();
+  segmentLabelmap->DeepCopy(padder->GetOutput());
+
+  // Trigger update of slice view:
+  //   Mark all parts of a volume node as modified so that a correct
+  //   render is triggered.  This includes setting the modified flag on the
+  //   point data scalars so that the GetScalarRange method will return the
+  //   correct value, and certain operations like volume rendering will
+  //   know to update.
+  //   http://na-mic.org/Bug/view.php?id=3076
+  //   This method should be called any time the image data has been changed
+  //   via an editing operation.
+  //   Note that this call will typically schedule a render operation to be
+  //   performed the next time the event loop is idle.
+  if (d->SegmentationNode->GetImageDataConnection())
+  {
+    d->SegmentationNode->GetImageDataConnection()->GetProducer()->Update();
+  }
+  if (d->SegmentationNode->vtkMRMLScalarVolumeNode::GetImageData()->GetPointData()->GetScalars())
+  {
+    d->SegmentationNode->GetImageData()->GetPointData()->GetScalars()->Modified();
+  }
+  d->SegmentationNode->vtkMRMLScalarVolumeNode::GetImageData()->Modified();
+  d->SegmentationNode->Modified();
 }
 
 //---------------------------------------------------------------------------

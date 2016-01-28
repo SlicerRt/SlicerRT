@@ -83,10 +83,6 @@ public slots:
   /// Update parameter set node from user interface
   virtual void updateMRMLFromGUI();
 
-public:
-  /// Apply paint operation
-  void apply();
-
 protected:
   QScopedPointer<qSlicerSegmentEditorPaintEffectPrivate> d_ptr;
 

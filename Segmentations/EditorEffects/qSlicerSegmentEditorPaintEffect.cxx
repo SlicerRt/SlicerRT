@@ -246,14 +246,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLSliceWidget* sliceW
     this->paintFeedback(sliceWidget);
   }
 
-  //# TODO: workaround for new pipeline in slicer4
-  //# - editing image data of the calling modified on the node
-  //#   does not pull the pipeline chain
-  //# - so we trick it by changing the image data first
-  //sliceLogic = self.sliceWidget.sliceLogic()
-  //labelLogic = sliceLogic.GetLabelLayer()
-  //labelNode = labelLogic.GetVolumeNode()
-  //EditUtil.markVolumeNodeAsModified(labelNode)
+  emit q->apply();
 }
 
 //-----------------------------------------------------------------------------
@@ -488,7 +481,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   this->Painter->SetBottomRight(bottomRight);
 
   this->Painter->Paint();
-  labelImage->Modified(); //TODO: needed?
+  //labelImage->Modified(); //TODO: needed?
 }
 
 //-----------------------------------------------------------------------------
@@ -501,13 +494,6 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceW
   {
     return;
   }
-
-  vtkMRMLSliceLogic* sliceLogic = sliceWidget->sliceLogic();
-
-  vtkMRMLSliceLayerLogic* labelLogic = sliceLogic->GetLabelLayer();
-  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(labelLogic->GetVolumeNode());
-  vtkSmartPointer<vtkMatrix4x4> labelIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(labelImage, segmentationNode, labelIjkToRasMatrix);
 
   int ijk[3] = {0, 0, 0};
   q->xyToIjk(xy, ijk, sliceWidget, labelImage);
@@ -523,8 +509,8 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceW
     }
   }
 
-  labelImage->SetScalarComponentFromFloat(ijk[0],ijk[1],ijk[2], 0, 1); // Segment binary labelmaps all have voxel values of 1 for foreground
-  labelImage->Modified(); //TODO: needed?
+  labelImage->SetScalarComponentFromDouble(ijk[0],ijk[1],ijk[2], 0, 1); // Segment binary labelmaps all have voxel values of 1 for foreground
+  //labelImage->Modified(); //TODO: needed?
   /*
     TODO:
     EditUtil.markVolumeNodeAsModified(labelNode)
@@ -1019,10 +1005,4 @@ void qSlicerSegmentEditorPaintEffect::setEditedLabelmap(vtkOrientedImageData* la
 
     this->updateGUIFromMRML();
   }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffect::apply()
-{
-  //TODO:
 }

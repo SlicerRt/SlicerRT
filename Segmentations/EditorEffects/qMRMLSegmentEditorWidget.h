@@ -105,6 +105,10 @@ public slots:
   /// Set segmentation MRML node by its ID
   Q_INVOKABLE void setSegmentationNodeID(const QString& nodeID);
 
+  /// Commit changes to selected segment from the temporary padded edited labelmap.
+  /// Called when effect sub-classes emit the signal \sa qSlicerSegmentEditorAbstractEffect::apply()
+  void applyChangesToSelectedSegment();
+
 protected slots:
   /// Handles changing of current segmentation MRML node
   Q_INVOKABLE void onSegmentationNodeChanged(vtkMRMLNode* node);
@@ -116,7 +120,7 @@ protected slots:
   /// Activate/deactivate effect on clicking its button
   void onEffectButtonClicked(QAbstractButton* button);
 
-protected:  
+protected:
   /// Callback function invoked when interaction happens
   static void processEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
 
