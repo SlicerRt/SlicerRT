@@ -654,6 +654,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::createBrushGlyph(qMRMLSliceWidget* 
       idList->InsertNextId(currentPointId);
       brush->PolyData->InsertNextCell(VTK_LINE, idList);
     }
+    previousPointId = currentPointId;
     if (firstPointId == -1)
     {
       firstPointId = currentPointId;

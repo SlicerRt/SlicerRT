@@ -83,7 +83,7 @@ qSlicerSegmentEditorAbstractEffectPrivate::qSlicerSegmentEditorAbstractEffectPri
   , OptionsFrame(NULL)
 {
   this->OptionsFrame = new QFrame();
-  //this->OptionsFrame->setFrameShape(QFrame::NoFrame);
+  this->OptionsFrame->setFrameShape(QFrame::NoFrame);
   QVBoxLayout* layout = new QVBoxLayout(this->OptionsFrame);
   layout->setContentsMargins(4, 4, 4, 4);
   layout->setSpacing(4);
