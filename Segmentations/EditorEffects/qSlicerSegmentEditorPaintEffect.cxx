@@ -1012,9 +1012,10 @@ void qSlicerSegmentEditorPaintEffect::setEditedLabelmap(vtkOrientedImageData* la
     labelmap->GetDimensions(dimensions);
     double bounds[3] = {spacing[0]*dimensions[0], spacing[1]*dimensions[1], spacing[2]*dimensions[2]};
     double maximumBounds = std::max(bounds[0], std::max(bounds[1], bounds[2]));
-    this->setParameter("MaximumRadius", 0.5 * maximumBounds);
+    double maximumRadius = 0.5 * maximumBounds;
+    this->setParameter("MaximumRadius", maximumRadius);
 
-    this->setParameter("Radius", 50.0 * minimumRadius);
+    this->setParameter("Radius", std::min(50.0 * minimumRadius, 0.5 * maximumRadius));
 
     this->updateGUIFromMRML();
   }

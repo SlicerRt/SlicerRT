@@ -23,7 +23,7 @@
    <item>
     <layout class="QGridLayout" name="gridLayout_2">
      <item row="1" column="1">
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_MasterVolume">
        <property name="nodeTypes">
         <stringlist>
          <string>vtkMRMLScalarVolumeNode</string>
@@ -33,7 +33,7 @@
         <bool>true</bool>
        </property>
        <property name="noneDisplay">
-        <string>Geometry not from volume node</string>
+        <string>None: select master volume to enable editing</string>
        </property>
       </widget>
      </item>
@@ -145,7 +145,7 @@
   <connection>
    <sender>qMRMLSegmentEditorWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ReferenceVolume</receiver>
+   <receiver>MRMLNodeComboBox_MasterVolume</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">

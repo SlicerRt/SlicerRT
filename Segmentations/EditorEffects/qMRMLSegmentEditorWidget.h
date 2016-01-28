@@ -109,9 +109,9 @@ protected slots:
   /// Handles changing of current segmentation MRML node
   Q_INVOKABLE void onSegmentationNodeChanged(vtkMRMLNode* node);
   /// Handles changing of the current master volume MRML node
-  void onReferenceVolumeNodeChanged(vtkMRMLNode* node);
+  void onMasterVolumeNodeChanged(vtkMRMLNode* node);
   /// Handles segment selection changes
-  void segmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+  void onSegmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
   /// Activate/deactivate effect on clicking its button
   void onEffectButtonClicked(QAbstractButton* button);
