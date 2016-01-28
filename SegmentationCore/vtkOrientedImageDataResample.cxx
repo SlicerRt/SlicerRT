@@ -204,7 +204,7 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceGeometry(vtkO
   }
 
   // Create clone for input image that has an identity geometry
-  //TODO: vtkOrientedImageReslice would be a better solution on the long run
+  //TODO: Creating a new vtkOrientedImageReslice class would be a better solution on the long run
   vtkSmartPointer<vtkMatrix4x4> identityMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   identityMatrix->Identity();
   vtkSmartPointer<vtkOrientedImageData> identityInputImage = vtkSmartPointer<vtkOrientedImageData>::New();
@@ -259,7 +259,6 @@ bool vtkOrientedImageDataResample::IsEqual( const vtkMatrix4x4& lhs, const vtkMa
           AreEqualWithTolerance(lhs.GetElement(3,3), rhs.GetElement(3,3));
 }
 
-#include <vtkImageAccumulate.h> //TODO: remove
 //----------------------------------------------------------------------------
 bool vtkOrientedImageDataResample::CalculateEffectiveExtent(vtkOrientedImageData* image, int effectiveExtent[6])
 {
@@ -277,15 +276,6 @@ bool vtkOrientedImageDataResample::CalculateEffectiveExtent(vtkOrientedImageData
     return false;
   }
 
-vtkSmartPointer<vtkImageAccumulate> imageAccumulator = vtkSmartPointer<vtkImageAccumulate>::New();
-imageAccumulator->SetInputData(image);
-imageAccumulator->SetIgnoreZero(1);
-imageAccumulator->Update();
-long c1 = imageAccumulator->GetVoxelCount();
-double m1[3] = {0,0,0};
-imageAccumulator->GetMean(m1);
-const char* type = image->GetScalarTypeAsString();
-
   // Start from a reverse invalid extent
   int extent[6] = {0,-1,0,-1,0,-1};
   image->GetExtent(extent);
@@ -300,9 +290,9 @@ const char* type = image->GetScalarTypeAsString();
   int dimensions[3] = {0, 0, 0};
   image->GetDimensions(dimensions);
   // Handle three scalar types
-  unsigned char* imagePtrUChar = (unsigned char*)image->GetScalarPointerForExtent(effectiveExtent);
-  unsigned short* imagePtrUShort = (unsigned short*)image->GetScalarPointerForExtent(effectiveExtent);
-  short* imagePtrShort = (short*)image->GetScalarPointerForExtent(effectiveExtent);
+  unsigned char* imagePtrUChar = (unsigned char*)image->GetScalarPointerForExtent(extent);
+  unsigned short* imagePtrUShort = (unsigned short*)image->GetScalarPointerForExtent(extent);
+  short* imagePtrShort = (short*)image->GetScalarPointerForExtent(extent);
 
   for (int i=0; i<dimensions[0]; ++i)
   {

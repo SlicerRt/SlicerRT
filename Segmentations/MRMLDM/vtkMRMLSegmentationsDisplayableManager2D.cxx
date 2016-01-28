@@ -482,6 +482,11 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
   std::string polyDataRepresenatationName = segmentationDisplayNode->DeterminePolyDataDisplayRepresentationName();
   if (polyDataRepresenatationName.empty())
     {
+    // Hide segmentation if there is no poly data representation to show
+    for (PipelineMapType::iterator pipelineIt=pipelines.begin(); pipelineIt!=pipelines.end(); ++pipelineIt)
+      {
+      pipelineIt->second->Actor->SetVisibility(false);
+      }
     return;
     }
 
