@@ -23,8 +23,8 @@
 #ifndef __qMRMLSegmentEditorWidget_h
 #define __qMRMLSegmentEditorWidget_h
 
-// Segmentations Editor Effects includes
-#include "qSlicerSegmentationsEditorEffectsExport.h"
+// Segmentations includes
+#include "qSlicerSegmentationsModuleWidgetsExport.h"
 
 // MRMLWidgets includes
 #include "qMRMLWidget.h"
@@ -52,7 +52,7 @@ class qSlicerSegmentEditorAbstractEffect;
 ///   processing, and to call \sa removeSliceObservations in e.g. the exit function to
 ///   clear the observations to prevent unnecessary function calls.
 /// 
-class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qMRMLSegmentEditorWidget : public qMRMLWidget
+class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentEditorWidget : public qMRMLWidget
 {
   Q_OBJECT
 

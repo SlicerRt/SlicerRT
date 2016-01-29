@@ -21,8 +21,8 @@
 #ifndef __qSlicerSegmentEditorPaintEffect_h
 #define __qSlicerSegmentEditorPaintEffect_h
 
-// Segmentations Widgets includes
-#include "qSlicerSegmentationsModuleWidgetsExport.h"
+// Segmentations Editor Effects includes
+#include "qSlicerSegmentationsEditorEffectsExport.h"
 
 #include "qSlicerSegmentEditorLabelEffect.h"
 

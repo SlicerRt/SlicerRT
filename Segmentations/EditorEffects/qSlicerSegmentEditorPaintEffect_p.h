@@ -32,8 +32,8 @@
 // We mean it.
 //
 
-// Segmentations Widgets includes
-#include "qSlicerSegmentationsModuleWidgetsExport.h"
+// Segmentations Editor Effects includes
+#include "qSlicerSegmentationsEditorEffectsExport.h"
 
 #include "qSlicerSegmentEditorPaintEffect.h"
 

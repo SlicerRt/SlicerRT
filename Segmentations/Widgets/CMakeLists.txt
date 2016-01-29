@@ -6,6 +6,8 @@ set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_MODULE_${MODULE_NAME_UPPER}_WIDGETS_EXPORT
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
+  ${qSlicerSegmentationsEditorEffects_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -17,6 +19,8 @@ set(${KIT}_SRCS
   qMRMLSegmentationConversionParametersWidget.h
   qMRMLSegmentSelectorWidget.cxx
   qMRMLSegmentSelectorWidget.h
+  qMRMLSegmentEditorWidget.cxx
+  qMRMLSegmentEditorWidget.h
   qMRMLDoubleSpinBoxDelegate.cxx
   qMRMLDoubleSpinBoxDelegate.h
   )
@@ -26,6 +30,7 @@ set(${KIT}_MOC_SRCS
   qMRMLSegmentationRepresentationsListView.h
   qMRMLSegmentationConversionParametersWidget.h
   qMRMLSegmentSelectorWidget.h
+  qMRMLSegmentEditorWidget.h
   qMRMLDoubleSpinBoxDelegate.h
 )
 
@@ -34,6 +39,7 @@ set(${KIT}_UI_SRCS
   Resources/UI/qMRMLSegmentationRepresentationsListView.ui
   Resources/UI/qMRMLSegmentationConversionParametersWidget.ui
   Resources/UI/qMRMLSegmentSelectorWidget.ui
+  Resources/UI/qMRMLSegmentEditorWidget.ui
   )
 
 set(${KIT}_RESOURCES
@@ -42,6 +48,8 @@ set(${KIT}_RESOURCES
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerSegmentationsModuleMRML
+  vtkSlicerSegmentationsModuleLogic
+  qSlicerSegmentationsEditorEffects
   )
 
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)

@@ -183,10 +183,6 @@ public:
   /// Invalidate (remove) non-master representations in all the segments if this segmentation node
   void InvalidateNonMasterRepresentations();
 
-  /// Enable/disable master representation modified event.
-  /// Caution! This might cause some functions to break if not used carefully!
-  void SetMasterRepresentationModifiedEnabled(bool enabled);
-
 // Conversion related methods
 public:
   /// Create a representation in all segments, using the conversion path with the
@@ -240,11 +236,6 @@ public:
   void GetConversionParametersForPath(vtkSegmentationConverterRule::ConversionParameterListType& conversionParameters,
     const vtkSegmentationConverter::ConversionPathType& path) { this->Converter->GetConversionParametersForPath(conversionParameters, path); };
 
-  /// Converts a single segment to a representation.
-  /// Caution! This might cause some functions to break if not used carefully, as all segments
-  ///   should have the same set of representation types at all times!
-  bool ConvertSingleSegment(std::string segmentId, std::string targetRepresentationName);
-
   /// Serialize all conversion parameters.
   /// The resulting string can be parsed in a segmentation object using /sa DeserializeConversionParameters
   std::string SerializeAllConversionParameters();
@@ -271,6 +262,9 @@ protected:
   /// \return Success flag
   bool ConvertSegmentUsingPath(vtkSegment* segment, vtkSegmentationConverter::ConversionPathType path, bool overwriteExisting=false);
 
+  /// Converts a single segment to a representation.
+  bool ConvertSingleSegment(std::string segmentId, std::string targetRepresentationName);
+
   /// Remove segment by iterator. The two \sa RemoveSegment methods call this function after
   /// finding the iterator based on their different input arguments.
   void RemoveSegment(SegmentMap::iterator segmentIt);
@@ -279,6 +273,9 @@ protected:
   /// where N is the number of segments. If argument is unique it is returned unchanged. If there is a segment
   /// with the given name, then it is postfixed by "_1"
   std::string GenerateUniqueSegmentId(std::string id);
+
+  /// Enable/disable master representation modified event.
+  void SetMasterRepresentationModifiedEnabled(bool enabled);
 
 protected:
   /// Callback function invoked when segment is modified.
@@ -294,6 +291,7 @@ protected:
   ~vtkSegmentation();
   void operator=(const vtkSegmentation&);
 
+protected:
   /// Container of segments that belong to this segmentation
   SegmentMap Segments;
 
@@ -311,6 +309,8 @@ protected:
 
   /// Command handling master representation modified events
   vtkCallbackCommand* MasterRepresentationCallbackCommand;
+
+  friend class qMRMLSegmentEditorWidget;
 };
 
 #endif // __vtkSegmentation_h
