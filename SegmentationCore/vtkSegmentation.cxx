@@ -222,16 +222,7 @@ void vtkSegmentation::SetMasterRepresentationName(const char* representationName
   if ( this->MasterRepresentationName && representationName && (!strcmp(this->MasterRepresentationName,representationName))) { return;}
 
   // Remove observation of old master representation in all segments
-  for (SegmentMap::iterator segmentIt = this->Segments.begin(); segmentIt != this->Segments.end(); ++segmentIt)
-  {
-    vtkDataObject* masterRepresentation = segmentIt->second->GetRepresentation(this->MasterRepresentationName);
-    if (masterRepresentation)
-    {
-      vtkEventBroker::GetInstance()->RemoveObservations(
-        masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
-      masterRepresentation->UnRegister(this);
-    }
-  }
+  this->SetMasterRepresentationModifiedEnabled(false);
 
   // Set master representation name
   delete [] this->MasterRepresentationName;
@@ -249,16 +240,7 @@ void vtkSegmentation::SetMasterRepresentationName(const char* representationName
   }
 
   // Add observation of new master representation in all segments
-  for (SegmentMap::iterator segmentIt = this->Segments.begin(); segmentIt != this->Segments.end(); ++segmentIt)
-  {
-    vtkDataObject* masterRepresentation = segmentIt->second->GetRepresentation(this->MasterRepresentationName);
-    if (masterRepresentation)
-    {
-      vtkEventBroker::GetInstance()->AddObservation(
-        masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
-      masterRepresentation->Register(this);
-    }
-  }
+  this->SetMasterRepresentationModifiedEnabled(true);
 
   // Invalidate all representations other than the master.
   // These representations will be automatically converted later on demand.
@@ -270,6 +252,31 @@ void vtkSegmentation::SetMasterRepresentationName(const char* representationName
   // Invoke events
   this->Modified();
   this->InvokeEvent(vtkSegmentation::MasterRepresentationModified, this);
+}
+
+//---------------------------------------------------------------------------
+void vtkSegmentation::SetMasterRepresentationModifiedEnabled(bool enabled)
+{
+  // Remove observation of old master representation in all segments
+  for (SegmentMap::iterator segmentIt = this->Segments.begin(); segmentIt != this->Segments.end(); ++segmentIt)
+  {
+    vtkDataObject* masterRepresentation = segmentIt->second->GetRepresentation(this->MasterRepresentationName);
+    if (masterRepresentation)
+    {
+      if (enabled)
+      {
+        vtkEventBroker::GetInstance()->AddObservation(
+          masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
+        masterRepresentation->Register(this);
+      }
+      else
+      {
+        vtkEventBroker::GetInstance()->RemoveObservations(
+          masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
+        masterRepresentation->UnRegister(this);
+      }
+    }
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -1197,6 +1204,36 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
 
   // Serialize common geometry and return it
   return vtkSegmentationConverter::SerializeImageGeometry(commonGeometryImage);
+}
+
+//----------------------------------------------------------------------------
+bool vtkSegmentation::ConvertSingleSegment(std::string segmentId, std::string targetRepresentationName)
+{
+  vtkSegment* segment = this->GetSegment(segmentId);
+  if (!segment)
+  {
+    vtkErrorMacro("ConvertSingleSegment: Failed to find segment with ID " << segmentId);
+    return false;
+  }
+
+  // Get possible conversion paths from master to the requested target representation
+  vtkSegmentationConverter::ConversionPathAndCostListType pathCosts;
+  this->Converter->GetPossibleConversions(this->MasterRepresentationName, targetRepresentationName, pathCosts);
+  // Get cheapest path from found conversion paths
+  vtkSegmentationConverter::ConversionPathType cheapestPath = vtkSegmentationConverter::GetCheapestPath(pathCosts);
+  if (cheapestPath.empty())
+  {
+    return false;
+  }
+
+  // Perform conversion (overwrite if exists)
+  if (!this->ConvertSegmentUsingPath(segment, cheapestPath, true))
+  {
+    vtkErrorMacro("ConvertSingleSegment: Conversion failed!");
+    return false;
+  }
+
+  return true;
 }
 
 //----------------------------------------------------------------------------

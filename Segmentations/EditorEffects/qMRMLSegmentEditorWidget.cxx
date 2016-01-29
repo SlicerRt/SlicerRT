@@ -438,6 +438,9 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: " << message;
     return;
   }
+  // Remember whether closed surface is present so that it can be re-converted later if necessary
+  bool closedSurfacePresent = d->SegmentationNode->GetSegmentation()->ContainsRepresentation(
+    vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
 
   // Editing is only possible if binary labelmap is the master representation
   if ( strcmp(d->SegmentationNode->GetSegmentation()->GetMasterRepresentationName(),
@@ -456,6 +459,14 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     {
       d->SegmentationNode->GetSegmentation()->SetMasterRepresentationName(
         vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
+
+      // All other representations are invalidated when changing to binary labelmap.
+      // Re-creating closed surface if it was present before, so that changes can be seen.
+      if (closedSurfacePresent)
+      {
+        d->SegmentationNode->GetSegmentation()->CreateRepresentation(
+          vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
+      }
     }
     else
     {
@@ -463,7 +474,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
       return;
     }
   }
-
+  
   // Select first segment
   if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
   {
@@ -810,11 +821,11 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
     return;
   }
 
-  // First copy the temporary padded edited labelmap to the segment
-  //TODO: this will emit MasterRepresentationModified event that causes removal of all other representations,
-  //  and re-conversion of all segments if necessary. That takes a long time, it would be much better to allow
-  //  doing this for this individual segment
-  //IDEA: Maybe simply disable that event and do the conversions here?
+  // First copy the temporary padded edited labelmap to the segment.
+  // Disable modified event so that the consequently emitted MasterRepresentationModified event that causes
+  // removal of all other representations in all segments does not get activated. Instead, explicitly create
+  // representations for the edited segment that the other segments have.
+  d->SegmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(false);
   segmentLabelmap->DeepCopy(d->EditedLabelmap);
 
   // Then shrink the image data extent to only contain the effective data (extent of non-zero voxels)
@@ -826,6 +837,43 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
   padder->SetOutputWholeExtent(effectiveExtent);
   padder->Update();
   segmentLabelmap->DeepCopy(padder->GetOutput());
+
+  // Re-convert all other representations. Get the list of representations from another segment if there is one.
+  //TODO: If there is only one segment and the 'show closed surface' features is implemented, then create that too.
+  std::vector<std::string> representationNames;
+  vtkSegmentation::SegmentMap segmentMap = d->SegmentationNode->GetSegmentation()->GetSegments();
+  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+  {
+    if (d->SelectedSegmentID.compare(segmentIt->first.c_str()))
+    {
+      // We found a segment different from the selected one
+      segmentIt->second->GetContainedRepresentationNames(representationNames);
+      break;
+    }
+  }
+  bool conversionHappened = false;
+  for (std::vector<std::string>::iterator reprIt = representationNames.begin();
+    reprIt != representationNames.end(); ++reprIt)
+  {
+    std::string targetRepresentationName = (*reprIt);
+    if (targetRepresentationName.compare(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+      conversionHappened |= d->SegmentationNode->GetSegmentation()->ConvertSingleSegment(
+        d->SelectedSegmentID.toLatin1().constData(), targetRepresentationName );
+    }
+  }
+  if (conversionHappened)
+  {
+    // Trigger display update
+    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(d->SegmentationNode->GetDisplayNode());
+    if (displayNode)
+    {
+      displayNode->Modified();
+    }
+  }
+
+  // Re-enable master representation modified event
+  d->SegmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(true);
 
   // Trigger update of slice view:
   //   Mark all parts of a volume node as modified so that a correct

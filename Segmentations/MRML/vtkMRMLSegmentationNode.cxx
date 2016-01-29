@@ -260,7 +260,7 @@ void vtkMRMLSegmentationNode::OnMasterRepresentationModified(vtkObject* vtkNotUs
     storageNode->ResetSupportedWriteFileTypes();
   }
   // Trigger display update
-  vtkMRMLSegmentationDisplayNode* displayNode =  vtkMRMLSegmentationDisplayNode::SafeDownCast(self->GetDisplayNode());
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(self->GetDisplayNode());
   if (displayNode)
   {
     displayNode->Modified();
