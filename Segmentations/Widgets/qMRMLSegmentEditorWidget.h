@@ -120,6 +120,13 @@ protected slots:
   /// Activate/deactivate effect on clicking its button
   void onEffectButtonClicked(QAbstractButton* button);
 
+  /// Add empty segment
+  void onAddSegment();
+  /// Remove selected segment
+  void onRemoveSegment();
+  /// Make closed surface model for the segmentation that is automatically updated when editing
+  void onMakeModel();
+
 protected:
   /// Callback function invoked when interaction happens
   static void processEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);

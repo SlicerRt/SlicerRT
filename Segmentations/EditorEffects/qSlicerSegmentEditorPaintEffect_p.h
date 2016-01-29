@@ -47,6 +47,7 @@ class QPoint;
 class QIcon;
 class QFrame;
 class QCheckBox;
+class QPushButton;
 class ctkDoubleSlider;
 class qMRMLSliceWidget;
 class qMRMLSpinBox;
@@ -54,7 +55,7 @@ class vtkActor2D;
 class vtkImageSlicePaint;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-/// \brief TODO:
+/// \brief Private implementation of the segment editor paint effect
 class qSlicerSegmentEditorPaintEffectPrivate: public QObject
 {
   Q_OBJECT
@@ -116,7 +117,8 @@ public:
 
   QFrame* RadiusFrame;
   qMRMLSpinBox* RadiusSpinBox;
-  ctkDoubleSlider* RadiusSlider; 
+  ctkDoubleSlider* RadiusSlider;
+  QPushButton* RadiusUnitsToggle;
   QCheckBox* SphereCheckbox;
   QCheckBox* SmudgeCheckbox;
   QCheckBox* PixelModeCheckbox;

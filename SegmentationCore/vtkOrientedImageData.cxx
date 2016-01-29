@@ -20,11 +20,15 @@
 
 #include "vtkOrientedImageData.h"
 
+// VTK includes
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkMatrix4x4.h>
 #include <vtkMath.h>
 #include <vtkMathUtilities.h>
+
+// STD includes
+#include <algorithm>
 
 vtkStandardNewMacro(vtkOrientedImageData);
 

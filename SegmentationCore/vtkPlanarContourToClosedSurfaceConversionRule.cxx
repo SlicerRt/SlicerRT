@@ -33,6 +33,9 @@
 #include <vtkIdList.h>
 #include <vtkDelaunay2D.h>
 
+// STD includes
+#include <algorithm>
+
 //----------------------------------------------------------------------------
 vtkSegmentationConverterRuleNewMacro(vtkPlanarContourToClosedSurfaceConversionRule);
 

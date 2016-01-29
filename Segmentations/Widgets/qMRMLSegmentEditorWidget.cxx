@@ -75,6 +75,9 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 
+// CTK includes
+#include "ctkFlowLayout.h"
+
 //-----------------------------------------------------------------------------
 class SegmentEditorInteractionEventInfo: public QObject
 {
@@ -209,6 +212,9 @@ void qMRMLSegmentEditorWidgetPrivate::init()
     q, SLOT(onMasterVolumeNodeChanged(vtkMRMLNode*)) );
   QObject::connect( this->SegmentsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
     q, SLOT(onSegmentSelectionChanged(QItemSelection,QItemSelection) ) );
+  QObject::connect( this->AddSegmentButton, SIGNAL(clicked()), q, SLOT(onAddSegment() ) );
+  QObject::connect( this->RemoveSegmentButton, SIGNAL(clicked()), q, SLOT(onRemoveSegment() ) );
+  QObject::connect( this->MakeModelButton, SIGNAL(clicked()), q, SLOT(onMakeModel() ) );
   
   // Widget properties
   this->SegmentsTableView->setMode(qMRMLSegmentsTableView::EditorMode);
@@ -245,7 +251,7 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
   qSlicerSegmentEditorEffectFactory::instance()->copyEffects(this->RegisteredEffects);
 
   // Setup layout
-  QHBoxLayout* effectsGroupLayout = new QHBoxLayout();
+  ctkFlowLayout* effectsGroupLayout = new ctkFlowLayout();
   effectsGroupLayout->setContentsMargins(4,4,4,4);
   effectsGroupLayout->setSpacing(4);
   this->EffectsGroupBox->setLayout(effectsGroupLayout);
@@ -258,6 +264,7 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
     effectButton->setObjectName(effect->name());
     effectButton->setCheckable(true);
     effectButton->setIcon(effect->icon());
+    effectButton->setMaximumWidth(31);
     effectButton->setProperty("Effect", QVariant::fromValue<QObject*>(effect));
 
     this->EffectButtonGroup.addButton(effectButton);
@@ -396,10 +403,12 @@ void qMRMLSegmentEditorWidget::setActiveEffect(qSlicerSegmentEditorAbstractEffec
     // Activate newly selected effect
     d->ActiveEffect->activate();
     d->ActiveEffectLabel->setText(d->ActiveEffect->name());
+    d->HelpLabel->setToolTip(d->ActiveEffect->helpText());
   }
   else
   {
     d->ActiveEffectLabel->setText("None");
+    d->HelpLabel->setToolTip("No effect is selected");
   }
 }
 
@@ -474,6 +483,9 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
       return;
     }
   }
+
+  // Hide make model button if closed surface already exists
+  d->MakeModelButton->setVisible(!closedSurfacePresent);
   
   // Select first segment
   if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
@@ -799,6 +811,70 @@ void qMRMLSegmentEditorWidget::onEffectButtonClicked(QAbstractButton* button)
   }
 }
 
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::onAddSegment()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  if (!d->SegmentationNode)
+  {
+    return;
+  }
+
+  // Create empty segment in current segmentation
+  d->SegmentationNode->GetSegmentation()->AddEmptySegment();
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::onRemoveSegment()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  if (!d->SegmentationNode || d->SelectedSegmentID.isEmpty())
+  {
+    return;
+  }
+
+  // Remove segment
+  d->SegmentationNode->GetSegmentation()->RemoveSegment(d->SelectedSegmentID.toLatin1().constData());
+
+  // Select first segment if there is at least one segment
+  if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments())
+  {
+    QStringList firstSegmentId;
+    firstSegmentId << QString(d->SegmentationNode->GetSegmentation()->GetSegments().begin()->first.c_str());
+    d->SegmentsTableView->setSelectedSegmentIDs(firstSegmentId);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::onMakeModel()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  if (!d->SegmentationNode)
+  {
+    return;
+  }
+
+  // Make sure closed surface representation exists
+  if (d->SegmentationNode->GetSegmentation()->CreateRepresentation(
+    vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() ))
+  {
+    // Hide button if conversion successful
+    d->MakeModelButton->setVisible(false);
+
+    // Set closed surface as displayed poly data representation
+    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+      d->SegmentationNode->GetDisplayNode());
+    if (displayNode)
+    {
+      displayNode->SetPreferredPolyDataDisplayRepresentationName(
+        vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
+    }
+  }
+}
+
 //---------------------------------------------------------------------------
 void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
 {
@@ -906,16 +982,21 @@ void qMRMLSegmentEditorWidget::processEvents(vtkObject* caller,
 {
   // Get and parse client data
   SegmentEditorInteractionEventInfo* eventInfo = reinterpret_cast<SegmentEditorInteractionEventInfo*>(clientData);
-  qMRMLSegmentEditorWidget* editorWidget = eventInfo->EditorWidget;
+  qMRMLSegmentEditorWidget* self = eventInfo->EditorWidget;
   qMRMLWidget* viewWidget = eventInfo->ViewWidget;
-  if (!editorWidget || !viewWidget)
+  if (!self || !viewWidget)
   {
     qCritical() << "qMRMLSegmentEditorWidget::processInteractionEvents: Invalid event data!";
     return;
   }
+  // Do nothing if scene is closing
+  if (!self->mrmlScene() || self->mrmlScene()->IsClosing())
+  {
+    return;
+  }
 
   // Get active effect
-  qSlicerSegmentEditorAbstractEffect* activeEffect = editorWidget->activeEffect();
+  qSlicerSegmentEditorAbstractEffect* activeEffect = self->activeEffect();
   if (!activeEffect)
   {
     return;

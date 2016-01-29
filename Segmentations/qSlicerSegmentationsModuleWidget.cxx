@@ -289,8 +289,8 @@ void qSlicerSegmentationsModuleWidget::init()
     this, SLOT(onAddSegment()) );
   connect(d->pushButton_EditSelected, SIGNAL(clicked()),
     this, SLOT(onEditSelectedSegment()) );
-  connect(d->pushButton_DeleteSelected, SIGNAL(clicked()),
-    this, SLOT(onDeleteSelectedSegments()) );
+  connect(d->pushButton_RemoveSelected, SIGNAL(clicked()),
+    this, SLOT(onRemoveSelectedSegments()) );
 
   connect(d->MRMLNodeComboBox_OtherSegmentationOrRepresentationNode, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
     this, SLOT(setOtherSegmentationOrRepresentationNode(vtkMRMLNode*)) );
@@ -383,7 +383,7 @@ void qSlicerSegmentationsModuleWidget::onSegmentSelectionChanged(const QItemSele
 
   QStringList selectedSegmentIds = d->SegmentsTableView->selectedSegmentIDs();
   d->pushButton_EditSelected->setEnabled(selectedSegmentIds.count() == 1);
-  d->pushButton_DeleteSelected->setEnabled(selectedSegmentIds.count() > 0);
+  d->pushButton_RemoveSelected->setEnabled(selectedSegmentIds.count() > 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -409,7 +409,7 @@ void qSlicerSegmentationsModuleWidget::onEditSelectedSegment()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentationsModuleWidget::onDeleteSelectedSegments()
+void qSlicerSegmentationsModuleWidget::onRemoveSelectedSegments()
 {
   Q_D(qSlicerSegmentationsModuleWidget);
 

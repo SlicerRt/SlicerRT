@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>300</width>
-    <height>290</height>
+    <height>270</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,7 +33,7 @@
         <bool>true</bool>
        </property>
        <property name="noneDisplay">
-        <string>None: select master volume to enable editing</string>
+        <string>Select master volume to enable editing</string>
        </property>
       </widget>
      </item>
@@ -63,6 +63,43 @@
     </layout>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QPushButton" name="AddSegmentButton">
+       <property name="text">
+        <string>Add</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../qSlicerSegmentationsModuleWidgets.qrc">
+         <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="RemoveSegmentButton">
+       <property name="text">
+        <string>Remove</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../qSlicerSegmentationsModuleWidgets.qrc">
+         <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="MakeModelButton">
+       <property name="text">
+        <string>Make model</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../qSlicerSegmentationsModuleWidgets.qrc">
+         <normaloff>:/Icons/MakeModel.png</normaloff>:/Icons/MakeModel.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="qMRMLSegmentsTableView" name="SegmentsTableView"/>
    </item>
    <item>
@@ -84,13 +121,6 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_ActiveEffectText">
-        <property name="text">
-         <string>Active effect:</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="1">
        <widget class="QLabel" name="ActiveEffectLabel">
         <property name="text">
@@ -98,8 +128,50 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0" colspan="2">
-       <widget class="QFrame" name="EffectsOptionsFrame"/>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_ActiveEffectText">
+        <property name="text">
+         <string>Active effect:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="HelpLabel">
+        <property name="maximumSize">
+         <size>
+          <width>21</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Tooltip is populated by the effects</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../qSlicerSegmentationsModuleWidgets.qrc">:/Icons/Help.png</pixmap>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3">
+       <widget class="QFrame" name="EffectsOptionsFrame">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>4</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -111,6 +183,7 @@
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qMRMLWidget</class>
@@ -124,7 +197,9 @@
    <header>qMRMLSegmentsTableView.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../qSlicerSegmentationsModuleWidgets.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>qMRMLSegmentEditorWidget</sender>

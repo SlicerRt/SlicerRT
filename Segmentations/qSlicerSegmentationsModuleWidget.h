@@ -115,7 +115,7 @@ protected slots:
 
   void onAddSegment();
   void onEditSelectedSegment();
-  void onDeleteSelectedSegments();
+  void onRemoveSelectedSegments();
 
   void onVisibilityChanged(int);
   void onOpacityChanged(double);

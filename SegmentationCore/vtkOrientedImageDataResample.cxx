@@ -37,6 +37,9 @@
 #include <vtkPlaneSource.h>
 #include <vtkAppendPolyData.h>
 
+// STD includes
+#include <algorithm>
+
 vtkStandardNewMacro(vtkOrientedImageDataResample);
 
 //----------------------------------------------------------------------------

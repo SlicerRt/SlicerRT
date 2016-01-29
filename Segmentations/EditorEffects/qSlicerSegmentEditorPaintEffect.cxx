@@ -110,6 +110,7 @@ qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(q
   , RadiusFrame(NULL)
   , RadiusSpinBox(NULL)
   , RadiusSlider(NULL)
+  , RadiusUnitsToggle(NULL)
   , SphereCheckbox(NULL)
   , SmudgeCheckbox(NULL)
   , PixelModeCheckbox(NULL)
@@ -334,11 +335,11 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
     {
       maxRowDelta = d;
     }
-    if (maxRowDelta <= 1 || maxColumnDelta <= 1)
-    {
-      this->paintPixel(sliceWidget, xy);
-      return;
-    }
+  }
+  if (maxRowDelta <= 1 || maxColumnDelta <= 1)
+  {
+    this->paintPixel(sliceWidget, xy);
+    return;
   }
 
   // Get IJK to RAS transform matrices for edited labelmap and background volume
@@ -481,7 +482,6 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   this->Painter->SetBottomRight(bottomRight);
 
   this->Painter->Paint();
-  //labelImage->Modified(); //TODO: needed?
 }
 
 //-----------------------------------------------------------------------------
@@ -510,11 +510,6 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceW
   }
 
   labelImage->SetScalarComponentFromDouble(ijk[0],ijk[1],ijk[2], 0, 1); // Segment binary labelmaps all have voxel values of 1 for foreground
-  //labelImage->Modified(); //TODO: needed?
-  /*
-    TODO:
-    EditUtil.markVolumeNodeAsModified(labelNode)
-  */
 }
 
 //-----------------------------------------------------------------------------
@@ -528,45 +523,41 @@ void qSlicerSegmentEditorPaintEffectPrivate::scaleRadius(double scaleFactor)
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffectPrivate::onRadiusUnitsToggled(bool checked)
 {
-  QPushButton* senderButton = dynamic_cast<QPushButton*>(sender());
   if (checked)
   {
-    senderButton->setText("mm:");
+    this->RadiusUnitsToggle->setText("mm:");
   }
   else
   {
-    senderButton->setText("px:");
+    this->RadiusUnitsToggle->setText("px:");
   }
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked()
 {
+  Q_Q(qSlicerSegmentEditorPaintEffect);
+
   QPushButton* senderButton = dynamic_cast<QPushButton*>(sender());
   int radius = senderButton->property("Radius").toInt();
 
-  /* TODO:
-    labelVolume = EditUtil.getLabelVolume()
-    if labelVolume:
-      if self.radiusUnitsToggle.text == 'px:':
-        spacing = labelVolume.GetSpacing()
-        if self.radiusPixelMode == 'diag':
-          from math import sqrt
-          diag = sqrt(reduce(lambda x,y:x+y, map(lambda x: x**2, spacing)))
-          mmRadius = diag * radius
-        elif self.radiusPixelMode == 'min':
-          mmRadius = min(spacing) * radius
-        else:
-          print (self,"Unknown pixel mode - using 5mm")
-          mmRadius = 5
-      else:
-        mmRadius = radius
-      self.disconnectWidgets()
-      self.radiusSpinBox.setValue(mmRadius)
-      self.radius.setValue(mmRadius)
-      self.connectWidgets()
-      self.updateMRMLFromGUI()
-  */
+  double radiusMm = 0.0;
+  if (!this->RadiusUnitsToggle->text().compare("px:"))
+  {
+    if (q->m_EditedLabelmap)
+    {
+      double spacing[3] = {0.0, 0.0, 0.0};
+      q->m_EditedLabelmap->GetSpacing(spacing);
+      double minimumSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+      radiusMm = minimumSpacing * radius;
+    }
+  }
+  else
+  {
+    radiusMm = radius;
+  }
+
+  this->onRadiusValueChanged(radiusMm);
 }
 
 //-----------------------------------------------------------------------------
@@ -697,6 +688,12 @@ QIcon qSlicerSegmentEditorPaintEffect::icon()
   Q_D(qSlicerSegmentEditorPaintEffect);
 
   return d->EffectIcon;
+}
+
+//---------------------------------------------------------------------------
+QString const qSlicerSegmentEditorPaintEffect::helpText()const
+{
+  return QString("Use this tool to paint with a round brush of the selected radius");
 }
 
 //-----------------------------------------------------------------------------
@@ -839,10 +836,10 @@ void qSlicerSegmentEditorPaintEffect::setupOptionsFrame()
   d->RadiusSpinBox->setUnitAwareProperties(qMRMLSpinBox::Prefix | qMRMLSpinBox::Suffix);
   d->RadiusFrame->layout()->addWidget(d->RadiusSpinBox);
 
-  QPushButton* radiusUnitsToggle = new QPushButton("px:");
-  radiusUnitsToggle->setToolTip("Toggle radius quick set buttons between mm and label volume pixel size units");
-  radiusUnitsToggle->setFixedWidth(35);
-  d->RadiusFrame->layout()->addWidget(radiusUnitsToggle);
+  d->RadiusUnitsToggle = new QPushButton("px:");
+  d->RadiusUnitsToggle->setToolTip("Toggle radius quick set buttons between mm and label volume pixel size units");
+  d->RadiusUnitsToggle->setFixedWidth(35);
+  d->RadiusFrame->layout()->addWidget(d->RadiusUnitsToggle);
 
   QList<int> quickRadii;
   quickRadii << 2 << 3 << 4 << 5 << 10 << 20;
@@ -880,7 +877,7 @@ void qSlicerSegmentEditorPaintEffect::setupOptionsFrame()
     HelpButton(self.frame, "Use this tool to paint with a round brush of the selected radius")
   */
 
-  QObject::connect(radiusUnitsToggle, SIGNAL(toggled(bool)), d, SLOT(onRadiusUnitsToggled(bool)));
+  QObject::connect(d->RadiusUnitsToggle, SIGNAL(toggled(bool)), d, SLOT(onRadiusUnitsToggled(bool)));
   QObject::connect(d->SphereCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
   QObject::connect(d->SmudgeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
   QObject::connect(d->PixelModeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));

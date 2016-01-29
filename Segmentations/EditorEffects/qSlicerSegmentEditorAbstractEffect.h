@@ -67,19 +67,22 @@ public:
 // API: Methods that are to be reimplemented in the effect subclasses
 public:  
   /// Get name of effect
-  virtual QString name() = 0;
-
-  /// Clone editor effect
-  virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
+  Q_INVOKABLE virtual QString name() = 0;
 
   /// Get icon for effect to be displayed in segment editor
   virtual QIcon icon() { return QIcon(); };
 
+  /// Get help text for effect to be displayed in the help box
+  Q_INVOKABLE virtual const QString helpText()const { return QString(); };
+
+  /// Clone editor effect. Override to return a new instance of the effect sub-class
+  virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
+
   /// Perform actions to activate the effect (show options frame, etc.)
-  virtual void activate();
+  Q_INVOKABLE virtual void activate();
 
   /// Perform actions to deactivate the effect (hide options frame, destroy actors, etc.)
-  virtual void deactivate();
+  Q_INVOKABLE virtual void deactivate();
 
   /// Callback function invoked when interaction happens
   /// \param callerInteractor Interactor object that was observed to catch the event
@@ -114,16 +117,16 @@ signals:
 // Get/set methods
 public:
   /// Set edited labelmap. Can be overridden to perform additional actions.
-  virtual void setEditedLabelmap(vtkOrientedImageData* labelmap) { m_EditedLabelmap = labelmap; };
+  Q_INVOKABLE virtual void setEditedLabelmap(vtkOrientedImageData* labelmap) { m_EditedLabelmap = labelmap; };
 
   /// Set MRML scene
-  void setScene(vtkMRMLScene* scene) { m_Scene = scene; };
+  Q_INVOKABLE void setScene(vtkMRMLScene* scene) { m_Scene = scene; };
+
+  /// Get effect options frame
+  Q_INVOKABLE QFrame* optionsFrame();
 
   /// Add actor to container that needs to be cleared on deactivation
   void addActor(qMRMLWidget* viewWidget, vtkProp* actor);
-
-  /// Get effect options frame
-  QFrame* optionsFrame();
 
 protected:
   /// Add effect options widget to options frame layout

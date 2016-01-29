@@ -44,13 +44,16 @@ public:
 
 public:  
   /// Get name of effect
-  virtual QString name();
-
-  /// Clone editor effect
-  virtual qSlicerSegmentEditorAbstractEffect* clone();
+  Q_INVOKABLE virtual QString name();
 
   /// Get icon for effect to be displayed in segment editor
   virtual QIcon icon();
+
+  /// Get help text for effect to be displayed in the help box
+  Q_INVOKABLE virtual const QString helpText()const;
+
+  /// Clone editor effect
+  virtual qSlicerSegmentEditorAbstractEffect* clone();
 
   /// Callback function invoked when interaction happens
   /// \param callerInteractor Interactor object that was observed to catch the event

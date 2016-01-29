@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>368</width>
     <height>525</height>
    </rect>
   </property>
@@ -78,15 +78,29 @@
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
          <widget class="QPushButton" name="pushButton_AddSegment">
+          <property name="toolTip">
+           <string>Add empty segment</string>
+          </property>
           <property name="text">
            <string>Add segment</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../../Widgets/Resources/qSlicerSegmentationsModuleWidgets.qrc">
+            <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_DeleteSelected">
+         <widget class="QPushButton" name="pushButton_RemoveSelected">
+          <property name="toolTip">
+           <string>Remove selected segment</string>
+          </property>
           <property name="text">
-           <string>Delete selected</string>
+           <string>Remove selected</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../../Widgets/Resources/qSlicerSegmentationsModuleWidgets.qrc">
+            <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
           </property>
          </widget>
         </item>
@@ -94,6 +108,10 @@
          <widget class="QPushButton" name="pushButton_EditSelected">
           <property name="text">
            <string>Edit selected</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../../Widgets/Resources/qSlicerSegmentationsModuleWidgets.qrc">
+            <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
           </property>
          </widget>
         </item>
@@ -566,7 +584,9 @@
    <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../Widgets/Resources/qSlicerSegmentationsModuleWidgets.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>qSlicerSegmentationsModule</sender>
