@@ -57,6 +57,10 @@ void qSlicerSegmentEditorLabelEffect::setupOptionsFrame()
 void qSlicerSegmentEditorLabelEffect::setMRMLDefaults()
 {
   //TODO: Common label effect parameters (paintOver, paintThreshold, paintThresholdMin, paintThresholdMax)
+  this->setParameter(this->paintOverParameterName(), 1, true);
+  this->setParameter(this->paintThresholdMaxParameterName(), 0, true);
+  this->setParameter(this->paintThresholdMinParameterName(), 0, true);
+  this->setParameter(this->paintThresholdParameterName(), 1000, true);
 }
 
 //-----------------------------------------------------------------------------

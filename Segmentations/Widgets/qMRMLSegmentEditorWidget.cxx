@@ -287,7 +287,6 @@ void qMRMLSegmentEditorWidgetPrivate::setSceneToEffects(vtkMRMLScene* scene)
   foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
   {
     effect->setScene(scene);
-    effect->setMRMLDefaults();
   }
 }
 
@@ -437,64 +436,67 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     vtkMRMLSegmentationNode::GetReferenceImageGeometryReferenceRole().c_str() );
   d->MRMLNodeComboBox_MasterVolume->setCurrentNode(refereceVolumeNode);
 
-  // Make sure binary labelmap representation exists
-  if (!d->SegmentationNode->GetSegmentation()->CreateRepresentation(
-    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) )
-  {
-    QString message = QString("Failed to create binary segmentLabelmap representation in segmentation %1 for editing!\nPlease see Segmentations module for details.").
-      arg(d->SegmentationNode->GetName());
-    QMessageBox::critical(NULL, tr("Failed to create binary segmentLabelmap for editing"), message);
-    qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: " << message;
-    return;
-  }
   // Remember whether closed surface is present so that it can be re-converted later if necessary
   bool closedSurfacePresent = d->SegmentationNode->GetSegmentation()->ContainsRepresentation(
     vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
-
-  // Editing is only possible if binary labelmap is the master representation
-  if ( strcmp(d->SegmentationNode->GetSegmentation()->GetMasterRepresentationName(),
-    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) )
-  {
-    // If master is not binary labelmap, then ask the user if they wants to make it master
-    QString message = QString("Editing is only possible if the master representation is binary labelmap, but currently the master representation is %1.\n\n"
-      "Changing the master may mean losing important data that cannot be created again from the new master representation, "
-      "such as nuance details in the model that is too fine to be represented in the labelmap grid.\n\n"
-      "(Reminder: Master representation is the data type which is saved to disk, and which is used as input when creating other representations)\n\n").
-      arg(d->SegmentationNode->GetSegmentation()->GetMasterRepresentationName());
-    QMessageBox::StandardButton answer =
-      QMessageBox::question(NULL, tr("Change master representation to binary labelmap?"), message,
-      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-    if (answer == QMessageBox::Yes)
-    {
-      d->SegmentationNode->GetSegmentation()->SetMasterRepresentationName(
-        vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
-
-      // All other representations are invalidated when changing to binary labelmap.
-      // Re-creating closed surface if it was present before, so that changes can be seen.
-      if (closedSurfacePresent)
-      {
-        d->SegmentationNode->GetSegmentation()->CreateRepresentation(
-          vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
-      }
-    }
-    else
-    {
-      d->MRMLNodeComboBox_Segmentation->setCurrentNode(NULL);
-      return;
-    }
-  }
-
   // Hide make model button if closed surface already exists
   d->MakeModelButton->setVisible(!closedSurfacePresent);
-  
-  // Select first segment
+
   if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
   {
-    std::vector<std::string> segmentIDs;
-    d->SegmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
-    QStringList firstSegmentID;
-    firstSegmentID << QString(segmentIDs[0].c_str());
-    d->SegmentsTableView->setSelectedSegmentIDs(firstSegmentID);
+    // Make sure binary labelmap representation exists
+    if (!d->SegmentationNode->GetSegmentation()->CreateRepresentation(
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) )
+    {
+      QString message = QString("Failed to create binary segmentLabelmap representation in segmentation %1 for editing!\nPlease see Segmentations module for details.").
+        arg(d->SegmentationNode->GetName());
+      QMessageBox::critical(NULL, tr("Failed to create binary segmentLabelmap for editing"), message);
+      qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: " << message;
+      return;
+    }
+
+    // Editing is only possible if binary labelmap is the master representation
+    if ( strcmp(d->SegmentationNode->GetSegmentation()->GetMasterRepresentationName(),
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) )
+    {
+      // If master is not binary labelmap, then ask the user if they wants to make it master
+      QString message = QString("Editing is only possible if the master representation is binary labelmap, but currently the master representation is %1.\n\n"
+        "Changing the master may mean losing important data that cannot be created again from the new master representation, "
+        "such as nuance details in the model that is too fine to be represented in the labelmap grid.\n\n"
+        "(Reminder: Master representation is the data type which is saved to disk, and which is used as input when creating other representations)\n\n").
+        arg(d->SegmentationNode->GetSegmentation()->GetMasterRepresentationName());
+      QMessageBox::StandardButton answer =
+        QMessageBox::question(NULL, tr("Change master representation to binary labelmap?"), message,
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+      if (answer == QMessageBox::Yes)
+      {
+        d->SegmentationNode->GetSegmentation()->SetMasterRepresentationName(
+          vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
+
+        // All other representations are invalidated when changing to binary labelmap.
+        // Re-creating closed surface if it was present before, so that changes can be seen.
+        if (closedSurfacePresent)
+        {
+          d->SegmentationNode->GetSegmentation()->CreateRepresentation(
+            vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
+        }
+      }
+      else
+      {
+        d->MRMLNodeComboBox_Segmentation->setCurrentNode(NULL);
+        return;
+      }
+    }
+  
+    // Select first segment
+    if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
+    {
+      std::vector<std::string> segmentIDs;
+      d->SegmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
+      QStringList firstSegmentID;
+      firstSegmentID << QString(segmentIDs[0].c_str());
+      d->SegmentsTableView->setSelectedSegmentIDs(firstSegmentID);
+    }
   }
 }
 
@@ -534,9 +536,14 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
   Q_D(qMRMLSegmentEditorWidget);
 
   QStringList selectedSegmentIDs = d->SegmentsTableView->selectedSegmentIDs();
-  if (selectedSegmentIDs.size() != 1)
+  if (selectedSegmentIDs.size() > 1)
   {
     qCritical() << "qMRMLSegmentEditorWidget::onSegmentSelectionChanged: One segment should be selected!";
+    return;
+  }
+  else if (selectedSegmentIDs.empty())
+  {
+    d->SelectedSegmentID = QString();
     return;
   }
 

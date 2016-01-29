@@ -231,6 +231,9 @@ vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSet
     // Connect node modified event to update user interface
     qvtkConnect(node, vtkCommand::ModifiedEvent, this, SLOT( updateGUIFromMRML() ) );
 
+    // Set default parameters to the new node
+    this->setMRMLDefaults();
+
     return node;
   }
 
@@ -239,7 +242,7 @@ vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSet
     m_Scene->GetNodeByID(d->ParameterSetNodeID.toLatin1().constData()) );
   if (!node)
   {
-    qWarning() << "qSlicerSegmentEditorAbstractEffect::parameterSetNode: Unable to find node in scene with ID " << d->ParameterSetNodeID << ", creating a new one";
+    // If scene was closed, then parameter nodes were removed, need to re-create
     d->ParameterSetNodeID = QString();
     return this->parameterSetNode();
   }
