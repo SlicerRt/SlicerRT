@@ -208,61 +208,18 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
   }
 
   // Prepare segment A for processing
-  vtkSmartPointer<vtkOrientedImageData> imageA;
+  vtkSmartPointer<vtkOrientedImageData> imageA = vtkSmartPointer<vtkOrientedImageData>::New();
   const char* segmentAID = this->SegmentMorphologyNode->GetSegmentAID();
-
-  // Get segment A
-  if (!inputSegmentationANode)
+  if ( !vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(
+    inputSegmentationANode, segmentAID, imageA ) )
   {
-    std::string errorMessage("Segmentation A is not selected");
+    std::string errorMessage("Failed to get binary labelmap from segment A: " + std::string(segmentAID));
     vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
     return errorMessage;
-  }
-  vtkSegmentation* segmentationA = inputSegmentationANode->GetSegmentation();
-  vtkSegment* segmentA = segmentationA->GetSegment(segmentAID);
-  if (!segmentA)
-  {
-    std::string errorMessage("Failed to get segment A: " + std::string(segmentAID));
-    vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
-    return errorMessage;
-  }
-
-  // Get binary labelmap from segment A
-  if ( inputSegmentationANode->GetSegmentation()->ContainsRepresentation(
-    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
-  {
-    // Make a copy in case the parent transform has to be hardened on it
-    imageA = vtkSmartPointer<vtkOrientedImageData>::New();
-    imageA->DeepCopy( vtkOrientedImageData::SafeDownCast(
-      segmentA->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
-  }
-  else // Need to convert
-  {
-    // Temporarily duplicate selected segment to only convert them, not the whole segmentation (to save time)
-    imageA = vtkSmartPointer<vtkOrientedImageData>::Take( vtkOrientedImageData::SafeDownCast(
-      vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment( segmentationA, segmentAID,
-        vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) ) );
-    if (!imageA.GetPointer())
-    {
-      std::string errorMessage("Failed to convert segment A into binary labelmap\nPlease convert it in Segmentations module using Advanced conversion");
-      vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
-      return errorMessage;
-    }
-  }
-
-  // Apply parent transformation nodes if necessary
-  if (inputSegmentationANode->GetParentTransformNode())
-  {
-    if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(inputSegmentationANode, imageA))
-    {
-      std::string errorMessage("Failed to apply parent transformation to segmentation A!");
-      vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
-      return errorMessage;
-    }
   }
 
   // If binary operation is selected, prepare segment B for processing
-  vtkSmartPointer<vtkOrientedImageData> imageB;
+  vtkSmartPointer<vtkOrientedImageData> imageB = vtkSmartPointer<vtkOrientedImageData>::New();
   vtkMRMLSegmentationNode* inputSegmentationBNode = this->SegmentMorphologyNode->GetSegmentationBNode();
   const char* segmentBID = this->SegmentMorphologyNode->GetSegmentBID();
   if ( operation == vtkMRMLSegmentMorphologyNode::Union
@@ -276,46 +233,12 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
       vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
       return errorMessage;
     }
-    vtkSegmentation* segmentationB = inputSegmentationBNode->GetSegmentation();
-    vtkSegment* segmentB = segmentationB->GetSegment(segmentBID);
-    if (!segmentB)
+    if ( !vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(
+      inputSegmentationBNode, segmentBID, imageB ) )
     {
-      std::string errorMessage("Failed to get segment B: " + std::string(segmentBID));
+      std::string errorMessage("Failed to get binary labelmap from segment B: " + std::string(segmentAID));
       vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
       return errorMessage;
-    }
-
-    // Get binary labelmap from segment B
-    if ( inputSegmentationBNode->GetSegmentation()->ContainsRepresentation(
-      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
-    {
-      // Temporarily duplicate segment, as it may be resampled
-      imageB = vtkSmartPointer<vtkOrientedImageData>::New();
-      imageB->DeepCopy( vtkOrientedImageData::SafeDownCast(
-        segmentB->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
-    }
-    else // Need to convert
-    {
-      // Temporarily duplicate selected segment to only convert them, not the whole segmentation (to save time)
-      imageB = vtkSmartPointer<vtkOrientedImageData>::Take( vtkOrientedImageData::SafeDownCast(
-        vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment( segmentationB, segmentBID,
-          vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) ) );
-      if (!imageB.GetPointer())
-      {
-        std::string errorMessage("Failed to convert segment B into binary labelmap\nPlease convert it in Segmentations module using Advanced conversion");
-        vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
-        return errorMessage;
-      }
-    }
-    // Apply parent transformation nodes if necessary
-    if (inputSegmentationBNode->GetParentTransformNode())
-    {
-      if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(inputSegmentationBNode, imageB))
-      {
-        std::string errorMessage("Failed to apply parent transformation to segmentation B!");
-        vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
-        return errorMessage;
-      }
     }
 
     // Resample image B if has a different geometry than image A

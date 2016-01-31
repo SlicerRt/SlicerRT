@@ -124,82 +124,22 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
     return errorMessage;
   }
 
-  // Get segments
-  vtkSegmentation* referenceSegmentation = referenceSegmentationNode->GetSegmentation();
-  vtkSegment* referenceSegment = referenceSegmentation->GetSegment(referenceSegmentID);
-  vtkSegmentation* compareSegmentation = compareSegmentationNode->GetSegmentation();
-  vtkSegment* compareSegment = compareSegmentation->GetSegment(compareSegmentID);
-  if (!referenceSegment || !compareSegment)
+  // Get segment binary labelmaps
+  vtkSmartPointer<vtkOrientedImageData> referenceSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
+  if ( !vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(
+    referenceSegmentationNode, referenceSegmentID, referenceSegmentLabelmap ) )
   {
-    std::string errorMessage("Failed to get selected segments");
+    std::string errorMessage("Failed to get binary labelmap from reference segment: " + std::string(referenceSegmentID));
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
     return errorMessage;
   }
-
-  // Get binary labelmap representations of the reference segment
-  vtkSmartPointer<vtkOrientedImageData> referenceSegmentLabelmap;
-  if ( referenceSegmentation->ContainsRepresentation(
-    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
+  vtkSmartPointer<vtkOrientedImageData> compareSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
+  if ( !vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(
+    compareSegmentationNode, compareSegmentID, compareSegmentLabelmap ) )
   {
-    // Temporarily duplicate segment, as it may be transformed
-    referenceSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
-    referenceSegmentLabelmap->DeepCopy( vtkOrientedImageData::SafeDownCast(
-      referenceSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
-  }
-  else // Need to convert
-  {
-    // Temporarily duplicate selected segment to only convert them, not the whole segmentation (to save time)
-    referenceSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::Take( vtkOrientedImageData::SafeDownCast(
-      vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment( referenceSegmentation, referenceSegmentID,
-        vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) ) );
-    if (!referenceSegmentLabelmap.GetPointer())
-    {
-      std::string errorMessage("Failed to convert reference segment into binary labelmap\nPlease convert it in Segmentations module using Advanced conversion");
-      vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
-      return errorMessage;
-    }
-  }
-
-  // Get binary labelmap representations of the compare segment
-  vtkSmartPointer<vtkOrientedImageData> compareSegmentLabelmap;
-  if ( compareSegmentation->ContainsRepresentation(
-    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
-  {
-    // Temporarily duplicate segment, as it may be transformed
-    compareSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
-    compareSegmentLabelmap->DeepCopy( vtkOrientedImageData::SafeDownCast(
-      compareSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
-  }
-  else // Need to convert
-  {
-    // Temporarily duplicate selected segment to only convert them, not the whole segmentation (to save time)
-    compareSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::Take( vtkOrientedImageData::SafeDownCast(
-      vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment( compareSegmentation, compareSegmentID,
-        vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) ) );
-    if (!referenceSegmentLabelmap.GetPointer())
-    {
-      std::string errorMessage("Failed to convert compare segment into binary labelmap\nPlease convert it in Segmentations module using Advanced conversion");
-      vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
-      return errorMessage;
-    }
-  }
-
-  // Apply parent transformation nodes if necessary
-  if ( referenceSegmentationNode != compareSegmentationNode
-    && referenceSegmentationNode->GetParentTransformNode() != compareSegmentationNode->GetParentTransformNode() )
-  {
-    if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(referenceSegmentationNode, referenceSegmentLabelmap))
-    {
-      std::string errorMessage("Failed to apply parent transformation to compare segment!");
-      vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
-      return errorMessage;
-    }
-    if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(compareSegmentationNode, compareSegmentLabelmap))
-    {
-      std::string errorMessage("Failed to apply parent transformation to reference segment!");
-      vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
-      return errorMessage;
-    }
+    std::string errorMessage("Failed to get binary labelmap from reference segment: " + std::string(compareSegmentID));
+    vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
+    return errorMessage;
   }
 
   // Convert inputs to ITK images

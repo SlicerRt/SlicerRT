@@ -995,16 +995,6 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(v
     return false;
   }
 
-  // Check if segmentation contains binary labelmap representation
-  if ( !segmentationNode->GetSegmentation()->ContainsRepresentation(
-    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
-  {
-    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Segmentation " << segmentationNode->GetName()
-      << " does not contain binary labelmap representation! Create representation using node->GetSegmentation()->CreateRepresentation"
-         " function if binary labelmaps are used later on, otherwise temporarily duplicate the segment using vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment");
-    return false;
-  }
-
   // Get requested segment
   vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentID);
   if (!segment)
@@ -1013,9 +1003,27 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(v
     return false;
   }
 
-  // Get and copy binary labelmap into output oriented image data
-  imageData->DeepCopy( vtkOrientedImageData::SafeDownCast(
-    segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
+  if ( segmentationNode->GetSegmentation()->ContainsRepresentation(
+    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
+  {
+    // Get and copy binary labelmap into output oriented image data
+    imageData->DeepCopy( vtkOrientedImageData::SafeDownCast(
+      segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
+  }
+  else // Need to convert
+  {
+    // Temporarily duplicate selected segment to only convert them, not the whole segmentation (to save time)
+    vtkSmartPointer<vtkOrientedImageData> image = vtkSmartPointer<vtkOrientedImageData>::Take(
+      vtkOrientedImageData::SafeDownCast(
+        vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment( segmentationNode->GetSegmentation(), segmentID,
+          vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) ) );
+    if (!image.GetPointer())
+    {
+      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Unable to convert segment with ID " << segmentID << " to binary labelmap representation in segmentation " << segmentationNode->GetName());
+      return false;
+    }
+    imageData->DeepCopy(image);
+  }
 
   // Apply parent transformation nodes if necessary
   if (applyParentTransform && segmentationNode->GetParentTransformNode())
