@@ -109,12 +109,21 @@ public:
   /// Set MRML scene to all local effects
   void setSceneToEffects(vtkMRMLScene* scene);
 
+  /// Set edited labelmap to all local effects
+  void setEditedLabelmapToEffects();
+
+  /// Set master volume ID to all local effects
+  void setMasterVolumeToEffects();
+
+  /// Set segmentation node ID to all local effects
+  void setSegmentationNodeToEffects();
+
   /// Create edited labelmap from selected segment, using the bounds of the master volume
   /// \return Success flag
   bool createEditedLabelmapFromSelectedSegment();
 
-  /// Set edited labelmap to all local effects
-  void setEditedLabelmapToEffects();
+  /// Select first segment in table view
+  void selectFirstSegment();
 
 public:
   /// Selected segmentation MRML node
@@ -237,12 +246,12 @@ void qMRMLSegmentEditorWidgetPrivate::createEffects()
 {
   Q_Q(qMRMLSegmentEditorWidget);
 
-  // Clear possible previous buttons
+  // Deactivate possible previous buttons
   QList<QAbstractButton*> effectButtons = this->EffectButtonGroup.buttons();
   foreach (QAbstractButton* button, effectButtons)
   {
     this->EffectButtonGroup.removeButton(button);
-    button->deleteLater();
+    button->setVisible(false);
   }
 
   // Create local copy of factory effects, so that
@@ -291,6 +300,33 @@ void qMRMLSegmentEditorWidgetPrivate::setSceneToEffects(vtkMRMLScene* scene)
 }
 
 //-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::setEditedLabelmapToEffects()
+{
+  foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
+  {
+    effect->setEditedLabelmap(this->EditedLabelmap);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::setMasterVolumeToEffects()
+{
+  foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
+  {
+    effect->setMasterVolumeNodeID(this->MasterVolumeNode ? this->MasterVolumeNode->GetID() : "");
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::setSegmentationNodeToEffects()
+{
+  foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
+  {
+    effect->setSegmentationNodeID(this->SegmentationNode ? this->SegmentationNode->GetID() : "");
+  }
+}
+
+//-----------------------------------------------------------------------------
 bool qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment()
 {
   // Clear edited labelmap
@@ -333,11 +369,17 @@ bool qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment()
 }
 
 //-----------------------------------------------------------------------------
-void qMRMLSegmentEditorWidgetPrivate::setEditedLabelmapToEffects()
+void qMRMLSegmentEditorWidgetPrivate::selectFirstSegment()
 {
-  foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
+  if ( this->SegmentationNode
+    && this->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0 )
   {
-    effect->setEditedLabelmap(this->EditedLabelmap);
+    std::vector<std::string> segmentIDs;
+    this->SegmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
+
+    QStringList firstSegmentID;
+    firstSegmentID << QString(segmentIDs[0].c_str());
+    this->SegmentsTableView->setSelectedSegmentIDs(firstSegmentID);
   }
 }
 
@@ -420,6 +462,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
   if (d->SegmentationNode != segmentationNode)
   {
     d->SegmentationNode = segmentationNode;
+    d->setSegmentationNodeToEffects();
   }
   
   // Only enable master volume combobox if segmentation selection is valid
@@ -442,6 +485,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
   // Hide make model button if closed surface already exists
   d->MakeModelButton->setVisible(!closedSurfacePresent);
 
+  // Representation related operations
   if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
   {
     // Make sure binary labelmap representation exists
@@ -489,15 +533,18 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     }
   
     // Select first segment
-    if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
-    {
-      std::vector<std::string> segmentIDs;
-      d->SegmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
-      QStringList firstSegmentID;
-      firstSegmentID << QString(segmentIDs[0].c_str());
-      d->SegmentsTableView->setSelectedSegmentIDs(firstSegmentID);
-    }
+    d->selectFirstSegment();
   }
+
+  // Show segmentation in label layer of slice viewers
+  vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
+  if (!selectionNode)
+  {
+    qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: Unable to get selection node to show segmentation node " << d->SegmentationNode->GetName();
+    return;
+  }
+  selectionNode->SetReferenceActiveLabelVolumeID(d->SegmentationNode->GetID());
+  qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
 }
 
 //------------------------------------------------------------------------------
@@ -544,27 +591,16 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
   else if (selectedSegmentIDs.empty())
   {
     d->SelectedSegmentID = QString();
-    return;
   }
-
-  d->SelectedSegmentID = selectedSegmentIDs[0];
+  else
+  {
+    d->SelectedSegmentID = selectedSegmentIDs[0];
+  }
   
-  // Show segmentation in label layer of slice viewers
-  vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
-  if (!selectionNode)
-  {
-    qCritical() << "qMRMLSegmentEditorWidget::onSegmentSelectionChanged: Unable to get selection node to show segmentation node " << d->SegmentationNode->GetName();
-    return;
-  }
-  selectionNode->SetReferenceActiveLabelVolumeID(d->SegmentationNode->GetID());
-  qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
- 
   // Create edited segmentLabelmap from selected segment, using the bounds of the master volume
-  if (d->createEditedLabelmapFromSelectedSegment())
-  {
-    // Set binary segmentLabelmap representation to effects
-    d->setEditedLabelmapToEffects();
-  }
+  d->createEditedLabelmapFromSelectedSegment();
+  // Set binary segmentLabelmap representation to effects
+  d->setEditedLabelmapToEffects();
 }
 
 //-----------------------------------------------------------------------------
@@ -576,6 +612,7 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
   if (d->MasterVolumeNode != volumeNode)
   {
     d->MasterVolumeNode = volumeNode;
+    d->setMasterVolumeToEffects();
   }
 
   // Disable editing if no master volume node is set:

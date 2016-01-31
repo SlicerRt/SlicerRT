@@ -342,17 +342,12 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
     return;
   }
 
-  // Get IJK to RAS transform matrices for edited labelmap and background volume
-  vtkMRMLSliceLogic* sliceLogic = sliceWidget->sliceLogic();
-  vtkMRMLSliceNode* sliceNode = sliceLogic->GetSliceNode();
+  // Get IJK to RAS transform matrices for edited labelmap and master volume
+  vtkMRMLVolumeNode* masterVolumeNode = q->masterVolumeNode();
+  vtkSmartPointer<vtkMatrix4x4> masterIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(masterVolumeNode, masterIjkToRasMatrix);
 
-  vtkMRMLSliceLayerLogic* backgroundLogic = sliceLogic->GetBackgroundLayer();
-  vtkMRMLVolumeNode* backgroundNode = backgroundLogic->GetVolumeNode();
-  vtkSmartPointer<vtkMatrix4x4> backgroundIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(backgroundNode, backgroundIjkToRasMatrix);
-
-  vtkMRMLSliceLayerLogic* labelLogic = sliceLogic->GetLabelLayer();
-  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(labelLogic->GetVolumeNode());
+  vtkMRMLSegmentationNode* segmentationNode = q->segmentationNode();
   vtkSmartPointer<vtkMatrix4x4> labelIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(labelImage, segmentationNode, labelIjkToRasMatrix);
 
@@ -368,8 +363,8 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   QString paintThresholdMaxStr = q->parameter(qSlicerSegmentEditorLabelEffect::paintThresholdMaxParameterName());
   int paintThresholdMax(paintThresholdMaxStr.toInt());
 
-  this->Painter->SetBackgroundImage(backgroundNode->GetImageData());
-  this->Painter->SetBackgroundIJKToWorld(backgroundIjkToRasMatrix);
+  this->Painter->SetBackgroundImage(masterVolumeNode->GetImageData());
+  this->Painter->SetBackgroundIJKToWorld(masterIjkToRasMatrix);
   this->Painter->SetWorkingImage(labelImage);
   this->Painter->SetWorkingIJKToWorld(labelIjkToRasMatrix);
   this->Painter->SetTopLeft(topLeft);
@@ -517,7 +512,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::scaleRadius(double scaleFactor)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  q->setParameter("Radius", q->doubleParameter("Radius") * scaleFactor);
+  q->setParameter("Radius", q->doubleParameter("Radius") * scaleFactor, true); // Emit modified event
 }
 
 //-----------------------------------------------------------------------------
@@ -565,7 +560,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::onRadiusValueChanged(double value)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  q->setParameter("Radius", value);
+  q->setParameter("Radius", value, true); // Emit modified event
   q->updateGUIFromMRML();
 }
 
@@ -873,10 +868,6 @@ void qSlicerSegmentEditorPaintEffect::setupOptionsFrame()
   d->PixelModeCheckbox->setToolTip("Paint exactly the pixel under the cursor, ignoring the radius, threshold, and paint over.");
   this->addOptionsWidget(d->PixelModeCheckbox);
 
-  /* TODO:
-    HelpButton(self.frame, "Use this tool to paint with a round brush of the selected radius")
-  */
-
   QObject::connect(d->RadiusUnitsToggle, SIGNAL(toggled(bool)), d, SLOT(onRadiusUnitsToggled(bool)));
   QObject::connect(d->SphereCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
   QObject::connect(d->SmudgeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
@@ -888,17 +879,21 @@ void qSlicerSegmentEditorPaintEffect::setupOptionsFrame()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::setMRMLDefaults()
 {
-  this->setParameter("MinimumRadius", 0.01, true);
-  this->setParameter("MaximumRadius", 100.0, true);
-  this->setParameter("Radius", 0.5, true);
-  this->setParameter("Sphere", 0, true);
-  this->setParameter("Smudge", 0, true);
-  this->setParameter("PixelMode", 0, true);
+  Superclass::setMRMLDefaults();
+
+  this->setParameter("MinimumRadius", 0.01);
+  this->setParameter("MaximumRadius", 100.0);
+  this->setParameter("Radius", 0.5);
+  this->setParameter("Sphere", 0);
+  this->setParameter("Smudge", 0);
+  this->setParameter("PixelMode", 0);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
 {
+  Superclass::updateGUIFromMRML();
+
   Q_D(qSlicerSegmentEditorPaintEffect);
 
   if (!m_Scene)
@@ -920,8 +915,8 @@ void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
   d->PixelModeCheckbox->blockSignals(false);
 
   // Pixel mode prevents using threshold and paint over functions
-  this->setParameter("ThresholdEnabled", !pixelMode, true);
-  this->setParameter("PaintOverEnabled", !pixelMode, true);
+  this->setParameter("ThresholdEnabled", !pixelMode);
+  this->setParameter("PaintOverEnabled", !pixelMode);
   // Update label options based on constraints set by pixel mode
   Superclass::updateGUIFromMRML();
 
@@ -958,19 +953,19 @@ void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
 
   Q_D(qSlicerSegmentEditorPaintEffect);
 
-  this->setParameter("Sphere", (int)d->SphereCheckbox->isChecked(), true);
-  this->setParameter("Smudge", (int)d->SmudgeCheckbox->isChecked(), true);
+  this->setParameter("Sphere", (int)d->SphereCheckbox->isChecked());
+  this->setParameter("Smudge", (int)d->SmudgeCheckbox->isChecked());
   bool pixelMode = d->PixelModeCheckbox->isChecked();
   bool pixelModeChanged = (pixelMode != (bool)this->integerParameter("PixelMode"));
-  this->setParameter("PixelMode", (int)pixelMode, true);
-  this->setParameter("Radius", d->RadiusSlider->value(), true);
+  this->setParameter("PixelMode", (int)pixelMode);
+  this->setParameter("Radius", d->RadiusSlider->value());
 
   // If pixel mode changed, then other GUI changes are due
   if (pixelModeChanged)
   {
     // Pixel mode prevents using threshold and paint over functions
-    this->setParameter("ThresholdEnabled", !pixelMode, true);
-    this->setParameter("PaintOverEnabled", !pixelMode, true);
+    this->setParameter("ThresholdEnabled", !pixelMode);
+    this->setParameter("PaintOverEnabled", !pixelMode);
     // Update label options based on constraints set by pixel mode
     Superclass::updateGUIFromMRML();
 
@@ -989,16 +984,16 @@ void qSlicerSegmentEditorPaintEffect::setEditedLabelmap(vtkOrientedImageData* la
     labelmap->GetSpacing(spacing);
     double minimumSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
     double minimumRadius = 0.5 * minimumSpacing;
-    this->setParameter("MinimumRadius", minimumRadius);
+    this->setParameter("MinimumRadius", minimumRadius, true); // Emit modified event
 
     int dimensions[3] = {0, 0, 0};
     labelmap->GetDimensions(dimensions);
     double bounds[3] = {spacing[0]*dimensions[0], spacing[1]*dimensions[1], spacing[2]*dimensions[2]};
     double maximumBounds = std::max(bounds[0], std::max(bounds[1], bounds[2]));
     double maximumRadius = 0.5 * maximumBounds;
-    this->setParameter("MaximumRadius", maximumRadius);
+    this->setParameter("MaximumRadius", maximumRadius, true); // Emit modified event
 
-    this->setParameter("Radius", std::min(50.0 * minimumRadius, 0.5 * maximumRadius));
+    this->setParameter("Radius", std::min(50.0 * minimumRadius, 0.5 * maximumRadius), true); // Emit modified event
 
     this->updateGUIFromMRML();
   }

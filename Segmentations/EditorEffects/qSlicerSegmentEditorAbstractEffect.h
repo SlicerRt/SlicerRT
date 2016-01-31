@@ -38,6 +38,8 @@ class qSlicerSegmentEditorAbstractEffectPrivate;
 class vtkMRMLScene;
 class vtkMRMLSegmentEditorEffectNode;
 class vtkMRMLAbstractViewNode;
+class vtkMRMLVolumeNode;
+class vtkMRMLSegmentationNode;
 class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
@@ -122,6 +124,16 @@ public:
   /// Set MRML scene
   Q_INVOKABLE void setScene(vtkMRMLScene* scene) { m_Scene = scene; };
 
+  /// Set master volume node ID
+  Q_INVOKABLE void setMasterVolumeNodeID(QString id) { m_MasterVolumeNodeID = id; };
+  // Get master volume node
+  Q_INVOKABLE vtkMRMLVolumeNode* masterVolumeNode();
+
+  /// Set segmentation node ID
+  Q_INVOKABLE void setSegmentationNodeID(QString id) { m_SegmentationNodeID = id; };
+  // Get segmentation node
+  Q_INVOKABLE vtkMRMLSegmentationNode* segmentationNode();
+
   /// Get effect options frame
   Q_INVOKABLE QFrame* optionsFrame();
 
@@ -148,14 +160,29 @@ public:
   /// Convenience function to get double parameter
   double doubleParameter(QString name);
 
-  /// Set effect parameter in effect parameter set node
-  void setParameter(QString name, QString value, bool noModifiedEvent=false);
+  /// Set effect parameter in effect parameter set node. This function is called by both convenience functions.
+  /// \param name Parameter name string
+  /// \param value Parameter value string
+  /// \param emitModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
+  ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
+  ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
+  void setParameter(QString name, QString value, bool emitModifiedEvent=false);
 
   /// Convenience function to set integer parameter
-  void setParameter(QString name, int value, bool noModifiedEvent=false);
+  /// \param name Parameter name string
+  /// \param value Parameter value integer
+  /// \param emitModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
+  ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
+  ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
+  void setParameter(QString name, int value, bool emitModifiedEvent=false);
 
   /// Convenience function to set double parameter
-  void setParameter(QString name, double value, bool noModifiedEvent=false);
+  /// \param name Parameter name string
+  /// \param value Parameter value double
+  /// \param emitModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
+  ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
+  ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
+  void setParameter(QString name, double value, bool emitModifiedEvent=false);
 
 // Utility functions
 public:
@@ -195,7 +222,15 @@ protected:
 
   /// Edited binary labelmap
   vtkOrientedImageData* m_EditedLabelmap;
+
+  /// Master volume node ID to conveniently and get the master volume for certain operations
+  /// (the alternative would be to go through the slice logic and the layers)
+  QString m_MasterVolumeNodeID;
  
+  /// Segmentation node ID to conveniently and get the master volume for certain operations
+  /// (the alternative would be to go through the slice logic and the layers)
+  QString m_SegmentationNodeID;
+
 protected:
   QScopedPointer<qSlicerSegmentEditorAbstractEffectPrivate> d_ptr;
 

@@ -41,6 +41,8 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLViewNode.h"
+#include "vtkMRMLVolumeNode.h"
+#include "vtkMRMLSegmentationNode.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -189,6 +191,28 @@ void qSlicerSegmentEditorAbstractEffect::addActor(qMRMLWidget* viewWidget, vtkPr
 }
 
 //-----------------------------------------------------------------------------
+vtkMRMLVolumeNode* qSlicerSegmentEditorAbstractEffect::masterVolumeNode()
+{
+  if (!m_Scene)
+  {
+    return NULL;
+  }
+
+  return vtkMRMLVolumeNode::SafeDownCast( m_Scene->GetNodeByID(m_MasterVolumeNodeID.toLatin1().constData()) );
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLSegmentationNode* qSlicerSegmentEditorAbstractEffect::segmentationNode()
+{
+  if (!m_Scene)
+  {
+    return NULL;
+  }
+
+  return vtkMRMLSegmentationNode::SafeDownCast( m_Scene->GetNodeByID(m_SegmentationNodeID.toLatin1().constData()) );
+}
+
+//-----------------------------------------------------------------------------
 QFrame* qSlicerSegmentEditorAbstractEffect::optionsFrame()
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
@@ -309,7 +333,7 @@ double qSlicerSegmentEditorAbstractEffect::doubleParameter(QString name)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString value, bool noModifiedEvent/*=false*/)
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString value, bool emitModifiedEvent/*=false*/)
 {
   vtkMRMLSegmentEditorEffectNode* node = this->parameterSetNode();
   if (!node)
@@ -320,7 +344,7 @@ void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString valu
 
   // Disable modified events if requested
   int disableState = node->GetDisableModifiedEvent();
-  if (noModifiedEvent)
+  if (!emitModifiedEvent)
   {
     node->SetDisableModifiedEvent(1);
   }
@@ -329,22 +353,22 @@ void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString valu
   node->SetAttribute(name.toLatin1().constData(), value.toLatin1().constData());
 
   // Re-enable modified events for parameter node if disabling it for this set operation was requested
-  if (noModifiedEvent)
+  if (!emitModifiedEvent)
   {
     node->SetDisableModifiedEvent(disableState);
   }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, int value, bool noModifiedEvent/*=false*/)
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, int value, bool emitModifiedEvent/*=false*/)
 {
-  this->setParameter(name, QString::number(value), noModifiedEvent);
+  this->setParameter(name, QString::number(value), emitModifiedEvent);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, double value, bool noModifiedEvent/*=false*/)
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, double value, bool emitModifiedEvent/*=false*/)
 {
-  this->setParameter(name, QString::number(value), noModifiedEvent);
+  this->setParameter(name, QString::number(value), emitModifiedEvent);
 }
 
 //-----------------------------------------------------------------------------

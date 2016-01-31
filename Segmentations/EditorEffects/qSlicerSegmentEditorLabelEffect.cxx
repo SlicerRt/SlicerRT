@@ -20,23 +20,77 @@
 
 // Segmentations includes
 #include "qSlicerSegmentEditorLabelEffect.h"
+#include "qSlicerSegmentEditorLabelEffect_p.h"
 
 #include "vtkOrientedImageData.h"
 #include "vtkMRMLSegmentationNode.h"
 
 // Qt includes
 #include <QDebug>
+#include <QCheckBox>
+#include <QLabel>
+
+// CTK includes
+#include "ctkRangeWidget.h"
 
 // VTK includes
 #include <vtkMatrix4x4.h>
 
 // MRML includes
-#include <vtkMRMLVolumeNode.h>
-#include <vtkMRMLTransformNode.h>
+#include "vtkMRMLVolumeNode.h"
+#include "vtkMRMLTransformNode.h"
+
+//-----------------------------------------------------------------------------
+// qSlicerSegmentEditorLabelEffectPrivate methods
+
+//-----------------------------------------------------------------------------
+qSlicerSegmentEditorLabelEffectPrivate::qSlicerSegmentEditorLabelEffectPrivate(qSlicerSegmentEditorLabelEffect& object)
+  : q_ptr(&object)
+  , PaintOverCheckbox(NULL)
+  , ThresholdPaintCheckbox(NULL)
+  , ThresholdLabel(NULL)
+  , ThresholdRangeWidget(NULL)
+{
+}
+
+//-----------------------------------------------------------------------------
+qSlicerSegmentEditorLabelEffectPrivate::~qSlicerSegmentEditorLabelEffectPrivate()
+{
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange(double& low, double& high)
+{
+  Q_Q(qSlicerSegmentEditorLabelEffect);
+
+  low = 0.0;
+  high = 0.0;
+
+  vtkMRMLVolumeNode* masterVolumeNode = q->masterVolumeNode();
+  if (!masterVolumeNode)
+  {
+    qCritical() << "qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange: Failed to get master volume!";
+    return;
+  }
+  if (masterVolumeNode->GetImageData())
+  {
+    double range[2] = {0.0, 0.0};
+    masterVolumeNode->GetImageData()->GetScalarRange(range);
+    low = range[0];
+    high = range[1];
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------
+// qSlicerSegmentEditorLabelEffect methods
 
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorLabelEffect::qSlicerSegmentEditorLabelEffect(QObject* parent)
  : Superclass(parent)
+ , d_ptr( new qSlicerSegmentEditorLabelEffectPrivate(*this) )
 {
 }
 
@@ -48,33 +102,71 @@ qSlicerSegmentEditorLabelEffect::~qSlicerSegmentEditorLabelEffect()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorLabelEffect::setupOptionsFrame()
 {
-  //TODO: Common label effect parameters (paintOver, paintThreshold, paintThresholdMin, paintThresholdMax)
+  Q_D(qSlicerSegmentEditorLabelEffect);
 
-  //this->addOptionsWidget( each row );
+  d->PaintOverCheckbox = new QCheckBox("Paint over");
+  d->PaintOverCheckbox->setToolTip("Allow effect to overwrite non-zero labels.");
+  this->addOptionsWidget(d->PaintOverCheckbox);
+
+  d->ThresholdPaintCheckbox = new QCheckBox("Threshold paint");
+  d->ThresholdPaintCheckbox->setToolTip("Enable/Disable threshold mode for labeling");
+  this->addOptionsWidget(d->ThresholdPaintCheckbox);
+
+  d->ThresholdLabel = new QLabel("Threshold");
+  d->ThresholdLabel->setToolTip("In threshold mode, the label will only be set if the background value is within this range.");
+  this->addOptionsWidget(d->ThresholdLabel);
+
+  d->ThresholdRangeWidget = new ctkRangeWidget();
+  d->ThresholdRangeWidget->setSpinBoxAlignment(Qt::AlignTop); //TODO: 0xff?
+  d->ThresholdRangeWidget->setSingleStep(0.01);
+  double low = 0.0;
+  double high = 0.0;
+  d->masterVolumeScalarRange(low, high);
+  d->ThresholdRangeWidget->setMinimum(low);
+  d->ThresholdRangeWidget->setMaximum(high);
+  this->addOptionsWidget(d->ThresholdRangeWidget);
+
+  QObject::connect(d->PaintOverCheckbox, SIGNAL(clicked()), d, SLOT(updateMRMLFromGUI()));
+  QObject::connect(d->ThresholdPaintCheckbox, SIGNAL(clicked()), d, SLOT(updateMRMLFromGUI()));
+  QObject::connect(d->ThresholdRangeWidget, SIGNAL(valuesChanged(double,double)), d, SLOT(onThresholdValuesChange(double,double)));
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorLabelEffect::setMRMLDefaults()
 {
-  //TODO: Common label effect parameters (paintOver, paintThreshold, paintThresholdMin, paintThresholdMax)
-  this->setParameter(this->paintOverParameterName(), 1, true);
-  this->setParameter(this->paintThresholdMaxParameterName(), 0, true);
-  this->setParameter(this->paintThresholdMinParameterName(), 0, true);
-  this->setParameter(this->paintThresholdParameterName(), 1000, true);
+  this->setParameter(this->paintOverParameterName(), 1);
+  this->setParameter(this->paintThresholdParameterName(), 0);
+  this->setParameter(this->paintThresholdMinParameterName(), 0);
+  this->setParameter(this->paintThresholdMaxParameterName(), 1000);
+  this->setParameter(this->thresholdEnabledParameterName(), 1);
+  this->setParameter(this->paintOverEnabledParameterName(), 1);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorLabelEffect::updateGUIFromMRML()
 {
-  //TODO: Common label effect parameters (paintOver, paintThreshold, paintThresholdMin, paintThresholdMax)
-  // "ThresholdEnabled": show/hide threshold widgets
-  // "PaintOverEnabled": show/hide paint over widgets
+  Q_D(qSlicerSegmentEditorLabelEffect);
+
+  d->PaintOverCheckbox->setChecked(this->integerParameter(this->paintOverParameterName()));
+  d->ThresholdPaintCheckbox->setChecked(this->integerParameter(this->paintThresholdParameterName()));
+  d->ThresholdRangeWidget->setMinimumValue(this->doubleParameter(this->paintThresholdMinParameterName()));
+  d->ThresholdRangeWidget->setMaximumValue(this->doubleParameter(this->paintThresholdMaxParameterName()));
+
+  d->PaintOverCheckbox->setVisible(this->integerParameter(this->paintOverEnabledParameterName()));
+  d->ThresholdLabel->setVisible(this->integerParameter(this->thresholdEnabledParameterName()));
+  d->ThresholdPaintCheckbox->setVisible(this->integerParameter(this->thresholdEnabledParameterName()));
+  d->ThresholdRangeWidget->setVisible(this->integerParameter(this->thresholdEnabledParameterName()));
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorLabelEffect::updateMRMLFromGUI()
 {
-  //TODO: Common label effect parameters (paintOver, paintThreshold, paintThresholdMin, paintThresholdMax)
+  Q_D(qSlicerSegmentEditorLabelEffect);
+
+  this->setParameter(this->paintOverParameterName(), (int)d->PaintOverCheckbox->isChecked());
+  this->setParameter(this->paintThresholdParameterName(), (int)d->ThresholdPaintCheckbox->isChecked());
+  this->setParameter(this->paintThresholdMinParameterName(), (double)d->ThresholdRangeWidget->minimumValue());
+  this->setParameter(this->paintThresholdMaxParameterName(), (double)d->ThresholdRangeWidget->maximumValue());
 }
 
 //-----------------------------------------------------------------------------

@@ -50,6 +50,8 @@ public:
   static QString paintThresholdParameterName() { return QString("PaintThreshold"); };
   static QString paintThresholdMinParameterName() { return QString("PaintThresholdMin"); };
   static QString paintThresholdMaxParameterName() { return QString("PaintThresholdMax"); };
+  static QString thresholdEnabledParameterName() { return QString("ThresholdEnabled"); };
+  static QString paintOverEnabledParameterName() { return QString("PaintOverEnabled"); };
 
 public:
   /// Get name of effect
@@ -81,6 +83,9 @@ public:
   /// Return matrix for volume node that takes into account the IJKToRAS
   /// and any linear transforms that have been applied
   static void ijkToRasMatrix(vtkOrientedImageData* image, vtkMRMLSegmentationNode* node, vtkMatrix4x4* ijkToRas);
+
+protected:
+  QScopedPointer<qSlicerSegmentEditorLabelEffectPrivate> d_ptr;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerSegmentEditorLabelEffect);
