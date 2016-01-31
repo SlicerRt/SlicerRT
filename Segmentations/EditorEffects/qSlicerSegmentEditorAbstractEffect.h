@@ -125,12 +125,12 @@ public:
   Q_INVOKABLE void setScene(vtkMRMLScene* scene) { m_Scene = scene; };
 
   /// Set master volume node ID
-  Q_INVOKABLE void setMasterVolumeNodeID(QString id) { m_MasterVolumeNodeID = id; };
+  Q_INVOKABLE virtual void setMasterVolumeNodeID(QString id) { m_MasterVolumeNodeID = id; };
   // Get master volume node
   Q_INVOKABLE vtkMRMLVolumeNode* masterVolumeNode();
 
   /// Set segmentation node ID
-  Q_INVOKABLE void setSegmentationNodeID(QString id) { m_SegmentationNodeID = id; };
+  Q_INVOKABLE virtual void setSegmentationNodeID(QString id) { m_SegmentationNodeID = id; };
   // Get segmentation node
   Q_INVOKABLE vtkMRMLSegmentationNode* segmentationNode();
 

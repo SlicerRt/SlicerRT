@@ -60,6 +60,13 @@ public:
   /// Get scalar range for master volume
   void masterVolumeScalarRange(double& low, double& high);
 
+protected slots:
+  /// Enable/disable threshold when checkbox is toggled
+  void onThresholdChecked(bool);
+
+  /// Handles threshold values changed event
+  void onThresholdValuesChanged(double,double);
+
 public:
   QCheckBox* PaintOverCheckbox;
   QCheckBox* ThresholdPaintCheckbox;

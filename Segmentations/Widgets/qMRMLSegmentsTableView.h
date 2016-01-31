@@ -120,6 +120,9 @@ protected slots:
   /// Populate segment table according to the segmentation node
   void populateSegmentTable();
 
+  /// Update from segmentation node state (invoked when segment count stays the same)
+  void updateWidgetFromMRML();
+
 protected:
   QScopedPointer<qMRMLSegmentsTableViewPrivate> d_ptr;
 

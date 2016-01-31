@@ -82,6 +82,28 @@ void qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange(double& low
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffectPrivate::onThresholdChecked(bool checked)
+{
+  Q_Q(qSlicerSegmentEditorLabelEffect);
+
+  this->ThresholdLabel->setVisible(checked);
+
+  this->ThresholdRangeWidget->blockSignals(true);
+  this->ThresholdRangeWidget->setVisible(checked);
+  this->ThresholdRangeWidget->blockSignals(false);
+
+  q->updateMRMLFromGUI();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffectPrivate::onThresholdValuesChanged(double min, double max)
+{
+  Q_Q(qSlicerSegmentEditorLabelEffect);
+
+  q->updateMRMLFromGUI();
+}
+
+//-----------------------------------------------------------------------------
 
 
 //-----------------------------------------------------------------------------
@@ -97,6 +119,23 @@ qSlicerSegmentEditorLabelEffect::qSlicerSegmentEditorLabelEffect(QObject* parent
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorLabelEffect::~qSlicerSegmentEditorLabelEffect()
 {
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffect::setMasterVolumeNodeID(QString id)
+{
+  Q_D(qSlicerSegmentEditorLabelEffect);
+
+  Superclass::setMasterVolumeNodeID(id);
+
+  double low = 0.0;
+  double high = 0.0;
+  d->masterVolumeScalarRange(low, high);
+
+  d->ThresholdRangeWidget->setMinimum(low);
+  d->ThresholdRangeWidget->setMaximum(high);
+  this->setParameter(this->paintThresholdMinParameterName(), low);
+  this->setParameter(this->paintThresholdMaxParameterName(), high);
 }
 
 //-----------------------------------------------------------------------------
@@ -119,16 +158,11 @@ void qSlicerSegmentEditorLabelEffect::setupOptionsFrame()
   d->ThresholdRangeWidget = new ctkRangeWidget();
   d->ThresholdRangeWidget->setSpinBoxAlignment(Qt::AlignTop); //TODO: 0xff?
   d->ThresholdRangeWidget->setSingleStep(0.01);
-  double low = 0.0;
-  double high = 0.0;
-  d->masterVolumeScalarRange(low, high);
-  d->ThresholdRangeWidget->setMinimum(low);
-  d->ThresholdRangeWidget->setMaximum(high);
   this->addOptionsWidget(d->ThresholdRangeWidget);
 
-  QObject::connect(d->PaintOverCheckbox, SIGNAL(clicked()), d, SLOT(updateMRMLFromGUI()));
-  QObject::connect(d->ThresholdPaintCheckbox, SIGNAL(clicked()), d, SLOT(updateMRMLFromGUI()));
-  QObject::connect(d->ThresholdRangeWidget, SIGNAL(valuesChanged(double,double)), d, SLOT(onThresholdValuesChange(double,double)));
+  QObject::connect(d->PaintOverCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
+  QObject::connect(d->ThresholdPaintCheckbox, SIGNAL(toggled(bool)), d, SLOT(onThresholdChecked(bool)));
+  QObject::connect(d->ThresholdRangeWidget, SIGNAL(valuesChanged(double,double)), d, SLOT(onThresholdValuesChanged(double,double)));
 }
 
 //-----------------------------------------------------------------------------
@@ -147,15 +181,24 @@ void qSlicerSegmentEditorLabelEffect::updateGUIFromMRML()
 {
   Q_D(qSlicerSegmentEditorLabelEffect);
 
+  d->PaintOverCheckbox->blockSignals(true);
   d->PaintOverCheckbox->setChecked(this->integerParameter(this->paintOverParameterName()));
+  d->PaintOverCheckbox->setVisible(this->integerParameter(this->paintOverEnabledParameterName()));
+  d->PaintOverCheckbox->blockSignals(false);
+
+  d->ThresholdPaintCheckbox->blockSignals(true);
   d->ThresholdPaintCheckbox->setChecked(this->integerParameter(this->paintThresholdParameterName()));
+  d->ThresholdPaintCheckbox->setVisible(this->integerParameter(this->thresholdEnabledParameterName()));
+  d->ThresholdPaintCheckbox->blockSignals(false);
+
+  bool thresholdEnabled = d->ThresholdPaintCheckbox->isChecked() && (bool)this->integerParameter(this->thresholdEnabledParameterName());
+  d->ThresholdLabel->setVisible(thresholdEnabled);
+
+  d->ThresholdRangeWidget->blockSignals(true);
   d->ThresholdRangeWidget->setMinimumValue(this->doubleParameter(this->paintThresholdMinParameterName()));
   d->ThresholdRangeWidget->setMaximumValue(this->doubleParameter(this->paintThresholdMaxParameterName()));
-
-  d->PaintOverCheckbox->setVisible(this->integerParameter(this->paintOverEnabledParameterName()));
-  d->ThresholdLabel->setVisible(this->integerParameter(this->thresholdEnabledParameterName()));
-  d->ThresholdPaintCheckbox->setVisible(this->integerParameter(this->thresholdEnabledParameterName()));
-  d->ThresholdRangeWidget->setVisible(this->integerParameter(this->thresholdEnabledParameterName()));
+  d->ThresholdRangeWidget->setVisible(thresholdEnabled);
+  d->ThresholdRangeWidget->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------

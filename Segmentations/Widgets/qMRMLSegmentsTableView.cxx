@@ -188,7 +188,7 @@ void qMRMLSegmentsTableView::setSegmentationNode(vtkMRMLNode* node)
 
   // Connect display modified event to population of the table
   qvtkReconnect( d->SegmentationNode, segmentationNode, vtkMRMLDisplayableNode::DisplayModifiedEvent,
-                 this, SLOT( populateSegmentTable() ) );
+                 this, SLOT( updateWidgetFromMRML() ) );
 
   // Connect segment added/removed and display modified events to population of the table
   qvtkReconnect( d->SegmentationNode, segmentationNode, vtkSegmentation::SegmentAdded,
@@ -196,7 +196,7 @@ void qMRMLSegmentsTableView::setSegmentationNode(vtkMRMLNode* node)
   qvtkReconnect( d->SegmentationNode, segmentationNode, vtkSegmentation::SegmentRemoved,
                  this, SLOT( populateSegmentTable() ) );
   qvtkReconnect( d->SegmentationNode, segmentationNode, vtkSegmentation::SegmentModified,
-                 this, SLOT( populateSegmentTable() ) );
+                 this, SLOT( updateWidgetFromMRML() ) );
 
   d->SegmentationNode = segmentationNode;
   this->populateSegmentTable();
@@ -412,7 +412,7 @@ void qMRMLSegmentsTableView::populateSegmentTable()
 
     // Opacity
     QTableWidgetItem* opacityItem = new QTableWidgetItem();
-    QString displayedOpacity = QString::number(properties.PolyDataOpacity, 'f', 2);
+    //QString displayedOpacity = QString::number(properties.PolyDataOpacity, 'f', 2);
     //opacityItem->setData(Qt::EditRole, displayedOpacity); // for qMRMLItemDelegate
     opacityItem->setData(Qt::EditRole, properties.PolyDataOpacity); // for qMRMLDoubleSpinBoxDelegate
     opacityItem->setData(IDRole, segmentId);
@@ -422,6 +422,88 @@ void qMRMLSegmentsTableView::populateSegmentTable()
 
   // Unblock signals
   d->SegmentsTable->blockSignals(false);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentsTableView::updateWidgetFromMRML()
+{
+  Q_D(qMRMLSegmentsTableView);
+
+  if (d->Mode == RepresentationMode)
+  {
+    qCritical() << "qMRMLSegmentsTableView::updateWidgetFromMRML: This function must not be called in representation mode!";
+    return;
+  }
+  if ( !d->SegmentationNode
+    || d->SegmentsTable->rowCount() != d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() )
+  {
+    this->populateSegmentTable();
+    return;
+  }
+  // Get segmentation display node
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+    d->SegmentationNode->GetDisplayNode() );
+  if (!displayNode)
+  {
+    qCritical() << "qMRMLSegmentsTableView::updateWidgetFromMRML: No display node for segmentation!";
+    return;
+  }
+
+  // Find items for each segment and update each field
+  vtkSegmentation::SegmentMap segmentMap = d->SegmentationNode->GetSegmentation()->GetSegments();
+  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+  {
+    QTableWidgetItem* nameItem = d->findItemBySegmentID(segmentIt->first.c_str());
+    if (!nameItem)
+    {
+      qCritical() << "qMRMLSegmentsTableView::updateWidgetFromMRML: Cannot find table item correspondig to segment ID '" << segmentIt->first.c_str() << " in segmentation node " << d->SegmentationNode->GetName();
+      continue;
+    }
+    int row = nameItem->row();
+
+    // Name
+    nameItem->setText(segmentIt->second->GetName());
+
+    // Get segment display properties
+    vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
+    if (!displayNode->GetSegmentDisplayProperties(segmentIt->first, properties))
+      {
+      qWarning() << "qMRMLSegmentsTableView::updateWidgetFromMRML: Unable to find display properties for segment ID '" << segmentIt->first.c_str() << " in segmentation node " << d->SegmentationNode->GetName();
+      continue;
+      }
+
+    // Visibility
+    QTableWidgetItem* visibilityItem = d->SegmentsTable->item(row, d->columnIndex("Visible"));
+    if (visibilityItem)
+    {
+      visibilityItem->setData(VisibilityRole, QVariant(properties.Visible));
+      if (properties.Visible)
+        {
+        visibilityItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
+        }
+      else
+        {
+        visibilityItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
+        }
+    }
+
+    // Color
+    QTableWidgetItem* colorItem = d->SegmentsTable->item(row, d->columnIndex("Color"));
+    if (colorItem)
+    {
+      QColor color = QColor::fromRgbF(properties.Color[0], properties.Color[1], properties.Color[2]);
+      colorItem->setData(Qt::DecorationRole, color);
+    }
+
+    // Opacity
+    QTableWidgetItem* opacityItem =  d->SegmentsTable->item(row, d->columnIndex("Opacity"));
+    if (opacityItem)
+    {
+      //QString displayedOpacity = QString::number(properties.PolyDataOpacity, 'f', 2);
+      //opacityItem->setData(Qt::EditRole, displayedOpacity); // for qMRMLItemDelegate
+      opacityItem->setData(Qt::EditRole, properties.PolyDataOpacity); // for qMRMLDoubleSpinBoxDelegate
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

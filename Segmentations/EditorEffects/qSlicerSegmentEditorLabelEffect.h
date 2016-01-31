@@ -56,7 +56,7 @@ public:
 public:
   /// Get name of effect
   /// (redefinition of pure virtual function to allow python wrapper to identify this as abstract class)
-  virtual QString name() = 0;
+  Q_INVOKABLE virtual QString name() = 0;
 
   /// Clone editor effect
   /// (redefinition of pure virtual function to allow python wrapper to identify this as abstract class)
@@ -68,6 +68,10 @@ public:
   /// Set default parameters in the parameter MRML node
   virtual void setMRMLDefaults();
 
+  /// Set master volume node ID. Override to set threshold minimum and maximum
+  Q_INVOKABLE virtual void setMasterVolumeNodeID(QString id);
+
+public slots:
   /// Update user interface from parameter set node
   virtual void updateGUIFromMRML();
 
