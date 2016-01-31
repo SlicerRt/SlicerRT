@@ -158,6 +158,19 @@ public:
   /// \return Success flag
   static bool GetTransformBetweenRepresentationAndSegmentation(vtkMRMLTransformableNode* representationNode, vtkMRMLSegmentationNode* segmentationNode, vtkGeneralTransform* representationToSegmentationTransform);
 
+  /// Convenience function to get binary labelmap representation of a segment in a segmentation.
+  /// A duplicate of the oriented image data is copied into the argument image data, with the segmentation's parent transform
+  /// applied if requested (on by default).
+  /// The oriented image data can be used directly for processing, or to create a labelmap volume using \sa CreateLabelmapVolumeFromOrientedImageData.
+  /// Further useful functions can be found in segmentations logic (this class).
+  /// \param segmentationNode Input segmentation node containing the segment to extract
+  /// \param segmentID Segment identifier of the segment to extract
+  /// \param imageData Output oriented image data into which the segment binary labelmap is copied
+  /// \param applyParentTransform Flag determining whether to apply parent transform of the segmentation node.
+  ///   If on, then the oriented image data is in RAS, otherwise in the segmentation node's coordinate frame. On by default
+  /// \return Success flag
+  static bool GetSegmentBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, vtkOrientedImageData* imageData, bool applyParentTransform=true);
+
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
 

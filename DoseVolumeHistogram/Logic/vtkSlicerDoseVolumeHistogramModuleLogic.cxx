@@ -534,7 +534,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh()
     // Update progress bar
     double progress = (double)counter / (double)numberOfSelectedSegments;
     this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
-  }
+  } // For each segment
 
   // Fire only one modified event when the computation is done
   this->SetDisableModifiedEvent(0);

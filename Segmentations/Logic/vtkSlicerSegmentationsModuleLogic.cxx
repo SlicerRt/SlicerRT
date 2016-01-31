@@ -985,3 +985,47 @@ bool vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegm
 
   return true;
 }
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, vtkOrientedImageData* imageData, bool applyParentTransform/*=true*/)
+{
+  if (!segmentationNode || segmentID.empty() || !imageData)
+  {
+    std::cerr << "vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Invalid inputs!";
+    return false;
+  }
+
+  // Check if segmentation contains binary labelmap representation
+  if ( !segmentationNode->GetSegmentation()->ContainsRepresentation(
+    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
+  {
+    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Segmentation " << segmentationNode->GetName()
+      << " does not contain binary labelmap representation! Create representation using node->GetSegmentation()->CreateRepresentation"
+         " function if binary labelmaps are used later on, otherwise temporarily duplicate the segment using vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment");
+    return false;
+  }
+
+  // Get requested segment
+  vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentID);
+  if (!segment)
+  {
+    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Unable to find segment with ID " << segmentID << " in segmentation " << segmentationNode->GetName());
+    return false;
+  }
+
+  // Get and copy binary labelmap into output oriented image data
+  imageData->DeepCopy( vtkOrientedImageData::SafeDownCast(
+    segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
+
+  // Apply parent transformation nodes if necessary
+  if (applyParentTransform && segmentationNode->GetParentTransformNode())
+  {
+    if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, imageData))
+    {
+    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Failed to apply parent transform of segmentation " << segmentationNode->GetName());
+    return false;
+    }
+  }
+
+  return true;
+}
