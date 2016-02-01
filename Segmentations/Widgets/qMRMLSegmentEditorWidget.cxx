@@ -352,6 +352,13 @@ bool qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment()
     return false;
   }
 
+  // If segment is empty, then set up binary labelmap to be valid and editable
+  if (segmentLabelmap->IsEmpty())
+  {
+    segmentLabelmap->SetExtent(0,1,0,1,0,1);
+    segmentLabelmap->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  }
+
   // Convert master volume to a temporary oriented image data
   vtkSmartPointer<vtkOrientedImageData> masterVolumeOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::Take(
     vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(this->MasterVolumeNode) );
@@ -534,6 +541,12 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
   
     // Select first segment
     d->selectFirstSegment();
+  }
+
+  // Create display node and properties if absent
+  if (!d->SegmentationNode->GetDisplayNode())
+  {
+    d->SegmentationNode->CreateDefaultDisplayNodes();
   }
 
   // Show segmentation in label layer of slice viewers
@@ -959,7 +972,6 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
   segmentLabelmap->DeepCopy(padder->GetOutput());
 
   // Re-convert all other representations. Get the list of representations from another segment if there is one.
-  //TODO: If there is only one segment and the 'show closed surface' features is implemented, then create that too.
   std::vector<std::string> representationNames;
   vtkSegmentation::SegmentMap segmentMap = d->SegmentationNode->GetSegmentation()->GetSegments();
   for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)

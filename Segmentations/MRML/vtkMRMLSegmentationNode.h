@@ -149,7 +149,7 @@ protected:
   /// Add display properties for segment with given ID
   virtual bool AddSegmentDisplayProperties(std::string segmentId);
 
-  /// Reset all display related data. Called when display node reference is added or modified
+  /// Reset all display related data
   virtual void ResetSegmentDisplayProperties();
 
 protected:

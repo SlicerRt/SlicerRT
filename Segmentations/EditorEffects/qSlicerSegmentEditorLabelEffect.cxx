@@ -129,8 +129,11 @@ void qSlicerSegmentEditorLabelEffect::setMasterVolumeNodeID(QString id)
   Superclass::setMasterVolumeNodeID(id);
 
   double low = 0.0;
-  double high = 0.0;
-  d->masterVolumeScalarRange(low, high);
+  double high = 1000.0;
+  if (!id.isEmpty())
+  {
+    d->masterVolumeScalarRange(low, high);
+  }
 
   d->ThresholdRangeWidget->setMinimum(low);
   d->ThresholdRangeWidget->setMaximum(high);

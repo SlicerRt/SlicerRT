@@ -77,6 +77,9 @@ public:
   /// Get the inverse of the geometry matrix
   void GetWorldToImageMatrix(vtkMatrix4x4* mat);
 
+  /// Determines whether the image data is empty (if the extent has 0 voxels then it is)
+  bool IsEmpty();
+
 public:
   /// Set bounds to an uninitialized state. \sa vtkMath::UninitializeBounds works incorrectly in cases where
   /// the maximum bound of an object along an axis is smaller than -1. In that case \sa vtkSegment::ExtendBounds

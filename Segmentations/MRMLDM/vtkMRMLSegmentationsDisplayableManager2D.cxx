@@ -531,6 +531,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       segmentation->GetSegmentRepresentation(pipeline->SegmentID, polyDataRepresenatationName) );
     if (!polyData || polyData->GetNumberOfPoints() == 0)
       {
+      pipeline->Actor->SetVisibility(false);
       continue;
       }
 

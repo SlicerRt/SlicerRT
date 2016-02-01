@@ -453,6 +453,7 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::UpdateDisplayNodePip
       segmentation->GetSegmentRepresentation(pipeline->SegmentID, polyDataRepresenatationName) );
     if (!polyData || polyData->GetNumberOfPoints() == 0)
       {
+      pipeline->Actor->SetVisibility(false);
       continue;
       }
 
@@ -460,8 +461,6 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::UpdateDisplayNodePip
     pipeline->InputPolyData->ShallowCopy(polyData);
 
     // Update pipeline actor
-    pipeline->Actor->SetVisibility(displayNodeVisible);
-
     pipeline->Actor->GetProperty()->SetRepresentation(displayNode->GetRepresentation());
     pipeline->Actor->GetProperty()->SetPointSize(displayNode->GetPointSize());
     pipeline->Actor->GetProperty()->SetLineWidth(displayNode->GetLineWidth());

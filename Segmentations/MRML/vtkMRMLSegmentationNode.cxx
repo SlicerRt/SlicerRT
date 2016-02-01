@@ -298,8 +298,11 @@ void vtkMRMLSegmentationNode::OnSegmentAdded(vtkObject* vtkNotUsed(caller), unsi
     return;
   }
 
-  // Re-generate merged labelmap with the added segment
-  if (self->HasMergedLabelmap())
+  // Re-generate merged labelmap with the added segment if the segment is not empty
+  vtkOrientedImageData* segmentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
+    self->Segmentation->GetSegment(segmentId)->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+  if ( self->HasMergedLabelmap()
+    && segmentBinaryLabelmap && !segmentBinaryLabelmap->IsEmpty() )
   {
     self->ReGenerateDisplayedMergedLabelmap();
   }
@@ -624,6 +627,8 @@ void vtkMRMLSegmentationNode::CreateDefaultDisplayNodes()
   vtkNew<vtkMRMLSegmentationDisplayNode> dispNode;
   this->GetScene()->AddNode(dispNode.GetPointer());
   this->SetAndObserveDisplayNodeID(dispNode->GetID());
+
+  this->ResetSegmentDisplayProperties();
 }
 
 //---------------------------------------------------------------------------
@@ -921,7 +926,8 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
     }
     vtkOrientedImageData* representationBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
       currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
-    if (!representationBinaryLabelmap)
+    // If binary labelmap is empty then skip
+    if (representationBinaryLabelmap->IsEmpty())
     {
       continue;
     }

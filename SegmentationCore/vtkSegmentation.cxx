@@ -1032,6 +1032,29 @@ bool vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/)
         vtkErrorMacro("AddEmptySegment: Unable to construct empty representation type '" << (*reprIt) << "'");
         return false;
       }
+      // Setup geometry of image data representation
+      vtkOrientedImageData* imageData = vtkOrientedImageData::SafeDownCast(emptyRepresentation);
+      if (imageData)
+      {
+        std::string referenceImageGeometryParameter = this->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
+        if (!referenceImageGeometryParameter.empty())
+        {
+          vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometryParameter, imageData);
+          imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+
+          // Set voxel values to 0
+          int extent[6] = {0,-1,0,-1,0,-1};
+          imageData->GetExtent(extent);
+          void* imageDataVoxelsPointer = imageData->GetScalarPointerForExtent(extent);
+          if (!imageDataVoxelsPointer)
+          {
+            vtkErrorMacro("AddEmptySegment: Failed to allocate memory for empty image!");
+            return false;
+          }
+          memset(imageDataVoxelsPointer, 0, ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1) * imageData->GetScalarSize() * imageData->GetNumberOfScalarComponents()));
+        }
+      }
+
       segment->AddRepresentation((*reprIt), emptyRepresentation);
     }
   }
@@ -1139,6 +1162,11 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
     }
     vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
       currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+    if (currentBinaryLabelmap->IsEmpty())
+    {
+      continue;
+    }
+
     double currentSpacing[3] = {0.0,0.0,0.0};
     currentBinaryLabelmap->GetSpacing(currentSpacing);
     if (currentSpacing[0]*currentSpacing[1]*currentSpacing[2] < lowestSpacing[0]*lowestSpacing[1]*lowestSpacing[2])
@@ -1172,6 +1200,11 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
       }
       vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
         currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+      if (currentBinaryLabelmap->IsEmpty())
+      {
+        continue;
+      }
+
       // Calculate extent in mm
       int extent[6] = {0,-1,0,-1,0,-1};
       currentBinaryLabelmap->GetExtent(extent);
