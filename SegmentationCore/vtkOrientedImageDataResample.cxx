@@ -466,6 +466,15 @@ void vtkOrientedImageDataResample::TransformExtent(int inputExtent[6], vtkTransf
     }
   }
 
+  // Round to the 8th decimal so that these small values do not shift the extent by a whole voxel (especially in case of zeroes)
+  for (int index=0; index<6; ++index)
+  {
+    long multiplier = 100000000;
+    double roundedExtentElement = (int)(outputExtentDouble[index] * multiplier + 0.5);
+    outputExtentDouble[index] = roundedExtentElement / multiplier;
+  }
+
+  // Extend precise extent to integer numbers
   outputExtent[0] = (int)floor(outputExtentDouble[0]);
   outputExtent[1] = (int)ceil(outputExtentDouble[1]);
   outputExtent[2] = (int)floor(outputExtentDouble[2]);
@@ -619,8 +628,8 @@ bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* 
   int inputExtentInContainedFrame[6] = {0,-1,0,-1,0,-1};
   vtkOrientedImageDataResample::TransformExtent(inputImage->GetExtent(), inputImageToContainedImageTransform, inputExtentInContainedFrame);
 
-  // Return with failure if output extent is empty
-  if ( inputExtentInContainedFrame[0] == inputExtentInContainedFrame[1] || inputExtentInContainedFrame[2] == inputExtentInContainedFrame[3] || inputExtentInContainedFrame[4] == inputExtentInContainedFrame[5] )
+  // Return with failure if output extent is invalid
+  if ( inputExtentInContainedFrame[0] > inputExtentInContainedFrame[1] || inputExtentInContainedFrame[2] > inputExtentInContainedFrame[3] || inputExtentInContainedFrame[4] > inputExtentInContainedFrame[5] )
   {
     return false;
   }

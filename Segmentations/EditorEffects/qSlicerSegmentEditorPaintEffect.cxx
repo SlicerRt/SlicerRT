@@ -260,7 +260,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   {
     return;
   }
-  
+
   int x = xy.x();
   int y = xy.y();
   double radius = q->doubleParameter("Radius");
@@ -354,14 +354,10 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   double brushCenterRas[3] = {0.0, 0.0, 0.0};
   q->xyToRas(xy, brushCenterRas, sliceWidget);
 
-  QString paintOverStr = q->parameter(qSlicerSegmentEditorLabelEffect::paintOverParameterName());
-  bool paintOver(paintOverStr.toInt());
-  QString paintThresholdStr = q->parameter(qSlicerSegmentEditorLabelEffect::paintThresholdParameterName());
-  int paintThreshold(paintThresholdStr.toInt());
-  QString paintThresholdMinStr = q->parameter(qSlicerSegmentEditorLabelEffect::paintThresholdMinParameterName());
-  int paintThresholdMin(paintThresholdMinStr.toInt());
-  QString paintThresholdMaxStr = q->parameter(qSlicerSegmentEditorLabelEffect::paintThresholdMaxParameterName());
-  int paintThresholdMax(paintThresholdMaxStr.toInt());
+  int paintOver = q->integerParameter(qSlicerSegmentEditorLabelEffect::paintOverParameterName());
+  int paintThreshold = q->integerParameter(qSlicerSegmentEditorLabelEffect::paintThresholdParameterName());
+  double paintThresholdMin = q->doubleParameter(qSlicerSegmentEditorLabelEffect::paintThresholdMinParameterName());
+  double paintThresholdMax = q->doubleParameter(qSlicerSegmentEditorLabelEffect::paintThresholdMaxParameterName());
 
   this->Painter->SetBackgroundImage(masterVolumeNode->GetImageData());
   this->Painter->SetBackgroundIJKToWorld(masterIjkToRasMatrix);

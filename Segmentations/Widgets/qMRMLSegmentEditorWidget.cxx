@@ -355,8 +355,24 @@ bool qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment()
   // If segment is empty, then set up binary labelmap to be valid and editable
   if (segmentLabelmap->IsEmpty())
   {
-    segmentLabelmap->SetExtent(0,1,0,1,0,1);
+    // Disable modified event to prevent execution of operations caused by it
+    this->SegmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(false);
+
+    // Create one voxel large labelmap and set values to zero
+    int extent[6] = {0,0,0,0,0,0};
+    segmentLabelmap->SetExtent(extent);
     segmentLabelmap->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+
+    void* imageDataVoxelsPointer = segmentLabelmap->GetScalarPointerForExtent(extent);
+    if (!imageDataVoxelsPointer)
+    {
+      qCritical() << "qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment: Failed to allocate memory for empty image!";
+      return false;
+    }
+    memset(imageDataVoxelsPointer, 0, ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1) * segmentLabelmap->GetScalarSize() * segmentLabelmap->GetNumberOfScalarComponents()));
+
+    // Re-enable master representation modified event
+    this->SegmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(true);
   }
 
   // Convert master volume to a temporary oriented image data
@@ -586,6 +602,34 @@ QString qMRMLSegmentEditorWidget::segmentationNodeID()
 {
   Q_D(qMRMLSegmentEditorWidget);
   return d->MRMLNodeComboBox_Segmentation->currentNodeID();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::setMasterVolumeNode(vtkMRMLNode* node)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  d->MRMLNodeComboBox_MasterVolume->setCurrentNode(node);
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLNode* qMRMLSegmentEditorWidget::masterVolumeNode()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  return d->MRMLNodeComboBox_MasterVolume->currentNode();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::setMasterVolumeNodeID(const QString& nodeID)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  d->MRMLNodeComboBox_MasterVolume->setCurrentNodeID(nodeID);
+}
+
+//------------------------------------------------------------------------------
+QString qMRMLSegmentEditorWidget::masterVolumeNodeID()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  return d->MRMLNodeComboBox_MasterVolume->currentNodeID();
 }
 
 //-----------------------------------------------------------------------------

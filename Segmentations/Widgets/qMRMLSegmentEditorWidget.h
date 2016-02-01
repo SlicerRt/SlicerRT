@@ -58,6 +58,8 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentEditorWidget : pu
 
 public:
   Q_PROPERTY(qSlicerSegmentEditorAbstractEffect* activeEffect READ activeEffect WRITE setActiveEffect)
+  Q_PROPERTY(vtkMRMLNode* segmentationNode READ segmentationNode WRITE setSegmentationNode)
+  Q_PROPERTY(vtkMRMLNode* masterVolumeNode READ masterVolumeNode WRITE setMasterVolumeNode)
 
 public:
   typedef qMRMLWidget Superclass;
@@ -67,9 +69,13 @@ public:
   virtual ~qMRMLSegmentEditorWidget();
 
   /// Get currently selected segmentation MRML node
-  Q_INVOKABLE vtkMRMLNode* segmentationNode();
+  vtkMRMLNode* segmentationNode();
   /// Get ID of currently selected segmentation node
   Q_INVOKABLE QString segmentationNodeID();
+  /// Get currently selected master volume MRML node
+  vtkMRMLNode* masterVolumeNode();
+  /// Get ID of currently selected master volume node
+  Q_INVOKABLE QString masterVolumeNodeID();
 
   /// Get segment ID of selected segment
   Q_INVOKABLE QString currentSegmentID();
@@ -101,9 +107,13 @@ public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
 
   /// Set segmentation MRML node
-  Q_INVOKABLE void setSegmentationNode(vtkMRMLNode* node);
+  void setSegmentationNode(vtkMRMLNode* node);
   /// Set segmentation MRML node by its ID
   Q_INVOKABLE void setSegmentationNodeID(const QString& nodeID);
+  /// Set master volume MRML node
+  void setMasterVolumeNode(vtkMRMLNode* node);
+  /// Set master volume MRML node by its ID
+  Q_INVOKABLE void setMasterVolumeNodeID(const QString& nodeID);
 
   /// Commit changes to selected segment from the temporary padded edited labelmap.
   /// Called when effect sub-classes emit the signal \sa qSlicerSegmentEditorAbstractEffect::apply()

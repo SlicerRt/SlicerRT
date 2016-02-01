@@ -1039,20 +1039,14 @@ bool vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/)
         std::string referenceImageGeometryParameter = this->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
         if (!referenceImageGeometryParameter.empty())
         {
+          // Set reference geometry to new empty labelmap
           vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometryParameter, imageData);
-          imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-
-          // Set voxel values to 0
-          int extent[6] = {0,-1,0,-1,0,-1};
-          imageData->GetExtent(extent);
-          void* imageDataVoxelsPointer = imageData->GetScalarPointerForExtent(extent);
-          if (!imageDataVoxelsPointer)
-          {
-            vtkErrorMacro("AddEmptySegment: Failed to allocate memory for empty image!");
-            return false;
-          }
-          memset(imageDataVoxelsPointer, 0, ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1) * imageData->GetScalarSize() * imageData->GetNumberOfScalarComponents()));
         }
+        // Set invalid extent to indicate empty image (the above deserialization operation set the extent too).
+        // Segment will be extended on editing as needed.
+        int extent[6] = {0,-1,0,-1,0,-1};
+        imageData->SetExtent(extent);
+        imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
       }
 
       segment->AddRepresentation((*reprIt), emptyRepresentation);

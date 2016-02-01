@@ -385,7 +385,8 @@ void vtkOrientedImageData::ComputeBounds()
 bool vtkOrientedImageData::IsEmpty()
 {
   const int* extent = this->Extent;
-  if (extent[0] >= extent[1] || extent[2] >= extent[3] || extent[4] >= extent[5])
+  // Empty if extent is uninitialized or otherwise invalid
+  if (extent[0] > extent[1] || extent[2] > extent[3] || extent[4] > extent[5])
   {
     return true;
   }

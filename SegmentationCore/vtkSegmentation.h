@@ -311,6 +311,7 @@ protected:
   vtkCallbackCommand* MasterRepresentationCallbackCommand;
 
   friend class qMRMLSegmentEditorWidget;
+  friend class qMRMLSegmentEditorWidgetPrivate;
 };
 
 #endif // __vtkSegmentation_h
