@@ -228,6 +228,10 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   // Widget properties
   this->SegmentsTableView->setMode(qMRMLSegmentsTableView::EditorMode);
   this->MRMLNodeComboBox_MasterVolume->setEnabled(false);
+  this->AddSegmentButton->setEnabled(false);
+  this->RemoveSegmentButton->setEnabled(false);
+  this->EffectsGroupBox->setEnabled(false);
+  this->OptionsGroupBox->setEnabled(false);
 
   this->EffectButtonGroup.setExclusive(true);
   QObject::connect(&this->EffectButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)), q, SLOT(onEffectButtonClicked(QAbstractButton*) ) );
@@ -366,10 +370,10 @@ bool qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment()
     void* imageDataVoxelsPointer = segmentLabelmap->GetScalarPointerForExtent(extent);
     if (!imageDataVoxelsPointer)
     {
-      qCritical() << "qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment: Failed to allocate memory for empty image!";
+      qCritical() << "qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment: Failed to allocate memory for one-voxel image!";
       return false;
     }
-    memset(imageDataVoxelsPointer, 0, ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1) * segmentLabelmap->GetScalarSize() * segmentLabelmap->GetNumberOfScalarComponents()));
+    memset(imageDataVoxelsPointer, 0, segmentLabelmap->GetScalarSize());
 
     // Re-enable master representation modified event
     this->SegmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(true);
@@ -489,7 +493,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
   }
   
   // Only enable master volume combobox if segmentation selection is valid
-  d->MRMLNodeComboBox_MasterVolume->setEnabled(d->SegmentationNode != NULL);
+  d->MRMLNodeComboBox_MasterVolume->setEnabled(d->SegmentationNode);
 
   // The below functions only apply to valid segmentation node selection
   if (!d->SegmentationNode)
@@ -558,6 +562,12 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     // Select first segment
     d->selectFirstSegment();
   }
+  else
+  {
+    // If segmentation contains no segments, then set binary labelmap as master by default
+    d->SegmentationNode->GetSegmentation()->SetMasterRepresentationName(
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
+  }
 
   // Create display node and properties if absent
   if (!d->SegmentationNode->GetDisplayNode())
@@ -608,6 +618,11 @@ QString qMRMLSegmentEditorWidget::segmentationNodeID()
 void qMRMLSegmentEditorWidget::setMasterVolumeNode(vtkMRMLNode* node)
 {
   Q_D(qMRMLSegmentEditorWidget);
+  if (!d->MRMLNodeComboBox_MasterVolume->isEnabled())
+  {
+    qCritical() << "qMRMLSegmentEditorWidget::setMasterVolumeNode: Cannot set master volume until segmentation is selected!";
+    return;
+  }
   d->MRMLNodeComboBox_MasterVolume->setCurrentNode(node);
 }
 
@@ -622,6 +637,11 @@ vtkMRMLNode* qMRMLSegmentEditorWidget::masterVolumeNode()
 void qMRMLSegmentEditorWidget::setMasterVolumeNodeID(const QString& nodeID)
 {
   Q_D(qMRMLSegmentEditorWidget);
+  if (!d->MRMLNodeComboBox_MasterVolume->isEnabled())
+  {
+    qCritical() << "qMRMLSegmentEditorWidget::setMasterVolumeNode: Cannot set master volume until segmentation is selected!";
+    return;
+  }
   d->MRMLNodeComboBox_MasterVolume->setCurrentNodeID(nodeID);
 }
 
@@ -640,6 +660,7 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
   Q_D(qMRMLSegmentEditorWidget);
 
   QStringList selectedSegmentIDs = d->SegmentsTableView->selectedSegmentIDs();
+  d->RemoveSegmentButton->setEnabled(selectedSegmentIDs.count() > 0);
   if (selectedSegmentIDs.size() > 1)
   {
     qCritical() << "qMRMLSegmentEditorWidget::onSegmentSelectionChanged: One segment should be selected!";
@@ -665,6 +686,11 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qMRMLSegmentEditorWidget);
 
+  // Cannot set master volume if no segmentation node is selected
+  if (!d->SegmentationNode)
+  {
+    return;
+  }
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
   if (d->MasterVolumeNode != volumeNode)
   {
@@ -677,6 +703,7 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
   // without a master volume, editing is not possible until it is selected.
   d->EffectsGroupBox->setEnabled(volumeNode);
   d->OptionsGroupBox->setEnabled(volumeNode);
+  d->AddSegmentButton->setEnabled(volumeNode);
   if (!volumeNode)
   {
     this->setActiveEffect(NULL);

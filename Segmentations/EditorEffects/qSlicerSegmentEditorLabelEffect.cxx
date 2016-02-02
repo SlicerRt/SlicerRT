@@ -159,7 +159,7 @@ void qSlicerSegmentEditorLabelEffect::setupOptionsFrame()
   this->addOptionsWidget(d->ThresholdLabel);
 
   d->ThresholdRangeWidget = new ctkRangeWidget();
-  d->ThresholdRangeWidget->setSpinBoxAlignment(Qt::AlignTop); //TODO: 0xff?
+  d->ThresholdRangeWidget->setSpinBoxAlignment(Qt::AlignTop);
   d->ThresholdRangeWidget->setSingleStep(0.01);
   this->addOptionsWidget(d->ThresholdRangeWidget);
 

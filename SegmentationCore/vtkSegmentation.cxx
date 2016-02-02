@@ -1005,12 +1005,29 @@ bool vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/)
       this->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
     }
 
+    // Add empty labelmap to representations
     vtkSmartPointer<vtkDataObject> emptyMasterRepresentation = vtkSmartPointer<vtkDataObject>::Take(
       vtkSegmentationConverterFactory::GetInstance()->ConstructRepresentationObjectByRepresentation(this->MasterRepresentationName) );
     if (!emptyMasterRepresentation)
     {
       vtkErrorMacro("AddEmptySegment: Unable to construct empty master representation type '" << this->MasterRepresentationName << "'");
       return false;
+    }
+    // Setup geometry of image data representation
+    vtkOrientedImageData* emptyImageData = vtkOrientedImageData::SafeDownCast(emptyMasterRepresentation);
+    if (emptyImageData)
+    {
+      std::string referenceImageGeometryParameter = this->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
+      if (!referenceImageGeometryParameter.empty())
+      {
+        // Set reference geometry to new empty labelmap
+        vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometryParameter, emptyImageData);
+      }
+      // Set invalid extent to indicate empty image (the above deserialization operation set the extent too).
+      // Segment will be extended on editing as needed.
+      int extent[6] = {0,-1,0,-1,0,-1};
+      emptyImageData->SetExtent(extent);
+      emptyImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
     }
     segment->AddRepresentation(this->MasterRepresentationName, emptyMasterRepresentation);
   }
@@ -1033,20 +1050,20 @@ bool vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/)
         return false;
       }
       // Setup geometry of image data representation
-      vtkOrientedImageData* imageData = vtkOrientedImageData::SafeDownCast(emptyRepresentation);
-      if (imageData)
+      vtkOrientedImageData* emptyImageData = vtkOrientedImageData::SafeDownCast(emptyRepresentation);
+      if (emptyImageData)
       {
         std::string referenceImageGeometryParameter = this->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
         if (!referenceImageGeometryParameter.empty())
         {
           // Set reference geometry to new empty labelmap
-          vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometryParameter, imageData);
+          vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometryParameter, emptyImageData);
         }
         // Set invalid extent to indicate empty image (the above deserialization operation set the extent too).
         // Segment will be extended on editing as needed.
         int extent[6] = {0,-1,0,-1,0,-1};
-        imageData->SetExtent(extent);
-        imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+        emptyImageData->SetExtent(extent);
+        emptyImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
       }
 
       segment->AddRepresentation((*reprIt), emptyRepresentation);
@@ -1173,7 +1190,7 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
   }
   if (!highestResolutionLabelmap)
   {
-    vtkErrorMacro("GenerateMergedLabelmap: Unable to find highest resolution labelmap!");
+    // This can occur if there are only empty segments in the segmentation
     return std::string("");
   }
   

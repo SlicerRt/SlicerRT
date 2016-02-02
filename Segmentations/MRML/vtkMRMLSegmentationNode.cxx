@@ -758,7 +758,24 @@ vtkImageData* vtkMRMLSegmentationNode::GetImageData()
     }
   }
 
-  // If no merging is needed, simply return stored image data
+  // Check if image data is valid, and return a one voxel sized valid one if not
+  int mergedImageExtent[6] = {0,-1,0,-1,0,-1};
+  imageData->GetExtent(mergedImageExtent);
+  if (mergedImageExtent[0] > mergedImageExtent[1] || mergedImageExtent[2] > mergedImageExtent[3] || mergedImageExtent[4] > mergedImageExtent[5])
+  {
+    int oneVoxelExtent[6] = {0,0,0,0,0,0};
+    imageData->SetExtent(oneVoxelExtent);
+    imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 4); // Four components to avoid vtkImageMapToColors errors
+
+    void* imageDataVoxelsPointer = imageData->GetScalarPointerForExtent(oneVoxelExtent);
+    if (!imageDataVoxelsPointer)
+    {
+      vtkErrorMacro("GetImageData: Failed to allocate memory for one-voxel image!");
+      return NULL;
+    }
+    memset(imageDataVoxelsPointer, 0, imageData->GetScalarSize());
+  }
+
   return imageData;
 }
 
@@ -832,6 +849,12 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
 
   // Determine common labelmap geometry that will be used for the merged labelmap
   std::string commonGeometryString = this->Segmentation->DetermineCommonLabelmapGeometry(mergedSegmentIDs);
+  if (commonGeometryString.empty())
+  {
+    // This can occur if there are only empty segments in the segmentation
+    mergedImageToWorldMatrix->Identity();
+    return true;
+  }
   vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
   vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage);
 
@@ -856,7 +879,8 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
   unsigned char* mergedImagePtr = (unsigned char*)mergedImageData->GetScalarPointerForExtent(referenceExtent);
   if (!mergedImagePtr)
   {
-    return false; // Setting the extent may invoke this function again via ImageDataModified, in which case the pointer is NULL
+    // Setting the extent may invoke this function again via ImageDataModified, in which case the pointer is NULL
+    return false;
   }
   for (vtkIdType i=0; i<mergedImageData->GetNumberOfPoints(); ++i)
   {

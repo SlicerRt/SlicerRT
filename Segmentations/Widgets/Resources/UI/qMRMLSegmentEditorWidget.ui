@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
+    <width>312</width>
     <height>270</height>
    </rect>
   </property>
@@ -64,10 +64,19 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="spacing">
+      <number>4</number>
+     </property>
      <item>
       <widget class="QPushButton" name="AddSegmentButton">
+       <property name="minimumSize">
+        <size>
+         <width>96</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Add</string>
+        <string>Add segment</string>
        </property>
        <property name="icon">
         <iconset resource="../qSlicerSegmentationsModuleWidgets.qrc">
@@ -77,8 +86,14 @@
      </item>
      <item>
       <widget class="QPushButton" name="RemoveSegmentButton">
+       <property name="minimumSize">
+        <size>
+         <width>116</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Remove</string>
+        <string>Remove selected</string>
        </property>
        <property name="icon">
         <iconset resource="../qSlicerSegmentationsModuleWidgets.qrc">
@@ -88,6 +103,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="MakeModelButton">
+       <property name="minimumSize">
+        <size>
+         <width>90</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
         <string>Make model</string>
        </property>
@@ -228,8 +249,8 @@
      <y>34</y>
     </hint>
     <hint type="destinationlabel">
-     <x>194</x>
-     <y>57</y>
+     <x>275</x>
+     <y>46</y>
     </hint>
    </hints>
   </connection>

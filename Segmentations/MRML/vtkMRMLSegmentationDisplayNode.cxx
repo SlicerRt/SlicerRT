@@ -525,7 +525,6 @@ std::string vtkMRMLSegmentationDisplayNode::DeterminePolyDataDisplayRepresentati
   vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
   if (!segmentation || segmentation->GetNumberOfSegments() == 0)
   {
-    vtkWarningMacro("DeterminePolyDataDisplayRepresentationName: Empty segmentation!");
     return "";
   }
 
