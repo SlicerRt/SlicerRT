@@ -466,11 +466,11 @@ void vtkOrientedImageDataResample::TransformExtent(int inputExtent[6], vtkTransf
     }
   }
 
-  // Round to the 8th decimal so that these small values do not shift the extent by a whole voxel (especially in case of zeroes)
+  // Round to the 6th decimal so that these small values do not shift the extent by a whole voxel (especially in case of zeroes)
   for (int index=0; index<6; ++index)
   {
-    long multiplier = 100000000;
-    double roundedExtentElement = (int)(outputExtentDouble[index] * multiplier + 0.5);
+    long long multiplier = 1000000;
+    double roundedExtentElement = (long long)(outputExtentDouble[index] * multiplier + 0.5);
     outputExtentDouble[index] = roundedExtentElement / multiplier;
   }
 

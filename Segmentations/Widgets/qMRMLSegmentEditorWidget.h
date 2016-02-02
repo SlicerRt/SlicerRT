@@ -29,9 +29,6 @@
 // MRMLWidgets includes
 #include "qMRMLWidget.h"
 
-// CTK includes
-#include <ctkPimpl.h>
-
 // STD includes
 #include <cstdlib>
 
@@ -105,6 +102,8 @@ public:
 public slots:
   /// Set the MRML \a scene associated with the widget
   virtual void setMRMLScene(vtkMRMLScene* newScene);
+  /// Update widget state from the MRML scene
+  virtual void updateWidgetFromMRML();
 
   /// Set segmentation MRML node
   void setSegmentationNode(vtkMRMLNode* node);

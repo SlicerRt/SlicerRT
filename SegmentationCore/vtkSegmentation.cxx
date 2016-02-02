@@ -986,7 +986,7 @@ bool vtkSegmentation::CanAcceptSegment(vtkSegment* segment)
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/)
+std::string vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/)
 {
   vtkSmartPointer<vtkSegment> segment = vtkSmartPointer<vtkSegment>::New();
   segment->SetDefaultColor(vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],
@@ -1011,7 +1011,7 @@ bool vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/)
     if (!emptyMasterRepresentation)
     {
       vtkErrorMacro("AddEmptySegment: Unable to construct empty master representation type '" << this->MasterRepresentationName << "'");
-      return false;
+      return "";
     }
     // Setup geometry of image data representation
     vtkOrientedImageData* emptyImageData = vtkOrientedImageData::SafeDownCast(emptyMasterRepresentation);
@@ -1047,7 +1047,7 @@ bool vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/)
       if (!emptyRepresentation)
       {
         vtkErrorMacro("AddEmptySegment: Unable to construct empty representation type '" << (*reprIt) << "'");
-        return false;
+        return "";
       }
       // Setup geometry of image data representation
       vtkOrientedImageData* emptyImageData = vtkOrientedImageData::SafeDownCast(emptyRepresentation);
@@ -1070,7 +1070,12 @@ bool vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/)
     }
   }
 
-  return this->AddSegment(segment);
+  // Add segment
+  if (!this->AddSegment(segment))
+  {
+    return "";
+  }
+  return segmentId;
 }
 
 //-----------------------------------------------------------------------------

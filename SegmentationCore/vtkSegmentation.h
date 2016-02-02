@@ -218,8 +218,8 @@ public:
 
   /// Add empty segment containing empty instances of the contained representations
   /// \param segmentId ID of added segment. If empty then a default ID will be generated \sa GenerateUniqueSegmentId
-  /// \return Success flag
-  bool AddEmptySegment(std::string segmentId="");
+  /// \return ID of the added segment. Empty on failure
+  std::string AddEmptySegment(std::string segmentId="");
 
   /// Get all possible conversions between the master representation and a specified target representation
   void GetPossibleConversions(const std::string& targetRepresentationName,
