@@ -230,6 +230,7 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   this->SegmentsTableView->setMode(qMRMLSegmentsTableView::EditorMode);
   this->AddSegmentButton->setEnabled(false);
   this->RemoveSegmentButton->setEnabled(false);
+  this->MakeModelButton->setVisible(false);
   this->EffectsGroupBox->setEnabled(false);
   this->OptionsGroupBox->setEnabled(false);
 
@@ -481,19 +482,18 @@ void qMRMLSegmentEditorWidget::setActiveEffect(qSlicerSegmentEditorAbstractEffec
     d->ActiveEffect->deactivate();
   }
 
-  d->ActiveEffect = effect;
-  if (d->ActiveEffect)
+  if (effect)
   {
     // Activate newly selected effect
-    d->ActiveEffect->activate();
-    d->ActiveEffectLabel->setText(d->ActiveEffect->name());
-    d->HelpLabel->setToolTip(d->ActiveEffect->helpText());
+    effect->activate();
+    d->ActiveEffectLabel->setText(effect->name());
+    d->HelpLabel->setToolTip(effect->helpText());
 
     // Check button that belongs to the effect in case this call did not come from the GUI
     QList<QAbstractButton*> effectButtons = d->EffectButtonGroup.buttons();
     foreach (QAbstractButton* effectButton, effectButtons)
     {
-      if (!effectButton->objectName().compare(d->ActiveEffect->name()))
+      if (!effectButton->objectName().compare(effect->name()))
       {
         effectButton->blockSignals(true);
         effectButton->setChecked(true);
@@ -501,12 +501,51 @@ void qMRMLSegmentEditorWidget::setActiveEffect(qSlicerSegmentEditorAbstractEffec
         break;
       }
     }
+
+    // Set cursor for active effect
+    qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
+    foreach (QString sliceViewName, layoutManager->sliceViewNames())
+    {
+      qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceViewName);
+      sliceWidget->setCursor(effect->createCursor(sliceWidget));
+    }
+    for (int threeDViewId=0; threeDViewId<layoutManager->threeDViewCount(); ++threeDViewId)
+    {
+      qMRMLThreeDWidget* threeDWidget = layoutManager->threeDWidget(threeDViewId);
+      threeDWidget->setCursor(effect->createCursor(threeDWidget));
+    }
   }
   else
   {
     d->ActiveEffectLabel->setText("None");
     d->HelpLabel->setToolTip("No effect is selected");
+
+    // Uncheck button that belongs to the effect in case this call did not come from the GUI
+    QAbstractButton* effectButton = d->EffectButtonGroup.checkedButton();
+    if (effectButton)
+    {
+      d->EffectButtonGroup.setExclusive(false);
+      effectButton->blockSignals(true);
+      effectButton->setChecked(false);
+      effectButton->blockSignals(false);
+      d->EffectButtonGroup.setExclusive(true);
+    }
+
+    // Reset cursor
+    qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
+    foreach (QString sliceViewName, layoutManager->sliceViewNames())
+    {
+      qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceViewName);
+      sliceWidget->unsetCursor();
+    }
+    for (int threeDViewId=0; threeDViewId<layoutManager->threeDViewCount(); ++threeDViewId)
+    {
+      qMRMLThreeDWidget* threeDWidget = layoutManager->threeDWidget(threeDViewId);
+      threeDWidget->unsetCursor();
+    }
   }
+
+  d->ActiveEffect = effect;
 }
 
 //------------------------------------------------------------------------------
@@ -549,7 +588,7 @@ QString qMRMLSegmentEditorWidget::currentSegmentID()
 void qMRMLSegmentEditorWidget::setMasterVolumeNode(vtkMRMLNode* node)
 {
   Q_D(qMRMLSegmentEditorWidget);
-  if (!d->MRMLNodeComboBox_MasterVolume->isEnabled())
+  if (node && !d->MRMLNodeComboBox_MasterVolume->isEnabled())
   {
     qCritical() << "qMRMLSegmentEditorWidget::setMasterVolumeNode: Cannot set master volume until segmentation is selected!";
     return;
@@ -614,7 +653,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
   bool closedSurfacePresent = d->SegmentationNode->GetSegmentation()->ContainsRepresentation(
     vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
   // Hide make model button if closed surface already exists
-  d->MakeModelButton->setVisible(!closedSurfacePresent);
+  d->MakeModelButton->setVisible(!closedSurfacePresent && d->SegmentationNode->GetSegmentation()->GetNumberOfSegments());
 
   // Representation related operations
   if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
@@ -704,7 +743,7 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
     qCritical() << "qMRMLSegmentEditorWidget::onSegmentSelectionChanged: One segment should be selected!";
     return;
   }
-  else if (selectedSegmentIDs.empty())
+  else if (selectedSegmentIDs.isEmpty())
   {
     d->SelectedSegmentID = QString();
   }
@@ -713,6 +752,13 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
     d->SelectedSegmentID = selectedSegmentIDs[0];
   }
   
+  // Disable editing if no segment is selected
+  d->EffectsGroupBox->setEnabled(!d->SelectedSegmentID.isEmpty());
+  d->OptionsGroupBox->setEnabled(!d->SelectedSegmentID.isEmpty());
+
+  // Only enable remove button if a segment is selected
+  d->RemoveSegmentButton->setEnabled(!d->SelectedSegmentID.isEmpty());
+
   // Create edited segmentLabelmap from selected segment, using the bounds of the master volume
   d->createEditedLabelmapFromSelectedSegment();
   // Set binary segmentLabelmap representation to effects
@@ -748,6 +794,12 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
     d->setMasterVolumeToEffects();
   }
 
+  // De-select segments when master volume is changed so that empty segments are correctly handled
+  d->SegmentsTableView->clearSelection();
+  // Disable adding new segments until master volume is set:
+  // It defines the geometry of the labelmaps of the new segments
+  d->AddSegmentButton->setEnabled(volumeNode);
+
   // Set reference image connection and conversion parameter in selected segmentation
   if (d->SegmentationNode->GetNodeReference(vtkMRMLSegmentationNode::GetReferenceImageGeometryReferenceRole().c_str()) != volumeNode)
   {
@@ -765,7 +817,7 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
   selectionNode->SetReferenceActiveVolumeID(volumeNode->GetID());
   qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
 
-  // Create edited segmentLabelmap from selected segment, using the bounds of the master volume
+  // Create edited segment labelmap from selected segment, using the bounds of the master volume
   if (d->createEditedLabelmapFromSelectedSegment())
   {
     // Set binary segmentLabelmap representation to effects
@@ -1080,18 +1132,9 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
   padder->Update();
   segmentLabelmap->DeepCopy(padder->GetOutput());
 
-  // Re-convert all other representations. Get the list of representations from another segment if there is one.
+  // Re-convert all other representations
   std::vector<std::string> representationNames;
-  vtkSegmentation::SegmentMap segmentMap = d->SegmentationNode->GetSegmentation()->GetSegments();
-  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
-  {
-    if (d->SelectedSegmentID.compare(segmentIt->first.c_str()))
-    {
-      // We found a segment different from the selected one
-      segmentIt->second->GetContainedRepresentationNames(representationNames);
-      break;
-    }
-  }
+  selectedSegment->GetContainedRepresentationNames(representationNames);
   bool conversionHappened = false;
   for (std::vector<std::string>::iterator reprIt = representationNames.begin();
     reprIt != representationNames.end(); ++reprIt)

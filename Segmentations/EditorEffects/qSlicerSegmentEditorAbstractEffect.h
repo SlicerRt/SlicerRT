@@ -26,7 +26,6 @@
 
 // CTK includes
 #include <ctkVTKObject.h>
-#include <ctkPimpl.h>
 
 // Qt includes
 #include <QIcon>
@@ -86,6 +85,16 @@ public:
   /// Perform actions to deactivate the effect (hide options frame, destroy actors, etc.)
   Q_INVOKABLE virtual void deactivate();
 
+  /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
+  virtual void setupOptionsFrame() { };
+
+  /// Create a cursor customized for the given effect, potentially for each view
+  virtual QCursor createCursor(qMRMLWidget* viewWidget);
+  /// Turn off cursor and save cursor to restore later
+  virtual void cursorOff(qMRMLWidget* viewWidget);
+  /// Restore saved cursor
+  virtual void cursorOn(qMRMLWidget* viewWidget);
+
   /// Callback function invoked when interaction happens
   /// \param callerInteractor Interactor object that was observed to catch the event
   /// \param eid Event identifier
@@ -97,9 +106,6 @@ public:
   /// \param eid Event identifier
   /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
   virtual void processViewNodeEvents(vtkMRMLAbstractViewNode* callerViewNode, unsigned long eid, qMRMLWidget* viewWidget) { };
-
-  /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
-  virtual void setupOptionsFrame() { };
 
   /// Set default parameters in the parameter MRML node
   virtual void setMRMLDefaults() = 0;
@@ -186,11 +192,6 @@ public:
 
 // Utility functions
 public:
-  /// Turn off cursor and save cursor to restore later
-  void cursorOff(qMRMLWidget* viewWidget);
-  /// Restore saved cursor
-  void cursorOn(qMRMLWidget* viewWidget);
-
   /// Set the AbortFlag on the vtkCommand associated with the event.
   /// Causes other things listening to the interactor not to receive the events
   void abortEvent(vtkRenderWindowInteractor* interactor, unsigned long eventId, qMRMLWidget* viewWidget);

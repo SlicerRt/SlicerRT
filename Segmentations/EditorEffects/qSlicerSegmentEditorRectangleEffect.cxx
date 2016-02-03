@@ -56,14 +56,14 @@ public:
   qSlicerSegmentEditorRectangleEffectPrivate(qSlicerSegmentEditorRectangleEffect& object);
   ~qSlicerSegmentEditorRectangleEffectPrivate();
 public:
-  QIcon EffectIcon;
+  QIcon RectangleIcon;
 };
 
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorRectangleEffectPrivate::qSlicerSegmentEditorRectangleEffectPrivate(qSlicerSegmentEditorRectangleEffect& object)
   : q_ptr(&object)
 {
-  this->EffectIcon = QIcon(":Icons/Rectangle.png");
+  this->RectangleIcon = QIcon(":Icons/Rectangle.png");
 }
 
 //-----------------------------------------------------------------------------
@@ -111,7 +111,7 @@ QIcon qSlicerSegmentEditorRectangleEffect::icon()
 {
   Q_D(qSlicerSegmentEditorRectangleEffect);
 
-  return d->EffectIcon;
+  return d->RectangleIcon;
 }
 
 //---------------------------------------------------------------------------

@@ -96,8 +96,10 @@ public:
 
   /// Get segment ID of selected segments
   Q_INVOKABLE QStringList selectedSegmentIDs();
-  /// Get segment ID of selected segments
+  /// Select segments with specified IDs
   Q_INVOKABLE void setSelectedSegmentIDs(QStringList segmentIDs);
+  /// Clear segment selection
+  Q_INVOKABLE void clearSelection();
 
 public slots:
   /// Set segmentation MRML node

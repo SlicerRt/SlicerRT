@@ -652,11 +652,7 @@ void qMRMLSegmentsTableView::setSelectedSegmentIDs(QStringList segmentIDs)
   Q_D(qMRMLSegmentsTableView);
 
   // Deselect selected items first
-  QList<QTableWidgetItem*> selectedItems = d->SegmentsTable->selectedItems();
-  foreach (QTableWidgetItem* item, selectedItems)
-  {
-    d->SegmentsTable->setItemSelected(item, false);
-  }
+  this->clearSelection();
 
   // Find item by segment ID
   foreach (QString segmentID, segmentIDs)
@@ -670,5 +666,18 @@ void qMRMLSegmentsTableView::setSelectedSegmentIDs(QStringList segmentIDs)
 
     // Select item for segment
     d->SegmentsTable->setItemSelected(segmentItem, true);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentsTableView::clearSelection()
+{
+  Q_D(qMRMLSegmentsTableView);
+
+  // Deselect selected items first
+  QList<QTableWidgetItem*> selectedItems = d->SegmentsTable->selectedItems();
+  foreach (QTableWidgetItem* item, selectedItems)
+  {
+    d->SegmentsTable->setItemSelected(item, false);
   }
 }

@@ -27,6 +27,10 @@
 // Qt includes
 #include <QDebug>
 #include <QCursor>
+#include <QImage>
+#include <QPixmap>
+#include <QPainter>
+#include <QPaintDevice>
 #include <QFrame>
 #include <QVBoxLayout>
 
@@ -171,6 +175,50 @@ void qSlicerSegmentEditorAbstractEffect::deactivate()
       continue;
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+QCursor qSlicerSegmentEditorAbstractEffect::createCursor(qMRMLWidget* viewWidget)
+{
+  Q_UNUSED(viewWidget); // The default cursor is not view-specific, but this method can be overridden
+
+  QImage baseImage(":Icons/CursorBaseArrow.png");
+  QIcon effectIcon(this->icon());
+  QImage effectImage(effectIcon.pixmap(effectIcon.availableSizes()[0]).toImage());
+  int width = qMax(baseImage.width(), effectImage.width());
+  int pad = -9;
+  int height = pad + baseImage.height() + effectImage.height();
+  width = height = qMax(width,height);
+  int center = width/2;
+  QImage cursorImage(width, height, QImage::Format_ARGB32);
+  QPainter painter;
+  cursorImage.fill(0);
+  painter.begin(&cursorImage);
+  QPoint point(center - (baseImage.width()/2), 0);
+  painter.drawImage(point, baseImage);
+  point.setX(center - (effectImage.width()/2));
+  point.setY(cursorImage.height() - effectImage.height());
+  painter.drawImage(point, effectImage);
+  painter.end();
+  QPixmap cursorPixmap = QPixmap::fromImage(cursorImage);
+  return QCursor(cursorPixmap, center, 0);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::cursorOff(qMRMLWidget* viewWidget)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  d->SavedCursor = QCursor(viewWidget->cursor());
+  viewWidget->setCursor(QCursor(Qt::BlankCursor));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::cursorOn(qMRMLWidget* viewWidget)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  viewWidget->setCursor(d->SavedCursor);
 }
 
 //-----------------------------------------------------------------------------
@@ -369,23 +417,6 @@ void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, int value, b
 void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, double value, bool emitModifiedEvent/*=false*/)
 {
   this->setParameter(name, QString::number(value), emitModifiedEvent);
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::cursorOff(qMRMLWidget* viewWidget)
-{
-  Q_D(qSlicerSegmentEditorAbstractEffect);
-
-  d->SavedCursor = QCursor(viewWidget->cursor());
-  viewWidget->setCursor(QCursor(Qt::BlankCursor));
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::cursorOn(qMRMLWidget* viewWidget)
-{
-  Q_D(qSlicerSegmentEditorAbstractEffect);
-
-  viewWidget->setCursor(d->SavedCursor);
 }
 
 //-----------------------------------------------------------------------------

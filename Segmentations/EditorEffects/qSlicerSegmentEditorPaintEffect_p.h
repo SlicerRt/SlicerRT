@@ -101,12 +101,12 @@ protected:
   void scaleRadius(double scaleFactor);
 
 public slots:
-  void onRadiusUnitsToggled(bool checked);
+  void onRadiusUnitsClicked();
   void onQuickRadiusButtonClicked();
-  void onRadiusValueChanged(double value);
+  void onRadiusValueChanged(double);
 
 public:
-  QIcon EffectIcon;
+  QIcon PaintIcon;
 
   QList<QPoint> PaintCoordinates;
   QList<vtkActor2D*> FeedbackActors;

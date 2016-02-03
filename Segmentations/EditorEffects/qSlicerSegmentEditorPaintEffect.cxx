@@ -115,7 +115,7 @@ qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(q
   , SmudgeCheckbox(NULL)
   , PixelModeCheckbox(NULL)
 {
-  this->EffectIcon = QIcon(":Icons/Paint.png");
+  this->PaintIcon = QIcon(":Icons/Paint.png");
 
   this->Painter = vtkImageSlicePaint::New();
 
@@ -299,14 +299,14 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   int bottomRight[3] = {0, 0, 0};
   for (int i=0; i<3; ++i)
   {
-    topLeft[i] = std::max(topLeftIjk[i], 0);
-    topLeft[i] = std::min(topLeftIjk[i], dims[i]-1);
-    topRight[i] = std::max(topRightIjk[i], 0);
-    topRight[i] = std::min(topRightIjk[i], dims[i]-1);
-    bottomLeft[i] = std::max(bottomLeftIjk[i], 0);
-    bottomLeft[i] = std::min(bottomLeftIjk[i], dims[i]-1);
-    bottomRight[i] = std::max(bottomRightIjk[i], 0);
-    bottomRight[i] = std::min(bottomRightIjk[i], dims[i]-1);
+    topLeft[i] = qMax(topLeftIjk[i], 0);
+    topLeft[i] = qMin(topLeftIjk[i], dims[i]-1);
+    topRight[i] = qMax(topRightIjk[i], 0);
+    topRight[i] = qMin(topRightIjk[i], dims[i]-1);
+    bottomLeft[i] = qMax(bottomLeftIjk[i], 0);
+    bottomLeft[i] = qMin(bottomLeftIjk[i], dims[i]-1);
+    bottomRight[i] = qMax(bottomRightIjk[i], 0);
+    bottomRight[i] = qMin(bottomRightIjk[i], dims[i]-1);
   }
 
   // If the region is smaller than a pixel then paint it using paintPixel mode,
@@ -445,14 +445,14 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
         int currentBottomRight[3] = {0, 0, 0};
         for (int i=0; i<3; ++i)
         {
-          currentTopLeft[i] = std::max(currentTopLeftIjk[i], 0);
-          currentTopLeft[i] = std::min(currentTopLeftIjk[i], dims[i]-1);
-          currentTopRight[i] = std::max(currentTopRightIjk[i], 0);
-          currentTopRight[i] = std::min(currentTopRightIjk[i], dims[i]-1);
-          currentBottomLeft[i] = std::max(currentBottomLeftIjk[i], 0);
-          currentBottomLeft[i] = std::min(currentBottomLeftIjk[i], dims[i]-1);
-          currentBottomRight[i] = std::max(currentBottomRightIjk[i], 0);
-          currentBottomRight[i] = std::min(currentBottomRightIjk[i], dims[i]-1);
+          currentTopLeft[i] = qMax(currentTopLeftIjk[i], 0);
+          currentTopLeft[i] = qMin(currentTopLeftIjk[i], dims[i]-1);
+          currentTopRight[i] = qMax(currentTopRightIjk[i], 0);
+          currentTopRight[i] = qMin(currentTopRightIjk[i], dims[i]-1);
+          currentBottomLeft[i] = qMax(currentBottomLeftIjk[i], 0);
+          currentBottomLeft[i] = qMin(currentBottomLeftIjk[i], dims[i]-1);
+          currentBottomRight[i] = qMax(currentBottomRightIjk[i], 0);
+          currentBottomRight[i] = qMin(currentBottomRightIjk[i], dims[i]-1);
         }
         this->Painter->SetTopLeft(currentTopLeft);
         this->Painter->SetTopRight(currentTopRight);
@@ -512,9 +512,9 @@ void qSlicerSegmentEditorPaintEffectPrivate::scaleRadius(double scaleFactor)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::onRadiusUnitsToggled(bool checked)
+void qSlicerSegmentEditorPaintEffectPrivate::onRadiusUnitsClicked()
 {
-  if (checked)
+  if (this->RadiusUnitsToggle->text().compare("mm:"))
   {
     this->RadiusUnitsToggle->setText("mm:");
   }
@@ -539,7 +539,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked()
     {
       double spacing[3] = {0.0, 0.0, 0.0};
       q->m_EditedLabelmap->GetSpacing(spacing);
-      double minimumSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+      double minimumSpacing = qMin(spacing[0], qMin(spacing[1], spacing[2]));
       radiusMm = minimumSpacing * radius;
     }
   }
@@ -678,7 +678,7 @@ QIcon qSlicerSegmentEditorPaintEffect::icon()
 {
   Q_D(qSlicerSegmentEditorPaintEffect);
 
-  return d->EffectIcon;
+  return d->PaintIcon;
 }
 
 //---------------------------------------------------------------------------
@@ -697,6 +697,16 @@ qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorPaintEffect::clone()
 void qSlicerSegmentEditorPaintEffect::deactivate()
 {
   Superclass::deactivate();
+
+  Q_D(qSlicerSegmentEditorPaintEffect);
+
+  // Delete brushes because actors are removed in base class deactivate call above,
+  // and when re-activated, they will be thus created and added again
+  foreach (PaintEffectBrush* brush, d->Brushes)
+  {
+    delete brush;
+  }
+  d->Brushes.clear();
 }
 
 //---------------------------------------------------------------------------
@@ -746,7 +756,7 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   }
   else if (eid == vtkCommand::MouseMoveEvent)
   {
-    brush->Actor->VisibilityOn();
+    brush->Actor->SetVisibility(!this->integerParameter("PixelMode"));
     if (d->IsPainting)
     {
       int eventPosition[2] = {0,0};
@@ -864,7 +874,7 @@ void qSlicerSegmentEditorPaintEffect::setupOptionsFrame()
   d->PixelModeCheckbox->setToolTip("Paint exactly the pixel under the cursor, ignoring the radius, threshold, and paint over.");
   this->addOptionsWidget(d->PixelModeCheckbox);
 
-  QObject::connect(d->RadiusUnitsToggle, SIGNAL(toggled(bool)), d, SLOT(onRadiusUnitsToggled(bool)));
+  QObject::connect(d->RadiusUnitsToggle, SIGNAL(clicked()), d, SLOT(onRadiusUnitsClicked()));
   QObject::connect(d->SphereCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
   QObject::connect(d->SmudgeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
   QObject::connect(d->PixelModeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
@@ -978,18 +988,18 @@ void qSlicerSegmentEditorPaintEffect::setEditedLabelmap(vtkOrientedImageData* la
   {
     double spacing[3] = {0.0, 0.0, 0.0};
     labelmap->GetSpacing(spacing);
-    double minimumSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    double minimumSpacing = qMin(spacing[0], qMin(spacing[1], spacing[2]));
     double minimumRadius = 0.5 * minimumSpacing;
     this->setParameter("MinimumRadius", minimumRadius, true); // Emit modified event
 
     int dimensions[3] = {0, 0, 0};
     labelmap->GetDimensions(dimensions);
     double bounds[3] = {spacing[0]*dimensions[0], spacing[1]*dimensions[1], spacing[2]*dimensions[2]};
-    double maximumBounds = std::max(bounds[0], std::max(bounds[1], bounds[2]));
+    double maximumBounds = qMax(bounds[0], qMax(bounds[1], bounds[2]));
     double maximumRadius = 0.5 * maximumBounds;
     this->setParameter("MaximumRadius", maximumRadius, true); // Emit modified event
 
-    this->setParameter("Radius", std::min(50.0 * minimumRadius, 0.5 * maximumRadius), true); // Emit modified event
+    this->setParameter("Radius", qMin(50.0 * minimumRadius, 0.5 * maximumRadius), true); // Emit modified event
 
     this->updateGUIFromMRML();
   }

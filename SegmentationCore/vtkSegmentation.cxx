@@ -185,6 +185,12 @@ void vtkSegmentation::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkSegmentation::GetBounds(double bounds[6])
 {
+  if (this->Segments.empty())
+  {
+    bounds[0] = bounds[1] = bounds[2] = bounds[3] = bounds[4] = bounds[5] = 0.0;
+    return;
+  }
+
   vtkOrientedImageData::UninitializeBounds(bounds);
 
   for (SegmentMap::iterator it = this->Segments.begin(); it != this->Segments.end(); ++it)
