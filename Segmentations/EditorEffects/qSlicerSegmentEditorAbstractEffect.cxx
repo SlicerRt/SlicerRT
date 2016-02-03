@@ -21,7 +21,8 @@
 // Segmentations includes
 #include "qSlicerSegmentEditorAbstractEffect.h"
 
-#include "vtkMRMLSegmentEditorEffectNode.h"
+#include "vtkMRMLSegmentationNode.h"
+#include "vtkMRMLSegmentEditorNode.h"
 #include "vtkOrientedImageData.h"
 
 // Qt includes
@@ -45,11 +46,10 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLViewNode.h"
-#include "vtkMRMLVolumeNode.h"
-#include "vtkMRMLSegmentationNode.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
+#include <vtkWeakPointer.h>
 #include <vtkCommand.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
@@ -68,11 +68,14 @@ public:
   qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object);
   ~qSlicerSegmentEditorAbstractEffectPrivate();
 public:
+  /// Segment editor parameter set node
+  vtkWeakPointer<vtkMRMLSegmentEditorNode> ParameterSetNode;
+
+  /// MRML scene
+  vtkMRMLScene* Scene;
+  
   /// Cursor to restore after custom cursor is not needed any more
   QCursor SavedCursor;
-
-  /// MRML ID of the parameter set node corresponding to the effect
-  QString ParameterSetNodeID;
 
   /// List of actors used by the effect. Removed when effect is deactivated
   QMap<qMRMLWidget*, QList<vtkProp*> > Actors;
@@ -85,6 +88,8 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffectPrivate::qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object)
   : q_ptr(&object)
+  , Scene(NULL)
+  , ParameterSetNode(NULL)
   , SavedCursor(QCursor(Qt::ArrowCursor))
   , OptionsFrame(NULL)
 {
@@ -109,8 +114,6 @@ qSlicerSegmentEditorAbstractEffectPrivate::~qSlicerSegmentEditorAbstractEffectPr
 qSlicerSegmentEditorAbstractEffect::qSlicerSegmentEditorAbstractEffect(QObject* parent)
  : Superclass(parent)
  , d_ptr( new qSlicerSegmentEditorAbstractEffectPrivate(*this) )
- , m_Scene(NULL)
- , m_EditedLabelmap(NULL)
 {
 }
 
@@ -239,28 +242,6 @@ void qSlicerSegmentEditorAbstractEffect::addActor(qMRMLWidget* viewWidget, vtkPr
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLVolumeNode* qSlicerSegmentEditorAbstractEffect::masterVolumeNode()
-{
-  if (!m_Scene)
-  {
-    return NULL;
-  }
-
-  return vtkMRMLVolumeNode::SafeDownCast( m_Scene->GetNodeByID(m_MasterVolumeNodeID.toLatin1().constData()) );
-}
-
-//-----------------------------------------------------------------------------
-vtkMRMLSegmentationNode* qSlicerSegmentEditorAbstractEffect::segmentationNode()
-{
-  if (!m_Scene)
-  {
-    return NULL;
-  }
-
-  return vtkMRMLSegmentationNode::SafeDownCast( m_Scene->GetNodeByID(m_SegmentationNodeID.toLatin1().constData()) );
-}
-
-//-----------------------------------------------------------------------------
 QFrame* qSlicerSegmentEditorAbstractEffect::optionsFrame()
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
@@ -278,59 +259,48 @@ void qSlicerSegmentEditorAbstractEffect::addOptionsWidget(QWidget* newOptionsWid
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLSegmentEditorEffectNode* qSlicerSegmentEditorAbstractEffect::parameterSetNode()
+vtkMRMLScene* qSlicerSegmentEditorAbstractEffect::scene()
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
 
-  if (!m_Scene)
-  {
-    return NULL;
-  }
+  return d->Scene;
+}
 
-  // Create if does not yet exist
-  if (d->ParameterSetNodeID.isEmpty())
-  {
-    vtkMRMLSegmentEditorEffectNode* node = vtkMRMLSegmentEditorEffectNode::New();
-    QString nodeName = QString("%1_ParameterSet").arg(this->name());
-    std::string uniqueNodeName = m_Scene->GenerateUniqueName(nodeName.toLatin1().constData());
-    node->SetName(uniqueNodeName.c_str());
-    node->SetEffectName(this->name().toLatin1().constData());
-    node->HideFromEditorsOn();
-    m_Scene->AddNode(node);
-    d->ParameterSetNodeID = QString(node->GetID());
-    node->Delete(); // Pass ownership to MRML scene only
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::setScene(vtkMRMLScene* scene)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
 
-    // Connect node modified event to update user interface
-    qvtkConnect(node, vtkCommand::ModifiedEvent, this, SLOT( updateGUIFromMRML() ) );
+  d->Scene = scene;
+}
 
-    // Set default parameters to the new node
-    this->setMRMLDefaults();
+//-----------------------------------------------------------------------------
+vtkMRMLSegmentEditorNode* qSlicerSegmentEditorAbstractEffect::parameterSetNode()
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
 
-    return node;
-  }
+  return d->ParameterSetNode;
+}
 
-  // Find and return if already exists
-  vtkMRMLSegmentEditorEffectNode* node = vtkMRMLSegmentEditorEffectNode::SafeDownCast(
-    m_Scene->GetNodeByID(d->ParameterSetNodeID.toLatin1().constData()) );
-  if (!node)
-  {
-    // If scene was closed, then parameter nodes were removed, need to re-create
-    d->ParameterSetNodeID = QString();
-    return this->parameterSetNode();
-  }
-  return node;
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::setParameterSetNode(vtkMRMLSegmentEditorNode* node)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  d->ParameterSetNode = node;
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerSegmentEditorAbstractEffect::parameter(QString name)
 {
-  vtkMRMLSegmentEditorEffectNode* node = this->parameterSetNode();
-  if (!node)
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+  if (!d->ParameterSetNode)
   {
     return QString();
   }
 
-  const char* value = node->GetAttribute(name.toLatin1().constData());
+  QString attributeName = QString("%1.%2").arg(this->name()).arg(name);
+  const char* value = d->ParameterSetNode->GetAttribute(attributeName.toLatin1().constData());
   if (!value)
   {
     qCritical() << "qSlicerSegmentEditorAbstractEffect::parameter: Parameter named " << name << " cannot be found for effect " << this->name();
@@ -343,7 +313,8 @@ QString qSlicerSegmentEditorAbstractEffect::parameter(QString name)
 //-----------------------------------------------------------------------------
 int qSlicerSegmentEditorAbstractEffect::integerParameter(QString name)
 {
-  if (!this->parameterSetNode())
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+  if (!d->ParameterSetNode)
   {
     return 0;
   }
@@ -363,7 +334,8 @@ int qSlicerSegmentEditorAbstractEffect::integerParameter(QString name)
 //-----------------------------------------------------------------------------
 double qSlicerSegmentEditorAbstractEffect::doubleParameter(QString name)
 {
-  if (!this->parameterSetNode())
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+  if (!d->ParameterSetNode)
   {
     return 0.0;
   }
@@ -383,27 +355,28 @@ double qSlicerSegmentEditorAbstractEffect::doubleParameter(QString name)
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString value, bool emitModifiedEvent/*=false*/)
 {
-  vtkMRMLSegmentEditorEffectNode* node = this->parameterSetNode();
-  if (!node)
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+  if (!d->ParameterSetNode)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::setParameter: Unable to find effect parameter node for effect " << this->name();
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::setParameter: Invalid segment editor parameter set node set to effect " << this->name();
     return;
   }
 
   // Disable modified events if requested
-  int disableState = node->GetDisableModifiedEvent();
+  int disableState = d->ParameterSetNode->GetDisableModifiedEvent();
   if (!emitModifiedEvent)
   {
-    node->SetDisableModifiedEvent(1);
+    d->ParameterSetNode->SetDisableModifiedEvent(1);
   }
 
   // Set parameter as attribute
-  node->SetAttribute(name.toLatin1().constData(), value.toLatin1().constData());
+  QString attributeName = QString("%1.%2").arg(this->name()).arg(name);
+  d->ParameterSetNode->SetAttribute(attributeName.toLatin1().constData(), value.toLatin1().constData());
 
   // Re-enable modified events for parameter node if disabling it for this set operation was requested
   if (!emitModifiedEvent)
   {
-    node->SetDisableModifiedEvent(disableState);
+    d->ParameterSetNode->SetDisableModifiedEvent(disableState);
   }
 }
 

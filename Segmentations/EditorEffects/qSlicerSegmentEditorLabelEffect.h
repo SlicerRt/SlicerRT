@@ -34,7 +34,9 @@ class vtkMRMLVolumeNode;
 class vtkMRMLSegmentationNode;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-/// \brief TODO:
+/// \brief Base class for all "label" effects.
+/// 
+/// This base class provides GUI and MRML for the options PaintOver and Threshold.
 class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorLabelEffect :
   public qSlicerSegmentEditorAbstractEffect
 {
@@ -68,8 +70,8 @@ public:
   /// Set default parameters in the parameter MRML node
   virtual void setMRMLDefaults();
 
-  /// Set master volume node ID. Override to set threshold minimum and maximum
-  Q_INVOKABLE virtual void setMasterVolumeNodeID(QString id);
+  /// Perform actions needed on master volume change
+  virtual void masterVolumeNodeChanged();
 
 public slots:
   /// Update user interface from parameter set node

@@ -48,7 +48,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
-#include <vtkWeakPointer.h>
 #include <vtkPointLocator.h>
 #include <vtkGeneralTransform.h>
 #include <vtkPointData.h>

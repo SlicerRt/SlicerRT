@@ -30,6 +30,22 @@ class DicomRtImportSelfTestWidget(ScriptedLoadableModuleWidget):
   def setup(self):
     self.developerMode = True
     ScriptedLoadableModuleWidget.setup(self)
+    
+    #-------------------------------------------------------
+    #TODO: TEMP CODE FOR TESTING COMPLETELY UNRELATED STUFF!
+    import qSlicerSegmentationsModuleWidgetsPythonQt
+    self.editor = qSlicerSegmentationsModuleWidgetsPythonQt.qMRMLSegmentEditorWidget()
+    self.editor.setMRMLScene(slicer.mrmlScene)
+    
+    import vtkSlicerSegmentationsModuleMRML
+    paramSetNode = vtkSlicerSegmentationsModuleMRML.vtkMRMLSegmentEditorNode()
+    slicer.mrmlScene.AddNode(paramSetNode)
+    self.editor.setMRMLSegmentEditorNode(paramSetNode)
+    
+    self.layout.addWidget(self.editor)
+    v = slicer.util.getNode('303: Unnamed Series')
+    self.editor.setMasterVolumeNode(v)
+    #-------------------------------------------------------
 
     # Add vertical spacer
     self.layout.addStretch(1)

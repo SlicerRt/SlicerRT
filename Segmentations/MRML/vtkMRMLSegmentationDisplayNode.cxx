@@ -221,8 +221,8 @@ vtkMRMLColorTableNode* vtkMRMLSegmentationDisplayNode::CreateColorTableNode(cons
   // Initialize color table
   segmentationColorTableNode->SetNumberOfColors(2);
   segmentationColorTableNode->GetLookupTable()->SetTableRange(0,1);
-  segmentationColorTableNode->AddColor(GetSegmentationColorNameBackground(), 0.0, 0.0, 0.0, 0.0); // Black background
-  segmentationColorTableNode->AddColor(GetSegmentationColorNameInvalid(),
+  segmentationColorTableNode->AddColor(this->GetSegmentationColorNameBackground(), 0.0, 0.0, 0.0, 0.0); // Black background
+  segmentationColorTableNode->AddColor(this->GetSegmentationColorNameInvalid(),
     vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],
     vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[3] ); // Color indicating invalid index
 

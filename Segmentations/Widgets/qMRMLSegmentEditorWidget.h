@@ -29,10 +29,14 @@
 // MRMLWidgets includes
 #include "qMRMLWidget.h"
 
+// CTK includes
+#include <ctkVTKObject.h>
+
 // STD includes
 #include <cstdlib>
 
 class vtkMRMLNode;
+class vtkMRMLSegmentEditorNode;
 class vtkObject;
 class qMRMLSegmentEditorWidgetPrivate;
 class QItemSelection;
@@ -52,9 +56,11 @@ class qSlicerSegmentEditorAbstractEffect;
 class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentEditorWidget : public qMRMLWidget
 {
   Q_OBJECT
+  QVTK_OBJECT
 
 public:
   Q_PROPERTY(qSlicerSegmentEditorAbstractEffect* activeEffect READ activeEffect WRITE setActiveEffect)
+  Q_PROPERTY(vtkMRMLSegmentEditorNode* mrmlSegmentEditorNode READ mrmlSegmentEditorNode WRITE setMRMLSegmentEditorNode)
   Q_PROPERTY(vtkMRMLNode* segmentationNode READ segmentationNode WRITE setSegmentationNode)
   Q_PROPERTY(vtkMRMLNode* masterVolumeNode READ masterVolumeNode WRITE setMasterVolumeNode)
 
@@ -65,17 +71,20 @@ public:
   /// Destructor
   virtual ~qMRMLSegmentEditorWidget();
 
+  /// Get the segment editor parameter set node
+  Q_INVOKABLE vtkMRMLSegmentEditorNode* mrmlSegmentEditorNode()const;
+
   /// Get currently selected segmentation MRML node
-  vtkMRMLNode* segmentationNode();
+  vtkMRMLNode* segmentationNode()const;
   /// Get ID of currently selected segmentation node
-  Q_INVOKABLE QString segmentationNodeID();
+  Q_INVOKABLE QString segmentationNodeID()const;
   /// Get currently selected master volume MRML node
-  vtkMRMLNode* masterVolumeNode();
+  vtkMRMLNode* masterVolumeNode()const;
   /// Get ID of currently selected master volume node
-  Q_INVOKABLE QString masterVolumeNodeID();
+  Q_INVOKABLE QString masterVolumeNodeID()const;
 
   /// Get segment ID of selected segment
-  Q_INVOKABLE QString currentSegmentID();
+  Q_INVOKABLE QString currentSegmentID()const;
 
   /// Return active effect if selected, NULL otherwise
   /// \sa m_ActiveEffect, setActiveEffect()
@@ -102,6 +111,10 @@ public:
 public slots:
   /// Set the MRML \a scene associated with the widget
   virtual void setMRMLScene(vtkMRMLScene* newScene);
+
+  /// Set the segment editor parameter set node
+  void setMRMLSegmentEditorNode(vtkMRMLSegmentEditorNode* newSegmentEditorNode);
+
   /// Update widget state from the MRML scene
   virtual void updateWidgetFromMRML();
 

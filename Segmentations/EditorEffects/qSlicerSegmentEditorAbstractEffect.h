@@ -27,6 +27,9 @@
 // CTK includes
 #include <ctkVTKObject.h>
 
+// VTK includes
+#include <vtkWeakPointer.h>
+
 // Qt includes
 #include <QIcon>
 #include <QPair>
@@ -35,9 +38,8 @@
 class qSlicerSegmentEditorAbstractEffectPrivate;
 
 class vtkMRMLScene;
-class vtkMRMLSegmentEditorEffectNode;
+class vtkMRMLSegmentEditorNode;
 class vtkMRMLAbstractViewNode;
-class vtkMRMLVolumeNode;
 class vtkMRMLSegmentationNode;
 class vtkRenderer;
 class vtkRenderWindow;
@@ -120,25 +122,25 @@ public slots:
 signals:
   /// Signal that needs to be emitted from the effects when the edited labelmap is to be applied to the currently
   /// edited segment. Connected to \sa qMRMLSegmentEditorWidget::applyChangesToSelectedSegment
+//TODO:
   void apply();
 
 // Get/set methods
 public:
-  /// Set edited labelmap. Can be overridden to perform additional actions.
-  Q_INVOKABLE virtual void setEditedLabelmap(vtkOrientedImageData* labelmap) { m_EditedLabelmap = labelmap; };
-
+  /// Get MRML scene
+  Q_INVOKABLE vtkMRMLScene* scene();
   /// Set MRML scene
-  Q_INVOKABLE void setScene(vtkMRMLScene* scene) { m_Scene = scene; };
+  Q_INVOKABLE void setScene(vtkMRMLScene* scene);
 
-  /// Set master volume node ID
-  Q_INVOKABLE virtual void setMasterVolumeNodeID(QString id) { m_MasterVolumeNodeID = id; };
-  // Get master volume node
-  Q_INVOKABLE vtkMRMLVolumeNode* masterVolumeNode();
+  /// Get segment editor parameter set node
+  vtkMRMLSegmentEditorNode* parameterSetNode();
+  /// Set segment editor parameter set node
+  Q_INVOKABLE void setParameterSetNode(vtkMRMLSegmentEditorNode* node);
 
-  /// Set segmentation node ID
-  Q_INVOKABLE virtual void setSegmentationNodeID(QString id) { m_SegmentationNodeID = id; };
-  // Get segmentation node
-  Q_INVOKABLE vtkMRMLSegmentationNode* segmentationNode();
+  /// Simple mechanism to let the effects know that edited labelmap has changed
+  virtual void editedLabelmapChanged() { };
+  /// Simple mechanism to let the effects know that master volume has changed
+  virtual void masterVolumeNodeChanged() { };
 
   /// Get effect options frame
   Q_INVOKABLE QFrame* optionsFrame();
@@ -154,17 +156,14 @@ protected:
 
 // Effect parameter functions
 public:
-  /// Get effect parameter set node
-  vtkMRMLSegmentEditorEffectNode* parameterSetNode();
-
   /// Get effect parameter from effect parameter set node
-  QString parameter(QString name);
+  Q_INVOKABLE QString parameter(QString name);
 
   /// Convenience function to get integer parameter
-  int integerParameter(QString name);
+  Q_INVOKABLE int integerParameter(QString name);
 
   /// Convenience function to get double parameter
-  double doubleParameter(QString name);
+  Q_INVOKABLE double doubleParameter(QString name);
 
   /// Set effect parameter in effect parameter set node. This function is called by both convenience functions.
   /// \param name Parameter name string
@@ -172,7 +171,7 @@ public:
   /// \param emitModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
   ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
   ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
-  void setParameter(QString name, QString value, bool emitModifiedEvent=false);
+  Q_INVOKABLE void setParameter(QString name, QString value, bool emitModifiedEvent=false);
 
   /// Convenience function to set integer parameter
   /// \param name Parameter name string
@@ -180,7 +179,7 @@ public:
   /// \param emitModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
   ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
   ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
-  void setParameter(QString name, int value, bool emitModifiedEvent=false);
+  Q_INVOKABLE void setParameter(QString name, int value, bool emitModifiedEvent=false);
 
   /// Convenience function to set double parameter
   /// \param name Parameter name string
@@ -188,7 +187,7 @@ public:
   /// \param emitModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
   ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
   ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
-  void setParameter(QString name, double value, bool emitModifiedEvent=false);
+  Q_INVOKABLE void setParameter(QString name, double value, bool emitModifiedEvent=false);
 
 // Utility functions
 public:
@@ -197,40 +196,25 @@ public:
   void abortEvent(vtkRenderWindowInteractor* interactor, unsigned long eventId, qMRMLWidget* viewWidget);
 
   /// Get render window for view widget
-  static vtkRenderWindow* renderWindow(qMRMLWidget* viewWidget);
+  Q_INVOKABLE static vtkRenderWindow* renderWindow(qMRMLWidget* viewWidget);
   /// Get renderer for view widget
-  static vtkRenderer* renderer(qMRMLWidget* viewWidget);
+  Q_INVOKABLE static vtkRenderer* renderer(qMRMLWidget* viewWidget);
   /// Get node for view widget
-  static vtkMRMLAbstractViewNode* viewNode(qMRMLWidget* viewWidget);
+  Q_INVOKABLE static vtkMRMLAbstractViewNode* viewNode(qMRMLWidget* viewWidget);
 
   /// Convert RAS position to XY in-slice position
-  static QPoint rasToXy(double ras[3], qMRMLSliceWidget* sliceWidget);
+  Q_INVOKABLE static QPoint rasToXy(double ras[3], qMRMLSliceWidget* sliceWidget);
   /// Convert XYZ slice view position to RAS position:
   /// x,y uses slice (canvas) coordinate system and actually has a 3rd z component (index into the
   /// slice you're looking at), hence xyToRAS is really performing xyzToRAS. RAS is patient world
   /// coordinate system. Note the 1 is because the transform uses homogeneous coordinates.
-  static void xyzToRas(double inputXyz[3], double outputRas[3], qMRMLSliceWidget* sliceWidget);
+  Q_INVOKABLE static void xyzToRas(double inputXyz[3], double outputRas[3], qMRMLSliceWidget* sliceWidget);
   /// Convert XY in-slice position to RAS position
-  static void xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget);
+  Q_INVOKABLE static void xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget);
   /// Convert XYZ slice view position to image IJK position, \sa xyzToRas
-  static void xyzToIjk(double inputXyz[3], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
+  Q_INVOKABLE static void xyzToIjk(double inputXyz[3], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
   /// Convert XY in-slice position to image IJK position
-  static void xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
-
-protected:
-  /// MRML scene
-  vtkMRMLScene* m_Scene;
-
-  /// Edited binary labelmap
-  vtkOrientedImageData* m_EditedLabelmap;
-
-  /// Master volume node ID to conveniently and get the master volume for certain operations
-  /// (the alternative would be to go through the slice logic and the layers)
-  QString m_MasterVolumeNodeID;
- 
-  /// Segmentation node ID to conveniently and get the master volume for certain operations
-  /// (the alternative would be to go through the slice logic and the layers)
-  QString m_SegmentationNodeID;
+  Q_INVOKABLE static void xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
 
 protected:
   QScopedPointer<qSlicerSegmentEditorAbstractEffectPrivate> d_ptr;

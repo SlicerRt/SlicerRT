@@ -24,7 +24,7 @@
 
 #include "vtkOrientedImageData.h"
 #include "vtkMRMLSegmentationNode.h"
-#include "vtkMRMLSegmentEditorEffectNode.h"
+#include "vtkMRMLSegmentEditorNode.h"
 
 // Qt includes
 #include <QDebug>
@@ -59,7 +59,7 @@
 #include <vtkMRMLScene.h>
 #include <vtkEventBroker.h>
 #include <vtkMRMLSliceNode.h>
-#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // Slicer includes
 #include "qMRMLSliceWidget.h"
@@ -255,7 +255,13 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  vtkOrientedImageData* labelImage = q->m_EditedLabelmap;
+  if (q->parameterSetNode())
+  {
+    qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::paintBrush: Invalid segment editor parameter set node!";
+    return;
+  }
+
+  vtkOrientedImageData* labelImage = q->parameterSetNode()->GetEditedLabelmap();
   if (!labelImage)
   {
     return;
@@ -343,11 +349,11 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   }
 
   // Get IJK to RAS transform matrices for edited labelmap and master volume
-  vtkMRMLVolumeNode* masterVolumeNode = q->masterVolumeNode();
+  vtkMRMLScalarVolumeNode* masterVolumeNode = q->parameterSetNode()->GetMasterVolumeNode();
   vtkSmartPointer<vtkMatrix4x4> masterIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(masterVolumeNode, masterIjkToRasMatrix);
 
-  vtkMRMLSegmentationNode* segmentationNode = q->segmentationNode();
+  vtkMRMLSegmentationNode* segmentationNode = q->parameterSetNode()->GetSegmentationNode();
   vtkSmartPointer<vtkMatrix4x4> labelIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(labelImage, segmentationNode, labelIjkToRasMatrix);
 
@@ -480,7 +486,13 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceW
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  vtkOrientedImageData* labelImage = q->m_EditedLabelmap;
+  if (q->parameterSetNode())
+  {
+    qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::paintPixel: Invalid segment editor parameter set node!";
+    return;
+  }
+
+  vtkOrientedImageData* labelImage = q->parameterSetNode()->GetEditedLabelmap();
   if (!labelImage)
   {
     return;
@@ -529,16 +541,23 @@ void qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked()
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
+  if (q->parameterSetNode())
+  {
+    qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked: Invalid segment editor parameter set node!";
+    return;
+  }
+
+  vtkOrientedImageData* labelImage = q->parameterSetNode()->GetEditedLabelmap();
   QPushButton* senderButton = dynamic_cast<QPushButton*>(sender());
   int radius = senderButton->property("Radius").toInt();
 
   double radiusMm = 0.0;
   if (!this->RadiusUnitsToggle->text().compare("px:"))
   {
-    if (q->m_EditedLabelmap)
+    if (labelImage)
     {
       double spacing[3] = {0.0, 0.0, 0.0};
-      q->m_EditedLabelmap->GetSpacing(spacing);
+      labelImage->GetSpacing(spacing);
       double minimumSpacing = qMin(spacing[0], qMin(spacing[1], spacing[2]));
       radiusMm = minimumSpacing * radius;
     }
@@ -902,7 +921,7 @@ void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
 
   Q_D(qSlicerSegmentEditorPaintEffect);
 
-  if (!m_Scene)
+  if (!this->scene())
   {
     return;
   }
@@ -940,7 +959,7 @@ void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
   d->RadiusSpinBox->setValue(this->doubleParameter("Radius"));
   d->RadiusSpinBox->setMinimum(this->doubleParameter("MinimumRadius"));
   d->RadiusSpinBox->setMaximum(this->doubleParameter("MaximumRadius"));
-  d->RadiusSpinBox->setMRMLScene(this->m_Scene);
+  d->RadiusSpinBox->setMRMLScene(this->scene());
   int decimals = (int)(log10(this->doubleParameter("MinimumRadius")));
   if (decimals < 0)
   {
@@ -980,10 +999,15 @@ void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffect::setEditedLabelmap(vtkOrientedImageData* labelmap)
+void qSlicerSegmentEditorPaintEffect::editedLabelmapChanged()
 {
-  Superclass::setEditedLabelmap(labelmap);
+  if (this->parameterSetNode())
+  {
+    qCritical() << "qSlicerSegmentEditorPaintEffect::editedLabelmapChanged: Invalid segment editor parameter set node!";
+    return;
+  }
 
+  vtkOrientedImageData* labelmap = this->parameterSetNode()->GetEditedLabelmap();
   if (labelmap)
   {
     double spacing[3] = {0.0, 0.0, 0.0};

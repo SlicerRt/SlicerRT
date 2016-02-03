@@ -24,6 +24,7 @@
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkMRMLSegmentationDisplayNode.h"
 #include "vtkMRMLSegmentationStorageNode.h"
+#include "vtkMRMLSegmentEditorNode.h"
 
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
@@ -115,6 +116,7 @@ void vtkSlicerSegmentationsModuleLogic::RegisterNodes()
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentationNode>::New());
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentationDisplayNode>::New());
   this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentationStorageNode>::New());
+  this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentEditorNode>::New());
 
   // Register converter rules
   vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(

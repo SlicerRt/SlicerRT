@@ -36,8 +36,10 @@ public:
   static const char* GetSegmentationColorNameBackground() { return "Background"; };
   static const char* GetSegmentationColorNameInvalid() { return "Invalid"; };
   static const char* GetSegmentationColorNameRemoved() { return "Removed"; };
+  static const char* GetSegmentationColorNameMask() { return "Mask"; };
   static unsigned short GetSegmentationColorIndexBackground() { return 0; };
   static unsigned short GetSegmentationColorIndexInvalid() { return 1; };
+  static unsigned short GetSegmentationColorIndexMask() { return 255; };
 
   /// Display properties per segment
   struct SegmentDisplayProperties

@@ -24,6 +24,7 @@
 
 #include "vtkOrientedImageData.h"
 #include "vtkMRMLSegmentationNode.h"
+#include "vtkMRMLSegmentEditorNode.h"
 
 // Qt includes
 #include <QDebug>
@@ -37,7 +38,7 @@
 #include <vtkMatrix4x4.h>
 
 // MRML includes
-#include "vtkMRMLVolumeNode.h"
+#include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLTransformNode.h"
 
 //-----------------------------------------------------------------------------
@@ -66,7 +67,13 @@ void qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange(double& low
   low = 0.0;
   high = 0.0;
 
-  vtkMRMLVolumeNode* masterVolumeNode = q->masterVolumeNode();
+  if (q->parameterSetNode())
+  {
+    qCritical() << "qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange: Invalid segment editor parameter set node!";
+    return;
+  }
+
+  vtkMRMLScalarVolumeNode* masterVolumeNode = q->parameterSetNode()->GetMasterVolumeNode();
   if (!masterVolumeNode)
   {
     qCritical() << "qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange: Failed to get master volume!";
@@ -122,15 +129,21 @@ qSlicerSegmentEditorLabelEffect::~qSlicerSegmentEditorLabelEffect()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::setMasterVolumeNodeID(QString id)
+void qSlicerSegmentEditorLabelEffect::masterVolumeNodeChanged()
 {
   Q_D(qSlicerSegmentEditorLabelEffect);
 
-  Superclass::setMasterVolumeNodeID(id);
+  if (this->parameterSetNode())
+  {
+    qCritical() << "qSlicerSegmentEditorLabelEffect::masterVolumeNodeChanged: Invalid segment editor parameter set node!";
+    return;
+  }
 
   double low = 0.0;
   double high = 1000.0;
-  if (!id.isEmpty())
+
+  vtkMRMLScalarVolumeNode* masterVolumeNode = this->parameterSetNode()->GetMasterVolumeNode();
+  if (masterVolumeNode)
   {
     d->masterVolumeScalarRange(low, high);
   }

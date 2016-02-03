@@ -76,8 +76,8 @@ public:
   /// Set default parameters in the parameter MRML node
   virtual void setMRMLDefaults();
 
-  /// Set edited labelmap. Can be overridden to perform additional actions.
-  virtual void setEditedLabelmap(vtkOrientedImageData* labelmap);
+  /// Perform actions needed on edited labelmap change
+  virtual void editedLabelmapChanged();
 
 public slots:
   /// Update user interface from parameter set node
