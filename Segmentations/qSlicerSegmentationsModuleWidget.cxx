@@ -31,6 +31,8 @@
 
 // SlicerQt includes
 #include <qSlicerApplication.h>
+#include <qSlicerAbstractModuleWidget.h>
+#include <qSlicerSubjectHierarchyAbstractPlugin.h>
 
 // MRML includes
 #include "vtkMRMLScene.h"
@@ -405,7 +407,29 @@ void qSlicerSegmentationsModuleWidget::onAddSegment()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentationsModuleWidget::onEditSelectedSegment()
 {
-  //TODO:
+  Q_D(qSlicerSegmentationsModuleWidget);
+
+  if ( !d->MRMLNodeComboBox_Segmentation->currentNode()
+    || d->SegmentsTableView->selectedSegmentIDs().count() != 1 )
+  {
+    qCritical() << "qSlicerSegmentationsModuleWidget::onEditSelectedSegment: Invalid segment selection!";
+    return;
+  }
+
+  // Switch to Segment Editor module, select segmentation node and segment ID
+  qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("SegmentEditor");
+  if (moduleWidget)
+  {
+    // Get segmentation selector combobox and set segmentation
+    qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_Segmentation");
+    nodeSelector->setCurrentNode(d->MRMLNodeComboBox_Segmentation->currentNode());
+
+    // Get segments table and select segment
+    qMRMLSegmentsTableView* segmentsTable = moduleWidget->findChild<qMRMLSegmentsTableView*>("SegmentsTableView");
+    QStringList segmentID;
+    segmentID << d->SegmentsTableView->selectedSegmentIDs()[0];
+    segmentsTable->setSelectedSegmentIDs(segmentID);
+  }
 }
 
 //-----------------------------------------------------------------------------
