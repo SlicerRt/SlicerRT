@@ -118,6 +118,12 @@ public:
   /// Note: beam numbers *are* unique within a plan
   vtkMRMLRTBeamNode* GetRTBeamNode(int beamNumber);
 
+  /// Get Subject Hierarchy node associated with this node
+  vtkMRMLSubjectHierarchyNode* GetSHNode();
+
+  /// Get Subject Hierarchy node associated with markups node of plan
+  vtkMRMLSubjectHierarchyNode* GetMarkupsSHNode();
+
   /// Set RTPlanName
   vtkSetStringMacro(RTPlanName);
   vtkGetStringMacro(RTPlanName);

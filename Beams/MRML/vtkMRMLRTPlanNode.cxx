@@ -227,9 +227,34 @@ void vtkMRMLRTPlanNode::SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialN
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
 {
+  // Create name
+  std::string markupsName = std::string(this->GetRTPlanName()) + " POI";
+  
+  // Create markups node
   vtkNew<vtkMRMLMarkupsFiducialNode> markupsNode;
+  markupsNode->SetName (markupsName.c_str());
   this->GetScene()->AddNode(markupsNode.GetPointer());
   this->SetAndObserveMarkupsFiducialNode(markupsNode.GetPointer());
+
+  // Subject hierarchy node is created automatically
+  
+  // If plan belongs to a study, set the markups node as belonging to
+  // the same study
+  vtkMRMLSubjectHierarchyNode* planSHNode = this->GetSHNode();
+  if (!planSHNode)
+  {
+    return markupsNode.GetPointer();
+  }
+  vtkMRMLSubjectHierarchyNode* studySHNode = planSHNode->GetAncestorAtLevel (
+    vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+  if (studySHNode)
+  {
+    vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode (
+      this->GetScene(), studySHNode,
+      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), 
+      markupsName.c_str(), markupsNode.GetPointer());
+  }
+  
   return markupsNode.GetPointer();
 }
 
@@ -364,8 +389,7 @@ void vtkMRMLRTPlanNode::AddRTBeamNode(vtkMRMLRTBeamNode *beamnode)
   vtkMRMLScene *scene = this->GetScene();
 
   // Get subject hierarchy node for the RT Plan
-  vtkMRMLSubjectHierarchyNode* planSHNode = 
-    vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, scene);
+  vtkMRMLSubjectHierarchyNode* planSHNode = this->GetSHNode();
 
   // If none found, create new subject hierarchy node for the RT Plan
   if (planSHNode == NULL) {
@@ -405,4 +429,16 @@ void vtkMRMLRTPlanNode::RemoveRTBeamNode(vtkMRMLRTBeamNode *beamNode)
     return;
   }
   scene->RemoveNode(shNode);
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetSHNode ()
+{
+  return vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, this->GetScene());
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetMarkupsSHNode ()
+{
+  return vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this->GetMarkupsFiducialNode(), this->GetScene());
 }

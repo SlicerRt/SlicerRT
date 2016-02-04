@@ -1076,6 +1076,13 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     beamModelSubjectHierarchyRootNode->SetParentNodeID(studyNode->GetID());
   }
 
+  // Put plan markups under study within SH
+  vtkMRMLSubjectHierarchyNode* planMarkupsSHNode = RTPlanNode->GetMarkupsSHNode();
+  if (planMarkupsSHNode && studyNode)
+  {
+    planMarkupsSHNode->SetParentNodeID(studyNode->GetID());
+  }
+
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 
   return true;
